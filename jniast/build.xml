@@ -1222,7 +1222,7 @@
 
     <uptodate property="javadoc.notrequired"
               targetfile="${dist.javadocs}/packages.html" >
-        <srcfiles dir= "${build.java}" includes="**/*.java"/>
+        <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
 
   </target>
