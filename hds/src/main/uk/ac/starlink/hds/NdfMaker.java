@@ -244,52 +244,50 @@ public class NdfMaker {
         }
 
         /* WCS component. */
-        if ( ndx.hasWCS() ) {
-            FrameSet wcs = doctorForNDF( ndx.getWCS(), shape );
+        FrameSet wcs = doctorForNDF( ndx.getWCS(), shape );
 
-            /* Construct a string filled with spaces. */
-            final int nchars = 32;
-            char[] blanks = new char[ nchars ];
-            Arrays.fill( blanks, ' ' );
-            final String blank = new String( blanks );
+        /* Construct a string filled with spaces. */
+        final int nchars = 32;
+        char[] blanks = new char[ nchars ];
+        Arrays.fill( blanks, ' ' );
+        final String blank = new String( blanks );
 
-            /* Get a list of strings containing the channel output.
-             * We use the same format as the NDF library - 32-character
-             * strings in which the first character is ' ' for the first
-             * string in a record, and '+' for continuation lines. */
-            final List lines = new ArrayList();
-            Channel lchan = new Channel() {
-                protected void sink( String line ) {
-                    line = line.trim();
-                    int pos = 0;
-                    int leng = line.length();
-                    while ( pos < leng ) {
-                        StringBuffer sbuf = new StringBuffer( blank );
-                        sbuf.setCharAt( 0, pos == 0 ? ' ' : '+' );
-                        for ( int i = 1;
-                              pos < leng && i < nchars;
-                              i++, pos++ ) {
-                            sbuf.setCharAt( i, line.charAt( pos ) );
-                        }
-                        lines.add( sbuf.toString() );
+        /* Get a list of strings containing the channel output.
+         * We use the same format as the NDF library - 32-character
+         * strings in which the first character is ' ' for the first
+         * string in a record, and '+' for continuation lines. */
+        final List lines = new ArrayList();
+        Channel lchan = new Channel() {
+            protected void sink( String line ) {
+                line = line.trim();
+                int pos = 0;
+                int leng = line.length();
+                while ( pos < leng ) {
+                    StringBuffer sbuf = new StringBuffer( blank );
+                    sbuf.setCharAt( 0, pos == 0 ? ' ' : '+' );
+                    for ( int i = 1;
+                          pos < leng && i < nchars;
+                          i++, pos++ ) {
+                        sbuf.setCharAt( i, line.charAt( pos ) );
                     }
+                    lines.add( sbuf.toString() );
                 }
-            };
-            lchan.setComment( false );
-            lchan.setFull( -1 );
-            lchan.write( wcs );
-
-            /* Now write the strings as an HDS array. */
-            int nline = lines.size();
-            ndfob.datNew( "WCS", "WCS", SCALAR_DIMS );
-            HDSObject wcsholder = ndfob.datFind( "WCS" );
-            wcsholder.datNew( "DATA", "_CHAR*" + nchars, new long[] { nline } );
-            HDSObject wcsob = wcsholder.datFind( "DATA" );
-            long[] pos = new long[] { 1 };
-            for ( Iterator it = lines.iterator(); it.hasNext(); ) {
-                wcsob.datCell( pos ).datPut0c( (String) it.next() );
-                pos[ 0 ]++;
             }
+        };
+        lchan.setComment( false );
+        lchan.setFull( -1 );
+        lchan.write( wcs );
+
+        /* Now write the strings as an HDS array. */
+        int nline = lines.size();
+        ndfob.datNew( "WCS", "WCS", SCALAR_DIMS );
+        HDSObject wcsholder = ndfob.datFind( "WCS" );
+        wcsholder.datNew( "DATA", "_CHAR*" + nchars, new long[] { nline } );
+        HDSObject wcsob = wcsholder.datFind( "DATA" );
+        long[] pos = new long[] { 1 };
+        for ( Iterator it = lines.iterator(); it.hasNext(); ) {
+            wcsob.datCell( pos ).datPut0c( (String) it.next() );
+            pos[ 0 ]++;
         }
 
         /* Writing is done - annul the primary HDSObject to ensure that

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
 
 public class NDFNdxTest extends TestCase {
@@ -89,12 +91,12 @@ public class NDFNdxTest extends TestCase {
         
     }
 
-    private void assertNdxEqual( Ndx ndx1, Ndx ndx2 ) throws IOException {
+    private void assertNdxEqual( Ndx ndx1, Ndx ndx2 )
+            throws IOException, TransformerException {
         assertTrue( NDArrays.equals( ndx1.getImage(), ndx2.getImage() ) );
         assertTrue( ndx1.hasVariance() == ndx2.hasVariance() );
         assertTrue( ndx1.hasQuality() == ndx2.hasQuality() );
         assertTrue( ndx1.hasTitle() == ndx2.hasTitle() );
-        assertTrue( "WCS status", ndx1.hasWCS() == ndx2.hasWCS() );
 
         // etc not implemented yet for NDFs
         // assertTrue( "Etc status", ndx1.hasEtc() == ndx2.hasEtc() );
@@ -110,8 +112,18 @@ public class NDFNdxTest extends TestCase {
         if ( ndx1.hasTitle() ) {
             assertEquals( ndx1.getTitle(), ndx2.getTitle() );
         }
-        if ( ndx1.hasWCS() ) {
-            assertEquals( ndx1.getWCS(), ndx2.getWCS() );
+        if ( ndx2.hasEtc() ) {
+            StringWriter sw1 = new StringWriter();
+            StringWriter sw2 = new StringWriter();
+            SourceReader sr = new SourceReader();
+            sr.setIncludeDeclaration( false );
+            sr.setIndent( 0 );
+            sr.writeSource( ndx1.getEtc(), sw1 );
+            sr.writeSource( ndx2.getEtc(), sw2 );
+            assertEquals( sw1.toString().replaceAll( "\\s", "" ),
+                          sw2.toString().replaceAll( "\\s", "" ) );
         }
+
+        assertEquals( ndx1.getWCS(), ndx2.getWCS() );
     }
 }

@@ -202,13 +202,23 @@ public class FitsArrayBuilder implements ArrayBuilder {
     }
 
     /**
-     * Makes a new HDU containing an NDArray with the shape and type
-     * as specified.  If the URL represents the first HDU in a FITS
+     * Makes a new HDU at a given URL containing an NDArray with the 
+     * shape and type as specified.  If the URL represents the first 
+     * HDU in a FITS
      * file, or leaves the HDU index unspecified, any existing FITS
      * file will be overwritten by a new single-HDU file.
      * An HDU index greter than 1 may be specified only if the 
      * URL has the <tt>file:</tt> protocol, and if it is one greater
      * than the number of HDUs currently in the FITS file.
+     *
+     * @param  url    the URL at which the resource backing the NDArray is
+     *                to be written
+     * @param  shape  the shape of the new NDArray to construct
+     * @param  type   the primitive data type of the new NDArray to construct
+     * @return   the new NDArray, or <tt>null</tt> if the URL doesn't look
+     *           like a FITS file
+     * @throws   IOException  if the URL is a FITS URL but the requested
+     *                        NDArray cannot be constructed for some reason
      */
     public NDArray makeNewNDArray( URL url, NDShape shape, Type type ) 
             throws IOException {
@@ -295,14 +305,39 @@ public class FitsArrayBuilder implements ArrayBuilder {
         }
 
         /* Make the implementation. */
-        ArrayImpl impl;
-        final ArrayDataOutput ostrm = stream;
         boolean primary = hdu == 1;
-        impl = new WritableFitsArrayImpl( shape, type, type.defaultBadValue(),
-                                          stream, primary, null );
+        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, 
+                                                    type.defaultBadValue(),
+                                                    stream, primary, null );
 
         /* Return an NDArray based on this. */
         return new BridgeNDArray( impl, url );
+    }
+
+    /**
+     * Makes a new HDU written into a given stream containing an NDArray 
+     * with the type and shape as specified.
+     *
+     * @param  stream  the stream down which the NDArray is to be written
+     * @param  shape  the shape of the new NDArray to construct
+     * @param  type   the primitive data type of the new NDArray to construct
+     * @param  primary  whether this is the primary HDU (first in file)
+     * @param  cards  array of additional FITS header cards to add - may be null
+     * @return the new NDArray object
+     * @throws IOException  if there is some I/O error
+     */
+    public NDArray makeNewNDArray( OutputStream stream, NDShape shape,
+                                   Type type, boolean primary,
+                                   HeaderCard[] cards )
+            throws IOException {
+        ArrayImpl impl;
+        if ( ! ( stream instanceof BufferedOutputStream ) ) {
+            stream = new BufferedOutputStream( stream );
+        }
+        ArrayDataOutput strm = new BufferedDataOutputStream( stream );
+        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, 
+                                                    type.defaultBadValue(),
+                                                    strm, primary, cards );
     }
 
 

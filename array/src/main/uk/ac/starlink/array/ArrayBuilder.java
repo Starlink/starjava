@@ -31,6 +31,9 @@ public interface ArrayBuilder {
      * @param   url   the URL of the resource from which an NDArray is to
      *                be constructed
      * @param   mode  the read/update/write mode with which to create the array
+     * @return   the NDArray at <tt>url</tt>, or <tt>null</tt> if this
+     *           handler does not recognise the URL
+     * 
      * @throws  IOException  if the URL is understood but an NDArray cannot
      *                       be made
      */
@@ -54,6 +57,8 @@ public interface ArrayBuilder {
      *                scheme of the NDArray to be created, but no guarantee
      *                is made that the orderings will match
      * @param  type   the primitive data type of the new NDArray to construct
+     * @return   the new NDArray, or <tt>null</tt> if this handler does not
+     *           recognise the URL
      * @throws   IOException  if the URL is understood but the requested
      *                        NDArray cannot be constructed there
      */
