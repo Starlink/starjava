@@ -158,7 +158,8 @@ public final class SpecDims
 
             //  Get the current Frame, this defines the coordinate
             //  systems. For a mixed dispersion -versus- distance measure this
-            //  should be a CmpFrame that includes a SpecFrame.
+            //  should be a CmpFrame or SpecFluxFrame that includes a
+            //  SpecFrame defining the dispersion axis.
             Frame current =
                 specData.getFrameSet().getFrame( FrameSet.AST__CURRENT );
 

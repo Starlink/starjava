@@ -144,7 +144,10 @@ public class SpecDataComp
     /**
      * Set whether we're being careful about matching data units between
      * spectra. If so then AST will check if any Frames can be converted to
-     * preserve units.
+     * preserve units. If the frame is a FluxFrame, which may be part of a 
+     * SpecFluxFrame then units matching will be on by default and this value
+     * will have no effect (matching will occur whenever coordinate matching
+     * is switched on and works).
      */
     public void setDataUnitsMatching( boolean on )
     {
@@ -575,7 +578,8 @@ public class SpecDataComp
             //  to do this between DATAPLOT domains. If requested set the
             //  active units for the whole frame to get the data units aligned
             //  actively too (SpecFrames are always on, so we just need to get
-            //  the data axis working).
+            //  the data axis working, if this isn't a FluxFrame, those are
+            //  also always on, so this could become redundant in time).
             FrameSet to = target.getAst().getRef();
             FrameSet fr = source.getAst().getRef();
             if ( matchDataUnits ) {
@@ -591,7 +595,8 @@ public class SpecDataComp
                     throw new SplatException( "Failed to align spectral " +
                                               "coordinates or data units" );
                 }
-                throw new SplatException( "Failed to spectral coordinates" );
+                throw new SplatException
+                    ( "Failed to align spectral coordinates" );
             }
 
             //  2D coords, so need separate X,Y coords.
@@ -643,8 +648,8 @@ public class SpecDataComp
             fr.setActiveUnit( false );
         }
         if ( aligned == null ) {
-            throw new SplatException( "Failed to aligned coordinates" +
-                                      " while transforming limits");
+            throw new SplatException( "Failed to align coordinates " +
+                                      "while transforming limits" );
         }
 
         //  2D coords, so need separate X,Y coords.
@@ -720,7 +725,9 @@ public class SpecDataComp
         Frame picked = to.pickAxes( 1, iaxes, null );
         FrameSet aligned = null;
         if (source instanceof LineIDSpecData && picked instanceof SpecFrame) {
-            //  How to match data units?
+            // Cannot match data units as line identifiers do not have these
+            // (unless the data axis is a FluxFrame, in which case this should
+            // still work).
             String stdofrest = to.getC( "StdOfRest" );
             to.set( "StdOfRest=Source" );
             aligned = from.convert( to, "DATAPLOT" );
