@@ -59,7 +59,7 @@ public class MirageDriver {
         if ( args.length == 0 ) {
             StarTableChooser chooser = 
                 new StarTableChooser( new StarTableFactory( false ) );
-            table = chooser.getTable( null );    
+            table = chooser.showTableDialog( null );    
             if ( table == null ) {
                 System.err.println( "No table selected" );
                 System.exit( 1 );
