@@ -647,7 +647,7 @@
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
