@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h4>Reading text-format tables</h4>
+
+<p>In many cases tables are stored in some sort of unstructured plain 
+text format, with cells separated by spaces or some other delimiters.
+TOPCAT will make an attempt to read these and interpret what's there
+in sensible ways, but since there are so
+many possibilities of different delimiters and formats for exactly
+how values are specified, it won't always succeed.
+
+<p>The way the text-format table reader is written makes it unsuitable
+for reading enormous text-format tables.
+
+<p>Compressed text files, or ones referred to as URLs, may be used.
+
+<h5>Text format rules</h5>
+
+<p>Here are the rules for a text-format table which TOPCAT can read:
+<ul>
+<li>Bytes in the file are interpreted as ASCII characters (UTF-8)
+<li>Each table row is represented by a single line of text
+<li>Lines are terminated by one or more contiguous line termination 
+    characters: line feed (0x0A) or carriage return (0x0D)
+<li>Within a line, fields are separated by one or more whitespace
+    characters: space (' ') or tab (0x09)
+<li>A field is either an unquoted sequence of non-whitespace characters,
+    or a sequence of non-newline characters between matching quote
+    characters: either single quotes (') or double quotes (")
+<li>Within a quoted field, whitespace characters are permitted and are
+    treated literally
+<li>Within a quoted field, any character preceded by a backslash character
+    ('\') is treated literally.  This allows quote characters to appear
+    within a quoted string.
+<li>An empty quoted string represents the null value
+<li>All data lines must contain the same number of fields (this is the 
+    number of columns in the table)
+<li>The data type of a column is guessed according to the fields that
+    appear in the table.  If all the fields in one column can be parsed
+    as integers (or null values), then that column will turn into an 
+    integer-type column.  The types that are tried, in order of
+    preference, are: 
+       <tt>Boolean</tt>,
+       <tt>Integer</tt>,
+       <tt>Float</tt>,
+       <tt>Double</tt>,
+       <tt>Long</tt>,
+       <tt>String</tt>
+<li>Empty lines are ignored
+<li>Anything after a hash character '#' on a line is ignored as far as 
+    table data goes.  However, lines which start with a '#' at the
+    start of the table (before any data lines) will be interpreted
+    as metadata as follows:
+    <ul>
+    <li>The last '#'-starting line before the first data line may contain
+        the column names.  If it has the same number of fields as 
+        there are columns in the table, each field will be taken to be
+        the title of the corresponding column.  Otherwise, it will be
+        taken as a normal comment line.
+    <li>Any comment lines before the first data line not covered by the
+        above will be concatenated to form the 'description' parameter
+        of the table.
+    </ul>
+</ul>
+
+<h5>Example</h5>
+
+<p>If the list of rules above looks frightening, don't worry, 
+in many cases it ought 
+to make sense of a table without you having to read the small print.
+Here is an example of a table which TOPCAT can read:
+<pre>
+#
+# Here is a list of some animals.
+#
+# RECNO  SPECIES         NAME         LEGS   HEIGHT/m
+  1      pig             "Pigling Bland"  4  0.8
+  2      cow             Daisy        4      2
+  3      goldfish        Dobbin       ""     0.05
+  4      ant             ""           6      0.001
+  5      ant             ""           6      0.001
+  6      ant             ''           6      0.001
+  7      "queen ant"     'Ma\'am'     6      2e-3
+  8      human           "Mark"       2      1.8
+</pre>
+In this case it will identify the following columns:
+<pre>
+   Name       Type
+   ----       ----
+   RECNO      Integer
+   SPECIES    String
+   NAME       String
+   LEGS       Integer
+   HEIGHT/m   Float
+</pre>
+It will also use the text "<tt>Here is a list of some animals</tt>"
+as the Description parameter of the table.
+Without any of the comment lines, it would still interpret the table,
+but the columns would be given the names <tt>col1</tt>..<tt>col5</tt>.
+
+<h5>It doesn't like my plain text tables!</h5>
+
+<p>If you understand the format of your text files but they don't 
+exactly match the criteria above, the best thing is probably to write a 
+simple free-standing program or script which will convert them 
+into the format described here.  You may find <tt>Perl</tt> or <tt>awk</tt>
+suitable languages for this sort of thing.  An alternative is to
+write a new table handler for TOPCAT's table library, which would
+enable TOPCAT to read such tables directly; this shouldn't be too
+hard, but requires a certain amount of Java programming 
+(briefly - you will need to implement the 
+<tt>uk.ac.starlink.table.TableBuilder</tt> interface).
+
+
+</body>
+</html>

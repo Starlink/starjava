@@ -40,6 +40,7 @@
   <mapID target="FITSRead" url="fits-read.html"/>
   <mapID target="VOTableRead" url="votable-read.html"/>
   <mapID target="JDBCRead" url="jdbc-read.html"/>
+  <mapID target="TextRead" url="text-read.html"/>
   <mapID target="WDCRead" url="wdc-read.html"/>
 
   <mapID target="FITSWrite" url="fits-write.html"/>

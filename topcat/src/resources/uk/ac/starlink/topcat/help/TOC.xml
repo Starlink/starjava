@@ -33,6 +33,7 @@
       <tocitem target="FITSRead" text="FITS"/>
       <tocitem target="VOTableRead" text="VOTable"/>
       <tocitem target="JDBCRead" text="SQL"/>
+      <tocitem target="TextRead" text="Plain text"/>
       <tocitem target="WDCRead" text="WDC"/>
     </tocitem>
 

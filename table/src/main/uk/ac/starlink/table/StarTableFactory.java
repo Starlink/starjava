@@ -30,6 +30,7 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
+ * <li> {@link uk.ac.starlink.table.formats.TextTableBuilder}
  * </ul>
  *
  * @author   Mark Taylor (Starlink)
@@ -42,7 +43,9 @@ public class StarTableFactory {
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
-        "uk.ac.starlink.table.formats.WDCTableBuilder" };
+        "uk.ac.starlink.table.formats.WDCTableBuilder",
+        "uk.ac.starlink.table.formats.TextTableBuilder",
+    };
 
     /**
      * Constructs a StarTableFactory with a default list of builders.

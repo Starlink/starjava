@@ -19,7 +19,10 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.formats.TextTableBuilder;
+import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -264,6 +267,22 @@ public class StarTableDataNode extends DefaultDataNode
                     return handler;
                 }
             };
+
+            /* Remove some of the more generic tablel builders from this
+             * factory.  TextTableBuilder, for instance, tries to build
+             * a table from pretty much any stream, and eventually fails
+             * only after it's read enough to make sure that it's 
+             * definitely not a text-format table.  This would end up doing
+             * much more work than we want to.  We will forego the 
+             * possibility of identifying tables in these free-text formats. */
+            for ( Iterator it = tabfact.getBuilders().iterator();
+                  it.hasNext(); ) {
+                TableBuilder builder = (TableBuilder) it.next();
+                if ( builder instanceof TextTableBuilder ||
+                     builder instanceof WDCTableBuilder ) {
+                    it.remove();
+                }
+            }
         }
         return tabfact;
     }
