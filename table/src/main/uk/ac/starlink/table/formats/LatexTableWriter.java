@@ -12,29 +12,58 @@ import uk.ac.starlink.table.Tables;
 
 /**
  * A StarTableWriter that outputs text to a LaTeX document.
- * A standalone document is output, but this can be stripped of the
- * header and footer if just the table element is required by looking
- * for the lines 
- * <pre>
- *    \begin{tabular}
- *       ...
- *    \end{tabular}
- * </pre>
+ * Depending on the value of the <code>standalone</code> attribute,
+ * the output may either be a complete LaTeX document or just a
+ * <tt>tabular</tt> environment suitable for inserting into an existing
+ * document.
  *
  * @author   Mark Taylor (Starlnk)
  */
 public class LatexTableWriter implements StarTableWriter {
 
+    private boolean standalone;
+
     /**
-     * Returns the string "LaTeX".
+     * Constructs a new writer with default characteristics.
      */
-    public String getFormatName() {
-        return "LaTeX";
+    public LatexTableWriter() {
+        this( false );
     }
 
     /**
-     * Returns true for <tt>location</tt> with a ".tex" extension.
+     * Constructs a new writer indicating whether it will produce complete
+     * or partial LaTeX documents.
      */
+    public LatexTableWriter( boolean standalone ) {
+        setStandalone( standalone );
+    }
+
+    /**
+     * Sets whether output tables should be complete LaTeX documents.
+     *
+     * @param   standalone  true if the output document should be a
+     *          complete LaTeX document
+     */
+    public void setStandalone( boolean standalone ) {
+        this.standalone = standalone;
+    }
+
+    /**
+     * Indicates whether output tables will be complete LaTeX documents.
+     *
+     * @return  true if the output documents will be complete LaTeX docs
+     */
+    public boolean isStandalone() {
+        return standalone;
+    }
+
+    /**
+     * Returns the string "LaTeX-document" or "LaTeX";
+     */
+    public String getFormatName() {
+        return standalone ? "LaTeX-document" : "LaTeX";
+    }
+
     public boolean looksLikeFile( String location ) {
         return location.endsWith( ".tex" );
     }
@@ -65,7 +94,9 @@ public class LatexTableWriter implements StarTableWriter {
         }
 
         /* Write the header information. */
-        printLatexHeader( ostrm, startab );
+        if ( standalone ) {
+            printHeader( ostrm, startab );
+        }
         printLine( ostrm, "\\begin{tabular}{" + tfmt + "}" );
         printLine( ostrm, "\\hline" );
 
@@ -109,19 +140,23 @@ public class LatexTableWriter implements StarTableWriter {
         /* Write footer information. */
         print( ostrm, "\\hline" );
         printLine( ostrm, "\\end{tabular}" );
-        printLatexFooter( ostrm, startab );
+        if ( standalone ) {
+            printFooter( ostrm, startab );
+        }
 
         /* Close. */
         ostrm.close();
     }
 
     /**
-     * Outputs the header information which precedes the tabular environment.
+     * For standalone output, this method is invoked to output any text
+     * preceding the <code>tabular</code> environment.  May be overridden to
+     * modify the form of output documents.
      *
-     * @param   ostrm the stream to write to
-     * @startab  the StarTable which the tabular will contain
+     * @param  ostrm  output stream
+     * @param  startab  table for which header is required
      */
-    private void printLatexHeader( OutputStream ostrm, StarTable startab ) 
+    protected void printHeader( OutputStream ostrm, StarTable startab ) 
             throws IOException {
         printLine( ostrm, "\\documentclass{article}" );
         printLine( ostrm, "\\begin{document}" );
@@ -129,12 +164,14 @@ public class LatexTableWriter implements StarTableWriter {
     }
 
     /**
-     * Outputs the footer information which succeeds the tabular environment.
+     * For standalone output, this method is invoked to output any text
+     * following the <code>tabular</code> environment.  May be overridden to
+     * modify the form of output documents.
      *
      * @param   ostrm the stream to write to
-     * @startab  the StarTable which the tabular will contain
+     * @param   startab  the StarTable which the tabular will contain
      */
-    private void printLatexFooter( OutputStream ostrm, StarTable startab ) 
+    protected void printFooter( OutputStream ostrm, StarTable startab ) 
             throws IOException {
         String tname = startab.getName();
         if ( tname != null && tname.trim().toString().length() > 0 ) {

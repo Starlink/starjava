@@ -12,16 +12,54 @@ import uk.ac.starlink.table.Tables;
 
 /**
  * A StarTableWriter that outputs text to HTML.
- * The output is a single &lt;TABLE&gt; element, that is it has no
- * HTML header.  The output HTML should conform to HTML 3.2.
+ * Depending on the value of the <code>standalone</code> attribute, 
+ * the output may either be a complete HTML document or just a 
+ * &lt;TABLE&gt; element suitable for inserting into an existing document.
+ * The output HTML is intended to conform to HTML 3.2.
  *
  * @author   Mark Taylor (Starlink)
- * @see      <http://www.w3.org/TR/REC-html32#table>
+ * @see      <a href="http://www.w3.org/TR/REC-html32#table">
  */
 public class HTMLTableWriter implements StarTableWriter {
 
+    private boolean standalone;
+
+    /**
+     * Constructs a new writer with default characteristics.
+     */
+    public HTMLTableWriter() {
+        this( true );
+    }
+
+    /**
+     * Constructs a new writer indicating whether it will produce complete
+     * or partial HTML documents.
+     */
+    public HTMLTableWriter( boolean standalone ) {
+        setStandalone( standalone );
+    }
+
+    /**
+     * Sets whether output tables should be complete HTML documents.
+     *
+     * @param   standalone  true if the output document should be a
+     *          complete HTML document
+     */
+    public void setStandalone( boolean standalone ) {
+        this.standalone = standalone;
+    }
+
+    /**
+     * Indicates whether output tables will be complete HTML documents.
+     *
+     * @return  true if the output documents will be complete HTML docs
+     */
+    public boolean isStandalone() {
+        return standalone;
+    }
+
     public String getFormatName() {
-        return "HTML";
+        return standalone ? "HTML" : "HTML-element";
     }
 
     public boolean looksLikeFile( String location ) {
@@ -36,6 +74,9 @@ public class HTMLTableWriter implements StarTableWriter {
         OutputStream ostrm = new BufferedOutputStream( getStream( location ) );
 
         /* Output table header. */
+        if ( standalone ) {
+            printHeader( ostrm, table );
+        }
         StringBuffer sbuf = new StringBuffer();
         printLine( ostrm, "<TABLE BORDER='1'>" );
         String tname = table.getName();
@@ -99,6 +140,9 @@ public class HTMLTableWriter implements StarTableWriter {
 
         /* Finish up. */
         printLine( ostrm, "</TABLE>" );
+        if ( standalone ) {
+            printFooter( ostrm );
+        }
         ostrm.close();
     }
 
@@ -146,6 +190,37 @@ public class HTMLTableWriter implements StarTableWriter {
             throws IOException {
         ostrm.write( str.getBytes() );
         ostrm.write( (int) '\n' );
+    }
+
+    /**
+     * For standalone output, this method is invoked to output any text
+     * preceding the &lt;TABLE&gt; start tag.  May be overridden to 
+     * modify the form of output documents.
+     *
+     * @param  ostrm  output stream
+     * @param  table  table for which header is required
+     */
+    protected void printHeader( OutputStream ostrm, StarTable table ) 
+            throws IOException {
+        printLine( ostrm, 
+                   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\">" );
+        printLine( ostrm, "<html>" );
+        printLine( ostrm, "<head><title>Table " + 
+                          escape( table.getName() ) +
+                          "</title></head>" );
+        printLine( ostrm, "<body>" );
+    }
+
+    /**
+     * For standalone output, this method is invoked to output any text
+     * following the &lt;/TABLE&gt; end tag.  May be overridden to
+     * modify the form of output documents.
+     *
+     * @param  ostrm  output stream
+     */
+    protected void printFooter( OutputStream ostrm ) throws IOException {
+        printLine( ostrm, "</body>" );
+        printLine( ostrm, "</html>" );
     }
 
     /**
