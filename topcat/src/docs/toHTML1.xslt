@@ -10,6 +10,7 @@
              select="'http://andromeda.star.bris.ac.uk/starjavadocs/'"/>
   <xsl:param name="VERSION" select="'???'"/>
   <xsl:param name="BASEDIR" select="'.'"/>
+  <xsl:param name="COVERIMAGE" select="''"/>
 
   <!-- Top level element -->
 
@@ -45,6 +46,14 @@
       <xsl:text>Version </xsl:text>
       <xsl:call-template name="getVersion"/>
     </h1>
+    <xsl:if test="$COVERIMAGE">
+      <div align="center">
+        <xsl:call-template name="outImg">
+          <xsl:with-param name="src" select="$COVERIMAGE"/>
+          <xsl:with-param name="alt" select="'Cover image'"/>
+        </xsl:call-template>
+      </div>
+    </xsl:if>
     <hr/>
     <p>
       <i>

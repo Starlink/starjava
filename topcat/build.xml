@@ -1038,7 +1038,7 @@
     <!-- Copy required source files there. -->
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" 
-               includes="${user.doc}.xml docs.dtd figures/*"/>
+               includes="${user.doc}.xml docs.dtd figures/* multishot.gif"/>
       <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
                includes="images/*"/>
     </copy>
@@ -1118,6 +1118,7 @@
           style="${src.docs}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="COVERIMAGE" expression="../figures/multishot-mini.gif"/>
     </xslt>
 
     <!-- Transform the user document XML to a PDF document via XSL-FO. -->
@@ -1126,6 +1127,7 @@
           style="${src.docs}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
+      <param name="COVERIMAGE" expression="multishot.gif"/>
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
@@ -1148,6 +1150,8 @@
       <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
       <arg value="-param"/> <arg value="BASEDIR=${build.docs}/${user.doc}"/>
+      <arg value="-param"/> 
+                       <arg value="COVERIMAGE=../figures/multishot-mini.gif"/>
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.docs}/${user.doc}"/>
     </java>

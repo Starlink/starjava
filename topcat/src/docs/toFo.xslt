@@ -10,6 +10,7 @@
 
   <xsl:param name="VERSION" select="'???'"/>
   <xsl:param name="BASEDIR" select="'.'"/>
+  <xsl:param name="COVERIMAGE" select="''"/>
 
 
   <!-- Templates -->
@@ -98,6 +99,18 @@
         <xsl:call-template name="getVersion"/>
       </fo:block>
     </fo:block>
+    <xsl:if test="$COVERIMAGE">
+      <fo:block text-align="center">
+        <xsl:element name="fo:external-graphic">
+          <xsl:attribute name="src">
+            <xsl:value-of select="$BASEDIR"/>
+            <xsl:text>/../</xsl:text>
+            <xsl:value-of select="$COVERIMAGE"/>
+          </xsl:attribute>
+        </xsl:element>
+      </fo:block>
+    </xsl:if>
+
     <fo:block font-style="italic">
       <fo:block>
         Starlink User Note
