@@ -8,6 +8,7 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
  * Adaptor class which turns a {@link javax.swing.table.TableColumnModel}
@@ -32,7 +33,7 @@ public class ColumnComboBoxModel extends AbstractListModel
 
     public static TableColumn NO_COLUMN = new TableColumn() {
         public String toString() {
-            return "(none)";
+            return "";
         }
     };
 
