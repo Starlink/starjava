@@ -4,7 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -100,6 +100,7 @@ public class PlotWindow extends TopcatViewWindow
     private PointRegistry visiblePoints_;
     private MarkStyleProfile markers_ = MARKER_PROFILES[ 1 ];
     private boolean activeBlob_;
+    private boolean replotted_;
 
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -207,10 +208,39 @@ public class PlotWindow extends TopcatViewWindow
         subSelModel_.addListSelectionListener( subSelRecorder_ );
 
         /* Construct a panel which will hold the plot itself. */
-        plot_ = new ScatterPlot( new PtPlotSurface( this ) );
+
+        /* Construct the plot component.  The paint method is
+         * overridden so that when the points are replotted we maintain
+         * a record of their current positions.  The Swing tutorial 
+         * generally recommends against overriding paint itself 
+         * (normally one should override paintComponent) but since all 
+         * we're doing here is invoking the superclass implementation
+         * and some non-graphics-related stuff, it should be OK. 
+         * Overriding paintComponent would be no good, since it needs 
+         * to be called following paintChildren. */
+        plot_ = new ScatterPlot( new PtPlotSurface( this ) ) {
+            int lastHeight_;
+            int lastWidth_;
+            public void paint( Graphics g ) {
+                super.paint( g );
+                int height = getHeight();
+                int width = getWidth();
+                if ( replotted_ || height != lastHeight_
+                                || width != lastWidth_ ) {
+                    recordVisiblePoints( getState(), getPoints(),
+                                         getSurface() );
+                    lastHeight_ = height;
+                    lastWidth_ = width;
+                    replotted_ = false;
+                }
+            }
+        };
+
+        /* Construct and populate the plot panel with the plot itself
+         * and a transparent layer for doodling blobs on. */
+        JPanel plotPanel = new JPanel();
         blobPanel_ = new BlobPanel();
         blobPanel_.setVisible( false );
-        JPanel plotPanel = new JPanel();
         plotPanel.setLayout( new OverlayLayout( plotPanel ) );
         plotPanel.add( blobPanel_ );
         plotPanel.add( plot_ );
@@ -422,14 +452,12 @@ public class PlotWindow extends TopcatViewWindow
                 plot_.rescale();
             }
 
-            /* Schedule for repainting so the changes can take effect. */
+            /* Schedule for repainting so the changes can take effect.
+             * It's tempting to call recordVisiblePoints here and have done
+             * with it, but it has to be done from within the painting
+             * system since the window geometry might not be correct here. */
+            replotted_ = true;
             plot_.repaint();
-
-            /* Since the points (will) have been replotted, it's necessary
-             * to update our record of what points appear on the plotting
-             * surface. */
-            Points points = plot_.getPoints();
-            recordVisiblePoints( state, points, plot_.getSurface() );
         }
     }
 
