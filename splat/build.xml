@@ -193,7 +193,7 @@
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
     <!-- HDX -->
-    <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
+    <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
 
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
@@ -219,7 +219,7 @@
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
-    <!--<pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>-->
+    <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
   </extclasspath>
 
@@ -511,7 +511,7 @@
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
 value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
-../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar
+../astgui/astgui.jar ../ndx/ndx.jar ../hdx/hdx.jar ../array/array.jar ../tamfits/tamfits.jar
 ../jniast/jniast.jar ../soapserver/soapserver.jar ../fits/fits.jar
 ../hds/hds.jar"/>
       </manifest>
