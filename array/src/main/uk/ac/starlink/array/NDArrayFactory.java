@@ -51,7 +51,7 @@ public class NDArrayFactory {
         /* Attempt to add an HDSArrayBuilder if the class is available. */
         className = "uk.ac.starlink.hds.HDSArrayBuilder";
         try {
-            Class clazz = Class.forName( className );
+            Class clazz = this.getClass().forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
             ArrayBuilder builder = 
                 (ArrayBuilder) meth.invoke( null, noArgs );
@@ -70,9 +70,9 @@ public class NDArrayFactory {
              * If that doesn't work though, log it directly. */
             if ( e.getTargetException() instanceof LinkageError ) {
                 try {
-                    Class.forName( "uk.ac.starlink.hds.HDSPackage" )
-                         .getMethod( "isAvailable", noParams )
-                         .invoke( null, noArgs );
+                    this.getClass().forName( "uk.ac.starlink.hds.HDSPackage" )
+                        .getMethod( "isAvailable", noParams )
+                        .invoke( null, noArgs );
                 }
                 catch ( Exception e2 ) {
                     logger.config( className + " " + e2 + " - can't register" );
@@ -89,7 +89,7 @@ public class NDArrayFactory {
         /* Attempt to add a FitsArrayBuilder if the class is available. */
         className = "uk.ac.starlink.fits.FitsArrayBuilder";
         try {
-            Class clazz = Class.forName( className );
+            Class clazz = this.getClass().forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
             ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
