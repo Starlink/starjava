@@ -1,9 +1,12 @@
 /*
- * Copyright (C) 2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  * History:
  *    16-NOV-2000 (Peter W. Draper):
  *       Original version.
+ *    20-FEB-2004 (Peter W. Draper):
+ *       Added log axes (breaks view-model, but more convenient than normal
+ *       astgui properties dialog).
  */
 package uk.ac.starlink.splat.iface;
 
@@ -24,6 +27,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.gui.AstDoubleField;
 import uk.ac.starlink.ast.gui.PlotControls;
@@ -58,6 +62,11 @@ public class DataLimitControls
     protected DataLimits dataLimits = null;
 
     /**
+     * AstAxes model for log axes control.
+     */
+    protected AstAxes astAxes = null;
+
+    /**
      * Check box for whether X axis should be autoscaled.
      */
     protected JCheckBox xAutoscaled = new JCheckBox();
@@ -86,6 +95,16 @@ public class DataLimitControls
      * Check box for whether Y axis range should be shown flipped.
      */
     protected JCheckBox yFlipped = new JCheckBox();
+
+    /**
+     * Check box for whether X axis is logarithmically mapped to graphics.
+     */
+    protected JCheckBox xLog = new JCheckBox();
+
+    /**
+     * Check box for whether Y axis is logarithmically mapped to graphics.
+     */
+    protected JCheckBox yLog = new JCheckBox();
 
     /**
      * Entry widget for lower limit of the X axis.
@@ -153,11 +172,15 @@ public class DataLimitControls
      * @param dataLimits the DataLimits object that is our data model.
      * @param control used to query about current limits of displayed
      *      spectrum.
+     * @param astAxes the AstAxes instance used by the Axes page of the
+     *                PlotConfigurator. Should synchronize the state.
      */
-    public DataLimitControls( DataLimits dataLimits, PlotControl control )
+    public DataLimitControls( DataLimits dataLimits, PlotControl control,
+                              AstAxes astAxes )
     {
         setPlot( control );
         initUI();
+        setAstAxes( astAxes );
         setDataLimits( dataLimits );
     }
 
@@ -237,6 +260,24 @@ public class DataLimitControls
                 }
             } );
 
+        //  Whether axes should use log scales.
+        xLog.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    matchXLog();
+                }
+            } );
+        yLog.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    matchYLog();
+                }
+            } );
+
         //  Limits as AstDoubles...
         xLower = new AstDoubleField( 0.0, control, 1 );
         Document doc = xLower.getDocument();
@@ -298,37 +339,43 @@ public class DataLimitControls
         // Match insets to ASTGUI.
         layouter.setInsets( new Insets( 5, 5, 5, 5 ) );
 
-        layouter.add( new JLabel( "Autoscale X:" ), false );
+        layouter.add( "Autoscale X:", false );
         layouter.add( xAutoscaled, true );
 
-        layouter.add( new JLabel( "Fit X range:" ), false );
+        layouter.add( "Fit X range:", false );
         layouter.add( xFit, true );
 
-        layouter.add( new JLabel( "Flip X axis:" ), false );
+        layouter.add( "Flip X axis:", false );
         layouter.add( xFlipped, true );
 
-        layouter.add( new JLabel( "Lower X:" ), false );
+        layouter.add( "Log X axis:", false );
+        layouter.add( xLog, true );
+
+        layouter.add( "Lower X:", false );
         layouter.add( xLower, true );
 
-        layouter.add( new JLabel( "Upper X:" ), false );
+        layouter.add( "Upper X:", false );
         layouter.add( xUpper, true );
 
-        layouter.add( new JLabel( "Autoscale Y:" ), false );
+        layouter.add( "Autoscale Y:", false );
         layouter.add( yAutoscaled, true );
 
-        layouter.add( new JLabel( "Fit Y range:" ), false );
+        layouter.add( "Fit Y range:", false );
         layouter.add( yFit, true );
 
-        layouter.add( new JLabel( "Flip Y axis:" ), false );
+        layouter.add( "Flip Y axis:", false );
         layouter.add( yFlipped, true );
 
-        layouter.add( new JLabel( "Lower Y:" ), false );
+        layouter.add( "Log Y axis:", false );
+        layouter.add( yLog, true );
+
+        layouter.add( "Lower Y:", false );
         layouter.add( yLower, true );
 
-        layouter.add( new JLabel( "Upper Y:" ), false );
+        layouter.add( "Upper Y:", false );
         layouter.add( yUpper, true );
 
-        layouter.add( new JLabel( "Y auto cut:" ), false );
+        layouter.add( "Y auto cut:", false );
         layouter.add( yPercentiles, true );
 
         //  Limits buttons.
@@ -345,11 +392,13 @@ public class DataLimitControls
         xAutoscaled.setToolTipText( "Autoscale X axis to fit all data" );
         xFit.setToolTipText( "Fit X axis limts to viewable surface" );
         xFlipped.setToolTipText( "Flip X axis to run right to left" );
+        xLog.setToolTipText( "Use log scale for X axis" );
         xLower.setToolTipText( "Lower limit of X axis (axis units)" );
         xUpper.setToolTipText( "Upper limit of X axis (axis units)" );
         yAutoscaled.setToolTipText( "Autoscale Y axis to fit all data" );
         yFit.setToolTipText( "Fit Y axis limits to viewable surface" );
         yFlipped.setToolTipText( "Flip Y axis to run top to bottom" );
+        yLog.setToolTipText( "Use log scale for Y axis" );
         yLower.setToolTipText( "Lower limit of Y axis (axis units)" );
         yUpper.setToolTipText( "Upper limit of Y axis (axis units)" );
         yPercentiles.setToolTipText( "Percentile auto limits for data " +
@@ -379,6 +428,16 @@ public class DataLimitControls
     public DataLimits getDataLimits()
     {
         return dataLimits;
+    }
+
+    /**
+     * Set the AstAxes object.
+     */
+    public void setAstAxes( AstAxes astAxes )
+    {
+        this.astAxes = astAxes;
+        astAxes.addChangeListener( this );
+        updateFromAstAxes();
     }
 
     /**
@@ -422,6 +481,17 @@ public class DataLimitControls
             yFit.setEnabled( false );
         }
         dataLimits.addChangeListener( this );
+    }
+
+    /**
+     * Update interface to reflect values of the current AstAxes.
+     */
+    protected void updateFromAstAxes()
+    {
+        astAxes.removeChangeListener( this );
+        xLog.setSelected( astAxes.getXLog() );
+        yLog.setSelected( astAxes.getYLog() );
+        astAxes.addChangeListener( this );
     }
 
     /**
@@ -494,6 +564,22 @@ public class DataLimitControls
     protected void matchYFlipped()
     {
         dataLimits.setYFlipped( yFlipped.isSelected() );
+    }
+
+    /**
+     * Match X log scale axis state.
+     */
+    protected void matchXLog()
+    {
+        astAxes.setXLog( xLog.isSelected() );
+    }
+
+    /**
+     * Match Y log scale axis state.
+     */
+    protected void matchYLog()
+    {
+        astAxes.setYLog( yLog.isSelected() );
     }
 
     /**
@@ -640,6 +726,7 @@ public class DataLimitControls
     public void stateChanged( ChangeEvent e )
     {
         updateFromDataLimits();
+        updateFromAstAxes();
     }
 
 //

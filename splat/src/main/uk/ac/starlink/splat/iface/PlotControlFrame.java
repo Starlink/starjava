@@ -34,6 +34,8 @@ import javax.swing.JToolBar;
 
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.gui.AstFigureStore;
+import uk.ac.starlink.ast.gui.AstAxes;
+import uk.ac.starlink.ast.gui.AxesControls;
 import uk.ac.starlink.ast.gui.AstPlotSource;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
@@ -538,17 +540,47 @@ public class PlotControlFrame
             //  Add controls for the extra facilities provided by the
             //  DivaPlot.
             DivaPlot divaPlot = plot.getPlot();
-            configFrame.addExtraControls
-                (new DataLimitControls(divaPlot.getDataLimits(), plot), false);
-            configFrame.addExtraControls
-                (new GraphicsHintsControls(divaPlot.getGraphicsHints()), true);
-            configFrame.addExtraControls
-                (new GraphicsEdgesControls(divaPlot.getGraphicsEdges()), true);
 
-            ComponentColourControls colourPanel = new ComponentColourControls
-                ( plot, divaPlot.getBackgroundColourStore(),
-                  "Plot Background", "Background", "Colour:" );
-            configFrame.addExtraControls( colourPanel, true );
+            AstAxes astAxes = (AstAxes) configFrame.getConfiguration()
+                .getControlsModel( AxesControls.getControlsModelClass() );
+
+            try {
+                DataLimitControls dlc = new DataLimitControls
+                    ( divaPlot.getDataLimits(), plot, astAxes );
+                configFrame.addExtraControls( dlc, false );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                GraphicsHintsControls ghc = 
+                    new GraphicsHintsControls( divaPlot.getGraphicsHints() );
+                configFrame.addExtraControls( ghc, true);
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                GraphicsEdgesControls gec = 
+                    new GraphicsEdgesControls( divaPlot.getGraphicsEdges() );
+                configFrame.addExtraControls( gec, true );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            try {
+                ComponentColourControls ccc = 
+                    new ComponentColourControls( plot, 
+                        divaPlot.getBackgroundColourStore(),
+                        "Plot Background", "Background", "Colour:" );
+                configFrame.addExtraControls( ccc, true );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
 
             //  We'd like to know if the window is closed.
             configFrame.addWindowListener( new WindowAdapter() {
