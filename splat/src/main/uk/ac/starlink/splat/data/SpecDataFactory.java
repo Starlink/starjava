@@ -852,12 +852,12 @@ public class SpecDataFactory
      *               VECTORIZE.
      * @param dispax the index of the dispersion axis, set to -1 for automatic
      *               choice.
-     * @param collapseax the index of the axis collapse will occur along,  
-     *                   set to -1 for automatic choice. This may not be the 
-     *                   dispax.
+     * @param selectax the index of the axis that will be stepped along
+     *                 collapsing down onto dispersion axis, set to -1 for
+     *                 automatic choice. This may not be the dispax.
      */
     public SpecData[] reprocessTo1D( SpecData specData, int method,
-                                     int dispax, int collapseax )
+                                     int dispax, int selectax )
         throws SplatException
     {
         if ( method == VECTORIZE ) {
@@ -876,9 +876,9 @@ public class SpecDataFactory
         SpecData[] results = null;
         if ( ndims > 1 && ndims < 4 ) {
             
-            //  Use choice of dispersion and collapse axis.
+            //  Use choice of dispersion and stepped axis.
             specDims.setDispAxis( dispax, true );
-            specDims.setCollapseAxis( collapseax, true );
+            specDims.setSelectAxis( selectax, true );
 
             if ( method == COLLAPSE ) {
                 results = collapseSpecData( specData, specDims );
@@ -903,7 +903,8 @@ public class SpecDataFactory
         if ( ndims == 2 ) {
             //  Simple 2D data.
             results = new SpecData[1];
-            SpecDataImpl newImpl = new CollapsedSpecDataImpl( specData );
+            SpecDataImpl newImpl = 
+                new CollapsedSpecDataImpl( specData, specDims );
             results[0] = new SpecData( newImpl );
         }
         else {
@@ -912,7 +913,7 @@ public class SpecDataFactory
             //  have no data (all BAD values), we could purge these as they
             //  are useless. Note we get the size of the picked axis number of
             //  SpecData's back.
-            int stepaxis = specDims.getNonDispAxis( true );
+            int stepaxis = specDims.getSelectAxis( true );
             int displen = specDims.getSigDims()[stepaxis];
             results = new SpecData[displen];
             for ( int i = 0; i < displen; i++ ) {
@@ -929,7 +930,42 @@ public class SpecDataFactory
      * 2D or 3D implementation along the dispersion axis.
      */
     private SpecData[] expandSpecData( SpecData specData, SpecDims specDims )
+        throws SplatException
     {
-        return null;
+        SpecData[] results = null;
+        int dispax = specDims.getDispAxis( true );
+        int[] dims = specDims.getSigDims();
+
+        if ( dims.length == 2 ) {
+            //  Simple 2D data.
+            if ( dispax == 1 ) {
+                results = new SpecData[dims[0]];
+            }
+            else {
+                results = new SpecData[dims[1]];
+            }
+            for ( int i = 0; i < results.length; i++ ) {
+                SpecDataImpl newImpl = 
+                    new ExtractedSpecDataImpl( specData, specDims, i );
+                results[i] = new SpecData( newImpl );
+            }
+        }
+        else {
+            int stepaxis = specDims.getSelectAxis( true );
+            int otheraxis = specDims.getFreeAxis();
+            int steplength = dims[stepaxis];
+            int otherlength = dims[otheraxis];
+
+            results = new SpecData[steplength*otherlength];
+            int count = 0;
+            for ( int j = 0; j < otherlength; j++ ) {
+                for ( int i = 0; i < steplength; i++ ) {
+                    SpecDataImpl newImpl = 
+                        new ExtractedSpecDataImpl( specData, specDims, i, j );
+                    results[count++] = new SpecData( newImpl );
+                }
+            }
+        }
+        return results;
     }
 }

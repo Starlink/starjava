@@ -13,7 +13,10 @@ import uk.ac.starlink.ast.SpecFrame;
 
 /**
  * Utility class for determing various useful characteristics about the
- * underlying dimensionality of a SpecData object.
+ * underlying dimensionality of a SpecData object. It also provides for the
+ * choice of a dispersion axis and another axis, if appropriate, that
+ * positions are chosen along (collapses should start at this postion, down
+ * onto the dispersion axis).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -25,7 +28,7 @@ public final class SpecDims
     private int ndims = 0;
     private int firstaxis = 0;
     private int dispax = -1;
-    private int collapseax = -1;
+    private int selectax = -1;
 
     /**
      * Constructor.
@@ -64,8 +67,8 @@ public final class SpecDims
         //  Don't know the dispersion axis yet.
         dispax = -1;
 
-        // Or the non-dispersion axis we're going to collapse along.
-        collapseax = -1;
+        // Or the non-dispersion axis we're going to select along.
+        selectax = -1;
     }
 
     /**
@@ -130,7 +133,7 @@ public final class SpecDims
      */
     public void setDispAxis( int dispax, boolean exclude )
     {
-        if ( exclude ) {
+        if ( exclude && dispax != -1 ) {
             this.dispax = sigToRealAxis( dispax );
         }
         else {
@@ -176,46 +179,70 @@ public final class SpecDims
     }
 
     /**
-     * Set the non-dispersion axis. Collapses will happen along this axis,
-     * onto the dispersion axis. If not set a default axis will be picked from
-     * amongst the significant axes. If exclude is true then the index will
-     * be taken as meaning a significant axis.
+     * Set the non-dispersion axis used to select a position. Any collapses
+     * should happen along the other non-dispersion axis, onto the dispersion
+     * axis, starting at an index along this axis.. If not set a default axis
+     * will be picked from amongst the significant axes. If exclude is true
+     * then the index will be taken as meaning a significant axis.
      */
-    public void setCollapseAxis( int collapseax, boolean exclude )
+    public void setSelectAxis( int selectax, boolean exclude )
     {
-        if ( exclude ) {
-            this.collapseax = sigToRealAxis( collapseax );
+        if ( exclude && selectax != -1 ) {
+            this.selectax = sigToRealAxis( selectax );
         }
         else {
-            this.collapseax = collapseax;
+            this.selectax = selectax;
         }
     }
 
     /**
-     * Return the axis that any collapse should occur along. If not explicitly
-     * set the first axis which isn't the dispersion axis will be chosen. The
-     * axis numbers returned do not exclude non-significant dimensions, unless
-     * exclude is set to true.
+     * Return the axis that any positions used to indicate where to start a
+     * collapse should be defined along. If not explicitly set the first axis
+     * which isn't the dispersion axis will be chosen. The axis numbers
+     * returned do not exclude non-significant dimensions, unless exclude is
+     * set to true.
      */
-    public int getNonDispAxis( boolean exclude )
+    public int getSelectAxis( boolean exclude )
     {
-        if ( collapseax == -1 ) {
+        if ( selectax == -1 ) {
             //  No choice made yet. Invoke getDispAxis to make sure of
             //  initialisation.
             int sigaxis = getDispAxis( false );
             for ( int i = 0; i < realDims.length; i++ ) {
                 if ( i != sigaxis && realDims[i] != 1 ) {
-                    collapseax = i;
+                    selectax = i;
                     break;
                 }
             }
         }
 
         if ( exclude ) {
-            return realToSigAxis( collapseax );
+            return realToSigAxis( selectax );
         }
-        return collapseax;
+        return selectax;
     }
+
+    /**
+     * Return a significant axis which isn't the dispersion axis, or the
+     * selected axis. For a 3D cube this should be the remaining axis. If none
+     * can be found this returns -1.
+     */
+    public int getFreeAxis()
+    {
+        int freeax = -1;
+        int[] dims = getSigDims();
+        if ( dims.length >= 3 ) {
+            int dispax = getDispAxis( true );
+            int selectax = getSelectAxis( true );
+            for ( int i = 0; i < dims.length; i++ ) {
+                if ( dispax != i && selectax != i ) {
+                    freeax = i;
+                }
+            }
+        }
+        return freeax;
+    }
+
 
     /**
      * Convert a real axis number into a significant dimensions axis number.

@@ -20,16 +20,19 @@ import uk.ac.starlink.array.ArrayArrayImpl;
 import uk.ac.starlink.array.WindowArrayImpl;
 
 /**
- * This class provides an implementation of SpecDataImpl that reprocesses
- * another 2D or 3D SpecData's implementation into a collapsed 1D
- * implementation. The collapse happens either along the dispersion axis, if
- * one can be determined, or along the first axis. For 3D data an additional
- * position along a non-dispersion axis must be identified and a single plane
- * at that position is used.
+ * This class provides an implementation of {@link SpecDataImpl} that
+ * reprocesses another 2D or 3D SpecData's implementation into a collapsed 1D
+ * implementation. How the collapse happens is determined by the properties of
+ * a {@link SpecDims} object. This should have a dispersion axis, onto which
+ * the collapse happens, and for 3D data a collapse axis, along which collapse
+ * onto the dispersion axis happens. For 3D data an axis value along the other
+ * axis (not the dispersion or collapse axis) picks out the actual plane that
+ * is collapsed.
  *
  * @author Peter W. Draper
  * @version $Id$
  * @see SpecData
+ * @see SpecDims
  * @see SpecDataImpl
  */
 public class CollapsedSpecDataImpl
@@ -39,23 +42,24 @@ public class CollapsedSpecDataImpl
      * Constructor for 2D data.
      *
      * @param parent the SpecData to collapse.
+     * @param specDims describes the dimensions of the parent
      */
-    public CollapsedSpecDataImpl( SpecData parent )
+    public CollapsedSpecDataImpl( SpecData parent, SpecDims specDims )
         throws SplatException
     {
         super( parent.getFullName() );
         this.shortName = "Collapsed: " + shortName;
         this.parentImpl = parent.getSpecDataImpl();
-        collapse( parent );
+        collapse( parent, specDims );
         initMetaData( parent );
     }
 
     /**
      * Construct an object that uses a 2D section of data from a 3D
      * spectrum. The section is defined using the dimensionality of the given
-     * SpecDims instance, which defines the picked axis, along with the index
-     * along the picked axis that the collapse onto the dispersion axis will
-     * occur down.
+     * SpecDims instance, which defines the dispersion and collapse axes,
+     * together with an index along the other axis that the collapse onto the
+     * dispersion axis will occur at.
      *
      * @param parent the SpecData to collapse.
      */
@@ -73,11 +77,9 @@ public class CollapsedSpecDataImpl
     /**
      * Do a 2D SpecData collapse.
      */
-    protected void collapse( SpecData parent )
+    protected void collapse( SpecData parent, SpecDims specDims )
         throws SplatException
     {
-        SpecDims specDims = new SpecDims( parent );
-
         //  We only handle 2D, but this can be complicated when some
         //  dimensions are redundant.
         int sigdims = specDims.getNumSigDims();
@@ -159,7 +161,7 @@ public class CollapsedSpecDataImpl
         //  The section is identified by making the picked axis offset equal
         //  to the given index along that axis (plus 1) and the size of that
         //  dimension is set to 1.
-        int picked = specDims.getNonDispAxis( false );
+        int picked = specDims.getSelectAxis( false );
         long[] origin = new long[dims.length];
         Arrays.fill( origin, 1L );
         origin[picked] = (long) index + 1;
@@ -176,7 +178,7 @@ public class CollapsedSpecDataImpl
         //  Errors.
         BridgeNDArray winENDArray = null;
         if ( e != null ) {
-            WindowArrayImpl weImpl = new WindowArrayImpl( fullENDArray, 
+            WindowArrayImpl weImpl = new WindowArrayImpl( fullENDArray,
                                                           sectionShape );
             winENDArray = new BridgeNDArray( weImpl );
         }
@@ -211,18 +213,8 @@ public class CollapsedSpecDataImpl
 
         //  Collapse onto the dispersion axis. The collapsed axis is the not
         //  picked one.
-        int dispax = specDims.getDispAxis( false );
-        int collapsed = 0;
-        if ( picked == 0 ) {
-            collapsed = ( dispax == 1 ) ? 2 : 1;
-        }
-        else if ( picked == 1 ) {
-            collapsed = ( dispax == 0 ) ? 2 : 0;
-        }
-        else if ( picked == 2 ){
-            collapsed = ( dispax == 0 ) ? 1 : 0;
-        }
-
+        int collapsed = specDims.getFreeAxis();
+        int dispax = specDims.getDispAxis( true );
         if ( dispax < collapsed ) {
             collapse1( ds, es, wdims );
         }

@@ -1347,11 +1347,14 @@ public class SplatBrowser
         int top = list.specCount();
 
         //  2D spectra may need reprocessing by collapsing or expanding into
-        //  many spectra. This is performed here.
+        //  many spectra. This is performed here. XXX choice of default
+        //  dispersion and collapse axes....
         SpecData[] moreSpectra = null;
         try {
+            //moreSpectra = specDataFactory.reprocessTo1D
+            //    ( spectrum, SpecDataFactory.COLLAPSE, -1, -1 );
             moreSpectra = specDataFactory.reprocessTo1D
-                ( spectrum, SpecDataFactory.COLLAPSE );
+                ( spectrum, SpecDataFactory.EXPAND, -1, -1 );
         }
         catch (SplatException e) {
             JOptionPane.showMessageDialog
