@@ -290,8 +290,19 @@ public class FITSSpecDataImpl
         //  Parse the name to extract the HDU reference.
         InputNameParser namer = new InputNameParser( fileName );
         hdunum = namer.fitshdunum();
+        String name = null;
+        if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {
+            // Probably not a ".fits" or ".fit" extension. Shouldn't
+            // be an NDF.
+            name = namer.ndfname();
+        }
+        else {
+            name = namer.fullname();
+        }
+        System.out.println( "name = " + name );
+        
         try {
-            fitsref = new Fits( namer.fullname() );
+            fitsref = new Fits( name );
         }
         catch ( Exception e ) {
             fitsref = null;
@@ -328,8 +339,13 @@ public class FITSSpecDataImpl
         //  file name. Extension number is ignored for now.
         InputNameParser namer = new InputNameParser( fullName );
         hdunum = namer.fitshdunum();
-        String container = namer.fullname();
-
+        String container = null;
+        if ( namer.type().equals( ".sdf" ) && ! namer.path().equals( "" ) ) {
+            container = namer.ndfname();
+        }
+        else {
+            container = namer.fullname();
+        }
         try {
             // Create a null FITS object (TODO: deal with prior existence?).
             fitsref = new Fits();
