@@ -13,15 +13,22 @@ public class UpToDateTest extends TestCase {
 
     public static final String REG_WSDL = 
         "http://nvo.stsci.edu/voregistry/registry.asmx?WSDL";
+    public static final String SESAME_WSDL =
+        "http://cdsws.u-strasbg.fr/axis/services/Sesame?wsdl";
 
     public UpToDateTest( String name ) {
         super( name );
     }
 
-    public void testRegistryWSDL() throws Exception {
-        URL localURL = getClass().getClassLoader()
-                      .getResource( "registry.wsdl" );
-        URL remoteURL = new URL( REG_WSDL );
+    public void testWsdls() throws Exception {
+        checkWsdl( "registry.wsdl", REG_WSDL );
+        checkWsdl( "sesame.wsdl", SESAME_WSDL );
+    }
+
+    public void checkWsdl( String localName, String remoteName)
+            throws Exception {
+        URL localURL = getClass().getClassLoader().getResource( localName );
+        URL remoteURL = new URL( remoteName );
         String[] localLines = getLines( localURL );
         String[] remoteLines = getLines( remoteURL );
         String msg = "Cached copy of registry WSDL is out of date; " +
