@@ -35,4 +35,13 @@ public class LinkElement extends VOElement {
              ? getContextURL( getAttribute( "href" ) )
              : null;
     }
+
+    /**
+     * Returns the title attribute if there is one, otherwise defers to
+     * superclass implementation.
+     */
+    public String getHandle() {
+        return hasAttribute( "title" ) ? getAttribute( "title" )
+                                       : super.getHandle();
+    }
 }
