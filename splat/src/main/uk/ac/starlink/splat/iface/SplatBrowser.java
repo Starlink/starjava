@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     25-SEP-2000 (Peter W. Draper):
@@ -74,6 +74,8 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 
+import uk.ac.starlink.treeview.TreeNodeChooser;
+
 /**
  * This is the main class for the SPLAT program. It creates the
  * browser interface that displays and controls the global lists of
@@ -113,8 +115,7 @@ public class SplatBrowser
     /**
      *  The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList
-        globalList = GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.
@@ -181,6 +182,11 @@ public class SplatBrowser
      *  Open or save file chooser.
      */
     protected BasicFileChooser fileChooser = null;
+
+    /**
+     *  Open table chooser.
+     */
+    //protected StarTableNodeChooser tableChooser = null;
 
     /**
      *  Names of files that are passed to other threads for loading.
@@ -376,12 +382,13 @@ public class SplatBrowser
         splitPane.setDividerLocation( 200 );
 
         //  Finally add the main components to the content and split
-        //  panes.
+        //  panes. Also positions the toolbar.
         splitPane.setLeftComponent( specListScroller );
         splitPane.setRightComponent( controlScroller );
+
         controlArea.add( plotTable, BorderLayout.WEST );
         controlArea.add( selectedProperties, BorderLayout.NORTH );
-        contentPane.add( toolBarContainer, BorderLayout.NORTH );
+
         contentPane.add( splitPane, BorderLayout.CENTER );
     }
 
@@ -439,10 +446,16 @@ public class SplatBrowser
         //  Add the menuBar.
         this.setJMenuBar( menuBar );
 
-        //  Add the toolbar to a container. Need extra component for
-        //  sensible float behaviour.
+        //  Add the toolbar to a container. Need extra component so we can
+        //  reorient with the split pane.
         toolBarContainer.setLayout( new BorderLayout() );
-        toolBarContainer.add( toolBar );
+        toolBarContainer.add( toolBar, BorderLayout.CENTER );
+
+        //  Would be nice to have something that wrapped/scrolled when the
+        //  toolbar doesn't fit (scrollbar eats into toolbar space, never got
+        //  wrapping to work).
+        //JScrollPane pane = new JScrollPane( toolBar );
+        //toolBarContainer.add( pane, BorderLayout.CENTER );
 
         //  Create the File menu.
         createFileMenu();
@@ -471,7 +484,7 @@ public class SplatBrowser
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
 
-        //  Add action to open a list of spectrum
+        //  Add action to open a list of spectrum stored in files.
         ImageIcon openImage = new ImageIcon(
             ImageHolder.class.getResource( "openfile.gif" ) );
         LocalAction openAction  = new LocalAction( LocalAction.OPEN,
@@ -479,6 +492,16 @@ public class SplatBrowser
                                                    "Open spectra" );
         fileMenu.add( openAction );
         toolBar.add( openAction );
+
+        //  Add action to browse the local file system and look for tables
+        //  etc. in sub-components.
+        ImageIcon browseImage = new ImageIcon(
+            ImageHolder.class.getResource( "browse.gif" ) );
+        LocalAction browseAction  = new LocalAction( LocalAction.BROWSE,
+                                                     "Browse", browseImage,
+                                                     "Browse for spectra" );
+        fileMenu.add( browseAction );
+        toolBar.add( browseAction );
 
         //  Add action to save a spectrum
         ImageIcon saveImage = new ImageIcon(
@@ -579,6 +602,15 @@ public class SplatBrowser
                              "Copy selected spectra", null,
                              "Make memory copies of all selected spectra" );
         editMenu.add( copySelectedSpectraAction );
+
+        //  Add an action to copy and sort all selected spectra. This makes
+        //  memory copies.
+        LocalAction copySortSelectedSpectraAction =
+            new LocalAction( LocalAction.COPYSORT_SPECTRA,
+                             "Copy and sort selected spectra", null,
+                             "Make memory copies of all selected spectra " +
+                             "and sort their coordinates if necessary" );
+        editMenu.add( copySortSelectedSpectraAction );
 
         //  Add an action to create a new spectrum. The size is
         //  obtained from a dialog.
@@ -689,27 +721,36 @@ public class SplatBrowser
     }
 
     /**
-     * Set the vertical or horizontal split.
+     * Set the vertical or horizontal split. Also positions the
+     * toolbar to match.
      */
     protected void setSplitOrientation( boolean init )
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = prefs.getBoolean( "SplatBrowser_vsplit", true );
+            boolean state = prefs.getBoolean("SplatBrowser_vsplit", true);
             splitOrientation.setSelected( state );
         }
         boolean selected = splitOrientation.isSelected();
+
+        contentPane.remove( toolBarContainer );
         if ( selected ) {
             splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
+            toolBar.setOrientation( JToolBar.HORIZONTAL );
+            contentPane.add( toolBarContainer, BorderLayout.NORTH );
         }
         else {
             splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
+            toolBar.setOrientation( JToolBar.VERTICAL );
+            contentPane.add( toolBarContainer, BorderLayout.WEST );
         }
+        contentPane.revalidate();
         prefs.putBoolean( "SplatBrowser_vsplit", selected );
     }
 
     /**
-     * Create the Operations menu and populate it with appropriate actions.
+     * Create the Operations menu and populate it with appropriate
+     * actions.
      */
     protected void createOperationsMenu()
     {
@@ -876,7 +917,6 @@ public class SplatBrowser
                threadSaveSpectrum( indices[0], destFile.getPath() );
             }
             else {
-                //  This occasionally happens (1.4), not sure why...
                 JOptionPane.showMessageDialog( this,
                                                "No spectrum selected",
                                                "No write",
@@ -972,7 +1012,7 @@ public class SplatBrowser
         if ( result == stackChooser.APPROVE_OPTION ) {
             File file = stackChooser.getSelectedFile();
             if ( !file.exists() || ( file.exists() && file.canWrite() ) ) {
-                SpecList specList = SpecList.getReference();
+                SpecList specList = SpecList.getInstance();
                 specList.writeStack( file.getPath() );
             }
             else {
@@ -995,7 +1035,7 @@ public class SplatBrowser
         if ( result == stackChooser.APPROVE_OPTION ) {
             File file = stackChooser.getSelectedFile();
             if ( file.exists() && file.canRead() ) {
-                SpecList globalSpecList = SpecList.getReference();
+                SpecList globalSpecList = SpecList.getInstance();
                 int nread = globalSpecList.readStack( file.getPath() );
 
                 //  If requested honour the display option.
@@ -1221,7 +1261,7 @@ public class SplatBrowser
     public boolean addSpectrum( String name, int usertype )
     {
         try {
-            SpecDataFactory factory = SpecDataFactory.getReference();
+            SpecDataFactory factory = SpecDataFactory.getInstance();
             SpecData spectrum = factory.get( name, usertype );
             addSpectrum( spectrum );
             return true;
@@ -1244,7 +1284,7 @@ public class SplatBrowser
     public boolean addSpectrum( String name )
     {
         try {
-            SpecDataFactory factory = SpecDataFactory.getReference();
+            SpecDataFactory factory = SpecDataFactory.getInstance();
             SpecData spectrum = factory.get( name );
             addSpectrum( spectrum );
             return true;
@@ -1269,7 +1309,7 @@ public class SplatBrowser
         globalList.add( spectrum );
 
         //  Latest list entry becomes selected.
-        SpecList list = SpecList.getReference();
+        SpecList list = SpecList.getInstance();
         specList.setSelectedIndex( list.specCount() - 1 );
     }
 
@@ -1383,7 +1423,7 @@ public class SplatBrowser
         //  indices.
         int[] indices = new int[count];
         int openedCount = 0;
-        SpecList specList = SpecList.getReference();
+        SpecList specList = SpecList.getInstance();
         for ( int i = 0; i < count; i++ ) {
             if ( addSpectrum( st.nextToken() ) ) {
                 indices[openedCount++] = specList.specCount() - 1;
@@ -1440,7 +1480,7 @@ public class SplatBrowser
         //  indices.
         int[] indices = new int[count];
         int openedCount = 0;
-        SpecList specList = SpecList.getReference();
+        SpecList specList = SpecList.getInstance();
         for ( int i = 0; i < count; i++ ) {
             if ( addSpectrum( st.nextToken() ) ) {
                 indices[openedCount++] = specList.specCount() - 1;
@@ -1497,7 +1537,7 @@ public class SplatBrowser
      * Make a report using an ExceptionDialog for when loading a list
      * of spectra has failed for some.
      */
-    private void reportOpenListFailed( int failed,
+    private void reportOpenListFailed( int failed, 
                                        SplatException lastException )
     {
         String message = null;
@@ -1679,10 +1719,11 @@ public class SplatBrowser
     }
 
     /**
-     * Make copies of all the selected spectra. These are memory
-     * copies.
+     * Make copies of all the selected spectra. These are memory copies. If
+     * sort is true then the coordinates are sorted into increasing order and
+     * any duplicates are removed.
      */
-    public void copySelectedSpectra()
+    public void copySelectedSpectra( boolean sort )
     {
         int[] indices = getSelectedSpectra();
         if ( indices != null ) {
@@ -1693,8 +1734,8 @@ public class SplatBrowser
                 spec = globalList.getSpectrum( indices[i] );
                 name = "Copy of: " + spec.getShortName();
                 try {
-                    newSpec = SpecDataFactory.getReference().
-                        createEditable( name, spec );
+                    newSpec = SpecDataFactory.getInstance().
+                        createEditable( name, spec, sort );
                     globalList.add( newSpec );
                 }
                 catch (Exception e) {
@@ -1811,7 +1852,7 @@ public class SplatBrowser
     public void saveSpectrum( int globalIndex, String spectrum )
     {
         SpecData source = globalList.getSpectrum( globalIndex );
-        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecDataFactory factory = SpecDataFactory.getInstance();
         try {
             SpecData target = factory.getClone( source, spectrum );
             target.save();
@@ -1900,8 +1941,8 @@ public class SplatBrowser
                 EditableSpecData newSpec = null;
                 String name = "Blank spectrum";
                 try {
-                    newSpec = SpecDataFactory.getReference()
-                        .createEditable(name);
+                    newSpec = SpecDataFactory.getInstance()
+                        .createEditable( name );
 
                     //  Add the coords and data.
                     double[] coords = new double[nrows];
@@ -1967,25 +2008,27 @@ public class SplatBrowser
     {
         public static final int SAVE = 0;
         public static final int OPEN = 1;
-        public static final int SINGLE_DISPLAY = 2;
-        public static final int MULTI_DISPLAY = 3;
-        public static final int ANIMATE_DISPLAY = 4;
-        public static final int SPEC_VIEWER = 5;
-        public static final int XCOORDTYPE_VIEWER = 6;
-        public static final int SAVE_STACK = 7;
-        public static final int READ_STACK = 8;
-        public static final int REMOVE_SPECTRA = 9;
-        public static final int SELECT_SPECTRA = 10;
-        public static final int DESELECT_SPECTRA = 11;
-        public static final int COLOURIZE = 12;
-        public static final int REMOVE_PLOTS = 13;
-        public static final int SELECT_PLOTS = 14;
-        public static final int DESELECT_PLOTS = 15;
-        public static final int BINARY_MATHS = 16;
-        public static final int UNARY_MATHS = 17;
-        public static final int COPY_SPECTRA = 18;
-        public static final int CREATE_SPECTRUM = 19;
-        public static final int EXIT = 20;
+        public static final int BROWSE = 2;
+        public static final int SINGLE_DISPLAY = 3;
+        public static final int MULTI_DISPLAY = 4;
+        public static final int ANIMATE_DISPLAY = 5;
+        public static final int SPEC_VIEWER = 6;
+        public static final int XCOORDTYPE_VIEWER = 7;
+        public static final int SAVE_STACK = 8;
+        public static final int READ_STACK = 9;
+        public static final int REMOVE_SPECTRA = 10;
+        public static final int SELECT_SPECTRA = 11;
+        public static final int DESELECT_SPECTRA = 12;
+        public static final int COLOURIZE = 13;
+        public static final int REMOVE_PLOTS = 14;
+        public static final int SELECT_PLOTS = 15;
+        public static final int DESELECT_PLOTS = 16;
+        public static final int BINARY_MATHS = 17;
+        public static final int UNARY_MATHS = 18;
+        public static final int COPY_SPECTRA = 19;
+        public static final int COPYSORT_SPECTRA = 20;
+        public static final int CREATE_SPECTRUM = 21;
+        public static final int EXIT = 22;
 
         private int type = 0;
 
@@ -1998,13 +2041,15 @@ public class SplatBrowser
          *             appears in all labels).
          * @param help the tooltip help for any labels (can be null).
          */
-        public LocalAction( int type, String name, Icon icon, String help ) {
+        public LocalAction( int type, String name, Icon icon, String help ) 
+        {
             super( name, icon );
             this.type = type;
             putValue( SHORT_DESCRIPTION, help );
         }
 
-        public void actionPerformed( ActionEvent ae ) {
+        public void actionPerformed( ActionEvent ae ) 
+        {
             switch (type) {
                case SAVE: {
                    showSaveFileChooser();
@@ -2012,6 +2057,10 @@ public class SplatBrowser
                break;
                case OPEN: {
                    showOpenFileChooser();
+               }
+               break;
+               case BROWSE: {
+                   //showBrowseChooser();
                }
                break;
                case SINGLE_DISPLAY: {
@@ -2079,7 +2128,10 @@ public class SplatBrowser
                }
                break;
                case COPY_SPECTRA: {
-                   copySelectedSpectra();
+                   copySelectedSpectra( false );
+               }
+               case COPYSORT_SPECTRA: {
+                   copySelectedSpectra( true );
                }
                break;
                case CREATE_SPECTRUM: {
