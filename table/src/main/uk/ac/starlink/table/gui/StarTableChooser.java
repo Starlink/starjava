@@ -9,13 +9,17 @@ import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -29,6 +33,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -37,6 +42,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
@@ -72,12 +79,8 @@ import uk.ac.starlink.util.Loader;
  * <li> {@link NodeLoader}
  * <li> {@link SQLReadDialog}
  * </ul>
- * The following are available in the starlink java set and can be
- * installed if desired as explained above:
- * <ul>
- * <li> {@link uk.ac.starlink.astrogrid.MyspaceTableLoadDialog}
- * <li> {@link uk.ac.starlink.vo.ConeSearchDialog}
- * </ul>
+ * Other useful {@link TableLoadDialog} implementations are available in
+ * the Starlink java set and can be install if desired as explained above.
  *
  * <p>If you want to make more customised use of this component than is
  * offered by <tt>showTableDialog</tt> it is possible, but these javadocs
@@ -91,13 +94,18 @@ public class StarTableChooser extends JPanel {
 
     private final JTextField locField_;
     private final Action locAction_;
+    private final TableLoadDialog[] dialogs_;
+    private final String[] extraDialogNames_;
+    private TableLoadDialog[] knownDialogs_;
     private final Component[] activeComponents_;
     private StarTableFactory tableFactory_;
     private ComboBoxModel formatModel_;
     private TransferHandler transferHandler_;
     private Icon queryIcon_;
-    private TableLoadDialog[] dialogs_;
     private TableConsumer tableConsumer_;
+
+    private final static Logger logger_ =
+        Logger.getLogger( "uk.ac.starlink.table" );
 
     /**
      * List of classnames for {@link TableLoadDialog} 
@@ -138,17 +146,32 @@ public class StarTableChooser extends JPanel {
      * @param  factory  factory to use for creating tables
      */
     public StarTableChooser( StarTableFactory factory ) {
-        this( new StarTableFactory(), makeDefaultLoadDialogs() );
+        this( new StarTableFactory(), makeDefaultLoadDialogs(), 
+              new String[ 0 ] );
     }
 
     /**
      * Constructs a new chooser window with a specified table factory
-     * and list of load dialogues.
+     * and specification of what load dialogues to use.
+     * The <tt>dialogs</tt> argument specifies the main list of actual
+     * subdialogues which can be used for loading tables.
+     * The <tt>extraDialogNames</tt> argument gives an additional list of
+     * dialogue class names which will be instantiated if possible,
+     * and perhaps presented in a menu or something.  It may or may not
+     * contain some of the same names as the classes in <tt>dialogs</tt>
+     * (any duplicates will be weeded out).
+     *
+     * @param  factory  table factory
+     * @param  dialogs  main list of load dialogues
+     * @param  extraDialogNames  names of additional classes which implement
+     *         {@link TableLoadDialog}
      */
     public StarTableChooser( StarTableFactory factory, 
-                             TableLoadDialog[] dialogs ) {
+                             TableLoadDialog[] dialogs,
+                             String[] extraDialogNames ) {
         tableFactory_ = factory;
         dialogs_ = dialogs;
+        extraDialogNames_ = extraDialogNames;
         formatModel_ = makeFormatBoxModel( factory );
         Border emptyBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         Box actionBox = Box.createVerticalBox();
@@ -193,14 +216,16 @@ public class StarTableChooser extends JPanel {
         actionBox.add( locBox );
         
         /* Create buttons for each of the pluggable dialog options. */
-        int nopt = dialogs_.length;
-        JButton[] buttons = new JButton[ nopt ];
-        for ( int i = 0; i < nopt; i++ ) {
-            buttons[ i ] = new JButton( makeAction( dialogs_[ i ] ) );
-            if ( buttons[ i ].isEnabled() ) {
-                activeList.add( buttons[ i ] );
+        List buttList = new ArrayList();
+        for ( int i = 0; i < dialogs_.length; i++ ) {
+            if ( dialogs_[ i ].isAvailable() ) {
+                JButton butt = new JButton( makeAction( dialogs_[ i ] ) );
+                activeList.add( butt );
+                buttList.add( butt );
             }
         }
+        JButton[] buttons = (JButton[]) buttList.toArray( new JButton[ 0 ] );
+        int nopt = buttons.length;
 
         /* Position buttons. */
         int buttw = 0;
@@ -341,6 +366,72 @@ public class StarTableChooser extends JPanel {
      */
     public String getFormatName() {
         return (String) formatModel_.getSelectedItem();
+    }
+
+    /**
+     * Returns an array of all dialogues known by this chooser.
+     * This may be larger than the usually presented list, and may 
+     * incur some additional cost (for instance classloading) when it is
+     * called.  It is designed for presenting a more exhaustive list
+     * in a menu, for instance.
+     *
+     * @return  list of actions corresponding to all known subdialogues
+     */
+    public TableLoadDialog[] getKnownDialogs() {
+        if ( knownDialogs_ == null ) {
+            Set classes = new HashSet();
+            List tldList = new ArrayList();
+
+            /* Add all the standard subdialogues. */
+            for ( int i = 0; i < dialogs_.length; i++ ) {
+                TableLoadDialog tld = dialogs_[ i ];
+                classes.add( tld.getClass().getName() );
+                tldList.add( tld );
+            }
+
+            /* Now go through the extra ones and try to instantiate each one
+             * whose class hasn't already been added. */
+            for ( int i = 0; i < extraDialogNames_.length; i++ ) {
+                String cname = extraDialogNames_[ i ];
+                if ( ! classes.contains( cname ) ) {
+                    classes.add( cname );
+                    try {
+                        TableLoadDialog tld = (TableLoadDialog)
+                            getClass().forName( cname ).newInstance();
+                        tldList.add( tld );
+                    }
+                    catch ( Throwable th ) {
+                        logger_.info( "Error instantiating load dialogue " +
+                                      cname + ": " + th );
+                    }
+                }
+            }
+
+            /* Create and return an array from the list. */
+            knownDialogs_ = (TableLoadDialog[]) 
+                            tldList.toArray( new TableLoadDialog[ 0 ] );
+        }
+        return knownDialogs_;
+    }
+
+    public JMenu makeKnownDialogsMenu() {
+        final JMenu menu = new JMenu( "Dialogues" );
+        menu.setMnemonic( KeyEvent.VK_D );
+        menu.addMenuListener( new MenuListener() {
+            boolean done;
+            public void menuSelected( MenuEvent evt ) {
+                if ( ! done ) {
+                    done = true;
+                    TableLoadDialog[] tlds = getKnownDialogs();
+                    for ( int i = 0; i < tlds.length; i++ ) {
+                        menu.add( makeAction( tlds[ i ] ) );
+                    }
+                }
+            }
+            public void menuDeselected( MenuEvent evt ) {}
+            public void menuCanceled( MenuEvent evt ) {}
+        } );
+        return menu;
     }
 
     public void setEnabled( boolean isEnabled ) {
