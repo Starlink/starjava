@@ -146,7 +146,7 @@
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
 
-  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.bin.pkg" value="${dist.bin}"/>
   <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
   <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
@@ -780,7 +780,7 @@
     <property name="star.lib" value="${star.install}/lib"/>
     <property name="star.etc" value="${star.install}/etc"/>
     <property name="star.docs" value="${star.install}/docs"/>
-    <property name="star.bin.pkg" value="${star.bin}/${name}"/>
+    <property name="star.bin.pkg" value="${star.bin}"/>
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
@@ -790,17 +790,17 @@
     <mkdir dir="${star.etc.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
 
+    <!-- this is a temporary measure to clean up the directory dist.bin.pkg;
+     !   it now wants to be a file and can't copy the file over if it's 
+     !   still a directory. -->
+    <delete dir="${star.bin}/${name}" failonerror="false"/>
+
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="false">
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
-
-    <!-- Also remove the package-specific directory.
-     !   Note exact format is required.-->
-    <echo file="${install.log}" append="true">${star.bin.pkg}
-</echo>
 
     <chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
@@ -817,6 +817,9 @@
         <include name="**/*.zip"/>
       </fileset>
     </loggedcopy>
+
+    <!-- Also remove the package-specific directory 
+     !   (note exact format required -->
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
 
