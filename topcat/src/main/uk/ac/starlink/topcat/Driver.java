@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
@@ -150,12 +151,37 @@ public class Driver {
             // never mind
             cmdname = null;
         }
+
+        /* Prepare basic usage message. */
         if ( cmdname == null ) {
             cmdname = Driver.class.getName();
         }
         String usage = "Usage: " 
                      + cmdname
-                     + " [-demo] [-disk] [[-f <format>] table ...]";
+                     + " [-help] [-demo] [-disk] [[-f <format>] table ...]";
+
+        /* Prepare usage message which also describes known formats. */ 
+        StringBuffer ufbuf = new StringBuffer( usage );
+        ufbuf.append( "\n           Auto-Detected formats: " );
+        for ( Iterator it = tabfact.getDefaultBuilders().iterator();
+              it.hasNext(); ) {
+            ufbuf.append( ((TableBuilder) it.next()).getFormatName()
+                                                   .toLowerCase() );
+            if ( it.hasNext() ) {
+               ufbuf.append( ", " );
+            }
+        }
+        ufbuf.append( "\n           All known formats:     " );
+        for ( Iterator it = tabfact.getKnownFormats().iterator();
+              it.hasNext(); ) {
+            ufbuf.append( ((String) it.next()).toLowerCase() );
+            if ( it.hasNext() ) {
+                ufbuf.append( ", " );
+            }
+        }
+        String usageWithFormats = ufbuf.toString();
+
+        /* Standalone execution (e.g. System.exit() may be called). */
         setStandalone( true );
 
         /* Process flags. */
@@ -164,8 +190,8 @@ public class Driver {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-h" ) ) {
-                System.out.println( usage );
-                System.exit( 0 );
+                System.out.println( usageWithFormats );
+                return;
             }
             else if ( arg.equals( "-demo" ) ) {
                 it.remove();
