@@ -1,40 +1,48 @@
 package uk.ac.starlink.splat.util;
 
-
 /**
- * Levenberg-Marquardt non-linear least squares fit class.
- *
- * This version is a modification of an implementation of the L-M
- * method from "Numerical Recipes" by:
- *    Andrew Robinson
- *    Nanoscale Physics Research Laboratory
- *    School of Physics and Astronomy
- *    The University of Birmingham
- *    Edgbaston
- *    Birmingham B15 2TT
- *    U.K.
- *    A.W.Robinson@bham.ac.uk
- *
- * Changes made by P.W.Draper, are that the code has been converted to
- * use variable size parameters and position arrays and has been
- * converted to provide javadoc comments. The function that is used to
- * provide information about the data fit (i.e. that evaluates the
- * chi-square and partial derivate values for a given model) has been
- * moved into an external class that implements the LevMarqFunc
- * interface.
- *
- * NOTE: when entering data, use the FORTRAN array numbering
+ * Levenberg-Marquardt non-linear least squares fit class. To use this
+ * class you need to create a class that implements the {@link LevMarqFunc}
+ * interface. To see how to use this class have a look at one of the
+ * classes that extend the {@link AbstractFunctionFitter} class.
+ * <p>
+ * <b>Note:</b> when entering data, use the FORTRAN array numbering
  * convention i.e.  point 1 is x[1] do NOT use the C/C++ convention
- * where the first point is x[0]
+ * where the first point is x[0].
  *
- * @version 1.01
+ * @version $Id$
  * @since 03-JAN-2001
- * @since 19-SEP-1997
  * @author Peter W. Draper
  *
- * @see LevMarqFunc */
+ * @see LevMarqFunc
+ */
 public class LevMarq
 {
+    /*
+     * Special notes.
+     * --------------
+     * This version is a re-enginering of an implementation of the L-M
+     * method from "Numerical Recipes" by:
+     * <pre>
+     *    Andrew Robinson
+     *    Nanoscale Physics Research Laboratory
+     *    School of Physics and Astronomy
+     *    The University of Birmingham
+     *    Edgbaston
+     *    Birmingham B15 2TT
+     *    U.K.
+     *    A.W.Robinson@bham.ac.uk
+     * </pre>
+     * Changes made by P.W.Draper, are that the code has been
+     * converted to use variable size parameters and position arrays
+     * and has been converted to provide javadoc comments. The
+     * function that is used to provide information about the data fit
+     * (i.e.<!-- --> that evaluates the chi-square and partial
+     * derivate values for a given model) has been moved into an
+     * external class that implements the {@link LevMarqFunc}
+     * interface.
+     */
+
     // Local variables.
     private double a[];
     private double alambda;
@@ -61,7 +69,7 @@ public class LevMarq
     private int ndata = 200;
     private int mfit;
     private int mparam = 20;
-    
+
     private LevMarqFunc funcs = null;
 
     /**
@@ -695,7 +703,7 @@ public class LevMarq
 	do {
 	    oldchi2 = chi2;
 	    oldalambda = alambda;
-           
+
             // Do minimisation.
 	    chi2 = mrqmin();
 

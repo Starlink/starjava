@@ -9,10 +9,12 @@ package uk.ac.starlink.splat.util;
 
 /**
  * LevMarqFunc is an interface that defines a method for evaluating
- * a function that is to be fitted by a LevMarq object.
+ * a function that is to be fitted by a {@link LevMarq} object.
  *
  * @author Peter W. Draper
  * @version $Id$
+ * 
+ * @see LevMarq
  */
 
 //  This could be improved by using a container object to retain all
@@ -29,8 +31,8 @@ public interface LevMarqFunc
      * @param x the position at which the function should be
      *          evaluated.
      * @param a the current model parameters.
-     * @param na the number of model parameters to use (<=a.length-1).
-     * @param dyda the partial derivatives.
+     * @param na the number of model parameters to use (< a.length).
+     * @param dyda the partial derivatives (returned).
      * @return the function value.
      */
     public double eval( double x, double[] a, int na, double[] dyda );
