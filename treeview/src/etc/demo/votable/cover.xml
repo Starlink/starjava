@@ -6,11 +6,11 @@
 		<COOSYS ID="myJ2000" system="eq_FK5" equinox="2000." epoch="2000."/>
 	</DEFINITIONS>
 	<RESOURCE>
-		<PARAM ID="RA" datatype="E" value="200.0"/>
-		<PARAM ID="DE" datatype="E" value="40.0"/>
-		<PARAM ID="SR" datatype="E" value="30.0"/>
-		<PARAM ID="PositionalError" datatype="E" value="0.1"/>
-		<PARAM ID="Credit" datatype="A" arraysize="*" value="Charles Messier, Richard Gelderman"/>
+		<PARAM ID="RA" datatype="float" value="200.0"/>
+		<PARAM ID="DE" datatype="float" value="40.0"/>
+		<PARAM ID="SR" datatype="float" value="30.0"/>
+		<PARAM ID="PositionalError" datatype="float" value="0.1"/>
+		<PARAM ID="Credit" datatype="char" arraysize="*" value="Charles Messier, Richard Gelderman"/>
 		<TABLE>
 			<DESCRIPTION>Output from messier Catalog Server</DESCRIPTION>
 			<FIELD ID="I" name="Messier Number" datatype="char" arraysize="*" ucd="ID_MAIN">
