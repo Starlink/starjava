@@ -310,7 +310,7 @@ public class NDShape implements Cloneable {
      * or
      * <pre>
      *     50+100,50+100
-     * <pre>
+     * </pre>
      * Straggling whitespace is tolerated.
      *
      * @param  str  the string representing the shape.
