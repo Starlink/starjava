@@ -10,9 +10,12 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Generalised data entry field.
+ * Generalised data entry field which can hold a double precision number.
  * As well as a text entry field, this also contains an option for choosing
  * the format in which the data will be entered.
  * The format options are defined by an array of {@link ValueConverter}
@@ -21,23 +24,65 @@ import javax.swing.JTextField;
  * @author   Mark Taylor (Starlink)
  * @since    21 Dec 2004
  */
-public class ValueField {
+public class DoubleValueField {
 
+    private final DefaultValueInfo info_;
     private final JLabel label_;
     private final JTextField entryField_;
     private final JComboBox convSelector_;
 
     /**
-     * Constructor.
+     * Constructs a value field given its name.
      *
      * @param  name  field name
      * @param  convs  list of converter objects
      */
-    public ValueField( String name, ValueConverter[] convs ) {
-        label_ = new JLabel( name + ": " );
-        entryField_ = new JTextField( 12 );
+    public DoubleValueField( String name, ValueConverter[] convs ) {
+        this( new DefaultValueInfo( name, Double.class, "" ), convs );
+    }
+
+    /**
+     * Constructs a value field given a ValueInfo object.
+     *
+     * @param  info  field metadata
+     * @param  convs  list of converter objects
+     */
+    public DoubleValueField( ValueInfo info, ValueConverter[] convs ) {
+        info_ = new DefaultValueInfo( info );
+        label_ = new JLabel( info_.getName() + ": " );
+        entryField_ = new JTextField( 12 ) {
+            public String getToolTipText() {
+                return info_.getDescription();
+            }
+        };
         convSelector_ = new JComboBox( convs );
         convSelector_.setSelectedIndex( 0 );
+    }
+
+    /**
+     * Returns the ValueInfo object which describes the data in this field.
+     *
+     * @return   metadata object for this field
+     */
+    public DefaultValueInfo getValueInfo() {
+        return info_;
+    }
+
+    /**
+     * Returns a described value object (metadata+data) which describes 
+     * the value currently held by this field.
+     *
+     * @return   content of this field
+     */
+    public DescribedValue getDescribedValue() {
+        Double val;
+        try {
+            val = new Double( getValue() );
+        }
+        catch ( Exception e ) {
+            val = null;
+        }
+        return new DescribedValue( info_, val );
     }
 
     /**
@@ -83,13 +128,27 @@ public class ValueField {
     }
 
     /**
+     * Sets the enabled status of the user-interacting components of this
+     * field.
+     *
+     * @param   enabled  whether this component is to be enabled or not
+     */
+    public void setEnabled( boolean enabled ) {
+        entryField_.setEnabled( enabled );
+        convSelector_.setEnabled( enabled );
+    }
+
+    /**
      * Returns an instance suitable for entering Right Ascension,
      * for which {@link #getValue} returns degrees.
      *
      * @param  ra field
      */
-    public static ValueField makeRADegreesField() {
-        return new ValueField( "RA", new ValueConverter[] {
+    public static DoubleValueField makeRADegreesField() {
+        DefaultValueInfo info = new DefaultValueInfo( "RA", Double.class, 
+                                                      "Right Ascension" );
+        info.setUnitString( "Degrees" );
+        return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.HMSDegreesValueConverter(),
             new ValueConverter.UnitValueConverter( "radians", 180. / Math.PI ),
@@ -102,8 +161,11 @@ public class ValueField {
      *
      * @param  dec field
      */
-    public static ValueField makeDecDegreesField() {
-        return new ValueField( "Dec", new ValueConverter[] {
+    public static DoubleValueField makeDecDegreesField() {
+        DefaultValueInfo info = new DefaultValueInfo( "Dec", Double.class,
+                                                      "Declination" );
+        info.setUnitString( "Degrees" );
+        return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.DMSDegreesValueConverter(),
             new ValueConverter.UnitValueConverter( "radians", 180. / Math.PI ),
@@ -116,8 +178,11 @@ public class ValueField {
      *
      * @param  radius field
      */
-    public static ValueField makeRadiusDegreesField() {
-        return new ValueField( "Radius", new ValueConverter[] {
+    public static DoubleValueField makeRadiusDegreesField() {
+        DefaultValueInfo info = new DefaultValueInfo( "Radius", Double.class,
+                                                      "Search radius" );
+        info.setUnitString( "Degrees" );
+        return new DoubleValueField( info, new ValueConverter[] {
             new ValueConverter.UnitValueConverter( "degrees", 1. ),
             new ValueConverter.UnitValueConverter( "arcmin", 1. / 60. ),
             new ValueConverter.UnitValueConverter( "arcsec", 1. / 60. / 60. ),
