@@ -38,6 +38,17 @@ public class TableTest extends TestCase {
         st.addColumn( iCol );
         st.addColumn( xCol );
         st.addColumn( yCol );
+
+        ValueInfo fruitInfo = 
+            new DefaultValueInfo( "Fruit", String.class,
+                                  "Like a vegetable, only sweeter" );
+        assertNull( st.getParameterByName( fruitInfo.getName() ) );
+        st.setParameter( new DescribedValue( fruitInfo, "Banana" ) );
+        assertEquals( "Banana", 
+                      st.getParameterByName( fruitInfo.getName() ).getValue() );
+        st.setParameter( new DescribedValue( fruitInfo, "Kumquat" ) );
+        assertEquals( "Kumquat", 
+                      st.getParameterByName( fruitInfo.getName() ).getValue() );
     }
 
     public void testFormatting() {
