@@ -5,6 +5,8 @@
 // Modified from the original Visad version by Allan Brighton
 // $Id: VRangeSlider.java,v 1.1 2002/07/09 13:30:38 brighton Exp $
 
+// Modified by Mark Taylor (Starlink): setDrawLabels method added.
+
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
@@ -160,6 +162,9 @@ public class VRangeSlider extends JComponent
 
     /** Color used for drawing arrows. */
     private Color arrowColor = Color.yellow;
+
+    /** Flag determining whether text labels are drawn. */
+    protected boolean drawLabels = true;
 
     /** list of listeners for change events */
     protected EventListenerList listenerList = new EventListenerList();
@@ -627,9 +632,33 @@ public class VRangeSlider extends JComponent
     }
 
     /**
+     * Determines whether textual annotations should be drawn near this
+     * widget.
+     * 
+     * @param  drawLabels  whether to draw textual annotation
+     */
+    public void setDrawLabels( boolean drawLabels ) {
+        this.drawLabels = drawLabels;
+    }
+
+    /**
+     * Indicates whether textual annotations will be drawn near this
+     * widget.
+     *
+     * @return  whether textual annotation will be drawn
+     */
+    public boolean getDrawLabels() {
+        return drawLabels;
+    }
+
+    /**
      * Updates the labels at the bottom of the widget.
      */
     private void drawLabels(Graphics2D g2, int lastW) {
+        // Return without action if no label drawing is required.
+        if (!drawLabels) {
+            return;
+        }
         int w = getSize().width;
         FontMetrics fm = g2.getFontMetrics();
         if (lastMinLimit != minLimit || lastW != w) {
