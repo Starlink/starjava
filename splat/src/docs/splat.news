@@ -1,48 +1,40 @@
-1 SPLAT - a new Spectral Display and Analysis Tool
+1 SPLAT - Spectral Display and Analysis Tool
 
- SPLAT is a new graphical tool for displaying, comparing and analysing
- astronomical spectra stored in NDF, FITS and TEXT files. 
+ This is a `beta' release of SPLAT which is now part of the Starlink
+ Java Collection. The older `classic' version of SPLAT is still
+ available, but will no longer be updated and will be eventually 
+ retired. To use this new version you need to redefine the SPLAT_DIR
+ variable to point at the new bin/splat directory.
 
- SPLAT can read in many spectra at the same time and then display these
- as line plots. Each display window (of which there can be many) can
- be used to view one or several spectra at the same time. Display
- windows can  be interactively zoomed and scrolled, centered on
- specific wavelengths, provide continuous coordinate readout, produce
- printable hardcopy and be configured in many ways. They also provide
- the basis for interactive analysis facilities. All of these functions
- are displayed in a visually rich format.
+ SPLAT is now released under the GPL. 
 
- Currently only an example set of serious analysis facilities are
- available. These allow the fitting of a polynomial to selected parts
- of a spectrum and the fitting of Gaussian, Lorentzian and Voigt
- profiles to emission and absorption lines. Other useful facilities
- are the ability to "animate" and perform simple mathematical
- operations on spectra. It is expected that more facilities will be
- provided in future releases.
+ The most significant visible changes to SPLAT are:
 
- Finally SPLAT is extensible by the use of plugin code and
- command-line scripts, and can be remotely controlled through a
- socket-based mechanism.
+   o The addition of facilities for direct viewing of spectral
+     values and power (i.e. algebraic with undo) modifications of the
+     values.
+   
+   o The addition of line identifier catalogues (and support for
+     importing external versions).
 
- To display a spectrum in SPLAT try the following command:
+   o The addition of support for spectral coordinate systems. Spectra
+     can now have systems that define the coordinate type (wavelength,
+     frequency, energy and velocity), along with the units
+     (which include, from much larger flexible set, angstroms,
+     milli/nano/micro metres, Joules, ergs, electron volts,
+     mega/kilo/giga hertz, metres/kilometres per second...) and the 
+     two systems of rest frame (i.e. where the observations where
+     made and of what). This information can be used to align spectra
+     automatically and performed operations like change of rest
+     frame (say from topocentric to heliocentric, or centre of the
+     galaxy or to the source itself) or change of units.
 
-      % splat [spectrum]
+   o The addition of smoothing filters, average, median, Gauss,
+     Lorentz, Voigt and simple wavelet denoising.
 
-  from the C-shell. Further descriptions and help are available in the
-  on-line help system or in Starlink User Note number 243 (SUN/243):
+Other changes include the ability to delete as well as extract parts
+of spectra, to specify the types of spectra when the file extension is
+not one of the standard types and to drag-and-drop spectra from the
+global to plots.
 
-      % showme sun243
-
-  If you have any comments or problems with SPLAT then mail:
-
-      splat@star.rl.ac.uk
-
-  Peter W. Draper (p.w.draper@durham.ac.uk)
-
-  21st December 2001.
-
-
-  ----
-
-  Next version: fixed bug saving spectra to disk files (FITS-FITS, NDF-FITS).
-                updated nom.tam.fits to 0.93
+Peter W. Draper (p.w.draper@durham.ac.uk)          4th June 2003
