@@ -193,4 +193,11 @@ public class ZipFileDataNode extends DefaultDataNode {
         return nodes;
     }
 
+    public static boolean isMagic( byte[] magic ) {
+        return (char) magic[ 0 ] == 'P'
+            && (char) magic[ 1 ] == 'K'
+            && magic[ 2 ] == 3
+            && magic[ 3 ] == 4;
+    }
+
 }
