@@ -55,26 +55,29 @@ public class HtmlDoclet extends MemberDoclet {
     public HtmlDoclet( RootDoc root ) throws IOException {
         super( root );
         String[][] options = root.options();
+        boolean headings = false;
         for ( int i = 0; i < options.length; i++ ) {
             if ( options[ i ][ 0 ].equals( "-d" ) ) {
                 baseDir_ = new File( options[ i ][ 1 ] );
             }
             if ( options[ i ][ 0 ].equals( "-headings" ) ) {
-                writeHeadingFiles();
+                headings = true;
             }
         }
         if ( baseDir_ == null ) {
             baseDir_ = new File( "." );
         }
+        if ( headings ) {
+            writeHeadingFiles();
+        }
     }
 
     protected void startClass( ClassDoc clazz ) throws IOException {
-        File file = classDocFile( baseDir_, clazz );
-        out_ = new BufferedWriter( new FileWriter( file ) );
+        startOutFile( classDocFile( baseDir_, clazz ) );
         outHeader( "Class", clazz.name() );
         outDescription( clazz.commentText() );
         outFooter();
-        out_.close();
+        endOutFile();
     }
 
     protected void endClass() throws IOException {
@@ -92,13 +95,13 @@ public class HtmlDoclet extends MemberDoclet {
         else {
             throw new AssertionError();
         }
-        out_ = new BufferedWriter( new FileWriter( file ) );
+        startOutFile( file );
         outHeader( memType, memName );
     }
 
     protected void endMember() throws IOException {
         outFooter();
-        out_.close();
+        endOutFile();
     }
 
     protected void outItem( String name, String val ) throws IOException {
@@ -144,6 +147,31 @@ public class HtmlDoclet extends MemberDoclet {
             "</dd>",
             "</dl>",
         } );
+    }
+
+    protected void outExamples( String[] examples ) throws IOException {
+        if ( examples.length == 1 ) {
+            out( new String[] {
+                "<dl>",
+                "<dt><strong>Example:</strong></dt>",
+                "<dd>" + examples[ 0 ] + "</dd>",
+                "</dl>",
+            } );
+        }
+        else if ( examples.length > 1 ) {
+            out( new String[] {
+                "<dl>",
+                "<dt><strong>Examples:</strong></dt>",
+                "<dd><ul>",
+            } );
+            for ( int i = 0; i < examples.length; i++ ) {
+                out( "<li>" + examples[ i ] + "</li>" );
+            }
+            out( new String[] {
+                "</ul></dd>",
+                "</dl>",
+            } );
+        }
     }
 
     /**
@@ -233,11 +261,11 @@ public class HtmlDoclet extends MemberDoclet {
             Heading heading = headings[ i ];
             File file = docFile( baseDir_, Heading.class.getName(), 
                                  heading.getDocSuffix() );
-            out_ = new BufferedWriter( new FileWriter( file ) );
+            startOutFile( file );
             outHeader( "", heading.getUserString() );
             out( heading.getDescription() );
             outFooter();
-            out_.close();
+            endOutFile();
         }
     }
 
@@ -269,6 +297,27 @@ public class HtmlDoclet extends MemberDoclet {
     }
 
 
+    /**
+     * Sets the current output destination to the given file.
+     *
+     * @param  file  new output destination file
+     */
+    private void startOutFile( File file ) throws IOException {
+        File parent = file.getParentFile();
+        if ( parent != null && ! parent.exists() && ! parent.mkdirs() ) {
+            throw new IOException( "Can't create directory " + parent );
+        }
+        out_ = new BufferedWriter( new FileWriter( file ) );
+    }
+
+    /**
+     * Closes the current output destination (the last one for which 
+     * {@link #startOutFile} was called).
+     */
+    private void endOutFile() throws IOException {
+        out_.close();
+        out_ = null;
+    }
 
     /**
      * Outputs some lines of text to the current output stream.
