@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -23,6 +24,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
 
@@ -38,6 +40,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final TableColumnModel columnModel;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
+    private AbstractTableModel metaTableModel;
 
     /**
      * Constructs a new ColumnInfoWindow from a TableViewer.
@@ -49,16 +52,189 @@ public class ColumnInfoWindow extends AuxWindow {
         this.tv = tableviewer;
         this.dataModel = tv.getDataModel();
         this.columnModel = tv.getColumnModel();
+ 
+        /* Make a dummy column to hold index values. */
+        indexColumnInfo = dummyIndexColumn();
+
+        /* Assemble a list of MetaColumns which hold information about
+         * the columns in the JTable this component will display.
+         * Each column represents an item of metadata in the data table. */
+        List metas = new ArrayList();
+
+        /* Add index column. */
+        metas.add( new MetaColumn( "Index", Long.class ) {
+            public Object getValue( int irow ) {
+                return new Long( irow );
+            }
+        } );
+
+        /* Add name column. */
+        metas.add( new MetaColumn( "Name", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getName();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                String name = (String) value;
+                getColumnInfo( irow ).setName( name );
+                int jcol = irow - 1;
+                TableColumn tcol = columnModel.getColumn( jcol );
+                tcol.setHeaderValue( name );
+
+                /* This apparent NOP is required to force the TableColumnModel
+                 * to notify its listeners (importantly the main data JTable)
+                 * that the column name (headerValue) has changed; there 
+                 * doesn't appear to be an event specifically for this. */
+                columnModel.moveColumn( jcol, jcol );
+            }
+        } );
+
+        /* Add $ID column. */
+        metas.add( makeMetaColumn( PlasticStarTable.COLID_INFO ) );
+
+        /* Add class column. */
+        metas.add( new MetaColumn( "Class", String.class ) {
+            public Object getValue( int irow ) {
+                return DefaultValueInfo
+                      .formatClass( getColumnInfo( irow ).getContentClass() );
+            }
+        } );
+
+        /* Add shape column. */
+        metas.add( new MetaColumn( "Shape", String.class ) {
+            public Object getValue( int irow ) {
+                return DefaultValueInfo
+                      .formatShape( getColumnInfo( irow ).getShape() );
+            }
+        } );
+
+        /* Add units column. */
+        metas.add( new MetaColumn( "Units", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getUnitString();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                getColumnInfo( irow ).setUnitString( (String) value );
+            }
+        } );
+
+        /* Add expression column. */
+        metas.add( makeMetaColumn( SyntheticColumn.EXPR_INFO ) );
+           
+        /* Add description column. */
+        metas.add( new MetaColumn( "Description", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getDescription();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                getColumnInfo( irow ).setDescription( (String) value );
+            }
+        } );
+
+        /* Add UCD. */
+        metas.add( new MetaColumn( "UCD", String.class ) {
+            public Object getValue( int irow ) {
+                return getColumnInfo( irow ).getUCD();
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                getColumnInfo( irow ).setUCD( (String) value );
+                metaTableModel.fireTableRowsUpdated( irow, irow );
+            }
+        } );
+
+        /* Add UCD description. */
+        metas.add( new MetaColumn( "UCD description", String.class ) {
+            public Object getValue( int irow ) {
+                String ucdid = getColumnInfo( irow ).getUCD();
+                if ( ucdid != null ) {
+                    UCD ucd = UCD.getUCD( getColumnInfo( irow ).getUCD() );
+                    if ( ucd != null ) {
+                        return ucd.getDescription();
+                    }
+                }
+                return null;
+            }
+        } );
+
+        /* Get the list of aux metadata columns. */
+        List auxInfos = new ArrayList( dataModel.getColumnAuxDataInfos() );
+
+        /* Remove any from this list which we have already added explicitly. */
+        auxInfos.remove( SyntheticColumn.EXPR_INFO );
+        auxInfos.remove( PlasticStarTable.COLID_INFO );
+        
+        /* Add all the remaining aux columns. */
+        for ( Iterator it = auxInfos.iterator(); it.hasNext(); ) {
+            metas.add( makeMetaColumn( (ValueInfo) it.next() ) );
+        }
+
+        /* Make a table model from the metadata columns.  This model has
+         * an extra row 0 to represent the row index. */
+        metaTableModel = new MetaColumnTableModel( metas ) {
+            public int getRowCount() {
+                return columnModel.getColumnCount() + 1;
+            }
+            public boolean isCellEditable( int irow, int icol ) {
+                return irow > 0 && super.isCellEditable( irow, icol );
+            }
+        };
+
+        /* Construct and place a JTable to contain it. */
+        jtab = new JTable( metaTableModel );
+        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+        jtab.setColumnSelectionAllowed( false );
+        jtab.setRowSelectionAllowed( true );
+        StarJTable.configureColumnWidths( jtab, 20000, 100 );
+
+        /* Arrange for the columns to be displayed in a compact way. */
+        MetaColumnModel metaColumnModel = 
+            new MetaColumnModel( jtab.getColumnModel(), metaTableModel );
+        jtab.setColumnModel( metaColumnModel );
+
+        /* Place the table into a scrollpane in this frame. */
+        getMainArea().add( new SizingScrollPane( jtab ) );
+        setMainHeading( "Column metadata" );
+
+        /* Ensure that subsequent changes to the main column model are 
+         * reflected in this window.  This listener implemenatation is 
+         * lazy, it could be done more efficiently. */
+        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
+            public void columnAdded( TableColumnModelEvent evt ) {
+                metaTableModel.fireTableDataChanged();
+            }
+            public void columnMoved( TableColumnModelEvent evt ) {
+                metaTableModel.fireTableDataChanged();
+            }
+            public void columnRemoved( TableColumnModelEvent evt ) {
+                metaTableModel.fireTableDataChanged();
+            }
+        } );
 
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
+        colMenu.setMnemonic( KeyEvent.VK_C );
         Action addcolAct = new BasicAction( "New synthetic column",
                                             ResourceIcon.ADD,
                                        "Add a new column defined " +
                                        "algebraically from existing ones" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = ColumnInfoWindow.this;
-                new SyntheticColumnQueryWindow( tv, -1, parent );
+                int[] selrows = jtab.getSelectedRows();
+                int insertPos = selrows.length > 0 
+                              ? selrows[ selrows.length - 1 ]
+                              : -1;
+                new SyntheticColumnQueryWindow( tv, insertPos, parent );
             }
         };
         colMenu.add( addcolAct ).setIcon( null );
@@ -85,150 +261,11 @@ public class ColumnInfoWindow extends AuxWindow {
         colMenu.add( sortupAct ).setIcon( null );
         colMenu.add( sortdownAct ).setIcon( null );
         getJMenuBar().add( colMenu );
- 
-        /* Make a dummy column to hold index values. */
-        indexColumnInfo = dummyIndexColumn();
 
-        /* Assemble a list of MetaColumns which hold information about
-         * the columns in the JTable this component will display.
-         * Each column represents an item of metadata in the data table. */
-        List metas = new ArrayList();
-
-        /* Add index column. */
-        metas.add( new MetaColumn( "Index", Long.class, false ) {
-            public Object getValue( int irow ) {
-                return new Long( irow );
-            }
-        } );
-
-        /* Add name column. */
-        metas.add( new MetaColumn( "Name", String.class, true ) {
-            public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getName();
-            }
-            public void setValue( int irow, Object value ) {
-                String name = (String) value;
-                getColumnInfo( irow ).setName( name );
-                int jcol = irow - 1;
-                TableColumn tcol = columnModel.getColumn( jcol );
-                tcol.setHeaderValue( name );
-
-                /* This apparent NOP is required to force the TableColumnModel
-                 * to notify its listeners (importantly the main data JTable)
-                 * that the column name (headerValue) has changed; there 
-                 * doesn't appear to be an event specifically for this. */
-                columnModel.moveColumn( jcol, jcol );
-            }
-        } );
-
-        /* Add class column. */
-        metas.add( new MetaColumn( "Class", String.class, false ) {
-            public Object getValue( int irow ) {
-                return DefaultValueInfo
-                      .formatClass( getColumnInfo( irow ).getContentClass() );
-            }
-        } );
-
-        /* Add shape column. */
-        metas.add( new MetaColumn( "Shape", String.class, false ) {
-            public Object getValue( int irow ) {
-                return DefaultValueInfo
-                      .formatShape( getColumnInfo( irow ).getShape() );
-            }
-        } );
-
-        /* Add units column. */
-        metas.add( new MetaColumn( "Units", String.class, true ) {
-            public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getUnitString();
-            }
-            public void setValue( int irow, Object value ) {
-                getColumnInfo( irow ).setUnitString( (String) value );
-            }
-        } );
-           
-        /* Add description column. */
-        metas.add( new MetaColumn( "Description", String.class, true ) {
-            public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getDescription();
-            }
-            public void setValue( int irow, Object value ) {
-                getColumnInfo( irow ).setDescription( (String) value );
-            }
-        } );
-
-        /* Add UCD. */
-        metas.add( new MetaColumn( "UCD", String.class, false ) {
-            public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getUCD();
-            }
-        } );
-
-        /* Add aux metadata columns. */
-        List auxInfos = new ArrayList( dataModel.getColumnAuxDataInfos() );
-
-        /* Mess with the ordering of some columns. */
-        auxInfos.remove( SyntheticColumn.EXPR_INFO );
-        auxInfos.add( 0, SyntheticColumn.EXPR_INFO );
-        // auxInfos.add( 0, PlasticStarTable.COLID_INFO );
-
-        /* Add all the aux columns. */
-        for ( Iterator it = auxInfos.iterator(); it.hasNext(); ) {
-            ValueInfo vinfo = (ValueInfo) it.next();
-            final String vname = vinfo.getName();
-            final Class vclass = vinfo.getContentClass();
-            metas.add( new MetaColumn( vname, vinfo.getContentClass(), false ) {
-                public Object getValue( int irow ) {
-                    DescribedValue auxDatum = getColumnInfo( irow )
-                                             .getAuxDatumByName( vname );
-                    if ( auxDatum != null ) {
-                         Object value = auxDatum.getValue();
-                         if ( value != null &&
-                              vclass.isAssignableFrom( value.getClass() ) ) {
-                             return value;
-                         }
-                    }
-                    return null;
-                }
-            } );
-        }
-
-        /* Make a table model from the metadata columns.  This model has
-         * an extra row 0 to represent the row index. */
-        final AbstractTableModel model = new MetaColumnTableModel( metas ) {
-            public int getRowCount() {
-                return columnModel.getColumnCount() + 1;
-            }
-            public boolean isCellEditable( int irow, int icol ) {
-                return irow > 0 && super.isCellEditable( irow, icol );
-            }
-        };
-
-        /* Construct and place a JTable to contain it. */
-        jtab = new JTable( model );
-        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-        jtab.setColumnSelectionAllowed( false );
-        jtab.setRowSelectionAllowed( true );
-        StarJTable.configureColumnWidths( jtab, 20000, 100 );
-
-        /* Place the table into a scrollpane in this frame. */
-        getMainArea().add( new SizingScrollPane( jtab ) );
-        setMainHeading( "Column metadata" );
-
-        /* Ensure that subsequent changes to the column model are reflected
-         * in this window.  This listener implemenatation is lazy, it
-         * could be done more efficiently. */
-        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
-            public void columnAdded( TableColumnModelEvent evt ) {
-                model.fireTableDataChanged();
-            }
-            public void columnMoved( TableColumnModelEvent evt ) {
-                model.fireTableDataChanged();
-            }
-            public void columnRemoved( TableColumnModelEvent evt ) {
-                model.fireTableDataChanged();
-            }
-        } );
+        /* Make a menu for controlling metadata display. */ 
+        JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );
+        displayMenu.setMnemonic( KeyEvent.VK_D );
+        getJMenuBar().add( displayMenu );
 
         /* Add a selection listener for menu items. */
         ListSelectionListener selList = new ListSelectionListener() {
@@ -256,6 +293,28 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Make the component visible. */
         pack();
         setVisible( true );
+    }
+
+    /**
+     * Makes a MetaColumn out of a ValueInfo object.
+     */
+    private MetaColumn makeMetaColumn( ValueInfo vinfo ) {
+        final String vname = vinfo.getName();
+        final Class vclass = vinfo.getContentClass();
+        return new MetaColumn( vname, vclass ) {
+            public Object getValue( int irow ) {
+                DescribedValue auxDatum = getColumnInfo( irow )
+                                         .getAuxDatumByName( vname );
+                if ( auxDatum != null ) {
+                    Object value = auxDatum.getValue();
+                    if ( value != null && 
+                         vclass.isAssignableFrom( value.getClass() ) ) {
+                        return value;
+                    }
+                }
+                return null;
+            }
+        };
     }
 
     private int getModelIndexFromRow( int irow ) {

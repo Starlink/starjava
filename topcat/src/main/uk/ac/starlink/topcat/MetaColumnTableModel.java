@@ -42,7 +42,7 @@ public abstract class MetaColumnTableModel extends AbstractTableModel {
     }
 
     public boolean isCellEditable( int irow, int icol ) {
-        return getMeta( icol ).isEditable();
+        return getMeta( icol ).isEditable( irow );
     }
 
     private MetaColumn getMeta( int icol ) {

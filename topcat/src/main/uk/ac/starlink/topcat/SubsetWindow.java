@@ -160,29 +160,28 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     public AbstractTableModel makeTableModel() {
 
         /* ID column. */
-        MetaColumn idCol = new MetaColumn( "#ID", String.class, false  ) {
+        MetaColumn idCol = new MetaColumn( "#ID", String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetID( irow );
             }
         };
 
         /* Name column. */
-        MetaColumn nameCol = new MetaColumn( "Name", String.class, false ) {
+        MetaColumn nameCol = new MetaColumn( "Name", String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetName( irow );
             }
         };
 
         /* Size column. */
-        MetaColumn sizeCol = new MetaColumn( "Size", Long.class, false ) {
+        MetaColumn sizeCol = new MetaColumn( "Size", Long.class ) {
             public Object getValue( int irow ) {
                 return getSubsetSize( irow );
             }
         };
 
         /* Expression column for algebraic subsets. */
-        MetaColumn exprCol = new MetaColumn( "Expression", String.class, 
-                                              true ) {
+        MetaColumn exprCol = new MetaColumn( "Expression", String.class ) { 
             public Object getValue( int irow ) {
                 RowSubset rset = (RowSubset) subsets.get( irow );
                 if ( rset instanceof SyntheticRowSubset ) {
@@ -191,6 +190,9 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 else {
                     return null;
                 }
+            }
+            public boolean isEditable( int irow ) {
+                return subsets.get( irow ) instanceof SyntheticRowSubset;
             }
             public void setValue( int irow, Object value ) {
                 RowSubset rset = (RowSubset) subsets.get( irow );
@@ -209,8 +211,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         };
 
         /* Column ID column for column subsets. */
-        MetaColumn colCol = new MetaColumn( "Column $ID", String.class,
-                                            false ) {
+        MetaColumn colCol = new MetaColumn( "Column $ID", String.class ) {
             public Object getValue( int irow ) {
                 RowSubset rset = (RowSubset) subsets.get( irow );
                 if ( rset instanceof BooleanColumnRowSubset ) {
