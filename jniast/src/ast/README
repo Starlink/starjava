@@ -14,3 +14,11 @@ I've added the ast_source.tar file to the CVS archive, since copies of
 AST V2.0 are out there now and there is too much possibility for 
 confusion otherwise.  So copying ast_source.tar by hand is no longer
 necessary.
+
+13-Dec-2004:
+------------
+
+Modified the way this is done to be more compatible with CVS/autotools
+build of AST.  This directory now contains the requisite AST source
+files copied from the version of AST that this JNIAST corresponds to.
+The ast_source.tar file is removed.

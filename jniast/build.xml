@@ -191,11 +191,9 @@
 
   <!-- Non-standard build file directories -->
   <property name="build.jni" value="${build.dir}/jni"/>
-  <property name="build.ast" value="${build.dir}/ast"/>
 
   <!-- Non-standard files -->
   <property name="perl" value="/stardev/Perl/bin/perl"/>
-  <property name="ast.archive" value="${src.ast}/ast_source.tar"/>
   <property name="ast.fac.err" value="fac_1521_err"/>
   <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>
@@ -441,7 +439,6 @@
    !  resulting new 'source' files (in src/main and src/jni) checked in.
    !-->
   <target name="build-source"
-          depends="get_ast_source"
           description="-> builds java source code from Perl and AST">
 
     <!-- Build the java classes which correspond to AST classes -->
@@ -564,7 +561,7 @@
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-c"/>
-      <arg file="${build.ast}/${ast.fac.err}"/>
+      <arg file="${src.ast}/${ast.fac.err}"/>
     </exec>
 
     <!-- Build AstException Java source -->
@@ -573,7 +570,7 @@
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-java"/>
-      <arg file="${build.ast}/${ast.fac.err}"/>
+      <arg file="${src.ast}/${ast.fac.err}"/>
     </exec>
 
     <!-- Build miscellaneous Java sources -->
@@ -598,7 +595,7 @@
           failonerror="yes">
       <arg value="-I${src.perl}"/>
       <arg file="${src.perl}/${pj.class}.pl"/>
-      <arg file="${build.ast}/${pj.cfile}"/>
+      <arg file="${src.ast}/${pj.cfile}"/>
     </exec>
   </target>
 
@@ -729,13 +726,12 @@
    !   from source directories, some are generated from perl source
    !   or using javah from class files.
    !-->
-  <target name="assemble_jni" depends="prepare, build_classes, get_ast_source">
+  <target name="assemble_jni" depends="prepare, build_classes">
 
     <copy todir="${build.jni}">
       <fileset dir="${src.jni}" includes="*.c *.h makefile mk ${link.script}"/>
-      <fileset dir="${build.ast}" includes="grf.h"/>
-      <fileset dir="${build.ast}" includes="plot.h"/>
-      <fileset dir="${build.ast}" includes="ast_link"/>
+      <fileset dir="${src.ast}" includes="grf.h"/>
+      <fileset dir="${src.ast}" includes="ast_link"/>
     </copy>
 
     <chmod perm="ugo+rx">
@@ -775,26 +771,6 @@
       <class name="${package.name}.ZoomMap"/>
       <class name="${package.name}.grf.GrfEscape"/>
     </javah>
-  </target>
-
-  <!--
-   !  Unpack the AST source files from their archive.
-   !  The archive is currently not under CVS control since it is effectively
-   !  a large binary, so it is not distributed.  Hence it may not be
-   !  there; in this case a failure message tells you what to do.
-   !-->
-  <target name="get_ast_source">
-    <available file="${ast.archive}" property="got.ast.archive"/>
-    <mkdir dir="${build.ast}"/>
-    <untar src="${ast.archive}" dest="${build.ast}">
-      <patternset>
-        <include name="*.c"/>
-        <include name="grf.h"/>
-        <include name="plot.h"/>
-        <include name="ast_link"/>
-        <include name="${ast.fac.err}"/>
-      </patternset>
-    </untar>
   </target>
 
   <!--

@@ -1,0 +1,116 @@
+FACILITY AST
+300,ATGER,attribute getting error
+301,ATSER,attribute setting error
+302,ATTIN,attribute value invalid
+303,AXIIN,axis index invalid
+304,BADAT,bad attribute name
+305,BADBX,zero-sized box given
+306,BADIN,bad input data
+307,BADNI,bad number of input coordinates
+308,BADNO,bad number of output coordinates
+309,BADPW,PolyMap contains illegal power value
+310,BADSM,ShiftMap contains no shift information
+311,BADWM,WinMap contains no bounds information
+312,BDBRK,bad break index
+313,BDFMT,bad field specifier
+314,BDFTS,invalid FITS keyword value found
+315,BDOBJ,inappropriate Object supplied
+316,CLPAX,wrong number of clipping axes
+317,CORNG,range of coordinates invalid
+318,CVBRK,too many breaks in a curve
+319,DIMIN,array dimensions invalid
+320,DTERR,date/time error
+321,ENDIN,invalid use of astEnd
+322,EOCHN,end of input Channel encountered
+323,EXPIN,attempt to export Object pointer from level zero
+324,FCRPT,corrupted FitsChan supplied
+325,FMTER,error while formatting coordinate value
+326,FRMIN,Frame index invalid
+327,FRSIN,FrameSet invalid
+328,FTCNV,cannot convert FITS data value type
+329,GRFER,low level graphics error
+330,INHAN,invalid Handle
+331,INNCO,incompatible numbers of coordinates
+332,INTER,internal programming error
+333,INTRD,incompatible transformation directions
+334,LDERR,class loader error
+335,LUTII,invalid lookup table increment
+336,LUTIN,invalid number of lookup table elements
+337,MEMIN,requested memory size invalid
+338,MTR23,not a 2d or 3d MatrixMap
+339,MTRAX,null rotation axis supplied
+340,MTRML,bad matrix shapes for multiplication
+341,MTRMT,null matrix supplied
+342,NAXIN,number of axes invalid
+343,NCHIN,number of characters invalid
+344,NCOIN,number of coordinates invalid
+345,NCPIN,number of coordinates per point invalid
+346,NELIN,number of array elements invalid
+347,NOCTS,number of output coordinates too small
+348,NODEF,transformation not defined
+349,NOFTS,required FITS keywords missing
+350,NOMEM,unable to allocate memory
+351,NOPTS,number of output points too small
+352,NOWRT,attribute is read-only
+353,NPTIN,number of points invalid
+354,OBJIN,Object invalid
+355,OPT,invalid Plot option
+356,PDSIN,points data structure invalid
+357,PLFMT,no numerical labels can be produced
+358,PRMIN,permutation invalid
+359,PTRIN,pointer invalid
+360,PTRNG,range of points invalid
+361,RDERR,read error
+362,REMIN,invalid attempt to remove last Frame
+363,SCSIN,sky coordinate system invalid
+364,SELIN,axis selection invalid
+365,SLAIN,bad SLALIB transformation type
+366,TRNND,coordinate transformation not defined
+367,UNMQT,unmatched quotes
+368,VSMAL,valid area too small
+369,WCSAX,non-existent longitude or latitude axis
+370,WCSNC,too few mapping coordinates
+371,WCSPA,invalid projection parameters
+372,WCSTY,unknown projection type
+373,XSOBJ,too many Objects in use at once
+374,ZOOMI,zoom factor invalid
+375,BADCI,bad coordinate index
+376,ILOST,FrameSet integrity lost
+377,ITFER,error in IntraMap transformation function
+378,ITFNI,IntraMap transformation function name invalid
+379,MBBNF,Mapping bounding box not found
+380,MRITF,multiple registration of IntraMap transformation function
+381,OCLUK,Object class unknown
+382,UNFER,error while unformatting a coordinate value
+383,URITF,unregistered IntraMap transformation function
+384,GBDIN,grid bounds invalid
+385,NGDIN,number of grid dimensions invalid
+386,PATIN,positional accuracy tolerance invalid
+387,SISIN,sub-pixel interpolation scheme invalid
+388,SSPIN,scale size in pixels invalid
+389,UINER,error in user-supplied sub-pixel interpolation function
+390,UK1ER,error in user-supplied 1-d sub-pixel interpolation kernel
+391,COMIN,invalid comma in expression
+392,CONIN,invalid constant in expression
+393,DUVAR,duplicate variable name
+394,INNTF,invalid number of transformation functions
+395,MIOPA,missing or invalid operand in expression
+396,MIOPR,missing or invalid operator in expression
+397,MISVN,missing variable name
+398,MLPAR,missing left parenthesis in expression
+399,MRPAR,missing right parenthesis in expression
+400,NORHS,missing right hand side in function
+401,UDVOF,undefined variable or function in expression
+402,VARIN,variable name invalid
+403,WRNFA,wrong number of function arguments in expression
+404,BADUN,invalid units specification
+405,NORSF,no rest frequency is defined
+406,NOSOR,no standard of rest is defined
+407,SPCIN,invalid SpecMap
+408,XMLNM,invalid XML name or prefix
+409,XMLCM,invalid XML comment text
+410,XMLPT,invalid XML processing instruction target text
+411,XMLIT,invalid XML content item index
+412,XMLWF,supplied XML document is not well formed
+413,ZERAX,Range of log axis scale includes zero
+414,BADOC,Invalid parameters for offset sky coordinate system
