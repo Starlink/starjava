@@ -25,9 +25,10 @@ public class SwingAuthenticator implements JDBCAuthenticator {
         if ( fieldPanel == null ) {
             
             JLabel userLab = new JLabel( "User name: " );
-            userField = new JTextField();
+            userField = new JTextField( 16 );
+            userField.setText( System.getProperty( "user.name" ) );
             JLabel passLab = new JLabel( "Password: " );
-            passField = new JPasswordField();
+            passField = new JPasswordField( 16 );
 
             GridBagLayout layer = new GridBagLayout();
             GridBagConstraints clab = new GridBagConstraints();

@@ -83,6 +83,7 @@ public class JDBCStarTable extends AbstractStarTable {
         this.connx = connx;
         this.sql = sql;
         Connection conn = connx.getConnection();
+        setName( conn.getMetaData().getURL() + '#' + sql );
 
         /* If random access is required, create a scrollable ResultSet
          * which we can use for random access queries. */
