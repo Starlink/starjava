@@ -792,6 +792,7 @@
              windowtitle="${Name} API"
              doctitle="${Name}"
              defaultexcludes="yes"
+             source="${source.version}"
              classpathref="classpath">
 
       <!-- Get a list of directories that name all the potential
