@@ -1,60 +1,81 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.swing.ComboBoxModel;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.jdbc.JDBCFormatter;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A popup dialog for querying the user about the location of a new
  * JDBC table to write.
  */
-public class SQLWriteDialog extends SQLDialog {
+public class SQLWriteDialog extends SQLDialog implements TableSaveDialog {
+
+    private JDialog dialog_; 
 
     /**
      * Constructs a new SQLWriteDialog.
      */
     public SQLWriteDialog() {
-        super( "New table name" );
+        super( "Write New SQL Table" );
     }
 
-    /**
-     * Pops up a modal dialog box and asks the user for a spec at which
-     * to save a StarTable.  If there is an error the user is shown 
-     * the error message and given another chance. 
-     *
-     * @param  startab  the table to write
-     * @param  parent  the parent component - used for window positioning
-     * @return  true if the table was saved, false if it is not because
-     *          the user cancelled the dialog
-     */
-    public boolean writeTableDialog( StarTable startab, Component parent ) {
-        JDialog dialog = createDialog( parent, "Save table to JDBC" );
-        while ( true ) {
-            dialog.show();
+    public String getName() {
+        return "SQL Table";
+    }
+
+    public String getDescription() {
+        return "Write table as a new table in an SQL relational database";
+    }
+
+    public boolean showSaveDialog( Component parent, StarTableOutput sto,
+                                   ComboBoxModel formatModel,
+                                   StarTable table ) {
+        JDialog dialog = createDialog( parent, "Write New SQL Table" );
+        dialog_ = dialog;
+        setEnabled( true );
+        dialog.show();
+        while ( dialog_ == dialog ) {
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
-                try {
-                    Connection conn = getConnector().getConnection();
-                    JDBCFormatter jfmt = new JDBCFormatter( conn );
-                    jfmt.createJDBCTable( startab, getRef() );
-                    dialog.dispose();
-                    return true;
-                }
-                catch ( Exception e ) {
-                    ErrorDialog.showError( e, "Can't write table", dialog );
-                }
+                SaveWorker worker = new SaveWorker( parent, table, getRef() ) {
+                    public void attemptSave( StarTable table )
+                            throws IOException {
+                        try {
+                            Connection conn  = getConnector().getConnection();
+                            JDBCFormatter jfmt = new JDBCFormatter( conn );
+                            jfmt.createJDBCTable( table, getRef() );
+                        }
+                        catch ( SQLException e ) {
+                            throw (IOException)
+                                  new IOException( e.getMessage() )
+                                 .initCause( e );
+                        }
+                    }
+                    public void done( boolean success ) {
+                        if ( success ) {
+                            dialog_ = null;
+                            dialog_.dispose();
+                        }
+                        else {
+                            SQLWriteDialog.this.setEnabled( true );
+                        }
+                    }
+                };
+                setEnabled( false );
+                worker.invoke();
+                dialog_.show();
             }
             else {
-                dialog.dispose();
                 return false;
             }
         }
+        return true;
     }
 
 }
