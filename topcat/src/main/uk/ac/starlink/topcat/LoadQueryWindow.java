@@ -23,7 +23,6 @@ import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Dialogue for user to enter a new table location for loading.
