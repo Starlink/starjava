@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Iterator;
@@ -40,30 +41,48 @@ class TextViewer extends JTextArea {
     /**
      * Displays a javax.xml.transform.Source.
      */
-    public TextViewer( Source xsrc ) throws TransformerException {
+    public TextViewer( final Source xsrc ) {
         this();
 
         /* Obtain and configure a transformer to turn the XML into text. */
-        SourceReader sr = new SourceReader();
+        final SourceReader sr = new SourceReader();
         sr.setIndent( 2 );
         sr.setIncludeDeclaration( false );
-        sr.writeSource( xsrc, appender );
+        new Thread() {
+            public void run() {
+                try {
+                    sr.writeSource( xsrc, appender );
+                }
+                catch ( TransformerException e ) {
+                    e.printStackTrace( new PrintWriter( appender ) );
+                }
+            }
+        }.start();
     }
 
      
     /**
      * Displays the text obtained from a Reader.
      */
-    public TextViewer( Reader rdr ) throws IOException {
+    public TextViewer( Reader rdr ) {
         this();
-        BufferedReader brdr = ( rdr instanceof BufferedReader ) 
-                                  ? (BufferedReader) rdr
-                                  : new BufferedReader( rdr );
-        String line;
-        while ( ( line = brdr.readLine() ) != null ) {
-            append( line + '\n' );
-        }
-        brdr.close();
+        final BufferedReader brdr = ( rdr instanceof BufferedReader ) 
+                                      ? (BufferedReader) rdr
+                                      : new BufferedReader( rdr );
+        new Thread() {
+            public void run() {
+                try {
+                    String line;
+                    while ( ( line = brdr.readLine() ) != null ) {
+                        append( line + '\n' );
+                    }
+                    brdr.close();
+                }
+                catch ( IOException e ) {
+                    e.printStackTrace( new PrintWriter( appender ) );
+                }
+            }
+        }.start();
     }
 
     /**
