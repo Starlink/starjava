@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import junit.framework.AssertionFailedError;
+import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.util.TestCase;
 
 /**
@@ -26,13 +27,13 @@ public class TreeviewTest extends TestCase {
      *  Name of the file giving the correct output of command:
      *      treeview -demo -text
      */
-    public static String DEMOTXT_FILE = "demotxt.cmp";
+    public String DEMOTXT_FILE = "demotxt.cmp";
 
     /** 
      * Name of the file giving the correct output of command:
      *     treeview -demo -text -path | awk '{print $NF}'
      */
-    public static String DEMOPATH_FILE = "demopath.cmp";
+    public String DEMOPATH_FILE = "demopath.cmp";
 
     private String[] args;
 
@@ -56,6 +57,12 @@ public class TreeviewTest extends TestCase {
         }
         else {
             args = arg.split( "\\s+" );
+        }
+
+        /* Work out AST major version. */
+        if ( AstObject.reportVersions().startsWith( "AST V3" ) ) {
+            DEMOTXT_FILE += ".3";
+            DEMOPATH_FILE += ".3";
         }
     }
 
