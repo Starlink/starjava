@@ -32,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -307,7 +308,7 @@ public class SimpleUnaryMaths
             }
             String name = operation + " (" + spec.getShortName() + ") " +
                           operator + " (" + constant + ") ";
-            createNewSpectrum( name, coords, data, errors );
+            createNewSpectrum( name, spec.getAst().getRef(), coords, data, errors );
         }
     }
 
@@ -351,8 +352,9 @@ public class SimpleUnaryMaths
      * Create a new spectrum from two data arrays of coordinates and
      * values and add it to the global list.
      */
-    protected void createNewSpectrum( String name, double[] coords,
-                                      double[] data, double[] errors )
+    protected void createNewSpectrum( String name, FrameSet sourceSet, 
+                                      double[] coords, double[] data, 
+                                      double[] errors )
     {
         try {
             //  Create a memory spectrum to contain the fit.
@@ -360,10 +362,10 @@ public class SimpleUnaryMaths
                 .createEditable( name );
         
             if ( errors != null ) {
-                newSpec.setData( coords, data, errors );
+                newSpec.setSimpleUnitData( sourceSet, coords, data, errors );
             }
             else {
-                newSpec.setData( coords, data );
+                newSpec.setSimpleUnitData( sourceSet, coords, data );
             }
             globalList.add( newSpec );
 
