@@ -114,7 +114,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         line.add( paramContainer );
         line.add( Box.createHorizontalGlue() );
         engineBox.add( line );
-        engineBox.setBorder( makeTitledBorder( "Match Details" ) );
+        engineBox.setBorder( makeTitledBorder( "Match Criteria" ) );
         common.add( engineBox );
 
         Box specBox = Box.createVerticalBox();

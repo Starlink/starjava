@@ -47,9 +47,9 @@ public class IntraMatchSpec extends MatchSpec {
     private StarTable result;
 
     private final static String IDENTIFY = 
-        "Mark Groups of Objects";
+        "Mark Groups of Rows";
     private final static String ELIMINATE_0 =
-        "Eliminate All Grouped Objects";
+        "Eliminate All Grouped Rows";
     private final static String ELIMINATE_1 =
         "Eliminate All But First of Each Group";
     private final static String WIDE =
