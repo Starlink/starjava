@@ -22,9 +22,9 @@ import java.util.Enumeration;
 /**
  *
  * Extends the Copy task to add the ability to record what files are
- * copied to a simple text file. This file can be loaded back into 
+ * copied to a simple text file. This file can be loaded back into
  * a property using the <loadfile> task, and then into a FileList.
- * (the <listdelete> extension task can process such a list, undoing 
+ * (the <listdelete> extension task can process such a list, undoing
  * a <loggedcopy>).
  * <p>
  * New attributes for this task are "logfile", the name of file to
@@ -84,7 +84,8 @@ public class LoggedCopy extends Copy
 
     /**
      * Add a file to the log file. Only done if a log file is
-     * available.
+     * available. Note you should close the log file when all
+     * operations are complete.
      */
     protected void addToLogfile( String filename )
     {
@@ -103,7 +104,6 @@ public class LoggedCopy extends Copy
             }
             try {
                 logfileWriter.write( filename + "\n" );
-                logfileWriter.flush(); // Never closed, so need to do this.
             }
             catch ( IOException e ) {
                 log( e.getMessage() );
@@ -111,7 +111,7 @@ public class LoggedCopy extends Copy
         }
     }
 
-   /**
+    /**
      * From Copy.doFileOperations:
      *
      * Actually does the file (and possibly empty directory) copies.
@@ -121,11 +121,11 @@ public class LoggedCopy extends Copy
      * Note we log all files, even if they are not copied because the
      * target file is judged to be up to date already.
      */
-    protected void doFileOperations() 
+    protected void doFileOperations()
     {
         if ( fileCopyMap.size() > 0 ) {
-            log( "Copying " + fileCopyMap.size() 
-                 + " file" + (fileCopyMap.size() == 1 ? "" : "s") 
+            log( "Copying " + fileCopyMap.size()
+                 + " file" + (fileCopyMap.size() == 1 ? "" : "s")
                  + " to " + destDir.getAbsolutePath());
 
             Enumeration e = fileCopyMap.keys();
@@ -143,26 +143,39 @@ public class LoggedCopy extends Copy
                     log("Copying " + fromFile + " to " + toFile, verbosity);
                     addToLogfile( toFile );
 
-                    FilterSetCollection executionFilters = 
+                    FilterSetCollection executionFilters =
                         new FilterSetCollection();
                     if (filtering) {
                         executionFilters
                             .addFilterSet(project.getGlobalFilterSet());
                     }
-                    for ( Enumeration filterEnum = getFilterSets().elements(); 
-                          filterEnum.hasMoreElements();) 
+                    for ( Enumeration filterEnum = getFilterSets().elements();
+                          filterEnum.hasMoreElements();)
                     {
                         executionFilters
                             .addFilterSet((FilterSet) filterEnum.nextElement());
                     }
-                    getFileUtils().copyFile(fromFile, toFile, executionFilters, 
-                                            getFilterChains(), forceOverwrite, 
-                                            preserveLastModified, getEncoding(), 
+                    getFileUtils().copyFile(fromFile, toFile, executionFilters,
+                                            getFilterChains(), forceOverwrite,
+                                            preserveLastModified, getEncoding(),
                                             project);
                 } catch (IOException ioe) {
                     String msg = "Failed to copy " + fromFile + " to " + toFile
                         + " due to " + ioe.getMessage();
                     throw new BuildException(msg, ioe, location);
+                }
+            }
+
+            //  Make sure that the log file is closed (need this as
+            //  other processes may write to it).
+            if ( logfileWriter != null ) {
+                try {
+                    System.out.println( "Closing logfile" );
+                    logfileWriter.close();
+                    logfileWriter = null;
+                }
+                catch ( IOException ie ) {
+                    //  Do nothing, not fatal.
                 }
             }
         }
@@ -174,7 +187,7 @@ public class LoggedCopy extends Copy
                 File d = new File((String) e.nextElement());
                 if (!d.exists()) {
                     if (!d.mkdirs()) {
-                        log("Unable to create directory " 
+                        log("Unable to create directory "
                             + d.getAbsolutePath(), Project.MSG_ERR);
                     } else {
                         count++;
