@@ -183,7 +183,7 @@ public class NdxIO {
      * this is dependent on the details of the output format.
      * The initial values of the created array components are undefined,
      * but they will be writable.  Applications which call this method
-     * should in general then open the new NDX using {@link makeNdx} 
+     * should in general then open the new NDX using {@link #makeNdx} 
      * and write values to the array components so that it has valid
      * array components.
      * <p>
