@@ -345,7 +345,7 @@ public class Driver {
      * @return  array of demo tables
      */
     static StarTable[] getDemoTables() {
-        String base = LoadQueryWindow.DEMO_LOCATION + '/';
+        String base = DemoLoadDialog.DEMO_LOCATION + '/';
         String[] demoNames = new String[] {
             "863sub.fits",
             "vizier.xml.gz#6",
