@@ -133,10 +133,13 @@ public class Angles {
     /**
      * Converts degrees, minutes, seconds to an angle in radians.
      *
-     * <p>Use with care!  The sign of the result is taken from the
-     * first non-zero argument.  It is an error for any but the first
-     * non-zero argument to be negative.  It's easy to accidentally
-     * read values between 0 and -1 degrees as positive.
+     * <p>In conversions of this type, one has to be careful to get the 
+     * sign right in converting angles which are between 0 and -1 degrees.
+     * This routine uses the sign bit of the <tt>deg</tt> argument,
+     * taking care to distinguish between +0 and -0 (their internal 
+     * representations are different for floating point values).
+     * It is illegal for the <tt>min</tt> or <tt>sec</tt> arguments
+     * to be negative.
      *
      * @param  deg  degrees part of angle
      * @param  min  minutes part of angle
@@ -145,20 +148,29 @@ public class Angles {
      * @throws   IllegalArgumentException if an argument after the first
      *           non-zero one is negative
      */
-    public static double dmsToRadians( int deg, int min, double sec ) {
-        return dmsToRadians( isPositive( deg, min, sec,
-                                         "degrees", "minutes", "seconds" ),
-                             Math.abs( deg ), Math.abs( min ),
-                             Math.abs( sec ) );
+    public static double dmsToRadians( double deg, double min, double sec ) {
+        if ( min < 0 || min >= 60 || (int) min != min) {
+            throw new IllegalArgumentException( 
+                          "Minutes argument " + min + 
+                          " must be an integer between 0 and 59" );
+        }
+        if ( sec < 0 || sec >= 60 ) {
+            throw new IllegalArgumentException( 
+                          "Seconds argument " + sec + 
+                          " must be between 0 and 60" );
+        }
+        return dmsToRadians( ! isNegative( deg ), 
+                             (int) Math.abs( deg ), (int) min, sec );
     }
 
     /**
-     * Converts degrees, minutes, seconds to an angle in radians.
+     * Converts hours, minutes, seconds to an angle in radians.
      *
-     * <p>Use with care!  The sign of the result is taken from the
-     * first non-zero argument.  It is an error for any but the first
-     * non-zero argument to be negative.  It's easy to accidentally
-     * read values between 0 and -1 degrees as positive.
+     * <p>In conversions of this type, one has to be careful to get the
+     * sign right in converting angles which are between 0 and -1 hours.
+     * This routine uses the sign bit of the <tt>hour</tt> argument,
+     * taking care to distinguish between +0 and -0 (their internal 
+     * representations are different for floating point values).
      *
      * @param  hour  degrees part of angle
      * @param  min  minutes part of angle
@@ -167,11 +179,19 @@ public class Angles {
      * @throws   IllegalArgumentException if an argument after the first
      *           non-zero one is negative
      */
-    public static double hmsToRadians( int hour, int min, double sec ) {
-        return hmsToRadians( isPositive( hour, min, sec,
-                                         "hours", "minutes", "seconds" ),
-                             Math.abs( hour ), Math.abs( min ),
-                             Math.abs( sec ) );
+    public static double hmsToRadians( double hour, double min, double sec ) {
+        if ( min < 0 || min >= 60 || (int) min != min ) {
+            throw new IllegalArgumentException(
+                          "Minutes argument " + min +
+                          " must be an integer between 0 and 59" );
+        }
+        if ( sec < 0 || sec >= 60 ) {
+            throw new IllegalArgumentException(
+                          "Seconds argument " + sec + 
+                          " must be between 0 and 60" );
+        }
+        return hmsToRadians( ! isNegative( hour ), 
+                             (int) Math.abs( hour ), (int) min, sec );
     }
 
     /**
@@ -342,45 +362,15 @@ public class Angles {
     }
 
     /**
-     * Determines whether a sexagesimal angle is positive or not.
-     * If the three parts are illegal (one of the arguments which is not
-     * the first non-zero one is negative) then an IllegalArgumentException
-     * is thrown.
+     * Indicates whether a double precision number is positive or negative
+     * based on its sign bit.  Note that this distinguishes positive from
+     * negative zero.
      *
-     * @param  p1  first numeric part (degrees or hours)
-     * @param  p2  second numeric part (minutes)
-     * @param  p3  third numeric part (seconds)
-     * @param  n1  name of first numeric part
-     * @param  n2  name of second numeric part
-     * @param  n3  name of third numeric part
-     * @return  true iff the angle is &gt;=0
-     * @throws  IllegalArgumentException  if the arguments are illegal
+     * @param  value  value for testing
+     * @return  true iff <tt>value</tt>'s sign bit is set
      */
-    private static boolean isPositive( int p1, int p2, double p3,
-                                       String n1, String n2, String n3 ) {
-        if ( p1 == 0 ) {
-            if ( p2 == 0 ) {
-                return p3 >= 0;
-            }
-            else {
-                if ( p3 < 0 ) {
-                    throw new IllegalArgumentException( 
-                        n3 + " shouldn't be negative for nonzero " + p2 );
-                }
-                return p2 >= 0;
-            }
-        }
-        else {
-            if ( p2 < 0 ) {
-                throw new IllegalArgumentException(
-                    n2 + " shouldn't be negative for nonzero " + p1 );
-            }
-            if ( p3 < 0 ) {
-                throw new IllegalArgumentException(
-                    n3 + " shouldn't be negative for nonzero " + p1 );
-            }
-            return p1 >= 0;
-        }
+    private static boolean isNegative( double value ) {
+        return ( Double.doubleToLongBits( value ) & 0x8000000000000000L ) != 0;
     }
 
     /**
