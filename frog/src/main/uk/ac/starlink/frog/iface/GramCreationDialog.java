@@ -275,7 +275,9 @@ public class GramCreationDialog extends JInternalFrame
           " ymin = " + range[2] + " ymax = " + range[3] );
        debugManager.print( "  nyquist = " + currentSeries.getNyquist() );
        
-       maxFreq = currentSeries.getNyquist();  
+       maxFreq = currentSeries.getNyquist(); 
+       if( maxFreq < 0 ) maxFreq = - maxFreq;
+        
        minFreq = 0.0;
        freqInterval = 1.0 / ( 4.0 * totalTime );
          
