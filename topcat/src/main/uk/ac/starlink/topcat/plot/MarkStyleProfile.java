@@ -26,14 +26,15 @@ public abstract class MarkStyleProfile {
 
     private static final Color[] COLORS = new Color[] {
         Color.red,
-        Color.blue,
+        Color.blue.brighter(),
         Color.green.darker(),
         Color.gray,
         Color.magenta,
-        Color.pink.darker(),
-        Color.orange.darker(),
         Color.cyan.darker(),
-        Color.yellow.darker(),
+        Color.orange,
+        Color.blue.darker(),
+        Color.pink,
+        Color.yellow,
         Color.black,
     };
 
