@@ -68,8 +68,12 @@
   <property name="star.build.dir" value="${basedir}/../"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
+
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
    !  ================
@@ -164,14 +168,14 @@
    !-->
 
   <!-- Name all the jar files that we directly depend on. These will be
-   !   used to produce a full CLASSPATH that is equivalent to that 
+   !   used to produce a full CLASSPATH that is equivalent to that
    !   generated when these are referenced as optional bundled packages.
    !   It's best to have a classpath (rather than use the extension
    !   mechanism) during development as this allows us to compile
-   !   without having to work these dependencies out anyway (may 
+   !   without having to work these dependencies out anyway (may
    !   be fixed in Java1.5) plus we can execute against locally built
    !   class files in preference to installed ones (an extra user-define
-   !   defined CLASSPATH can also be used as needed). 
+   !   defined CLASSPATH can also be used as needed).
    !-->
   <extclasspath id="installed.classpath">
 
@@ -180,7 +184,7 @@
 
     <!-- FITS -->
     <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
-    
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -206,13 +210,13 @@
 
   <path id="built.classpath">
 
+    <!-- Directly dependent third party jars -->
+    <path refid="built.jarpath"/>
+
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
-
-    <!-- Directly dependent third party jars -->
-    <path refid="built.jarpath"/>
 
     <!-- Finally add all "dist" jar files to make sure everything is
      !   resolved, including relative URLs out of the local package -->
@@ -223,11 +227,11 @@
     <!-- Note in passing a more elegant way to resolve these jars
      !   would be to extend <extclasspath> to go looking for dependent
      !   jars using an additional URL resolving mechanism-->
-  
+
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property 
-   !   "extra.class.path" (which can be defined locally using say 
+  <!-- Extra user-defined classpath. This is set by the property
+   !   "extra.class.path" (which can be defined locally using say
    !   -Dextra.class.path=$CLASSPATH on the command line or by setting
    !   the property in either of the properties files.-->
   <property name="extra.class.path" value=""/>
@@ -261,7 +265,7 @@
    ! If any of the required dependencies are not present then
    ! this throws a <fail> and exits the build.
    !-->
-  <target name="check_packages" 
+  <target name="check_packages"
           unless="runonly.install">
 
     <!--  Need JUnit -->
@@ -352,13 +356,13 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" 
+        <attribute name="Class-Path"
                    value="../junit/junit.jar ../tamfits/tamfits.jar"/>
       </manifest>
     </jar>
 
     <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${java.dir}"/>
-   
+
   </target>
 
   <!--
@@ -411,7 +415,7 @@
    !  The archives are designed to be unpacked such that the resultant
    !  directory layout can be either used as a local distribution, or
    !  installed into a Starlink tree (installation requires the
-   !  Starlink modified version of ANT, use as a local distribution 
+   !  Starlink modified version of ANT, use as a local distribution
    !  may need special handling of the extension path). This version
    !  can also be used to rebuild the package from source.
    !
@@ -538,9 +542,9 @@
       </tarfileset>
     </tar>
 
-    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz" 
+    <gzip zipfile="${star.archive.dir}/${archive.name}.tar.gz"
           src="${archive.name}.tar"/>
-    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2" 
+    <bzip2 zipfile="${star.archive.dir}/${archive.name}.tar.bz2"
            src="${archive.name}.tar"/>
     <delete file="${archive.name}.tar"/>
 
@@ -568,7 +572,7 @@
    !   ================================
    !
    ! Installs the "dist" target products into another set of
-   ! directories. 
+   ! directories.
    !
    ! An installed system is potentially "undoable" as the copied names
    ! and package-specific directories are logged to "${install.log}".
@@ -603,7 +607,7 @@
       </fileset>
     </chmod>
 
-    <!-- Also remove the package-specific directory. 
+    <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
     <echo file="${install.log}" append="true">${star.bin.pkg}
 </echo>
@@ -618,7 +622,7 @@
       </fileset>
     </loggedcopy>
 
-    <!-- Also remove the package-specific directory. 
+    <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
@@ -687,7 +691,7 @@
 
   <!-- Real deinstall target. Only activated if "install.log.present"
    !   is defined -->
-  <target name="real_deinstall" 
+  <target name="real_deinstall"
           if="install.log.present">
 
     <loadfile property="files" srcFile="${install.log}"/>
@@ -723,15 +727,15 @@
              doctitle="${Name}"
              classpathref="classpath">
 
-      <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="${java.dir}" defaultexcludes="yes">
-          <exclude name="**/support/*"/>
-          <exclude name="**/makefile"/>
-          <exclude name="**/testcases/*"/>
-          <exclude name="**/VERSION"/>
-          <exclude name="**/README"/>
-          <exclude name="**/.*"/>
-      </fileset>
+      <!-- Get a list of directories that name all the potential
+       !   java packages -->
+      <packageset dir="${java.dir}" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
 
       <group title="${Name} API" packages="${package.name}*"/>
 
@@ -739,6 +743,7 @@
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
     </javadoc>
+
   </target>
 
   <!-- This checks if the javadocs are up to date with respect to the
@@ -778,7 +783,6 @@
 
     <!-- Copy and/or generate the source to be included when creating
      !   the full Starlink API javadocs-->
-
     <copy todir="${build.java}">
       <fileset dir="${java.dir}" defaultexcludes="yes">
           <exclude name="**/support/*"/>
@@ -869,7 +873,7 @@
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
-   ! 
+   !
    ! Use:
    !
    !    <!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "./project.dtd">
