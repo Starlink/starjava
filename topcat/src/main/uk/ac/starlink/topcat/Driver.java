@@ -161,10 +161,10 @@ public class Driver {
             cmdname = "topcat";
         }
         String pre = "Usage: " + cmdname;
-        String usage = pre
-                     + " [-help] [-demo] [-disk] [-myspace] [-cone]\n"
-                     + pre.replaceAll( ".", " " )
-                     + " [[-f <format>] table ...]";
+        String pad = pre.replaceAll( ".", " " );
+        String usage = pre + " [-help] [-demo] [-disk]\n"
+                     + pad + " [-myspace] [-cone] [-siap]\n"
+                     + pad + " [[-f <format>] table ...]";
 
         /* Prepare usage message which also describes known formats. */ 
         StringBuffer ufbuf = new StringBuffer( usage );
@@ -219,6 +219,10 @@ public class Driver {
             else if ( arg.equals( "-cone" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.ConeSearchDialog" );
+            }
+            else if ( arg.equals( "-siap" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.vo.SiapTableLoadDialog" );
             }
             else if ( arg.startsWith( "-" ) ) {
                 System.err.println( usage );
