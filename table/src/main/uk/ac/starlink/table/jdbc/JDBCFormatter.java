@@ -30,17 +30,6 @@ public class JDBCFormatter {
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
-    /**
-     * List of SQL reserved words; these have to be avoided in column names.
-     * This list is by no means complete.
-     */
-    private static final Collection SQL_RESERVED = 
-        new HashSet( Arrays.asList( new String[] {
-            "INDEX", "CHAR", "VARCHAR", "DATE", "TIME",
-            "SET", "SHOW", "DELETE", "UPDATE", "ALTER", "DROP", 
-            "TABLE", "VIEW", "DATABASE", "DESCRIBE", "USE",
-        } ) );
-
     public JDBCFormatter( Connection conn ) {
         this.conn = conn;
     }
@@ -320,8 +309,11 @@ public class JDBCFormatter {
         }
 
         /* Replace reserved words.  This list is not complete. */
-        if ( SQL_RESERVED.contains( name.toUpperCase() ) ) {
+        if ( SqlReserved.isReserved( name ) ) {
+            logger.info( "Renaming column " + name + " to " + name + 
+                         "_ (SQL reserved word)" );
             name = name + "_";
+            assert ! SqlReserved.isReserved( name );
         }
         return name;
     }
