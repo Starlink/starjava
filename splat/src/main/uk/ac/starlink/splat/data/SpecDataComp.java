@@ -424,7 +424,8 @@ public class SpecDataComp
     }
 
     /**
-     *  Get the full data range of all the spectra.
+     *  Get the full data range of all the spectra. This includes space for
+     *  error bars if selected.
      */
     public double[] getFullRange()
         throws SplatException

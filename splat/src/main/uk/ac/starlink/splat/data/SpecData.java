@@ -243,6 +243,11 @@ public class SpecData
      */
     public final static int ERROR_NSIGMA = 6;
 
+    /**
+     * Set or query the frequency error bars are drawn at.
+     */
+    public final static int ERROR_FREQUENCY = 7;
+
     //
     //  Symbolic contants defining the possible plotting styles.
     //
@@ -354,7 +359,7 @@ public class SpecData
 
     /**
      * The full range of coordinates spanned (i.e.&nbsp;min/max values
-     * in xPos and yPos, plus the standard deviations in yPos).
+     * in xPos and yPos, plus the standard deviations * nsigma in yPos).
      */
     protected double[] fullRange = new double[4];
 
@@ -395,6 +400,11 @@ public class SpecData
      * The number of sigma any error bars are drawn at.
      */
     protected int errorNSigma = 1;
+
+    /**
+     * The frequency (that is how often) error bars are drawn.
+     */
+    protected int errorFrequency = 1;
 
     /**
      * The spectrum plot style.
@@ -762,7 +772,8 @@ public class SpecData
 
 
     /**
-     * Get the data ranges in the X and Y axes with standard deviation.
+     * Get the data ranges in the X and Y axes, including the standard
+     * deviations.
      *
      * @return reference to array of 4 values, xlow, xhigh, ylow, yhigh.
      */
@@ -949,6 +960,25 @@ public class SpecData
         return errorNSigma;
     }
 
+    /**
+     * Set the frequency that error bars are drawn.
+     *
+     * @param freq the frequency (runs from 1 upwards).
+     */
+    public void setErrorFrequency( int freq )
+    {
+        this.errorFrequency = Math.max( 1, Math.abs( freq ) );
+    }
+
+    /**
+     * Get the frequency that error bars are drawn.
+     *
+     * @return the frequency 
+     */
+    public double getErrorFrequency()
+    {
+        return errorFrequency;
+    }
 
     /**
      * Set the type of spectral lines that are drawn (these can be polylines
@@ -1022,7 +1052,10 @@ public class SpecData
             {
                 setErrorNSigma( value.intValue() );
             }
-
+            case ERROR_FREQUENCY:
+            {
+                setErrorFrequency( value.intValue() );
+            }
         }
     }
 
@@ -1255,9 +1288,9 @@ public class SpecData
                     yMax = Math.max( yMax, yPos[i] );
 
                     fullYMin = Math.min( fullYMin,
-                                         yPos[i] - ( yErr[i] * 0.5 ) );
+                                         yPos[i] - ( yErr[i] * errorNSigma ) );
                     fullYMax = Math.max( fullYMax,
-                                         yPos[i] + ( yErr[i] * 0.5 ) );
+                                         yPos[i] + ( yErr[i] * errorNSigma ) );
                 }
             }
         }
@@ -1445,7 +1478,7 @@ public class SpecData
             double[] xpos = null;
             double[] ypos = null;
             double half = 0.0;
-            for ( int i = 0; i < xPos.length; i++ ) {
+            for ( int i = 0; i < xPos.length; i += errorFrequency ) {
                 if ( yErr[i] != SpecData.BAD ) {
                     half = yErr[i] * errorNSigma;
                     xypos[0] = xPos[i];
@@ -1510,7 +1543,6 @@ public class SpecData
         grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__LINE );
         return oldState;
     }
-
 
     /**
      * Restore an existing Grf object to a given state.

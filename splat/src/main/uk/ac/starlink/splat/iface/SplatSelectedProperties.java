@@ -74,6 +74,7 @@ public class SplatSelectedProperties
     protected JButton lineColour = new JButton();
     protected JCheckBox errors = new JCheckBox();
     protected JComboBox errorScale = new JComboBox();
+    protected JComboBox errorFrequency = new JComboBox();
     protected JComboBox coordColumn = new JComboBox();
     protected JComboBox dataColumn = new JComboBox();
     protected JComboBox errorColumn = new JComboBox();
@@ -233,6 +234,14 @@ public class SplatSelectedProperties
         errorScale.addActionListener( this );
         errorControls.add( errorScale );
 
+        //  Frequency of error bars (1, 2, 3, 4, 5, 6, 7, 8, 9 ... 20)
+        for ( int i = 1; i < 21; i++ ) {
+            errorFrequency.addItem( new Integer( i ) );
+        }
+        errorFrequency.setToolTipText("Set frequency for drawing error bars");
+        errorFrequency.addActionListener( this );
+        errorControls.add( errorFrequency );
+
         layouter.eatSpare();
 
         //  Set up the listSelectionListener so that we can update
@@ -271,7 +280,7 @@ public class SplatSelectedProperties
                 shortName.setText( spec.getShortName() );
                 fullName.setText( spec.getFullName() );
                 format.setText( spec.getDataFormat() );
-                thickness.setSelectedIndex( (int)spec.getLineThickness()-1 );
+                thickness.setSelectedIndex( (int)spec.getLineThickness() - 1 );
                 lineStyle.setSelectedStyle( (int)spec.getLineStyle() );
                 lineType.setSelectedStyle( (int)spec.getPlotStyle() );
                 errors.setEnabled( spec.haveYDataErrors() );            
@@ -288,7 +297,9 @@ public class SplatSelectedProperties
                 errorsColour.repaint();
 
                 //  Error bar nsigma.
-                errorScale.setSelectedIndex( (int)spec.getErrorNSigma()-1 );
+                errorScale.setSelectedIndex( (int)spec.getErrorNSigma() - 1 );
+                errorFrequency.setSelectedIndex
+                    ( (int)spec.getErrorFrequency() - 1 );
 
                 //  Update the column names.
                 String[] names = spec.getColumnNames();
@@ -496,6 +507,20 @@ public class SplatSelectedProperties
     }
 
     /**
+     *  Change the frequency used for drawing error bars.
+     */
+    protected void updateErrorFrequency()
+    {
+        if ( inhibitChanges ) return;
+
+        int[] indices = specList.getSelectedIndices();
+        if ( indices.length > 0 && indices[0] > -1 ) {
+            Integer freq = (Integer) errorFrequency.getSelectedItem();
+            applyProperty( indices, SpecData.ERROR_FREQUENCY, freq );
+        }
+    }
+
+    /**
      *  Set the column used for the coordinate values.
      */
     protected void updateCoordColumn()
@@ -635,6 +660,10 @@ public class SplatSelectedProperties
 
         if ( source.equals( errorScale ) ) {
             updateErrorScale();
+        }
+
+        if ( source.equals( errorFrequency ) ) {
+            updateErrorFrequency();
         }
     }
 }
