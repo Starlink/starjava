@@ -15,17 +15,40 @@ public class FrogSOAPServices
     /**
      * Display a spectrum in the current FROG window.
      */
-    public static boolean displaySeries( String series ) {
+    public static boolean displaySeries( String series ) 
+    {
         return FrogSOAPServer.getInstance().displaySeries( series );
     }
     
-   /**
+    /**
+     * Display a spectrum in the current FROG window. Security enabled version.
+     */
+    public static boolean displaySeries( String cookie, String series ) 
+    {
+        return FrogSOAPServer.getInstance().displaySeries( cookie, series );
+    }
+    
+    /**
      * Display a spectrum.
      */
-    public static String getFourierTransform( 
-      String series, double minFreq, double maxFreq, double freqInterval ) {
-        return FrogSOAPServer.getInstance().getFourierTransform( 
-           series, minFreq, maxFreq, freqInterval );
+    public static String getFourierTransform( String series, double minFreq, 
+                                              double maxFreq, 
+                                              double freqInterval ) 
+    {
+        return FrogSOAPServer.getInstance()
+            .getFourierTransform( series, minFreq, maxFreq, freqInterval );
     }
  
+    /**
+     * Display a spectrum. Security enabled version.
+     */
+    public static String getFourierTransform( String cookie, 
+                                              String series, double minFreq, 
+                                              double maxFreq, 
+                                              double freqInterval ) 
+    {
+        return FrogSOAPServer.getInstance()
+            .getFourierTransform( cookie, series, minFreq, maxFreq, 
+                                  freqInterval );
+    }
 }
