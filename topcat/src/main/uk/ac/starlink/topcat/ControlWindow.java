@@ -236,9 +236,12 @@ public class ControlWindow extends AuxWindow
 
         /* Configure the list to try to load a table when you paste 
          * text location into it. */
-        MouseListener pasteLoader = new PasteLoader( this, tabfact ) {
+        MouseListener pasteLoader = new PasteLoader( this ) {
             protected void tableLoaded( StarTable table, String loc ) {
                 addTable( table, loc, true );
+            }
+            public StarTableFactory getTableFactory() {
+                return tabfact;
             }
         };
         tablesList.addMouseListener( pasteLoader );
