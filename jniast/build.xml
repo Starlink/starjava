@@ -673,8 +673,8 @@
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="STARLINK" value="${stardev}"/>
-      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
-      <env key="ADDINCS" value="-I${stardev.add}/include"/>
+      <env key="LIBADD" value="-L${stardev.add}/lib"/>
+      <env key="INCADD" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
@@ -732,7 +732,20 @@
   <target name="assemble_jni" depends="prepare, build_classes, get_ast_source">
 
     <copy todir="${build.jni}">
-      <fileset dir="${src.jni}" includes="*.c *.h makefile mk ${link.script}"/>
+      <fileset dir="${src.jni}">
+         <include name="*.c"/>
+         <include name="*.h"/>
+         <include name="Makefile.in"
+         <include name="configure"/>
+         <include name="config.guess"/>
+         <include name="config.sub"/>
+         <include name="depcomp"/>
+         <include name="ltmain.sh"/>
+         <include name="libtool"/>
+         <include name="missing"/>
+         <include name="mk"/>
+         <include name="${link.script}"/>
+      </fileset>
       <fileset dir="${build.ast}" includes="grf.h"/>
       <fileset dir="${build.ast}" includes="plot.h"/>
       <fileset dir="${build.ast}" includes="ast_link"/>
