@@ -157,14 +157,17 @@ public class FitsNdxHandler implements NdxHandler {
                 /* Construct the NDX from the XML description found. */
                 Ndx ndx = XMLNdxHandler.getInstance().makeNdx( xsrc, mode );
 
-                /* Check that the image URL from the resultant NDX matches
-                 * the one we were first given.  Issue a warning if not. */
-                URL iurl = ndx.getImage().getURL();
-                FitsURL fiurl = FitsURL.parseURL( iurl, extensions );
-                if ( ! fiurl.equals( furl ) ) {
-                    logger.warning( "URL of image does not match URL of NDX: "
-                                  + "<" + iurl + "> != <" + url + ">" );
-                }
+                // Omit this check - URLs may not be identical because of
+                // path aliases like './' etc.
+                //
+                // /* Check that the image URL from the resultant NDX matches
+                //  * the one we were first given.  Issue a warning if not. */
+                // URL iurl = ndx.getImage().getURL();
+                // FitsURL fiurl = FitsURL.parseURL( iurl, extensions );
+                // if ( ! fiurl.equals( furl ) ) {
+                //     logger.warning( "URL of image does not match URL of NDX:"
+                //                   + " <" + iurl + "> != <" + url + ">" );
+                // }
 
                 /* In any case, return the NDX. */
                 return ndx;

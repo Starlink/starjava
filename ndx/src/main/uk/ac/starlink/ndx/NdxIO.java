@@ -1,5 +1,6 @@
 package uk.ac.starlink.ndx;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -288,8 +289,8 @@ public class NdxIO {
         }
         catch ( MalformedURLException e ) {
             try { 
-                URL context = new URL( "file:." );
-                url = new URL( context, location );
+                File file = new File( location );
+                url = new URL( "file:" + file.getAbsolutePath() );
             }
             catch ( MalformedURLException e1 ) {
                 String msg = "'" + location + "' doesn't look like a filename";
