@@ -270,10 +270,10 @@ public class ASTJ
 
         //  Bottom left-hand corner. Corrected for border insets.
         graphbox[0] = inset.left + linset;
-        graphbox[1] = size.height - inset.bottom - tinset;
+        graphbox[1] = size.height - inset.bottom - binset;
 
         //  Top right-hand corner.
-        graphbox[2] = size.width - inset.right - linset;
+        graphbox[2] = size.width - inset.right - rinset;
         graphbox[3] = inset.top + tinset;
 
         Rectangle graphRect = new Rectangle( size );
