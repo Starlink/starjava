@@ -133,7 +133,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
      * Create a child element with no content and add it to the given
      * element.
      */
-    protected Element addChildElement( Element rootElement, String name )
+    public static Element addChildElement( Element rootElement, 
+                                           String name )
     {
         Document parent = rootElement.getOwnerDocument();
         Element element = parent.createElement( name );
@@ -145,8 +146,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
      * Create a new CDATA section with the given content and add it as
      * a child of a given element.
      */
-    protected CDATASection addCDATASection( Element rootElement, 
-                                            String value )
+    public static CDATASection addCDATASection( Element rootElement, 
+                                                String value )
     {
         Document parent = rootElement.getOwnerDocument();
         CDATASection cdata = parent.createCDATASection( value );
@@ -158,8 +159,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
      * Add an element with String value as a child of another element.
      * The String is stored as CDATA.
      */
-    protected Element addChildElement( Element rootElement, String name,
-                                       String value )
+    public static Element addChildElement( Element rootElement, String name,
+                                           String value )
     {
         Element newElement = addChildElement( rootElement, name );
         if ( value != null ) {
@@ -171,8 +172,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Add an element with boolean value as a child of another element.
      */
-    protected Element addChildElement( Element rootElement, String name,
-                                       boolean value )
+    public static Element addChildElement( Element rootElement, String name,
+                                           boolean value )
     {
         return addChildElement( rootElement, name, booleanToString( value ) );
     }
@@ -180,8 +181,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Add an element with integer value as a child of another element.
      */
-    protected Element addChildElement( Element rootElement, String name,
-                                       int value )
+    public static Element addChildElement( Element rootElement, String name,
+                                          int value )
     {
         return addChildElement( rootElement, name, intToString( value ) );
     }
@@ -189,8 +190,8 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Add an element with double value as a child of another element.
      */
-    protected Element addChildElement( Element rootElement, String name,
-                                       double value )
+    public static Element addChildElement( Element rootElement, String name,
+                                           double value )
     {
         return addChildElement( rootElement, name, doubleToString( value ) );
     }
@@ -199,7 +200,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
      * Return a List of all children. Use the NodeList interface to
      * step through these.
      */
-    protected NodeList getChildren( Element rootElement )
+    public static NodeList getChildren( Element rootElement )
     {
         return rootElement.getChildNodes();
     }
@@ -207,7 +208,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Get the name of an element.
      */
-    protected String getElementName( Element element )
+    public static String getElementName( Element element )
     {
         return element.getTagName();
     }
@@ -215,7 +216,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Get the "value" of an element (really the content).
      */
-    protected String getElementValue( Element element )
+    public static String getElementValue( Element element )
     {
         // Value is the content, should be a text/CDATA node.
         Node firstChild = element.getFirstChild();
@@ -228,7 +229,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert a double to a String.
      */
-    protected String doubleToString( double value )
+    public static String doubleToString( double value )
     {
         return new Double( value ).toString();
     }
@@ -236,7 +237,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert a String back to a double.
      */
-    protected double doubleFromString( String value )
+    public static double doubleFromString( String value )
     {
         return Double.parseDouble( value );
     }
@@ -244,7 +245,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert a boolean to a String.
      */
-    protected String booleanToString( boolean value )
+    public static String booleanToString( boolean value )
     {
         return new Boolean( value ).toString();
     }
@@ -252,7 +253,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert a String back to a boolean.
      */
-    protected boolean booleanFromString( String value )
+    public static boolean booleanFromString( String value )
     {
         return new Boolean( value ).booleanValue();
     }
@@ -260,7 +261,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert an integer to a String.
      */
-    protected String intToString( int value )
+    public static String intToString( int value )
     {
         return new Integer( value ).toString();
     }
@@ -268,7 +269,7 @@ public abstract class PrimitiveXMLEncodeAndDecode
     /**
      * Convert a String back to an integer.
      */
-    protected int intFromString( String value )
+    public static int intFromString( String value )
     {
         return Integer.parseInt( value );
     }
