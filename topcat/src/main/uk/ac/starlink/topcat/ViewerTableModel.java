@@ -91,7 +91,7 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
-     * Returns the mapping from base table rows to the columns visible
+     * Returns the mapping from base table rows to the rows visible
      * in this model.
      *
      * @return  row mapping; may be <tt>null</tt> to indicate a unit map
@@ -101,7 +101,7 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
-     * Sets the mapping from base table rows to the columns visible
+     * Sets the mapping from base table rows to the rows visible
      * in this model.
      */
     public void setRowMap( int[] rowMap ) {
