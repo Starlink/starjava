@@ -174,6 +174,17 @@ public class FormatsTest extends TestCase {
         checkStarTable( t2 );
 
         assertVOTableEquals( t1, t2, squashNulls );
+
+        String docDecl = writer.getDoctypeDeclaration();
+        File tmpFile = File.createTempFile( "decltest", ".xml" );
+        tmpFile.deleteOnExit();
+        writer.setDoctypeDeclaration( 
+            "<!DOCTYPE VOTABLE SYSTEM 'http://nowhere/VOTable.dtd'>" );
+        writer.writeStarTable( t1, tmpFile.toString() );
+        assertValidXML( new FileInputStream( tmpFile ) );
+
+        tmpFile.delete();
+        writer.setDoctypeDeclaration( docDecl );
     }
 
     public void assertVOTableEquals( StarTable t1, StarTable t2,
