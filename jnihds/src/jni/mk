@@ -258,7 +258,7 @@
 #  ---------------------------------------------
             sun4_Solaris)
                AR_IN='ar -r'
-               BLD_SHR='f() ld -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/SC5.0/lib -lF77 -lM77 -Bdynamic -lsunmath -lm -lc; f'
+               BLD_SHR='f() f77 -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
                CC='cc'
                CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
                LINK='ln -s'
