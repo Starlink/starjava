@@ -1,0 +1,3 @@
+A class that should probably belong in SPLAT, but since we don't
+want SPLAT to depend on Treeview, here it is. SPLAT accesses this
+using reflection.
