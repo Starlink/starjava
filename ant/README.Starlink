@@ -9,7 +9,7 @@ Before you can build anything else you'll need to build this. First
 add the local "bin" directory to the PATH and define where to find a
 JDK:
 
-   setenv PATH `pwd`/bin
+   setenv PATH `pwd`/bin:${PATH}
    setenv JAVA_HOME /my/local/jdk/root/
 
 If these are correct then the "ant" command should now work. Use:
@@ -26,8 +26,10 @@ To build ANT with the new targets you need to do:
    ant -Dbootstrap.dir=../.. bootstrap
    ant clean
 
-(replace ../.. with the /star/java directory if needed). This should
-install a version of ANT ready to build our real sources. 
+(replace ../.. with your installation directory "${star.dir}" if you
+intend to keep the installated part elsewhere). This should install a
+version of ANT ready to build our real sources. Remember to add the
+new installation bin directory to your PATH before proceeding.
 
 The new files added to this release are:
 
