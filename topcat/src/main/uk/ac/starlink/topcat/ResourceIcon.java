@@ -66,7 +66,7 @@ public class ResourceIcon implements Icon {
         COPY = makeIcon( "Copy24.gif" ),
         REDO = makeIcon( "Redo24.gif" ),
         ADD = makeIcon( "Plus1.gif" ),
-        REMOVE = makeIcon( "Minus1.gif" ),
+        DELETE = makeIcon( "trash2.gif" ),
         HELP = makeIcon( "Help3.gif" ),
         DEMO = makeIcon( "demo.gif" ),
         HIDE = makeIcon( "hide1.gif" ),

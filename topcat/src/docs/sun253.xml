@@ -1362,7 +1362,7 @@ from TOPCAT:
     details on exactly what constitutes the current view.
     </p></dd>
 
-<dt>&IMG.REMOVE; Remove Table</dt>
+<dt>&IMG.DELETE; Discard Table</dt>
 <dd><p>Removes the currently selected table from the table list.
     As well as removing it from the list display on the left, 
     this will hide all windows corresponding to that table.

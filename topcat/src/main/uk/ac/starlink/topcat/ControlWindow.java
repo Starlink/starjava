@@ -184,7 +184,7 @@ public class ControlWindow extends AuxWindow
         tablesList.setTransferHandler( bothTransferHandler );
 
         /* Set up actions. */
-        removeAct = new ControlAction( "Remove Table", ResourceIcon.REMOVE,
+        removeAct = new ControlAction( "Discard Table", ResourceIcon.DELETE,
                                        "Forget about the current table" );
         readAct = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                      "Open a new table" );
@@ -550,7 +550,7 @@ public class ControlWindow extends AuxWindow
         plotAct.setEnabled( hasModel );
         for ( int i = 0; i < showActions.length; i++ ) {
             ShowAction sact = showActions[ i ];
-            if ( sact.selEffect != WindowEffect.NOOP ) {
+            if ( sact.selEffect != sact.otherEffect ) {
                 sact.setEnabled( hasModel );
             }
         }
