@@ -260,6 +260,11 @@ public class FitsStarTable extends RandomStarTable {
      */
     private Object packageValue( Object base, int icol ) {
 
+        /* Null goes to null. */
+        if ( base == null ) {
+            return null;
+        }
+
         /* Scalar data is normally returned as a 1-element array. */
         Class bcls = base.getClass();
         Class cls = bcls.isArray() ? bcls.getComponentType() : null;
