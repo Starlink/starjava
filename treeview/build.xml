@@ -1152,6 +1152,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="uk.ac.starlink.treeview.test.args"
                    value="${treeview.args}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
