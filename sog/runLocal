@@ -6,15 +6,15 @@
 # so we can use non-relative names for the jars that we directly
 # depend on.
 
-setenv STAR_JAR_DIR /home2/pdraper/newjava/java/lib
+setenv STAR_JAR_DIR /loc/pwdc/pdraper/scratch/stardev/lib
 
 setenv CLASSPATH "../hdx/build/classes"
+setenv CLASSPATH "${CLASSPATH}:build/classes"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/ndarray/ndarray.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jniast/jniast.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/hdx/hdx.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jsky/jsky.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/soapserver/soapserver.jar"
-setenv CLASSPATH "${CLASSPATH}:build/lib/sog.jar"
 
 set sog_port=8082
 

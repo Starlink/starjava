@@ -84,7 +84,7 @@
   <property name="version" value="1.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.sog"/>
+  <property name="package.name" value="uk.ac.starlink.splat"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
