@@ -949,7 +949,8 @@ public class Frog extends JFrame
               // Create a new frame.
               try {
                  JFrame frame = new JFrame();
-                 frame.setSize(500,500);
+                 frame.setSize(930,860);
+                 frame.setLocation(100,100);
                  frame.getContentPane().add(helpViewer);
                  frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                  frame.setVisible(true);
