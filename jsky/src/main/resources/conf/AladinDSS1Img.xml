@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalogs PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+  This document describes the query arguments and access methods for astronomical catalogs.
+  A catalog may be implemented as a cgi-bin application, accessed via HTTP,
+  as a local command, or as a local file in a known format. 
+-->
+
+ <catalog 
+   id="aladin@cds" 
+   name="POSSI/DSS1 via Aladin Image Server (CDS/Vizier)" 
+   description="Origin: NASA/IPAC Infrared Science Archive"
+   type="imagesvr"
+   protocol="http"
+   host="aladin.u-strasbg.fr"
+   path="/java/alapre.pl">
+   <params>
+     <param 
+       id="-source" 
+       name="Source"
+       description="Source Catalog"
+       value="POSSI"
+       type="hidden"/>
+     <param 
+       id="-c" 
+       name="Center"
+       description="Object Name"
+       type="radec"
+       format="h+m+s d+m+s"/>
+     <param 
+       id="-c.eq" 
+       name="Equinox"
+       type="equinox"
+       description="Equinox of RA and Dec (default: J2000)"
+       value="J2000"/>
+     <param 
+       id="-c.ep" 
+       name="Epoch"
+       type="epoch"
+       description="Epoch of RA and Dec (default: 2000)"
+       value="2000"/>
+     <param 
+       id="-c.rm" 
+       name="Radius"
+       type="radius"
+       description="Radius from center RA, Dec in arcmin (may be two values: min and max radius)"
+       value="15"/>
+     <param 
+       id="out" 
+       name="Output"
+       description="Output format"
+       value="image"
+       type="hidden"/>
+     <param 
+       id="fmt" 
+       name="Format"
+       description="Image format"
+       value="FITS">
+       <options>
+         <option name="FITS" value="FITS"/>
+         <option name="JPEG" value="JPEG"/>
+       </options>
+     </param>
+     <param 
+       id="resolution" 
+       name="Resolution"
+       description="Resolution"
+       value="STAND">
+       <options>
+         <option name="Full Resolution" value="STAND"/>
+         <option name="Low Resolution" value="LOW"/>
+         <option name="Plate View" value="PLATE"/>
+       </options>
+     </param>
+     <param 
+       id="qual" 
+       name="Band"
+       description="Image band"
+       type="hidden"
+       value="POSSI+E+____"/>
+       
+   </params>
+ </catalog>
+
