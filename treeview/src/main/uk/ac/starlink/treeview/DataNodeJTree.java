@@ -13,6 +13,8 @@ import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -119,18 +121,63 @@ public class DataNodeJTree extends JTree {
      * this happens asynchronously.  A new thread is created and started 
      * in which the model expansion (though not the JTree notification) 
      * is done synchronously.  This thread is available as the method's
-     * return value.
+     * return value.  The JTree is expanded to show the new nodes.
      *
      * @param  dataNode  the node to expand
      * @return  the Thread in which the expansion is done
      */
-    public Thread recursiveExpand( DataNode dataNode ) {
+    public Thread recursiveExpand( final DataNode dataNode ) {
         final TreeModelNode modelNode = model.getModelNode( dataNode );
+
+        /* Set up a listener which will make sure that the nodes which
+         * get given children by the recursive expansion get expanded
+         * in the JTree itself, rather than just getting added to the model. */
+        final TreePath startPath = 
+            new TreePath( model.getPathToRoot( dataNode ) );
+        final TreeModelListener expanderListener = new TreeModelListener() {
+            public void treeNodesInserted( TreeModelEvent evt ) {
+                final TreePath path = evt.getTreePath();
+                if ( startPath.isDescendant( path ) &&
+                     ! hasBeenExpanded( path ) ) {
+
+                    /* It's not clear to me why this has to be invoked using
+                     * invokeLater, since as a model listener method it's
+                     * going to be invoked from the event dispatch thread
+                     * in any case.  However, if you do it inline you end
+                     * up with a bad gappy JTree.  This may be some sort of
+                     * JTree implementaiton bug which doesn't like a tree
+                     * expansion going on in the middle of other tree 
+                     * processing.  Or I may be misunderstanding the 
+                     * constraints on how one should use a JTree */
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            DataNode dnode = 
+                                (DataNode) path.getLastPathComponent();
+                            if ( model.containsNode( dnode ) ) {
+                                expandPath( path );
+                            }
+                        }
+                    } );
+                }
+            }
+            public void treeNodesChanged( TreeModelEvent evt ) {}
+            public void treeNodesRemoved( TreeModelEvent evt ) {}
+            public void treeStructureChanged( TreeModelEvent evt ) {}
+        };
+        model.addTreeModelListener( expanderListener );
+
+        /* Set up a thread to do the expansion. */
         Thread expander = new Thread( "Recursive expander: " + dataNode ) {
             public void run() {
-                recursiveExpand( modelNode );
+                recursiveExpand( model.getModelNode( dataNode ) );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        model.removeTreeModelListener( expanderListener );
+                    }
+                } );
             }
         };
+
         expander.start();
         return expander;
     }
@@ -138,11 +185,14 @@ public class DataNodeJTree extends JTree {
     /**
      * Recursively expands a given model node.  The expansion is synchronous
      * and may be time-consuming, so this method should not be invoked in 
-     * the event-dispatcher thread.
+     * the event-dispatcher thread.  Only the model is affected, 
+     * to reflect the new nodes in the visual appearance of the JTree
+     * a suitable TreeModelListener has to be installed to listen for
+     * new nodes being added and do suitable expandPath calls.
      *
      * @param   modelNode  the node to expand
      */
-    private void recursiveExpand( TreeModelNode modelNode ) {
+    void recursiveExpand( TreeModelNode modelNode ) {
         NodeExpander newExpander;
         DataNode dataNode;
         synchronized ( modelNode ) {
@@ -198,26 +248,6 @@ public class DataNodeJTree extends JTree {
         if ( newExpander != null ) {
             newExpander.expandNode();
         }
-
-        /* Make sure the tree knows that this node is open not shut. */
-        // It would be nice to do this before the actual expansion 
-        // (the previous step) so that you could see the expansion in 
-        // progress, but JTree doesn't seem to like having its
-        // nodes expanded when they still have no children.
-        // This could be fixed by keeping a record of which nodes need
-        // expansion when their children arrive and listening out for
-        // firstborn.
-        final TreeModelNode mNode = modelNode;
-        SwingUtilities.invokeLater( new Runnable() {
-            public void run() {
-                synchronized ( mNode ) {
-                    Object[] path = model.getPathToRoot( mNode.getDataNode() );
-                    if ( path != null ) {
-                        expandPath( new TreePath( path ) );
-                    }
-                }
-            }
-        } );
 
         /* Finally, recursively expand all the node's children. */
         for ( Iterator it = modelNode.getChildren().iterator();
