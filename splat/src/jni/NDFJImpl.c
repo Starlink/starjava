@@ -705,7 +705,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     base = astGetFrame( iwcs, AST__BASE );
     astSet( base, "Domain=Grid" );
     astAnnul( base );
-    astShow( iwcs );
 
     /*  Set the NDF WCS */
     ndfPtwcs( iwcs, indf, &status );
