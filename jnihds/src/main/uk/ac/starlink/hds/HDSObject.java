@@ -3,6 +3,7 @@ package uk.ac.starlink.hds;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Provides a Java interface to the Starlink 
@@ -94,7 +95,7 @@ public class HDSObject {
      * static members.
      */
     static {
-        System.loadLibrary( "jnihds" );
+        Loader.loadLibrary( "jnihds" );
         nativeInitialize();
         DAT__ROOT = getHDSConstantLoc( "DAT__ROOT" );
         DAT__SZNAM = getHDSConstantI( "DAT__SZNAM" );

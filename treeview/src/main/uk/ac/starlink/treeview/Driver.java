@@ -6,10 +6,9 @@ import java.awt.event.*;
 import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.hds.HDSPackage;
+import uk.ac.starlink.util.Loader;
 
 public class Driver {
     public final static String CMDNAME_PROPERTY =
@@ -244,8 +243,9 @@ public class Driver {
             props.setProperty( cmdnameProp, "treeview" );
         }
 
-        String stardir = probableStarjavaDirectory();
-        if ( stardir != null ) {
+        File sdir = Loader.starjavaDirectory();
+        if ( sdir != null ) {
+            String stardir = sdir.toString() + "/";
             String demodirProp = prefix + "demodir";
             if ( ! props.containsKey( demodirProp ) ) {
                 props.setProperty( demodirProp, stardir + "etc/treeview/demo" );
@@ -263,42 +263,6 @@ public class Driver {
         }
     }
 
-    /**
-     * Tries to work out the starlink java directory by looking at where
-     * the jar file this driver was invoked from lives.  Of course there 
-     * might not be one, for instance if the jar file was downloaded over 
-     * a wire.  In this case null is returned.
-     *
-     * @return  a string giving a directory name and ending with "/", or null
-     */
-    private static String probableStarjavaDirectory() {
-        URL classURL = Driver.class.getResource( "Driver.class" );
-        Matcher matcher = Pattern.compile( "jar:file:(.*)!.*" )
-                                 .matcher( classURL.toString() );
-        if ( matcher.matches() ) {
-            File jarfile = new File( matcher.group( 1 ) );
-            if ( jarfile.exists() ) {
-                File sjfile;
-                try {
-                    sjfile = jarfile.getCanonicalFile()  // treeview.jar
-                                    .getParentFile()     // treeview
-                                    .getParentFile()     // lib
-                                    .getParentFile();    // java
-                                                 
-                }
-                catch ( IOException e ) {
-                    return null;
-                }
-                catch ( NullPointerException e ) {
-                    return null;
-                }
-                if ( sjfile.exists() ) {
-                    return sjfile.toString() + "/";
-                }
-            }
-        }
-        return null;
-    }
 
     private static void exitWithError( String msg ) {
         System.err.println();

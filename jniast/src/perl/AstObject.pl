@@ -11,6 +11,7 @@ my( $fName );
 my( $aName );
 
 print "package uk.ac.starlink.ast;\n\n";
+print "import uk.ac.starlink.util.Loader;\n";
 print "import java.io.IOException;\n\n";
 
 makeClassHeader( 
@@ -37,7 +38,7 @@ print <<'__EOT__';
      * of this class guarantees it will be done before any other native
      * methods are called. */
     static {
-        System.loadLibrary( "jniast" );
+        Loader.loadLibrary( "jniast" );
         nativeInitialize();
         AST__BAD = getAstConstantD( "AST__BAD" );
     }

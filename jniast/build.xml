@@ -197,7 +197,8 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- JNIAST needs no external classes -->
+    <!-- Util -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
 
   </extclasspath>
 
@@ -218,9 +219,7 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-
-    <!-- JNIAST needs no external classes -->
-
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -282,6 +281,12 @@
    !-->
   <target name="check_packages"
           unless="runonly.install">
+
+    <!-- Need Util -->
+    <available property="util.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.util.Loader"/>
+    <fail message="No Util available" unless="util.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <condition property="testframework.present">
@@ -700,7 +705,8 @@
     <jar destfile="${dist.lib.pkg}/${name}.jar" basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" value=""/>
+        <attribute name="Class-Path"
+                   value="../util/util.jar"/>
       </manifest>
     </jar>
 
