@@ -181,6 +181,9 @@
    !-->
   <extclasspath id="installed.classpath">
 
+    <!-- JSky -->
+    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
+
     <!-- JNIAST -->
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
@@ -192,9 +195,6 @@
 
     <!-- JAIUtil -->
     <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
-
-    <!-- JSky -->
-    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
 
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
@@ -218,11 +218,11 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
+    <pathelement location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
     <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
-    <pathelement location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -418,10 +418,10 @@
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
-    <mkdir dir="${dist.lib.pkg}"/>
+    <!--<mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
-    </copy>
+    </copy>-->
 
   </target>
 
