@@ -36,11 +36,10 @@ public class DocTest extends TestCase {
         assertTrue( docXslt.isFile() );
         assertTrue( docFile.isFile() );
         assertTrue( context.isDirectory() );
-        assertTrue( LinkChecker.checkLinks( new StreamSource( docXslt1 ),
-                                            new StreamSource( docFile ),
-                                            context.toURL() ) );
-        assertTrue( LinkChecker.checkLinks( new StreamSource( docXslt ),
-                                            new StreamSource( docFile ),
-                                            context.toURL() ) );
+        LinkChecker checker = new LinkChecker( context.toURL() );
+        assertTrue( checker.checkLinks( new StreamSource( docXslt1 ),
+                                        new StreamSource( docFile ) ) );
+        assertTrue( checker.checkLinks( new StreamSource( docXslt ),
+                                        new StreamSource( docFile ) ) );
     }
 }
