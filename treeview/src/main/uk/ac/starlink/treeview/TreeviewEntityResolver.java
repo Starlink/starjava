@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.util.StarEntityResolver;
 
 /**
@@ -45,7 +46,8 @@ public class TreeviewEntityResolver implements EntityResolver {
     private TreeviewEntityResolver() {
     }
 
-    public InputSource resolveEntity( String publicId, String systemId ) {
+    public InputSource resolveEntity( String publicId, String systemId )
+            throws SAXException, IOException {
 
         /* Give StarEntityResolver a chance to retrieve it from a local copy. */
         InputSource is = localResolver.resolveEntity( publicId, systemId );

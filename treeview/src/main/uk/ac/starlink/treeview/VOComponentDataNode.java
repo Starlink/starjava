@@ -24,6 +24,7 @@ import org.w3c.dom.Text;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.votable.Param;
+import uk.ac.starlink.votable.Table;
 import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.util.DOMUtils;
@@ -195,7 +196,7 @@ public class VOComponentDataNode extends DefaultDataNode
         if ( startable == null ) {
             Element tel = (Element) getTables().item( 0 );
             DOMSource xsrc = new DOMSource( tel, systemId );
-            startable = new VOStarTable( new DOMSource( tel, systemId ) );
+            startable = new VOStarTable( new Table( xsrc ) );
         }
         return startable;
     }

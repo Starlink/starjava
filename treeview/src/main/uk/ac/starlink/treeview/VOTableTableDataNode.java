@@ -6,7 +6,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.table.DescribedValue;
@@ -25,18 +24,19 @@ public class VOTableTableDataNode extends VOComponentDataNode
     private Table votable;
     private StarTable startable;
     private String desc;
-    private DOMSource domsrc;
 
     public VOTableTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "TABLE" );
-        domsrc = new DOMSource( vocel, systemId );
         try {
-            votable = Table.makeTable( domsrc );
+            votable = new Table( xsrc );
         }
         catch ( VOTableFormatException e ) {
             throw new NoSuchDataException( e );
         }
-        int nrows = votable.getRowCount();
+        catch ( TransformerException e ) {
+            throw new NoSuchDataException( e );
+        }
+        long nrows = votable.getRowCount();
         desc = "(" 
              + votable.getColumnCount() 
              + "x" 
@@ -94,7 +94,7 @@ public class VOTableTableDataNode extends VOComponentDataNode
 
     public StarTable getStarTable() throws IOException {
         if ( startable == null ) {
-            startable = Tables.randomTable( new VOStarTable( domsrc ) );
+            startable = Tables.randomTable( new VOStarTable( votable ) );
 
             /* Remove the "Description" parameter since it is treated 
              * specially by VOTable nodes. */
