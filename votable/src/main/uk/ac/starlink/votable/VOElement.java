@@ -66,6 +66,9 @@ public class VOElement {
             catch ( MalformedURLException e ) {
                 context = null;  // never mind
             }
+            catch ( SecurityException e ) {
+                context = null;  // never mind
+            }
         }
         if ( el.hasAttribute( "ID" ) ) {
             id = el.getAttribute( "ID" );
