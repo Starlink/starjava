@@ -81,6 +81,19 @@ public class DataSourceTest extends TestCase {
         }
     }
 
+    public void testHybridStream() throws IOException {
+        int leng = 99;
+        for ( int i = 0; i < allSources.length; i++ ) {
+            DataSource src = allSources[ i ];
+            byte[] buf = new byte[ leng ];
+            assertEquals( leng, src.getMagic( buf ) );
+            assertArrayEquals( fillBuffer( src.getInputStream() ),
+                               fillBuffer( src.getHybridInputStream() ) );
+            assertArrayEquals( fillBuffer( src.getInputStream() ),
+                               fillBuffer1( src.getHybridInputStream() ) );
+        }
+    }
+
     public void testFlags() throws IOException {
         for ( int i = 0; i < allSources.length; i++ ) {
             DataSource src = allSources[ i ];
@@ -100,6 +113,28 @@ public class DataSourceTest extends TestCase {
         testStream();
         testStream();
         testStream();
+    }
+
+    private static byte[] fillBuffer1( InputStream istrm ) throws IOException {
+        ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
+        for ( int b; ( b = istrm.read() ) >= 0; ) {
+            ostrm.write( b );
+        }
+        istrm.close();
+        ostrm.close();
+        return ostrm.toByteArray();
+    }
+
+    private static byte[] fillBuffer( InputStream istrm ) throws IOException {
+        ByteArrayOutputStream ostrm = new ByteArrayOutputStream();
+        int leng = 17;
+        byte[] buf = new byte[ leng ];
+        for ( int i = 0, n; ( n = istrm.read( buf ) ) >= 0; i += n ) {
+            ostrm.write( buf, 0, n );
+        }
+        istrm.close();
+        ostrm.close();
+        return ostrm.toByteArray();
     }
 
     private static InputStream getPlainStream() throws IOException {
