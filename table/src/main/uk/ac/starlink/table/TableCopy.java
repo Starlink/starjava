@@ -30,7 +30,13 @@ public class TableCopy {
         StarTableOutput twriter = new StarTableOutput();
 
         /* Construct the usage message. */
-        String cmdname = System.getProperty( "uk.ac.starlink.table.cmdname" );
+        String cmdname;
+        try {
+            cmdname = System.getProperty( "uk.ac.starlink.table.cmdname" );
+        }
+        catch ( SecurityException e ) {
+            cmdname = null;
+        }
         if ( cmdname == null ) {
             cmdname = "TableCopy";
         }
