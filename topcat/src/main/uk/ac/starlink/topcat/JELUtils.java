@@ -9,9 +9,12 @@ import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
-import uk.ac.starlink.topcat.func.Activation;
-import uk.ac.starlink.topcat.func.Angles;
-import uk.ac.starlink.topcat.func.Miscellaneous;
+import uk.ac.starlink.topcat.func.Arithmetic;
+import uk.ac.starlink.topcat.func.Conversions;
+import uk.ac.starlink.topcat.func.Coords;
+import uk.ac.starlink.topcat.func.Display;
+import uk.ac.starlink.topcat.func.Maths;
+import uk.ac.starlink.topcat.func.Output;
 
 /**
  * This class provides some utility methods for use with the JEL
@@ -45,7 +48,7 @@ public class JELUtils {
         }
         Class[] staticLib = (Class[]) statix.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { JELRowReader.class };
-        Class[] dotClasses = new Class[] { String.class, Date.class };
+        Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = rowReader;
         Hashtable cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,
@@ -63,8 +66,10 @@ public class JELUtils {
 
             /* Basic classes always present. */
             List classList = new ArrayList( Arrays.asList( new Class[] {
-                Math.class, Integer.class, Float.class, Double.class,
-                Angles.class, Miscellaneous.class,
+                Arithmetic.class,
+                Conversions.class,
+                Coords.class,
+                Maths.class, 
             } ) );
             try {
 
@@ -106,7 +111,8 @@ public class JELUtils {
     public static List getActivationStaticClasses() {
         if ( activationStaticClasses == null ) {
             List classList = new ArrayList( Arrays.asList( new Class[] {
-                Activation.class,
+                Display.class,
+                Output.class, 
             } ) );
             activationStaticClasses = classList;
         }

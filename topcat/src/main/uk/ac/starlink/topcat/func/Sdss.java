@@ -29,7 +29,7 @@ public class Sdss {
              .addArgument( "height", pixels )
              .addArgument( "width", pixels )
              .toString();
-        return Activation.sog( query );
+        return Display.sog( query );
     }
 
     /**

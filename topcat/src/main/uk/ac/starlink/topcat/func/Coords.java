@@ -16,7 +16,7 @@ import uk.ac.starlink.pal.Pal;
  * @author   Mark Taylor (Starlink)
  * @since    30 Apr 2004
  */
-public class Angles {
+public class Coords {
 
     private static Pattern dmsPattern = 
         getSexPattern( "[:d ]", "[:m' ]", "[s\"]?" );
@@ -149,12 +149,12 @@ public class Angles {
      *           non-zero one is negative
      */
     public static double dmsToRadians( double deg, double min, double sec ) {
-        if ( min < 0 || min >= 60 || (int) min != min) {
+        if ( min < 0 || min > 60 || (int) min != min) {
             throw new IllegalArgumentException( 
                           "Minutes argument " + min + 
                           " must be an integer between 0 and 59" );
         }
-        if ( sec < 0 || sec >= 60 ) {
+        if ( sec < 0 || sec > 60 ) {
             throw new IllegalArgumentException( 
                           "Seconds argument " + sec + 
                           " must be between 0 and 60" );
@@ -180,12 +180,12 @@ public class Angles {
      *           non-zero one is negative
      */
     public static double hmsToRadians( double hour, double min, double sec ) {
-        if ( min < 0 || min >= 60 || (int) min != min ) {
+        if ( min < 0 || min > 60 || (int) min != min ) {
             throw new IllegalArgumentException(
                           "Minutes argument " + min +
                           " must be an integer between 0 and 59" );
         }
-        if ( sec < 0 || sec >= 60 ) {
+        if ( sec < 0 || sec > 60 ) {
             throw new IllegalArgumentException(
                           "Seconds argument " + sec + 
                           " must be between 0 and 60" );

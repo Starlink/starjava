@@ -22,7 +22,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.topcat.func.Activation;
+import uk.ac.starlink.topcat.func.Display;
 
 /**
  * A dialogue window which queries the user for a new activation action
@@ -291,7 +291,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 String activateValue( Object val ) {
                     return val == null 
                          ? null
-                         : Activation.sog( val.toString() );
+                         : Display.sog( val.toString() );
                 }
             };
         }
@@ -312,7 +312,7 @@ public class ActivationQueryWindow extends QueryWindow {
                 String activateValue( Object val ) {
                     return val == null
                          ? null
-                         : Activation.splat( val.toString() );
+                         : Display.splat( val.toString() );
                 }
             };
         }

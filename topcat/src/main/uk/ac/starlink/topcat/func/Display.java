@@ -19,12 +19,12 @@ import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * Class containing static methods suitable for use during point activation.
+ * Containing methods for display of spectra and images.
  *
  * @author   Mark Taylor (Starlink)
  * @since    20 Aug 2004
  */
-public class Activation {
+public class Display {
 
     private static SOG sog_;
     private static List soggers_ = new ArrayList();
@@ -33,38 +33,6 @@ public class Activation {
     private static PlotControlFrame splatPlotFrame_;
     private static PlotControl splatPlot_;
     
-    /**
-     * Outputs a string value to the user log.
-     *
-     * @param  val  value
-     */
-    public static String print( String val ) {
-        return val;
-    }
-
-    /**
-     * Outputs a numeric value to the user log.
-     *
-     * @param   val  value
-     */
-    public static String print( double val ) {
-
-        /* Since this method is declared to take double, any numeric 
-         * argument can be widened to fit in it, so we don't need to 
-         * clutter up the public interface with lots of overloaded print()
-         * methods.  The downcasting is done so that you don't get
-         * extra decimal places when they didn't ought to be there. */
-        if ( (double) (long) val == val ) {
-            return Long.toString( (long) val );
-        }
-        else if ( (double) (float) val == val ) {
-            return Float.toString( (float) val );
-        }
-        else {
-            return Double.toString( val );
-        }
-    }
-
     /**
      * Displays the file at a given location as an image 
      * in a graphical (SoG) viewer.
@@ -77,7 +45,7 @@ public class Activation {
      * @see  <http://www.starlink.ac.uk/sog/>
      */
     public static String sog( String loc ) {
-        return multiSog( new String[] { loc } );
+        return sogMulti( new String[] { loc } );
     }
 
     /**
@@ -87,11 +55,12 @@ public class Activation {
      *
      * @param  loc1  location of first image
      * @param  loc2  location of second image
+     * @return  short report message
      * @see  #sog
      * @see  <http://www.starlink.ac.uk/sog/>
      */
     public static String sog2( String loc1, String loc2 ) {
-        return multiSog( new String[] { loc1, loc2 } );
+        return sogMulti( new String[] { loc1, loc2 } );
     }
 
     /**
@@ -101,7 +70,7 @@ public class Activation {
      * @param  locs  array of image file locations (file/URL)
      * @return  short report message
      */
-    public static String multiSog( String[] locs ) {
+    public static String sogMulti( String[] locs ) {
         if ( ! TopcatUtils.canSog() ) {
             return "Error: SOG classes not available";
         }
@@ -151,7 +120,7 @@ public class Activation {
     private static SOGNavigatorImageDisplay[] getSoggers( int nsog ) {
         assert TopcatUtils.canSog();
         if ( soggers_.size() < nsog ) {
-            synchronized ( Activation.class ) {
+            synchronized ( Display.class ) {
                 if ( sog_ == null ) {
                     sog_ = new SOG();
                 }
@@ -183,7 +152,7 @@ public class Activation {
      * @see     <http://www.starlink.ac.uk/splat/>
      */
     public static String splat( String loc ) {
-        return multiSplat( new String[] { loc } );
+        return splatMulti( new String[] { loc } );
     }
 
     /**
@@ -192,9 +161,10 @@ public class Activation {
      *
      * @param  loc1   location of the first spectrum
      * @param  loc2   location of the second spectrum
+     * @return  short report message
      */
     public static String splat2( String loc1, String loc2 ) {
-        return multiSplat( new String[] { loc1, loc2 } );
+        return splatMulti( new String[] { loc1, loc2 } );
     }
 
     /**
@@ -204,7 +174,7 @@ public class Activation {
      * @param  locs  array of spectrum locations (file, or in some cases URL)
      * @return short report message
      */
-    public static String multiSplat( String[] locs ) {
+    public static String splatMulti( String[] locs ) {
 
         /* Check that classes are available. */
         if ( ! TopcatUtils.canSplat() ) {
@@ -270,7 +240,7 @@ public class Activation {
         /* If we don't already have a plot, get one now.  We initialize it
          * with the first spectrum for display, but this is just a dummy. */
         if ( splatPlot_ == null && specGroup.count() > 0 ) {
-            synchronized ( Activation.class ) {
+            synchronized ( Display.class ) {
                 splatPlotFrame_ = splat.displaySpectrum( specGroup.get( 0 ) );
                 splatPlot_ = splatPlotFrame_.getPlot();
             }
@@ -303,7 +273,7 @@ public class Activation {
      */
     private static SplatBrowser getSplat() {
         if ( splat_ == null ) {
-            synchronized ( Activation.class ) {
+            synchronized ( Display.class ) {
 
                 /* Application-level initialisations for SPLAT. */
                 SplatBrowserMain.guessProperties();
