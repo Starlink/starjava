@@ -210,6 +210,7 @@
              storepass="${webstart.storepass}">
       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
       <fileset dir="${star.jar.dir}" includes="ant.jar"/>
+      <fileset dir="${star.jar.dir}" includes="optional.jar"/>
     </signjar>
 
   </target>
