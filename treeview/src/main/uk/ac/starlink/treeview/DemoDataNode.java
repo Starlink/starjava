@@ -79,16 +79,25 @@ public class DemoDataNode extends FileDataNode {
         dv.setSelectedIndex( 1 );
     }
 
-    private static File getDemoDir() throws NoSuchDataException {
-        String demoloc = System.getProperty( DEMO_DIR_PROPERTY );
-        if ( demoloc == null || demoloc.trim().length() == 0 ) {
-            throw new NoSuchDataException( "No demo data available" );
+    /**
+     * Returns the demo data directory.
+     */
+    public static File getDemoDir() throws NoSuchDataException {
+        try {
+            String demoloc = System.getProperty( DEMO_DIR_PROPERTY );
+            if ( demoloc == null || demoloc.trim().length() == 0 ) {
+                throw new NoSuchDataException( "No demo data available" );
+            }
+            File demodir = new File( demoloc );
+            if ( ! demodir.canRead() ) {
+                throw new NoSuchDataException( "Demo data directory " 
+                                               + demodir + 
+                                               " is not readable" );
+            }
+            return demodir;
         }
-        File demodir = new File( demoloc );
-        if ( ! demodir.canRead() ) {
-            throw new NoSuchDataException( "Demo data directory " + demodir + 
-                                           " is not readable" );
+        catch ( SecurityException e ) {
+            throw new NoSuchDataException( e.getMessage(), e );
         }
-        return demodir;
     }
 }
