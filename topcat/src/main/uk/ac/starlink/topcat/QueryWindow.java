@@ -28,6 +28,7 @@ public abstract class QueryWindow extends AuxWindow {
     private JPanel auxControls;
     private LabelledComponentStack stack;
     private Action okAction;
+    private Action cancelAction;
     private boolean configured = false;
     protected Border blankBorder = 
         BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
@@ -45,7 +46,7 @@ public abstract class QueryWindow extends AuxWindow {
         stack = new LabelledComponentStack();
 
         /* Set up the action for cancelling this dialogue - just close it. */
-        Action cancelAction = new AbstractAction( "Cancel" ) {
+        cancelAction = new AbstractAction( "Cancel" ) {
             public void actionPerformed( ActionEvent evt ) {
                 dispose();
             }
@@ -115,6 +116,20 @@ public abstract class QueryWindow extends AuxWindow {
      */
     public JPanel getAuxControlPanel() {
         return auxControls;
+    }
+
+    /**
+     * Programatically push the OK button.
+     */
+    public void invokeOK() {
+        okAction.actionPerformed( null );
+    }
+
+    /** 
+     * Programatically push the Cancel button.
+     */
+    public void invokeCancel() {
+        cancelAction.actionPerformed( null );
     }
 
     /**
