@@ -44,7 +44,6 @@ public class NDFNdxTest extends TestCase {
             tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";
             containerFile = new File( containerName + ".sdf" );
-            //ndfURL = new URL( "file:" + containerFile );
 	    ndfURL = containerFile.toURI().toURL();
             InputStream istrm = getClass()
                                .getClassLoader()
