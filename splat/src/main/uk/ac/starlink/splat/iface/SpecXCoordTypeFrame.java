@@ -879,6 +879,7 @@ public class SpecXCoordTypeFrame
         int[] indices = specList.getSelectedIndices();
         if ( indices.length != 0 ) {
             SpecData spec = globalList.getSpectrum( indices[0] );
+            if ( spec == null ) return;
             FrameSet frameSet = spec.getFrameSet();
 
             String system = frameSet.getC( "System" );
