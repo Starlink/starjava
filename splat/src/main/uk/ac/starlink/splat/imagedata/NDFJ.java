@@ -8,6 +8,7 @@
 package uk.ac.starlink.splat.imagedata;
 
 import java.io.Serializable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import uk.ac.starlink.ast.FrameSet;
@@ -81,14 +82,16 @@ public class NDFJ
             Loader.loadLibrary( "splat" );
         }
         catch (SecurityException se) {
+            logger.log( Level.CONFIG, se.getMessage(), se );
             supported = false;
         }
         catch (UnsatisfiedLinkError ue) {
+            logger.log( Level.CONFIG, ue.getMessage(), ue );
             supported = false;
         }
         catch (Exception ge) {
             //  Unexpected error.
-            ge.printStackTrace();
+            logger.log( Level.WARNING, ge.getMessage(), ge );
             supported = false;
         }
         if ( ! supported ) {
