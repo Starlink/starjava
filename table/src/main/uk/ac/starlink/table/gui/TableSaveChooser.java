@@ -229,6 +229,27 @@ public abstract class TableSaveChooser extends JPanel {
     public abstract StarTable getTable();
 
     /**
+     * Sets the progress bar that will be used by this chooser.
+     * Should be called before the component is displayed to the user.
+     *
+     * @param  progBar  progress bar for displaying save progress
+     */
+    public void setProgressBar( JProgressBar progBar ) {
+        progBar_ = progBar;
+    }
+
+    /**
+     * Returns a progress bar to use for progress display when saving
+     * directly from this chooser (not from one of the sub-dialogues).
+     *
+     * @return  progress bar for display
+     */
+    private JProgressBar getProgressBar() {
+        return progBar_ == null ? new JProgressBar()
+                                : progBar_;
+    }
+
+    /**
      * Called when the table has been written.
      */
     public void done() {
@@ -262,13 +283,13 @@ public abstract class TableSaveChooser extends JPanel {
      */
     public void showSaveDialog( Component parent ) {
         dialog_ = createDialog( parent );
-        progBar_ = new JProgressBar();
+        setProgressBar( new JProgressBar() );
         dialog_.getContentPane().add( progBar_, BorderLayout.SOUTH );
         setEnabled( true );
         dialog_.pack();
         dialog_.show();
         dialog_ = null;
-        progBar_ = null;
+        setProgressBar( null );
     }
 
     public void setEnabled( boolean isEnabled ) {
@@ -343,7 +364,7 @@ public abstract class TableSaveChooser extends JPanel {
     private void submitLocation( final String loc ) {
         final StarTableOutput sto = getTableOutput();
         final String format = (String) formatSelector_.getSelectedItem();
-        worker_ = new SaveWorker( progBar_, getTable(), loc ) {
+        worker_ = new SaveWorker( getProgressBar(), getTable(), loc ) {
             protected void attemptSave( StarTable table ) throws IOException {
                 sto.writeStarTable( table, loc, format );
             }
