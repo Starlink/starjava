@@ -97,6 +97,7 @@ public class TableCopy {
         }
         catch ( UnknownTableFormatException e ) {
             System.err.println( e.getMessage() );
+            System.err.println( usage );
             System.exit( 1 );
         }
     }

@@ -153,7 +153,8 @@ public class StarTableOutput {
      *         a <tt>StarTableWriter</tt> object (which may or may not be 
      *         registered with this <tt>StarTableOutput</tt>), or else
      *         a string which matches the format name of one of the registered 
-     *         <tt>StarTableWriter</tt>s (first match is used),
+     *         <tt>StarTableWriter</tt>s (first match is used, 
+     *         case-insensitive, starting substrings OK)
      *         or <tt>null</tt> to indicate that a handler should be 
      *         selected based on the value of <tt>location</tt>.
      *         Ignored for <tt>jdbc:</tt>-protocol locations
@@ -229,7 +230,7 @@ public class StarTableOutput {
     private StarTableWriter getHandler( String location, String format ) {
 
         /* Do we have a format string? */
-        if ( format != null ) {
+        if ( format != null && format.length() > 0 ) {
         
             /* See if the format is the class name of a StarTableWriter. */
             try {
@@ -264,7 +265,8 @@ public class StarTableOutput {
             /* Otherwise, see if it names an output format. */
             for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
                 StarTableWriter handler = (StarTableWriter) it.next();
-                if ( handler.getFormatName().equalsIgnoreCase( format ) ) {
+                if ( handler.getFormatName().toLowerCase()
+                            .startsWith( format.toLowerCase() ) ) { 
                     return handler;
                 }
             }
