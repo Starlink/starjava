@@ -11,10 +11,13 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ast.*;
 import uk.ac.starlink.ast.xml.XAstReader;
 import uk.ac.starlink.ast.xml.XAstWriter;
 import uk.ac.starlink.hds.*;
+import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 
@@ -157,47 +160,74 @@ public class WCSDataNode extends DefaultDataNode {
         if ( ! TreeviewUtil.hasAST() ) {
             throw new NoSuchDataException( "AST native library not installed" );
         }
+
+        /* See if it looks like a WCS component. */
+        HDSObject data;
         try {
-            if ( hobj.datStruc() && hobj.datShape().length == 0 ) {
-                HDSObject data = hobj.datFind( "DATA" );
-                if ( data.datType().startsWith( "_CHAR" ) &&
-                    data.datShape().length == 1 ) {
-                    Channel chan = new WCSChannel( data );
-                    FrameSet fs;
-                    try {
-                        fs = (FrameSet) chan.read();
-                    }
-                    catch ( ClassCastException e ) {
-                        throw new NoSuchDataException( 
-                            "Object read from channel is not an AST FrameSet" );
-                    }
-                    catch ( IOException e ) {
-                        throw new NoSuchDataException( 
-                            "Trouble reading from channel: " + e.getMessage() );
-                    }
-                    catch ( AstException e ) {
-                        throw new NoSuchDataException( 
-                            "Trouble reading from channel: " + e.getMessage() );
-                    }
-                    if ( fs == null ) {
-                        throw new NoSuchDataException( 
-                            "No object read from AST channel" );
-                    }
-                    return fs;
-                }
-                else {
-                    throw new NoSuchDataException( 
-                        "HDSObject is not a 1-D _CHAR array" ); 
-                }
+            if ( ! hobj.datName().equals( "WCS" ) ) {
+                throw new NoSuchDataException( "Not called WCS" );
             }
-            else {
-                throw new NoSuchDataException(
-                        "HDSObject has no DATA component" );
+            if ( ! hobj.datStruc() ) {
+                throw new NoSuchDataException( "Not a structure" );
+            }
+            if ( ! hobj.datThere( "DATA" ) ) {
+                throw new NoSuchDataException( "No DATA child" );
+            }
+            data = hobj.datFind( "DATA" );
+            if ( ! data.datType().startsWith( "_CHAR" ) ) {
+                throw new NoSuchDataException( "Not character data" );
+            }
+            if ( data.datShape().length != 1 ) {
+                throw new NoSuchDataException( "DATA child not a vector" );
             }
         }
         catch ( HDSException e ) {
             throw new NoSuchDataException( e.getMessage() );
         }
+
+        /* Try to build the WCS component by extracting it from an NDX
+         * based on this object's parent.
+         * This makes use of the clever stuff that NdxHandler does,
+         * for instance looking at AXIS components. */
+        try {
+            HDSObject hparent = hobj.datParen();
+            Ndx ndx = NDFNdxHandler.getInstance()
+                     .makeNdx( hparent, null, AccessMode.READ );
+            return Ndxs.getAst( ndx );
+        }
+        catch ( IllegalArgumentException e ) {
+            /* May legitimately fail because the parent is not an NDF. */
+            // no action.
+        }
+        catch ( HDSException e ) {
+            /* May legitimately fail because hobj has no parent (top level). */
+            // no action.
+        }
+
+        /* If that didn't work, try reading the object into a Channel
+         * directly. */
+        Channel chan = new WCSChannel( data );
+        FrameSet fs;
+        try {
+            fs = (FrameSet) chan.read();
+        }
+        catch ( ClassCastException e ) {
+            throw new NoSuchDataException( 
+                "Object read from channel is not an AST FrameSet" );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( 
+                "Trouble reading from channel: " + e.getMessage() );
+        }
+        catch ( AstException e ) {
+            throw new NoSuchDataException( 
+                "Trouble reading from channel: " + e.getMessage() );
+        }
+        if ( fs == null ) {
+            throw new NoSuchDataException( 
+                "No object read from AST channel" );
+        }
+        return fs;
     }
 
     private static FrameSet getWcsFromSource( Source xsrc ) 
