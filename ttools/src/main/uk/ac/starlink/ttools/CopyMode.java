@@ -19,7 +19,7 @@ public class CopyMode extends ProcessingMode {
     private StarTableOutput toutput_;
 
     public String getName() {
-        return( "copy" );
+        return( "write" );
     }
 
     public boolean setArgs( List argList ) {
@@ -39,17 +39,13 @@ public class CopyMode extends ProcessingMode {
                 else if ( arg.equals( "-o" ) || arg.equals( "-out" ) ) {
                     it.remove();
                     if ( it.hasNext() ) {
-                        outFmt_ = (String) it.next();
+                        outLoc_ = (String) it.next();
                         it.remove();
                     }
                     else {
                         return false;
                     }
                 }
-            }
-            else if ( outLoc_ == null ) {
-                it.remove();
-                outLoc_ = arg;
             }
         }
         return true;
