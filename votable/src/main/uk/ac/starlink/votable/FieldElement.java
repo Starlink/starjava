@@ -14,6 +14,7 @@ public class FieldElement extends VOElement {
     private final boolean strict_;
     private final static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.votable" );
+    final static long ASSUMED_ARRAYSIZE = -2L;
 
     /**
      * Constructs a FieldElement from a DOM element.
@@ -237,7 +238,7 @@ public class FieldElement extends VOElement {
                             + datatype + " datatype (strict)" );
             }
             else {
-                arraysize = new long[] { -1L };
+                arraysize = new long[] { ASSUMED_ARRAYSIZE };
                 logger_.warning( getHandle()
                                + " - assuming unspecified arraysize='*' for "
                                + datatype + " datatype (non-strict)" );

@@ -75,12 +75,36 @@ abstract class CharDecoders {
      */
     private static Decoder makeDecoder( long[] arraysize, CharReader cread ) {
         int ndim = arraysize.length;
+
+        /* Single character decoder. */
         if ( ndim == 0 || ndim == 1 && arraysize[ 0 ] == 1 ) {
             return new ScalarCharDecoder( cread );
         }
+
+        /* If we have an assumed arraysize (non-strict VOTable parsing)
+         * behave as if it's a variable-length array, except in the case
+         * where we're decoding from a stream.  Attempting that would
+         * probably be disastrous, since it would likely attempt to read
+         * a character array a random number of bytes long, and fail wth
+         * an OutOfMemoryError. */
+        else if ( ndim == 1 && 
+                  arraysize[ 0 ] == FieldElement.ASSUMED_ARRAYSIZE ) {
+            return new ScalarStringDecoder( arraysize, cread ) {
+                public Object decodeStream( DataInput strm )
+                        throws IOException {
+                    throw new RuntimeException( 
+                        "Refuse to decode assumed char arraysize - try -D" +
+                        VOElementFactory.STRICT_PROPERTY + "=true" );
+                }
+            };
+        }
+
+        /* Character vector (string) decoder. */
         else if ( ndim == 1 ) {
             return new ScalarStringDecoder( arraysize, cread );
         }
+
+        /* String array decoder. */
         else {
             return new StringDecoder( arraysize, cread );
         }
