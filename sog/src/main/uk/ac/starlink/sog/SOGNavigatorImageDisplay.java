@@ -60,17 +60,25 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.sog.photom.SOGCanvasDraw;
 import uk.ac.starlink.sog.photom.AperturePhotometryFrame;
 
+import uk.ac.starlink.ast.gui.AstFigureStore;
+import uk.ac.starlink.ast.gui.AstPlotSource;
+import uk.ac.starlink.diva.Draw;
+import uk.ac.starlink.diva.DrawGraphicsMenu;
+
 /**
- * Extends NavigatorImageDisplay (and DivaMainImageDisplay) to add
- * support for reading HDX files.
+ * Main class that creates windows for displaying an image. This is ultimately
+ * used by both versions of SoG, that is with and without internal-frames.
+ * <p>
+ * The class extends NavigatorImageDisplay (and DivaMainImageDisplay) to add
+ * any extra features provided by SoG.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-
 public class SOGNavigatorImageDisplay
     extends NavigatorImageDisplay
     implements PlotController
+    //,Draw
 {
     /**
      * Reference to the HDXImage displaying the NDX, if any.
@@ -98,6 +106,11 @@ public class SOGNavigatorImageDisplay
      */
     private boolean ndxLoading = false;
 
+    /**
+     * Should the photometry Action be available?
+     */
+    private static boolean photomEnabled = false;
+
     //  Repeat all constructors.
     public SOGNavigatorImageDisplay( Component parent )
     {
@@ -116,7 +129,7 @@ public class SOGNavigatorImageDisplay
      * Open up another window like this one and return a reference to it.
      * <p>
      * Note: derived classes should redefine this to return an instance of the
-     * correct class, which should be derived JFrame or JInternalFrame.
+     * correct class, which should be a sublclass of JFrame or JInternalFrame.
      */
     public Component newWindow()
     {
@@ -143,11 +156,29 @@ public class SOGNavigatorImageDisplay
     }
 
     /**
-     * Set the filename.... Whole method lifted from
-     * DivaMainImageDisplay as we need to control creation differently
-     * to how JSky works... XXX need to track any changes.
+     * Set the filename.
      */
     public void setFilename( String fileOrUrl )
+    {
+        try {
+            setFilename( fileOrUrl, true );
+        }
+        catch (Exception e) {
+            // Should never happen, errors are handled in 
+            // setFilename( String, boolean ).
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Set the filename.... Whole method lifted from DivaMainImageDisplay as
+     * we need to control creation differently to how JSky works... 
+     * Also modified to throw an exception if asked. This is for remote
+     * services that want to handle the error themselves.
+     * XXX need to track any changes.
+     */
+    public void setFilename( String fileOrUrl, boolean handle )
+        throws Exception
     {
         if ( fileOrUrl.startsWith( "http:" ) ) {
             setURL( FileUtil.makeURL( null, fileOrUrl ) );
@@ -188,11 +219,16 @@ public class SOGNavigatorImageDisplay
             try {
                 setImage( JAI.create( "fileload", _filename ) );
             }
-            catch ( Exception e ) {
-                DialogUtil.error( e );
+            catch (Exception exception) {
                 _filename = null;
                 _url = _origURL = null;
                 clear();
+                if ( handle ) {
+                    DialogUtil.error( exception );
+                }
+                else {
+                    throw exception;
+                }
             }
         }
         else if ( _filename.endsWith( "xml" ) ||
@@ -208,11 +244,16 @@ public class SOGNavigatorImageDisplay
                 getImageProcessor().setInvertedYAxis( false );
                 setImage( PlanarImage.wrapRenderedImage( hdxImage ) );
             }
-            catch ( IOException e ) {
-                DialogUtil.error( e );
+            catch (IOException exception) {
                 _filename = null;
                 _url = _origURL = null;
                 clear();
+                if ( handle ) {
+                    DialogUtil.error( exception );
+                }
+                else {
+                    throw exception;
+                }
             }
         }
         else {
@@ -227,11 +268,16 @@ public class SOGNavigatorImageDisplay
                 try {
                     setImage(JAI.create("fileload", _filename));
                 }
-                catch (Exception ex) {
-                    DialogUtil.error(e);
+                catch (Exception exception) {
                     _filename = null;
                     _url = _origURL = null;
                     clear();
+                    if ( handle ) {
+                        DialogUtil.error( exception );
+                    }
+                    else {
+                        throw exception;
+                    }
                 }
             }
         }
@@ -268,6 +314,18 @@ public class SOGNavigatorImageDisplay
         //ip.setCutLevels( ip.getMinValue(), ip.getMaxValue() );
         ip.autoSetCutLevels( getVisibleArea() );
         ip.update();
+    }
+
+    /**
+     * Accept an DOM element that contains an NDX for display. NDX
+     * equivalent of setFilename. This version is intended for use by the
+     * remote interface and passes on the error for remote handling.
+     */
+    public void setRemoteNDX( Element element )
+        throws IOException
+    {
+        HDXImage hdxImage = new HDXImage( element, 0 );
+        setHDXImage( hdxImage );
     }
 
     /**
@@ -324,7 +382,7 @@ public class SOGNavigatorImageDisplay
             // object which is needed to initialize WCS.
             PlanarImage im = getImage();
             if ( im != null ) {
-                Object o = im.getProperty("#ndx_image");
+                Object o = im.getProperty( "#ndx_image" );
                 if ( o != null && (o instanceof HDXImage) ) {
                     hdxImage = (HDXImage) o;
                     initWCS();
@@ -380,9 +438,9 @@ public class SOGNavigatorImageDisplay
             return;
         }
 
-        //  Access the current NDX and see if it has an AST
-        //  FrameSet. This can be used to construct an AstTransform
-        //  that can be used instead of a WCSTransform.
+        //  Access the current NDX and see if it has an AST FrameSet. This can
+        //  be used to construct an AstTransform that can be used instead of a
+        //  WCSTransform.
         Ndx ndx = hdxImage.getCurrentNDX();
         try {
             FrameSet frameSet = Ndxs.getAst( ndx );
@@ -486,7 +544,7 @@ public class SOGNavigatorImageDisplay
     protected Plot astPlot = null;
 
     /**
-     * Create an AST Plot matched to the image and draw a grid overlay.
+     * Create a {@link Plot} matched to the image and draw a grid overlay.
      */
     public void doPlot()
     {
@@ -523,10 +581,9 @@ public class SOGNavigatorImageDisplay
         int dh = (int) Math.max( canvasbox[1], canvasbox[3] ) - yo;
         Rectangle graphRect = new Rectangle( xo, yo, dw, dh );
 
-        //  Transform these positions back into image coordinates.
-        //  These are suitably "untransformed" from the graphics
-        //  position and should be the bottom-left and top-right
-        //  corners.
+        //  Transform these positions back into image coordinates. These are
+        //  suitably "untransformed" from the graphics position and should be
+        //  the bottom-left and top-right corners.
         double[] basebox = new double[4];
         p = new Point2D.Double();
         p.setLocation( (double) xo, (double) (yo + dh) );
@@ -597,9 +654,10 @@ public class SOGNavigatorImageDisplay
         return doExit;
     }
 
-//
-// PlotController interface.
-//
+    //
+    // PlotController interface.
+    //
+
     /**
      * Draw a grid over the currently displayed image.
      */
@@ -654,11 +712,14 @@ public class SOGNavigatorImageDisplay
         };
     public AbstractAction getPhotomAction()
     {
-        return photometryAction;
+        if ( photomEnabled ) {
+            return photometryAction;
+        }
+        return null;
     }
 
     /**
-     * Erase the grid, if drawn.
+     * Withdraw the photometry toolbox.
      */
     public void withdrawPhotomControls()
     {
@@ -790,8 +851,9 @@ public class SOGNavigatorImageDisplay
      * to display. Overridden to add HDS and HDX file types and use a
      * chooser that sometimes works with windows shortcuts.
      */
-     public static JFileChooser makeImageFileChooser() {
-         JFileChooser plainChooser = 
+    public static JFileChooser makeImageFileChooser() 
+    {
+         JFileChooser plainChooser =
              NavigatorImageDisplay.makeImageFileChooser();
 
          FileFilter currentFilter = plainChooser.getFileFilter();
@@ -806,7 +868,7 @@ public class SOGNavigatorImageDisplay
              new BasicFileFilter( "sdf", "HDS container files" );
          chooser.addChoosableFileFilter( hdsFilter );
 
-         BasicFileFilter hdxFilter = 
+         BasicFileFilter hdxFilter =
              new BasicFileFilter( "xml", "HDX/NDX XML files");
          chooser.addChoosableFileFilter( hdxFilter );
 
@@ -815,4 +877,14 @@ public class SOGNavigatorImageDisplay
 
          return chooser;
      }
+
+    /**
+     * Set if the photometry action should be enabled.
+     */
+    public static void setPhotomEnabled( boolean photomEnabled )
+    {
+        SOGNavigatorImageDisplay.photomEnabled = photomEnabled;
+    }
+
+
 }

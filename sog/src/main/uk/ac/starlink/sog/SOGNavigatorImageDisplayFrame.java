@@ -64,5 +64,4 @@ public class SOGNavigatorImageDisplayFrame
         return new SOGNavigatorImageDisplayToolBar
             ( (NavigatorImageDisplay) mainImageDisplay );
     }
-
 }

@@ -57,17 +57,17 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
 /**
  * Main class for the SOG application.
  *
- * @author pdraper
+ * @author Peter W. Draper
  * @created June 11, 2002
  */
-public class SOG 
+public class SOG
     extends JFrame
 {
     // Used to access internationalized strings (see i18n/gui*.proprties)
     private final static I18N _I18N = I18N.getInstance( JSkyCat.class );
 
     /** Top level catalog directory */
-    public final static String DEFAULT_URL = 
+    public final static String DEFAULT_URL =
         "http://archive.eso.org/skycat/skycat2.0.cfg";
 
     /** File selection dialog, when using internal frames */
@@ -79,10 +79,11 @@ public class SOG
     /** The main image frame (or internal frame) */
     protected Component imageFrame;
 
-    // PWD: Add the Codec for reading HDX files (note this method
-    // doesn't support having an XPath part).
+    /** The menu bar */
+    protected JMenuBar menuBar;
+
+    // Add the Codec for reading HDX/NDX files.
     static {
-        //System.out.println( "Registered HDXCodec" );
         ImageCodec.registerCodec( new HDXCodec() );
     }
 
@@ -103,49 +104,7 @@ public class SOG
      */
     public SOG()
     {
-        this( null, false, false, 0, false );
-    }
-
-    /**
-     * Create the SOG application class and display the contents of the
-     * given image file or URL, if not null.
-     *
-     * @param imageFileOrUrl an image file or URL to display
-     * @param internalFrames if true, use internal frames
-     * @param showNavigator if true, display the catalog navigator on startup
-     * @param portNum if not zero, listen on this port for remote control commnds
-     * @param doExit whether application should exit on close
-     * @see SOGRemoteControl
-     */
-    public SOG( String imageFileOrUrl, boolean internalFrames,
-                boolean showNavigator, final int portNum, boolean doExit )
-    {
-        super( "SOG::JSky" );
-
-        //  This is the last instance created.
-        instance = this;
-        this.doExit = doExit;
-
-        if ( internalFrames || desktop != null ) {
-            makeInternalFrameLayout( showNavigator, imageFileOrUrl );
-        }
-        else {
-            makeFrameLayout( showNavigator, imageFileOrUrl );
-        }
-
-        // Clean up on exit
-        addWindowListener( new BasicWindowMonitor() );
-
-        if ( portNum > 0 ) {
-            try {
-               SOGRemoteControl control = SOGRemoteControl.getInstance();
-               control.setPortNumber( portNum );
-               control.start();
-            }
-            catch (Exception e) {
-               System.err.println( e.getMessage() );
-            }
-        }
+        this( null, false, false, 0, false, false );
     }
 
     /**
@@ -159,9 +118,8 @@ public class SOG
     public SOG( String imageFileOrUrl, boolean internalFrames,
                 boolean showNavigator )
     {
-        this( imageFileOrUrl, internalFrames, showNavigator, 0, true );
+        this( imageFileOrUrl, internalFrames, showNavigator, 0, true, false );
     }
-
 
     /**
      * Create the SOG application class and display the contents of the
@@ -171,7 +129,58 @@ public class SOG
      */
     public SOG( String imageFileOrUrl )
     {
-        this( imageFileOrUrl, false, false, 0, true );
+        this( imageFileOrUrl, false, false, 0, true, false );
+    }
+
+    /**
+     * Create the SOG application class and display the contents of the
+     * given image file or URL, if not null.
+     *
+     * @param imageFileOrUrl an image file or URL to display
+     * @param internalFrames if true, use internal frames
+     * @param showNavigator if true, display the catalog navigator on startup
+     * @param portNum if not zero, listen on this port for remote control commnds
+     * @param doExit whether application should exit on close
+     * @param showPhotom whether to show the photometry button
+     * @see SOGRemoteControl
+     */
+    public SOG( String imageFileOrUrl, boolean internalFrames,
+                boolean showNavigator, final int portNum, boolean doExit,
+                boolean showPhotom )
+    {
+        super( "SOG::JSky" );
+
+        //  This is the last instance created.
+        instance = this;
+        this.doExit = doExit;
+
+        //  Set whether to show any photometry buttons (needs webservices so
+        //  generally not).
+        SOGNavigatorImageDisplay.setPhotomEnabled( showPhotom );
+
+        if ( internalFrames || desktop != null ) {
+            makeInternalFrameLayout( showNavigator, imageFileOrUrl );
+        }
+        else {
+            makeFrameLayout( showNavigator, imageFileOrUrl );
+        }
+
+        // XXX Replace Graphics menu.
+
+        // Clean up on exit
+        addWindowListener( new BasicWindowMonitor() );
+
+        //  Startup remote control services.
+        if ( portNum > 0 ) {
+            try {
+               SOGRemoteControl control = SOGRemoteControl.getInstance();
+               control.setPortNumber( portNum );
+               control.start();
+            }
+            catch (Exception e) {
+               System.err.println( e.getMessage() );
+            }
+        }
     }
 
     /**
@@ -204,7 +213,8 @@ public class SOG
     }
 
     /**
-     * Set the JDesktopPane to use for top level windows, if using internal frames
+     * Set the JDesktopPane to use for top level windows, if using internal
+     * frames
      *
      * @param dt The new desktop value
      */
@@ -219,9 +229,11 @@ public class SOG
      * @param showNavigator if true, display the catalog navigator on startup
      * @param imageFileOrUrl an image file or URL to display
      */
-    protected void makeInternalFrameLayout( boolean showNavigator, String imageFileOrUrl )
+    protected void makeInternalFrameLayout( boolean showNavigator,
+                                            String imageFileOrUrl )
     {
         boolean ownDesktop = false;
+
         // true if this class owns the desktop
         if ( desktop == null ) {
             setJMenuBar( makeMenuBar() );
@@ -257,6 +269,7 @@ public class SOG
             desktop.add( imageFrame, JLayeredPane.DEFAULT_LAYER );
             desktop.moveToFront( imageFrame );
             imageFrame.setVisible( true );
+            menuBar = imageFrame.getJMenuBar();
         }
 
         if ( showNavigator ) {
@@ -315,6 +328,7 @@ public class SOG
         if ( imageFileOrUrl != null || ! showNavigator ) {
             imageFrame = makeNavigatorImageDisplayFrame( imageFileOrUrl );
             this.imageFrame = imageFrame;
+            menuBar = imageFrame.getJMenuBar();
         }
 
         if ( showNavigator ) {
@@ -338,29 +352,27 @@ public class SOG
 
 
     /**
-     * Make and return the application menubar (used when internal frames are in use)
-     *
-     * @return Description of the Return Value
+     * Make and return the application menubar (only used with internal
+     * frames).
      */
     protected JMenuBar makeMenuBar()
     {
         return new SOGMenuBar( this );
     }
 
-
     /**
-     * Make and return an internal frame for displaying the given image (may be null).
+     * Make and return an internal frame for displaying the given image (may
+     * be null).
      *
      * @param desktop used to display the internal frame
      * @param imageFileOrUrl specifies the iamge file or URL to display
-     * @return Description of the Return Value
      */
     protected SOGNavigatorImageDisplayInternalFrame
         makeNavigatorImageDisplayInternalFrame( JDesktopPane desktop,
                                                 String imageFileOrUrl )
     {
         SOGNavigatorImageDisplayInternalFrame f =
-            new SOGNavigatorImageDisplayInternalFrame( desktop, 
+            new SOGNavigatorImageDisplayInternalFrame( desktop,
                                                        imageFileOrUrl );
         DivaMainImageDisplay d = f.getImageDisplayControl().getImageDisplay();
         if ( d instanceof SOGNavigatorImageDisplay ) {
@@ -377,7 +389,7 @@ public class SOG
      */
     protected String getAppName()
     {
-        return "SOG";
+        return "SOG::JSky";
     }
 
     /**
@@ -555,7 +567,8 @@ public class SOG
             return ((SOGNavigatorImageDisplayFrame)imageFrame).
                 getImageDisplayControl().getImageDisplay();
         }
-        else if ( imageFrame instanceof SOGNavigatorImageDisplayInternalFrame ) {
+        else if ( imageFrame instanceof 
+                  SOGNavigatorImageDisplayInternalFrame ) {
             return ((SOGNavigatorImageDisplayInternalFrame)imageFrame).
                 getImageDisplayControl().getImageDisplay();
         }
@@ -628,6 +641,7 @@ public class SOG
         String imageFileOrUrl = null;
         boolean internalFrames = false;
         boolean showNavigator = false;
+        boolean showPhotom = false;
         int portNum = 0;
         boolean ok = true;
 
@@ -642,6 +656,9 @@ public class SOG
                 }
                 else if ( opt.equals( "-shownavigator" ) ) {
                     showNavigator = true;
+                }
+                else if ( opt.equals( "-showphotom" ) ) {
+                    showPhotom = true;
                 }
                 else if ( opt.equals( "-port" ) ) {
                     String arg = args[++i];
@@ -664,11 +681,14 @@ public class SOG
         }
 
         if ( ! ok ) {
-            System.out.println( "Usage: java [-Djsky.catalog.skycat.config=$SKYCAT_CONFIG] SOG [-[no]internalframes] [-shownavigator] [-port portNum] [imageFileOrUrl]" );
+            System.out.println
+                ( "Usage: java [-Djsky.catalog.skycat.config=$SKYCAT_CONFIG]"+
+                  " SOG [-[no]internalframes] [-shownavigator] "+
+                  "[-port portNum] [-showphotom] [imageFileOrUrl]" );
             System.exit( 1 );
         }
 
         new SOG( imageFileOrUrl, internalFrames, showNavigator,
-                 portNum, true );
+                 portNum, true, showPhotom );
     }
 }

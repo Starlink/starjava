@@ -8,6 +8,7 @@ package uk.ac.starlink.sog;
 
 import javax.swing.JToggleButton;
 import javax.swing.ImageIcon;
+import javax.swing.Action;
 
 import jsky.navigator.NavigatorImageDisplayToolBar;
 import jsky.navigator.NavigatorImageDisplay;
@@ -42,7 +43,10 @@ public class SOGNavigatorImageDisplayToolBar
         super.addToolBarItems();
         addSeparator();
         add( makeGridButton() );
-        add( makePhotomButton() );
+        JToggleButton b = makePhotomButton();
+        if ( b != null ) {
+            add( b );
+        }
     }
 
     /**
@@ -68,13 +72,19 @@ public class SOGNavigatorImageDisplayToolBar
     protected JToggleButton makePhotomButton()
     {
         if ( photomButton == null ) {
-            photomButton =
-                makeToggleButton( "perform simple aperture photometry",
-                   ((SOGNavigatorImageDisplay)imageDisplay).getPhotomAction());
+            Action photomAction = 
+                ((SOGNavigatorImageDisplay)imageDisplay).getPhotomAction();
+            if ( photomAction != null ) {
+                photomButton = 
+                    makeToggleButton( "perform simple aperture photometry",
+                                      photomAction );
+            }
         }
-        updateButton( photomButton, "Photometry",
-                      new ImageIcon( getClass().
-                          getResource( "images/aperture_photom.gif" ) ) );
+        if ( photomButton != null ) {
+            ImageIcon icon = new ImageIcon
+                ( getClass().getResource( "images/aperture_photom.gif" ) );
+            updateButton( photomButton, "Photometry", icon );
+        }
         return photomButton;
     }
 

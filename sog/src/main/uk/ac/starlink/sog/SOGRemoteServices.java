@@ -1,6 +1,7 @@
 package uk.ac.starlink.sog;
 
 import org.w3c.dom.Element;
+import org.apache.axis.AxisFault;
 
 /**
  * Accessor class for all the SOAP web services offered by the SOG
@@ -16,35 +17,56 @@ public class SOGRemoteServices
      * Update the image display.
      */
     public static void updateImage()
+        throws AxisFault
     {
-        System.out.println( "updateImage" );
-        SOGRemoteControl.getInstance().updateImage();
+        try {
+            SOGRemoteControl.getInstance().updateImage();
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to update SoG image display", e  );
+        }
     }
 
     /**
      * Display the given file or URL.
      */
     public static void showImage( String fileOrURL )
+        throws AxisFault
     {
-        System.out.println( "showImage" );
-        SOGRemoteControl.getInstance().showImage( fileOrURL );
+        try {
+            SOGRemoteControl.getInstance().showImage( fileOrURL );
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to display:" + fileOrURL + 
+                                 " in SoG", e );
+        }
     }
 
     /**
      * Display the given DOM Element as an NDX.
      */
     public static void showNDX( Element element )
+        throws AxisFault
     {
-        System.out.println( "showImage" );
-        SOGRemoteControl.getInstance().showNDX( element );
+        try {
+            SOGRemoteControl.getInstance().showNDX( element );
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to display remote NDX", e );
+        }
     }
 
     /**
      * Return the WCS center of the current image
      */
     public String wcsCenter()
+        throws AxisFault
     {
-        System.out.println( "wcsCenter" );
-        return SOGRemoteControl.getInstance().wcsCenter();
+        try {
+            return SOGRemoteControl.getInstance().wcsCenter();
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to get centre of WCS", e );
+        }
     }
 }

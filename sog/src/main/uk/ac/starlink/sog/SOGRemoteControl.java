@@ -215,8 +215,9 @@ public class SOGRemoteControl
      * Display the given file or URL.
      */
     public String showImage( String fileOrURL )
+        throws Exception
     {
-        _imageDisplay.setFilename( fileOrURL );
+        _imageDisplay.setFilename( fileOrURL, false );
         _waitForImageDisplay = true;
         return "";
     }
@@ -225,8 +226,9 @@ public class SOGRemoteControl
      * Display the given DOM element as an NDX.
      */
     public String showNDX( Element element )
+        throws IOException
     {
-        _imageDisplay.setNDX( element );
+        _imageDisplay.setRemoteNDX( element );
         _waitForImageDisplay = true;
         return "";
     }
