@@ -9,11 +9,6 @@ import org.apache.tools.bzip2.CBZip2InputStream;
 /**
  * Characterises the compression status of a stream, and provides methods
  * for decompressing it.
- * <p>
- * <strong>Note:</strong> I seem to be getting corrupt file errors
- * from files read using the GZIP decompressor (uses java.util.zip classes)
- * when the files are just written using linux <tt>/bin/gzip</tt>.
- * Haven't got to the bottom of this.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -117,7 +112,18 @@ public abstract class Compression {
      */
     public static final Compression GZIP = new Compression( "gzip" ) {
         public InputStream decompress( InputStream raw ) throws IOException {
-            return new GZIPInputStream( raw );
+
+            /* This is a workaround for a bug in GZIPInputStream in J2SE1.4.
+             * GZIPInputStream.markSupported() returns true; however
+             * instances of this class do not support marking, which
+             * screws up some things that the DataSource class tries to do.
+             * So we fiddle the inflating stream to tell the truth. */
+            /* (bug report submitted by mbt to Sun, 29 Jan 2003) */
+            return new GZIPInputStream( raw ) {
+                public boolean markSupported() {
+                    return false;
+                }
+            };
         }
     };
 
