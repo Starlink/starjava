@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -37,6 +38,7 @@ public class FileDataNode extends DefaultDataNode {
     private JPanel viewPanel;
     private File file;
     private File parentFile;
+    private static boolean showHidden = false;
     private static Map knowndirs = new HashMap();
 
     /**
@@ -82,6 +84,14 @@ public class FileDataNode extends DefaultDataNode {
     public Iterator getChildIterator() {
         File[] subFiles = file.listFiles();
         List files = Arrays.asList( file.listFiles() );
+        if ( ! showHidden ) {
+            files = new ArrayList( files );
+            for ( Iterator it = files.iterator(); it.hasNext(); ) {
+                if ( ((File) it.next()).isHidden() ) {
+                    it.remove();
+                }
+            }
+        }
         Collections.sort( files );
         final Iterator it = files.iterator();
         return new Iterator() {
@@ -128,6 +138,17 @@ public class FileDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return file.isDirectory() ? "Directory" : "File";
+    }
+
+    /**
+     * Determines whether hidden files are included in the list of 
+     * children of a directory file node.
+     *
+     * @param  showHidden  <tt>true</tt> iff you want hidden files to
+     *         be included in the child list
+     */
+    public static void setShowHidden( boolean showHidden ) {
+        FileDataNode.showHidden = showHidden;
     }
 
     /*
