@@ -1,0 +1,31 @@
+//
+// Example plugin for the SPLAT application. 
+//
+// This loads a Java class "BasicMaths" stored in an external
+// directory.
+//
+// To use it just define the environment variable SPLAT_PLUGINS
+// to point to this file.
+// @since $Date$
+// @since 14-FEB-2001
+// @author Peter W. Draper
+// @version $Id$
+// @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+//
+
+print( "Basic spectra maths plugin" );
+
+//  Method to get a UNIX environment variable.
+getEnv( variable ) {
+   value = Runtime.getRuntime().exec( "printenv " + variable );
+   reader = new BufferedReader(new InputStreamReader(value.getInputStream()));
+   return reader.readLine();
+}
+
+splat_dir = getEnv( "SPLAT_DIR" );
+print( "SPLAT_DIR = " + splat_dir );
+
+//  Add a directory to the CLASSPATH and load a local class.
+addClassPath( splat_dir + "/plugins" );
+
+mathTool = new BasicMaths( browser );

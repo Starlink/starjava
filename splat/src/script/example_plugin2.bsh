@@ -1,0 +1,15 @@
+print( "This is plugin example number 2" );
+
+//  Method to get a UNIX environment variable.
+getEnv( variable ) {
+   value = Runtime.getRuntime().exec( "printenv " + variable );
+   reader = new BufferedReader(new InputStreamReader(value.getInputStream()));
+   return reader.readLine();
+}
+
+splat_dir = getEnv( "SPLAT_DIR" );
+print( "SPLAT_DIR = " + splat_dir );
+
+//  Add a directory to the CLASSPATH and load a local class.
+addClassPath( splat_dir + "/plugins" );
+localClass = new MyLocalClass( browser );

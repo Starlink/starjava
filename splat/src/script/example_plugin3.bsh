@@ -1,0 +1,103 @@
+/**
+ * Name:
+ *    example_plugin3.bsh
+ *
+ * Purpose:
+ *    Demonstrate auto-load of local files into SPLAT on startup.
+ *
+ * Usage:
+ *    setenv SPLAT_PLUGINS $SPLAT_DIR/example_plugin3.bsh
+ *
+ * Description:
+ *    This Beanshell script is an example plugin for SPLAT. It
+ *    looks for the file ".splat_autoloads" in the current directory 
+ *    and arranges for any files listed in it to be automatically loaded
+ *    into SPLAT. If the file contains the single entry "*", then all
+ *    spectra in the directory are loaded.
+ *
+ * Language:
+ *    Beanshell
+ *
+ * @since $Date$
+ * @since 23-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ */
+
+// Startup message.
+print( "Checking for autoloads" );
+
+// Name of the autoload file.
+AUTO_LOAD_FILE = ".splat_autoloads";
+
+// Types of spectra to autoload (used for the special wildcard pattern).
+FILE_PATTERN = "sdf";
+
+// Check for the autoload file.
+filePath = pathToFile( AUTO_LOAD_FILE );
+if ( ! filePath.exists() || ! filePath.canRead() || ! filePath.isFile() ) {
+    print( "No autoloads found" );
+    return;
+}
+
+// Open the auto load file for reading (wraps an input file stream in
+// a buffered reader, so we can read it line-by-line).
+inStream = new FileInputStream( filePath );
+inReader = new InputStreamReader( inStream );
+bufReader = new BufferedReader( inReader );
+
+// Read the auto load file contents in a space separated String.
+concat = new StringBuffer();
+fileCount = 0;
+while ( ( line = bufReader.readLine() ) != null ) {
+   concat.append( line ).append( " " );
+   fileCount++;
+}
+names = concat.substring( 0, concat.length() - 1 );
+
+// Close the input streams and readers.
+inStream.close();
+inReader.close();
+bufReader.close();
+
+// If no lines were found, then do nothing.
+if ( fileCount == 0 ) {
+    print( "Autoload file is empty" );
+    return;
+}
+
+// If fileCount is 1 it could be the special pattern "*".
+if ( fileCount == 1 && "*".equals( names ) ) {
+    print( "Will auto load all local spectra" );
+
+    // Need to get a list of all spectra in this directory. To make
+    // this quick use the SPLAT class SpectralFileFilter (assumes
+    // SPLAT classes are on CLASSPATH, they will be for a plugin).
+    import uk.ac.starlink.splat.util.SpectralFileFilter;
+    fileFilter = new SpectralFileFilter( FILE_PATTERN );
+    list = filePath.getParentFile().listFiles( fileFilter );
+
+    // If no files were found, give up.
+    fileCount = list.length;
+    if ( fileCount == 0 ) {
+        print( "No spectra are available in the directory" );
+        return;
+    }
+
+    // Now create the list of space seperated names.
+    concat = new StringBuffer();
+    for ( int i = 0; i < fileCount; i++ ) {
+        concat.append( list[i].getPath() ).append( " " );
+    }
+    names = concat.substring( 0, concat.length() - 1 );
+}
+
+// If we're really in SPLAT display the spectra.
+if ( browser != void ) {
+    print( "Autoloading local spectra" );
+    browser.displaySpectra( names );
+} else {
+    print( "No browser available" );
+}
+return;
