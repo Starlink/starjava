@@ -188,7 +188,22 @@
 
     <!-- TAMFITS -->
     <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
-    
+
+    <!-- Array -->
+    <pathelement location="${star.jar.dir}/array/array.jar"/>
+
+    <!-- NDX -->
+    <pathelement location="${star.jar.dir}/ndx/ndx.jar"/>
+
+    <!-- JNIAST -->
+    <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
+
+    <!-- Table -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
+    <!-- Util -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -210,6 +225,11 @@
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
     <pathelement location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
+    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/ndx/lib/ndx/ndx.jar"/>
+    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
+    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -244,8 +264,8 @@
   <!-- Unification of all classpaths using extra, built, installed order-->
   <path id="classpath">
     <path refid="local.classpath"/>
-     <path refid="built.classpath"/>
-     <path refid="installed.classpath"/>
+    <path refid="built.classpath"/>
+    <path refid="installed.classpath"/>
   </path>
 
   <!-- JUnit tests classpath -->
@@ -276,8 +296,36 @@
     <available property="tamfits.present"
                classpathref="classpath"
                classname="nom.tam.fits.Fits"/>
-
     <fail message="No TAMFITS available" unless="tamfits.present"/>
+
+    <!--  Need Array -->
+    <available property="array.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.array.NDArray"/>
+    <fail message="No Array available" unless="array.present"/>
+
+    <!--  Need NDX -->
+    <available property="ndx.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ndx.Ndx"/>
+    <fail message="No NDX available" unless="ndx.present"/>
+
+    <!--  Need JNIAST -->
+    <available property="jniast.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ast.AstObject"/>
+    <fail message="No JNIAST available" unless="jniast.present"/>
+
+    <!--  Need Table -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No Table available" unless="table.present"/>
+
+    <available property="util.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.util.SourceReader"/>
+    <fail message="No Util available" unless="util.present"/>
 
     <!--  Would like JUnit for testing -->
     <available property="junit.present"
@@ -366,7 +414,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../junit/junit.jar ../tamfits/tamfits.jar"/>
+                   value="../junit/junit.jar ../tamfits/tamfits.jar ../array/array.jar ../ndx/ndx.jar ../jniast/jniast.jar ../table/table.jar ../util/util.jar"/>
       </manifest>
     </jar>
 
