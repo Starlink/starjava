@@ -9,6 +9,7 @@ import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
 import uk.ac.starlink.topcat.func.Angles;
+import uk.ac.starlink.topcat.func.Miscellaneous;
 
 /**
  * This class provides some utility methods for use with the JEL
@@ -78,7 +79,7 @@ public class JELUtils {
             List classList = new ArrayList( Arrays.asList( new Class[] {
                 JELUtils.class,
                 Math.class, Integer.class, Float.class, Double.class,
-                Angles.class,
+                Angles.class, Miscellaneous.class,
             } ) );
             try {
 
