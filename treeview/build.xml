@@ -1292,6 +1292,7 @@
     <!-- Run up Treeview from the local build, setup to be debugged from socket -->
     <java classname="uk.ac.starlink.treeview.Driver" fork="true">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="-Djava.library.path=${tests-libpath}"/>
       <jvmarg value="-Duk.ac.starlink.treeview.cmdname=treeview"/>
       <jvmarg value="-Duk.ac.starlink.treeview.demodir=${src.etc}/demo"/>
       <jvmarg value="-Xdebug"/>
