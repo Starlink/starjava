@@ -72,7 +72,8 @@ import uk.ac.starlink.util.URLDataSource;
  * Initially a newly constructed DataNodeFactory has a
  * <tt>FileDataNodeBuilder</tt>,
  * <tt>StringDataNodeBuilder</tt>,
- * <tt>SourceDataNodeBuilder</tt> and
+ * <tt>SourceDataNodeBuilder</tt>
+ * <tt>DocumentDataNodeBuilder</tt> and
  * <tt>XMLDataNodeBuilder</tt>
  * at the head of the list, followed by
  * ones got from constructors of the known DataNode implementations.
@@ -556,10 +557,11 @@ public class DataNodeFactory {
      * @return  a list of {@link DataNodeBuilder} objects 
      */
     public static List getSpecialBuilders() {
-        List specials = new ArrayList( 4 );
+        List specials = new ArrayList( 5 );
         specials.add( FileDataNodeBuilder.getInstance() );
         specials.add( StringDataNodeBuilder.getInstance() );
         specials.add( SourceDataNodeBuilder.getInstance() );
+        specials.add( DocumentDataNodeBuilder.getInstance() );
         specials.add( XMLDataNodeBuilder.getInstance() );
         return specials;
     }

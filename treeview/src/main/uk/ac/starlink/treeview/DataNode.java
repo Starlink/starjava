@@ -36,14 +36,14 @@ import javax.swing.Icon;
  * The only actions which should be permitted to cause a (potentially) 
  * large memory allocation are:
  * <ul>
- * <li>Invocation of {@link #getChildren}
+ * <li>Invocation of {@link #getChildIterator}
  * <li>The user selecting one of the non-default panels in the DetailViewer
  * </ul>
  * In particular the following actions should <em>not</em> cause large resource
  * allocation:
  * <ul>
  * <li>DataNode construction
- * <li>Invocation of {@link configureDetail}
+ * <li>Invocation of {@link #configureDetail}
  * </ul>
  * <p>
  * Although you can implement this interface directly and everything 
