@@ -65,18 +65,74 @@ public class RowMatcher {
     }
 
     /**
+     * Returns a list of RowLink objects corresponding to a match 
+     * between this matcher's two tables performed with its match engine.
+     * Each element in the returned list basically corresponds to a matched 
+     * pair with one entry from each of the input tables, however using
+     * the <tt>req1</tt> and <tt>req2</tt> arguments you can specify whether
+     * both input tables need to be represented.
+     * Each input table row appears in no more than one RowLink in the
+     * returned list.
+     *
+     * @param  req1  whether an entry from the first table must be present
+     *         in each element of the result
+     * @param  req2  whether an entry from the second table must be present
+     *         in each element of the result
+     */
+    public List findPairMatches( boolean req1, boolean req2 )
+            throws IOException, InterruptedException {
+        checkRandom();
+
+        /* Check we have two tables. */
+        if ( nTable != 2 ) {
+            throw new IllegalStateException( "findPairMatches only makes sense"
+                                           + " for 2 tables" );
+        }
+
+        /* Get all the possible inter-table pairs. */
+        Collection pairs = findInterPairs( getBinContents(), 0, 1 );
+
+        /* Make sure that no row is represented more than once
+         * (this isn't necessary for the result to make sense, but it's 
+         * probably what the caller is expecting). */
+        eliminateMultipleRowEntries( pairs );
+
+        /* We now have a set of links corresponding to all the matches
+         * with one entry for each of two or more of the input tables.
+         * In the case that we want to output some links with unmatched
+         * parts, add new singleton row links as necessary. */
+        Set singles1 = req1 ? null : missingSingles( pairs, 0 );
+        Set singles2 = req2 ? null : missingSingles( pairs, 1 );
+        if ( singles1 != null ) {
+            pairs.addAll( singles1 );
+        }
+        if ( singles2 != null ) {
+            pairs.addAll( singles2 );
+        }
+
+        /* Sort and return. */
+        List pairList = new ArrayList( pairs );
+        Collections.sort( pairList );
+        return pairList;
+    }
+
+    /**
      * Returns a list of RowLink objects corresponding to a match
      * performed with this matcher's tables using its match engine.
-     * Each element in the returned array corresponds to one row of
-     * the resulting table, with entries from one or more of the
-     * constituent tables.
+     * Each element in the returned list corresponds to a matched group of 
+     * input rows, with no more than one entry from each table.
+     * Each input table row appears in no more than one RowLink in
+     * the returned list.  Whether each returned RowLink must contain
+     * an entry from every input table is determined by the
+     * <tt>useAll</tt> argument.
+     * Any number of tables can be matched.
      * 
      * @param  useAll  array of booleans indicating for each table whether
      *         all rows are to be used (otherwise just matched)
      * @return list of {@link RowLink}s corresponding to the selected rows
      */
-    public List findMatches( boolean[] useAll ) throws IOException, 
-                                                       InterruptedException {
+    public List findGroupMatches( boolean[] useAll ) throws IOException, 
+                                                     InterruptedException {
         checkRandom();
 
         /* Check we have multiple tables. */
@@ -177,13 +233,16 @@ public class RowMatcher {
 
     /**
      * Identifies all the pairs of equivalent rows in a set of RowLinks.
+     * Internal matches (ones corresponding to two rows of the same table)
+     * are included as well as external ones.
      * The original set is not affected.
      * 
      * @param  possibleLinks  a set of {@link RowLink} objects which 
      *         correspond to groups of possibly matched objects according
      *         to the match engine's criteria
-     * @return  a set of RowLink2 objects which represent all the actual
+     * @return  a set of RowLink objects which represent all the actual
      *          distinct row pairs from <tt>possibleLinks</tt>
+     * @see   #findInterPairs
      */
     private Set findPairs( Collection possibleLinks )
             throws IOException, InterruptedException {
@@ -227,6 +286,80 @@ public class RowMatcher {
     }
 
     /**
+     * Identifies all the pairs of equivalent rows from a set of RowLinks
+     * between rows from two specified tables.
+     * This will return a subset of the result which would be returned 
+     * by {@link #findPairs(java.util.Collection)}, but it should be a bit
+     * more efficient.
+     * The original set is not affected.
+     *
+     * @param  possibleLinks  a set of {@link RowLink} objects which 
+     *         correspond to groups of possibly matched objects 
+     *         according to the match engine's criteria
+     * @see   #findPairs
+     */
+    private Set findInterPairs( Collection possibleLinks,
+                                int index1, int index2 )
+            throws IOException, InterruptedException {
+        Set pairSet = new HashSet();
+        double nLink = (double) possibleLinks.size();
+        int iLink = 0;
+        indicator.startStage( "Locating inter-table pairs" );
+        for ( Iterator it = possibleLinks.iterator(); it.hasNext(); ) {
+            RowLink link = (RowLink) it.next();
+            int nref = link.size();
+            if ( nref > 1 ) {
+
+                /* Check if rows from both the required tables are present
+                 * in this link - if not, there can't be any suitable pairs. */
+                boolean got1 = false;
+                boolean got2 = false;
+                for ( int i = 0; i < nref && ! ( got1 && got2 ); i++ ) {
+                    int tableIndex = link.getRef( i ).getTableIndex();
+                    got1 = got1 || tableIndex == index1;
+                    got2 = got2 || tableIndex == index2;
+                }
+                if ( got1 && got2 ) {
+
+                    /* Cache the rows from each ref, since it may be expensive
+                     * to get them multiple times. */
+                    Object[][] binnedRows = new Object[ nref ][];
+                    for ( int i = 0; i < nref; i++ ) {
+                        RowRef ref = link.getRef( i );
+                        StarTable table = tables[ ref.getTableIndex() ];
+                        binnedRows[ i ] = table.getRow( ref.getRowIndex() );
+                    }
+
+                    /* Do a pairwise comparison of each eligible pair in the
+                     * group.  If they match, add the new pair to the set
+                     * of pairs. */
+                    for ( int i = 0; i < nref; i++ ) {
+                        RowRef refI = link.getRef( i );
+                        int iTableI = refI.getTableIndex();
+                        for ( int j = 0; j < i; j++ ) {
+                            RowRef refJ = link.getRef( j );
+                            int iTableJ = refJ.getTableIndex();
+                            if ( iTableI == index1 && iTableJ == index2 ||
+                                 iTableI == index2 && iTableJ == index1 ) {
+                                RowLink pair = new RowLink( refI, refJ );
+                                if ( ! pairSet.contains( pair ) ) {
+                                    if ( engine.matches( binnedRows[ i ],
+                                                         binnedRows[ j ] ) ) {
+                                        pairSet.add( pair );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            indicator.setLevel( ++iLink / nLink );
+        }
+        indicator.endStage();
+        return pairSet;
+    }
+
+    /**
      * Returns a set of RowLinks representing bin contents populated 
      * from each row of each table in a given list.
      * Each RowLink in the returned set represents a group of rows
@@ -254,7 +387,7 @@ public class RowMatcher {
          * place it in a map keyed by that bin. */
         Map rowMap = new HashMap();
         long nBin = 0;
-        long nRow = 0;
+        long totalRows = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
             indicator.startStage( "Binning rows for table " + ( itab + 1 ) );
             StarTable table = tables[ itab ];
@@ -275,12 +408,12 @@ public class RowMatcher {
                 lrow++;
                 indicator.setLevel( lrow / nrow );
                 nBin += nkey;
-                nRow++;
+                totalRows++;
             }
             indicator.endStage();
         }
         indicator.logMessage( "Average bin count per row: " +
-                              (float) ( nBin / (double) nRow ) );
+                              (float) ( nBin / (double) totalRows ) );
 
         /* Replace the value at each bin with a RowLink, since they count
          * as equal if they have the same contents, which means they 
@@ -365,6 +498,8 @@ public class RowMatcher {
             indicator.setLevel( ++iLink / nLink );
         }
         indicator.endStage();
+        indicator.logMessage( "Internal links removed: " 
+                            + replacements.size() );
         links.addAll( replacements );
     }
 
@@ -436,6 +571,54 @@ public class RowMatcher {
             }
         }
         return ok;
+    }
+
+    /**
+     * Goes through a set of pairs and makes sure that no RowRef is
+     * contained in more than one pair.  If multiple pairs exist containing
+     * the same RowRef, all but one are discarded.  
+     * The pairs in the list may only contain RowRefs with a table index
+     * of 0 or 1.
+     * 
+     * <p>The decision about which pairs are discarded is currently taken
+     * at random; ideally the one with the best match should be retained.
+     * MatchEngine does not currently provide enough information to make
+     * this possible.
+     *
+     * @param   pairs  set of 2-ref {@link RowLink} objects - on exit
+     *          each RowRef will only appear in at most one RowRef in
+     *          these pairs
+     */
+    private void eliminateMultipleRowEntries( Collection pairs ) 
+            throws InterruptedException {
+
+        /* Go through the pairs keeping track of which RowRefs we have
+         * seen using a Set of RowRefs.  Remove any whose rows have been
+         * seen before. */
+        Set refSet = new HashSet();
+        double nPair = pairs.size();
+        int iPair = 0;
+        indicator.startStage( "Eliminating multiple row references" );
+        for ( Iterator it = pairs.iterator(); it.hasNext(); ) {
+            RowLink pair = (RowLink) it.next();
+            assert pair.size() == 2;
+            RowRef ref1 = pair.getRef( 0 );
+            RowRef ref2 = pair.getRef( 1 );
+            assert ref1.getTableIndex() == 0;
+            assert ref2.getTableIndex() == 1;
+            boolean seen1 = refSet.contains( ref1 );
+            boolean seen2 = refSet.contains( ref2 );
+            if ( seen1 || seen2 ) {
+                it.remove();
+            }
+            else {
+                refSet.add( ref1 );
+                refSet.add( ref2 );
+            }
+            indicator.setLevel( ++iPair / nPair );
+        }
+        indicator.endStage();
+        assert refSet.size() == 2 * pairs.size();
     }
 
     /**
