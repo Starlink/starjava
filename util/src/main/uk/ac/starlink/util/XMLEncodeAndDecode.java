@@ -34,7 +34,7 @@ public interface XMLEncodeAndDecode
     public void encode( Element rootElement );
 
     /**
-     * Decode (i.e. restore) the internal state of this object from an
+     * Decode (ie, restore) the internal state of this object from an
      * Element.
      *
      * @param rootElement the element to which a previous object this
@@ -44,7 +44,7 @@ public interface XMLEncodeAndDecode
 
     /**
      * Return a name for the Element that will be the parent of any
-     * contents that can be encoded and decoded (i.e. name of
+     * contents that can be encoded and decoded (ie, name of
      * rootElement);
      * 
      * @return the name of the root element.
