@@ -1,0 +1,127 @@
+<interface name="stats">
+   <helplib name="$kappa_help"></helplib>
+   <parameter name="CLIP"
+      position="3"
+      type="NumberParameter"
+      access="read"
+      vpath="default"
+      prompt="Clipping levels"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="COMP"
+      position="2"
+      type="StringParameter"
+      access="update"
+      vpath="default"
+      prompt="NDF array component to analyse"
+      ppath="current,default"
+      default="data"
+      helpkey="*">
+   </parameter>
+   <parameter name="LOGFILE"
+      position="4"
+      type="Parameter"
+      access="read"
+      vpath="default"
+      prompt="File for logging results"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="MAXCOORD"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MAXIMUM"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0.0E0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MAXPOS"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MEAN"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0.0e0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MINCOORD"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MINIMUM"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0.0D0"
+      helpkey="*">
+   </parameter>
+   <parameter name="MINPOS"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="NDF"
+      position="1"
+      type="Parameter"
+      access="read"
+      vpath="prompt"
+      prompt="Data structure to analyse"
+      ppath="global,current"
+      association="@-@global.data_array"
+      helpkey="*">
+   </parameter>
+   <parameter name="NUMBAD"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="NUMGOOD"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="NUMPIX"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0"
+      helpkey="*">
+   </parameter>
+   <parameter name="SIGMA"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0.0d0"
+      helpkey="*">
+   </parameter>
+   <parameter name="TOTAL"
+      type="NumberParameter"
+      access="write"
+      vpath="default"
+      default="0.0d0"
+      helpkey="*">
+   </parameter>
+</interface>

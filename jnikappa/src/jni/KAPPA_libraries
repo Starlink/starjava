@@ -1,0 +1,18 @@
+#!/bin/sh
+echo \
+-lkappa -lkapview \
+-lkapsub \
+-lard_adam \
+-lkapgen -lira -lirq -llpg -lctg -lfits -laif -lcat -lcfitsio \
+-lndg_adam -lndg -lndf_adam -lndf -lary_adam -lary \
+-last_grf -last -last_wcslib -last_slalib -lsla -last_pass2 -last_ems \
+-lagp_adam -lagp -lgns \
+-lref \
+-lfio_adam -lfio \
+-lgrp_adam -lgrp -ltrn \
+-lerr -lerr_adam \
+-lprm -lprm_a -lmag_adam -lmag -lhds -lpda \
+-lkapgrf -lpgppar_adam -lpgplot -lgwm -L/usr/X11R6/lib -lX11 \
+-lpar_adam -lsubpar_adam -lstring_adam \
+-lemsf -lems -lcnf -lchr -lpsx 
+ 

@@ -1,0 +1,254 @@
+<interface name="DISPLAY">
+   <helplib name="$KAPPA_HELP"/>
+   <parameter name="AXES"
+      type="BooleanParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Are annotated axes to be drawn?"
+      ppath="CURRENT,DEFAULT"
+      default="TRUE"
+      helpkey="*">
+   </parameter>
+   <parameter name="BADCOL"
+      type="StringParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Colour of bad pixels"
+      ppath="CURRENT,DEFAULT"
+      default="MIN"
+      helpkey="*">
+   </parameter>
+   <parameter name="BORDER"
+      type="BooleanParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Is a coloured border required?"
+      ppath="CURRENT,DEFAULT"
+      default="FALSE"
+      helpkey="*">
+   </parameter>
+   <parameter name="BORSTYLE"
+      type="StringParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Plotting style for the border"
+      ppath="CURRENT,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="CENTRE"
+      position="6"
+      type="StringParameter"
+      vpath="DEFAULT"
+      prompt="position at the centre of the display"
+      ppath="DYNAMIC,CURRENT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="CLEAR"
+      position="3"
+      type="BooleanParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Is the current picture to be cleared before display?"
+      ppath="CURRENT,DEFAULT"
+      default="TRUE"
+      helpkey="*">
+   </parameter>
+   <parameter name="COMP"
+      position="2"
+      type="StringParameter"
+      vpath="DEFAULT"
+      prompt="Component to display"
+      ppath="CURRENT,DYNAMIC"
+      default="Data"
+      helpkey="*">
+   </parameter>
+   <parameter name="DEVICE"
+      position="4"
+      type="StringParameter"
+      ptype="DEVICE"
+      vpath="GLOBAL,PROMPT"
+      prompt="Name of display device"
+      ppath="GLOBAL,CURRENT"
+      association="@-GLOBAL.IMAGE_DISPLAY"
+      helpkey="*">
+   </parameter>
+   <parameter name="FILL"
+      type="BooleanParameter"
+      vpath="DYNAMIC,DEFAULT"
+      prompt="Fill the plotting area?"
+      ppath="DYNAMIC,CURRENT,DEFAULT"
+      default="FALSE"
+      helpkey="*">
+   </parameter>
+   <parameter name="HIGH"
+      type="NumberParameter"
+      vpath="PROMPT"
+      prompt="High value for display"
+      ppath="DYNAMIC"
+      helpkey="*">
+   </parameter>
+   <parameter name="IN"
+      position="1"
+      type="StringParameter"
+      access="READ"
+      vpath="PROMPT"
+      prompt="NDF to be displayed"
+      ppath="GLOBAL"
+      association="@-@GLOBAL.DATA_ARRAY"
+      helpkey="*">
+   </parameter>
+   <parameter name="KEY"
+      type="BooleanParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Do you want a key to the colour table?"
+      ppath="CURRENT,DEFAULT"
+      default="FALSE"
+      helpkey="*">
+   </parameter>
+   <parameter name="KEYPOS"
+      type="NumberParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Horizontal position of key"
+      ppath="CURRENT,DEFAULT"
+      default="0.05"
+      helpkey="*">
+   </parameter>
+   <parameter name="KEYSTYLE"
+      type="StringParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Plotting style for the key"
+      ppath="CURRENT,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="LOW"
+      type="NumberParameter"
+      vpath="PROMPT"
+      prompt="Low value for display"
+      ppath="DYNAMIC"
+      helpkey="*">
+   </parameter>
+   <parameter name="LUT"
+      type="StringParameter"
+      access="READ"
+      vpath="DEFAULT"
+      prompt="NDF containing lookup table"
+      ppath="CURRENT,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="MARGIN"
+      type="NumberParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Widths of margins around DATA picture"
+      ppath="CURRENT,DYNAMIC,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="MODE"
+      position="5"
+      type="StringParameter"
+      vpath="PROMPT"
+      prompt="Method to define the scaling limits"
+      ppath="CURRENT,DYNAMIC"
+      helpkey="*">
+   </parameter>
+   <parameter name="NN"
+      type="BooleanParameter"
+      vpath="DEFAULT"
+      prompt="Nearest-neighbour mapping of lookup table?"
+      ppath="CURRENT,DEFAULT"
+      default="FALSE"
+      helpkey="*">
+   </parameter>
+   <parameter name="NUMBIN"
+      type="NumberParameter"
+      vpath="DEFAULT"
+      prompt="Number of bins to compute percentiles"
+      ppath="CURRENT,DEFAULT"
+      default="2048"
+      helpkey="*">
+   </parameter>
+   <parameter name="OUT"
+      position="9"
+      type="StringParameter"
+      access="WRITE"
+      vpath="DEFAULT"
+      prompt="NDF for scaled data"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="PERCENTILES"
+      type="NumberParameter"
+      vpath="PROMPT"
+      prompt="Percentiles for scaling"
+      ppath="CURRENT,DEFAULT"
+      default="10,90"
+      helpkey="*">
+   </parameter>
+   <parameter name="SCAHIGH"
+      type="NumberParameter"
+      access="WRITE"
+      vpath="DEFAULT"
+      prompt="Object to contain the upper scaling value."
+      default="0.0"
+      association="-@GLOBAL.DISP_SCALE_HIGH"
+      helpkey="*">
+   </parameter>
+   <parameter name="SCALE"
+      type="BooleanParameter"
+      vpath="DEFAULT"
+      prompt="Scale the data?"
+      ppath="CURRENT,DEFAULT"
+      default="TRUE"
+      helpkey="*">
+   </parameter>
+   <parameter name="SCALOW"
+      type="NumberParameter"
+      access="WRITE"
+      vpath="DEFAULT"
+      prompt="Object to contain the lower scaling value."
+      default="0.0"
+      association="-@GLOBAL.DISP_SCALE_LOW"
+      helpkey="*">
+   </parameter>
+   <parameter name="SIGMAS"
+      type="NumberParameter"
+      vpath="PROMPT"
+      prompt="Standard-deviation limits for scaling"
+      ppath="CURRENT,DEFAULT"
+      default="-2,2"
+      helpkey="*">
+   </parameter>
+   <parameter name="STYLE"
+      type="StringParameter"
+      vpath="CURRENT,DEFAULT"
+      prompt="Plotting style for the annotated axes"
+      ppath="CURRENT,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="USEAXIS"
+      type="StringParameter"
+      vpath="DEFAULT"
+      prompt="The axes to be annotated"
+      ppath="DYNAMIC,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="XMAGN"
+      position="7"
+      type="NumberParameter"
+      vpath="DEFAULT"
+      prompt="Magnification in X co-ordinate about the centre of array"
+      ppath="CURRENT,DEFAULT"
+      default="1.0"
+      helpkey="*">
+   </parameter>
+   <parameter name="YMAGN"
+      position="8"
+      type="NumberParameter"
+      vpath="DEFAULT"
+      prompt="Magnification in Y co-ordinate about the centre of array"
+      ppath="DYNAMIC,DEFAULT"
+      default="!"
+      helpkey="*">
+   </parameter>
+</interface>

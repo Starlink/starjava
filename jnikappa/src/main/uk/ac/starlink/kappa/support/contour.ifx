@@ -1,0 +1,213 @@
+<interface name="contour">
+   <helplib name="$kappa_help"/>
+   <parameter name="axes"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="are annotated axes to be drawn?"
+      ppath="current,default"
+      default="true"
+      helpkey="*">
+   </parameter>
+   <parameter name="clear"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="is the current picture to be cleared before plotting?"
+      ppath="current,default"
+      default="true"
+      helpkey="*">
+   </parameter>
+   <parameter name="comp"
+      position="2"
+      type="StringParameter"
+      vpath="default"
+      prompt="component to contour"
+      ppath="current,dynamic"
+      default="data"
+      helpkey="*">
+   </parameter>
+   <parameter name="dashed"
+      type="NumberParameter"
+      vpath="default"
+      prompt="height below which contours are dashed"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="device"
+      type="StringParameter"
+      position="6"
+      ptype="device"
+      vpath="global,prompt"
+      prompt="name of graphics device"
+      ppath="global,current"
+      association="@-global.graphics_device"
+      helpkey="*">
+   </parameter>
+   <parameter name="fast"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="optimise drawing speed?"
+      ppath="current,default"
+      default="true"
+      helpkey="*">
+   </parameter>
+   <parameter name="firstcnt"
+      type="NumberParameter"
+      vpath="prompt"
+      prompt="give the height of the first contour"
+      ppath="current,dynamic"
+      helpkey="*">
+   </parameter>
+   <parameter name="fill"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="fill the plotting area?"
+      ppath="current,default"
+      default="false"
+      helpkey="*">
+   </parameter>
+   <parameter name="heights"
+      type="NumberParameter"
+      vpath="prompt"
+      prompt="give the heights of the contours"
+      ppath="current,dynamic"
+      helpkey="*">
+   </parameter>
+   <parameter name="key"
+      position="5"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="do you want a key to contour levels?"
+      ppath="current,default"
+      default="true"
+      helpkey="*">
+   </parameter>
+   <parameter name="keypos"
+      type="NumberParameter"
+      vpath="current,default"
+      prompt="horizontal and vertical position of key"
+      ppath="current,default"
+      default="0.05"
+      helpkey="*">
+   </parameter>
+   <parameter name="keystyle"
+      type="StringParameter"
+      vpath="current,default"
+      prompt="plotting style for the key"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="labpos"
+      type="NumberParameter"
+      vpath="current,default"
+      prompt="position for label in good and bounds modes"
+      ppath="current,default"
+      default="4,0.75"
+      helpkey="*">
+   </parameter>
+   <parameter name="length"
+      type="NumberParameter"
+      access="write"
+      helpkey="*">
+   </parameter>
+   <parameter name="margin"
+      type="NumberParameter"
+      vpath="current,default"
+      prompt="widths of margins around data picture"
+      ppath="current,dynamic,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="mode"
+      position="3"
+      type="StringParameter"
+      vpath="prompt"
+      prompt="method for selecting contour heights"
+      ppath="current,dynamic"
+      helpkey="*">
+   </parameter>
+   <parameter name="ncont"
+      position="4"
+      type="NumberParameter"
+      vpath="prompt"
+      prompt="give the number of contour heights"
+      ppath="current,default"
+      default="6"
+      helpkey="*">
+   </parameter>
+   <parameter name="ndf"
+      position="1"
+      type="StringParameter"
+      access="read"
+      vpath="prompt"
+      prompt="ndf to be contoured"
+      ppath="global"
+      association="@-@global.data_array"
+      helpkey="*">
+   </parameter>
+   <parameter name="number"
+      type="NumberParameter"
+      access="write"
+      helpkey="*">
+   </parameter>
+   <parameter name="pen1"
+      type="NumberParameter"
+      access="update"
+      helpkey="*">
+   </parameter>
+   <parameter name="penrot"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="is the graphics pen to be cycled through 3 colours?"
+      ppath="current,default"
+      default="false"
+      helpkey="*">
+   </parameter>
+   <parameter name="pens"
+      type="StringParameter"
+      vpath="default"
+      prompt="pen definitions for each contour"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="percentiles"
+      type="NumberParameter"
+      vpath="prompt"
+      prompt="give the heights of the contours as percentiles"
+      ppath="current,dynamic"
+      helpkey="*">
+   </parameter>
+   <parameter name="stats"
+      type="BooleanParameter"
+      vpath="default"
+      prompt="are contouring statistics to be computed?"
+      ppath="current,default"
+      default="false"
+      helpkey="*">
+   </parameter>
+   <parameter name="stepcnt"
+      type="NumberParameter"
+      vpath="prompt"
+      prompt="give the interval between contour heights"
+      ppath="current,dynamic"
+      helpkey="*">
+   </parameter>
+   <parameter name="style"
+      type="StringParameter"
+      vpath="current,default"
+      prompt="plotting style for the annotated axes and contours"
+      ppath="current,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+   <parameter name="useaxis"
+      type="StringParameter"
+      vpath="default"
+      prompt="the axes to be annotated"
+      ppath="dynamic,default"
+      default="!"
+      helpkey="*">
+   </parameter>
+</interface>
