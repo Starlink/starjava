@@ -1198,8 +1198,8 @@ public class SplatBrowser
      */
     protected void readStackEvent()
     {
-        // Reading the stack performed by the SpecList global
-        // object. Just give it a file name to use.
+        // Reading the stack performed by the SpecList global object. Just
+        // give it a file name to use.
         initStackChooser( true );
         int result = stackChooser.showOpenDialog( this );
         if ( result == stackChooser.APPROVE_OPTION ) {
@@ -1214,7 +1214,9 @@ public class SplatBrowser
                     int count = globalList.specCount();
                     specList.setSelectionInterval( count - nread, count - 1 );
                     multiDisplaySelectedSpectra( true );
-                    specList.setSelectedIndices( currentSelection );
+                    if ( currentSelection != null ) {
+                        specList.setSelectedIndices( currentSelection );
+                    }
                 }
             }
             else {
