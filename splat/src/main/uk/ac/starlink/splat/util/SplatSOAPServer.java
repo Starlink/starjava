@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    17-JUN-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     17-JUN-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.util;
 
 import java.net.URL;
@@ -19,14 +20,13 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.NDXSpecDataImpl;
 
 /**
- * Implements the SOAP web services offered by the SPLAT
- * application. There is only one instance of this class for the SPLAT
- * application, but it does not come into existance until the
- * {@link #getInstance()} method is invoked. 
+ * Implements the SOAP web services offered by the SPLAT application. There is
+ * only one instance of this class for the SPLAT application, but it does not
+ * come into existence until the {@link #getInstance()} method is invoked.
  * <p>
- * Current (unlike the IPC socket remote services) you should always
- * set the port number in use (the default of 8081 isn't suitable for
- * applications on a general user machine).
+ * The port used to communicate with this server is chosen by using a given
+ * base number and searching from that for the first free port (the default
+ * search point is 8081).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -44,7 +44,7 @@ public class SplatSOAPServer
     private SplatBrowser browserMain = null;
 
     /** 
-     * The port number for the HTTP server. Always re-define this. 
+     * The port number being used for the server.
      */
     private int portNumber = 8081;
 
@@ -54,10 +54,10 @@ public class SplatSOAPServer
     private static SplatSOAPServer instance = null;
 
     /**
-     * Get the instance. Uses lazy instantiation so object does not
-     * exist until the first invocation of this method. Make sure 
-     * that the SplatBrowser to be used is set before making any of
-     * of this reference {@link #setSplatBrowser}.
+     * Get the instance. Uses lazy instantiation so object does not exist
+     * until the first invocation of this method. Make sure that the
+     * SplatBrowser to be used is set before making any of of this reference
+     * {@link #setSplatBrowser}.
      */
     public static SplatSOAPServer getInstance()
     {
@@ -99,7 +99,8 @@ public class SplatSOAPServer
     }
 
     /**
-     * Set the port number of the HTTP server.
+     * Set the base port number to be used when starting the HTTP server.
+     * This may not be the actual port used.
      */
     public void setPortNumber( int portNum ) 
     {
@@ -124,25 +125,13 @@ public class SplatSOAPServer
         //  define the SOAP services offered (by this class). 
         URL deployURL = SplatSOAPServer.class.getResource( "deploy.wsdd" );
 
-        //  Check if this port is already bound. In which case give up
-        //  now!
-        boolean open = true;
-        try {
-            Socket tempSocket = new Socket( "localhost", portNumber );
-            tempSocket.close();
-        }
-        catch (Exception any) {
-            // Fails if not already in use, which is good.
-            open = false;
-        }
-        if ( open ) {
-            throw new RuntimeException( "Failed to start SPLAT " +
-                                        "SOAP services, port already in use" );
-        }
         try {
             server = new AppHttpSOAPServer( portNumber );
             server.start();
             server.addSOAPService( deployURL );
+            
+            //  Port may have been switched, so get port value back.
+            portNumber = server.getPort();
             System.out.println( "Remote services port: " + portNumber );
         }
         catch ( Exception e ) {
