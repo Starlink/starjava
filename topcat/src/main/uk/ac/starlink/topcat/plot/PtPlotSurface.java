@@ -112,9 +112,16 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
     }
 
     protected void _zoom( int x, int y ) {
+        double oldXMin = _xMin;
+        double oldXMax = _xMax;
+        double oldYMin = _yMin;
+        double oldYMax = _yMax;
         super._zoom( x, y );
-        checkInvariants();
-        surfListener_.surfaceChanged();
+        if ( _xMin != oldXMin || _xMax != oldXMax ||
+             _yMin != oldYMin || _yMax != oldYMax ) {
+            checkInvariants();
+            surfListener_.surfaceChanged();
+        }
     }
 
     /**
