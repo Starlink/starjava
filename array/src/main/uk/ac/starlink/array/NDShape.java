@@ -284,6 +284,9 @@ public class NDShape implements Cloneable {
      * Returns a string representation of a position.
      * This is a utility function which returns a string indicating the
      * value of a position vector, in a form like "(10,20,23)".
+     * As a special case, if any of the elements has the value 
+     * <tt>Long.MIN_VALUE</tt>, then a "<tt>*</tt>" is written
+     * in the corresponding position.
      *
      * @param   pos  a vector of longs
      * @return  a string representation of pos
@@ -291,8 +294,18 @@ public class NDShape implements Cloneable {
     public static String toString( long[] pos ) {
         StringBuffer buf = new StringBuffer( "(" );
         for ( int i = 0; i < pos.length; i++ ) {
-            buf.append( pos[ i ] + ( ( i < pos.length - 1 ) ? "," : ")" ) );
+            if ( i > 0 ) {
+                buf.append( ',' );
+            }
+            long val = pos[ i ];
+            if ( val != Long.MIN_VALUE ) {
+                buf.append( val );
+            }
+            else {
+                buf.append( '*' );
+            }
         }
+        buf.append( ')' );
         return buf.toString();
     }
 
