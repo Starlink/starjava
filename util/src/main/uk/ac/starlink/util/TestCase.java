@@ -771,22 +771,39 @@ public class TestCase extends junit.framework.TestCase {
         assertEquals( context+"(type)",
                       expected.getNodeType(), actual.getNodeType() );
 
+        /*
+         * Comparing Nodes: 
+         *
+         *   - Namespaces must be equal (or both null)
+         *
+         *   - If namespaces are null, then compare getNodeName
+         *
+         *     Don't compare localname in this case: getLocalName is
+         *     documented to return null if the element was created
+         *     with a DOM1 method such as Document.createElement
+         *     (rather than createElementNS).  That is, getLocalName
+         *     will return null or not depending on how the DOM was
+         *     constructed, and so, if you compare the return values
+         *     of getLocalName(), two equivalent DOMs could test
+         *     unequal (because one getLocalName is null and the other
+         *     isn't) if the two DOMs happened to be constructed by
+         *     different routes.
+         *
+         *   - If namespaces are not null, then compare getLocalName
+         *
+         *     Don't compare prefixes, since these are defined to be arbitrary.
+         *
+         */
         String expectedNS = expected.getNamespaceURI();
+        assertEquals( context+"(ns)",
+                      expectedNS,
+                      actual.getNamespaceURI() );
         if ( expectedNS == null ) {
-            assertNull( context+"(ns null)", actual.getNamespaceURI() );
-            assertNull( context+"(localname null)", actual.getLocalName() );
             assertEquals( context+"(name)",
                          expected.getNodeName(), actual.getNodeName() );
         } else {
-            assertEquals( context+"(ns)",
-                         expectedNS, actual.getNamespaceURI() );
             assertEquals( context+"(localName)",
                          expected.getLocalName(), actual.getLocalName() );
-            /*
-             * Don't compare prefixes, since these are defined to be
-             * arbitrary.  getNodeName() includes the prefix, so don't
-             * compare that either
-             */
         }
 
         assertEquals( context+"(value)",
