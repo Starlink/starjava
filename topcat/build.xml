@@ -435,40 +435,59 @@
   </target>
 
   <!--
-   !   ===========================
-   !   Build a standalone jar file
-   !   ===========================
+   !   ==========================
+   !   Build standalone jar files
+   !   ==========================
    !
-   !  Builds a jar file which can be used on its own, without needing any
-   !  other jars to be present.
+   !  Builds jar files which can be used on their own, without needing any
+   !  other jars to be present.  Two of them are built: topcat-lite.jar
+   !  which contains enough classes to do most things but not support for
+   !  peripheral items like SPLAT interoperability, MySpace access etc etc.
    !-->
   <target name="build-standalone"
           depends="install"
           description="-> builds a standalone jar file">
+
+    <!-- Build topcat-lite.jar - minimal standalone which does basic things. -->
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.lib.pkg}/topcat-lite.jar"/>
+      <arg value="-x"/><arg value="array.jar"/>
+      <arg value="-x"/><arg value="aglib.jar"/>
+      <arg value="-x"/><arg value="astrogrid.jar"/>
+      <arg value="-x"/><arg value="axis.jar"/>
+      <arg value="-x"/><arg value="hds.jar"/>
+      <arg value="-x"/><arg value="hdx.jar"/>
+      <arg value="-x"/><arg value="jaiutil.jar"/>
+      <arg value="-x"/><arg value="jniast.jar"/>
+      <arg value="-x"/><arg value="junit.jar"/>
+      <arg value="-x"/><arg value="ndx.jar"/>
+      <arg value="-x"/><arg value="sog.jar"/>
+      <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="treeview.jar"/>
+      <arg value="-x"/><arg value="vo.jar"/>
+      <arg value="${star.lib.pkg}/topcat.jar"/>
+    </java>
+
     <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
       <arg value="-o"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>
       <arg value="-x"/><arg value="junit.jar"/>
-      <arg value="-x"/><arg value="xalan.jar"/>
-      <arg value="-x"/><arg value="xml-apis.jar"/>
-      <arg value="-x"/><arg value="xercesImpl.jar"/>
-      <arg value="-x"/><arg value="optional.jar"/>
-      <arg value="-x"/><arg value="jsky.jar"/>
+      <arg value="-x"/><arg value="log4j.jar"/>
+      <arg value="-x"/><arg value="log4j-core.jar"/>
+      <arg value="-x"/><arg value="jsky/jel.jar"/>
+      <arg value="-x"/><arg value="diva/acme.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
-      <arg value="-x"/><arg value="axis.jar"/>
-      <arg value="-x"/><arg value="aglib.jar"/>
-      <arg value="-x"/><arg value="jaiutil.jar"/>
-      <arg value="-x"/><arg value="sog.jar"/>
-      <arg value="-x"/><arg value="splat.jar"/>
-      <arg value="-x"/><arg value="soapserver.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
 
     <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"
-             jar="${dist.lib.pkg}/topcat-full.jar"/>
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib.pkg}"
+               includes="topcat-lite.jar topcat-full.jar"/>
+    </signjar>
   </target>
 
   <!--
