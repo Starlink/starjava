@@ -286,7 +286,14 @@ public class FilestoreChooser extends JPanel {
         /* Add branches for local filesystems. */
         File[] fileRoots = File.listRoots();
         for ( int i = 0; i < fileRoots.length; i++ ) {
-            branchSelector_.addBranch( new FileBranch( fileRoots[ i ] ) );
+            File fileRoot = fileRoots[ i ];
+            if ( fileRoot.isDirectory() && fileRoot.canRead() ) {
+                branchSelector_.addBranch( new FileBranch( fileRoot ) );
+            }
+            else {
+                logger_.warning( "Local filesystem root " + fileRoot + 
+                                 " is not a readable directory" );
+            }
         }
 
         /* Add branches for remote virtual filesystems. */
