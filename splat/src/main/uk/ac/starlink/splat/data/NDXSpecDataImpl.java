@@ -16,11 +16,14 @@ import uk.ac.starlink.ast.FrameSet;
 ////import uk.ac.starlink.hdx.Ndx;
 
 import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.array.BadHandler;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.ndx.NdxAccess;
+import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 
@@ -128,7 +131,7 @@ public class NDXSpecDataImpl extends SpecDataImpl
     public FrameSet getAst()
     {
         try {
-            return ndx.getWCS();
+            return Ndxs.getAst( ndx );
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -161,9 +164,14 @@ public class NDXSpecDataImpl extends SpecDataImpl
     protected Ndx ndx = null;
 
     /**
-     * Reference to NDX Access object.
+     * Reference to NDX Image component Access object.
      */
-    protected NdxAccess ndxAccess = null;
+    protected ArrayAccess imAccess = null;
+
+    /**
+     * Reference to NDX Error component Access object.
+     */
+    protected ArrayAccess errAccess = null;
 
     /**
      * Original HDX specification that pointed to the NDX.
@@ -263,17 +271,24 @@ public class NDXSpecDataImpl extends SpecDataImpl
      */
     protected void readData()
     {
-        // Use an NdxAccess object to make sure that data is all the
+        // Use a Requirements object to make sure that data is all the
         // same shape. We also require that the data be returned in
         // double precision and using our BAD data value.
-        ndxAccess = null;
         Requirements req = new Requirements();
         req.setType( Type.DOUBLE );
         BadHandler badHandler = 
             BadHandler.getHandler( Type.DOUBLE, new Double(SpecData.BAD) );
         req.setBadHandler( badHandler );
+        OrderedNDShape oshape = ndx.getImage().getShape();
+        req.setShape( oshape );
+
         try {
-            ndxAccess = ndx.getAccess( req, true, true, false );
+            NDArray imNda = Ndxs.getMaskedImage( ndx, req );
+            imAccess = imNda.getAccess();
+            if ( ndx.hasVariance() ) {
+                NDArray errNda = Ndxs.getMaskedErrors( ndx, req );
+                errAccess = errNda.getAccess();
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -282,42 +297,37 @@ public class NDXSpecDataImpl extends SpecDataImpl
         }
 
         //  No spectra longer than (int)?
-        int size = (int) ndxAccess.getShape().getNumPixels();
-        errors = null;
-        if ( ndxAccess.isMapped() ) {
-            data = (double[]) ndxAccess.getMappedImage();
-            if ( ndxAccess.hasVariance() ) {
-                errors = (double []) ndxAccess.getMappedVariance();
-            }
-        }
-        else {
-            // Need to allocate data.
-            Type type = ndxAccess.getType();
-            data = (double []) type.newArray( size );
-            if ( ndxAccess.hasVariance() ) {
-                errors = (double []) type.newArray( size );
-            }
-            try {
-                ndxAccess.read( data, errors, null, 0, size );
-            }
-            catch (IOException ie) {
-                ie.printStackTrace();
-                data = errors = null;
-                return;
-            }
-        }
+        int size = (int) oshape.getNumPixels();
 
-        //  Transform variances into errors.
-        if ( errors != null ) {
-            for ( int i = 0; i < errors.length; i++ ) {
-                if ( errors[i] > 0.0 ) {
-                    errors[i] = Math.sqrt( errors[i] );
+        // Get the data and possibly errors.
+        try {
+            if ( imAccess.isMapped() ) {
+                data = (double []) imAccess.getMapped();
+            }
+            else {
+                data = new double[ size ];
+                imAccess.read( data, 0, size );
+                imAccess.close();
+            }
+
+            errors = null;
+            if ( errAccess != null ) {
+                if ( errAccess.isMapped() ) {
+                    errors = (double[]) errAccess.getMapped();
                 }
                 else {
-                    errors[i] = SpecData.BAD;
+                    errors = new double[ size ];
+                    errAccess.read( errors, 0, size );
+                    errAccess.close();
                 }
             }
         }
+        catch ( IOException ie ) {
+            ie.printStackTrace();
+            data = errors = null;
+            return;
+        }
+
         return;
     }
 
@@ -327,8 +337,11 @@ public class NDXSpecDataImpl extends SpecDataImpl
      */
     protected void finalize() throws Throwable
     {
-        if ( ndxAccess != null ) {
-            ndxAccess.close();
+        if ( imAccess != null ) {
+            imAccess.close();
+        }
+        if ( errAccess != null ) {
+            errAccess.close();
         }
         super.finalize();
     }

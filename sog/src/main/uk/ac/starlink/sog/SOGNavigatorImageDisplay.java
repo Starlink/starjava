@@ -34,6 +34,7 @@ import uk.ac.starlink.ast.Plot;
 //import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.jaiutil.HDXImage;
 import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.Ndxs;
 
 /**
  * Extends NavigatorImageDisplay (and DivaMainImageDisplay) to add
@@ -185,7 +186,7 @@ public class SOGNavigatorImageDisplay
         //  that can be used instead of a WCSTransform.
         Ndx ndx = hdxImage.getCurrentNDX();
         try {
-            FrameSet frameSet = ndx.getWCS();
+            FrameSet frameSet = Ndxs.getAst( ndx );
             if ( frameSet != null ) {
                 setWCS( new AstTransform( frameSet, getImageWidth(),
                                           getImageHeight() ) );
