@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.Icon;
@@ -30,9 +31,10 @@ public class StarTableDataNode extends DefaultDataNode {
 
     public StarTableDataNode( StarTable startable ) {
         this.startable = startable;
-        DescribedValue nameval = startable.getParameterByName( "name" );
-        name = ( nameval == null ) ? "Table"
-                                   : nameval.getValue().toString();
+        name = startable.getName();
+        if ( name == null ) {
+            name = "Table";
+        }
         setLabel( name );
         long nrow = startable.getRowCount();
         description = new StringBuffer()
@@ -88,6 +90,10 @@ public class StarTableDataNode extends DefaultDataNode {
         dv.addKeyedItem( "Columns", ncols );
         if ( nrows >= 0 ) {
             dv.addKeyedItem( "Rows", nrows );
+        }
+        URL url = startable.getURL();
+        if ( url != null ) {
+            dv.addKeyedItem( "URL", url );
         }
 
         int npar = 0;
