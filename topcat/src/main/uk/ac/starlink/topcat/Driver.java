@@ -3,12 +3,18 @@ package uk.ac.starlink.topcat;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.ErrorDialog;
@@ -147,31 +153,66 @@ public class Driver {
         if ( cmdname == null ) {
             cmdname = Driver.class.getName();
         }
-        String usage = "Usage: " + cmdname + " [-demo] [-disk] [table ...]";
+        String usage = "Usage: " 
+                     + cmdname
+                     + " [-demo] [-disk] [[-f <format>] table ...]";
         setStandalone( true );
 
-        /* Process flags.
-         * If all we need to do is print a usage message and exit, do it 
-         * directly without any GUI action. */
+        /* Process flags. */
+        List argList = new ArrayList( Arrays.asList( args ) );
         boolean demo = false;
-        for ( int i = 0; i < args.length; i++ ) {
-            if ( args[ i ].startsWith( "-h" ) ) {
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.startsWith( "-h" ) ) {
                 System.out.println( usage );
                 System.exit( 0 );
             }
-            else if ( args[ i ].equals( "-demo" ) ) {
+            else if ( arg.equals( "-demo" ) ) {
+                it.remove();
                 demo = true;
-                args[ i ] = null;
             }
-            else if ( args[ i ].equals( "-disk" ) ) {
+            else if ( arg.equals( "-disk" ) ) {
+                it.remove();
                 tabfact.setStoragePolicy( StoragePolicy.PREFER_DISK );
-                args[ i ] = null;
             }
-            else if ( args[ i ].startsWith( "-" ) ) {
+            else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
+                // leave this for this later
+            }
+            else if ( arg.startsWith( "-" ) ) {
                 System.err.println( usage );
                 System.exit( 1 );
             }
         }
+
+        /* Assemble pairs of (tables name, handler name) to be loaded. */
+        List names = new ArrayList();
+        List handlers = new ArrayList();
+        String handler = null;
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
+                if ( it.hasNext() ) {
+                    handler = (String) it.next();
+                    if ( handler.equals( "auto" ) ) {
+                        handler = null;
+                    }
+                }
+                else {
+                    System.err.println( usage );
+                    System.exit( 1 );
+                }
+            }
+            else if ( arg.startsWith( "-" ) ) {
+                System.err.println( usage );
+                System.exit( 1 );
+            }
+            else {
+                names.add( arg );
+                handlers.add( handler );
+            }
+        }
+        int nload = names.size();
+        assert nload == handlers.size();
 
         /* Fine tune the logging - we don't need HDS or AST here, so 
          * stop them complaining when they can't be loaded. */
@@ -197,29 +238,32 @@ public class Driver {
             }
         }
 
-        /* Try to interpret each command line argument as a table
-         * specification. */
-        for ( int i = 0; i < args.length; i++ ) {
-            final String arg = args[ i ];
-            if ( arg != null ) {
-                try {
-                    StarTable startab = tabfact.makeStarTable( arg );
-                    if ( startab == null ) {
-                        System.err.println( "No table \"" + arg + "\"" );
-                    }
-                    else {
-                        addTableLater( tabfact.randomTable( startab ), arg );
-                    }
-                }
-                catch ( final Throwable e ) {
-                    final String msg = "Can't open table \"" + arg + "\"";
-                    System.err.println( msg );
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
+        /* Load the requested tables. */
+        for ( int i = 0; i < nload; i++ ) {
+            String name = (String) names.get( i );
+            String hand = (String) handlers.get( i );
+            try {
+                StarTable startab = tabfact.makeStarTable( name, hand );
+                addTableLater( tabfact.randomTable( startab ), name );
+            }
+            catch ( final Throwable e ) {
+                final String msg = "Can't open table \"" + name + "\"";
+                System.err.println( msg );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( e instanceof TableFormatException ) {
+                            String[] lines = { msg, e.getMessage() };
+                            JOptionPane
+                           .showMessageDialog( getControlWindow(), lines, 
+                                               "Open Error",
+                                               JOptionPane.ERROR_MESSAGE );
+ 
+                        }
+                        else {
                             ErrorDialog.showError( e, msg, getControlWindow() );
                         }
-                    } );
-                }
+                    }
+                } );
             }
         }
     }
