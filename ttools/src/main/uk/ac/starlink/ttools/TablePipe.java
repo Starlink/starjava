@@ -43,6 +43,7 @@ public class TablePipe extends TableTask {
         SelectFilter.class.getName(),
         EveryFilter.class.getName(),
         HeadFilter.class.getName(),
+        TailFilter.class.getName(),
         AddColumnFilter.class.getName(),
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
