@@ -166,6 +166,12 @@ public class FitsStarTable extends RandomStarTable {
                 isScaled[ icol ] = true;
             }
 
+            /* Comment (non-standard). */
+            String tcomm = cards.getStringValue( "TCOMM" + jcol );
+            if ( tcomm != null ) {
+                cinfo.setDescription( tcomm );
+            }
+
             /* Implementation specifics. */
             String tbcol = cards.getStringValue( "TBCOL" + jcol );
             if ( tbcol != null ) {

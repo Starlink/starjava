@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCardException;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
@@ -276,6 +277,21 @@ public class FitsTableSerializer {
                     if ( scale != 1.0 ) {
                         hdr.addValue( "TSCALE" + jcol, scale,
                                       "factor" + forcol );
+                    }
+
+                    /* Comment (non-standard). */
+                    String comm = colinfo.getDescription();
+                    if ( comm != null && comm.trim().length() > 0 ) {
+                        if ( comm.length() > 67 ) {
+                            comm = comm.substring( 0, 68 );
+                        }
+                        try {
+                            hdr.addValue( "TCOMM" + jcol, comm, null );
+                        }
+                        catch ( HeaderCardException e ) {
+                            logger.warning( "Description " + comm +
+                                            " too long for FITS header" );
+                        }
                     }
                 }
             }

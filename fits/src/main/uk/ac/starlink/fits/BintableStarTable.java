@@ -350,6 +350,12 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 auxdata.add( new DescribedValue( tformInfo, tform ) );
             }
 
+            /* Comment (non-standard). */
+            String tcomm = hdr.getStringValue( "TCOMM" + jcol );
+            if ( tcomm != null ) {
+                cinfo.setDescription( tcomm );
+            }
+
             /* Construct a data reader for this column. */
             Matcher fmatch = Pattern.compile( "([0-9]*)([LXBIJAEDCMP])(.*)" )
                                     .matcher( tform );
