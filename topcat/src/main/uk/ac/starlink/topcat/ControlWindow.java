@@ -249,6 +249,9 @@ public class ControlWindow extends AuxWindow
         if ( select || tablesList.getSelectedValue() == null ) {
             tablesList.setSelectedValue( tcModel, true );
         }
+        if ( select ) {
+            makeVisible();
+        }
     }
 
     /**
