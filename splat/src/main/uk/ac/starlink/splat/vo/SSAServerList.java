@@ -5,7 +5,6 @@
  *     11-NOV-2004 (Peter W. Draper):
  *       Original version.
  */
-
 package uk.ac.starlink.splat.vo;
 
 import java.io.File;
@@ -35,7 +34,6 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.SourceReader;
 
-
 /**
  * Container for a list of possible Simple Spectral Access Protocol
  * servers that can be used. In time this should be derived from a
@@ -47,6 +45,8 @@ import uk.ac.starlink.util.SourceReader;
 public class SSAServerList
 {
     private ArrayList serverList = new ArrayList();
+    private static String configFile = "SSAPServerList.xml";
+    private static String defaultFile = "serverlist.xml";
 
     public SSAServerList()
         throws SplatException
@@ -152,7 +152,7 @@ public class SSAServerList
         //  Locate the description file. This may exist in the user's
         //  application specific directory or, the first time, as part of the
         //  application resources.
-        File backingStore = Utilities.getConfigFile( "SSAPServerList.xml" );
+        File backingStore = Utilities.getConfigFile( configFile );
         InputStream inputStream = null;
         boolean needSave = false;
         if ( backingStore.canRead() ) {
@@ -166,7 +166,7 @@ public class SSAServerList
         if ( inputStream == null ) {
             //  Look for the built-in version.
             inputStream =
-                SSAServerList.class.getResourceAsStream( "serverlist.xml" );
+                SSAServerList.class.getResourceAsStream( defaultFile );
             needSave = true;
         }
 
@@ -227,7 +227,7 @@ public class SSAServerList
      */
     protected void saveServers()
     {
-        File backingStore = Utilities.getConfigFile( "SSAPServerList" );
+        File backingStore = Utilities.getConfigFile( configFile );
         FileOutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream( backingStore );

@@ -605,10 +605,10 @@ public class SSAQueryBrowser
                 progressPanel.logMessage( "Done" );
 
                 //  Dump query results as VOTables.
-                uk.ac.starlink.table.StarTableOutput sto =
-                    new uk.ac.starlink.table.StarTableOutput();
-                sto.writeStarTable( starTable,
-                                    "votable" + j + ".xml", null);
+                //uk.ac.starlink.table.StarTableOutput sto =
+                //    new uk.ac.starlink.table.StarTableOutput();
+                //sto.writeStarTable( starTable,
+                //                    "votable" + j + ".xml", null);
                 j++;
             }
             catch (TableFormatException te) {
