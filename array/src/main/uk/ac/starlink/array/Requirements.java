@@ -172,6 +172,33 @@ public class Requirements implements Cloneable {
         this.badHandler = handler;
         return this;
     }
+    /**
+     * Sets this object's required bad value handler to be one with a
+     * given bad value.  This convenience method does almost exactly
+     * the same as
+     * <pre>
+     *    setBadHandler(BadHandler.getHandler(getType(),badValue))
+     * </pre>
+     * It may only be called if the type has already been set.
+     *
+     * @param  badValue  the bad value which the required bad value handler
+     *         must use
+     * @return  this object
+     * @throws IllegalStateException  if no type has been set
+     * @throws IllegalArgumentException  if the type of <tt>badValue</tt>
+     *           does not match the reqired type of this object
+     */
+    public Requirements setBadValue( Number badValue ) {
+        if ( type == null && badValue != null ) {
+            throw new IllegalStateException(
+                "Cannot set bad value without set Type" );
+        }
+        else {
+            BadHandler handler = BadHandler.getHandler( type, badValue );
+            setBadHandler( handler );
+        }
+        return this;
+    }
 
     /**
      * Gets a flag indicating whether random access is required.

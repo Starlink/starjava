@@ -49,6 +49,16 @@ public class RequirementsTest extends TestCase {
         checkValue( req, mode, Type.SHORT, null, order, window, false );
     }
 
+    public void testBad() {
+        Type type = Type.SHORT;
+        Number badval = new Short( (short) 99 );
+        Requirements req = new Requirements()
+                          .setType( Type.SHORT )
+                          .setBadValue( badval );
+        assertEquals( req.getBadHandler(),
+                      BadHandler.getHandler( type, badval ) );
+    }
+
     private void checkValue( Requirements req,
                              AccessMode mode, Type type, BadHandler bh,
                              Order order, NDShape window, boolean random ) {
