@@ -44,7 +44,7 @@ import org.w3c.dom.Element;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.ast.gui.ConfigurationStore;
+import uk.ac.starlink.util.gui.StoreConfiguration;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.GraphicsHintsControls;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
@@ -454,7 +454,7 @@ public class SOGNavigatorImageDisplay
             //  Set the default configuration of the controls.
             InputStream defaultConfig =
                 getClass().getResourceAsStream( "defaultgrid.xml" );
-            ConfigurationStore store = new ConfigurationStore( defaultConfig );
+            StoreConfiguration store = new StoreConfiguration( defaultConfig );
             Element defaultElement = store.getState( 0 );
             plotConfigurator.restoreState( defaultElement );
             plotConfigurator.reset();
