@@ -30,7 +30,7 @@ public class FitsTableBuilder implements TableBuilder {
 
         try {
 
-            /* Make an Fits object. */
+            /* Make a Fits object. */
             Fits fits;
             if ( datsrc instanceof FileDataSource &&
                  datsrc.getCompression() == Compression.NONE ) {
@@ -43,6 +43,14 @@ public class FitsTableBuilder implements TableBuilder {
             /* Go through the headers until we find a table HDU. */
             for ( BasicHDU hdu; ( hdu = fits.readHDU() ) != null; ) {
                 if ( hdu instanceof TableHDU ) {
+
+                    /* This step appears to be necessary, at least for
+                     * AsciiTables, otherwise you get errors later. 
+                     * I don't really understand the nom.tam.fits model
+                     * of deferred data reading. */
+                    hdu.getData().getData();
+
+                    /* Make a table out of it. */
                     return new FitsStarTable( (TableHDU) hdu );
                 }
             }
