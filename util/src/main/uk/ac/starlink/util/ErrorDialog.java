@@ -13,6 +13,12 @@ import javax.swing.JTextArea;
 
 /**
  * Utility class for displaying an error dialog to the user.
+ * <p>
+ * <em><strong>Note</strong> 
+ * I put this class the UTIL package since a component of this sort has 
+ * obvious general use.  However, it is not especially beautifully 
+ * laid out - by all means feel free to improve it -- Mark
+ * </em>
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -42,22 +48,20 @@ public class ErrorDialog {
         th.printStackTrace( new PrintWriter( traceWriter ) );
         String trace = traceWriter.toString();
  
-        /* Set up the 'message' object for the JOptionPane. */
-        JPanel content = new JPanel();
-        BoxLayout box = new BoxLayout( content, BoxLayout.Y_AXIS );
-        content.setLayout( box );
-
-        /* Add a short text header. */
-        content.add( new JLabel( message ) );
-
         /* Add the full stack trace in a scrollable window. */
         JTextArea ta = new JTextArea();
         ta.setLineWrap( false );
         ta.setEditable( false );
         ta.append( trace );
-        JScrollPane sp = new JScrollPane( ta );
+        ta.setCaretPosition( 0 );
+        JScrollPane sp = new JScrollPane();
         sp.setMaximumSize( new Dimension( 500, 300 ) );
-        content.add( new JScrollPane( ta ) );
+        sp.setPreferredSize( new Dimension( 500, 200 ) );
+        sp.setViewportView( ta );
+
+        /* Construct the stack of objects which will form the body of 
+         * the window. */
+        Object[] content = new Object[] { message, sp };
 
         /* Present the whole lot to the user in a JOptionPane. */
         JOptionPane.showMessageDialog( parent, content, title, 
