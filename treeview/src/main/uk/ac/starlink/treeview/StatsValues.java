@@ -51,7 +51,9 @@ public class StatsValues {
     /**
      * Construct an object containing the statistics of a given NDArray,
      * specifying the chunk stepper.  This can be used monitor progress
-     * by subclassing ChunkStepper and putting callbacks in.
+     * by subclassing ChunkStepper and putting callbacks in, e.g. to
+     * control a JProgressBar
+     * (at time of writing there is an example of this in Treeview).
      *
      * @param  nda  the array to calculate stats for
      * @param  stepper  a stepper supplying the blocks in which the 
