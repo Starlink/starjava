@@ -73,6 +73,7 @@ public class RegistryPanel extends JPanel {
         queryPanel_ = new RegistryQueryPanel();
         activeItems_.add( queryPanel_ );
         qBox.add( queryPanel_ );
+        qBox.add( Box.createVerticalStrut( 5 ) );
 
         /* Component to hold submit/cancel buttons. */
         JComponent controlLine = Box.createHorizontalBox();
@@ -155,7 +156,7 @@ public class RegistryPanel extends JPanel {
     public void submitQuery() {
         
         /* Get the query specification object. */
-        final RegistryQueryPanel.Query query;
+        final RegistryQuery query;
         try {
             query = queryPanel_.getRegistryQuery();
         }
@@ -240,6 +241,19 @@ public class RegistryPanel extends JPanel {
               .makeCheckBoxMenu( name );
     }
 
+    public void setEnabled( boolean enabled ) {
+        super.setEnabled( enabled );
+        for ( Iterator it = activeItems_.iterator(); it.hasNext(); ) {
+            Object item = it.next();
+            if ( item instanceof Action ) {
+                ((Action) item).setEnabled( enabled );
+            }
+            else if ( item instanceof Component ) {
+                ((Component) item).setEnabled( enabled );
+            }
+        }
+    }
+
     /**
      * Configures this component to be working on a query or not.
      * If <tt>message</tt> is non-null, it is displayed to the user,
@@ -277,15 +291,7 @@ public class RegistryPanel extends JPanel {
             workingPanel_.add( workBox );
             scroller_.setViewportView( workingPanel_ );
         }
-        for ( Iterator it = activeItems_.iterator(); it.hasNext(); ) {
-            Object item = it.next();
-            if ( item instanceof Action ) {
-                ((Action) item).setEnabled( ! working );
-            }
-            else if ( item instanceof Component ) {
-                ((Component) item).setEnabled( ! working );
-            }
-        }
+        setEnabled( ! working );
         cancelQueryAction_.setEnabled( working );
     }
 }
