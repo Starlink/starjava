@@ -595,7 +595,6 @@ public class SOG extends JFrame
      * <p>
      * If -internalframes is specified, internal frames are used.
      * The -nointernalframes option has the opposite effect.
-     * (The default is to use internal frames under Windows only).
      * <p>
      * If -shownavigator is specified, the catalog navigator window is displayed on startup.
      * <p>
@@ -609,7 +608,7 @@ public class SOG extends JFrame
     public static void main( String args[] )
     {
         String imageFileOrUrl = null;
-        boolean internalFrames = ( File.separatorChar == '\\' );
+        boolean internalFrames = false;
         boolean showNavigator = false;
         int portNum = 0;
         boolean ok = true;
