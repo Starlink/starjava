@@ -141,7 +141,7 @@
   </xsl:template>
 
   <xsl:template match="blockcode">
-    <pre><xsl:apply-templates"/></pre>
+    <pre><xsl:apply-templates/></pre>
   </xsl:template>
 
   <xsl:template match="hidden"/>
