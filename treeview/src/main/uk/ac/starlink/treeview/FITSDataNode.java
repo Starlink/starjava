@@ -27,7 +27,8 @@ import uk.ac.starlink.util.FileDataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public abstract class FITSDataNode extends DefaultDataNode {
+public abstract class FITSDataNode extends DefaultDataNode
+                                   implements Draggable {
 
     private String name;
     private String description;
@@ -315,6 +316,10 @@ public abstract class FITSDataNode extends DefaultDataNode {
      */
     public static boolean isMagic( byte[] buffer ) {
         return FitsConstants.isMagic( buffer );
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) {
+        trans.addDataSource( datsrc, "application/fits" );
     }
 
 
