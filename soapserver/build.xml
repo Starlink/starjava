@@ -888,12 +888,14 @@
     </waitfor>
 
     <!-- Talk to server -->
+    <echo message="Sending a tomato"/>
     <java classname="EchoClient" fork="true">
       <classpath refid="tests-classpath"/>
       <arg value="tomato"/>
     </java>
 
     <!-- Make server exit -->
+    <echo message="Sending an exit"/>
     <java classname="EchoClient" fork="true">
       <classpath refid="tests-classpath"/>
       <arg value="exit"/>
