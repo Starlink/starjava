@@ -157,7 +157,9 @@ the modified table(s) to a new location.
 <p>The main body of this document explains these ideas and capabilities
 in more detail; 
 <ref id="windows"/> gives a full description of all the windows which
-form the application.
+form the application, and
+<ref id="tablecopy"/> describes a little command-line utility 
+called <label>tablecopy</label> which can copy tables between formats.
 While the program is running, this document is available via the
 online help system.
 </p>
@@ -512,12 +514,20 @@ compromise between the two, but it writes to two separate files
 files around you have to remember to keep track of both.
 </p>
 
+<p>Since you can load a tables from one format and save it in a different
+one, TOPCAT can be used to convert a table from one format to another.
+If this is all you want to do however, you may find it more 
+convenient to use the command line utility 
+<ref id="tablecopy">tablecopy</ref>.
+</p>
+
 <p>The format handling is extensible, so new formats can
 be added fairly easily.  All the table input/output is handled by 
 <webref url="http://www.starlink.ac.uk/stil/">STIL</webref>
 (the Starlink Tables Infrastructure Library); more detailed 
 descriptions of the I/O capabilities can be found in its documentation.
 </p>
+
 
 <p>The following subsections describe the available formats for reading
 and writing tables.  The two operations are separate, so not all the
@@ -4744,7 +4754,7 @@ standard included classes:
 <webref url="&URL.J2SE_JAVADOCS;java/lang/Integer.html"
         >Integer</webref>,
 <webref url="&URL.J2SE_JAVADOCS;java/lang/Float.html"
-        >Integer</webref> &amp;
+        >Float</webref> &amp;
 <webref url="&URL.J2SE_JAVADOCS;java/lang/Double.html"
         >Double</webref>.
 </p>
@@ -4761,6 +4771,112 @@ as described in <ref id="jelExtend"/>.
 </p>
 
 </subsect>
+
+</sect>
+
+<sect id="tablecopy">
+<subhead><title>Tablecopy</title></subhead>
+
+<p>By loading a table in one format and saving it to another
+it is possible to use TOPCAT to convert tabular data between
+supported 
+<ref id="inFormats">input</ref> and 
+<ref id="outFormats">output</ref> formats.
+</p>
+
+<p>However, if this is all that you want to do, there is a a
+more convenient way of doing it from the command line.  This
+avoids the overhead of starting up the GUI, prevents you having to
+point and click, and may also make more efficient use of memory.
+</p>
+
+<p>Tables can be copied between formats using the '<code>tablecopy</code>'
+command.  If you have the full Unix installation this can be invoked
+using the <code>bin/tablecopy</code> shell script.
+Alternatively, it can be invoked from the jar file by doing
+<verbatim>
+   java -classpath topcat.jar  uk.ac.starlink.table.TableCopy [args]
+</verbatim>
+(the <code>topcat-full.jar</code> or <code>table.jar</code> jarfiles
+can be used instead if those are what you have).
+All the commments about classpaths and arguments to Java itself
+described in the section on <ref id="invoke">Invoking TOPCAT</ref>
+apply here as well.
+</p>
+
+<p>The command is straightforward to use.  Typing
+<verbatim>
+    tablecopy -help
+</verbatim>
+(or 
+<code>java -classpath topcat.jar uk.ac.starlink.table.TableCopy -help</code>)
+produces the following usage message:
+<verbatim><![CDATA[
+   Usage: tablecopy [-ofmt <out-format>] <in-table> <out-table>
+
+   Known out-formats:
+      jdbc
+      fits
+      votable-tabledata
+      votable-binary-inline
+      votable-fits-href
+      votable-binary-href
+      votable-fits-inline
+      text
+      ascii
+      html
+      html-element
+      latex
+      latex-document
+      mirage
+]]></verbatim>
+The input format is sensed by examining the in-table argument, and the
+output format can be supplied using the "<code>-ofmt</code>" flag.
+If the <code>-ofmt</code> flag is not used, 
+the tool may be able to work out the required format
+by looking at the out-table argument (for instance one ending in ".FIT"
+is assumed to be a FITS table); if not it will fail with an error message
+and you will have to specify the format explicitly.
+For some output formats the special output name "-" can be used to
+represent standard output.
+</p>
+
+<p>Here are some examples of use:
+<ul>
+<li>Copy a FITS table to a VOTable:
+    <verbatim>
+    tablecopy stars.fits stars.xml
+    </verbatim>
+</li>
+
+<li>Do the same thing but to a VOTable with the data base64-encoded
+    inline in BINARY format:
+    <verbatim>
+    tablecopy -ofmt votable-binary stars.fits stars.vot
+    </verbatim>
+</li>
+
+<li>Print the contents of the fifth TABLE element in a VOTable
+    document to the screen:
+    <verbatim>
+    tablecopy -ofmt text vizier.xml#4 -
+    </verbatim>
+</li>
+
+<li>Write the results of an SQL query on a MySQL database to
+a FITS binary table:
+    <verbatim>
+    java -Djdbc.drivers=com.mysql.jdbc.Driver
+         -classpath topcat.jar:mysql-connector-java-3.0.6-stable-bin.jar
+         uk.ac.starlink.table.TableCopy
+         -ofmt fits
+         "jdbc:mysql://localhost/astro1#SELECT ra, dec, Imag, Kmag FROM dqc"
+         wfslist.cat
+    </verbatim>
+</li>
+
+</ul>
+</p>
 
 </sect>
 
