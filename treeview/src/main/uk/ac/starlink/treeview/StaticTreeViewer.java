@@ -49,6 +49,7 @@ public class StaticTreeViewer extends JFrame {
     private Action rCollapseSelAct;
     private Action expandSelAct;
     private Action collapseSelAct;
+    private Action helpAct;
 
     /** No details panel is displayed. */
     public static final short DETAIL_NONE = 0;
@@ -175,25 +176,14 @@ public class StaticTreeViewer extends JFrame {
         final JScrollPane treePanel = new JScrollPane( tree );
         treePanel.setPreferredSize( treesize );
 
-        /* This kludge is to make the divider come up in the right place;
-         * I can't seem to prevent the treepanel from shrinking to its
-         * minimum size in the splitter at startup.  So I have to set the
-         * minimum size to the initial size that I want.  However, I
-         * don't want to keep that as the minimum, so I have to reset it
-         * afterwards.  For reasons I entirely fail to understand, 
-         * even scheduling this on the event-dispatch thread at the 
-         * end of the constructor doesn't do the trick - it still shrinks
-         * to the new minimum size.  So I do it in a timer thread after
-         * delay.  Please replace this with a better way if you can 
-         * find one. */
-        treePanel.setMinimumSize( treesize );
-        javax.swing.Timer timer = 
-            new javax.swing.Timer( 3000, new ActionListener() {
-                public void actionPerformed( ActionEvent evt ) {
-                    treePanel.setMinimumSize( new Dimension( 200, 100 ) );
-                }
-            } );
-        timer.setRepeats( false );
+        /* Construct a panel to display statistics. */
+        JPanel statter = new JPanel();
+        final JLabel treeNodesLabel = new JLabel( " Visible nodes: " );
+        final JLabel modelNodesLabel = new JLabel( " Total nodes: ");
+        statter.setLayout( new GridLayout() );
+        statter.add( treeNodesLabel );
+        statter.add( modelNodesLabel );
+        getContentPane().add( statter, BorderLayout.SOUTH );
 
         /* Set up a blank detail frame for use when there is no real detail. */
         blankDetail = new JPanel();
@@ -244,15 +234,7 @@ public class StaticTreeViewer extends JFrame {
 
         /* Put things in the splitter. */
         configureSplitter( initialLayout );
-
-        /* Construct a panel to display statistics. */
-        JPanel statter = new JPanel();
-        final JLabel treeNodesLabel = new JLabel( " Visible nodes: " );
-        final JLabel modelNodesLabel = new JLabel( " Total nodes: ");
-        statter.setLayout( new GridLayout() );
-        statter.add( treeNodesLabel );
-        statter.add( modelNodesLabel );
-        getContentPane().add( statter, BorderLayout.SOUTH );
+        helpAct.actionPerformed( null );
 
         /* Set up listeners to keep the statistics displays up to date. */
         class StatWatcher implements TreeExpansionListener, TreeModelListener {
@@ -313,10 +295,19 @@ public class StaticTreeViewer extends JFrame {
             }
             private void maybeShowPopup( MouseEvent evt ) {
                 if ( evt.isPopupTrigger() ) {
+
+                    /* Work out what node, if any, has been clicked on. */
                     int x = evt.getX();
                     int y = evt.getY();
                     TreePath path = tree.getPathForLocation( x, y );
                     if ( path != null ) {
+
+                        /* Cause the popup to select this mode as well - this
+                         * is not essential but avoids some display anomalies
+                         * and it is reasonable behaviour in any case. */
+                        tree.setSelectionPath( path );
+
+                        /* Activate the popup menu. */
                         JPopupMenu popup = alterEgoPopup( path );
                         if ( popup != null ) {
                             popup.show( evt.getComponent(), x, y );
@@ -345,8 +336,7 @@ public class StaticTreeViewer extends JFrame {
         else {
             statWatcher.showNodeCount();
         }
-        timer.start();
-        splitter.validate();
+        splitter.revalidate();
     }
 
     private void setDetailPane( JComponent detail ) {
@@ -609,7 +599,7 @@ public class StaticTreeViewer extends JFrame {
         };
 
         /* Action for showing help text. */
-        Action helpAct = 
+        helpAct = 
             new AbstractAction( "Show help text",
                                 iconMaker.getIcon( IconFactory.HELP ) ) {
             public void actionPerformed( ActionEvent event ) {
@@ -649,10 +639,6 @@ public class StaticTreeViewer extends JFrame {
 
         /* Set up initial availability of actions. */
         configActs();
-
-        /* Show the help text. */
-        ActionEvent dummyEvent = new ActionEvent( this, 0, "Dummy" );
-        helpAct.actionPerformed( dummyEvent );
 
         /*
          * Set up a toolbar.
