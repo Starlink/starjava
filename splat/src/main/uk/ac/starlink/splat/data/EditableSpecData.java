@@ -14,16 +14,17 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * Extends {@link SpecData} for types of SpecDataImpl that also
- * implement the EditableSpecDataImpl interface, i.e.&nbsp;this provides
- * facilities for modifying the values and coordinates of a
- * SpecData object.
+ * An editable version of the {@link SpecData} type.  It extends 
+ * {@link SpecData} to also support the {@link EditableSpecDataImpl} 
+ * interface. This provides facilities for modifying the values and
+ * coordinates.
  * <p>
- * If requested an object can also provide a UndoManager instance that
- * can be used to undo and redo any changes.
+ * If requested an instance of this class can also provide an
+ * {@link UndoManager} that can be used to undo and redo any changes.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -291,6 +292,65 @@ public class EditableSpecData
         constructCellUndo( EditCell.ECOLUMN, index );
         editableImpl.setYDataErrorValue( index, value );
         readData();
+    }
+
+    /**
+     * Sort the coordinates into increasing order and remove any duplicates. 
+     * This makes the spectrum monotonic.
+     */
+    public void sort()
+        throws SplatException
+    {
+        //  First sort coordinates.
+        if ( yErr != null ) {
+            Sort.sort( xPos, yPos, yErr );
+        }
+        else {
+            Sort.sort( xPos, yPos );
+        }
+
+        //  Check for duplicates.
+        int ndup = 0;
+        for ( int i = 1; i < xPos.length; i++ ) {
+            if ( xPos[i-1] == xPos[i] ) {
+                ndup++;
+            }
+        }
+        if ( ndup > 0 ) {
+            int size = xPos.length - ndup;
+            double[] nc = new double[size];
+            double[] nd = new double[size];
+            double[] ne = null;
+            if ( yErr != null ) {
+                ne = new double[size];
+                nc[0] = xPos[0];
+                nd[0] = yPos[0];
+                ne[0] = yErr[0];
+                for ( int i = 1, j = 1; i < xPos.length; i++ ) {
+                    if ( xPos[i-1] != xPos[i] ) {
+                        nc[j] = xPos[i];
+                        nd[j] = yPos[i];
+                        ne[j] = yErr[i];
+                        j++;
+                    }
+                }
+            }
+            else {
+                nc[0] = xPos[0];
+                nd[0] = yPos[0];
+                for ( int i = 1, j = 1; i < xPos.length; i++ ) {
+                    if ( xPos[i-1] != xPos[i] ) {
+                        nc[j] = xPos[i];
+                        nd[j] = yPos[i];
+                        j++;
+                    }
+                }
+            }
+            setDataQuick( nc, nd, ne );
+        }
+        else {
+            setDataQuick( xPos, yPos, yErr );
+        }
     }
 
     /**
