@@ -504,13 +504,15 @@ public class PlotControlFrame
         optionsMenu.setText( "Options" );
         menuBar.add( optionsMenu );
 
-        //  Arrange to carefully align coordinates when asked
-        //  (expensive otherwise).
-        coordinateMatching = new JCheckBoxMenuItem( "Match coordinates" );
+        //  Arrange to carefully align coordinates when asked (expensive
+        //  otherwise).
+        coordinateMatching = 
+            new JCheckBoxMenuItem( "Match coordinates and/or fluxes" );
         optionsMenu.add( coordinateMatching );
         coordinateMatching.addItemListener( this );
 
-        dataUnitsMatching = new JCheckBoxMenuItem( "Match data units" );
+        dataUnitsMatching = 
+            new JCheckBoxMenuItem( "Match non-flux data units" );
         optionsMenu.add( dataUnitsMatching );
         dataUnitsMatching.addItemListener( this );
 
