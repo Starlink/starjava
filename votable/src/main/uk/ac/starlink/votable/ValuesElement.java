@@ -2,9 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Element;
 
 /**
  * Field or Param value restriction set represented by a VALUES element
@@ -12,7 +10,7 @@ import javax.xml.transform.dom.DOMSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class Values extends VOElement {
+public class ValuesElement extends VOElement {
 
     private String minimum;
     private String maximum;
@@ -21,19 +19,14 @@ public class Values extends VOElement {
     private String type;
     private boolean isInvalid;
 
-   
-    public Values( Source xsrc ) throws TransformerException {
-        this( transformToDOM( xsrc ) );
-    }
-
     /**
-     * Constructs a Values object from an XML Source containing a VALUES
-     * element.
+     * Constructs a ValuesElement object from a VALUES element.
      *
-     * @param  dsrc  a DOM Source containing a VALUES element
+     * @param  el  a VALUES element
+     * @param  systemId  document system ID
      */
-    public Values( DOMSource dsrc ) {
-        super( dsrc, "VALUES" );
+    public ValuesElement( Element el, String systemId ) {
+        super( el, systemId, "VALUES" );
         blank = getAttribute( "null" );
         type = getAttribute( "type" );
         isInvalid = getAttribute( "invalid" ) == "yes";
@@ -59,7 +52,7 @@ public class Values extends VOElement {
     }
 
     /**
-     * Returns the specified maximum value for this Values object
+     * Returns the specified maximum value for this ValuesElement object
      * (the value of any Maximum child).
      *
      * @return  maximum value, or <tt>null</tt> if none specified
@@ -69,7 +62,7 @@ public class Values extends VOElement {
     }
 
     /**
-     * Returns the specified minimum value for this Values object
+     * Returns the specified minimum value for this ValuesElement object
      * (the value of any MINIMUM child).
      *
      * @return  minimum value, or <tt>null</tt> if none specified
@@ -79,7 +72,7 @@ public class Values extends VOElement {
     }
 
     /**
-     * Returns the specified option values for this Values object.
+     * Returns the specified option values for this ValuesElement object.
      *
      * @return  an array of option strings ('value' attributes
      *          of OPTION children)
@@ -89,13 +82,13 @@ public class Values extends VOElement {
     }
 
     /**
-     * Returns the 'null' value for this Values object, that is the
+     * Returns the 'null' value for this ValuesElement object, that is the
      * value which represents an undefined data value.  This is
      * the value of the 'null' attribute of the VALUES element, 
      * but does not have anything to do with the Java language
      * <tt>null</tt> value.
      *
-     * @return   the 'null' value for this Values object or, confusingly,
+     * @return   the 'null' value for this ValuesElement object or, confusingly,
      *           <tt>null</tt> if none is defined
      */
     public String getNull() {
@@ -104,7 +97,7 @@ public class Values extends VOElement {
 
     /**
      * Returns the supplied or implied value of the 'type' attribute of this
-     * Values object. 
+     * ValuesElement object. 
      *
      * @return  one of the strings 'actual' or 'legal'
      */
@@ -114,7 +107,7 @@ public class Values extends VOElement {
 
     /**
      * Returns the sense of the supplied or implied 'invalid' attribute 
-     * of this Values object.  I don't know what the semantics of this
+     * of this ValuesElement object.  I don't know what the semantics of this
      * is supposed to be though, I can't find it referenced 
      * in the VOTable document.
      *

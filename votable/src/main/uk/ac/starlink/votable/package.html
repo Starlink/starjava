@@ -11,7 +11,7 @@ The classes in this package fall into the following categories:
     hand written which leads to classes which are more compact and
     in most cases easier to use.
 <dt>Table data access classes:
-<dd>The <tt>Table</tt> class itself is a VOTable structure class, but
+<dd>The <tt>TableElement</tt> class itself is a VOTable structure class, but
     has methods which cause the table cells themselves to be read 
     (from embedded XML or a stream) and returned.
     Most of the classes which do the work for this decoding are currently 
@@ -36,23 +36,12 @@ cases for which functionality beyond that given by the
 {@link uk.ac.starlink.votable.VOElement#getChildren} 
 is required.
 
-<p>The usual way of using these classes would be to create a 
-{@link uk.ac.starlink.votable.VOTable}
-object using one of its constructors (file, uri, etc) and then use
-the <tt>getChildren</tt> etc methods.  
-However a static method {@link uk.ac.starlink.votable.VOElement#makeVOElement} 
-is provided for constructing a <tt>VOElement</tt> from an 
-XML {@link javax.xml.transform.Source},
-so VOTable components can be made from bits of the 
-DOM tree/SAX stream/whatever if
-you're not interested in the whole document, 
-or if you prefer to navigate around the XML using other techniques.
-The purpose of using an XML <tt>Source</tt> here is twofold:
-it provides neutrality between the DOM and SAX views (and in principle others),
-and it encourages the use of a System ID associated with the 
-XML itself.  A System ID may well be required as a base for 
-resolving relative URLs, for instance those within 
-LINK or (especially) STREAM elements.
+<p>The usual way of using these classes to read a VOTable document 
+would be to use one of the static <tt>makeVOElement</tt> methods in
+{@link uk.ac.starlink.votable.VOElementFactory} to construct a 
+top-level VOElement from a file, URL, input stream, DOM or whatever
+and then to interrogate this element for its children to find 
+the elements of interest (e.g. TABLE elements).
 
 <p>A hybrid SAX/DOM parsing scheme is used, so that if a parse is done by 
 this library (when using one of the non-DOM constructors of VOElement

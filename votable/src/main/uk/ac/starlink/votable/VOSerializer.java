@@ -24,6 +24,7 @@ import uk.ac.starlink.table.StarTable;
  */
 public abstract class VOSerializer {
     final StarTable table;
+    private final DataFormat format;
 
     final static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -31,9 +32,29 @@ public abstract class VOSerializer {
      * Constructs a new serializer which can write a given StarTable.
      *
      * @param  table  the table to write
+     * @param  format  the data format being used
      */
-    private VOSerializer( StarTable table ) {
+    private VOSerializer( StarTable table, DataFormat format ) {
         this.table = table;
+        this.format = format;
+    }
+
+    /**
+     * Returns the data format which this object can serialize to.
+     *
+     * @return   output format
+     */
+    public DataFormat getFormat() {
+        return format;
+    }
+
+    /**
+     * Returns the table object which this object can serialize.
+     *
+     * @return  table to write
+     */
+    public StarTable getTable() {
+        return table;
     }
 
     /**
@@ -165,7 +186,7 @@ public abstract class VOSerializer {
         private final Encoder[] encoders;
 
         TabledataVOSerializer( StarTable table ) {
-            super( table );
+            super( table, DataFormat.TABLEDATA );
             encoders = getEncoders( table );
         }
 
@@ -201,6 +222,7 @@ public abstract class VOSerializer {
             writer.write( "</TABLEDATA>" );
             writer.newLine();
             writer.write( "</DATA>" );
+            writer.newLine();
             writer.flush();
         }
 
@@ -224,10 +246,12 @@ public abstract class VOSerializer {
          * Initialises this serializer.
          *
          * @param  table  the table it will serialize
+         * @param  format  serialization format
          * @param  tagname  the name of the XML element that contains the data
          */
-        private StreamableVOSerializer( StarTable table, String tagname ) {
-            super( table );
+        private StreamableVOSerializer( StarTable table, DataFormat format,
+                                        String tagname ) {
+            super( table, format );
             this.tagname = tagname;
         }
 
@@ -303,7 +327,7 @@ public abstract class VOSerializer {
         private final Encoder[] encoders;
 
         BinaryVOSerializer( StarTable table ) {
-            super( table, "BINARY" );
+            super( table, DataFormat.BINARY, "BINARY" );
             encoders = getEncoders( table );
         }
 
@@ -334,7 +358,7 @@ public abstract class VOSerializer {
         private final FitsTableSerializer fitser;
 
         FITSVOSerializer( StarTable table ) throws IOException {
-            super( table, "FITS" );
+            super( table, DataFormat.FITS, "FITS" );
             fitser = new FitsTableSerializer( table );
         }
 

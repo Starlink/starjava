@@ -1,24 +1,18 @@
 package uk.ac.starlink.votable;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Element;
 
 /**
  * Object representing a PARAM element in a VOTable.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class Param extends Field {
+public class ParamElement extends FieldElement {
 
     private Object valueObject;
 
-    public Param( Source xsrc ) throws TransformerException {
-        this( transformToDOM( xsrc ) );
-    }
-
-    public Param( DOMSource dsrc ) {
-        super( dsrc, "PARAM" );
+    public ParamElement( Element el, String systemId ) {
+        super( el, systemId, "PARAM" );
     }
 
     /**

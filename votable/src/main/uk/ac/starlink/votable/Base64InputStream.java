@@ -45,7 +45,7 @@ import java.util.Arrays;
  *
  * @author  Mozilla project
  */
-public class Base64InputStream extends FilterInputStream {
+class Base64InputStream extends FilterInputStream {
 
     private static final int WOULD_BLOCK = -2;
 

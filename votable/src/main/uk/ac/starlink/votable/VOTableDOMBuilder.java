@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -99,9 +97,9 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         int ncol = fieldList.size();
         Decoder[] decoders = new Decoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            DOMSource dsrc = new DOMSource( (Element) fieldList.get( icol ), 
-                                            systemId );
-            decoders[ icol ] = new Field( dsrc ).getDecoder();
+            decoders[ icol ] = 
+                new FieldElement( (Element) fieldList.get( icol ), systemId )
+               .getDecoder();
         }
         return decoders;
     }

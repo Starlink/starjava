@@ -10,9 +10,6 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -37,55 +34,47 @@ import uk.ac.starlink.util.URLUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class Table extends VOElement {
+public class TableElement extends VOElement {
 
-    private final Field[] fields;
-    private final Link[] links;
+    private final FieldElement[] fields;
+    private final LinkElement[] links;
     private final TabularData tdata;
 
     private final static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.votable" );
 
-    public Table( Source xsrc ) throws TransformerException {
-        this( transformToDOM( xsrc ) );
-    }
-
     /**
-     * Constructs a Table object from a TABLE element.
+     * Constructs a TableElement object from a TABLE element.
      *
-     * @param   dsrc  DOM Source containing a TABLE element
+     * @param   el  TABLE element
+     * @param   systemId  document system ID
      */
-    public Table( DOMSource dsrc ) {
-        super( dsrc, "TABLE" );
+    public TableElement( Element el, String systemId ) {
+        super( el, systemId, "TABLE" );
 
         /* Deal with known metadata children. */
-        Element tableEl = getElement();
         List fieldList = new ArrayList();
         List linkList = new ArrayList();
-        for ( Node nd = tableEl.getFirstChild(); nd != null;
-              nd = nd.getNextSibling() ) {
-            if ( nd instanceof Element ) {
-                Element el = (Element) nd;
-                String elname = el.getTagName();
+        for ( Node ch = el.getFirstChild(); ch != null;
+              ch = ch.getNextSibling() ) {
+            if ( ch instanceof Element ) {
+                Element childEl = (Element) ch;
+                String elname = childEl.getTagName();
                 if ( elname.equals( "FIELD" ) ) {
-                    Field field = 
-                        new Field( new DOMSource( el, getSystemId() ) );
-                    fieldList.add( field );
+                    fieldList.add( new FieldElement( childEl, systemId ) );
                 }
                 if ( elname.equals( "LINK" ) ) {
-                    Link link =
-                        new Link( new DOMSource( el, getSystemId() ) );
-                    linkList.add( link );
+                    linkList.add( new LinkElement( childEl, systemId ) );
                 }
             }
         }
-        fields = (Field[]) fieldList.toArray( new Field[ 0 ] );
-        links = (Link[]) linkList.toArray( new Link[ 0 ] );
+        fields = (FieldElement[]) fieldList.toArray( new FieldElement[ 0 ] );
+        links = (LinkElement[]) linkList.toArray( new LinkElement[ 0 ] );
 
         /* Obtain and store the data access object. */ 
         TabularData td;
         try {
-            td = getTabularData( tableEl, fields, getSystemId() );
+            td = getTabularData( el, fields, getSystemId() );
         }
         catch ( IOException e ) {
             int ncol = fields.length;
@@ -130,13 +119,13 @@ public class Table extends VOElement {
     }
 
     /**
-     * Returns one of the Field objects associated with this table.
+     * Returns one of the FieldElement objects associated with this table.
      *
      * @param  index  the index of the field to return 
      * @return  the filed at index <tt>index</tt>
      * @throws  IndexOutOfBoundsException unless 0&lt;=index&lt;numColumns
      */
-    public Field getField( int index ) {
+    public FieldElement getField( int index ) {
         return fields[ index ];
     }
 
@@ -150,7 +139,8 @@ public class Table extends VOElement {
      * @param  systemId  sytem identifier of the document
      * @return  data access object for the table in <tt>tableEl</tt>
      */
-    private static TabularData getTabularData( Element tableEl, Field[] fields,
+    private static TabularData getTabularData( Element tableEl,
+                                               FieldElement[] fields,
                                                String systemId )
             throws IOException {
         int ncol = fields.length;

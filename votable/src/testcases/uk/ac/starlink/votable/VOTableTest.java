@@ -5,8 +5,8 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.ArrayList;
 import java.net.URL;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
@@ -18,9 +18,9 @@ public class VOTableTest extends TestCase {
         super( name );
     }
 
-    public void testTable() throws TransformerException, IOException {
+    public void testTable() throws SAXException, IOException {
         URL votloc = getClass().getResource( "docexample.xml" );
-        VOTable vot = new VOTable( votloc, true );
+        VOElement vot = VOElementFactory.makeVOElement( votloc );
 
         VOElement defs = vot.getChildByName( "DEFINITIONS" );
         VOElement coosys = defs.getChildByName( "COOSYS" );
@@ -29,14 +29,14 @@ public class VOTableTest extends TestCase {
         assertEquals( "Absent", coosys.getAttribute( "nope", "Absent" ) );
 
         VOElement res = vot.getChildByName( "RESOURCE" );
-        Param param = (Param) res.getChildByName( "PARAM" );
+        ParamElement param = (ParamElement) res.getChildByName( "PARAM" );
         String pdesc = param.getDescription();
         assertTrue( pdesc.startsWith( "This parameter is designed" ) );
         String pval = param.getValue();
         String pobj = (String) param.getObject();
         assertEquals( pval, pobj );
  
-        Table tab = (Table) res.getChildrenByName( "TABLE" )[ 0 ];
+        TableElement tab = (TableElement) res.getChildrenByName( "TABLE" )[ 0 ];
         int ncol = tab.getColumnCount();
         long nrow = tab.getRowCount();
         assertEquals( 3L, nrow );

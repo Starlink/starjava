@@ -1,18 +1,14 @@
 package uk.ac.starlink.votable;
 
-import java.lang.reflect.Array;
 import java.util.logging.Logger;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
 
 /**
  * Table column characteristics represented by a FIELD element in a VOTable.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class Field extends VOElement {
+public class FieldElement extends VOElement {
 
     private final long[] arraysize;
     private final Decoder decoder;
@@ -22,21 +18,17 @@ public class Field extends VOElement {
     private String ucd;
     private boolean isVariable;
     private long sliceSize;
-    private Values actualValues;
-    private Values legalValues;
+    private ValuesElement actualValues;
+    private ValuesElement legalValues;
 
     static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
-    public Field( Source xsrc ) throws TransformerException {
-        this( transformToDOM( xsrc ) );
+    public FieldElement( Element el, String systemId ) {
+        this( el, systemId, "FIELD" );
     }
 
-    public Field( DOMSource dsrc ) {
-        this( dsrc, "FIELD" );
-    }
-
-    Field( DOMSource dsrc, String tagname ) {
-        super( dsrc, tagname );
+    FieldElement( Element el, String systemId, String tagname ) {
+        super( el, systemId, tagname );
 
         /* Get datatype. */
         datatype = getAttribute( "datatype" );
@@ -91,7 +83,7 @@ public class Field extends VOElement {
         for ( int i = 0; i < children.length; i++ ) {
             VOElement child = children[ i ];
             if ( child.getTagName().equals( "VALUES" ) ) {
-                Values vals = (Values) child;
+                ValuesElement vals = (ValuesElement) child;
                 if ( vals.getType().equals( "legal" ) ) {
                     legalValues = vals;
                 }
@@ -139,7 +131,7 @@ public class Field extends VOElement {
     }
 
     /**
-     * Returns the 'null' value for this Field.
+     * Returns the 'null' value for this FieldElement.
      * This is the value of the 'null' attribute of the VALUES child
      * with type='legal', or if that doesn't exist the 'null' attribute
      * of the VALUES child with type='actual' (this is some kind of
@@ -180,7 +172,7 @@ public class Field extends VOElement {
      *
      * @return  the 'legal' Values object
      */
-    public Values getLegalValues() {
+    public ValuesElement getLegalValues() {
         return legalValues;
     }
 
@@ -190,7 +182,7 @@ public class Field extends VOElement {
      *
      * @return  the 'actual' Values object
      */
-    public Values getActualValues() {
+    public ValuesElement getActualValues() {
         return actualValues;
     }
 

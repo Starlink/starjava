@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -222,7 +221,7 @@ class TableCopier extends CustomDOMBuilder {
 
         Element tableEl = (Element) getNewestNode();
         List fieldList = new ArrayList();
-        Field[] fields;
+        FieldElement[] fields;
         Decoder[] decoders;
 
         public void startElement( String namespaceURI, String localName,
@@ -237,21 +236,20 @@ class TableCopier extends CustomDOMBuilder {
             String tagName = getTagName( namespaceURI, localName, qName );
             if ( "DATA".equals( tagName ) ) {
                 int ncol = fieldList.size();
-                fields = new Field[ ncol ];
+                fields = new FieldElement[ ncol ];
                 decoders = new Decoder[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    DOMSource dsrc = 
-                        new DOMSource( (Element) fieldList.get( icol ),
-                                       systemId );
-                    fields[ icol ] = new Field( dsrc );
+                    fields[ icol ] = 
+                        new FieldElement( (Element) fieldList.get( icol ),
+                                          systemId );
                     decoders[ icol ] = fields[ icol ].getDecoder();
                 }
-                DOMSource dsrc = new DOMSource( tableEl, systemId );
-                StarTable startable = new VOStarTable( new Table( dsrc ) ) {
-                    public long getRowCount() {
-                        return -1L;
-                    }
-                };
+                StarTable startable = 
+                    new VOStarTable( new TableElement( tableEl, systemId ) ) {
+                        public long getRowCount() {
+                            return -1L;
+                        }
+                    };
                 sink.acceptMetadata( startable );
                 super.startElement( namespaceURI, localName, qName, atts );
                 return;

@@ -14,7 +14,7 @@ import java.io.IOException;
  * can be used to retrieve cell values in any order.
  * <p>
  * The objects retrieved from cells in a given column are of course
- * determined by the corresponding FIELD element ({@link Field} object),
+ * determined by the corresponding FIELD element ({@link FieldElement} object),
  * in particular its <tt>arraysize</tt> and <tt>datatype</tt> attributes.
  * What object is returned from each column is described by the following
  * rules:

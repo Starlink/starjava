@@ -4,8 +4,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.regex.Pattern;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,15 +54,18 @@ public class VOTableBuilder implements TableBuilder {
         }
 
         /* Try to get a VOTable object from this source. */
-        VOTable votable;
+        VOElement votable;
         try {
-            votable = new VOTable( datsrc, false );
+            votable = VOElementFactory.makeVOElement( datsrc );
         }
 
-        /* If we have got a TransformerException it's probably because 
+        /* If we have got an Exception it's probably because 
          * it wasn't XML.  Return null to indicate it wasn't our kind
          * of input. */
-        catch ( TransformerException e ) {
+        catch ( SAXException e ) {
+            return null;
+        }
+        catch ( IOException e ) {
             return null;
         }
 
@@ -100,11 +101,10 @@ public class VOTableBuilder implements TableBuilder {
         /* Find the first TABLE element within the VOTable.  This is a
          * short-term measure - in due course there should be some way
          * (XPath) of indicating which TABLE we want to look at. */
-        DOMSource tableSrc = 
-            findTableElement( (DOMSource) votable.getSource(), itab );
+        TableElement tableEl = findTableElement( votable, itab );
 
         /* If it's null, then we haven't found one. */
-        if ( tableSrc == null ) {
+        if ( tableEl == null ) {
             if ( itab == 0 ) {
                 throw new IOException( 
                     "VOTable document contained no TABLE elements" );
@@ -117,7 +117,7 @@ public class VOTableBuilder implements TableBuilder {
         }
 
         /* Adapt the TABLE element to a StarTable. */
-        return new VOStarTable( new Table( tableSrc ) );
+        return new VOStarTable( tableEl );
     }
 
     /**
@@ -169,31 +169,14 @@ public class VOTableBuilder implements TableBuilder {
      * Performs a (breadth-first) search to locate any descendents of the
      * given VOElement which are Table elements.
      *
-     * @param  vosrc  a starting element
+     * @param  voEl  a starting element
      * @param  index  the index of the required table (0 is first)
-     * @return  a source representing a Table element which is a 
+     * @return  a Table element which is the <tt>index</tt>'th TABLE 
      *          descendent of <tt>vosrc</tt>,
      *          or <tt>null</tt> if there isn't one
      */
-    private static DOMSource findTableElement( DOMSource vosrc, int index ) {
-        Node vonode = vosrc.getNode();
-        Element voel;
-        if ( vonode instanceof Element ) {
-            voel = (Element) vonode;
-        }
-        else if ( vonode instanceof Document ) {
-            voel = ((Document) vonode).getDocumentElement();
-        }
-        else {
-            throw new IllegalArgumentException( "Not an Element or Document" );
-        }
-        NodeList tables = voel.getElementsByTagName( "TABLE" );
-        if ( tables.getLength() > index ) {
-            return new DOMSource( tables.item( index ), vosrc.getSystemId() );
-        }
-        else {
-            return null;
-        }
+    private static TableElement findTableElement( VOElement voEl, int index ) {
+        VOElement[] tables = voEl.getDescendantsByName( "TABLE" );
+        return index < tables.length ? (TableElement) tables[ index ] : null;
     }
-    
 }

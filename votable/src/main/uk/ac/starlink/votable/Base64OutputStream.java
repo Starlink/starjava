@@ -54,7 +54,7 @@ import java.io.IOException;
  * @author  Mozilla project
  * @author  Mark Taylor (Starlink)
  */
-public class Base64OutputStream extends FilterOutputStream {
+class Base64OutputStream extends FilterOutputStream {
 
         static byte[] endLine;
         static {

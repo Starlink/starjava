@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.transform.Source;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -20,7 +19,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class VOStarTable extends AbstractStarTable {
 
-    private Table votable;
+    private TableElement votable;
     private TabularData tdata;
     private List params;
     private ColumnInfo[] colinfos;
@@ -45,7 +44,7 @@ public class VOStarTable extends AbstractStarTable {
      *
      * @param  votable  Table VOElement
      */
-    public VOStarTable( Table votable ) {
+    public VOStarTable( TableElement votable ) {
         this.votable = votable;
         this.tdata = votable.getData();
         int ncol = tdata.getColumnCount();
@@ -68,7 +67,7 @@ public class VOStarTable extends AbstractStarTable {
 
         /* Lazily construct the columninfo object. */
         if ( colinfos[ icol ] == null ) {
-            Field field = votable.getField( icol );
+            FieldElement field = votable.getField( icol );
             ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
 
             /* Set up auxiliary metadata for this column according to the
@@ -133,7 +132,7 @@ public class VOStarTable extends AbstractStarTable {
             if ( parent != null && parent.getTagName().equals( "RESOURCE" ) ) {
                 VOElement[] paramels = parent.getChildrenByName( "PARAM" );
                 for ( int i = 0; i < paramels.length; i++ ) {
-                    Param pel = (Param) paramels[ i ];
+                    ParamElement pel = (ParamElement) paramels[ i ];
                     DescribedValue dval = 
                         new DescribedValue( getValueInfo( pel ),
                                             pel.getObject() );
@@ -187,11 +186,11 @@ public class VOStarTable extends AbstractStarTable {
      * other metadata in the returned object are taken from the 
      * relevant bits of the supplied field.
      *
-     * @param   field  the Field object for which the ValueInfo is to be
+     * @param   field  the FieldElement object for which the ValueInfo is to be
      *          constructed
      * @return  a ValueInfo suitable for <tt>field</tt>
      */
-    private static ValueInfo getValueInfo( Field field ) {
+    private static ValueInfo getValueInfo( FieldElement field ) {
         Decoder decoder = field.getDecoder();
         Class clazz = decoder.getContentClass();
         String name = field.getHandle();

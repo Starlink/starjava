@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
@@ -104,25 +105,24 @@ public class SerializerTest extends TestCase {
         checkBadSource( new DOMSource( doc, null ) );
     }
 
-    private void checkOKSource( Source xsrc )
-            throws TransformerException, IOException {
-        VOElement res = new VOElement( xsrc );
-        Table table = (Table) res.getChildByName( "TABLE" );
+    private void checkOKSource( Source xsrc ) throws SAXException, IOException {
+        VOElement res = VOElementFactory.makeVOElement( xsrc );
+        TableElement table = (TableElement) res.getChildByName( "TABLE" );
         checkTableValues( table );
     }
 
     private void checkBadSource( Source xsrc )
             throws TransformerException, IOException {
         try {
-            VOElement res = new VOElement( xsrc );
-            Table table = (Table) res.getChildByName( "TABLE" );
+            VOElement res = VOElementFactory.makeVOElement( xsrc );
+            TableElement table = (TableElement) res.getChildByName( "TABLE" );
             RowStepper rstep = table.getData().getRowStepper();
             assertNull( "If the table can be constructed, " +
                         "it should have no rows", rstep.nextRow() );
         }
         catch ( FileNotFoundException e ) {
         }
-        catch ( TransformerException e ) {
+        catch ( SAXException e ) {
         }
     }
 
@@ -181,18 +181,23 @@ public class SerializerTest extends TestCase {
          * depending on whether the parse to DOM is done inside or outside
          * the VOTable package. */
         List vodocs = new ArrayList();
-        Document docnode =
-            (Document)
-            new SourceReader()
-           .getDOM( new StreamSource( new ByteArrayInputStream( xmltext ) ) );
-        Source xsrc = new DOMSource( docnode, null );
-        vodocs.add( new VOTable( new ByteArrayInputStream( xmltext ), false ) );
-        vodocs.add( new VOTable( new ByteArrayInputStream( xmltext ), true ) );
-        vodocs.add( new VOTable( docnode ) );
-        vodocs.add( new VOTable( (Source) xsrc ) );
-        vodocs.add( new VOTable( (DOMSource) xsrc ) );
+        Document docnode1 = (Document) new SourceReader()
+                           .getDOM( new StreamSource( asStream( xmltext ) ) );
+        vodocs.add( VOElementFactory
+                   .makeVOElement( new ByteArrayInputStream( xmltext ), 
+                                   null ) );
+        vodocs.add( VOElementFactory.makeVOElement( docnode1, null ) );
+        Source xsrc = new DOMSource( docnode1, null );
+        vodocs.add( VOElementFactory.makeVOElement( (Source) xsrc ) );
+        vodocs.add( VOElementFactory.makeVOElement( (DOMSource) xsrc ) );
+        DOMSource dsrc0 = VOElementFactory.
+            transformToDOM( new StreamSource( asStream( xmltext ) ), false );
+        DOMSource dsrc1 = VOElementFactory.
+            transformToDOM( new StreamSource( asStream( xmltext ) ), true );
+        vodocs.add( VOElementFactory.makeVOElement( dsrc0 ) );
+        vodocs.add( VOElementFactory.makeVOElement( dsrc1 ) );
         for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
-            exerciseVOTableDocument( (VOTable) it.next() );
+            exerciseVOTableDocument( (VOElement) it.next() );
         }
 
         /* Test the copyStarTable method; get each table in turn. */
@@ -224,23 +229,28 @@ public class SerializerTest extends TestCase {
 
     }
 
-    private void exerciseVOTableDocument( VOTable vodoc ) throws IOException {
+    private static InputStream asStream( byte[] text ) {
+        return new ByteArrayInputStream( text );
+    }
+
+    private void exerciseVOTableDocument( VOElement vodoc ) throws IOException {
         int ncol = table0.getColumnCount();
 
         VOElement res = vodoc.getChildByName( "RESOURCE" );
         VOElement[] tables = res.getChildren();
-        assertEquals( tables.length, res.getChildrenByName( "TABLE" ).length );
+        assertArrayEquals( tables, res.getChildrenByName( "TABLE" ) );
+        assertArrayEquals( tables, res.getDescendantsByName( "TABLE" ) );
         assertEquals( 5, tables.length );
 
         for ( int itab = 0; itab < tables.length; itab++ ) {
-            checkTableValues( (Table) tables[ itab ] );
+            checkTableValues( (TableElement) tables[ itab ] );
         }
 
-        Table tTabIn = (Table) tables[ 0 ];
-        Table bTabIn = (Table) tables[ 1 ];
-        Table fTabIn = (Table) tables[ 2 ];
-        Table bTabEx = (Table) tables[ 3 ];
-        Table fTabEx = (Table) tables[ 4 ];
+        TableElement tTabIn = (TableElement) tables[ 0 ];
+        TableElement bTabIn = (TableElement) tables[ 1 ];
+        TableElement fTabIn = (TableElement) tables[ 2 ];
+        TableElement bTabEx = (TableElement) tables[ 3 ];
+        TableElement fTabEx = (TableElement) tables[ 4 ];
 
         VOElement bStrIn = bTabIn.getChildByName( "DATA" )
                                  .getChildByName( "BINARY" )
@@ -268,7 +278,7 @@ public class SerializerTest extends TestCase {
                     null == fStrEx.getAttribute( "encoding" ) );
     }
 
-    private void checkTableValues( Table votab ) throws IOException {
+    private void checkTableValues( TableElement votab ) throws IOException {
             
         RowSequence rseq = table0.getRowSequence();
         int ncol = table0.getColumnCount();
