@@ -39,7 +39,7 @@
         name  CDATA #IMPLIED
         ucd   CDATA #IMPLIED
 	utype CDATA #IMPLIED
-        value CDATA #IMPLIED
+        value CDATA #REQUIRED
         arraysize CDATA #IMPLIED
 >
 
