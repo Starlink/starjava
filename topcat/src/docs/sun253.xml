@@ -5,6 +5,10 @@
   <!ENTITY % image-defs SYSTEM "image.defs">
   %image-defs;
 
+  <!-- Define automatically generated text entities. -->
+  <!ENTITY general.runtime.method.docs SYSTEM "general-javadocs.xml">
+  <!ENTITY activation.runtime.method.docs SYSTEM "activation-javadocs.xml">
+
   <!-- Define illustrations -->
   <!ENTITY figs '../figures/'>
   <!ENTITY FIG.ControlWindow '&figs;ControlWindow.gif'>
@@ -1523,131 +1527,112 @@ The common ones are:
 
 </subsect>
 
-<subsect>
+<subsect id="staticMethods">
 <subhead><title>Functions</title></subhead>
 
-<p>All the static methods of Java's <code>Math</code> class
-and some other classes are available.
-You can see a full listing of these in the
-<ref id="MethodWindow">Available Functions Window</ref>.
-Some of the more useful ones are as follows:
-
-<dl>
-<dt>Math static methods</dt>
-<dd><p>These can be used for general mathematical manipulations, and 
-    include all the standard trigonometric functions etc, including:
-    <dl>
-    <dt><code>abs(x)</code>         (absolute value)</dt>
-    <dt><code>cos(x)</code>         (cosine)</dt>
-    <dt><code>sqrt(x)</code>        (square root)</dt>
-    <dt><code>max(a,b)</code>       (maximum)</dt>
-    <dt><code>min(a,b)</code>       (minimum)</dt>
-    <dt><code>max(a,b)</code>       (maximum)</dt>
-    <dt><code>pow(a,b)</code>       (exponentiation)</dt>
-    <dt><code>toDegrees(rad)</code> (angle conversion)</dt>
-    <dt><code>toRadians(deg)</code> (angle conversion)</dt>
-    </dl>
-    (full details in the 
-    <webref url="&URL.J2SE_JAVADOCS;java/lang/Math.html">Math</webref> javadocs)
-</p></dd>
-
-<dt>Angle static methods</dt>
-<dd><p>Most of these are concerned with converting angles between 
-    sexagesimal format (a string representing either 
-    hours:minutes:seconds or degrees:arcminutes:arcseconds)
-    and a floating point number in radians.
-    <dl>
-    <dt><code>dmsToRadians(dms)</code> 
-              (DD:MM:SS string to radians)</dt>
-    <dt><code>hmsToRadians(hms)</code>
-              (HH:MM:SS string to radians)</dt>
-    <dt><code>dmsToRadians(deg,min,sec)</code>
-              (degrees, arcmin, arcsec numbers to radians)</dt>
-    <dt><code>hmsToRadians(hr,min,sec)</code>
-              (hours, minutes, seconds numbers to radians)</dt>
-    <dt><code>radiansToDms(rad)</code>
-              (formats an angle in radians as a DD:MM:SS string)</dt>
-    <dt><code>(radiansToDms(rad,precision)</code>
-              (formats an angle as a DD:MM:SS.S string with a given number
-               of decimal places)</dt>
-    <dt><code>radiansToHms(rad)</code>
-              (formats an angle in radians as a HH:MM:SS string)</dt>
-    <dt><code>radiansToDms(rad,precision)</code>
-              (formats an angle as a HH:MM:SS.S string with a given number
-               of decimal places)</dt>
-    <dt><code>skyDistance(ra1,dec1,ra2,dec2)</code>
-              (separation of points in radians along a great circle)</dt>
-    <dt><code>degreesToRadians(deg)</code>
-              (converts degrees to radians)</dt>
-    <dt><code>radiansToDegrees(rad)</code>
-              (converts radians to degrees)</dt>
-    </dl>
-    When decoding a DD:MM:SS or HH:MM:SS string, the separators may be
-    colons, spaces, or some other things.
-</p></dd>
-
-<dt>Boolean String instance methods</dt>
-<dd><p>These perform tests on strings.  Note you should use the
-    <code>equals</code> method listed here 
-    to test string equality rather than the
-    <code>==</code> operator.
-    <dl>
-    <dt><code>startsWith(s)</code>        (comparison)</dt>
-    <dt><code>endsWith(s)</code>          (comparison)</dt>
-    <dt><code>equals(s)</code>            (equality)</dt>
-    <dt><code>equalsIgnoreCase(s)</code>  (case-insensitive)</dt>
-    <dt><code>matches(regex)</code>       (regular expression matching)</dt>
-    </dl>
-    (full details in the 
-    <webref url="&URL.J2SE_JAVADOCS;java/lang/String.html">String</webref>
-    javadocs)
-</p></dd>
-
-<dt>String instance methods returning Strings</dt>
-<dd><p>These can be used to modify strings.
-    <dl>
-    <dt><code>substring(begin)</code>     (extract end of string)</dt>
-    <dt><code>substring(begin,end)</code> (extract from middle of string)</dt>
-    <dt><code>toUpper(s)</code>           (case folding)</dt>
-    <dt><code>toLower(s)</code>           (case folding)</dt>
-    </dl>
-    (full details in the 
-    <webref url="&URL.J2SE_JAVADOCS;java/lang/String.html">String</webref>
-    javadocs)
-    </p>
-
-    <p>Note that since these ones are, in the java jargon, 
-    <em>instance methods</em>,
-    they are applied by appending them after a dot to the string they 
-    are going to operate on.  Thus, to test whether the values in the
-    column "Name" start with the letters "NGC", you would write
-    <verbatim>
-      Name.startsWith("NGC")
-    </verbatim>
-</p></dd>
-
-<dt>Numeric wrapper class static methods</dt>
-<dd><p>These methods convert between strings and the various numeric
-    types:
-    <dl>
-    <dt><code>toString(n)</code>    (numeric -> String)</dt>
-    <dt><code>parseByte(s)</code>   (String -> signed byte)</dt>
-    <dt><code>parseShort(s)</code>  (String -> 2-byte integer)</dt>
-    <dt><code>parseInt(s)</code>    (String -> 4-byte integer)</dt>
-    <dt><code>parseLong(s)</code>   (String -> 8-byte integer)</dt>
-    <dt><code>parseFloat(s)</code>  (String -> 4-byte floating point)</dt>
-    <dt><code>parseDouble(s)</code> (String -> 8-byte floating point)</dt>
-    </dl>
-    (full details in the javadocs for subclasses of 
-    <webref url="&URL.J2SE_JAVADOCS;java/lang/Number.html">Number</webref>)
-</p></dd>
-</dl>
+<p>Many functions are available for use within your expressions,
+covering standard mathematical and trigonometric functions,
+arithmetic utility functions, type conversions, and some more 
+specialised astronomical ones, as well as providing actions
+to take when a point is activated.
+You can use them in just the way you'd expect,
+by using the function name 
+(unlike column names, this is case-sensitive) followed by 
+comma-separated arguments in brackets, so
+<verbatim>
+    max(IMAG,JMAG)
+</verbatim>
+will give you the larger of the values in the columns IMAG and JMAG,
+and so on.
 </p>
 
-<p>Technical note for Java programmers: the public static methods of
-these classes are imported into the expression namespace, so unlike
-java you should write "<code>sqrt(x)</code>" and not
-"<code>Math.sqrt(x)</code>".  Namespace clashes are a possibility.
+<p>The functions available for use by default 
+are listed by class in the following subsections,
+one for general functions (used in defining new synthetic columns or 
+row subsets) and the other for activation functions
+(used only for defining activation actions).
+More detailed documentation of what these functions do, 
+the meaning of their parameters examples of use etc
+is available from within TOPCAT in the 
+<ref id="MethodWindow">Available Functions Window</ref>.
+</p>
+
+<subsubsect>
+<subhead><title>General Functions</title></subhead>
+
+<p>The following functions can be used anywhere that you can write an
+algebraic expression in TOPCAT.  They will typically be used for
+defining new synthetic columns or algebraically-defined row subsets.
+&general.runtime.method.docs;
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Activation Functions</title></subhead>
+
+<p>The following functions can be used only for defining activation
+actions - they mostly deal with causing something to happen, such
+as popping up an immage display window.  They generally return a 
+short string, which will be logged to the user to give a short
+indication of what happened (or didn't happen, or should have happened).
+&activation.runtime.method.docs;
+</p>
+
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Technical Note</title></subhead>
+
+<p>This note provides a bit more detail for Java programmers on what
+is going on here; only read on if you want to understand how the use
+of functions in TOPCAT algebraic expressions relates to normal Java
+code.
+</p>
+
+<p>The expressions which you write are compiled to Java bytecode
+when you enter them.  The functions listed in the previous subsections
+are all the <code>public static</code> methods of the classes which
+are made available by default.  The classes listed are all in the
+package uk.ac.starlink.topcat.func 
+(<code>uk.ac.starlink.topcat.func.Strings</code> etc).
+However, the public static methods are all imported into an anonymous
+namespace for bytecode compilation, so that you write
+(<code>sqrt(x,y)</code> and not <code>Maths.sqrt(x,y)</code>.
+The same happens to other classes that are imported (which can be
+in any package or none) - their public
+static methods all go into the anonymous namespace.  Thus, method
+name clashes are a possibility.
+</p>
+
+<p>This cleverness is all made possible by the rather wonderful
+<webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>.
+</p>
+
+</subsubsect>
+
+</subsect>
+
+<subsect>
+<subhead><title>Instance Methods</title></subhead>
+
+<p>There is another category of functions which can be used apart from
+those listed in the <ref id="staticMethods">previous section</ref>.
+These are called, in Java/object-oriented parlance, "instance methods"
+and represent functions that can be executed on an object.
+</p>
+
+<p>It is possible to invoke any of its public 
+instance methods on any object 
+(though not on primitive values - numeric and boolean ones).
+The syntax is that you place a "." followed by the method invocation
+after the object you want to invoke the method on, 
+hence <code>NAME.substring(3)</code> instead of <code>substring(NAME,3)</code>.
+If you know what you're doing, feel free to go ahead and do this.
+However, most of the instance methods you're likely to want to use 
+have equivalents in the normal functions listed in the previous section,
+so unless you're a Java programmer or feeling adventurous, you are
+probably best off ignoring this feature.
 </p>
 
 </subsect>
@@ -1689,6 +1674,11 @@ java you should write "<code>sqrt(x)</code>" and not
 <dd><p><verbatim>
     (short) obs_type
     (double) range
+</verbatim>
+<em>or</em>
+<verbatim>
+     toShort(obs_type)
+     toDouble(range)
 </verbatim></p></dd>
 
 <dt>Conversion from sexagesimal to radians</dt>
@@ -1746,14 +1736,14 @@ to define <ref id="subsets">row subsets</ref>
 
 <dt>String equality/matching</dt>
 <dd><p><verbatim>
-    CONSTELLATION.equals("CYGNUS")
-    CONSTELLATION.equalsIgnoreCase("cygnus")
-    CONSTELLATION.startsWith("CYG")
+    equals(SECTOR, "ZZ9 Plural Z Alpha")
+    equalsIgnoreCase(SECTOR, "zz9 plural z alpha")
+    startsWith(SECTOR, "ZZ")
 </verbatim></p></dd>
 
 <dt>String regular expression matching</dt>
 <dd><p><verbatim>
-    name.matches("M[0-9]+")
+    matches(SECTOR, "[XYZ] Alpha")
 </verbatim></p></dd>
 
 <dt>Combining subsets</dt>

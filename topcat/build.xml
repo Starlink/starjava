@@ -413,21 +413,6 @@
       <fileset dir="${src.docs}" includes="figures/*"/>
     </copy>
 
-    <!-- Do a custom javadoc run on the classes whose documentation is 
-     !   required at runtime, writing the result to the built resources
-     !   location. -->
-    <javadoc destdir="${build.classes}"
-             classpathref="classpath"
-             public="true"
-             doclet="uk.ac.starlink.topcat.doc.HtmlDoclet"
-             additionalparam="-headings"
-             docletpath="${build.classes}"
-             source="${source.version}">
-      <packageset dir="${java.dir}" defaultexcludes="yes">
-        <include name="uk/ac/starlink/topcat/func"/>
-      </packageset>
-    </javadoc>
-
     <!-- Version string. -->
     <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
           message="${version}"/>
@@ -997,6 +982,12 @@
       <link offline="true" href="${javaapi.url}"
             packagelistLoc="${javaapi.lis}"/>
 
+      <!-- Cope with custom tags. -->
+      <tag name="example"
+           description="Example"
+           scope="methods, fields"
+           enabled="true"/>
+
       <group title="${Name} API" packages="${package.name}*"/>
 
       <bottom>Copyright &#169; ${year} \\
@@ -1033,14 +1024,21 @@
           depends="build, docs_check"
           unless="docs.notrequired"
           description="-> creates the user documentation">
+
+    <!-- Make destination directory for built files. -->
     <mkdir dir="${build.docs}"/>
 
+    <!-- Copy required source files there. -->
     <copy todir="${build.docs}">
       <fileset dir="${src.docs}" 
                includes="${user.doc}.xml docs.dtd figures/*"/>
       <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
                includes="images/*"/>
     </copy>
+
+    <!-- Write a file containing entity definitions for all the image files
+     !   that might be referenced in the user document (this file is 
+     !   referenced from within the user document as an external entity). -->
     <java classname="uk.ac.starlink.topcat.ResourceIcon" 
           output="${build.docs}/image.defs"
           failonerror="yes">
@@ -1048,6 +1046,39 @@
       <arg value="-entities"/>
     </java>
 
+    <!-- Construct XML documentation for the JEL-accessible classes.
+     !   This is built using Javadoc, and forms part of the user document. -->
+    <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
+             docletpathref="classpath"
+             public="true"
+             additionalparam="-gen -o ${build.docs}/general-javadocs.xml" 
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+    <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
+             docletpathref="classpath"
+             public="true"
+             additionalparam="-act -o ${build.docs}/activation-javadocs.xml" 
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
+    <!-- Construct HTML documentation for the JEL-accessible classes.
+     !   This is built using Javadoc, and is available from the MethodWindow
+     !   method browser. -->
+    <javadoc doclet="uk.ac.starlink.topcat.doc.HtmlDoclet"
+             docletpathref="classpath"
+             public="true"
+             additionalparam="-headings"
+             destdir="${build.classes}"
+             sourcepath="${java.dir}"
+             packagenames="uk.ac.starlink.topcat.func"
+             classpathref="classpath"
+             source="${source.version}"/>
+
+    <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
     <xslt in="${build.docs}/${user.doc}.xml" 
           out="${build.docs}/${user.doc}/${user.doc}.html"
@@ -1055,10 +1086,8 @@
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
     </xslt>
-    <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
-      <fileset dir="${build.docs}/${user.doc}" includes="${user.doc}.html"/>
-    </copy>
 
+    <!-- Transform the user document XML to a PDF document via XSL-FO. -->
     <xslt in="${build.docs}/${user.doc}.xml"
           out="${build.docs}/${user.doc}.fo"
           style="${src.docs}/toFo.xslt">
@@ -1075,6 +1104,7 @@
       <arg value="-pdf"/> <arg value="${build.docs}/${user.doc}.pdf"/>
     </java>
 
+    <!-- Transform the user document from XML to HTML form for browsing. -->
     <java classpathref="classpath"
           dir="${src.docs}"
           classname="uk.ac.starlink.util.MultiXML"
@@ -1088,6 +1118,7 @@
       <arg value="${build.docs}/${user.doc}"/>
     </java>
 
+    <!-- Transform the user document from XML to JavaHelp form. -->
     <java classpathref="classpath"
           dir="${src.docs}" 
           classname="uk.ac.starlink.util.MultiXML" 
@@ -1100,6 +1131,12 @@
       <arg value="${build.docs}/${user.doc}.xml"/>
       <arg value="${build.classes}/uk/ac/starlink/topcat/help"/>
     </java>
+
+    <!-- Copy the image icons themselves into the help directory where they
+     !   will be referenced from the HTML. -->
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
+      <fileset dir="${build.docs}/${user.doc}" includes="${user.doc}.html"/>
+    </copy>
   </target>
 
   <!-- Checks whether the docs build is up to date. -->
