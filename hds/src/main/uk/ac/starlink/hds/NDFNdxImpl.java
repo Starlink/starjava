@@ -157,9 +157,9 @@ class NDFNdxImpl implements NdxImpl {
          * standard mappings. */
         FrameSet fset = new FrameSet( gridFrame );
         int jGridFrm = fset.getNframe();  // 1
-        fset.addFrame( 1, new ShiftMap( pixShift ), pixelFrame );
+        fset.addFrame( jGridFrm, new ShiftMap( pixShift ), pixelFrame );
         int jPixelFrm = fset.getNframe(); // 2
-        fset.addFrame( 1, new UnitMap( ndim ), axisFrame );
+        fset.addFrame( jPixelFrm, new UnitMap( ndim ), axisFrame );
         int jAxisFrm = fset.getNframe(); // 3
         FrameSet basicFset = (FrameSet) fset.copy();
 
