@@ -52,7 +52,11 @@ public class NDFNdxHandler implements NdxHandler {
         return instance;
     }
 
-    public Ndx makeNdx( URL url ) throws IOException {
+    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
+        if ( mode != AccessMode.READ && ! url.getProtocol().equals( "file" ) ) {
+            throw new IOException( "Remote " + mode + " access not supported "
+                                 + "for HDS files" );
+        }
         LocalHDS lobj = LocalHDS.getReadableHDS( url );
         if ( lobj == null ) {
             return null;
@@ -64,7 +68,7 @@ public class NDFNdxHandler implements NdxHandler {
         try {
             /* Construct an NdxImpl which will remove any temporary file
              * when it is finalize with. */
-            NdxImpl impl = new NDFNdxImpl( href, url, AccessMode.READ ) {
+            NdxImpl impl = new NDFNdxImpl( href, url, mode ) {
                 public void finalize() throws Throwable {
                     try {
                         super.finalize();
@@ -90,6 +94,23 @@ public class NDFNdxHandler implements NdxHandler {
         }
     }
 
+    public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
+        try {
+            LocalHDS lobj = LocalHDS.getNewHDS( url, "NDF" );
+            if ( lobj == null ) {
+                return false;
+            }
+            HDSReference href = lobj.getHDSReference();
+            HDSObject place = href.getObject( "WRITE" );
+            new NdfMaker().makeBlankNDF( template, place );
+            return true;
+        }
+        catch ( HDSException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+    }
+
     public boolean outputNdx( URL url, Ndx orig ) throws IOException {
         try {
             LocalHDS lobj = LocalHDS.getNewHDS( url, "NDF" );
@@ -102,7 +123,8 @@ public class NDFNdxHandler implements NdxHandler {
             return true;
         }
         catch ( HDSException e ) {
-            throw (IOException) new IOException().initCause( e );
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
     }
 }

@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Type;
 
 /**
  * Performs I/O between Ndx objects and resources named by URLs.
@@ -132,19 +135,65 @@ public class NdxIO {
      * Ndx resource at it.
      *
      * @param   url  a URL pointing to a resource representing an Ndx
+     * @param   mode read/write/update access mode for component arrays
      * @return   a readable Ndx object view of the resource at url, or
      *           null if one could not be found
      * @throws   IOException  if there is any I/O error
      */
-    public Ndx makeNdx( URL url ) throws IOException {
+    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             NdxHandler handler = (NdxHandler) it.next();
-            Ndx ndx = handler.makeNdx( url );
+            Ndx ndx = handler.makeNdx( url, mode );
             if ( ndx != null ) {
                 return ndx;
             }
         }
         return null;
+    }
+
+    /**
+     * Constructs a new Ndx containing writable and uninitialised  
+     * array components at the given URL with characteristics 
+     * matching those of a given template Ndx.
+     * The scalar components will be copied directly from the template,
+     * and the new Ndx
+     * will have array components matching the array components of
+     * the template in shape and type (and whether they exist or not).
+     * They may match in point of bad values and ordering scheme, but
+     * this is dependent on the details of the output format.
+     * The initial values of the created array components are undefined,
+     * but they will be writable.  Applications which call this method
+     * should in general then open the new NDX using {@link makeNdx} 
+     * and write values to the array components so that it has valid
+     * array components.
+     * <p>
+     * The classes {@link DefaultMutableNdx} and 
+     * {@link uk.ac.starlink.array.DummyNDArray} may be useful in 
+     * constructing a suitable template Ndx object.
+     * <p>
+     * The method will return true if the Ndx was created successfully,
+     * and false if none of the available handlers is able to handle
+     * the URL.  An IOException will result if one of the handlers
+     * is willing to handle the URL but encounters some problem when
+     * attempting to write the new resource.
+     *
+     * @param  url  a URL at which the new NDX should be written
+     * @param  template   a template Ndx object from which non-array data
+     *                    should be initialised - all scalar components
+     *                    will be copied from it, and new blank writable
+     *                    array components matching the ones in it will be
+     *                    created
+     * @return  true iff a new blank Ndx was written at <tt>url</tt>
+     * @throws  IOException  if there is any I/O error
+     */
+    public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            NdxHandler handler = (NdxHandler) it.next();
+            if ( handler.makeBlankNdx( url, template ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -177,22 +226,41 @@ public class NdxIO {
             "No Ndx handler found for URL " + url );
     }
 
+
     /**
      * Constructs a readable Ndx from a location representing an existing
      * resource.
      * This convenience method just turns the location into a URL and
-     * calls {@link #makeNdx(URL)}.
+     * calls {@link #makeNdx(URL,AccessMode)}.
      *
      * @param  location  the location of the resource.  If it cannot be
      *                   parsed as a URL it will be treated as a filename
+     * @param   mode read/write/update access mode for component arrays
      * @return   a readable Ndx object view of the resource at url, or
      *           null if one could not be found
      * @throws   IOException  if there is any I/O error
      * @throws FileNotFoundException  if the location doesn't look like a 
      *                     file or URL
      */
-    public Ndx makeNdx( String location ) throws IOException {
-        return makeNdx( getUrl( location ) );
+    public Ndx makeNdx( String location, AccessMode mode ) throws IOException {
+        return makeNdx( getUrl( location ), mode );
+    }
+
+    /**
+     * Constructs a new Ndx containing writable and uninitialised 
+     * data arrays at a given location.
+     * This convenience method just turns the location into a URL and
+     * calls {@link #makeBlankNdx(URL,Ndx)}.
+     *
+     * @param  location  the location of the new resource.  If it cannot
+     *                   be parsed as a URL it will be treated as a filename
+     * @param  template   a template Ndx object on which to base the new one
+     * @return  true if the Ndx was written successfully
+     * @throws  IOException  if there is any I/O error
+     */
+    public boolean makeBlankNdx( String location, Ndx template )
+            throws IOException {
+         return makeBlankNdx( getUrl( location ), template );
     }
 
     /**

@@ -109,12 +109,23 @@ class WritableFitsArrayImpl implements ArrayImpl {
             cardlist.add( new HeaderCard( "BSCALE", 1.0, 
                                           "Scaling applied to value" ) );
 
-            if ( type == Type.FLOAT || type == Type.DOUBLE ) {
-                // no BLANK value, use NaN
-            }
-            else if ( badValue != null ) {
-                cardlist.add( new HeaderCard( "BLANK", badValue.longValue(), 
-                                              "Bad pixel value" ) );
+            /* Set BLANK value if requested and permitted. */
+            if ( badValue != null ) {
+                if ( type.isFloating() ) {
+                    if ( type == Type.FLOAT && ((Float) badValue).isNaN() ||
+                         type == Type.DOUBLE && ((Double) badValue).isNaN() ) {
+                        // ok
+                    }
+                    else {
+                        logger.warning( "FITS does not support non-NaN bad "
+                                      + "values for floating point types - "
+                                      + "using NaN" );
+                    }
+                }
+                else { // integer type
+                    cardlist.add( new HeaderCard( "BLANK", 
+                                  badValue.longValue(), "Bad pixel value" ) );
+                }
             }
 
             /* Add the origin value cards if required. */

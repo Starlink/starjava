@@ -50,7 +50,8 @@ public class ArraysBulkDataImpl implements BulkDataImpl {
                 BadHandler qbh2 = BadHandler.getHandler( qtype, null );
                 Converter qconv = new TypeConverter( qtype, qbh1, qtype, qbh2 );
                 ArrayImpl qimpl = new ConvertArrayImpl( quality, qconv );
-                this.returnedQuality = new BridgeNDArray( qimpl );
+                this.returnedQuality = 
+                    new BridgeNDArray( qimpl, quality.getURL() );
             }
         }
         else {

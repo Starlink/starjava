@@ -38,9 +38,6 @@ public class BridgeNdx implements Ndx {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
     private final NdxImpl impl;
-    private NDArray image;
-    private NDArray variance;
-    private NDArray quality;
     private FrameSet wcs;
     private String title;
     private Boolean hasEtc;
@@ -66,10 +63,7 @@ public class BridgeNdx implements Ndx {
 
 
     public NDArray getImage() {
-        if ( image == null ) {
-            image = getBulkData().getImage();
-        }
-        return image;
+        return getBulkData().getImage();
     }
 
     public NDArray getVariance() {
@@ -77,10 +71,7 @@ public class BridgeNdx implements Ndx {
         if ( ! bd.hasVariance() ) {
             throw new UnsupportedOperationException( "No variance component" );
         }
-        if ( variance == null ) {
-            variance = bd.getVariance();
-        }
-        return variance;
+        return bd.getVariance();
     }
 
     public NDArray getQuality() {
@@ -88,10 +79,7 @@ public class BridgeNdx implements Ndx {
         if ( ! bd.hasQuality() ) {
             throw new UnsupportedOperationException( "No quality component" );
         }
-        if ( quality == null ) {
-            quality = bd.getQuality();
-        }
-        return quality;
+        return bd.getQuality();
     }
 
     public boolean hasVariance() {

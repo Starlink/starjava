@@ -664,8 +664,19 @@ public class MappedFile
             throws IOException {
         RandomAccessFile raf = new RandomAccessFile( filename, mode );
         FileChannel channel = raf.getChannel();
-        ByteBuffer buf = channel.map( FileChannel.MapMode.READ_ONLY, 
-                                      start, size );
+        FileChannel.MapMode mapmode;
+        if ( mode.equals( "r" ) ) {
+            mapmode = FileChannel.MapMode.READ_ONLY;
+        }
+        else if ( mode.equals( "rw" ) ) {
+            mapmode = FileChannel.MapMode.READ_WRITE;
+        }
+        else {
+            throw new IllegalArgumentException( 
+                "Invalid mode string \"" + mode + 
+                "\" - must be \"r\" or \"rw\"" );
+        }
+        ByteBuffer buf = channel.map( mapmode, start, size );
         channel.close();  // has no effect on the validity of the mapping
         return buf;
     }

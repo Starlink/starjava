@@ -8,6 +8,7 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Node;
+import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.NDArray;
@@ -55,14 +56,14 @@ public class FitsNdxTest extends TestCase {
         Ndx ndx = virtualNdx();
         String xloc = tmpdir + "/" + "copy.xml";
         ndxio.outputNdx( xloc, ndx );
-        Ndx xndx = ndxio.makeNdx( xloc );
+        Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
         assertNdxEqual( ndx, xndx );
 
         /* Write the NDX out as a new FITS file. */
         ndxio.setHandlers( new NdxHandler[] { FitsNdxHandler.getInstance() } );
         String hloc = tmpdir + "/" + "copy.fits";
         ndxio.outputNdx( hloc, ndx );
-        Ndx hndx = ndxio.makeNdx( hloc );
+        Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
         assertNdxEqual( ndx, hndx );
 
     }

@@ -172,7 +172,27 @@ public class NdfMaker {
      */
     public void makeNDF( Ndx ndx, HDSObject ndfob ) throws IOException {
         try {
-            copyNdxToNdf( ndx, ndfob );
+            copyNdxToNdf( ndx, ndfob, true );
+        }
+        catch ( HDSException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+    }
+
+    /**
+     * Creates an NDF structure at a given location based on an NDX, 
+     * but doesn't fill in the array components.
+     *
+     * @param  ndx     the NDX to copy
+     * @param  ndfob   an HDS structure into which the NDF's components
+     *                 are to be written
+     * @throws  IOException  if there was some error in parsing the NDX
+     *                       or creating the NDF
+     */
+    public void makeBlankNDF( Ndx ndx, HDSObject ndfob ) throws IOException {
+        try {
+            copyNdxToNdf( ndx, ndfob, false );
         }
         catch ( HDSException e ) {
             throw (IOException) new IOException( e.getMessage() )
@@ -204,8 +224,14 @@ public class NdfMaker {
     /**
      * Does the work of copying the data of an NDX into a new NDF structure
      * at a given location.
+     *
+     * @param  ndx    the NDX to copy
+     * @param  ndfob  the NDF object into which to copy the components
+     * @param copyData  if true, the array component data is copied.
+     *                  if false, the array components are created 
+     *                  but the data is not copied across
      */
-    private void copyNdxToNdf( Ndx ndx, HDSObject ndfob )
+    private void copyNdxToNdf( Ndx ndx, HDSObject ndfob, boolean copyData )
             throws HDSException, IOException {
 
         /* Get the shape. */
@@ -213,11 +239,13 @@ public class NdfMaker {
                                            : window;
 
         /* Image component. */
-        copyArray( ndx.getImage(), ndfob, "DATA_ARRAY", shape, hdstype );
+        copyArray( ndx.getImage(), ndfob, "DATA_ARRAY", shape, hdstype,
+                   copyData );
 
         /* Variance component. */
         if ( ndx.hasVariance() ) {
-            copyArray( ndx.getVariance(), ndfob, "VARIANCE", shape, hdstype );
+            copyArray( ndx.getVariance(), ndfob, "VARIANCE", shape, hdstype,
+                       copyData );
         }
 
         /* Quality component. */
@@ -230,7 +258,7 @@ public class NdfMaker {
                 qobj.datFind( "BADBITS" ).datPut0i( ibad );
             }
             copyArray( ndx.getQuality(), qobj, "QUALITY", shape,
-                       HDSType._UBYTE );
+                       HDSType._UBYTE, copyData );
             HDSObject qcomp = qobj.datFind( "QUALITY" );
             qcomp.datNew( "BAD_PIXEL", "_LOGICAL", SCALAR_DIMS );
             qcomp.datFind( "BAD_PIXEL" ).datPut0l( false );
@@ -303,11 +331,15 @@ public class NdfMaker {
      * @param  name     the name of the new ARY structure
      * @param  shape    the shape of the new ARY structure
      * @param  htype    the HDS type of the new ARY structure
+     * @paraam copyData if true, the array component data is copied.
+     *                  if false, the array components are created 
+     *                  but the data is not copied across
      */
     private void copyArray( NDArray nda, HDSObject parent, String name,
-                            NDShape shape, HDSType htype )
+                            NDShape shape, HDSType htype, boolean copyData )
             throws HDSException, IOException {
-        long[] dims = shape.getDims();
+
+        /* Get the actual HDS type of data to write. */
         if ( htype == null ) {
             htype = this.hdstype;
         }
@@ -315,43 +347,47 @@ public class NdfMaker {
             htype = HDSType.fromJavaType( nda.getType() );
         }
 
-        /* Prepare an NDArray suitable for a direct copy to the HDS array. */
-        Type jtype = htype.getJavaType();
-        BadHandler handler = BadHandler
-                            .getHandler( jtype, htype.getBadValue() );
-        Requirements req = new Requirements( AccessMode.READ )
-                          .setOrder( Order.COLUMN_MAJOR )
-                          .setWindow( shape )
-                          .setType( jtype )
-                          .setBadHandler( handler );
-        nda = NDArrays.toRequiredArray( nda, req );
-
         /* Create an array structure under the parent. */
         ArrayStructure ary = new ArrayStructure( parent, name, htype, shape );
 
-        /* Map its data. */
-        HDSObject data = ary.getData();
-        Buffer mapped = data.datMapv( htype.getName(), "WRITE" );
-        GenericNioBuffer genbuf = new GenericNioBuffer( mapped );
+        /* Copy the actual array data if required. */
+        if ( copyData ) {
+            long[] dims = shape.getDims();
 
-        /* Copy the data from the NDArray into the mapped HDS array. */
-        ChunkIterator cit = new ChunkIterator( shape.getNumPixels() );
-        Object buf = htype.getJavaType().newArray( cit.getSize() );
-        ArrayAccess acc = nda.getAccess();
-        try {
-            while ( cit.hasNext() ) {
-                int size = cit.getSize();
-                acc.read( buf, 0, size );
-                genbuf.put( buf, 0, size );
-                cit.next();
+            /* Prepare an NDArray suitable for direct copy to the HDS array. */
+            Type jtype = htype.getJavaType();
+            BadHandler handler = BadHandler
+                                .getHandler( jtype, htype.getBadValue() );
+            Requirements req = new Requirements( AccessMode.READ )
+                              .setOrder( Order.COLUMN_MAJOR )
+                              .setWindow( shape )
+                              .setType( jtype )
+                              .setBadHandler( handler );
+            nda = NDArrays.toRequiredArray( nda, req );
+
+            /* Map its data. */
+            HDSObject data = ary.getData();
+            Buffer mapped = data.datMapv( htype.getName(), "WRITE" );
+            GenericNioBuffer genbuf = new GenericNioBuffer( mapped );
+
+            /* Copy the data from the NDArray into the mapped HDS array. */
+            ChunkIterator cit = new ChunkIterator( shape.getNumPixels() );
+            Object buf = htype.getJavaType().newArray( cit.getSize() );
+            ArrayAccess acc = nda.getAccess();
+            try {
+                while ( cit.hasNext() ) {
+                    int size = cit.getSize();
+                    acc.read( buf, 0, size );
+                    genbuf.put( buf, 0, size );
+                    cit.next();
+                }
+            }
+            finally {
+                acc.close();
+                data.datUnmap();
             }
         }
-        finally {
-            acc.close();
-            data.datUnmap();
-        }
-   }
-
+    }
 
 
 

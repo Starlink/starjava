@@ -5,7 +5,9 @@ import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.ArrayDataOutput;
 import nom.tam.util.RandomAccess;
+import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.AccessImpl;
 import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.Order;
@@ -23,18 +25,20 @@ class ReadableFitsArrayImpl implements ArrayImpl {
     private final OrderedNDShape oshape;
     private final Type type;
     private final Number badValue;
+    private final AccessMode mode;
     private final boolean isRandom;
     private final Header hdr;
     private final long strmBase;
     private final int nByte;
     private final TypedReader rdr;
 
-    ReadableFitsArrayImpl( ArrayDataInput istream ) 
+    ReadableFitsArrayImpl( ArrayDataInput istream, AccessMode mode ) 
             throws FitsException, IOException {
 
         /* Save the stream and its starting position. */
         this.stream = istream;
         this.isRandom = stream instanceof RandomAccess;
+        this.mode = mode;
 
         /* Read the FITS header cards. */
         hdr = Header.readHeader( stream );
@@ -61,6 +65,11 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                             throws IOException {
                         stream.read( (byte[]) buffer, start, size );
                     }
+                    public void write( Object buffer, int start, int size )
+                            throws IOException {
+                        ((ArrayDataOutput) stream).write( (byte[]) buffer,
+                                                          start, size );
+                    }
                 };
                 break;
             case BasicHDU.BITPIX_SHORT:
@@ -72,6 +81,11 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                     public void read( Object buffer, int start, int size ) 
                             throws IOException {
                         stream.read( (short[]) buffer, start, size );
+                    }
+                    public void write( Object buffer, int start, int size )
+                            throws IOException {
+                        ((ArrayDataOutput) stream).write( (short[]) buffer,
+                                                          start, size );
                     }
                 };
                 break;
@@ -85,6 +99,11 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                             throws IOException {
                         stream.read( (int[]) buffer, start, size );
                     }
+                    public void write( Object buffer, int start, int size )
+                            throws IOException {
+                        ((ArrayDataOutput) stream).write( (int[]) buffer,
+                                                          start, size );
+                    }
                 };
                 break;
             case BasicHDU.BITPIX_FLOAT:
@@ -95,6 +114,11 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                             throws IOException {
                         stream.read( (float[]) buffer, start, size );
                     }
+                    public void write( Object buffer, int start, int size )
+                            throws IOException {
+                        ((ArrayDataOutput) stream).write( (float[]) buffer,
+                                                          start, size );
+                    }
                 };
                 break;
             case BasicHDU.BITPIX_DOUBLE:
@@ -104,6 +128,11 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                     public void read( Object buffer, int start, int size ) 
                             throws IOException {
                         stream.read( (double[]) buffer, start, size );
+                    }
+                    public void write( Object buffer, int start, int size )
+                            throws IOException {
+                        ((ArrayDataOutput) stream).write( (double[]) buffer,
+                                                          start, size );
                     }
                 };
                 break;
@@ -129,7 +158,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
         return true;
     }
     public boolean isWritable() {
-        return false;
+        return mode.isWritable();
     }
     public boolean isRandom() {
         return isRandom;
@@ -164,8 +193,10 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                 rdr.read( buffer, start, size );
                 offset += size;
             }
-            public void write( Object buffer, int start, int size ) {
-                // assert false;
+            public void write( Object buffer, int start, int size ) 
+                    throws IOException {
+                rdr.write( buffer, start, size );
+                offset += size;
             }
             public void close() {
             }
@@ -221,6 +252,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
      */
     private static interface TypedReader {
         void read( Object buffer, int start, int size ) throws IOException;
+        void write( Object buffer, int start, int size ) throws IOException;
     }
 
 }

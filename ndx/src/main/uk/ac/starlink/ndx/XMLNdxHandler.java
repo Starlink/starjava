@@ -72,9 +72,10 @@ public class XMLNdxHandler implements NdxHandler {
      * XML resource.
      *
      * @param  url  a URL pointing to some XML representing an NDX
+     * @param   mode read/write/update access mode for component arrays
      * @throws  IOException  if some error occurs in the I/O
      */
-    public Ndx makeNdx( URL url ) throws IOException {
+    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
         Source xsrc;
         if ( url.toString().equals( "file:-" ) ) {
             xsrc = new StreamSource( System.in );
@@ -85,7 +86,7 @@ public class XMLNdxHandler implements NdxHandler {
         else {
             return null;
         }
-        return makeNdx( xsrc );
+        return makeNdx( xsrc, mode );
     }
 
     /**
@@ -93,9 +94,10 @@ public class XMLNdxHandler implements NdxHandler {
      *
      * @param  xsrc  an XML source containing the XML representation of
      *               the NDX
+     * @param   mode read/write/update access mode for component arrays
      * @throws  IOException  if some error occurs in the I/O
      */
-    public Ndx makeNdx( Source xsrc ) throws IOException {
+    public Ndx makeNdx( Source xsrc, AccessMode mode ) throws IOException {
 
         /* Try to get the System ID for resolving relative URLs. */
         String cxt = xsrc.getSystemId();
@@ -152,13 +154,13 @@ public class XMLNdxHandler implements NdxHandler {
                 Element cel = (Element) child;
                 String tagname = cel.getTagName();
                 if ( tagname.equals( "image" ) ) {
-                    image = makeNDArray( cel, AccessMode.READ );
+                    image = makeNDArray( cel, mode );
                 }
                 else if ( tagname.equals( "variance" ) ) {
-                    variance = makeNDArray( cel, AccessMode.READ );
+                    variance = makeNDArray( cel, mode );
                 }
                 else if ( tagname.equals( "quality" ) ) {
-                    quality = makeNDArray( cel, AccessMode.READ );
+                    quality = makeNDArray( cel, mode );
                 }
                 else if ( tagname.equals( "title" ) ) {
                     title = getTextContent( cel );
@@ -206,6 +208,10 @@ public class XMLNdxHandler implements NdxHandler {
             throws IOException {
         URL url;
         String loc = getTextContent( el );
+        if ( loc == null || loc.trim().length() == 0 ) {
+            throw new IOException( "No location supplied for <" 
+                                 + el.getTagName() + "> array" );
+        }
         try {
             url = new URL( context, loc );
         }
@@ -283,7 +289,7 @@ public class XMLNdxHandler implements NdxHandler {
      * @param  ndx  the Ndx object to serialise
      * @throws java.net.UnknownServiceException if the URL does not support
      *         output (most protocols, apart from <tt>file</tt>, don't)
-     * @throws IOException  if some other I/O error occurs, 
+     * @throws IOException  if some other I/O error occurs
      */
     public boolean outputNdx( URL xurl, Ndx ndx ) throws IOException {
 
@@ -291,36 +297,8 @@ public class XMLNdxHandler implements NdxHandler {
         URL aurl = null;
         ArrayBuilder fab = null;
         if ( ! ndx.isPersistent() ) {
-            if ( xurl.toString().endsWith( ".xml" ) ) {
-                String aloc = xurl.toString()
-                             .replaceFirst( ".xml$", "-data.fits" );
-                try {
-                    aurl = new URL( aloc );
-                }
-                catch ( MalformedURLException e ) {
-                    throw new AssertionError();
-                }
-            }
-            else {
-                throw new IOException( "Cannot write non-persistent NDX to " +
-                                       "URL not ending in '.xml': " + xurl );
-            }
-
-            /* Get hold of a FitsArrayBuilder, or throw an exception if
-             * we don't have one. */
-            for ( Iterator it = arrayfact.getBuilders().iterator();
-                  it.hasNext(); ) {
-                ArrayBuilder builder = (ArrayBuilder) it.next();
-                if ( builder.getClass().getName()
-                    .equals( "uk.ac.starlink.fits.FitsArrayBuilder" ) ) {
-                    fab = builder;
-                    break;
-                }
-            }
-            if ( fab == null ) {
-                throw new IOException( "Cannot write non-persistent NDX; " +
-                                       "FITS package not installed" );
-            }
+            aurl = getDataUrl( xurl );
+            fab = getFitsArrayBuilder();
         }
         boolean writeArrays = ( aurl != null );
 
@@ -362,71 +340,41 @@ public class XMLNdxHandler implements NdxHandler {
         }
         else {
             int hdu = 0;
-            URL iurl;
-            URL vurl;
-            URL qurl;
 
-            Node ndxel;
-            try {
-                ndxel = new SourceReader().getDOM( ndx.toXML() );
-            }
-            catch ( TransformerException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
- 
-            iurl = new URL( aurl, "#" + ++hdu );
-            NDArray inda1= ndx.getImage();
-            NDArray inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
-                                                inda1.getType() );
+            NDArray inda2;
+            URL iurl = new URL( aurl, "#" + ++hdu );
+            NDArray inda1 = ndx.getImage();
+            inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
+                                        inda1.getType() );
             NDArrays.copy( inda1, inda2 );
 
+            NDArray vnda2;
             if ( ndx.hasVariance() ) {
-                vurl = new URL( aurl, "#" + ++hdu );
+                URL vurl = new URL( aurl, "#" + ++hdu );
                 NDArray vnda1 = ndx.getVariance();
-                NDArray vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
-                                                    vnda1.getType() );
+                vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
+                                            vnda1.getType() );
                 NDArrays.copy( vnda1, vnda2 );
             }
             else {
-                vurl = null;
+                vnda2 = null;
             }
 
+            NDArray qnda2;
             if ( ndx.hasQuality() ) {
-                qurl = new URL( aurl, "#" + ++hdu );
+                URL qurl = new URL( aurl, "#" + ++hdu );
                 NDArray qnda1 = ndx.getQuality();
-                NDArray qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
-                                                    qnda1.getType() );
+                qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
+                                            qnda1.getType() );
                 NDArrays.copy( qnda1, qnda2 );
             }
             else {
-                qurl = null;
+                qnda2 = null;
             }
 
-            Document doc = ndxel.getOwnerDocument();
-            NodeList children = ndxel.getChildNodes();
-            for ( int i = 0; i < children.getLength(); i++ ) {
-                Node node = children.item( i );
-                if ( node instanceof Element &&
-                     node.getNodeName().equals( "image" ) ) {
-                    Node inode = doc.createElement( node.getNodeName() );
-                    inode.appendChild( doc.createTextNode( iurl.toString() ) );
-                    ndxel.replaceChild( inode, node );
-                }
-                if ( node instanceof Element &&
-                     node.getNodeName().equals( "variance" ) ) {
-                    Node vnode = doc.createElement( node.getNodeName() );
-                    vnode.appendChild( doc.createTextNode( vurl.toString() ) );
-                    ndxel.replaceChild( vnode, node );
-                }
-                if ( node instanceof Element &&
-                     node.getNodeName().equals( "quality" ) ) {
-                    Node qnode = doc.createElement( node.getNodeName() );
-                    qnode.appendChild( doc.createTextNode( qurl.toString() ) );
-                    ndxel.replaceChild( qnode, node );
-                }
-            }
-            xsrc = new DOMSource( ndxel );
+            MutableNdx ndx2 = new DefaultMutableNdx( ndx );
+            ndx2.setBulkData( new ArraysBulkDataImpl( inda2, vnda2, qnda2 ) );
+            xsrc = ndx2.toXML();
         }
 
         /* Write the XML to the XML stream. */
@@ -446,8 +394,129 @@ public class XMLNdxHandler implements NdxHandler {
         return true;
     }
 
+    /**
+     * Writes an XML file representing a new NDX with writable array 
+     * components.
+     * <p>
+     * The array components themselves reside in a new fits file; 
+     * currently for a URL 'blah.xml' a new fits file called
+     * 'blah-data.fits' is written.  If the FITS handlers are not installed,
+     * or <tt>url</tt> does not end in '.xml' an IOException will be thrown.
+     * This behaviour may be subject to change in future releases.
+     *
+     * @param  url  a URL at which the new NDX should be written
+     * @param  template   a template Ndx object from which non-array data
+     *                    should be initialised - any title, bad bits mask,
+     *                    WCS component etc will be copied from here
+     * @param  a new Ndx based on <tt>template</tt> but with writable arrays
+     * @return  true if the new Ndx was written successfully
+     * @throws  IOException  if the URL is understood but an NDArray cannot
+     *                       be made
+     */
+    public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
+        if ( ! isXmlUrl( url ) ) {
+            return false;
+        }
+        URL xurl = url;
+        URL aurl = getDataUrl( xurl );
+        ArrayBuilder fab = getFitsArrayBuilder();
+        OutputStream xstrm = new FileOutputStream( xurl.getPath() );
+        xstrm = new BufferedOutputStream( xstrm );
+
+        /* Make NDArrays containing the data. */
+        int hdu = 0;
+        URL iurl = new URL( aurl, "#" + ++hdu );
+        NDArray inda1 = template.getImage();
+        NDArray inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
+                                            inda1.getType() );
+
+        NDArray vnda2;
+        if ( template.hasVariance() ) { 
+            URL vurl = new URL( aurl, "#" + ++hdu );
+            NDArray vnda1 = template.getVariance();
+            vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
+                                        vnda1.getType() );
+        }
+        else {
+            vnda2 = null;
+        }
+
+        NDArray qnda2;
+        if ( template.hasQuality() ) {
+            URL qurl = new URL( aurl, "#" + ++hdu );
+            NDArray qnda1 = template.getQuality();
+            qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
+                                        qnda1.getType() );
+        }
+        else {
+            qnda2 = null;
+        }
+
+        MutableNdx ndx = new DefaultMutableNdx( template );
+            
+        /* Write the XML representation of the NDX to the XML stream. */
+        SourceReader sr = new SourceReader();
+        sr.setIncludeDeclaration( true );
+        sr.setIndent( 2 );
+        try {
+            sr.writeSource( ndx.toXML(), xstrm );
+        }
+        catch ( TransformerException e ) {
+            throw (IOException) new IOException( "Trouble writing XML" )
+                               .initCause( e );
+        }
+        xstrm.close();
+        return true;
+    }
+
     private boolean isXmlUrl( URL url ) {
         return url.getPath().endsWith( ".xml" );
     }
+
+    /**
+     * Returns a URL for a FITS file related to a given URL suitable
+     * for writing array data into.
+     *
+     * @param  baseUrl  the URL of an XML file
+     * @return  a URL suitable for writing fits data to if the XML is in
+     *          baseUrl
+     * @throws IOException  if something breaks
+     */
+    private static URL getDataUrl( URL baseUrl ) throws IOException {
+        URL durl;
+        if ( baseUrl.toString().endsWith( ".xml" ) ) {
+            String dloc = baseUrl.toString()
+                                 .replaceFirst( ".xml$", "-data.fits" );
+            try {
+                return new URL( dloc );
+            }
+            catch ( MalformedURLException e ) {
+                throw new AssertionError();
+            }
+        }
+        else {
+            throw new IOException( "Cannot write data for base URL <"
+                                 + baseUrl + "> not ending in '.xml'" );
+        }
+    }
     
+
+    /**
+     * Get an ArrayBuilder that can build Fits files.
+     *
+     * @return   a FitsArrayBuilder
+     * @throws IOException  if the FITS handlers aren't installed
+     */
+    private static ArrayBuilder getFitsArrayBuilder() throws IOException {
+        for ( Iterator it = arrayfact.getBuilders().iterator();
+              it.hasNext(); ) {
+            ArrayBuilder builder = (ArrayBuilder) it.next();
+            if ( builder.getClass().getName()
+                .equals( "uk.ac.starlink.fits.FitsArrayBuilder" ) ) {
+                return builder;
+            }
+        }
+        throw new IOException( "Can't get FitsArrayBuilder - " +
+                               "FITS package not installed" );
+    }
 }

@@ -31,9 +31,13 @@ import nom.tam.util.BufferedFile;
 import org.w3c.dom.Node;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayImpl;
+import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.BridgeNDArray;
+import uk.ac.starlink.array.DummyNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
+import uk.ac.starlink.array.Order;
+import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
@@ -42,6 +46,8 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ndx.ArraysBulkDataImpl;
 import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.BulkDataImpl;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
@@ -94,7 +100,7 @@ public class FitsNdxHandler implements NdxHandler {
         return instance;
     }
 
-    public Ndx makeNdx( URL url ) throws IOException {
+    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
 
         /* Return null if it's not a FITS-like URL. */
         FitsURL furl = FitsURL.parseURL( url, extensions );
@@ -104,7 +110,7 @@ public class FitsNdxHandler implements NdxHandler {
 
         /* Try to get an image NDArray at this URL. */
         FitsArrayBuilder fab = FitsArrayBuilder.getInstance();
-        final NDArray image = fab.makeNDArray( url, AccessMode.READ );
+        final NDArray image = fab.makeNDArray( url, mode );
 
         /* Get the header block. */
         Header hdr = ((ReadableFitsArrayImpl) ((BridgeNDArray) image).getImpl())
@@ -134,7 +140,7 @@ public class FitsNdxHandler implements NdxHandler {
         if ( hdr.containsKey( FitsConstants.NDX_VARIANCE ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_VARIANCE );
             URL vurl = new URL( url, loc );
-            variance = fab.makeNDArray( vurl, AccessMode.READ );
+            variance = fab.makeNDArray( vurl, mode );
         }
         else {
             variance = null;
@@ -145,7 +151,7 @@ public class FitsNdxHandler implements NdxHandler {
         if ( hdr.containsKey( FitsConstants.NDX_QUALITY ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_QUALITY );
             URL qurl = new URL( url, loc );
-            quality = fab.makeNDArray( qurl, AccessMode.READ );
+            quality = fab.makeNDArray( qurl, mode );
         }
         else {
             quality = null;
@@ -223,6 +229,18 @@ public class FitsNdxHandler implements NdxHandler {
             }
         };
         return new BridgeNdx( impl );
+    }
+
+    public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
+        MutableNdx ndx = new DefaultMutableNdx( template );
+        NDArray inda = makeFitsDummyArray( template.getImage() );
+        NDArray vnda = template.hasVariance() 
+            ? makeFitsDummyArray( template.getVariance() ) : null;
+        NDArray qnda = template.hasQuality()
+            ? makeFitsDummyArray( template.getQuality() ) : null;
+
+        ndx.setBulkData( new ArraysBulkDataImpl( inda, vnda, qnda ) );
+        return outputNdx( url, template );
     }
 
     public boolean outputNdx( URL url, Ndx ndx ) throws IOException {
@@ -320,20 +338,25 @@ public class FitsNdxHandler implements NdxHandler {
 
         /* Write the image array, containing all the main NDX headers. */
         NDArray im = ndx.getImage();
+        Type itype = im.getType();
+        Number ibadval = itype.isFloating() ? itype.defaultBadValue()
+                                            : im.getBadHandler().getBadValue();
         ArrayImpl iimpl = 
-            new WritableFitsArrayImpl( im.getShape(), im.getType(),
-                                       im.getBadHandler().getBadValue(),
+            new WritableFitsArrayImpl( im.getShape(), itype, ibadval,
                                        strm, true, cards );
         NDArrays.copy( im, new BridgeNDArray( iimpl ) ); 
 
         /* Write the variance array if there is one. */
         if ( ndx.hasVariance() ) {
             NDArray var = ndx.getVariance();
+            Type vtype = var.getType();
+            Number vbadval = 
+                vtype.isFloating() ? vtype.defaultBadValue()
+                                   : var.getBadHandler().getBadValue();
             HeaderCard[] vcards = new HeaderCard[] { 
                 commentCard( "VARIANCE component of NDX structure" ) };
             ArrayImpl vimpl = 
-                new WritableFitsArrayImpl( var.getShape(), var.getType(),
-                                           var.getBadHandler().getBadValue(),
+                new WritableFitsArrayImpl( var.getShape(), vtype, vbadval, 
                                            strm, false, vcards );
             NDArrays.copy( var, new BridgeNDArray( vimpl ) );
         }
@@ -392,6 +415,15 @@ public class FitsNdxHandler implements NdxHandler {
 
         strm.close();
         return true;
+    }
+
+    private static NDArray makeFitsDummyArray( NDArray nda ) {
+        OrderedNDShape oshape = new OrderedNDShape( nda.getShape(),
+                                                    Order.COLUMN_MAJOR );
+        Type type = nda.getType();
+        BadHandler bh = BadHandler.getHandler( type, null );
+        return new DummyNDArray( oshape, type, bh );
+        
     }
 
     private static HeaderCard commentCard( String text ) {

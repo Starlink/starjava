@@ -116,19 +116,19 @@ public class NdxTest extends TestCase {
         if ( fitsPresent ) {
             String fname = ndxname + ".fits";
             ndxio.outputNdx( fname, vndx );
-            Ndx fndx = ndxio.makeNdx( fname );
+            Ndx fndx = ndxio.makeNdx( fname, AccessMode.READ );
             ndxio.outputNdx( ndxname + "-fits.xml", fndx );
         }
 
         if ( hdsPresent ) {
             String hname = ndxname + ".sdf";
             ndxio.outputNdx( hname, vndx );
-            Ndx hndx = ndxio.makeNdx( hname );
+            Ndx hndx = ndxio.makeNdx( hname, AccessMode.READ );
             ndxio.outputNdx( ndxname + "-hds.xml", hndx );
         }
 
         /* Have a go at data across the network. */
-        Ndx rndx = ndxio.makeNdx( remoteNDX );
+        Ndx rndx = ndxio.makeNdx( remoteNDX, AccessMode.READ );
         ndxio.outputNdx( rname + ".sdf", rndx );
  
     }

@@ -162,7 +162,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
         /* Make the ArrayImpl. */
         ArrayImpl impl;
         try {
-            impl = new ReadableFitsArrayImpl( stream );
+            impl = new ReadableFitsArrayImpl( stream, mode );
         }
         catch ( FitsException e ) {
             throw new IOException( e.getMessage() );
