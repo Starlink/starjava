@@ -6,16 +6,12 @@
    Explanations and Statistics of UCDs:			See LINK below
    In case of problem, please report to:	question@simbad.u-strasbg.fr
  </DESCRIPTION>
-<!-- VOTable description at  http://vizier.u-strasbg.fr/doc/VOTable/ -->
 
 <DEFINITIONS>
   <COOSYS ID="J2000" system="eq_FK5" equinox="J2000"/>
 </DEFINITIONS>
 
 
-<!-- Parameters used for the Query:
- -c=Crab
- -->
 <INFO ID="Ref" name="-ref" value="VOTx331" />
 <INFO ID="CatalogsExamined" value="96">
   96 catalogues with potential matches were examined
