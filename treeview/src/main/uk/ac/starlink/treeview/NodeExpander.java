@@ -18,7 +18,8 @@ import javax.swing.SwingUtilities;
  */
 public class NodeExpander {
 
-    private boolean done;
+    private boolean stopped;
+    private boolean complete;
     private DataNodeTreeModel treeModel;
     private TreeModelNode modelNode;
     private DataNode dataNode;
@@ -51,7 +52,8 @@ public class NodeExpander {
 
         /* If this node can't have children, it's easy. */
         if ( ! dataNode.allowsChildren() ) {
-            setDone();
+            stopped = true;
+            complete = true;
         }
 
         /* Otherwise, we have to do the expansion. */
@@ -60,52 +62,61 @@ public class NodeExpander {
 
             /* Get each child in turn from the data node. */
             for ( Iterator it = dataNode.getChildIterator();
-                  isActive() && it.hasNext(); ) {
+                  ! stopped && it.hasNext(); ) {
 
                 /* Get the next child. */
                 DataNode childDataNode = (DataNode) it.next();
 
-                /* As long as we are still responsible, update the tree model
-                 * with the new child. */
-                if ( isActive() ) {
-                    treeModel.appendNode( childDataNode, dataNode );
+                /* Stop if we are no longer responsible for expanding our
+                 * node. */
+                synchronized ( modelNode ) {
+                    if ( modelNode.getExpander() != this ) {
+                        stopped = true;
+                    }
+
+                    /* As long as we are still working, update the tree model
+                     * with the new child. */
+                    if ( ! stopped ) {
+                        treeModel.appendNode( childDataNode, dataNode );
+                    }
                 }
             }
 
             /* Record that we have finished. */
-            if ( isActive() ) {
-                setDone();
+            if ( ! stopped ) {
+                stopped = true;
+                complete = true;
             }
             repaintNode();
         }
     }
 
     /**
-     * Indicates that the node expansion has completed successfully.
+     * Interrupts the work of this expander.  It will not add any more
+     * children to its node.  It should stop using processing resources
+     * to this end, but that may not happen immediately.
      */
-    protected void setDone() {
-        done = true;
+    public void stop() {
+        stopped = true;
     }
 
     /**
-     * Indicates whether node expansion has completed.
+     * Indicates whether node expansion has stopped happening.
+     *
+     * @return  true iff this expander is no longer working on expanding
+     *          its node
+     */
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    /**
+     * Indicates whether node expansion completed successfully. 
      *
      * @return  true iff all child nodes have been added to the parent
      */
-    public boolean isDone() {
-        return done;
-    }
-
-    /**
-     * Indicates whether this expander is still responsible for expanding
-     * nodes in its parent node.  It will return false if it has been
-     * relieved of this responsibility (is no longer the active NodeExpander
-     * object of the node).
-     *
-     * @return  true iff this expander is still responsible for expanding
-     */
-    public boolean isActive() {
-        return modelNode.getExpander() == this;
+    public boolean isComplete() {
+        return complete;
     }
 
     /**
@@ -114,12 +125,10 @@ public class NodeExpander {
      * representation in the tree.
      */
     private void repaintNode() {
-        if ( isActive() ) {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    treeModel.repaintNode( dataNode );
-                }
-            } );
-        }
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                treeModel.repaintNode( dataNode );
+            }
+        } );
     }
 }

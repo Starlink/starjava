@@ -39,10 +39,12 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
                 text = "...";
             }
             setText( text );
-            TreeModelNode modelNode = ((DataNodeTreeModel) jtree.getModel())
-                                     .getModelNode( node );
-            NodeExpander expander = modelNode.getExpander();
-            isExpanding = expander != null && ! expander.isDone();
+            DataNodeTreeModel treeModel = (DataNodeTreeModel) jtree.getModel();
+            if ( treeModel.containsNode( node ) ) {
+                TreeModelNode modelNode = treeModel.getModelNode( node );
+                NodeExpander expander = modelNode.getExpander();
+                isExpanding = expander != null && ! expander.isStopped();
+            }
         }
 
         /* Visual feedback for nodes that are in the process of expanding. */
