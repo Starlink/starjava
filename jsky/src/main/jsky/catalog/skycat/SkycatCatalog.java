@@ -489,7 +489,7 @@ public class SkycatCatalog implements PlotableCatalog {
             urlStr = _getQueryUrl(urlStr, queryArgs);
             String className = token.nextToken();
             try {
-                Class catalogClass = Class.forName(className);
+                Class catalogClass = this.getClass().forName(className);
                 Catalog catalog = (Catalog) catalogClass.newInstance();
                 result = catalog.query(queryArgs);
                 if (result instanceof MemoryCatalog && !(result instanceof SkycatTable)) {

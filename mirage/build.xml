@@ -159,6 +159,19 @@
   <property name="install.log" value=".${name}.install"/>
   <property name="install.overwrite" value="true"/>
 
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default.
+   !-->
+  <property name="webstart.codebase"
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
@@ -345,7 +358,7 @@
    !  The results of the compilation are placed in the build.classes
    !  directory. Other files that are also needed in the classes tree
    !  (i.e. resources like images and property files) should also be
-   !  copied into place here. 
+   !  copied into place here.
    !-->
   <target name="build"
           depends="prepare, check_packages"
@@ -402,7 +415,7 @@
    !  created here. Note this requires a manifest file that defines the
    !  jars that we directly depend on (using relative URLs) on and
    !  defines the application entrance point. The jar files should be
-   !  placed directly in the distribution directories. 
+   !  placed directly in the distribution directories.
    !-->
   <target name="jars"
           depends="build"
@@ -414,11 +427,53 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Main-Class" 
+        <attribute name="Main-Class"
                    value="uk.ac.starlink.mirage.MirageDriver"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <!-- Sign all jar files -->
+    <signjar jar="${dist.lib.pkg}/${name}.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package, this goes into
+     !   "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>Mirage mediator classes</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"Starlink Mirage - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="UTIL" href="util.jnlp"/>
+       </resources>
+       <component_desc/>
+     </jnlp>
 
   </target>
 
@@ -438,7 +493,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -654,7 +709,7 @@
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
-  <!--  <mkdir dir="${star.etc.pkg}"/> -->
+    <!--  <mkdir dir="${star.etc.pkg}"/> -->
     <mkdir dir="${star.docs.pkg}"/>
 
     <loggedcopy todir="${star.bin}"
@@ -675,6 +730,7 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
       <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
       </fileset>
@@ -835,7 +891,7 @@
    !  src/main tree. When javadocs can be generated incrementally this
    !  arrangement should be reworked to generate whatever is needed as
    !  part of the javadocs target.
-   ! 
+   !
    !  Application packages should only make public those parts of
    !  their internal APIs that they are prepared to support. Consider
    !  adding such code to proper class libraries (such as util).

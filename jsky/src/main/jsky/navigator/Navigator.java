@@ -97,7 +97,8 @@ public class Navigator extends CatalogNavigator implements CatalogNavigatorOpene
 	if (_catDir == null) {
 	    String className = System.getProperty("jsky.catalog.directory", "jsky.catalog.astrocat.AstroCatConfig");
 	    try {
-		Class c = Class.forName(className);
+		Class c = Class.forName(className,true,
+                            Thread.currentThread().getContextClassLoader());
 		Object o = c.getMethod("getDirectory", null).invoke(null, null);
 		if (o instanceof CatalogDirectory) {
 		    _catDir = (CatalogDirectory)o;

@@ -155,6 +155,17 @@
   <!-- File for logging the files that are copied by the install target -->
   <property name="install.log" value=".${name}.install"/>
   <property name="install.overwrite" value="true"/>
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase" 
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://archive.eso.org/jsky/"/>
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
@@ -388,6 +399,73 @@
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <!-- Sign all jar files -->
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
+
+  </target>
+
+
+ <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package, this goes into
+     !   "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>JSKY - Java Components for Astronomy</title>
+         <vendor>ESO</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"JSky - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="JSKY-PARTS" href="${name}-parts.jnlp"/>
+       </resources>
+       <application_desc main_class="jsky.app.jskycat.JSkyCat"/>
+     </jnlp>
+
+     <!-- May be needed as a component so provide that too -->
+     <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>JSKY - Java Components for Astronomy</title>
+         <vendor>ESO</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"JSky - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+         <extension name="DIVA" href="diva.jnlp"/>
+         <extension name="TAMFITS" href="tamfits.jnlp"/>
+       </resources>
+       <component_desc/>
+     </jnlp>
+
   </target>
 
   <!--
@@ -406,7 +484,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -652,6 +730,7 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
       <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
       </fileset>

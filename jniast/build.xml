@@ -162,6 +162,18 @@
   <property name="install.log" value=".${name}.install"/>
   <property name="install.overwrite" value="true"/>
 
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase" 
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
@@ -770,6 +782,82 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${build.java}"/>
 
+    <!-- Make a jar file of the shareable library. This is used if
+     !   webstart enabled -->
+    <jar destfile="${dist.lib.arch}/${name}_libs.jar"
+         basedir="${dist.lib.arch}" excludes="**/*.jar">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+
+    <!-- Sign all jar files -->
+    <signjar jar="${dist.lib.pkg}/${name}.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
+    <signjar jar="${dist.lib.arch}/${name}_libs.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package, this goes into
+     !   "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>JNIAST - Java Native Interface to AST</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"Starlink JNIAST - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="UTIL" href="util.jnlp"/>
+       </resources>
+
+       <!-- SUN Linux -->
+       <resources os="Linux" arch="i386">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
+       <!-- IBM Linux -->
+       <resources os="Linux" arch="x86">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
+       <!-- Windows -->
+       <resources os="Windows">
+          <nativelib href="x86/${name}_libs.jar"/>
+       </resources>
+
+       <!-- SUN Solaris -->
+       <resources os="SunOS" arch="sparc">
+         <nativelib href="sparc/${name}_libs.jar"/>
+       </resources>
+
+       <component_desc/>
+    </jnlp>
   </target>
 
   <!--
@@ -783,7 +871,7 @@
    !  target is skipped (needed for releases that do not have source).
    !-->
   <target name="dist"
-          depends="build,jars,javadocs"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> creates the local binary distribution">
 
@@ -994,6 +1082,7 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="false">
       <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
         <include name="**/*.so"/>

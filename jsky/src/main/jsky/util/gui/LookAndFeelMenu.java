@@ -141,7 +141,8 @@ public class LookAndFeelMenu extends JMenu {
      */
     protected static boolean isAvailableLookAndFeel(String classname) {
         try { // Try to create a L&F given a String
-            Class lnfClass = Class.forName(classname);
+            Class lnfClass = Class.forName(classname,true,
+                                           Thread.currentThread().getContextClassLoader());
             LookAndFeel newLAF = (LookAndFeel) (lnfClass.newInstance());
             return newLAF.isSupportedLookAndFeel();
         }

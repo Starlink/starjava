@@ -173,7 +173,17 @@
   <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>
 
-
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase" 
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
 
   <!--
    !   =========
@@ -240,8 +250,8 @@
 
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property 
-   !   "extra.class.path" (which can be defined locally using say 
+  <!-- Extra user-defined classpath. This is set by the property
+   !   "extra.class.path" (which can be defined locally using say
    !   -Dextra.class.path=$CLASSPATH on the command line or by setting
    !   the property in either of the properties files.-->
   <property name="extra.class.path" value=""/>
@@ -448,7 +458,7 @@
   <!--
    !   Put all the source files required for compilation of the shared
    !   library in the build directory.  Some of these are copied directly
-   !   from source directories, some are generated using javah from 
+   !   from source directories, some are generated using javah from
    !   class files.
    !-->
   <target name="assemble_jni" depends="build_classes" unless="jni.assembled">
@@ -491,6 +501,81 @@
 
     <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${java.dir}"/>
 
+    <!-- Make a jar file of the shareable library. This is used if
+     !   webstart enabled -->
+    <jar destfile="${dist.lib.arch}/${name}_libs.jar"
+         basedir="${dist.lib.arch}" excludes="**/*.jar">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+
+    <!-- Sign all jar files -->
+    <signjar jar="${dist.lib.pkg}/${name}.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
+    <signjar jar="${dist.lib.arch}/${name}_libs.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package, this goes into
+     !   "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>JNIHDS - Java Native Interface to HDS</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"Starlink JNIHDS - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="UTIL" href="util.jnlp"/>
+       </resources>
+
+       <!-- SUN Linux -->
+       <resources os="Linux" arch="i386">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
+       <!-- IBM Linux -->
+       <resources os="Linux" arch="x86">
+         <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+
+       <!-- Windows -->
+       <resources os="Windows">
+          <nativelib href="x86/${name}_libs.jar"/>
+       </resources>
+
+       <!-- SUN Solaris -->
+       <resources os="SunOS" arch="sparc">
+         <nativelib href="sparc/${name}_libs.jar"/>
+       </resources>
+
+       <component_desc/>
+    </jnlp>
   </target>
 
   <!--
@@ -504,7 +589,7 @@
    !  target is skipped (needed for releases that do not have source).
    !-->
   <target name="dist"
-          depends="build,jars,javadocs"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> creates the local binary distribution">
 
@@ -565,7 +650,7 @@
     <antcall target="create_archives">
       <param name="source.required" value="true"/>
       <param name="archive.name" value="${dist.version}-src"/>
-    </antcall> 
+    </antcall>
 
   </target>
 
@@ -656,7 +741,7 @@
       </tarfileset>
     </tar>
 
-    <gzip zipfile="${star.archive.dir}/${tarfile.name}.gz" 
+    <gzip zipfile="${star.archive.dir}/${tarfile.name}.gz"
           src="${tarfile.name}"/>
     <bzip2 zipfile="${star.archive.dir}/${tarfile.name}.bz2"
            src="${tarfile.name}"/>
@@ -715,13 +800,14 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="false">
       <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
         <include name="**/*.so"/>
       </fileset>
     </loggedcopy>
 
-    <!-- Also remove the package-specific directory. 
+    <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
@@ -790,7 +876,7 @@
 
   <!-- Real deinstall target. Only activated if "install.log.present"
    !   is defined -->
-  <target name="real_deinstall" 
+  <target name="real_deinstall"
           if="install.log.present">
 
     <loadfile property="files" srcFile="${install.log}"/>

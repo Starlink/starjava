@@ -352,7 +352,7 @@ public class ImageSaveDialog extends JFileChooser {
             // This way, if they don't exist, the rest of the application still functions.
 
             // Get the Codec
-            Class c = Class.forName("com.sun.image.codec.jpeg.JPEGCodec");
+            Class c = this.getClass().forName("com.sun.image.codec.jpeg.JPEGCodec");
 
             // Get the Encoder
             Method m = c.getMethod("createJPEGEncoder", new Class[]{OutputStream.class});
@@ -371,7 +371,7 @@ public class ImageSaveDialog extends JFileChooser {
             Method em = encoder.getClass().getMethod("encode",
                     new Class[]{
                         BufferedImage.class,
-                        Class.forName("com.sun.image.codec.jpeg.JPEGEncodeParam")
+                        this.getClass().forName("com.sun.image.codec.jpeg.JPEGEncodeParam")
                     });
             em.invoke(encoder, new Object[]{paintedImage, encodeParam});
         }
