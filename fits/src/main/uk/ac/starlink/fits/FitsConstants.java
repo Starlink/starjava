@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.array.Type;
@@ -26,6 +27,11 @@ public class FitsConstants {
 
     /** Prefix for NDArray-related FITS header cards. */
     public static final String NDARRAY_PREFIX = "NDA_";
+
+    /** Image of end-of-header card. */
+    public static final HeaderCard END_CARD = new HeaderCard( 
+        "END                                     " +
+        "                                        " );
 
     /**
      * FITS header card for indicating NDArray origin values.

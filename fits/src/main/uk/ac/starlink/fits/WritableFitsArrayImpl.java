@@ -304,18 +304,4 @@ class WritableFitsArrayImpl implements ArrayImpl {
     private static interface TypedWriter {
         void write( Object buffer, int start, int size ) throws IOException;
     }
-
-    /**     
-     * Private helper class to get round a restriction in the 
-     * nom.tam.fits.Header class - this one just subclasses it and publicises 
-     * the addLine method which is (I don't really know why) protected 
-     * in Header.
-     */
-    private static class AddableHeader extends Header {
-        public void addLine( HeaderCard card ) {
-            super.addLine( card );
-        }
-    }
-
 }
-

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.MalformedURLException;
@@ -17,15 +18,11 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import nom.tam.fits.BasicHDU;
-import nom.tam.fits.Data;
-import nom.tam.fits.Fits;
+import nom.tam.fits.AsciiTable;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.HeaderCardException;
-import nom.tam.fits.ImageData;
-import nom.tam.fits.ImageHDU;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.ArrayDataOutput;
 import nom.tam.util.BufferedDataInputStream;
@@ -182,15 +179,17 @@ public class FitsNdxHandler implements NdxHandler {
         if ( hdr.containsKey( FitsConstants.NDX_ETC ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_ETC );
             URL xurl = new URL( url, loc );
-            FitsURL xfurl = FitsURL.parseURL( xurl, extensions );
-            if ( xfurl != null ) {
+            ArrayDataInput strm =
+                fab.getReadableStream( xurl, AccessMode.READ );
+            if ( strm != null ) {
                 try {
-                    Fits fits = new Fits( xfurl.getContainer() );
-                    BasicHDU xhdu = fits.getHDU( xfurl.getHDU() - 1 );
-                    // assert xhdu instanceof ImageHDU;
-                    byte[] bytes = (byte[]) xhdu.getKernel();
+                    Header xhdr = new Header( strm );
+                    AsciiTable tab = new AsciiTable( xhdr );
+                    tab.read( strm );
+                    String[] cellval = (String[]) tab.getElement( 0, 0 );
+                    String xdat = cellval[ 0 ];
                     Source xsrc = 
-                        new StreamSource( new ByteArrayInputStream( bytes ) );
+                        new StreamSource( new StringReader( xdat ) );
                     etc = new SourceReader().getDOM( xsrc );
                 }
                 catch ( FitsException e ) {
@@ -351,21 +350,35 @@ public class FitsNdxHandler implements NdxHandler {
             NDArrays.copy( qual, new BridgeNDArray( qimpl ) );
         }
 
-        /* Write the Etc component as a byte array if there is one. */
+        /* Write the Etc as bytes in an ASCII table extension. */
         if ( ndx.hasEtc() ) {
             try {
                 ByteArrayOutputStream bufos = new ByteArrayOutputStream();
                 new SourceReader().writeSource( ndx.getEtc(), bufos );
                 byte[] bytes = bufos.toByteArray();
-                Data etcData = new ImageData( bytes );
-                Header etcHeader = new Header( etcData );
-                etcHeader.insertComment( "ETC component of NDX structure" );
-                etcHeader.insertComment( "XML text encoded as byte array" );
-                etcHeader.removeCard( "SIMPLE" );
-                etcHeader.removeCard( "EXTEND" );
-                etcHeader.setXtension( "IMAGE" );
-                BasicHDU etcHdu = new ImageHDU( etcHeader, etcData );
-                etcHdu.write( strm );
+                int nchar = bytes.length;
+                AddableHeader hdr = new AddableHeader();
+                hdr.addValue( "XTENSION", "TABLE", "ASCII table extension" );
+                hdr.addValue( "BITPIX", 8, "Character values" );
+                hdr.addValue( "NAXIS", 2, "Two-dimensional table" );
+                hdr.addValue( "NAXIS1", nchar,
+                              "Number of characters in sole row" );
+                hdr.addValue( "NAXIS2", 1, "Single row" );
+                hdr.addValue( "PCOUNT", 0, "No additional parameters" );
+                hdr.addValue( "GCOUNT", 1, "Single table" );
+                hdr.addValue( "TFIELDS", 1, "Single field" );
+                hdr.addValue( "TBCOL1", 1, "Sole field starts at first column" );
+                hdr.addValue( "TFORM1", "A" + nchar, "Text field" );
+                hdr.addValue( "TTYPE1", "XML representation of NDX extensions",
+                              "Field header" );
+                hdr.insertComment( "XML text encoded as table entry" );
+                hdr.addLine( FitsConstants.END_CARD );
+                hdr.write( strm );
+                strm.write( bytes );
+                int over = nchar % FitsConstants.FITS_BLOCK;
+                if ( over > 0 ) {
+                    strm.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
+                }
             }
             catch ( FitsException e ) {
                 throw (IOException) new IOException( e.getMessage() )

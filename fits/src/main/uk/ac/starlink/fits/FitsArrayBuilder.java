@@ -92,7 +92,14 @@ public class FitsArrayBuilder implements ArrayBuilder {
     }
     
 
-    public NDArray makeNDArray( URL url, AccessMode mode ) throws IOException {
+    /**
+     * Returns an ArrayDataInput corresponding to the given URL.
+     * It will be positioned at the right place to read the given URL,
+     * which may not be the start of the file if it's not the first HDU.
+     * Returns a null if the URL does not refer to a FITS stream.
+     */
+    ArrayDataInput getReadableStream( URL url, AccessMode mode ) 
+            throws IOException {
 
         /* Parse the URL as a reference to a FITS HDU, or bail out
          * if this is not possible. */
@@ -103,7 +110,6 @@ public class FitsArrayBuilder implements ArrayBuilder {
         URL container = furl.getContainer();
         int hdu = furl.getHDU();
 
-        /* Get an ArrayDataInput from which to construct the FITS NDArray. */
         ArrayDataInput stream = null;
 
         /* If we're on the local filesystem we can make one which supports
@@ -145,6 +151,13 @@ public class FitsArrayBuilder implements ArrayBuilder {
             /* Advance to the correct point in the stream. */
             FitsConstants.skipHDUs( stream, hdu - 1 );
         }
+        return stream;
+    }
+
+    public NDArray makeNDArray( URL url, AccessMode mode ) throws IOException {
+
+        /* Get an ArrayDataInput from which to construct the FITS NDArray. */
+        ArrayDataInput stream = getReadableStream( url, mode );
 
         /* Make the ArrayImpl. */
         ArrayImpl impl;
@@ -341,6 +354,8 @@ public class FitsArrayBuilder implements ArrayBuilder {
                                                     strm, primary, cards );
         return new BridgeNDArray( impl );
     }
+
+
 
 
 }
