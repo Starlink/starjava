@@ -224,25 +224,30 @@ public class ColumnSelector extends JComponent implements ActionListener {
          * about.  If there were many, a redesign might be in order. */
         String units = info_.getUnitString();
         String cunits = cinfo.getUnitString();
+        if ( units != null && cunits != null ) {
+            int nconv = conversionChooser_.getItemCount();
 
-        /* Known converters for radians are radian or degree. */
-        if ( units.equalsIgnoreCase( "radian" ) ||
-             units.equalsIgnoreCase( "radians" ) ) {
-            if ( cunits.toLowerCase().startsWith( "rad" ) ) {
-                for ( int i = 0; i < conversionChooser_.getItemCount(); i++ ) {
-                    ColumnConverter conv = (ColumnConverter) 
-                                           conversionChooser_.getItemAt( i );
-                    if ( conv.toString().toLowerCase().startsWith( "rad" ) ) {
-                        return conv;
+            /* Known converters for radians are radian or degree. */
+            if ( units.equalsIgnoreCase( "radian" ) ||
+                 units.equalsIgnoreCase( "radians" ) ) {
+                if ( cunits.toLowerCase().startsWith( "rad" ) ) {
+                    for ( int i = 0; i < nconv; i++ ) {
+                        ColumnConverter conv =
+                            (ColumnConverter) conversionChooser_.getItemAt( i );
+                        if ( conv.toString().toLowerCase()
+                                            .startsWith( "rad" ) ) {
+                            return conv;
+                        }
                     }
                 }
-            }
-            else if ( cunits.toLowerCase().startsWith( "deg" ) ) {
-                for ( int i = 0; i < conversionChooser_.getItemCount(); i++ ) {
-                    ColumnConverter conv = (ColumnConverter) 
-                                           conversionChooser_.getItemAt( i );
-                    if ( conv.toString().toLowerCase().startsWith( "deg" ) ) {
-                        return conv;
+                else if ( cunits.toLowerCase().startsWith( "deg" ) ) {
+                    for ( int i = 0; i < nconv; i++ ) {
+                        ColumnConverter conv = 
+                            (ColumnConverter) conversionChooser_.getItemAt( i );
+                        if ( conv.toString().toLowerCase()
+                                            .startsWith( "deg" ) ) {
+                            return conv;
+                        }
                     }
                 }
             }
