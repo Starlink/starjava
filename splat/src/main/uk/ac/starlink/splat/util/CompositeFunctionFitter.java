@@ -125,6 +125,14 @@ public class CompositeFunctionFitter
     }
 
     /**
+     * Find out how many FunctionGenerators are added.
+     */
+    public int functionGeneratorCount()
+    {
+        return funcs.size();
+    }
+
+    /**
      * How did the minimisation complete?
      */
     public boolean isConverged()
