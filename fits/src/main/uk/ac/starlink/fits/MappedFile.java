@@ -207,12 +207,12 @@ public class MappedFile
         }
     }
     public float readFloat() throws EOFException {
-        return niobuf.getFloat();
-    //  return Float.intBitsToFloat( readInt() );
+    //  return niobuf.getFloat();
+        return Float.intBitsToFloat( readInt() );
     }
     public double readDouble() throws EOFException {
-        return niobuf.getDouble();
-    //  return Double.longBitsToDouble( readLong() );
+    //  return niobuf.getDouble();
+        return Double.longBitsToDouble( readLong() );
     }
     public int readUnsignedByte() throws EOFException {
         return readByte() | 0xff;
@@ -494,12 +494,12 @@ public class MappedFile
         }
     }
     public void writeFloat( float val ) throws IOException {
-        niobuf.putFloat( val );
-        // writeInt( Float.floatToIntBits( val ) );
+        // niobuf.putFloat( val );
+        writeInt( Float.floatToIntBits( val ) );
     }
     public void writeDouble( double val ) throws IOException {
-        niobuf.putDouble( val );
-        // writeLong( Double.doubleToLongBits( val ) );
+        // niobuf.putDouble( val );
+        writeLong( Double.doubleToLongBits( val ) );
     }
 
 
