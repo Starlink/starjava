@@ -211,6 +211,7 @@
       export FC
       export FFLAGS
       export JAVA_SYSTEM
+      export JAVA_INCLUDE
       export LINK
       export SOURCE_VARIANT
       export RANLIB
@@ -302,6 +303,7 @@
                TAR_IN='tar -cvhf'
                TAR_OUT='tar -xf'
                JAVA_SYSTEM='ppc'
+               JAVA_INCLUDE='$(JDK)/Headers'
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
