@@ -3,8 +3,8 @@ package uk.ac.starlink.treeview.votable;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.NoSuchElementException;
+import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
 
@@ -22,20 +22,17 @@ class BinaryTable extends Table {
     private boolean[] colVar;
     private int[] colBytes;
 
-    BinaryTable( Element tableEl, Element binaryEl )
+    BinaryTable( Element tableEl, Element binaryEl, String systemId )
             throws VOTableFormatException {
         super( tableEl );
         ncols = getNumColumns();
 
         /* Get the location of the object data. */
         Element streamEl = DOMUtils.getChildElementByName( binaryEl, "STREAM" );
-        Stream stream = new Stream( streamEl );
+        Stream stream = new Stream( new DOMSource( streamEl, systemId ) );
         try {
             istrm = new DataInputStream( stream.getInputStream() );
             nextRow = obtainNextRow();
-        }
-        catch ( MalformedURLException e ) {
-            throw new VOTableFormatException( e );
         }
         catch ( IOException e ) {
             throw new VOTableFormatException( e );

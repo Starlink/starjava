@@ -65,6 +65,7 @@ public class Table extends GenericElement {
      */
     public static Table makeTable( Source xsrc ) throws TransformerException {
         Node tab = new SourceReader().getDOM( xsrc );
+        String systemId = xsrc.getSystemId();
         Element tableEl = ( tab instanceof Document )
                         ? ((Document) tab).getDocumentElement()
                         : (Element) tab;
@@ -75,11 +76,11 @@ public class Table extends GenericElement {
         }
         Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
         if ( dataEl != null ) {
-            return new FitsTable( tableEl, fitsEl );
+            return new FitsTable( tableEl, fitsEl, systemId );
         }
         Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
         if ( binEl != null ) {
-            return new BinaryTable( tableEl, binEl );
+            return new BinaryTable( tableEl, binEl, systemId );
         }
         return new Table( tableEl );
     }

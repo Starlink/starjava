@@ -3,11 +3,15 @@ package uk.ac.starlink.treeview.votable;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Handler for a VOTable STREAM element.  This is capable of supplying
@@ -19,16 +23,31 @@ public class Stream {
     private String href;
     private String encoding;
     private Element streamEl;
+    private String systemId;
 
     /**
-     * Construct a Stream object from the DOM node representing the STREAM
-     * element.
+     * Construct a Stream object from an XML Source representing the STREAM
+     * element.  Note that the systemId of the Source will be used to 
+     * resolve any URL in the STREAM's href attribute.
      *
-     * @param   streamEl  the STREAM Element
-     * @throws  IllegalArgumentException   if streamEl is not a STREAM element.
+     * @param   xsrc  an XML Source containing the STREAM Element
+     * @throws  IllegalArgumentException   if xsrc does not contain 
+     *          a STREAM element.
      */
-    public Stream( Element streamEl ) {
-        this.streamEl = streamEl;
+    public Stream( Source xsrc ) {
+        Node node;
+        try {
+            node = new SourceReader().getDOM( xsrc );
+        }
+        catch ( TransformerException e ) {
+            throw new IllegalArgumentException( "Not an element" );
+        }
+        if ( ! ( node instanceof Element ) ) {
+            throw new IllegalArgumentException( "Not an element" );
+        }
+        this.streamEl = (Element) node;
+        this.systemId = xsrc.getSystemId();
+ 
         if ( ! streamEl.getTagName().equals( "STREAM" ) ) {
             throw new IllegalArgumentException(
                 "Element has tagname <" + streamEl.getTagName() + 
@@ -49,8 +68,7 @@ public class Stream {
      * 
      * @return  the input stream holding the Stream content
      */
-    public InputStream getInputStream()
-            throws MalformedURLException, IOException {
+    public InputStream getInputStream() throws IOException {
         return obtainInputStream();
     }
 
@@ -58,15 +76,18 @@ public class Stream {
      * Does the work of obtaining input stream which returns the bytes 
      * contained by this object.  Any required decoding is done here.
      */
-    private InputStream obtainInputStream() 
-            throws MalformedURLException, IOException {
+    private InputStream obtainInputStream() throws IOException {
 
         /* Get the source of bytes. */
         InputStream baseStrm;
+
+        /* If there is an href attribute, stream data from the URL. */
         if ( href != null ) {
-            URL url = new URL( href );
+            URL url = URLUtils.makeURL( systemId, href );
             baseStrm = url.openStream();
         }
+
+        /* Otherwise, use the text content of the element itself. */
         else {
             baseStrm = getTextContentInputStream( streamEl );
         }

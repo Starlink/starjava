@@ -23,7 +23,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
     public VOTableTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "TABLE" );
         try {
-            votable = Table.makeTable( new DOMSource( vocel ) );
+            votable = Table.makeTable( new DOMSource( vocel, systemId ) );
         }
         catch ( TransformerException e ) {
             throw new NoSuchDataException( e );

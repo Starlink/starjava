@@ -1,6 +1,5 @@
 package uk.ac.starlink.array;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Manufactures NDArray objects from URLs. 
@@ -287,23 +287,8 @@ public class NDArrayFactory {
         return makeNewNDArray( getUrl( location ), template );
     }
  
-    private static URL getUrl( String location ) throws FileNotFoundException {
-        URL url;
-        try {
-            url = new URL( location );
-        }
-        catch ( MalformedURLException e ) {
-            try {
-                URL context = new URL( "file:." );
-                url = new URL( context, location );
-            }
-            catch ( MalformedURLException e1 ) {
-                String msg = "'" + location + "' doesn't look like a filename";
-                throw (FileNotFoundException) new FileNotFoundException( msg )
-                                             .initCause( e1 );
-            }
-        }
-        return url;
+    private static URL getUrl( String location ) {
+        return URLUtils.makeURL( location );
     }
 
  

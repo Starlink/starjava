@@ -1,8 +1,8 @@
 package uk.ac.starlink.treeview.votable;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.NoSuchElementException;
+import javax.xml.transform.dom.DOMSource;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.Fits;
 import nom.tam.fits.FitsException;
@@ -21,13 +21,14 @@ class FitsTable extends Table {
     private int irow = 0;
     private TableHDU tabhdu;
 
-    FitsTable( Element tableEl, Element fitsEl ) throws VOTableFormatException {
+    FitsTable( Element tableEl, Element fitsEl, String systemId ) 
+            throws VOTableFormatException {
         super( tableEl );
         ncols = getNumColumns();
 
         /* Get the location of the FITS data. */
         Element streamEl = DOMUtils.getChildElementByName( fitsEl, "STREAM" );
-        Stream stream = new Stream( streamEl );
+        Stream stream = new Stream( new DOMSource( streamEl, systemId ) );
 
         /* Get the extension number in which the BINTABLE is stored. 
          * We assume 1 if none is specified - it can't be zero since 
@@ -45,9 +46,6 @@ class FitsTable extends Table {
         try {
             Fits fits = new Fits( stream.getInputStream() );
             hdu = fits.getHDU( extNum );
-        }
-        catch ( MalformedURLException e ) {
-            throw new VOTableFormatException( e );
         }
         catch ( IOException e ) {
             throw new VOTableFormatException( e );

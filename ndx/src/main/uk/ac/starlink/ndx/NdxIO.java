@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Performs I/O between Ndx objects and resources named by URLs.
@@ -295,27 +296,11 @@ public class NdxIO {
      * @throws FileNotFoundException  if the location doesn't look like a 
      *                     file or URL
      */
-    public void outputNdx( String location, Ndx ndx )
-            throws IOException{
+    public void outputNdx( String location, Ndx ndx ) throws IOException {
         outputNdx( getUrl( location ), ndx );
     }
 
-    private static URL getUrl( String location ) throws FileNotFoundException {
-        URL url;
-        try {
-            url = new URL( location );
-        }
-        catch ( MalformedURLException e ) {
-            try { 
-                File file = new File( location );
-                url = new URL( "file:" + file.getAbsolutePath() );
-            }
-            catch ( MalformedURLException e1 ) {
-                String msg = "'" + location + "' doesn't look like a filename";
-                throw (FileNotFoundException) new FileNotFoundException( msg )
-                                             .initCause( e1 );
-            }
-        }
-        return url;
+    private static URL getUrl( String location ) {
+        return URLUtils.makeURL( location );
     }
 }

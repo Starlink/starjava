@@ -36,6 +36,7 @@ import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
 import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Turns URLs which reference XML files into Ndxs.
@@ -64,8 +65,6 @@ public class XMLNdxHandler implements NdxHandler {
 
     private static NDArrayFactory arrayfact = new NDArrayFactory();
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
-
-    private URL context;
 
     /**
      * Private sole constructor.
@@ -118,22 +117,7 @@ public class XMLNdxHandler implements NdxHandler {
     public Ndx makeNdx( Source xsrc, AccessMode mode ) throws IOException {
 
         /* Try to get the System ID for resolving relative URLs. */
-        String cxt = xsrc.getSystemId();
-        if ( cxt != null ) {
-            try {
-                context = new URL( cxt );
-            }
-            catch ( MalformedURLException e ) {
-                try {
-                    context = new File( cxt ).toURL();
-                }
-                catch ( MalformedURLException e2 ) {
-                    logger.info( "Malformed SystemID found for stream: "
-                               + cxt );
-                    context = null;
-                }
-            }
-        }
+        String systemId = xsrc.getSystemId();
 
         /* Get a DOM. */
         Node ndxdom;
@@ -178,13 +162,13 @@ public class XMLNdxHandler implements NdxHandler {
                 Element cel = (Element) child;
                 String tagname = cel.getTagName();
                 if ( tagname.equals( "image" ) ) {
-                    image = makeNDArray( cel, mode );
+                    image = makeNDArray( cel, mode, systemId );
                 }
                 else if ( tagname.equals( "variance" ) ) {
-                    variance = makeNDArray( cel, mode );
+                    variance = makeNDArray( cel, mode, systemId );
                 }
                 else if ( tagname.equals( "quality" ) ) {
-                    quality = makeNDArray( cel, mode );
+                    quality = makeNDArray( cel, mode, systemId );
                 }
                 else if ( tagname.equals( "title" ) ) {
                     title = getTextContent( cel );
@@ -229,9 +213,8 @@ public class XMLNdxHandler implements NdxHandler {
         return makeNdx( image, variance, quality, title, wcs, badbits, etc );
     }
 
-    private NDArray makeNDArray( Element el, AccessMode mode )
+    private NDArray makeNDArray( Element el, AccessMode mode, String systemId )
             throws IOException {
-        URL url;
         String loc;
         if ( el.hasAttribute( "url" ) ) {
             loc = el.getAttribute( "url" );
@@ -244,15 +227,8 @@ public class XMLNdxHandler implements NdxHandler {
             throw new IOException( "No location supplied for <" 
                                  + el.getTagName() + "> array" );
         }
-        try {
-            url = new URL( context, loc );
-        }
-        catch ( MalformedURLException e ) {
-            throw (IOException) 
-                  new IOException( "Bad location for " + el.getTagName() 
-                                 + ": " + loc )
-                 .initCause( e );
-        }
+
+        URL url = URLUtils.makeURL( systemId, loc );
         return arrayfact.makeNDArray( url, mode );
     }
 
