@@ -131,7 +131,8 @@ sub makeMethodHeader {
    my( $purpose ) = $args{ 'purpose' };
    my( $descrip ) = $args{ 'descrip' };
    my( $extra ) = $args{ 'extra' } || "";
-   my( $qualifiers ) = $args{ 'qualifiers' }." " || "";
+   my( $qualifiers ) = $args{ 'qualifiers' } || "";
+   if ( $qualifiers ) { $qualifiers .= " " }
 
    my( $startText ) = jdocize( toSentence( $purpose ) );
    my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
