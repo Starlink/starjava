@@ -1,16 +1,22 @@
 package uk.ac.starlink.topcat;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.net.URL;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.swing.Action;
+import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
 import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -27,18 +33,20 @@ import uk.ac.starlink.table.gui.StarJTable;
  * Top-level window which displays the parameters of a table.
  * Other per-table metadata may be displayed as well.
  */
-public class ParameterWindow extends TopcatViewWindow {
+public class ParameterWindow extends TopcatViewWindow 
+                             implements TopcatListener, ListSelectionListener {
 
     private TopcatModel tcModel;
     private PlasticStarTable dataModel;
     private TableModel viewModel;
     private TableColumnModel columnModel;
-    private List params;
-    private Collection pseudoParams;
+    private ParamList params;
     private Collection uneditableParams;
     private DescribedValue ncolParam;
     private DescribedValue nrowParam;
     private MetaColumnTableModel metaTableModel;
+    private final ListSelectionModel rowSelectionModel;
+    private final Action removeAct;
     private int ncolRowIndex;
     private int nrowRowIndex;
 
@@ -64,12 +72,17 @@ public class ParameterWindow extends TopcatViewWindow {
         this.viewModel = tcModel.getViewModel();
         this.columnModel = tcModel.getColumnModel();
 
+        /* Listen on our TopcatModel in case the parameter list changes. */
+        tcModel.addTopcatListener( this );
+
         /* Assemble a list of DescribedValue objects representing the 
          * parameters and other metadata items which describe this table.
-         * Also maintain a record of subsets of this list which have
+         * This is based on the live parameter list from the data model,
+         * but will include some extra 'pseudo'-parameters. */
+        params = new ParamList( dataModel.getParameters() );
+
+        /* Also maintain a record of subsets of this list which have
          * certain characteristics. */
-        params = new ArrayList();
-        pseudoParams = new HashSet();
         uneditableParams = new HashSet();
 
         /* Make a parameter for the table name. */
@@ -85,25 +98,21 @@ public class ParameterWindow extends TopcatViewWindow {
                 dataModel.setName( name );
             }
         };
-        params.add( nameParam );
-        pseudoParams.add( nameParam );
+        params.addPseudoParameter( nameParam );
 
         /* Make a parameter for the table URL. */
         URL url = dataModel.getBaseTable().getURL();
         if ( url != null ) {
             DescribedValue urlParam = new DescribedValue( URL_INFO, url );
-            params.add( urlParam );
-            pseudoParams.add( urlParam );
+            params.addPseudoParameter( urlParam );
             uneditableParams.add( urlParam );
         }
 
         /* Make a parameter for the number of columns and rows. */
         ncolParam = new DescribedValue( NCOL_INFO );
         nrowParam = new DescribedValue( NROW_INFO );
-        params.add( ncolParam );
-        params.add( nrowParam );
-        pseudoParams.add( ncolParam );
-        pseudoParams.add( nrowParam );
+        params.addPseudoParameter( ncolParam );
+        params.addPseudoParameter( nrowParam );
         uneditableParams.add( ncolParam );
         uneditableParams.add( nrowParam );
         columnModel.addColumnModelListener( new TableColumnModelAdapter() {
@@ -121,13 +130,6 @@ public class ParameterWindow extends TopcatViewWindow {
         } );
         ncolRowIndex = params.indexOf( ncolParam );
         nrowRowIndex = params.indexOf( nrowParam );
-
-        /* Add the actual table parameters as such. */
-        for ( Iterator it = dataModel.getParameters().iterator();
-              it.hasNext(); ) {
-            DescribedValue param = (DescribedValue) it.next();
-            params.add( param );
-        }
 
         /* Assemble a list of MetaColumns which hold information about
          * the columns in the JTable this component will display.
@@ -272,10 +274,14 @@ public class ParameterWindow extends TopcatViewWindow {
         };
 
         /* Construct and place a JTable to contain it. */
-        JTable jtab = new JTable( metaTableModel );
+        final JTable jtab = new JTable( metaTableModel );
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( true );
+        rowSelectionModel = jtab.getSelectionModel();
+        rowSelectionModel.setSelectionMode( ListSelectionModel
+                                           .SINGLE_SELECTION );
+        rowSelectionModel.addListSelectionListener( this );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
         /* Customise the JTable's column model to provide control over 
@@ -295,6 +301,31 @@ public class ParameterWindow extends TopcatViewWindow {
 
         /* Place the JTable into a scrollpane in this frame. */
         getMainArea().add( new SizingScrollPane( jtab ) );
+
+        /* Action for adding a parameter. */
+        Action addAct = new BasicAction( "New Parameter", ResourceIcon.ADD,
+                                  "Add a new parameter" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                ParameterWindow paramWindow = ParameterWindow.this;
+                new ParameterQueryWindow( paramWindow.tcModel, paramWindow );
+            }
+        };
+        getToolBar().add( addAct );
+
+        /* Action for removing a parameter. */
+        removeAct = new BasicAction( "Remove Parameter", ResourceIcon.DELETE,
+                                     "Delete the selected parameter" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( jtab.getSelectedRowCount() == 1 ) {
+                    int irow = jtab.getSelectedRow();
+                    DescribedValue dval = getParam( irow );
+                    ParameterWindow.this.tcModel.removeParameter( dval );
+                }
+            }
+        };
+        removeAct.setEnabled( false );
+        getToolBar().add( removeAct );
+        getToolBar().addSeparator();
 
         /* Make a menu for controlling metadata display. */
         JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );
@@ -318,7 +349,7 @@ public class ParameterWindow extends TopcatViewWindow {
     }
 
     private boolean isPseudoParameter( int irow ) {
-        return pseudoParams.contains( getParam( irow ) );
+        return params.isPseudoParam( irow );
     }
 
     private boolean isEditableParameter( int irow ) {
@@ -333,5 +364,61 @@ public class ParameterWindow extends TopcatViewWindow {
     private void configureRowCount() {
         nrowParam.setValue( new Long( (long) viewModel.getRowCount() ) );
         metaTableModel.fireTableRowsUpdated( nrowRowIndex, nrowRowIndex );
+    }
+
+    /**
+     * Implements TopcatListener so that the display will be updated 
+     * if the table's parameter list changes.
+     */
+    public void modelChanged( TopcatModel tcModel, int code ) {
+        if ( code == TopcatListener.PARAMETERS ) {
+            metaTableModel.fireTableDataChanged();
+        }
+    }
+
+    /**
+     * Implements ListSelectionListener so it can update actions when a
+     * JTable row (a parameter) is selected.
+     */
+    public void valueChanged( ListSelectionEvent evt ) {
+        if ( evt.getSource() == rowSelectionModel ) {
+            int index = rowSelectionModel.getMinSelectionIndex();
+            boolean active = index >= 0 
+                          && index == rowSelectionModel.getMaxSelectionIndex()
+                          && ! params.isPseudoParam( index );
+            removeAct.setEnabled( active );
+        }
+    }
+
+    /**
+     * Helper class that holds two lists together - one list of 'pseudo'
+     * parameters and one list of 'normal' ones.
+     */
+    private static class ParamList extends AbstractList {
+        private final List pseudoParams;
+        private final List normalParams;
+
+        ParamList( List normalParams ) {
+            this.normalParams = normalParams;
+            this.pseudoParams = new ArrayList();
+        }
+
+        public void addPseudoParameter( DescribedValue dval ) {
+            pseudoParams.add( dval );
+        }
+
+        public int size() {
+            return pseudoParams.size() + normalParams.size();
+        }
+
+        public Object get( int index ) {
+            return isPseudoParam( index ) 
+                 ? pseudoParams.get( index )
+                 : normalParams.get( index - pseudoParams.size() );
+        }
+
+        public boolean isPseudoParam( int index ) {
+            return index < pseudoParams.size();
+        }
     }
 }
