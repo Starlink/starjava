@@ -58,6 +58,13 @@ public class DOMUtilsTest extends TestCase {
         assertEquals( DOMUtils.getTextContent( owner ), "Old MacDonald" );
     }
 
+    public void testNewDocument() {
+        Document doc = DOMUtils.newDocument();
+        String name = "Trevor";
+        doc.appendChild( doc.createElement( name ) );
+        assertEquals( doc.getDocumentElement().getTagName(), name );
+    }
+
     public void testRelativizeDOM()
             throws Exception {
         URI base = new URI("http://example.edu/ex");

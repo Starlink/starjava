@@ -1,6 +1,8 @@
 package uk.ac.starlink.util;
 
 import org.w3c.dom.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import java.net.URI;
 
@@ -199,5 +201,25 @@ public class DOMUtils {
             val = "UNKNOWN!!!";
         assert val instanceof String;
         return (String)val;
+    }
+
+    /**
+     * Returns a new <tt>Document</tt> instance.
+     * This method just does all the tedious business of mucking about
+     * with factories for you.
+     *
+     * @return   an empty Document
+     */
+    public static Document newDocument() {
+        try {
+            return DocumentBuilderFactory
+                  .newInstance()
+                  .newDocumentBuilder()
+                  .newDocument();
+        }
+        catch ( ParserConfigurationException e ) {
+            throw new RuntimeException( "Unexpected error constructing "
+                                      + "default document factory", e );
+        }
     }
 }
