@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * new NDArray with a location given by a URL.
  * <p>
  * This factory delegates the actual NDArray creation to external
- * ArrayFactory objects; the URL is passed to each one in turn 
+ * ArrayBuilder objects; the URL is passed to each one in turn 
  * until one can make an NDArray object from it, which object 
  * is returned to the caller.
  *
@@ -23,25 +23,25 @@ import java.util.logging.Logger;
  */
 public class NDArrayFactory {
 
-    private final List factories;
+    private final List builders;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.array" );
 
     /**
-     * Constructs an NDArrayFactory with a default list of factories.
+     * Constructs an NDArrayFactory with a default list of builders.
      */
-    private NDArrayFactory() {
-        factories = new ArrayList( 2 );
+    public NDArrayFactory() {
+        builders = new ArrayList( 2 );
         Class[] noParams = new Class[ 0 ];
         Object[] noArgs = new Object[ 0 ];
         String className;
 
-        /* Attempt to add an HDSArrayFactory if the class is available. */
-        className = "uk.ac.starlink.hds.HDSArrayFactory";
+        /* Attempt to add an HDSArrayBuilder if the class is available. */
+        className = "uk.ac.starlink.hds.HDSArrayBuilder";
         try {
             Class clazz = Class.forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
-            ArrayFactory fact = (ArrayFactory) meth.invoke( null, noArgs );
-            factories.add( fact );
+            ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
+            builders.add( builder );
             logger.info( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
@@ -53,13 +53,13 @@ public class NDArrayFactory {
                             ": - " + e );
         }
 
-        /* Attempt to add a FITSArrayFActory if the class is available. */
-        className = "uk.ac.starlink.fits.FITSArrayFactory";
+        /* Attempt to add a FITSArrayBuilder if the class is available. */
+        className = "uk.ac.starlink.fits.FITSArrayBuilder";
         try {
             Class clazz = Class.forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
-            ArrayFactory fact = (ArrayFactory) meth.invoke( null, noArgs );
-            factories.add( fact );
+            ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
+            builders.add( builder );
             logger.info( className + " registered" );
         }
         catch ( ClassNotFoundException e ) {
@@ -73,37 +73,38 @@ public class NDArrayFactory {
     }
 
     /**
-     * Gets the list of factories which actually do the URL->NDArray
-     * construction.  Factories earlier in the list are given a 
+     * Gets the list of builders which actually do the URL->NDArray
+     * construction.  Builders earlier in the list are given a 
      * chance to make an NDArray before ones later in the list.
      * This list may be modified to change the behaviour of the 
      * NDArrayFactory.
      *
-     * @return   a mutable List of {@link ArrayFactory} objects used
+     * @return   a mutable List of {@link ArrayBuilder} objects used
      *           for turning URLs into NDArrays
      */
-    public List getFactories() {
-        return factories;
+    public List getBuilders() {
+        return builders;
     }
 
     /**
      * Constructs a readable NDArray from a URL representing an exisiting
      * resource.
-     * A null result will be returned if none of the available factories
+     * A null result will be returned if none of the available builders
      * understands the URL; an IOException will result if one of the
-     * factories is willing to handle the URL but fails to find an
+     * builders is willing to handle the URL but fails to find an
      * array resource at it.
      *
      * @param   url  a URL pointing to a resource holding array data
+     * @param   mode the mode with which it should be accessed
      * @return   a readable NDArray object view of the data at url, or
      *           null if one could not be found
      * @throws   IOException  if there is any I/O error
      */
     public NDArray makeNDArray( URL url, AccessMode mode )
             throws IOException {
-        for ( Iterator it = factories.iterator(); it.hasNext(); ) {
-            ArrayFactory fact = (ArrayFactory) it.next();
-            NDArray nda = fact.makeNDArray( url, mode );
+        for ( Iterator it = builders.iterator(); it.hasNext(); ) {
+            ArrayBuilder builder = (ArrayBuilder) it.next();
+            NDArray nda = builder.makeNDArray( url, mode );
             if ( nda != null ) {
                 return nda;
             }
@@ -114,9 +115,9 @@ public class NDArrayFactory {
     /**
      * Constructs a new NDArray to which data can be written given a URL
      * and the array characteristics.
-     * A null result will be returned if none of the available factories
+     * A null result will be returned if none of the available builders
      * understands the URL; an IOException will result if one of the 
-     * factories is willing to handle the URL but fails to make an array
+     * builders is willing to handle the URL but fails to make an array
      * resource at it.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
@@ -132,9 +133,9 @@ public class NDArrayFactory {
      */
     public NDArray makeNewNDArray( URL url, NDShape shape, Type type )
             throws IOException {
-        for ( Iterator it = factories.iterator(); it.hasNext(); ) {
-            ArrayFactory fact = (ArrayFactory) it.next();
-            NDArray nda = fact.makeNewNDArray( url, shape, type );
+        for ( Iterator it = builders.iterator(); it.hasNext(); ) {
+            ArrayBuilder builder = (ArrayBuilder) it.next();
+            NDArray nda = builder.makeNewNDArray( url, shape, type );
             if ( nda != null ) {
                 return nda;
             }

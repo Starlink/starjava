@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 
 <!--
- !  HDS build file
+ !  NDX build file
  !
- !   This file describes how to build the HDS package from a source
+ !   This file describes how to build the NDX package from a source
  !   release. It requires Apache ANT and a Java Development Kit.
  !
- !   In addition HDS may have requirements for other "core" and
+ !   In addition NDX may have requirements for other "core" and
  !   "third-party" packages to complete the compilation and any
  !   testing.
  !
@@ -35,7 +35,7 @@
  !
  !-->
 
-<project name="Build file for HDS" default="build" basedir=".">
+<project name="Build file for NDX" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,12 +77,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="HDS"/>
-  <property name="name" value="hds"/>
+  <property name="Name" value="NDX"/>
+  <property name="name" value="ndx"/>
   <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.hds"/>
+  <property name="package.name" value="uk.ac.starlink.ndx"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -168,17 +168,26 @@
    !   mechanism) during development as this allows us to compile
    !   without having to work these dependencies out anyway (may 
    !   be fixed in Java1.5) plus we can execute against locally built
-   !   class files in preference to installed ones (an extra user-define
+   !   class files in preference to installed ones (an externally
    !   defined CLASSPATH can also be used as needed). 
    !-->
   <extclasspath id="installed.classpath">
 
+    <!-- Array -->
+    <pathelement location="${star.jar.dir}/array/array.jar"/>
+
+    <!-- JNIAST -->
+    <pathelement location="${star.jar.dir}/ast/ast.jar"/>
+
+    <!-- Util -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+
     <!-- JUnit -->
     <pathelement location="${star.jar.dir}/junit/junit.jar"/>
 
-    <!-- JNIHDS -->
-    <pathelement location="${star.jar.dir}/jnihds/jnihds.jar"/>
-    
+    <!-- HDS - optional -->
+    <pathelement location="${star.jar.dir}/hds/hds.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -195,11 +204,14 @@
    !   after the "build/classes" directories using the "extclasspath"
    !   type, just so that they will be referred to first. If this
    !   doesn't work as expected add the additional classes/jars to
-   !   the extra classpath.
+   !   the external classpath.
    !-->
   <extclasspath id="built.jarpath">
+    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
-    <pathelement location="${star.build.dir}/jnihds/lib/jnihds/jnihds.jar"/>
+    <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
   </extclasspath>
 
   <path id="built.classpath">
@@ -224,16 +236,11 @@
   
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property 
-   !   "extra.class.path" (which can be defined locally using say 
-   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
-   !   the property in either of the properties files.-->
-  <property name="extra.class.path" value=""/>
-  <path id="local.classpath" path="${extra.class.path}"/>
+  <!-- CLASSPATH defined in the external environment -->
+  <path id="local.classpath" path="${java.class.path}"/>
 
-  <!-- Unification of all classpaths using extra, built, installed order-->
+  <!-- Unification of all classpaths using local, built, installed order-->
   <path id="classpath">
-    <path refid="local.classpath"/>
      <path refid="built.classpath"/>
      <path refid="installed.classpath"/>
   </path>
@@ -262,18 +269,36 @@
   <target name="check_packages" 
           unless="runonly.install">
 
-    <!--  Need JNIHDS -->
-    <available property="jnihds.present"
+    <!--  Need Array -->
+    <available property="array.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hds.HDSObject"/>
+               classname="uk.ac.starlink.array.NDArray"/>
 
-    <fail message="No JNIHDS available" unless="jnihds.present"/>
+    <fail message="No Array available" unless="array.present"/>
+
+    <!--  Need JNIAST -->
+    <available property="jniast.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ast.AstObject"/>
+
+    <fail message="No JNIAST available" unless="jniast.present"/>
+
+    <!--  Need Util -->
+    <available property="util.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.util.SourceReader"/>
+
+    <fail message="No Util available" unless="util.present"/>
 
     <!--  Would like JUnit for testing -->
-    <available property="junit.present"
-               classpathref="classpath"
-               classname="junit.framework.TestCase"/>
-
+    <condition property="testframework.present">
+      <and>
+        <available classpathref="tests-classpath"
+                   classname="junit.framework.TestCase"/>
+        <available classpathref="tests-classpath"
+                   classname="uk.ac.starlink.util.TestCase"/>
+      </and>
+    </condition>
   </target>
 
   <!--
@@ -355,7 +380,8 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../junit/junit.jar ../jnihds/jnihds.jar"/>
+         value="../junit/junit.jar ../array/array.jar ../jniast/jniast.jar
+                ../util/util.jar ../hds/hds.jar"/>
       </manifest>
     </jar>
 
@@ -691,6 +717,8 @@
           <exclude name="**/VERSION"/>
           <exclude name="**/README"/>
           <exclude name="**/.*"/>
+          <exclude name="**/*.swp"/>
+          <exclude name="**/*.html"/>
       </fileset>
 
       <group title="${Name} API" packages="${package.name}*"/>
@@ -720,7 +748,7 @@
    !-->
   <target name="compile-tests"
           depends="build"
-          if="junit.present">
+          if="testframework.present">
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -743,7 +771,7 @@
 
   <target name="run-tests"
           depends="compile-tests"
-          if="junit.present">
+          if="testframework.present">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"

@@ -119,6 +119,9 @@
      <echo message="Executing NDArray target: ${what}"/>
      <ant dir="./array" target="${what}"/>
 
+     <echo message="Executing NDX target: ${what}"/>
+     <ant dir="./ndx" target="${what}"/>
+
      <echo message="Executing HDS target: ${what}"/>
      <ant dir="./hds" target="${what}"/>
 

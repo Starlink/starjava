@@ -5,7 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
-import uk.ac.starlink.array.ArrayFactory;
+import uk.ac.starlink.array.ArrayBuilder;
 import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.ChunkIterator;
 import uk.ac.starlink.array.NDArray;
@@ -21,11 +21,11 @@ public class HDSNDArrayTest extends TestCase {
         super( name );
     }
 
-    public void testFactory() throws MalformedURLException, IOException {
+    public void testBuilder() throws MalformedURLException, IOException {
         String tmpdir = System.getProperty( "java.io.tmpdir" );
         URL url = new URL( "file:" + tmpdir + "/newarray.sdf" );
 
-        ArrayFactory fact = HDSArrayFactory.getInstance();
+        ArrayBuilder fact = HDSArrayBuilder.getInstance();
 
         NDShape shape = new NDShape( new long[] { 101, 201 },
                                      new long[] { 10, 20 } );

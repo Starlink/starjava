@@ -132,8 +132,14 @@ public class HDSType {
         if ( name.equalsIgnoreCase( "_BYTE" ) ) {
             return _BYTE;
         }
+        else if ( name.equalsIgnoreCase( "_UBYTE" ) ) {
+            return _UBYTE;
+        }
         else if ( name.equalsIgnoreCase( "_WORD" ) ) {
             return _WORD;
+        }
+        else if ( name.equalsIgnoreCase( "_UWORD" ) ) {
+            return _UWORD;
         }
         else if ( name.equalsIgnoreCase( "_INTEGER" ) ) {
             return _INTEGER;

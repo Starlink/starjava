@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import uk.ac.starlink.array.AccessMode;
 
 /**
  * Stores the location of an HDS object. 
@@ -35,20 +36,21 @@ public class HDSReference implements Cloneable {
      *
      * @param  container   a File object giving the container file 
      *                     (including the .sdf extension)
-     * @throws   IOException  if the filename does not end '.sdf'
+     * @throws  IllegalArgumentException  if the filename does not end '.sdf'
      */
-    public HDSReference( File container ) throws IOException {
+    public HDSReference( File container ) {
         setContainerFile( container );
     }
 
-    private void setContainerFile( File container ) throws IOException {
+    private void setContainerFile( File container ) {
         this.containerFile = container;
         String cf = containerFile.toString();
         String exten = cf.substring( cf.length() - 4 );
         if ( ! exten.equalsIgnoreCase( ".sdf" ) ) {
-            throw new IOException( "HDS filename does not end in \".sdf\"" );
+            throw new IllegalArgumentException( 
+                "HDS filename does not end in \".sdf\"" );
         }
-        String cname = containerFile.getCanonicalPath();
+        String cname = containerFile.getAbsolutePath();
         containerName = cname.substring( 0, cname.length() - 4 );
     }
 
@@ -60,9 +62,10 @@ public class HDSReference implements Cloneable {
      *                      (including the .sdf extension)
      * @param   path        an array of Strings each representing the name
      *                      of one level of the HDS path
-     * @throws   IOException  if the filename does not end '.sdf'
+     * @throws  IllegalArgumentException  if the filename does not
+     *                      end in ".sdf"
      */
-    public HDSReference( File container, String[] path ) throws IOException {
+    public HDSReference( File container, String[] path ) {
         setContainerFile( container );
         for ( int i = 0; i < path.length; i++ ) {
             push( path[ i ] );
@@ -70,15 +73,15 @@ public class HDSReference implements Cloneable {
     }
 
     /**
-     * Constructs an HDSRefernence given a container file and an 
+     * Constructs an HDSReference given a container file and an 
      * HDS path string within it.
      *
      * @param   container   a File object giving the container file 
      *                      (including the .sdf extension)
      * @param   path        a dot-separated string giving the HDS path
-     * @throws   IOException  if the filename does not end '.sdf'
+     * @throws  IllegalArgumentException  if the filename does not end '.sdf'
      */
-    public HDSReference( File container, String path ) throws IOException {
+    public HDSReference( File container, String path ) {
         setContainerFile( container );
         if ( path != null ) {
             StringTokenizer st = new StringTokenizer( path, "." );
@@ -96,7 +99,7 @@ public class HDSReference implements Cloneable {
      *                 minus its '.sdf' forms the front and the HDS path
      *                 proper forms the back
      */
-    public HDSReference( String path ) throws IOException {
+    public HDSReference( String path ) {
         boolean found = false;
         int lastSlash = path.lastIndexOf( File.pathSeparatorChar );
         for ( int pos = path.length(); 
@@ -142,7 +145,7 @@ public class HDSReference implements Cloneable {
      * @throws  UnsupportedOperationException if the protocol of <tt>url</tt>
      *          is not <tt>file</tt>
      */
-    public HDSReference( URL url ) throws IOException {
+    public HDSReference( URL url ) {
         this( getFileFromURL( url ), url.getRef() );
     }
 
@@ -161,18 +164,13 @@ public class HDSReference implements Cloneable {
      * Constructs an HDSReference from an existing HDSObject.
      *
      * @param  hobj  the object whose location is to be referenced.
-     * @throws IOException   if an HDS error occurs
+     * @throws HDSException   if an HDS error occurs
      */
-    public HDSReference( HDSObject hobj ) throws IOException {
+    public HDSReference( HDSObject hobj ) throws HDSException {
 
         /* Find the path and container filename of the HDS object. */
         String[] trace = new String[ 2 ];
-        try {
-            hobj.hdsTrace( trace );
-        }
-        catch ( HDSException e ) {
-            throw new IOException( e.getMessage() );
-        }
+        hobj.hdsTrace( trace );
         String path = trace[ 0 ];
         String file = trace[ 1 ];
 
@@ -226,9 +224,8 @@ public class HDSReference implements Cloneable {
      * Returns a URL which describes this HDSReference.
      *
      * @return   a URL
-     * @throws   IOException  if there is some error
      */
-    public URL getURL() throws IOException {
+    public URL getURL() {
         URL url;
         StringBuffer frag = new StringBuffer();
         for ( int i = 0; i < pathList.size(); i++ ) {
@@ -237,11 +234,11 @@ public class HDSReference implements Cloneable {
         }
         try {
             url = new URL( "file", "localhost", 
-                           containerFile.getCanonicalPath() );
+                           containerFile.getAbsolutePath() );
             url = new URL( url, "#" + frag.toString() );
         }
         catch ( MalformedURLException e ) {
-            throw new IOException( "Bad HDS path \"" + this + "\"" );
+            throw new AssertionError( "Unexpected malformed URL for " + this );
         }
         return url;
     }
@@ -311,5 +308,28 @@ public class HDSReference implements Cloneable {
             throw new AssertionError();
         }
     }
+
+    /**
+     * Gets an HDS access mode string ("READ"/"WRITE"/"UPDATE") from 
+     * an AccessMode.
+     *
+     * @param  mode   the AccessMode object
+     * @return   mode string
+     */
+    static String hdsMode( AccessMode mode ) {
+        if ( mode == AccessMode.READ ) {
+            return "READ";
+        }
+        else if ( mode == AccessMode.WRITE ) {
+            return "WRITE";
+        }
+        else if ( mode == AccessMode.UPDATE ) {
+            return "UPDATE";
+        }
+        else {
+            return null;
+        }
+    }
+
 
 }
