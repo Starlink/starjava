@@ -15,10 +15,11 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
- * TreeNodeChooser subclass designed to return StarTable objects.
+ * TreeNodeChooser subclass designed to return 
+ * {@link uk.ac.starlink.table.StarTable} objects.
  * DataNode implementations which wish to declare themselves (potentially)
  * choosable by this chooser, because they can provide an
- * associated {@link uk.ac.starlink.table.StarTable} object,
+ * associated <tt>StarTable</tt> object,
  * must implement the {@link TableNodeChooser.Choosable} interface.
  *
  * @author   Mark Taylor (Starlink)
@@ -33,18 +34,13 @@ public class TableNodeChooser extends TreeNodeChooser {
      * Constructs a new chooser.  If <tt>root</tt> is <tt>null</tt>,
      * a default root is used (the user's current directory).
      *
-     * @param  initial root of the tree to browse, or <tt>null</tt>
+     * @param  root initial root of the tree to browse, or <tt>null</tt>
      */
     public TableNodeChooser( DataNode root ) {
         super( root );
         if ( root == null ) {
-            try {
-                File dir = new File( System.getProperty( "user.dir" ) );
-                setRoot( new FileDataNode( dir ) );
-            }
-            catch ( NoSuchDataException e ) {
-                // never mind
-            }
+            File dir = new File( System.getProperty( "user.dir" ) );
+            setRoot( getNodeMaker().makeChildNode( null, dir ) );
         }
 
         /* Add some buttons for recursive searches. */
@@ -80,7 +76,7 @@ public class TableNodeChooser extends TreeNodeChooser {
      * Returns a lazily created node factory suitable for making nodes 
      * in a table-browsing environment.
      */
-    public DataNodeFactory getNodeMaker() {
+    public synchronized DataNodeFactory getNodeMaker() {
         if ( nodeFact == null ) {
             nodeFact = new DataNodeFactory();
             customiseFactory( nodeFact );
@@ -90,8 +86,7 @@ public class TableNodeChooser extends TreeNodeChooser {
 
     /**
      * Allows selection of any node which implements 
-     * {@link Choosable} and
-     * has <tt>isStarTable()==true</tt>.
+     * {@link Choosable} and has <tt>isStarTable()==true</tt>.
      *
      * @param  node  the node to test for choosability
      * @return  true iff the node is suitable for turning into a table
@@ -147,24 +142,17 @@ public class TableNodeChooser extends TreeNodeChooser {
     /**
      * Turns a DataNode into a StarTable.
      *
-     * @param   node
+     * @param   node the data node
      * @return  StarTable made from <tt>node</tt>
      * @throws  IOException  if there's trouble
      */
     public StarTable makeStarTable( DataNode node ) throws IOException {
-        if ( node instanceof Choosable ) {
+        if ( isChoosable( node ) ) {
+            assert node instanceof Choosable;
             return ((Choosable) node).getStarTable();
         }
-        else if ( node == null ) {
-            return null;
-        }
-        else if ( ! isChoosable( node ) ) {
-            throw new IllegalArgumentException( node + " is not choosable" );
-        }
         else {
-            throw new AssertionError( "How did " + node + " (" + 
-                                      node.getClass().getName() +
-                                      " get here?" );
+            throw new IllegalArgumentException( node + " is not choosable" );
         }
     }
     
@@ -188,6 +176,7 @@ public class TableNodeChooser extends TreeNodeChooser {
          * wish to see. */
         if ( shunnedClassList == null ) {
             String[] shunned = new String[] {
+                "uk.ac.starlink.treeview.CompressedDataNode",
                 "uk.ac.starlink.treeview.NdxDataNode",
                 "uk.ac.starlink.treeview.NDFDataNode",
                 "uk.ac.starlink.treeview.WCSDataNode",
@@ -215,7 +204,8 @@ public class TableNodeChooser extends TreeNodeChooser {
 
     /**
      * DataNodes may implement this interface to declare themselves
-     * choosable by instances of TableNodeChooser.
+     * choosable by instances of TableNodeChooser.  This indicates that
+     * the implementing class is capable of supplying a StarTable.
      */
     public interface Choosable {
 
@@ -229,10 +219,10 @@ public class TableNodeChooser extends TreeNodeChooser {
 
         /**
          * Returns the StarTable object associated with this DataNode.
-         * This method should only be called if {@link #isStarTable} 
-         * returns <tt>true</tt>.
+         * Behaviour is undefined unless <tt>isStarTable()==true</tt>.
          *
          * @return  the table
+         * @throws  IOException if an error obtaining the table occurs
          */
         StarTable getStarTable() throws IOException;
     }
