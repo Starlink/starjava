@@ -623,15 +623,15 @@
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
 
-      <zipfileset dir="${dist.bin}" prefix="${name}/bin">
+      <!--<zipfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
-      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -652,15 +652,15 @@
         <include name="build.xml"/>
       </tarfileset>
 
-      <tarfileset dir="${dist.bin}" prefix="${name}/bin">
+      <!--<tarfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
-      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
