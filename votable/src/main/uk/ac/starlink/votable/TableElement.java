@@ -52,42 +52,75 @@ public class TableElement extends VOElement {
                          VOElementFactory factory ) {
         super( el, systemId, "TABLE", factory );
 
-        /* Deal with known metadata children. */
-        List fieldList = new ArrayList();
-        List linkList = new ArrayList();
-        for ( Node ch = el.getFirstChild(); ch != null;
-              ch = ch.getNextSibling() ) {
-            if ( ch instanceof Element ) {
-                Element childEl = (Element) ch;
-                String elname = childEl.getTagName();
-                if ( elname.equals( "FIELD" ) ) {
-                    fieldList.add( new FieldElement( childEl, systemId,
-                                                     getFactory() ) );
-                }
-                if ( elname.equals( "LINK" ) ) {
-                    linkList.add( new LinkElement( childEl, systemId,
-                                                   getFactory() ) );
-                }
+        /* Locate the element which describes the table structure.
+         * This is probably the element on which this table is based, 
+         * but may be one referenced by ID. */
+        Element metaEl;
+        if ( el.hasAttribute( "ref" ) ) {
+            String ref = el.getAttribute( "ref" );
+            metaEl = el.getOwnerDocument().getElementById( ref );
+            if ( metaEl == null ) {
+                logger.warning( "No element found with ID " + ref + 
+                                " - table empty" );
+            }
+            else if ( ! metaEl.getTagName().equals( "TABLE" ) ) {
+                logger.warning( "Element with ID " + ref + " is not a TABLE!" +
+                                " - table empty" );
+                metaEl = null;
             }
         }
-        fields = (FieldElement[]) fieldList.toArray( new FieldElement[ 0 ] );
-        links = (LinkElement[]) linkList.toArray( new LinkElement[ 0 ] );
+        else {
+            metaEl = el;
+        }
 
-        /* Obtain and store the data access object. */ 
-        TabularData td;
-        try {
-            td = getTabularData( el, fields, getSystemId(), getFactory() );
-        }
-        catch ( IOException e ) {
-            int ncol = fields.length;
-            Class[] classes = new Class[ ncol ];
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                classes[ icol ] = fields[ icol ].getDecoder().getContentClass();
+        /* Deal with known metadata children. */
+        if ( metaEl != null ) {
+            List fieldList = new ArrayList();
+            List linkList = new ArrayList();
+            for ( Node ch = metaEl.getFirstChild(); ch != null;
+                  ch = ch.getNextSibling() ) {
+                if ( ch instanceof Element ) {
+                    Element childEl = (Element) ch;
+                    String elname = childEl.getTagName();
+                    if ( elname.equals( "FIELD" ) ) {
+                        fieldList.add( new FieldElement( childEl, systemId,
+                                                         getFactory() ) );
+                    }
+                    if ( elname.equals( "LINK" ) ) {
+                        linkList.add( new LinkElement( childEl, systemId,
+                                                       getFactory() ) );
+                    }
+                }
             }
-            logger.warning( "Error reading table data: " + e );
-            td = new TableBodies.EmptyTabularData( classes );
+            fields = (FieldElement[]) 
+                     fieldList.toArray( new FieldElement[ 0 ] );
+            links = (LinkElement[]) linkList.toArray( new LinkElement[ 0 ] );
+
+            /* Obtain and store the data access object. */ 
+            TabularData td;
+            try {
+                td = getTabularData( el, fields, getSystemId(), getFactory() );
+            }
+            catch ( IOException e ) {
+                int ncol = fields.length;
+                Class[] classes = new Class[ ncol ];
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    classes[ icol ] = fields[ icol ].getDecoder()
+                                                    .getContentClass();
+                }
+                logger.warning( "Error reading table data: " + e );
+                td = new TableBodies.EmptyTabularData( classes );
+            }
+            tdata = td;
         }
-        tdata = td;
+
+        /* If we failed to find any metadata we have to act like there's
+         * no data here. */
+        else {
+            fields = new FieldElement[ 0 ];
+            links = new LinkElement[ 0 ];
+            tdata = new TableBodies.EmptyTabularData( new Class[ 0 ] );
+        }
     }
 
     /**
