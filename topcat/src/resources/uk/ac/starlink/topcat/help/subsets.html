@@ -13,8 +13,10 @@ from some subset of the rows in a whole table being viewed by the TOPCAT
 tool.  You can define these and use them in several different ways;
 the usefulness comes from defining them in one context and using them
 in another.
+The <a href="subsets-win.html">Subset Window</a> displays the currently
+defined Row Subsets and permits some operations on them.
 
-You can define a group of rows in the table
+<p>You can define a group of rows in the table
 in a number of ways (by writing a boolean expression, selecting
 rows in the browser, identifying points in a plot) and view this
 subset as a separate table, or display different subsets using different
@@ -31,8 +33,9 @@ markers during plotting.
     the mouse over them.  You can add more rows to the selection by
     keeping the &lt;Control&gt; button pressed while you do it.
     Once you have a set of rows selected you can use the  
-    "Subset From Selected Rows" or "Subset From Unselected Rows" 
-    items in the browser Subsets menu to create a new subset based 
+    <kbd>Subset From Selected Rows</kbd> or
+    <kbd>Subset From Unselected Rows</kbd> 
+    items in the browser <kbd>Subsets</kbd> menu to create a new subset based 
     on the set of highlighted rows or their complement.
   
     <p>Combining this with sorting the rows in the table can be
@@ -41,7 +44,8 @@ markers during plotting.
     of the highest values of a given field.
 
 <dt>Defining an algebraic expression
-<dd>If you select the "New Subset Expression" item from the Subsets
+<dd>If you select the <kbd>New Subset Expression</kbd> 
+    item from the <kbd>Subsets</kbd>
     menu in the main browser, you will be able to enter an algebraic
     expression.  This is a java-like expression which can refer to the
     values of cells in various columns in a row to produce a boolean
@@ -58,7 +62,7 @@ markers during plotting.
 <dd>In the <a href="plot.html">Plot Window</a> you can plot columns
     against each other, and subsequently zoom in and out using the
     mouse.  If you zoom to display only some of the plotted points and
-    then use the "New Subset From Visible" menu item or toolbar button
+    then use the <kbd>New Subset From Visible</kbd> menu item or toolbar button
     (<img src="../images/spoints5.gif">) then a new subset will be 
     created containing only rows represented by points in the field of
     view of the plot at the time.
@@ -86,7 +90,8 @@ subset will be applied immediately in the main browser window.
 
 <dl>
 <dt>Browser display
-<dd>The "Apply Subset" item in the Subsets menu of the main browser window
+<dd>The <kbd>Apply Subset</kbd> item in the <kbd>Subsets</kbd>
+    menu of the main browser window
     allows you to choose a subset from the list of those defined.  
     Only rows in the subset that is chosen will show up in the browser
     window.
@@ -108,7 +113,8 @@ subset will be applied immediately in the main browser window.
 <dt>Plotting
 <dd>In the <a href="plot.html">Plot Window</a> the plot is drawn with 
     different markers for points appearing in different subsets.
-    Use the "Subsets to Plot" item in the Subsets menu to select which
+    Use the <kbd>Subsets to Plot</kbd> item in the <kbd>Subsets</kbd>
+    menu to select which
     subsets should be displayed.  Markers are chosen for each subset
     automatically, and a key of which subset is represented by which 
     kind of marker is shown to the right of the plot.  

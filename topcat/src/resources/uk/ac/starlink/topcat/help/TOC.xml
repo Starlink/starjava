@@ -25,12 +25,19 @@
     </tocitem>
   </tocitem>
 
-  <tocitem target="Windows" text="Windows">
+  <tocitem target="Windows" text="Window Features">
+    <tocitem target="Tools" text="Toolbar Buttons"/>
+    <tocitem target="Menus" text="Menus"/>
+    <tocitem target="JTable" text="JTable Widget"/>
+  </tocitem>
+
+  <tocitem target="AuxWindow" text="Window Types">
     <tocitem target="TableViewer" text="Table browser" image="VIEWER"/>
+    <tocitem target="ParameterWindow" text="Table metadata" image="PARAMS"/>
     <tocitem target="ColumnInfoWindow" text="Column metadata" image="COLUMNS"/>
     <tocitem target="StatsWindow" text="Statistics" image="STATS"/>
+    <tocitem target="SubsetWindow" text="Subsets" image="SUBSET"/>
     <tocitem target="PlotWindow" text="Plot" image="PLOT"/>
-    <tocitem target="ParameterWindow" text="Table metadata" image="PARAMS"/>
     <tocitem target="HelpWindow" text="Help" image="HELP"/>
   </tocitem>
 

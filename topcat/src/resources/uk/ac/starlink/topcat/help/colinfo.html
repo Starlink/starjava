@@ -6,36 +6,47 @@
 <body>
 
 
-<h3>Column Metadata Window</h3>
+<h3>Columns Window</h3>
 
-<p>The Column Metadata Window displays a grid 
+<p>The Columns Window displays a <a href="windows.html#jtable">JTable</a> 
 giving all the information
 known about each column in the main data table.  It may take a little bit
 of getting used to, since each <em>column</em> in the main data table
-is represented by a <em>row</em> in the grid displayed here.
-The order and widths of the columns of grid widget can be 
-changed in the same way as those for the browser window grid, 
+is represented by a <em>row</em> in the JTable displayed here.
+The order and widths of the columns of JTable widget can be 
+changed in the same way as those for the browser window JTable, 
 but this has no effect on the data.
 
-<p>The order in which the rows of this grid are presented 
+<p>The order in which the rows of this JTable are presented 
 is the same as the order in which the columns appear in the
 browser window.
 
-<h4>Column actions</h4>
+<h4>Toolbar</h4>
 
-Rows of the grid widget can be selected by clicking to select one row
-or dragging the mouse to select several.
-When they are selected certain items in the Column menu can be used.
+<p>The following toolbar actions are available:
 
 <dl>
-<dt>New synthetic column
+<dt><img src="../images/Plus1.gif">New Synthetic Column
 <dd>This allows you to add a new column based on the existing ones - 
-    see the section on <a href="synthetic.html>Synthetic columns</a>.
+    see the section on <a href="synthetic.html">Synthetic columns</a>.
+    Also available as the <kbd>New Synthetic Column</kbd> item in the
+    <kbd>Columns</kbd> menu.
 
-<dt>Delete selected column(s)
-<dd>Any selected columns will be deleted from the table in the main browser
-    window.
+<dt><img src="../images/Minus1.gif">Delete Columns
+<dd>If any of the JTable rows are selected, then clicking this button
+    will delete them from the display here and elsewhere in TOPCAT
+    (e.g. the main browser window).  Deleted columns cannot be undeleted.
+    Also available as the <kbd>Delete selected column(s)</kbd> item
+    in the <kbd>Columns</kbd> menu.
 
+</dl>
+
+
+<h4>Menus</h4>
+
+<p>The following items appear in the <kbd>Columns</kbd> menu:
+
+<dl>
 <dt>Sort selected up
 <dd>If a single column is selected then the row order in the main browser
     window will be re-ordered so that the selected column's values appear
@@ -48,14 +59,14 @@ When they are selected certain items in the Column menu can be used.
 
 <h4>Editing metadata</h4>
 
-Some of the metadata items in the grid can be edited.  
+Some of the metadata items in the JTable can be edited.  
 Double-click in the cell you wish to edit, and if a text cursor shows
 up there you can type changes to that metadata item.
 Press return to confirm the edit when you have finished.
 
 <h4>Column Metadata Items</h4>
 
-<p>For each column in the data table (each line in the displayed grid) 
+<p>For each column in the data table (each line in the displayed JTable) 
 items of information such as
 column name, description, UCD etc are given.
 Exactly which items are shown will depend on the kind of table 
@@ -65,7 +76,7 @@ Some of the items are these:
 
 <dt>Index
 <dd>The number of the column in the browser window display; also the 
-    number of the row in the grid shown here. 
+    number of the row in the JTable shown here. 
     This value can change for a given column if some columns 
     are deleted moved or inserted.
 

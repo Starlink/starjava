@@ -33,12 +33,19 @@
   <mapID target="MirageWrite" url="mirage.html"/>
 
   <mapID target="Windows" url="windows.html"/>
+  <mapID target="Tools" url="windows.html#tools"/>
+  <mapID target="Menus" url="windows.html#menus"/>
+  <mapID target="JTable" url="windows.html#jtable"/>
+
+  <mapID target="AuxWindow" url="viewers.html"/>
   <mapID target="TableViewer" url="browser.html"/>
   <mapID target="ColumnInfoWindow" url="colinfo.html"/>
   <mapID target="StatsWindow" url="stats.html"/>
   <mapID target="PlotWindow" url="plot.html"/>
   <mapID target="ParameterWindow" url="param.html"/>
+  <mapID target="SubsetWindow" url="subsets-win.html"/>
   <mapID target="HelpWindow" url="help.html"/>
+
 
   <mapID target="RowSubset" url="subsets.html"/>
   <mapID target="RowSubsetDefine" url="subsets.html#define"/>

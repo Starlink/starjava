@@ -97,8 +97,8 @@ ul {margin-top: 5;
     margin-bottom: 0;
     margin-left: 30}
 
-pre.code_table {font-size: x-small;
-	   margin-left: 10; font-family: Monospaced, "Courier New", Courier, mono}
+pre.code_table {margin-left: 10;
+                font-family: Monospaced, "Courier New", Courier, mono}
 
 table {
       font-size: 10pt;
@@ -127,8 +127,11 @@ dl.see_also {margin-left: 0;
     margin-top: 10;
     margin-bottom: 10}
 a.nounderline {text-decoration: none }
-pre {  font-family: Monospaced, "Courier New", Courier, mono; font-size: x-small}
-code {  font-family: Monospaced, "Courier New", Courier, mono; font-size: x-small}
+pre {  font-family: Monospaced, "Courier New", Courier, mono}
+code {  font-family: Monospaced, "Courier New", Courier, mono}
 
 tt { font-family: Monospaced, "Courier New", Courier, mono; }
+
+kbd { font-weight: bold}
+
 

@@ -42,7 +42,7 @@ value with the "-Xmx" flag.  For instance the following:
 <pre>
    topcat -Xmx512M whopper.fits
 </pre>
-would open the table "whopper.xml" in TOPCAT with 512 Megabytes to play with.
+would open the table "whopper.fits" in TOPCAT with 512 Megabytes to play with.
 
 <p>Most of the other -X flags are only of interest for performance 
 tuning and debugging; a full list can be seen by doing
@@ -53,8 +53,8 @@ tuning and debugging; a full list can be seen by doing
 
 <h3>Invoking directly</h3>
 
-<p>TOPCAT should run in environments other than Unix if there is a
-J2SE1.4 Java Runtime Environment.  In this case however the supplied
+<p>As long as a J2SE1.4 Java Runtime Environment is present, 
+TOPCAT should run in environments other than Unix, though the supplied
 startup script is unlikely to work.  In this case you can probably
 invoke the Jar file <tt>lib/topcat/tocpat.jar</tt> file directly,
 for instance by clicking on it or typing something like 

@@ -8,7 +8,8 @@
 
 <h3>Browser Window</h3>
 
-<p>The main TOPCAT window is a view of the table which can be scrolled
+<p>The main TOPCAT window is a <a href="windows.html#jtable">JTable</a>
+view of the table which can be scrolled
 around to see all the cells.  This contains several menus and toolbar
 buttons which can be used to open other windows giving different views
 of the tables.
@@ -20,7 +21,7 @@ the following buttons:
 <dl>
 <dt><img src="../images/Open24.gif">Open
 <dd>Open a new table in a new browser window.  
-    Also available as the "Open" item in the File menu.
+    Also available as the <kbd>Open</kbd> item in the <kbd>File</kbd> menu.
     See the section on <a href="io.html#read">Loading tables</a>.
 
 <dt><img src="../images/Copy24.gif">Duplicate
@@ -29,15 +30,77 @@ the following buttons:
     subsetting or sorting applied will be intrinsic to the new one, so
     for instance any rows not in the currently active subset can never
     be seen in the new browser.
-    Also available as the "Duplicate" item in the File menu.
+    Also available as the <kbd>Duplicate</kbd> item in the <kbd>File</kbd> menu.
 
 <dt><img src="../images/Save24.gif">Save
 <dd>Write the table currently visible in the browser window to a file.
-    Also available as the "Save" item in the File menu.
+    Also available as the <kbd>Save</kbd> item in the <kbd>File</kbd> menu.
     See the section on <a href="io.html#write">Saving tables</a>.
 
+<dt><img src="../images/tablemeta0.gif">Parameters Window
+<dd>Displays the <a href="param.html">Parameters Window</a>, 
+    in which metadata relating to the entire table can be viewed.
+
+<dt><img src="../images/colmeta0.gif">Columns Window
+<dd>Displays the <a href="colinfo.html">Columns Window</a>, in which
+    metadata relating to each column can be viewed and edited.
+
+<dt><img src="../images/sigma0.gif">Statistics Window
+<dd>Displays the <a href="stats.html">Statistics Window</a>, which
+    calculates and displays statistical quantities for the table columns,
+    and can be used to add new columns.
+
+<dt><img src="../images/venn2.gif">Subsets Window
+<dd>Displays the <a href="subsets-win.html">Subsets Window</a>, which
+    shows any defined <a href="subsets.html">Row Subsets</a> and can
+    be used to define more.
+
+<dt><img src="../images/plot0.gif">Plot Window
+<dd>Displays the <a href="plot.html">PlotWindow</a>, in which table
+    columns can be plotted against each other.
+    
 </dl>
+
+<h4>Subset Selection</h4>
+
+<p>The rows displayed in this window are not necessarily all the rows
+in the current table; they are those for a particular 
+<a href="subsets.html">Row Subset</a>.  At the bottom of the 
+window is a selector button which allows you to select which 
+subset you wish to see displayed.  By default, the entry "ALL" will
+be selected, which means all the rows are displayed.
+
+<p>You can also do this using the <kbd>Apply Subset</kbd> item in the
+<kbd>Subsets</kbd> menu.
+
+<p>You can define a new subset in three ways using the <kbd>Subset</kbd> menu:
+<ul>
+<li>Select a set of rows from the table and use the 
+    <kbd>Subset From Selected Rows</kbd> item
+<li>Select a set of rows from the table and use the 
+    <kbd>Subset From Unselected Rows</kbd> item
+<li>Use the <kbd>New Subset Expression</kbd> item
+</ul>
+See the section on <a href="subsets.html">Row Subsets</a> for more information.
+
+<h4>Sorting</h4>
+
+<p>You can sort the rows in the table according to the values in a 
+given column.  There are several ways to do this:
+<ul>
+<li>Use the <kbd>Sort Column</kbd> selector at the bottom of the window
+<li>Use the <kbd>Sort Up</kbd> or <kbd>Sort Down</kbd> items on the
+    popup menu that you can get by right-clicking the mouse over the
+    column you wish to sort by
+</ul>
+<p>To return to the natural (unsorted) row order you can:
+<ul>
+<li>Select "(none)" in the <kbd>Sort Column</kbd> selector
+<li>Use the <kbd>Unsort</kbd> option in the popup menu you get by 
+right-clicking on the index column (grey header column at the left)
+</ul>
    
+
 <h4>Menu Items</h4>
 
 <p>The following actions are available from menus only:
@@ -45,7 +108,7 @@ the following buttons:
 
 <dt>Mirage</dt>
 <dd>Depending on configuration, it may be possible to launch 
-    the external application Mirage from the Lauch menu.
+    the external application Mirage from the <kbd>Launch</kdb> menu.
     See <a href="mirage.html#launch">Launching Mirage</a>.
 
 </dl>
@@ -79,36 +142,17 @@ Each operates on the column where the click was made:
 
 </dl>
 
-<h4>Subset Selection</h4>
-
-<p>The rows displayed in this window are not necessarily all the rows
-in the current table; they are those for a particular 
-<a href="subsets.html">Row Subset</a>.  At the bottom of the 
-window is a selector button which allows you to select which 
-subset you wish to see displayed.  By default, the entry "ALL" will
-be selected, which means all the rows are displayed.
 
 
 <h4>Editing Cells</h4>
 
-By double-clicking on one of the cells you will be able to type a new 
+<p>By double-clicking on one of the cells you will be able to type a new 
 value into the cell.  Press return to confirm the edit when you have
 finished.  If you type a value which cannot be understood as a legal
 value for that cell, there will be a beep and no change will be made.
 Currently, there are some cells which cannot be edited in this way
 (e.g. most array types) and any attempt to edit them will fail in
 this way.  If it looks like it has succeeded though, then it has.
-
-
-<h4>Moving Columns</h4>
-
-By dragging the column headers left or right the order of the columns
-in the table can be changed.
-
-<h4>Resizing Columns</h4>
-
-By dragging the lines between the column headers you can make each column
-wider or narrower for more convenient viewing.
 
 </body>
 </html>
