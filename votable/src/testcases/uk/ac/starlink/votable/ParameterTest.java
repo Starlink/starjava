@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.io.IOException;
 import java.util.List;
 import junit.framework.TestCase;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableSink;
@@ -23,6 +24,14 @@ public class ParameterTest extends TestCase implements TableSink {
     public void testRead() throws IOException {
         checkParams( new VOTableBuilder().makeStarTable( votsrc, false ) );
         checkParams( new VOTableBuilder().makeStarTable( votsrc, true ) );
+    }
+
+    public void testDOM() throws IOException, SAXException {
+        VOElement top = VOElementFactory.makeVOElement( votsrc.getURL() );
+        TableElement vot = (TableElement) 
+                           top.getDescendantsByName( "TABLE" )[ 0 ];
+        StarTable st = new VOStarTable( vot );
+        checkParams( st );
     }
 
     public void testStream() throws IOException {
