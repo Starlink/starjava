@@ -371,13 +371,13 @@ abstract class Encoder {
                             throws IOException {
                         int i = 0;
                         if ( val != null ) {
-                           String value = val.toString();
-                           int limit = Math.min( value.length(), nChar );
-                           for ( ; i < limit; i++ ) {
-                               out.write( value.charAt( i ) );
-                           }
-                           out.write( padBuf, 0, limit - i );
+                            String value = val.toString();
+                            int limit = Math.min( value.length(), nChar );
+                            for ( ; i < limit; i++ ) {
+                                out.write( value.charAt( i ) );
+                            }
                         }
+                        out.write( padBuf, 0, nChar - i );
                     }
                 };
             }

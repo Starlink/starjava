@@ -141,8 +141,17 @@ abstract class CharDecoders {
         public Object decodeStream( DataInput strm ) throws IOException {
             int num = getNumItems( strm );
             StringBuffer data = new StringBuffer( num );
-            for ( int i = 0; i < num; i++ ) {
-                data.append( cread.readCharFromStream( strm ) );
+            int i = 0;
+            while ( i < num ) {
+                char c = cread.readCharFromStream( strm );
+                i++;
+                if ( c == '\0' ) {
+                    break;
+                }
+                data.append( c );
+            }
+            for ( ; i < num; i++ ) {
+                cread.readCharFromStream( strm );
             }
             return new String( data );
         }
