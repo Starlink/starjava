@@ -5,55 +5,15 @@
 #     startab
 
 #  Purpose:
-#     Invokes the Startab application on unix
+#     Redirects the user to TOPCAT
 
 #  Description:
-#     This shell script invokes the startab application.
-
-#  Notes:
-#     This script locates a JVM and invokes it using the relevant class in 
-#     the tables jar file.  It currently does not do this using 'java -jar'
-#     as this would prevent any user additions to the classpath without
-#     additional machinery in both this script and the application
-#     classloading; these are required for use of JDBC.  May revise
-#     this at some stage.
+#     This shell script used to invoke the table viewer application.
+#     Now it tells the user to do it under a different name.
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
 #-
 
-#  Find where this script is located.  We normally find this out by
-#  looking at where we were invoked from, but this can be overridden
-#  by setting TREEVIEW_DIR (necessary if invocation is from another
-#  directory because of filesystem links).
-if test -z "$TREEVIEW_DIR"
-then
-    bindir="`dirname $0`"
-else
-    bindir="$STARTAB_DIR"
-fi
-
-#  Locate the application jar file.  This is relative to this script.
-
-appjar="$bindir/../lib/table/table.jar"
-if test ! -f "$appjar"; then
-   echo "Failed to locate $appjar."
-   exit 1
-fi
-
-#  Locate the java startup script.
-
-starjava="$bindir/starjava"
-if test ! -f "$starjava"; then
-   echo "Failed to locate '$bindir/starjava'."
-   exit 1
-fi
-
-#  Run startab
-
-$starjava \
-   -enableassertions \
-   -Duk.ac.starlink.table.view.cmdname=startab \
-   -classpath ${appjar}:${CLASSPATH} uk.ac.starlink.table.view.TableViewer \
-   "$@"
-
+echo "The 'startab' script no longer works."
+echo "Please use the invocation 'topcat'."
