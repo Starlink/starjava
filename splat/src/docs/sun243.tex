@@ -347,16 +347,16 @@ spectra.
 
 \section{Overview\xlabel{overview}}
 
-\begin{center}
-\begin{quote}
-\textit{This is a `beta' release of \SPLAT\ which is now part of the
-Starlink Java Collection. The older `classic' version of \SPLAT\ is
-still available, but will no longer be updated and will be eventually
-retired. To use this new version you need to redefine the
-\hitext{SPLAT\_DIR} variable to point at the new \hitext{bin/splat}
-directory.}
-\end{quote}
-\end{center}
+%\begin{center}
+%\begin{quote}
+%\textit{This is a `beta' release of \SPLAT\ which is now part of the
+%Starlink Java Collection. The older `classic' version of \SPLAT\ is
+%still available, but will no longer be updated and will be eventually
+%retired. To use this new version you need to redefine the
+%\hitext{SPLAT\_DIR} variable to point at the new \hitext{bin/splat}
+%directory.}
+%\end{quote}
+%\end{center}
 
 \SPLAT\ is a graphical tool for displaying, comparing, modifying and
 analysing astronomical spectra stored in NDF, FITS and TEXT files as
@@ -2126,24 +2126,31 @@ Collection and is now released under the GPL.
 
 The most significant changes are:
 \begin{itemize}
-\item The addition of facilities for direct viewing of spectral
-      values and power (\ie\ algebraic with undo) modifications of the
-      values.
-\item The addition of line identifier catalogues (and support for
-      importing external versions).
-\item The addition of support for spectral coordinate systems. Spectra
-      can now have systems that define the coordinate type (wavelength,
-      frequency, energy and velocity), along with the units
-      (which include, from much larger flexible set, angstroms,
-       milli/nano/micro metres, Joules, ergs, electron volts,
-       mega/kilo/giga hertz, metres/kilometres per second...) and the 
-       two systems of rest frame (i.e. where the observations where
-       made and of what). This information can be used to align spectra
-       automatically and performed operations like change of rest
-       frame (say from topocentric to heliocentric, or centre of the
-       galaxy or to the source itself) or change of units.
-\item The addition of smoothing filters, average, median, Gauss,
-      Lorentz, Voigt and simple wavelet denoising.
+
+   \item The addition of facilities for viewing the spectral data
+     directly (\ie\ in a table, rather than a plot), coupled with
+     the ability to edit the values (individually or globally
+     using algebraic expressions). Multi-level undo and redo
+     are also provided.
+   
+   \item The addition of standard line identifier catalogues for the
+     optical, IR and submillimetre wavebands. It is also possible to
+     import external catalogues using a standard text format.
+
+   \item The addition of full support for spectral coordinate systems. 
+     Spectra can now have systems that define the coordinate type
+     (wavelength, frequency, energy and velocity), along with the
+     units (which include, from much larger flexible set, angstroms,
+     milli/nano/micro metres, Joules, ergs, electron volts,
+     mega/kilo/giga hertz, metres/kilometres per second...) and the 
+     two systems of rest frame \ie\ where the observations where
+     made and of what). This information can be used to align spectra
+     and line identifications automatically and perform operations
+     like change of rest frame (say from topocentric to heliocentric,
+     or centre of the galaxy or to the source itself) or change of units.
+
+   \item The addition of various smoothing filters, average, median, Gauss,
+     Lorentz, Voigt and simple wavelet denoising.
 \end{itemize}
 
 Other changes include the ability to delete as well as extract parts
