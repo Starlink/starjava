@@ -33,7 +33,7 @@ public abstract class FileNode implements Node {
     }
 
     public boolean equals( Object other ) {
-        if ( other instanceof FileNode ) {
+        if ( other.getClass().equals( getClass() ) ) {
             return file_.equals( ((FileNode) other).file_ );
         }
         else {
@@ -49,4 +49,14 @@ public abstract class FileNode implements Node {
         return file_.toString();
     }
 
+    /**
+     * Creates a new FileNode from a File.
+     *
+     * @param   file   file
+     * @return  branch or leaf representing <tt>file</tt>
+     */
+    public static FileNode createNode( File file ) {
+        return file.isDirectory() ? (FileNode) new FileBranch( file )
+                                  : (FileNode) new FileLeaf( file );
+    }
 }

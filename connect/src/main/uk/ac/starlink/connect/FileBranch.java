@@ -43,9 +43,4 @@ public class FileBranch extends FileNode implements Branch {
         }
         return createNode( file );
     }
-
-    private Node createNode( File file ) {
-        return file.isDirectory() ? (Node) new FileBranch( file )
-                                  : (Node) new FileLeaf( file );
-    }
 }
