@@ -182,6 +182,9 @@
     <echo message="Executing SOAPSERVER target: ${what}"/>
     <ant dir="./soapserver" target="${what}"/>
 
+    <echo message="Executing JPCS target: ${what}"/>
+    <ant dir="./jpcs" target="${what}"/>
+
     <echo message="Executing SOG target: ${what}"/>
     <ant dir="./sog" target="${what}"/>
 
