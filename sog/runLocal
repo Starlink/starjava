@@ -8,12 +8,11 @@
 
 setenv STAR_JAR_DIR /loc/pwda/pdraper/scratch/stardev/lib
 
-setenv CLASSPATH "../hdx/build/classes"
+setenv CLASSPATH "lib/sog/hdx.jar"
 setenv CLASSPATH "${CLASSPATH}:build/classes"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jsky/jsky.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/oldarray/oldarray.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jniast/jniast.jar"
-setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/hdx/hdx.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/jaiutil/jaiutil.jar"
 setenv CLASSPATH "${CLASSPATH}:${STAR_JAR_DIR}/soapserver/soapserver.jar"
 

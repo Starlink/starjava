@@ -186,7 +186,7 @@
     <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
 
     <!-- HDX -->
-    <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
+    <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
 
     <!-- JAIUtil -->
     <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
@@ -443,7 +443,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.sog.SOG"/>
         <attribute name="Class-Path"
-                   value="../jsky/jsky.jar ../oldarray/array.jar ../hdx/hdx.jar ../jaiutil/jaiutil.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
+                   value="../jsky/jsky.jar ../oldarray/array.jar hdx.jar ../jaiutil/jaiutil.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
       </manifest>
     </jar>
   </target>
