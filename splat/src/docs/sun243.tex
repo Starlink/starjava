@@ -21,15 +21,15 @@
 \newcommand{\stardocinitials}  {SUN}
 \newcommand{\stardocsource}    {sun\stardocnumber}
 \newcommand{\stardoccopyright}
-{Copyright \copyright\ 2001-2003 Council for the Central Laboratory of the
+{Copyright \copyright\ 2001-2004 Council for the Central Laboratory of the
 Research Councils}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.2}
+\newcommand{\stardocnumber}    {243.3}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {03 June 2003}
+\newcommand{\stardocdate}      {19 May 2004}
 \newcommand{\stardoctitle}     {SPLAT - A Spectral Analysis Tool}
-\newcommand{\stardocversion}   {2.0}
+\newcommand{\stardocversion}   {2.1}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT} is an extensible analysis and display tool for extracted
@@ -190,9 +190,9 @@ spectra.
 }
 
 \newcommand{\clippedmainfigure}[1]
-{\begin{quote}
+{\begin{center}
  \latexhtml{\includegraphics[scale=0.5,clip=true]{sun243_figures/#1.eps}}{\htmladdimg{#1.gif}}
- \end{quote}
+ \end{center}
 }
 
 % Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
@@ -249,7 +249,7 @@ spectra.
 
 % ? Add picture here if required for the LaTeX version.
 \begin{center}
-\includegraphics[scale=0.6]{sun243_figures/frontfigure.eps}
+\includegraphics[scale=0.4]{sun243_figures/frontfigure.eps}
 \end{center}
 % ? End of picture
 
@@ -344,19 +344,7 @@ spectra.
 
 % ? Main text
 
-
 \section{Overview\xlabel{overview}}
-
-%\begin{center}
-%\begin{quote}
-%\textit{This is a `beta' release of \SPLAT\ which is now part of the
-%Starlink Java Collection. The older `classic' version of \SPLAT\ is
-%still available, but will no longer be updated and will be eventually
-%retired. To use this new version you need to redefine the
-%\hitext{SPLAT\_DIR} variable to point at the new \hitext{bin/splat}
-%directory.}
-%\end{quote}
-%\end{center}
 
 \SPLAT\ is a graphical tool for displaying, comparing, modifying and
 analysing astronomical spectra stored in NDF, FITS and TEXT files as
@@ -365,22 +353,21 @@ It can read in many spectra at the same time and then display these as
 line plots.
 Each display window, of which there can be many, can be used to
 view one or several spectra at the same time.
-Display windows can be interactively zoomed and scrolled, centered on
-specific wavelengths, provide continuous coordinate readout,
+Display windows can be interactively zoomed and scrolled, centred on
+specific wavelengths, provide continuous coordinate readout, annotated,
 produce printable hardcopy and be configured in many ways.
 They also provide the basis for interactive analysis facilities.
 All of these functions are displayed in a visually rich format, that
 is intended to appeal especially to casual users of spectral data
 analysis facilities, as it includes some facilities such as
-drag-and-drop and undoable editing.
+drag-and-drop and undo-able editing.
 
-The current set of analysis facilities include the fitting of a
-polynomial to selected parts of a spectrum, the fitting of Gaussian,
-Lorentzian and Voigt profiles to emission and absorption lines and the
-filtering of spectra using average, median and line-shape window
-functions as well as wavelet denoising.
-A database of laboratory line positions is available to aid in
-identification.
+The current set of analysis facilities include background estimation by the
+fitting of a polynomial to selected parts of a spectrum or by drawing an
+interpolated spline, the fitting of Gaussian, Lorentzian and Voigt profiles to
+emission and absorption lines and the filtering of spectra using average,
+median and line-shape window functions as well as wavelet denoising.
+A database of laboratory line positions is available to aid in identification.
 
 \SPLAT\ also supports a full range of coordinate systems for spectra,
 using the latest facilities of the Starlink \xref{AST}{sun211}{}
@@ -445,7 +432,7 @@ values. So things that apply to each spectrum, wherever it is shown,
 or the program as a whole are generally done in this window.
 
 To open your first spectrum select the \menuitem{Open} item in the
-\menuitem{File} menu. This will create a familiar open file dialog
+\menuitem{File} menu. This will create a familiar open file dialogue
 window. Just navigate to your spectrum, select it, and press
 \menuitem{Open} to proceed.
 
@@ -457,7 +444,8 @@ the command-line:
 \end{verbatim}
 \end{quote}
 Which will read the spectrum stored in the named file. \SPLAT\ will read
-spectra stored in NDF, FITS and TEXT files, as well as NDX format.
+spectra stored in most astronomical formats (Starlink NDF, FITS spectra and
+tables, simple TEXT files)
 
 Now that you've actually read in a spectrum it will be immediately
 displayed in a `plot'. Have a look at this plot window briefly, if you
@@ -498,13 +486,13 @@ spectrum name).
 Displaying many spectra at the same time isn't much more difficult
 than the single spectrum case. Just open up several spectra by giving
 their names on the command-line, or by opening them using the
-\submenuitem{File}{Open} dialog. This will produce a main window that
+\submenuitem{File}{Open} dialogue. This will produce a main window that
 looks something like:
 
 \mainfigure{browser3}
 
 If you've opened all the spectra at once (you can do this using the
-\submenuitem{File}{Open} dialog by selecting more than one file --
+\submenuitem{File}{Open} dialogue by selecting more than one file --
 just hold down the shift key while selecting each one) then they will
 have also all appeared displayed in a single plot, which should look
 something like:
@@ -540,10 +528,10 @@ press the single display button: \inline{display}, then each
 spectrum will appear in a plot of it's own (this can be a very bad
 idea if you have a very large number of spectra selected!).
 
-To make the identification of the spectra clearer you can just press
-the auto-colour button: \inline{rainbow}. Each press of this
-button should generate a new set of colours, so just keep clicking
-until you see a combination that you like.
+If you don't like the colours chosen for your spectra you can just press the
+auto-colour button: \inline{rainbow} to get a new set. Each press of this
+button should generate a new set of colours, so just keep clicking until you
+see a combination that you like.
 
 The second method for adding more than one spectrum to a plot is the
 simplest, you can drag spectra from the \labelitem{Global list of
@@ -582,10 +570,9 @@ off accurate coordinates (this is after all the main purpose of
 \SPLAT).
 
 Zooming of a plot is controlled by the \labelitem{X scale:} and
-\labelitem{Y scale:} controls. To adjust the zoom you
-may either select a value from the drop-down lists, or you may type in
-a value and press \hitext{<Return>}. Values may be non-integer, but
-should be one or more.
+\labelitem{Y scale:} controls. To adjust the zoom you may either select a
+value from the drop-down lists, or you may type in a value and press
+\hitext{<Return>}. Values may be non-integer, but should be one or more.
 
 Once you have zoomed the plot scrollbars should appear at the bottom
 and maybe to the right (these appear when the size of the plot becomes
@@ -608,8 +595,10 @@ that you can do.
 The first is to resize the plot so that it has a scale of 1 in X or
 Y. That's what the toolbar buttons that appear as
 \inline{fitwidth} and \inline{fitheight} do, make the plot scale its
-displayed spectra to fit the visible width or height.  This feature
-can also be useful if you've resized the plot window.
+displayed spectra to fit the visible width or height.
+\textbf{Note:} These buttons are very useful when a plot seems to be
+displaying nothing or reports that the plot has no size etc., they are your
+best friends, press them a lot in such circumstances.
 
 If what you really want to do is remain zoomed but quickly go to a
 given wavelength, then all you need to do is type in the wavelength in
@@ -678,6 +667,10 @@ in the following figure:
  list). However, any changes that you then make are applied to all the
  selected spectra.
 
+ If you load a table into \SPLAT\ the \labelitem{Columns:} controls
+ will show the names of the columns selected. If these are incorrect
+ then you can choose a different set.
+
  If the selected spectra have errors then you can display error bars by
  clicking on the \labelitem{Error bars:} control. This is greyed out if
  errors are not available.
@@ -686,12 +679,12 @@ in the following figure:
 \subheading{Views of current spectra}
 \begin{quote}
  The views of the current spectra region shows the names of the plots
- that are displayed in the currently selected spectra (this time if a
+ that are displaying the currently selected spectra (this time if a
  plot is showing only some of the spectra, then it is highlighted in
  red). To add a spectrum or list of spectra to a plot, select their
  names in the global list and then click on the \labelitem{Displayed}
  control (normally this results in a tick appearing). If a plot is
- already displaying some of the selected spectra the you force it to
+ already displaying some of the selected spectra then you force it to
  display them all by clicking twice -- the first click removes the
  selected spectra and the second puts them all back, plus the ones not
  already shown.
@@ -707,13 +700,28 @@ in the following figure:
  down of what they do:
  \begin{itemize}
 
-  \item[\inline{openfile}] Create an open file dialog. You can use this
+  \item[\inline{openfile}] Create an open file dialogue. You can use this
   to browse any local files and select a list of them for opening. When
   opened they are added to the global list and displayed in a new plot
   (unless you untick the \labelitem{Display} control). You may open files
   that are already in the global list, this just creates a new entry.
+  Normally the type of a spectrum is determined using the file extension,
+  but using this dialogue you can select a type.
 
-  \item[\inline{savefile}] Create a save file dialog. Using this you can
+  \item[\inline{browse}] Browse a hierarchy of files. This dialogue can be used
+  like the open file dialogue to choose a file containing a spectrum, but,
+  it also allows you to look inside a file for any displayable components.
+  This is useful for FITS files that contain extensions (spectral or table
+  extensions can be opened), or HDS files that contain more than one NDF.
+
+  \clippedmainfigure{treeview}
+
+  \item[\inline{reopen}] Re-open the selected spectra. If the files containing
+  your spectra change on disk you can select them in the global list get them
+  opened. Note that not all spectra are backed by a suitable disk-file, these
+  types will be ignored.
+
+  \item[\inline{savefile}] Create a save file dialogue. Using this you can
   save a spectrum to disk-file. There are no restrictions on which file
   format you can save to, but information may be lost for certain types
   (\ie\ TEXT format).
@@ -749,7 +757,7 @@ in the following figure:
 
   \item[\inline{table}] View and possibly modify the coordinates and
   data values of the selected spectra. This shows an editable table of
-  values. It is also possible to make global changes using 
+  values. It is also possible to make global changes using
   algebraic expressions to convert or create new values.
 
   \item[\inline{xunits}] Open a window to set or remap the coordinate
@@ -757,7 +765,7 @@ in the following figure:
   covering wavelength, frequency, energy and velocity. Unit
   information can be used to align spectra in a plot (so you can
   trivially compare spectra in say angstroms and nanometres,
-  energy and frequency or even helocentric and topocentric rest frames
+  energy and frequency or even heliocentric and topocentric rest frames
   \etc.).
 
   \item[\inline{rainbow}] Change the colour of \hitext{all} the spectra
@@ -777,7 +785,7 @@ in the following figure:
 
  Interesting menu items not found in the toolbar are a list of
  standard line position catalogues (for optical and some IR and
- submillimeter lines), these are found in 
+ submillimeter lines), these are found in
  \submenuitem{Options}{Line identifiers}.
  Others are to do with controlling the selection of the spectra and
  plots (see the \menuitem{Edit} menu, just like deleting spectra from
@@ -806,21 +814,32 @@ the display area.\\
  spectra are determined by their global properties as set in the main
  browser window.
 
- The plot title and axis labels are determined from the original
- spectrum data file, if possible. For instance if the original data
- file was an NDF then these values are determined from the NDF's title,
- units and axis components, or for more recent NDFs from the properties
- of its WCS component. Similarly for FITS files these values are
- determined using the world coordinates FITS keywords. To change these
- look in the \labelitem{Configure Plot Options} window, which is activated
- by pressing the \inline{config} button.
+ The plot title and axis labels are determined using the properties of the
+ current spectrum, if possible. For instance if the current spectrum is an NDF
+ then these values are determined from the NDF's title, units and axis
+ components, or for more recent NDFs from the properties of its WCS
+ component. Similarly for FITS files these values are determined using the
+ world coordinates FITS keywords. To change these look in the
+ \labelitem{Configure Plot Options} window, which is activated by pressing the
+ \inline{config} button.
 
- The \labelitem{Configure Plot Options} window also offers the ability
- to set the plot data limits, change the colour of the display area
- background, to draw the lines using anti-aliasing (which reduces the
- jagged effects, but at the cost of drawing speed), to modify the
- reserved area around the plot and do things like position the numeric
- labels, set the axis gaps \etc\
+ The size of the area used to display a spectrum is initially determined from
+ an automatic match of its data and coordinate extents to the visible surface
+ of the display area, you can change the size of the display surface using the
+ zoom controls described below and/or you can change the actual data limits
+ using the \labelitem{Configure Plot Options} window. When you add or remove a
+ spectrum to a plot the aspect ratio of the coordinate system remains the same
+ and the display area size is changed to accommodate the new spectrum,
+ occasionally for very mismatched spectra, this can make the display area
+ very small or very large (and you may see errors reported in the terminal
+ window). To return to a state where the visible surface matches the display
+ area you need to press the \inline{fitwidth} and \inline{fitheight} buttons.
+
+ The \labelitem{Configure Plot Options} window also offers the ability change
+ the colour of the display area background, to draw the lines using
+ anti-aliasing (which reduces the jagged effects, but at the cost of drawing
+ speed), to modify the reserved area around the plot and do things like
+ position the numeric labels, set the axis gaps \etc\
 
  The following interactions are provided in the display area.
  \begin{itemize}
@@ -854,11 +873,12 @@ the display area.\\
   the X coordinate and data value of the nearest position in the
   spectrum.
 
-  \item Interactive graphics control: if any interactive graphics
-  figures are shown (such as those that define ranges for fitting
-  backgrounds and spectral lines), then these can be moved by selecting
-  them (just click on one and little grips appear around the edges) and
-  then dragging them and resized by dragging the edge grips.
+  \item Interactive graphics control: if any interactive graphics figures are
+  shown (such as those that define ranges for fitting backgrounds and spectral
+  lines, or are produced by the controls in the \menuitem{Graphics} menu),
+  then these can be moved by selecting them (just click on one and little
+  grips appear around the edges) and then dragging them and resized by
+  dragging the edge grips.
 
   \item Drop target: you can drop any spectra dragged from the global
   list and they will be displayed.
@@ -873,13 +893,18 @@ the display area.\\
  and a continuous readout of the X coordinate and corresponding data
  value.
 
- The \labelitem{Displaying:} drop down list shows the names and
- current rendering properties of any spectra that are displayed. If
- you choose a spectrum from this list, then it also becomes the
- currently selected spectrum in the browser window (so you see its
- details more clearly and apply modifications). This spectrum is also
- the one used by any tools (such as background and line fitting) that
- work with only one spectrum.
+ The \labelitem{Displaying:} drop down list shows the names and current
+ rendering properties of any spectra that are displayed. If you choose a
+ spectrum from this list it becomes the \labelitem{current spectrum} and is
+ used as the basis for the plot's coordinates (so the readouts now show the
+ values of this spectrum, also the plot will be re-drawn if the coordinate
+ system of the newly selected spectrum is different). The selected spectrum
+ also becomes selected in the browser window (so you see its details more
+ clearly and apply modifications). This spectrum is also the one used by any
+ tools (such as background and line fitting) that work with only one
+ spectrum. If you remove this spectrum using the \submenuitem{Edit}{Remove
+ current spectrum} option then the next spectrum in the list becomes the
+ current one.
 
  The \labelitem{Y limits (\%):} drop down list provides a series of
  quick cuts for setting the limits of the Y axis. Normally this is the
@@ -914,36 +939,40 @@ the display area.\\
 
  \begin{itemize}
 
-  \item[\inline{print}] Print a copy of the display area to a
-  postscript file. The file produced fits the output page format using
-  the current aspect ratio of the display area, so if you're zoomed by
-  a large factor then you'll get an output page that has a very small
-  height. If you want a printout of just the visible part then cut it
-  out and display it in a new plot first. The output isn't
-  encapsulated but is known to be convertible by the \hitext{pstoespi}
-  program. The next figure is an example of this for paper copies and
-  shows a scaled JPEG for on-line copies (see next item).
+  \item[\inline{print}] Print a copy of the display area to an installed
+  printer or to a file. The output produced fits the output page format using
+  the current aspect ratio of the display area, so if you're zoomed by a large
+  factor then you'll get an output page that has a very small height. If you
+  want a printout of just the visible part then cut it out and display it in a
+  new plot first. Postscript output from this dialogue isn't encapsulated but is
+  known to be convertible by the \hitext{pstoespi} program. The next figure is
+  an example of this output. Note that if you're looking at a paper copy of
+  this document you're looking at the postscript output and if you're looking
+  at the on-line help it shows a scaled JPEG for on-line copies (see item
+  after next).
 
   \clippedmainfigure{printoutput}
 
-  \item[\inline{jpeg}] Make a JPEG image version of the display
-  area. Again the file produced fits the output graphic using the
-  current aspect ratio of the display area. The default is to produce
-  a JPEG with a pixel-to-pixel correspondence to what you see on the
-  screen (if it where possible to view the whole of the
-  area). Alternatively you can scale the graphic to fit some
-  dimensions that you enter, or just clip the graphic to these
-  dimensions.  (Hint: if you want anti-aliased lines drawn in the JPEG
-  select this plotting option first using the plot configuration
-  window).
+  \item[\inline{postscriptprint}] Same as the print option, except, this only
+  offers to write a postscript file and doesn't rely on having any printers
+  installed on the local machine.
 
-  \item[\inline{fitwidth}] Make spectra fit the display area width.
-  Use this to quickly return to an unzoomed coordinate state and to
-  match the X axis width when you resize the plot window.
+  \item[\inline{jpeg}] Make a JPEG image version of the display area. Again
+  the file produced fits the output graphic using the current aspect ratio of
+  the display area. The default is to produce a JPEG with a pixel-to-pixel
+  correspondence to what you see on the screen (if it were possible to view
+  the whole of the area). Alternatively you can scale the graphic to fit some
+  dimensions that you enter, or just clip the graphic to these dimensions.
+  (Hint: if you want anti-aliased lines drawn in the JPEG select this plotting
+  option first using the plot configuration window).
 
-  \item[\inline{fitheight}] Make spectra fit the display area height.
-  Use this to quickly return to an unzoomed data value state and to
-  match the Y axis height when you resize the plot window.
+  \item[\inline{fitwidth}] Make spectra fit the display area width.  Use this
+  to quickly return to an unzoomed coordinate state and to match the X axis
+  width when you resize the plot window.
+
+  \item[\inline{fitheight}] Make spectra fit the display area height.  Use
+  this to quickly return to an unzoomed data value state and to match the Y
+  axis height when you resize the plot window.
 
   \item[\inline{panner}] Show the `panner' window. You can use this to
   see a view of the whole extent of the currently displayed spectra
@@ -975,12 +1004,15 @@ the display area.\\
   backgrounds prior to line fitting, or for subtracting and dividing
   backgrounds from spectra.
 
-  \item[\inline{fitline}] Show the toolbox for fitting emission and
-  absorption lines. This measures the line position and equivalent
-  width as well as fitting Gaussian, Lorentzian and Voigt profiles to
-  selected wavelength ranges of the current spectrum. Remember to
-  define a polynomial background before using this tool or have
-  your data processed for fitting.
+  \item[\inline{interpolate}] Show the toolbox for taking an interpolated
+  curve (\ie\ a spline drawn on the plot using the features of the
+  \labelitem{Graphics} menu) and creating a spectrum from it.
+
+  \item[\inline{fitline}] Show the toolbox for fitting emission and absorption
+  lines. This measures the line position and equivalent width as well as
+  fitting Gaussian, Lorentzian and Voigt profiles to selected wavelength
+  ranges of the current spectrum. Remember to define a polynomial background
+  before using this tool or have your data processed for fitting.
 
   \item[\inline{filter}] Show the toolbox for filtering the current
   spectrum. The filters offered are simple ones like the average and
@@ -990,26 +1022,144 @@ the display area.\\
 
  \end{itemize}
 
- The \menuitem{Options} menu contains a single item
- \submenuitem{Options}{Match coordinates}. 
- When this is selected the plot will attempt to use any coordinate
- information associated with the displayed spectra to \textit{align}
- them in the coordinate system of the base spectrum (this is the
- spectrum displayed first). In the case of line identifier catalogues,
- these will also be transformed to the rest frame of the observed
- source (\ie\ they will be red or blue shifted if you have
- defined the source velocity as part of its coordinate system
- definition).
+ The \menuitem{Options} menu contains several control items whose values are
+ preserved between invocations of \SPLAT.
 
+ \begin{itemize}
+
+  \item \submenuitem{Options}{Match coordinates}. When this is selected the
+  plot will attempt to use any coordinate information associated with the
+  displayed spectra to \textit{align} them in the coordinate system of the
+  current spectrum (this is the one shown in the \labelitem{Displaying:}
+  drop-down menu). In the case of line identifier catalogues, these will also
+  be transformed to the rest frame of the observed source (\ie\ they will be
+  red or blue shifted if you have defined the source velocity as part of its
+  coordinate system definition). Many spectra will not have appropriate
+  coordinates defined, so by default this option is switched off. To inspect
+  or define coordinates for a spectrum use the \inline{xunits} option in the
+  browser window.
+
+  \item \submenuitem{Options}{Error bar auto-ranging}. When auto-ranging a
+  spectrum that has associated errors the limits do not include the extent of
+  any error bars that will be drawn, if you want this to be otherwise select
+  this option.
+
+  \item \submenuitem{Options}{Auto-fit percentiles in Y}. When this option is
+  selected choosing a percentile limit in Y results in the plot also being
+  forced to fit the height of the plot.
+
+  \item \submenuitem{Options}{Short names in menu lists}. When this option is
+  deselected the long names (usually file names) are shown in the
+  \label{Displaying:} drop-down menu.
+
+ \end{itemize}
 \end{quote}
+
+\subsection{The Graphics menu}
+
+The \menuitem{Graphics} menu provides methods for drawing text and a range of
+figures on the plot. This allows you to add annotations, but also provides the
+basis for the interactive graphics used by the various toolboxes.
+
+To draw a figure on a plot you need to select an option from the
+\menuitem{Drawing mode} sub-menu and then, depending on the figure type, either
+drag out a region or select fiducial points. When creating a figure using
+points these are completed using a double click on the last point.
+
+In the \menuitem{Drawing mode} menu the currently available figure types are:
+\begin{quote}
+\begin{itemize}
+  \item[\inline{line}] a straight line,
+  \item[\inline{rectangle}] a rectangle,
+  \item[\inline{ellipse}] an ellipse,
+  \item[\inline{polyline}] a poly line (last point not connected to first),
+  \item[\inline{polygon}] a polygon (last point connected to first),
+  \item[\inline{freehand}] freehand curve,
+  \item[\inline{text}] a text string,
+  \item[\inline{curve}] an interpolated curve (splines and special spectral
+                        shapes),
+  \item[\inline{xrange}] a rectangle which only moves along X (indicates a
+                         range of coordinates).
+\end{itemize}
+\end{quote}
+
+There are also two special modes:
+\begin{quote}
+\begin{itemize}
+  \item[\inline{select}] select figure,
+  \item[\inline{edit}] edit figure.
+\end{itemize}
+\end{quote}
+When the mode is select (this is usually the default state), clicking on a
+figure selects it. You can then drag it around to move it, or drag one of the
+grips (the little squares) to change the shape. To select more than one figure
+you hold down the \hitext{<Shift>} while clicking.
+
+The edit mode can be used to add new points to a polyline, polygon or
+interpolated curve. Just select this, click on the figure you want to edit and
+then start adding new points. You can also edit text strings, just choose the
+edit mode and click on the text, this produces a dialogue with the text for
+editing.
+
+To change the properties of a figure (line width, fill/outline colour, font
+\etc) just select the figure and then choose the option you want to change
+from the various menus. You can define these before creating a figure too.
+
+Interpolated curves are like polylines in that they are defined by a series of
+points, but they can only have increasing or decreasing X coordinates (so
+cannot double back on themselves). They are intended for drawing figures that
+are related to spectra, specifically spectral backgrounds and lines. In fact
+if you draw an interpolated curve you can convert it into a spectrum for
+removing from a real spectrum using the \labelitem{Generate spectra from
+interpolated lines} toolbox. The types of interpolation scheme available are:
+\begin{quote}
+\begin{itemize}
+
+  \item Hermite, interpolation based on Hermite polynomials. The effect is
+        supposed to construct reasonable analytic curves through discrete data
+        points (\ie\ like those a human would produce).
+
+  \item Akima, interpolation based on Akima splines. Like Hermite this
+        supposed to construct human-like analytic curves.
+
+  \item Cubic, interpolation using natural cubic splines.
+
+  \item Polynomial, interpolation using a simple polynomial of order one less
+        than the current number of points.
+
+  \item Linear, interpolation using straight-lines (like polyline, except it
+        has sorted X coordinates).
+
+  \item Gaussian, interpolation using a Gaussian line-profile. This can only
+        have four reference positions (and is initialised from the first two
+        indicated on the plot), these define the left extent, width,
+        height/centre and right extent. The order will switch if these are
+        dragged past each other (so dragging the width grip beyond the left
+        extent grip will switch their meaning).
+
+  \item Lorentz, interpolation using a Lorentzian line-profile. Works like the
+        Gaussian curve.
+
+  \item Voigt, interpolation using a Voigt line-profile. This also works like
+        the Gaussian curve, but has five characteristic positions, left
+        extent, Gaussian width, height/centre, Lorentzian width, right extent.
+
+\end{itemize}
+\end{quote}
+
+Once you have created your figures you may want to save them for restoration
+at a later time, this can be done using the
+\submenuitem{Graphics}{Save/restore figures} dialogue. Figures are saved using
+the physical coordinates of the spectrum, so should be re-drawn at the correct
+wavelengths \etc\ on new plots.
 
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
 
-This window allows you to display a series of spectra from the global
-list, one after the other. It is possible to display these into an
-existing plot, that may already be displaying other spectra you'd like
-to use for comparison, or you can use a new plot.
+This window allows you to display a series of spectra from the global list,
+one after the other. It is possible to display these into an existing plot,
+that may already be displaying other spectra you'd like to use for comparison,
+or you can use a new plot.
 
 \mainfigure{animationwindow}
 
@@ -1125,7 +1275,7 @@ scroll.
  to get a modifiable spectrum is to untick the \labelitem{Readonly}
  control. This will make a memory copy of your spectrum, enter this on
  the global list and then load it into this window replacing the
- previous spectrum. The new spectrum will be called 
+ previous spectrum. The new spectrum will be called
  `\hitext{Copy of <oldname>}'.
 
  Note that if you want to plot this new spectrum you'll need to go back
@@ -1145,7 +1295,7 @@ scroll.
 \subheading{Editing whole columns}
 \begin{quote}
  You can make global changes to a whole column of values using special
- dialogs that either offer special functions (linear transformations),
+ dialogues that either offer special functions (linear transformations),
  or allow you to define an algebraic expression (in terms of the
  existing values or a simple index counter starting at 1 for the first
  row).
@@ -1163,14 +1313,14 @@ scroll.
  the $scale$ value set to $1.0$ and the zero value to $0.0$. A list of
  preset expressions that should be generally useful is found in the
  \menuitem{Functions} menu.
- 
+
  Naturally if you applied this expression then the data values would
  stay the same. A more complex example is shown next.
 
  \mainfigure{dataeditwindow2}
 
  This presents the possibility of subtracting a single Voigt profile
- (the top part of this is greyed out as Voigt is a builtin function
+ (the top part of this is greyed out as Voigt is a built-in function
  that cannot be represented as an algebraic expression).
 
  If you need to use an expression of your own you might like to view
@@ -1184,23 +1334,23 @@ scroll.
 \subheading{Editing the error values column}
 \begin{quote}
  Editing the error column is much like editing the data column, except
- that you can actually create a new error column, see the 
+ that you can actually create a new error column, see the
  \submenuitem{Operations}{Modify error column} item.
 
- The error column can also be deleted using the 
+ The error column can also be deleted using the
  \submenuitem{Edit}{Delete error column} item.
 \end{quote}
 
 \subheading{Editing the coordinates column}
 \begin{quote}
- Globally editing the coordinates can be done using the 
+ Globally editing the coordinates can be done using the
  \submenuitem{Operations}{Modify coordinate column} window.
 
  \mainfigure{coordeditwindow}
 
- A simple builtin option of applying a linear transformation is
+ A simple built-in option of applying a linear transformation is
  offered (useful for when the coordinates are in fact some index
- related to wavelength). Under the \labelitem{General} tab you can 
+ related to wavelength). Under the \labelitem{General} tab you can
  use algebraic expressions like those for modifying the data columns.
 
  \mainfigure{coordeditwindow2}
@@ -1210,7 +1360,7 @@ scroll.
 
  \labelitem{Note:} when you modify coordinates either singly or as a
  column any coordinate system information will be lost. If you want to
- retain this you'll either have to re-enter this information or use 
+ retain this you'll either have to re-enter this information or use
  the conversion facilities of the \labelitem{Coordinate system
  attributes} window (using this other window you can transform between
  apparent place, Earth to Sun to Local Group \etc\ and to a source
@@ -1243,7 +1393,7 @@ A more complete description of the coordinate system also includes two
 further pieces of information, the time and place when the observation
 was made and the direction and speed of what was being observed. Taken
 together these define the "rest frames" of the observation and the
-source. 
+source.
 
 In the following picture you can see that I have an observation
 (topocentric) of NGC1275 (RA: 03:19:47.49, Dec: 41:30:40.5 FK5 J2000)
@@ -1271,13 +1421,13 @@ after matching.
 
 \mainfigure{coordinatesystemplot}
 
-The alternative to this method is switch 
+The alternative to this method is switch
 \submenuitem{Options}{Match coordinates} off and transform the galaxy
 spectrum to what it would have looked like in the source standard of
 rest (\ie\ if you had taken the measurements travelling with the
 galaxy). To do this change the \labelitem{Standard of rest:} to
 \labelitem{Source} but now press the \labelitem{Convert} button. This
-remaps the spectral coordinates permanently. 
+remaps the spectral coordinates permanently.
 
 Using this method you can also transform your spectrum to other
 systems and units (say frequency or energy) and rest frames (so you
@@ -1287,7 +1437,7 @@ switched on you can also directly compare spectra calibrated in all
 these different systems.
 
 When transforming to velocity (optical, radio and relativistic
-velocities are supported) a rest "frequency" is also needed. 
+velocities are supported) a rest "frequency" is also needed.
 Conceptually this is the value that the centre of a line with
 locally zero velocity has. The rest frequency can actually be
 specified in various units, for instance angstroms.
@@ -1390,24 +1540,28 @@ are the ability to \labelitem{Auto-update} any changes to what the
 display area is showing and to save and restore configurations to and
 from an XML storage system.
 
-%%% Axes window is not described.
-
-Normally to make any configuration changes happen you should press the
-\labelitem{Apply} button, unless the \labelitem{Auto-update} option
-has been applied.
+Normally configuration changes happen immediately as \labelitem{Auto-update}
+is switched on by default. If you prefer to wait for changes then you will
+need to press the \labelitem{Draw} button. You also need to press the
+\labelitem{Draw} button when making changes to the data limits (these may not
+be in a valid state until you've entered the complete coordinate value).
 
 \newpage
 \subsubsection*{Axis Data Limits:}
 
 \mainfigure{configurewindowlimits}
 
-This page allows you to set the physical limits of the axis drawn in
-the display area. The default configuration autoscales the display
-area to the full limits of all spectra that it is displaying.
+This page allows you to set the physical limits of the axis drawn in the
+display area. The default configuration auto-scales the display area to the
+full limits of all spectra that it is displaying.
 
-If you want to apply limits of your own then, untick the autoscale
-checkboxes and enter your values in the lower and upper entry
-areas. Remember to press \labelitem{Apply} to apply the limits.
+If you want to apply limits of your own then, untick the auto-scale checkboxes
+and enter your values in the lower and upper entry areas. Remember to press
+\labelitem{Draw} to apply the limits.
+
+You can also get either axis to display itself using logarithmic scaling (if
+possible, there are limitations, like not being able to contain the coordinate
+zero) and to display the axes ranges flipped top to bottom or left to right.
 
 Other useful options are the checkboxes \labelitem{Fit X range:} and
 \labelitem{Fit Y range:} that also make the ranges that you supply
@@ -1439,6 +1593,18 @@ be restored by setting the text of this field to blank, or to the text
 \hitext{Using default title} (this text is used so that you can see
 the result of any changes you're about to make).
 
+Superscript and subscripting are available using \xref{AST}{sun211}{Escape}
+Escape sequences, for instance:
+\begin{quote}
+\begin{tabular}{c|c}
+   AST escape sequence     & result \\
+   \hline
+   \verb|super%^100+script%^+| & \hitext{$super^{script}$} \\
+   \verb|sub%v100+script%v+|   & \hitext{$sub_{script}$} \\
+   \verb|%%|                   & \hitext{$\%$}
+\end{tabular}
+\end{quote}
+
 \newpage
 \subsubsection*{Axis Label Properties:}
 
@@ -1450,16 +1616,25 @@ well as how far to position from the axis, which axis to attach to and
 whether to include any units (as a string in parenthesis). The text
 shown is an accurate rendering of what is shown in the plot window.
 
+As with the title you can insert any characters from the font, and use
+\xref{AST}{sun211}{Escape} Escape sequences to get effects like super and
+sub-scripting.
+
 \newpage
 \subsubsection*{Axis Numbers:}
 
 \mainfigure{configurewindowaxisnumbers}
 
-This page allows you to configure how the axis number labels are
-rendered. As with other pages you can define the font, style, size and
-colour used, as well as the separation between the actual axes and the
-labels. An accurate rendering of how the labels will be drawn is shown
-in the \labelitem{Sample:} label.
+This page allows you to configure how the axis number labels are rendered. As
+with other pages you can define the font, style, size and colour used, as well
+as the separation between the actual axes and the labels. An accurate
+rendering of how the labels will be drawn is shown in the \labelitem{Sample:}
+label.
+
+The \labelitem{Set log labelling:} option controls whether the numbers are
+drawn using an exponent notation. This is the default if log spacing has been
+selected for the axis (so you can also use this to not get exponent labelling
+when the axes are drawn using a log scale).
 
 The \labelitem{Digits:} drop down box allows you to override the
 default number of significant figures shown in the labels. Just choose
@@ -1467,6 +1642,20 @@ a number that you want. However, note that the number of significant
 figures is used in the algorithm for determination how to space major
 ticks, so it may be necessary to increase this value when configuring
 the major tick separation.
+
+\newpage
+\subsubsection*{Axes:}
+
+\mainfigure{configurewindowaxes}
+
+This page allows you to control whether axes lines are drawn around the plot
+or not. In general this isn't very useful for spectral plots (when the outer
+border lines and axes are coincident), but it does allow you to draw the axes
+inside the display area and position where these are drawn, so you can define
+an arbitrary origin. Useful effects can then be obtained using grid lines.
+
+The \labelitem{Log X:} and \labelitem{Log Y:} options are the same as those
+shown in the \labelitem{Limits} pane.
 
 \newpage
 \subsubsection*{Grid Line Properties:}
@@ -1500,16 +1689,33 @@ The spacing used between major ticks may be dependent of the number of
 significant figures used in the axis number labels, so you may need to
 also change that.
 
+The option \labelitem{Set log spacing:} together with
+\labelitem{X log spacing} and \labelitem{Y log spacing} allow you to define if
+the spacing of major ticks along an axis are logarithmic. If the axis is
+scaled logarithmically (that is you've asked for log axes in the data limits
+tab) then log spacing is the default, otherwise major ticks are spaced
+linearly.
+
+When spacing logarithmically you can define the separation of the major ticks
+using \labelitem{X log gap:} and \labelitem{Y log gap:}. These values are
+the power of 10 you require between adjacent ticks, so for instance, if you
+wanted ticks every factor of $10^2$ you'd use $2$.
+
+\newpage
+\subsubsection*{Text Properties:}
+
+This window has no uses in \SPLAT.
+
 \newpage
 \subsubsection*{Graphics Rendering Hints:}
 
 \mainfigure{configurewindowrender}
 
-This page allows you to define how carefully the graphics are drawn in
-the plot display area. By default any text is drawn using
-anti-aliasing, which makes the graphics less jagged, and spectra are
-drawn without anti-aliasing. If you'd also like the spectra to be
-anti-aliased tick \labelitem{Everything:}.
+This page allows you to define how carefully the graphics are drawn in the
+plot display area. By default any text is drawn using anti-aliasing, which
+makes the graphics less jagged, and spectra are drawn without
+anti-aliasing. If you'd also like the spectra to be anti-aliased tick
+\labelitem{Everything:}.
 
 It's not possible to anti-alias the spectra and not the text (so it's
 not just a perverse choice of options). Also note that any rendering
@@ -1544,17 +1750,17 @@ display area.
 
 \mainfigure{restorewindow}
 
-This additional window is activated by the \labelitem{(Re)Store}
-button. It's purpose is to allow you to create a database of
-configurations that you'd like to keep (after all if you've spent some
-time configuring the look of a plot you don't want to have to type it
-all in again when someone asks you to tweak the postscript).
+This additional window is activated by the \labelitem{Store/restore}
+button. It's purpose is to allow you to create a database of configurations
+that you'd like to keep (after all if you've spent some time configuring the
+look of a plot you don't want to have to type it all in again when someone
+asks you to tweak the postscript).
 
 The configurations are identified by two elements, a
 \labelitem{Description} entered by you and the date when the
 configuration was created. To create a copy of the current configuration
 (note this doesn't include the spectra themselves) just press the
-\labelitem{Add} button. This creates a new entry with the description
+\labelitem{Store} button. This creates a new entry with the description
 \hitext{New configuration}. To change the description just double
 click on this text and type in your changes. Remember to press
 \hitext{<Return>} when you're done. To remove any un-needed
@@ -1618,12 +1824,11 @@ list. To keep these just close the window.
 \newpage
 \subsection{Polynomial fitting window}
 
-The polynomial fitting window allows you to fit a polynomial of
-selected degree to various selected ranges of the current
-spectrum. You can select to use errors as weights for the fit and can
-save the fits on the global list as spectra in their own
-right. Fitting a polynomial is generally a pre-requisite to fitting
-spectral lines.
+The polynomial fitting window allows you to fit a polynomial of selected
+degree to various selected ranges of the current spectrum. You can select to
+use errors as weights for the fit and can save the fits on the global list as
+spectra in their own right. Fitting a polynomial is generally a pre-requisite
+to fitting spectral lines.
 
 \mainfigure{polynomialfitwindow}
 
@@ -1646,7 +1851,7 @@ The \labelitem{Divide spectrum by fit} checkbox allows you to ask for
 the creation of a new spectrum that is the result of dividing the
 spectrum by the polynomial fit. You will probably want to do this
 before attempting to fit absorption lines so that the continuum is
-normalized. The new spectrum appears on the global list (with the 
+normalized. The new spectrum appears on the global list (with the
 name \hitext{Ratio: <spectrum name> by <polynomial name>} and can
 plotted in a new window before fitting the lines.
 
@@ -1712,6 +1917,23 @@ plotted in a new window before fitting the lines.
  fit (possibly interchanged) and $N$ the number of positions in the
  spectrum.
 \end{quote}
+
+\newpage
+\subsection{Generate spectra from interpolated lines}
+
+\mainfigure{generateline}
+
+This window is for generating a spectrum that is equivalent to an interpolated
+line that you have drawn on the plot. Such lines can then be subtracted to or
+from, or divided into the current spectrum, thus providing a way to background
+correct a spectrum using a hand-drawn line.
+
+To create an interpolated line select the
+\submenuitem{Drawing mode}{\inline{curve}} option in the \labelitem{Graphics}
+menu and draw out the line. Different types of interpolated lines can be
+selected first in the \submenuitem{Graphics}{Curve type} menu. The default is
+\labelitem{hermite} a type of spline that attempts to connect points in a
+similar way to a human.
 
 \newpage
 \subsection{Spectral line fitting window}
@@ -1803,7 +2025,7 @@ hash (\#) and are ignored.
    \item \hitext{Centre}, the position of the median value \ie\ that
          for which half of the total, background subtracted, area of
          the line, within the given region, lies to the left and right.
-   \item \hitext{Width}, width of the line. For a gaussian this would
+   \item \hitext{Width}, width of the line. For a Gaussian this would
          be $\pm 1$ standard deviations wide.
    \item \hitext{Equiv}, the equivalent width of the line. This will be
          $0$ if a zero background is given or assumed.
@@ -1936,17 +2158,17 @@ displayed in a plot.
 
 The various options are:
 \begin{itemize}
-  \item \hitext{Average} take the running average value over a 
+  \item \hitext{Average} take the running average value over a
         number of positions.
-  \item \hitext{Median} take the running median value over a 
+  \item \hitext{Median} take the running median value over a
         number of positions.
-  \item \hitext{Profile} smooth the values using a profile matched 
+  \item \hitext{Profile} smooth the values using a profile matched
         to typical line shapes, Gaussian, Lorentzian and Voigt.
   \item \hitext{Spectrum} smooth the values using a profile
         defined in another spectrum (allows you to create kernels
         that match some shape, rather than just the standard profiles).
   \item \hitext{Wavelet} use various wavelet filters to convert the
-        spectrum into multiresolution coefficients, removing a
+        spectrum into multi-resolution coefficients, removing a
         fraction of the coefficients, thus \textit{denoising} the
         spectrum.
 \end{itemize}
@@ -1954,48 +2176,78 @@ The various options are:
 \newpage
 \section{Supported data formats\xlabel{data_formats}}
 
-\SPLAT\ can read and write spectra stored in four fundamental formats,
-Starlink NDF \& NDX, FITS and simple TEXT. NDFs are stored in
-container files that have the extension \hitext{.sdf}. FITS files have
-one of the extensions \hitext{.fits} or \hitext{.fit} and TEXT files
-\hitext{.txt} or \hitext{.lis}. NDX format spectra, when stored on disk,
-will have extension \hitext{.xml}.
+\SPLAT\ can read and write spectra stored in a wide variety of formats, either
+stored as 1D spectra or as columns in tables. 1D spectral formats supported
+are Starlink NDF \& NDX, FITS and simple TEXT files. Table formats supported
+are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
+formats currently have the best coordinate system support, so are recommended
+when a choice can be made.
 
-Line identifier catalogues currently have one format - TEXT based in
-files with extension \hitext{.ids}.
+Normally \SPLAT\ differentiates these types using a preset list of file
+extensions, for instance NDFs can only be stored in container files that have
+the extension \hitext{.sdf}, FITS files usually have one of the extensions
+\hitext{.fits} or \hitext{.fit} and TEXT files \hitext{.txt} or \hitext{.lis}
+and NDX format spectra, when stored on disk, will have extension
+\hitext{.xml}. However, you can choose a specific format when opening a file
+using the \submenuitem{File}{Open} dialogue, so you can ask that a TEXT file
+is opened as a table, this allows you to select the columns.
 
-Note that although there are a set of default file extensions you can
-select the type that a spectrum is opened as using the 
-\submenuitem{File}{Open} dialog in the main window. Currently it isn't
-possible to do this from the command-line.
+Line identifier catalogues are a special case and currently have a single one
+format - TEXT based in files with extension \hitext{.ids}.
 
-Spectra stored in TEXT files must have the simple format of two or
-three columns of data, separated by whitespace (that is spaces or
-tabs). Any comments in the file must be indicated by a hash sign,
-blank lines are also allowed. The three columns should have the
-following values:
+1D spectra stored in TEXT files must have the format of one, two or three
+columns of data, separated by whitespace (that is spaces or tabs). Any
+comments in the file must be indicated by a hash sign, blank lines are also
+allowed. The three columns should have the following values:
 \begin{quote}
 \begin{verbatim}
-  wavelength count [error-in-count]
+  [wavelength] count [error-in-count]
 \end{verbatim}
 \end{quote}
-The error column being optional.
+The wavelength and error columns being optional (if you don't have a
+wavelength column a simple row index is used, note also you cannot have errors
+without wavelengths) . If you choose to open a TEXT file as a table you can
+select which columns should be used for these values, and the following rules
+apply:
+\begin{itemize}
+\item Each table row is represented by a single text line
+\item Anything after a `\#' character on a line is ignored (except for optional
+      heading line)
+\item Blank lines are ignored
+\item Within a line, fields are separated by one or more whitespace characters
+      (space or tab)
+\item A field is either a sequence of non-whitespace characters or a sequence
+      of characters between two matching quote characters (single (') or double (")
+      quotes) - spaces are therefore allowed in quoted fields.
+\item In a quoted field any character preceded by a backslash is interpreted
+      literally, so it is possible to insert quotes into a quoted string
+\item An empty string (two adjacent quotes) represents a null element
+\item All lines must contain exactly the same number of fields
+\item An optional heading line may be included: if the last comment line (line
+      starting with a `\#' before the first data line) contains the same number of
+      fields as the columns in the table, these fields are interpreted as the
+      headings (names) of the columns
+\end{itemize}
 
-The format of line identification catalogues is like that of spectral
-files, except the second column contains a string that identifies the
-line (with no spaces, \ie\ \hitext{H-alpha} not \hitext{H
-alpha}). It is also possible to define the system of the coordinate
-values in a header section, see the \SPLAT\ builtin catalogues for
-examples of this.
+The format of line identification catalogues is like that of simple TEXT
+spectral files, except the second column contains a string that identifies the
+line (with no spaces, \ie\ \hitext{H-alpha} not \hitext{H alpha}). It is also
+possible to define the system of the coordinate values in a header section,
+see the \SPLAT\ built-in catalogues for examples of this.
 
-NDFs stored within container files can be accessed, but only by
-entering the full HDS path on the command-line or in the
-\submenuitem{File}{Open} dialog.  FITS extensions may also be open in
-this fashion (by appending the extension number in square brackets).
+NDFs stored within container files can be accessed, but only by entering the
+full HDS path on the command-line or in the \submenuitem{File}{Open} dialogue.
+FITS extensions may also be open in this fashion (by appending the extension
+number in square brackets).
+
+An alternative to specifying the component information is to use the component
+browser window \inline{browse}, to see the contents of FITS and NDF files and
+choose the component to display directly.
 
 Internally all these formats are stored as double precision
-coordinates and data values. \SPLAT\ only requires that 
-\textit{coordinates increase or decrease monotonically}.
+coordinates and data values. \SPLAT\ only requires that
+\textit{coordinates increase or decrease monotonically} 
+when performing any analyses.
 
 %%%% Removed for the moment, may all be changing a lot soon.
 %
@@ -2036,7 +2288,6 @@ coordinates and data values. \SPLAT\ only requires that
 
 \subheading{Remote control}
 
-%The most useful of the remote control examples are the commands:
 The most useful of the remote control scripts are the commands:
 \begin{itemize}
  \item \hitext{splatdisp}
@@ -2101,8 +2352,8 @@ modify the \hitext{FILE\_PATTERN} definition line. Now re-define
 \subheading{Command-line \SPLAT}
 
 \hitext{\$SPLAT\_DIR} also contains several command-line scripts that
-only make use of \SPLAT\ classes, so don't need \SPLAT\ to be
-running. These are:
+only make use of \SPLAT\ classes, so don't need \SPLAT\ to be running. These
+are:
 \begin{itemize}
 \item \hitext{\$SPLAT\_DIR/fitgauss}
 \item \hitext{\$SPLAT\_DIR/fitgauss2}
@@ -2113,7 +2364,17 @@ accurate line positions from a initial list. Just run the commands
 without any arguments to get usage instructions. Look at the script
 headers for more details.
 
-\section{Acknowledgments}
+A one-off command that is currently only available as a script, but may become
+available as part of a proper toolbox is:
+\begin{itemize}
+\item \hitext{\$SPLAT\_DIR/deblend}
+\end{itemize}
+This fits a blend of spectral lines using a multi-component model, based on
+any of the three spectral line profiles supported by \SPLAT\ (Gaussian,
+Lorentz, Voigt). See the contents of this file for instructions on how to use
+it.
+
+\section{Acknowledgements}
 
 \SPLAT\ is written in
 \htmladdnormallinkfoot{Java}{http://java.sun.com} by
@@ -2140,42 +2401,49 @@ Niemeyer (\htmladdnormallink{http://www.beanshell.org}
                             {http://www.beanshell.org}).
 
 \section{Changes}
-\subsection{This release, 2.0}
-In this release \SPLAT\ has become part of the Starlink Java
-Collection and is now released under the GPL. 
+\subsection{This release, 2.1}
 
-The most significant changes are:
+This is a new release of SPLAT which is now part of the Starlink
+Java Collection and is now released under the GPL.
+
+The most significant visible changes to SPLAT are:
 \begin{itemize}
+    \item Tables support. You can now read and write spectra in tables of
+    various kinds, for instance FITS (binary and ASCII), VOTable and various
+    text formats.
 
-   \item The addition of facilities for viewing the spectral data
-     directly (\ie\ in a table, rather than a plot), coupled with
-     the ability to edit the values (individually or globally
-     using algebraic expressions). Multi-level undo and redo
-     are also provided.
-   
-   \item The addition of standard line identifier catalogues for the
-     optical, IR and submillimetre wavebands. It is also possible to
-     import external catalogues using a standard text format.
+    \item Component browser. \SPLAT\ now incorporates a Treeview-like
+    component browser so you can select FITS file extensions (tables and
+    spectra) and NDF components.
 
-   \item The addition of full support for spectral coordinate systems. 
-     Spectra can now have systems that define the coordinate type
-     (wavelength, frequency, energy and velocity), along with the
-     units (which include, from much larger flexible set, angstroms,
-     milli/nano/micro metres, Joules, ergs, electron volts,
-     mega/kilo/giga hertz, metres/kilometres per second...) and the 
-     two systems of rest frame \ie\ where the observations where
-     made and of what). This information can be used to align spectra
-     and line identifications automatically and perform operations
-     like change of rest frame (say from topocentric to heliocentric,
-     or centre of the galaxy or to the source itself) or change of units.
+    \item Log axes. You can now draw either axis using log spacing. \SPLAT
+    also supports AST escaped text sequences for super and subscripting.
 
-   \item The addition of various smoothing filters, average, median, Gauss,
-     Lorentz, Voigt and simple wavelet denoising.
+    \item Plot annotations. You can now add arbitrary text and shapes to a
+    plot. 
+
+    \item Interactive background estimation. \SPLAT\ now offers the ability to
+    draw interpolated spline-like backgrounds for your spectra.
+
+    \item Better printing facilities. Printing to postscript is now a separate,
+    always available, option.
+
+    \item You can now divide a spectrum by its background to normalize
+    absorption spectra.
+
+    \item Line deblending. SPLAT now has a command-line script for deblending
+    lines using Gaussian, Lorentzian or Voigt profiles. This may become part
+    of a proper toolbox in some future release. See the:
+    \begin{quote}
+       \hitext{\$SPLAT\_DIR/deblend}
+    \end{quote}
+    script header for how to use this command.
+
 \end{itemize}
-
-Other changes include the ability to delete as well as extract parts
-of spectra, to specify the types of spectra when the file extension is
-not one of the standard types and to drag-and-drop spectra from the
-global to plots.
+Other changes include, selection of the columns used from a table, text files
+may now just contain a single column, many new options for configuring the
+interface, the plot window now retains its size, and the restriction that all
+spectra should have monotonic coordinates has been removed (you can plot
+these, but the results may be unpredictable).
 
 \end{document}

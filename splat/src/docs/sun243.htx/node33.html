@@ -6,128 +6,104 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Supported data formats</TITLE>
-<META NAME="description" CONTENT="Supported data formats">
+<TITLE>Generate spectra from interpolated lines</TITLE>
+<META NAME="description" CONTENT="Generate spectra from interpolated lines">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
 <LINK REL="next" HREF="node34.html">
-<LINK REL="previous" HREF="node7.html">
-<LINK REL="up" HREF="sun243.html">
+<LINK REL="previous" HREF="node32.html">
+<LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node34.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html413"
+<A NAME="tex2html426"
  HREF="node34.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html411"
- HREF="sun243.html">
+<A NAME="tex2html424"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html405"
+<A NAME="tex2html418"
  HREF="node32.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html414"
- HREF="node34.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html427"
+ HREF="node34.html">Spectral line fitting window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html412"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html425"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html406"
- HREF="node32.html">Filter spectrum window</A>
+<B> Previous:</B> <A NAME="tex2html419"
+ HREF="node32.html">Polynomial fitting window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00050000000000000000"></A><A NAME="xref_data_formats"></A>
-<BR>
-Supported data formats
-</H1>
+<H2><A NAME="SECTION000413000000000000000">
+Generate spectra from interpolated lines</A>
+</H2>
 
 <P>
-<I>SPLAT</I> can read and write spectra stored in four fundamental formats,
-Starlink NDF &amp; NDX, FITS and simple TEXT. NDFs are stored in
-container files that have the extension <TT>.sdf</TT>. FITS files have
-one of the extensions <TT>.fits</TT> or <TT>.fit</TT> and TEXT files
-<TT>.txt</TT> or <TT>.lis</TT>. NDX format spectra, when stored on disk,
-will have extension <TT>.xml</TT>.
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="330" HEIGHT="122" ALIGN="BOTTOM" BORDER="0"
+ SRC="generateline.gif"
+ ALT="1895">
+ 
+</DIV>
 
 <P>
-Line identifier catalogues currently have one format - TEXT based in
-files with extension <TT>.ids</TT>.
+This window is for generating a spectrum that is equivalent to an interpolated
+line that you have drawn on the plot. Such lines can then be subtracted to or
+from, or divided into the current spectrum, thus providing a way to background
+correct a spectrum using a hand-drawn line.
 
 <P>
-Note that although there are a set of default file extensions you can
-select the type that a spectrum is opened as using the 
-<B>File=&gt;Open</B> dialog in the main window. Currently it isn't
-possible to do this from the command-line.
+To create an interpolated line select the
+<B>Drawing mode=&gt;<IMG
+ WIDTH="16" HEIGHT="16" ALIGN="CENTER"
+ SRC="curve.gif"
+ ALT="1899"></B> option in the <B>Graphics</B>
+menu and draw out the line. Different types of interpolated lines can be
+selected first in the <B>Graphics=&gt;Curve type</B> menu. The default is
+<B>hermite</B> a type of spline that attempts to connect points in a
+similar way to a human.
 
 <P>
-Spectra stored in TEXT files must have the simple format of two or
-three columns of data, separated by whitespace (that is spaces or
-tabs). Any comments in the file must be indicated by a hash sign,
-blank lines are also allowed. The three columns should have the
-following values:
-<BLOCKQUOTE>
-<PRE>
-  wavelength count [error-in-count]
-</PRE>
-</BLOCKQUOTE>
-The error column being optional.
 
-<P>
-The format of line identification catalogues is like that of spectral
-files, except the second column contains a string that identifies the
-line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H
-alpha</TT>). It is also possible to define the system of the coordinate
-values in a header section, see the <I>SPLAT</I> builtin catalogues for
-examples of this.
-
-<P>
-NDFs stored within container files can be accessed, but only by
-entering the full HDS path on the command-line or in the
-<B>File=&gt;Open</B> dialog.  FITS extensions may also be open in
-this fashion (by appending the extension number in square brackets).
-
-<P>
-Internally all these formats are stored as double precision
-coordinates and data values. <I>SPLAT</I> only requires that 
-<I>coordinates increase or decrease monotonically</I>.
-
-<P>
 <BR> <HR>
-<A NAME="tex2html413"
+<A NAME="tex2html426"
  HREF="node34.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html411"
- HREF="sun243.html">
+<A NAME="tex2html424"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html405"
+<A NAME="tex2html418"
  HREF="node32.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html414"
- HREF="node34.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html427"
+ HREF="node34.html">Spectral line fitting window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html412"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html425"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html406"
- HREF="node32.html">Filter spectrum window</A>
+<B> Previous:</B> <A NAME="tex2html419"
+ HREF="node32.html">Polynomial fitting window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

@@ -1,48 +1,40 @@
 1 SPLAT - Spectral Display and Analysis Tool
 
  This is a new release of SPLAT which is now part of the Starlink
- Java Collection and is now released under the GPL. 
+ Java Collection and is now released under the GPL.
 
  The most significant visible changes to SPLAT are:
 
-   o The addition of facilities for viewing the spectral data
-     directly (i.e. in a table, rather than a plot), coupled with
-     the ability to edit the values (individually or globally
-     using algebraic expressions). Multi-level undo and redo
-     are also provided.
-   
-   o The addition of standard line identifier catalogues for the
-     optical, IR and submillimetre wavebands. It is also possible to
-     import external catalogues using a standard text format.
+    - Tables support. You can now read and write spectra in tables
+      of various kinds, for instance FITS (binary and ASCII), VOTable and
+      various text formats.
 
-   o The addition of full support for spectral coordinate systems. 
-     Spectra can now have systems that define the coordinate type
-     (wavelength, frequency, energy and velocity), along with the
-     units (which include, from much larger flexible set, angstroms,
-     milli/nano/micro metres, Joules, ergs, electron volts,
-     mega/kilo/giga hertz, metres/kilometres per second...) and the 
-     two systems of rest frame (i.e. where the observations where
-     made and of what). This information can be used to align spectra
-     and line identifications automatically and perform operations
-     like change of rest frame (say from topocentric to heliocentric,
-     or centre of the galaxy or to the source itself) or change of units.
+    - Component browser. SPLAT now incorporates a Treeview-like component
+      browser so you can select FITS file extensions (tables and spectra)
+      and NDF components.
 
-   o The addition of various smoothing filters, average, median, Gauss,
-     Lorentz, Voigt and simple wavelet denoising.
+    - Log axes. You can now draw either axis using log spacing. SPLAT
+      also supports AST escaped text sequences for super and subscripting.
 
-Other changes include the ability to delete as well as extract parts
-of spectra, to specify the types of spectra when the file extension is
-not one of the standard types and to drag-and-drop spectra from the
-global to plots.
+    - Plot annotations. You can now add arbitrary text and shapes to a plot.
 
-Peter W. Draper (p.w.draper@durham.ac.uk)          4th June 2003
+    - Interactive background estimation. SPLAT now offers the ability to
+      draw interpolated spline-like backgrounds for your spectra.
 
- -- Simple binary maths window fails when dividing.
- -- Divide background to normalize absorption spectra. Added
-    constant as possible background for line fits.
+    - Better printing facilities. Printing to postscript is now a separate,
+      always available, option.
 
- -- Text files may now have just one column == data (edit second).
+    - You can now divide a spectrum by its background to normalize absorption
+      spectra.
 
- -- Postscript print to file is separate option to local printers.
+    - Line deblending. SPLAT now has a command-line script for deblending
+      lines using Gaussian, Lorentzian or Voigt profiles. This may become
+      part of a proper toolbox in some future release.
 
- -- Some 2D data support. Coordinates of first axis used.
+Other changes include, selection of the columns used from a table, text files
+may now just contain a single column, many new options for configuring the
+interface, the plot window now retains its size, and the restriction that all
+spectra should have monotonic coordinates has been removed (you can plot
+these, but the results may be unpredictable).
+
+Peter W. Draper (p.w.draper@durham.ac.uk)          11th May 2004

@@ -6,8 +6,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Spectral coordinate system attributes window</TITLE>
-<META NAME="description" CONTENT="Spectral coordinate system attributes window">
+<TITLE>The view and modify spectral values window</TITLE>
+<META NAME="description" CONTENT="The view and modify spectral values window">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -20,154 +20,239 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html197"
+<A NAME="tex2html205"
  HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html195"
+<A NAME="tex2html203"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html189"
+<A NAME="tex2html197"
  HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html198"
- HREF="node13.html">The simple binary maths window</A>
+<B> Next:</B> <A NAME="tex2html206"
+ HREF="node13.html">Spectral coordinate system attributes window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html196"
+<B>Up:</B> <A NAME="tex2html204"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html190"
- HREF="node11.html">The view and modify spectral values window</A>
+<B> Previous:</B> <A NAME="tex2html198"
+ HREF="node11.html">The animation window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
 <H2><A NAME="SECTION00045000000000000000">
-Spectral coordinate system attributes window</A>
+The view and modify spectral values window</A>
 </H2>
 
 <P>
-This window allows you to define the coordinate systems that describe
-your spectra. The most trivial use of these is simply to document what
-type of coordinate and units your spectra are measured in, examples
-are wavelength in air in angstroms, frequency in GHz, velocity in
-km/s, <I>etc.</I>When supplied these values will be used to annotate any
-plots, but can also be used to compare spectra in different coordinate
-systems and to transform a spectrum from one coordinate system to
-another.
-
-<P>
-A more complete description of the coordinate system also includes two
-further pieces of information, the time and place when the observation
-was made and the direction and speed of what was being observed. Taken
-together these define the "rest frames" of the observation and the
-source. 
-
-<P>
-In the following picture you can see that I have an observation
-(topocentric) of NGC1275 (RA: 03:19:47.49, Dec: 41:30:40.5 FK5 J2000)
-made in air, calibrated in angstroms, taken in June 1999 on the
-William Herschel Telescope. I've also entered that NGC1275 as observed
-from the centre of the Sun (heliocentric) has a recessional velocity
-of 5300km/s.
+The purpose of this window is to allow you to see the actual data
+values of a spectrum and to make modifications to them.
+The spectrum being shown has it basic details at the top of the window
+and the values of the spectrum are shown in a table area that you can
+scroll.
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="289" HEIGHT="352" ALIGN="BOTTOM" BORDER="0"
- SRC="coordinatesystemwindow.gif"
- ALT="1139">
+ WIDTH="315" HEIGHT="411" ALIGN="BOTTOM" BORDER="0"
+ SRC="viewwindow.gif"
+ ALT="1163">
  
 </DIV>
 
 <P>
-To apply this to a spectrum that has no coordinate information (or
-incorrect coordinate information) you need to press the
-<B>Set</B> button. Note that you can apply the same coordinates
-to more than one spectrum by selecting them all in the view of the
-global list shown in this window.
+<B><FONT SIZE="+1">Modifications</FONT></B>
+<BLOCKQUOTE>
+ If you want to modify any of the values, then you need to have a
+ spectrum that isn't readonly. Spectra read from files always have
+ readonly values, so this will generally be the case. The simplest way
+ to get a modifiable spectrum is to untick the <B>Readonly</B>
+ control. This will make a memory copy of your spectrum, enter this on
+ the global list and then load it into this window replacing the
+ previous spectrum. The new spectrum will be called
+ `<TT>Copy of &lt;oldname&gt;</TT>'.
 
 <P>
-Now say that you wanted to compare this spectrum with a standard set
-of emission lines, obviously taken at rest in a laboratory. If you
-load the emission line catalogue and display it in the same plot and
-then select the <B>Options=&gt;Match coordinates</B> item the
-labels will be red-shifted to the rest frame of the source (<I>i.e.</I> where
-the lines from the galaxy originated). This is shown in action in the
-next figure where the lines before matching are shown in blue and red
-after matching.
+Note that if you want to plot this new spectrum you'll need to go back
+ to the main window and do this yourself (plots of the spectrum that
+ this is a copy of are not going to show any modifications that you now
+ make!).
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Editing single values</FONT></B>
+<BLOCKQUOTE>
+ To change a single value of any kind you can now just select the
+ table cell (usually by double clicking on it) and type in the new
+ value. Press <TT>Return</TT> to make the edit happen (this should
+ immediately be shown in any plots of this spectrum).
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Editing whole columns</FONT></B>
+<BLOCKQUOTE>
+ You can make global changes to a whole column of values using special
+ dialogues that either offer special functions (linear transformations),
+ or allow you to define an algebraic expression (in terms of the
+ existing values or a simple index counter starting at 1 for the first
+ row).
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Editing the data values column</FONT></B>
+<BLOCKQUOTE>
+ To apply a global edit to the data values column you need to select
+ the <B>Operations=&gt;Modify data column</B> item. This should
+ produce a new window.
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="461" HEIGHT="353" ALIGN="BOTTOM" BORDER="0"
- SRC="coordinatesystemplot.gif"
- ALT="1145">
+ WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
+ SRC="dataeditwindow.gif"
+ ALT="1178">
  
 </DIV>
 
 <P>
-The alternative to this method is switch 
-<B>Options=&gt;Match coordinates</B> off and transform the galaxy
-spectrum to what it would have looked like in the source standard of
-rest (<I>i.e.</I> if you had taken the measurements travelling with the
-galaxy). To do this change the <B>Standard of rest:</B> to
-<B>Source</B> but now press the <B>Convert</B> button. This
-remaps the spectral coordinates permanently. 
+In which you can see an example expression 
+<!-- MATH
+ $data*scale+zero$
+ -->
+<I>data</I>*scale+<I>zero</I>, with
+ the <I>scale</I> value set to 1.0 and the zero value to 0.0. A list of
+ preset expressions that should be generally useful is found in the
+ <B>Functions</B> menu.
 
 <P>
-Using this method you can also transform your spectrum to other
-systems and units (say frequency or energy) and rest frames (so you
-can go from topocentric to heliocentric or the kinematic or dynamic
-local standards of rest). With  <B>Options=&gt;Match coordinates</B>
-switched on you can also directly compare spectra calibrated in all
-these different systems.
+Naturally if you applied this expression then the data values would
+ stay the same. A more complex example is shown next.
 
 <P>
-When transforming to velocity (optical, radio and relativistic
-velocities are supported) a rest "frequency" is also needed. 
-Conceptually this is the value that the centre of a line with
-locally zero velocity has. The rest frequency can actually be
-specified in various units, for instance angstroms.
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
+ SRC="dataeditwindow2.gif"
+ ALT="1182">
+ 
+</DIV>
 
 <P>
-To find out more about spectral coordinate systems you'll need to
-refer to `FITS-WCS paper III Representations of spectral coordinates
-in FITS (Greisen, Valdes, Calabretta &amp; Allen)' and the Starlink AST
-library documentation (<A HREF="/star/docs/sun211.htx/sun211.html#xref_ss:specframes">SUN/211</A>).
+This presents the possibility of subtracting a single Voigt profile
+ (the top part of this is greyed out as Voigt is a built-in function
+ that cannot be represented as an algebraic expression).
+
+<P>
+If you need to use an expression of your own you might like to view
+ the full list of functions that are available in the MathMap section
+ of the <A HREF="/star/docs/sun95.htx/sun95.html#xref_ap:MathMaps">KAPPA SUN</A>. A lot of C-like
+ intrinsics are available (abs, atan/sin/cos, tan/sin/cos, log, pow
+ sqrt, <I>etc.</I>), which can operate on the data columns <I>data</I>, <I>coord</I>
+ and <I>error</I>, as well as the virtual <I>index</I> column.
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Editing the error values column</FONT></B>
+<BLOCKQUOTE>
+ Editing the error column is much like editing the data column, except
+ that you can actually create a new error column, see the
+ <B>Operations=&gt;Modify error column</B> item.
+
+<P>
+The error column can also be deleted using the
+ <B>Edit=&gt;Delete error column</B> item.
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Editing the coordinates column</FONT></B>
+<BLOCKQUOTE>
+ Globally editing the coordinates can be done using the
+ <B>Operations=&gt;Modify coordinate column</B> window.
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
+ SRC="coordeditwindow.gif"
+ ALT="1193">
+ 
+</DIV>
+
+<P>
+A simple built-in option of applying a linear transformation is
+ offered (useful for when the coordinates are in fact some index
+ related to wavelength). Under the <B>General</B> tab you can
+ use algebraic expressions like those for modifying the data columns.
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
+ SRC="coordeditwindow2.gif"
+ ALT="1197">
+ 
+</DIV>
+
+<P>
+In this case the pre-defined expression for blue-shifting a spectrum
+ in some wavelength units is shown.
+
+<P>
+<B>Note:</B> when you modify coordinates either singly or as a
+ column any coordinate system information will be lost. If you want to
+ retain this you'll either have to re-enter this information or use
+ the conversion facilities of the <B>Coordinate system
+ attributes</B> window (using this other window you can transform between
+ apparent place, Earth to Sun to Local Group <I>etc.</I> and to a source
+ rest frame that has a velocity in a given direction, so you can
+ correct for red/blue shift that way, in fact this is the recommended way).
+
+<P>
+</BLOCKQUOTE>
+
+<P>
+<B><FONT SIZE="+1">Undoing and redoing changes</FONT></B>
+<BLOCKQUOTE>
+Using the <B>Edit</B> menu in the main view/modify window you can
+undo and redo any modifications that you make to the spectrum. The
+changes are propagated immediately so you can see these effects in any
+plots of the spectrum.
+</BLOCKQUOTE>
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html197"
+<A NAME="tex2html205"
  HREF="node13.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html195"
+<A NAME="tex2html203"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html189"
+<A NAME="tex2html197"
  HREF="node11.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html198"
- HREF="node13.html">The simple binary maths window</A>
+<B> Next:</B> <A NAME="tex2html206"
+ HREF="node13.html">Spectral coordinate system attributes window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html196"
+<B>Up:</B> <A NAME="tex2html204"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html190"
- HREF="node11.html">The view and modify spectral values window</A>
+<B> Previous:</B> <A NAME="tex2html198"
+ HREF="node11.html">The animation window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

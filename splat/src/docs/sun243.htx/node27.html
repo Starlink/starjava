@@ -6,111 +6,104 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Save or Restore Plot Configurations</TITLE>
-<META NAME="description" CONTENT="Save or Restore Plot Configurations">
+<TITLE>Graphics Rendering Hints:</TITLE>
+<META NAME="description" CONTENT="Graphics Rendering Hints:">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
+<LINK REL="next" HREF="node28.html">
 <LINK REL="previous" HREF="node26.html">
-<LINK REL="up" HREF="node16.html">
+<LINK REL="up" HREF="node17.html">
 <LINK REL="next" HREF="node28.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html356"
+<A NAME="tex2html368"
  HREF="node28.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html354"
- HREF="node16.html">
+<A NAME="tex2html366"
+ HREF="node17.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html350"
+<A NAME="tex2html360"
  HREF="node26.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html357"
- HREF="node28.html">The cutter window</A>
+<B> Next:</B> <A NAME="tex2html369"
+ HREF="node28.html">Edge Drawing Properties:</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html355"
- HREF="node16.html">Plot configuration window</A>
+<B>Up:</B> <A NAME="tex2html367"
+ HREF="node17.html">Plot configuration window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html351"
- HREF="node26.html">Plot background:</A>
+<B> Previous:</B> <A NAME="tex2html361"
+ HREF="node26.html">Text Properties:</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H3><A NAME="SECTION000491100000000000000">
-Save or Restore Plot Configurations</A>
+<H3><A NAME="SECTION0004101000000000000000">
+Graphics Rendering Hints:</A>
 </H3>
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="390" HEIGHT="198" ALIGN="BOTTOM" BORDER="0"
- SRC="restorewindow.gif"
- ALT="1371">
+ WIDTH="240" HEIGHT="452" ALIGN="BOTTOM" BORDER="0"
+ SRC="configurewindowrender.gif"
+ ALT="1570">
  
 </DIV>
 
 <P>
-This additional window is activated by the <B>(Re)Store</B>
-button. It's purpose is to allow you to create a database of
-configurations that you'd like to keep (after all if you've spent some
-time configuring the look of a plot you don't want to have to type it
-all in again when someone asks you to tweak the postscript).
+This page allows you to define how carefully the graphics are drawn in the
+plot display area. By default any text is drawn using anti-aliasing, which
+makes the graphics less jagged, and spectra are drawn without
+anti-aliasing. If you'd also like the spectra to be anti-aliased tick
+<B>Everything:</B>.
 
 <P>
-The configurations are identified by two elements, a
-<B>Description</B> entered by you and the date when the
-configuration was created. To create a copy of the current configuration
-(note this doesn't include the spectra themselves) just press the
-<B>Add</B> button. This creates a new entry with the description
-<TT>New configuration</TT>. To change the description just double
-click on this text and type in your changes. Remember to press
-<TT>&lt;Return&gt;</TT> when you're done. To remove any un-needed
-configurations select their rows and press the <B>Delete</B>
-button.
+It's not possible to anti-alias the spectra and not the text (so it's
+not just a perverse choice of options). Also note that any rendering
+options are applied to any captured JPEGs produced in the plot.
 
 <P>
-To restore a configuration just select it and press the
-<B>Restore</B> button. The actual data is stored in the file:
-<TT>$HOME/.splat/PlotConfigs.xml</TT>. If things seem badly broken
-then try deleting this file.
+Finally anti-aliasing is a CPU expensive procedure so it can result in
+a significant performance degradation (so the default is switched off
+for spectra).
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html356"
+<A NAME="tex2html368"
  HREF="node28.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html354"
- HREF="node16.html">
+<A NAME="tex2html366"
+ HREF="node17.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html350"
+<A NAME="tex2html360"
  HREF="node26.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html357"
- HREF="node28.html">The cutter window</A>
+<B> Next:</B> <A NAME="tex2html369"
+ HREF="node28.html">Edge Drawing Properties:</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html355"
- HREF="node16.html">Plot configuration window</A>
+<B>Up:</B> <A NAME="tex2html367"
+ HREF="node17.html">Plot configuration window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html351"
- HREF="node26.html">Plot background:</A>
+<B> Previous:</B> <A NAME="tex2html361"
+ HREF="node26.html">Text Properties:</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

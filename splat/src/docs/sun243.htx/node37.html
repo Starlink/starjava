@@ -6,118 +6,171 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>This release, 2.0</TITLE>
-<META NAME="description" CONTENT="This release, 2.0">
+<TITLE>Supported data formats</TITLE>
+<META NAME="description" CONTENT="Supported data formats">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="previous" HREF="node36.html">
-<LINK REL="up" HREF="node36.html">
+<LINK REL="next" HREF="node38.html">
+<LINK REL="previous" HREF="node7.html">
+<LINK REL="up" HREF="sun243.html">
 <LINK REL="next" HREF="node38.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html452"
+<A NAME="tex2html463"
  HREF="node38.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html450"
- HREF="node36.html">
+<A NAME="tex2html461"
+ HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html446"
+<A NAME="tex2html455"
  HREF="node36.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html453"
- HREF="node38.html">About this document ...</A>
+<B> Next:</B> <A NAME="tex2html464"
+ HREF="node38.html">Command-line control and tools</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html451"
- HREF="node36.html">Changes</A>
+<B>Up:</B> <A NAME="tex2html462"
+ HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html447"
- HREF="node36.html">Changes</A>
+<B> Previous:</B> <A NAME="tex2html456"
+ HREF="node36.html">Filter spectrum window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00081000000000000000">
-This release, 2.0</A>
-</H2>
-In this release <I>SPLAT</I> has become part of the Starlink Java
-Collection and is now released under the GPL. 
+<H1><A NAME="SECTION00050000000000000000"></A><A NAME="xref_data_formats"></A>
+<BR>
+Supported data formats
+</H1>
 
 <P>
-The most significant changes are:
-
-<UL><LI>The addition of facilities for viewing the spectral data
-     directly (<I>i.e.</I> in a table, rather than a plot), coupled with
-     the ability to edit the values (individually or globally
-     using algebraic expressions). Multi-level undo and redo
-     are also provided.
-
-<LI>The addition of standard line identifier catalogues for the
-     optical, IR and submillimetre wavebands. It is also possible to
-     import external catalogues using a standard text format.
+<I>SPLAT</I> can read and write spectra stored in a wide variety of formats, either
+stored as 1D spectra or as columns in tables. 1D spectral formats supported
+are Starlink NDF &amp; NDX, FITS and simple TEXT files. Table formats supported
+are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
+formats currently have the best coordinate system support, so are recommended
+when a choice can be made.
 
 <P>
-
-<LI>The addition of full support for spectral coordinate systems. 
-     Spectra can now have systems that define the coordinate type
-     (wavelength, frequency, energy and velocity), along with the
-     units (which include, from much larger flexible set, angstroms,
-     milli/nano/micro metres, Joules, ergs, electron volts,
-     mega/kilo/giga hertz, metres/kilometres per second...) and the 
-     two systems of rest frame <I>i.e.</I> where the observations where
-     made and of what). This information can be used to align spectra
-     and line identifications automatically and perform operations
-     like change of rest frame (say from topocentric to heliocentric,
-     or centre of the galaxy or to the source itself) or change of units.
+Normally <I>SPLAT</I> differentiates these types using a preset list of file
+extensions, for instance NDFs can only be stored in container files that have
+the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
+<TT>.fits</TT> or <TT>.fit</TT> and TEXT files <TT>.txt</TT> or <TT>.lis</TT>
+and NDX format spectra, when stored on disk, will have extension
+<TT>.xml</TT>. However, you can choose a specific format when opening a file
+using the <B>File=&gt;Open</B> dialogue, so you can ask that a TEXT file
+is opened as a table, this allows you to select the columns.
 
 <P>
+Line identifier catalogues are a special case and currently have a single one
+format - TEXT based in files with extension <TT>.ids</TT>.
 
-<LI>The addition of various smoothing filters, average, median, Gauss,
-     Lorentz, Voigt and simple wavelet denoising.
+<P>
+1D spectra stored in TEXT files must have the format of one, two or three
+columns of data, separated by whitespace (that is spaces or tabs). Any
+comments in the file must be indicated by a hash sign, blank lines are also
+allowed. The three columns should have the following values:
+<BLOCKQUOTE>
+<PRE>
+  [wavelength] count [error-in-count]
+</PRE>
+</BLOCKQUOTE>
+The wavelength and error columns being optional (if you don't have a
+wavelength column a simple row index is used, note also you cannot have errors
+without wavelengths) . If you choose to open a TEXT file as a table you can
+select which columns should be used for these values, and the following rules
+apply:
+
+<UL><LI>Each table row is represented by a single text line
+
+<LI>Anything after a `#' character on a line is ignored (except for optional
+      heading line)
+
+<LI>Blank lines are ignored
+
+<LI>Within a line, fields are separated by one or more whitespace characters
+      (space or tab)
+
+<LI>A field is either a sequence of non-whitespace characters or a sequence
+      of characters between two matching quote characters (single (') or double (")
+      quotes) - spaces are therefore allowed in quoted fields.
+
+<LI>In a quoted field any character preceded by a backslash is interpreted
+      literally, so it is possible to insert quotes into a quoted string
+
+<LI>An empty string (two adjacent quotes) represents a null element
+
+<LI>All lines must contain exactly the same number of fields
+
+<LI>An optional heading line may be included: if the last comment line (line
+      starting with a `#' before the first data line) contains the same number of
+      fields as the columns in the table, these fields are interpreted as the
+      headings (names) of the columns
 
 </UL>
 
 <P>
-Other changes include the ability to delete as well as extract parts
-of spectra, to specify the types of spectra when the file extension is
-not one of the standard types and to drag-and-drop spectra from the
-global to plots.
+The format of line identification catalogues is like that of simple TEXT
+spectral files, except the second column contains a string that identifies the
+line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H alpha</TT>). It is also
+possible to define the system of the coordinate values in a header section,
+see the <I>SPLAT</I> built-in catalogues for examples of this.
+
+<P>
+NDFs stored within container files can be accessed, but only by entering the
+full HDS path on the command-line or in the <B>File=&gt;Open</B> dialogue.
+FITS extensions may also be open in this fashion (by appending the extension
+number in square brackets).
+
+<P>
+An alternative to specifying the component information is to use the component
+browser window <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="browse.gif"
+ ALT="2270">, to see the contents of FITS and NDF files and
+choose the component to display directly.
+
+<P>
+Internally all these formats are stored as double precision
+coordinates and data values. <I>SPLAT</I> only requires that
+<I>coordinates increase or decrease monotonically</I> 
+when performing any analyses.
 
 <P>
 <BR> <HR>
-<A NAME="tex2html452"
+<A NAME="tex2html463"
  HREF="node38.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html450"
- HREF="node36.html">
+<A NAME="tex2html461"
+ HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html446"
+<A NAME="tex2html455"
  HREF="node36.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html453"
- HREF="node38.html">About this document ...</A>
+<B> Next:</B> <A NAME="tex2html464"
+ HREF="node38.html">Command-line control and tools</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html451"
- HREF="node36.html">Changes</A>
+<B>Up:</B> <A NAME="tex2html462"
+ HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html447"
- HREF="node36.html">Changes</A>
+<B> Previous:</B> <A NAME="tex2html456"
+ HREF="node36.html">Filter spectrum window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>
