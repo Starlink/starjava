@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     14-FEB-2001 (Peter W. Draper):
  *       Original version.
+ *     21-JAN-2004 (Peter W. Draper):
+ *       Refactored to offer general, non-AST storage.
  */
 package uk.ac.starlink.ast.gui;
 
@@ -33,25 +35,26 @@ import org.w3c.dom.Element;
 import uk.ac.starlink.ast.gui.images.ImageHolder;
 
 /**
- * Controller for saving, restoring and deleting plot configuration
- * data stored in XML files. The configurations are stored in a
- * permanent file (PlotConfigs.xml) which has each configuration
+ * A top-level window that offers controls for saving, restoring and
+ * deleting configuration data stored in XML files. The configurations
+ * are stored in a permanent file which has each configuration
  * characterised by a description (created by the user) and a date
  * that the configuration was created (or maybe last updated).
  * <p>
- * An instance of this class should be associated with a
- * PlotConfigurator object that acts as a view for the restored
+ * An instance of this class should be associated with a 
+ * {@link Configurator} implementation that acts as a view for the restored
  * configuration and a model for the current configuration. The actual
  * interaction with the XML store is performed by a ConfigurationStore
- * object.
+ * object. 
  *
  * @author Peter W. Draper
  * @version $Id$
  *
- * @see PlotConfiguration
- * @see PlotConfigurator
+ * @see ConfigurationStore
+ * @see Configurator
  */
-public class StoreConfigurator extends JFrame
+public class StoreConfigurator 
+    extends JFrame
 {
     /**
      * Content pane of frame.
@@ -74,9 +77,10 @@ public class StoreConfigurator extends JFrame
     protected JTable statusTable = new JTable();
 
     /**
-     * Visible configuration object. Mediates to the actual stores.
+     * The Configurator object, this understands the configuration
+     * data and how to encode and decode it from XML.
      */
-    protected PlotConfigurator config = null;
+    protected Configurator config = null;
 
     /**
      * Object that mediates to the actual store.
@@ -92,7 +96,7 @@ public class StoreConfigurator extends JFrame
     /**
      * Create an instance.
      */
-    public StoreConfigurator( PlotConfigurator config )
+    public StoreConfigurator( Configurator config )
     {
         this.config = config;
         contentPane = (JPanel) getContentPane();
@@ -126,6 +130,14 @@ public class StoreConfigurator extends JFrame
         addButton.setToolTipText
             ( "Add the current configuration as a new entry" );
 
+        ImageIcon updateImage = new ImageIcon(
+            ImageHolder.class.getResource( "update.gif" ) );
+        UpdateAction updateAction = new UpdateAction( "Update", updateImage );
+        JButton updateButton = new JButton( updateAction );
+        actionBar.add( Box.createGlue() );
+        actionBar.add( updateButton );
+        updateButton.setToolTipText( "Update the selected configuration" );
+
         ImageIcon restoreImage = new ImageIcon(
             ImageHolder.class.getResource( "accept.gif" ) );
         RestoreAction restoreAction = new RestoreAction( "Restore",
@@ -134,7 +146,7 @@ public class StoreConfigurator extends JFrame
         actionBar.add( Box.createGlue() );
         actionBar.add( restoreButton );
         restoreButton.setToolTipText
-            ( "Restore the selected configuration to the plot" );
+            ( "Restore the selected configuration" );
 
         ImageIcon deleteImage = new ImageIcon(
             ImageHolder.class.getResource( "delete.gif" ) );
@@ -164,7 +176,7 @@ public class StoreConfigurator extends JFrame
      */
     protected void initFrame()
     {
-        setTitle( "Save or restore plot configurations" );
+        setTitle( "Save or restore configurations" );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         addWindowListener( new WindowAdapter() {
                 public void windowClosing( WindowEvent evt ) {
@@ -219,11 +231,23 @@ public class StoreConfigurator extends JFrame
      */
     public void storeCurrentConfiguration()
     {
-        Element newRoot = 
-            store.newState( config.getConfiguration().getTagName(),
-                            "New configuration" );
-        config.getConfiguration().encode( newRoot );
+        Element newRoot = store.newState( config.getTagName(), 
+                                          "New configuration" );
+        config.saveState( newRoot );
         store.stateCompleted( newRoot );
+    }
+
+    /**
+     * Update the current configuration.
+     */
+    public void updateCurrentConfiguration()
+    {
+        int[] rows = statusTable.getSelectedRows();
+        if ( rows.length > 0 ) {
+            Element newRoot = store.reGetState( rows[0] );
+            config.saveState( newRoot );
+            store.setDateStamp( rows[0] );
+        }
     }
 
     /**
@@ -248,7 +272,7 @@ public class StoreConfigurator extends JFrame
         int selected = statusTable.getSelectedRow();
         if ( selected >= 0 ) {
             Element state = store.getState( selected );
-            config.getConfiguration().decode( state );
+            config.restoreState( state );
         }
         else {
             JOptionPane.showMessageDialog
@@ -272,6 +296,19 @@ public class StoreConfigurator extends JFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             storeCurrentConfiguration();
+        }
+    }
+
+    /**
+     * Inner class defining action to update a configuration entry.
+     */
+    protected class UpdateAction extends AbstractAction
+    {
+        public UpdateAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            updateCurrentConfiguration();
         }
     }
 
