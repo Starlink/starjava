@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
@@ -35,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -49,6 +51,7 @@ import ptolemy.plot.PlotBox;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
@@ -74,10 +77,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private JFileChooser printSaver;
     private PlotState lastState;
     private PlotBox lastPlot;
-    private BitSet plottedRows = new BitSet();
-    private PlotBox plot;
+    private BitSet plottedRows;
+    private ScatterPlotter activePlotter;
     private boolean showGrid = true;
     private String markStyle = "dots";
+    private Action fromvisibleAct;
 
     private static final double MILLISECONDS_PER_YEAR 
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -236,27 +240,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
 
-  //  The plot is not currently live - this would require a listener
-  //  on the startable itself.  It may not really be desirable.
-  //  Could want a replot button though.
-  //
-  //    /* Arrange for changes in relevant parts of the table data itself 
-  //     * to cause a replot (this liveness of the plot should perhaps
-  //     * be optional for performance reasons and just so that you know
-  //     * where you are? */
-  //    stmodel.addTableModelListener( new TableModelListener() {
-  //        public void tableChanged( TableModelEvent evt ) {
-  //            int icol = evt.getColumn();
-  //            if ( evt.getFirstRow() == TableModelEvent.HEADER_ROW ||
-  //                 icol == TableModelEvent.ALL_COLUMNS ||
-  //                 icol == lastState.xCol.index ||
-  //                 icol == lastState.yCol.index ) {
-  //                lastState = null;
-  //                actionPerformed( null );
-  //            }
-  //        }
-  //    } );
-      
         /* Construct a panel which will hold the plot itself. */
         plotPanel = new JPanel( new BorderLayout() );
 
@@ -334,9 +317,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.add( subMenu );
-        subsetMenu.add( new BasicAction( "New subset from visible",
-                                         "Define a new row subset containing " +
-                                         "only currently plotted points" ) {
+        fromvisibleAct = new BasicAction( "New subset from visible",
+                                          "Define a new row subset containing "
+                                        + "only currently plotted points" ) {
             public void actionPerformed( ActionEvent evt ) {
                 String name = TableViewer.enquireSubsetName( PlotWindow.this );
                 if ( name != null ) {
@@ -345,7 +328,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                     subSelModel.addSelectionInterval( inew, inew );
                 }
             }
-        } );
+        };
+        subsetMenu.add( fromvisibleAct );
         getJMenuBar().add( subsetMenu );
 
         /* Do the plotting. */
@@ -357,24 +341,26 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
-     * Returns a plot component based on a given plotting state.
-     *
-     * @param  state  the PlotState determining plot characteristics
-     * @return  a PlotBox component representing the plot
+     * Constructs, installs and fills a plot component based on a given
+     * plotting state.
      */
-    private PlotBox makePlot( PlotState state ) {
+    private void makePlot( PlotState state, double[] xrange, double[] yrange ) {
+
+        /* If there is already a plotter doing plotting, stop it. */
+        if ( activePlotter != null ) {
+            activePlotter.interrupt();
+        }
+
+        /* Interrogate the plot state. */
         int xcol = state.xCol.index;
         int ycol = state.yCol.index;
         ColumnInfo xColumn = state.xCol.info;
         ColumnInfo yColumn = state.yCol.info;
-        RowSubset[] rsets = new RowSubset[ subsets.size() ];
+        RowSubset[] rsets = state.subsetMask;
         int nrsets = rsets.length;
-        List useList = state.subsets;
-        for ( int i = 0; i < nrsets; i++ ) {
-            RowSubset rset = (RowSubset) subsets.getElementAt( i );
-            rsets[ i ] = useList.contains( rset ) ? rset : null;
-        }
-        boolean[] inclusions = new boolean[ nrsets ];
+        boolean autoSize = xrange == null || yrange == null;
+
+        /* Configure the plot. */
         PlotBox plotbox;
         if ( state.type.equals( "Scatter" ) ) {
             Plot plot = new Plot();
@@ -389,45 +375,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             setMarkStyle( plot, markStyle );
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
-            long nrow = dataModel.getRowCount();
-            long ngood = 0;
-            long nerror = 0;
-            plottedRows.clear();
-            for ( long lrow = 0; lrow < nrow; lrow++ ) {
-                boolean any = false;
-                for ( int i = 0; i < nrsets; i++ ) {
-                    RowSubset rset = rsets[ i ];
-                    boolean in = ( rset != null ) && rset.isIncluded( lrow );
-                    inclusions[ i ] = in;
-                    any = any || in;
-                }
-                if ( any ) {
-                    try {
-                        Object xval = dataModel.getCell( lrow, xcol );
-                        Object yval = dataModel.getCell( lrow, ycol );
-                        double x = doubleValue( xval );
-                        double y = doubleValue( yval );
-                        if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
-                            if ( state.xLog && x <= 0.0 ||
-                                 state.yLog && y <= 0.0 ) {
-                                // can't take log of negative value
-                            }
-                            else {
-                                for ( int i = nrsets - 1; i >= 0; i-- ) {
-                                    if ( inclusions[ i ] ) {
-                                        plot.addPoint( setFor( i ), x, y,
-                                                       state.plotline );
-                                    }
-                                }
-                            }
-                            ngood++;
-                            plottedRows.set( (int) lrow );
-                        }
-                    }
-                    catch ( IOException e ) {
-                        nerror++;
-                    }
-                }
+            if ( ! autoSize ) {
+                plot.setXRange( xrange[ 0 ], xrange[ 1 ] );
+                plot.setYRange( yrange[ 0 ], yrange[ 1 ] );
             }
         }
         else {
@@ -453,8 +403,22 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         plotbox.setXLabel( xLabel );
         plotbox.setYLabel( yLabel );
 
-        /* Return. */
-        return plotbox;
+        /* Replace any old plot by the new one. */
+        plotPanel.removeAll();
+        plotPanel.add( plotbox, BorderLayout.CENTER );
+        plotPanel.revalidate();
+        lastPlot = plotbox;
+        lastState = state;
+
+        /* Initiate plotting of the points. */
+        if ( state.type.equals( "Scatter" ) ) {
+            activePlotter = new ScatterPlotter( state, (Plot) plotbox, 
+                                                autoSize );
+        }
+        else {
+            throw new AssertionError();
+        }
+        activePlotter.start();
     }
 
     /**
@@ -474,6 +438,21 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
+     * Records the bitset which contains the set of points plotted on 
+     * the currently visible plotting surface.
+     *
+     * @param  prows  a BitSet representing all rows in any of the 
+     *         currently selected row subsets.  This should include only
+     *         those which have actually appeared on the plotting surface,
+     *         though not necesarily in its visible bounds.
+     *         May be null.
+     */
+    public void setPlottedRows( BitSet prows ) {
+        plottedRows = prows;
+        fromvisibleAct.setEnabled( plottedRows != null );
+    }
+
+    /**
      * Returns a BitSet which corresponds to those rows which have are
      * currently visible; that is they were plotted and they fall within
      * the bounds of the curretly visible PlotBox.
@@ -481,11 +460,19 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * @return  a vector of flags representing visible rows
      */
     private BitSet calcVisibleRows() {
+
+        /* The list of plotted rows shouldn't be null, but it might just
+         * be if the timing is unlucky - return an empty list. */
+        if ( plottedRows == null ) {
+            return new BitSet();
+        }
+
+        /* Otherwise work out the proper answer. */
         int xcol = lastState.xCol.index;
         int ycol = lastState.yCol.index;
         int nrow = (int) dataModel.getRowCount();
-        double[] xr = plot.getXRange();
-        double[] yr = plot.getYRange();
+        double[] xr = lastPlot.getXRange();
+        double[] yr = lastPlot.getYRange();
         double x0 = xr[ 0 ];
         double y0 = yr[ 0 ];
         double x1 = xr[ 1 ];
@@ -545,28 +532,20 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         PlotState state = getPlotState();
         if ( ! state.equals( lastState ) || evt == FORCE_REPLOT ) {
 
-            /* Construct a new Plot object for the requested PlotState. */
-            plot = makePlot( state );
-
             /* Configure the visible range of the plot.  If the axes are the
              * same as for the last plot, we will retain the last plot's range;
              * otherwise, fit to include all the data points. */
+            double[] xrange;
+            double[] yrange;
             if ( state.sameAxes( lastState ) ) {
-                double[] xr = lastPlot.getXRange();
-                double[] yr = lastPlot.getYRange();
-                plot.setXRange( xr[ 0 ], xr[ 1 ] );
-                plot.setYRange( yr[ 0 ], yr[ 1 ] );
+                xrange = lastPlot.getXRange();
+                yrange = lastPlot.getYRange();
             }
             else {
-                plot.fillPlot();
+                xrange = null;
+                yrange = null;
             }
-
-            /* Replace the old plot by the new one. */
-            plotPanel.removeAll();
-            plotPanel.add( plot, BorderLayout.CENTER );
-            plotPanel.revalidate();
-            lastPlot = plot;
-            lastState = state;
+            makePlot( state, xrange, yrange );
         }
     }
 
@@ -676,6 +655,152 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         return printSaver;
     }
 
+    /**
+     * Extends the dispose method to interrupt any pending calculations.
+     */
+    public void dispose() {
+        super.dispose();
+        if ( activePlotter != null ) {
+            activePlotter.interrupt();
+            activePlotter = null;
+        }
+    }
+
+    /**
+     * This class does the work of turning points in the table data model
+     * into points in a scatter graph.  The table reading and point posting
+     * is done in a separate thread.
+     */
+    private class ScatterPlotter extends Thread {
+
+        PlotState state;
+        Plot plot;
+        boolean autoSize;
+        BitSet plottedRows = new BitSet();
+
+        /**
+         * Construct a new plotter object.
+         *
+         * @param  state  the state which controls how the plot is to be done
+         * @param  plot  the Plot object into which the points must be put
+         * @param  autoSize  true iff the plot should be resized to fit the
+         *         plotted points
+         */
+        public ScatterPlotter( PlotState state, Plot plot, boolean autoSize ) {
+            this.state = state;
+            this.plot = plot;
+            this.autoSize = autoSize;
+        }
+
+        /**
+         * Invokes the plotting routine.  Also sets the busy cursor as
+         * appropriate at the start/end of the calculation, as long as
+         * this plotter has not been superceded as the active plotter
+         * of the window.
+         */
+        public void run() {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( ScatterPlotter.this == activePlotter ) {
+                        setBusy( true );
+                    }
+                }
+            } );
+            try {
+                setPlottedRows( null );
+                doPlotting();
+                if ( autoSize ) {
+                    plot.fillPlot();
+                }
+                setPlottedRows( ScatterPlotter.this.plottedRows );
+            }
+            catch ( IOException e ) {
+                // no action
+            }
+            finally {
+                plot.repaint();
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        if ( ScatterPlotter.this == activePlotter ) {
+                            activePlotter = null;
+                            setBusy( false );
+                        }
+                    }
+                } );
+            }
+        }
+
+        /**
+         * Actually does the adding of points to the plot.
+         */
+        private void doPlotting() throws IOException {
+
+            /* Obtain the things we need to know from the plot state. */
+            int xcol = state.xCol.index;
+            int ycol = state.yCol.index;
+            boolean xLog = state.xLog;
+            boolean yLog = state.yLog;
+            boolean plotline = state.plotline;
+            RowSubset[] rsets = state.subsetMask;
+            int nrsets = rsets.length;
+            boolean[] inclusions = new boolean[ nrsets ];
+
+            /* Iterate over the rows in the table. */
+            long ngood = 0;
+            long nerror = 0;
+            RowSequence rseq = new ProgressBarStarTable( dataModel, progBar )
+                              .getRowSequence();
+            long sincePaint = new Date().getTime();
+            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
+
+                /* Move to the next row.  Note this may throw an IOException
+                 * due to thread interruption (see ProgressBarStarTable). */
+                rseq.next();
+
+                /* See which subsets need to be plotted for this row. */
+                boolean any = false;
+                for ( int i = 0; i < nrsets; i++ ) {
+                    RowSubset rset = rsets[ i ];
+                    boolean in = ( rset != null ) && rset.isIncluded( lrow );
+                    inclusions[ i ] = in;
+                    any = any || in;
+                }
+                if ( any ) {
+                    Object xval = rseq.getCell( xcol );
+                    Object yval = rseq.getCell( ycol );
+                    double x = doubleValue( xval );
+                    double y = doubleValue( yval );
+                    if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
+                        if ( xLog && x < 0.0 || yLog && y < 0.0 ) {
+                            // can't take log of negative value
+                        }
+                        else {
+                            for ( int i = nrsets - 1; i >= 0; i-- ) {
+                                if ( inclusions[ i ] ) {
+                                    plot.addPoint( setFor( i ), x, y,
+                                                   plotline );
+                                }
+                            }
+                            ngood++;
+                            plottedRows.set( (int) lrow );
+                        }
+                    }
+                }
+
+                /* If we are autosizing this plot, make sure that we 
+                 * haven't gone too long without a repaint, since this
+                 * ensures that the visible region contains all the points. */
+                if ( autoSize ) {
+                    long now = new Date().getTime();
+                    if ( now - sincePaint > 1000L ) {
+                        plot.fillPlot();
+                        sincePaint = now;
+                    }
+                }
+            }
+        }
+    }
+
 
     /**
      * Returns the current PlotState of this window.
@@ -688,9 +813,18 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         state.yCol = (ColumnEntry) yColBox.getSelectedItem();
         state.xLog = xLogBox.isSelected();
         state.yLog = yLogBox.isSelected();
-        state.subsets = getSelectedSubsets();
         state.plotline = false;
         state.type = "Scatter";
+
+        /* Construct an array of the subsets that are used. */
+        int nrsets = subsets.size();
+        RowSubset[] subsetMask = new RowSubset[ nrsets ];
+        List useList = getSelectedSubsets();
+        for ( int i = 0; i < nrsets; i++ ) {
+            RowSubset rset = (RowSubset) subsets.getElementAt( i );
+            subsetMask[ i ] = useList.contains( rset ) ? rset : null;
+        }
+        state.subsetMask = subsetMask;
         return state;
     }
 
@@ -709,7 +843,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         ColumnEntry yCol;
         boolean xLog;
         boolean yLog;
-        List subsets;
+        RowSubset[] subsetMask;
         boolean plotline;
         String type;
 
@@ -721,7 +855,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                     && yCol.equals( other.yCol )
                     && xLog == other.xLog
                     && yLog == other.yLog
-                    && subsets.equals( other.subsets )
+                    && Arrays.equals( subsetMask, other.subsetMask )
                     && plotline == other.plotline
                     && type.equals( other.type );
             }
@@ -751,9 +885,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 .append( "," )
                 .append( "yLog=" )
                 .append( yLog )
-                .append( "," )
-                .append( "subsets=" )
-                .append( subsets )
                 .append( "," )
                 .append( "plotline=" )
                 .append( plotline )
