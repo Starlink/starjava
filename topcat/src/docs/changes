@@ -45,4 +45,6 @@ V1.3.
  - Changed the names of the properties used by JELUtils.
  - More improvements to pair matching efficiency.
  - Activation string serialized to output table (VOTable PARAM).
- - VOTable processing improvements (full VOTable 1.1 compatibility, J2SE1.5)
+ - VOTable processing improvements (full VOTable 1.1 compatibility, J2SE1.5).
+ - Added comma-separated value input and output handlers.
+ - Can now optionally specify input format (command line or load window).
