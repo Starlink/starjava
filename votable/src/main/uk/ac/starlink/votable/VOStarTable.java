@@ -254,7 +254,7 @@ public class VOStarTable extends AbstractStarTable {
      *          constructed
      * @return  a ValueInfo suitable for <tt>field</tt>
      */
-    private static ValueInfo getValueInfo( FieldElement field ) {
+    public static ValueInfo getValueInfo( FieldElement field ) {
         Decoder decoder = field.getDecoder();
         Class clazz = decoder.getContentClass();
         String name = field.getHandle();
