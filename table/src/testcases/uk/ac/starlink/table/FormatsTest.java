@@ -112,7 +112,6 @@ public class FormatsTest extends TestCase {
         int i = 0;
         StarTableFactory sfact = new StarTableFactory();
         List handlers = new StarTableOutput().getHandlers();
-        handlers.add( new uk.ac.starlink.fits.FitsTableWriter2() );
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             StarTableWriter handler = (StarTableWriter) it.next();
             String fmt = handler.getFormatName().toLowerCase();
@@ -358,7 +357,10 @@ public class FormatsTest extends TestCase {
         }
     }
 
-    File getTempFile( String suffix ) {
-        return new File( "/mbt/scratch/table", suffix );
+    File getTempFile( String suffix ) throws IOException {
+        File f = File.createTempFile( "table", suffix );
+        f.deleteOnExit();
+        return f;
+        // return new File( "/mbt/scratch/table", suffix );
     }
 }
