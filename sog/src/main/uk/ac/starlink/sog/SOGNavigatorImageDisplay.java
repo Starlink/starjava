@@ -24,6 +24,8 @@ import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.JDesktopPane;
+import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
@@ -101,6 +103,39 @@ public class SOGNavigatorImageDisplay
         //  Add our CanvasDraw.
         sogCanvasDraw = new SOGCanvasDraw( this );
         setCanvasDraw( sogCanvasDraw );
+
+        // The window will accept drop events to display a new image.
+        setTransferHandler( new SOGTransferHandler( this ) );
+    }
+
+    /**
+     * Open up another window like this one and return a reference to it.
+     * <p>
+     * Note: derived classes should redefine this to return an instance of the
+     * correct class, which should be derived JFrame or JInternalFrame.
+     */
+    public Component newWindow()
+    {
+        JDesktopPane desktop = getDesktop();
+        if ( desktop != null ) {
+
+            SOGNavigatorImageDisplayInternalFrame f = 
+                new SOGNavigatorImageDisplayInternalFrame( desktop );
+            f.getImageDisplayControl().getImageDisplay().setTitle(getTitle());
+            f.setVisible( true );
+            desktop.add( f, JLayeredPane.DEFAULT_LAYER );
+            desktop.moveToFront( f );
+            f.setVisible(true);
+            return f;
+        }
+        else {
+
+            SOGNavigatorImageDisplayFrame f = 
+                new SOGNavigatorImageDisplayFrame();
+            f.getImageDisplayControl().getImageDisplay().setTitle(getTitle());
+            f.setVisible( true );
+            return f;
+        }
     }
 
     /**

@@ -81,7 +81,7 @@ public class SOG
     // PWD: Add the Codec for reading HDX files (note this method
     // doesn't support having an XPath part).
     static {
-        System.out.println( "Registered HDXCodec" );
+        //System.out.println( "Registered HDXCodec" );
         ImageCodec.registerCodec( new HDXCodec() );
     }
 
@@ -145,9 +145,6 @@ public class SOG
                System.err.println( e.getMessage() );
             }
         }
-
-        // The main window will accept drop events.
-        getImageDisplay().getCanvas().setTransferHandler(new SOGTransferHandler());
     }
 
     /**

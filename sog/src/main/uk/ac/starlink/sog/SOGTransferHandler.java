@@ -39,6 +39,7 @@ public class SOGTransferHandler
     extends TransferHandler
 {
     /**
+     * The flavors of objects that can be dropped.
      */
     public static final DataFlavor flavors[] = {
 
@@ -50,6 +51,19 @@ public class SOGTransferHandler
         /*NOT YET new DataFlavor( "application/fits;class=java.io.InputStream",
                                   "FITS stream" ),*/
     };
+
+    /**
+     * The component to display into.
+     */
+    protected SOGNavigatorImageDisplay imageDisplay = null;
+
+    /**
+     * Create an instance, remembering the component we're targetting.
+     */
+    public SOGTransferHandler( SOGNavigatorImageDisplay imageDisplay )
+    {
+        this.imageDisplay = imageDisplay;
+    }
 
     public boolean canImport( JComponent comp, DataFlavor flavor[] )
     {
@@ -68,7 +82,7 @@ public class SOGTransferHandler
         return TransferHandler.COPY;
     }
 
-    //  Drop event.
+    //  Drop event, extract the image from the Transferable, if we can.
     public boolean importData( JComponent comp, Transferable t )
     {
         DataFlavor[] importFlavors = t.getTransferDataFlavors();
@@ -94,8 +108,6 @@ public class SOGTransferHandler
             inputStream = (InputStream) t.getTransferData( flavors[0] );
             StreamSource streamSource = new StreamSource( inputStream );
             HDXImage hdxImage = new HDXImage( streamSource );
-            SOGNavigatorImageDisplay imageDisplay = 
-                (SOGNavigatorImageDisplay) SOG.getInstance().getImageDisplay();
             imageDisplay.setHDXImage( hdxImage );
             added = true;
         }
@@ -123,8 +135,6 @@ public class SOGTransferHandler
         boolean added = false;
         try {
             URL url = (URL) t.getTransferData( flavors[1] );
-            SOGNavigatorImageDisplay imageDisplay = 
-                (SOGNavigatorImageDisplay) SOG.getInstance().getImageDisplay();
             imageDisplay.setFilename( url.toString() );
             added = true;
         }
