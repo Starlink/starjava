@@ -132,6 +132,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
@@ -863,10 +864,20 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
    !   Creates the API documentation java sources
    !   ==========================================
    !
-   !  Does nothing.
+   !  Just copies the sources into the correct place.
    !-->
   <target name="javadoc-sources"
-          description="-> does nothing">
+          description="-> make source files for release API documentation">
+     <mkdir dir="${build.java}"/>
+
+    <!-- Copy and/or generate the source to be included when creating
+     !   the full Starlink API javadocs-->
+
+    <copy todir="${build.java}">
+      <fileset dir="${java.dir}" defaultexcludes="yes">
+      </fileset>
+    </copy>
+
   </target>
 
   <!--
