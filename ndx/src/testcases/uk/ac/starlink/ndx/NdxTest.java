@@ -2,7 +2,11 @@ package uk.ac.starlink.ndx;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.net.URL;
+import java.net.MalformedURLException;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.BadHandler;
@@ -23,16 +27,23 @@ public class NdxTest extends TestCase {
     private boolean hdsPresent = false;
     private boolean fitsPresent = false;
     private String ndxname;
+    private URL remoteNDX;
+    private String rname;
 
     public NdxTest( String name ) {
         super( name );
     }
 
-    public void setUp() {
+    public void setUp() throws MalformedURLException {
         factory = new NdxFactory();
         ndxname = System.getProperty( "java.io.tmpdir" )
                 + File.separatorChar
                 + "vndx";
+        remoteNDX = 
+            new URL( "http://andromeda.star.bris.ac.uk/~mbt/data/m31.sdf" );
+        rname = System.getProperty( "java.io.tmpdir" )
+              + File.separatorChar
+              + "m31-from-network";
         try {
             Class.forName( "uk.ac.starlink.hds.NDFNdxBuilder" );
             hdsPresent = true;
@@ -66,29 +77,36 @@ public class NdxTest extends TestCase {
             new BridgeNDArray( new ConvertArrayImpl( vimage, sconv ) );
         final NDArray vquality = null;
 
-        final NdxImpl vimpl = new NdxImpl() {
+        final String etcText = 
+              "<etc>"
+            + "<favouriteFood>Fish cakes</favouriteFood>"
+            + "<pets>"
+            + "<hedgehog/>"
+            + "<herd>"
+            + "<cow name='daisy'/>"
+            + "<cow name='dobbin' colour='brown'/>"
+            + "</herd>"
+            + "</pets>"
+            + "</etc>";
+
+        NdxImpl vimpl = new NdxImpl() {
             public BulkDataImpl getBulkData() {
                 return new ArraysBulkDataImpl( vimage, vvariance, vquality );
             }
             public byte getBadBits() { return (byte) 0; }
             public boolean hasTitle() { return true; }
-            public String getTitle() { return "Mark's test NDX"; }
+            public String getTitle() { return "Mark's first test NDX"; }
             public boolean hasWCS() { return false; }
             public Object getWCS() { return null; }
-            public boolean hasEtc() { return false; }
-            public Source getEtc() { return null; }
+            public boolean hasEtc() { return true; }
+            public Source getEtc() { 
+                return new StreamSource( new StringReader( etcText ) ); }
         };
         Ndx vndx = new BridgeNdx( vimpl );
 
         /* Write it to various output types. */
         factory.createNewNdx( ndxname + ".xml", vndx );
 
-        if ( hdsPresent ) {
-            String hname = ndxname + ".sdf";
-            factory.createNewNdx( hname, vndx );
-            Ndx hndx = factory.makeNdx( hname, AccessMode.READ );
-            factory.createNewNdx( ndxname + "-hds.xml", hndx );
-        }
         if ( fitsPresent ) {
             String fname = ndxname + ".fits";
             factory.createNewNdx( fname, vndx );
@@ -96,5 +114,16 @@ public class NdxTest extends TestCase {
             factory.createNewNdx( ndxname + "-fits.xml", fndx );
         }
 
+        if ( hdsPresent ) {
+            String hname = ndxname + ".sdf";
+            factory.createNewNdx( hname, vndx );
+            Ndx hndx = factory.makeNdx( hname, AccessMode.READ );
+            factory.createNewNdx( ndxname + "-hds.xml", hndx );
+        }
+
+        /* Have a go at data across the network. */
+        Ndx rndx = factory.makeNdx( remoteNDX, AccessMode.UPDATE );
+        factory.createNewNdx( rname + ".sdf", rndx );
+ 
     }
 }

@@ -70,7 +70,7 @@ public interface NdxImpl {
     /**
      * Indicates whether an extensions DOM is available.
      *
-     * @return  true if and only if getEtc will return a DOM giving 
+     * @return  true if and only if getEtc will return an XML Source giving 
      *          extension information for this Ndx
      */
     boolean hasEtc();
@@ -78,10 +78,11 @@ public interface NdxImpl {
     /**
      * Gets an XML Source holding the extension information.
      * This method will only be called if {@link #hasEtc} returns true.
-     * The result should not in general be enclosed in an all-purpose
-     * container element; if multiple top-level elements are contained
-     * in the extension information, DOM users can use the 
-     * {@link org.w3c.dom.DocumentFragment} interface.
+     * The result must represent an element, or a document with a root 
+     * element, whose tagname is "etc".  This method may be called more
+     * than once by <tt>BridgeNdx</tt>, so it must not return a source
+     * which may have been exhausted by a previous call (for instance
+     * an old <tt>StreamSource</tt>).
      *
      * @return  the extension information in XML form
      */

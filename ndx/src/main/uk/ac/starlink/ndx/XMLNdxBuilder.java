@@ -116,7 +116,7 @@ public class XMLNdxBuilder implements NdxBuilder {
                     badbits = Byte.parseByte( getTextContent( cel ) );
                 }
                 else if ( tagname.equals( "etc" ) ) {
-                    etc = doc.createDocumentFragment();
+                    etc = doc.createElement( "etc" );
                     for ( Node ext = cel.getFirstChild(); ext != null;
                           ext = ext.getNextSibling() ) {
                         etc.appendChild( doc.importNode( ext, true ) );
@@ -219,11 +219,10 @@ public class XMLNdxBuilder implements NdxBuilder {
 
         // this bit isn't safe - can't guarantee the transformer will be
         // invoked, so we may get no declaration after all.
-        sr.getTransformer()
-          .setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
-
+        sr.setIncludeDeclaration( true );
+        sr.setIndent( 2 );
         try { 
-            new SourceReader().writeSource( original.toXML(), ostrm );
+            sr.writeSource( original.toXML(), ostrm );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )

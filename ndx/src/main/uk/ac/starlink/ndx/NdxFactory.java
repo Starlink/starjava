@@ -20,6 +20,16 @@ import uk.ac.starlink.array.AccessMode;
  * This factory delegates the actual Ndx creation to external
  * NdxBuilder objects; the URL is passed to each one in turn until
  * one can make an Ndx out of it, which object is returned to the caller.
+ * <p>
+ * By default, if the corresponding classes are present, the following
+ * NdxBuilders are installed:
+ * <ul>
+ * <li>{@link uk.ac.starlink.hds.NDFNdxBuilder}
+ * <li>{@link uk.ac.starlink.fits.FitsNdxBuilder}
+ * <li>{@link XMLNdxBuilder}
+ * </ul>
+ * Consult the documentation of these classes to find out about the format 
+ * of URLs understood by each.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -57,8 +67,8 @@ public class NdxFactory {
                                 ": - " + e );
             }
 
-            /* Attempt to add a FITSNdxBuilder if the class is available. */
-            className = "uk.ac.starlink.fits.FITSNdxBuilder";
+            /* Attempt to add a FitsNdxBuilder if the class is available. */
+            className = "uk.ac.starlink.fits.FitsNdxBuilder";
             try {
                 Class clazz = Class.forName( className );
                 Method meth = clazz.getMethod( "getInstance", noParams );

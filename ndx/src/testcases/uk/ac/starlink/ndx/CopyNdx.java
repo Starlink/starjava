@@ -12,7 +12,7 @@ import uk.ac.starlink.util.SourceReader;
 public class CopyNdx {
 
     private NdxFactory nfact = new NdxFactory();
-    private SourceReader sr = new SourceReader();
+    private SourceReader sr = new SourceReader().setIndent( 2 );
 
     public static void main( String[] args ) 
             throws IOException, MalformedURLException {
@@ -26,11 +26,6 @@ public class CopyNdx {
         else {
             throw new IllegalArgumentException( "Usage: CopyNdx url [url]" );
         }
-    }
-
-    private CopyNdx() {
-        sr.getTransformer()
-          .setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "no" );
     }
 
     public void makeCopy( URL inURL, URL outURL ) throws IOException {

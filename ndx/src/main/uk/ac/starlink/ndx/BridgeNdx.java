@@ -120,6 +120,17 @@ public class BridgeNdx implements Ndx {
         return impl.hasTitle();
     }
 
+    public boolean hasEtc() {
+        return impl.hasEtc();
+    }
+
+    public Source getEtc() {
+        if ( ! impl.hasEtc() ) {
+            throw new UnsupportedOperationException( "No Etc component" );
+        }
+        return impl.getEtc();
+    }
+
     public boolean hasWCS() {
         return impl.hasWCS();
     }
@@ -127,30 +138,37 @@ public class BridgeNdx implements Ndx {
     public FrameSet getWCS() {
         if ( wcs == null ) {
 
-            try {
-                /* Implementation may supply the WCS in a number of formats.
-                 * Try to cope with all, or throw an exception. */
-                Object fsobj = impl.getWCS();
-                if ( fsobj instanceof FrameSet ) {
-                    wcs = (FrameSet) fsobj;
+            /* See about getting the WCS from the implementation. */
+            if ( impl.hasWCS() ) {
+                try {
+
+                    /* Implementation may supply the WCS in a number of formats.
+                     * Try to cope with all, or throw an exception. */
+                    Object fsobj = impl.getWCS();
+                    if ( fsobj instanceof FrameSet ) {
+                        wcs = (FrameSet) fsobj;
+                    }
+                    else if ( fsobj instanceof Element ) {
+                        wcs = makeWCS( (Element) fsobj );
+                    }
+                    else if ( fsobj instanceof Source ) {
+                        Node el = new SourceReader().getDOM( (Source) fsobj );
+                        wcs = makeWCS( (Element) el );
+                    }
+                    else {
+                        logger.warning( "Unknown WCS object type " + fsobj );
+                    }
                 }
-                else if ( fsobj instanceof Element ) {
-                    wcs = makeWCS( (Element) fsobj );
+                catch ( IOException e ) {
+                    logger.warning( "Error retrieving WCS: " + e );
                 }
-                else if ( fsobj instanceof Source ) {
-                    Node el = new SourceReader().getDOM( (Source) fsobj );
-                    wcs = makeWCS( (Element) el );
-                }
-                else {
-                    logger.warning( "Unknown WCS object type " + fsobj );
+                catch ( TransformerException e ) {
+                    logger.warning( "Error transforming WCS: " + e );
                 }
             }
-            catch ( IOException e ) {
-                logger.warning( "Error retrieving WCS: " + e );
-            }
-            catch ( TransformerException e ) {
-                logger.warning( "Error transforming WCS: " + e );
-            }
+
+            /* If we didn't get a WCS from the implementation for one reason
+             * or another, use a default one. */
             if ( wcs == null ) {
                 wcs = defaultWCS();
             }
@@ -289,14 +307,23 @@ public class BridgeNdx implements Ndx {
         if ( impl.hasEtc() ) {
             try {
                 Source etcSrc = impl.getEtc();
-                Node etcContent = new SourceReader().getDOM( etcSrc );
-                etcContent = importNode( doc, etcContent );
-                Element etcEl = doc.createElement( "etc" );
-                etcEl.appendChild( etcContent );
-                ndxEl.appendChild( etcEl );
+                Node etcEl = new SourceReader().getDOM( etcSrc );
+                etcEl = importNode( doc, etcEl );
+
+                /* Check that the returned object has the right form. */
+                if ( etcEl instanceof Element && 
+                     ((Element) etcEl).getTagName() == "etc" ) {
+                    ndxEl.appendChild( etcEl );
+                }
+                else {
+                    logger.warning( "Badly-formed Etc component from impl " 
+                                  + impl +  "  - not added" );
+                    ndxEl.appendChild( doc.createComment( "Broken ETC" ) );
+                }
             }
             catch ( TransformerException e ) {
-                logger.warning( "Error transforming Etc component" );
+                logger.warning( 
+                    "Error transforming Etc component - not added" );
                 ndxEl.appendChild( doc.createComment( "Broken ETC" ) );
             }
         }
@@ -313,21 +340,19 @@ public class BridgeNdx implements Ndx {
     }
 
     /**
-     * Imports a node into a document, just as
-     *
-     *     Document.importNode( node, true )
-     *
-     * is supposed to do.  However, when the imported node is a 
-     * DocumentFragment, Crimson throws:
-     *
-     *   org.apache.crimson.tree.DomEx: 
-     *      HIERARCHY_REQUEST_ERR: This node isn't allowed there
-     *
-     * I'm almost certain this is a bug in crimson.  This method works 
-     * around it.  If crimson (or whatever parser we're using) gets 
-     * fixed it can be replaced with Document.importNode.
+     * Generalises the Document.importNode method so it works for a wider
+     * range of Node types.
      */
     private Node importNode( Document doc, Node inode ) {
+
+        /* Importing a DocumentFragment should work (in fact I think that's
+         * pretty much what DocumentFragments were designed for) but when
+         * you try to do it using Crimson it throws:
+         *
+         *   org.apache.crimson.tree.DomEx: 
+         *      HIERARCHY_REQUEST_ERR: This node isn't allowed there
+         *
+         * I'm pretty sure that's a bug.  Work round it by hand here. */
         if ( inode instanceof DocumentFragment ) {
             Node onode = doc.createDocumentFragment();
             for ( Node ichild = inode.getFirstChild(); ichild != null; 
@@ -337,6 +362,15 @@ public class BridgeNdx implements Ndx {
             }
             return onode;
         }
+
+        /* It isn't permitted to import a whole document.  Just get its
+         * root element. */
+        else if ( inode instanceof Document ) {
+            Node rootnode = ((Document) inode).getDocumentElement();
+            return doc.importNode( rootnode, true );
+        }
+
+        /* Otherwise, just let Document.importNode do the work. */
         else {
             return doc.importNode( inode, true );
         }
