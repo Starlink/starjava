@@ -3,6 +3,9 @@ package uk.ac.starlink.treeview.votable;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
 
+/**
+ * Coordinate system represented by a COOSYS element in a VOTable.
+ */
 public class Coosys {
 
     private Element el;

@@ -42,6 +42,8 @@ import java.util.Arrays;
 
 /**
  * Reads in base-64 encoded input and spits out the raw binary decoding.
+ *
+ * @author  Mozilla project
  */
 public class Base64InputStream extends FilterInputStream {
 

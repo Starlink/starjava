@@ -4,6 +4,11 @@ import java.lang.reflect.Array;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+/**
+ * Table column characteristics represented by a FIELD element in a VOTable.
+ * Note that much of the intelligence of this is contained in the associated
+ * {@link Datatype} object.
+ */
 public class Field extends GenericElement {
 
     private final long[] arraysize;

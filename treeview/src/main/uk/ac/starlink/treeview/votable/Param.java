@@ -2,6 +2,9 @@ package uk.ac.starlink.treeview.votable;
 
 import org.w3c.dom.Element;
 
+/**
+ * Object representing a PARAM element in a VOTable.
+ */
 public class Param extends Field {
 
     private String value;

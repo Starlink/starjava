@@ -3,6 +3,12 @@ package uk.ac.starlink.treeview.votable;
 import org.w3c.dom.Element;
 import uk.ac.starlink.util.DOMUtils;
 
+/**
+ * Generic element in a VOTable document.  This class is extended to 
+ * provide the classes associated with specific VOTable elements.
+ * It provides handling for some of the characteristics common to 
+ * various VOTable elements, for instance DESCRIPTION elements.
+ */
 public class GenericElement {
 
     private String description;
