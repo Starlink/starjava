@@ -1037,14 +1037,17 @@ public abstract class BintableStarTable extends AbstractStarTable {
             throws IOException {
         char[] letters = new char[ count ];
         int last = -1;
+        boolean end = false;
         for ( int i = 0; i < count; i++ ) {
             char letter = (char) ( stream.readByte() & 0xff );
-            letters[ i ] = letter;
             if ( letter == 0 ) {
-                break;
+                end = true;
             }
-            if ( letter != ' ' ) {
-                last = i;
+            if ( ! end ) {
+                letters[ i ] = letter;
+                if ( letter != ' ' ) {
+                    last = i;
+                }
             }
         }
         int leng = last + 1;
