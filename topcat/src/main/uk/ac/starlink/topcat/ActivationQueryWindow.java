@@ -52,6 +52,7 @@ public class ActivationQueryWindow extends QueryWindow {
         /* Set up the different types of activator. */
         ActivatorFactory[] factories = new ActivatorFactory[] {
             new NopActivatorFactory(),
+            new CutoutActivatorFactory(),
             new SogActivatorFactory(),
             new ImageActivatorFactory(),
             new SplatActivatorFactory(),
@@ -198,7 +199,6 @@ public class ActivationQueryWindow extends QueryWindow {
      * Factory implementation for the user to enter custom JEL code.
      */
     private class JELActivatorFactory extends ActivatorFactory {
-        JComponent qcomp_;
         JComboBox codeField_;
 
         JELActivatorFactory() {
@@ -236,6 +236,27 @@ public class ActivationQueryWindow extends QueryWindow {
                                                JOptionPane.ERROR_MESSAGE );
                 return null;
             }
+        }
+    }
+
+    /**
+     * Factory implementation for selecting a cutout service.
+     */
+    private class CutoutActivatorFactory extends ActivatorFactory {
+        CutoutSelector cutter_;
+
+        CutoutActivatorFactory() {
+            super( "Display Cutout Image: " );
+            cutter_ = new CutoutSelector( tcModel_ );
+            queryPanel_.add( cutter_ );
+        }
+
+        void setEnabled( boolean enabled ) {
+            cutter_.setEnabled( enabled );
+        }
+
+        Activator makeActivator() {
+            return cutter_.makeActivator();
         }
     }
 
@@ -292,7 +313,7 @@ public class ActivationQueryWindow extends QueryWindow {
      */
     private class SogActivatorFactory extends ColumnActivatorFactory {
         SogActivatorFactory() {
-            super( "Display Image in SoG for Column: " );
+            super( "Display Named Image in SoG: " );
         }
         Activator makeActivator( TableColumn tcol ) {
             return new ColumnActivator( "sog", tcol ) {
@@ -304,7 +325,7 @@ public class ActivationQueryWindow extends QueryWindow {
             };
         }
         boolean isPossible() {
-            return TopcatUtils.canSog();
+            return super.isPossible() && TopcatUtils.canSog();
         }
     }
 
@@ -313,7 +334,7 @@ public class ActivationQueryWindow extends QueryWindow {
      */
     private class ImageActivatorFactory extends ColumnActivatorFactory {
         ImageActivatorFactory() {
-            super( "Display Image in Image Window for Column: " );
+            super( "Display Named Image in Image Window: " );
         }
         Activator makeActivator( TableColumn tcol ) {
             return new ColumnActivator( "image", tcol ) {
@@ -331,7 +352,7 @@ public class ActivationQueryWindow extends QueryWindow {
      */
     private class SplatActivatorFactory extends ColumnActivatorFactory {
         SplatActivatorFactory() {
-            super( "Display Spectrum in SPLAT for Column: " );
+            super( "Display Named Spectrum in SPLAT: " );
         }
         Activator makeActivator( TableColumn tcol ) {
             return new ColumnActivator( "splat", tcol ) {
@@ -343,7 +364,7 @@ public class ActivationQueryWindow extends QueryWindow {
             };
         }
         boolean isPossible() {
-            return TopcatUtils.canSplat();
+            return super.isPossible() && TopcatUtils.canSplat();
         }
     }
 
