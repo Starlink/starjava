@@ -16,6 +16,7 @@ public class TreeviewJTable extends StarJTable {
         setDefaultRenderer( Object.class, tvrend );
         setDefaultRenderer( Number.class, tvrend );
         setDefaultRenderer( Double.class, tvrend );
+        setDefaultRenderer( Float.class, tvrend );
         configureColumnWidths( 500 );
     }
 }
