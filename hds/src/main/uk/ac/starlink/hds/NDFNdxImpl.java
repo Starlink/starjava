@@ -45,11 +45,6 @@ class NDFNdxImpl implements NdxImpl {
     private NDArray variance;
     private NDArray quality;
 
-    /* Indices at which standard Frames are expected in NDF's WCS FrameSet. */
-    private static final int GRID_FRAME = 1;
-    private static final int PIXEL_FRAME = 2;
-    private static final int AXIS_FRAME = 3;
-
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.hds" );
 
     /**
