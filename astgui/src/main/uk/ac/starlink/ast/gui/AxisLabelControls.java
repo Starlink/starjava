@@ -33,6 +33,8 @@ import javax.swing.text.Document;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import uk.ac.starlink.util.gui.SelectTextField;
+
 /**
  * AxisLabelControls creates a "page" of widgets that are a view of an
  * AstAxisLabel object. They provide the ability to configure all the
