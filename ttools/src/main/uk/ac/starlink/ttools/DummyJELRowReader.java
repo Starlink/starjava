@@ -27,13 +27,6 @@ public class DummyJELRowReader extends JELRowReader {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Throws UnsupportedOperationException.
-     */
-    protected Object[] getRow( int icol ) {
-        throw new UnsupportedOperationException();
-    }
-
     public long getCurrentRow() {
         return -1L;
     }
