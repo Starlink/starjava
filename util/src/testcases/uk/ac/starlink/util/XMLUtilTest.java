@@ -38,11 +38,16 @@ public class XMLUtilTest extends TestCase
         assertTrue( obj2.sameValue( obj1 ) );
     }
 
-    class TestXMLEncodeAndDecode implements XMLEncodeAndDecode
+    // Create a class whose instances can be encoded and decoded to an
+    // Element.
+    class TestXMLEncodeAndDecode extends PrimitiveXMLEncodeAndDecode
     {
-        // The configuration.
-        String value1 = "Zebra";
-        String value2 = "Horse";
+        // The configuration, one for each primitive type known.
+        String  value1 = "Java";
+        double  value2 = Double.MAX_VALUE;
+        int     value3 = Integer.MIN_VALUE;
+        boolean value4 = false;
+        
 
         TestXMLEncodeAndDecode()
         {
@@ -52,7 +57,9 @@ public class XMLUtilTest extends TestCase
         public boolean sameValue( TestXMLEncodeAndDecode comparison )
         {
             if ( value1.equals( comparison.value1 ) &&
-                 value2.equals( comparison.value2 ) ) {
+                 ( Double.compare( value2, comparison.value2 ) == 0 ) &&
+                 value3 == comparison.value3 &&
+                 value4 == comparison.value4 ) {
                 return true;
             }
             return false;
@@ -60,59 +67,36 @@ public class XMLUtilTest extends TestCase
 
         public void encode( Element rootElement ) 
         {
-            addChildElement( rootElement, "animal1", value1 );
-            addChildElement( rootElement, "animal2", value2 );
-        }
-
-        public void decode( Element rootElement ) 
-        {
-            List children = getChildElements( rootElement );
-            int size = children.size();
-            Element element = null;
-            String name = null;
-            String value = null;
-            for ( int i = 0; i < size; i++ ) {
-                element = (Element) children.get( i );
-                name = element.getTagName();
-                value = element.getFirstChild().getNodeValue();
-
-                //  Set the value...
-                if ( "animal1".equals( name ) ) {
-                    value1 = value;
-                }
-                else if ( "animal2".equals( name ) ) {
-                    value2 = value;
-                }
-            }
-        }
-        
-        public List getChildElements( Element element )
-        {
-            NodeList nodeList = element.getChildNodes();
-            List elementList = new ArrayList();
-            for ( int i = 0; i < nodeList.getLength(); i++ ) {
-                if ( nodeList.item( i ) instanceof Element ) {
-                    elementList.add( nodeList.item( i ) );
-                }
-            }
-            return elementList;
+            addChildElement( rootElement, "name1", value1 );
+            addChildElement( rootElement, "name2", value2 );
+            addChildElement( rootElement, "name3", value3 );
+            addChildElement( rootElement, "name4", value4 );
         }
 
         public String getTagName() 
         {
             return "test";
         }
-        
-        protected void addChildElement( Element rootElement, String name,
-                                        String value )
+
+        public void setFromString( String name, String value )
         {
-            Document parent = rootElement.getOwnerDocument();
-            Element newElement = parent.createElement( name );
-            if ( value != null ) {
-                CDATASection cdata = parent.createCDATASection( value );
-                newElement.appendChild( cdata );
+            if ( name.equals( "name1" ) ) {
+                value1 = value;
+                return;
             }
-            rootElement.appendChild( newElement );
+            if ( name.equals( "name2" ) ) {
+                value2 = doubleFromString( value );
+                return;
+            }
+            if ( name.equals( "name3" ) ) {
+                value3 = intFromString( value );
+                return;
+            }
+            if ( name.equals( "name4" ) ) {
+                value4 = booleanFromString( value );
+                return;
+            }
+            throw new RuntimeException( "unknown name: "+name+" ("+value+")");
         }
     }
 }

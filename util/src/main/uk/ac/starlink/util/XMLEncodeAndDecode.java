@@ -12,6 +12,8 @@ import org.w3c.dom.Element;
  * <p>
  * For an abstract base class that implements lots of useful functions
  * that support this interface see 
+ * {@link PrimitiveXMLEncodeAndDecode} and for one that also supports
+ * awt primitives (Fonts and Colors) see
  * {@link uk.ac.starlink.ast.gui.AbstractPlotControlsModel}.
  *
  * @since $Date$
