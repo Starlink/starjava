@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -26,6 +27,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableColumnModel;
@@ -98,6 +102,8 @@ public class TableViewer extends JFrame {
     private Action unsortAct;
     private Action newsubsetAct;
     private Action nosubsetAct;
+    private Action includeAct;
+    private Action excludeAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -136,7 +142,9 @@ public class TableViewer extends JFrame {
         super();
         AuxWindow.positionAfter( sibling, this );
         jtab = new JTable();
-        jtab.setColumnSelectionAllowed( true );
+        jtab.setCellSelectionEnabled( false );
+        jtab.setColumnSelectionAllowed( false );
+        jtab.setRowSelectionAllowed( true );
         scrollpane = new SizingScrollPane( jtab );
         getContentPane().add( scrollpane, BorderLayout.CENTER );
 
@@ -176,8 +184,13 @@ public class TableViewer extends JFrame {
         unsortAct = new ViewerAction( "Unsort", 0,
                                       "Display in original order" );
 
-        newsubsetAct = new ViewerAction( "New subset", 0,
+        newsubsetAct = new ViewerAction( "New subset expression", 0,
                                          "Define a new row subset" );
+        includeAct = new ViewerAction( "Subset from selected rows", 0,
+            "Define a new row subset containing all currently selected rows" );
+        excludeAct = new ViewerAction( "Subset from unselected rows", 0,
+            "Define a new row subset containing all " +
+            "rows not currently selected" );
         nosubsetAct = new ViewerAction( "View all rows", 0,
                                         "Don't use any row subsetting" );
 
@@ -225,6 +238,9 @@ public class TableViewer extends JFrame {
         JMenu subsetMenu = new JMenu( "Subsets" );
         mb.add( subsetMenu );
         subsetMenu.add( nosubsetAct ).setIcon( null );
+        subsetMenu.add( newsubsetAct ).setIcon( null );
+        subsetMenu.add( includeAct ).setIcon( null );
+        subsetMenu.add( excludeAct ).setIcon( null );
         Action applysubsetAct = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
                 int index = evt.getID();
@@ -234,7 +250,6 @@ public class TableViewer extends JFrame {
         JMenu applysubsetMenu = 
             subsets.makeJMenu( "Apply subset", applysubsetAct );
         subsetMenu.add( applysubsetMenu );
-        subsetMenu.add( newsubsetAct ).setIcon( null );
 
         /* Configure a listener for column popup menus. */
         MouseListener mousey = new MouseAdapter() {
@@ -259,6 +274,18 @@ public class TableViewer extends JFrame {
         };
         jtab.addMouseListener( mousey );
         jtab.getTableHeader().addMouseListener( mousey );
+
+        /* Configure a listener for row selection events. */
+        final ListSelectionModel selectionModel = jtab.getSelectionModel();
+        ListSelectionListener selList = new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                boolean hasSelection = ! selectionModel.isSelectionEmpty();
+                includeAct.setEnabled( hasSelection );
+                excludeAct.setEnabled( hasSelection );
+            }
+        };
+        selectionModel.addListSelectionListener( selList );
+        selList.valueChanged( null );
 
         /* Display. */
         pack();
@@ -373,6 +400,7 @@ public class TableViewer extends JFrame {
      */
     public void addSubset( RowSubset rset ) {
         subsets.add( rset );
+        applySubset( rset );
     }
 
     /**
@@ -614,13 +642,35 @@ public class TableViewer extends JFrame {
                 setOrder( null );
             }
 
-            /* Define a new subset. */
+            /* Define a new subset by dialog. */
             else if ( this == newsubsetAct ) {
                 RowSubset rset = new SubsetDialog( dataModel, subsets )
                                 .obtainSubset( parent );
                 if ( rset != null ) {
                     addSubset( rset );
-                    applySubset( rset );
+                }
+            }
+
+            /* Define a new subset using selected rows. */
+            else if ( this == includeAct ) {
+                String name = enquireSubsetName();
+                if ( name != null ) {
+                    BitSet bits = getSelectedRowFlags();
+  System.out.println( bits.cardinality() );
+                    addSubset( new BitsRowSubset( name, bits ) );
+                }
+            }
+
+            /* Define a new subset using unselected rows. */
+            else if ( this == excludeAct ) {
+                String name = enquireSubsetName();
+                if ( name != null ) {
+                    BitSet bits = getSelectedRowFlags();
+  System.out.print( bits.cardinality() + "  " );
+                    int nrow = (int) dataModel.getRowCount();
+                    bits.flip( 0, nrow );
+  System.out.println( bits.cardinality() );
+                    addSubset( new BitsRowSubset( name, bits ) );
                 }
             }
 
@@ -724,6 +774,49 @@ public class TableViewer extends JFrame {
             rowMap[ i ] = items[ i ].rank;
         }
         return rowMap;
+    }
+
+    /**
+     * Returns a BitSet in which bit <i>i</i> is set if a table view row 
+     * corresponding to row <i>i</i> of this viewer's data model has 
+     * been selected in the GUI.  The BitSet has the same number of bits
+     * as the data model has rows.
+     *
+     * @return  new bit vector
+     */
+    private BitSet getSelectedRowFlags() {
+        int nrow = (int) dataModel.getRowCount();
+        BitSet bits = new BitSet( nrow );
+        int[] selected = jtab.getSelectedRows();
+        int nsel = selected.length;
+        int[] rowMap = viewModel.getRowMap();
+        if ( rowMap == null ) {
+            for ( int i = 0; i < nsel; i++ ) {
+                bits.set( selected[ i ] );
+            }
+        }
+        else {
+            for ( int i = 0; i < nsel; i++ ) {
+                bits.set( rowMap[ selected[ i ] ] );
+            }
+        }
+        return bits;
+    }
+
+    /**
+     * Pops up a modal dialog to ask the user the name for a new RowSubset.
+     *
+     * @return  a new subset name entered by the user, or <tt>null</tt> if 
+     *          he bailed out
+     */
+    private String enquireSubsetName() {
+        String name = JOptionPane.showInputDialog( this, "New subset name" );
+        if ( name == null || name.trim().length() == 0 ) {
+            return null;
+        }
+        else {
+            return name;
+        }
     }
 
     /**

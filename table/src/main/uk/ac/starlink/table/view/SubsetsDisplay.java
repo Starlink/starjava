@@ -33,7 +33,10 @@ public class SubsetsDisplay extends JPanel {
             Map map = new HashMap();
             map.put( ID_KEY, "#" + ++i );
             map.put( NAME_KEY, rset.getName() );
-            map.put( EXPR_KEY, rset.getExpression() );
+            if ( rset instanceof SyntheticRowSubset ) {
+                map.put( EXPR_KEY, 
+                         ((SyntheticRowSubset) rset).getExpression() );
+            }
             mg.addMap( map );
         }
         TableModel tmodel = new MapGroupTableModel( mg );
