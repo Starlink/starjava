@@ -322,22 +322,36 @@ public class HDSDataNode extends DefaultDataNode {
                 dv.addKeyedItem( "Value", value );
             }
 
-            /* If it's a numeric primitive array, turn it into an NDArray and
-             * let NDArrayDataNode do the work. */
-            try {
-                if ( shape != null && ! isStruct 
-                     && HDSType.fromName( type ) != null ) {
-                    NDArray nda = HDSArrayBuilder.getInstance()
-                                 .makeNDArray( new ArrayStructure( hobj ),
-                                               AccessMode.READ );
-                    NDArrayDataNode.addDataViews( dv, nda, null );
+            /* Is it a primitive array? */
+            if ( shape != null && ! isStruct ) {
+                try {
+
+                    /* If it's a numeric primitive array, turn it into an 
+                     * NDArray and let NDArrayDataNode do the work. */
+                    if ( HDSType.fromName( type ) != null ) {
+                        NDArray nda = HDSArrayBuilder.getInstance()
+                                     .makeNDArray( new ArrayStructure( hobj ),
+                                                   AccessMode.READ );
+                        NDArrayDataNode.addDataViews( dv, nda, null );
+                    }
+
+                    /* If it's non-numeric, present a view of its data. */
+                    else {
+                        dv.addPane( "Array data", new ComponentMaker() {
+                            public JComponent getComponent() 
+                                    throws HDSException {
+                                ArrayStructure ary = new ArrayStructure( hobj );
+                                return new ArrayBrowser( ary );
+                            }
+                        } );
+                    }
                 }
-            }
-            catch ( HDSException e ) {
-                dv.logError( e );
-            }
-            catch ( IOException e ) {
-                dv.logError( e );
+                catch ( HDSException e ) {
+                    dv.logError( e );
+                }
+                catch ( IOException e ) {
+                    dv.logError( e );
+                }
             }
         }
         return fullView;
