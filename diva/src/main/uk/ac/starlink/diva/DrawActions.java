@@ -378,7 +378,7 @@ public class DrawActions
         // apply change to any selected figures
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -414,7 +414,7 @@ public class DrawActions
         // apply change to any selected figures
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -450,7 +450,7 @@ public class DrawActions
         // apply change to any selected figures
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -514,7 +514,7 @@ public class DrawActions
         // apply change to any selected figures
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -550,7 +550,7 @@ public class DrawActions
         // apply change to any selected figures
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -613,7 +613,7 @@ public class DrawActions
         //  Apply change to any selected curves.
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -820,7 +820,7 @@ public class DrawActions
             boolean found = false;
             SelectionModel sm =
                 graphics.getSelectionInteractor().getSelectionModel();
-            ListIterator it = figureList.listIterator( figureList.size() );
+            ListIterator it = getListIterator( false );
 
             while ( ( ! found ) && it.hasPrevious() ) {
                 DrawFigure fig = (DrawFigure) it.previous();
@@ -1142,7 +1142,7 @@ public class DrawActions
      */
     public void clear()
     {
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             graphics.removeFigure( fig );
@@ -1157,7 +1157,7 @@ public class DrawActions
     {
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -1183,7 +1183,7 @@ public class DrawActions
     public void hideGraphics()
     {
         visible = !visible;
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             fig.setVisible( visible );
@@ -1198,7 +1198,7 @@ public class DrawActions
     {
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -1224,7 +1224,7 @@ public class DrawActions
     {
         SelectionModel sm =
             graphics.getSelectionInteractor().getSelectionModel();
-        ListIterator it = figureList.listIterator( 0 );
+        ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
@@ -1244,11 +1244,18 @@ public class DrawActions
     }
 
     /**
-     * Return a list of figures managed by this instance.
+     * Return a ListIterator over the figures. If forward is set false
+     * the Iterator will be set to the end of the list so that it is
+     * ready to be traversed backwards.
      */
-    public LinkedList getFigureList()
+    public ListIterator getListIterator( boolean forward )
     {
-        return figureList;
+        if ( forward ) {
+            return figureList.listIterator( 0 );
+        }
+        else {
+            return figureList.listIterator( figureList.size() );
+        }
     }
 
     /**
