@@ -184,7 +184,7 @@ public class Strings {
      * a different substring value.
      *
      * @example  
-     *     <code>replaceFirst("Messier 61", "Messier", "M-") = "M-61"</code>
+     *     <code>replaceFirst("Messier 61", "Messier ", "M-") = "M-61"</code>
      *
      * @param  str  string to manipulate
      * @param  regex  regular expression to match in <code>str</code>
@@ -204,7 +204,7 @@ public class Strings {
      * Replaces all occurrences of a regular expression in a string with
      * a different substring value.
      *
-     * @example <code>replaceAll("1-2--3---4","-*"," ") = "1x2x3x4"</code>
+     * @example <code>replaceAll("1-2--3---4","--*","x") = "1x2x3x4"</code>
      *
      * @param  str  string to manipulate
      * @param  regex  regular expression to match in <code>str</code>
