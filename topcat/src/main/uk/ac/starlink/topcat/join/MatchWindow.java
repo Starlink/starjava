@@ -6,7 +6,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Action;
@@ -32,34 +31,30 @@ import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
 
-/**
- * Window for setting up and executing table matches.
- *
- * @author   Mark Taylor (Starlink)
- * @since    18 Mar 2004
- */
 public class MatchWindow extends AuxWindow implements ItemListener {
 
+    private final int nTable;
     private final JComboBox engineSelector;
-    private final JComboBox specSelector;
     private final Map matchSpecs = new HashMap();
     private final CardLayout paramCards;
     private final JComponent paramContainer;
-    private final JScrollPane specScroller;
     private final JTextArea logArea;
     private final JScrollPane logScroller;
+    private final JScrollPane specScroller;
     private final Action startAct;
     private final Action stopAct;
     private final JProgressBar progBar;
     private MatchProgressIndicator currentIndicator;
 
     /**
-     * Constructs a new match window.
+     * Constructs a new MatchWindow.
      *
      * @param  parent  parent window, may be used for window positioning
+     * @param  nTable  number of tables to participate in match
      */
-    public MatchWindow( Component parent ) {
+    public MatchWindow( Component parent, int nTable ) {
         super( "Match Tables", parent );
+        this.nTable = nTable;
 
         /* Get the list of all the match engines we know about. */
         MatchEngine[] engines = getEngines();
@@ -77,11 +72,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         /* Prepare a combo box which can select the engines. */
         engineSelector = new JComboBox( engines );
         engineSelector.addItemListener( this );
-
-        /* Prepare a combo box which can select match types. */
-        specScroller = new JScrollPane();
-        specSelector = new JComboBox( MatchSpecType.ALL );
-        specSelector.addItemListener( this );
 
         /* Set up an action to start the match. */
         startAct = new MatchAction( "Go", null, "Perform the match" );
@@ -101,6 +91,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         main.setLayout( new BorderLayout() );
         Box common = Box.createVerticalBox();
         main.add( common, BorderLayout.NORTH );
+        specScroller = new JScrollPane();
         main.add( specScroller, BorderLayout.CENTER );
 
         Box engineBox = Box.createVerticalBox();
@@ -117,15 +108,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         engineBox.setBorder( makeTitledBorder( "Match Criteria" ) );
         common.add( engineBox );
 
-        Box specBox = Box.createVerticalBox();
-        line = Box.createHorizontalBox();
-        line.add( new JLabel( "Match Action: " ) );
-        line.add( specSelector );
-        specBox.add( line );
-        common.add( Box.createVerticalStrut( 5 ) );
-        common.add( specBox );
-        common.add( Box.createVerticalStrut( 5 ) );
-
         /* Add standard help actions. */
         addHelp( "MatchWindow" );
 
@@ -139,7 +121,6 @@ public class MatchWindow extends AuxWindow implements ItemListener {
 
         /* Initialise to an active state. */
         engineSelector.setSelectedIndex( 0 );
-        specSelector.setSelectedItem( MatchSpecType.M2 );
         updateDisplay();
 
         /* Make the component visible. */
@@ -155,11 +136,10 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * @return match-type specific specification of the match that will happen
      */
     private MatchSpec getMatchSpec() {
-        MatchSpecType specType = getMatchSpecType();
         MatchEngine engine = getMatchEngine();
-        Object key = Arrays.asList( new Object[] { specType, engine } );
+        Object key = engine;
         if ( ! matchSpecs.containsKey( key ) ) {
-            matchSpecs.put( key, specType.makeMatchSpec( engine ) );
+            matchSpecs.put( key, makeMatchSpec( engine ) );
         }
         return (MatchSpec) matchSpecs.get( key );
     }
@@ -174,42 +154,24 @@ public class MatchWindow extends AuxWindow implements ItemListener {
     }
 
     /**
-     * Returns the currently selected MatchSpecType.
-     * This defines what kind of MatchSpec will be created if one is needed.
-     *
-     * @return  matchspec type
+     * Creates a new MatchSpec for this window based on a given MatchEngine.
+     * 
+     * @param   engine  match engine
+     * @return  new MatchSpec
      */
-    private MatchSpecType getMatchSpecType() {
-        return (MatchSpecType) specSelector.getSelectedItem();
+    private MatchSpec makeMatchSpec( MatchEngine engine ) {
+        return nTable > 1 ? (MatchSpec) new InterMatchSpec( engine, nTable )
+                          : (MatchSpec) new IntraMatchSpec( engine );
     }
 
-    /**
-     * Returns a list of the known match engines.
-     *
-     * @return  match engine array
-     */
-    private static MatchEngine[] getEngines() {
-        double someAngle = 0.001;
-        double someLength = 0.1;
-        return new MatchEngine[] {
-            new HTMMatchEngine( someAngle ),
-            new SphericalPolarMatchEngine( someLength ),
-            new EqualsMatchEngine(),
-            new CartesianMatchEngine( 1, someLength ),
-            new CartesianMatchEngine( 2, someLength ),
-            new CartesianMatchEngine( 3, someLength ),
-            new CartesianMatchEngine( 4, someLength ),
-        };
-    }
 
     /**
      * Called when one of the selection controls is changed and aspects
      * of the GUI need to be updated.
      */
     private void updateDisplay() {
-        MatchEngine engine = (MatchEngine) engineSelector.getSelectedItem();
-        MatchSpecType spec = (MatchSpecType) specSelector.getSelectedItem();
-        if ( engine != null && spec != null ) {
+        MatchEngine engine = getMatchEngine();
+        if ( engine != null ) {
             String label = engine.toString();
             paramCards.show( paramContainer, label );
             specScroller.setViewportView( getMatchSpec().getPanel() );
@@ -228,7 +190,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
      * Provides visual feedback that the window is/is not available for
      * interaction, as well as enabling/disabling most of its interatable
      * components.  The window is set busy when it's doing a calculation.
-     * 
+     *
      * @param  busy  true iff the window should be closed to new business
      */
     public void setBusy( boolean busy ) {
@@ -259,14 +221,15 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         super.dispose();
     }
 
+
     /**
-     * Helper class representing the thread which performs the 
-     * (possibly time-consuming) match calculations. 
+     * Helper class representing the thread which performs the
+     * (possibly time-consuming) match calculations.
      */
     private class MatchWorker extends Thread {
         final MatchSpec spec;
         final MatchEngine engine;
-        
+
         MatchWorker( MatchSpec spec, MatchEngine engine ) {
             super( "Row Matcher" );
             this.spec = spec;
@@ -274,7 +237,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         }
 
         /**
-         * Performs the calculation defined by this MatchWindow, and 
+         * Performs the calculation defined by this MatchWindow, and
          * dispatches whatever window updates are necessary before and after
          * to the event dispatch thread.
          */
@@ -294,6 +257,8 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                         setBusy( false );
                         spec.matchSuccess( MatchWindow.this );
                         appendLogLine( "Match succeeded" );
+                        progBar.setValue( 0 );
+                        currentIndicator = null;
                     }
                 } );
             }
@@ -362,46 +327,35 @@ public class MatchWindow extends AuxWindow implements ItemListener {
                 }
             }
             else if ( this == stopAct ) {
-                appendLogLine( "Calculation interrupted" );
-                progBar.setValue( 0 );
+                if ( currentIndicator != null ) {
+                    appendLogLine( "Calculation interrupted" );
+                    progBar.setValue( 0 );
+                }
                 currentIndicator = null;
+            }
+            else {
+                assert false;
             }
         }
     }
 
     /**
-     * Helper class enumerating the possible MatchSpec types.
-     * Instances of the class are effectively MatchSpec factories.
+     * Returns a list of the known match engines.
+     *
+     * @return  match engine array
      */
-    private static class MatchSpecType {
-        static final MatchSpecType M1 = new MatchSpecType( "Internal" );
-        static final MatchSpecType M2 = new MatchSpecType( "Pair" );
-        static final MatchSpecType M3 = new MatchSpecType( "Triple" );
-        static final MatchSpecType M4 = new MatchSpecType( "Quadruple" );
-        static MatchSpecType[] ALL = new MatchSpecType[] { M1, M2, M3, M4 };
-        private String name;
-        private MatchSpecType( String name ) {
-            this.name = name;
-        }
-        MatchSpec makeMatchSpec( MatchEngine engine ) {
-            if ( this == M1 ) {
-                return new IntraMatchSpec( engine );
-            }
-            else if ( this == M2 ) {
-                return new InterMatchSpec( engine, 2 );
-            }
-            else if ( this == M3 ) {
-                return new InterMatchSpec( engine, 3 );
-            }
-            else if ( this == M4 ) {
-                return new InterMatchSpec( engine, 4 );
-            }
-            else {
-                throw new AssertionError();
-            }
-        }
-        public String toString() {
-            return name;
-        }
+    private static MatchEngine[] getEngines() {
+        double someAngle = 0.001;
+        double someLength = 0.1;
+        return new MatchEngine[] {
+            new HTMMatchEngine( someAngle ),
+            new SphericalPolarMatchEngine( someLength ),
+            new EqualsMatchEngine(),
+            new CartesianMatchEngine( 1, someLength ),
+            new CartesianMatchEngine( 2, someLength ),
+            new CartesianMatchEngine( 3, someLength ),
+            new CartesianMatchEngine( 4, someLength ),
+        };
     }
+
 }

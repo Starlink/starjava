@@ -50,7 +50,6 @@ public class ResourceIcon implements Icon {
 
         /* Special. */
         DO_WHAT = makeIcon( "burst.gif" ),
-        BLANK = makeIcon( "blank24.gif" ),
 
         /* Adverts. */
         TOPCAT = makeIcon( "TopCat2.gif" ),
@@ -82,7 +81,8 @@ public class ResourceIcon implements Icon {
         VIEWER = makeIcon( "browser1.gif" ),
         SUBSETS = makeIcon( "venn2.gif" ),
         FUNCTION = makeIcon( "fx2.gif" ),
-        MATCH = makeIcon( "match1.gif" ),
+        MATCH1 = makeIcon( "matchOne2.gif" ),
+        MATCH2 = makeIcon( "matchTwo2.gif" ),
         CONCAT = makeIcon( "concat4.gif" ),
 
         /* Specific actions. */
@@ -118,6 +118,17 @@ public class ResourceIcon implements Icon {
 
         /* Dummy terminator. */
         dummy = DO_WHAT;
+
+    public static final Icon BLANK = new Icon() {
+        public int getIconHeight() {
+            return 24;
+        }
+        public int getIconWidth() {
+            return 24;
+        }
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+        }
+    };
 
     private String location;
     private Icon baseIcon;

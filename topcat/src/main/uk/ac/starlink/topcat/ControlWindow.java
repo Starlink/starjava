@@ -104,7 +104,6 @@ public class ControlWindow extends AuxWindow
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
     private LoadQueryWindow loadWindow;
     private StarTableSaver saver;
-    private MatchWindow matchWindow;
     private ConcatWindow concatWindow;
 
     private final JTextField idField = new JTextField();
@@ -128,9 +127,9 @@ public class ControlWindow extends AuxWindow
     private final Action dupAct;
     private final Action mirageAct;
     private final Action removeAct;
-    private final Action matchAct;
     private final Action concatAct;
-    private final ShowAction[] showActions;
+    private final Action[] matchActs;
+    private final ShowAction[] showActs;
 
     /**
      * Constructs a new window.
@@ -188,8 +187,6 @@ public class ControlWindow extends AuxWindow
                                        "Forget about the current table" );
         readAct = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                      "Open a new table" );
-        matchAct = new ControlAction( "Match Rows", ResourceIcon.MATCH,
-                                      "Join tables using row matching" );
         concatAct = new ControlAction( "Concatenate Tables",
                                        ResourceIcon.CONCAT,
                                        "Join tables by concatenating them" );
@@ -216,6 +213,21 @@ public class ControlWindow extends AuxWindow
         plotAct = new ModelAction( "Plot", ResourceIcon.PLOT,
                                    "Plot table columns" );
 
+        matchActs = new Action[] {
+            new MatchWindowAction( "Internal Match", ResourceIcon.MATCH1,
+                                   "Perform row matching on a single table", 
+                                   1 ),
+            new MatchWindowAction( "Pair Match", ResourceIcon.MATCH2,
+                                   "Create new table by matching rows in " +
+                                   "two existing tables", 2 ),
+            new MatchWindowAction( "Triple Match", ResourceIcon.BLANK,
+                                   "Create new table by matching rows in " +
+                                   "three existing tables", 3 ),
+            new MatchWindowAction( "Quadruple Match", ResourceIcon.BLANK,
+                                   "Create new table by matching rows in " +
+                                   "four existing tables", 4 ),
+        };
+
         /* Bind an action for double-click or Enter key on the list. */
         tablesList.addMouseListener( new MouseAdapter() {
             public void mouseClicked( MouseEvent evt ) {
@@ -232,16 +244,11 @@ public class ControlWindow extends AuxWindow
                   .put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), 
                         actkey );
         tablesList.getActionMap().put( actkey, viewerAct );
-       
-        /* Add general control buttons to the toolbar. */
+
+        /* Add load/save control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
         toolBar.setFloatable( true );
         toolBar.add( readAct ).setTransferHandler( importTransferHandler );
-        toolBar.add( matchAct );
-        toolBar.add( concatAct );
-        toolBar.addSeparator();
-
-        /* Add export buttons to the toolbar. */
         configureExportSource( toolBar.add( writeAct ) );
         configureExportSource( toolBar.add( dupAct ) );
         toolBar.addSeparator();
@@ -253,6 +260,12 @@ public class ControlWindow extends AuxWindow
         toolBar.add( subsetAct );
         toolBar.add( statsAct );
         toolBar.add( plotAct );
+        toolBar.addSeparator();
+
+        /* Add join/match control buttons to the toolbar. */
+        toolBar.add( concatAct );
+        toolBar.add( matchActs[ 0 ] );
+        toolBar.add( matchActs[ 1 ] );
         toolBar.addSeparator();
 
         /* Add actions to the file menu. */
@@ -282,16 +295,18 @@ public class ControlWindow extends AuxWindow
         /* Add a menu for table joining. */
         JMenu joinMenu = new JMenu( "Joins" );
         joinMenu.setMnemonic( KeyEvent.VK_J );
-        joinMenu.add( matchAct );
         joinMenu.add( concatAct );
+        for ( int i = 0; i < matchActs.length; i++ ) {
+            joinMenu.add( matchActs[ i ] );
+        }
         getJMenuBar().add( joinMenu );
 
         /* Add a menu for window management. */
         JMenu winMenu = new JMenu( "Windows" );
         winMenu.setMnemonic( KeyEvent.VK_W );
-        showActions = makeShowActions();
-        for ( int i = 0; i < showActions.length; i++ ) {
-            winMenu.add( showActions[ i ] );
+        showActs = makeShowActions();
+        for ( int i = 0; i < showActs.length; i++ ) {
+            winMenu.add( showActs[ i ] );
         }
         getJMenuBar().add( winMenu );
 
@@ -422,18 +437,6 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Returns a dialog used for doing table joins.
-     *
-     * @return matcher window
-     */
-    public MatchWindow getMatchWindow() {
-        if ( matchWindow == null ) {
-            matchWindow = new MatchWindow( this );
-        }
-        return matchWindow;
-    }
-
-    /**
      * Returns a dialog used for doing table concatenation.
      *
      * @return  concatenation window
@@ -552,8 +555,8 @@ public class ControlWindow extends AuxWindow
         statsAct.setEnabled( hasModel );
         subsetAct.setEnabled( hasModel );
         plotAct.setEnabled( hasModel );
-        for ( int i = 0; i < showActions.length; i++ ) {
-            ShowAction sact = showActions[ i ];
+        for ( int i = 0; i < showActs.length; i++ ) {
+            ShowAction sact = showActs[ i ];
             if ( sact.selEffect != sact.otherEffect ) {
                 sact.setEnabled( hasModel );
             }
@@ -568,8 +571,10 @@ public class ControlWindow extends AuxWindow
      */
     public void updateControls() {
         boolean hasTables = tablesModel.getSize() > 0;
-        matchAct.setEnabled( hasTables );
         concatAct.setEnabled( hasTables );
+        for ( int i = 0; i < matchActs.length; i++ ) {
+            matchActs[ i ].setEnabled( hasTables );
+        }
     }
 
     /*
@@ -675,15 +680,34 @@ public class ControlWindow extends AuxWindow
                     removeTable( tcModel );
                 }
             }
-            else if ( this == matchAct ) {
-                getMatchWindow().makeVisible();
-            }
             else if ( this == concatAct ) {
                 getConcatWindow().makeVisible();
             }
             else {
                 throw new AssertionError();
             }
+        }
+    }
+
+    /**
+     * Actions for popping up match windows.
+     */
+    private class MatchWindowAction extends BasicAction {
+
+        private final int nTable;
+        private MatchWindow matchWin;
+
+        MatchWindowAction( String name, Icon icon, String shortdesc,
+                           int nTable ) {
+            super( name, icon, shortdesc );
+            this.nTable = nTable;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( matchWin == null ) {
+                matchWin = new MatchWindow( ControlWindow.this, nTable );
+            }
+            matchWin.makeVisible();
         }
     }
 

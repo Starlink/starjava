@@ -513,10 +513,9 @@ public class AuxWindow extends JFrame {
          */
         public HelpAction( String helpID ) {
             this.helpID = helpID;
-            if ( helpID != null ) {
-                putValue( SMALL_ICON, ResourceIcon.HELP );
-            }
             putValue( NAME, helpID == null ? "Help" : "Help for window" );
+            putValue( SMALL_ICON, helpID == null ? ResourceIcon.BLANK
+                                                 : ResourceIcon.HELP );
             putValue( SHORT_DESCRIPTION, 
                       helpID == null 
                           ? "Display help browser" 
