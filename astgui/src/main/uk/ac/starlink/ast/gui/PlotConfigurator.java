@@ -124,6 +124,16 @@ public class PlotConfigurator
     protected static String defaultTitle = "Configure Ast Graphics Options";
 
     /**
+     * Application name for the store to use.
+     */
+    protected String applicationName = "astgui";
+
+    /**
+     * Name for the store file.
+     */
+    protected String storeName = "plot-configs.xml";
+
+    /**
      * Title for window.
      */
     protected String title = defaultTitle;
@@ -156,15 +166,17 @@ public class PlotConfigurator
      */
     public PlotConfigurator( String title, PlotController controller )
     {
-        this( title, controller, null );
+        this( title, controller, null, null, null );
     }
 
     /**
      * Create an instance that controls a Plot, has a given window
-     * title and uses a pre-defined configuration.
+     * title and uses a pre-defined configuration. Also change the
+     * default names used for the backing store.
      */
     public PlotConfigurator( String title, PlotController controller,
-                             PlotConfiguration config )
+                             PlotConfiguration config, 
+                             String applicationName, String storeName )
     {
         if ( title == null ) {
             this.title = defaultTitle;
@@ -178,6 +190,12 @@ public class PlotConfigurator
         }
         else {
             this.config = config;
+        }
+        if ( applicationName != null ) {
+            this.applicationName = applicationName;
+        }
+        if ( storeName != null ) {
+            this.storeName = storeName;
         }
 
         contentPane = (JPanel) getContentPane();
@@ -546,6 +564,22 @@ public class PlotConfigurator
             storeConfig.dispose();
             storeConfig = null;
         }
+    }
+
+    /**
+     * Return a name for this application.
+     */
+    public String getApplicationName()
+    {
+        return applicationName;
+    }
+
+    /**
+     * Return the local name for the configuration store.
+     */
+    public String getStoreName()
+    {
+        return storeName;
     }
 
 //
