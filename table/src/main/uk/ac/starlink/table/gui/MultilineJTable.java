@@ -208,7 +208,7 @@ public class MultilineJTable extends JTable {
                 return (Object[]) val;
             }
             else if ( val instanceof String ) {
-                return ((String) val).split( "\n" );
+                return ((String) val).trim().split( "\n" );
             }
             else {
                 return null;
