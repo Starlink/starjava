@@ -533,7 +533,7 @@ public class FitsTableWriter implements StarTableWriter {
 
                 /* Work out the format string. */
                 byteCount += nElements[ icol ] * nbyte;
-                tforms[ icol ] = fchar + Integer.toString( nel );
+                tforms[ icol ] = Integer.toString( nel ) + fchar;
             }
         }
 
@@ -579,10 +579,10 @@ public class FitsTableWriter implements StarTableWriter {
                     if ( name != null && name.trim().length() > 0 ) {
                         hdr.addValue( "TTYPE" + jcol, name, "label" + forcol );
                     }
+                    hdr.addValue( "TFORM" + jcol, tform, "format" + forcol );
                     if ( unit != null && unit.trim().length() > 0 ) {
                         hdr.addValue( "TUNIT" + jcol, unit, "units" + forcol );
                     }
-                    hdr.addValue( "TFORM" + jcol, tform, "format" + forcol );
                     if ( tdim != null ) {
                         hdr.addValue( "TDIM" + jcol, tdim, 
                                       "dimensions" + forcol );
@@ -740,11 +740,15 @@ public class FitsTableWriter implements StarTableWriter {
      * Turns a String into a byte array of fixed length.
      */
     static class StringValueTranslator extends ArrayValueTranslator {
+        private static final byte[] emptyBytes = new byte[ 0 ];
         public StringValueTranslator( byte[] cell ) {
             super( cell, new byte[] { (byte) ' ' } );
         }
         public Object translate( Object base ) {
-            return super.translate( ((String) base).getBytes() );
+            byte[] bytes = base == null 
+                         ? emptyBytes 
+                         : ((String) base).getBytes();
+            return super.translate( bytes );
         }
     }
 

@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="0.3b"/>
+  <property name="version" value="0.4-1b"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -389,6 +389,15 @@
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+
+    <!-- Additional help file transformations. -->
+    <java classname="uk.ac.starlink.topcat.HelpTransformer"
+          output="${build.classes}/uk/ac/starlink/topcat/help/toc.html">
+      <classpath refid="classpath"/>
+      <arg value="-target"/>
+      <arg value="topcatMain"/>
+      <arg value="${src.dir}/resources/uk/ac/starlink/topcat/help/Topcat.hs"/>
+    </java>
 
   </target>
 

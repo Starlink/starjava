@@ -104,9 +104,9 @@ public class FitsStarTable extends RandomStarTable {
             }
 
             /* Blank value. */
-            String tnull = cards.getStringValue( "TNULL" + jcol );
-            if ( tnull != null ) {
-                long nullval = Long.parseLong( tnull );
+            String blankKey = "TNULL" + jcol;
+            if ( cards.containsKey( blankKey ) ) {
+                long nullval = cards.getLongValue( blankKey );
                 blanks[ icol ] = nullval;
                 hasBlank[ icol ] = true;
                 auxdata.add( new DescribedValue( tnullInfo, 
@@ -171,15 +171,21 @@ public class FitsStarTable extends RandomStarTable {
             }
 
             /* Class of column. */
-            Class cls = Object.class;
-            if ( isScaled[ icol ] ) {
-                cinfo.setContentClass( Double.class );
-            }
-            else if ( nrow > 0 ) {
-                Object test = getCell( 0, icol );
-                if ( test != null ) {
-                    cinfo.setContentClass( test.getClass() );
+            if ( nrow > 0 ) {
+                Object test = null;
+                try {
+                    test = thdu.getElement( 0, icol );
                 }
+                catch ( FitsException e ) {
+                    throw (IOException) 
+                          new IOException( "Error reading test cell" )
+                         .initCause( e );
+                }
+                Class cls = packagedType( test, icol );
+                cinfo.setContentClass( cls );
+            }
+            else if ( isScaled[ icol ] ) {
+                cinfo.setContentClass( Double.class );
             }
         }
     }
@@ -230,6 +236,9 @@ public class FitsStarTable extends RandomStarTable {
      * object we want to return from this table.  That includes
      * scaling it if necessary, spotting blank values, and turning 
      * it from a 1-element array to a Number object.
+     * <p>
+     * Note that the {@link #packageValue} routine must be kept consistent
+     * with this one.
      *
      * @param   base  the object got from the fits table
      * @param   icol  the column from which <tt>base</tt> comes
@@ -288,12 +297,16 @@ public class FitsStarTable extends RandomStarTable {
                               : (Number) new Double( val );
             }
 
-            /* Just dereference for string or booleans. */
+            /* Just dereference and wrap for boolean. */
             else if ( cls == boolean.class ) {
                 return new Boolean( ((boolean[]) base)[ 0 ] );
             }
+
+            /* Since there is no way of representing a blank value in a
+             * string, regard a string of all spaces as blank. */
             else if ( cls == String.class ) {
-                return new String( ((String[]) base)[ 0 ] );
+                String val = ((String[]) base)[ 0 ];
+                return val.matches( "^ *$" ) ? null : val;
             }
         }
 
@@ -304,7 +317,67 @@ public class FitsStarTable extends RandomStarTable {
             return ArrayFuncs.flatten( base );
         }
 
+        /* If it's string of blanks, regard it as a null. */
+        if ( base.getClass() == String.class && 
+             ((String) base).matches( "^ *$" ) ) {
+            return null;
+        }
+
         /* Otherwise, just return it. */
         return base;
+    }
+
+    /**
+     * Returns the class of object which would be returned by
+     * the {@link #packageValue} method for a given object in a given
+     * column.
+     * This differs from calling <tt>getClass</tt> on the result of 
+     * <tt>packageValue</tt> in the case that packageValue would return
+     * a null value.
+     * <p>
+     * This must be kept consistent with {@link #packageValue}
+     *
+     * @param   base  the object got from column <tt>icol</tt> of the fits table
+     * @param   icol  the column from which <tt>base</tt> comes
+     * @return  the class that <tt>packageValue(base,icol)</tt> 
+     *          would return an instance of
+     */
+    private Class packagedType( Object base, int icol  ) {
+
+        Class cls = base.getClass().getComponentType();
+        if ( cls != null && Array.getLength( base ) == 1 ) {
+            boolean scaled = isScaled[ icol ];
+            if ( scaled ) {
+                return Double.class;
+            }
+            if ( cls == byte.class ) {
+                return Byte.class;
+            }
+            else if ( cls == short.class ) {
+                return Short.class;
+            }
+            else if ( cls == int.class ) {
+                return Integer.class;
+            }
+            else if ( cls == long.class ) {
+                return Long.class;
+            }
+            else if ( cls == float.class ) {
+                return Float.class;
+            }
+            else if ( cls == double.class ) {
+                return Double.class;
+            }
+            else if ( cls == boolean.class ) {
+                return Boolean.class;
+            }
+            else if ( cls == String.class ) {
+                return String.class;
+            }
+        }
+        else if ( cls != null && cls.getComponentType() != null ) {
+            return ArrayFuncs.flatten( base ).getClass();
+        }
+        return base.getClass();
     }
 }
