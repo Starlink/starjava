@@ -1,0 +1,125 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<title>RCL: Recognition Configuration Language</title>
+<h1>RCL: Recognition Configuration Language</h1>
+
+<p>
+RCL stands for Recognition Configuration Language.  It is a package
+for configuring groups of recognizers using a declarative XML-based
+language.  This package is throw-away code since it will later be
+absorbed into something more general.
+</p>
+
+<p>
+RCL is useful for several reasons:
+<ul>
+  <li> It is high-level, allowing recognizers to be treated more
+       like components.
+  <li> It is declarative and hierarchical, a close match to Diva's
+       recognition structure.
+  <li> It is interpreted, thus recognition hierarchies can be configured
+       without recompiling.
+</ul>
+
+<h2>Basic Usage</h2>
+<p>
+RCL consists of hierarchies of &quot;scene&quot; and &quot;stroke&quot; recognizers.
+Scene recognizers can contain other scene recognizers, stroke recognizers can
+contain stroke recognizers.&nbsp; Scene recognizers can contain stroke
+recognizers, but the stroke recognizers are automatically adapted by the parser using the
+StrokeSceneRecognizer class.&nbsp; The recognizers are built using
+&quot;builder&quot; objects, so the command:
+</p>
+<p><i>&lt;recognizer&gt;<br>
+&nbsp;&nbsp;&nbsp;</i> <i>&lt;builderDecls&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;builder name=&quot;CalligrapherRecognizer&quot;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+class=&quot;diva.sketch.calligrapher.CalligrapherRecognizer&quot;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+builder=&quot;diva.sketch.calligrapher.CalligrapherBuilder&quot;/&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/builderDecls&gt;</i>
+</p>
+<p><i>&nbsp;&nbsp;&nbsp; &lt;sceneRecognizer class=&quot;CalligrapherRecognizer&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;param name=&quot;systemDict&quot;
+value=&quot;ps.voc&quot;/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;param name=&quot;userDict&quot;
+value=&quot;user.voc&quot;/&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/sceneRecognizer&gt;<br>
+&lt;/recognizer&gt;</i>
+</p>
+<p>will create a CalligrapherRecognizer object with the given parameters.&nbsp;
+The builderDecls clause states that the class CalligrapherBuilder will actually
+build the CalligrapherRecognizer.
+</p>
+<p>Here is a more complex example that references two external files:</p>
+<p><i>&lt;recognizer><br>
+&nbsp;&nbsp;&nbsp; &lt;bulderDecls ref=&quot;system.xml&quot;/&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;sceneRecognizer class=&quot;PPTParser&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;sceneRecognizer class="VotingSceneRecognizer"><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;strokeRecognizer class="VotingStrokeRecognizer"><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;strokeRecognizer class=&quot;ScribbleRecognizer&quot;/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;strokeRecognizer class="BasicStrokeRecognizer"><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;param name="trainingFile" value="shapes.tc"/><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;/strokeRecognizer><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/strokeRecognizer><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;sceneRecognizer ref="TextRecognizer.xml"/><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/sceneRecognizer><br>
+&nbsp;&nbsp;&nbsp; &lt;/sceneRecognizer><br>
+&lt;/recognizer></i></p>
+<p>In this example, &quot;system.xml&quot; contains aliases for the builders of
+each of the classes in this file, and &quot;TextRecognizer.xml&quot; contains
+another hierarchical recognizer configuration.</p>
+
+<h2>Adding New Recognizers</h2>
+
+<p>It is simple to add a new recognizer to RCL.&nbsp; There are several cases:</p>
+<ul>
+  <li>If the recognizer is a recognizer that has no parameters</li>
+  <li>If the recognizer is a scene recognizer that uses a single scene
+    recognizer as its child and has no parameters</li>
+  <li>If the recognizer is neither of these</li>
+</ul>
+
+<p>If the recognizer is a StrokeRecognizer that has no parameters, add a <i>ClassBuilder</i>
+alias to the aliases file.&nbsp; For instance:</p>
+
+<p><i>&lt;builder name=&quot;ScribbleRecognizer class=&quot;diva.sketch.toolbox.ScribbleRecognizer&quot;
+builder=&quot;diva.sketch.rcl.ClassBuilder&quot;/&gt;</i></p>
+<p>This alias instructs <i>ClassBuilder</i> to build
+the recognizer based on its class name.</p>
+<p>If the recognizer is a scene recognizer that uses a single scene recognizer
+as its child and has no parameters, add a <i>SceneClassBuilder</i> alias to the
+aliases file.&nbsp; For instance:</p>
+<p><i>  &lt;builder name=&quot;PPTParser&quot; class=&quot;pptest.PPTParser&quot; builder=&quot;diva.sketch.rcl.SceneClassBuilder&quot;/&gt;</i></p>
+<p>Otherwise, build your own RCLBuilder that does the right thing for your
+class.&nbsp; For instance:</p>
+<p><i>  &lt;builder name=&quot;CalligrapherRecognizer&quot; class=&quot;diva.sketch.calligrapher.CalligrapherRecognizer&quot;
+builder=&quot;diva.sketch.calligrapher.CalligrapherBuilder&quot;/&gt;</i></p>
+<p><i>public class CalligrapherBuilder implements RCLBuilder {<br>
+&nbsp;&nbsp;&nbsp; public Object build(List children, Map params, String config)
+throws Exception {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String systemDict = (String)params.get(&quot;systemDict&quot;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; String userDict = (String)params.get(&quot;userDict&quot;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return new CalligrapherRecognizer(systemDict, userDict);<br>
+&nbsp;&nbsp;&nbsp; }<br>
+}</i></p>
+
+<h2>Future Work</h2>
+<p>RCL is an exploratory programming exercise.&nbsp; It may grow into a more
+powerful configuration language that also componentizes the interpretation and
+behavior of sketch-based programs.&nbsp; It may go away entirely.&nbsp; In the
+meantime, here are some concrete deficiencies of RCL that I intend to fix:</p>
+<ul>
+  <li><u>Configuration strings</u> - It should be possible to pass arbitrary
+    strings to the builders.&nbsp; This is reflected in the RCLBuilder
+    interface, but not implemented in RCLParser.</li>
+  <li><u>Named references</u> - It should be possible to construct a DAG of
+    recognizers, rather than just a tree.&nbsp; In order to do this in XML, it
+    is necessary to support named references.</li>
+</ul>
+
+

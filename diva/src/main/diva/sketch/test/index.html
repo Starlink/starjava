@@ -1,0 +1,30 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+Some regression tests for the Diva sketch package:
+<ul>
+
+<li> Load a sketch, save it, and compare the files to make sure they
+       are identical.  Tests saving, loading, and the integrity of the
+       sketch model.
+
+<li> With a predefined stroke, or set of strokes, measure a set of
+	features and verify their correctness (for deterministic
+	features, e.g. most things except for # of corners).  write a
+	test of the feature extractors to make sure that they produce
+	the correct set of features for the test strokes.
+
+<li> Record a set of mouse events.  Instantiate a sketch window, but
+	don't show it.  Send the mouse events to the window.  Check
+	that the model contains the correct stroke.
+
+<li> Given a classifier/stroke recognizer, run it on a stroke and make
+	sure that the output only contains valid types and confidences.
+
+<li> Instantiate whiteboard, change line color and width, send
+	pre-recorded mouse events, change to an editing state,
+	send more events, save to file, and compare to test
+	file.
+
+</ul>
+
+
