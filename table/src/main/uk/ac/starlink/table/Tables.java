@@ -205,8 +205,12 @@ public class Tables {
 
                 /* Check the cell is of the declared type. */
                 if ( cell != null ) {
-                    assertTrue( classes[ icol ]
-                               .isAssignableFrom( cell.getClass() ) );
+                    if ( ! classes[ icol ]
+                          .isAssignableFrom( cell.getClass() ) ) {
+                        throw new AssertionError( "Column " + icol + ": " +
+                            cell + " is a " + cell.getClass().getName() + 
+                            " not a " + classes[ icol ].getName() );
+                    }
                 }
             }
             lrow++;
