@@ -302,7 +302,8 @@ public class TXTSpecDataImpl extends SpecDataImpl
                     nlines++;
                 }
             }
-        } catch ( IOException e ) {
+        }
+        catch ( IOException e ) {
             e.printStackTrace();
             try {
                 r.close();
@@ -360,7 +361,7 @@ public class TXTSpecDataImpl extends SpecDataImpl
 
         //  Create an AST lutmap that relates the index of the data
         //  counts to the coordinates.
-        LutMap lutmap = new LutMap( coords, 0.0, 1.0 );
+        LutMap lutmap = new LutMap( coords, 1.0, 1.0 );
 
         //  Now create a frameset and add all these to it.
         astref = new FrameSet( baseframe );
