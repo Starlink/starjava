@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.net.URL;
@@ -24,7 +23,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.ReaderThread;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
 
@@ -90,37 +91,6 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     }
 
     /**
-     * Returns the name of an element as a normal string like "TABLE" in
-     * the VOTable namespace, given the various name items that 
-     * SAX provides for a start/end element event. 
-     * 
-     * @param  namespaceURI  namespaceURI
-     * @param  localName   local name
-     * @param  qName   qualified name
-     */
-    private String getTagName( String namespaceURI, String localName,
-                               String qName ) {
-        if ( localName != null && localName.length() > 0 ) {
-            return localName;
-        }
-        else {
-            return qName;
-        }
-    }
-
-    /**
-     * Returns the value of an attribute.
-     *
-     * @param  atts  attribute set
-     * @param  name  normal VOTable name of the attribute
-     * @return  value of attribute <tt>name</tt> or null if it doesn't exist
-     */
-    private String getAttribute( Attributes atts, String name ) {
-        String val = atts.getValue( name );
-        return val != null ? val : atts.getValue( "", name );
-    }
-
-    /**
      * Returns an array of the Decoder objects for the current table.
      *
      * @return  array of decoders for current table
@@ -165,27 +135,31 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 setCustomHandler( new TabledataHandler() );
             }
             else if ( "STREAM".equals( tagName ) ) {
-                String parentName = ((Element) getNewestNode().getParentNode())
-                                   .getTagName();
+                Element parent = (Element) getNewestNode().getParentNode();
+                String parentName = parent.getTagName();
                 String href = getAttribute( atts, "href" );
+                String encoding = getAttribute( atts, "encoding" );
                 try {
                     if ( parentName.equals( "BINARY" ) ) {
                         if ( href != null ) {
                             setCustomHandler( 
-                                new HrefBinaryStreamHandler( atts ) );
+                                new HrefBinaryStreamHandler( href, encoding ) );
                         }
                         else {
                             setCustomHandler( new InlineBinaryStreamHandler() );
                         }
                     }
                     else if ( parentName.equals( "FITS" ) ) {
+                        String extnum = parent.hasAttribute( "extnum" ) 
+                                      ? parent.getAttribute( "extnum" )
+                                      : null;
                         if ( href != null ) {
                             setCustomHandler( 
-                                new HrefFITSStreamHandler( atts ) );
+                                new HrefFITSStreamHandler( href, extnum ) );
                         }
                         else {
                             setCustomHandler( 
-                                new InlineFITSStreamHandler( atts ) );
+                                new InlineFITSStreamHandler( extnum ) );
                         }
                     }
                 }
@@ -259,7 +233,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
             String tagName = getTagName( namespaceURI, localName, qName );
-            if ( "TD".equals( tagName ) && icol < ncol ) {
+            if ( inCell && "TD".equals( tagName ) && icol < ncol ) {
                 row[ icol ] = cell.length() > 0 
                             ? decoders[ icol ].decodeString( cell.toString() )
                             : null;
@@ -289,10 +263,8 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      */
     class HrefBinaryStreamHandler extends NullContentHandler {
 
-        HrefBinaryStreamHandler( Attributes atts ) {
-            URL url = URLUtils.makeURL( systemId, 
-                                        getAttribute( atts, "href" ) );
-            String encoding = getAttribute( atts, "encoding" );
+        HrefBinaryStreamHandler( String href, String encoding ) {
+            URL url = URLUtils.makeURL( systemId, href );
             TabularData tdata = 
                 new TableBodies.HrefBinaryTabularData( getDecoders(), url, 
                                                        encoding );
@@ -315,11 +287,10 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      */
     class HrefFITSStreamHandler extends NullContentHandler {
 
-        HrefFITSStreamHandler( Attributes atts ) throws IOException {
-            URL url = URLUtils.makeURL( systemId,
-                                        getAttribute( atts, "href" ) );
+        HrefFITSStreamHandler( String href, String extnum ) throws IOException {
+            URL url = URLUtils.makeURL( systemId, href );
             DataSource datsrc = new URLDataSource( url );
-            datsrc.setPosition( getAttribute( atts, "extnum" ) );
+            datsrc.setPosition( extnum );
             StarTable startab = new FitsTableBuilder()
                                .makeStarTable( datsrc, false );
             TabularData tdata = new TableBodies.StarTableTabularData( startab );
@@ -342,16 +313,33 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      */
     class InlineBinaryStreamHandler extends NullContentHandler {
 
-        TableBodies.InlineBinaryTabularData tdata;
-        Writer out;
+        final ReaderThread reader;
+        final Writer out;
+        final List rows;
 
         public InlineBinaryStreamHandler() throws IOException {
 
-            /* Set up a stream we can write encountered characters into. */
+            /* Set up a pipe we can write encountered characters into. */
             PipedOutputStream b64out = new PipedOutputStream();
-            tdata = new TableBodies.InlineBinaryTabularData( getDecoders(),
-                                                             b64out );
             out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
+
+            /* Set up a thread which will read from the other end of the pipe
+             * and write it into a row list. */
+            rows = new ArrayList();
+            final Decoder[] decoders = getDecoders();
+            reader = new ReaderThread( b64out ) {
+                protected void doReading( InputStream datain )
+                        throws IOException {
+                    InputStream in = new BufferedInputStream( datain );
+                    RowStepper rstep =
+                        new BinaryRowStepper( decoders, in, "base64" );
+                    Object[] row;
+                    while ( ( row = rstep.nextRow() ) != null ) {
+                        rows.add( row );
+                    }
+                }
+            };
+            reader.start();
         }
 
         public void startElement( String namespaceURI, String localName,
@@ -385,7 +373,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                  * rethrow any exceptions that we encounter in either thread. */
                 try {
                     out.close();
-                    tdata.finishReading();
+                    reader.finishReading();
                 }
                 catch ( IOException e ) {
                     throw (SAXException)
@@ -393,8 +381,16 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                                                  e ).initCause( e );
                 }
 
-                /* If OK so far, associate a ContentData object based on
+                /* If OK so far, associate a TabularData object based on
                  * the data we've read with this table. */
+                Decoder[] decoders = getDecoders();
+                int ncol = decoders.length;
+                Class[] classes = new Class[ ncol ];
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    classes[ icol ] = decoders[ icol ].getContentClass();
+                }
+                TabularData tdata =
+                    new TableBodies.RowListTabularData( classes, rows );
                 storeData( tableEl, tdata );
             }
         }
@@ -404,21 +400,36 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      * Custom handler for a STREAM child of a FITS element which has
      * data base64-encoded inline.
      */
-    class InlineFITSStreamHandler extends NullContentHandler {
+    class InlineFITSStreamHandler extends NullContentHandler 
+                                  implements TableSink {
 
-        TableBodies.InlineFITSTabularData tdata;
-        Writer out;
+        final ReaderThread reader;
+        final Writer out;
+        List rows;
+        Class[] classes;
 
-        public InlineFITSStreamHandler( Attributes atts ) throws IOException {
-            String extnum = getAttribute( atts, "extnum" );
+        public InlineFITSStreamHandler( String extnum ) throws IOException {
             if ( extnum != null && ! extnum.matches( "[0-9]+" ) ) {
                 extnum = null;
             }
 
             /* Set up a stream we can write encountered characters to. */
             PipedOutputStream b64out = new PipedOutputStream();
-            tdata = new TableBodies.InlineFITSTabularData( b64out, extnum );
             out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
+
+            /* Set up a thread which will read from the other end of the pipe
+             * and write it into a row list. */
+            final String ihdu = extnum;
+            reader = new ReaderThread( b64out ) {
+                protected void doReading( InputStream datain )
+                        throws IOException {
+                    InputStream in = new Base64InputStream(
+                                         new BufferedInputStream( datain ) );
+                    TableSink sink = InlineFITSStreamHandler.this;
+                    new FitsTableBuilder().copyStarTable( in, sink, ihdu );
+                }
+            };
+            reader.start();
         }
 
         public void startElement( String namespaceURI, String localName,
@@ -452,15 +463,36 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                  * rethrow any exceptions that we encounter in either thread. */
                 try {
                     out.close();
-                    tdata.finishReading();
+                    reader.finishReading();
                 }
                 catch ( IOException e ) {
                     throw (SAXException)
                           new SAXParseException( e.getMessage(), getLocator(),
                                                  e ).initCause( e );
                 }
+
+                /* If OK so far, associate a TabularData object based on
+                 * the data we've read with this table. */
+                TabularData tdata = 
+                    new TableBodies.RowListTabularData( classes, rows );
                 storeData( tableEl, tdata );
             }
+        }
+
+        public void acceptMetadata( StarTable meta ) {
+            int ncol = meta.getColumnCount();
+            rows = new ArrayList( Math.max( (int) meta.getRowCount(), 1 ) );
+            classes = new Class[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                classes[ icol ] = meta.getColumnInfo( icol ).getContentClass();
+            }
+        }
+
+        public void acceptRow( Object[] row ) {
+            rows.add( row );
+        }
+
+        public void endRows() {
         }
     }
 }

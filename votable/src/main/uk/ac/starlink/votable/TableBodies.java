@@ -3,8 +3,6 @@ package uk.ac.starlink.votable;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,7 @@ class TableBodies {
      * Abstract superclass for TabularData implementations which only 
      * allow sequential access.
      */
-    public abstract static class SequentialTabularData implements TabularData {
+    abstract static class SequentialTabularData implements TabularData {
         final int ncol;
         final Class[] classes;
                             
@@ -70,7 +68,7 @@ class TableBodies {
     /**
      * TabularData implementation with no rows.
      */
-    public static class EmptyTabularData extends SequentialTabularData {
+    static class EmptyTabularData extends SequentialTabularData {
         public EmptyTabularData( Class[] classes ) {
             super( classes );
         }
@@ -89,7 +87,7 @@ class TableBodies {
     /**
      * TabularData implementation which gets its data from a StarTable.
      */
-    public static class StarTableTabularData implements TabularData {
+    static class StarTableTabularData implements TabularData {
         private final StarTable startab;
 
         public StarTableTabularData( StarTable startab ) {
@@ -140,7 +138,7 @@ class TableBodies {
      * TabularData implementation which stores its data in an array of
      * rows.
      */
-    public static class RowListTabularData implements TabularData {
+    static class RowListTabularData implements TabularData {
 
         Class[] classes;
         List rows;
@@ -192,7 +190,7 @@ class TableBodies {
      * TabularData implementation for a BINARY STREAM element with an
      * <tt>href</tt> attribute pointing to the data.
      */
-    public static class HrefBinaryTabularData extends SequentialTabularData {
+    static class HrefBinaryTabularData extends SequentialTabularData {
         private final Decoder[] decoders;
         private final URL url;
         private final String encoding;
@@ -212,73 +210,10 @@ class TableBodies {
     }
 
     /**
-     * TabularData implementation for a BINARY STREAM element in which 
-     * the data stream itself will be supplied by writing a base64-encoded
-     * stream of data down a piped output stream.
-     */
-    public static class InlineBinaryTabularData extends RowListTabularData {
-
-        final Thread streamReader;
-        Exception caught;
-
-        public InlineBinaryTabularData( final Decoder[] decoders,
-                                        final PipedOutputStream b64out ) 
-                throws IOException {
-            classes = getClasses( decoders );
-            rows = new ArrayList();
-
-            streamReader = new Thread( "BINARY stream reader" ) {
-                PipedInputStream b64in = new PipedInputStream( b64out );
-                InputStream datain = new BufferedInputStream( b64in );
-                RowStepper rstep = 
-                    new BinaryRowStepper( decoders, datain, "base64" );
-                public void run() {
-                    Object[] row;
-                    try {
-                        while ( ( row = rstep.nextRow() ) != null ) {
-                            rows.add( row );
-                        }
-                    }
-                    catch ( IOException e ) {
-                        caught = e;
-                    }
-                    finally {
-                        try {
-                            datain.close();
-                        }
-                        catch ( IOException e ) {
-                        }
-                    }
-                }
-            };
-            streamReader.start();
-        }
-
-        public void finishReading() throws IOException {
-            try {
-                streamReader.join();
-            }
-            catch ( InterruptedException e ) {
-                if ( caught == null ) {
-                    caught = e;
-                }
-            }
-            if ( caught instanceof IOException ) {
-                throw (IOException) caught;
-            }
-            else if ( caught != null ) {
-                throw (IOException) new IOException( "Pipe trouble" )
-                                   .initCause( caught );
-            }
-        }
-    }
-
- 
-    /**
      * TabularData implementation for a TABLEDATA DOME element which 
      * contains the data as TR and TD descendants.
      */
-    public static class TabledataTabularData extends SequentialTabularData {
+    static class TabledataTabularData extends SequentialTabularData {
         final Decoder[] decoders;
         final Element tabledataEl;
         final int ncol;
@@ -342,84 +277,9 @@ class TableBodies {
     }
 
     /**
-     * TabularData implementation for a FITS STREAM element in which the
-     * data stream itself will be supplied by writing a base64-encoded
-     * stream of data down a piped output stream.
-     */
-    public static class InlineFITSTabularData extends RowListTabularData
-                                              implements TableSink {
-        private final Thread streamReader;
-        private Exception caught;
-
-        public InlineFITSTabularData( final PipedOutputStream b64out,
-                                      final String extnum ) throws IOException {
-
-            streamReader = new Thread( "FITS stream reader" ) {
-                final InputStream datain =
-                    new Base64InputStream( 
-                        new BufferedInputStream( 
-                            new PipedInputStream( b64out ) ) );
-                public void run() {
-                    try {
-                        TableSink sink = InlineFITSTabularData.this;
-                        new FitsTableBuilder().copyStarTable( datain, sink,
-                                                              extnum );
-                    }
-                    catch ( IOException e ) {
-                        caught = e;
-                    }
-                    finally {
-                        try {
-                            datain.close();
-                        }
-                        catch ( IOException e ) {
-                        }
-                    }
-                }
-            };
-            streamReader.start();
-        }
-
-        public void acceptMetadata( StarTable meta ) {
-            int ncol = meta.getColumnCount();
-            rows = new ArrayList( Math.max( (int) meta.getRowCount(), 1 ) );
-            
-            classes = new Class[ ncol ];
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                classes[ icol ] = meta.getColumnInfo( icol ).getContentClass();
-            }
-        }
-
-        public void acceptRow( Object[] row ) {
-            rows.add( row );
-        }
-
-        public void endRows() {
-        }
-
-        public void finishReading() throws IOException {
-            try {
-                streamReader.join();
-            }
-            catch ( InterruptedException e ) {
-                if ( caught == null ) {
-                    caught = e;
-                }
-            }
-            if ( caught instanceof IOException ) {
-                throw (IOException) caught;
-            }
-            else if ( caught != null ) {
-                throw (IOException) new IOException( "Pipe trouble" )
-                                   .initCause( caught );
-            }
-        }
-    }
-
-    /**
      * Returns the column content classes associated with an array of decoders.
      */
-    private static Class[] getClasses( Decoder[] decoders ) {
+    static Class[] getClasses( Decoder[] decoders ) {
         int ncol = decoders.length;
         Class[] classes = new Class[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
