@@ -432,8 +432,8 @@ public class PlotControlFrame
         DrawActions drawActions = plot.getPlot().getDrawActions();
         DrawFigureStore store = 
             new DrawFigureStore( Utilities.getApplicationName(),
-                                 "figurestore.xml",
-                                 "drawfigure" );
+                                 "FigureStore.xml",
+                                 "drawnfigures" );
         drawActions.setFigureStore( store );
         menuBar.add( new DrawGraphicsMenu( drawActions ) );
     }
