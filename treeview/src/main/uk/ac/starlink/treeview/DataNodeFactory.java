@@ -265,14 +265,22 @@ public class DataNodeFactory {
                 }
                 catch ( NoSuchDataException e ) {
                     if ( debug ) {
-                        trace.append( "   " )
-                             .append( e.getMessage() )
-                             .append( '\n' );
-                        StackTraceElement[] frames = e.getStackTrace();
-                        for ( int i = 0; i < frames.length; i++ ) {
-                            trace.append( "      " ) 
-                                 .append( frames[ i ] )
-                                 .append( "\n" );
+                        for ( Throwable th = e; th != null; 
+                              th = th.getCause() ) {
+                            if ( th != e ) {
+                                trace.append( "   Caused by:\n" );
+                            }
+                            String msg = th.getMessage()
+                                        .replaceAll( "\n", "\n   " );
+                            trace.append( "   " )
+                                 .append( msg )
+                                 .append( '\n' );
+                            StackTraceElement[] frames = th.getStackTrace();
+                            for ( int i = 0; i < frames.length; i++ ) {
+                                trace.append( "      " ) 
+                                     .append( frames[ i ] )
+                                     .append( "\n" );
+                            }
                         }
                     }
                 }
