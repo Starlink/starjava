@@ -17,10 +17,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -45,6 +45,7 @@ public class IntraMatchSpec extends MatchSpec {
     private final JSpinner widthSelector;
     private final MatchEngine engine;
     private StarTable result;
+    private int matchCount;
 
     private final static String IDENTIFY = 
         "Mark Groups of Rows";
@@ -146,9 +147,10 @@ public class IntraMatchSpec extends MatchSpec {
             new RowMatcher( engine, new StarTable[] { effTable } );
         matcher.setIndicator( indicator );
         List matches = matcher.findInternalMatches( false );
+        matchCount = matches.size();
 
         /* Construct a result table. */
-        if ( matches.size() == 0 ) {
+        if ( matchCount == 0 ) {
             result = null;
         }
         else {
@@ -228,7 +230,10 @@ public class IntraMatchSpec extends MatchSpec {
         else {
             TopcatModel tcModel = ControlWindow.getInstance()
                                  .addTable( result, "matched", true );
-            msg = "New table created by match: " + tcModel;
+            msg = new String[] { 
+                matchCount + " match groups located",
+                "New table created by match: " + tcModel,
+            };
             title = "Match Successful";
             msgType = JOptionPane.INFORMATION_MESSAGE;
         }
@@ -238,6 +243,6 @@ public class IntraMatchSpec extends MatchSpec {
     }
 
     private static int checkedLongToInt( long lval ) {
-        return AbstractStarTable.checkedLongToInt( lval );
+        return Tables.checkedLongToInt( lval );
     }
 }

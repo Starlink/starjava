@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.MatchStarTables;
@@ -38,6 +39,7 @@ public class InterMatchSpec extends MatchSpec {
     private final TupleSelector[] tupleSelectors;
     private final OutputRequirements[] outReqs;
     private StarTable result;
+    private int matchCount;
     private RowSubset[] matchSubsets;
 
     /**
@@ -123,6 +125,15 @@ public class InterMatchSpec extends MatchSpec {
         }
         int nrow = matches.size();
 
+        /* Count the number of matches made. */
+        matchCount = 0;
+        for ( Iterator it = matches.iterator(); it.hasNext(); ) {
+            RowLink link = (RowLink) it.next();
+            if ( link.size() > 0 ) {
+                matchCount++;
+            }
+        }
+
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
                 .makeJoinTable( bases, matches,
@@ -161,10 +172,10 @@ public class InterMatchSpec extends MatchSpec {
     }
 
     public void matchSuccess( Component parent ) {
-        String msg;
+        Object msg;
         String title;
         int msgType;
-        if ( result.getRowCount() == 0 ) {
+        if ( result.getRowCount() == 0 || matchCount == 0 ) {
             msg = "Matched table contains no rows";
             title = "Match Failed";
             msgType = JOptionPane.ERROR_MESSAGE;
@@ -175,7 +186,11 @@ public class InterMatchSpec extends MatchSpec {
             for ( int i = 0; i < matchSubsets.length; i++ ) {
                 tcModel.addSubset( matchSubsets[ i ] );
             }
-            msg = "New table created by match: " + tcModel;
+            msg = new String[] {
+                matchCount + ( nTable == 2 ? " pairs" : " match groups" )
+                           + " found",
+                "New table created by match: " + tcModel,
+            };
             title = "Match Successful";
             msgType = JOptionPane.INFORMATION_MESSAGE;
         }
