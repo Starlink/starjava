@@ -150,9 +150,10 @@ public class StarTableOutput {
     /**
      * Gets the list of handlers which can actually do table output.
      * Handlers earlier in the list are given a chance to write the
-     * table before ones later in the list.
+     * table before ones later in the list.  The returned list may be
+     * modified to change this object's behaviour.
      *
-     * @return  handlers  an array of <tt>StarTableWriter</tt> objects 
+     * @return  handlers  a list of <tt>StarTableWriter</tt> objects 
      */
     public List getHandlers() {
         return handlers;
@@ -283,8 +284,70 @@ public class StarTableOutput {
     }
 
     /**
-     * Returns a StarTableWriter object given a format to write and a location
-     * to write to.  Returns null if none can be found.
+     * Returns a StarTableWriter object given an output format name.
+     *
+     * @param  format  a string which indicates in some way what format
+     *         should be used for output.  This may be the class name of
+     *         a <tt>StarTableWriter</tt> object (which may or may not be
+     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a string which matches the format name of one of the registered
+     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         case-insensitive, starting substrings OK).
+     * @throws TableFormatException  if no handler suitable for the arguments
+     *         can be found
+     * @return a suitable output handler
+     */
+    public StarTableWriter getHandler( String format )
+            throws TableFormatException {
+
+        /* See if the format is the class name of a StarTableWriter. */
+        try {
+            Class fcls = this.getClass().forName( format );
+            if ( StarTableWriter.class.isAssignableFrom( fcls ) ) {
+
+                /* Is it one of the registered ones? */
+                for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+                    StarTableWriter handler = (StarTableWriter) it.next();
+                    if ( fcls.isInstance( handler ) ) {
+                        return handler;
+                    }
+                }
+
+                /* Otherwise, can we instantiate it with a no-arg
+                 * constructor? */
+                try {
+                    StarTableWriter handler = 
+                        (StarTableWriter) fcls.newInstance();
+                    return handler;
+                }
+                catch ( IllegalAccessException e ) {
+                }
+                catch ( InstantiationException e ) {
+                }
+            }
+        }
+        catch ( ClassNotFoundException e ) {
+            // it's not a class name
+        }
+
+        /* Otherwise, see if it names an output format. */
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            StarTableWriter handler = (StarTableWriter) it.next();
+            if ( handler.getFormatName().toLowerCase()
+                        .startsWith( format.toLowerCase() ) ) { 
+                return handler;
+            }
+        }
+
+        /* No luck - throw an exception. */
+        throw new TableFormatException( "No handler for table format \"" +
+                                        format + "\"" );
+    }
+
+    /**
+     * Returns a StarTableWriter object given an output format name
+     * and/or a location to write to.  If the format name is blank,
+     * the location is used to guess the type of output required.
      *
      * @param  format   a string which indicates in some way what format
      *         should be used for output.  This may be the class name of
@@ -308,49 +371,7 @@ public class StarTableOutput {
 
         /* Do we have a format string? */
         if ( format != null && format.length() > 0 ) {
-        
-            /* See if the format is the class name of a StarTableWriter. */
-            try {
-                Class fcls = this.getClass().forName( format );
-                if ( StarTableWriter.class.isAssignableFrom( fcls ) ) {
-
-                    /* Is it one of the registered ones? */
-                    for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-                        StarTableWriter handler = (StarTableWriter) it.next();
-                        if ( fcls.isInstance( handler ) ) {
-                            return handler;
-                        }
-                    }
-
-                    /* Otherwise, can we instantiate it with a no-arg
-                     * constructor? */
-                    try {
-                        StarTableWriter handler = 
-                            (StarTableWriter) fcls.newInstance();
-                        return handler;
-                    }
-                    catch ( IllegalAccessException e ) {
-                    }
-                    catch ( InstantiationException e ) {
-                    }
-                }
-            }
-            catch ( ClassNotFoundException e ) {
-                // it's not a class name
-            }
-
-            /* Otherwise, see if it names an output format. */
-            for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-                StarTableWriter handler = (StarTableWriter) it.next();
-                if ( handler.getFormatName().toLowerCase()
-                            .startsWith( format.toLowerCase() ) ) { 
-                    return handler;
-                }
-            }
-
-            /* No luck - throw an exception. */
-            throw new TableFormatException( "No handler for table format \"" +
-                                            format + "\"" );
+            return getHandler( format );
         }
 
         /* If no format has been specified, offer it to the first handler 
