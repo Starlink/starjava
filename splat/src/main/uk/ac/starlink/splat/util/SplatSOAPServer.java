@@ -7,6 +7,7 @@
 package uk.ac.starlink.splat.util;
 
 import java.net.URL;
+import java.net.Socket;
 import java.io.IOException;
 
 import org.w3c.dom.Element;
@@ -123,6 +124,23 @@ public class SplatSOAPServer
         //  define the SOAP services offered (by this class). 
         URL deployURL = SplatSOAPServer.class.getResource( "deploy.wsdd" );
         System.out.println( deployURL );
+
+        //  Check if this port is already bound. In which case give up
+        //  now!
+        boolean open = true;
+        try {
+            Socket tempSocket = new Socket( "localhost", portNumber );
+            tempSocket.close();
+        }
+        catch (Exception any) {
+            // Fails if not already in use, which is good.
+            open = false;
+        }
+        if ( open ) {
+            throw new RuntimeException( "Failed to start SPLAT " +
+                                        "SOAP services, port already in use" );
+        }
+
         try {
             server = new AppHttpSOAPServer( portNumber );
             server.start();
