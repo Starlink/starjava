@@ -18,9 +18,10 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
  * By default, if the corresponding classes are present, the following
  * handlers are installed:
  * <ul>
- * <li> {@link uk.ac.starlink.table.TextTableWriter}
- * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
+ * <li> {@link uk.ac.starlink.votable.VOTableWriter}
+ * <li> {@link uk.ac.starlink.table.TextTableWriter}
+ * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
  * </ul>
  * It can additionally write to JDBC tables.
@@ -32,9 +33,10 @@ public class StarTableOutput {
     private List handlers;
     private JDBCHandler jdbcHandler;
     private static String[] defaultHandlerClasses = {
-        "uk.ac.starlink.table.TextTableWriter",
-        "uk.ac.starlink.votable.VOTableWriter",
         "uk.ac.starlink.fits.FitsTableWriter",
+        "uk.ac.starlink.votable.VOTableWriter",
+        "uk.ac.starlink.table.TextTableWriter",
+        "uk.ac.starlink.table.formats.LatexTableWriter",
         "uk.ac.starlink.mirage.MirageTableWriter",
     };
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
