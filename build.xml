@@ -179,6 +179,15 @@
     <echo message="Executing Treeview target: ${what}"/>
     <ant dir="./treeview" target="${what}"/>
     
+    <echo message="Executing Pal target: ${what}"/>
+    <ant dir="./pal" target="${what}"/>
+    
+    <echo message="Executing Coco target: ${what}"/>
+    <ant dir="./coco" target="${what}"/>
+    
+    <echo message="Executing RV target: ${what}"/>
+    <ant dir="./rv" target="${what}"/>
+    
   </target>
   
   <!--
@@ -377,6 +386,18 @@
       </packageset>
 
       <packageset dir="soapserver/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="pal/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="coco/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="rv/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
