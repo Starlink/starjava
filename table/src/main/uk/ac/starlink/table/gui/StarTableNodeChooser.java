@@ -6,6 +6,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -249,6 +251,9 @@ public class StarTableNodeChooser {
 
     static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
+        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.OFF );
+        Logger.getLogger( "uk.ac.starlink.hds" ).setLevel( Level.OFF );
+
         chooserClass = Class.forName( CHOOSER_CLASS, true,
                                       Thread.currentThread()
                                             .getContextClassLoader());
