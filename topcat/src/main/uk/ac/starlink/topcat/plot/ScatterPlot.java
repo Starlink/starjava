@@ -1,5 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -32,6 +34,7 @@ public class ScatterPlot extends JComponent implements Printable {
     private Points points_;
     private PlotState state_;
     private PlotSurface surface_;
+    private Annotations annotations_;
     private Points lastPoints_;
     private PlotState lastState_;
     private PlotSurface lastSurface_;
@@ -49,6 +52,7 @@ public class ScatterPlot extends JComponent implements Printable {
         setLayout( new OverlayLayout( this ) );
         setOpaque( false );
         add( new ScatterDataPanel() );
+        annotations_ = new Annotations();
         setSurface( surface );
     }
     
@@ -85,6 +89,7 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     public void setPoints( Points points ) {
         points_ = points;
+        annotations_ = new Annotations();
     }
 
     /**
@@ -104,6 +109,7 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     public void setState( PlotState state ) {
         state_ = state;
+        annotations_.validate();
         if ( surface_ != null ) {
             surface_.setState( state_ );
         }
@@ -116,6 +122,16 @@ public class ScatterPlot extends JComponent implements Printable {
      */
     public PlotState getState() {
         return state_;
+    }
+
+    /**
+     * Sets the point at index <tt>ip</tt> of the Points object "active".
+     * It will be marked out somehow or other when plotted.
+     *
+     * @param  ip  active point index, or -1 to indicate no active point
+     */
+    public void setActivePoint( int ip ) {
+        annotations_.activePoint_ = ip;
     }
 
     /**
@@ -227,6 +243,17 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
+     * Plots the registered annotations of this scatter plot onto a given
+     * graphics context using its current plotting surface to define the
+     * mapping of data to graphics space.
+     *
+     * @param  g  graphics context
+     */
+    private void drawAnnotations( Graphics g ) {
+        annotations_.draw( g );
+    }
+
+    /**
      * Implements the {@link java.awt.print.Printable} interface.
      * At time of writing, this method is not used by TOPCAT, though it 
      * could be; in particular it is not used to implement the 
@@ -265,11 +292,72 @@ public class ScatterPlot extends JComponent implements Printable {
         }
     }
 
+    /**
+     * This class takes care of all the markings plotted over the top of
+     * the plot proper.  It's coded as an extra class just to make it tidy,
+     * these workings could equally be in the body of ScatterPlot.
+     */
+    private class Annotations {
+
+        int activePoint_ = -1;
+
+        /**
+         * Paints all the current annotations onto a given graphics context.
+         *
+         * @param  g  graphics context
+         */
+        void draw( Graphics graphics ) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+
+            /* Draw an active point if there is one. */
+            if ( activePoint_ >= 0 ) {
+                Point p = surface_
+                      .dataToGraphics( points_.getXVector()[ activePoint_ ], 
+                                       points_.getYVector()[ activePoint_ ] );
+                if ( p != null ) {
+                    Graphics2D g = (Graphics2D) g2.create();
+                    g.setColor( new Color( 0, 0, 0, 192 ) );
+                    g.setStroke( new BasicStroke( 2 ) );
+                    g.translate( p.x, p.y );
+                    g.drawOval( -6, -6, 13, 13 );
+                    g.drawLine( 0, +4, 0, +8 );
+                    g.drawLine( 0, -4, 0, -8 );
+                    g.drawLine( +4, 0, +8, 0 );
+                    g.drawLine( -4, 0, -8, 0 );
+                }
+            }
+        }
+
+        /**
+         * Updates this annotations object as appropriate for the current
+         * state of the plot.
+         */
+        void validate() {
+
+            /* If there is an active point which no longer corresponds to
+             * a visible point, drop it. */
+            if ( activePoint_ >= 0 ) {
+                boolean in = false;
+                RowSubset[] sets = state_.getSubsets();
+                int nset = sets.length;
+                for ( int is = 0; is < nset && !in; is++ ) {
+                    if ( sets[ is ].isIncluded( (long) activePoint_ ) ) {
+                        in = true;
+                    }
+                }
+                if ( ! in ) {
+                    activePoint_ = -1;
+                }
+            }
+        }
+    }
+
 
     /**
      * Graphical component which does the actual plotting of the points.
-     * Its basic job is to call {@link @drawPoints} in its 
-     * {@link paintComponent} method.  However it makes things a bit more
+     * Its basic job is to call {@link @drawPoints} and {@link drawAnnotations}
+     * in its {@link paintComponent} method.  
+     * However it makes things a bit more
      * complicated than that for the purposes of efficiency.
      */
     private class ScatterDataPanel extends JComponent {
@@ -280,12 +368,13 @@ public class ScatterPlot extends JComponent implements Printable {
 
         /**
          * Draws the component to a graphics context which probably 
-         * represents the screen, by calling {@link #drawPoints}.
+         * represents the screen, by calling {@link #drawPoints}
+         * and {@link #drawAnnotations}.
          * Since <tt>drawPoints</tt> might be fairly expensive 
          * (if there are a lot of points), and <tt>paintComponent</tt> 
          * can be called often without the data changing 
          * (e.g. cascading window uncover events) it is advantageous 
-         * to cache the drawing in an Image and effectively
+         * to cache the drawn points in an Image and effectively
          * blit it to the screen on subsequent paint requests.
          */
         protected void paintComponent( Graphics g ) {
@@ -337,6 +426,7 @@ public class ScatterPlot extends JComponent implements Printable {
              * the graphics context we are being asked to paint into. */
             boolean done = g.drawImage( image_, 0, 0, null );
             assert done;
+            drawAnnotations( g );
         }
 
         /**
@@ -359,6 +449,7 @@ public class ScatterPlot extends JComponent implements Printable {
          */
         protected void printComponent( Graphics g ) {
             drawPoints( g );
+            drawAnnotations( g );
         }
     }
 

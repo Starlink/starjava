@@ -71,6 +71,7 @@ import uk.ac.starlink.topcat.TableViewerWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
 import uk.ac.starlink.topcat.ViewerTableModel;
+import uk.ac.starlink.topcat.WindowAction;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
@@ -227,8 +228,6 @@ public class PlotWindow extends TopcatViewWindow
         subSelRecorder_ = new OrderedSelectionRecorder( subSelModel_ );
         subSelModel_.addListSelectionListener( this );
         subSelModel_.addListSelectionListener( subSelRecorder_ );
-
-        /* Construct a panel which will hold the plot itself. */
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -560,10 +559,14 @@ public class PlotWindow extends TopcatViewWindow
      * @param   ip   row index for the point to be activated
      */
     private void activatePoint( int ip ) {
-        TableViewerWindow viewer = 
-            (TableViewerWindow) tcModel_.getViewerAction().getWindow( this );
-        viewer.makeVisible();
-        viewer.highlightRow( (long) ip );
+        WindowAction viewerAction = tcModel_.getViewerAction();
+        if ( viewerAction.hasWindow() ) {
+            TableViewerWindow viewer =
+                (TableViewerWindow) viewerAction.getWindow( this );
+            if ( viewer.isVisible() ) {
+                viewer.highlightRow( (long) ip );
+            }
+        }
     }
 
     /**
@@ -837,6 +840,8 @@ public class PlotWindow extends TopcatViewWindow
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
                 int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
+                plot_.setActivePoint( ip );
+                plot_.repaint();
                 if ( ip >= 0 ) {
                     activatePoint( ip );
                 }
