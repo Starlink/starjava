@@ -50,11 +50,7 @@ public class DoubleValueField {
     public DoubleValueField( ValueInfo info, ValueConverter[] convs ) {
         info_ = new DefaultValueInfo( info );
         label_ = new JLabel( info_.getName() + ": " );
-        entryField_ = new JTextField( 12 ) {
-            public String getToolTipText() {
-                return info_.getDescription();
-            }
-        };
+        entryField_ = new JTextField( 12 );
         convSelector_ = new JComboBox( convs );
         convSelector_.setSelectedIndex( 0 );
     }
@@ -66,6 +62,18 @@ public class DoubleValueField {
      */
     public DefaultValueInfo getValueInfo() {
         return info_;
+    }
+
+    /**
+     * Sets the description of this field.  This may be presented as a tool
+     * tip and stored in the metadata associated with this field.
+     *
+     * @param  description   description of field
+     */
+    public void setDescription( String description ) {
+        info_.setDescription( description );
+        label_.setToolTipText( description );
+        entryField_.setToolTipText( description );
     }
 
     /**
