@@ -374,5 +374,14 @@ public class StarTableFactory {
         }
         return jdbcHandler;
     }
+
+    /**
+     * Sets the JDBC handler object used by this factory.
+     *
+     * @param  handler  the JDBC handler
+     */
+    public void setJDBCHandler( JDBCHandler handler ) {
+        jdbcHandler = handler;
+    }
   
 }
