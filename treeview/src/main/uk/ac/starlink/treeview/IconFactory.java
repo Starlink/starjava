@@ -29,6 +29,7 @@ public class IconFactory {
     public static final short EXCISE = 22;
     public static final short OPEN = 23;
     public static final short CLOSE = 24;
+    public static final short RELOAD = 30;
     public static final short DELETE = 31;
     public static final short UP = 32;
     public static final short DOWN = 33;
@@ -135,6 +136,7 @@ public class IconFactory {
             case EXCISE:         iname = "MinusMinus.gif";           break;
             case OPEN:           iname = "Plus.gif";                 break;
             case CLOSE:          iname = "Minus.gif";                break;
+            case RELOAD:         iname = "redoy2.gif";               break;
             case DELETE:         iname = "trasha2.gif";              break;
             case UP:             iname = "Up.gif";                   break;
             case DOWN:           iname = "Down.gif";                 break;

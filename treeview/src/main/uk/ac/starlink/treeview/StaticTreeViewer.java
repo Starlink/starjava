@@ -82,6 +82,7 @@ public class StaticTreeViewer extends JFrame {
     private Action expandAction;
     private Action recursiveCollapseAction;
     private Action recursiveExpandAction;
+    private Action reloadAction;
     private Action deleteAction;
     private Action upAction;
     private Action copyTopAction;
@@ -440,6 +441,37 @@ public class StaticTreeViewer extends JFrame {
                 }
             };
 
+        /* Refresh node action. */
+        reloadAction =
+            new BasicAction( "Reload Node",
+                             IconFactory.getIcon( IconFactory.RELOAD ),
+                             "Refresh node data" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    DataNode dn = getSelectedDataNode();
+                    CreationState creator = dn.getCreator();
+                    if ( creator == null || creator.getObject() == null ) {
+                        Toolkit.getDefaultToolkit().beep();
+                        return;
+                    }
+                    DataNode newdn;
+                    try {
+                        newdn = creator.getBuilder()
+                               .buildNode( creator.getObject()  );
+                        if ( newdn == null ) {
+                            throw new NoSuchDataException( 
+                                          "Data no longer available" );
+                        }
+                        newdn.setLabel( dn.getLabel() );
+                        newdn.setCreator( creator );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        newdn = new ErrorDataNode( e );
+                        newdn.setCreator( creator );
+                    }
+                    replaceNode( dn, newdn );
+                }
+            };
+
         /* Delete node from top level of tree action. */
         deleteAction =
             new BasicAction( "Delete Node",
@@ -531,6 +563,7 @@ public class StaticTreeViewer extends JFrame {
         /* Add collapse/expand actions to menu and toolbar. */
         JMenu treeMenu = new JMenu( "Tree" );
         mb.add( treeMenu );
+        treeMenu.add( reloadAction ).setIcon( null );
         treeMenu.add( deleteAction ).setIcon( null );
         treeMenu.add( upAction ).setIcon( null );
         treeMenu.add( copyTopAction ).setIcon( null );
@@ -549,6 +582,7 @@ public class StaticTreeViewer extends JFrame {
         tools.addSeparator();
         tools.add( upAction );
         tools.add( copyTopAction );
+        tools.add( reloadAction );
         tools.add( deleteAction );
 
         /* Add the help menu actions. */
@@ -571,6 +605,9 @@ public class StaticTreeViewer extends JFrame {
         if ( selNode != null ) {
             TreePath tp = jtree.getSelectionPath();
             boolean isExpansible = ! treeModel.isLeaf( selNode );
+            CreationState creator = selNode.getCreator();
+            boolean isReloadable = creator != null
+                                && creator.getObject() != null;
             recursiveExpandAction.setEnabled( isExpansible );
             recursiveCollapseAction.setEnabled( isExpansible );
             if ( isExpansible ) {
@@ -583,6 +620,7 @@ public class StaticTreeViewer extends JFrame {
                 collapseAction.setEnabled( false );
             }
             boolean inRoot = ( tp.getPathCount() == 2 );
+            reloadAction.setEnabled( isReloadable );
             deleteAction.setEnabled( inRoot );
             upAction.setEnabled( inRoot && selNode.getParentObject() != null );
             copyTopAction.setEnabled( ! inRoot );
@@ -592,6 +630,7 @@ public class StaticTreeViewer extends JFrame {
             recursiveCollapseAction.setEnabled( false );
             expandAction.setEnabled( false );
             collapseAction.setEnabled( false );
+            reloadAction.setEnabled( false );
             deleteAction.setEnabled( false );
             upAction.setEnabled( false );
             copyTopAction.setEnabled( false );
