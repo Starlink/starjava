@@ -12,6 +12,7 @@ package nom.tam.fits;
 
 import java.io.*;
 import java.util.*;
+import nom.tam.util.RandomAccess;
 import nom.tam.util.*;
 
 /** This class describes methods to access and manipulate the header
@@ -57,7 +58,13 @@ public class Header implements FitsElement {
     public Header(String[] newCards) {
 
       for (int i=0;  i < newCards.length; i += 1) {
-           cards.add(new HeaderCard(newCards[i]));
+	  HeaderCard card = new HeaderCard(newCards[i]);
+	  if (card.getValue() == null) {
+              cards.add(card);
+	  } else {
+	      cards.add(card.getKey(), card);
+	  }
+	  
       }
     }
     
@@ -114,7 +121,7 @@ public class Header implements FitsElement {
 	boolean isGroup = getBooleanValue("GROUPS", false);
 	
 	int pcount = getIntValue("PCOUNT", 0);
-	int gcount = getIntValue("GCOUNT", 0);
+	int gcount = getIntValue("GCOUNT", 1);
 	
 	int startAxis = 0;
 	
@@ -539,12 +546,14 @@ public class Header implements FitsElement {
         if (cards.size() <= 0) {
             return;
         }
+	
       
         Cursor iter = cards.iterator(0);
 
         try {
             while (iter.hasNext()) {
 		HeaderCard card  = (HeaderCard) iter.next();
+			
 		byte[] b = card.toString().getBytes();
 	        dos.write( b );
             }
@@ -580,6 +589,7 @@ public class Header implements FitsElement {
     
     /** Can the header be rewritten without rewriting the entire file? */
     public boolean rewriteable() {
+	
 	if (fileOffset >= 0  &&
 	    input instanceof ArrayDataOutput &&
 	    (cards.size() + 35)/36  == (oldSize+35)/36) {
@@ -859,6 +869,7 @@ public class Header implements FitsElement {
     void checkBeginning() throws FitsException {
 	
 	iter = iterator();
+	
 	if (!iter.hasNext()) {
 	    throw new FitsException("Empty Header");
 	}
@@ -867,17 +878,22 @@ public class Header implements FitsElement {
 	if (!key.equals("SIMPLE") && !key.equals("XTENSION")) {
 	    throw new FitsException("No SIMPLE or XTENSION at beginning of Header");
 	}
-	boolean isTable = false;
+	boolean isTable     = false;
+	boolean isExtension = false;
 	if (key.equals("XTENSION")) {
 	    String value = card.getValue();
 	    if (value == null) {
 	        throw new FitsException("Empty XTENSION keyword");
 	    }
+	    
+	    isExtension = true;
+	    
 	    if (value.equals("BINTABLE") || value.equals("A3DTABLE") ||
 		value.equals("TABLE")) {
 		isTable = true;
 	    }
 	}
+	
 	cardCheck("BITPIX");
 	cardCheck("NAXIS");
 	
@@ -888,10 +904,12 @@ public class Header implements FitsElement {
 	    cardCheck("NAXIS"+i);
 	}
 	
-	if (isTable) {
+	if (isExtension) {
 	    cardCheck("PCOUNT");
 	    cardCheck("GCOUNT");
-	    cardCheck("TFIELDS");
+	    if (isTable) {
+	        cardCheck("TFIELDS");
+	    }
 	}
     }
 		
