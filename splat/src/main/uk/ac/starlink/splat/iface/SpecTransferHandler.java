@@ -61,10 +61,11 @@ public class SpecTransferHandler
         // Flavors we can accept from Treeview.
         new DataFlavor( "application/xml;class=java.io.InputStream",
                         "NDX stream" ),
-        new DataFlavor( "application/fits;class=java.io.InputStream",
-                        "FITS stream" ),
         new DataFlavor( DataFlavor.javaSerializedObjectMimeType +
                         ";class=java.net.URL", "URL" )
+        /*XXX Don't want one of these
+          new DataFlavor( "application/fits;class=java.io.InputStream",
+          "FITS stream" ),*/
     };
 
 
@@ -148,11 +149,11 @@ public class SpecTransferHandler
                     return importNDXStream( comp, t );
                 }
                 if ( flavors[2].match( importFlavors[j] ) ) {
-                    return importFITSStream( comp, t );
-                }
-                if ( flavors[3].match( importFlavors[j] ) ) {
                     return importURL( comp, t );
                 }
+                /*if ( flavors[3].match( importFlavors[j] ) ) {
+                  return importFITSStream( comp, t );
+                }*/
             }
         }
         return false;
@@ -165,9 +166,9 @@ public class SpecTransferHandler
                 (ArrayList) t.getTransferData( flavors[0] );
             int added = 0;
 
-            //  Add any unknowns to the global list (needed in
-            //  both cases). These will be imports from other
-            //  instances of SPLAT!
+            //  Add any unknowns to the global list (needed in both
+            //  cases). These will be imports from other instances of
+            //  SPLAT!
             for ( int i = 0; i < spectra.size(); i++ ) {
                 SpecData spec = (SpecData) spectra.get( i );
                 if ( globalList.getSpectrumIndex( spec ) == -1 ) {
@@ -176,8 +177,8 @@ public class SpecTransferHandler
                 }
             }
 
-            //  If importing to a PlotControl also arrange to
-            //  display any currently undisplayed spectra.
+            //  If importing to a PlotControl also arrange to display
+            //  any currently undisplayed spectra.
             if ( comp instanceof PlotControl ) {
                 added = 0;
                 PlotControl plot = (PlotControl) comp;
@@ -241,7 +242,7 @@ public class SpecTransferHandler
     {
         boolean added = false;
         try {
-            URL url = (URL) t.getTransferData( flavors[3] );
+            URL url = (URL) t.getTransferData( flavors[2] );
             NDXSpecDataImpl impl = new NDXSpecDataImpl( url );
             SpecData spectrum = new SpecData( impl );
             displaySpectrum( comp, spectrum );
