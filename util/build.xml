@@ -24,10 +24,9 @@
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
  !      javadoc-sources  -> does nothing
- !      iutest           -> run up any user interface tests
- !!
- !! test targets yet to be done.
- !!
+ !      uitest           -> run up any user interface tests
+ !      test             -> run JUnit tests
+ !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
  !      Mark Taylor (13-AUG-2002)
@@ -920,6 +919,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="plain" usefile="false"/>
 
@@ -947,6 +947,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
