@@ -54,3 +54,6 @@ V1.3.
  - RA/Dec columns once specified are used elsewhere.
  - Simple (non-JAI,SoG) image display for GIF, JPEG, PNG, FITS files.
  - ASCII input handler no longer works in auto-detect mode.
+Next
+ - Added Starlink logo to all windows at PTW's suggestion
+ - Added 2MASS cutout servers to activation window

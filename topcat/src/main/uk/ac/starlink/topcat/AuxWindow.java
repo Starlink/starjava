@@ -27,6 +27,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -71,6 +72,9 @@ public class AuxWindow extends JFrame {
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static final Icon LOGO =
+        new ImageIcon( ResourceIcon.STAR_LOGO.getImage()
+                      .getScaledInstance( -1, 34, Image.SCALE_SMOOTH ) );
     public static final String VERSION_RESOURCE = "version-string";
     private static HelpSet hset;
 
@@ -178,6 +182,12 @@ public class AuxWindow extends JFrame {
 
         /* Add a close button. */
         toolBar.add( closeIsExit ? exitAct : closeAct );
+
+        /* Add logo. */
+        toolBar.add( Box.createHorizontalGlue() );
+        toolBar.addSeparator();
+        toolBar.add( new JLabel( LOGO ) );
+        toolBar.addSeparator();
     }
 
     /**

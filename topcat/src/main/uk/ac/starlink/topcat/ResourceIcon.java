@@ -55,6 +55,7 @@ public class ResourceIcon implements Icon {
         TOPCAT = makeIcon( "TopCat2.gif" ),
         TOPCAT_LOGO = makeIcon( "tc3.gif" ),
         STARLINK = makeIcon( "starlinklogo3.gif" ),
+        STAR_LOGO = makeIcon( "starlinklogo1b.gif" ),
         TABLE = makeIcon( "browser1.gif" ),
 
         /* Generic actions. */
