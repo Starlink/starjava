@@ -191,15 +191,15 @@ public interface Ndx {
      *           are considered relative.  If null, all are written absolute.
      * @return   an XML Source representation of this Ndx
      * @see     uk.ac.starlink.util.SourceReader
-     * @deprecated replaced by <code>getDOMFacade().getSource(base)</code>
+     * @deprecated replaced by <code>getHdxFacade().getSource(base)</code>
      */
     Source toXML( URL base );
 
     /**
-     * Obtains a DOMFacade, which enables us to examine and manipulate
+     * Obtains a HdxFacade, which enables us to examine and manipulate
      * the Ndx in a DOM-like way.
      *
-     * @return a DOMFacade representing the Ndx
+     * @return a HdxFacade representing the Ndx
      */
-    uk.ac.starlink.hdx.DOMFacade getDOMFacade();
+    uk.ac.starlink.hdx.HdxFacade getHdxFacade();
 }
