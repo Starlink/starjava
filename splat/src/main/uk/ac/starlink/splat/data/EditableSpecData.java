@@ -18,8 +18,8 @@ import uk.ac.starlink.splat.util.Sort;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * An editable version of the {@link SpecData} type.  It extends 
- * {@link SpecData} to also support the {@link EditableSpecDataImpl} 
+ * An editable version of the {@link SpecData} type.  It extends
+ * {@link SpecData} to also support the {@link EditableSpecDataImpl}
  * interface. This provides facilities for modifying the values and
  * coordinates.
  * <p>
@@ -121,7 +121,7 @@ public class EditableSpecData
      * @param coords the spectrum coordinates, one per data value.
      * @param data the spectrum data values.
      */
-    public void setData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
@@ -129,7 +129,30 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, data, null, false );
-        editableImpl.setData( coords, data );
+        editableImpl.setSimpleData( coords, data );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data, but preserving the properties of an
+     * existing FrameSet as part of a new FrameSet that describes the spectrum.
+     * Original data is not copied.
+     *
+     * @param frameSet the 1D FrameSet to be used for properties. The current
+     *                 Frame defines the spectrum coordinate system.
+     * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
+     */
+    public void setSimpleUnitData( FrameSet frameSet, double[] coords,
+                                   double[] data )
+        throws SplatException
+    {
+        if ( data.length != coords.length ) {
+            throw new SplatException( "Data and coordinates must have " +
+                                      "the same number of values" );
+        }
+        constructColumnUndo( coords, data, null, false );
+        editableImpl.setSimpleUnitData( frameSet, coords, data );
         readData();
     }
 
@@ -139,11 +162,11 @@ public class EditableSpecData
      * @param frameSet a FrameSet for the WCS of this data
      * @param data the spectrum data values.
      */
-    public void setData( FrameSet frameSet, double[] data )
+    public void setFullData( FrameSet frameSet, double[] data )
         throws SplatException
     {
         constructColumnAndFrameSetUndo( data, null, false );
-        editableImpl.setData( frameSet, data );
+        editableImpl.setFullData( frameSet, data );
         readData();
     }
 
@@ -154,7 +177,7 @@ public class EditableSpecData
      * @param coords the spectrum coordinates, one per data value.
      * @param data the spectrum data values.
      */
-    public void setDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, double[] data )
         throws SplatException
     {
         if ( data.length != coords.length ) {
@@ -162,7 +185,30 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, data, null, true );
-        editableImpl.setDataQuick( coords, data );
+        editableImpl.setSimpleDataQuick( coords, data );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data, but preserving the properties of an
+     * existing FrameSet as part of a new FrameSet that describes the spectrum.
+     * Original data is not copied.
+     *
+     * @param frameSet the 1D FrameSet to be used for properties. The current
+     *                 Frame defines the spectrum coordinate system.
+     * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
+     */
+    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords, 
+                                        double[] data )
+        throws SplatException
+    {
+        if ( data.length != coords.length ) {
+            throw new SplatException( "Data and coordinates must have " +
+                                      "the same number of values" );
+        }
+        constructColumnUndo( coords, data, null, true );
+        editableImpl.setSimpleUnitDataQuick( frameSet, coords, data );
         readData();
     }
 
@@ -173,11 +219,11 @@ public class EditableSpecData
      * @param frameSet a FrameSet for the WCS of this data
      * @param data the spectrum data values.
      */
-    public void setDataQuick( FrameSet frameSet, double[] data )
+    public void setFullDataQuick( FrameSet frameSet, double[] data )
         throws SplatException
     {
         constructColumnAndFrameSetUndo( data, null, true );
-        editableImpl.setDataQuick( frameSet, data );
+        editableImpl.setFullDataQuick( frameSet, data );
         readData();
     }
 
@@ -188,7 +234,8 @@ public class EditableSpecData
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setData( double[] coords, double[] data, double[] errors )
+    public void setSimpleData( double[] coords, double[] data,
+                               double[] errors )
         throws SplatException
     {
         if ( ( data.length != coords.length && errors == null ) ||
@@ -198,7 +245,33 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, data, errors, false );
-        editableImpl.setData( coords, data, errors );
+        editableImpl.setSimpleData( coords, data, errors );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data, but preserving the properties of an
+     * existing FrameSet as part of a new FrameSet that describes the spectrum.
+     * Copies all data.
+     *
+     * @param frameSet the 1D FrameSet to be used for properties. The current
+     *                 Frame defines the spectrum coordinate system.
+     * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    public void setSimpleUnitData( FrameSet frameSet, double[] coords, double[] data,
+                                   double[] errors )
+        throws SplatException
+    {
+        if ( ( data.length != coords.length && errors == null ) ||
+             ( data.length != coords.length &&
+               data.length != errors.length ) ) {
+            throw new SplatException( "Data and coordinates must have " +
+                                      "the same number of values" );
+        }
+        constructColumnUndo( coords, data, errors, false );
+        editableImpl.setSimpleUnitData( frameSet, coords, data, errors );
         readData();
     }
 
@@ -209,7 +282,8 @@ public class EditableSpecData
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setData( FrameSet frameSet, double[] data, double[] errors )
+    public void setFullData( FrameSet frameSet, double[] data,
+                             double[] errors )
         throws SplatException
     {
         if ( ( errors == null ) || ( data.length != errors.length ) ) {
@@ -217,7 +291,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( data, errors, false );
-        editableImpl.setData( frameSet, data, errors );
+        editableImpl.setFullData( frameSet, data, errors );
         readData();
     }
 
@@ -228,7 +302,8 @@ public class EditableSpecData
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setDataQuick( double[] coords, double[] data, double[] errors )
+    public void setSimpleDataQuick( double[] coords, double[] data, 
+                                    double[] errors )
         throws SplatException
     {
         if ( ( data.length != coords.length ) ||
@@ -237,7 +312,32 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnUndo( coords, data, errors, true );
-        editableImpl.setDataQuick( coords, data, errors );
+        editableImpl.setSimpleDataQuick( coords, data, errors );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data, but preserving the properties of an
+     * existing FrameSet as part of a new FrameSet that describes the spectrum.
+     * Doesn't copy data.
+     *
+     * @param frameSet the 1D FrameSet to be used for properties. The current
+     *                 Frame defines the spectrum coordinate system.
+     * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    public void setSimpleUnitDataQuick( FrameSet frameSet, double[] coords, 
+                                        double[] data, double[] errors )
+        throws SplatException
+    {
+        if ( ( data.length != coords.length ) ||
+             ( ( errors != null ) && ( data.length != errors.length ) ) ) {
+            throw new SplatException( "Data and coordinates must have " +
+                                      "the same number of values" );
+        }
+        constructColumnUndo( coords, data, errors, true );
+        editableImpl.setSimpleUnitDataQuick( frameSet, coords, data, errors );
         readData();
     }
 
@@ -248,8 +348,8 @@ public class EditableSpecData
      * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    public void setDataQuick( FrameSet frameSet, double[] data,
-                              double[] errors )
+    public void setFullDataQuick( FrameSet frameSet, double[] data,
+                                  double[] errors )
         throws SplatException
     {
         if ( ( errors != null ) && ( data.length != errors.length ) ) {
@@ -257,7 +357,7 @@ public class EditableSpecData
                                       "the same number of values" );
         }
         constructColumnAndFrameSetUndo( data, errors, true );
-        editableImpl.setDataQuick( frameSet, data, errors );
+        editableImpl.setFullDataQuick( frameSet, data, errors );
         readData();
     }
 
@@ -295,7 +395,7 @@ public class EditableSpecData
     }
 
     /**
-     * Sort the coordinates into increasing order and remove any duplicates. 
+     * Sort the coordinates into increasing order and remove any duplicates.
      * This makes the spectrum monotonic.
      */
     public void sort()
@@ -346,10 +446,10 @@ public class EditableSpecData
                     }
                 }
             }
-            setDataQuick( nc, nd, ne );
+            setSimpleDataQuick( nc, nd, ne );
         }
         else {
-            setDataQuick( xPos, yPos, yErr );
+            setSimpleDataQuick( xPos, yPos, yErr );
         }
     }
 
@@ -476,7 +576,7 @@ public class EditableSpecData
 
             try {
                 specData.undoable = false;
-                specData.setDataQuick( newCoords, newData, newErrors );
+                specData.setSimpleDataQuick( newCoords, newData, newErrors );
                 specData.undoable = true;
             }
             catch (SplatException e) {
@@ -567,7 +667,7 @@ public class EditableSpecData
                                                    boolean needCopy )
     {
         if ( undoable && undoManager != null ) {
-            undoableEdit = new EditColumnAndFrameSet( this, data, errors, 
+            undoableEdit = new EditColumnAndFrameSet( this, data, errors,
                                                       needCopy );
             undoManager.addEdit( undoableEdit );
         }
@@ -658,7 +758,7 @@ public class EditableSpecData
 
             try {
                 specData.undoable = false;
-                specData.setDataQuick( targetFrameSet, newData, newErrors );
+                specData.setFullDataQuick( targetFrameSet, newData, newErrors );
                 specData.undoable = true;
             }
             catch (SplatException e) {
