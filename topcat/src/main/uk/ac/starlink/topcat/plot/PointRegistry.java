@@ -55,14 +55,36 @@ public class PointRegistry {
     }
 
     /**
-     * Returns a bit vector containing with bits set for every point index
+     * Returns a bit vector with bits set for every point index
      * which falls within a given shape on the screen.
      *
      * @param  shape  shape defining inclusion criterion
      * @return  bit vector locating points inside <tt>shape</tt>
      */
     public BitSet getContainedPoints( Shape shape ) {
-  return null;
+        if ( ! ready_ ) {
+            throw new IllegalStateException( "Not ready!" );
+        }
+        BitSet inside = new BitSet();
+        int npoint = points_.length;
+        int lastX = Integer.MIN_VALUE;
+        int lastY = Integer.MIN_VALUE;
+        boolean lastIn = false;
+        for ( int i = 0; i < npoint; i++ ) {
+            IdentifiedPoint ipoint = points_[ i ];
+            int px = ipoint.x_;
+            int py = ipoint.y_;
+            boolean in = ( px == lastX && py == lastY ) 
+                       ? lastIn
+                       : shape.contains( (double) px, (double) py );
+            if ( in ) {
+                inside.set( ipoint.id_ );
+            }
+            lastX = px;
+            lastY = py;
+            lastIn = in;
+        }
+        return inside;
     }
     
     /**
@@ -211,6 +233,10 @@ public class PointRegistry {
             else {
                 return ( x1 < x2 ) ? -1 : +1;
             }
+        }
+
+        public String toString() {
+            return "#" + id_ + ": (" + x_ + ", " + y_ + ")";
         }
     }
 
