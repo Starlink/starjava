@@ -160,16 +160,16 @@ public class NdxIO {
      *               a suitable <code>file:</code>-protocol URL or one
      *               with some other protocol which can provide an
      *               output-capable connection
-     * @param   original  an existing Ndx object whose data will be copied
+     * @param   ndx  an existing Ndx object whose data will be copied
      *             to <tt>url</tt>
      * @throws IOException  if an I/O error occurs
      * @throws UnsupportedOperationException  no handler exists for this URL
      */
-    public void outputNdx( URL url, Ndx original )
+    public void outputNdx( URL url, Ndx ndx )
             throws IOException {
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             NdxHandler handler = (NdxHandler) it.next();
-            if ( handler.outputNdx( url, original ) ) {
+            if ( handler.outputNdx( url, ndx ) ) {
                 return;
             }
         }
@@ -203,14 +203,14 @@ public class NdxIO {
      *
      * @param  location  the location of the resource.  If it cannot be
      *                   parsed as a URL it will be treated as a filename
-     * @param  original  an existing Ndx object whose data will be copied
+     * @param  ndx  an existing Ndx object whose data will be copied
      * @throws IOException  if there is any I/O error
      * @throws FileNotFoundException  if the location doesn't look like a 
      *                     file or URL
      */
-    public void outputNdx( String location, Ndx original )
+    public void outputNdx( String location, Ndx ndx )
             throws IOException{
-        outputNdx( getUrl( location ), original );
+        outputNdx( getUrl( location ), ndx );
     }
 
     private static URL getUrl( String location ) throws FileNotFoundException {

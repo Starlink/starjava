@@ -51,6 +51,8 @@ public class XMLNdxHandler implements NdxHandler {
     private static NDArrayFactory arrayfact = new NDArrayFactory();
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
+    private URL context;
+
     /**
      * Private sole constructor.
      */
@@ -94,6 +96,18 @@ public class XMLNdxHandler implements NdxHandler {
      * @throws  IOException  if some error occurs in the I/O
      */
     public Ndx makeNdx( Source xsrc ) throws IOException {
+
+        /* Try to get the System ID for resolving relative URLs. */
+        String cxt = xsrc.getSystemId();
+        if ( cxt != null ) {
+            try {
+                context = new URL( cxt );
+            }
+            catch ( MalformedURLException e ) {
+                logger.info( "Malformed SystemID found for stream: " + cxt );
+                context = null;
+            }
+        }
 
         /* Get a DOM. */
         Node ndxdom;
@@ -193,7 +207,7 @@ public class XMLNdxHandler implements NdxHandler {
         URL url;
         String loc = getTextContent( el );
         try {
-            url = new URL( loc );
+            url = new URL( context, loc );
         }
         catch ( MalformedURLException e ) {
             throw (IOException) 

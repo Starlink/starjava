@@ -243,7 +243,7 @@ public class BridgeNdx implements Ndx {
         doc.appendChild( ndxEl );
 
         /* Write a title element. */
-        if ( getTitle() != null ) {
+        if ( hasTitle() ) {
             Element titleEl = doc.createElement( "title" );
             ndxEl.appendChild( titleEl );
             Node titleNode = doc.createTextNode( getTitle() );
