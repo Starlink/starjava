@@ -349,7 +349,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         revealcolAct = new ColumnInfoAction( "Reveal Selected Column(s)",
                                              ResourceIcon.REVEAL,
                                              "Reveal All Selected columns" );
-        explodecolAct = new ColumnInfoAction( "Explode Vector Column",
+        explodecolAct = new ColumnInfoAction( "Explode Array Column",
                                               ResourceIcon.EXPLODE,
                                               "Replace N-element array column "
                                               + "with N scalar columns" );
