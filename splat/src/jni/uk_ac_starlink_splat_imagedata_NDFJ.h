@@ -7,12 +7,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+/* Inaccessible static: logger */
+/* Inaccessible static: supported */
 #undef uk_ac_starlink_splat_imagedata_NDFJ_serialVersionUID
 #define uk_ac_starlink_splat_imagedata_NDFJ_serialVersionUID 7112558037504787639LL
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BADF
 #define uk_ac_starlink_splat_imagedata_NDFJ_BADF -3.4028235E38f
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BADD
-#define uk_ac_starlink_splat_imagedata_NDFJ_BADD -1.7976931348623157E308D
+#define uk_ac_starlink_splat_imagedata_NDFJ_BADD -1.7976931348623157E308
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BADI
 #define uk_ac_starlink_splat_imagedata_NDFJ_BADI -2147483648L
 #undef uk_ac_starlink_splat_imagedata_NDFJ_BADS
@@ -167,6 +169,14 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGet2DBy
 
 /*
  * Class:     uk_ac_starlink_splat_imagedata_NDFJ
+ * Method:    nGetAstArray
+ * Signature: (I)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAstArray
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     uk_ac_starlink_splat_imagedata_NDFJ
  * Method:    nGetAst
  * Signature: (I)J
  */
@@ -175,19 +185,19 @@ JNIEXPORT jlong JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGetAst
 
 /*
  * Class:     uk_ac_starlink_splat_imagedata_NDFJ
+ * Method:    nSetAstArray
+ * Signature: (I[Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAstArray
+  (JNIEnv *, jclass, jint, jobjectArray);
+
+/*
+ * Class:     uk_ac_starlink_splat_imagedata_NDFJ
  * Method:    nSetAst
  * Signature: (IJ)V
  */
 JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
   (JNIEnv *, jclass, jint, jlong);
-
-/*
- * Class:     uk_ac_starlink_splat_imagedata_NDFJ
- * Method:    nAstClose
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nAstClose
-  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     uk_ac_starlink_splat_imagedata_NDFJ
