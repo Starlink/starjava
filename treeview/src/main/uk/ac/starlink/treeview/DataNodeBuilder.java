@@ -13,6 +13,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Node;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -291,7 +292,15 @@ public abstract class DataNodeBuilder {
         }
 
         else if ( obj instanceof DOMSource ) {
-            parent = ((DOMSource) obj).getNode().getParentNode();
+            DOMSource dsrc = (DOMSource) obj;
+            String sysid = dsrc.getSystemId();
+            Node pnode = dsrc.getNode().getParentNode();
+            if ( pnode != null ) {
+                parent = new DOMSource( pnode, sysid ); 
+            }
+            else if ( sysid != null && sysid.trim().length() > 0 ) {
+                parent = sysid;
+            }
         }
 
         /* Get a suitable label from a source name if we have one.  The format

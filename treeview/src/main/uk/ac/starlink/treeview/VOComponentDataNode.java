@@ -163,14 +163,6 @@ public class VOComponentDataNode extends DefaultDataNode {
         };
     }
 
-    public boolean hasParentObject() {
-        return vocel.getParentNode() != null;
-    }
-
-    public Object getParentObject() {
-        return new DOMSource( vocel.getParentNode() );
-    }
-
     public boolean hasFullView() {
         return true;
     }
@@ -180,13 +172,13 @@ public class VOComponentDataNode extends DefaultDataNode {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
             dv.addKeyedItem( "Element name", vocel.getTagName() );
-            addVOComponentViews( dv, vocel );
+            addVOComponentViews( dv, vocel, systemId );
         }
         return fullView;
     }
 
-    public static void addVOComponentViews( DetailViewer dv, 
-                                            final Element el ) {
+    public static void addVOComponentViews( DetailViewer dv, final Element el,
+                                            final String systemId ) {
 
         /* Collect useful children. */
         Map atts = new TreeMap();
@@ -205,7 +197,7 @@ public class VOComponentDataNode extends DefaultDataNode {
             else if ( child instanceof Element ) {
                 Element childEl = (Element) child;
                 String elname = childEl.getTagName();
-                DOMSource childSrc = new DOMSource( childEl );
+                DOMSource childSrc = new DOMSource( childEl, systemId );
                 if ( elname.equals( "DESCRIPTION" ) ) {
                     description = DOMUtils.getTextContent( childEl ).trim();
                 }
@@ -224,6 +216,12 @@ public class VOComponentDataNode extends DefaultDataNode {
                     coosyss.add( VOElement.makeVOElement( childSrc ) );
                 }
             }
+        }
+
+        /* System ID. */
+        if ( systemId != null && systemId.trim().length() > 0 ) {
+            dv.addSeparator();
+            dv.addKeyedItem( "System ID", systemId );
         }
 
         /* Attributes. */
@@ -289,7 +287,7 @@ public class VOComponentDataNode extends DefaultDataNode {
         /* XML view. */
         dv.addPane( "XML content", new ComponentMaker() {
             public JComponent getComponent() throws TransformerException {
-                return new TextViewer( new DOMSource( el ) );
+                return new TextViewer( new DOMSource( el, systemId ) );
             }
         } );
     }

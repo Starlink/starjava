@@ -79,7 +79,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
             }
 
             /* Generic items. */
-            addVOComponentViews( dv, vocel );
+            addVOComponentViews( dv, vocel, systemId );
 
             /* Fields. */
             dv.addSubHead( "Columns" );

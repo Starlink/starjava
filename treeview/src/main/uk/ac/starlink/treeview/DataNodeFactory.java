@@ -236,7 +236,8 @@ public class DataNodeFactory implements Cloneable {
         /* Dropped off the end of the loop - no success. */
         if ( newNode == null ) {
             throw new NoSuchDataException( 
-                "No suitable node could be constructed for " + obj );
+                "No suitable node could be constructed for " + obj + " by\n" +
+                this );
         }
 
         /* We have successfully created a new node.  Do some additional

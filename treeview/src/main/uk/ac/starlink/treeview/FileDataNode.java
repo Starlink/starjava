@@ -36,11 +36,9 @@ public class FileDataNode extends DefaultDataNode {
      */
     public FileDataNode( File file ) throws NoSuchDataException {
         this.file = file;
-        if ( file.getPath().equals( "/" ) ) {
-            name = "/";
-        }
-        else {
-            name = file.getName();
+        name = file.getName();
+        if ( name.length() == 0 ) {
+            name = file.getAbsolutePath(); // cope with root directory
         }
         setLabel( name );
         if ( ! existsInDirectory( file ) ) {

@@ -55,6 +55,7 @@ public class StaticTreeViewer extends JFrame {
     private Action helpAct;
     private Action deleteAct;
     private Action upAct;
+    private Action copyTopAct;
 
     /** No details panel is displayed. */
     public static final short DETAIL_NONE = 0;
@@ -704,17 +705,37 @@ public class StaticTreeViewer extends JFrame {
                 MutableTreeNode tnode =
                     (MutableTreeNode) tree.getLastSelectedPathComponent();
                 MutableTreeNode root = (MutableTreeNode) treeModel.getRoot();
-                MutableTreeNode ptnode = new DefaultMutableTreeNode( pdn );
+                DefaultMutableTreeNode ptnode = 
+                    new DefaultMutableTreeNode( pdn );
+                ptnode.setAllowsChildren( pdn.allowsChildren() );
                 int pos = treeModel.getIndexOfChild( root, tnode );
                 if ( ! error ) {
                     treeModel.removeNodeFromParent( tnode );
                 }
                 treeModel.insertNodeInto( ptnode, root, pos );
-                tree.setSelectionRow( pos );
+                TreePath selPath = 
+                    new TreePath( treeModel.getPathToRoot( ptnode ) );
+                tree.setSelectionPath( selPath );
             }
         };
         upAct.putValue( Action.SHORT_DESCRIPTION,
                         "Replace a top-level node by its parent" );
+
+        /* Action for copying a node into the top level. */
+        copyTopAct =
+            new AbstractAction( "Copy node to root",
+                                iconMaker.getIcon( IconFactory.DOWN ) ) {
+            public void actionPerformed( ActionEvent event ) {
+                TreePath tp = tree.getSelectionPath();
+                DataNode dn = getDataNodeFromTreePath( tp );
+                MutableTreeNode root = (MutableTreeNode) treeModel.getRoot();
+                DefaultMutableTreeNode tnode = new DefaultMutableTreeNode( dn );
+                tnode.setAllowsChildren( dn.allowsChildren() );
+                treeModel.insertNodeInto( tnode, root, root.getChildCount() );
+            }
+        };
+        copyTopAct.putValue( Action.SHORT_DESCRIPTION,
+                             "Copy node into the top level" );
 
         /* Configure a selection listener to control availability of actions. */
         tree.getSelectionModel()
@@ -771,6 +792,7 @@ public class StaticTreeViewer extends JFrame {
         mb.add( treeMenu );
         treeMenu.add( deleteAct ).setIcon( null );
         treeMenu.add( upAct ).setIcon( null );
+        treeMenu.add( copyTopAct ).setIcon( null );
         treeMenu.add( collapseSelAct ).setIcon( null );
         treeMenu.add( expandSelAct ).setIcon( null );
         treeMenu.add( rCollapseSelAct ).setIcon( null );
@@ -784,6 +806,7 @@ public class StaticTreeViewer extends JFrame {
         tools.add( rExpandSelAct );
         tools.addSeparator();
         tools.add( upAct );
+        tools.add( copyTopAct );
         tools.add( deleteAct );
 
         /* Add the help menu action. */
@@ -843,6 +866,7 @@ public class StaticTreeViewer extends JFrame {
             deleteAct.setEnabled( inRoot );
             DataNode dn = getDataNodeFromTreePath( tp );
             upAct.setEnabled( inRoot && dn.hasParentObject() );
+            copyTopAct.setEnabled( ! inRoot );
         }
         else {
             rExpandSelAct.setEnabled( false );
@@ -851,6 +875,7 @@ public class StaticTreeViewer extends JFrame {
             collapseSelAct.setEnabled( false );
             deleteAct.setEnabled( false );
             upAct.setEnabled( false );
+            copyTopAct.setEnabled( false );
         }
     }
 

@@ -93,7 +93,9 @@ public interface DataNode {
 
     /**
      * Returns an object which is in some sense the parent of the one
-     * this node is based on.
+     * this node is based on.  The parent is <em>not</tt> a <tt>DataNode</tt>,
+     * it is something which may get fed to a <tt>DataNodeFactory</tt> 
+     * to create <tt>DataNode</tt>.
      * This method should only be called if the {@link #hasParentObject}
      * returns <tt>true</tt>.
      *

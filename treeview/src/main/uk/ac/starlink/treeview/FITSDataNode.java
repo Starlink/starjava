@@ -160,7 +160,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
             private long hduStart = 0L;
 
             public Object next() {
-                DataNode dnode;
+                DefaultDataNode dnode;
                 if ( hasNext() ) {
 
                     /* Construct a new node from the header we have ready. */
@@ -207,6 +207,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     }
 
                     /* Remember parentage of the new node. */
+                    dnode.setParentObject( datsrc );
                     dnode.setCreator( new CreationState( parent ) );
 
                     /* Read the next header. */

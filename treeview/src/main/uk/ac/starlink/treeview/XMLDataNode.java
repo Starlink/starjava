@@ -205,14 +205,6 @@ public class XMLDataNode extends DefaultDataNode {
         };
     }
 
-    public boolean hasParentObject() {
-        return domNode.getParentNode() != null;
-    }
-
-    public Object getParentObject() {
-        return new DOMSource( domNode.getParentNode() );
-    }
-
     public boolean hasFullView() {
         return true;
     }
@@ -221,6 +213,11 @@ public class XMLDataNode extends DefaultDataNode {
         if ( fullView == null ) {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
+
+            /* Write system ID if there is one. */
+            if ( systemId != null && systemId.trim().length() > 0 ) {
+                dv.addKeyedItem( "System ID", systemId );
+            }
 
             /* If we are an element with attributes, write them. */
             if ( domNode instanceof Element ) {
