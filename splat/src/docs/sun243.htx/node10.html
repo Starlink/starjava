@@ -6,8 +6,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>The animation window</TITLE>
-<META NAME="description" CONTENT="The animation window">
+<TITLE>The Graphics menu</TITLE>
+<META NAME="description" CONTENT="The Graphics menu">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -20,189 +20,216 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html177"
+<A NAME="tex2html185"
  HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html175"
+<A NAME="tex2html183"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html169"
+<A NAME="tex2html177"
  HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html178"
- HREF="node11.html">The view and modify spectral values window</A>
+<B> Next:</B> <A NAME="tex2html186"
+ HREF="node11.html">The animation window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html176"
+<B>Up:</B> <A NAME="tex2html184"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html170"
+<B> Previous:</B> <A NAME="tex2html178"
  HREF="node9.html">A plot window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00043000000000000000"></A><A NAME="xref_animation_window"></A>
-<BR>
-The animation window
+<H2><A NAME="SECTION00043000000000000000">
+The Graphics menu</A>
 </H2>
 
 <P>
-This window allows you to display a series of spectra from the global
-list, one after the other. It is possible to display these into an
-existing plot, that may already be displaying other spectra you'd like
-to use for comparison, or you can use a new plot.
+The <B>Graphics</B> menu provides methods for drawing text and a range of
+figures on the plot. This allows you to add annotations, but also provides the
+basis for the interactive graphics used by the various toolboxes.
 
 <P>
-<DIV ALIGN="CENTER">
- <IMG
- WIDTH="217" HEIGHT="369" ALIGN="BOTTOM" BORDER="0"
- SRC="animationwindow.gif"
- ALT="884">
- 
-</DIV>
+To draw a figure on a plot you need to select an option from the
+<B>Drawing mode</B> sub-menu and then, depending on the figure type, either
+drag out a region or select fiducial points. When creating a figure using
+points these are completed using a double click on the last point.
 
 <P>
-With careful control of the plotting options you can display into a
-plot with fixed data ranges, or see each spectrum plotted as
-autoscaled.
-
-<P>
-It is also possible to use this window to generate a series of JPEG
-images that you could combine into a movie of some kind.
-
-<P>
-<B><FONT SIZE="+1">Global list of spectra:</FONT></B>
+In the <B>Drawing mode</B> menu the currently available figure types are:
 <BLOCKQUOTE>
- As in the browser window this is a view of the spectra currently
- stored in the global list. Initially all the spectra in the list are
- selected, but you may modify which spectra to animate by creating your
- own selection (reminder: the combination of shift-left-mouse click
- selects the range between the last selected row and the current
- position, and the combination control-left-mouse click, either adds
- the current row to the selection, or removes it, if already selected).
+<DL COMPACT>
+<DT><IMG
+ ALIGN="CENTER" SRC="line.gif"
+ ALT="944">
+<DD>a straight line,
+  <DT><IMG
+ ALIGN="CENTER" SRC="rectangle.gif"
+ ALT="945">
+<DD>a rectangle,
+  <DT><IMG
+ ALIGN="CENTER" SRC="ellipse.gif"
+ ALT="946">
+<DD>an ellipse,
+  <DT><IMG
+ ALIGN="CENTER" SRC="polyline.gif"
+ ALT="947">
+<DD>a poly line (last point not connected to first),
+  <DT><IMG
+ ALIGN="CENTER" SRC="polygon.gif"
+ ALT="948">
+<DD>a polygon (last point connected to first),
+  <DT><IMG
+ ALIGN="CENTER" SRC="freehand.gif"
+ ALT="949">
+<DD>freehand curve,
+  <DT><IMG
+ ALIGN="CENTER" SRC="text.gif"
+ ALT="950">
+<DD>a text string,
+  <DT><IMG
+ ALIGN="CENTER" SRC="curve.gif"
+ ALT="951">
+<DD>an interpolated curve (splines and special spectral
+                        shapes),
+  <DT><IMG
+ ALIGN="CENTER" SRC="xrange.gif"
+ ALT="952">
+<DD>a rectangle which only moves along X (indicates a
+                         range of coordinates).
+</DL>
 </BLOCKQUOTE>
 
 <P>
-<B><FONT SIZE="+1">Animation controls:</FONT></B>
+There are also two special modes:
 <BLOCKQUOTE>
- The <B>Delay:</B> field accepts a decimal number of seconds to
- pause between displaying the selected spectra. You can modify this
- during an animated sequence by pressing the <TT>&lt;Return&gt;</TT> key.
+<DL COMPACT>
+<DT><IMG
+ ALIGN="CENTER" SRC="select.gif"
+ ALT="953">
+<DD>select figure,
+  <DT><IMG
+ ALIGN="CENTER" SRC="edit.gif"
+ ALT="954">
+<DD>edit figure.
+</DL>
+</BLOCKQUOTE>
+When the mode is select (this is usually the default state), clicking on a
+figure selects it. You can then drag it around to move it, or drag one of the
+grips (the little squares) to change the shape. To select more than one figure
+you hold down the <TT>&lt;Shift&gt;</TT> while clicking.
 
 <P>
-The <B>Loop forever:</B> checkbox determines whether the
- animation sequence is restarted when all the selected spectra have
- been displayed. If set then you need to press the <B>Stop</B>
- button to stop the animation.
+The edit mode can be used to add new points to a polyline, polygon or
+interpolated curve. Just select this, click on the figure you want to edit and
+then start adding new points. You can also edit text strings, just choose the
+edit mode and click on the text, this produces a dialogue with the text for
+editing.
 
 <P>
-The <B>Plot:</B> drop-down list contains a list of all the
- currently available plots and the special entry <TT>Create</TT>. If
- the <TT>Create</TT> option is chosen then a new plot will be created
- to display the animation, otherwise the animation will take place in
- the selected plot.
+To change the properties of a figure (line width, fill/outline colour, font
+<I>etc.</I>) just select the figure and then choose the option you want to change
+from the various menus. You can define these before creating a figure too.
 
 <P>
-The <B>Scaling option:</B> radio buttons control how a spectrum
- is scaled when it is displayed.
+Interpolated curves are like polylines in that they are defined by a series of
+points, but they can only have increasing or decreasing X coordinates (so
+cannot double back on themselves). They are intended for drawing figures that
+are related to spectra, specifically spectral backgrounds and lines. In fact
+if you draw an interpolated curve you can convert it into a spectrum for
+removing from a real spectrum using the <B>Generate spectra from
+interpolated lines</B> toolbox. The types of interpolation scheme available are:
+<BLOCKQUOTE>
 
-<P>
-
-<UL><LI><B>Auto</B> selecting this option (the default) makes each
-  spectrum, and any other spectra already displayed in the target plot,
-  fit themselves to the width and height of the plot display area.
-
-<P>
-
-<LI><B>Fix</B> selecting this option makes each spectrum respect
-  the data limits already applied to the plot. So to make effective use
-  of this option you need to display into an existing plot and have set
-  the data limits (using the plot configuration window). It's expected
-  that this will be most useful when comparing a list of spectra against
-  a single pre-plotted spectrum, or when creating an animation sequence
-  for a movie (so you need to also use the <B>Capture controls</B>).
+<UL><LI>Hermite, interpolation based on Hermite polynomials. The effect is
+        supposed to construct reasonable analytic curves through discrete data
+        points (<I>i.e.</I> like those a human would produce).
 
 <P>
 
-<LI><B>Free</B> selecting this option makes the spectrum add
-  itself without constraints to the plot. This is essentially the same
-  as just adding a spectrum to a plot using the browser window controls
-  (<I>i.e.</I> the data limits of the plot are produced by combination with any
-  pre-plotted spectra, and the display area is then scaled to fit this
-  in, but at the same aspect ratio as already exists).
- 
+<LI>Akima, interpolation based on Akima splines. Like Hermite this
+        supposed to construct human-like analytic curves.
+
+<P>
+
+<LI>Cubic, interpolation using natural cubic splines.
+
+<P>
+
+<LI>Polynomial, interpolation using a simple polynomial of order one less
+        than the current number of points.
+
+<P>
+
+<LI>Linear, interpolation using straight-lines (like polyline, except it
+        has sorted X coordinates).
+
+<P>
+
+<LI>Gaussian, interpolation using a Gaussian line-profile. This can only
+        have four reference positions (and is initialised from the first two
+        indicated on the plot), these define the left extent, width,
+        height/centre and right extent. The order will switch if these are
+        dragged past each other (so dragging the width grip beyond the left
+        extent grip will switch their meaning).
+
+<P>
+
+<LI>Lorentz, interpolation using a Lorentzian line-profile. Works like the
+        Gaussian curve.
+
+<P>
+
+<LI>Voigt, interpolation using a Voigt line-profile. This also works like
+        the Gaussian curve, but has five characteristic positions, left
+        extent, Gaussian width, height/centre, Lorentzian width, right extent.
+
+<P>
+
 </UL>
-
-<P>
-The <B>Current spectrum</B> label just displays the name of the
- spectrum currently being added to the target plot. This information is
- repeated in the plot itself as the spectrum becomes the current one in
- the plot and is named in the <B>Displaying:</B> label.
-
-<P>
-The <B>Start</B>, <B>Pause</B> and <B>Stop</B> buttons
- do what is expected.
 </BLOCKQUOTE>
 
 <P>
-<B><FONT SIZE="+1">Capture controls</FONT></B>
-<BLOCKQUOTE>
- The capture controls are for creating a series of JPEG images of the
- plot as it displays each spectrum. To enable (after getting the
- required effect using the <B>Animation controls</B>) just click
- on the <B>Capture to JPEGs:</B> check box. The output file names
- will start with what name you type into the <B>Basename for
- JPEGs:</B> entry and have an integer number appended, plus the file type
- <TT>.jpg</TT>. So a default sequence would be <TT>SPLAT0.jpg</TT>,
- <TT>SPLAT1.jpg</TT>, <TT>SPLAT2.jpg</TT>,... You'll then need to find
- some software to convert these into a movie. The ImageMagick
- <TT>convert</TT> command (when suitably configured) will convert
- these files into an MPEG or animated GIF.  The image below was created with the command (note that
- the images where also scaled):
- <BLOCKQUOTE> <PRE>
- % convert -delay 50 -loop 0 SPLAT0.jpg SPLAT1.jpg SPLAT2.jpg \
-       splatmovie.gif
-</PRE>
- </BLOCKQUOTE>
- <IMG
- WIDTH="459" HEIGHT="227" ALIGN="BOTTOM" BORDER="0"
- SRC="splatmovie.gif"
- ALT="880">
-</BLOCKQUOTE>
+Once you have created your figures you may want to save them for restoration
+at a later time, this can be done using the
+<B>Graphics=&gt;Save/restore figures</B> dialogue. Figures are saved using
+the physical coordinates of the spectrum, so should be re-drawn at the correct
+wavelengths <I>etc.</I> on new plots.
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html177"
+<A NAME="tex2html185"
  HREF="node11.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html175"
+<A NAME="tex2html183"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html169"
+<A NAME="tex2html177"
  HREF="node9.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html178"
- HREF="node11.html">The view and modify spectral values window</A>
+<B> Next:</B> <A NAME="tex2html186"
+ HREF="node11.html">The animation window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html176"
+<B>Up:</B> <A NAME="tex2html184"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html170"
+<B> Previous:</B> <A NAME="tex2html178"
  HREF="node9.html">A plot window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

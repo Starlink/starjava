@@ -6,8 +6,8 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>The view and modify spectral values window</TITLE>
-<META NAME="description" CONTENT="The view and modify spectral values window">
+<TITLE>The animation window</TITLE>
+<META NAME="description" CONTENT="The animation window">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
@@ -20,238 +20,187 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html187"
+<A NAME="tex2html195"
  HREF="node12.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html185"
+<A NAME="tex2html193"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html179"
+<A NAME="tex2html187"
  HREF="node10.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html188"
- HREF="node12.html">Spectral coordinate system attributes window</A>
+<B> Next:</B> <A NAME="tex2html196"
+ HREF="node12.html">The view and modify spectral values window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html186"
+<B>Up:</B> <A NAME="tex2html194"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html180"
- HREF="node10.html">The animation window</A>
+<B> Previous:</B> <A NAME="tex2html188"
+ HREF="node10.html">The Graphics menu</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00044000000000000000">
-The view and modify spectral values window</A>
+<H2><A NAME="SECTION00044000000000000000"></A><A NAME="xref_animation_window"></A>
+<BR>
+The animation window
 </H2>
 
 <P>
-The purpose of this window is to allow you to see the actual data
-values of a spectrum and to make modifications to them.
-The spectrum being shown has it basic details at the top of the window
-and the values of the spectrum are shown in a table area that you can
-scroll.
+This window allows you to display a series of spectra from the global list,
+one after the other. It is possible to display these into an existing plot,
+that may already be displaying other spectra you'd like to use for comparison,
+or you can use a new plot.
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="315" HEIGHT="411" ALIGN="BOTTOM" BORDER="0"
- SRC="viewwindow.gif"
- ALT="1003">
+ ALIGN="BOTTOM" BORDER="0" SRC="animationwindow.gif"
+ ALT="1044">
  
 </DIV>
 
 <P>
-<B><FONT SIZE="+1">Modifications</FONT></B>
-<BLOCKQUOTE>
- If you want to modify any of the values, then you need to have a
- spectrum that isn't readonly. Spectra read from files always have
- readonly values, so this will generally be the case. The simplest way
- to get a modifiable spectrum is to untick the <B>Readonly</B>
- control. This will make a memory copy of your spectrum, enter this on
- the global list and then load it into this window replacing the
- previous spectrum. The new spectrum will be called 
- `<TT>Copy of &lt;oldname&gt;</TT>'.
+With careful control of the plotting options you can display into a
+plot with fixed data ranges, or see each spectrum plotted as
+autoscaled.
 
 <P>
-Note that if you want to plot this new spectrum you'll need to go back
- to the main window and do this yourself (plots of the spectrum that
- this is a copy of are not going to show any modifications that you now
- make!).
+It is also possible to use this window to generate a series of JPEG
+images that you could combine into a movie of some kind.
+
+<P>
+<B><FONT SIZE="+1">Global list of spectra:</FONT></B>
+<BLOCKQUOTE>
+ As in the browser window this is a view of the spectra currently
+ stored in the global list. Initially all the spectra in the list are
+ selected, but you may modify which spectra to animate by creating your
+ own selection (reminder: the combination of shift-left-mouse click
+ selects the range between the last selected row and the current
+ position, and the combination control-left-mouse click, either adds
+ the current row to the selection, or removes it, if already selected).
 </BLOCKQUOTE>
 
 <P>
-<B><FONT SIZE="+1">Editing single values</FONT></B>
+<B><FONT SIZE="+1">Animation controls:</FONT></B>
 <BLOCKQUOTE>
- To change a single value of any kind you can now just select the
- table cell (usually by double clicking on it) and type in the new
- value. Press <TT>Return</TT> to make the edit happen (this should
- immediately be shown in any plots of this spectrum).
+ The <B>Delay:</B> field accepts a decimal number of seconds to
+ pause between displaying the selected spectra. You can modify this
+ during an animated sequence by pressing the <TT>&lt;Return&gt;</TT> key.
+
+<P>
+The <B>Loop forever:</B> checkbox determines whether the
+ animation sequence is restarted when all the selected spectra have
+ been displayed. If set then you need to press the <B>Stop</B>
+ button to stop the animation.
+
+<P>
+The <B>Plot:</B> drop-down list contains a list of all the
+ currently available plots and the special entry <TT>Create</TT>. If
+ the <TT>Create</TT> option is chosen then a new plot will be created
+ to display the animation, otherwise the animation will take place in
+ the selected plot.
+
+<P>
+The <B>Scaling option:</B> radio buttons control how a spectrum
+ is scaled when it is displayed.
+
+<P>
+
+<UL><LI><B>Auto</B> selecting this option (the default) makes each
+  spectrum, and any other spectra already displayed in the target plot,
+  fit themselves to the width and height of the plot display area.
+
+<P>
+
+<LI><B>Fix</B> selecting this option makes each spectrum respect
+  the data limits already applied to the plot. So to make effective use
+  of this option you need to display into an existing plot and have set
+  the data limits (using the plot configuration window). It's expected
+  that this will be most useful when comparing a list of spectra against
+  a single pre-plotted spectrum, or when creating an animation sequence
+  for a movie (so you need to also use the <B>Capture controls</B>).
+
+<P>
+
+<LI><B>Free</B> selecting this option makes the spectrum add
+  itself without constraints to the plot. This is essentially the same
+  as just adding a spectrum to a plot using the browser window controls
+  (<I>i.e.</I> the data limits of the plot are produced by combination with any
+  pre-plotted spectra, and the display area is then scaled to fit this
+  in, but at the same aspect ratio as already exists).
+ 
+</UL>
+
+<P>
+The <B>Current spectrum</B> label just displays the name of the
+ spectrum currently being added to the target plot. This information is
+ repeated in the plot itself as the spectrum becomes the current one in
+ the plot and is named in the <B>Displaying:</B> label.
+
+<P>
+The <B>Start</B>, <B>Pause</B> and <B>Stop</B> buttons
+ do what is expected.
 </BLOCKQUOTE>
 
 <P>
-<B><FONT SIZE="+1">Editing whole columns</FONT></B>
+<B><FONT SIZE="+1">Capture controls</FONT></B>
 <BLOCKQUOTE>
- You can make global changes to a whole column of values using special
- dialogs that either offer special functions (linear transformations),
- or allow you to define an algebraic expression (in terms of the
- existing values or a simple index counter starting at 1 for the first
- row).
-</BLOCKQUOTE>
-
-<P>
-<B><FONT SIZE="+1">Editing the data values column</FONT></B>
-<BLOCKQUOTE>
- To apply a global edit to the data values column you need to select
- the <B>Operations=&gt;Modify data column</B> item. This should
- produce a new window.
-
-<P>
-<DIV ALIGN="CENTER">
+ The capture controls are for creating a series of JPEG images of the
+ plot as it displays each spectrum. To enable (after getting the
+ required effect using the <B>Animation controls</B>) just click
+ on the <B>Capture to JPEGs:</B> check box. The output file names
+ will start with what name you type into the <B>Basename for
+ JPEGs:</B> entry and have an integer number appended, plus the file type
+ <TT>.jpg</TT>. So a default sequence would be <TT>SPLAT0.jpg</TT>,
+ <TT>SPLAT1.jpg</TT>, <TT>SPLAT2.jpg</TT>,... You'll then need to find
+ some software to convert these into a movie. The ImageMagick
+ <TT>convert</TT> command (when suitably configured) will convert
+ these files into an MPEG or animated GIF.  The image below was created with the command (note that
+ the images where also scaled):
+ <BLOCKQUOTE> <PRE>
+ % convert -delay 50 -loop 0 SPLAT0.jpg SPLAT1.jpg SPLAT2.jpg \
+       splatmovie.gif
+</PRE>
+ </BLOCKQUOTE>
  <IMG
- WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
- SRC="dataeditwindow.gif"
- ALT="1018">
- 
-</DIV>
-
-<P>
-In which you can see an example expression 
-<!-- MATH
- $data*scale+zero$
- -->
-<I>data</I>*scale+<I>zero</I>, with
- the <I>scale</I> value set to 1.0 and the zero value to 0.0. A list of
- preset expressions that should be generally useful is found in the
- <B>Functions</B> menu.
- 
- Naturally if you applied this expression then the data values would
- stay the same. A more complex example is shown next.
-
-<P>
-<DIV ALIGN="CENTER">
- <IMG
- WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
- SRC="dataeditwindow2.gif"
- ALT="1022">
- 
-</DIV>
-
-<P>
-This presents the possibility of subtracting a single Voigt profile
- (the top part of this is greyed out as Voigt is a builtin function
- that cannot be represented as an algebraic expression).
-
-<P>
-If you need to use an expression of your own you might like to view
- the full list of functions that are available in the MathMap section
- of the <A HREF="/star/docs/sun95.htx/sun95.html#xref_ap:MathMaps">KAPPA SUN</A>. A lot of C-like
- intrinsics are available (abs, atan/sin/cos, tan/sin/cos, log, pow
- sqrt, <I>etc.</I>), which can operate on the data columns <I>data</I>, <I>coord</I>
- and <I>error</I>, as well as the virtual <I>index</I> column.
-</BLOCKQUOTE>
-
-<P>
-<B><FONT SIZE="+1">Editing the error values column</FONT></B>
-<BLOCKQUOTE>
- Editing the error column is much like editing the data column, except
- that you can actually create a new error column, see the 
- <B>Operations=&gt;Modify error column</B> item.
-
-<P>
-The error column can also be deleted using the 
- <B>Edit=&gt;Delete error column</B> item.
-</BLOCKQUOTE>
-
-<P>
-<B><FONT SIZE="+1">Editing the coordinates column</FONT></B>
-<BLOCKQUOTE>
- Globally editing the coordinates can be done using the 
- <B>Operations=&gt;Modify coordinate column</B> window.
-
-<P>
-<DIV ALIGN="CENTER">
- <IMG
- WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
- SRC="coordeditwindow.gif"
- ALT="1033">
- 
-</DIV>
-
-<P>
-A simple builtin option of applying a linear transformation is
- offered (useful for when the coordinates are in fact some index
- related to wavelength). Under the <B>General</B> tab you can 
- use algebraic expressions like those for modifying the data columns.
-
-<P>
-<DIV ALIGN="CENTER">
- <IMG
- WIDTH="292" HEIGHT="263" ALIGN="BOTTOM" BORDER="0"
- SRC="coordeditwindow2.gif"
- ALT="1037">
- 
-</DIV>
-
-<P>
-In this case the pre-defined expression for blue-shifting a spectrum
- in some wavelength units is shown.
-
-<P>
-<B>Note:</B> when you modify coordinates either singly or as a
- column any coordinate system information will be lost. If you want to
- retain this you'll either have to re-enter this information or use 
- the conversion facilities of the <B>Coordinate system
- attributes</B> window (using this other window you can transform between
- apparent place, Earth to Sun to Local Group <I>etc.</I> and to a source
- rest frame that has a velocity in a given direction, so you can
- correct for red/blue shift that way, in fact this is the recommended way).
-
-<P>
-</BLOCKQUOTE>
-
-<P>
-<B><FONT SIZE="+1">Undoing and redoing changes</FONT></B>
-<BLOCKQUOTE>
-Using the <B>Edit</B> menu in the main view/modify window you can
-undo and redo any modifications that you make to the spectrum. The
-changes are propagated immediately so you can see these effects in any
-plots of the spectrum.
+ ALIGN="BOTTOM" BORDER="0" SRC="splatmovie.gif"
+ ALT="1040">
 </BLOCKQUOTE>
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html187"
+<A NAME="tex2html195"
  HREF="node12.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html185"
+<A NAME="tex2html193"
  HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html179"
+<A NAME="tex2html187"
  HREF="node10.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html188"
- HREF="node12.html">Spectral coordinate system attributes window</A>
+<B> Next:</B> <A NAME="tex2html196"
+ HREF="node12.html">The view and modify spectral values window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html186"
+<B>Up:</B> <A NAME="tex2html194"
  HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html180"
- HREF="node10.html">The animation window</A>
+<B> Previous:</B> <A NAME="tex2html188"
+ HREF="node10.html">The Graphics menu</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

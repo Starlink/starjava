@@ -6,84 +6,112 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Changes</TITLE>
-<META NAME="description" CONTENT="Changes">
+<TITLE>Filter spectrum window</TITLE>
+<META NAME="description" CONTENT="Filter spectrum window">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="next" HREF="node38.html">
-<LINK REL="previous" HREF="node35.html">
-<LINK REL="up" HREF="sun243.html">
+<LINK REL="previous" HREF="node34.html">
+<LINK REL="up" HREF="node7.html">
 <LINK REL="next" HREF="node37.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html443"
+<A NAME="tex2html453"
  HREF="node37.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html441"
- HREF="sun243.html">
+<A NAME="tex2html451"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html435"
+<A NAME="tex2html447"
  HREF="node35.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html444"
- HREF="node37.html">This release, 2.0</A>
+<B> Next:</B> <A NAME="tex2html454"
+ HREF="node37.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html442"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html452"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html436"
- HREF="node35.html">Acknowledgments</A>
+<B> Previous:</B> <A NAME="tex2html448"
+ HREF="node35.html">Saving the results</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00080000000000000000">
-Changes</A>
-</H1>
-<BR><HR>
-<!--Table of Child-Links-->
-<A NAME="CHILD_LINKS"></A>
+<H2><A NAME="SECTION000415000000000000000">
+Filter spectrum window</A>
+</H2>
 
-<UL>
-<LI><A NAME="tex2html445"
- HREF="node37.html">This release, 2.0</A>
+<P>
+This window provides the ability to filter the current spectrum
+displayed in a plot.
+
+<P>
+<DIV ALIGN="CENTER">
+ <IMG
+ ALIGN="BOTTOM" BORDER="0" SRC="filterwindow.gif"
+ ALT="2217">
+ 
+</DIV>
+
+<P>
+The various options are:
+
+<UL><LI><TT>Average</TT> take the running average value over a
+        number of positions.
+
+<LI><TT>Median</TT> take the running median value over a
+        number of positions.
+
+<LI><TT>Profile</TT> smooth the values using a profile matched
+        to typical line shapes, Gaussian, Lorentzian and Voigt.
+
+<LI><TT>Spectrum</TT> smooth the values using a profile
+        defined in another spectrum (allows you to create kernels
+        that match some shape, rather than just the standard profiles).
+
+<LI><TT>Wavelet</TT> use various wavelet filters to convert the
+        spectrum into multi-resolution coefficients, removing a
+        fraction of the coefficients, thus <I>denoising</I> the
+        spectrum.
+
 </UL>
-<!--End of Table of Child-Links-->
+
+<P>
+
 <BR> <HR>
-<A NAME="tex2html443"
+<A NAME="tex2html453"
  HREF="node37.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html441"
- HREF="sun243.html">
+<A NAME="tex2html451"
+ HREF="node7.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html435"
+<A NAME="tex2html447"
  HREF="node35.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html444"
- HREF="node37.html">This release, 2.0</A>
+<B> Next:</B> <A NAME="tex2html454"
+ HREF="node37.html">Supported data formats</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html442"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+<B>Up:</B> <A NAME="tex2html452"
+ HREF="node7.html">Help for individual windows</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html436"
- HREF="node35.html">Acknowledgments</A>
+<B> Previous:</B> <A NAME="tex2html448"
+ HREF="node35.html">Saving the results</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 May 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>
