@@ -94,7 +94,7 @@ public class SOG
 
     /**
      * Whether closing final window causes System.exit(). Switch off
-     * for testing.
+     * for testing and when embedded.
      */
     private boolean doExit = true;
 
@@ -182,6 +182,15 @@ public class SOG
     public static SOG getInstance()
     {
         return instance;
+    }
+
+    /**
+     * Set whether the application will exit.
+     */
+    public void setDoExit( boolean exit )
+    {
+        doExit = exit;
+        ((SOGNavigatorImageDisplay) getImageDisplay()).setDoExit( doExit );
     }
 
     /**
