@@ -6,20 +6,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.RandomStarTable;
+import uk.ac.starlink.table.ReaderRowSequence;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * Simple ASCII-format table.  This reader attempts to make sensible 
- * decisions about what is a table and what is not, but inevitably it 
+ * Simple ASCII-format table.  This reader attempts to make sensible
+ * decisions about what is a table and what is not, but inevitably it
  * will not be able to read ASCII tables in any format.
  * <p>
  * Here are the rules:
@@ -27,23 +30,23 @@ import uk.ac.starlink.util.DataSource;
  * <li>Each table row is represented by a single text line
  * <li>Lines are terminated by one or more line termination characters
  *     ('\r' or '\n')
- * <li>Anything after a '#' character on a line is ignored 
+ * <li>Anything after a '#' character on a line is ignored
  *     (except for optional heading line)
  * <li>Blank lines are ignored
  * <li>Within a line, fields are separated by one or more whitespace
  *     characters (space or tab)
- * <li>A field is either a sequence of non-whitespace characters or a 
+ * <li>A field is either a sequence of non-whitespace characters or a
  *     sequence of characters between two matching quote characters
  *     (single (') or double (") quotes) - spaces are therefore allowed
  *     in quoted fields.
- * <li>In a quoted field any character preceded by a backslash is 
- *     interpreted literally, so it is possible to insert quotes into 
+ * <li>In a quoted field any character preceded by a backslash is
+ *     interpreted literally, so it is possible to insert quotes into
  *     a quoted string
  * <li>An empty string (two adjacent quotes) represents a null element
  * <li>All lines must contain exactly the same number of fields
  * <li>An optional heading line may be included: if the last comment line
  *     (line starting with a '#' before the first data line) contains the
- *     same number of fields as the columns in the table, these fields 
+ *     same number of fields as the columns in the table, these fields
  *     are interpreted as the headings (names) of the columns
  * </ul>
  * <p>
@@ -56,18 +59,23 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextStarTable extends RandomStarTable {
+public class TextStarTable extends AbstractStarTable {
 
     private static final char END = (char) -1;
 
-    private StringBuffer buffer = new StringBuffer();
-    private final List rows = new ArrayList();
-    private final ColumnInfo[] colinfos;
-    private List comments = new ArrayList();
-    private List headings;
-    private List parameters = new ArrayList();
-    private int ncol;
-    private int readCol;
+    private final DataSource datsrc_;
+    private int ncol_;
+    private long nrow_;
+    private ColumnInfo[] colInfos_;
+    private Decoder[] decoders_;
+    private List comments_;
+    private boolean[] maybeBoolean_;
+    private boolean[] maybeInteger_;
+    private boolean[] maybeFloat_;
+    private boolean[] maybeDouble_;
+    private boolean[] maybeLong_;
+    private boolean dataStarted_;
+    private List cellList_ = new ArrayList();
 
     /**
      * Constructs a new TextStarTable from a datasource.
@@ -75,251 +83,285 @@ public class TextStarTable extends RandomStarTable {
      * @param  stream  the data stream containing the table text
      */
     public TextStarTable( DataSource datsrc ) throws IOException {
+        datsrc_ = datsrc;
 
-        /* Get the input stream. */
-        InputStream stream = datsrc.getInputStream();
+        /* Read the stream once to find out all about the columns in the 
+         * table.  If we don't have something we can turn into a table,
+         * this will throw a TableFormatException  */
+        readMetadata();
 
-        /* Configure from the data source. */
+        /* Configure table characteristics from the data source. */
         setName( datsrc.getName() );
         setURL( datsrc.getURL() );
-
-        /* Get a List of Lists of Strings for the table data. */
-        readStringCells( stream );
-
-        /* Turn it into a List of Lists of typed objects. */
-        Class[] types = typifyCells();
-
-        /* Turn it into a List of arrays of Objects. */
-        for ( int i = 0; i < rows.size(); i++ ) {
-            rows.set( i, ((List) rows.get( i )).toArray() );
-        }
-
-        /* Set up a default set of column info objects. */
-        colinfos = new ColumnInfo[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            colinfos[ i ] = 
-                new ColumnInfo( "col" + ( i + 1 ), types[ i ], null );
-        }
-
-        /* Try to make sense of any comment lines. */
-        interpretComments();
     }
 
     public int getColumnCount() {
-        return ncol;
+        return ncol_;
     }
 
     public long getRowCount() {
-        return (long) rows.size();
-    }
-
-    public Object getCell( long irow, int icol ) {
-        return ((Object[]) rows.get( checkedLongToInt( irow ) ))[ icol ];
-    }
-
-    public Object[] getRow( long irow ) {
-        return (Object[]) rows.get( checkedLongToInt( irow ) );
+        return nrow_;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return colinfos[ icol ];
+        return colInfos_[ icol ];
     }
 
-    public List getParameters() {
-        return parameters;
+    public RowSequence getRowSequence() throws IOException {
+        final PushbackInputStream in = getInputStream();
+        return new ReaderRowSequence() {
+            protected Object[] readRow() throws IOException {
+                List cellList = TextStarTable.this.readRow( in );
+                if ( cellList == null ) {
+                    in.close();
+                    return null;
+                }
+                else {
+                    Object[] row = new Object[ ncol_ ];
+                    for ( int icol = 0; icol < ncol_; icol++ ) {
+                        String sval = (String) cellList.get( icol );
+                        if ( sval != null ) {
+                            row[ icol ] = decoders_[ icol ].decode( sval );
+                        }
+                    }
+                    return row;
+                }
+            }
+        };
+    }
+
+    private PushbackInputStream getInputStream() throws IOException {
+        return new PushbackInputStream( 
+                   new BufferedInputStream( datsrc_.getInputStream() ) );
+    }
+
+    private void readMetadata() throws IOException {
+
+        /* Get an input stream. */
+        PushbackInputStream in = getInputStream();
+
+        /* Look at each row in it counting cells and assessing what sort of
+         * data they look like. */
+        comments_ = new ArrayList();
+        try {
+            long lrow = 0;
+            for ( List row; ( row = readRow( in ) ) != null; ) {
+                lrow++;
+                int nc = row.size();
+                if ( lrow == 1 ) {
+                    initMetadata( nc );
+                }
+                if ( nc != ncol_ ) {
+                    throw new TableFormatException(
+                        "Wrong number of columns at row " + lrow + 
+                        " (expecting " + ncol_ + ", found " + nc +  ")" );
+                }
+                evaluateRow( row );
+            }
+            if ( lrow == 0 ) {
+                throw new TableFormatException( "No rows" );
+            }
+            nrow_ = lrow;
+        }
+        finally {
+            if ( in != null ) {
+                in.close();
+            }
+        }
+
+        /* Turn the information we have into a list of column headers. */
+        setupColumns();
+        interpretComments();
+        comments_ = null;
     }
 
     /**
-     * Takes a list of lists of Strings representing a table and replaces
-     * the strings with some more type-specific object if possible.
-     * By the end of the process, each column will contain only cells
-     * of a single class.  These classes will be String, or one of the
-     * primitive wrapper types.
-     *
-     * @param tabledata  a List in which each element represents a row;
-     *                   these elements are themselves Lists, containing
-     *                   the contents of each cell
-     * @return  an array of classes giving the class which each column
-     *          contains instances of (the n'th element of which all 
-     *          members of the n'th column are instances of)
+     * Looking at the information we have collected on the way through 
+     * the table, sets up the required state to be able to turn the
+     * stream into a RowSequence.
      */
-    private Class[] typifyCells() {
-        int ncol = ((List) rows.get( 0 )).size();
-        int nrow = rows.size();
-        Class[] classes = new Class[ ncol ];
-
-        /* For each column in the table, go through each row and see what
-         * is the most restrictive datatype that all rows are compatible 
-         * with. */
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            boolean maybeBoolean = true;
-            boolean maybeInteger = true;
-            boolean maybeFloat = false;
-            boolean maybeDouble = true;
-            boolean maybeLong = true;
-            for ( Iterator it = rows.iterator(); it.hasNext(); ) {
-                List row = (List) it.next();
-                String value = (String) row.get( icol );
-                if ( value == null || value.length() == 0 ) {
-                    continue;
-                }
-                boolean done = false;
-                if ( ! done && maybeBoolean ) {
-                    if ( value.equalsIgnoreCase( "false" ) ||
-                         value.equalsIgnoreCase( "true" ) ||
-                         value.equalsIgnoreCase( "f" ) ||
-                         value.equalsIgnoreCase( "t" ) ) {
-                        done = true;
-                    }
-                    else {
-                        maybeBoolean = false;
-                    }
-                }
-                if ( ! done && maybeInteger ) {
-                    try {
-                        Integer.parseInt( value );
-                        done = true;
-                    }
-                    catch ( NumberFormatException e ) {
-                        maybeInteger = false;
-                    }
-                }
-                if ( ! done && maybeFloat ) {
-                    try {
-                        Float.parseFloat( value );
-                        done = true;
-                    }
-                    catch ( NumberFormatException e ) {
-                        maybeFloat = false;
-                    }
-                }
-                if ( ! done && maybeDouble ) {
-                    try {
-                        Double.parseDouble( value );
-                        done = true;
-                    }
-                    catch ( NumberFormatException e ) {
-                        maybeDouble = false;
-                    }
-                }
-                if ( ! done && maybeLong ) {
-                    try {
-                        Long.parseLong( value );
-                        done = true;
-                    }
-                    catch ( NumberFormatException e ) {
-                        maybeLong = false;
-                    }
-                }
-            }
-
-            /* Set the type we will use, and an object which can convert from
-             * a string to the type in question. */
-            abstract class Converter {
-                abstract Object convert( String value);
-            }
-            Converter conv;
+    private void setupColumns() {
+        colInfos_ = new ColumnInfo[ ncol_ ];
+        decoders_ = new Decoder[ ncol_ ];
+        for ( int icol = 0; icol < ncol_; icol++ ) {
             Class clazz;
-            if ( maybeBoolean ) {
+            Decoder decoder;
+            if ( maybeBoolean_[ icol ] ) {
                 clazz = Boolean.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         char v1 = value.charAt( 0 );
-                        return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE 
+                        return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
                                                           : Boolean.FALSE;
                     }
                 };
             }
-            else if ( maybeInteger ) {
+            else if ( maybeInteger_[ icol ] ) {
                 clazz = Integer.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         return new Integer( Integer.parseInt( value ) );
                     }
                 };
             }
-            else if ( maybeFloat ) {
+            else if ( maybeFloat_[ icol ] ) {
                 clazz = Float.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         return new Float( Float.parseFloat( value ) );
                     }
                 };
             }
-            else if ( maybeDouble ) {
+            else if ( maybeDouble_[ icol ] ) {
                 clazz = Double.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         return new Double( Double.parseDouble( value ) );
                     }
                 };
             }
-            else if ( maybeLong ) {
+            else if ( maybeLong_[ icol ] ) {
                 clazz = Long.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         return new Long( Long.parseLong( value ) );
                     }
                 };
             }
             else {
                 clazz = String.class;
-                conv = new Converter() {
-                    Object convert( String value ) {
+                decoder = new Decoder() {
+                    Object decode( String value ) {
                         return value;
                     }
                 };
             }
-            classes[ icol ] = clazz;
+            colInfos_[ icol ] = new ColumnInfo( "col" + ( icol + 1 ),
+                                                clazz, null );
+            decoders_[ icol ] = decoder;
+        }
+    }
 
-            /* Do the conversion for each row. */
-            for ( Iterator it = rows.iterator(); it.hasNext(); ) {
-                List row = (List) it.next();
-                String value = (String) row.get( icol );
-                if ( value == null || value.length() == 0 ) {
-                    row.set( icol, null );
+    /**
+     * Asserts that if the rows in this table represent a table, it's
+     * one with a given number of columns.  Does any required setup.
+     *
+     * @param  ncol   number of columns we're looking for
+     */
+    private void initMetadata( int ncol ) {
+        ncol_ = ncol;
+        maybeBoolean_ = makeFlagArray( true );
+        maybeInteger_ = makeFlagArray( true );
+        maybeFloat_ = makeFlagArray( false );
+        maybeDouble_ = makeFlagArray( true );
+        maybeLong_ = makeFlagArray( true );
+        dataStarted_ = true;
+    }
+
+    /**
+     * Returns a new <tt>ncol</tt>-element boolean array.
+     *
+     * @param   val  initial value of all flags
+     * @return  new flag array initialized to <tt>val</tt>
+     */
+    private boolean[] makeFlagArray( boolean val ) {
+        boolean[] flags = new boolean[ ncol_ ];
+        Arrays.fill( flags, val );
+        return flags;
+    }
+
+    /**
+     * Looks at a given row (list of strings) and records information about
+     * what sort of things it looks like it contains.
+     */
+    private void evaluateRow( List row ) {
+        assert row.size() == ncol_;
+        for ( int icol = 0; icol < ncol_; icol++ ) {
+            String cell = (String) row.get( icol );
+            boolean done = false;
+            if ( cell == null || cell.length() == 0 ) {
+                done = true;
+            }
+            if ( ! done && maybeBoolean_[ icol ] ) {
+                if ( cell.equalsIgnoreCase( "false" ) ||
+                     cell.equalsIgnoreCase( "true" ) ||
+                     cell.equalsIgnoreCase( "f" ) ||
+                     cell.equalsIgnoreCase( "t" ) ) {
+                    done = true;
                 }
                 else {
-                    row.set( icol, conv.convert( value ) );
+                    maybeBoolean_[ icol ] = false;
+                }
+            }
+            if ( ! done && maybeInteger_[ icol ] ) {
+                try {
+                    Integer.parseInt( cell );
+                    done = true;
+                }
+                catch ( NumberFormatException e ) {
+                    maybeInteger_[ icol ] = false;
+                }
+            }
+            if ( ! done && maybeFloat_[ icol ] ) {
+                try {
+                    Float.parseFloat( cell );
+                    done = true;
+                }
+                catch ( NumberFormatException e ) {
+                    maybeFloat_[ icol ] = false;
+                }
+            }
+            if ( ! done && maybeDouble_[ icol ] ) {
+                try {
+                    Double.parseDouble( cell );
+                    done = true;
+                }
+                catch ( NumberFormatException e ) {
+                    maybeDouble_[ icol ] = false;
+                }
+            }
+            if ( ! done && maybeLong_[ icol ] ) {
+                try {
+                    Long.parseLong( cell );
+                    done = true;
+                }
+                catch ( NumberFormatException e ) {
+                    maybeLong_[ icol ] = false;
                 }
             }
         }
-
-        /* Return the types. */
-        return classes;
     }
-
 
     /**
      * Tries to make sense of any comment lines which have been read.
      */
     private void interpretComments() throws IOException {
-        trimLines( comments );
+        trimLines( comments_ );
 
         /* Try to interpret the last remaining comment line as a set of
          * column headings. */
-        if ( comments.size() > 0 ) {
-            String hline = (String) comments.get( comments.size() - 1 );
-            List headings = readHeadings( new PushbackInputStream( 
+        if ( comments_.size() > 0 ) {
+            String hline = (String) comments_.get( comments_.size() - 1 );
+            List headings = readHeadings( new PushbackInputStream(
                               new ByteArrayInputStream( hline.getBytes() ) ) );
 
             /* If this line looks like a set of headings (there are the
              * right number of fields) modify the colinfos accordingly and
              * remove it from the set of comments. */
-            if ( headings.size() == ncol ) {
-                comments.remove( comments.size() - 1 );
-                for ( int i = 0; i < ncol; i++ ) {
-                    colinfos[ i ].setName( (String) headings.get( i ) );
+            if ( headings.size() == ncol_ ) {
+                comments_.remove( comments_.size() - 1 );
+                for ( int i = 0; i < ncol_; i++ ) {
+                    colInfos_[ i ].setName( (String) headings.get( i ) );
                 }
-                trimLines( comments );
+                trimLines( comments_ );
             }
         }
 
         /* If there are any other comment lines, concatenate them and bung
          * them into a description parameter. */
-        if ( comments.size() > 0 ) {
+        if ( comments_.size() > 0 ) {
             StringBuffer dbuf = new StringBuffer();
-            for ( Iterator it = comments.iterator(); it.hasNext(); ) {
+            for ( Iterator it = comments_.iterator(); it.hasNext(); ) {
                 dbuf.append( (String) it.next() );
                 if ( it.hasNext() ) {
                     dbuf.append( '\n' );
@@ -328,104 +370,66 @@ public class TextStarTable extends RandomStarTable {
             ValueInfo descriptionInfo =
                 new DefaultValueInfo( "Description", String.class,
                                       "Comments included in text file" );
-            parameters.add( new DescribedValue( descriptionInfo, 
-                                                dbuf.toString() ) );
+            getParameters().add( new DescribedValue( descriptionInfo,
+                                                     dbuf.toString() ) );
         }
     }
 
     /**
-     * Returns the cells of the table as a List of Lists.  Each elements
-     * is a string, unparsed except for formatting considerations 
-     * (including stripping any quote characters etc).
-     * The returned list will be 'square', that is each element will be
-     * a list with the same number of elements.
+     * Reads the next row of data from a given stream.
+     * Ignorable rows are skipped; comments may be stashed away.
      *
-     * @param  istrm  the stream providing the table text
-     * @return  a List in which each element represents a row; these 
-     *          elements are themselves Lists, containing the contents
-     *          of each cell
-     * @throws  TableFormatException  if the input stream cannot be
-     *          turned into a table
-     * @throws  IOException  if some I/O error occurs
+     * @param  in  input stream
+     * @return  list of Strings one for each cell in the row, or 
+     *          <tt>null</tt> for end of stream
      */
-    private void readStringCells( InputStream istrm ) throws IOException {
-        PushbackInputStream stream =
-            new PushbackInputStream( new BufferedInputStream( istrm ) );
-        for ( boolean done = false; ! done; ) {
-            int c = stream.read();
-            switch ( (char) c ) {
-                case '\r':
-                case '\n':
-                    endRow();
-                    break;
-                case '#':
-                    if ( rows.size() == 0 ) {
-                        comments.add( eatLine( stream ) );
-                    }
-                    else  {
-                        eatLine( stream );
-                    }
-                    endRow();
-                    break;
-                case ' ':
-                case '\t':
-                    break;
-                case '"':
-                case '\'':
-                    stream.unread( c );
-                    addCell( readString( stream ) );
-                    break;
-                case END:
-                    done = true;
-                    endRow();
-                    break;
-                default:
-                    stream.unread( c );
-                    addCell( readToken( stream ) );
+    private List readRow( PushbackInputStream in ) throws IOException {
+        cellList_.clear();
+        while ( cellList_.size() == 0 ) {
+            for ( boolean endLine = false; ! endLine; ) {
+                int c = in.read();
+                switch ( (char) c ) {
+                    case '\r':
+                    case '\n':
+                    case END:
+                        if ( cellList_.size() == 0 ) {
+                            return null;
+                        }
+                        endLine = true;
+                        break;
+                    case '#':
+                        if ( ! dataStarted_ ) {
+                            comments_.add( eatLine( in ) );
+                        }
+                        else {
+                            eatLine( in );
+                        }
+                        endLine = true;
+                        break;
+                    case ' ':
+                    case '\t':
+                        break;
+                    case '"':
+                    case '\'':
+                        in.unread( c );
+                        cellList_.add( readString( in ) );
+                        break;
+                    default:
+                        in.unread( c );
+                        cellList_.add( readToken( in ) );
+                }
             }
         }
-        stream.close();
-    }
-
-    /**
-     * Indicates that the end of a row has been reached in the input table.
-     */
-    private void endRow() throws TableFormatException {
-        if ( readCol == 0 ) {
-            return;
-        }
-        int nrow = rows.size();
-        if ( nrow == 1 ) {
-            ncol = ((List) rows.get( 0 )).size();
-        }
-        else if ( readCol != ncol ) {
-            throw new TableFormatException( 
-                "Wrong number of columns in row " + nrow +
-                " (expecting " + ncol + ", found " + readCol + ")" );
-        }
-        readCol = 0;
-    }
-
-    /**
-     * Stores given string value as the content of the next cell to be
-     * read in the table.
-     *
-     * @param  value  the value to store
-     */
-    private void addCell( String value ) {
-        if ( readCol++ == 0 ) {
-            rows.add( new ArrayList( ncol ) );
-        }
-        ((List) rows.get( rows.size() - 1 )).add( value );
+        return cellList_;
     }
 
     /**
      * Reads and discards any characters up to the end of the line.
-     * 
+     *
      * @param   stream  the stream to read
      */
     private String eatLine( InputStream stream ) throws IOException {
-        buffer = new StringBuffer();
+        StringBuffer buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {
@@ -455,7 +459,7 @@ public class TextStarTable extends RandomStarTable {
      */
     private String readString( InputStream stream ) throws IOException {
         char delimiter = (char) stream.read();
-        buffer = new StringBuffer();
+        StringBuffer buffer = new StringBuffer();
         while ( true ) {
             int c = stream.read();
             if ( c == delimiter ) {
@@ -491,7 +495,7 @@ public class TextStarTable extends RandomStarTable {
      * @throws  IOException  if an I/O error occurs
      */
     private String readToken( PushbackInputStream stream ) throws IOException {
-        buffer = new StringBuffer();
+        StringBuffer buffer = new StringBuffer();
         for ( boolean done = false; ! done; ) {
             int c = stream.read();
             switch ( (char) c ) {
@@ -514,7 +518,7 @@ public class TextStarTable extends RandomStarTable {
 
     /**
      * Reads a row of heaadings from a stream.  This is speculative; it
-     * will interpret the remaining characters in a row as if it is a 
+     * will interpret the remaining characters in a row as if it is a
      * set of text titles for following columns.  When the rest of the
      * table has been read, if the number of items in this array turns
      * out to match the number of columns, we will use these strings
@@ -579,5 +583,13 @@ public class TextStarTable extends RandomStarTable {
                 break;
             }
         }
+    }
+
+    /**
+     * Interface for an object that can turn a string into a cell content
+     * object.
+     */
+    private abstract class Decoder {
+        abstract Object decode( String value );
     }
 }
