@@ -10,17 +10,32 @@ package uk.ac.starlink.ast.gui;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.jdom.Document;
-import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.XMLOutputter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.TransformerConfigurationException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import uk.ac.starlink.util.SourceReader;
 
 /**
  * This class interacts with a permanent set of configuration states
@@ -34,7 +49,7 @@ import org.jdom.output.XMLOutputter;
  * being the state description the second the date stamp. The second
  * set of services are provided to get at states and to store new
  * ones. These latter options are provided by passing back references
- * to suitable Elements of a DOM, which then act as roots for the
+ * to suitable Elements of a Document, which then act as roots for the
  * state.
  * <p>
  * The format of the XML file is just determined by the practices
@@ -110,14 +125,14 @@ public class ConfigurationStore extends AbstractTableModel
     }
 
     /**
-     * Initialise the local DOM froan InputSteam.
+     * Initialise the local DOM from an InputStream.
      */
     public void initFromBackingStore( InputStream inputStream )
     {
         //  And parse it into a Document.
-        SAXBuilder builder = new SAXBuilder( false );
+        StreamSource saxSource = new StreamSource( inputStream );
         try {
-            document  = builder.build( inputStream );
+            document = (Document) new SourceReader().getDOM( saxSource );
         }
         catch (Exception e) {
             document = null;
@@ -126,12 +141,11 @@ public class ConfigurationStore extends AbstractTableModel
 
         //  If the document is still null create a default one.
         if ( document == null ) {
-            rootElement = new Element( "plot-configs" );
-            document = new Document( rootElement );
+            createEmptyDoc();
         }
         else {
             //  Locate the root Element.
-            rootElement = document.getRootElement();
+            rootElement = document.getDocumentElement();
         }
         fireTableDataChanged();
     }
@@ -147,28 +161,49 @@ public class ConfigurationStore extends AbstractTableModel
         File backingStore = Utilities.getConfigFile( applicationName,
                                                      storeName );
         if ( backingStore.canRead() ) {
-
-            //  And parse it into a Document.
-            SAXBuilder builder = new SAXBuilder( false );
             try {
-                document  = builder.build( backingStore );
+                FileInputStream inputStream = 
+                    new FileInputStream( backingStore );
+                initFromBackingStore( inputStream );
             }
-            catch (Exception e) {
-                document = null;
+            catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
-
-        //  If the document is still null create a default one.
-        if ( document == null ) {
-            rootElement = new Element( "plot-configs" );
-            document = new Document( rootElement );
-        }
         else {
-            //  Locate the root Element.
-            rootElement = document.getRootElement();
+            // Need dummy version.
+            createEmptyDoc();
         }
-        fireTableDataChanged();
+    }
+
+    /** Create an empty document */
+    protected void createEmptyDoc()
+    {   
+        try {
+            DocumentBuilder builder = 
+                DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            document = builder.newDocument();
+            rootElement = document.createElement( "plot-configs" );
+            document.appendChild( rootElement );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Return all the Elements that are children of another Element.
+     */
+    public static List getChildElements( Element element )
+    {
+        NodeList nodeList = element.getChildNodes();
+        List elementList = new ArrayList();
+        for ( int i = 0; i < nodeList.getLength(); i++ ) {
+            if ( nodeList.item( i ) instanceof Element ) {
+                elementList.add( nodeList.item( i ) );
+            }
+        }
+        return elementList;
     }
 
     /**
@@ -177,7 +212,7 @@ public class ConfigurationStore extends AbstractTableModel
     public int getCount()
     {
         //  This is the number of children of the root Element.
-        return rootElement.getChildren().size();
+        return getChildElements( rootElement ).size();
     }
 
     /**
@@ -186,8 +221,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public Element getState( int index )
     {
-        List children = rootElement.getChildren();
-        return (Element) children.get( index );
+       return (Element) getChildElements( rootElement ).get( index );
     }
 
     /**
@@ -195,8 +229,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public String getDescription( int index )
     {
-        return getState( index ).getAttribute( "description" ).
-            getValue();
+        return getState( index ).getAttribute( "description" );
     }
 
     /**
@@ -204,8 +237,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public void setDescription( int index, String value )
     {
-        getState( index ).getAttribute( "description" ).
-            setValue(value);
+        getState( index ).getAttributeNode( "description" ).setValue(value);
         fireTableRowsUpdated( index, index );
     }
 
@@ -214,7 +246,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public String getDateStamp( int index )
     {
-        return getState( index ).getAttribute( "date-stamp" ).getValue();
+        return getState( index ).getAttribute( "date-stamp" );
     }
 
     /**
@@ -223,7 +255,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public void setDateStamp( int index )
     {
-        getState( index ).getAttribute( "date-stamp" ).
+        getState( index ).getAttributeNode( "date-stamp" ).
             setValue( new Date().toString() );
         fireTableRowsUpdated( index, index );
     }
@@ -234,7 +266,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public void stateCompleted( Element newState )
     {
-        rootElement.addContent( newState );
+        rootElement.appendChild( newState );
         fireTableDataChanged();
     }
 
@@ -247,7 +279,7 @@ public class ConfigurationStore extends AbstractTableModel
      */
     public Element newState( String elementName, String description )
     {
-        Element newRoot = new Element( elementName );
+        Element newRoot = document.createElement( elementName );
         newRoot.setAttribute( "description", description );
         newRoot.setAttribute( "date-stamp", new Date().toString() );
         return newRoot;
@@ -259,8 +291,7 @@ public class ConfigurationStore extends AbstractTableModel
     public void removeState( int index )
     {
         Element child = getState( index );
-        String name = child.getName();
-        rootElement.removeChild( name );
+        rootElement.removeChild( child );
         fireTableRowsDeleted( index, index );
     }
 
@@ -275,22 +306,30 @@ public class ConfigurationStore extends AbstractTableModel
         File backingStore = Utilities.getConfigFile( applicationName,
                                                      storeName );
         FileOutputStream f = null;
-        BufferedWriter r = null;
         try {
             f = new FileOutputStream( backingStore );
-            r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } catch ( Exception e ) {
+        } 
+        catch ( Exception e ) {
+            e.printStackTrace();
+            return;
+        }
+        StreamResult out = new StreamResult( f );
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer t = null;
+        try {
+            t = tf.newTransformer();
+        }
+        catch (TransformerConfigurationException e) {
             e.printStackTrace();
             return;
         }
 
-        XMLOutputter out = new XMLOutputter( "   ", true );
-        out.setTextNormalize( true );
-        out.setEncoding( "ISO-8859-1" ); // ?? User can type in funny
-                                         // characters from
-                                         // fonts. Default is UTF-8
+        //?? User can type in funny characters??
+        t.setOutputProperty( OutputKeys.ENCODING, "ISO-8859-1" );
+        t.setOutputProperty( OutputKeys.INDENT, "yes" );
+        t.setOutputProperty( OutputKeys.STANDALONE, "yes" );
         try {
-            out.output( document, r );
+            t.transform( new DOMSource( document ), out );
         }
         catch (Exception e) {
             e.printStackTrace();

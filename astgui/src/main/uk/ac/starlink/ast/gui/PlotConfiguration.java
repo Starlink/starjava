@@ -12,9 +12,12 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import uk.ac.starlink.ast.Plot; // for documentation links
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
 
 /**
  * PlotConfiguration is a repository for all the configuration information
@@ -191,11 +194,12 @@ public class PlotConfiguration implements XMLEncodeAndDecode
         //  object that we're handling and get them to encode
         //  themselves.
         Element child;
+        Document parent = rootElement.getOwnerDocument();
         AbstractPlotControlsModel model;
         for ( int i = 0; i < configObjects.size(); i++ ) {
             model = (AbstractPlotControlsModel) configObjects.get( i );
-            child = new Element( model.getTagName() );
-            rootElement.addContent( child );
+            child = parent.createElement( model.getTagName() );
+            rootElement.appendChild( child );
             model.encode( child );
         }
     }
@@ -212,14 +216,15 @@ public class PlotConfiguration implements XMLEncodeAndDecode
         // Visit each child of the root element and look for a known
         // string. If located pass that child to the related
         // configuration object.
-        java.util.List children = rootElement.getChildren();
         Element child;
         AbstractPlotControlsModel model;
+        List children = ConfigurationStore.getChildElements(rootElement);
+
         for ( int i = 0; i < children.size(); i++ ) {
             child = (Element) children.get( i );
-            String name = child.getName();
+            String name = child.getTagName();
             for ( int j = 0; j < configObjects.size(); j++ ) {
-                model = (AbstractPlotControlsModel) configObjects.get( i );
+                model = (AbstractPlotControlsModel) configObjects.get( j );
                 if ( model.getTagName().equals( name ) ) {
                     model.decode( child );
                     break;

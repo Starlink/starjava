@@ -35,7 +35,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.gui.images.ImageHolder;
 import uk.ac.starlink.ast.Plot;                   // For documentation

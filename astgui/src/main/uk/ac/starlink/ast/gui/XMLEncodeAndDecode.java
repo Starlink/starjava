@@ -1,6 +1,6 @@
 package uk.ac.starlink.ast.gui;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 /**
  * Interface for objects that can encode and decode their internal

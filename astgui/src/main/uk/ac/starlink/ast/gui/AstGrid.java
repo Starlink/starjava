@@ -9,7 +9,7 @@ package uk.ac.starlink.ast.gui;
 
 import java.awt.Color;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 
 /**

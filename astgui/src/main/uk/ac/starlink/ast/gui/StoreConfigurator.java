@@ -28,7 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.gui.images.ImageHolder;
 

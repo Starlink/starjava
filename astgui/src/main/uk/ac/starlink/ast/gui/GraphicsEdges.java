@@ -7,7 +7,7 @@
  */
 package uk.ac.starlink.ast.gui;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 /**
  * GraphicsEdges defines options about how the edges of a plot should

@@ -3,7 +3,7 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-import org.jdom.Element;
+import org.w3c.dom.Element;
 
 /**
  * GraphicsHints defines the RenderingHints that should be used when

@@ -15,8 +15,10 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
-import org.jdom.CDATA;
-import org.jdom.Element;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 /**
  * This abstract class provides a default implementation for a
@@ -93,7 +95,7 @@ public abstract class AbstractPlotControlsModel
     //  implementation in the specific class.
     public void decode( Element rootElement ) 
     {
-        java.util.List children = getChildren( rootElement );
+        List children = ConfigurationStore.getChildElements( rootElement );
         int size = children.size();
         Element element = null;
         String name = null;
@@ -123,11 +125,13 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     String value )
     {
-        Element newElement = new Element( name );
+        Document parent = rootElement.getOwnerDocument();
+        Element newElement = parent.createElement( name );
         if ( value != null ) {
-            newElement.addContent( new CDATA( value ) );
+            CDATASection cdata = parent.createCDATASection( value );
+            newElement.appendChild( cdata );
         }
-        rootElement.addContent( newElement );
+        rootElement.appendChild( newElement );
     }
 
     /**
@@ -136,8 +140,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     boolean value )
     {
-        rootElement.addContent
-            ( new Element( name ).setText( booleanToString( value ) ) );
+        addChildElement( rootElement, name, booleanToString( value ) ); 
     }
 
     /**
@@ -146,8 +149,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     int value )
     {
-        rootElement.addContent
-            ( new Element( name ).setText( intToString( value ) ) );
+        addChildElement( rootElement, name, intToString( value ) ); 
     }
 
     /**
@@ -156,8 +158,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     double value )
     {
-        rootElement.addContent
-            ( new Element( name ).setText( doubleToString( value ) ) );
+        addChildElement( rootElement, name, doubleToString( value ) ); 
     }
 
     /**
@@ -166,8 +167,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     Color value )
     {
-        rootElement.addContent
-            ( new Element( name ).setText( colorToString( value ) ) );
+        addChildElement( rootElement, name, colorToString( value ) ); 
     }
 
     /**
@@ -176,17 +176,16 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     Font value )
     {
-        rootElement.addContent
-            ( new Element( name ).setText( fontToString( value ) ) );
+        addChildElement( rootElement, name, fontToString( value ) ); 
     }
 
     /**
      * Return a List of all children. Use the List interface to step
      * through these.
      */
-    protected List getChildren( Element rootElement )
+    protected NodeList getChildren( Element rootElement )
     {
-        return rootElement.getChildren();
+        return rootElement.getChildNodes();
     }
 
     /**
@@ -194,7 +193,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String getElementName( Element element )
     {
-        return element.getName();
+        return element.getTagName();
     }
 
     /**
@@ -202,7 +201,8 @@ public abstract class AbstractPlotControlsModel
      */
     protected String getElementValue( Element element )
     {
-        return element.getText();
+        // Value is the content, should be a text/CDATA node.
+        return element.getFirstChild().getNodeValue();
     }
 
     /**

@@ -7,9 +7,10 @@
  */
 package uk.ac.starlink.ast.gui;
 
-import java.awt.*;
+import java.awt.Color;
 
-import org.jdom.*;
+import org.w3c.dom.Element;
+
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 
@@ -232,7 +233,13 @@ public class AstTicks extends AbstractPlotControlsModel
      */
     public void setXGap( double xGap )
     {
-        this.xGap = xGap;
+        if ( xGap == 0.0 ) {
+            this.xGap = DefaultGrf.BAD;  // For backward compat, 0.0
+                                         // meant this once.
+        }
+        else {
+            this.xGap = xGap;
+        }
         if ( xGap != DefaultGrf.BAD ) {
             setState( true );
         }
@@ -259,7 +266,13 @@ public class AstTicks extends AbstractPlotControlsModel
      */
     public void setYGap( double yGap )
     {
-        this.yGap = yGap;
+        if ( yGap == 0.0 ) {
+            this.yGap = DefaultGrf.BAD;  // For backward compat, 0.0
+                                         // meant this once.
+        }
+        else {
+            this.yGap = yGap;
+        }
         if ( yGap != DefaultGrf.BAD ) {
             setState( true );
         }

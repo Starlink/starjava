@@ -7,9 +7,11 @@
  */
 package uk.ac.starlink.ast.gui;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.Color;
 
-import org.jdom.*;
+import org.w3c.dom.Element;
+
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfFontManager;
 
