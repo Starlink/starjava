@@ -18,6 +18,8 @@ import uk.ac.starlink.frog.iface.PlotControlFrame;
 import uk.ac.starlink.frog.data.TimeSeries;
 import uk.ac.starlink.frog.data.TimeSeriesImpl;
 import uk.ac.starlink.frog.data.TXTTimeSeriesImpl;
+import uk.ac.starlink.frog.data.Gram;
+import uk.ac.starlink.frog.data.GramFactory;
 import uk.ac.starlink.frog.util.FrogDebug;
 
 /**
@@ -221,6 +223,84 @@ public class FrogSOAPServer
            return false;
        } 
        return true;       
+    }
+
+//
+// Define the actual services, these are mediated through a static
+// class SOAPServices.
+//
+    /**
+     * Get a time series and perform a fourier transform on the
+     *
+     * @param series the spectrum specification
+     */
+    public String getFourierTransform( 
+     String series, double minFreq, double maxFreq, double freqInterval) {
+       debugManager.print( "Called getFourierTransform() via SOAP Service");
+       debugManager.print( "Passed:\n" + series );
+       browserMain.setStatus("Recieved SOAP message...");
+       
+       // break the String into lines
+       String[] lines = series.split("\\n");
+       
+       // Create a TimeSeries
+       TimeSeries newSeries = null;
+       try {
+          TimeSeriesImpl impl = new TXTTimeSeriesImpl( lines );
+       
+          // Wrap the implementation in a time series object
+          newSeries = new TimeSeries( impl );
+          newSeries.setOrigin( "a SOAP message" );
+          newSeries.setType( TimeSeries.TIMESERIES );
+       
+       } catch (FrogException fe) {
+           //fe.printStackTrace();
+           debugManager.print( "Unable to parse message...");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
+           return "Error: Unable to parse message";
+       } catch (NumberFormatException ne) {
+           debugManager.print( "Unable to parse message...");
+           debugManager.print( "Doesn't look like it's even numeric input?");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
+           return "Error: Unable to parse message, doesn't look numeric";
+       } catch (Exception e ){
+           debugManager.print( "Unable to parse message...");
+           debugManager.print( "Generic Exception, who knows...");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
+           return "Error: Unknown error parising message, giving up";
+       }
+       
+       // Perform the fourier transform
+       // -----------------------------
+       browserMain.setStatus("Creating a Fourier Transform...");
+       
+       // Periodogram Factory
+       Gram periodogram = null;
+       GramFactory gramFactory = GramFactory.getReference();       
+       debugManager.print( "  Building gramFactory..." );
+       try {
+          debugManager.print( "    Performing a FOURIER TRANSFORM...");
+          periodogram = gramFactory.get( 
+               newSeries, false, minFreq, maxFreq, freqInterval, "FOURIER" );
+       } catch ( Exception e ) {         
+         // do nothing
+         //e.printStackTrace();
+         debugManager.print( "    Unable to generate an Fourier Transform");
+         return "Error: Unable to sucessfully generate a Fourier Transform";
+       }
+         
+       // verbose for debugging  
+       double[] xData = periodogram.getXData();
+       double[] yData = periodogram.getYData(); 
+       String returnMessage = null;     
+       for ( int i = 0; i < xData.length; i++ ) {
+          returnMessage = returnMessage + xData[i] + " " + yData[i] + "\n";
+       }   
+       
+       browserMain.setStatus("Returned message to SOAP client...");
+       debugManager.print( "     Returning FOURIER TRANSFORM" );
+       return returnMessage;
+              
     }
 
 

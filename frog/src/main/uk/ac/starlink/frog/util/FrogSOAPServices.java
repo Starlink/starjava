@@ -13,12 +13,19 @@ import org.w3c.dom.Element;
 public class FrogSOAPServices
 {
     /**
-     * Display a spectrum.
+     * Display a spectrum in the current FROG window.
      */
-    public static boolean displaySeries( String series )
-    {
+    public static boolean displaySeries( String series ) {
         return FrogSOAPServer.getInstance().displaySeries( series );
     }
-
+    
+   /**
+     * Display a spectrum.
+     */
+    public static String getFourierTransform( 
+      String series, double minFreq, double maxFreq, double freqInterval ) {
+        return FrogSOAPServer.getInstance().getFourierTransform( 
+           series, minFreq, maxFreq, freqInterval );
+    }
  
 }

@@ -4,6 +4,6 @@
    <service name="FrogSOAPServices" provider="java:RPC">
       <parameter name="className" 
                  value="uk.ac.starlink.frog.util.FrogSOAPServices"/>
-      <parameter name="allowedMethods" value="displaySeries"/>
+      <parameter name="allowedMethods" value="displaySeries getFourierTransform"/>
    </service>
 </deployment>
