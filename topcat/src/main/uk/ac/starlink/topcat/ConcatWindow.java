@@ -19,7 +19,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.table.TableColumn;
@@ -41,7 +40,6 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
     private final JComboBox t2selector;
     private final JScrollPane colScroller;
     private final Action goAct;
-    private final ListCellRenderer columnCellRenderer;
     private JComboBox[] colSelectors;
 
     /**
@@ -54,7 +52,6 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
 
         JComponent main = getMainArea();
         main.setLayout( new BorderLayout() );
-        columnCellRenderer = new ColumnCellRenderer();
 
         /* Construct base table selection control. */
         t1selector = new JComboBox( new TablesListComboBoxModel() );
@@ -163,13 +160,12 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
                     ((StarTableColumn) colModel1.getColumn( icol ))
                    .getColumnInfo();
                 colPanel.add( new JLabel( cinfo.getName() + ": " ) );
-                ComboBoxModel comboModel =
+                ColumnComboBoxModel comboModel =
                     RestrictedColumnComboBoxModel
                    .makeClassColumnComboBoxModel( colModel2, true, 
                                                   cinfo.getContentClass() );
-                JComboBox combo = new JComboBox( comboModel );
+                JComboBox combo = comboModel.makeComboBox();
                 guessColumn( comboModel, cinfo );
-                combo.setRenderer( columnCellRenderer );
                 colSelectors[ icol ] = combo;
                 colPanel.add( combo );
             }
