@@ -15,6 +15,7 @@
   <!ENTITY FIG.SubsetWindow '&figs;SubsetWindow.gif'>
   <!ENTITY FIG.StatsWindow '&figs;StatsWindow.gif'>
   <!ENTITY FIG.PlotWindow '&figs;PlotWindow.gif'>
+  <!ENTITY FIG.PlotWindow_blob '&figs;PlotWindow_blob.gif'>
   <!ENTITY FIG.LoadQueryWindow '&figs;LoadQueryWindow.gif'>
   <!ENTITY FIG.JFileChooserLoad '&figs;JFileChooserLoad.gif'>
   <!ENTITY FIG.StarTableNodeChooser '&figs;StarTableNodeChooser.gif'>
@@ -342,12 +343,13 @@ and marking groups of rows to plot using different markers in the
 
 <p>In all these cases you will be asked to assign a name for the subset.
 As with column names, it is a good idea to follow a few rules for these
-names.  They should be:
+names so that they can be used in <ref id="jel">algebraic expressions</ref>.  
+They should be:
 <ul>
 <li>Different from other subset and column names, 
     even apart from upper/lower case distinctions</li>
 <li>In the form of a java identifier (starts with a letter, continues with
-    alphanumerics including underscore)</li>
+    alphanumerics including underscore, no spaces)</li>
 <li>Not too long</li>
 </ul>
 </p>
@@ -3491,7 +3493,7 @@ button when the chosen table is selected in the
 <ref id="ControlWindow">Control Window</ref>'s Table List.
 </p>
 
-<p>On the plotting surface a marker is plotted for each item in the
+<p>On the plotting surface a marker is plotted for each row in the
 selected <ref id="subsets" plaintextref="yes">Row Subsets</ref> 
 at a position determined by the
 values in the table columns selected to provide the X and Y values.
@@ -3499,7 +3501,7 @@ A marker will only be plotted if both the X and Y values are not blank.
 If more than one subset is being plotted, they will be drawn using
 different markers.  A key on the right hand side indicates the marker
 being used for each subset.  The marker types can be changed using the
-<label>Marker Type</label> item in the <label>Plot</label> menu.
+<label>Marker Types</label> menu.
 </p>
 
 <p>You can <label>zoom</label> in and out of the plot by dragging with the left mouse
@@ -3537,20 +3539,19 @@ using different markers, so you can see where different groups of results
 lie in relation to each other.
 You can also use the <label>Subsets To Plot</label> item on the
 <label>Subsets</label> menu.
+The subsets are plotted in order of which was most recently selected.
+This makes a difference on a crowded plot or where some points are 
+members of multiple subsets, since the most recently plotted symbol 
+will appear on top.  If points from one subset are being hidden behind
+those from another, you can deselect and reselect that subset and
+they'll be shown on top.
 </p>
 
 <p>The following extra buttons are available on the toolbar:
 <dl>
 
 <dt>&IMG.PRINT; Print</dt>
-<dd><p>Pops up a dialogue which will print the current plot as an EPS file
-    The plot is currently not really of publication quality.
-    </p></dd>
-
-<dt>&IMG.REDO; Replot</dt>
-<dd><p>Redraws the current plot from scratch.
-    This may be useful if the data in the
-    table has been changed.
+<dd><p>Pops up a dialogue which will print the current plot as an EPS file.
     </p></dd>
 
 <dt>&IMG.RESIZE; Rescale</dt>
@@ -3564,25 +3565,90 @@ You can also use the <label>Subsets To Plot</label> item on the
 <dd><p>Toggles whether a grid is drawn over the plotting surface or not.
     </p></dd>
 
+<dt>&IMG.BLOB_SUBSET; Draw Subset Region</dt>
+<dd><p>Allows you to draw a region on the screen defining a new 
+    <ref id="subsets">Row Subset</ref>.  When you have finished 
+    drawing it, click it again to indicate you're done.
+    See <ref id="plotSubsets"/> for more detail.
+    </p></dd>
+
 <dt>&IMG.VISIBLE_SUBSET; Subset From Visible</dt>
-<dd><p>Defines a new <ref id="subsets">Row Subset</ref>
+<dd><p>Defines a new <label>Row Subset</label>
     consisting of only the points which
     are currently visible on the plotting surface.
-    A dialogue will be popped up to ask for a name for the new subset.
-    In this way points in a given region of the parameter space can
-    be grouped together.
+    See <ref id="plotSubsets"/> for more detail.
     </p></dd>
 
 </dl>
 </p>
 
-<p>For a large table and/or many subsets the plotting may take a little while.
-While it is being done you can see the points appearing in the plot
-as they are done, and a progress bar is shown at the bottom of the window.
-If you start a new plot (by changing the plot characteristics or pressing
-the <label>Replot</label>  button &IMG.REDO;) or close the window while a plot is being done,
-the superceded plot will be stopped.
+<subsubsubsect id="plotSubsets">
+<subhead><title>Defining Subsets From Plots</title></subhead>
+
+<p>When columns are plotted against each other in the 
+<ref id="PlotWindow">Plot Window</ref>, it becomes easy 
+to see groupings of the data which may not be otherwise apparent;
+a cluster of (X,Y) points representing a group of rows 
+may correspond to a physically important grouping of objects which
+you would like to treat separately elsewhere in the program, 
+for instance by calculating statistics on just these rows, 
+writing them out to a new table, 
+or plotting them in a different colour on graph with different coordinates.
+This is easily accomplished by creating a new 
+<ref id="subsets">Row Subset</ref> containing the grouped points,
+and the Plot Window gives you two ways to do this.
 </p>
+
+<p>The simplest way is to zoom the plot so that only the points you
+want to identify are visible (by dragging the mouse down-and-right
+to zoom in or up-and-left to zoom out) and hitting the 
+<label>New Subset From Visible</label> (&IMG.VISIBLE_SUBSET;)
+toolbar button.  This defines a subset consisting of all the points
+that are currently visible.
+This has the limitation that only a rectangular grouping of points
+can be selected.
+</p>
+
+<p>A much more flexible way is to draw a region or regions 
+on the plot which identify the points you are interested in.
+To do this, hit the
+<label>Draw Subset Region</label> (&IMG.BLOB_SUBSET;)
+toolbar button.  Having done this, you can drag the mouse around
+on the plot (keep the left mouse button down while you move)
+to encircle the points that you're interested in.
+As you do so, a translucent grey blob will be left behind - 
+anything inside the
+blob will end up in the subset.  You can draw one or many blobs, 
+which may be overlapping or not.  If you make a mistake while 
+drawing a sequence of blobs, you can click the right mouse button,
+and the most recently added blob will disappear.
+When you're in this region-drawing mode,
+you can't zoom or resize the window or change the characteristics
+of the plot, and the <label>Draw Subset Region</label> button 
+appears with a tick over it (&IMG.BLOB_SUBSET_END;) to remind you
+you're in it.  Here's what the plot looks like while you're drawing:
+</p>
+<figure>
+<caption><px>Region-Drawing Mode</px></caption>
+<figureimage src="&FIG.PlotWindow_blob;"/>
+</figure>
+<p>When you're happy with the region you've defined, click the
+toolbar button again.
+</p>
+
+<p>In either case, when you have indicated that you want to define a 
+new row subset, a dialogue box will pop up to ask you its name.
+As described in <ref id="subsetDef"/>, it's a good idea to use a
+name which you haven't used before, and which is just composed
+of letters, numbers and underscores.
+When you enter a name and hit the <label>OK</label> button, 
+the new subset will be created and the points in it will be 
+shown straight away on the plot using a new symbol.  
+As usual, you can toggle whether the points in this subset are displayed
+using the <label>Row Subsets</label> box at the bottom of the Plot Window.
+</p>
+
+</subsubsubsect>
 
 </subsubsect>
 
@@ -4625,7 +4691,7 @@ define the new column:
 <dt>Name</dt>
 <dd><p>The name of the new column.  This should preferably be unique
     (different from all the other column names).  It will be easier to
-    use it in other expressions if it is also:
+    use it in <ref id="jel">algebraic expressions</ref> if it is also:
     <ul>
     <li>Different from other columns even apart from upper/lower case
         distinctions</li>
