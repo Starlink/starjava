@@ -8,17 +8,16 @@
  !
  !   The main targets are:
  !
- !      build            -> does nothing
- !      clean            -> does nothing
+ !      build            -> makes copies of local files that will be modified
+ !      clean            -> removes local copies
  !      deinstall        -> undo the install target
- !      dist             -> does nothing (this package is already in
- !                          the dist state).
+ !      dist             -> makes package into dist state
  !      export           -> creates the full distribution archives
  !      export-runonly   -> same as export
  !      export-source    -> same as export
  !      install          -> install distribution into Starlink tree
  !      install-runonly  -> same as install
- !      jars             -> does nothing
+ !      jars             -> add manifest and sign jar files
  !      javadocs         -> does nothing
  !      javadoc-sources  -> does nothing
  !
@@ -67,7 +66,7 @@
   <property name="star.build.dir" value="${basedir}/../"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!--
@@ -83,6 +82,12 @@
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
+
+  <!-- Directory containing the package source -->
+  <property name="src.dir" value="${basedir}/src"/>
+
+  <!-- Directory containing any unmodified jars of this package -->
+  <property name="src.jars.dir" value="${src.dir}/lib"/>
 
   <!-- Distribution directories, these are the actual state of this
    !   package at all times -->
@@ -102,6 +107,18 @@
   <!-- File for logging the files that are copied by the install target -->
   <property name="install.log" value=".${name}.install"/>
   <property name="install.overwrite" value="true"/>
+
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase" 
+            value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://xml.apache.org/axis/"/>
 
   <!--
    !   =================
@@ -123,15 +140,31 @@
    !   Build the code
    !   ==============
    !
-   !  Update the jar-file manifest. Note this target should be ran
-   !  before checking in the jar files (to update the manifest) and
-   !  will need repeating if the dependencies change. For safety 
-   !  this target will be executed as part of a system "build".
+   !   Just makes local copies of the package jar files so that they
+   !   can be safely modified.
    !-->
   <target name="build"
           depends="prepare"
-          description="-> add manifest to axis jar file">
+          description="-> make local copies of files for modification">
 
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
+  </target>
+
+  <!--
+   !   ===========================
+   !   Create the package jar file
+   !   ===========================
+   !
+   !   This just updates the manifest and signs with using the local
+   !   keystore.
+   !-->
+  <target name="jars"
+          depends="build"
+          description="-> packages jar files">
 
     <!-- Add the manifest to the axis.jar file, just an update -->
     <mkdir dir="${dist.lib.pkg}"/>
@@ -146,17 +179,48 @@
       </manifest>
       
     </jar>
+
+    <!-- Sign all jar files -->
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
+
   </target>
 
   <!--
-   !   ===========================
-   !   Create the package jar file
-   !   ===========================
-   !
-   !  Nothing to do.
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
    !-->
-  <target name="jars"
-          description="-> does nothing">
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this package, this goes into
+     !   "dist.lib" -->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+      <information>
+         <title>AXIS</title>
+         <vendor>Apache</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>"Apache axis - Webstart edition"</description>
+         <offline_allowed/>
+       </information>
+       <security>
+          <all_permissions/>
+       </security>
+       <resources>
+         <j2se version="1.4+"/>
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+       </resources>
+       <component_desc/>
+     </jnlp>
+
   </target>
 
   <!--
@@ -167,7 +231,8 @@
    !  Nothing to do, this package is permanently in this condition.
    !-->
   <target name="dist"
-          description="-> does nothing">
+          depends="jars,webstart"
+          description="-> make package ready for distribution">
   </target>
 
   <!--
@@ -268,10 +333,14 @@
    !   ============================================
    !   Cleans up build and distribution directories
    !   ============================================
-   ! Does nothing.
+   !
+   !   Removes copies of jar files.
    !-->
   <target name="clean"
-          description="-> does nothing">
+          description="-> removes local copies">
+
+    <delete dir="${dist.lib}"/>
+
   </target>
 
   <!--
@@ -285,6 +354,7 @@
    ! are logged to "${install.log}".
    !-->
   <target name="install"
+          depends="dist"
           description="-> install distribution into Starlink tree">
 
     <!-- Installation based directories (based on "star.install")-->
