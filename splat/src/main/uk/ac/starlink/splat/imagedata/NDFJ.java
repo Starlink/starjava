@@ -242,10 +242,7 @@ public class NDFJ implements Serializable
             nClose( ident );
             ident = 0;
 	}
-	if ( wcs != null ) {
-            wcs.annul();
-	    wcs = null;
-        }
+        wcs = null;
 	type = FLOAT;
 	ndim = 0;
         releaseFitsHeaders();
@@ -590,9 +587,6 @@ public class NDFJ implements Serializable
      */
     public void setAst( FrameSet newwcs )
     {
-        if ( wcs != null ) {
-            wcs.annul();
-        }
         wcs = (FrameSet) newwcs.clone();
     }
 
@@ -1021,7 +1015,7 @@ public class NDFJ implements Serializable
      * @param wcsArray the FrameSet encoded as a character array
      *                 (native format).
      */
-    protected synchronized static native void
+    protected synchronized static native void 
         nSetAstArray( int ident, String[] wcsArray );
 
     /**
