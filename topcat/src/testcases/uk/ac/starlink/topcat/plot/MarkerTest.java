@@ -28,6 +28,7 @@ public class MarkerTest extends TestCase {
             toplev.pack();
             toplev.setVisible( true );
             Thread.currentThread().sleep( 4000 );
+            toplev.dispose();
         }
         catch ( HeadlessException e ) {
             System.out.println( "Headless environment - no marker test" );
@@ -88,14 +89,14 @@ class ProfileSamples extends JPanel {
     final static int STEP = 16;
     final static int ITEMS = 16;
     final static MarkStyleProfile[] PROFILES = new MarkStyleProfile[] {
-        MarkStyleProfile.spots( 3 ),
-        MarkStyleProfile.spots( 5 ),
-        MarkStyleProfile.openShapes( Color.BLACK, 3 ),
-        MarkStyleProfile.openShapes( null, 5 ),
-        MarkStyleProfile.filledShapes( Color.RED, 3 ),
-        MarkStyleProfile.filledShapes( null, 5 ),
-        MarkStyleProfile.ghosts( 2, 0.6f ),
-        MarkStyleProfile.ghosts( 5, 0.3f ),
+        MarkStyleProfile.spots( "Small spots", 3 ),
+        MarkStyleProfile.spots( "Large spots", 5 ),
+        MarkStyleProfile.openShapes( "Small open shapes", 3, Color.BLACK ),
+        MarkStyleProfile.openShapes( "Large open shapes", 5, null ),
+        MarkStyleProfile.filledShapes( "Small filled shapes", 3, Color.RED ),
+        MarkStyleProfile.filledShapes( "Large filled shapes", 5, null ),
+        MarkStyleProfile.ghosts( "Small ghosts", 2, 0.6f ),
+        MarkStyleProfile.ghosts( "Large ghosts", 5, 0.3f ),
     };
 
     ProfileSamples() {
