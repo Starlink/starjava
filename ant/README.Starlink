@@ -113,5 +113,24 @@ Would make "installed.classpath" include all jars reference in the
 manifests of the "hdx", "jsky" and "soapserver" jars and the jars that
 they reference.
 
-Peter W. Draper (20-AUG-2002)
+Lately I've also added some tasks to support writing Java webstart 
+JNLP files, these are the Roxes ANT Tasks, found in the files:
+
+   src/main/com/roxes/tools/ant/JNLPTask.java
+   src/main/com/roxes/tools/ant/JStubTask.java
+   src/main/com/roxes/tools/ant/PreferencesTask.java
+   src/main/com/roxes/tools/ant/SFXTask.java
+   src/main/com/roxes/tools/ant/stub.java
+
+The home page for these is at:
+
+   http://www.roxes.com/produkte/rat.html
+
+The roxes tasks are released under the LGPL and the documentation 
+is in "docs/roxes".
+
+Only the <jnlp> task is actually used, please don't use any of the
+others without some consultation.
+
+Peter W. Draper (13-NOV-2003)
 
