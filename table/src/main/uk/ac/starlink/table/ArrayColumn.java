@@ -183,7 +183,7 @@ public abstract class ArrayColumn extends ColumnData {
         Class contentClass = data.getClass().getComponentType();
         if ( contentClass.isPrimitive() ) {
             if ( contentClass == byte.class ) {
-                contentClass = Integer.class;
+                contentClass = Byte.class;
             }
             else if ( contentClass == short.class ) {
                 contentClass = Short.class;
