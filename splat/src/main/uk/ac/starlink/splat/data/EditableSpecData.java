@@ -409,7 +409,7 @@ public class EditableSpecData
             Sort.sort( xPos, yPos );
         }
 
-        //  Check for duplicates.
+        //  Check for duplicates, including runs of BAD.
         int ndup = 0;
         for ( int i = 1; i < xPos.length; i++ ) {
             if ( xPos[i-1] == xPos[i] ) {
@@ -446,10 +446,10 @@ public class EditableSpecData
                     }
                 }
             }
-            setSimpleDataQuick( nc, nd, ne );
+            setSimpleUnitDataQuick( getFrameSet(), nc, nd, ne );
         }
         else {
-            setSimpleDataQuick( xPos, yPos, yErr );
+            setSimpleUnitDataQuick( getFrameSet(), xPos, yPos, yErr );
         }
     }
 

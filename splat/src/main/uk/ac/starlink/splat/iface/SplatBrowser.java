@@ -2191,7 +2191,7 @@ public class SplatBrowser
                 spec = globalList.getSpectrum( indices[i] );
                 name = "Copy of: " + spec.getShortName();
                 try {
-                    newSpec = specDataFactory.createEditable(name, spec, sort);
+                    newSpec = specDataFactory.createEditable( name, spec, sort );
                     globalList.add( newSpec );
                 }
                 catch (Exception e) {

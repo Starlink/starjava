@@ -699,8 +699,7 @@ public class SpecDataFactory
                                             boolean sort )
         throws SplatException
     {
-        EditableSpecData editableSpecData =
-            createEditable( shortname, specData );
+        EditableSpecData editableSpecData = createEditable( shortname, specData );
         if ( sort && ! specData.isMonotonic() ) {
             editableSpecData.sort();
         }
