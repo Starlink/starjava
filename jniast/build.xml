@@ -78,7 +78,11 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <!-- Note this version is the same as the required AST version. -->
+  <!-- Note this version is the same as the lowest version of AST required
+   !   for this package to build and run normally.  Higher versions of
+   !   AST may be desirable e.g. if they contain bugfixes.  The test
+   !   target may fail if a particular version, later than this, is
+   !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
   <property name="version" value="2.0-4"/>

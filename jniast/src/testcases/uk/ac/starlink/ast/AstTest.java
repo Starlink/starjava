@@ -515,7 +515,7 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        assertEquals( "AST V2.0-5; JNIAST native V2.0-4; JNIAST java V2.0-4",
+        assertEquals( "AST V2.0-6; JNIAST native V2.0-4; JNIAST java V2.0-4",
                       AstObject.reportVersions() );
 
         String absentConstName = "ABSENT_CONSTANT";
