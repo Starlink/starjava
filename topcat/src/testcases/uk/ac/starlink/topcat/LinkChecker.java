@@ -48,6 +48,7 @@ public class LinkChecker {
     private static Pattern namePattern2 =
         Pattern.compile( "<a\\s+name=(\\w+)>",
                          Pattern.CASE_INSENSITIVE );
+    private int networkTimeout = 5;
 
     /**
      * Constructs a new LinkChecker with a given home context. 
@@ -133,6 +134,7 @@ public class LinkChecker {
             if ( conn instanceof HttpURLConnection ) {
                 HttpURLConnection hconn = (HttpURLConnection) conn;
                 hconn.setRequestMethod( "HEAD" );
+                connectWithTimeout( hconn );
                 int response = hconn.getResponseCode();
                 if ( response == HttpURLConnection.HTTP_OK ) {
                     ok = true;
@@ -144,6 +146,7 @@ public class LinkChecker {
                 hconn.disconnect();
             }
             else {
+                connectWithTimeout( conn );
                 conn.getInputStream().close();
                 ok = true;
             }
@@ -168,8 +171,10 @@ public class LinkChecker {
             throws IOException {
         if ( urlNames.get( url ) == null ) {
             Set names = new HashSet();
-            BufferedReader strm = 
-                new BufferedReader( new InputStreamReader( url.openStream() ) );
+            URLConnection conn = url.openConnection();
+            connectWithTimeout( conn );
+            BufferedReader strm = new BufferedReader( 
+                new InputStreamReader( conn.getInputStream() ) );
             for ( String line; ( line = strm.readLine() ) != null; ) {
                 for ( Matcher matcher = namePattern1.matcher( line );
                       matcher.find(); ) {
@@ -208,6 +213,24 @@ public class LinkChecker {
     }
 
     /**
+     * Sets the network timeout used for retrieving URLs.
+     *
+     * @param  timeoutSecs  timeout in seconds
+     */
+    public void setTimeout( int timeoutSecs ) {
+        networkTimeout = timeoutSecs;
+    }
+
+    /**
+     * Returns the network timeout used for retrieving URLs.
+     *
+     * @return  timeout in seconds
+     */
+    public int getTimeout() {
+        return networkTimeout;
+    }
+
+    /**
      * Returns the total number of local link resolution failures this
      * checker has come across.  Local ones are those which correspond
      * to hrefs representing relative URLs or file-type URLs.
@@ -238,6 +261,36 @@ public class LinkChecker {
      */
     protected void logMessage( String msg ) {
         System.out.println( msg );
+    }
+
+    /**
+     * Opens a URLConnection with a timeout.  
+     *
+     * @param  conn  URL connection
+     * @throws  IOException  if the connection times out
+     */
+    private void connectWithTimeout( URLConnection conn ) throws IOException {
+        URLConnector connector = new URLConnector( conn );
+        connector.start();
+        long endTime = System.currentTimeMillis() + networkTimeout * 1000;
+        synchronized ( connector ) {
+            while ( System.currentTimeMillis() < endTime &&
+                    ! connector.isConnected() ) { 
+                try {
+                    connector.wait( endTime - System.currentTimeMillis() + 1 );
+                }
+                catch ( InterruptedException e ) {
+                    throw (IOException)
+                          new IOException( "Connection interrupted: " +
+                                           conn.getURL() )
+                         .initCause( e );
+                }
+            }
+            if ( ! connector.isConnected() ) {
+                throw new IOException( "Connection timed out: " + 
+                                       conn.getURL() );
+            }
+        }
     }
 
     /**
@@ -286,6 +339,71 @@ public class LinkChecker {
         catch ( MalformedURLException e ) {
             System.err.println( e );
             System.exit( 1 );
+        }
+    }
+
+    /**
+     * Helper class which defines a thread that tries to open a URLConnection.
+     * Construct a URLConnector for a URLConnection which is not already
+     * open, call {@link #start} on it, and call {@link #isConnected}
+     * later to see if the connection has been established.  If the
+     * connection attempt succeeds, or if it fails with an exception,
+     * a {@link #notifyAll} will be called on this object.
+     */
+    private final class URLConnector extends Thread {
+        final URLConnection connection;
+        boolean connected;
+        IOException connectException;
+
+        /**
+         * Constructs a new URLConnector that will try to open a given
+         * connection.
+         *
+         * @param  connection  connection to open
+         */
+        URLConnector( URLConnection connection ) {
+            this.connection = connection;
+        }
+
+        /**
+         * Attempts to connect, and calls {@link #notifyAll} when the attempt
+         * has finished in success or failure.
+         */
+        public void run() {
+            try {
+                connection.connect();
+                synchronized ( this ) {
+                    connected = true;
+                    notifyAll();
+                }
+            }
+            catch ( IOException e ) {
+                synchronized ( this ) {
+                    connectException = e;
+                    notifyAll();
+                }
+            }
+        }
+
+        /**
+         * Indicates whether the connection has been opened yet.
+         * There are three possibilities:
+         * <ol>
+         * <li>false return - still trying
+         * <li>true return - connection has been opened successfully
+         * <li>IOException - attempt failed (at some time in the past), given up
+         * </ol>
+         *
+         * @return  true iff the connection has been opened
+         * @throws  IOException  if the attempt failed
+         */
+        public synchronized boolean isConnected() throws IOException {
+            if ( connectException != null ) {
+                throw connectException;
+            }
+            else {
+                return connected;
+            }
         }
     }
 
