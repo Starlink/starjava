@@ -269,6 +269,16 @@ public class SplatBrowser
                     }
                 });
         }
+        else {
+            // Make sure we start the remote services, but avoid
+            // contention with image loading by also doing this as
+            // above when there are files to be loaded.
+            SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        threadInitRemoteServices();
+                    }
+                });
+        }
     }
 
     /**
