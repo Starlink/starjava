@@ -105,9 +105,9 @@ public class TableViewer extends JFrame {
     private Action includeAct;
     private Action excludeAct;
 
+    private static boolean standalone = false;
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
-    private static WindowTracker wtracker = new WindowTracker();
     private static StarTableChooser chooser;
     private static StarTableSaver saver;
 
@@ -201,7 +201,6 @@ public class TableViewer extends JFrame {
 
         /* Keep track of instances. */
         setDefaultCloseOperation( DISPOSE_ON_CLOSE );
-        wtracker.register( this );
 
         /* Set up menus. */
         JMenuBar mb = new JMenuBar();
@@ -214,7 +213,9 @@ public class TableViewer extends JFrame {
         fileMenu.add( dupAct ).setIcon( null );
         fileMenu.add( saveAct ).setIcon( null );
         fileMenu.add( closeAct ).setIcon( null );
-        fileMenu.add( exitAct ).setIcon( null );
+        if ( standalone ) {
+            fileMenu.add( exitAct ).setIcon( null );
+        }
 
         /* Launch menu. */
         if ( MirageHandler.isMirageAvailable() ) {
@@ -292,6 +293,19 @@ public class TableViewer extends JFrame {
         setVisible( true );
     }
  
+    /**
+     * Determines whether TableViewer generated from this class should
+     * act as a standalone application.  If <tt>standalone</tt> is set
+     * true, then it will be possible to exit the JVM using menu items
+     * etc in the viewer.  Otherwise, no normal activity within the 
+     * TableViewer GUI will cause a JVM exit.
+     * 
+     * @param  standalone  whether this class should act as a standalone
+     *         application
+     */
+    public static void setStandalone( boolean standalone ) {
+        TableViewer.standalone = standalone;
+    }
 
     /**
      * Sets the viewer to view a given StarTable.
@@ -618,23 +632,17 @@ public class TableViewer extends JFrame {
 
             /* Open a plot window. */
             else if ( this == plotAct ) {
-                wtracker
-               .register( new PlotWindow( dataModel, columnModel, subsets, 
-                                          parent ) );
+               new PlotWindow( dataModel, columnModel, subsets, parent );
             }
 
             /* Display table parameters. */
             else if ( this == paramAct ) {
-                wtracker
-               .register( new ParameterWindow( dataModel, columnModel, 
-                                               parent ) );
+               new ParameterWindow( dataModel, columnModel, parent );
             }
 
             /* Display column parameters. */
             else if ( this == colinfoAct ) {
-                wtracker
-               .register( new ColumnInfoWindow( dataModel, columnModel, 
-                                                parent ) );
+                new ColumnInfoWindow( dataModel, columnModel, parent );
             }
 
             /* Set the row order back to normal. */
@@ -831,6 +839,7 @@ public class TableViewer extends JFrame {
         }
         String usage = "Usage:\n" 
                      + "   " + cmdname + " [table ...]\n";
+        setStandalone( true );
         if ( args.length > 0 ) {
             int nok = 0;
             TableViewer lastViewer = null;
