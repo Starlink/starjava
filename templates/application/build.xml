@@ -6,7 +6,7 @@
  !   This file describes how to build and install {Package}
  !   from a source and binary release. {Package} is an application
  !   package, i.e. provides user-level commands and interfaces, as
- !   well as a programming API.
+ !   well as an optional programming API.
  !
  !   The main targets are:
  !
@@ -180,15 +180,21 @@
    !   =========
    !-->
 
-  <!-- Name all the jar files that we directly depend on. These will be
-   !   used to produce a full CLASSPATH that is equivalent to that
-   !   generated when these are referenced as optional bundled packages.
-   !   It's best to have a classpath (rather than use the extension
-   !   mechanism) during development as this allows us to compile
-   !   without having to work these dependencies out anyway (may
-   !   be fixed in Java1.5) plus we can execute against locally built
-   !   class files in preference to installed ones (an extra user-define
-   !   defined CLASSPATH can also be used as needed).
+  <!-- Installed jar files.
+   !
+   !   Name all the installed jar files of other packages that we depend on.
+   !
+   !   When compiling under Java 1.4 these will be used to produce a full
+   !   classpath that is equivalent to that generated when these are
+   !   referenced as optional bundled packages by the JVM.
+   !   When compiling under Java 1.5 (and probably later) this is just
+   !   a simple path of these jar files, as the expansion to a full optional
+   !   bundled package classpath is performed by the compiler
+   !
+   !   What that all means is that the manifest classpaths of these jar files
+   !   are honoured, the plain compiler pre Java 1.5 didn't do that. When Java
+   !   1.4 is no longer used the extclasspath type can be replaced by a simple
+   !   path.
    !-->
   <extclasspath id="installed.classpath">
 
@@ -199,21 +205,10 @@
     <!-- {More packages} -->
   </extclasspath>
 
-  <!-- Generate the local build classpath. This is the most difficult
-   !   part of handling the classpath. The local classes will be in
-   !   the "build/classes" part of each package, plus third party
-   !   packages will have their jar files in the "dist" directories.
-   !   Having the third party jars not installed means that building a
-   !   classpath based on their manifest class-paths will not resolve
-   !   all references (these may be to other third party jars, that
-   !   are normally resolved using relative URLs). The way that this
-   !   is resolved is simply to locate all "build/classes" directories
-   !   and all jar files in the "dist" parts and just add these all
-   !   to the classpath. Known third party dependencies are added
-   !   after the "build/classes" directories using the "extclasspath"
-   !   type, just so that they will be referred to first. If this
-   !   doesn't work as expected add the additional classes/jars to
-   !   the extra classpath.
+  <!-- Local build system jar files.
+   !
+   !   Name all the jar files of other packages that we depend on, which have
+   !   not been installed (should be same packages as in installed.classpath).
    !-->
   <extclasspath id="built.jarpath">
 
@@ -225,11 +220,12 @@
     <!-- {More packages} -->
   </extclasspath>
 
-  <!-- "Local" third party jars. Normally these will be kept in their
-   !   own third party package, but may be kept here temporarily, say
-   !   if there are version conflicts that cannot be addressed.
-   !   They are installed with the package jar files and should be
-   !   entered into the main jar file manifest.
+  <!-- Find all local third party jars files.
+   !
+   !   Normally these will be kept in their own third party package, but may
+   !   be kept here temporarily, say if there are version conflicts that
+   !   cannot be addressed. They are installed with the package jar files and
+   !   should be entered into the main jar file manifest.
    !-->
   <path id="package.jars">
      <fileset dir="${src.jars.dir}">
@@ -237,48 +233,79 @@
      </fileset>
   </path>
 
+  <!-- Create the local build system CLASSPATH.
+   !
+   !   Create the classpath used when building this package as part of a full
+   !   build system without any dependency on any installed or external jar
+   !   files.
+   !
+   !   Classes compiled in the local build tree will be in the "build/classes"
+   !   part of each package. Third party packages, have do not have any source
+   !   code, just jar files, will have their jar files in their "dist"
+   !   directories (usually lib/{package_name}).
+   !
+   !   So the full built classpath is created by constructing a path
+   !   consisting of:
+   !
+   !      - all third party jar files in this package
+   !      - all build/classes directories in the local build system (these
+   !        will have the most recent class files)
+   !      - all jar files named in built.jarpath, i.e. named local build
+   !        system jar files (these can be normal packages in the "dist" state
+   !        or third party packages)
+   !      - all jar files in the "dist" directories of all packages in the
+   !        local build system (these are necessary to make sure that the jar
+   !        files in the previous part have their dependencies fulfilled,
+   !        without having them all installed)
+   !-->
   <path id="built.classpath">
 
-    <!-- Local third party jars -->
+    <!-- Third party jars held by this package -->
     <path refid="package.jars"/>
 
-    <!-- All locally built classes -->
+    <!-- All classes in the local build system -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
 
-    <!-- Directly dependent third party jars -->
+    <!-- Directly dependent jars in the local build system -->
     <path refid="built.jarpath"/>
 
-    <!-- Finally add all "dist" jar files to make sure everything is
-     !   resolved, including relative URLs out of the local package -->
+    <!-- All "dist" jar files to make sure everything is resolved, including
+     !   relative URLs of the local packages, without installation -->
     <fileset dir="${star.build.dir}">
       <include name="*/lib/*/*.jar"/>
     </fileset>
 
-    <!-- Note in passing a more elegant way to resolve these jars
-     !   would be to extend <extclasspath> to go looking for dependent
-     !   jars using an additional URL resolving mechanism-->
-
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property
-   !   "extra.class.path" (which can be defined locally using say
-   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
-   !   the property in either of the properties files.-->
+  <!-- User-defined CLASSPATH.
+   !
+   !   This is set by the property "extra.class.path" (which can be defined
+   !   locally using say -Dextra.class.path=$CLASSPATH on the command line
+   !   or by setting the property in either of the properties files.-->
   <property name="extra.class.path" value=""/>
   <path id="local.classpath" path="${extra.class.path}"/>
 
-  <!-- Unification of all classpaths using extra, built, installed order-->
+  <!-- Create the full CLASSPATH used during compilation.
+   !
+   !   This is created from the user-defined classpath, followed by the
+   !   classpath for building against the local system, followed by the
+   !   classpath for building against an installed system.
+   !-->
   <path id="classpath">
-    <path refid="local.classpath"/>
-    <path refid="built.classpath"/>
-    <path refid="installed.classpath"/>
+     <path refid="local.classpath"/>
+     <path refid="built.classpath"/>
+     <path refid="installed.classpath"/>
   </path>
 
-  <!-- JUnit tests classpath, add tests.dir and tests.etc.dir so that
-   !   resources may be located there -->
-  <path id="tests-classpath">
+  <!-- Create the JUnit tests CLASSPATH.
+   ! 
+   !   Note that in addition to the build/classes and build/tests directory
+   !   we also add tests.dir and tests.etc.dir so that resources may be
+   !   located there. The full classpath is also used.
+   !-->  
+ <path id="tests-classpath">
     <pathelement location="${build.classes}"/>
     <pathelement location="${build.tests}"/>
     <pathelement location="${tests.dir}"/>
@@ -305,10 +332,10 @@
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
-   !    (could also use this to check optional elements).
    !
-   ! If any of the required dependencies are not present then
-   ! this throws a <fail> and exits the build.
+   !    Minimalist check of the required dependencies so that the build will
+   !    not proceed if some basic dependencies are not present on the
+   !    classpath. Optional components could also be checked here.
    !-->
   <target name="check_packages"
           unless="runonly.install">
