@@ -1,9 +1,10 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Point;
+import java.awt.Shape;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -49,8 +50,19 @@ public class PointRegistry {
         points_ = (IdentifiedPoint[]) 
                   pointList_.toArray( new IdentifiedPoint[ 0 ] );
         pointList_ = null;
-        Arrays.sort( points_, BY_X );
+        Arrays.sort( points_ );
         ready_ = true;
+    }
+
+    /**
+     * Returns a bit vector containing with bits set for every point index
+     * which falls within a given shape on the screen.
+     *
+     * @param  shape  shape defining inclusion criterion
+     * @return  bit vector locating points inside <tt>shape</tt>
+     */
+    public BitSet getContainedPoints( Shape shape ) {
+  return null;
     }
     
     /**
@@ -134,26 +146,12 @@ public class PointRegistry {
         int loY = py - error;
         int hiY = py + error;
 
-        /* Locate a point in the sorted array of plotted points with an 
-         * X coordinate equal to the lower bound of acceptable values. */
-        Point loPoint = new Point( loX, py );
+        /* Locate a point in the sorted array of plotted points corresponding
+         * to the first point with an X coordinate equal to the lower bound
+         * of acceptable values. */
+        Point loPoint = new Point( loX, Integer.MIN_VALUE );
         IdentifiedPoint dummyPoint = new IdentifiedPoint( -1, loPoint );
-        int loIndex = Arrays.binarySearch( points_, dummyPoint, BY_X );
-
-        /* If there is no known point at exactly the lower bound X coordinate,
-         * start looking at the next one in the increasing X direction. */
-        if ( loIndex < 0 ) {
-            loIndex = - ( loIndex + 1 );
-        }
-
-        /* If there is a point at exactly the lower bound X coordinate,
-         * make sure we're looking at the first of any such points;
-         * binarySearch does not guarantee to find the first one. */
-        else {
-            while ( loIndex > 0 && points_[ loIndex - 1 ].x_ >= loX ) {
-                loIndex--;
-            }
-        }
+        int loIndex = - Arrays.binarySearch( points_, dummyPoint ) - 1;
 
         /* Loop through all the plotted points in the right range of
          * X coordinate. */
@@ -180,28 +178,40 @@ public class PointRegistry {
      * Helper class which encapsulates a point and its associated index
      * (sequence number in the data set).
      */
-    private static class IdentifiedPoint {
+    private static class IdentifiedPoint implements Comparable {
+
         final int id_;
         final int x_;
         final int y_;
+
         IdentifiedPoint( int id, Point p ) {
             id_ = id;
             x_ = p.x;
             y_ = p.y;
         }
-    }
 
-    /**
-     * Comparator instance which orders IdentifiedPoints by X coordinate.
-     */
-    private static final Comparator BY_X = new Comparator() {
-        public int compare( Object o1, Object o2 ) {
-            int x1 = ((IdentifiedPoint) o1).x_;
-            int x2 = ((IdentifiedPoint) o2).x_;
-            return ( x1 < x2 ) ? -1
-                               : ( ( x1 > x2 ) ? +1
-                                               : 0 );
+        /**
+         * Collation order ranks by X coordinate first, and in case of 
+         * X equality, by Y coordinate.
+         */
+        public int compareTo( Object o ) {
+            IdentifiedPoint other = (IdentifiedPoint) o;
+            int x1 = this.x_;
+            int x2 = other.x_;
+            if ( x1 == x2 ) {
+                int y1 = this.y_;
+                int y2 = other.y_;
+                if ( y1 == y2 ) {
+                    return 0;
+                }
+                else {
+                    return ( y1 < y2 ) ? -1 : +1;
+                }
+            }
+            else {
+                return ( x1 < x2 ) ? -1 : +1;
+            }
         }
-    };
+    }
 
 }
