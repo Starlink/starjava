@@ -196,7 +196,7 @@ public class SpecDataFactory
         NameParser namer = new NameParser( specspec );
         boolean isRemote = namer.isRemote();
         if ( namer.isRemote() && type != TABLE && type != HDX ) {
-            PathParser pathParser = remoteToLocalFile( namer.getURL() );
+            PathParser pathParser = remoteToLocalFile( namer.getURL(), type );
             specspec = pathParser.ndfname();
         }
 
@@ -282,7 +282,7 @@ public class SpecDataFactory
             else {
                 //  Remote plainer formats (FITS, NDF) need a local copy.
                 if ( isRemote ) {
-                    PathParser p = remoteToLocalFile( url );
+                    PathParser p = remoteToLocalFile( url, DEFAULT );
                     if ( p != null ) {
                         namer = new NameParser( p.ndfname() );
                     }
@@ -796,7 +796,7 @@ public class SpecDataFactory
      * remote data an {@link PathParser} is returned as the result (null
      * if a failure occurs).
      */
-    protected PathParser remoteToLocalFile( URL url )
+    protected PathParser remoteToLocalFile( URL url, int type )
     {
         //  XXX how to determine the format, mime types and files
         //  types are the obvious way, but mime types are probably
@@ -814,10 +814,40 @@ public class SpecDataFactory
             //  fail.
             namer = new PathParser( url.getPath() );
 
-            //  Create a temporary file.
+            //  Create a temporary file. Use a file extension based on the
+            //  type, if known.
+            String stype = null;
+            switch (type) {
+                case FITS: {
+                    stype = ".fits";
+                }
+                break;
+                case HDS: {
+                    stype = ".sdf";
+                }
+                break;
+                case TEXT: {
+                    stype = ".txt";
+                }
+                break;
+                case HDX: {
+                    stype = ".xml";
+                }
+                break;
+                case TABLE: {
+                    stype = ".tmp";
+                }
+                break;
+                default: {
+                    stype = namer.type();
+                    if ( stype.equals( "" ) ) {
+                        stype = ".tmp";
+                    }
+                }
+            }
             TemporaryFileDataSource datsrc =
                 new TemporaryFileDataSource( is, url.toString(), "SPLAT",
-                                             namer.type(), null );
+                                             stype, null );
             namer.setPath( datsrc.getFile().getCanonicalPath() );
             datsrc.close();
         }

@@ -44,10 +44,12 @@ import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.ConnectionUtil;
 
+import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
+import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
@@ -57,6 +59,8 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.votable.VOTableBuilder;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
 
 /**
  * Display a page of controls for querying an SSA server and display the
@@ -74,6 +78,12 @@ public class SSAQueryBrowser
      * querys.
      */
     private SSAServerList serverList = null;
+
+    /**
+     * The instance of SPLAT we're associated with. XXX should abstract this
+     * into an interface.
+     */
+    private SplatBrowser browser = null;
 
     /** Content pane of frame */
     protected JPanel contentPane = null;
@@ -118,9 +128,10 @@ public class SSAQueryBrowser
     /**
      * Create an instance.
      */
-    public SSAQueryBrowser( SSAServerList serverList )
+    public SSAQueryBrowser( SSAServerList serverList, SplatBrowser browser )
     {
         this.serverList = serverList;
+        this.browser = browser;
         initUI();
         initMenus();
         initFrame();
@@ -280,6 +291,13 @@ public class SSAQueryBrowser
         JButton displayButton = new JButton( "Display" );
         controlPanel.add( displayButton );
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
+
+        //  Add action to display all currently selected spectra.
+        displayButton.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    displaySelectedSpectra();
+                }
+            });
 
         contentPane.add( resultsPanel, BorderLayout.CENTER );
     }
@@ -465,15 +483,14 @@ public class SSAQueryBrowser
         }
 
         //  Remove existing tables (XXX reuse for efficiency).
-        Iterator i = starJTables.iterator();
-        StarJTable table = null;
         resultsPane.removeAll();
         starJTables.clear();
 
-        i = tableList.iterator();
+        Iterator i = tableList.iterator();
         JScrollPane scrollPane = null;
         SSAQuery ssaQuery = null;
         StarTable starTable = null;
+        StarJTable table = null;
         while ( i.hasNext() ) {
             ssaQuery = (SSAQuery) i.next();
             starTable = ssaQuery.getStarTable();
@@ -488,6 +505,126 @@ public class SSAQueryBrowser
             }
         }
     }
+
+    /**
+     * Get the main SPLAT browser to download and display any selected
+     * spectra.
+     */
+    protected void displaySelectedSpectra()
+    {
+        //  List of all spectra to be loaded and there data formats.
+        ArrayList specList = new ArrayList();
+        ArrayList typeList = new ArrayList();
+
+        //  Visit all the tabbed StarJTables.
+        Iterator i = starJTables.iterator();
+        StarJTable table;
+        StarTable starTable;
+        ColumnInfo colInfo;
+        int ncol;
+        int linkcol;
+        int typecol;
+        RowSequence rseq = null;
+        while ( i.hasNext() ) {
+            table = (StarJTable) i.next();
+            //  Check for a selection.
+            int[] selection = table.getSelectedRows();
+            if ( selection.length > 0 ) {
+                starTable = table.getStarTable();
+                
+                //  Check for a column that contains links to the actual data
+                //  (XXX these could be XML links to data within this
+                //  document). The signature for this is an UCD of DATA_LINK.
+                ncol = starTable.getColumnCount();
+                linkcol = -1;
+                typecol = -1;
+                for( int k = 0; k < ncol; k++ ) {
+                    colInfo = starTable.getColumnInfo( k );
+                    if ( colInfo.getUCD().equalsIgnoreCase( "DATA_LINK" ) ) {
+                        linkcol = k;
+                    }
+                    if ( colInfo.getUCD()
+                         .equalsIgnoreCase( "VOX:SPECTRUM_FORMAT" ) ) {
+                        typecol = k;
+                    }
+                }
+                if ( linkcol != -1 ) {
+                    //  Have a DATA_LINK column, so gather the URLs it
+                    //  contains from the selected rows.
+                    try { 
+                        rseq = starTable.getRowSequence();
+                        while ( rseq.hasNext() ) { 
+                            rseq.next(); 
+                            specList.add( rseq.getCell( linkcol ) );
+                            if ( typecol != -1 ) {
+                                typeList.add( rseq.getCell( typecol ) );
+                            }
+                        } 
+                    }
+                    catch (IOException ie) {
+                        ie.printStackTrace();
+                    }
+                    finally { 
+                        try { 
+                            rseq.close(); 
+                        }
+                        catch (IOException iie) {
+                            // Ignore.
+                        }
+                    }
+                }
+            }
+        }
+
+        //  If we no spectra complain and stop.
+        if ( specList.size() == 0 ) {
+            JOptionPane.showMessageDialog( this, "There are no spectra selected",
+                                           "No spectra", JOptionPane.ERROR_MESSAGE );
+            return;
+        }
+
+        //  Create the String[] list of names and also transform MIME types
+        //  into SPLAT types. 
+        int nspec = specList.size();
+        String[] spectra = new String[nspec];
+        for ( int k = 0; k < nspec; k++ ) {
+            spectra[k] = ((String) specList.get( k )).trim();
+        }
+        int ntypes = typeList.size();
+        int[] types = null;
+        if ( ntypes > 0 ) {
+            String type = null;
+            types = new int[ntypes];
+            for ( int k = 0; k < ntypes; k++ ) {
+                type = (String) typeList.get( k );
+                if ( type.equals( "application/fits" ) ) {
+                    //  FITS format, is that image or table?
+                    types[k] = SpecDataFactory.FITS;
+                }
+                else if ( type.equals( "spectrum/fits" ) ) {
+                    //  FITS format, is that image or table? Don't know who
+                    //  thought this was a mime-type?
+                    types[k] = SpecDataFactory.FITS;
+                }
+                else if ( type.equals( "text/plain" ) ) {
+                    //  ASCII table of some kind.
+                    types[k] = SpecDataFactory.TABLE;
+                }
+                else if ( type.equals( "application/x-votable+xml" ) ) {
+                    // VOTable spectrum.
+                    types[k] = SpecDataFactory.TABLE;
+                }
+                else {
+                    types[k] = SpecDataFactory.DEFAULT;
+                }
+            }
+        }
+
+        //  And load and display...
+        browser.threadLoadSpectra( spectra, types );
+    }
+
+
 
     /**
      *  Close the window.
@@ -514,7 +651,7 @@ public class SSAQueryBrowser
 
     public static void main( String[] args )
     {
-        SSAQueryBrowser b = new SSAQueryBrowser( new SSAServerList() );
+        SSAQueryBrowser b = new SSAQueryBrowser( new SSAServerList(), null );
         b.pack();
         b.setVisible( true );
     }

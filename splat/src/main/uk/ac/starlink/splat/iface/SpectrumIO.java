@@ -67,6 +67,13 @@ public class SpectrumIO
     private Vector queue = new Vector();
 
     /**
+     * The associated data types, if used. If not set then the single type is
+     * used (which can be DEFAULT in which case the file extensions are used
+     * to type the spectra).
+     */
+    private Vector types = new Vector();
+
+    /**
      * The Thread that the loading or saving is actually performed in.
      */
     private Thread loadThread = null;
@@ -84,20 +91,14 @@ public class SpectrumIO
     private SplatBrowser browser = null;
 
     /**
-     * The type of the spectra to be loaded. This is an integer understood by
-     * the SpecDataFactory.
-     */
-    private int usertype = SpecDataFactory.DEFAULT;
-
-    /**
      * Whether the spectra should also be displayed.
      */
     private boolean display = true;
 
     /**
-     * Name of last spectrum.
+     * Last spectrum.
      */
-    private String lastSpectrum = null;
+    private TypedSpectrum lastSpectrum = null;
 
     /**
      * Step to push ProgressMonitor into displaying more often (there's a need
@@ -111,27 +112,62 @@ public class SpectrumIO
      * elements of an array of Strings. If the loading process takes a "long"
      * time then a ProgressMonitor dialog with be displayed, which can also be
      * cancelled (which causes the next spectrum not to be loaded, the
-     * currently loaded spectrum will complete).
+     * currently loaded spectrum will complete). This version uses a single
+     * defined type for all spectra (set to {@link SpecDataFactory.DEFAULT}
+     * for the usual file extensions rules).
      */
     public void load( SplatBrowser browser, String[] spectra,
                       boolean display, int usertype )
     {
-        setSpectra( spectra );
+        setSpectra( spectra, usertype );
         this.browser = browser;
-        this.usertype = usertype;
         this.display = display;
         loadSpectra();
     }
 
     /**
-     * Set the spectra to load.
+     * Load an array of spectra whose specifications are contained in the
+     * elements of an array of Strings. If the loading process takes a "long"
+     * time then a ProgressMonitor dialog with be displayed, which can also be
+     * cancelled (which causes the next spectrum not to be loaded, the
+     * currently loaded spectrum will complete). This method uses a different
+     * type for each input spectrum, so the usertypes array is required to be
+     * the same size as the spectra array.
      */
-    protected synchronized void setSpectra( String[] spectra )
+    public void load( SplatBrowser browser, String[] spectra,
+                      boolean display, int[] usertypes )
     {
-        queue.clear();
+        setSpectra( spectra, usertypes );
+        this.browser = browser;
+        this.display = display;
+        loadSpectra();
+    }
+
+    /**
+     * Set the spectra to load, all have the same data type.
+     */
+    protected synchronized void setSpectra( String[] spectra, int type )
+    {
+        this.queue.clear();
+        this.types.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                queue.add( spectra[i] );
+                this.queue.add( new TypedSpectrum( spectra[i], type ) );
+            }
+        }
+    }
+
+    /**
+     * Set the spectra to load and, if given (can be null) the individual
+     * types.
+     */
+    protected synchronized void setSpectra( String[] spectra, int[] types )
+    {
+        this.queue.clear();
+        this.types.clear();
+        if ( spectra != null ) {
+            for ( int i = 0; i < spectra.length; i++ ) {
+                this.queue.add( new TypedSpectrum( spectra[i], types[i] ) );
             }
         }
     }
@@ -139,10 +175,10 @@ public class SpectrumIO
     /**
      * Get the next spectrum to load. Returns null when none left.
      */
-    protected synchronized String getSpectrum()
+    protected synchronized TypedSpectrum getSpectrum()
     {
         try {
-            lastSpectrum = (String) queue.remove( 0 );
+            lastSpectrum = (TypedSpectrum) queue.remove( 0 );
         }
         catch (ArrayIndexOutOfBoundsException e) {
             lastSpectrum = null;
@@ -166,7 +202,7 @@ public class SpectrumIO
                         progressMonitor.setProgress( filesDone*USTEP + soFar );
                         soFar++;
                         if ( soFar >= USTEP ) soFar = 0;
-                        progressMonitor.setNote( lastSpectrum );
+                        progressMonitor.setNote( lastSpectrum.getSpectrum() );
 
                         //  Stop loading spectra if asked.
                         if (progressMonitor.isCanceled() ) {
@@ -240,9 +276,11 @@ public class SpectrumIO
         SplatException lastException = null;
 
         // Add all spectra to the browser until the queue is empty.
+        TypedSpectrum ts = null;
         while( ! queue.isEmpty() ) {
             try {
-                browser.tryAddSpectrum( getSpectrum(), usertype );
+                ts = getSpectrum();
+                browser.tryAddSpectrum( ts.getSpectrum(), ts.getType() );
                 validFiles++;
             }
             catch (SplatException e) {
@@ -373,4 +411,23 @@ public class SpectrumIO
         }
     }
 
+    //  Simple container class for a spectrum and it associated type.
+    static class TypedSpectrum
+    {
+        String spectrum;
+        int type;
+        TypedSpectrum( String spectrum, int type )
+        {
+            this.spectrum = spectrum;
+            this.type = type;
+        }
+        String getSpectrum()
+        {
+            return spectrum;
+        }
+        int getType()
+        {
+            return type;
+        }
+    }
 }

@@ -74,6 +74,9 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 
+import uk.ac.starlink.splat.vo.SSAQueryBrowser;
+import uk.ac.starlink.splat.vo.SSAServerList;
+
 /**
  * This is the main class for the SPLAT program. It creates the
  * browser interface that displays and controls the global lists of
@@ -274,7 +277,7 @@ public class SplatBrowser
 
     /**
      * The action to take with 2 and 3D data. Can be COLLAPSE, EXPAND or
-     * VECTORIZE. 
+     * VECTORIZE.
      */
     protected int ndAction = SpecDataFactory.COLLAPSE;
 
@@ -353,7 +356,7 @@ public class SplatBrowser
      *                    will be selected automatically.
      */
     public SplatBrowser( String[] inspec, boolean embedded, String type,
-                         String ndAction, Integer dispAxis, 
+                         String ndAction, Integer dispAxis,
                          Integer selectAxis )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
@@ -429,7 +432,7 @@ public class SplatBrowser
     /**
      * Set the ndAction value to match a string description.
      */
-    private void setNDAction( String ndAction ) 
+    private void setNDAction( String ndAction )
     {
         this.ndAction = SpecDataFactory.COLLAPSE;
         if ( ndAction != null ) {
@@ -1048,7 +1051,7 @@ public class SplatBrowser
 
             //  Set the ndAction.
             setNDAction( (String) ndActionBox.getSelectedItem() );
-            
+
             //  And the dispersion and select axes.
             KeyValue keyvalue = (KeyValue) dispersionAxisBox.getSelectedItem();
             dispAxis = (Integer) keyvalue.getValue();
@@ -1175,7 +1178,7 @@ public class SplatBrowser
     protected void initOpenAccessory()
     {
         openAccessory = new JPanel();
-        GridBagLayouter layouter = 
+        GridBagLayouter layouter =
             new GridBagLayouter( openAccessory, GridBagLayouter.SCHEME3 );
 
         openDisplayCheckBox = new JCheckBox();
@@ -1396,6 +1399,11 @@ public class SplatBrowser
         if ( locationChooser == null ) {
             locationChooser = new HistoryStringDialog( this, "URL/Location",
                                                        "Enter a location" );
+
+            SSAQueryBrowser ssab = new SSAQueryBrowser( new SSAServerList(), this );
+            ssab.pack();
+            ssab.setVisible( true );
+
         }
         String result = locationChooser.showDialog( locationChooser );
         if ( result != null ) {
@@ -1414,6 +1422,23 @@ public class SplatBrowser
     {
         SpectrumIO sio = SpectrumIO.getInstance();
         sio.load( this, newFiles, displayNewFiles, openUsertypeIndex );
+    }
+
+    /**
+     * Load and display a list of spectra with possible type information. The
+     * names and types are given as arrays. Uses a thread to load the files so
+     * that we do not block the UI.
+     *
+     * @param spectra the specifications for each spectrum to be loaded and
+     *                displayed. 
+     * @param types the types of the spectra, if null the the usual rules are
+     *              used 
+     */
+    public void threadLoadSpectra( String[] spectra, int[] types )
+    {
+        if ( spectra.length == 0 ) return;
+        SpectrumIO sio = SpectrumIO.getInstance();
+        sio.load( this, spectra, true, types );
     }
 
     /**
@@ -1607,12 +1632,15 @@ public class SplatBrowser
      *
      * @param fit whether to make all spectra fit the width and height
      *            of the plot
+     * @return the index of the plot, if one is created, -1 otherwise.
      */
-    public void multiDisplaySelectedSpectra( boolean fit )
+    public int multiDisplaySelectedSpectra( boolean fit )
     {
+        int plotIndex = -1;
+
         int[] specIndices = getSelectedSpectra();
         if ( specIndices == null ) {
-            return;
+            return plotIndex;
         }
         SplatException lastException = null;
         int failed = 0;
@@ -1654,6 +1682,7 @@ public class SplatBrowser
             SpecData spec = null;
             spec = globalList.getSpectrum( specIndices[0] );
             final PlotControlFrame plot = displaySpectrum( spec );
+            plotIndex = globalList.getPlotIndex( plot.getPlot() );
             for ( int i = 1; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
                 try {
@@ -1680,6 +1709,7 @@ public class SplatBrowser
         if ( lastException != null ) {
             reportOpenListFailed( failed, lastException );
         }
+        return plotIndex;
     }
 
     /**
@@ -2559,7 +2589,7 @@ public class SplatBrowser
         }
         private String key = null;
         private Object value = null;
-        
+
         public String getKey()
         {
             return key;
