@@ -200,9 +200,9 @@ public abstract class MemberDoclet {
         startMember( field, "Constant", field.name() );
         outDescription( field.commentText() );
         outItem( "Type", typeString( field.type() ) );
-        String value = field.constantValueExpression();
+        Object value = field.constantValue();
         if ( value != null ) {
-            outItem( "Value", value );
+            outItem( "Value", value.toString() );
         }
         endMember();
     }
