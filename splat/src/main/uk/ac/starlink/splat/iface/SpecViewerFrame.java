@@ -36,6 +36,7 @@ import java.text.DecimalFormat;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -431,8 +432,10 @@ public class SpecViewerFrame
     {
         try {
             EditableSpecData editSpec = (EditableSpecData) specData;
-            editSpec.setSimpleUnitDataQuick( editSpec.getAst().getRef(), 
-                                             coords, specData.getYData(),
+            FrameSet frameSet = 
+                ASTJ.get1DFrameSet( editSpec.getAst().getRef(), 1 );
+            editSpec.setSimpleUnitDataQuick( frameSet, coords, 
+                                             specData.getYData(),
                                              specData.getYDataErrors() );
             specDataChanged();
         }

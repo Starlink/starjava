@@ -34,6 +34,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -307,7 +308,8 @@ public class SimpleBinaryMaths
             }
             String name = operation + " (" + one.getShortName() + ") " + 
                           operator + " (" + two.getShortName() + ") ";
-            createNewSpectrum( name, one.getAst().getRef(), coords, newData );
+            FrameSet frameSet = ASTJ.get1DFrameSet( one.getAst().getRef(), 1 );
+            createNewSpectrum( name, frameSet, coords, newData );
         }
     }
 
