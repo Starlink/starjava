@@ -103,7 +103,6 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.STRUCTURE, "HDS data structure" );
             addKnownIcon( IconFactory.NDF, "NDF data structure" );
             addKnownIcon( IconFactory.HISTORY, "History component" );
-            addKnownIcon( IconFactory.HISTORY_RECORD, "History record" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.XML_DOCUMENT,

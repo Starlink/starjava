@@ -131,7 +131,15 @@ public class NDFDataNode extends HDSDataNode {
             /* Try to find a WCS component that looks right. */
             if ( Driver.hasAST && ndfobj.datThere( "WCS" ) ) {
                 try {
-                    wcsComponent = new WCSDataNode( ndfobj.datFind( "WCS" ) );
+                    DataNode wcsnode = 
+                        getChildMaker()
+                       .makeDataNode( ndfobj.datFind( "WCS" ) );
+                    if ( wcsnode instanceof WCSDataNode ) {
+                        wcsComponent = (WCSDataNode) wcsnode;
+                    }
+                    else {
+                        throw new NoSuchDataException( "Not a WCSDataNode" );
+                    }
 
                     /* The WCS component stored in the HDSObject requires some
                      * doctoring, since its PIXEL and AXIS Frames are not
@@ -182,8 +190,15 @@ public class NDFDataNode extends HDSDataNode {
             /* Try to find a HISTORY component that looks right. */
             if ( ndfobj.datThere( "HISTORY" ) ) {
                 try {
-                    historyComponent = 
-                        new HistoryDataNode( ndfobj.datFind( "HISTORY" ) );
+                    DataNode histnode =
+                        getChildMaker()
+                       .makeDataNode( ndfobj.datFind( "HISTORY" ) );
+                    if ( histnode instanceof HistoryDataNode ) {
+                        historyComponent = (HistoryDataNode) histnode;
+                    }
+                    else {
+                        historyComponent = null;
+                    }
                 }
                 catch ( NoSuchDataException e ) {
                     historyComponent = null;

@@ -1,8 +1,11 @@
 package uk.ac.starlink.treeview;
 
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import uk.ac.starlink.hds.*;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSObject;
 
 /**
  * A {@link uk.ac.starlink.treeview.DataNode} the HISTORY component of an NDF.
@@ -19,6 +22,7 @@ public class HistoryDataNode extends DefaultDataNode {
     private Icon icon;
     private JComponent fullView;
     private String name;
+    private String created;
 
     public HistoryDataNode( HDSObject histobj ) throws NoSuchDataException {
         this.histobj = histobj;
@@ -31,17 +35,39 @@ public class HistoryDataNode extends DefaultDataNode {
             if ( ! name.equals( "HISTORY" ) ) {
                 throw new NoSuchDataException( "Not called HISTORY" );
             }
+            if ( ! histobj.datThere( "RECORDS" ) ) {
+                throw new NoSuchDataException( "No RECORDS element" );
+            }
+
+            /* Get the history records array. */
             records = histobj.datFind( "RECORDS" );
-            HDSObject currentobj = histobj.datFind( "CURRENT_RECORD" );
-            int current = currentobj.datGet0i();
+
+            /* Get and validate the shape of the records array. */
             long[] shape = records.datShape();
             if ( shape.length != 1 ) {
                 throw new NoSuchDataException( "RECORDS object wrong shape" );
             }
-            nrec = Math.min( (int) shape[ 0 ], current );
+
+            /* Get CREATED object if we can. */
+            if ( histobj.datThere( "CREATED" ) ) {
+                HDSObject crobj = histobj.datFind( "CREATED" );
+                if ( crobj.datShape().length == 0 ) {
+                    created = crobj.datGet0c();
+                }
+            }
+
+            /* Get the current record if we can. */
+            nrec = (int) shape[ 0 ];
+            if ( histobj.datThere( "CURRENT_RECORD" ) ) {
+                HDSObject curobj = histobj.datFind( "CURRENT_RECORD" );
+                int current = curobj.datGet0i();
+                if ( nrec > current ) {
+                    nrec = current;
+                }
+            }
         }
         catch ( HDSException e ) {
-            throw new NoSuchDataException( e.getMessage() );
+            throw new NoSuchDataException( "Error parsing HISTORY object",  e );
         }
     }
 
@@ -73,27 +99,7 @@ public class HistoryDataNode extends DefaultDataNode {
     }
 
     public boolean allowsChildren() {
-        return true;
-    }
-
-    public DataNode[] getChildren() {
-        DataNode[] children = new DataNode[ nrec ];
-        long[] pos = new long[ 1 ];
-        for ( int i = 0; i < nrec; i++ ) {
-            pos[ 0 ]++;
-            try {
-                children[ i ] = 
-                    new HistoryRecordDataNode( records.datCell( pos ) );
-                children[ i ].setLabel( "RECORD( " + ( i + 1 ) + " )" );
-            }
-            catch ( HDSException e ) {
-                children[ i ] = new ErrorDataNode( e );
-            }
-            catch ( NoSuchDataException e ) {
-                children[ i ] = new ErrorDataNode( e );
-            }
-        }
-        return children;
+        return false;
     }
 
     public boolean hasFullView() {
@@ -105,7 +111,58 @@ public class HistoryDataNode extends DefaultDataNode {
             fullView = dv.getComponent();
             dv.addSeparator();
             dv.addKeyedItem( "Records", nrec );
+            if ( created != null ) {
+                dv.addKeyedItem( "Created", created );
+            }
+            dv.addPane( "History records", new ComponentMaker() {
+                public JComponent getComponent() throws HDSException {
+                    MetamapGroup mmg = new HistoryMetamapGroup( records, nrec );
+                    return new MetaTable( mmg );
+                }
+            } );
         }
         return fullView;
+    }
+
+    private static class HistoryMetamapGroup extends MetamapGroup {
+
+        private static List keyOrder = Arrays.asList( new String[] {
+            "ITEM", "DATE", "COMMAND", "USER", "HOST", "DATASET", "TEXT",
+        } );
+
+        public HistoryMetamapGroup( HDSObject records, int nrec )
+                throws HDSException {
+            super( nrec );
+            setKeyOrder( keyOrder );
+            long[] pos = new long[ 1 ];
+            for ( int i = 0; i < nrec; i++ ) {
+                addEntry( i, "ITEM", Integer.toString( i + 1 ) );
+                pos[ 0 ]++;
+                HDSObject rec = records.datCell( pos );
+                int ncomp = rec.datNcomp();
+                for ( int j = 0; j < ncomp; j++ ) {
+                    HDSObject item = rec.datIndex( j + 1 );
+                    String name = item.datName();
+                    long[] shape = item.datShape();
+                    if ( shape.length == 0 ) {
+                        addEntry( i, name, item.datGet0c() );
+                    }
+                    else if ( shape.length == 1 ) {
+                        int nline = (int) shape[ 0 ];
+                        String[] lines = new String[ nline ];
+                        long[] kpos = new long[ 1 ];
+                        for ( int k = 0; k < nline; k++ ) {
+                            kpos[ 0 ]++;
+                            HDSObject line = item.datCell( kpos );
+                            lines[ k ] = line.datGet0c();
+                        }
+                        addEntry( i, name, lines );
+                    }
+                    else {
+                        addEntry( i, name, "??" );
+                    }
+                }
+            }
+        }
     }
 }
