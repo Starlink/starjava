@@ -7,13 +7,17 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.Reader;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.ErrorListener;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -29,7 +33,6 @@ import org.xml.sax.InputSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
 
 /**
  * Convenience class to manipulate XML Sources. 
@@ -49,6 +52,8 @@ import org.w3c.dom.Node;
 public class SourceReader {
 
     private Transformer transformer;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
 
     /* Implicit no-arg constructor. */
 
@@ -78,6 +83,26 @@ public class SourceReader {
             transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
             setIndent( -1 );
             setIncludeDeclaration( true );
+
+            /* Configure the transformer's error listener to do sensible
+             * things with errors. */
+            transformer.setErrorListener( new ErrorListener() {
+                public void warning( TransformerException e )
+                        throws TransformerException {
+                    log( e );
+                }
+                public void error( TransformerException e )
+                        throws TransformerException {
+                    log( e );
+                }
+                public void fatalError( TransformerException e ) 
+                        throws TransformerException {
+                    throw e;
+                }
+                private void log( TransformerException e ) {
+                    logger.warning( e.toString() );
+                }
+            } );
         }
         return transformer;
     }
@@ -99,6 +124,12 @@ public class SourceReader {
 
     /**
      * Returns a DOM Node representing the given source.
+     * Transformation errors are handled by this object's 
+     * {@link javax.xml.transform.Transformer},
+     * whose behaviour is in turn determined by its 
+     * {@link javax.xml.transform.ErrorListener}.
+     * By default, this <tt>SourceReader</tt> is installed as the 
+     * <tt>ErrorListener</tt>.
      *
      * @param   src  the Source for which the DOM is required
      * @return  a DOM node (typically an <tt>Element</tt>) representing the
@@ -239,6 +270,44 @@ public class SourceReader {
     }
 
     /**
+     * Returns an input stream from which the serialised XML text 
+     * corresponding to a given Source can be read.
+     *
+     * @param  src  the Source to be read
+     * @return  an InputStream which will supply the XML serialisation of
+     *          <tt>src</tt>
+     */
+    public InputStream getXMLStream( final Source src ) {
+        final PipedOutputStream ostrm = new PipedOutputStream();
+        PipedInputStream istrm;
+        try {
+            istrm = new PipedInputStream( ostrm );
+        }
+        catch ( IOException e ) {
+            throw new AssertionError( "What could go wrong?" );
+        }
+        new Thread() {
+            public void run() {
+                try {
+                    writeSource( src, ostrm );
+                }
+                catch ( TransformerException e ) {
+                    // May well catch an exception here if the reader stops
+                    // reading.
+                }
+                finally {
+                    try {
+                        ostrm.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+        }.start();
+        return istrm;
+    }
+
+    /**
      * Tries to set the indent level used by the <tt>writeSource</tt> methods.
      * This method modifies the output properties of the the 
      * current transformer to affect the way it does the transformation
@@ -303,8 +372,7 @@ public class SourceReader {
     }
 
     /**
-     * Performs the transformation, catching TransformerExceptions and
-     * rethrowing them as unchecked exceptions.
+     * Performs the transformation.
      */
     private void transform( Source src, Result res ) 
             throws TransformerException {
