@@ -282,8 +282,27 @@ abstract class Decoder {
      */
     public static Decoder makeDecoder( String datatype, long[] arraysize,
                                        String blank ) {
+
+        /* Work out if we have an effectively scalar quantity (either an
+         * actual scalar or an array with one element. */
+        boolean isScalar;
+        int ndim = arraysize.length;
+        if (ndim == 0) {
+            isScalar = true;
+        }
+        else if ( arraysize[ ndim - 1 ] > 0 ) {
+            int nel = 1;
+            for ( int i = 0; i < ndim; i++ ) {
+                nel *= arraysize[ i ];
+            }
+            isScalar = nel == 1;
+        }
+        else {
+            isScalar = false;
+        }
+
+        /* Construct a decoder for the arraysize and datatype. */
         Decoder dec;
-        boolean isScalar = arraysize.length == 0;
         if ( datatype.equals( "boolean" ) ) {
             dec = isScalar ? new ScalarBooleanDecoder()
                            : new BooleanDecoder( arraysize );
