@@ -273,4 +273,21 @@ public abstract class PrimitiveXMLEncodeDecode
     {
         return Integer.parseInt( value );
     }
+
+    /**
+     * Convert a long to a String.
+     */
+    public static String longToString( long value )
+    {
+        return new Long( value ).toString();
+    }
+
+    /**
+     * Convert a String back to a long.
+     */
+    public static long longFromString( String value )
+    {
+        return Long.parseLong( value );
+    }
+
 }
