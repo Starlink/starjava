@@ -62,7 +62,7 @@ public class RowPermutedStarTable extends WrapperStarTable {
 
     public Object[] getRow( long irow ) throws IOException {
         long baseRow = rowMap[ checkedLongToInt( irow ) ];
-        return baseRow > 0 ? baseTable.getRow( baseRow )
-                           : new Object[ baseTable.getColumnCount() ];
+        return baseRow >= 0 ? baseTable.getRow( baseRow )
+                            : new Object[ baseTable.getColumnCount() ];
     }
 }
