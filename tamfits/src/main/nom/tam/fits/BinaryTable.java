@@ -56,6 +56,10 @@ public class BinaryTable extends Data implements TableData {
     /** The length in bytes of each row.
       */
     int rowLen;
+
+    /** The start offset in bytes of each column from the start of the row.
+     */
+    int[] colOffsets;
     
     /** The base classes for the arrays in the table.
       */
@@ -126,6 +130,7 @@ public class BinaryTable extends Data implements TableData {
 	
       extendArrays(nCol);
       for (int col=0; col<nCol; col += 1) {
+          colOffsets[col] = rowLen;
 	  rowLen += processCol(myHeader, col);
       }
 	
@@ -612,7 +617,27 @@ public class BinaryTable extends Data implements TableData {
 	}
 	return data;
     }
-	
+
+    /** Get an element from the file.
+     */
+    private Object getFileElement(int row, int col) throws FitsException {
+        Object cell = ArrayFuncs.newInstance( 
+                            ArrayFuncs.getBaseClass(modelRow[col]), 
+                                        sizes[col]);
+        try {
+            FitsUtil.reposition(currInput, 
+                                fileOffset+row*rowLen+colOffsets[col]);
+            currInput.readArray(cell);
+        } catch (IOException e) {
+            throw new FitsException ("Error in deferred row read");
+        }
+        cell = columnToArray(col, cell);
+        cell = encurl(cell, col, 1);
+        if (cell instanceof Object[]) {
+            cell = ((Object[])cell)[0];
+        }
+        return cell;
+    }
 	
     /** Replace a row in the table.
       * @param row  The index of the row to be replaced.
@@ -768,10 +793,12 @@ public class BinaryTable extends Data implements TableData {
 	 
 	 Object ele;
 	 if (table == null) {
-	     // This is really inefficient.
-	     // Need to either save the row, or just read the one element.
-	     Object[] row = getRow(i);
-	     ele = row[j];
+	     // // This is really inefficient.
+	     // // Need to either save the row, or just read the one element.
+	     // Object[] row = getRow(i);
+	     // ele = row[j];
+             // Efficiency improved by mbt 10/2003.
+             ele = getFileElement(i, j);
 	     
 	 } else {
              ele = table.getElement(i,j);
@@ -1334,6 +1361,7 @@ public class BinaryTable extends Data implements TableData {
 	
 	// Allocate the arrays.
 	int[]    newSizes = new int[need];
+        int[]    newColOffsets = new int[need];
 	int[][]  newDimens= new int[need][];
 	int[]    newFlags = new int[need];
 	Object[] newModel = new Object[need];
@@ -1343,6 +1371,7 @@ public class BinaryTable extends Data implements TableData {
 	if (!wasNull) {
 	    int len = sizes.length;
 	    System.arraycopy(sizes,    0, newSizes,  0, len);
+            System.arraycopy(colOffsets, 0, newColOffsets, 0, len);
 	    System.arraycopy(dimens,   0, newDimens, 0, len);
 	    System.arraycopy(flags,    0, newFlags,  0, len);
 	    System.arraycopy(modelRow, 0, newModel,  0, len);
@@ -1351,6 +1380,7 @@ public class BinaryTable extends Data implements TableData {
 	}
 	
 	sizes    = newSizes;
+        colOffsets = newColOffsets;
 	dimens   = newDimens;
 	flags    = newFlags;
 	modelRow = newModel;
