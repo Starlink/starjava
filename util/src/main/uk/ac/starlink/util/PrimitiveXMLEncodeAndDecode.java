@@ -128,6 +128,32 @@ public abstract class PrimitiveXMLEncodeAndDecode
     //
     // Utilities for adding new elements to another element.
     //
+
+    /**
+     * Create a child element with no content and add it to the given
+     * element.
+     */
+    protected Element addChildElement( Element rootElement, String name )
+    {
+        Document parent = rootElement.getOwnerDocument();
+        Element element = parent.createElement( name );
+        rootElement.appendChild( element );
+        return element;
+    }
+
+    /**
+     * Create a new CDATA section with the given content and add it as
+     * a child of a given element.
+     */
+    protected CDATASection addCDATASection( Element rootElement, 
+                                            String value )
+    {
+        Document parent = rootElement.getOwnerDocument();
+        CDATASection cdata = parent.createCDATASection( value );
+        rootElement.appendChild( cdata );
+        return cdata;
+    }
+
     /**
      * Add an element with String value as a child of another element.
      * The String is stored as CDATA.
@@ -135,13 +161,10 @@ public abstract class PrimitiveXMLEncodeAndDecode
     protected Element addChildElement( Element rootElement, String name,
                                        String value )
     {
-        Document parent = rootElement.getOwnerDocument();
-        Element newElement = parent.createElement( name );
+        Element newElement = addChildElement( rootElement, name );
         if ( value != null ) {
-            CDATASection cdata = parent.createCDATASection( value );
-            newElement.appendChild( cdata );
+            addCDATASection( newElement, value );
         }
-        rootElement.appendChild( newElement );
         return newElement;
     }
 
