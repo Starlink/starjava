@@ -16,7 +16,7 @@ class CharDecoder extends Decoder {
         }
         else {
             decodedShape = new long[ ndim - 1 ];
-            System.arraycopy( arraysize, 0, decodedShape, 0, ndim - 1 );
+            System.arraycopy( arraysize, 1, decodedShape, 0, ndim - 1 );
         }
     }
 

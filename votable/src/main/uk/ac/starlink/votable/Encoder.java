@@ -14,7 +14,9 @@ import uk.ac.starlink.table.ValueInfo;
  */
 class Encoder {
 
-    private ValueInfo info;
+    private final ValueInfo info;
+    private final Map attMap;
+    private int padToLength = -1;
 
     /**
      * Private sole constructor - initialises an Encoder from a ValueInfo
@@ -25,6 +27,7 @@ class Encoder {
      */
     private Encoder( ValueInfo info ) {
         this.info = info;
+        attMap = determineFieldAttributes();
     }
 
     /**
@@ -46,17 +49,34 @@ class Encoder {
         if ( value == null ) {
             return "";
         }
-        else if ( value.getClass().getComponentType() == null ) {
+        else if ( ! value.getClass().isArray() ) {
             return formatValue( value );
         }
         else {
             int nel = Array.getLength( value );
             StringBuffer sbuf = new StringBuffer();
-            for ( int i = 0; i < nel; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( ' ' );
+            if ( padToLength > 0 ) {
+                for ( int i = 0; i < nel; i++ ) {
+                    String s = formatValue( Array.get( value, i ) );
+                    int vleng = s.length();
+                    if ( vleng <= padToLength ) {
+                        sbuf.append( s );
+                        for ( int j = vleng; j < padToLength; j++ ) {
+                            sbuf.append( ' ' );
+                        }
+                    }
+                    else {
+                        sbuf.append( s.substring( 0, padToLength ) );
+                    }
                 }
-                sbuf.append( formatValue( Array.get( value, i ) ) );
+            }
+            else {
+                for ( int i = 0; i < nel; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ' ' );
+                    }
+                    sbuf.append( formatValue( Array.get( value, i ) ) );
+                }
             }
             return sbuf.toString();
         }
@@ -72,6 +92,18 @@ class Encoder {
      *          to this encoder
      */
     public Map getFieldAttributes() {
+        return attMap;
+    }
+
+    /**
+     * Examines this object's ValueInfo to determine what the XML
+     * attributes of the corresponding FIELD element will be.
+     * May perform some additional configuration of this object too.
+     * Should be called in the constructor.
+     *
+     * @return  attribute map
+     */
+    private Map determineFieldAttributes() {
         Map atts = new HashMap();
 
         /* Name attribute. */
@@ -150,15 +182,34 @@ class Encoder {
          * dimension, since in VOTable strings have to be represented as
          * arrays of characters. */
         if ( stringLike ) {
-            if ( shape == null ) {
-                shape = new int[] { -1 };
+
+            /* Try to ascertain the number of characters in each string. */
+            int maxLength = info.getElementSize();
+            if ( maxLength <= 0 ) {
+                maxLength = -1;
             }
-            else {
-                int[] s2 = shape; 
+
+            /* For a scalar string, call it a fixed- or variable-length
+             * 1-d array of characters. */
+            if ( shape == null || shape.length == 0 ) {
+                shape = new int[] { maxLength };
+            }
+
+            /* For an array of strings whose dimensions are fully known,
+             * call it an (ndim+1)-dimensional array of characters. */
+            else if ( maxLength > 0 && shape[ shape.length - 1 ] > 0 ) {
+                int[] s2 = shape;
                 int ndim = s2.length;
                 shape = new int[ ndim + 1 ];
-                System.arraycopy( s2, 0, shape, 0, ndim );
-                shape[ ndim ] = -1;
+                shape[ 0 ] = maxLength;
+                System.arraycopy( s2, 0, shape, 1, ndim );
+                padToLength = maxLength;
+            }
+
+            /* Otherwise, we have no choice but to collapse it into a 
+             * 1-d variable-length array of characters. */
+            else {
+                shape = new int[] { -1 };
             }
         }
 
