@@ -152,7 +152,7 @@ public class ImageHDUDataNode extends HDUDataNode {
 
         description = "(" + hduType
                     + ( ( shape != null ) 
-                         ? ( " " + shape.toString() + " " ) 
+                         ? ( " " + NDShape.toString( shape.getDims() ) + " " ) 
                          : "" )
                     + ")";
     }
