@@ -38,6 +38,7 @@ public class HDSDataNode extends DefaultDataNode {
     private JComponent fullView;
     private String name;
     private Buffer niobuf;
+    private String path;
 
     /**
      * The maximum number of cells of an array of structures to be 
@@ -57,6 +58,7 @@ public class HDSDataNode extends DefaultDataNode {
             this.type = hobj.datType();
             this.name = hobj.datName();
             this.isStruct = hobj.datStruc();
+            this.path = hobj.datRef();
             long[] dims = hobj.datShape();
             int ndim = dims.length;
             if ( ndim > 0 ) {
@@ -180,20 +182,21 @@ public class HDSDataNode extends DefaultDataNode {
                 nChildren = hobj.datNcomp();
             }
             catch ( HDSException e ) {
-                return new DataNode[] { new ErrorDataNode( e ) };
+                return new DataNode[] 
+                           { getChildMaker().makeErrorDataNode( this, e ) };
             }
             children = new DataNode[ nChildren ];
             for ( int i = 0; i < nChildren; i++ ) {
                 try {
                     children[ i ] = 
                         getChildMaker()
-                       .makeDataNode( hobj.datIndex( i + 1 ) );
+                       .makeDataNode( this, hobj.datIndex( i + 1 ) );
                 }
                 catch ( HDSException e ) {
-                    children[ i ] = new ErrorDataNode( e );
+                    children[ i ] = getChildMaker().makeErrorDataNode( this, e );
                 }
                 catch ( NoSuchDataException e ) {
-                    children[ i ] = new ErrorDataNode( e );
+                    children[ i ] = getChildMaker().makeErrorDataNode( this, e );
                 }
             }
         }
@@ -207,13 +210,15 @@ public class HDSDataNode extends DefaultDataNode {
                 long[] pos = (long[]) pit.next();
                 try {
                     children[ ichild ] = getChildMaker()
-                                        .makeDataNode( hobj.datCell( pos ) );
+                                        .makeDataNode( HDSDataNode.this, hobj.datCell( pos ) );
                 }
                 catch ( HDSException e ) {
-                    children[ ichild ] = new ErrorDataNode( e );
+                    children[ ichild ] = getChildMaker()
+                                        .makeErrorDataNode( HDSDataNode.this, e );
                 }
                 catch ( NoSuchDataException e ) {
-                    children[ ichild ] = new ErrorDataNode( e );
+                    children[ ichild ] = getChildMaker()
+                                        .makeErrorDataNode( HDSDataNode.this, e );
                 }
                 children[ ichild ].setLabel( children[ ichild ].getName() 
                                            + NDShape.toString( pos ) );
@@ -260,6 +265,14 @@ public class HDSDataNode extends DefaultDataNode {
         return allowsChildren() 
             ? iconMaker.getIcon( IconFactory.STRUCTURE )
             : iconMaker.getArrayIcon( shape != null ? shape.getNumDims() : 0 );
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getPathSeparator() {
+        return ".";
     }
 
     public String getName() {

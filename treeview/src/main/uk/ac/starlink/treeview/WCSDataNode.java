@@ -110,6 +110,10 @@ public class WCSDataNode extends DefaultDataNode {
         return icon;
     }
 
+    public String getPathSeparator() {
+        return ".";
+    }
+
     public String getNodeTLA() {
         return "WCS";
     }

@@ -132,7 +132,7 @@ public class NDFDataNode extends HDSDataNode {
                 try {
                     DataNode wcsnode = 
                         getChildMaker()
-                       .makeDataNode( ndfobj.datFind( "WCS" ) );
+                       .makeDataNode( this, ndfobj.datFind( "WCS" ) );
                     if ( wcsnode instanceof WCSDataNode ) {
                         wcsComponent = (WCSDataNode) wcsnode;
                     }
@@ -190,7 +190,7 @@ public class NDFDataNode extends HDSDataNode {
                 try {
                     DataNode histnode =
                         getChildMaker()
-                       .makeDataNode( ndfobj.datFind( "HISTORY" ) );
+                       .makeDataNode( this, ndfobj.datFind( "HISTORY" ) );
                     if ( histnode instanceof HistoryDataNode ) {
                         historyComponent = (HistoryDataNode) histnode;
                     }
@@ -248,7 +248,7 @@ public class NDFDataNode extends HDSDataNode {
             nChild = ndfobj.datNcomp();
         }
         catch ( HDSException e ) {
-            return new DataNode[] { new ErrorDataNode( e ) };
+            return new DataNode[] { getChildMaker().makeErrorDataNode( this, e ) };
         }
         List clist = new ArrayList( nChild );
         Set used = new HashSet( nChild );
@@ -257,29 +257,29 @@ public class NDFDataNode extends HDSDataNode {
             /* First add all the standard components in a standard order. */
             if ( title != null ) {
                 clist.add( getChildMaker()
-                          .makeDataNode( ndfobj.datFind( "TITLE" ) ) );
+                          .makeDataNode( this, ndfobj.datFind( "TITLE" ) ) );
                 used.add( "TITLE" );
             }
             if ( label != null ) {
                 clist.add( getChildMaker()
-                          .makeDataNode( ndfobj.datFind( "LABEL" ) ) );
+                          .makeDataNode( this, ndfobj.datFind( "LABEL" ) ) );
                 used.add( "LABEL" );
             }
             if ( units != null ) {
                 clist.add( getChildMaker()
-                          .makeDataNode( ndfobj.datFind( "UNITS" ) ) );
+                          .makeDataNode( this, ndfobj.datFind( "UNITS" ) ) );
                 used.add( "UNITS" );
             }
             if ( dataArray != null ) {
-                clist.add( getChildMaker().makeDataNode( dataArray ) );
+                clist.add( getChildMaker().makeDataNode( this, dataArray ) );
                 used.add( "DATA_ARRAY" );
             }
             if ( varianceArray != null ) {
-                clist.add( getChildMaker().makeDataNode( varianceArray ) );
+                clist.add( getChildMaker().makeDataNode( this, varianceArray ) );
                 used.add( "VARIANCE" );
             }
             if ( qualityArray != null ) {
-                clist.add( getChildMaker().makeDataNode( qualityArray ) );
+                clist.add( getChildMaker().makeDataNode( this, qualityArray ) );
                 used.add( "QUALITY" );
             }
             if ( wcsComponent != null ) {
@@ -293,14 +293,14 @@ public class NDFDataNode extends HDSDataNode {
             if ( axes != null ) {
                 DataNode axnode = 
                     getChildMaker()
-                   .makeDataNode( ndfobj.datFind( "AXIS" ) );
+                   .makeDataNode( this, ndfobj.datFind( "AXIS" ) );
                 axnode.setChildMaker( getAxisChildMaker() );
                 clist.add( axnode );
                 used.add( "AXIS" );
             }
             if ( extensions != null ) {
                 clist.add( getChildMaker()
-                          .makeDataNode( ndfobj.datFind( "MORE" ) ) );
+                          .makeDataNode( this, ndfobj.datFind( "MORE" ) ) );
                 used.add( "MORE" );
             }
          
@@ -311,16 +311,16 @@ public class NDFDataNode extends HDSDataNode {
                     HDSObject hobj = ndfobj.datIndex( i + 1 );
                     if ( ! used.contains( hobj.datName().toUpperCase() ) ) {
                         clist.add( getChildMaker()
-                                  .makeDataNode( hobj ) );
+                                  .makeDataNode( this, hobj ) );
                     }
                 }
             }
         }
         catch ( HDSException e ) {
-            clist.add( new ErrorDataNode( e ) );
+            clist.add( getChildMaker().makeErrorDataNode( this, e ) );
         }
         catch ( NoSuchDataException e ) {
-            clist.add( new ErrorDataNode( e ) );
+            clist.add( getChildMaker().makeErrorDataNode( this, e ) );
         }
         return (DataNode[]) clist.toArray( new DataNode[ 0 ] );
     }

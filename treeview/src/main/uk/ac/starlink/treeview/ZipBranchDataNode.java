@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.io.File;
 import java.util.*;
 import java.util.zip.*;
 import javax.swing.*;
@@ -56,6 +57,10 @@ public class ZipBranchDataNode extends DefaultDataNode {
         return icon;
     }
 
+    public String getPathSeparator() {
+        return "";
+    }
+
     public String getNodeTLA() {
         return "ZPD";
     }
@@ -78,9 +83,12 @@ public class ZipBranchDataNode extends DefaultDataNode {
             public Object next() {
                 DataNode node = (DataNode) nodeIt.next();
                 try {
-                    return getChildMaker().makeDataNode( node );
+                    return getChildMaker()
+                          .makeDataNode( ZipBranchDataNode.this, node );
                 }
                 catch ( NoSuchDataException e ) {
+                    DataNode parent = ZipBranchDataNode.this;
+                    node.setCreator( new CreationState( parent ) );
                     return node;
                 }
             }

@@ -30,6 +30,10 @@ import javax.swing.tree.*;
  */
 
 public interface DataNode {
+
+    /** DataNode representing the root of the known tree. */
+    public static final DataNode ROOT = new DefaultDataNode();
+
     /**
      * Indicates whether the node can in principle have child nodes.
      * Note this does not actually mean that it has any children.
@@ -130,6 +134,15 @@ public interface DataNode {
     public String getDescription();
 
     /**
+     * Gets a (preferably full) pathname to this node.
+     * May return <tt>null</tt> if the pathname is not defined or cannot
+     * be determined.
+     *
+     * @return   pathname to this node
+     */
+    public String getPath();
+
+    /**
      * Gets an <code>Icon</code> which can be used when displaying this node.
      * This should return an icon suitable for displaying in a JTree,
      * ideally about 16x16 pixels.  It should give some indication of
@@ -138,6 +151,28 @@ public interface DataNode {
      * @return  an <code>Icon</code> for display
      */
     public Icon getIcon();
+
+    /**
+     * Gets the contribution of this node to a pathname.
+     * The return value should be the name of this node as it forms part
+     * of a path name.  This may or may not be equal to the <tt>name</tt>
+     * member variable.  Can be null to indicate the no pathname can
+     * be formed from this node.
+     *
+     * @return   pathname name of this node
+     */
+    public String getPathElement();
+
+    /**
+     * Gets the delimiter string which separates the name of this node from
+     * the name of one of its children when constructing a pathname.
+     * If <tt>null</tt> is returned it indicates that no pathname 
+     * can be formed from this node and one of its children (for instance
+     * if it has no children).
+     *
+     * @return  short delimiter string
+     */
+    public String getPathSeparator();
 
     /**
      * Returns a TreeCellRenderer object for the node.  This determines

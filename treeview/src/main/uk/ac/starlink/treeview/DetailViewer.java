@@ -72,6 +72,10 @@ public class DetailViewer {
             over.addKeyedItem( "Name", node.getName() );
         }
         over.addKeyedItem( "Node type", node.getNodeType() );
+        String path = node.getPath();
+        if ( path != null ) {
+            over.addKeyedItem( "Path", path );
+        }
     }
 
     public JComponent getComponent() {

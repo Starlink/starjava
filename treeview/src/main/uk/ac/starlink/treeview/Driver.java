@@ -206,7 +206,7 @@ public class Driver {
     private static DataNode makeDataNode( DataNodeFactory nodeFactory, 
                                           String nodename ) {
         try {
-            DataNode node = nodeFactory.makeDataNode( nodename );
+            DataNode node = nodeFactory.makeDataNode( DataNode.ROOT, nodename );
             node.setLabel( nodename );
             return node;
         }

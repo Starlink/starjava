@@ -112,6 +112,10 @@ public class VOComponentDataNode extends DefaultDataNode {
         return icon;
     }
 
+    public String getPathSeparator() {
+        return "/";
+    }
+
     protected short getIconId() {
         return IconFactory.VOCOMPONENT;
     }
@@ -145,10 +149,12 @@ public class VOComponentDataNode extends DefaultDataNode {
                 next = firstUsefulSibling( nd.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nd, systemId );
-                    return childMaker.makeDataNode( xsrc );
+                    return childMaker
+                          .makeDataNode( VOComponentDataNode.this, xsrc );
                 }
                 catch ( Exception e ) {
-                    return new ErrorDataNode( e );
+                    return childMaker
+                          .makeErrorDataNode( VOComponentDataNode.this, e );
                 }
             }
             public void remove() {

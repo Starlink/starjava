@@ -580,10 +580,10 @@ public class StaticTreeViewer extends JFrame {
                     File file = fileChooser.getSelectedFile();
                     DataNode dnode;
                     try {
-                        dnode = nodeMaker.makeDataNode( file );
+                        dnode = nodeMaker.makeDataNode( DataNode.ROOT, file );
                     }
                     catch ( NoSuchDataException e ) {
-                        dnode = new ErrorDataNode( e );
+                        dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
                     }
                     dnode.setLabel( file.getAbsolutePath() );
                     DefaultMutableTreeNode tnode = 
@@ -605,10 +605,10 @@ public class StaticTreeViewer extends JFrame {
                              .showInputDialog( "Name of the new node" );
                 DataNode dnode;
                 try {
-                    dnode = nodeMaker.makeDataNode( name );
+                    dnode = nodeMaker.makeDataNode( DataNode.ROOT, name );
                 }
                 catch ( NoSuchDataException e ) {
-                    dnode = new ErrorDataNode( e );
+                    dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
                 }
                 dnode.setLabel( name );
                 DefaultMutableTreeNode tnode =
@@ -634,7 +634,8 @@ public class StaticTreeViewer extends JFrame {
                             dnode = new DemoDataNode();
                         }
                         catch ( NoSuchDataException e ) {
-                            dnode = new ErrorDataNode( e );
+                            dnode = nodeMaker
+                                   .makeErrorDataNode( DataNode.ROOT, e );
                         }
                         demoNode = new DefaultMutableTreeNode( dnode );
                         demoNode.setAllowsChildren( dnode.allowsChildren() );
@@ -956,6 +957,7 @@ public class StaticTreeViewer extends JFrame {
                     }
                     catch ( NoSuchDataException e ) {
                         newdn = new ErrorDataNode( e );
+                        newdn.setCreator( creator );
                     }
                     DefaultMutableTreeNode newtn = 
                         new DefaultMutableTreeNode( newdn );
@@ -982,6 +984,7 @@ public class StaticTreeViewer extends JFrame {
              * for every node ever made - OK for a popup menu but expensive
              * to have it done preemptively. */
             /* Should really do some node disposal here. */
+            DataNode parent = creator.getParent();
             for ( Iterator bit = builders.iterator(); bit.hasNext(); ) {
                 DataNodeBuilder builder = (DataNodeBuilder) bit.next();
                 if ( builder.suitable( cobj.getClass() ) ) {
@@ -993,7 +996,7 @@ public class StaticTreeViewer extends JFrame {
                     else {
                         newdn.setLabel( dn.getLabel() );
                         CreationState creat = 
-                            new CreationState( cfact, builder, cobj );
+                            new CreationState( cfact, builder, parent, cobj );
                         newdn.setCreator( creat );
                         String text = newdn.getNodeTLA() + ": "
                                     + newdn.toString();

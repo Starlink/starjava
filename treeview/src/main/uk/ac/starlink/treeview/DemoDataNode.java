@@ -22,6 +22,7 @@ public class DemoDataNode extends FileDataNode {
     public DemoDataNode() throws NoSuchDataException {
         super( getDemoDir() );
         setLabel( name );
+        setCreator( new CreationState( DataNode.ROOT ) );
     }
 
     public String getName() {
@@ -33,6 +34,14 @@ public class DemoDataNode extends FileDataNode {
             icon = IconFactory.getInstance().getIcon( IconFactory.DEMO );
         }
         return icon;
+    }
+
+    public String getPathElement() {
+        return "[DemoData]";
+    }
+
+    public String getPathSeparator() {
+        return ": ";
     }
 
     public String getNodeTLA() {

@@ -45,6 +45,14 @@ public class NDArrayDataNode extends DefaultDataNode {
                           .getArrayIcon( nda.getShape().getNumDims() );
     }
 
+    public String getPathElement() {
+        return getLabel();
+    }
+
+    public String getPathSeparator() {
+        return ".";
+    }
+
     public String getNodeTLA() {
         return "NDA";
     }

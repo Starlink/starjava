@@ -76,10 +76,13 @@ public class ZipFileDataNode extends DefaultDataNode {
             public Object next() {
                 DataNode node = (DataNode) nodeIt.next();
                 try {
-                   return getChildMaker().makeDataNode( node );
+                   return getChildMaker()
+                         .makeDataNode( ZipFileDataNode.this, node );
                 }
                 catch ( NoSuchDataException e ) {
-                   return node;
+                    DataNode parent = ZipFileDataNode.this;
+                    node.setCreator( new CreationState( parent ) );
+                    return node;
                 }
             }
             public void remove() {
@@ -97,6 +100,10 @@ public class ZipFileDataNode extends DefaultDataNode {
             icon = IconFactory.getInstance().getIcon( IconFactory.ZIPFILE );
         }
         return icon;
+    }
+
+    public String getPathSeparator() {
+        return ":";
     }
 
     /**

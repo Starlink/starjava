@@ -62,10 +62,11 @@ public class FileDataNode extends DefaultDataNode {
             public Object next() {
                 DataNode child;
                 try {
-                    child = getChildMaker().makeDataNode( subFiles[ index ] );
+                    child = getChildMaker()
+                           .makeDataNode( FileDataNode.this, subFiles[ index ] );
                 }
                 catch ( NoSuchDataException e ) {
-                    child = new ErrorDataNode( e );
+                    child = getChildMaker().makeErrorDataNode( FileDataNode.this, e );
                 }
                 index++;
                 return child;
@@ -83,6 +84,18 @@ public class FileDataNode extends DefaultDataNode {
     public Icon getIcon() {
         return iconMaker.getIcon( file.isDirectory() ? IconFactory.DIRECTORY
                                                      : IconFactory.FILE );
+    }
+
+    public String getPath() {
+        return file.getPath();
+    }
+
+    public String getPathElement() {
+        return name;
+    }
+
+    public String getPathSeparator() {
+        return File.separator;
     }
 
     /**

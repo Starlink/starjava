@@ -124,7 +124,7 @@ public class FITSDataNode extends DefaultDataNode {
         }
         catch ( IOException e ) {
             return Collections
-                  .singletonList( new ErrorDataNode( e ) )
+                  .singletonList( getChildMaker().makeErrorDataNode( this, e ) )
                   .iterator();
         }
       
@@ -204,6 +204,10 @@ public class FITSDataNode extends DefaultDataNode {
             icon = IconFactory.getInstance().getIcon( IconFactory.FITS );
         }
         return icon;
+    }
+
+    public String getPathSeparator() {
+        return "#";
     }
 
     public String getNodeTLA() {

@@ -166,6 +166,14 @@ public class XMLDataNode extends DefaultDataNode {
         return icon;
     }
 
+    public String getPathElement() {
+        return domNode.getNodeName();
+    }
+
+    public String getPathSeparator() {
+        return "/";
+    }
+
     public String getDescription() {
         return description;
     }
@@ -189,10 +197,10 @@ public class XMLDataNode extends DefaultDataNode {
                 next = firstUsefulSibling( next.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nod, systemId );
-                    return childMaker.makeDataNode( xsrc );
+                    return childMaker.makeDataNode( XMLDataNode.this, xsrc );
                 }
                 catch ( Exception e ) {
-                    return new ErrorDataNode( e );
+                    return childMaker.makeErrorDataNode( XMLDataNode.this, e );
                 }
             }
             public void remove() {

@@ -171,10 +171,10 @@ public class ImageHDUDataNode extends HDUDataNode {
         else {
             DataNode wcschild;
             try {
-                wcschild = new WCSDataNode( wcs );
+                wcschild = getChildMaker().makeDataNode( this, wcs );
             }
             catch ( NoSuchDataException e ) {
-                wcschild = new ErrorDataNode( e );
+                wcschild = getChildMaker().makeErrorDataNode( this, e );
             }
             return new DataNode[] { wcschild };
         }

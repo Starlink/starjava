@@ -120,6 +120,14 @@ public class DefaultDataNode implements DataNode {
                                                    : IconFactory.LEAF );
     }
 
+    public String getPathSeparator() {
+        return ".";
+    }
+
+    public String getPathElement() {
+        return getName();
+    }
+
     public boolean hasFullView() {
         return true;
     }
@@ -164,6 +172,46 @@ public class DefaultDataNode implements DataNode {
 
     public CreationState getCreator() {
         return creator;
+    }
+
+    /**
+     * Returns the path from the top of the tree of DataNodes to a given
+     * node.  This may be overridden by subclasses which know how to
+     * determine their absolute pathname, but for those that don't this
+     * implementation will probably give a sensible result.
+     *
+     * @return  the path to this node
+     */
+    public String getPath() {
+        StringBuffer path = new StringBuffer();
+        boolean ok = accumulatePath( this, path );
+        return ok ? path.toString() : null;
+    }
+
+    private static boolean accumulatePath( DataNode dnode, StringBuffer path ) {
+        CreationState creator = dnode.getCreator();
+        String sep = dnode.getPathSeparator();
+        if ( sep == null ) {
+            return false;
+        }
+        if ( path.length() > 0 ) {
+            path.insert( 0, sep );
+        }
+        String pathel = dnode.getPathElement();
+        if ( pathel == null ) {
+            return false;
+        }
+        path.insert( 0, pathel );
+        DataNode parent = ( creator == null ) ? null : creator.getParent();
+        if ( parent == null ) {
+            return false;
+        }
+        else if ( parent == DataNode.ROOT ) {
+            return true;
+        }
+        else {
+            return accumulatePath( parent, path );
+        }
     }
 
     /*

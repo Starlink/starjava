@@ -156,15 +156,16 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasTitle() ) {
             DataNode tit;
             tit = new ScalarDataNode( "Title", "string", ndx.getTitle() );
+            tit.setCreator( new CreationState( this ) );
             children.add( tit );
         }
 
         DataNode im;
         try {
-            im = childMaker.makeDataNode( ndx.getImage() );
+            im = childMaker.makeDataNode( this, ndx.getImage() );
         }
         catch ( NoSuchDataException e ) {
-            im = new ErrorDataNode( e );
+            im = childMaker.makeErrorDataNode( this, e );
         }
         im.setLabel( "image" );
         children.add( im );
@@ -172,10 +173,10 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasVariance() ) {
             DataNode var;
             try {
-                var = childMaker.makeDataNode( ndx.getVariance() );
+                var = childMaker.makeDataNode( this, ndx.getVariance() );
             }
             catch ( NoSuchDataException e ) {
-                var = new ErrorDataNode( e );
+                var = childMaker.makeErrorDataNode( this, e );
             }
             var.setLabel( "variance" );
             children.add( var );
@@ -184,10 +185,10 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasQuality() ) {
             DataNode qual;
             try {
-                qual = childMaker.makeDataNode( ndx.getQuality() );
+                qual = childMaker.makeDataNode( this, ndx.getQuality() );
             }
             catch ( NoSuchDataException e ) {
-                qual = new ErrorDataNode( e );
+                qual = childMaker.makeErrorDataNode( this, e );
             }
             qual.setLabel( "quality" );
             children.add( qual );
@@ -198,16 +199,17 @@ public class NdxDataNode extends DefaultDataNode {
             DataNode bb = 
                 new ScalarDataNode( "BadBits", "int", 
                                     "0x" + Integer.toHexString( badbits ) );
+            bb.setCreator( new CreationState( this ) );
             children.add( bb );
         }
     
         if ( Driver.hasAST && ndx.hasWCS() ) {
             DataNode wnode;
             try {
-                wnode = childMaker.makeDataNode( ndx.getAst() );
+                wnode = childMaker.makeDataNode( this, ndx.getAst() );
             }
             catch ( NoSuchDataException e ) {
-                wnode = new ErrorDataNode( e );
+                wnode = childMaker.makeErrorDataNode( this, e );
             }
             children.add( wnode );
         }
@@ -215,10 +217,10 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndx.hasEtc() ) {
             DataNode etcNode;
             try {
-                etcNode = childMaker.makeDataNode( ndx.getEtc() );
+                etcNode = childMaker.makeDataNode( this, ndx.getEtc() );
             }
             catch ( NoSuchDataException e ) {
-                etcNode = new ErrorDataNode( e );
+                etcNode = childMaker.makeErrorDataNode( this, e );
             }
             children.add( etcNode );
         }
@@ -243,6 +245,14 @@ public class NdxDataNode extends DefaultDataNode {
             icon = IconFactory.getInstance().getIcon( IconFactory.NDX );
         }
         return icon;
+    }
+
+    public String getPathElement() {
+        return getLabel();
+    }
+
+    public String getPathSeparator() {
+        return ".";
     }
 
     public boolean hasFullView() {

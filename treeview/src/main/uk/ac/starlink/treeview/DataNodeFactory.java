@@ -183,6 +183,7 @@ public class DataNodeFactory implements Cloneable {
      * been called then extensive logging of the constructions tried and
      * why each one failed can be performed.
      *
+     * @param   parent               the DataNode whose child this is
      * @param   obj                  an object which can be used by one of
      *                               the underlying constructors to generate
      *                               a <code>DataNode</code> object.
@@ -190,7 +191,8 @@ public class DataNodeFactory implements Cloneable {
      * @throws  NoSuchDataException  if no constructor could be found and 
      *                               successfully invoked
      */
-    public DataNode makeDataNode( Object obj ) throws NoSuchDataException {
+    public DataNode makeDataNode( DataNode parent, Object obj ) 
+            throws NoSuchDataException {
         if ( verbose ) {
             verbStream.println( "\nTrying to construct DataNode from "
                               + obj + ":  " );
@@ -209,7 +211,7 @@ public class DataNodeFactory implements Cloneable {
                         verbStream.println( "SUCCESS: " + newNode + "\n" );
                     }
                     newNode.setCreator( 
-                        new CreationState( this, builder, obj ) );
+                        new CreationState( this, builder, parent, obj ) );
                     return newNode;
                 }
                 tried.add( builder );
@@ -221,6 +223,24 @@ public class DataNodeFactory implements Cloneable {
              "No suitable node could be constructed for " + obj );
     }
 
+    /**
+     * Makes a DataNode from a Throwable.  This behaves the same as
+     * <tt>makeDataNode</tt> but for convenience it doesn't throw a
+     * NoSuchDataException, since it can guarantee to make a DataNode
+     * from the throwable.
+     *
+     * @param  th  the Throwable object from which to construct the node
+     * @param  parent   the DataNode whose child this is
+     * @param  a DataNode (probably an ErrorDataNode) representing <tt>th</tt> 
+     */
+    public DataNode makeErrorDataNode( DataNode parent, Throwable th ) {
+        try {
+            return makeDataNode( parent, th );
+        }
+        catch ( NoSuchDataException e ) {
+            return new ErrorDataNode( th );
+        }
+    }
 
     /**
      * Returns a string representation of this factory.
