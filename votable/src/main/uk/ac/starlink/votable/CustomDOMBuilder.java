@@ -93,6 +93,37 @@ public class CustomDOMBuilder implements ContentHandler {
         return builder.getDocument();
     }
 
+    /**
+     * Returns the name of an element as a normal string like "TABLE" in
+     * the VOTable namespace, given the various name items that
+     * SAX provides for a start/end element event.
+     *
+     * @param  namespaceURI  namespaceURI
+     * @param  localName   local name
+     * @param  qName   qualified name
+     */
+    protected String getTagName( String namespaceURI, String localName,
+                                 String qName ) {
+        if ( localName != null && localName.length() > 0 ) {
+            return localName;
+        }
+        else {
+            return qName;
+        }
+    }
+
+    /**
+     * Returns the value of an attribute.
+     *
+     * @param  atts  attribute set
+     * @param  name  normal VOTable name of the attribute
+     * @return  value of attribute <tt>name</tt> or null if it doesn't exist
+     */
+    protected String getAttribute( Attributes atts, String name ) {
+        String val = atts.getValue( name );
+        return val != null ? val : atts.getValue( "", name );
+    }
+
     //
     // Methods delegating implementation to custom handler instance.
     //
