@@ -3,6 +3,7 @@ package uk.ac.starlink.table.view;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -51,6 +52,8 @@ public class TableViewer extends JFrame {
     private Action dupAct;
     private Action mirageAct;
     private Action plotAct;
+    private Action paramAct;
+    private Action colinfoAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -62,9 +65,13 @@ public class TableViewer extends JFrame {
 
     /**
      * Constructs a new TableViewer not initially viewing any table.
+     *
+     * @param  sibling   a window for positioning relative to; the new
+     *         one will generally come out a bit lower and to the right 
+     *         of <tt>sibling</tt>.  May be <tt>null</tt>
      */
-    public TableViewer() {
-        this( null );
+    public TableViewer( Window sibling ) {
+        this( null, sibling );
     }
             
  
@@ -73,12 +80,16 @@ public class TableViewer extends JFrame {
      * The given table must provide random access.
      *
      * @param  startab   a star table, or <tt>null</tt>
+     * @param  sibling   a window for positioning relative to; the new
+     *         one will generally come out a bit lower and to the right 
+     *         of <tt>sibling</tt>.  May be <tt>null</tt>
      * @throws  IllegalArgumentException  if <tt>!startab.isRandom()</tt>
      */
-    public TableViewer( StarTable startab ) {
+    public TableViewer( StarTable startab, Window sibling ) {
 
         /* Do basic setup. */
-        super( DEFAULT_TITLE );
+        super();
+        AuxWindow.positionAfter( sibling, this );
         scrollpane = new SizingScrollPane();
         mainpanel = new JPanel( new BorderLayout() );
         getContentPane().add( mainpanel );
@@ -102,6 +113,10 @@ public class TableViewer extends JFrame {
                                       "Launch Mirage to display this table" );
         plotAct = new ViewerAction( "Plot", 0,
                                     "Plot columns from this table" );
+        paramAct = new ViewerAction( "Parameters", 0,
+                                     "Display table metadata" );
+        colinfoAct = new ViewerAction( "Columns", 0,
+                                       "Display column metadata" );
 
         /* Configure the table. */
         if ( startab != null ) {
@@ -138,6 +153,12 @@ public class TableViewer extends JFrame {
         mb.add( plotMenu );
         plotMenu.add( plotAct ).setIcon( null );
 
+        /* Metadata menu. */
+        JMenu metaMenu = new JMenu( "Metadata" );
+        mb.add( metaMenu );
+        metaMenu.add( paramAct ).setIcon( null );
+        metaMenu.add( colinfoAct ).setIcon( null );
+
         /* Display. */
         pack();
         setVisible( true );
@@ -162,15 +183,13 @@ public class TableViewer extends JFrame {
             jtab = new StarJTable( startab, true );
             ((StarJTable) jtab).configureColumnWidths( 300, 20 );
             scrollpane.setViewportView( jtab );
-            String name = startab.getName();
-            setTitle( name == null ? DEFAULT_TITLE : name );
         }
         else {
             this.startab = null;
             this.jtab = null;
             scrollpane.setViewportView( null );
-            setTitle( DEFAULT_TITLE );
         }
+        setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, startab ) );
         configureActions();
     }
 
@@ -247,7 +266,7 @@ public class TableViewer extends JFrame {
      */
     private class ViewerAction extends AbstractAction {
 
-        private final Component parent = TableViewer.this;
+        private final Window parent = TableViewer.this;
 
         ViewerAction( String name, int iconId, String shortdesc ) {
             super( name, null );
@@ -278,14 +297,14 @@ public class TableViewer extends JFrame {
             else if ( this == newAct ) {
                 StarTable st = getChooser().getRandomTable( parent );
                 if ( st != null ) {
-                    new TableViewer().setStarTable( st );
+                    new TableViewer( st, parent );
                 }
             }
 
             /* Open the same table in a new viewer. */
             else if ( this == dupAct ) {
                 assert startab != null;  // action would be disabled 
-                new TableViewer( startab );
+                new TableViewer( startab, parent );
             }
 
             /* Save the table to a file. */
@@ -309,7 +328,17 @@ public class TableViewer extends JFrame {
 
             /* Open a plot window. */
             else if ( this == plotAct ) {
-                wtracker.register( new PlotWindow( startab ) );
+                wtracker.register( new PlotWindow( startab, parent ) );
+            }
+
+            /* Display table parameters. */
+            else if ( this == paramAct ) {
+                wtracker.register( new ParameterWindow( startab, parent ) );
+            }
+
+            /* Display column parameters. */
+            else if ( this == colinfoAct ) {
+                wtracker.register( new ColumnInfoWindow( startab, parent ) );
             }
 
             /* Shouldn't happen. */
@@ -334,6 +363,7 @@ public class TableViewer extends JFrame {
                      + "   " + cmdname + " [table ...]\n";
         if ( args.length > 0 ) {
             int nok = 0;
+            TableViewer lastViewer = null;
             for ( int i = 0; i < args.length; i++ ) {
 
                 /* Deal with any known flags. */
@@ -352,12 +382,9 @@ public class TableViewer extends JFrame {
                     }
                     else {
                         startab = Tables.randomTable( startab );
-                        TableViewer tv = new TableViewer( startab );
+                        lastViewer = new TableViewer( startab, lastViewer );
                         setUseGUI();
                         ok = true;
-                        if ( startab.getName() == null ) {
-                            tv.setTitle( args[ i ] );
-                        }
                     }
                 }
                 catch ( Exception e ) {
@@ -389,7 +416,7 @@ public class TableViewer extends JFrame {
         else {
             StarTable st = getChooser().getRandomTable( null );
             if ( st != null ) {
-                new TableViewer( st );
+                new TableViewer( st, null );
             }
             else {
                 System.exit( 1 );

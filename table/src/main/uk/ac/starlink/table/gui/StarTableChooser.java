@@ -45,7 +45,7 @@ public class StarTableChooser extends JOptionPane {
     public StarTableChooser() {
 
         /* Set up the field for entering a table location. */
-        InputFieldStack locPanel = new InputFieldStack();
+        LabelledComponentStack locPanel = new LabelledComponentStack();
         locField = new JTextField( 32 );
         locPanel.addLine( "Table location", locField );
 

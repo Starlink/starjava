@@ -2,6 +2,7 @@ package uk.ac.starlink.table.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +10,6 @@ import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -26,7 +26,7 @@ import uk.ac.starlink.table.StarTable;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class PlotWindow extends JFrame implements ActionListener {
+public class PlotWindow extends AuxWindow implements ActionListener {
 
     private StarTable startab;
     private JComboBox xColBox;
@@ -40,21 +40,14 @@ public class PlotWindow extends JFrame implements ActionListener {
      * Constructs a PlotWindow from a given StarTable.
      *
      * @param   startab  the startable from which to plot columns
-     * @param   title   the title of the window
+     * @param   parent  the parent component
      */
-    public PlotWindow( StarTable startab ) {
-        super();
+    public PlotWindow( StarTable startab, Component parent ) {
+        super( "Table Plotter", startab, parent );
         this.startab = startab;
 
         /* Do some window setup. */
-        setDefaultCloseOperation( DISPOSE_ON_CLOSE );
         setSize( 400, 400 );
-        if ( startab.getName() != null ) {
-            setTitle( "Table Plotter: " + startab.getName() );
-        }
-        else {
-            setTitle( "Table Plotter" );
-        }
 
         /* Construct a panel for configuration of X and Y axes. */
         Border lineBorder = BorderFactory.createLineBorder( Color.BLACK );
@@ -148,9 +141,15 @@ public class PlotWindow extends JFrame implements ActionListener {
                     Object yval = rseq.getCell( ycol );
                     if ( xval instanceof Number &&
                          yval instanceof Number ) {
-                        plot.addPoint( 0, ( (Number) xval ).doubleValue(),
-                                          ( (Number) yval ).doubleValue(),
-                                          state.plotline );
+                        double x = ((Number) xval).doubleValue();
+                        double y = ((Number) yval).doubleValue();
+                        if ( state.xLog && x <= 0.0 ||
+                             state.yLog && y <= 0.0 ) {
+                            // can't take log of negative value
+                        }
+                        else {
+                            plot.addPoint( 0, x, y, state.plotline );
+                        }
                         ngood++;
                     }
                     nrow++;
@@ -201,7 +200,8 @@ public class PlotWindow extends JFrame implements ActionListener {
         if ( ! state.equals( lastState ) ) {
             lastState = state;
             plotPanel.removeAll();
-            plotPanel.add( makePlot( state ), BorderLayout.CENTER );
+            PlotBox plot = makePlot( state );
+            plotPanel.add( plot, BorderLayout.CENTER );
             plotPanel.revalidate();
         }
     }

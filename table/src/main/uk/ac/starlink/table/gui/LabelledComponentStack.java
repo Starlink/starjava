@@ -18,7 +18,7 @@ import javax.swing.JTextField;
  *
  * @author   Mark Taylor (Starlink)
  */
-class InputFieldStack extends JPanel {
+public class LabelledComponentStack extends JPanel {
 
     private Font inputFont = new JTextField().getFont();
     private GridBagLayout layer = new GridBagLayout();
@@ -27,7 +27,7 @@ class InputFieldStack extends JPanel {
     /**
      * Constructs a new stack of input fields.
      */
-    public InputFieldStack() {
+    public LabelledComponentStack() {
         setLayout( layer );
         cons.gridy = 0;
     }
@@ -78,6 +78,14 @@ class InputFieldStack extends JPanel {
      */
     public void addLine( String name, Component comp ) {
         addLine( name, null, comp );
+    }
+
+    /**
+     * Adds a (name,value) pair.  The value is a string which will be
+     * presented as a JLabel or something.
+     */
+    public void addLine( String name, String value ) {
+        addLine( name, new JLabel( value ) );
     }
 
     /**

@@ -43,7 +43,7 @@ public class SQLDialog extends JOptionPane {
     public SQLDialog( String refString ) {
 
         /* JOptionPane configuration. */
-        InputFieldStack stack = new InputFieldStack();
+        LabelledComponentStack stack = new LabelledComponentStack();
         Font inputFont = stack.getInputFont();
         setMessage( stack );
         setOptionType( OK_CANCEL_OPTION );

@@ -73,7 +73,7 @@ public class StarTableSaver extends JOptionPane {
         };
 
         /* Set up the panel for specifying name and format. */
-        InputFieldStack locPanel = new InputFieldStack();
+        LabelledComponentStack locPanel = new LabelledComponentStack();
         locPanel.addLine( "Table output format", formatField );
         locPanel.addLine( "Output location", locField );
 
