@@ -11,8 +11,7 @@ public class Driver {
     public final static String CMDNAME_PROPERTY =
         "uk.ac.starlink.treeview.cmdname";
 
-    public static void main( String[] args ) throws NoSuchDataException,
-                                                    ClassNotFoundException {
+    public static void main( String[] args ) {
         boolean textView = false;
         short orient = StaticTreeViewer.DETAIL_BESIDE;
 
