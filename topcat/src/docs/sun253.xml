@@ -9,6 +9,11 @@
   <!ENTITY general.runtime.method.docs SYSTEM "general-javadocs.xml">
   <!ENTITY activation.runtime.method.docs SYSTEM "activation-javadocs.xml">
   <!ENTITY tablecopy.usage SYSTEM "tablecopy.usage">
+  <!ENTITY topcat.usage SYSTEM "topcat.usage">
+
+  <!-- Define some character constants. -->
+  <!ENTITY column.id.char '$'>
+  <!ENTITY subset.id.char '_'>
 
   <!-- Define illustrations -->
   <!ENTITY figs '../figures/'>
@@ -40,7 +45,7 @@
 
   <!-- Define external URLs. -->
   <!ENTITY URL.VOTABLE "http://www.ivoa.net/Documents/latest/VOT.html">
-  <!ENTITY URL.J2SE_JAVADOCS "http://java.sun.com/j2se/1.4/docs/api/">
+  <!ENTITY URL.J2SE_DOCS "http://java.sun.com/j2se/1.4.2/docs/">
   <!ENTITY SUN.252 "<webref url='http://www.starlink.ac.uk/stil/sun252/'
                             >SUN/252</webref>">
   <!ENTITY SUN.253 "<webref url='http://www.starlink.ac.uk/topcat/sun253/'
@@ -63,7 +68,8 @@
 
 <docnumber>253</docnumber>
 
-<docdate>23 April 2004</docdate>
+<history><version><px>$Id$</px></version></history>
+<docdate>October 2004</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -85,6 +91,9 @@ It has been designed for use with astronomical tables such as object
 catalogues, but is not restricted to astronomical applications.
 It understands a number of different astronomically important formats,
 and more formats can be added.
+It is designed to cope well with large tables; 
+a million rows by a hundred columns should not present a problem 
+even with modest memory and CPU resources.
 </px>
 
 <px>It offers a variety of ways to view and analyse the data,
@@ -94,6 +103,8 @@ and facilities for plotting, calculating statistics and joining tables
 using flexible matching algorithms.
 Using a powerful and extensible Java-based expression language
 new columns can be defined and row subsets selected for separate analysis.
+Selecting a row can be configured to trigger an action, for instance
+displaying an image of the catalogue object in an external viewer.
 Table data and metadata can be edited and the resulting modified table
 can be written out in a wide range of output formats.
 </px>
@@ -108,8 +119,8 @@ are provided by the Starlink Tables Infrastructure Library.
 <sect id="intro">
 <subhead><title>Introduction</title></subhead>
 
-<p>TOPCAT is a graphical program which can view, analyse, combine, edit and
-write out tables.  A table is, roughly, anything with columns and rows;
+<p>TOPCAT is a graphical program which can examine, analyse, combine, edit and
+write out tables.  A table is, roughly, something with columns and rows;
 each column contains objects of the same type
 (for instance floating point numbers) and each row has an entry for
 each of the columns (though some entries might be blank).
@@ -123,13 +134,17 @@ again in a variety of formats.
 Here is a summary of its main capabilities:
 <ul>
 <li>View/edit table data in a scrollable browser</li>
-<li>View/edit table and column metadata</li>
+<li>View/edit table metadata (parameters)</li>
+<li>View/edit column metadata (column names, units, UCDs...)</li>
 <li>Re-order and hide/reveal columns</li>
 <li>Insert 'synthetic' columns defined by algebraic expression</li>
 <li>Sort rows on the values in a given column</li>
-<li>Define row subsets in various ways</li>
+<li>Define row subsets in various ways, including algebraically 
+    and graphically</li>
 <li>Plot columns against each other, distinguishing different subsets</li>
 <li>Calculate statistics on each column for some or all rows</li>
+<li>Trigger a configurable action (e.g. object image display) when a 
+    column is selected</li>
 <li>Perform flexible matching of rows in the same or different tables</li>
 <li>Concatenate the rows of existing tables to create new ones</li>
 <li>Write modified tables out in original or different format</li>
@@ -152,7 +167,8 @@ such as changing the current
 <ref id="order">Sort Order</ref>,
 <ref id="subsets">Row Subset</ref> or
 <ref id="columns">Column Set</ref>
-change the <ref id="apparent">Apparent Table</ref>, which is a view
+change the <ref id="apparent" plaintextref="yes">Apparent Table</ref>, 
+which is a view
 of the table used for things such as saving it and performing row matches.
 Any changes you make do not modify the tables on disk (or wherever they
 came from), but if you want to save the changes you have made,
@@ -167,7 +183,11 @@ form the application, and
 <ref id="tablecopy"/> describes a little command-line utility 
 called <label>tablecopy</label> which can copy tables between formats.
 While the program is running, this document is available via the
-online help system.
+online help system - clicking the <label>Help</label> (&IMG.HELP;)
+toolbar button in any window will pop up a help browser open at
+the page which describes that window.
+This document is heavily hyperlinked, so you may find it easier to
+read in its HTML form than on paper.
 </p>
 
 <p>Recent news about the program can be found on the
@@ -178,10 +198,12 @@ The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
 (<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>),
 which is documented more fully in &SUN.252;.
-It is written in pure Java (the current version requires J2SE1.4)
-which makes it highly portable (it can run on any machine which has
-a suitable Java installation),
-and is available under the terms of the 
+It is written in pure Java (the current version requires J2SE1.4 or 1.5/5.0)
+which makes it highly portable, since it can run on any machine which has
+a suitable Java installation; however some of the external viewer 
+applications it talks to rely on non-Java code though so one or 
+two facilities, such as displaying spectra, may be absent in some cases.
+TOPCAT is available under the terms of the 
 GNU <webref url="http://www.gnu.org/copyleft/gpl.html"
             >General Public License</webref>.
 </p>
@@ -233,7 +255,8 @@ have made:
 
 <dt>Data Window</dt>
 <dd><p>The <ref id="TableViewerWindow">Data window</ref>
-    always shows the apparent table, so if you are in doubt about what
+    always shows the rows and columns of the apparent table, 
+    so if you are in doubt about what
     form a table will get exported in, you can see what it looks like there.
     </p></dd>
 
@@ -324,6 +347,7 @@ and marking groups of rows to plot using different markers in the
     the <ref id="SyntheticSubsetQueryWindow">Algebraic Subset Window</ref>
     which allows you to define a new subset using an algebraic expression
     based on the values of the cells in each row.
+    The format of such expressions is described in <ref id="jel"/>.
     </p></dd>
 
 <dt>Visible plotted points</dt>
@@ -334,6 +358,15 @@ and marking groups of rows to plot using different markers in the
     button then a new subset will be
     created containing only rows represented by points in the field of
     view of the plot at the time.
+    </p></dd>
+
+<dt>Selected plotted points</dt>
+<dd><p>For more control over which plotted points are to be included in
+    a subset, you can use the <label>Draw Subset Region</label> 
+    (&IMG.BLOB_SUBSET;) button in the Plot Window.  This allows you 
+    to trace out with the mouse a region or regions of any shape, 
+    creating a new subset containing only those rows represented by 
+    the points within those regions.
     </p></dd>
 
 <dt>Boolean columns</dt>
@@ -397,7 +430,7 @@ popup menus in the <ref id="TableViewerWindow">Data Window</ref>.
 
 <p>Selecting a column to sort by calculates the new row order 
 by performing a sort on the cell values there and then.
-If the table data changes somehow (e.g. because you edit
+If the table data change somehow (e.g. because you edit
 cells in the table) then it is possible for the sort order 
 to become out of date.
 </p>
@@ -417,7 +450,9 @@ rows in their currently sorted order in the
 <p>When each table is imported it has a list of columns.
 Each column has header information which determines the kind of 
 data which can fill the cells of that column as well as a name,
-and maybe some additional information like units and UCD.
+and maybe some additional information like units and UCD
+(<webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
+         >Unified Content Descriptor</webref>).
 All this information can be viewed, and in some cases modified,
 in the <ref id="ColumnInfoWindow">Columns Window</ref>.
 </p>
@@ -475,8 +510,20 @@ whether they are currently visible is indicated by the (leftmost)
     Data Window to bring up the 
     <ref id="SyntheticColumnQueryWindow">Synthetic Column Window</ref>,
     which allows you to define a new column defined algebraically from
-    the values of existing columns.  This gives you functionality a 
+    the values of existing columns.  The expression syntax is 
+    described in <ref id="jel"/>.  This gives you functionality a 
     bit like that of a column-oriented spreadsheet.
+    </p></dd>
+
+<dt>Replace a Column</dt>
+<dd><p>If a column is selected in the Columns Window or from the 
+    Data Window popup menu you can use the 
+    <label>Replace Column with Synthetic</label> (&IMG.MODIFY;) button.
+    This is similar to the <label>Add a Synthetic Column</label> 
+    described in the previous item, but it pops up a new column 
+    dialogue with similar characteristics (name, units etc) 
+    to those of the column that's being replaced, and when completed 
+    it slots the new column in to the table hiding the old one.
     </p></dd>
 
 <dt>Add a Subset Column</dt>
@@ -503,24 +550,25 @@ whether they are currently visible is indicated by the (leftmost)
 <p>TOPCAT supports a wide variety of tabular data formats.
 In most cases these are file formats for tables stored as single files
 on a disk or at the end of a URL, but there are other possibilities,
-for instance a "loaded" table could 
+for instance a table you have opened could 
 be the result of an SQL query on a database.
 </p>
 
 <p>The program has no "native" file format, but if you have no particular
-preference about which format to save tables to, you should probably
-use either <ref id="outFits">FITS</ref> or <ref id="outVotable">VOTable</ref>.
-FITS tables can be accessed without loading all the data into memory, 
-which makes them good for very large tables (fast load and no
-running out of memory).
-VOTables have good storage of metadata (table parameters and column
-information such as UCDs and descriptions), but large tables stored as pure
-XML (<label>votable-tabledata</label> format) 
-can be verbose and slow to save/load.
-The <label>votable-fits-href</label> format is a good
-compromise between the two, but it writes to two separate files
-(metadata in an XML file and data in a FITS file), so if you move
-files around you have to remember to keep track of both.
+preference about which format to save tables to, 
+<ref id="outFits">FITS</ref> is a good choice.
+Uncompressed FITS tables do not in most cases have to be read all the
+way through (they are 'mapped' into memory), which makes them very
+fast to load up.
+The FITS format which is written by default also uses a trick to 
+store extra metadata, such as table parameters and UCDs 
+in a way TOPCAT (or other STIL-based programs - see below) 
+can read in again later (see <ref id="outFits"/>). 
+These files are quite usable as normal FITS tables by other applications, 
+but they will only be able to see the limited metadata stored in the
+FITS headers.
+If you want to write to a format which retains all metadata in a portable
+format, then one of the <ref id="outVotable"/> formats might be better.
 </p>
 
 <p>Since you can load a table from one format and save it in a different
@@ -532,11 +580,11 @@ convenient to use the command line utility
 
 <p>The format handling is extensible, so new formats can
 be added fairly easily.  All the table input/output is handled by 
-<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>
-(the Starlink Tables Infrastructure Library); more detailed 
-descriptions of the I/O capabilities can be found in its documentation.
+STIL, the Starlink Tables Infrastructure Library;
+more detailed descriptions of the I/O capabilities can be found in its
+<webref plaintextref="yes" url="http://www.starlink.ac.uk/stil/"
+        >documentation</webref>.
 </p>
-
 
 <p>The following subsections describe the available formats for reading
 and writing tables.  The two operations are separate, so not all the
@@ -546,16 +594,42 @@ supported input formats have matching output formats and vice versa.
 <subsect id="inFormats">
 <subhead><title>Supported Input Formats</title></subhead>
 
-<p>Loading tables into TOPCAT is done 
-using the <ref id="LoadQueryWindow">Load Table</ref> dialogue;
-the file format (and any compression) is automatically detected.
-The following sections describe the table formats which TOPCAT
-can read.</p>
+<p>Loading tables into TOPCAT is done either from the command line
+when you start the program up or
+using the <ref id="LoadQueryWindow">Load Table</ref> dialogue.
+For FITS and VOTable formats
+the file format can be detected automatically
+(note this is done by looking at the file content, it has nothing
+to do with filename extensions).
+For other formats though, for instance ASCII or Comma-Separated Values,
+you will have to specify the format that the file is in.
+In the Load Window, there is a selection box from which you can
+choose the format, and from the command line you use the
+<code>-f</code> flag - see <ref id="invoke"/> for details.
+You can always specify the format rather than using automatic detection
+if you prefer - this can be a good idea if a table appears to 
+be failing to load in a surprising way, since it may give you 
+a more detailed error message.
+</p>
+
+<p>In either case, table locations may be given as filenames or
+as URLs, and any data compression (gzip, unix compress and bzip2)
+will be automatically detected and dealt with.
+</p>
+
+<p><strong>Note:</strong> in some earlier versions of TOPCAT, ASCII
+format tables could be detected automatically, so you could load
+them by typing something like "<code>topcat table.txt</code>".
+In the current version, you have to signal that this is an 
+ASCII table, for instance by typing "<code>topcat -f ascii table.txt</code>".
+</p>
+
+<p>The following sections describe the table formats which TOPCAT can read.</p>
 
 <subsubsect>
 <subhead><title>FITS</title></subhead>
 
-<p>FITS BINARY and ASCII tables can be read.
+<p>FITS binary and ASCII table extensions can be read.
 Unless told otherwise, TOPCAT will display the first TABLE or BINTABLE
 extension in a given FITS file.
 If a later extension is required, this is indicated by giving the
@@ -574,12 +648,16 @@ by specifying the HDU numbers if you use the
 <ref id="StarTableNodeChooser">Hierarchy Browser</ref> to load the table.
 </p>
 
-<p>If the table is stored in a FITS binary table extension in a file
-on local disk in uncompressed form, then any size table can be
-accessed (TOPCAT does not load the table into memory in this case).
+<p>If the table has been written using TOPCAT's "<code>fits-plus</code>"
+output format (see <ref id="outFits"/>) then the metadata will be
+read in from the primary HDU as well.
 </p>
 
-<p>Compressed FITS files, or ones referred to as URLs, may be used.
+<p>If the table is stored in a FITS binary table extension in a file
+on local disk in uncompressed form, then the table is 'mapped' into
+memory - this generally means fast loading and low memory use, 
+even in the absence of TOPCAT's <code>-disk</code> flag
+(<ref id="topcatArgs"/>).
 </p>
 
 </subsubsect>
@@ -593,12 +671,16 @@ accessed (TOPCAT does not load the table into memory in this case).
 while the tabular data which can be encoded is by design close to
 what FITS allows, it provides for much richer encoding of structure 
 and metadata.
-TOPCAT ought to read any table which conforms to the
-<webref url="&URL.VOTABLE;">VOTable 1.0 specification</webref>.
-This includes tables in which the cell data is
+TOPCAT is believed to read any table which conforms to the
+VOTable 1.0 or VOTable 1.1
+<webref plaintextref="yes" url="&URL.VOTABLE;">specification</webref>.
+This includes tables in which the cell data are
 included in-line as XML elements (VOTable/TABLEDATA format),
 or included/referenced as a FITS table (VOTable/FITS)
 or included/referenced as a raw binary stream (VOTable/BINARY).
+TOPCAT does not attempt to be fussy about input VOTable documents,
+and it will have a good go at reading VOTables which 
+violate the standards in various ways.
 </p>
 
 <p>VOTable documents can have a complicated hierarchical structure,
@@ -624,9 +706,6 @@ or "cats.xml#0", and the Galaxy Catalogue using the name
 "cats.xml#1".
 </p>
 
-<p>Compressed VOTable documents, or ones referred to as URLs, may be used.
-</p>
-
 </subsubsect>
 
 <subsubsect id="inAscii">
@@ -643,16 +722,10 @@ have columns of numbers separated by something that looks like spaces,
 you should be just fine.
 </p>
 
-<p>The way the text-format table reader is written currently
-makes it unsuitable for reading enormous text-format tables
-(its scalability may be improved in future, especially if users 
-request this).
-</p>
-
 <p>Here are the detailed rules for how the ASCII-format tables are 
 interpreted:
 <ul>
-<li>Bytes in the file are interpreted as ASCII characters 
+<li>Bytes in the file are interpreted as ASCII characters
     (UTF-8-encoded Unicode)</li>
 <li>Each table row is represented by a single line of text</li>
 <li>Lines are terminated by one or more contiguous line termination
@@ -661,21 +734,24 @@ interpreted:
     characters: space (" ") or tab (0x09)</li>
 <li>A field is either an unquoted sequence of non-whitespace characters,
     or a sequence of non-newline characters between matching quote
-    characters: either single quotes (') or double quotes (")</li>
+    characters: either single quotes (') or double quotes (") -
+    spaces are therefore allowed in quoted fields.</li>
 <li>Within a quoted field, whitespace characters are permitted and are
     treated literally</li>
 <li>Within a quoted field, any character preceded by a backslash character
     ("\") is treated literally.  This allows quote characters to appear
     within a quoted string.</li>
-<li>An empty quoted string represents the null value</li>
+<li>An empty quoted string (two adjacent quotes) represents
+    the null value</li>
 <li>All data lines must contain the same number of fields (this is the
     number of columns in the table)</li>
 <li>The data type of a column is guessed according to the fields that
     appear in the table.  If all the fields in one column can be parsed
-    as integers (or null values), then that column will turn into an
-    integer-type column.  The types that are tried, in order of
+    as integers (or null values), then that column will turn into an 
+    integer-type column.  The types that are tried, in order of 
     preference, are:
        <code>Boolean</code>,
+       <code>Short</code>
        <code>Integer</code>,
        <code>Float</code>,
        <code>Double</code>,
@@ -683,15 +759,17 @@ interpreted:
        <code>String</code>
     </li>
 <li>Empty lines are ignored</li>
-<li>Anything after a hash character "#" on a line is ignored as far as
-    table data goes.  However, lines which start with a "#" at the
-    start of the table (before any data lines) will be interpreted
-    as metadata as follows:
+<li>Anything after a hash character "#" (except one in a quoted string)
+    on a line is ignored as far as table data goes;
+    any line which starts with a "!" is also ignored.
+    However, lines which start with a "#" or "!" at the start of the table
+    (before any data lines) will be interpreted as metadata as follows:
     <ul>
-    <li>The last "#"-starting line before the first data line may contain
-        the column names.  If it has the same number of fields as
-        there are columns in the table, each field will be taken to be
-        the title of the corresponding column.  Otherwise, it will be
+    <li>The last "#"/"!"-starting line before the first data line may
+        contain
+        the column names.  If it has the same number of fields as 
+        there are columns in the table, each field will be taken to be 
+        the title of the corresponding column.  Otherwise, it will be 
         taken as a normal comment line.</li>
     <li>Any comment lines before the first data line not covered by the
         above will be concatenated to form the "description" parameter
@@ -723,10 +801,10 @@ In this case it will identify the following columns:
 <verbatim>
     Name       Type
     ----       ----
-    RECNO      Integer
+    RECNO      Short
     SPECIES    String
     NAME       String
-    LEGS       Integer
+    LEGS       Short
     HEIGHT/m   Float
 </verbatim>
 It will also use the text "<code>Here is a list of some animals</code>"
@@ -740,6 +818,51 @@ match the criteria above, the best thing is probably to write a
 simple free-standing program or script which will convert them
 into the format described here.
 You may find Perl or awk suitable languages for this sort of thing.
+</p>
+
+<p>This format is not detected automatically - you must specify that
+you wish to load a table in <code>ascii</code> format.
+</p>
+
+</subsubsect>
+
+<subsubsect id="inCsv">
+<subhead><title>Comma-Separated Values</title></subhead>
+
+<p>Comma-separated value ("CSV") format is a common semi-standard 
+text-based format in which fields are delimited by commas.
+Spreadsheets and databases are often able to export data in some 
+variant of it.  The intention is that TOPCAT can read tables in 
+the version of the format spoken by MS Excel, though the documentation
+on which it was based was not obtained directly from Microsoft.
+</p>
+
+<p>The rules for data which it understands are as follows:
+<ul> 
+<li>Each row must have the same number of comma-separated fields.
+    </li>
+<li>Whitespace (space or tab) adjacent to a comma is ignored.
+    </li>
+<li>Adjacent commas, or a comma at the start or end of a line
+    (whitespace apart) indicates a null field.
+    </li>
+<li>Lines are terminated by any sequence of carriage-return or newline
+    characters ('\r' or '\n')
+    (a corollary of this is that blank lines are ignored).
+    </li>
+<li>Cells may be enclosed in double quotes; quoted values may contain
+    linebreaks (or any other character); a double quote character within
+    a quoted value is represented by two adjacent double quotes.
+    </li>
+<li>The first line <em>may</em> be a header line containing column names
+    rather than a row of data.  Exactly the same syntactic rules are
+    followed for such a row as for data rows.
+    </li> 
+</ul>
+</p>
+
+<p>This format is not detected automatically - you must specify that
+you wish to load a table in <code>csv</code> format.
 </p>
 
 </subsubsect>
@@ -766,8 +889,8 @@ constructed from certain rows from the table "swaa" in the database
 </p>
 
 <p>Fortunately you don't have to construct this by hand, there is
-an <ref id="SQLReadDialog">SQL Query Dialogue</ref> to assist
-in putting it together.
+an <ref plaintextref="yes" id="SQLReadDialog">SQL Query Dialogue</ref> 
+to assist in putting it together.
 </p>
 
 <p>Note that TOPCAT does not view a table in the database directly,
@@ -804,14 +927,11 @@ look something like the following:
   2000 01 01 030000  32
       ...
 ]]></verbatim>
+Support for WDC tables is experimental - it may not be very robust.
 </p>
 
-<p>Compressed files, or ones referred to as URLs, may be used.
-</p>
-
-<p>This handler is experimental;
-it has been reverse-engineered from looking at a couple of
-data files in the target format, and may not be very robust.
+<p>This format is not detected automatically - you must specify that
+you wish to load a table in <code>csv</code> format.
 </p>
 
 </subsubsect>
@@ -835,9 +955,48 @@ described as well.
 <subsubsect id="outFits">
 <subhead><title>FITS</title></subhead>
 
-<p>When saving in FITS format a new file is written consisting of two HDUs:
-a primary one containing minimal headers, and a single extension of
+<p>When saving in FITS format a new file is written consisting of two HDUs
+(Header+Data Units):
+a primary one (required by the FITS standard), and a single extension of
 type BINTABLE containing the table data.
+</p>
+
+<p>There are two variants of this format:
+<dl>
+
+<dt>fits-basic</dt>
+<dd><p>The primary HDU contains only very minimal headers and no data.
+    </p></dd>
+
+<dt>fits-plus</dt>
+<dd><p>The primary HDU contains an array of bytes
+    which stores the full table metadata as the text of a VOTable document,
+    along with headers that mark this has been done.
+    Most FITS table readers will ignore this altogether and treat the
+    file just as if it contained only the table.  
+    When TOPCAT (or other 
+    <webref url="http://www.starlink.ac.uk/stil/">STIL</webref>-based
+    applications)
+    read it however, they read out the metadata and make it available for use.
+    In this way you can store your data in the efficient and widely portable
+    FITS format without losing the additional metadata such as table parameters,
+    column UCDs, lengthy column descriptions etc that may be attached
+    to the table.  
+    Other, more standard schemes exist for combining the benefits of FITS and
+    VOTable, but suffer from some disadvantages: 
+    <code>votable-fits-inline</code> is hard to process efficiently
+    (in particular the data cannot easily be mapped into memory) and
+    <code>votable-fits-href</code> requires that you keep your data in 
+    two separate files, which can get separated from each other.
+    If you want to ensure that the metadata are available to other VOTable-aware
+    programs, you should use one of the normal
+    <ref plaintextref="yes" id="outVotable">VOTable formats</ref>.
+    </p></dd>
+
+</dl>
+In general, you can just let TOPCAT detect the format automatically
+and not worry about which of these variants is being used - if 
+<code>fits-plus</code> is being used you just get some hidden benefits.
 </p>
 
 </subsubsect>
@@ -933,6 +1092,17 @@ designed to be read by humans.  No reader exists for this format.
    | 6     | human    | Mark   | 2    | 1.9    | true   |
    +-------+----------+--------+------+--------+--------+
 </verbatim>
+</p>
+
+</subsubsect>
+
+<subsubsect id="outCsv">
+<subhead><title>Comma-Separated Values</title></subhead>
+
+<p>Tables can be written to the semi-standard comma-separated value (CSV) 
+format, described in more detail in <ref id="inCsv"/>.
+This can be useful for importing into certain external applications,
+such as some spreadsheets or databases.
 </p>
 
 </subsubsect>
@@ -1064,6 +1234,34 @@ or closing its window will exit TOPCAT as well.
 
 </subsect>
 
+<subsect id="customHandlers">
+<subhead><title>Custom I/O Formats</title></subhead>
+
+<p>It is in principle possible to configure TOPCAT to work with
+table file formats other than the ones listed in this section.
+It does not require any upgrade of TOPCAT itself, but you have
+to write or otherwise acquire an input and/or output handler for the
+table format in question.
+</p>
+
+<p>The steps that you need to take are:
+<ol>
+<li>Write java classes which constitute your input and/or output handler</li>
+<li>Ensure that these classes are available on your classpath while
+    TOPCAT is running (see <ref id="jvmClasspath"/>)</li>
+<li>Set the <code>startable.readers</code> and/or 
+    <code>startable.writers</code> system property to the name of the
+    handler classes (see <ref id="jvmProperties"/>)</li>
+</ol>
+</p>
+
+<p>Explaining how to write such handlers is beyond the scope of this
+document - see the user document and javadocs for 
+<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>.
+</p>
+
+</subsect>
+
 </sect>
 
 <sect id="join">
@@ -1099,7 +1297,8 @@ which involves many of the same issues, so that is described here too.
 which just requires you to specify the two tables to be joined,
 and for each column in the first ("Base") table,
 which column in the second ("Appended") table (if any) corresponds to it.
-The <ref id="apparent">Apparent Table</ref> is used in each case.
+The <ref plaintextref="yes" id="apparent">Apparent Table</ref> 
+is used in each case.
 The resulting table, which is added to the list of known tables in
 the <ref id="ControlWindow">Control Window</ref>,
 has the same columns as the Base table, and a number of rows 
@@ -1259,8 +1458,10 @@ tolerance.  A reference to the row is associated with each such bin.
 In the second step, each bin is examined, and if two or more 
 rows are associated with it every possible pair of rows in the associated set
 is assessed to see whether it does in fact consitute a matched pair.
-This should correctly identify all and only those row pairs which 
+This will identify all and only those row pairs which 
 are related according to the selected match criteria.
+During this process a number of optimisations may be applied depending
+on the details of the data and the requested match.
 </p>
 
 <p>Following this step, all the pairs are agglomerated into <em>groups</em>,
@@ -1277,12 +1478,21 @@ of match being performed.
 
 <p>The matching algorithm is therefore basically an <m>O(N)</m> process, 
 where <m>N</m> is the total number of rows in all the tables participating
-in a match.  This can break down however if the matching
+in a match.  This is good news, since the naive interpretation 
+would be <m>O(N<sup>2</sup>)</m>.  
+This can break down however if the matching
 tolerance is such that the number of rows associated with some or most bins
 gets large, in which case an <m>O(M<sup>2</sup>)</m> component can come to
 dominate, where <m>M</m> is the number of rows per bin.
 The average number of rows per bin is reported in the logging while a
 match is proceeding, so you can keep an eye on this.
+</p>
+
+<p>For more detail on the matching algorithms, see the 
+javadocs for the 
+<webref url="http://www.starlink.ac.uk/stil/javadocs/uk/ac/starlink/table/join/"
+        >uk.ac.starlink.table.join</webref> package,
+or contact the author.
 </p>
 
 </subsect>
@@ -1292,13 +1502,17 @@ match is proceeding, so you can keep an eye on this.
 <sect id="jel">
 <subhead><title>Algebraic Expression Syntax</title></subhead>
 
-<p>TOPCAT allows you to enter algebraic expressions in two contexts:
-to define a new column in terms of existing columns,
-and to define a new <ref id="subsets" plaintextref="yes">Row Subset</ref>
-on the basis of table data,
-in the <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref>
-and <ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref>
-dialogues respectively.
+<p>TOPCAT allows you to enter algebraic expressions in three contexts:
+<ol>
+<li>To define a new column in terms of existing columns in the
+    <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref> dialogue</li>
+<li>To define a new <ref id="subsets" plaintextref="yes">Row Subset</ref>
+    on the basis of table data in the 
+    <ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref> dialogue</li>
+<li>To define a custom
+    <ref id="activation" plaintextref="yes">Activation Action</ref>
+    in the <ref id="ActivationQueryWindow">Activation</ref> dialogue.</li>
+</ol>
 This is a powerful feature which permits you to manipulate and select
 table data in very flexible ways - you can think of it like a 
 sort of column-oriented spreadsheet.
@@ -1323,9 +1537,10 @@ for even a novice to write useful expressions.
 
 <p>The expressions that you can write are basically any function
 of all the column values and subset inclusion flags which apply
-to a given row; the function result can then define the per-row 
-value of a new column, or, if it the expression is boolean, 
-the inclusion flag for a new subset.
+to a given row; the function result can then define 
+the per-row value of a new column, 
+or the inclusion flag for a new subset,
+or the action to be performed when a row is activated by clicking on it.
 If the built-in operators and functions are not sufficient,
 or it's unwieldy to express your function in one line of code,
 you can add new functions by writing your own classes -
@@ -1350,16 +1565,21 @@ You can do this in two ways:
     Column names are treated case-insensitively.
     </p></dd>
 
-<dt>By $ID</dt>
-<dd><p>The "$ID" identifier of the column may always be used to refer to it.
-    This is just a "$" sign followed by a unique integer assigned by the
+<dt>By &column.id.char;ID</dt>
+<dd><p>The "&column.id.char;ID" 
+    identifier of the column may always be used to refer to it;
+    this is a useful fallback if the column name isn't suitable for
+    some reason (for instance it contains spaces or is not unique).
+    This is just a "&column.id.char;" sign
+    followed by a unique integer assigned by the
     program to each column when it is first encountered.
-    You can find out the $ID identifier by looking in the
+    You can find out the &column.id.char;ID identifier by looking in the
     <ref id="ColumnInfoWindow">Columns Window</ref>.
     </p></dd>
 </dl>
 </p>
-<p>There is a special column whose name is "Index" and whose ID is "$0".
+<p>There is a special column whose name is "Index" and whose ID is 
+"&column.id.char;0".
 The value of this is the same as the row number in the unsorted table
 (the grey numbers on the left of the grid in the 
 <ref id="TableViewerWindow">Data Window</ref>).
@@ -1368,7 +1588,11 @@ The value of this is the same as the row number in the unsorted table
 <p>The value of the variables so referenced will be a primitive
 (boolean, byte, short, char, int, long, float, double) if the
 column contains one of the corresponding types.  Otherwise it will
-be an Object of the type held by the column.
+be an Object of the type held by the column, for instance a String.
+In practice this means: you can write the name of a column, and it will
+evaluate to the numeric (or string) value that that column contains
+in each row.  You can then use this in normal algebraic expressions
+such as "<code>B_MAG - U_MAG</code>" as you'd expect.
 </p>
 
 </subsect>
@@ -1387,10 +1611,13 @@ is in each subset.  Again there are two ways of doing this:
     apply as to column names above.
     </p></dd>
 
-<dt>By _ID</dt>
-<dd><p>The "#ID" identifier of the subset may always be used to refer to it.
-    Like the "$ID" identifier for columns above, this is a unique
-    index preceded by a special symbol, this time the underscore, "_".
+<dt>By &subset.id.char;ID</dt>
+<dd><p>The "&subset.id.char;ID" identifier of the subset
+    may always be used to refer to it.
+    Like the "&column.id.char;ID" identifier for columns above,
+    this is a unique
+    index preceded by a special symbol, this time the underscore, 
+    "&subset.id.char;".
     </p>
 
     <p><strong>Note:</strong> in previous versions of TOPCAT the hash
@@ -1399,7 +1626,7 @@ is in each subset.  Again there are two ways of doing this:
     </p></dd>
 </dl>
 In either case, the value will be a boolean value; these can be useful
-in conjunction with the ternary "<code>? :</code>" operator or
+in conjunction with the conditional "<code>? :</code>" operator or
 when combining existing subsets using logical operators to create
 a new subset.
 </p>
@@ -1431,7 +1658,7 @@ work with null values:
 <dt>Testing for null</dt>
 <dd><p>To test whether a column contains a null value, prepend the
     string "<code>NULL_</code>"
-    (use upper case) to the column name or $ID.  This
+    (use upper case) to the column name or &column.id.char;ID.  This
     will yield a boolean value which is true if the column contains
     a blank or a floating point NaN (not-a-number) value,
     and false otherwise.
@@ -1446,7 +1673,7 @@ work with null values:
 </dl>
 </p>
 
-<p>Null values are often used in conjunction with the ternary conditional
+<p>Null values are often used in conjunction with the conditional
 operator, "<code>? :</code>"; the expression
 <verbatim>
    test ? tval : fval
@@ -1513,11 +1740,15 @@ The common ones are:
   <dt><code>(float)</code>  (numeric -> 4-type floating point)</dt>
   <dt><code>(double)</code> (numeric -> 8-byte floating point)</dt>
   </dl>
+  Note you may find the numeric conversion functions in the 
+  <strong>Maths</strong> class described in <ref id="generalJel"/> below
+  more convenient for numeric conversions than these.
 </p></dd>
 
 <dt>Other</dt>
 <dd><p>
   <dl>
+  <dt><code>+</code>  (string concatenation)</dt>
   <dt><code>[]</code> (array dereferencing)</dt>
   <dt><code>?:</code> (conditional switch)</dt>
   <dt><code>instanceof</code> (class membership)</dt>
@@ -1551,33 +1782,46 @@ and so on.
 are listed by class in the following subsections,
 one for general functions (used in defining new synthetic columns or 
 row subsets) and the other for activation functions
-(used only for defining activation actions).
+(used only for defining <ref id="activation">Activation Actions</ref>).
 More detailed documentation of what these functions do, 
 the meaning of their parameters examples of use etc
 is available from within TOPCAT in the 
 <ref id="MethodWindow">Available Functions Window</ref>.
 </p>
 
-<subsubsect>
+<subsubsect id="generalJel">
 <subhead><title>General Functions</title></subhead>
 
 <p>The following functions can be used anywhere that you can write an
 algebraic expression in TOPCAT.  They will typically be used for
 defining new synthetic columns or algebraically-defined row subsets.
+
 &general.runtime.method.docs;
+
+</p>
+
+<p>More detail on these functions is available from within TOPCAT in the
+<ref id="MethodWindow">Available Functions</ref> window.
 </p>
 
 </subsubsect>
 
-<subsubsect>
+<subsubsect id="activationJel">
 <subhead><title>Activation Functions</title></subhead>
 
-<p>The following functions can be used only for defining activation
-actions - they mostly deal with causing something to happen, such
-as popping up an immage display window.  They generally return a 
+<p>The following functions can be used only for defining 
+<ref plaintextref="yes" id="activation">Activation Actions</ref> - 
+they mostly deal with causing something to happen, such
+as popping up an image display window.  They generally return a 
 short string, which will be logged to the user to give a short
 indication of what happened (or didn't happen, or should have happened).
+
 &activation.runtime.method.docs;
+
+</p>
+
+<p>More detail on these functions is available from within TOPCAT in the
+<ref id="MethodWindow">Available Functions</ref> window.
 </p>
 
 </subsubsect>
@@ -1592,10 +1836,11 @@ code.
 </p>
 
 <p>The expressions which you write are compiled to Java bytecode
-when you enter them.  The functions listed in the previous subsections
+when you enter them (if there is a 'compilation error' it will be
+reported straight away).  The functions listed in the previous subsections
 are all the <code>public static</code> methods of the classes which
 are made available by default.  The classes listed are all in the
-package uk.ac.starlink.topcat.func 
+package <code>uk.ac.starlink.topcat.func</code>
 (<code>uk.ac.starlink.topcat.func.Strings</code> etc).
 However, the public static methods are all imported into an anonymous
 namespace for bytecode compilation, so that you write
@@ -1656,13 +1901,13 @@ probably best off ignoring this feature.
 
 <dt>Angle conversion</dt>
 <dd><p><verbatim>
-    toDegrees(DEC_radians)
-    toRadians(RA_degrees)
+    radiansToDegrees(DEC_radians)
+    degreesToRadians(RA_degrees)
 </verbatim></p></dd>
 
 <dt>Conversion from string to number</dt>
 <dd><p><verbatim>
-    parseInt($12)
+    parseInt(&column.id.char;12)
     parseDouble(ident)
 </verbatim></p></dd>
 
@@ -1690,7 +1935,7 @@ probably best off ignoring this feature.
 
 <dt>Conversion from radians to sexagesimal</dt>
 <dd><p><verbatim>
-    radiansToDms($3)
+    radiansToDms(&column.id.char;3)
     radiansToHms(RA,2)
 </verbatim></p></dd>
 
@@ -1722,7 +1967,7 @@ to define <ref id="subsets">row subsets</ref>
 
 <dt>Within a circle near the origin</dt>
 <dd><p><verbatim>
-    $2*$2 + $3*$3 &lt; 1
+    &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
@@ -1749,7 +1994,7 @@ to define <ref id="subsets">row subsets</ref>
 
 <dt>Combining subsets</dt>
 <dd><p><verbatim>
-    (#1 &amp;&amp; #2) &amp;&amp; ! #3
+    (&subset.id.char;1 &amp;&amp; &subset.id.char;2) &amp;&amp; ! &subset.id.char;3
 </verbatim></p></dd>
 
 <dt>Test for non-blank value</dt>
@@ -1794,8 +2039,9 @@ be incomprehensible to non-specialists.
     as described in <ref id="jvmClasspath"/></li>
 <li>Specify the class's name to the application,
     <em>either</em> as the value of the
-    <code>gnu.jel.static.classes</code> system property (colon-separated
-    if there are several) as described in <ref id="jvmProperties"/>
+    <code>jel.classes</code> or <code>jel.classes.activation</code> 
+    system properties (colon-separated if there are several) 
+    as described in <ref id="jvmProperties"/>
     <em>or</em> during a run using the 
     <ref id="MethodWindow">Available Function Window</ref>'s
     <label>Add Class</label> (&IMG.ADD;) button</li>
@@ -1804,10 +2050,14 @@ be incomprehensible to non-specialists.
 
 <p>Any public static methods defined in the classes thus specified
 will be available for use in the 
-<ref id="SyntheticColumnQueryWindow">Synthetic Column</ref> or 
-<ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref> windows.
+<ref id="SyntheticColumnQueryWindow">Synthetic Column</ref>, 
+<ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref> or
+(in the case of activation functions only)
+<ref id="ActivationQueryWindow">Activation Window</ref> windows.
 They should be defined to take and return the relevant primitive or
-Object types for the function required.
+Object types for the function required
+(in the case of activation functions the return value should normally
+be a short log string).
 For instance a class written as follows would define a three-value average:
 <verbatim>
     public class AuxFuncs {
@@ -1816,8 +2066,9 @@ For instance a class written as follows would define a three-value average:
         }
     }
 </verbatim>
-and the expression "<code>average3($1,$2,$3)</code>" could then
-be used to define a new synthetic column, giving the average of
+and the expression 
+"<code>average3(&column.id.char;1,&column.id.char;2,&column.id.char;3)</code>"
+could then be used to define a new synthetic column, giving the average of
 the first three existing columns.
 Exactly how you would build this is dependent on your system, 
 but it might involve doing something like the following:
@@ -1825,7 +2076,7 @@ but it might involve doing something like the following:
 <li>Writing a file called "AuxFuncs.java" containing the above code</li>
 <li>Compiling it using a command like "<code>javac AuxFuncs.java</code>"</li>
 <li>Starting up TOPCAT with the flags: 
-    "<code>topcat -Dgnu.jel.static.classes=AuxFuncs -classpath .</code>"</li>
+    "<code>topcat -Djel.classes=AuxFuncs -classpath .</code>"</li>
 </ol>
 </p>
 
@@ -1878,7 +2129,7 @@ be used in addition to the TOPCAT classes,
 and any remaining arguments are used by TOPCAT.
 </p>
 
-<p>If you don't have the starjava Unix installation to start from the
+<p>If you don't have the starjava Unix installation then to start from the
 command line you will have to use the <code>java</code> command itself.
 The most straightforward way of doing this will look like:
 <verbatim>
@@ -1911,20 +2162,70 @@ sequences are described in
 
 <p>You can start TOPCAT from the command line with no arguments -
 in this case it will just pop up the command window from which you
-can load in tables.  However you may specify flags and/or table locations.
+can load in tables.  However you may specify flags and/or table locations
+and formats.
 </p>
 
-<p>Curently the only defined flags are these:
+<p>If you invoke the program with the "<code>-help</code>" flag you
+will see the following usage message:
+<verbatim>&topcat.usage;</verbatim>
+The meaning of the flags is as follows:
 <dl>
-<dt>-h</dt>
-<dd><p>If the <code>-h</code> flag is given, TOPCAT will write a short usage
+
+<dt>-help</dt>
+<dd><p>If the <code>-help</code> flag is given, TOPCAT will write a short usage
     message and exit straight away.
-</p></dd>
+    </p></dd>
+
 <dt>-demo</dt>
 <dd><p>The <code>-demo</code> flag causes the program to start up with
     a few demonstration tables loaded in.  You can use these to play
-    around with its facilities.
-</p></dd>
+    around with its facilities.  Note these demo tables are quite small
+    to avoid taking up a lot of space in the installation, and don't 
+    contain particularly sensible data, they are just to give an idea.
+    </p></dd>
+
+<dt>-disk</dt>
+<dd><p>If the <code>-disk</code> flag is given then the program will use
+    disk backing storage for caching table data that is read in, rather
+    than keeping it in memory.  This means that tables much larger than
+    the heap memory assigned to Java can be used.  It may lead to slower
+    processing, but usually the performance is not greatly reduced.
+    If you find TOPCAT running out of memory (you see 
+    <code>OutOfMemoryError</code>s popping up in windows or on the console)
+    then re-running with the <code>-disk</code> flag is a good idea.
+    The temporary data files are written in the default temporary 
+    directory (defined by the <code>java.io.tmpdir</code> system property -
+    often <code>/tmp</code> - and deleted when the program exits, unless
+    it exits in an unusual way.
+    </p>
+    <p>There are a couple of additional points to make here: firstly,
+    uncompressed FITS binary tables are not read into memory in any case
+    (they are <em>mapped</em>) so the <code>-disk</code> flag may not make 
+    much difference with FITS.
+    Secondly, if you try to load tables which require temporary disk files
+    bigger than the total amount of physical memory available, certain 
+    actions can result in disk thrashing and become very slow.
+    </p></dd>
+
+<dt>-f &lt;format&gt;</dt>
+<dd><p>Signifies that the file(s) named after it on the command line
+    are in a particular file format.
+    Some file formats (VOTable, FITS) can be detected automatically by
+    TOPCAT, but others (including Comma-Separated Values) cannot -
+    see <ref id="inFormats"/>.  In this case you have to specify with 
+    the <code>-f</code> flag what format the named files are in.
+    Any table file on the command line following a 
+    <code>-f &lt;format&gt;</code>
+    sequence must be in the named format until the next <code>-f</code> flag.
+    The names of both the auto-detected formats (ones which don't need
+    a <code>-f</code> and the non-auto-detected formats (ones which do)
+    are given in the usage message you can see by giving the 
+    <code>-help</code> flag (this message is shown above).
+    You may also use the classname of a class on the classpath which
+    implements the <code>TableBuilder</code> interface - see &SUN.252;.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -1975,6 +2276,8 @@ in particular for:
 <li>JDBC drivers (see <ref id="jdbcConfig"/>)</li>
 <li>Providing extended algebraic functions (see <ref id="jelExtend"/>)</li>
 <li>Launching Mirage (see <ref id="mirage"/>)</li>
+<li>Installing I/O handlers for new table formats
+    (see <ref id="customHandlers"/>.</li>
 </ul>
 </p>
 
@@ -2038,6 +2341,11 @@ if you're feeling adventurous you may be able to find out about these
 by typing "<code>java -X</code>".
 </p>
 
+<p><strong>Note</strong> however: using the <code>-disk</code> flag
+described in <ref id="topcatArgs"/> may be a better solution; this
+makes the program store data from large tables on disk rather than in memory.
+</p>
+
 </subsubsect>
 
 <subsubsect id="jvmProperties">
@@ -2046,17 +2354,51 @@ by typing "<code>java -X</code>".
 <p>System properties are a way of getting information into Java
 (they are the Java equivalent of environment variables).
 The following ones have special significance within TOPCAT:
-<ul>
-<li><code>jdbc.drivers</code>:
-    The JDBC driver classes using which SQL databases can be accessed
-    (see <ref id="jdbcConfig"/>)</li>
-<li><code>gnu.jel.static.classes</code>:
-    Classes containing static methods which define user-provided
-    functions for synthetic columns or subsets
-    (see <ref id="jelExtend"/>)</li>
-</ul>
-In both these cases, if the value has multiple elements they should
-be separated by colons.
+<dl>
+
+<dt><code>java.io.tmpdir</code></dt>
+<dd><p>The directory in which TOPCAT will write any temporary files it needs.
+    This is usually only done if the <code>-disk</code> flag has been
+    specified (see <ref id="topcatArgs"/>).
+    </p></dd>
+
+<dt><code>jdbc.drivers</code></dt>
+<dd><p>Can be set to a (colon-separated) list of JDBC driver classes 
+    using which SQL databases can be accessed
+    (see <ref id="jdbcConfig"/>).
+    </p></dd>
+
+<dt><code>jel.classes</code></dt>
+<dd><p>Can be set to a (colon-separated) list of classes containing 
+    static methods which define user-provided
+    functions for synthetic columns or subsets.
+    (see <ref id="jelExtend"/>).
+    </p></dd>
+
+<dt><code>jel.classes.activation</code></dt>
+<dd><p>Can be set to a (colon-separated) list of classes containing 
+    static methods which define user-provided
+    functions for use in custom activation expressions.
+    (see <ref id="jelExtend"/>).
+    </p></dd>
+
+<dt><code>startable.readers</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom table format input
+    handler classes (see <ref id="customHandlers"/>).
+    </p></dd>
+
+<dt><code>startable.storage</code></dt>
+<dd><p>Can be set to determine the default storage policy.
+    Setting it to "<code>disk</code>" has basically the same effect as
+    supplying the "<code>-disk</code>" argument on the TOPCAT command line
+    (see <ref id="topcatArgs"/>).
+    </p></dd>
+
+<dt><code>startable.writers</code></dt>
+<dd><p>Can be set to a (colon-separated) list of custom table format output
+    handler classes (see <ref id="customHandlers"/>).
+    </p></dd>
+</dl>
 </p>
 
 <p>To define these properties on the command line
@@ -2100,8 +2442,7 @@ you can ignore the rest of this section.
 The steps described here are the standard ones
 for configuring JDBC (which sort-of stands for Java Database Connectivity),
 described in more detail on 
-<webref url="http://java.sun.com/j2se/1.4/docs/guide/jdbc/"
-        >Sun's JDBC web page</webref>.
+<webref url="&URL.J2SE_DOCS;guide/jdbc/">Sun's JDBC web page</webref>.
 </p>
 
 <p>To use TOPCAT with SQL-compatible databases you must:
@@ -2123,7 +2464,7 @@ Installing the driver consists of two steps:
 </p>
 
 <p>These steps are all standard for use of the
-<webref url="http://java.sun.com/j2se/1.4/docs/guide/jdbc/">JDBC</webref>
+<webref url="&URL.J2SE_DOCS;guide/jdbc/">JDBC</webref>
 system.
 </p>
 
@@ -2149,6 +2490,8 @@ with the following RDBMSs and corresponding JDBC drivers:
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
 results of any experiments you carry out.
+Sun maintain a list of JDBC drivers for various databases; it can be found at
+<webref url="http://servlet.java.sun.com/products/jdbc/drivers"/>.
 </p>
 
 </subsect>
@@ -2163,7 +2506,7 @@ results of any experiments you carry out.
 have mostly been written by
 <webref url="http://www.star.bristol.ac.uk/~mbt/">Mark Taylor</webref> in the
 <webref url="http://www.star.bristol.ac.uk/"
-        >Bristol Univesity astrophysics group</webref>
+        >Bristol University Astrophysics Group</webref>
 for the <webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
 </p>
 
@@ -2191,6 +2534,8 @@ important bits of its functionality:
     (Jibble) for encapsulated postscript output</li>
 <li><webref url="http://www.acme.com/java/software/Acme.JPM.Encoders.GifEncoder.html">GifEncoder</webref>
     (Acme) for GIF output</li>
+<li><webref url="http://skyservice.pha.jhu.edu/develop/vo/ivoafits/">IVOA FITS Package</webref>
+    (Sloan Digital Sky Survey) for simple (non-SoG) display of FITS images</li>
 </ul>
 </p>
 
@@ -2204,16 +2549,16 @@ comments (apologies for any missed out):
 <li>Peter Draper (Starlink, Durham)</li>
 <li>Alasdair Allan (Starlink, Exeter)</li>
 <li>Tim Jenness (JACH)</li>
+<li>Mike Read (ROE)</li>
 <li>Roy Platon (RAL)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Jonathan Irwin (Cambridge)</li>
 <li>Mark Allen (Strasbourg)</li>
+<li>Francois Ochsenbein (Strasbourg)</li>
 <li>Bob Mann (Edinburgh/Strasbourg)</li>
-<li>Mike Read (ROE)</li>
 <li>David Mills (Bristol)</li>
 <li>Douglas Morgan (Bristol)</li>
 <li>James Price (Bristol)</li>
-<li>Francois Ochsenbein (Strasbourg)</li>
 </ul>
 </p>
 
@@ -2244,6 +2589,140 @@ are welcomed.
 
 <p>Releases to date have been as follows:
 <dl>
+
+<dt>Version 1.3 (October 2004)</dt>
+<dd><p>This version has introduced many improvements in scalability,
+efficiency and functionality.  TOPCAT is now quite happy with tables
+of a million rows or more (and hundreds of columns) even on systems 
+with quite modest memory/CPU resources.
+The main improvements are as follows:
+<dl>
+
+<dt>Plotting</dt>
+<dd><p>
+    <ul>
+    <li>Plotting is much faster and can handle many more points</li>
+    <li>You have more choice over plotting symbols
+        (including semi-transparent ones)</li>
+    <li>Export to encapsulated PostScript is of improved quality
+        (though for many points file sizes can get very large)</li>
+    <li>Export to GIF format is available</li>
+    <li>Regression lines can be plotted and coefficients displayed
+        (experimental capability - could be improved)</li>
+    <li>Subsets can be selected from plot window by tracing out a 
+        non-rectangular region</li>
+    </ul>
+    </p></dd>
+
+<dt>Table Formats</dt>
+<dd><p>
+    <ul>
+    <li>Null handling improved for FITS &amp; VOTable formats</li>
+    <li>ASCII input handler rewritten to cope with much larger tables</li>
+    <li>ASCII handler now understands d or D as exponent letter</li>
+    <li>ASCII handler now uses Short/Float not Integer/Double where 
+        appropriate to save memory</li>
+    <li>ASCII format fixed bug for -0 degrees/hours in sexagesimal
+        angles</li>
+    <li>FITS files store column descriptions in TCOMMx headers</li>
+    <li>New 'FITS-plus' format stores rich table/column metadata in a
+        FITS file</li>
+    <li>VOTable handler now fully VOTable 1.1 and 1.0 compatible</li>
+    <li>VOTable parsing now works with Java 5.0 platform</li>
+    <li>Comma-Separated Value format now supported for input and output</li>
+    <li>"<code>-disk</code>" flag allows use of disk backing storage for
+        large tables</li>
+    <li>Better error messages for unparsable tables</li>
+    </ul>
+    </p></dd>
+
+<dt>Table Joins</dt>
+<dd><p>
+    <ul>
+    <li>Various efficiency improvements and reductions in memory 
+        requirements</li>
+    <li>In cases of multiple possible matches, the closest is now chosen
+        rather than picking one at random</li>
+    <li>Pair match now records score for each match
+        (distance between points)</li>
+    <li>New match types (anistropic Cartesian, Sky+X, Sky+XY)</li>
+    <li>Units can be selected RA/Dec columns and match errors 
+        (doesn't need to be all in radians)</li>
+    </ul>
+    </p></dd>
+
+<dt>Data/Metadata Manipulation</dt>
+<dd><p>
+    <ul>
+    <li>Can add/remove table parameters</li>
+    <li>One-step column replacement dialogue from data or column 
+        windows</li>
+    <li>Synthetic column expressions now written out to column
+        descriptions</li>
+    </ul>
+    </p></dd>
+
+<dt>GUI Navigation and Display</dt>
+<dd><p>
+    <ul>
+    <li>Improved rendering of numbers in tables (esp. Floats)</li>
+    <li>Better detection of displayed table column widths</li>
+    <li>New Control Window option on File menus</li>
+    <li>Better window resizing for some dialogue boxes</li>
+    <li>Less confusing error messages in many places</li>
+    </ul>
+    </p></dd>
+
+<dt>Algebraic Expressions</dt>
+<dd><p>
+    <ul>
+    <li>All available functions are now fully documented in help document
+        and interactive Method Window</li>
+    <li>Many new trig, coordinate, conversion, string manipulation 
+        functions</li>
+    <li>Big performance improvements for null values</li>
+    </ul>
+    </p></dd>
+
+<dt>Activation Actions</dt>
+<dd><p>
+    <ul>
+    <li>Clicking a point in the plot highlights row in data window and
+        vice versa</li>
+    </ul>
+    </p></dd>
+
+</dl>
+</p>
+
+<p>In addition, the following incompatibilities and changes have been
+introduced since the last version:
+<ul>
+<li>The input format for tables can now be specified in the load window
+    (via a selection box) or on the command line
+    (using the "<code>-f</code>" flag).  FITS files and VOTables can
+    still be identified automatically (i.e. it's not necessary to 
+    specify format in this case) but ASCII tables cannot:
+    you <em>must</em> now specify the format when loading ASCII tables.
+    This change allows better error messages and support for 
+    more text-like formats.</li>
+<li>Algebraic expressions referencing row subsets now use the 
+    underscore character ("_") rather than the hash character ("#")
+    to indicate a subset ID.</li>
+<li>Classes containing user-supplied functions for algebraic expressions
+    are now specified using the properties "<code>jel.classes</code>"
+    and "<code>jel.classes.activation</code>", 
+    not "<code>gnu.jel.static.classes</code>".</li>
+<li>The default output format for FITS tables is now the so-called
+    "FITS-plus" format, which has a BINTABLE in its first extension 
+    as before, but the text of a VOTable stored in its primary HDU.  
+    This can store more metadata for TOPCAT, but should behave just
+    the same for other FITS-compatible applications.
+    The old behaviour can be restored if desired by specifying "FITS-basic" 
+    format.</li>
+</ul>
+</p></dd>
+
 <dt>Version 1.1-3 (5 May 2004)</dt>
 <dd><p>
 <ul>
@@ -2496,7 +2975,7 @@ may provide some other less-commonly-required actions too.
 display their data in a Java widget called a <label>JTable</label>.
 This displays a grid of values, with headings for each column, in
 a window which you can scroll around.  Although JTables are used for
-a number of different things (for instance, showing the table data itself
+a number of different things (for instance, showing the table data themselves
 in the <ref id="TableViewerWindow">Data Window</ref>
 and showing the column metadata in the 
 <ref id="ColumnInfoWindow">Columns Window</ref>), 
@@ -3126,7 +3605,7 @@ The metadata items are as follows:
 <dd><p>The name of the column.
     </p></dd>
 
-<dt>$ID</dt>
+<dt>&column.id.char;ID</dt>
 <dd><p>A unique and unchanging ID value for each column.   These are useful
     in defining algebraic expressions (see <ref id="jel"/>) since they are
     guaranteed unique for each column.  Although the column Name can
@@ -3162,7 +3641,7 @@ The metadata items are as follows:
     This will only be filled in if the column in question is a
     <ref id="SyntheticColumnQueryWindow">synthetic column</ref> 
     which you have added, rather than one present in
-    the data in its original loaded form.
+    the data in their original loaded form.
     </p></dd>
 
 <dt>Description</dt>
@@ -3262,9 +3741,9 @@ button when the chosen table is selected in the
 widget with a row for each subset.  The columns of the JTable
 are as follows:
 <dl>
-<dt>_ID</dt>
+<dt>&subset.id.char;ID</dt>
 <dd><p>A unique and unchanging identifier for the subset, which consists of
-    a "_" character (underscore) followed by an integer.  
+    a "&subset.id.char;" character (underscore) followed by an integer.  
     This can be used to refer
     to it in <ref id="jel" plaintextref="yes">expressions</ref>
     for synthetic columns or other subsets.
@@ -3295,9 +3774,10 @@ are as follows:
     to change the expression.
     </p></dd>
 
-<dt>Column $ID</dt>
+<dt>Column &column.id.char;ID</dt>
 <dd><p>If the subset has been defined by equivalence with a boolean-valued
-    column, this will show the $ID of the column that it came from.
+    column, this will show the &column.id.char;ID of
+    the column that it came from.
     </p></dd>
 </dl>
 </p>
@@ -3407,7 +3887,7 @@ You can reveal these by using the <label>Display</label> menu:
     it is displayed.
     </p></dd>
 
-<dt>$ID</dt>
+<dt>&column.id.char;ID</dt>
 <dd><p>The unique identifier label for the column in the main table.
     </p></dd>
 
@@ -3967,7 +4447,7 @@ these steps, this dialogue may be inaccessible.
 <subsubsect id="demoData">
 <subhead><title>Example Tables</title></subhead>
 
-<p>Some example table data is provided with TOPCAT.
+<p>Provided with TOPCAT are some example tables,
 which you can access in a number of ways:
 <ul>
 <li>The simplest thing is to supply the "<code>-demo</code>" flag on 
@@ -4005,7 +4485,7 @@ Any table in the Control Window's table list can be
 written at any time; what is written is the 
 <ref id="apparent">Apparent Table</ref> corresponding to the currently
 selected table, which takes into account any modifications you have
-made to its data or apperance this session.
+made to its data or appearance this session.
 <ref id="subsets">Row Subsets</ref> 
 which have been defined on the table in the current session
 will not be saved themselves, but you can save information about
@@ -4062,7 +4542,7 @@ It is not advisable to edit the table during a save operation.
 from which it was loaded, or if some new kinds of metadata have been
 added, it may not be possible to express all
 the data and metadata from the table in the new format.
-For instance a WDC table can contain data which represents epoch (date),
+For instance a WDC table can contain data which represent epoch (date),
 and this cannot be stored in a FITS table.  In this case the table
 may be written with such columns missing.  Some message to this effect
 may be output in this case.
@@ -4727,7 +5207,7 @@ define the new column:
     legal expression which returns a primitive or object.  Broadly
     speaking you can use mathematical operators to combine values
     taken from the same row in other columns which are referred to
-    by the names or $ID identifiers of those columns.
+    by the names or &column.id.char;ID identifiers of those columns.
     The rules are explained in <ref id="jel"/>.
     </p></dd>
 <dt>UCD</dt>
@@ -4828,8 +5308,9 @@ define the new subset:
     it is a function of the values of any combination of the columns;
     only rows for which it evaluates to true will be included in the subset.
     The values of the other columns in the same row are referenced
-    using their names or $ID identifiers, and other subsets may be
-    referenced using their names or _ID identifiers.
+    using their names or &column.id.char;ID identifiers,
+    and other subsets may be
+    referenced using their names or &subset.id.char;ID identifiers.
     A range of logical and mathematical operators can be used;
     the rules for expression syntax are explained in <ref id="jel"/>.
     </p></dd>
@@ -4894,18 +5375,6 @@ arguments of type <code>int</code> (= integer), and returns a value of
 type <code>float</code> (= floating point).
 </p>
 
-<p>For those that want it, full 
-<em>Javadoc</em> documentation is available on the web for the
-standard included classes:
-<webref url="&URL.J2SE_JAVADOCS;java/lang/Math.html"
-        >Math</webref>,
-<webref url="&URL.J2SE_JAVADOCS;java/lang/Integer.html"
-        >Integer</webref>,
-<webref url="&URL.J2SE_JAVADOCS;java/lang/Float.html"
-        >Float</webref> &amp;
-<webref url="&URL.J2SE_JAVADOCS;java/lang/Double.html"
-        >Double</webref>.
-</p>
 
 <p>Using the Add button (&IMG.ADD;)
 you can specify the name of a class to add to those available.
@@ -4914,7 +5383,8 @@ dot-separated package path).  The class that you specify must be
 on the class path which was current when TOPCAT was started,
 as explained in <ref id="jvmClasspath"/>.
 Note however it would be more usual to specify these using
-the system property <code>gnu.jel.static.classes</code> at startup,
+the system property <code>jel.classes</code> or 
+<code>jel.classes.activation</code> at startup,
 as described in <ref id="jelExtend"/>.
 </p>
 
