@@ -151,6 +151,10 @@
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
   <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
 
+  <!-- Any achitecture-specific files (shared libraries) will be placed in
+   !   an appropriate subdirectory of dist.lib -->
+  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
 
@@ -653,6 +657,7 @@
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
