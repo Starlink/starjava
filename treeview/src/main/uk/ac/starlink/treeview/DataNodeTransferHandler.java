@@ -163,6 +163,7 @@ public class DataNodeTransferHandler extends TransferHandler {
                try {
                    String stringData = 
                        (String) selTrans.getTransferData( stringFlavor );
+                   stringData = stringData.trim();
                    if ( stringData.length() < 160 ) {
                        DataNode node;
                        try {
