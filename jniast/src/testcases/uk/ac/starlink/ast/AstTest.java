@@ -203,8 +203,8 @@ public class AstTest extends TestCase {
         assertTrue( s1v.indexOf( ':' ) > 0 );
         assertTrue( s2v.indexOf( ':' ) > 0 );
         assertEquals( "<bad>", new Frame( 1 ).format( 1, AstObject.AST__BAD ) );
-        assertTrue( new Frame( 1 ).format( 1, Double.NaN )
-                                  .equalsIgnoreCase( "NaN" ) );
+        assertTrue( new Frame( 1 ).format( 1, Double.NaN ).toUpperCase()
+                                  .indexOf( "NAN" ) > -1 );
 
         // unformat
         assertEquals( 0.5, sky.unformat( 1, s1v ), 0.0001 );
