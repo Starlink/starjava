@@ -53,19 +53,18 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
         Action addcolAct = new BasicAction( "New synthetic column",
+                                            ResourceIcon.ADD,
                                        "Add a new column defined " +
                                        "algebraically from existing ones" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = ColumnInfoWindow.this;
-                ColumnData coldata = tv.obtainColumn( parent );
-                if ( coldata != null ) {
-                    tv.appendColumn( coldata );
-                }
+                new SyntheticColumnQueryWindow( tv, -1, parent );
             }
         };
-        colMenu.add( addcolAct );
+        colMenu.add( addcolAct ).setIcon( null );
         final Action delcolAct = 
                 new BasicAction( "Delete selected column(s)",
+                                 ResourceIcon.REMOVE,
                                  "Delete all selected columns " +
                                  "from the table" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -80,11 +79,11 @@ public class ColumnInfoWindow extends AuxWindow {
                 }
             }
         };
-        colMenu.add( delcolAct );
+        colMenu.add( delcolAct ).setIcon( null );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
-        colMenu.add( sortupAct );
-        colMenu.add( sortdownAct );
+        colMenu.add( sortupAct ).setIcon( null );
+        colMenu.add( sortdownAct ).setIcon( null );
         getJMenuBar().add( colMenu );
  
         /* Make a dummy column to hold index values. */
@@ -245,6 +244,11 @@ public class ColumnInfoWindow extends AuxWindow {
         ListSelectionModel selectionModel = jtab.getSelectionModel();
         selectionModel.addListSelectionListener( selList );
         selList.valueChanged( null );
+
+        /* Add actions to the toolbar. */
+        getToolBar().add( addcolAct );
+        getToolBar().add( delcolAct );
+        getToolBar().addSeparator();
 
         /* Add standard help actions. */
         addHelp( "ColumnInfoWindow" );

@@ -22,6 +22,8 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
@@ -30,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -37,6 +40,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -116,9 +120,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                           .createTitledBorder( lineBorder, "X axis" ) );
         yConfig.setBorder( BorderFactory
                           .createTitledBorder( lineBorder, "Y axis" ) );
-        JPanel configPanel = getControlPanel();
-        configPanel.add( xConfig );
-        configPanel.add( yConfig );
+        Box axisBox = new Box( BoxLayout.Y_AXIS );
+        axisBox.add( xConfig );
+        axisBox.add( Box.createGlue() );
+        axisBox.add( yConfig );
+        getControlPanel().add( axisBox );
 
         /* Construct axis selectors for X and Y. */
         xColBox = makePlottableColumnComboBox();
@@ -128,7 +134,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
          * bail out. */
         assert xColBox.getItemCount() == yColBox.getItemCount();
         if ( xColBox.getItemCount() < 2 ) {
-            JOptionPane.showMessageDialog( null, "No numeric columns in table",
+            JOptionPane.showMessageDialog( null,
+                                           "Too few numeric columns in table",
                                            "Plot error", 
                                            JOptionPane.ERROR_MESSAGE );
             dispose();
@@ -190,6 +197,14 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
         subSelModel = subMenu.getSelectionModel();
+
+        /* Do the same thing as a scrollable box in the control panel. */
+        CheckBoxStack stack = new CheckBoxStack( subsets );
+        JComponent stackPanel = new JScrollPane( stack );
+        stackPanel.setBorder( BorderFactory
+                             .createTitledBorder( lineBorder, "Row subsets" ) );
+        getControlPanel().add( stackPanel );
+        stack.setSelectionModel( subSelModel );
 
         /* Initialise its selections so that both ALL and the current subset,
          * of the viewer, if any, are plotted. */
@@ -365,7 +380,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             for ( int i = 0; i < nrsets; i++ ) {
                 RowSubset rset = rsets[ i ];
                 if ( rset != null ) {
-                    plot.addLegend( setFor( i ), rset.toString() );
+                    plot.addLegend( setFor( i ), rset.getName() );
                 }
             }
             setMarkStyle( plot, markStyle );

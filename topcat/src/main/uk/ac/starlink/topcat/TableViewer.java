@@ -94,6 +94,7 @@ public class TableViewer extends AuxWindow
     private ColumnInfoWindow colinfoWindow;
     private ParameterWindow paramWindow;
     private StatsWindow statsWindow;
+    private SubsetWindow subsetWindow;
     private Action newAct;
     private Action saveAct;
     private Action dupAct;
@@ -102,6 +103,7 @@ public class TableViewer extends AuxWindow
     private Action paramAct;
     private Action colinfoAct;
     private Action statsAct;
+    private Action subsetsAct;
     private Action unsortAct;
     private Action newsubsetAct;
     private Action nosubsetAct;
@@ -185,6 +187,8 @@ public class TableViewer extends AuxWindow
                                        "Display metadata for each column" );
         statsAct = new ViewerAction( "Column statistics", ResourceIcon.STATS,
                                      "Display statistics for each column" );
+        subsetsAct = new ViewerAction( "Row subsets", ResourceIcon.SUBSETS,
+                                       "Display row subsets" );
 
         unsortAct = new ViewerAction( "Unsort", ResourceIcon.UNSORT,
                                       "Display in original order" );
@@ -222,6 +226,7 @@ public class TableViewer extends AuxWindow
         winMenu.add( paramAct ).setIcon( null );
         winMenu.add( colinfoAct ).setIcon( null );
         winMenu.add( statsAct ).setIcon( null );
+        winMenu.add( subsetsAct ).setIcon( null );
         winMenu.add( plotAct ).setIcon( null );
 
         /* Subset menu. */
@@ -298,6 +303,7 @@ public class TableViewer extends AuxWindow
         toolBar.add( paramAct );
         toolBar.add( colinfoAct );
         toolBar.add( statsAct );
+        toolBar.add( subsetsAct );
         toolBar.add( plotAct );
         toolBar.addSeparator();
 
@@ -474,49 +480,14 @@ public class TableViewer extends AuxWindow
                                               MAX_SAMPLE_ROWS );
 
             /* Add subsets for any boolean type columns. */
-            int ncol = startab.getColumnCount();
+            int ncol = dataModel.getColumnCount();
             for ( int icol = 0; icol < ncol; icol++ ) {
-                final ColumnInfo cinfo = startab.getColumnInfo( icol );
+                final ColumnInfo cinfo = dataModel.getColumnInfo( icol );
                 if ( cinfo.getContentClass() == Boolean.class ) {
                     final int jcol = icol;
-                    RowSubset yes = new RowSubset() {
-                        public String getName() {
-                            return cinfo.getName();
-                        }
-                        public boolean isIncluded( long lrow ) {
-                            try {
-                                return ((Boolean) dataModel
-                                                 .getCell( lrow, jcol ))
-                                      .booleanValue();
-                            }
-                            catch ( IOException e ) {
-                                return false;
-                            }
-                        }
-                        public String toString() {
-                            return getName();
-                        }
-                    };
-                    RowSubset no = new RowSubset() {
-                        public String getName() {
-                            return "not_" + cinfo.getName();
-                        }
-                        public boolean isIncluded( long lrow ) {
-                            try {
-                                return ! ((Boolean) dataModel
-                                                   .getCell( lrow, jcol ))
-                                        .booleanValue();
-                            }
-                            catch ( IOException e ) {
-                                return false;
-                            }
-                        }
-                        public String toString() {
-                            return getName();
-                        }
-                    };
+                    RowSubset yes = 
+                        new BooleanColumnRowSubset( dataModel, icol);
                     subsets.add( yes );
-                    // subsets.add( no );
                 }
             }
         }
@@ -527,7 +498,7 @@ public class TableViewer extends AuxWindow
             viewModel = null;
             columnModel = null;
         }
-        setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, startab ) );
+        setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, dataModel ) );
         configureActions();
     }
 
@@ -539,7 +510,7 @@ public class TableViewer extends AuxWindow
      *
      * @param  col  the new column
      * @param  colIndex  the column index at which the new column is
-     *         to be appended
+     *         to be appended, or -1 for at the end
      */
     public void appendColumn( ColumnData col, int colIndex ) {
 
@@ -558,7 +529,13 @@ public class TableViewer extends AuxWindow
         columnModel.addColumn( tc );
 
         /* Move the new column to the requested position. */
-        columnModel.moveColumn( columnModel.getColumnCount() - 1, colIndex );
+        if ( colIndex >= 0 ) {
+            columnModel.moveColumn( columnModel.getColumnCount() - 1,
+                                    colIndex );
+        }
+        else {
+            colIndex = columnModel.getColumnCount() - 1;
+        }
 
         /* Set its width. */
         StarJTable.configureColumnWidth( jtab, MAX_COLUMN_WIDTH,
@@ -571,7 +548,7 @@ public class TableViewer extends AuxWindow
      * @param  col  the new column
      */
     public void appendColumn( ColumnData col ) {
-        appendColumn( col, columnModel.getColumnCount() );
+        appendColumn( col, -1 );
     }
 
     /**
@@ -725,13 +702,11 @@ public class TableViewer extends AuxWindow
             popper.add( deleteAct );
         }
 
-        Action addcolAct = new AbstractAction( "New column" ) {
+        Action addcolAct = new AbstractAction( "Synthetic column" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = TableViewer.this;
-                ColumnData coldata = obtainColumn( parent );
-                if ( coldata != null ) {
-                    appendColumn( coldata, jcol + 1 );
-                }
+                TableViewer tv = TableViewer.this;
+                new SyntheticColumnQueryWindow( tv, jcol + 1, parent );
             }
         };
         popper.add( addcolAct );
@@ -847,6 +822,16 @@ public class TableViewer extends AuxWindow
                 }
             }
 
+            /* Display row subsets. */
+            else if ( this == subsetsAct ) {
+                if ( subsetWindow == null ) {
+                    subsetWindow = new SubsetWindow( tv );
+                }
+                else {
+                    subsetWindow.makeVisible();
+                }
+            }
+
             /* Set the row order back to normal. */
             else if ( this == unsortAct ) {
                 sortBy( null, false );
@@ -854,11 +839,7 @@ public class TableViewer extends AuxWindow
 
             /* Define a new subset by dialog. */
             else if ( this == newsubsetAct ) {
-                RowSubset rset = new SubsetDialog( dataModel, subsets )
-                                .obtainSubset( parent );
-                if ( rset != null ) {
-                    addSubset( rset );
-                }
+                new SyntheticSubsetQueryWindow( tv, parent );
             }
 
             /* Define a new subset using selected rows. */
@@ -1067,16 +1048,18 @@ public class TableViewer extends AuxWindow
     }
 
     /**
-     * Pops up a modal dialog to ask the user the details of a new Column.
+     * Returns a unique ID string for the given table column, which
+     * should be one of the columns in this viewer's dataModdel 
+     * (though not necessarily its columnModel).  The id will consist
+     * of a '$' sign followed by an integer.
      *
-     * @param  parent component, used for positioning
-     * @return  a new ColumnData specified by the user, or <tt>null</tt> if
-     *          he bailed out
+     * @param   cinfo column metadata 
+     * @return  ID string
      */
-    public ColumnData obtainColumn( Component parent ) {
-        ColumnData coldat = new ColumnDialog( dataModel, subsets )
-                           .obtainColumn( parent );
-        return coldat;
+    public String getColumnID( ColumnInfo cinfo ) {
+        return cinfo.getAuxDatumByName( PlasticStarTable.COLID_INFO.getName() )
+                    .getValue()
+                    .toString();
     }
 
     /**
@@ -1135,8 +1118,8 @@ public class TableViewer extends AuxWindow
         RowSubset rset = viewModel.getSubset();
         String head = new StringBuffer()
             .append( "Data for " )
-            .append( rset == RowSubset.ALL ? "all rows" 
-                                           : ( "row subset: " + rset ) )
+            .append( rset == RowSubset.ALL 
+                          ? "all rows" : ( "row subset: " + rset.getName() ) )
             .append( " (" ) 
             .append( nrow ) 
             .append( ' ' )
