@@ -370,13 +370,48 @@ public class BridgeNdx implements Ndx {
     }
 
 
+    /**
+     * Turns a Source into a FrameSet.  The source must represent a <wcs>
+     * element with a supported 'encoding' attribute.  Currently only
+     * AST-XML encoding is supported; in this case the <wcs> element
+     * has to contain a <FrameSet> element as written by 
+     * {@link uk.ac.starlink.ast.xml.XAstWriter}.
+     *
+     * @param  astsrc
+     * @return a FrameSet object
+     * @throws  IOException   if it can't be done
+     */
     private static FrameSet makeAst( Source astsrc ) throws IOException {
-
-        /*
-        *   Note namespace prefix is null as HDX should have
-        *   transformed it!
-        */
-        return (FrameSet) new XAstReader().makeAst( astsrc, null );
+        Node astnode;
+        try { 
+            astnode = new SourceReader().getElement( astsrc );
+        }
+        catch ( TransformerException e ) {
+            throw (IOException) new IOException( e.toString() )
+                               .initCause( e );
+        }
+        if ( astnode instanceof Element &&
+             astnode.getNodeName().equals( "wcs" ) ) {
+            Element astel = (Element) astnode;
+            if ( astel.getAttribute( "encoding" ).equals( "AST-XML" ) ) {
+                for ( Node child = astel.getFirstChild(); child != null;
+                      child = child.getNextSibling() ) {
+                    if ( child instanceof Element &&
+                         ((Element) child).getTagName().equals( "FrameSet" ) ) {
+                        return (FrameSet) new XAstReader()
+                                         .makeAst( (Element) child, null );
+                    }
+                }
+                throw new IOException( "No <FrameSet> element in <wcs>" );
+            }
+            else {
+                throw new IOException( 
+                    "Unsupported encoding on <wcs> element" );
+            }
+        }
+        else {
+            throw new IOException( "XML does not represent <wcs> element" );
+        }
     }
 
     /**
