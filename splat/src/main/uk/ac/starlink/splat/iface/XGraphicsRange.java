@@ -203,10 +203,9 @@ public class XGraphicsRange
 
             //  Transform positions into graphics coordinates.
             double[] wRange = new double[4];
-            wRange[0] = range[0];
+            wRange[0] = Math.min( range[0], range[1] );
             wRange[1] = 0.0;
-            // TODO: should be a valid Y coordinate.
-            wRange[2] = range[1];
+            wRange[2] = Math.max( range[1], range[0] );
             wRange[3] = 0.0;
             Mapping astMap = plot.getMapping();
             double[][] gRange = ASTJ.astTran2( astMap, wRange, false );
@@ -274,6 +273,16 @@ public class XGraphicsRange
     protected void registerFigure( XRangeFigure figure )
     {
         this.figure = figure;
+        
+        // Make the Figure limits sane (must increase).
+        double[] range = getRange();
+        if ( range[0] > range[1] ) {
+            double[] newRange = new double[2];
+            newRange[0] = range[1];
+            newRange[1] = range[0];
+            setRange( newRange );
+        }
+
         figure.setFillPaint( colour );
 
         // If figure is contrained, fit it to the Y axis range.
@@ -316,7 +325,6 @@ public class XGraphicsRange
     {
         //  Is this an XRangeFigure?
         if ( e.getSource() instanceof XRangeFigure ) {
-
             registerFigure( (XRangeFigure) e.getSource() );
 
             //  Remove interest in further creations.
