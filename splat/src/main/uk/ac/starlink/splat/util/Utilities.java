@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2001 Central Laboratory of the Research Councils
  *
  *  History:
  *     27-JUL-2001 (Peter W. Draper):
@@ -86,7 +86,7 @@ public class Utilities
     public static String getCopyright()
     {
         return
-        "Copyright (C) 2001-2003 Central Laboratory of the Research Councils";
+        "Copyright (C) 2001-2004 Central Laboratory of the Research Councils";
     }
 
     /**

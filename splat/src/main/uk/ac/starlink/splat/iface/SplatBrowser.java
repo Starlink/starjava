@@ -1429,7 +1429,13 @@ public class SplatBrowser
     protected void showSSAPBrowser()
     {
         if ( ssapBrowser == null ) {
-            ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+            try {
+                ssapBrowser = new SSAQueryBrowser( new SSAServerList(), this );
+            }
+            catch (SplatException e) {
+                new ExceptionDialog( this, e );
+                return;
+            }
         }
         ssapBrowser.setVisible( true );
     }

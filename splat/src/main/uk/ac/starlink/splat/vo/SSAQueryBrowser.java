@@ -923,9 +923,15 @@ public class SSAQueryBrowser
 
     public static void main( String[] args )
     {
-        SSAQueryBrowser b = new SSAQueryBrowser( new SSAServerList(), null );
-        b.pack();
-        b.setVisible( true );
+        try {
+            SSAQueryBrowser b = 
+                new SSAQueryBrowser( new SSAServerList(), null );
+            b.pack();
+            b.setVisible( true );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //

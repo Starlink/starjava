@@ -17,6 +17,7 @@ package uk.ac.starlink.splat.data;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -797,6 +798,7 @@ public class SpecDataFactory
      * if a failure occurs).
      */
     protected PathParser remoteToLocalFile( URL url, int type )
+        throws SplatException
     {
         //  XXX how to determine the format, mime types and files
         //  types are the obvious way, but mime types are probably
@@ -848,12 +850,31 @@ public class SpecDataFactory
             TemporaryFileDataSource datsrc =
                 new TemporaryFileDataSource( is, url.toString(), "SPLAT",
                                              stype, null );
-            namer.setPath( datsrc.getFile().getCanonicalPath() );
+            String tmpFile = datsrc.getFile().getCanonicalPath();
+            namer.setPath( tmpFile );
             datsrc.close();
+
+            //  Check file. In an error occurred with the request at the
+            //  server end this will probably result in the download of an
+            //  HTML file.
+            FileInputStream fis = new FileInputStream( tmpFile );
+            byte[] header = new byte[4];
+            fis.read( header );
+            fis.close();
+
+            //  Test if equal to '<!DO' of "<!DOCTYPE" or '<HTM'
+            if ( ( header[0] == '<' && header[1] == '!' && 
+                   header[2] == 'D' && header[3] == 'O' ) ||
+                 header[0] == '<' && header[1] == 'H' && 
+                 header[2] == 'T' && header[3] == 'M' ) {
+                //  Must be HTML.
+                throw new SplatException( "Cannot use the file returned" + 
+                                          " by the URL : " + url.toString() +
+                                          "it contains an HTML document" );
+            }
         }
         catch (Exception e) {
-            //e.printStackTrace();
-            namer = null;
+            throw new SplatException( e );
         }
         return namer;
     }
