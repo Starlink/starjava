@@ -239,7 +239,7 @@ public class StarTableFactory {
      *     URL factory method
      * <li>If it finds a transferable that will supply an
      *     {@link java.io.InputStream}, turns it into a 
-     *     {@link java.util.DataSource} and passes that to the 
+     *     {@link uk.ac.starlink.util.DataSource} and passes that to the 
      *     <tt>DataSource</tt> constructor
      * </ul>
      * <p>
