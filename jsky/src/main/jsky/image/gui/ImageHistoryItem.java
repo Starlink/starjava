@@ -166,6 +166,13 @@ public class ImageHistoryItem extends AbstractAction
             imageProcessor.update();
         }
     }
+
+    // PWD: added this
+    /** Get access to the scale factor */
+    public float getScale()
+    {
+        return scale;
+    }
 }
 
 

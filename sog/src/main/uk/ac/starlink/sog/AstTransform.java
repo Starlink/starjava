@@ -1,4 +1,5 @@
-/* Copyright (C) 2002 Central Laboratory of the Research Councils
+/* 
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
  *
  * History:
  *    11-JUN-2002 (Peter W. Draper):
@@ -10,12 +11,12 @@ import java.awt.geom.Point2D;
 
 import jsky.coords.WorldCoordinateConverter;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.FitsChan;
-import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.SkyFrame;
-import uk.ac.starlink.ast.AstException;
 
 /**
  * Ast Implementation the WorldCoordinateConverter interface of
@@ -26,7 +27,8 @@ import uk.ac.starlink.ast.AstException;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class AstTransform implements WorldCoordinateConverter
+public class AstTransform 
+    implements WorldCoordinateConverter
 {
     /**
      * The Ast FrameSet that defines the world coordinate

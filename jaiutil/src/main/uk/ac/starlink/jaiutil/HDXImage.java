@@ -102,6 +102,11 @@ public class HDXImage
     protected NDArrayData ndArrayData;
 
     /**
+     * The axes.
+     */
+    protected long[] axes = null;
+
+    /**
      * Index of the current NDX.
      */
     protected int ndxIndex = -1;
@@ -289,9 +294,7 @@ public class HDXImage
 
         //  If an NDArray is open already, should close it before
         //  proceeding.
-        if ( ndArray != null ) {
-            ndArray.getAccess().close();
-        }
+        close();
 
         // Access the NDX and realize one of its components (TODO:
         // support more than data) as an NDArray. Use a MaskedImage to
@@ -302,7 +305,7 @@ public class HDXImage
         ndArray = Ndxs.getMaskedImage( ndx, req );
 
         // Check basics of array.
-        long[] axes = ndArray.getShape().getDims();
+        axes = ndArray.getShape().getDims();
         if ( axes.length <= 1 ) {
             width = 0;
             height = 0;
@@ -314,6 +317,17 @@ public class HDXImage
         scale = 1.0F;
         subsample = 1;
         initData();
+    }
+
+    /**
+     * Close the current "HDX".
+     */
+    public void close() 
+        throws IOException
+    {
+        if ( ndArray != null ) {
+            ndArray.getAccess().close();
+        }
     }
 
     /**
@@ -517,7 +531,6 @@ public class HDXImage
     private void initImage()
         throws IOException
     {
-        long[] axes = ndArray.getShape().getDims();
         width = (int) axes[axes.length-2];
         height = (int) axes[axes.length-1];
 
@@ -618,8 +631,26 @@ public class HDXImage
         return (Ndx) ndxs.get( ndxIndex );
     }
 
+    /** 
+     * Returns the real width of the image.
+     * This may be different than the value returned by getWidth() if
+     * the image is zoomed out.
+     */
+    public int getRealWidth() {
+        return (int) axes[axes.length-2];
+    }
+
+    /** 
+     * Returns the real height of the image. 
+     * This may be different than the value returned by getHeight() if
+     * the image is zoomed out.
+     */
+    public int getRealHeight() {
+        return (int) axes[axes.length-1];
+    }
+
     //
-    // Optimization of zooming in. This follows same methods in
+    // Optimization of zooming out. This follows same methods in
     // FITSImage, and may indicate the need for a common
     // class/framework to underpin this.
     //

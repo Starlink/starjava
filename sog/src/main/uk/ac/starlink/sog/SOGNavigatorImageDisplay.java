@@ -18,6 +18,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.awt.image.Raster;
 
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
@@ -131,7 +132,12 @@ public class SOGNavigatorImageDisplay
 
         // Do same for the HdxImage?
         if ( hdxImage != null ) {
-            //hdxImage.close();
+            try {
+                hdxImage.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace(); // Otherwise, lets assume harmless.
+            }
             hdxImage.clearTileCache();
             hdxImage = null;
         }
@@ -157,6 +163,10 @@ public class SOGNavigatorImageDisplay
             try {
                 hdxImage = new HDXImage( _filename );
                 initHDXImage( hdxImage );
+
+                //  HDX's are pre-flipped in Y, but still need their
+                //  coordinates flipping.
+                getImageProcessor().setInvertedYAxis( false );
                 setImage( PlanarImage.wrapRenderedImage( hdxImage ) );
             }
             catch ( IOException e ) {
@@ -434,11 +444,9 @@ public class SOGNavigatorImageDisplay
         if ( transform == null ||
              ! getWCS().isWCS() ||
              ! ( transform instanceof AstTransform ) ) {
-            System.out.println( "Not an AstTransform" );
             astPlot = null;
             return;
         }
-        System.out.println( "Is an AstTransform" );
         CoordinateConverter cc = getCoordinateConverter();
         FrameSet frameSet = ((AstTransform)transform).getFrameSet();
 
@@ -649,5 +657,67 @@ public class SOGNavigatorImageDisplay
                 ip.update();
             }
         }
+    }
+
+    protected double _getPixelValue( PlanarImage im, int ix, int iy,
+                                     int w, int h, int band )
+    {
+        if ( hdxImage == null ) {
+            System.out.println( "not HDX image" );
+            return super._getPixelValue( im, ix, iy, w, h, band );
+        }
+        System.out.println( "HDX image" );
+
+        // Handle HDX I/O optimizations
+        int subsample = hdxImage.getSubsample();
+        ix = ix / subsample;
+        iy = iy / subsample;
+
+        if ( ! getImageProcessor().isInvertedYAxis() ) {
+            iy = h - 1 - iy;
+        }
+
+        if ( ix < 0 || ix >= w || iy < 0 || iy >= h ) {
+            return 0.0;
+        }
+
+        int x = (int) ( (double) ix / hdxImage.getTileWidth() );
+        int y = (int) ( (double) iy / hdxImage.getTileHeight() );
+        if ( x < 0 || y < 0 ) {
+            return 0.0;
+        }
+
+        Raster tile = im.getTile( x, y );
+        if ( tile != null ) {
+            try {
+                return tile.getSampleDouble( ix, iy, band );
+            }
+            catch(Exception e) {
+            }
+        }
+        return 0.0;
+    }
+
+    /**
+     * Return the width of the source image in pixels
+     */
+    public int getImageWidth()
+    {
+        if ( hdxImage == null ) {
+            return super.getImageWidth();
+        }
+        return hdxImage.getRealWidth();
+    }
+
+
+    /**
+     * Return the height of the source image in pixels
+     */
+    public int getImageHeight()
+    {
+        if ( hdxImage == null ) {
+            return super.getImageHeight();
+        }
+        return hdxImage.getRealHeight();
     }
 }

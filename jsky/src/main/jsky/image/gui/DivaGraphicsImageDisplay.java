@@ -880,11 +880,13 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
      * @param h  the height of the image in user coordinat pixels
      * @param band the bad of the image (0 for FITS files)
      */
-    private double _getPixelValue(PlanarImage im, int ix, int iy, int w, int h, int band) {
+   protected double _getPixelValue(PlanarImage im, int ix, int iy, int w, int h, int band) {
 	// Handle FITS I/O optimizations
 	int subsample = 1;
 	if (_fitsImage != null) {
 	    subsample = _fitsImage.getSubsample();
+            ix = ix / subsample;
+            iy = iy / subsample;
 	}
 
         if (! _imageProcessor.isInvertedYAxis())
@@ -906,14 +908,17 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
         Raster tile = im.getTile(x, y);
 	if (tile != null) {
 	    try {
-		return tile.getSampleDouble(ix/subsample, iy/subsample, band);
+		return tile.getSampleDouble(ix, iy, band);
 	    }
 	    catch(Exception e) {
 	    }
 	}
 	return 0.0;
     }
-    // PWD: made return double
+    // PWD: made return double and protected for sub-classing. 
+    // Modified so that sub-sampling scale is applied 
+    // immediately for zoom out.
+
 
     /**
      * Return an array containing the values of the pixels in the given band in the given
