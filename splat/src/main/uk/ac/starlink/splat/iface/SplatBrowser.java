@@ -388,19 +388,7 @@ public class SplatBrowser
 
         //  If an action for dealing with 2/3D data has been given then
         //  convert this into an appropriate action.
-        this.ndAction = SpecDataFactory.COLLAPSE;
-        if ( ndAction != null ) {
-            String caselessAction = ndAction.toLowerCase();
-            if ( "collapse".startsWith( caselessAction ) ) {
-                this.ndAction = SpecDataFactory.COLLAPSE;
-            }
-            else if ( "expand".startsWith( caselessAction ) ) {
-                this.ndAction = SpecDataFactory.EXPAND;
-            }
-            else if ( "vectorize".startsWith( caselessAction ) ) {
-                this.ndAction = SpecDataFactory.VECTORIZE;
-            }
-        }
+        setNDAction( ndAction );
 
         //  If axis for dealing with 2 and 3D data have been given then we
         //  need to make sure these are passed on to the SpecDataFactory when
@@ -435,6 +423,26 @@ public class SplatBrowser
                         threadInitRemoteServices();
                     }
                 });
+        }
+    }
+
+    /**
+     * Set the ndAction value to match a string description.
+     */
+    private void setNDAction( String ndAction ) 
+    {
+        this.ndAction = SpecDataFactory.COLLAPSE;
+        if ( ndAction != null ) {
+            String caselessAction = ndAction.toLowerCase();
+            if ( "collapse".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.COLLAPSE;
+            }
+            else if ( "expand".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.EXPAND;
+            }
+            else if ( "vectorize".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.VECTORIZE;
+            }
         }
     }
 
@@ -1034,7 +1042,20 @@ public class SplatBrowser
             //  If the user requested that opened spectra are also
             //  displayed, then respect this.
             displayNewFiles = openDisplayCheckBox.isSelected();
+
+            //  Use the given type for spectra (NDF, FITS etc.).
             openUsertypeIndex = openUsertypeBox.getSelectedIndex();
+
+            //  Set the ndAction.
+            setNDAction( (String) ndActionBox.getSelectedItem() );
+            
+            //  And the dispersion and select axes.
+            KeyValue keyvalue = (KeyValue) dispersionAxisBox.getSelectedItem();
+            dispAxis = (Integer) keyvalue.getValue();
+            keyvalue = (KeyValue) selectAxisBox.getSelectedItem();
+            selectAxis = (Integer) keyvalue.getValue();
+
+            //  Load the spectra.
             threadLoadChosenSpectra();
         }
     }
@@ -1141,16 +1162,21 @@ public class SplatBrowser
     protected JPanel openAccessory = null;
     protected JCheckBox openDisplayCheckBox = null;
     protected JComboBox openUsertypeBox = null;
+    protected JComboBox ndActionBox = null;
+    protected JComboBox dispersionAxisBox = null;
+    protected JComboBox selectAxisBox = null;
 
     /**
-     * Initialise the accessory components for opening
-     * spectra. Currently these provide the ability to choose whether
-     * to display any opened spectra.
+     * Initialise the accessory components for opening spectra. Currently
+     * these provide the ability to choose whether to display any opened
+     * spectra, what type to assign and what axes to use when handling any
+     * 2 or 3D spectra.
      */
     protected void initOpenAccessory()
     {
         openAccessory = new JPanel();
-        GridBagLayouter layouter = new GridBagLayouter( openAccessory );
+        GridBagLayouter layouter = 
+            new GridBagLayouter( openAccessory, GridBagLayouter.SCHEME3 );
 
         openDisplayCheckBox = new JCheckBox();
         openDisplayCheckBox.setToolTipText
@@ -1168,6 +1194,49 @@ public class SplatBrowser
 
         layouter.add( "Format:", false );
         layouter.add( openUsertypeBox, true );
+
+        JPanel ndPanel = new JPanel();
+        GridBagLayouter ndLayouter =
+            new GridBagLayouter( ndPanel, GridBagLayouter.SCHEME3 );
+        ndPanel.setBorder
+            ( BorderFactory.createTitledBorder( "2/3D data" ) );
+
+        //  Method to handle 2/3D data.
+        ndActionBox = new JComboBox();
+        ndActionBox.addItem( "collapse" );
+        ndActionBox.addItem( "expand" );
+        ndActionBox.addItem( "vectorize" );
+        ndActionBox.setToolTipText
+            ( "Choose a method for handling 2/3D data" );
+
+        ndLayouter.add( "Action:", false );
+        ndLayouter.add( ndActionBox, true );
+
+        //  Select a dispersion axis.
+        dispersionAxisBox = new JComboBox();
+        dispersionAxisBox.addItem( new KeyValue( "auto", new Integer( -1 ) ) );
+        dispersionAxisBox.addItem( new KeyValue( "1", new Integer( 0 ) ) );
+        dispersionAxisBox.addItem( new KeyValue( "2", new Integer( 1 ) ) );
+        dispersionAxisBox.addItem( new KeyValue( "3", new Integer( 2 ) ) );
+        dispersionAxisBox.setToolTipText
+            ( "Choose a dispersion axis for 2/3D data" );
+
+        ndLayouter.add( "Disp axis:", false );
+        ndLayouter.add( dispersionAxisBox, true );
+
+        //  Select a dispersion axis.
+        selectAxisBox = new JComboBox();
+        selectAxisBox.addItem( new KeyValue( "auto", new Integer( -1 ) ) );
+        selectAxisBox.addItem( new KeyValue( "1", new Integer( 0 ) ) );
+        selectAxisBox.addItem( new KeyValue( "2", new Integer( 1 ) ) );
+        selectAxisBox.addItem( new KeyValue( "3", new Integer( 2 ) ) );
+        selectAxisBox.setToolTipText
+            ( "Select a non-dispersion axis for 3D data" );
+
+        ndLayouter.add( "Select axis:", false );
+        ndLayouter.add( selectAxisBox, true );
+
+        layouter.add( ndPanel, true );
         layouter.eatSpare();
     }
 
@@ -2457,5 +2526,34 @@ public class SplatBrowser
         // The cascade request.
         PlotWindowOrganizer organizer = new PlotWindowOrganizer();
         organizer.cascade();
+    }
+
+
+    //  Simple class to contain an object, but return a different value when
+    //  queried using toString. Use use when you want to put values into a
+    //  JComboBox, but have another representation shown.
+    private class KeyValue
+    {
+        public KeyValue( String key, Object value )
+        {
+            this.key = key;
+            this.value = value;
+        }
+        private String key = null;
+        private Object value = null;
+        
+        public String getKey()
+        {
+            return key;
+        }
+        public Object getValue()
+        {
+            return value;
+        }
+        public String toString()
+        {
+            return key;
+        }
+
     }
 }

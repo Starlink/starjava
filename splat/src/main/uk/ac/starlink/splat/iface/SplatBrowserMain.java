@@ -101,12 +101,6 @@ public class SplatBrowserMain
 
             //  Everything else should be spectra.
             spectraArgs = parser.getRemainingArgs();
-            
-            System.out.println( "defaultType = " + defaultType );
-            System.out.println( "ndAction = " + ndAction );
-            System.out.println( "dispersionAxis = " + dispersionAxis );
-            System.out.println( "selectAxis = " + selectAxis );
-            System.out.println( "spectra = " + spectraArgs );
         }
 
         //  Need final versions for use in thread.
