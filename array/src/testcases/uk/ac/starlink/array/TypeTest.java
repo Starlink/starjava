@@ -71,7 +71,7 @@ public class TypeTest extends TestCase {
         assertEquals( badFloat, Type.FLOAT.defaultBadValue() );
         assertEquals( badDouble, Type.DOUBLE.defaultBadValue() );
 
-        assertEquals( BadHandler.getHandler( Type.BYTE, badByte ),
+        assertEquals( BadHandler.getHandler( Type.BYTE, null ),
                       Type.BYTE.defaultBadHandler() );
         assertEquals( BadHandler.getHandler( Type.SHORT, badShort ),
                       Type.SHORT.defaultBadHandler() );

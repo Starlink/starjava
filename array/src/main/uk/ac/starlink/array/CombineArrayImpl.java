@@ -33,7 +33,7 @@ public class CombineArrayImpl implements ArrayImpl {
     private Converter tconv;
     private boolean isRandom;
     private boolean multipleAccess;
-    private static final int BUFSIZE = ChunkIterator.defaultChunkSize;
+    private static final int BUFSIZE = ChunkStepper.defaultChunkSize;
 
     /**
      * Construct a new CombineArrayImpl based on two underlying NDArrays
@@ -47,9 +47,12 @@ public class CombineArrayImpl implements ArrayImpl {
      * @param  combi  the object which performs the arithmetic combination
      * @param  shape  the shape of the resulting array object
      * @param  type  the type of the resulting array object
+     * @param  bh    the bad value handler for the resulting array object.
+     *               If <tt>null</tt>, a non-null bad value handler using a
+     *               default value is used.
      */
     public CombineArrayImpl( NDArray nda1, NDArray nda2, Combiner combi,
-                             NDShape shape, Type type ) {
+                             NDShape shape, Type type, BadHandler bh ) {
         this.combi = combi;
         this.oshape = new OrderedNDShape( shape, nda1.getShape().getOrder() );
         this.type = type;
@@ -60,9 +63,11 @@ public class CombineArrayImpl implements ArrayImpl {
         req = new Requirements( AccessMode.READ )
                           .setType( internalType )
                           .setWindow( shape );
-        bh = type.defaultBadHandler();
+        this.bh = ( bh != null ) 
+                     ? bh 
+                     : BadHandler.getHandler( type, type.defaultBadValue() );
         tconv = new TypeConverter( internalType, internalHandler,
-                                    type, bh );
+                                   type, this.bh );
     }
     
     public OrderedNDShape getShape() {

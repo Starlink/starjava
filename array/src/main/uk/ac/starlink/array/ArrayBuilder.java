@@ -27,6 +27,11 @@ public interface ArrayBuilder {
      * thrown; however, if it is possible that a different factory could
      * correctly construct an NDArray from this URL then a null return
      * is preferred.
+     * <p>
+     * If the resource storing the NDArray is incapable of storing bad values,
+     * an NDArray using the 
+     * {@link Type#defaultBadValue default bad value handling policy}
+     * should be returned.
      *
      * @param   url   the URL of the resource from which an NDArray is to
      *                be constructed
@@ -48,6 +53,13 @@ public interface ArrayBuilder {
      * then an IOException should in general be thrown; however if
      * this factory thinks that another factory might have more luck
      * then a null return is preferred.
+     * <p>
+     * The <tt>bh</tt> parameter indicates a requested bad value handling
+     * policy.  If it is not null, this handler should attempt to create
+     * a new NDArray resource with the same policy.  However, if it is 
+     * not possible because of limitations in the storage format it may 
+     * use a different bad value policy, bearing in mind the behaviour
+     * documented in {@link #makeNDArray}.
      *
      * @param  url    the URL at which the resource backing the NDArray is 
      *                to be written
@@ -57,11 +69,12 @@ public interface ArrayBuilder {
      *                scheme of the NDArray to be created, but no guarantee
      *                is made that the orderings will match
      * @param  type   the primitive data type of the new NDArray to construct
+     * @param  bh     requested bad value handling policy - see above
      * @return   the new NDArray, or <tt>null</tt> if this handler does not
      *           recognise the URL
      * @throws   IOException  if the URL is understood but the requested
      *                        NDArray cannot be constructed there
      */
-    NDArray makeNewNDArray( URL url, NDShape shape, Type type ) 
+    NDArray makeNewNDArray( URL url, NDShape shape, Type type, BadHandler bh ) 
         throws IOException;
 }

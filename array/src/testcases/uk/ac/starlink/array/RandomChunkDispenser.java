@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /**
- * Like a ChunkIterator, but each chunk is of a random size, and the chunks
+ * Like a ChunkStepper, but each chunk is of a random size, and the chunks
  * are not dispensed in any particular order (i.e. they are not expected
  * to progress in sequence from the start to the end of the array).
  */
@@ -19,7 +19,7 @@ class RandomChunkDispenser {
 
     public RandomChunkDispenser( long leng ) {
         List chunks = new ArrayList();
-        for ( RandomChunkIterator cit = new RandomChunkIterator( leng );
+        for ( RandomChunkStepper cit = new RandomChunkStepper( leng );
               cit.hasNext(); cit.next() ) {
             chunks.add( new long[] { cit.getBase(), (long) cit.getSize() } );
         }

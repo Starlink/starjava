@@ -118,7 +118,7 @@ public class ArrayImplTest extends TestCase {
         Object buf1b = type.newArray( 1 );
         AccessImpl acc1 = arrimpl.getAccess();
         AccessImpl acc2 = arrimpl.getAccess();
-        for ( RandomChunkIterator cit = new RandomChunkIterator( npix );
+        for ( RandomChunkStepper cit = new RandomChunkStepper( npix );
               cit.hasNext(); cit.next() ) {
              int size = cit.getSize();
              long base = cit.getBase();
@@ -191,7 +191,7 @@ public class ArrayImplTest extends TestCase {
         boolean weirdBadValue = type.equals( Type.INT )
                              || type.equals( Type.FLOAT )
                              || type.equals( Type.DOUBLE );
-        for ( RandomChunkIterator cit = new RandomChunkIterator( npix );
+        for ( RandomChunkStepper cit = new RandomChunkStepper( npix );
               cit.hasNext(); cit.next() ) {
             int size = cit.getSize();
             int start = rand.nextInt( size );
@@ -273,7 +273,7 @@ public class ArrayImplTest extends TestCase {
         Type type = arrimpl.getType();
         if ( arrimpl.multipleAccess() ) {
             AccessImpl accimpl = arrimpl.getAccess();
-            for ( ChunkIterator cit = new ChunkIterator( npix );
+            for ( ChunkStepper cit = new ChunkStepper( npix );
                   cit.hasNext(); cit.next() ) {
                 int size = cit.getSize();
                 int base = (int) cit.getBase();

@@ -102,7 +102,7 @@ public class Requirements implements Cloneable {
      * @return   this object
      */
     public Requirements setWindow( NDShape window ) {
-        this.window = window;
+        this.window = new NDShape( window );
         return this;
     }
 
@@ -122,6 +122,21 @@ public class Requirements implements Cloneable {
      */
     public Requirements setOrder( Order order ) {
         this.order = order;
+        return this;
+    }
+
+    /**
+     * Sets this object's required ordered shape (pixel sequence).
+     * This is simply a shortcut way of calling <tt>setWindow</tt>
+     * and <tt>setOrder</tt> in one go.
+     *
+     * @param  oshape  the ordered shape (or equivalently, pixel sequence)
+     *                 required
+     * @return   this object
+     */
+    public Requirements setShape( OrderedNDShape oshape ) {
+        setWindow( oshape );
+        setOrder( ( oshape != null ) ? oshape.getOrder() : null );
         return this;
     }
 

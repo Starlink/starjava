@@ -98,7 +98,7 @@ public class NDArrays {
         }
     
         /* Check whether the data matches element by element. */
-        ChunkIterator cit = new ChunkIterator( npix );
+        ChunkStepper cit = new ChunkStepper( npix );
         int size = cit.getSize();
         Object buf1 = type.newArray( size );
         Object buf2 = type.newArray( size );
@@ -221,7 +221,7 @@ public class NDArrays {
                 /* If neither is mappable, or translation is required, copy
                  * in chunks. */
                 else {
-                    ChunkIterator cIt = new ChunkIterator( npix );
+                    ChunkStepper cIt = new ChunkStepper( npix );
                     int size = cIt.getSize();
                     Object sBuffer = sType.newArray( size );
                     Object dBuffer = dType.newArray( size );

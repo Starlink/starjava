@@ -18,7 +18,7 @@ public class ConvertArrayImpl extends WrapperArrayImpl {
     private final Converter conv;
     private final Type type1;
     private final Type type2;
-    private final static int BUFSIZE = ChunkIterator.defaultChunkSize;
+    private final static int BUFSIZE = ChunkStepper.defaultChunkSize;
 
     /**
      * Constructs a new ArrayImpl from an underlying NDArray and a supplied

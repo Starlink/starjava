@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
  * <pre>
  *     ArrayAccess acc = nda.getAccess(); 
  *     long npix = acc.getShape().getNumPixels();
- *     for ( ChunkIterator cIt = new ChunkIterator( npix ); 
+ *     for ( ChunkStepper cIt = new ChunkStepper( npix ); 
  *           cIt.hasNext(); cIt.next() ) {
  *         int size = cIt.getSize();
  *         Object buffer = acc.getType().newArray( size );
@@ -33,7 +33,7 @@ import java.util.NoSuchElementException;
  * A more efficient loop would reuse the same buffer array to save on
  * object creation/collection costs as follows:
  * <pre>
- *     ChunkIterator cIt = new ChunkIterator( npix );
+ *     ChunkStepper cIt = new ChunkStepper( npix );
  *     Object buffer = acc.getType().newArray( cIt.getSize() );
  *     for ( ; cIt.hasNext(); cIt.next() ) {
  *         acc.read( buffer, 0, cIt.getSize() );
@@ -47,7 +47,7 @@ import java.util.NoSuchElementException;
  * @see      BufferIterator
  * @version  $Id$
  */
-public class ChunkIterator {
+public class ChunkStepper {
 
     private long chunkBase = 0L;
     private final long length;
@@ -57,7 +57,7 @@ public class ChunkIterator {
     public static int defaultChunkSize = 16384;
 
     /**
-     * Create a new ChunkIterator with a given chunk size.
+     * Create a new ChunkStepper with a given chunk size.
      *
      * @param   length     the total number of elements to iterate over
      * @param   chunkSize  the size of chunk which will be used (except
@@ -65,7 +65,7 @@ public class ChunkIterator {
      * @throws  IllegalArgumentException  if <tt>chunkSize&lt;=0</tt>
      *                                    or <tt>length&lt;0</tt>
      */
-    public ChunkIterator( long length, int chunkSize ) {
+    public ChunkStepper( long length, int chunkSize ) {
         if ( chunkSize <= 0 ) {
             throw new IllegalArgumentException( 
                 "chunkSize " + chunkSize + " <= 0" );
@@ -79,11 +79,11 @@ public class ChunkIterator {
     }
 
     /**
-     * Create a new ChunkIterator with the default chunk size.
+     * Create a new ChunkStepper with the default chunk size.
      *
      * @param   length     the total number of elements to iterate over
      */
-    public ChunkIterator( long length ) {
+    public ChunkStepper( long length ) {
         this( length, defaultChunkSize );
     }
 

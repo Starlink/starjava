@@ -12,13 +12,13 @@ import java.util.Iterator;
  * of the size matching the section at each step.
  * <p>
  * This class provides a thin convenience wrapper around 
- * {@link ChunkIterator}, which is itself a simple class which steps
+ * {@link ChunkStepper}, which is itself a simple class which steps
  * from zero to a given limit in chunks.  The only additional functionality 
  * provided by a <tt>BufferIterator</tt> is that it will ensure a 
  * suitable primitive buffer is available at each step, and (since the
  * <tt>next</tt> method actually returns something, namely the buffer),
  * it implements the {@link java.util.Iterator} interface which
- * <tt>ChunkIterator</tt> does not.
+ * <tt>ChunkStepper</tt> does not.
  * <p>
  * A typical use of <tt>BufferIterator</tt> is as follows:
  * <pre>
@@ -32,11 +32,11 @@ import java.util.Iterator;
  * </pre>
  *
  * @author   Mark Taylor (Starlink)
- * @see      ChunkIterator
+ * @see      ChunkStepper
  */
 public class BufferIterator implements Iterator {
 
-    private ChunkIterator chunkIt;
+    private ChunkStepper chunkIt;
     private Object buffer;
     private Type type;
     private long base = -1;
@@ -53,7 +53,7 @@ public class BufferIterator implements Iterator {
      *                                    or <tt>length&lt;0</tt>
      */
     public BufferIterator( long length, Type type, int chunkSize ) {
-        chunkIt = new ChunkIterator( length, chunkSize );
+        chunkIt = new ChunkStepper( length, chunkSize );
         this.type = type;
         if ( type == null ) {
             throw new NullPointerException();
@@ -68,7 +68,7 @@ public class BufferIterator implements Iterator {
      *                     <tt>next</tt> method will return at each iteration
      */
     public BufferIterator( long length ) {
-        chunkIt = new ChunkIterator( length );
+        chunkIt = new ChunkStepper( length );
         this.type = type;
         if ( type == null ) {
             throw new NullPointerException();

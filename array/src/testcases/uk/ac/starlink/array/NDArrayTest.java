@@ -37,9 +37,10 @@ public class NDArrayTest extends TestCase {
             OrderedNDShape shape = (OrderedNDShape) shIt.next();
             for ( Iterator tIt = types.iterator(); tIt.hasNext(); ) {
                 Type type = (Type) tIt.next();
+                BadHandler bh = BadHandler
+                               .getHandler( type, type.defaultBadValue() );
                 templates.add( 
-                    new DefaultArrayDescription( shape, type, 
-                                                 type.defaultBadHandler(),
+                    new DefaultArrayDescription( shape, type, bh,
                                                  true, true, true ) );
             }
         }
@@ -374,7 +375,7 @@ public class NDArrayTest extends TestCase {
                     Type type = nda.getType();
                     long npix = nda.getShape().getNumPixels();
                     BadHandler bh = nda.getBadHandler();
-                    ChunkIterator cit = new ChunkIterator( npix );
+                    ChunkStepper cit = new ChunkStepper( npix );
                     Object array = type.newArray( cit.getSize() );
                     ArrayAccess acc = nda.getAccess();
                     for ( ; cit.hasNext(); cit.next() ) {

@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Primitive data type identifier.  Objects in this class are used to
+ * Primitive numeric data type identifier.  Objects in this class are used to
  * identify the type of the bulk data held in an {@link NDArray}.
  * <p>
  * This class exemplifies the <i>typesafe enum</i> pattern -- the only
@@ -132,11 +132,17 @@ public class Type {
 
     /**
      * Returns a default bad value handler for this type.
+     * For type BYTE, this is a null handler (no values considered bad),
+     * and for the other types it is a handler using the value returned
+     * by the {@link defaultBadValue} method.
      *
-     * @return   a BadHandler object which uses {@link #defaultBadValue}
+     * @return   a BadHandler object implementing the default bad value 
+     *           policy for this type
      */
     public BadHandler defaultBadHandler() {
-        return BadHandler.getHandler( this, defaultBadValue );
+        return ( this == BYTE ) 
+                    ? BadHandler.getHandler( this, null )
+                    : BadHandler.getHandler( this, defaultBadValue );
     }
 
     /**

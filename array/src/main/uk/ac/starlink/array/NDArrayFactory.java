@@ -143,6 +143,14 @@ public class NDArrayFactory {
      * understands the URL; an IOException will result if one of the 
      * builders is willing to handle the URL but fails to make an array
      * resource at it.
+     * <p>
+     * The <tt>bh</tt> parameter indicates a requested bad value handling
+     * scheme, but does not guarantee that it will be used, since not all
+     * storage formats are capable of storing bad values in arbitrary
+     * ways.  According to the resource type, bad value handling will
+     * be provided on a best-efforts basis.
+     * If <tt>bh</tt> is null, the implementation will choose a bad value
+     * handling policy of its own.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
      *               a suitable <code>file:</code>-protocol URL or one
@@ -150,16 +158,25 @@ public class NDArrayFactory {
      *               output-capable connection
      * @param  shape   the shape of the new array
      * @param  type    a Type object indicating the type of data in the array
+     * @param  bh      the requested bad value handling policy - see above.
      * @return   a new writable NDArray object with the given URL, 
      *           or null if none could be constructed because none of
      *           the handlers recognised the URL
      * @throws IOException  if an I/O error occurs
+     * @throws IllegalArgumentException if the type of <tt>bh</tt> does not 
+     *         match <tt>type</tt> 
      */
-    public NDArray makeNewNDArray( URL url, NDShape shape, Type type )
+    public NDArray makeNewNDArray( URL url, NDShape shape, Type type,
+                                   BadHandler bh )
             throws IOException {
+        if ( bh != null && bh.getType() != type ) {
+            throw new IllegalArgumentException( 
+                "Bad handler type " + bh.getType() + 
+                " does not match specified type " + type );
+        }
         for ( Iterator it = builders.iterator(); it.hasNext(); ) {
             ArrayBuilder builder = (ArrayBuilder) it.next();
-            NDArray nda = builder.makeNewNDArray( url, shape, type );
+            NDArray nda = builder.makeNewNDArray( url, shape, type, bh );
             if ( nda != null ) {
                 return nda;
             }
@@ -170,9 +187,9 @@ public class NDArrayFactory {
     /**
      * Constructs a new NDArray to which data can be written given a URL
      * and another template NDArray.  This convenience method simply
-     * calls {@link #makeNewNDArray(URL,NDShape,Type)}
-     * with the shape and type parameters copied from
-     * the template NDArray.
+     * calls {@link #makeNewNDArray(URL,NDShape,Type,BadHandler)}
+     * with the <tt>shape</tt>, <tt>type</tt> and <tt>bh</tt> 
+     * parameters copied from the <tt>template</tt> NDArray.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
      *               a suitable <code>file:</code>-protocol URL or one
@@ -185,7 +202,8 @@ public class NDArrayFactory {
      */
     public NDArray makeNewNDArray( URL url, NDArray template )
             throws IOException {
-        return makeNewNDArray( url, template.getShape(), template.getType() );
+        return makeNewNDArray( url, template.getShape(), template.getType(),
+                               template.getBadHandler() );
     }
 
     /**
@@ -210,20 +228,22 @@ public class NDArrayFactory {
      * Constructs a new NDArray to which data can be written given a location
      * and the array characteristics.
      * This convenience method just turns the location into a URL and calls
-     * {@link #makeNewNDArray(URL,NDShape,Type)}
+     * {@link #makeNewNDArray(URL,NDShape,Type,BadHandler)}
      *
      * @param  location  the location of the resource.  If it cannot be
      *         parsed as a URL, it will be treated as a filename
      * @param  shape   the shape of the new array
      * @param  type    a Type object indicating the type of data in the array
+     * @param  bh      requested bad value handling policy
      * @return   a new writable NDArray object at the given location,
      *           or null if none could be constructed because none of
      *           the handlers recognised the URL
      * @throws IOException  if an I/O error occurs
      */
-    public NDArray makeNewNDArray( String location, NDShape shape, Type type )
+    public NDArray makeNewNDArray( String location, NDShape shape, Type type,
+                                   BadHandler bh )
             throws IOException {
-        return makeNewNDArray( getUrl( location ), shape, type );
+        return makeNewNDArray( getUrl( location ), shape, type, bh );
     }
 
     /**

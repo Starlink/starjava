@@ -8,7 +8,7 @@ import java.io.IOException;
  * pixel data into a java primitive array or writing from a java 
  * primitive array into NDArray pixel data.  While this can be used
  * to do single pixel read/writes, it is more efficient to read/write
- * a moderate-sized bufferfull at once.  The {@link ChunkIterator}
+ * a moderate-sized bufferfull at once.  The {@link ChunkStepper}
  * class is provided as a convenience to assist with this sort of
  * processing.
  * <p>

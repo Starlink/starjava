@@ -31,7 +31,7 @@ import java.net.URL;
  * it is not in general possible to read/write all the pixel data 
  * to/from a single primitive array, so for general processing it is
  * necessary to step through the pixel data processing chunks at a time.
- * The {@link ChunkIterator} utility class is provided as a convenience
+ * The {@link ChunkStepper} utility class is provided as a convenience
  * for this sort of processing.  Here is a code snippet which uses
  * this technique to calculate statistics on all the pixels in an NDArray:
  * <pre>
@@ -41,9 +41,9 @@ import java.net.URL;
  *     // Get a reader object to access the pixel data.
  *     ArrayAccess reader = nda.getAccess();
  *
- *     // Get a ChunkIterator to assist in working through the data.
+ *     // Get a ChunkStepper to assist in working through the data.
  *     long npix = nda.getShape().getNumPixels();
- *     ChunkIterator chunkIt = new ChunkIterator( npix );
+ *     ChunkStepper chunkIt = new ChunkStepper( npix );
  *
  *     // Create a primitive buffer array of the right type for the NDArray, 
  *     // long enough to hold the biggest chunk.

@@ -4,9 +4,9 @@ import java.lang.reflect.Array;
 import java.util.Iterator;
 import junit.framework.TestCase;
 
-public class ChunkIteratorTest extends TestCase {
+public class ChunkStepperTest extends TestCase {
 
-    public ChunkIteratorTest( String name ) {
+    public ChunkStepperTest( String name ) {
         super( name );
     }
 
@@ -14,7 +14,7 @@ public class ChunkIteratorTest extends TestCase {
     public void testValidateArguments() {
         for ( int i = 0; i < 3; i++ ) {
             try {
-                new ChunkIterator( 100, -i );
+                new ChunkStepper( 100, -i );
                 fail( "Should throw exception" );
             }
             catch ( IllegalArgumentException e ) {
@@ -23,7 +23,7 @@ public class ChunkIteratorTest extends TestCase {
     }
 
     public void testIteration() {
-        int dsize = ChunkIterator.defaultChunkSize;
+        int dsize = ChunkStepper.defaultChunkSize;
         iterationTest( dsize, dsize / 3 );
         iterationTest( dsize / 3, dsize );
         iterationTest( dsize, dsize );
@@ -34,7 +34,7 @@ public class ChunkIteratorTest extends TestCase {
     }
 
     private void iterationTest( long length, int chunkSize ) {
-        ChunkIterator cIt = new ChunkIterator( length, chunkSize );
+        ChunkStepper cIt = new ChunkStepper( length, chunkSize );
         long nChunks = ( ( length - 1L ) / chunkSize ) + 1L;
         int remainder = (int) ( ( length - 1L ) % (long) chunkSize );
        

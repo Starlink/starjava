@@ -18,6 +18,10 @@ public class CombineArrayImplTest extends TestCase {
         Type type1 = Type.BYTE;
         Type type2 = type1;
         Type type3 = type1;
+        BadHandler abh1 = BadHandler.getHandler( type1,
+                                                 type1.defaultBadValue() );
+        BadHandler abh2 = BadHandler.getHandler( type2,
+                                                 type2.defaultBadValue() );
         NDShape shape1 = new NDShape( new long[] { 0 }, new long[] { 100 } ); 
         NDShape shape2 = new NDShape( new long[] { 50 }, new long[] { 100 } );
         NDShape shape3 = new NDShape( new long[] { 0 }, new long[] { 150 } );
@@ -29,18 +33,17 @@ public class CombineArrayImplTest extends TestCase {
         fillRandom( buf1, -120, 120 );
         fillRandom( buf2, -120, 120 );
         NDArray nda1 = new ScratchNDArray( new OrderedNDShape( shape1, null ),
-                                           type1, type1.defaultBadHandler() );
+                                           type1, abh1 );
         NDArray nda2 = new ScratchNDArray( new OrderedNDShape( shape2, null ),
-                                           type2, type2.defaultBadHandler() );
+                                           type2, abh2 );
         ArrayImpl impl3 = new CombineArrayImpl( nda1, nda2, combi,
-                                                shape3, type3 );
+                                                shape3, type3, null );
         NDArray nda3 = new BridgeNDArray( impl3 );
         BadHandler bh1 = nda1.getBadHandler();
         BadHandler bh2 = nda2.getBadHandler();
         BadHandler bh3 = nda3.getBadHandler();
         nda1.getAccess().write( buf1, 0, np1 );
         nda2.getAccess().write( buf2, 0, np2 );
-
 
         NDArray nda1w =
             new BridgeNDArray( new WindowArrayImpl( nda1, shape3 ) );

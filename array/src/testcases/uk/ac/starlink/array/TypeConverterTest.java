@@ -20,7 +20,7 @@ public class TypeConverterTest extends TestCase {
     public void testConversionDown() {
         Type t1 = Type.DOUBLE;
         double[] a1 = new double[ npix ];
-        BadHandler bh1 = t1.defaultBadHandler();
+        BadHandler bh1 = nonNullHandler( t1 );
         fillRandom( a1, -50, 50 );
         double tooBig = 1e100;
         a1[ 0 ] = tooBig;
@@ -49,13 +49,13 @@ public class TypeConverterTest extends TestCase {
     public void testConversionUp() {
         Type t1 = Type.BYTE;
         byte[] a1 = new byte[ npix ];
-        BadHandler bh1 = t1.defaultBadHandler();
+        BadHandler bh1 = nonNullHandler( t1 );
         fillRandom( a1, -50, 50 );
         bh1.putBad( a1, 0 );
         for ( Iterator it = Type.allTypes().iterator(); it.hasNext(); ) {
             Type t2 = (Type) it.next();
             if ( t2 != Type.BYTE ) {
-                BadHandler bh2 = t2.defaultBadHandler();
+                BadHandler bh2 = nonNullHandler( t2 );
                 TypeConverter tc = new TypeConverter( t1, bh1, t2, bh2, null );
                 Object a2 = t2.newArray( npix );
                 tc.convert12( a1, 0, a2, 0, npix );
@@ -78,9 +78,9 @@ public class TypeConverterTest extends TestCase {
         };
 
         int np = 5;
-        BadHandler bhShort = Type.SHORT.defaultBadHandler();
-        BadHandler bhByte = Type.BYTE.defaultBadHandler();
-        BadHandler bhFloat = Type.FLOAT.defaultBadHandler();
+        BadHandler bhShort = nonNullHandler( Type.SHORT );
+        BadHandler bhByte = nonNullHandler( Type.BYTE );
+        BadHandler bhFloat = nonNullHandler( Type.FLOAT );
 
         short badShort = bhShort.getBadValue().shortValue();
         byte badByte = bhByte.getBadValue().byteValue();
@@ -106,7 +106,7 @@ public class TypeConverterTest extends TestCase {
 
     public void exerciseSame( Type t ) {
 
-        BadHandler bh1 = t.defaultBadHandler();
+        BadHandler bh1 = nonNullHandler( t );
         TypeConverter tc = new TypeConverter( t, bh1, t, bh1 );
         assertEquals( bh1, tc.getBadHandler1() );
         assertEquals( bh1, tc.getBadHandler2() );
@@ -161,6 +161,13 @@ public class TypeConverterTest extends TestCase {
             badval = new Double( (double) number );
         }
         return BadHandler.getHandler( type, badval );
+    }
+
+    /**
+     * Same as Type.defaultBadHandler except for Type.BYTE.
+     */
+    private static BadHandler nonNullHandler( Type type ) {
+        return BadHandler.getHandler( type, type.defaultBadValue() );
     }
 
 }
