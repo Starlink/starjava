@@ -364,6 +364,8 @@ class NDFNdxImpl implements NdxImpl {
                 String qsubname = "QUALITY";
                 if ( qref != null ) {
                     qref.push( qsubname );
+                    qurl = URLUtils.makeURL( context.toString(),
+                                             getLocation( qref ) );
                 }
                 qobj = qobj.datFind( qsubname );
             }
