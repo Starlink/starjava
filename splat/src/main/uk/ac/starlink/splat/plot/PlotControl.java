@@ -962,7 +962,6 @@ public class PlotControl
             printPostscript( "out.ps" );
             return;
         }
-
         try {
             PrinterJob pj = PrinterJob.getPrinterJob();
             pj.setPrintService( services[0] );
