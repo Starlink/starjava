@@ -6,7 +6,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableSerializer;
@@ -98,6 +100,189 @@ public abstract class VOSerializer {
                                                String href,
                                                DataOutput streamout )
             throws IOException;
+
+    /**
+     * Writes any PARAM and INFO elements associated with this serializer's
+     * table.  These should generally go in the RESOURCE element
+     * in which the table will be contained.
+     * 
+     * @param   writer  destination stream
+     */
+    public void writeParams( BufferedWriter writer ) throws IOException {
+        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
+            DescribedValue param = (DescribedValue) it.next();
+            ValueInfo pinfo = param.getInfo();
+
+            /* Output the characteristics of this param unless it's called
+             * 'description' in which case it gets treated specially. */
+            if ( ! pinfo.getName().equalsIgnoreCase( "description" ) ) {
+
+                /* Try to write it as a typed PARAM element. */
+                Encoder encoder = Encoder.getEncoder( pinfo );
+                if ( encoder != null ) {
+                    String valtext = encoder.encodeAsText( param.getValue() );
+                    String content = encoder.getFieldContent();
+
+                    writer.write( "<PARAM" );
+                    writer.write( formatAttributes( encoder
+                                                   .getFieldAttributes() ) );
+                    writer.write( formatAttribute( "value", valtext ) );
+                    if ( content.length() > 0 ) {
+                        writer.write( ">" );
+                        writer.newLine();
+                        writer.write( content );
+                        writer.newLine();
+                        writer.write( "</PARAM>" );
+                    }
+                    else {
+                        writer.write( "/>" );
+                    }
+                    writer.newLine();
+                }
+
+                /* If it's of a funny type, just try to write it as an INFO. */
+                else {
+                    Object value = param.getValue();
+                    writer.write( "<INFO" );
+                    writer.write( formatAttribute( "name", pinfo.getName() ) );
+                    if ( value != null ) {
+                        writer.write( formatAttribute( "value", 
+                                                       value.toString() ) );
+                    }
+                    writer.write( "/>" );
+                    writer.newLine();
+                }
+            }
+        }
+    }
+
+    /**
+     * Writes any DESCRIPTION element associated with this serializer's table.
+     * This should generally go just inside the TABLE element itself.
+     * If there's no suitable description text, nothing will be written.
+     *
+     * @param   writer  destination stream
+     */
+    public void writeDescription( BufferedWriter writer ) throws IOException {
+        String description = null;
+        for ( Iterator it = table.getParameters().iterator(); it.hasNext(); ) {
+            DescribedValue dval = (DescribedValue) it.next();
+            if ( dval.getInfo().getName().equalsIgnoreCase( "description" ) ) {
+                Object value = dval.getValue();
+                if ( value instanceof String && 
+                     ((String) value).trim().length() > 0 ) {
+                    description = (String) value;
+                    break;
+                }
+            }
+        }
+        if ( description != null ) {
+            writer.write( "<DESCRIPTION>" );
+            writer.newLine();
+            writer.write( formatText( description.trim() ) );
+            writer.newLine();
+            writer.write( "</DESCRIPTION>" );
+            writer.newLine();
+        }
+    }
+
+
+    /**
+     * Turns a name,value pair into an attribute assignment suitable for
+     * putting in an XML start tag.
+     * The resulting string starts with, but does not end with, whitespace.
+     * Any necessary escaping of the strings is taken care of.
+     *
+     * @param  name  the attribute name
+     * @param  value  the attribute value
+     * @return  string of the form ' name="value"'
+     */
+    public static String formatAttribute( String name, String value ) {
+        return new StringBuffer()
+            .append( ' ' )
+            .append( name )
+            .append( '=' )
+            .append( '"' )
+            .append( value.replaceAll( "&", "&amp;" )
+                          .replaceAll( "<", "&lt;" )
+                          .replaceAll( ">", "&gt;" )
+                          .replaceAll( "\"", "&quot;" ) )
+            .append( '"' )
+            .toString();
+    }
+
+    /**
+     * Performs necessary special character escaping for text which
+     * will be written as XML CDATA.
+     *
+     * @param   text  the input text
+     * @return  <tt>text</tt> but with XML special characters escaped
+     */
+    public static String formatText( String text ) {
+        int leng = text.length();
+        StringBuffer sbuf = new StringBuffer( leng );
+        for ( int i = 0; i < leng; i++ ) {
+            char c = text.charAt( i );
+            switch ( c ) {
+                case '<':
+                    sbuf.append( "&lt;" );
+                    break;
+                case '>':
+                    sbuf.append( "&gt;" );
+                    break;
+                case '&':
+                    sbuf.append( "&amp;" );
+                    break;
+                default:
+                    sbuf.append( c );
+            }
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Turns a Map of name,value pairs into a string of attribute
+     * assignments suitable for putting in an XML start tag.
+     * The resulting string starts with, but does not end with, whitespace.
+     * Any necessary escaping of the strings is taken care of.
+     *
+     * @param  atts  Map of name,value pairs
+     * @return  a string of name="value" assignments
+     */
+    private static String formatAttributes( Map atts ) {
+        StringBuffer sbuf = new StringBuffer();
+        for ( Iterator it = new TreeSet( atts.keySet() ).iterator();
+              it.hasNext(); ) {
+            String attname = (String) it.next();
+            String attval = (String) atts.get( attname );
+            sbuf.append( formatAttribute( attname, attval ) );
+        }
+        return sbuf.toString();
+    }
+
+    /**
+     * Writes a FIELD element to a writer.
+     *
+     * @param  content  text content of the element, if any
+     * @param  attributes   a name-value map of attributes
+     * @param  writer    destination stream
+     */
+    private static void writeFieldElement( BufferedWriter writer,
+                                           String content, Map attributes )
+            throws IOException {
+        writer.write( "<FIELD" + formatAttributes( attributes ) );
+        if ( content != null && content.length() > 0 ) {
+            writer.write( '>' );
+            writer.newLine();
+            writer.write( content );
+            writer.newLine();
+            writer.write( "</FIELD>" );
+        }
+        else {
+            writer.write( "/>" );
+        }
+        writer.newLine();
+    }
 
     /**
      * Factory method which returns a serializer capable of serializing
@@ -217,7 +402,7 @@ public abstract class VOSerializer {
             if ( encoder != null ) {
                 String content = encoder.getFieldContent();
                 Map atts = encoder.getFieldAttributes();
-                VOTableWriter.writeFieldElement( writer, content, atts );
+                writeFieldElement( writer, content, atts );
             }
             else {
                 writer.write( "<!-- Omitted column " +
@@ -260,7 +445,7 @@ public abstract class VOSerializer {
                     if ( encoder != null ) {
                         String text = encoder.encodeAsText( rowdata[ icol ] );
                         writer.write( "    <TD>" );
-                        writer.write( VOTableWriter.formatText( text ) );
+                        writer.write( formatText( text ) );
                         writer.write( "</TD>" );
                         writer.newLine();
                     }
@@ -353,8 +538,7 @@ public abstract class VOSerializer {
             xmlwriter.newLine();
             
             /* Write the STREAM element. */
-            xmlwriter.write( "<STREAM" + 
-                             VOTableWriter.formatAttribute( "href", href ) +
+            xmlwriter.write( "<STREAM" + formatAttribute( "href", href ) +
                              "/>" );
             xmlwriter.newLine();
 
@@ -469,7 +653,7 @@ public abstract class VOSerializer {
 
                     /* Write out the FIELD element with attributes which match
                      * the way the FITS serializer will write the table. */
-                    VOTableWriter.writeFieldElement( writer, content, atts );
+                    writeFieldElement( writer, content, atts );
                 }
                 else {
                     writer.write( "<!-- Omitted column " + 
