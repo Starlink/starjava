@@ -636,7 +636,7 @@ public class ASTJ
      */
     public Mapping get1DMapping( int axis )
     {
-        return get1DFrameSet( astRef, axis );
+        return get1DMapping( astRef, axis );
     }
 
     /**
@@ -647,7 +647,7 @@ public class ASTJ
      *
      *  @return the 1D mapping
      */
-    static public Mapping get1DFrameSet( FrameSet frameset, int axis )
+    static public Mapping get1DMapping( FrameSet frameset, int axis )
         throws AstException
     {
         FrameSet framecopy = extract1DFrameSet( frameset, axis );
@@ -666,15 +666,16 @@ public class ASTJ
      *
      *  @return the 1D frameset
      */
-    static public FrameSet get1DFrameSet( FrameSet frameset )
+    static public FrameSet get1DFrameSet( FrameSet frameset, int axis )
     {
-        // TODO: remove makeSpectral signature.
-        return extract1DFrameSet( frameset, 1 );
+        // TODO: make attempt to remove makeSpectral signature? When it's been
+        // created from defaults?
+        return extract1DFrameSet( frameset, axis );
     }
 
     /**
-     *  Convert the current frameset into a one suitable for
-     *  displaying a spectrum.
+     *  Convert the current frameset into a one suitable for displaying a
+     *  spectrum.
      *
      *  @param axis  the axis to select as the spectral dimension.
      *  @param start first position in input base frame coordinates (GRID)
@@ -716,11 +717,10 @@ public class ASTJ
         Mapping xmap = null;
         if ( nax != 1 || nin != 1 ) {
 
-            // Multidimensional input/output. Use a LutMap for the
-            // coordinate measurement along the GRID positions as
-            // we want to avoid the case when just using a PermMap
-            // to lose a second axis makes the mapping not
-            // invertable (i.e. for sky coordinates not providing
+            // Multidimensional input/output. Use a LutMap for the coordinate
+            // measurement along the GRID positions as we want to avoid the
+            // case when just using a PermMap to lose a second axis makes the
+            // mapping not invertable (i.e. for sky coordinates not providing
             // RA and DEC inputs will always give AST__BAD).
 
             // Get memory for transformed GRID positions.
