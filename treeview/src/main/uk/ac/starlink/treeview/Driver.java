@@ -73,7 +73,7 @@ public class Driver {
         while ( flagIt.hasNext() ) {
             usageMsg += " [" + flagIt.next().toString() + "]";
         }
-        usageMsg +=       "\n         item ...\n";
+        usageMsg +=       "\n         [item ...]\n";
 
         /* Construct the factory which will build the requested DataNodes. */
         DataNodeFactory nodeFactory = new DataNodeFactory();
