@@ -1,5 +1,7 @@
 package uk.ac.starlink.treeview;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
 import javax.swing.Icon;
@@ -56,7 +58,14 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        return ziparchivenode.getChildIteratorAtLevel( path, this );
+        try {
+            return ziparchivenode.getChildIteratorAtLevel( path, this );
+        }
+        catch ( IOException e ) {
+            return Collections
+                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
+                  .iterator();
+        }
     }
 
 }

@@ -44,24 +44,29 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     }
 
     /**
-     * Returns an input stream containing the data from a given ZipEntry
-     * object in this archive.
-     *
-     * @param  zent the ZipEntry object whose data is required
-     * @return an InputStream giving the contents of <tt>zent</tt>
-     */
-    protected abstract InputStream getEntryInputStream( ZipEntry zent ) 
-        throws IOException;
-
-    /**
      * Returns a list of all the <tt>ZipEntry</tt> objects in 
-     * this zip archive.  This will only be called once, so does not
-     * need to cache its return value.
+     * this zip archive.
      *
      * @return  a List of all the {@link java.util.zip.ZipEntry} objects
      *          which make up this zip archive.
      */
     protected abstract List getEntries() throws IOException;
+
+    /**
+     * Returns an iterator over the DataNodes at a given level in the
+     * hierarchy of this archive.  The iterator creates DataNodes for
+     * each ZipEntry in this archive whose name begins with the 
+     * supplied string <tt>level</tt>.
+     *
+     * @param  level  the required starting substring of the name of all
+     *         ZipEntries to be represented in the result
+     * @param  parent  the DataNode whose children the resulting nodes will be
+     * @return  an Iterator over {@link DataNode} objects corresponding to
+     *          the ZipEntry objects specified by <tt>level</tt>
+     */
+    protected abstract Iterator getChildIteratorAtLevel( String level,
+                                                         DataNode parent )
+            throws IOException;
 
     /**
      * Tests whether the presented byte array looks like the start of a
@@ -109,85 +114,14 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        return getChildIteratorAtLevel( "", this );
-    }
-
-    /**
-     * Returns an iterator over the DataNodes at a given level in the
-     * hierarchy of this archive.  The iterator creates DataNodes for
-     * each ZipEntry in this archive whose name begins with the 
-     * supplied string <tt>level</tt>.
-     *
-     * @param  level  the required starting substring of the name of all
-     *         ZipEntries to be represented in the result
-     * @param  parent  the DataNode whose children the resulting nodes will be
-     * @return  an Iterator over {@link DataNode} objects corresponding to
-     *          the ZipEntry objects specified by <tt>level</tt>
-     */
-    Iterator getChildIteratorAtLevel( String level, final DataNode parent ) {
-        final ZipArchiveDataNode zadn = this;
-        final DataNodeFactory childMaker = getChildMaker();
-        final int lleng = level.length();
-        final String pathHead = getPath() + getPathSeparator() + level;
-
-        /* Get an iterator over all the ZipEntries at the requested level. */
-        final Iterator zentIt;
         try {
-            zentIt = getEntriesAtLevel( level ).iterator();
+            return getChildIteratorAtLevel( "", this );
         }
         catch ( IOException e ) {
-            DataNode bumNode = childMaker.makeErrorDataNode( parent, e );
-            return Collections.singleton( bumNode ).iterator();
+            return Collections
+                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
+                  .iterator();
         }
-
-        /* Return an iterator which makes DataNodes from each ZipEntry. */
-        return new Iterator() {
-            public boolean hasNext() {
-                return zentIt.hasNext();
-            }
-            public Object next() {
-
-                /* Get the next ZipEntry at the requested level. */
-                final ZipEntry zent = (ZipEntry) zentIt.next();
-                final String subname = zent.getName().substring( lleng );
-                boolean isDir = zent.isDirectory();
-
-                /* If it is a directory, make a ZipBranchDataNode from it. */
-                if ( isDir ) {
-                    DataNode dnode = new ZipBranchDataNode( zadn, zent );
-                    dnode.setCreator( new CreationState( parent ) );
-                    dnode.setLabel( subname );
-                    return dnode;
-                }
-
-                /* If it's a file, turn it into a DataSource and get the
-                 * DataNodeFactory to make something appropriate of it. */
-                else {
-                    DataSource datsrc = new PathedDataSource() {
-                        public String getPath() {
-                            return pathHead + subname;
-                        }
-                        protected long getRawLength() {
-                            return zent.getSize();
-                        }
-                        protected InputStream getRawInputStream()
-                                throws IOException {
-                            return getEntryInputStream( zent );
-                        }
-                    };
-                    datsrc.setName( subname );
-                    try {
-                        return childMaker.makeDataNode( parent, datsrc );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
-                    }
-                }
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
     }
 
     /**

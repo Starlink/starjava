@@ -131,10 +131,9 @@ public class TarStreamDataNode extends DefaultDataNode {
                 final TarEntry tent = (TarEntry) tentIt.next();
                 final String tname = tent.getName();
                 final String subname = tname.substring( lleng );
-                boolean isDir = tent.isDirectory();
 
                 /* If it is a directory, make a TarBranchDataNode from it. */
-                if ( isDir ) {
+                if ( tent.isDirectory() ) {
                     DataNode dnode = new TarBranchDataNode( tsdn, tent );
                     dnode.setCreator( new CreationState( parent ) );
                     dnode.setLabel( subname );
@@ -170,7 +169,7 @@ public class TarStreamDataNode extends DefaultDataNode {
 
                         /* In case we can't find the entry (shouldn't happen) */
                         if ( ! found ) {
-                            System.err.println( "Couln't find entry " + tname );
+                            System.err.println( "Can't find entry " + tname );
                             return new DefaultDataNode( subname );
                         }
 
@@ -275,10 +274,7 @@ public class TarStreamDataNode extends DefaultDataNode {
         int lleng = level.length();
 
         /* Iterate over all entries in the archive. */
-        if ( entries == null ) {
-            entries = getEntries();
-        }
-        for ( Iterator entIt = entries.iterator(); entIt.hasNext(); ) {
+        for ( Iterator entIt = getEntries().iterator(); entIt.hasNext(); ) {
             TarEntry ent = (TarEntry) entIt.next();
             String entname = ent.getName();
 
@@ -351,23 +347,16 @@ public class TarStreamDataNode extends DefaultDataNode {
      */
     private InputStream getEntryInputStream( TarEntry reqEnt ) 
             throws IOException {
-        int reqPos = entryPosition( reqEnt );
-        if ( reqPos < 0 ) {
-            throw new IllegalArgumentException(
-                "Entry " + reqEnt.getName() + " is not in the archive" );
-        }
-
+        String reqName = reqEnt.getName();
         TarInputStream tstream = getTarInputStream();
         for ( TarEntry ent;
               ( ent = (TarEntry) tstream.getNextEntry() ) != null; ) {
-            if ( ent.getName().equals( reqEnt.getName() ) ) {
+            if ( ent.getName().equals( reqName ) ) {
                 return tstream;
             }
         }
-
         tstream.close();
-        throw new IOException( "Entry " + reqEnt + " said it was in " +
-                               "the TarInputStream but wasn't" );
+        throw new IOException( "Entry " + reqEnt + " not in this archive" );
     }
 
     /**
@@ -377,28 +366,6 @@ public class TarStreamDataNode extends DefaultDataNode {
      */
     private TarInputStream getTarInputStream() throws IOException {
         return new TarInputStream( datsrc.getInputStream() );
-    }
-
-    /**
-     * Returns the index of a given entry into the list of all the entries
-     * in this archive.
-     *
-     * @param   reqEnt  the entry to locate
-     * @return  the position at which <tt>reqEnt</tt> appears in this archive
-     */
-    private int entryPosition( TarEntry reqEnt ) throws IOException {
-        if ( entries == null ) {
-            entries = getEntries();
-        }
-        int i = 0;
-        String reqName = reqEnt.getName();
-        for ( Iterator it = entries.iterator(); it.hasNext(); ) {
-            if ( ( (TarEntry) it.next() ).getName().equals( reqName ) ) {
-                return i;
-            }
-            i++;
-        }
-        return -1;
     }
 
     /**

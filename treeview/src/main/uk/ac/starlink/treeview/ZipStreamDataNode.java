@@ -1,13 +1,12 @@
 package uk.ac.starlink.treeview;
 
-import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 import uk.ac.starlink.util.DataSource;
 
@@ -19,9 +18,7 @@ import uk.ac.starlink.util.DataSource;
 public class ZipStreamDataNode extends ZipArchiveDataNode {
 
     private DataSource datsrc;
-    private ZipInputStream zstream;
     private List entries;
-    private int zpos;
 
     /**
      * Constructs a ZipStreamDataNode from a DataSource object.
@@ -42,75 +39,155 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
             for ( ZipEntry zent; 
                   ( zent = (ZipEntry) zs.getNextEntry() ) != null; ) {
                 entries.add( zent );
-
-                /* This sometimes throws an EOFException for some reason
-                 * (and sometimes not) - just break out if so. */
-                try {
-                    zs.closeEntry();
-                }
-                catch ( EOFException e ) {
-                    break;
-                }
             }
             zs.close();
         }
         return entries;
     }
 
-    protected synchronized InputStream getEntryInputStream( ZipEntry reqEnt ) 
+    protected Iterator getChildIteratorAtLevel( String level,
+                                                final DataNode parent )
             throws IOException {
+        final ZipArchiveDataNode zadn = this;
+        final DataNodeFactory childMaker = getChildMaker();
+        final int lleng = level.length();
+        final String pathHead = getPath() + getPathSeparator() + level;
 
-        /* See if we have an open ZipInputStream which is positioned ahead
-         * of the entry that has been requested. */
-        int reqPos = entries.indexOf( reqEnt );
-        if ( reqPos < 0 ) {
-            throw new IllegalArgumentException( 
-                "Entry " + reqEnt + " is not in this archive" );
-        }
+        /* Get an iterator over all the ZipEntries at the requested level. */
+        final Iterator zentIt = getEntriesAtLevel( level ).iterator();
 
-        /* If not, we have to close the current stream and open a new one
-         * at the start. */
-        if ( zstream == null || reqPos < zpos  ) {
-            if ( zstream != null ) {
-                zstream.close();
-            }
-            zstream = getZipInputStream();
-            zpos = 0;
-        }
+        /* Get a stream which will run over the whole archive. */
+        final ZipInputStream zstream = getZipInputStream();
 
-        /* Flip through the entries in this stream in sequence until we
-         * get the one we're after. */
-        for ( ZipEntry ent; 
-              ( ent = (ZipEntry) zstream.getNextEntry() ) != null; ) {
+        /* Return an iterator which makes DataNodes from each entry. */
+        return new Iterator() {
+            byte[] magbuf = new byte[ 512 ];
+            public Object next() {
 
-            /* Update the record of the one we've got to. */
-            zpos++;
+                /* Get the next entry at the requested level. */
+                final ZipEntry zent = (ZipEntry) zentIt.next();
+                final String zname = zent.getName();
+                final String subname = zname.substring( lleng );
 
-            /* If we find the one we want, return an input stream with its
-             * content.  Note that we have to override the close method
-             * to close the entry not the ZipInputStream itself, since
-             * we may want to use that one later. */
-            if ( ent.getName().equals( reqEnt.getName() ) ) {
-                return new FilterInputStream( zstream ) {
-                    public boolean markSupported() {
-                        return false;
+                /* If it is a directory, make a ZipBranchDataNode from it. */
+                if ( zent.isDirectory() ) {
+                    DataNode dnode = new ZipBranchDataNode( zadn, zent );
+                    dnode.setCreator( new CreationState( parent ) );
+                    dnode.setLabel( subname );
+                    return dnode;
+                }
+
+                /* If it's a file, turn it into a DataSource and get the 
+                 * DataNodeFactory to make something appropriate from it. */
+                else {
+
+                    /* See the similar TarStreamDataNode impelementation for
+                     * further comments on the following steps. */
+                    DataSource childSrc;
+                    try {
+
+                        /* Advance the ZipInputStream to the current entry. */
+                        boolean found = false;
+                        for ( ZipEntry ent;
+                              (ent = (ZipEntry) zstream.getNextEntry()) != null;
+                            ) {
+                            if ( ent.getName().equals( zname ) ) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if ( ! found ) {
+                            System.err.println( "Can't find entry " + zname );
+                            return new DefaultDataNode( subname );
+                        }
+
+                        /* Make a DataSource which will use our zstream now,
+                         * but a new ZipInputStream later. */
+                        ProvisionalDataSource psrc = 
+                            new ProvisionalDataSource( pathHead + subname,
+                                                       zent.getSize() ) {
+                                public InputStream getBackupRawInputStream()
+                                        throws IOException {
+                                    InputStream strm = 
+                                        getEntryInputStream( zent );
+                                    return strm;
+                                }
+                            };
+                        psrc.setName( subname );
+                        psrc.setProvisionalStream(
+                            new FilterInputStream( zstream ) {
+                                public void close() throws IOException {
+                                    zstream.closeEntry();
+                                }
+                                public boolean markSupported() {
+                                    return false;
+                                }
+                            } );
+                        psrc.getMagic( magbuf );
+                        psrc.setProvisionalStream( null );
+                        psrc.close();
+                        childSrc = psrc;
                     }
-                    public void close() throws IOException {
-                        zstream.closeEntry();
+                    catch ( IOException e ) {
+                        return childMaker.makeErrorDataNode( parent, e );
                     }
-                };
-            }
 
-            /* Otherwise, close this entry and move to the next one. */
-            else {
-                zstream.closeEntry();
+                    /* If we are at the end of the children, close the zip 
+                     * stream. */
+                    if ( ! hasNext() ) {
+                        try {
+                            zstream.close();
+                        }
+                        catch ( IOException e ) {
+                            // oh well
+                        }
+                    }
+ 
+                    /* Construct the node as normal from its source. */
+                    try {
+                        return childMaker.makeDataNode( parent, childSrc );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        return childMaker.makeErrorDataNode( parent, e );
+                    }
+                }
             }
-        }
-
-        /* Fell off the end. */
-        throw new ZipException( "Entry " + reqEnt + " said it was in " +
-                                "the ZipInputStream but wasn't" );
+            public boolean hasNext() {
+                return zentIt.hasNext();
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
+
+    /**
+     * Returns an input stream giving the data from a given entry in this
+     * archive.This stream is independent of any other streams associated
+     * with the archive, so it can (and should) be closed by the user
+     * when it's finished with.  It has to read through the whole zip
+     * input stream from the beginning to get this, so it can be
+     * expensive if you want a stream from a long way into a large 
+     * archive on which reads are not cheap (for instance one coming
+     * over the wire, or a compressed one).
+     *
+     * @param   reqEnt  the entry for which the stream data is required
+     * @return  a stream containing the data in <tt>reqEnt</tt>
+     */
+    private InputStream getEntryInputStream( ZipEntry reqEnt ) 
+            throws IOException {
+        String reqName = reqEnt.getName();
+        ZipInputStream zstream = getZipInputStream();
+        for ( ZipEntry ent;
+              ( ent = (ZipEntry) zstream.getNextEntry() ) != null; ) {
+            if ( ent.getName().equals( reqName ) ) {
+                return zstream;
+            }
+        }
+        zstream.close();
+        throw new IOException( "Entry " + reqEnt + " not in this archive" );
+    }
+
 
     private ZipInputStream getZipInputStream() throws IOException {
         return new ZipInputStream( datsrc.getInputStream() );
