@@ -141,6 +141,7 @@ public class FormatsTest extends TestCase {
             "votable-binary-href",
             "votable-fits-inline",
             "text",
+            "ascii",
             "html",
             "html-element",
             "latex",
