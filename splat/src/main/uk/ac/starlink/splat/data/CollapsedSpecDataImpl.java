@@ -7,17 +7,25 @@
  */
 package uk.ac.starlink.splat.data;
 
-import uk.ac.starlink.ast.Frame;
-import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.SpecFrame;
+import java.io.IOException;
+import java.util.Arrays;
+
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.BridgeNDArray;
+import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.array.ArrayArrayImpl;
+import uk.ac.starlink.array.WindowArrayImpl;
+
 /**
  * This class provides an implementation of SpecDataImpl that reprocesses
- * another 2D SpecData's implementation into a collapsed 1D
+ * another 2D or 3D SpecData's implementation into a collapsed 1D
  * implementation. The collapse happens either along the dispersion axis, if
- * one can be determined, or along the first axis.
+ * one can be determined, or along the first axis. For 3D data an additional
+ * position along a non-dispersion axis must be identified and a single plane
+ * at that position is used.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -28,8 +36,7 @@ public class CollapsedSpecDataImpl
     extends MEMSpecDataImpl
 {
     /**
-     * Constructor, accepts the SpecData to be collapsed as single
-     * argument.
+     * Constructor for 2D data.
      *
      * @param parent the SpecData to collapse.
      */
@@ -40,107 +47,198 @@ public class CollapsedSpecDataImpl
         this.shortName = "Collapsed: " + shortName;
         this.parentImpl = parent.getSpecDataImpl();
         collapse( parent );
+        initMetaData( parent );
     }
 
     /**
-     * Do the collapse.
+     * Construct an object that uses a 2D section of data from a 3D
+     * spectrum. The section is defined using the dimensionality of the given
+     * SpecDims instance, which defines the picked axis, along with the index
+     * along the picked axis that the collapse onto the dispersion axis will
+     * occur down.
+     *
+     * @param parent the SpecData to collapse.
+     */
+    public CollapsedSpecDataImpl( SpecData parent, SpecDims specDims,
+                                  int index )
+        throws SplatException
+    {
+        super( parent.getFullName() );
+        this.shortName = "Collapsed (" + index + "): " + shortName;
+        this.parentImpl = parent.getSpecDataImpl();
+        collapseSection( parent, specDims, index );
+        initMetaData( parent );
+    }
+
+    /**
+     * Do a 2D SpecData collapse.
      */
     protected void collapse( SpecData parent )
         throws SplatException
     {
-        //  Get the real dimensionality of the original data.
-        int[] realDims = parent.getSpecDataImpl().getDims();
-        int[] dims = null;
-        int ndims = 0;
-
-        //  First non-redundant axis, 0 means not set.
-        int firstax = 0;
+        SpecDims specDims = new SpecDims( parent );
 
         //  We only handle 2D, but this can be complicated when some
         //  dimensions are redundant.
-        if ( realDims.length == 1 ) {
+        int sigdims = specDims.getNumSigDims();
+
+        if ( sigdims == 1 ) {
             //  Special case, nothing to do, just create a simple cloned copy.
             clone( parent );
             return;
         }
-        if ( realDims.length > 2 ) {
-            //  Only dealing with 2D spectra at present. Stop now if
-            //  not. However, cubes with a redundant axis are 2D.
-            ndims = 0;
-            for ( int i = 0; i < realDims.length; i++ ) {
-                if ( realDims[i] != 1 ) {
-                    if ( firstax == 0 ) {
-                        firstax = i + 1;
-                    }
-                    ndims++;
-                }
-            }
-            if ( ndims > 2 ) {
-                //  nD
-                throw new SplatException( "Can only collapse 2D spectra" );
-            }
-            else if ( ndims == 1 ) {
-                //  1D, but with many redundant axes. Do nothing.
-                clone( parent );
-                return;
-            }
-
-            //  2D
-            ndims = 0;
-            dims = new int[2];
-            for ( int i = 0; i < realDims.length; i++ ) {
-                if ( realDims[i] != 1 ) {
-                    dims[ndims] = realDims[i];
-                    ndims++;
-                }
-            }
-        }
-        else {
-            dims = realDims;
-            ndims = 2;
-            firstax = 1;
+        if ( sigdims > 2 ) {
+            throw new SplatException
+                ( "The method chosen can only collapse 2D spectra" );
         }
 
-        //  Get the FrameSet of the original dataset. This should reflect it's
-        //  dimensionality and original storage condition (SpecDataImpl
-        //  vectorize nD data by default).
-        FrameSet parentFrameSet = parent.getFrameSet();
-
-        //  Get the current Frame, this defines the coordinate systems. For a
-        //  mixed dispersion -versus- distance measure this should be a
-        //  CmpFrame that includes a SpecFrame.
-        Frame current = parentFrameSet.getFrame( FrameSet.AST__CURRENT );
-
-        //  Locate the dispersion axis. Should be the one that's a SpecFrame.
-        //  Complication here is if this just happens to be reduntant too.
-        int dispax = 1;
-        int[] ddims = new int[1];
-        for ( int i = 1; i < realDims.length; i++ ) {
-            ddims[0] = i + 1;
-            Frame frame2 = current.pickAxes( 1, ddims, null );
-            if ( frame2 instanceof SpecFrame ) {
-                if ( realDims[i] != 1 ) {
-                    dispax = i + 1;
-                    break;
-                }
-            }
-            frame2.annul();
-        }
+        //  2D so get the first proper axis, the two dimensions and choose the
+        //  dispersion axis.
+        int firstax = specDims.getFirstAxis();
+        int[] dims = specDims.getSigDims();
+        int dispax = specDims.getDispAxis( false );
 
         //  Perform the collapse of the values onto the first or second
         //  dimension. The new data and error arrays become the current
         //  values. XXX specify some combination algorithm, ranges would be
         //  trickier without user specified axis.
+        double[] d = parent.getYData();
+        double[] e = parent.getYDataErrors();
         if ( dispax == firstax ) {
-            collapse1( parent, dims );
+            collapse1( d, e, dims );
         }
         else {
-            collapse2( parent, dims );
+            collapse2( d, e, dims );
         }
 
-        //  Create the FrameSet for this data.
-        astref = ASTJ.extract1DFrameSet( parentFrameSet, dispax );
+        //  Create the FrameSet for this data. Note +1 for AST axes.
+        astref = ASTJ.extract1DFrameSet( parent.getFrameSet(), dispax + 1 );
+    }
 
+
+    /**
+     * Extra a 2D section from a 3D cube and collapse that.
+     */
+    public void collapseSection( SpecData parent, SpecDims specDims,
+                                 int index )
+        throws SplatException
+    {
+        //  Implementation notes:
+        //  Use NDArrays to pick out (index:index,*,*), (*,index:index,*) or
+        //  (*,*,index:index) 2D section. Index is along the picked axis held
+        //  the by SpecDims object, this cannot be the dispersion axis. The
+        //  collapse is along the other axis and onto the dispersion axis.
+
+        //  Copy int[] significant dims to long[] for NDArray API.
+        int[] dims = specDims.getSigDims();
+        long[] ldims = new long[dims.length];
+        for ( int i = 0; i < dims.length; i++ ) {
+            ldims[i] = (long) dims[i];
+        }
+
+        //  Create an NDArray of the current data, with the current real shape
+        //  (the significant dimensions).
+        double[] d = parent.getYData();
+        double[] e = parent.getYDataErrors();
+        OrderedNDShape baseShape = new OrderedNDShape( ldims, null );
+
+        // Data.
+        ArrayArrayImpl adImpl =
+            new ArrayArrayImpl( d, baseShape, new Double( SpecData.BAD ) );
+        BridgeNDArray fullDNDArray = new BridgeNDArray( adImpl );
+
+        // Errors.
+        BridgeNDArray fullENDArray = null;
+        if ( e != null ) {
+            ArrayArrayImpl aeImpl =
+                new ArrayArrayImpl( e, baseShape, new Double( SpecData.BAD ) );
+            fullENDArray = new BridgeNDArray( aeImpl );
+        }
+
+        //  Select the image section from the cube using a WindowArrayImpl.
+        //  The section is identified by making the picked axis offset equal
+        //  to the given index along that axis (plus 1) and the size of that
+        //  dimension is set to 1.
+        int picked = specDims.pickNonDispAxis( false );
+        long[] origin = new long[dims.length];
+        Arrays.fill( origin, 1L );
+        origin[picked] = (long) index + 1;
+        ldims[picked] = 1L;
+
+        OrderedNDShape sectionShape =
+            new OrderedNDShape( origin, ldims, baseShape.getOrder() );
+
+        //  Data.
+        WindowArrayImpl wdImpl = new WindowArrayImpl( fullDNDArray,
+                                                      sectionShape );
+        BridgeNDArray winDNDArray = new BridgeNDArray( wdImpl );
+
+        //  Errors.
+        BridgeNDArray winENDArray = null;
+        if ( e != null ) {
+            WindowArrayImpl weImpl = new WindowArrayImpl( fullENDArray, 
+                                                          sectionShape );
+            winENDArray = new BridgeNDArray( weImpl );
+        }
+
+        //  Need the actual dimensions of section for collapse operation.
+        int[] wdims = new int[dims.length - 1];
+        int size = 1;
+        for ( int i = 0, j = 0; i < dims.length; i++ ) {
+            if ( i != picked ) {
+                wdims[j++] = dims[i];
+                size *= dims[i];
+            }
+        }
+
+        //  Now access the section data.
+        //  XXX look at using pixel iterators for more efficient access?
+        double[] ds = new double[size];
+        double[] es = null;
+        if ( e != null ) {
+            es = new double[size];
+        }
+        try {
+            winDNDArray.getAccess().read( ds, 0, size );
+            if ( e != null ) {
+                winENDArray.getAccess().read( es, 0, size );
+            }
+        }
+        catch (IOException io) {
+            io.printStackTrace();
+            throw new SplatException( io );
+        }
+
+        //  Collapse onto the dispersion axis. The collapsed axis is the not
+        //  picked one.
+        int dispax = specDims.getDispAxis( false );
+        int collapsed = 0;
+        if ( picked == 0 ) {
+            collapsed = ( dispax == 1 ) ? 2 : 1;
+        }
+        else if ( picked == 1 ) {
+            collapsed = ( dispax == 0 ) ? 2 : 0;
+        }
+        else if ( picked == 2 ){
+            collapsed = ( dispax == 0 ) ? 1 : 0;
+        }
+
+        if ( dispax < collapsed ) {
+            collapse1( ds, es, wdims );
+        }
+        else {
+            collapse2( ds, es, wdims );
+        }
+
+        //  Create the FrameSet for this data. Note +1 for AST axes.
+        astref = ASTJ.extract1DFrameSet( parent.getFrameSet(), dispax + 1 );
+    }
+
+    /**
+     * Initialise the local meta data from the parent SpecData.
+     */
+    protected void initMetaData( SpecData parent )
+    {
         //  Record any source of header information.
         if ( parent.getSpecDataImpl().isFITSHeaderSource() ) {
             headers =
@@ -153,19 +251,17 @@ public class CollapsedSpecDataImpl
     }
 
     /**
-     * Collapse the 2D data array, plus optional errors, of a SpecData object
-     * onto its first dimension to create a 1D array plus errors. The new
-     * array and errors are set as the data values of this object.
+     * Collapse a 2D data array, plus optional errors, onto its first
+     * dimension to create a 1D array plus errors. The new array and errors
+     * are set as the data values of this object.
      *
      * The combination uses a weighted mean.
      */
-    protected void collapse1( SpecData parent, int[] dims )
+    protected void collapse1( double[] d, double[] e, int[] dims )
     {
         //  Use the given dimensions. These should exclude any redundant axes.
         int dim1 = dims[0];
         int dim2 = dims[1];
-        double[] d = parent.getYData();
-        double[] e = parent.getYDataErrors();
 
         data = new double[dim1];
         if ( e != null ) {
@@ -231,19 +327,17 @@ public class CollapsedSpecDataImpl
     }
 
     /**
-     * Collapse the 2D data array, plus optional errors, of a SpecData object
-     * onto its second dimension to create a 1D array plus errors. The new
-     * array and errors are set as the data values of this object.
+     * Collapse a 2D data array, plus optional errors, onto its second
+     * dimension to create a 1D array plus errors. The new array and errors
+     * are set as the data values of this object.
      *
      * The combination uses a weighted mean.
      */
-    protected void collapse2( SpecData parent, int[] dims )
+    protected void collapse2( double[] d, double[] e, int[] dims )
     {
         //  Use the given dimensions. These should exclude any redundant axes.
         int dim1 = dims[0];
         int dim2 = dims[1];
-        double[] d = parent.getYData();
-        double[] e = parent.getYDataErrors();
 
         data = new double[dim2];
         if ( e != null ) {
@@ -264,6 +358,7 @@ public class CollapsedSpecDataImpl
             int ngood = 0;
             for ( int j = 0; j < dim2; j++ ) {
                 sum1 = 0.0;
+                ngood = 0;
                 for ( int i = 0; i < dim1; i++ ) {
 
                     //  Index into 1D vectorized arrays, note this will break

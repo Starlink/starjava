@@ -832,18 +832,20 @@ public class SpecDataFactory
     public final static int VECTORIZE = 2;
 
     /**
-     * Process a SpecData object that isn't really 1D into another
-     * representation of itself. There are several ways that this reprocessing
-     * can be performed:
+     * Process a SpecData object that isn't really 1D into other
+     * representations of itself. There are several ways that this
+     * reprocessing can be performed:
      * <ul>
-     *   <li>Collapse along the dispersion axis</li>
-     *   <li>Expansion into a spectrum per line of the original data</li>
+     *   <li>Collapse onto the dispersion axis</li>
+     *   <li>Expansion into a spectrum per dispersion line of the original
+     *       data</li> 
      *   <li>Vectorisation of the original data into a single spectrum</li>
      * </ul>
-     * To be reprocessable a SpecData must have an implementation that is 2D
-     * (or reducible to 2D).  Higher dimensions are not supported and 1D
-     * spectrum require no reprocessing. In both these cases a null is
-     * returned.
+     * To be re-processable a SpecData must have an implementation that is 2D
+     * or 3D (or reducible to these).  Higher dimensions are not supported and
+     * 1D spectrum require no reprocessing. In both these cases a null is
+     * returned. A null is also returned for VECTORIZED requests as this is
+     * the natural format for all spectral data (this may change).
      *
      * @param specData the SpecData object to reprocess.
      * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
@@ -852,51 +854,70 @@ public class SpecDataFactory
     public SpecData[] reprocessTo1D( SpecData specData, int method )
         throws SplatException
     {
-        SpecData[] results = null;
-        SpecDataImpl impl = specData.getSpecDataImpl();
-        int[] dims = impl.getDims();
-        if ( dims.length == 1 ) {
-            return results;
-        }
+        if ( method == VECTORIZE ) {
+            //  Nothing to do, this is the native form. XXX maybe we should
+            //  check the dispersion axis. If this isn't the first one then we
+            //  could re-order so we run along it, not perpendicular to it. 
+            //  For >2D we would have to think a little more about the order
+            //  of the other axes, but this is the expansion problem too.
+            return null;
+        } 
 
-        // XXX Deal with special data formats. IRAF, SDSS.
-        switch (method)
-        {
-           case COLLAPSE: {
-               results = new SpecData[1];
-               results[0] = collapseSpecData( specData );
-           }
-           break;
-           case EXPAND: {
-               results = expandSpecData( specData );
-           }
-           break;
-           case VECTORIZE: {
-               //  All spectra are already in this form.
-               results = new SpecData[1];
-               results[0] = specData;
-           }
-           break;
+        //  Check dimensionality, for 1D and greater than 3D we do nothing.
+        SpecDims specDims = new SpecDims( specData );
+        int ndims = specDims.getNumSigDims();
+
+        SpecData[] results = null;
+        if ( ndims > 1 && ndims < 4 ) {
+            if ( method == COLLAPSE ) {
+                results = collapseSpecData( specData, specDims );
+            }
+            else if ( method == EXPAND )  {
+                results = expandSpecData( specData, specDims );
+            }
         }
         return results;
     }
 
     /**
-     * Create a new SpecData instance by collapsing its 2D implementation
-     * along the dispersion axis. This creates a new 1D SpecData object.
+     * Create new SpecData instances by collapsing 2D or 3D implementations
+     * onto the dispersion axis. This creates new 1D SpecData objects. Only
+     * one is produced if the data is 2D.
      */
-    private SpecData collapseSpecData( SpecData specData )
+    private SpecData[] collapseSpecData( SpecData specData, SpecDims specDims )
         throws SplatException
     {
-        SpecDataImpl newImpl = new CollapsedSpecDataImpl( specData );
-        return new SpecData( newImpl );
+        SpecData[] results = null;
+        int ndims = specDims.getNumSigDims();
+        if ( ndims == 2 ) {
+            //  Simple 2D data.
+            results = new SpecData[1];
+            SpecDataImpl newImpl = new CollapsedSpecDataImpl( specData );
+            results[0] = new SpecData( newImpl );
+        }
+        else {
+            //  Need to pick an axis to step along collapsing each section in
+            //  turn onto the dispersion axis. XXX we seem to get spectra that
+            //  have no data (all BAD values), we could purge these as they
+            //  are useless. Note we get the size of the picked axis number of
+            //  SpecData's back.
+            int stepaxis = specDims.pickNonDispAxis( true );
+            int displen = specDims.getSigDims()[stepaxis];
+            results = new SpecData[displen];
+            for ( int i = 0; i < displen; i++ ) {
+                SpecDataImpl newImpl = 
+                    new CollapsedSpecDataImpl( specData, specDims, i );
+                results[i] = new SpecData( newImpl );
+            }
+        }
+        return results;
     }
 
     /**
      * Create a set of new 1D SpecData instances by extracting each line of a
-     * 2D implementation along the dispersion axis.
+     * 2D or 3D implementation along the dispersion axis.
      */
-    private SpecData[] expandSpecData( SpecData specData )
+    private SpecData[] expandSpecData( SpecData specData, SpecDims specDims )
     {
         return null;
     }
