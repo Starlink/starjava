@@ -61,7 +61,8 @@ public class PlasticStarTable extends ColumnStarTable {
     }
 
     public void addColumn( ColumnData coldata ) {
-        String colid = "$" + ( getColumnCount() + 1 );
+        String colid = JELRowReader.COLUMN_ID_CHAR + 
+                       Integer.toString( getColumnCount() + 1 );
         coldata.getColumnInfo()
                .setAuxDatum( new DescribedValue( TopcatUtils.COLID_INFO,
                                                  colid ) );
@@ -69,7 +70,8 @@ public class PlasticStarTable extends ColumnStarTable {
     }
 
     public void setColumn( int icol, ColumnData coldata ) {
-        String colid = "$" + ( icol + 1 );
+        String colid = JELRowReader.COLUMN_ID_CHAR +
+                       Integer.toString( icol + 1 );
         coldata.getColumnInfo()
                .setAuxDatum( new DescribedValue( TopcatUtils.COLID_INFO,
                                                  colid ) );

@@ -79,6 +79,12 @@ public class JELRowReader extends DVMap {
      */
     public static final String NULL_QUERY_PREFIX = "NULL_";
 
+    /** Prefix identifying a unique column identifier. */
+    public static final char COLUMN_ID_CHAR = '$';
+
+    /** Prefix identifying a unique subset identifier. */
+    public static final char SUBSET_ID_CHAR = '_';
+
     /* Special value identifiers. */
     private static final byte INDEX_ID = (byte) 1;
     private static final byte NULL_VALUE_ID = (byte) 2;
@@ -341,7 +347,7 @@ public class JELRowReader extends DVMap {
    private int getColumnIndex( String name ) {
 
         /* Try the '$' + number format. */
-        if ( name.charAt( 0 ) == '$' ) {
+        if ( name.charAt( 0 ) == COLUMN_ID_CHAR ) {
             try {
                 int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( icol >= 0 && icol < stable.getColumnCount() ) {
@@ -382,7 +388,7 @@ public class JELRowReader extends DVMap {
     private short getSubsetIndex( String name ) {
 
         /* Try the '_' + number format. */
-        if ( name.charAt( 0 ) == '_' ) {
+        if ( name.charAt( 0 ) == SUBSET_ID_CHAR ) {
             try {
                 int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( isub >= 0 && isub < subsets.size() ) {
@@ -422,7 +428,8 @@ public class JELRowReader extends DVMap {
      * </ul>
      */
     private byte getSpecialId( String name ) {
-        if ( name.equals( "$0" ) || name.equalsIgnoreCase( "Index" ) ) {
+        if ( name.equals( COLUMN_ID_CHAR + "0" ) ||
+             name.equalsIgnoreCase( "Index" ) ) {
             return INDEX_ID;
         }
         else if ( name.equals( "null" ) ) {

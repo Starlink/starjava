@@ -29,7 +29,8 @@ public class TopcatUtils {
      * for use in algebraic expressions.
      */
     public static final ValueInfo COLID_INFO =
-        new DefaultValueInfo( "$ID", String.class, "Unique column ID" );
+        new DefaultValueInfo( JELRowReader.COLUMN_ID_CHAR + "ID",
+                              String.class, "Unique column ID" );
 
     /**
      * Column auxiliary metadata key identifying the description of

@@ -163,7 +163,8 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
     public MetaColumnTableModel makeTableModel() {
 
         /* ID column. */
-        MetaColumn idCol = new MetaColumn( "#ID", String.class ) {
+        MetaColumn idCol = new MetaColumn( JELRowReader.SUBSET_ID_CHAR + "ID",
+                                           String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetID( irow );
             }
@@ -221,7 +222,8 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         };
 
         /* Column ID column for column subsets. */
-        MetaColumn colCol = new MetaColumn( "Column $ID", String.class ) {
+        String ccname = "Column " + JELRowReader.COLUMN_ID_CHAR + "ID";
+        MetaColumn colCol = new MetaColumn( ccname, String.class ) {
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
                 if ( rset instanceof BooleanColumnRowSubset ) {
@@ -267,7 +269,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
      * @return  subset ID string
      */
     private String getSubsetID( int irow ) {
-        return "#" + ( irow + 1 );
+        return JELRowReader.SUBSET_ID_CHAR + Integer.toString( irow + 1 );
     }
 
     /**
