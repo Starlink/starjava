@@ -36,15 +36,16 @@ public class ArrayArrayImpl implements ArrayImpl {
         this.data = data;
         this.oshape = oshape;
         this.badValue = badValue;
+        this.type = Type.getType( data.getClass().getComponentType() );
         if ( oshape.getNumPixels() != (long) Array.getLength( data ) ) {
             throw new IllegalArgumentException( 
                 "Primitive array has wrong number of elements " + 
                 Array.getLength( data ) + " for shape " + oshape );
         }
-        Class ctype = data.getClass().getComponentType();
-        if ( Type.getType( ctype ) == null ) {
+        if ( type == null ) {
             throw new IllegalArgumentException(
-                "Unsupported primitive numeric element type " + ctype );
+                "Unsupported primitive numeric element array of type " + 
+                data.getClass() );
         }
     }
 

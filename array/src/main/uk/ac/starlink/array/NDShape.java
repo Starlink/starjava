@@ -461,7 +461,8 @@ public class NDShape implements Cloneable {
         for ( int i = 0; i < origin.length; i++ ) {
             if ( dims[ i ] < 1 ) {
                 throw new IllegalArgumentException(
-                   "Dimensions less than 1 not allowed" );
+                   "Dimensions less than 1 not allowed " +
+                   toString( dims ) );
             }
         }
     }
