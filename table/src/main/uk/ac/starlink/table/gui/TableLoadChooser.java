@@ -98,7 +98,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor (Starlink)
  * @since    26 Nov 2004
  */
-public class StarTableChooser extends JPanel {
+public class TableLoadChooser extends JPanel {
 
     private final JTextField locField_;
     private final Action locAction_;
@@ -137,7 +137,7 @@ public class StarTableChooser extends JPanel {
      * a default set of load dialogue options, as supplied by 
      * {@link #makeDefaultLoadDialogs}, are used.
      */
-    public StarTableChooser() {
+    public TableLoadChooser() {
         this( new StarTableFactory() );
         SwingAuthenticator auth = new SwingAuthenticator();
         auth.setParentComponent( this );
@@ -151,7 +151,7 @@ public class StarTableChooser extends JPanel {
      *
      * @param  factory  factory to use for creating tables
      */
-    public StarTableChooser( StarTableFactory factory ) {
+    public TableLoadChooser( StarTableFactory factory ) {
         this( new StarTableFactory(), makeDefaultLoadDialogs(), 
               new String[ 0 ] );
     }
@@ -172,7 +172,7 @@ public class StarTableChooser extends JPanel {
      * @param  extraDialogNames  names of additional classes which implement
      *         {@link TableLoadDialog}
      */
-    public StarTableChooser( StarTableFactory factory, 
+    public TableLoadChooser( StarTableFactory factory, 
                              TableLoadDialog[] dialogs,
                              String[] extraDialogNames ) {
         dialogs_ = dialogs;
@@ -389,7 +389,7 @@ public class StarTableChooser extends JPanel {
      *
      * @param  saver  saver
      */
-    public void configureFromSaver( StarTableSaver saver ) {
+    public void configureFromSaver( TableSaveChooser saver ) {
         FilestoreChooser loadChooser = getFilestoreChooser();
         FilestoreChooser saveChooser = saver.getFilestoreChooser();
         if ( loadChooser != null && saveChooser != null ) {
@@ -560,7 +560,7 @@ public class StarTableChooser extends JPanel {
         Action act = new AbstractAction( tld.getName() ) {
             public void actionPerformed( ActionEvent evt ) {
                 boolean status =
-                    tld.showLoadDialog( StarTableChooser.this, tableFactory_,
+                    tld.showLoadDialog( TableLoadChooser.this, tableFactory_,
                                         formatSelector_.getModel(),
                                         getTableConsumer() );
             }
