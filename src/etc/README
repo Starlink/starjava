@@ -10,6 +10,11 @@ and applications set.  The files are as follows:
           class libraries and associated resources etc.  The content of
           the two files is the same, but one is in a zip file and the
           other is in a compressed tar file.
+          Native code for the following systems is included:
+              i386:   Linux on Intel
+              sparc:  Solaris on SPARC
+              alpha:  Tru64 Unix on Alpha
+              x86:    MS Windows on Intel (some versions)
 
     starjava-docs.zip
         - A zip archive of the javadoc documentation tree for 
@@ -27,20 +32,6 @@ and applications set.  The files are as follows:
           namespace.  While this may not be sufficient to build the
           starjava set correctly it is easier for browsing and may 
           be enough for building some of the packages.
-
-    starjava-i386.tar.gz
-    starjava-sparc.tar.gz
-    starjava-alpha.tar.gz
-    starjava-x86.zip
-        - Architecture-specific files containing native code.  Only one
-          of these is required for each platform:
-              i386:   Linux on Intel
-              sparc:  Solaris on SPARC
-              alpha:  Tru64 Unix on Alpha
-              x86:    MS Windows on Intel (some versions)
-          Some of the software, in particular Treeview with some missing
-          functionality, will work without any of these, so do not despair
-          if your system is not listed here.
 
 The top level of all the archives (tar/zip files) is the 'starjava'
 directory.  All should be unpacked from the same place.

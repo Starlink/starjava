@@ -583,8 +583,7 @@
                                             group="${tar.group}"/>
       <tarfileset dir="${star.install}/lib" prefix="${archive.top}lib"
                                             username="${tar.user}"
-                                            group="${tar.group}"
-                                            excludes="${os.arch}/**"/>
+                                            group="${tar.group}"/>
     </tar>
 
     <zip destfile="${star.archive.dir}/${archive.name}.zip">
@@ -592,17 +591,8 @@
                                             prefix="${archive.top}"/>
       <zipfileset dir="${star.install}/bin" prefix="${archive.top}bin"/>
       <zipfileset dir="${star.install}/etc" prefix="${archive.top}etc"/>
-      <zipfileset dir="${star.install}/lib" prefix="${archive.top}lib"
-                  excludes="${os.arch}/**"/>
+      <zipfileset dir="${star.install}/lib" prefix="${archive.top}lib"/>
     </zip>
-
-    <tar destfile="${star.archive.dir}/${archive.jni.name}.tar.gz"
-         compression="gzip" longfile="gnu">
-      <tarfileset dir="${star.install}/lib/${os.arch}"
-                  username="${tar.user}"
-                  group="${tar.group}"
-                  prefix="${archive.top}lib/${os.arch}"/>
-    </tar>
 
   </target>
 
