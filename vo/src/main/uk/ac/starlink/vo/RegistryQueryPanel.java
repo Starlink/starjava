@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.rmi.RemoteException;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -13,8 +12,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.MutableComboBoxModel;
-import javax.xml.rpc.ServiceException;
-import org.us_vo.www.SimpleResource;
 
 /**
  * Component which allows the user to select a registry to interrogate
@@ -95,14 +92,14 @@ public class RegistryQueryPanel extends JPanel {
     }
 
     /**
-     * Returns a Query object which can perform the query currently
+     * Returns a RegistryQuery object which can perform the query currently
      * specified by the state of this component.  Some checking on whether
      * the fields are filled in sensibly is done; if they are not, an
      * informative MalformedURLException will be thrown.
      *
      * @return  query object
      */
-    public Query getRegistryQuery() throws MalformedURLException {
+    public RegistryQuery getRegistryQuery() throws MalformedURLException {
         String regServ = (String) urlSelector_.getSelectedItem();
         String query = (String) querySelector_.getSelectedItem();
         if ( query == null || query.trim().length() == 0 ) {
@@ -132,37 +129,13 @@ public class RegistryQueryPanel extends JPanel {
                 ((MutableComboBoxModel) qModel).addElement( query );
             }
         }
-        return new Query( regURL, query );
+        return new RegistryQuery( regURL, query );
     }
 
     public void setEnabled( boolean enabled ) {
         super.setEnabled( enabled );
         urlSelector_.setEnabled( enabled );
         querySelector_.setEnabled( enabled );
-    }
-
-    /**
-     * Helper class which specifies a query that can be performed on a registry.
-     */
-    public static class Query {
-        private final URL url_;
-        private final String query_;
-
-        public Query( URL url, String query ) {
-            url_ = url;
-            query_ = query;
-        }
-
-        /**
-         * Executes the query described by this object and returns the
-         * result.
-         *
-         * @return   query result
-         */
-        public SimpleResource[] performQuery()
-                throws RemoteException, ServiceException {
-            return new RegistryInterrogator( url_ ).getResources( query_ );
-        }
     }
 
 }
