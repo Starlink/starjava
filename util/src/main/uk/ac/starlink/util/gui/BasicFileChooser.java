@@ -61,8 +61,12 @@ import sun.awt.shell.ShellFolder;
  * which not part of the standard API, so can be changed without
  * notification and is therefore likely to break. In this case fix it
  * up or switch it to go back to the standard JFileChooser behaviour.
+ * Also note that it doesn't work when multiple files are selected
+ * (although it does work for a single file when multiple selections
+ * are enabled).
  * <p>
- * This code is taken from Bug Id: 4356160 on the SUN web site.
+ * The original code was copied from Bug Id: 4356160 on the SUN web
+ * site so is also copyright SUN.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -99,11 +103,33 @@ public class BasicFileChooser
 
     public void approveSelection() 
     {
-        if ( File.separatorChar == '\\'
-             && !isMultiSelectionEnabled()
-             && getFileSelectionMode() == FILES_ONLY ) {
+        //  If running under Windows and only selecting files.
+        if ( File.separatorChar == '\\' && 
+             getFileSelectionMode() == FILES_ONLY ) {
+
+            // Only one file can be processed this way, as this may
+            // result in a change of directory (since the file pointed
+            // to is selected, not the shortcut, clearly if we had
+            // shortcuts in different directories this would be
+            // impossible).
+            File selectedFile = null;
+            if ( isMultiSelectionEnabled() ) {
+                File[] selectedFiles = getSelectedFiles();
+                if ( selectedFiles.length == 1 ) {
+                    selectedFile = selectedFiles[0];
+                }
+                else {
+                    // Cannot handle any shortcuts, do fall back to
+                    // default methods.
+                    super.approveSelection();
+                    return;
+                }
+            }
+            else {
+                selectedFile = getSelectedFile();
+            }
             
-            File selectedFile = getSelectedFile();
+            //  Is this a windows shortcut file?
             if ( selectedFile.getPath().endsWith( ".lnk" ) ) {
                 File linkedTo = null;
                 try {
@@ -114,12 +140,14 @@ public class BasicFileChooser
                     //  Do nothing.
                 }
                 if ( linkedTo != null ) {
-                    System.out.println( "linkedTo = " + linkedTo );
                     if ( linkedTo.isDirectory() ) {
                         setCurrentDirectory( linkedTo );
                         return;
                     } 
                     else if ( ! linkedTo.equals( selectedFile ) ) {
+                        if ( isMultiSelectionEnabled() ) {
+                            setSelectedFiles( new File[] { linkedTo } );
+                        }
                         setSelectedFile( linkedTo );
                     }
                 }
