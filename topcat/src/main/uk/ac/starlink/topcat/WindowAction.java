@@ -71,7 +71,7 @@ public abstract class WindowAction extends BasicAction {
     public Object getValue( String key ) {
         if ( VISIBLE.equals( key ) ) {
             return Boolean.valueOf( hasWindow() && 
-                                    getWindow( null ).isVisible() );
+                                    getWindow( null ).isShowing() );
         }
         else {
             return super.getValue( key );
@@ -84,7 +84,7 @@ public abstract class WindowAction extends BasicAction {
             if ( show ) {
                 boolean windowCreated = ! hasWindow();
                 Window win = getWindow( getEventWindow( currentEvent ) );
-                boolean wasVisible = ( ! windowCreated ) && win.isVisible();
+                boolean wasVisible = ( ! windowCreated ) && win.isShowing();
                 win.show();
                 if ( ! wasVisible ) {
                     firePropertyChange( VISIBLE, Boolean.FALSE, Boolean.TRUE );
@@ -101,7 +101,7 @@ public abstract class WindowAction extends BasicAction {
             else {
                 if ( hasWindow() ) {
                     Window win = getWindow( null );
-                    boolean wasVisible = win.isVisible();
+                    boolean wasVisible = win.isShowing();
                     if ( wasVisible ) {
                         getWindow( null ).dispose();
                         firePropertyChange( VISIBLE, Boolean.TRUE,
