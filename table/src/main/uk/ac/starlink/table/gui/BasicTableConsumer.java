@@ -1,8 +1,8 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
-import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Provides a basic implementation of {@link TableConsumer}.
@@ -107,13 +107,8 @@ public abstract class BasicTableConsumer implements TableConsumer {
     public synchronized void loadFailed( Throwable th ) {
         if ( isLoading() ) {
             cancel();
-            Object msg = new String[] {
-                "Failed to load table \"" + id_ + "\"",
-                th.getMessage(),
-                "(" + th.getClass().getName() + ")",
-            };
-            JOptionPane.showMessageDialog( parent_, msg, "Load Error",
-                                           JOptionPane.ERROR_MESSAGE );
+            ErrorDialog.showError( parent_, "Load Error", th,
+                                   "Can't load table " + id_ );
         }
     }
 }

@@ -14,13 +14,13 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Skeleton implementation of a {@link TableLoadDialog}.
@@ -333,9 +333,7 @@ public abstract class BasicTableLoadDialog extends JPanel
             supplier = getTableSupplier();
         }
         catch ( RuntimeException e ) {
-            JOptionPane.showMessageDialog( dialog_, e.getMessage(), 
-                                           "Dialogue Error", 
-                                           JOptionPane.ERROR_MESSAGE );
+            ErrorDialog.showError( dialog_, "Dialogue Error", e );
             return;
         }
         final StarTableFactory factory = factory_;

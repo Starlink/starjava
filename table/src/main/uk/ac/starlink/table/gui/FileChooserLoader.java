@@ -9,11 +9,11 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Load dialog based on a normal file chooser component.
@@ -100,11 +100,8 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
                     return true;
                 }
                 catch ( IOException e ) {
-                    Object msg = new String[] { 
-                        "Can't open file \"" + file + "\"", e.getMessage() };
-                    JOptionPane.showMessageDialog( parent, msg,
-                                                   "Table Load Error",
-                                                   JOptionPane.ERROR_MESSAGE );
+                    ErrorDialog.showError( parent, "Load Error", e,
+                                           "Can't open file " + file );
                 }
             }
         }
