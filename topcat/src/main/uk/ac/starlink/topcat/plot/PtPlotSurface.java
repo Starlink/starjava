@@ -64,6 +64,18 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
             ylo = ylo > 0.0 ? Math.log( ylo ) * _LOG10SCALE : 0.0;
             yhi = yhi > 0.0 ? Math.log( yhi ) * _LOG10SCALE : 1.0;
         }
+        if ( _xflip ) {
+            double xl = -xhi;
+            double xh = -xlo;
+            xlo = xl;
+            xhi = xh;
+        }
+        if ( _yflip ) {
+            double yl = -yhi;
+            double yh = -ylo;
+            ylo = yl;
+            yhi = yh;
+        }
         int width = _lrx - _ulx;
         int height = _lry - _uly;
         double xpad = ( xhi - xlo ) * PAD_PIXELS / width;
@@ -97,6 +109,12 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
             else {
                 return null;
             }
+        }
+        if ( _xflip ) {
+            dx = -dx;
+        }
+        if ( _yflip ) {
+            dy = -dy;
         }
         if ( ! insideOnly || ( dx >= _xMin && dx <= _xMax &&
                                dy >= _yMin && dy <= _yMax ) ) {
@@ -198,6 +216,10 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         /* Logarithmic plot flags. */
         setXLog( state.isXLog() );
         setYLog( state.isYLog() );
+
+        /* Axis flip flags. */
+        setXFlip( state.isXFlip() );
+        setYFlip( state.isYFlip() );
 
         /* Grid flag. */
         setGrid( state.hasGrid() );

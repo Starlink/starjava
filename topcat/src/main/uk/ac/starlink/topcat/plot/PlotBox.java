@@ -1321,6 +1321,14 @@ class PlotBox extends JPanel implements Printable {
         _xlog = xlog;
     }
 
+    /** Specify whether the X axis numeric labels should be inverted.
+     *  @param xflip If true, numbers on X axis will be the negative of their
+     *         true values
+     */
+    public void setXFlip(boolean xflip) {
+        _xflip = xflip;
+    }
+
     /** Set the X (horizontal) range of the plot.  If this is not done
      *  explicitly, then the range is computed automatically from data
      *  available when the plot is drawn.  If min and max
@@ -1355,6 +1363,14 @@ class PlotBox extends JPanel implements Printable {
      */
     public void setYLog(boolean ylog) {
         _ylog = ylog;
+    }
+
+    /** Specify whether the Y axis numeric labels should be inverted.
+     *  @param yflip If true, numbers on Y axis will be the negative of their
+     *         true values
+     */
+    public void setYFlip(boolean yflip) {
+        _yflip = yflip;
     }
 
     /** Set the Y (vertical) range of the plot.  If this is not done
@@ -1768,15 +1784,16 @@ class PlotBox extends JPanel implements Printable {
             if (_ylog)
                 yTmpStart = _gridStep(ygrid, yStart, yStep, _ylog);
 
+            double yFlipSgn = _yflip ? -1.0 : +1.0;
             for (double ypos = yTmpStart; ypos <= _ytickMax;
                  ypos = _gridStep(ygrid, ypos, yStep, _ylog)) {
                 // Prevent out of bounds exceptions
                 if (ind >= ny) break;
                 String yticklabel;
                 if (_ylog) {
-                    yticklabel = _formatLogNum(ypos, numfracdigits);
+                    yticklabel = _formatLogNum(yFlipSgn*ypos, numfracdigits);
                 } else {
-                    yticklabel = _formatNum(ypos, numfracdigits);
+                    yticklabel = _formatNum(yFlipSgn*ypos, numfracdigits);
                 }
                 ylabels[ind] = yticklabel;
                 int lw = _labelFontMetrics.stringWidth(yticklabel);
@@ -2002,16 +2019,17 @@ class PlotBox extends JPanel implements Printable {
 
             // Label the x axis.  The labels are quantized so that
             // they don't have excess resolution.
+            double xFlipSgn = _xflip ? -1.0 : +1.0;
             for (double xpos = xTmpStart;
                  xpos <= _xtickMax;
                  xpos = _gridStep(xgrid, xpos, xStep, _xlog)) {
                 String xticklabel;
                 if (_xlog) {
-                    xticklabel = _formatLogNum(xpos, numfracdigits);
+                    xticklabel = _formatLogNum(xFlipSgn*xpos, numfracdigits);
                     if (xticklabel.indexOf('e') != -1 )
                         needExponent = false;
                 } else {
-                    xticklabel = _formatNum(xpos, numfracdigits);
+                    xticklabel = _formatNum(xFlipSgn*xpos, numfracdigits);
                 }
                 xCoord1 = _ulx + (int)((xpos-_xtickMin)*_xtickscale);
                 if (graphics != null) {
@@ -2441,6 +2459,9 @@ class PlotBox extends JPanel implements Printable {
 
     /** @serial Whether to draw the axes using a logarithmic scale. */
     protected boolean _xlog = false, _ylog = false;
+
+    /** @serial Whether axis labels are inverted. */
+    protected boolean _xflip = false, _yflip = false;
 
     // For use in calculating log base 10. A log times this is a log base 10.
     protected static final double _LOG10SCALE = 1/Math.log(10);

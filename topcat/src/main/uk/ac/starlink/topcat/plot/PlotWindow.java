@@ -100,6 +100,8 @@ public class PlotWindow extends TopcatViewWindow
     private final JComboBox yColBox_;
     private final JCheckBox xLogBox_;
     private final JCheckBox yLogBox_;
+    private final JCheckBox xFlipBox_;
+    private final JCheckBox yFlipBox_;
     private final ListSelectionModel subSelModel_;
     private final ListSelectionModel regressionSelModel_;
     private final ButtonModel gridModel_;
@@ -208,6 +210,14 @@ public class PlotWindow extends TopcatViewWindow
         yConfig.add( yLogBox_ );
         xLogBox_.addActionListener( this );
         yLogBox_.addActionListener( this );
+
+        /* Add direction flip selectors for X and Y. */
+        xFlipBox_ = new JCheckBox( "Flip" );
+        yFlipBox_ = new JCheckBox( "Flip" );
+        xConfig.add( xFlipBox_ );
+        yConfig.add( yFlipBox_ );
+        xFlipBox_.addActionListener( this );
+        yFlipBox_.addActionListener( this );
 
         /* Set up a listener to do some sensible resetting when axis choices
          * are changed. */
@@ -780,6 +790,8 @@ public class PlotWindow extends TopcatViewWindow
                            (StarTableColumn) yColBox_.getSelectedItem() );
         state.setXLog( xLogBox_.isSelected() );
         state.setYLog( yLogBox_.isSelected() );
+        state.setXFlip( xFlipBox_.isSelected() );
+        state.setYFlip( yFlipBox_.isSelected() );
         state.setGrid( gridModel_.isSelected() );
 
         /* Construct an array of the subsets that are used. */
@@ -1025,9 +1037,11 @@ public class PlotWindow extends TopcatViewWindow
                 lastYAxis_ = yAxis;
                 if ( xChanged ) {
                     xLogBox_.setSelected( false );
+                    xFlipBox_.setSelected( false );
                 }
                 if ( yChanged ) {
                     yLogBox_.setSelected( false );
+                    yFlipBox_.setSelected( false );
                 }
                 if ( xChanged || yChanged ) {
                     regressionSelModel_.clearSelection();

@@ -13,6 +13,8 @@ public class PlotState {
     private StarTableColumn yCol_;
     private boolean xLog_;
     private boolean yLog_;
+    private boolean xFlip_;
+    private boolean yFlip_;
     private boolean grid_;
     private RowSubset[] usedSubsets_;
     private MarkStyle[] styles_;
@@ -81,6 +83,42 @@ public class PlotState {
      */
     public boolean isYLog() {
         return yLog_;
+    }
+
+    /**
+     * Sets whether the X axis should be plotted reversed.
+     * 
+     * @param  xflip  true iff X axis should be flipped
+     */
+    public void setXFlip( boolean xflip ) {
+        xFlip_ = xflip;
+    }
+
+    /**
+     * Determines whether the X axis is plotted reversed.
+     *
+     * @return  true iff X axis is flipped
+     */
+    public boolean isXFlip() {
+        return xFlip_;
+    }
+
+    /**
+     * Sets whether the Y axis should be plotted reversed.
+     * 
+     * @param  yflip  true iff Y axis should be flipped
+     */
+    public void setYFlip( boolean yflip ) {
+        yFlip_ = yflip;
+    }
+
+    /**
+     * Determines whether the Y axis is plotted reversed.
+     *
+     * @return  true iff Y axis is flipped
+     */
+    public boolean isYFlip() {
+        return yFlip_;
     }
 
     /**
@@ -165,6 +203,8 @@ public class PlotState {
                 && yCol_.equals( other.yCol_ )
                 && xLog_ == other.xLog_
                 && yLog_ == other.yLog_
+                && xFlip_ == other.xFlip_
+                && yFlip_ == other.yFlip_
                 && grid_ == other.grid_
                 && Arrays.equals( usedSubsets_, other.usedSubsets_ )
                 && Arrays.equals( styles_, other.styles_ )
@@ -181,6 +221,8 @@ public class PlotState {
         code = 23 * code + ( yCol_ == null ? 99 : yCol_.hashCode() );
         code = 23 * code + ( xLog_ ? 0 : 1 );
         code = 23 * code + ( yLog_ ? 0 : 1 );
+        code = 23 * code + ( xFlip_ ? 0 : 1 );
+        code = 23 * code + ( yFlip_ ? 0 : 1 );
         code = 23 * code + ( grid_ ? 0 : 1 );
         for ( int i = 0; i < usedSubsets_.length; i++ ) {
             code = 23 * code + usedSubsets_[ i ].hashCode();
@@ -201,7 +243,9 @@ public class PlotState {
     public boolean sameAxes( PlotState other ) {
         return sameData( other )
             && xLog_ == other.xLog_
-            && yLog_ == other.yLog_;
+            && yLog_ == other.yLog_
+            && xFlip_ == other.xFlip_
+            && yFlip_ == other.yFlip_;
     }
 
     /**
@@ -230,6 +274,13 @@ public class PlotState {
             .append( "," )
             .append( "yLog=" )
             .append( yLog_ )
+            .append( "," )
+            .append( "xFlip=" )
+            .append( xFlip_ )
+            .append( "," )
+            .append( "yFlip=" )
+            .append( yFlip_ )
+            .append( "," )
             .append( "grid=" )
             .append( grid_ )
             .append( "(" );
