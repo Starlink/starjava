@@ -108,7 +108,8 @@ public class ArrayStructure {
         }
 
         else {
-            throw new HDSException( "No array structure found in HDS" );
+            throw new HDSException( "No array structure found in HDS object " 
+                                  + hobj.datRef() );
         }
         htype = HDSType.fromName( dataObj.datType() );
     }
