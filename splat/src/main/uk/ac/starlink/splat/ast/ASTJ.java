@@ -673,162 +673,161 @@ public class ASTJ
      *               distance (rather than coordinate).
      *
      *  @return the new frameset for displaying a spectrum
+     * 
+     *  @throws Exception if the attempt fails you may find out why
      */
     public FrameSet makeSpectral( int axis, int start, int end, String label,
                                   String units, boolean dist )
+        throws AstException
     {
         if ( astRef == null ) {
             return null;
         }
         FrameSet result = null;
-        try {
 
-            // Create a mapping that has the coordinate measure for one
-            // axis and a unitmap to plot the data values.
-
-            // Get a simplified mapping from the base to current frames
-            Mapping map = astRef.getMapping( FrameSet.AST__BASE,
-                                             FrameSet.AST__CURRENT );
-            Mapping smap = map.simplify();
-
-            // Save a pointer to the current frame
-            Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
-
-            // See how many axes the current frame has
-            int nax = cfrm.getI( "Naxes" );
-
-            // And how input coordinates the base frame needs (ideally 1)
-            int nin = astRef.getI( "Nin" );
-            Mapping xmap = null;
-            if ( nax != 1 || nin != 1 ) {
-
-                // Multidimensional input/output. Use a LutMap for the
-                // coordinate measurement along the GRID positions as
-                // we want to avoid the case when just using a PermMap
-                // to lose a second axis makes the mapping not
-                // invertable (i.e. for sky coordinates not providing
-                // RA and DEC inputs will always give AST__BAD).
-
-                // Get memory for transformed GRID positions.
-                int dim = end - start;
-                double[] grid = new double[ dim * nin ];
-
-                // Generate dim positions stepped along the GRID axis pixels
-                for ( int i = 0; i < dim; i++ ) {
-                    for ( int j = 0; j < nin; j++ ) {
-                        grid[dim*j+i] = i + 1;
-                    }
+        // Create a mapping that has the coordinate measure for one
+        // axis and a unitmap to plot the data values.
+        
+        // Get a simplified mapping from the base to current frames
+        Mapping map = astRef.getMapping( FrameSet.AST__BASE,
+                                         FrameSet.AST__CURRENT );
+        Mapping smap = map.simplify();
+        
+        // Save a pointer to the current frame
+        Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
+        
+        // See how many axes the current frame has
+        int nax = cfrm.getI( "Naxes" );
+        
+        // And how input coordinates the base frame needs (ideally 1)
+        int nin = astRef.getI( "Nin" );
+        Mapping xmap = null;
+        if ( nax != 1 || nin != 1 ) {
+            
+            // Multidimensional input/output. Use a LutMap for the
+            // coordinate measurement along the GRID positions as
+            // we want to avoid the case when just using a PermMap
+            // to lose a second axis makes the mapping not
+            // invertable (i.e. for sky coordinates not providing
+            // RA and DEC inputs will always give AST__BAD).
+            
+            // Get memory for transformed GRID positions.
+            int dim = end - start;
+            double[] grid = new double[ dim * nin ];
+            
+            // Generate dim positions stepped along the GRID axis pixels
+            for ( int i = 0; i < dim; i++ ) {
+                for ( int j = 0; j < nin; j++ ) {
+                    grid[dim*j+i] = i + 1;
                 }
-
-                // Transform these GRID positions into the current frame.
-                double[] coords = smap.tranN( dim, nin, grid, true, nax );
-
-                double[] lutcoords = new double[ dim ];
-                if ( dist ) {
-                    // Get the distance from the first GRID position to each
-                    // of the others (remember the projected positions could
-                    // be multidimensional and we need to "remove" this by
-                    // converting to a distance along the projected GRID line)
-                    coord2Dist( cfrm, dim, nax, coords, lutcoords );
-                }
-                else {
-
+            }
+            
+            // Transform these GRID positions into the current frame.
+            double[] coords = smap.tranN( dim, nin, grid, true, nax );
+            
+            double[] lutcoords = new double[ dim ];
+            if ( dist ) {
+                // Get the distance from the first GRID position to each
+                // of the others (remember the projected positions could
+                // be multidimensional and we need to "remove" this by
+                // converting to a distance along the projected GRID line)
+                coord2Dist( cfrm, dim, nax, coords, lutcoords );
+            }
+            else {
+                
                     // Want coordinate, not distance so again transform from
                     // coords to this measure (for same reason as above).
                     coord2Oned( cfrm, axis - 1, dim, nax, coords, lutcoords );
-                }
-
-                // Create the LutMap for axis 1
-                xmap = new LutMap( lutcoords, 1.0, 1.0 );
-            }
-            else {
-
-                // The simplified mapping should do.
-                xmap = smap;
             }
 
-            // Create a CmpMap using a unit mapping for the second axis.
-            UnitMap unitMap = new UnitMap( 1 );
-            map = new CmpMap( xmap, unitMap, false );
-
-            // Frame representing input coordinates, uses GRID axis of
-            // base frame and a default axis
-            int[] iaxes = new int[2];
-            iaxes[0] = 1;
-            iaxes[1] = 0;
-            Frame frame1 = astRef.getFrame( FrameSet.AST__BASE );
-            frame1 = frame1.pickAxes( iaxes.length, iaxes, null );
-
-            // Set up label, symbol and units for axis 2
-            frame1.setC( "Symbol(2)", "Data" );
-
-            if ( ! label.equals( "")  ) {
-                frame1.setC( "Label(2)", label );
-            }
-            else {
-                frame1.setC( "Label(2)", "Data value" );
-            }
-
-            if ( ! units.equals( "" ) ) {
-                frame1.setC( "Unit(2)", units );
-            }
-
-            // Clear domain and title which are now incorrect
-            frame1.clear( "Domain" );
-            frame1.clear( "Title" );
-
-            // Coordinate or distance-v-data frame.
-            // Use selected axis from the current frame as the
-            // spectral axis.
-            Frame f1 = getSpectralAxisFrame( axis );
-
-            // Create the full frame using the spectral frame and
-            // another.
-            Frame f2 = new Frame( 1 );
-            Frame frame2 = new CmpFrame( f1, f2 );
-
-            // Clear digits and format, unless set in the input
-            // frameset. These can make a mess of SkyFrame formatting
-            // otherwise.
-            if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
-                frame2.clear( "format(1)" );
-            }
-            if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
-                frame2.clear( "format(1)" );
-            }
-            if ( ! cfrm.test( "Digits(" + axis + ")" ) ) {
-                frame2.clear( "digits(1)" );
-            }
-
-            // If using distance then set appropriate attributes
-            if ( dist ) {
-                frame2.setC( "Label(1)", "Offset" );
-                frame2.setC( "Symbol(1)", "Offset" );
-            }
-
-            // Set symbol, label and units for second axis */
-            frame2.setC( "Symbol(2)", "Data" );
-            if ( ! label.equals( "" ) ) {
-                frame2.setC( "Label(2)", label );
-            }
-            else {
-                frame2.setC( "Label(2)", "Data value" );
-            }
-            if ( !units.equals( "" ) ) {
-                frame2.setC( "Unit(2)", units );
-            }
-
-            // The domain of this frame is "DATAPLOT" (as in KAPPA)
-            frame2.setC( "Domain", "DATAPLOT" );
-
-            // Now create the output frameset, which has frame2 as current
-            // and frame1 as base.
-            result = new FrameSet( frame1 );
-            result.addFrame( FrameSet.AST__BASE, map, frame2 );
+            // Create the LutMap for axis 1
+            xmap = new LutMap( lutcoords, 1.0, 1.0 );
         }
-        catch (Exception e) {
-            // Just let it pass;
+        else {
+            
+            // The simplified mapping should do.
+            xmap = smap;
         }
+        
+        // Create a CmpMap using a unit mapping for the second axis.
+        UnitMap unitMap = new UnitMap( 1 );
+        map = new CmpMap( xmap, unitMap, false );
+        
+        // Frame representing input coordinates, uses GRID axis of
+        // base frame and a default axis
+        int[] iaxes = new int[2];
+        iaxes[0] = 1;
+        iaxes[1] = 0;
+        Frame frame1 = astRef.getFrame( FrameSet.AST__BASE );
+        frame1 = frame1.pickAxes( iaxes.length, iaxes, null );
+        
+        // Set up label, symbol and units for axis 2
+        frame1.setC( "Symbol(2)", "Data" );
+        
+        if ( ! label.equals( "")  ) {
+            frame1.setC( "Label(2)", label );
+        }
+        else {
+            frame1.setC( "Label(2)", "Data value" );
+        }
+        
+        if ( ! units.equals( "" ) ) {
+            frame1.setC( "Unit(2)", units );
+        }
+        
+        // Clear domain and title which are now incorrect
+        frame1.clear( "Domain" );
+        frame1.clear( "Title" );
+        
+        // Coordinate or distance-v-data frame.
+        // Use selected axis from the current frame as the spectral
+        // axis.
+
+        Frame f1 = getSpectralAxisFrame( axis );
+        
+        // Create the full frame using the spectral frame and another.
+        Frame f2 = new Frame( 1 );
+        Frame frame2 = new CmpFrame( f1, f2 );
+
+        // Clear digits and format, unless set in the input
+        // frameset. These can make a mess of SkyFrame formatting
+        // otherwise.
+        if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
+            frame2.clear( "format(1)" );
+        }
+        if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
+            frame2.clear( "format(1)" );
+        }
+        if ( ! cfrm.test( "Digits(" + axis + ")" ) ) {
+            frame2.clear( "digits(1)" );
+        }
+        
+        // If using distance then set appropriate attributes
+        if ( dist ) {
+            frame2.setC( "Label(1)", "Offset" );
+            frame2.setC( "Symbol(1)", "Offset" );
+        }
+        
+        // Set symbol, label and units for second axis */
+        frame2.setC( "Symbol(2)", "Data" );
+        if ( ! label.equals( "" ) ) {
+            frame2.setC( "Label(2)", label );
+        }
+        else {
+            frame2.setC( "Label(2)", "Data value" );
+        }
+        if ( !units.equals( "" ) ) {
+            frame2.setC( "Unit(2)", units );
+        }
+        
+        // The domain of this frame is "DATAPLOT" (as in KAPPA)
+        frame2.setC( "Domain", "DATAPLOT" );
+        
+        // Now create the output frameset, which has frame2 as current
+        // and frame1 as base.
+        result = new FrameSet( frame1 );
+        result.addFrame( FrameSet.AST__BASE, map, frame2 );
+
         return result;
     }
 
@@ -970,10 +969,10 @@ public class ASTJ
         }
         else {
             //  Need to pick out axes and add in our SpecFrame.
-            iaxes = new int[ nax - 1 ];
             Frame newFrame = null;
             if ( axis > 1 ) {
                 // SpecFrame somewhere in middle or at top.
+                iaxes = new int[ nax - 1 ];
                 int i = 1;
                 for ( i = 1; i < axis; i++ ) {
                     iaxes[ i - 1 ] = i;
@@ -992,13 +991,15 @@ public class ASTJ
             }
             else {
                 // SpecFrame is first.
+                iaxes = new int[ nax ];
                 int i = 1;
                 for ( i = 2; i <= nax; i++ ) {
-                    iaxes[i-1] = i;
+                    iaxes[ i - 1 ] = i;
                 }
-                Frame part2 = astRef.pickAxes( i-1, iaxes, null );
+                Frame part2 = astRef.pickAxes( i - 2, iaxes, null );
                 newFrame = new CmpFrame( result, part2 );
             }
+            newFrame.show();
             astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( nax ), 
                              newFrame );
         }
