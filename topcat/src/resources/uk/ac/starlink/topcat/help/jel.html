@@ -13,13 +13,21 @@
 <a href="subsets.html">Row Subsets</a> are actually expressions in 
 the Java language, which are compiled into Java bytecode before
 evaluation.  However, this does not mean that you need to be a 
-Java programmer to write them.  The syntax is pretty similar to C.
+Java programmer to write them.  The syntax is pretty similar to C,
+but even if you're not a C programmer it should be obvious how to
+do a lot of things.
 
 <p>The following explanation gives
 some guidance and examples for writing these expressions.
 Unfortunately a complete tutorial on writing Java expressions is beyond
 the scope of this document, but it should provide enough information
 for even a novice to write useful expressions.
+
+<p>If the functions described in this section are not sufficient,
+or it's unwieldy to express your function in one line of code,
+you can add new functions by writing your own classes.
+See the following section on 
+<a href="methods.html">extending the expression language</a>.
 
 <h4>Referencing cell values</h4>
 
@@ -58,7 +66,7 @@ be an Object of the type held by the column.
 
 <p>If you have any Row Subsets defined you can also access the value
 of the boolean (true/false) flag indicating whether the current row
-is in that each subset.  Again there are two ways of doing this:
+is in each subset.  Again there are two ways of doing this:
 <dl>
 <dt>By Name
 <dd>The name assigned to the subset when it was created can be used
@@ -156,9 +164,12 @@ The common ones are:
   </dl>
 </dl>
 
-All the methods of the <tt>Math</tt> and <tt>String</tt> 
-classes are available too,
-for instance:
+<h4>Functions</h4>
+
+All the static methods of the <tt>Math</tt> class and some other classes
+are available.  You can see a full listing of these in the
+<a href="methods.html">Available Functions window</a>.
+Some of the more useful ones are:
 <dl>
 <dt>Math static methods
 <dd>
@@ -170,7 +181,11 @@ for instance:
   <dt><tt>pow(a,b)</tt> (exponentiation)
   <dt><tt>toRadians(deg)</tt> (angle conversion)
   </dl>
+  (See <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Math.html">Math class javadocs</a>
+   for full list and details).
 
+All the instance methods of the String class are provided, 
+for example:
 <dt><strong>String instance methods</strong>
 <dd>
   <dl>
@@ -179,7 +194,13 @@ for instance:
   <dt><tt>equalsIgnoreCase(s)</tt> (case-insensitive)
   <dt><tt>matches(regex)</tt> (regular expression matching)
   </dl>
+  (See <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/String.html">String class javadocs</a>
+  for full list and details).
 </dl>
+
+<p>Technical note for Java programmers: the public static methods of
+these classes are imported into the expression namespace, so unlike
+java you should write "<tt>sqrt(x)</tt>" ant not "<tt>Math.sqrt(x)</tt>".
   
 
 <h4>Examples</h4>

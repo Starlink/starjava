@@ -63,6 +63,7 @@
     <tocitem target="StatsWindow" text="Statistics" image="STATS"/>
     <tocitem target="SubsetWindow" text="Subsets" image="SUBSET"/>
     <tocitem target="PlotWindow" text="Plot" image="PLOT"/>
+    <tocitem target="MethodWindow" text="Available functions" image="FUNCTION"/>
     <tocitem target="HelpWindow" text="Help" image="HELP"/>
   </tocitem>
 

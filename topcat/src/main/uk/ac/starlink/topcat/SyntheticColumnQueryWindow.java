@@ -72,6 +72,10 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         indexSpinner.setColumnIndex( insertIndex );
         stack.addLine( "Index", indexSpinner );
 
+        /* Add tools. */
+        getToolBar().add( MethodWindow.getWindowAction( this ) );
+        getToolBar().addSeparator();
+
         /* Add help information. */
         addHelp( "SyntheticColumn" );
 

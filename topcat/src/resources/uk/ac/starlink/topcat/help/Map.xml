@@ -64,8 +64,8 @@
   <mapID target="PlotWindow" url="plot.html"/>
   <mapID target="ParameterWindow" url="param.html"/>
   <mapID target="SubsetWindow" url="subsets-win.html"/>
+  <mapID target="MethodWindow" url="methods.html"/>
   <mapID target="HelpWindow" url="help.html"/>
-
 
   <mapID target="RowSubset" url="subsets.html"/>
   <mapID target="RowSubsetDefine" url="subsets.html#define"/>

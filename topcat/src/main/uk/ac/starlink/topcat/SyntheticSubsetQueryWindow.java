@@ -40,6 +40,10 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
         exprField = new JTextField( 32 );
         stack.addLine( "Expression", exprField );
 
+        /* Add tools. */
+        getToolBar().add( MethodWindow.getWindowAction( this ) );
+        getToolBar().addSeparator();
+
         /* Add help information. */
         addHelp( "ExpressionSyntax" );
 
