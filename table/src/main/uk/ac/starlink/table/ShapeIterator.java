@@ -14,7 +14,7 @@ import java.util.Iterator;
  * @author   Mark Taylor (Starlink)
  * @since    2 Mar 2005
  */
-class ShapeIterator implements Iterator {
+public class ShapeIterator implements Iterator {
     private final int[] shape_;
     private final int ndim_;
     private int[] pos_;
