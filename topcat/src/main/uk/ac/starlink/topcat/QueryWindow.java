@@ -34,12 +34,25 @@ public abstract class QueryWindow extends AuxWindow {
         BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
 
     /**
-     * Constructs a new QueryWindow.
+     * Constructs a new QueryWindow with OK and Cancel buttons.
      *
      * @param   title  title to put in the window heading
      * @param   parent  parent component, used for positioning the window
      */
     public QueryWindow( String title, Component parent ) {
+        this( title, parent, true, true );
+    }
+
+    /**
+     * Constructs a new QueryWindow.
+     *
+     * @param   title  title to put in the window heading
+     * @param   parent  parent component, used for positioning the window
+     * @param   ok      whether to include an OK button
+     * @param   cancel  whether to include a Cancel button
+     */
+    public QueryWindow( String title, Component parent, boolean ok,
+                        boolean cancel ) {
         super( title, parent );
 
         /* Initialise the stack of query boxes. */
@@ -65,8 +78,12 @@ public abstract class QueryWindow extends AuxWindow {
         /* Set up the control panel, which will contain the OK and Cancel
          * buttons. */
         JPanel queryControls = getControlPanel();
-        queryControls.add( new JButton( okAction ) );
-        queryControls.add( new JButton( cancelAction ) );
+        if ( ok ) {
+           queryControls.add( new JButton( okAction ) );
+        }
+        if ( cancel ) {
+            queryControls.add( new JButton( cancelAction ) );
+        }
 
         /* Set up an auxiliary control panel, for custom buttons required by 
          * subclasses. */
