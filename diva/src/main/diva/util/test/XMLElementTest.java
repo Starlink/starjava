@@ -105,20 +105,20 @@ public class XMLElementTest extends TestSuite {
 "<element0>\n<element1>\n<element2></element2>\n</element1>\n</element0>\n";
                 assertEquals(result, elt0.toString(), result  + " != " + elt0.toString());
 
-                assert(elt0.containsElement(elt1), "elt0.containsElement(elt1)");
-                assert(elt1.containsElement(elt2), "elt1.containsElement(elt2)");
+                assertTest(elt0.containsElement(elt1), "elt0.containsElement(elt1)");
+                assertTest(elt1.containsElement(elt2), "elt1.containsElement(elt2)");
 
-                assert(!elt1.containsElement(elt0), "!elt1.containsElement(elt0)");
-                assert(!elt2.containsElement(elt1), "!elt2.containsElement(elt1)");
+                assertTest(!elt1.containsElement(elt0), "!elt1.containsElement(elt0)");
+                assertTest(!elt2.containsElement(elt1), "!elt2.containsElement(elt1)");
 
-                assert(!elt0.containsElement(elt2), "!elt0.containsElement(elt2)");
-                assert(!elt2.containsElement(elt0), "!elt2.containsElement(elt0)");
+                assertTest(!elt0.containsElement(elt2), "!elt0.containsElement(elt2)");
+                assertTest(!elt2.containsElement(elt0), "!elt2.containsElement(elt0)");
 
                 // No go ahead and remove some stuff
                 result = "<element0></element0>\n";
                 elt0.removeElement(elt1);
                 assertEquals(result, elt0.toString(), result  + " != " + elt0.toString());
-                assert(!elt0.containsElement(elt1), "!elt0.containsElement(elt1)");
+                assertTest(!elt0.containsElement(elt1), "!elt0.containsElement(elt1)");
             }
         });
     }

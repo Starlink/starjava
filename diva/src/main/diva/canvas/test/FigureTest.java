@@ -69,8 +69,8 @@ public class FigureTest extends TestSuite {
                 figure.setVisible(false);
             }
             public void check () throws TestFailedException {
-                assert(!figure.isVisible(), "Property visible");
-                assert(figure.getInteractor() == r, "Property interactionRole");
+                assertTest(!figure.isVisible(), "Property visible");
+                assertTest(figure.getInteractor() == r, "Property interactionRole");
             }
         });
     }
@@ -131,10 +131,10 @@ public class FigureTest extends TestSuite {
                 at3 = new AffineTransform(g.getTransform());
             }
             public void check () throws TestFailedException {
-                assert(at1.equals(at2),
+                assertTest(at1.equals(at2),
                         "Graphics2D transform changed from:\n    " 
                         + at1 + " \nto:\n    " + at2);
-                assert(at2.equals(at3),
+                assertTest(at2.equals(at3),
                         "Graphics2D transform changed from:\n    " 
                         + at2 + " \nto:\n    " + at3);
             }
@@ -172,7 +172,7 @@ public class FigureTest extends TestSuite {
                 figure.transform(at);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(
+                assertTest(TestUtilities.shapeEquals(
                         shape, figure.getShape(), 0.01),
                         "Shape not transformed: "
                         + shape + " != " + figure.getShape());
@@ -181,7 +181,7 @@ public class FigureTest extends TestSuite {
                 // because bounds don't necessarily transform correctly!
                 // So this test is only useful for catching the most
                 // gross errors
-                assert(TestUtilities.shapeEquals(
+                assertTest(TestUtilities.shapeEquals(
                         bounds, figure.getBounds(), 1.0),
                         "Bounds not transformed: "
                         + bounds + " != " + figure.getBounds());
@@ -212,12 +212,12 @@ public class FigureTest extends TestSuite {
                 figure.translate(10.0, -20.0);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(
+                assertTest(TestUtilities.shapeEquals(
                         shape, figure.getShape(), 0.01),
                         "Shape not translated: "
                         + shape + " != " + figure.getShape());
 
-                assert(TestUtilities.shapeEquals(
+                assertTest(TestUtilities.shapeEquals(
                         bounds, figure.getBounds(), 0.01),
                         "Bounds not translated: "
                         + bounds + " != " + figure.getBounds());
@@ -255,7 +255,7 @@ public class FigureTest extends TestSuite {
         //     result = figure.intersects(region);
         //}
         public void check () throws TestFailedException {
-            assert(TestUtilities.shapeEquals(region, copy, 0.01),
+            assertTest(TestUtilities.shapeEquals(region, copy, 0.01),
                     "The region was changed from:\n    " 
                     + copy + " \nto:\n    " + region);
         }

@@ -70,13 +70,13 @@ public class ShapeUtilitiesTest extends TestSuite {
                 fr2 = ShapeUtilities.transformBounds(fr2,at2);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(ds1, dr1, 0.01),
+                assertTest(TestUtilities.shapeEquals(ds1, dr1, 0.01),
                         "Bounds not transformed: " + ds1 + " != " + dr1);
-                assert(TestUtilities.shapeEquals(ds2, dr2, 0.01),
+                assertTest(TestUtilities.shapeEquals(ds2, dr2, 0.01),
                         "Bounds not transformed: " + ds2 + " != " + dr2);
-                assert(TestUtilities.shapeEquals(fs1, fr1, 0.01),
+                assertTest(TestUtilities.shapeEquals(fs1, fr1, 0.01),
                         "Bounds not transformed: " + fs1 + " != " + fr1);
-                assert(TestUtilities.shapeEquals(fs2, fr2, 0.01),
+                assertTest(TestUtilities.shapeEquals(fs2, fr2, 0.01),
                         "Bounds not transformed: " + fs2 + " != " + fr2);
             }
         });
@@ -124,14 +124,14 @@ public class ShapeUtilitiesTest extends TestSuite {
             }
             public void check () throws TestFailedException {
                 for (int i = 0; i < n; i++) {
-                    assert(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
+                    assertTest(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
                             "Shape not transformed: " + modified[i] + " != " + xforms[i]);
                     if (i < 3) {
-                        assert(shapes[i] != modified[i],
+                        assertTest(shapes[i] != modified[i],
                                 "Shapes must not be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     } else {
-                        assert(shapes[i] == modified[i],
+                        assertTest(shapes[i] == modified[i],
                                 "Shapes must be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     }
@@ -164,11 +164,11 @@ public class ShapeUtilitiesTest extends TestSuite {
                 ShapeUtilities.transformModifyRect(er,at);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(ds, dr, 0.01),
+                assertTest(TestUtilities.shapeEquals(ds, dr, 0.01),
                         "Rectangle not transformed: " + dr + " != " + ds);
-                assert(TestUtilities.shapeEquals(fs, fr, 0.01),
+                assertTest(TestUtilities.shapeEquals(fs, fr, 0.01),
                         "Rectangle not transformed: " + fr + " != " + fs);
-                assert(TestUtilities.shapeEquals(es, er, 0.01),
+                assertTest(TestUtilities.shapeEquals(es, er, 0.01),
                         "Ellipse not transformed: " + er + " != " + es);
             }
         });
@@ -213,14 +213,14 @@ public class ShapeUtilitiesTest extends TestSuite {
             }
             public void check () throws TestFailedException {
                 for (int i = 0; i < n; i++) {
-                    assert(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
+                    assertTest(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
                             "Shape not translated: " + modified[i] + " != " + xforms[i]);
                     if (i < 1) {
-                        assert(shapes[i] != modified[i],
+                        assertTest(shapes[i] != modified[i],
                                 "Shapes must not be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     } else {
-                        assert(shapes[i] == modified[i],
+                        assertTest(shapes[i] == modified[i],
                                 "Shapes must be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     }

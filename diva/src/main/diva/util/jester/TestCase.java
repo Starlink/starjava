@@ -50,11 +50,11 @@ public abstract class TestCase {
    * second argument is a string, which should generally be a copy
    * of the expression that produced the first argument.
    */
-  public void assert (boolean passed, String msg) throws TestFailedException {
+  public void assertTest(boolean passed, String msg) throws TestFailedException {
     if (!passed) {
       throw new TestFailedException(msg);
     }
-  }
+  } // PWD: renamed assertTest from assert, 1.4 clash.
 
   /**
    * Assert the equality of two objects. This method uses the equals()
