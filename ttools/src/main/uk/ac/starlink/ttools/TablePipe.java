@@ -38,6 +38,7 @@ public class TablePipe extends TableTask {
         MetadataMode.class.getName(),
         StatsMode.class.getName(),
         CountMode.class.getName(),
+        "uk.ac.starlink.ttools.TopcatMode",
     };
 
     private final static String[] FILTER_NAMES = new String[] {
