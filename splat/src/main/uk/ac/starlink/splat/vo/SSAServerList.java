@@ -87,18 +87,6 @@ public class SSAServerList
     protected void addStaticServers()
     {
         //  Just use the ones from VOSpec.
-
-        //  Slightly challenging as doesn't end with ?
-        try {
-            addServer( "Infrared Space Observatory Archive",
-                       "http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap.jsp?" +
-                       "imageType=spectrum" );
-        }
-        catch (MalformedURLException e) {
-            //  Shouldn't happen, but just in case make somekind of report.
-            e.printStackTrace();
-        }
-
         try {
             addServer ( "INES", "http://sdc.laeff.esa.es/ines/jsp/siap.jsp?" );
         }
@@ -113,5 +101,18 @@ public class SSAServerList
         catch (MalformedURLException e) {
             e.printStackTrace();
         }
+
+        //  Slightly challenging as doesn't end with a ?. Also doesn't like
+        //  FORMAT=application/fits.
+        try {
+            addServer( "Infrared Space Observatory Archive",
+                       "http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap.jsp?" +
+                       "imageType=spectrum" );
+        }
+        catch (MalformedURLException e) {
+            //  Shouldn't happen, but just in case make somekind of report.
+            e.printStackTrace();
+        }
+
     }
 }

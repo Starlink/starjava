@@ -49,7 +49,7 @@ public class SSAQuery
     private double queryRadius = 0.0;
 
     /** The format of any returned spectra */
-    private String queryFormat = "application/fits";
+    private String queryFormat = null;
 
     /** The StarTable formed from the results of the query */
     private StarTable starTable = null;
@@ -104,7 +104,8 @@ public class SSAQuery
     /**
      * Set the format that we want the spectra in. For SPLAT we clearly
      * require spectral data in FITS (VOTable will also do when we know how to
-     * deal with spectral coordinates) so that is the default. Formats are
+     * deal with spectral coordinates), but we cannot use that by default as
+     * one of the servers currently doesn't support that query. Formats are
      * MIME types (application/fits, application/x-votable+xml etc.).
      */
     public void setFormat( String queryFormat )
@@ -168,7 +169,9 @@ public class SSAQuery
         // Servers may have a case sensitivity issue! 
         // INES requires uppercase.
         buffer.append( "POS=" + queryRA + "," + queryDec );
-        buffer.append( "&FORMAT=" + queryFormat );
+        if ( queryFormat != null ) {
+            buffer.append( "&FORMAT=" + queryFormat );
+        }
         buffer.append( "&SIZE=" + queryRadius );
         return new URL( buffer.toString() );
     }
