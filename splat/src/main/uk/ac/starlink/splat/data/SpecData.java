@@ -184,9 +184,9 @@ public class SpecData
     public final static int PLOT_STYLE = 3;
 
     /**
-     * Set or query alpha blending fraction.
+     * Set or query alpha composite value.
      */
-    public final static int LINE_ALPHA_BLEND = 4;
+    public final static int LINE_ALPHA_COMPOSITE = 4;
 
     /**
      * Set or query error bar colour.
@@ -209,8 +209,8 @@ public class SpecData
 
     //
     //  Types of spectral data. The default is UNCLASSIFIED.
-    //  Nothing is done with this information here, it's just for
-    //  external tagging. USERTYPE is just a spare.
+    //  Nothing is done with this information here, it's just for external
+    //  tagging. USERTYPE is just a spare.
     //
 
     /**
@@ -297,7 +297,7 @@ public class SpecData
     protected String fullName = null;
 
     /**
-     * The range of coordinates spanned (i.e.<!-- --> min/max values in xPos and
+     * The range of coordinates spanned (min/max values in xPos and
      * yPos).
      */
     protected double[] range = new double[4];
@@ -327,9 +327,9 @@ public class SpecData
     protected double lineStyle = 1.0;
 
     /**
-     * The "graphics" line alpha blend fraction.
+     * The "graphics" line alpha composite value (SRC_OVER).
      */
-    protected double alphaBlend = 1.0;
+    protected double alphaComposite = 1.0;
 
     /**
      * The "graphics" line colour.
@@ -375,6 +375,11 @@ public class SpecData
      */
     protected int type = UNCLASSIFIED;
 
+    /**
+     * Whether the spectrum coordinates are monotonic.
+     */
+    protected boolean monotonic = true;
+
 
     //  ==============
     //  Public methods
@@ -415,8 +420,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum X data (i.e.<!-- --> the coordinates as a
-     * single array).
+     * Get references to spectrum X data (the coordinates as a single array).
      *
      * @return reference to spectrum X data.
      */
@@ -427,7 +431,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum Y data (i.e.<!-- --> the data values).
+     * Get references to spectrum Y data (the data values).
      *
      * @return reference to spectrum Y data.
      */
@@ -438,7 +442,7 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum Y data errors (i.e.<!-- --> the data errors).
+     * Get references to spectrum Y data errors (the data errors).
      *
      * @return reference to spectrum Y data errors.
      */
@@ -672,7 +676,7 @@ public class SpecData
     {
         EditableSpecData newSpec = null;
         try {
-            newSpec = SpecDataFactory.getReference().createEditable( name );
+            newSpec = SpecDataFactory.getInstance().createEditable( name );
             if ( errors == null ) {
                 newSpec.setDataQuick( coords, data );
             }
@@ -815,24 +819,24 @@ public class SpecData
 
 
     /**
-     * Set the alpha blending fraction of the line used plot the spectrum.
+     * Set the alpha composite value of the line used plot the spectrum.
      *
-     * @param alphaBlend the alpha belanding fraction (0.0 to 1.0).
+     * @param alphaComposite the alpha composite value (0.0 to 1.0).
      */
-    public void setAlphaBlend( double alphaBlend )
+    public void setAlphaComposite( double alphaComposite )
     {
-        this.alphaBlend = alphaBlend;
+        this.alphaComposite = alphaComposite;
     }
 
 
     /**
-     * Get the alpha blending fraction.
+     * Get the alpha composite value.
      *
-     * @return the current alpha blending fraction.
+     * @return the current alpha composite value.
      */
-    public double getAlphaBlend()
+    public double getAlphaComposite()
     {
-        return alphaBlend;
+        return alphaComposite;
     }
 
 
@@ -911,7 +915,7 @@ public class SpecData
      * Set a known numeric spectral property.
      *
      * @param what either LINE_THICKNESS, LINE_STYLE, LINE_COLOUR, PLOT_STYLE,
-     *      LINE_ALPHA_BLEND or ERROR_COLOUR.
+     *      LINE_ALPHA_COMPOSITE or ERROR_COLOUR.
      * @param value container for numeric value. These depend on property
      *      being set.
      */
@@ -938,9 +942,9 @@ public class SpecData
                 setPlotStyle( value.intValue() );
                 break;
             }
-            case LINE_ALPHA_BLEND:
+            case LINE_ALPHA_COMPOSITE:
             {
-                setAlphaBlend( value.doubleValue() );
+                setAlphaComposite( value.doubleValue() );
                 break;
             }
             case ERROR_COLOUR:
@@ -975,6 +979,14 @@ public class SpecData
         return type;
     }
 
+
+    /**
+     * Get whether the spectrum coordinates are monotonic or not.
+     */
+    public boolean isMonotonic()
+    {
+        return monotonic;
+    }
 
     /**
      * Set whether the spectrum should have its errors drawn as error bars, or
@@ -1030,14 +1042,13 @@ public class SpecData
 
 
     /**
-     * Read the data from the spectrum into local arrays. 
-     * This also initialises a suitable AST frameset to describe 
-     * the coordinate system in use and establishes the minimum and 
-     * maximum ranges for both coordinates (X, i.e. the wavelength 
+     * Read the data from the spectrum into local arrays.
+     * This also initialises a suitable AST frameset to describe
+     * the coordinate system in use and establishes the minimum and
+     * maximum ranges for both coordinates (X, i.e. the wavelength
      * and Y, i.e. data count).
      *
-     * @exception SplatException thrown if coordinates are not invertable
-     *                           (i.e. not monotonic).
+     * @exception SplatException thrown if an error condition is encountered.
      */
     public void readData()
         throws SplatException
@@ -1105,7 +1116,7 @@ public class SpecData
                                             impl.getProperty( "label" ),
                                             impl.getProperty( "units" ),
                                             false );
-            } 
+            }
             catch (AstException e) {
                 throw new SplatException( "Failed to find a valid spectral " +
                                           "coordinate system", e );
@@ -1114,16 +1125,16 @@ public class SpecData
                 astJ = new ASTJ( specref );
 
                 //  Get the mapping for the X axis and check that it is
-                //  useful, i.e. we can invert it.
+                //  useful, i.e. we can invert it. If this isn't the case then
+                //  many operations will fail, so record this so that we can
+                //  check.
                 Mapping oned = astJ.get1DMapping( 1 );
-                boolean invertable = ( oned.getI( "TranInverse" ) == 1 );
-                if ( ! invertable ) {
-                    throw new SplatException( "The coordinate axis " +
-                                              "of the spectrum '" + shortName +
-                                              "' does not increase or " +
-                                              "decrease monotonically.\n" +
-                                              "This means that it cannot " +
-                                              "be used." );
+                monotonic = ( oned.getI( "TranInverse" ) == 1 );
+                if ( ! monotonic ) {
+                    System.out.println( impl.getFullName() + ": " +
+                                        " warning -- coordinates are not" +
+                                        " monotonic this means some" +
+                                        " operations will fail" );
                 }
 
                 //  Get the centres of the pixel positions in current
@@ -1403,19 +1414,19 @@ public class SpecData
     {
         DefaultGrfState oldState = new DefaultGrfState();
         oldState.setColour( grf.attribute( Grf.GRF__COLOUR, BAD,
-            Grf.GRF__LINE ) );
+                                           Grf.GRF__LINE ) );
         oldState.setStyle( grf.attribute( Grf.GRF__STYLE, BAD,
-            Grf.GRF__LINE ) );
+                                          Grf.GRF__LINE ) );
         oldState.setWidth( grf.attribute( Grf.GRF__WIDTH, BAD,
-            Grf.GRF__LINE ) );
+                                          Grf.GRF__LINE ) );
         oldState.setAlpha( grf.attribute( grf.GRF__ALPHA, BAD,
-            Grf.GRF__LINE ) );
+                                          Grf.GRF__LINE ) );
 
         //  Set new one from object members.
         grf.attribute( Grf.GRF__WIDTH, lineThickness, Grf.GRF__LINE );
         grf.attribute( Grf.GRF__STYLE, lineStyle, Grf.GRF__LINE );
         grf.attribute( Grf.GRF__COLOUR, lineColour, Grf.GRF__LINE );
-        grf.attribute( grf.GRF__ALPHA, alphaBlend, Grf.GRF__LINE );
+        grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__LINE );
         return oldState;
     }
 
@@ -1691,7 +1702,7 @@ public class SpecData
     }
 
     /**
-     * Return the name of the column associated with the coordinates. 
+     * Return the name of the column associated with the coordinates.
      * If modification is not supported then this name is only symbolic.
      */
     public String getXDataColumnName()
@@ -1722,7 +1733,7 @@ public class SpecData
      */
     public String getYDataColumnName()
     {
-        return impl.getDataErrorColumnName();
+        return impl.getDataColumnName();
     }
 
     /**
@@ -1735,6 +1746,32 @@ public class SpecData
     {
         if ( isColumnMutable() ) {
             String currentName = getYDataColumnName();
+            if ( ! currentName.equals( name ) ) {
+                impl.setDataColumnName( name );
+                readData();
+            }
+        }
+    }
+
+    /**
+     * Return the name of the column associated with the data errors.
+     * If modification is not supported then this name is only symbolic.
+     */
+    public String getYDataErrorColumnName()
+    {
+        return impl.getDataErrorColumnName();
+    }
+
+    /**
+     * Set the name of the column associated with the data errors. If
+     * the underlying implementation supports it this will result in a
+     * modification of values.
+     */
+    public void setYDataErrorColumnName( String name )
+        throws SplatException
+    {
+        if ( isColumnMutable() ) {
+            String currentName = getYDataErrorColumnName();
             if ( ! currentName.equals( name ) ) {
                 impl.setDataErrorColumnName( name );
                 yErr = impl.getDataErrors();
