@@ -494,19 +494,22 @@ public class ControlWindow extends AuxWindow
     public void valueChanged( ListSelectionEvent evt ) {
         int watchCount = 0;
         for ( int i = evt.getFirstIndex(); i <= evt.getLastIndex(); i++ ) {
-            TopcatModel tcModel = (TopcatModel) tablesModel.getElementAt( i );
-            ViewerTableModel viewModel = tcModel.getViewModel();
-            TableColumnModel columnModel = tcModel.getColumnModel();
-            if ( tablesList.isSelectedIndex( i ) ) {
-                watchCount++;
-                tcModel.addTopcatListener( topcatWatcher );
-                viewModel.addTableModelListener( tableWatcher );
-                columnModel.addColumnModelListener( columnWatcher );
-            }
-            else {
-                tcModel.removeTopcatListener( topcatWatcher );
-                viewModel.removeTableModelListener( tableWatcher );
-                columnModel.removeColumnModelListener( columnWatcher );
+            if ( i < tablesModel.size() ) {
+                TopcatModel tcModel = (TopcatModel) 
+                                      tablesModel.getElementAt( i );
+                ViewerTableModel viewModel = tcModel.getViewModel();
+                TableColumnModel columnModel = tcModel.getColumnModel();
+                if ( tablesList.isSelectedIndex( i ) ) {
+                    watchCount++;
+                    tcModel.addTopcatListener( topcatWatcher );
+                    viewModel.addTableModelListener( tableWatcher );
+                    columnModel.addColumnModelListener( columnWatcher );
+                }
+                else {
+                    tcModel.removeTopcatListener( topcatWatcher );
+                    viewModel.removeTableModelListener( tableWatcher );
+                    columnModel.removeColumnModelListener( columnWatcher );
+                }
             }
         }
         assert watchCount <= 1;
