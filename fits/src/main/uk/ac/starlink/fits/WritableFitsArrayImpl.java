@@ -131,7 +131,9 @@ class WritableFitsArrayImpl implements ArrayImpl {
             /* Add the origin value cards if required. */
             boolean defaultOrigin = true;
             for ( int i = 0; i < ndim; i++ ) {
-                defaultOrigin = defaultOrigin && dims[ i ] == 0L;
+                if ( origin[ i ] != NDShape.DEFAULT_ORIGIN ) {
+                    defaultOrigin = false;
+                }
             }
             if ( ! defaultOrigin ) {
                 for ( int i = 0; i < ndim; i++ ) {

@@ -19,12 +19,6 @@ import uk.ac.starlink.array.Type;
  */
 public class FitsConstants {
 
-    /**
-     * Origin of an NDArray in each dimension if not specified.
-     * I've used 1 here to match HDS arrays - but should it be zero?
-     */
-    public static final long DEFAULT_ORIGIN = 1L;
-
     /** Prefix for NDArray-related FITS header cards. */
     public static final String NDARRAY_PREFIX = "NDA_";
 
@@ -72,14 +66,6 @@ public class FitsConstants {
 
     static String originCardName( int naxis ) {
         return NDARRAY_ORIGIN + ( naxis + 1 );
-    }
-
-    static long[] defaultOrigin( int ndim ) {
-        long[] origin = new long[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            origin[ i ] = DEFAULT_ORIGIN;
-        }
-        return origin;
     }
 
     static int typeToBitpix( Type type ) {

@@ -50,7 +50,9 @@ class ReadableFitsArrayImpl implements ArrayImpl {
         /* Determine the shape. */
         long[] dims = getDimsFromHeader( hdr );
         long[] origin = getOriginFromHeader( hdr );
-        this.oshape = new OrderedNDShape( origin, dims, Order.COLUMN_MAJOR );
+        this.oshape = ( origin != null )
+                    ? new OrderedNDShape( origin, dims, Order.COLUMN_MAJOR )
+                    : new OrderedNDShape( dims, Order.COLUMN_MAJOR );
 
         /* Determine the data type and blank value. */
         boolean hasBlank = hdr.containsKey( "BLANK" );
@@ -244,7 +246,7 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                 ok = false;
             }
         }
-        return ok ? origin : FitsConstants.defaultOrigin( naxis );
+        return ok ? origin : null;
     }
 
     /**
