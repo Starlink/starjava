@@ -36,6 +36,7 @@ public class TablePipe extends TableTask {
         CopyMode.class.getName(),
         JdbcMode.class.getName(),
         MetadataMode.class.getName(),
+        StatsMode.class.getName(),
         CountMode.class.getName(),
     };
 
