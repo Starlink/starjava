@@ -53,6 +53,7 @@ public class IconFactory {
     public static final short XML_CDATA = 124;
     public static final short XML_EREF = 125;
     public static final short XML_STRING = 126;
+    public static final short XML_DTD = 127;
     public static final short NDX = 130;
     public static final short HDX_CONTAINER = 131;
     public static final short VOTABLE = 140;
@@ -112,6 +113,7 @@ public class IconFactory {
             case XML_CDATA:      iname = "xml_txt.gif";              break;
             case XML_EREF:       iname = "xml_eref.gif";             break;
             case XML_STRING:     iname = "xml_txt.gif";              break;
+            case XML_DTD:        iname = "xml_dtd.gif";              break;
             case NDX:            iname = "jsky2.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
             case VOTABLE:        iname = "telescope2.gif";           break;
