@@ -18,6 +18,7 @@ public class AutoStarTable extends ColumnStarTable {
         "fomalhaut", "andromeda", "sol", null,
         "dougal", "florence", "brian", "", 
         "smiles", "courage", "thatchers", "uley",
+        "ant & bee", "a < b < c", "<![CDATA[Not a CDATA marked section!]]>",
         "  ",
     };
     final int nstr = strings.length;
