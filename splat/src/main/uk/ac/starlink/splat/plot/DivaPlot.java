@@ -14,22 +14,25 @@ import diva.canvas.JCanvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.KeyStroke;
+import javax.swing.JComponent;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
@@ -74,6 +77,10 @@ public class DivaPlot
     extends JCanvas
     implements Draw, Printable, MouseListener, AstPlotSource
 {
+    // Logger.
+    private static Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.splat.plot.DivaPlot" );
+
     /**
      * X scale factor for displaying data.
      */
@@ -139,7 +146,7 @@ public class DivaPlot
     protected double yMax;
 
     /**
-     * Bounding box for creating astPlot from physical coordinates
+     * Bounding box for creating Plot from physical coordinates
      */
     protected double[] baseBox = new double[4];
 
@@ -159,6 +166,16 @@ public class DivaPlot
      * DefaultGrf object that manages all AST graphics.
      */
     protected DefaultGrf javaGrf = null;
+
+    /**
+     * The current Plot used for all drawing.
+     */
+    protected Plot thePlot = null;
+
+    /**
+     *  Graphics limits of the plot region.
+     */
+    protected float[] graphbox = new float[4];
 
     /**
      * Object that contains a description of the non-spectral AST properties
@@ -477,11 +494,8 @@ public class DivaPlot
             return;
         }
 
-        //  Get the spectra AST frameset, that describes the
-        //  coordinates and set the DefaultGrf object is should use to draw
-        //  AST graphics.
+        //  Get the spectra AST frameset, this describes the coordinates.
         astJ = spectra.getAst();
-        astJ.setGraphic( javaGrf );
 
         //  Set the data limits for plotting. Throws a SplatException.
         setDataLimits();
@@ -766,7 +780,7 @@ public class DivaPlot
             }
         }
         if ( spectra.count() > 0 ) {
-            spectra.drawSpec( javaGrf, astJ.getPlot(), limits );
+            spectra.drawSpec( javaGrf, thePlot, limits );
         }
     }
 
@@ -801,9 +815,6 @@ public class DivaPlot
         boolean ok = true;
 
         try {
-            //  Restore the correct DefaultGrf object to the AST interface.
-            astJ.setGraphic( javaGrf );
-
             if ( xyScaled ) {
 
                 //  Scale of plot has changed or been set for the first
@@ -812,12 +823,12 @@ public class DivaPlot
 
                 //  Keep reference to existing AstPlot so we know how graphics
                 //  coordinates are already drawn.
-                Plot oldAstPlot = astJ.getPlot();
+                Plot oldAstPlot = thePlot;
                 if ( oldAstPlot != null ) {
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
 
-                //  Create an astPlot for the graphics, this is matched to the
+                //  Create a Plot for the graphics, this is matched to the
                 //  component size and is how we get an apparent rescale of
                 //  drawing. So that we get linear axis 1 coordinates we must
                 //  choose the current frame as the base frame (so that the
@@ -832,26 +843,26 @@ public class DivaPlot
 
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
-                        astJ.astPlot( this, baseBox,
-                                      graphicsEdges.getXLeft(),
-                                      graphicsEdges.getXRight(),
-                                      graphicsEdges.getYTop(),
-                                      graphicsEdges.getYBottom(),
-                                      config.getAst() );
+                        createPlot( astref, this, baseBox,
+                                    graphicsEdges.getXLeft(),
+                                    graphicsEdges.getXRight(),
+                                    graphicsEdges.getYTop(),
+                                    graphicsEdges.getYBottom(),
+                                    config.getAst() );
                     }
                     else {
-                        astJ.astPlot( this, baseBox,
-                                      0.05, 0.00, 0.03, 0.05,
-                                      config.getAst() );
+                        createPlot( astref, this, baseBox, 
+                                    0.05, 0.00, 0.03, 0.05, 
+                                    config.getAst() );
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05,
-                                  "" );
+                    createPlot( astref, this, baseBox, 
+                                0.05, 0.00, 0.03, 0.05, "" );
                 }
 
                 // The plot must use our Grf implementation.
-                astJ.getPlot().setGrf( javaGrf );
+                thePlot.setGrf( javaGrf );
 
                 //  Restore the base plot.
                 astref.setBase( base );
@@ -867,16 +878,16 @@ public class DivaPlot
                 }
                 if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) &&
                      xScale > 2.0 ) {
-                    xGap = astJ.getPlot().getD( "gap(1)" );
+                    xGap = thePlot.getD( "gap(1)" );
                     xGap = xGap / Math.max( 1.0, xScale * 0.5 );
-                    astJ.astSetPlot( "gap(1)=" + xGap );
+                    thePlot.set( "gap(1)=" + xGap );
                 }
 
                 //  Clear all existing AST graphics
                 javaGrf.reset();
 
                 //  Draw the coordinate grid/axes.
-                astJ.astGrid();
+                thePlot.grid();
 
                 //  Draw the spectra.
                 drawSpectra();
@@ -901,13 +912,13 @@ public class DivaPlot
             }
 
             //  Repaint all graphics.
-            astJ.getPlot().paint( g );
+            thePlot.paint( g );
 
         }
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
             // when we try to repaint.
-            System.out.println( e.getMessage() );
+            logger.info( e.getMessage() );
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
                 ok = false;
@@ -915,13 +926,82 @@ public class DivaPlot
         }
         catch (Throwable t) {
             // Trap all errors too (like OutOfMemory).
-            t.printStackTrace();
+            logger.info( t.getMessage() );
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
                 ok = false;
             }
         }
         return ok;
+    }
+
+    /**
+     *  Create a Plot to fit a given component.
+     *
+     *  @param astref  a FrameSet that describes the mapping from physical to 
+     *                 graphics coordinates.
+     *  @param comp    component that the plot will fit inside.
+     *  @param basebox array of 4 floating point number indicating the
+     *                 corners of the region to be drawn (in the
+     *                 coordinate system of the base frame).
+     *  @param xleft   Fraction of component display surface to be
+     *                 reserved on left for axes labels etc (can be zero, in
+     *                 which case use control of the Insets to provide
+     *                 required space).
+     *  @param xright  Fraction of component display surface to be
+     *                 reserved on right for axes labels etc (can be zero, in
+     *                 which case use control of the Insets to provide
+     *                 required space).
+     *  @param ytop    Fraction of component display surface to be
+     *                 reserved on top for axes labels etc (can be zero, in
+     *                 which case use control of the Insets to provide
+     *                 required space).
+     *  @param ybottom Fraction of component display surface to be
+     *                 reserved on bottom for axes labels etc (can be zero,
+     *                 in which case use control of the Insets to provide
+     *                 required space).
+     *  @param options a string of AST options to use when creating plot.
+     */
+    protected void createPlot( FrameSet astref, JComponent comp, double basebox[],
+                               double xleft, double xright,
+                               double ytop, double ybottom,
+                               String options )
+    {
+        //  Do nothing if no AST frameset available.
+        if ( astref == null ) {
+            return;
+        }
+
+        //  Find out the size of the graphics component. This is used
+        //  to define the base graphics coordinate system.
+        Dimension size = comp.getPreferredSize();
+        Insets inset = comp.getInsets();
+
+        //  Fraction of space reserved at left/right and top/bottom.
+        float tinset = (float) ( size.height * ytop );
+        float binset = (float) ( size.height * ybottom );
+        float linset = (float) ( size.width * xleft );
+        float rinset = (float) ( size.width * xright );
+
+        //  Bottom left-hand corner. Corrected for border insets.
+        graphbox[0] = inset.left + linset;
+        graphbox[1] = size.height - inset.bottom - binset;
+
+        //  Top right-hand corner.
+        graphbox[2] = size.width - inset.right - rinset;
+        graphbox[3] = inset.top + tinset;
+
+        Rectangle graphrect = new Rectangle( size );
+
+        //  Now create the astPlot.
+        thePlot = new Plot( astref, graphrect, basebox,
+                            (int) (inset.left + linset),
+                            (int) (inset.right + rinset),
+                            (int) (inset.bottom + binset),
+                            (int) (inset.top + tinset) );
+        if ( options != null ) {
+            thePlot.set( options );
+        }
     }
 
     /**
@@ -935,7 +1015,7 @@ public class DivaPlot
     {
         //  Pass old and new AstPlots to the overlay pane. This will
         //  use them to transform the graphics positions.
-        graphicsPane.astTransform( oldAstPlot, astJ.getPlot() );
+        graphicsPane.astTransform( oldAstPlot, thePlot );
 
         //  Force a reset of the vertical hair, if vertical scale is
         //  changed.
@@ -988,9 +1068,8 @@ public class DivaPlot
     {
         if ( showVHair ) {
             if ( barShape == null ) {
-                float[] limits = astJ.getGraphicsLimits();
-                barShape = new Line2D.Float( (float) x, limits[1],
-                    (float) x, limits[3] );
+                barShape = new Line2D.Float( (float) x, graphbox[1],
+                                             (float) x, graphbox[3] );
                 graphicsPane.getOverlayLayer().add( barShape );
             }
 
@@ -1031,15 +1110,14 @@ public class DivaPlot
         if ( spectra.count() == 0 || ! showVHair ) {
             return;
         }
-        String[] xypos =
-            spectra.formatInterpolatedLookup( (int) getVHairPosition(),
-                                              astJ.getPlot() );
+        String[] xypos = 
+            spectra.formatInterpolatedLookup( (int) getVHairPosition(), thePlot );
         tracker.updateCoords( xypos[0], xypos[1] );
     }
 
     /**
      * Transform a series of positions between the graphics and current
-     * coordinate systems (of the AstPlot).
+     * coordinate systems (of the Plot).
      *
      * @param positions position in x,y pairs
      * @param forward whether to use forward transformation
@@ -1047,17 +1125,17 @@ public class DivaPlot
      */
     public double[][] transform( double[] positions, boolean forward )
     {
-        return ASTJ.astTran2( astJ.getPlot(), positions, forward );
+        return ASTJ.astTran2( thePlot, positions, forward );
     }
 
     /**
-     * Access the limits of the graphics coordinates used to draw the plot.
+     * Access the limits of the graphics coordinates used to draw the Plot.
      *
      * @return coordinate limits (graphbox of Plot)
      */
     public float[] getGraphicsLimits()
     {
-        return astJ.getGraphicsLimits();
+        return graphbox;
     }
 
     /**
@@ -1075,12 +1153,10 @@ public class DivaPlot
             {
                 public void mouseMoved( MouseEvent e )
                 {
-                    Plot astPlot = astJ.getPlot();
-                    if ( spectra.count() == 0 || ! readyToTrack ||
-                         astPlot == null ) {
+                    if ( spectra.count() == 0 || ! readyToTrack || thePlot == null ) {
                         return;
                     }
-                    String[] xypos = spectra.formatLookup( e.getX(), astPlot );
+                    String[] xypos = spectra.formatLookup( e.getX(), thePlot );
                     tracker.updateCoords( xypos[0], xypos[1] );
                     setVHairPosition( e.getX() );
                 }
@@ -1111,7 +1187,7 @@ public class DivaPlot
         if ( spectra.count() == 0 ) {
             return 0.0;
         }
-        return spectra.unFormat( axis, astJ.getPlot(), value );
+        return spectra.unFormat( axis, thePlot, value );
     }
 
     /**
@@ -1127,12 +1203,12 @@ public class DivaPlot
         if ( spectra.count() == 0 ) {
             return null;
         }
-        return spectra.format( axis, astJ.getPlot(), value );
+        return spectra.format( axis, thePlot, value );
     }
 
     /**
      * Return a label that can be used to identity the values of an
-     * axis. Note the AST description will be used if the plot hasn't
+     * axis. Note the AST description will be used if the Plot hasn't
      * been drawn yet (these are generally the same).
      *
      * @param axis the axis
@@ -1144,9 +1220,8 @@ public class DivaPlot
             return "";
         }
 
-        Plot plot = astJ.getPlot();
-        if ( plot != null ) {
-            return plot.getC( "label(" + axis + ")" );
+        if ( thePlot != null ) {
+            return thePlot.getC( "label(" + axis + ")" );
         }
 
         //  Try WCS description.
@@ -1217,18 +1292,18 @@ public class DivaPlot
     /**
      * Return reference to the FrameSet used to transform from
      * graphics to world coordinates. This is really a direct
-     * reference to the AstPlot, so do not modify it (any changes
+     * reference to the Plot, so do not modify it (any changes
      * would be lost on the next resize).
      *
      * @return The Plot FrameSet
      */
     public FrameSet getMapping()
     {
-        return astJ.getPlot();
+        return thePlot;
     }
 
     /**
-     * Set whether the plot is showing the vertical hair.
+     * Set whether the Plot is showing the vertical hair.
      *
      * @param show Whether to show the vertical hair
      */
@@ -1359,6 +1434,6 @@ public class DivaPlot
     // Implementation of AstPlotSource interface.
     public Plot getPlot()
     {
-        return astJ.getPlot();
+        return thePlot;
     }
 }

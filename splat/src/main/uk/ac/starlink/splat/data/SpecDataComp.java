@@ -442,9 +442,9 @@ public class SpecDataComp
 
     /**
      *  Get reference to ASTJ object set up to specify the coordinate
-     *  system. This always returns the ASTJ object of the current
-     *  spectrum, so all other spectra must have a context that is
-     *  valid within the coordinate system defined by it.
+     *  system. This always returns the ASTJ object of the current spectrum,
+     *  so all other spectra must have a context that is valid within the
+     *  coordinate system defined by it.
      */
     public ASTJ getAst()
     {

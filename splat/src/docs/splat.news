@@ -3,6 +3,9 @@
 
    Better recovery from error when spectra ranges are hugely different.
 
+   Fixed long standing problem with graphics corruption between plots.
+   (When current spectrum was shared drawing appeared in all effected plots).
+
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
 

@@ -7,18 +7,13 @@
  *    29-MAY-2002 (Peter W. Draper):
  *       Converted to use the JNIAST package, rather than my JNI
  *       wrappers. Removed all native functions.
+ *    18-FEB-2005 (Peter W. Draper):
+ *       Removed all graphics functions.
  */
 package uk.ac.starlink.splat.ast;
 
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.logging.Logger;
-
-import javax.swing.JComponent;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
@@ -27,10 +22,8 @@ import uk.ac.starlink.ast.CmpMap;
 import uk.ac.starlink.ast.FluxFrame;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.LutMap;
 import uk.ac.starlink.ast.Mapping;
-import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.ast.SpecFluxFrame;
 import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.ast.UnitMap;
@@ -72,15 +65,6 @@ public class ASTJ
         setRef( astref );
     }
 
-    /**
-     *  Initialise from an AST frameset reference and a Grf object.
-     */
-    public ASTJ( FrameSet astref, Grf grfref )
-    {
-        setRef( astref );
-        setGraphic( grfref );
-    }
-
     //
     //  =============
     //  Static method
@@ -98,24 +82,9 @@ public class ASTJ
     //  ===================
 
     /**
-     *  Grf object (or subclass) for controlling drawing facilities.
-     */
-    protected Grf grfRef = null;
-
-    /**
      *  Reference to Ast frameset.
      */
     protected FrameSet astRef = null;
-
-    /**
-     *  Reference to astPlot, created by last call to astPlot.
-     */
-    protected Plot astPlot = null;
-
-    /**
-     *  Graphics limits of the plot region.
-     */
-    protected float[] graphbox = new float[4];
 
     /**
      * Size of buffers used when transferring potentially large chunks
@@ -149,40 +118,6 @@ public class ASTJ
     public FrameSet getRef()
     {
         return astRef;
-    }
-
-    /**
-     *  Set the current astPlot.
-     */
-    public void setPlot( Plot astPlot )
-    {
-        this.astPlot = astPlot;
-    }
-
-    /**
-     *  Get the current astPlot.
-     */
-    public Plot getPlot()
-    {
-        return astPlot;
-    }
-
-    /**
-     *  Set the graphics control object.
-     *
-     *  @param grfRef reference to the Grf object.
-     */
-    public void setGraphic( Grf grfRef )
-    {
-        this.grfRef = grfRef;
-    }
-
-    /**
-     *  Get the current graphics control object.
-     */
-    public Grf getGraphic()
-    {
-        return grfRef;
     }
 
     /**
@@ -229,248 +164,6 @@ public class ASTJ
         frameset.addFrame( insert, map, frame );
     }
 
-    /**
-     *  Create an AstPlot reference to fit a given component.
-     *
-     *  @param comp    component that the plot will fit inside.
-     *  @param basebox array of 4 floating point number indicating the
-     *                 corners of the region to be drawn (in the
-     *                 coordinate system of the base frame).
-     *  @param xleft   Fraction of component display surface to be
-     *                 reserved on left for axes labels etc (can be zero, in
-     *                 which case use control of the Insets to provide
-     *                 required space).
-     *  @param xright  Fraction of component display surface to be
-     *                 reserved on right for axes labels etc (can be zero, in
-     *                 which case use control of the Insets to provide
-     *                 required space).
-     *  @param ytop    Fraction of component display surface to be
-     *                 reserved on top for axes labels etc (can be zero, in
-     *                 which case use control of the Insets to provide
-     *                 required space).
-     *  @param ybottom Fraction of component display surface to be
-     *                 reserved on bottom for axes labels etc (can be zero,
-     *                 in which case use control of the Insets to provide
-     *                 required space).
-     *  @param options a string of AST options to use when creating plot.
-     */
-    public void astPlot( JComponent comp, double basebox[],
-                         double xleft, double xright,
-                         double ytop, double ybottom,
-                         String options )
-    {
-        //  Do nothing if no AST frameset available.
-        if ( astRef == null || grfRef == null ) {
-            return;
-        }
-
-        //  Find out the size of the graphics component. This is used
-        //  to define the base graphics coordinate system.
-        Dimension size = comp.getPreferredSize();
-        Insets inset = comp.getInsets();
-
-        //  Fraction of space reserved at left/right and top/bottom.
-        float tinset = (float) ( size.height * ytop );
-        float binset = (float) ( size.height * ybottom );
-        float linset = (float) ( size.width * xleft );
-        float rinset = (float) ( size.width * xright );
-
-        //  Bottom left-hand corner. Corrected for border insets.
-        graphbox[0] = inset.left + linset;
-        graphbox[1] = size.height - inset.bottom - binset;
-
-        //  Top right-hand corner.
-        graphbox[2] = size.width - inset.right - rinset;
-        graphbox[3] = inset.top + tinset;
-
-        Rectangle graphRect = new Rectangle( size );
-
-        //  Now create the astPlot.
-        astPlot = new Plot( astRef, graphRect, basebox,
-                            (int) (inset.left + linset),
-                            (int) (inset.right + rinset),
-                            (int) (inset.bottom + binset),
-                            (int) (inset.top + tinset) );
-        if ( options != null ) {
-            astPlot.set( options );
-        }
-    }
-
-    /**
-     *  Set the graphics clipping region for the AstPlot.
-     *
-     *  @param xlower lower bound for clipping.
-     *  @param ylower lower bound for clipping.
-     *  @param xupper upper bound for clipping.
-     *  @param yupper upper bound for clipping.
-     */
-    public void astPlotClip( double xlower, double ylower,
-                             double xupper, double yupper )
-    {
-        if ( astPlot != null ) {
-            double[] lbnd = new double[2];
-            double[] ubnd = new double[2];
-            lbnd[0] = xlower;
-            lbnd[1] = ylower;
-            ubnd[0] = xupper;
-            ubnd[1] = yupper;
-            astPlot.clip( FrameSet.AST__BASE, lbnd, ubnd );
-        }
-    }
-
-    /**
-     *  Get the limits of the graphics region of the current Plot.
-     *  Used to clip any drawing operations not performed by AST.
-     *
-     *  @return array of four floating point values. These are the
-     *          coordinates of the lower left-hand corner and the top
-     *          right-hand corner.
-     */
-    public float[] getGraphicsLimits()
-    {
-        return graphbox;
-    }
-
-    /**
-     *  Draw an astGrid, using last astPlot.
-     */
-    public void astGrid()
-    {
-        if ( astPlot == null || grfRef == null ) {
-            return;
-        }
-        astPlot.grid();
-    }
-
-    /**
-     *  Clear graphics (does not erase drawing). TODO: should
-     *  only do this for graphics created by this object.
-     */
-    public void astReset()
-    {
-        if ( grfRef == null ) {
-            return;
-        }
-        grfRef.clear();
-    }
-
-    /**
-     *  Draw a text string at a given position. A call to astPlot
-     *  must be made before attempting to use this method.
-     *
-     *  @param text the string of text to plot.
-     *
-     *  @param position a pair (or more) of coordinates that define
-     *                  the physical position that the text should be
-     *                  plotted at.
-     *  @param up the upvector of the text orientation (two values in
-     *            graphics coordinates).
-     *  @param just justification position of the text (two characters
-     *              from the pairs {T,C,B} - {L,C,R}).
-     */
-    public void astText( String text, double[] position, float up[],
-                         String just )
-    {
-        if ( astPlot == null || grfRef == null ) {
-            return;
-        }
-        astPlot.text( text, position, up, just );
-    }
-
-    /**
-     *  Draw a graphics marker at given positions. The points are
-     *  stored in the arrays like [x0,y0,x1,y1...].
-     *
-     *  @param points the set of 2D positions to draw marker at,
-     *                these coordinates are in the current frame of
-     *                the AstPlot.
-     *  @param type   the type of marker to be drawn, these are
-     *                defined by the class GrfMarker.
-     *
-     */
-    public void astMark2( double[] points, int type )
-    {
-        if ( astPlot == null || grfRef == null ) {
-            return;
-        }
-        int nmark = points.length / 2;
-        double[][] in = new double[2][MAXDIM];
-
-        // Dispatch markers in groups of up to MAXDIM
-        double[] ptr = points;
-        int n = 0;
-        int upper = 0;
-        for ( int lower = 0; lower < nmark; lower += MAXDIM ) {
-            upper = lower + MAXDIM;
-            if ( upper > nmark ) upper = nmark;
-
-            // Copy coordinates into local buffer
-            for ( int i = lower, j = 0; i < upper; i++, j++ ) {
-                in[0][j] = points[n++];
-                in[1][j] = points[n++];
-            }
-
-            // Plot the markers
-            astPlot.mark( upper-lower, 2, in, type );
-        }
-    }
-
-    /*
-     *  Draw a series of connected geodesic curves (i.e. polyline)
-     *
-     *  @param xpos the set of "X" positions defining the endpoints of
-     *              each curve. The these coordinates are in the
-     *              current frame of the AstPlot.
-     *
-     *  @param ypos the set of "Y" positions defining the endpoints of
-     *              each curve. The these coordinates are in the
-     *              current frame of the AstPlot.
-     */
-    public void astPolyCurve( double[] xpos, double[] ypos )
-    {
-        if ( astPlot == null || grfRef == null ) {
-            return;
-        }
-
-        // Construct local buffer for all positions
-        int npoint = xpos.length;
-        double[][] in = new double[2][npoint];
-
-        for ( int i = 0; i < npoint; i++ ) {
-            in[0][i] = xpos[i];
-            in[1][i] = ypos[i];
-        }
-        astPlot.polyCurve( npoint, 2, in );
-    }
-
-    /**
-     *  Set plot attributes.
-     *
-     *  @param settings the attribute settings to apply to the current
-     *                  plot.
-     *
-     *  @deprecated Use direct ".set()" method
-     */
-    public void astSetPlot( String settings )
-    {
-        if ( astPlot == null ) {
-            return;
-        }
-        astPlot.set( settings );
-    }
-
-    /**
-     *  Show current AstPlot on standard output (debugging).
-     *
-     *  @deprecated Use direct ".show()" method
-     */
-    public void astShowPlot()
-    {
-        if ( astPlot == null ) {
-            return;
-        }
-        astPlot.show();
-    }
 
     /**
      *  Clone an AST reference of some kind.
