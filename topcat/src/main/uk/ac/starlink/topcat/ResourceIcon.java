@@ -338,10 +338,15 @@ public class ResourceIcon implements Icon {
                 else if ( icon instanceof ResourceImageIcon ) {
                     ricon = ((ResourceImageIcon) icon).getResourceIcon();
                 }
+                else if ( icon == BLANK ) {
+                    ricon = null;
+                }
                 else {
                     throw new AssertionError();
                 }
-                nameMap.put( name, ricon );
+                if ( ricon != null ) {
+                    nameMap.put( name, ricon );
+                }
             }
         }
         return nameMap;
