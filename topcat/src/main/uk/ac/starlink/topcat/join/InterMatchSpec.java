@@ -118,7 +118,9 @@ public class InterMatchSpec extends MatchSpec {
         int nrow = matches.size();
 
         /* Create a new table based on the matched lines we have identified. */
-        result = MatchStarTables.makeJoinTable( bases, matches );
+        result = MatchStarTables
+                .makeJoinTable( bases, matches,
+                                getDefaultFixActions( nTable ) );
         addMatchMetadata( result, getDescription(), engine, tables );
 
         /* If it makes sense to do so, record which tables appear in which

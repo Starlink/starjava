@@ -6,6 +6,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -85,5 +86,21 @@ public abstract class MatchSpec extends JPanel {
      */
     public JComponent getPanel() {
         return this;
+    }
+
+    /**
+     * Returns a standard set of FixActions for a given number of tables.
+     *
+     * @param  nTable
+     * @return  <tt>nTable</tt>-element array of sensible FixActions
+     */
+    public JoinStarTable.FixAction[] getDefaultFixActions( int nTable ) {
+        JoinStarTable.FixAction[] fixActs = 
+            new JoinStarTable.FixAction[ nTable ];
+        for ( int i = 0; i < nTable; i++ ) {
+            fixActs[ i ] = JoinStarTable.FixAction
+                          .makeRenameDuplicatesAction( "_" + ( i + 1 ) );
+        }
+        return fixActs;
     }
 }

@@ -172,7 +172,12 @@ public class IntraMatchSpec extends MatchSpec {
             long nrow = inTable.getRowCount();
             StarTable grpTable = MatchStarTables
                                 .makeInternalMatchTable( 0, matches, nrow );
-            return new JoinStarTable( new StarTable[] { inTable, grpTable } );
+            JoinStarTable.FixAction[] fixActs = new JoinStarTable.FixAction[] {
+                JoinStarTable.FixAction.makeRenameDuplicatesAction( "_old" ),
+                JoinStarTable.FixAction.NO_ACTION,
+            };
+            return new JoinStarTable( new StarTable[] { inTable, grpTable },
+                                      fixActs );
         }
         else if ( option.equals( ELIMINATE_0 ) ||
                   option.equals( ELIMINATE_1 ) ) {
@@ -203,7 +208,8 @@ public class IntraMatchSpec extends MatchSpec {
             int width = getTableWideness();
             return MatchStarTables
                   .makeParallelMatchTable( inTable, 0, matches,
-                                           width, width, width );
+                                           width, width, width,
+                                           getDefaultFixActions( width ) );
         }
         else {
             throw new AssertionError();
