@@ -679,6 +679,9 @@ public class StaticTreeViewer extends JFrame {
     private void replaceWithParent( DataNode node ) {
         Object parentObj = node.getParentObject();
         assert parentObj != null; // otherwise action disabled
+        String path = TreeviewUtil.getNodePath( node );
+
+        /* Get the new node. */
         DataNode parentNode;
         boolean error = false;
         try {
@@ -688,6 +691,19 @@ public class StaticTreeViewer extends JFrame {
             parentNode = nodeMaker.makeErrorDataNode( null, e );
             error = true;
         }
+
+        /* Try to doctor the label. */
+        String pname = node.getName();
+        String psep = parentNode.getPathSeparator();
+        if ( path != null && pname != null && path.indexOf( pname ) > 0 ) {
+            path = path.substring( 0, path.length() - pname.length() );
+            if ( psep != null && path.indexOf( psep ) > 0 ) {
+                path = path.substring( 0, path.length() - psep.length() );
+            }
+            parentNode.setLabel( path );
+        }
+
+        /* Do the replacement. */
         replaceNode( node, parentNode );
     }
 

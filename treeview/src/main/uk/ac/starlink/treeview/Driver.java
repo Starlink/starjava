@@ -74,6 +74,7 @@ public class Driver {
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-vot", VOTableDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
+        nodeTypeFlags.put( "-ftp", FtpDirectoryDataNode.class );
 
         /* Construct the usage message. */
         String usageMsg = 

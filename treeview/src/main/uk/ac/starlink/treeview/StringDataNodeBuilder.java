@@ -54,6 +54,16 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
             }
         }
 
+        /* If it looks like an FTP URL, pass it to the FTP handler. */
+        if ( string.startsWith( "ftp://" ) ) {
+            try {
+                return new FtpDirectoryDataNode( string );
+            }
+            catch ( NoSuchDataException e ) {
+                // oh well
+            }
+        }
+
         /* Try to turn it into a URL and use that as a data source. */
         try {
             URL url = new URL( string );

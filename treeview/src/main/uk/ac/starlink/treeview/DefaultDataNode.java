@@ -35,7 +35,6 @@ public class DefaultDataNode implements DataNode {
      * Constructs a blank <code>DefaultDataNode</code>.
      */
     public DefaultDataNode() {
-        this( "" );
     }
 
     /**
@@ -44,8 +43,8 @@ public class DefaultDataNode implements DataNode {
      * @param  name  the name to use for this object.
      */
     public DefaultDataNode( String name ) {
-        this.name = name;
-        setLabel( ( name == null ) ? "null" : name );
+        this();
+        setName( name );
     }
 
     /**
@@ -89,8 +88,22 @@ public class DefaultDataNode implements DataNode {
         }
     }
 
+    /**
+     * Sets the name of this node.  Since the name of a node should not 
+     * change over its lifetime (though a label can), this is only 
+     * intended for use during construction by subclasses.
+     *
+     * @param  name  the node's name
+     */
+    protected void setName( String name ) {
+        this.name = name;
+        if ( label == null && name != null ) {
+            setLabel( label = name );
+        }
+    }
+
     public String getName() {
-        return name;
+        return name == null ? "..." : name;
     }
 
     /**

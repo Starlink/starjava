@@ -292,11 +292,9 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
-<!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
--->
   </path>
 
   <path id="built.classpath">
@@ -568,12 +566,10 @@
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
-<!--
     <mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
--->
 
   </target>
 
@@ -627,7 +623,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../hdx/hdx.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../sog/sog.jar ../axis/axis.jar ../ant.jar"/>
+           value="commons-net-1.0.0.jar ../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../hdx/hdx.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../sog/sog.jar ../axis/axis.jar ../ant.jar"/>
       </manifest>
     </jar>
 

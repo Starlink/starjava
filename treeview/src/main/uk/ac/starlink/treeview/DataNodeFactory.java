@@ -439,7 +439,25 @@ public class DataNodeFactory {
                 parentObj = sysid;
             }
         }
-            
+
+        /* If it's a file by FTP we can get its parent. */
+        if ( parentObj == null && node.getParentObject() == null 
+             && obj instanceof DataSource ) {
+            URL url = ((DataSource) obj).getURL();
+            if ( url != null ) {
+                String loc = url.toExternalForm();
+                if ( loc.startsWith( "ftp://" ) ) {
+                    String dir = loc.substring( 0, loc.lastIndexOf( '/' ) );
+                    try {
+                        parentObj = new FtpLocation( dir );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        // never mind
+                    }
+                }
+            }
+        }
+           
         /* Get a suitable label from a source name if we have one.  The format
          * of a DataSource name is not defined, but it may be some sort of
          * path - try to pick the last element of it. */
@@ -578,6 +596,7 @@ public class DataNodeFactory {
                 XMLDataNode.class,
                 VOTableTableDataNode.class,
                 VOComponentDataNode.class,
+                FtpDirectoryDataNode.class,
                 CompressedDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,
