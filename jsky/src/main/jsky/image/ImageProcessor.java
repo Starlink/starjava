@@ -8,6 +8,9 @@
  * Allan Brighton  1999/11/17  Created
  * Peter W. Draper 2002/10/01  Commented out use of extrema ImageOp
  *                             as it returns NaN when NaNs are present
+ *                             Changed _blank to a double as part of
+ *                             support for double precision.
+ *                             Added setBlank() to support sub-classing.
  */
 
 package jsky.image;
@@ -124,7 +127,11 @@ public class ImageProcessor {
     private boolean _flipY = false;
 
     // if true, reverse the meaning of flipY (for FITS images that were not flipped while reading) 
-    private boolean _reverseY = false;
+    protected boolean _reverseY = false; // PWD: changed to protected
+                                         // so that sub-classes can
+                                         // set without the side
+                                         // effects (bad early update
+                                         // of graphics).
 
     // Set to true if the Y axis of the (FITS) image was inverted already while reading. 
     private boolean _invertedYAxis = false;
@@ -142,7 +149,7 @@ public class ImageProcessor {
     private String _name = "";
 
     // Value for bad pixels 
-    private float _blank = Float.NaN;
+    private double _blank = Double.NaN;
 
     // Value of the DATAMIN property, if defined 
     private double _dataMin = 0.;
@@ -298,13 +305,13 @@ public class ImageProcessor {
             // check for grayscale images...
             if (_numBands == 1) {
                 // get value of blank or bad pixels
-                _blank = fitsImage.getKeywordValue("BLANK", Float.NaN);
-                if (Float.isNaN(_blank))
-                    _blank = fitsImage.getKeywordValue("BADPIXEL", Float.NaN);
-                if (!Float.isNaN(_blank)) {
+                _blank = fitsImage.getKeywordValue("BLANK", Double.NaN);
+                if (Double.isNaN(_blank))
+                    _blank = fitsImage.getKeywordValue("BADPIXEL", Double.NaN);
+                if (!Double.isNaN(_blank)) {
                     // assume blank value needs to be rescaled in the same way as the image
                     // (the resulting image is float data, so make sure the "blank" value is treated the same)
-                    _blank = (float) (_blank * (float) _bscale + (float) _bzero);
+                    _blank = _blank * _bscale + _bzero;
                 }
 
                 // min/max pixel values, if specified in image properties
@@ -316,7 +323,7 @@ public class ImageProcessor {
         else {
             _bzero = 0.;
             _bscale = 1.;
-            _blank = Float.NaN;
+            _blank = Double.NaN;
             _dataMin = 0.;
             _dataMax = 0.;
             _dataMean = 0.;
@@ -790,10 +797,17 @@ public class ImageProcessor {
     /**
      * Return the value used for bad or blank pixels (taken from "BLANK" image property).
      */
-    public float getBlank() {
+    public double getBlank() {
         return _blank;
     }
 
+    /**
+     * Set the value to be used for bad or blank pixels. Used for
+     * sub-classing access to _blank.
+     */
+    protected void setBlank( double blank ) {
+        _blank = blank;
+    }
 
     /**
      * Return the rotation angle.
