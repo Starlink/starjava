@@ -15,6 +15,7 @@ package uk.ac.starlink.sog;
 import java.awt.Graphics2D;
 import java.io.IOException;
 import java.net.URL;
+import java.net.Socket;
 
 import javax.media.jai.PlanarImage;
 import javax.swing.event.ChangeEvent;
@@ -155,6 +156,23 @@ public class SOGRemoteControl
         //  define the SOAP services offered (by this class). 
         URL deployURL = SOGRemoteControl.class.getResource( "deploy.wsdd" );
         System.out.println( deployURL );
+
+        //  Check if this port is already bound. In which case give up
+        //  now!
+        boolean open = true;
+        try {
+            Socket tempSocket = new Socket( "localhost", portNumber );
+            tempSocket.close();
+        }
+        catch (Exception any) {
+            // Fails if not already in use, which is good.
+            open = false;
+        }
+        if ( open ) {
+            throw new RuntimeException( "Failed to start SoG " +
+                                        "SOAP services, port already in use" );
+        }
+
         try {
             _server = new AppHttpSOAPServer( portNumber );
             _server.start();
@@ -163,7 +181,7 @@ public class SOGRemoteControl
         }
         catch ( Exception e ) {
             e.printStackTrace();
-            throw new RuntimeException( "Failed to start SOG SOAP services" );
+            throw new RuntimeException( "Failed to start SoG SOAP services" );
         }
     }
 
