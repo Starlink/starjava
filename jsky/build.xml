@@ -849,6 +849,14 @@
 
   </target>
 
+  <target name="fullui"
+          depends="compile-tests">
+    <java classname="jsky.app.jskycat.JSkyCat" fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+  </target>
+
+
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
    !
