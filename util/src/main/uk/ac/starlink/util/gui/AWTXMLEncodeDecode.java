@@ -10,7 +10,7 @@ package uk.ac.starlink.util.gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.AlphaComposite;
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
 import org.w3c.dom.Element;
 
 /**
@@ -20,12 +20,12 @@ import org.w3c.dom.Element;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class AWTXMLEncodeAndDecode
+public class AWTXMLEncodeDecode
 {
     /**
      * Static class, so no public constructor.
      */
-    private AWTXMLEncodeAndDecode()
+    private AWTXMLEncodeDecode()
     {
         // Do nothing.
     }
@@ -36,9 +36,9 @@ public class AWTXMLEncodeAndDecode
     public static void addChildElement( Element rootElement, String name,
                                         Font value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     name,
-                                                     fontToString( value ) );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  name,
+                                                  fontToString( value ) );
     }
 
     /**
@@ -77,9 +77,9 @@ public class AWTXMLEncodeAndDecode
     public static void addChildElement( Element rootElement, String name,
                                         Color value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     name,
-                                                     colorToString( value ) );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  name,
+                                                  colorToString( value ) );
     }
 
     /**
@@ -100,7 +100,7 @@ public class AWTXMLEncodeAndDecode
     public static Color colorFromString( String value )
     {
         return
-            new Color( PrimitiveXMLEncodeAndDecode.intFromString( value ) );
+            new Color( PrimitiveXMLEncodeDecode.intFromString( value ) );
     }
 
     /**
@@ -110,9 +110,9 @@ public class AWTXMLEncodeAndDecode
     public static void addChildElement( Element rootElement, String name,
                                         AlphaComposite value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     name,
-                                                     compositeToString(value));
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  name,
+                                                  compositeToString(value));
     }
 
     /**
@@ -132,9 +132,9 @@ public class AWTXMLEncodeAndDecode
     {
         String[] subValues = value.split( ":" );
         return
-            AlphaComposite.getInstance( PrimitiveXMLEncodeAndDecode
+            AlphaComposite.getInstance( PrimitiveXMLEncodeDecode
                                            .intFromString( subValues[0] ),
-                                        (float) PrimitiveXMLEncodeAndDecode
+                                        (float) PrimitiveXMLEncodeDecode
                                            .doubleFromString( subValues[1] ));
     }
 }
