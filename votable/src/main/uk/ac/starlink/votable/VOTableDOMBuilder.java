@@ -95,7 +95,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      * @param  tdata  the data object containing the cell data for 
      *         <tt>tableEl</tt>
      */
-    private void storeData( Element tableEl, TabularData tdata ) {
+    public static void storeData( Element tableEl, TabularData tdata ) {
         tableDataMap.put( tableEl, tdata );
     }
 
