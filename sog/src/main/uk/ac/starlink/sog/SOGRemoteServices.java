@@ -28,6 +28,20 @@ public class SOGRemoteServices
     }
 
     /**
+     * Update the image display.
+     */
+    public static void updateImage( String cookie )
+        throws AxisFault
+    {
+        try {
+            SOGRemoteControl.getInstance().updateImage( cookie );
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to update SoG image display", e  );
+        }
+    }
+
+    /**
      * Display the given file or URL.
      */
     public static void showImage( String fileOrURL )
@@ -35,6 +49,21 @@ public class SOGRemoteServices
     {
         try {
             SOGRemoteControl.getInstance().showImage( fileOrURL );
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to display:" + fileOrURL + 
+                                 " in SoG", e );
+        }
+    }
+
+    /**
+     * Display the given file or URL.
+     */
+    public static void showImage( String cookie, String fileOrURL )
+        throws AxisFault
+    {
+        try {
+            SOGRemoteControl.getInstance().showImage( cookie, fileOrURL );
         }
         catch (Exception e) {
             throw new AxisFault( "Failed to display:" + fileOrURL + 
@@ -57,6 +86,20 @@ public class SOGRemoteServices
     }
 
     /**
+     * Display the given DOM Element as an NDX.
+     */
+    public static void showNDX( String cookie, Element element )
+        throws AxisFault
+    {
+        try {
+            SOGRemoteControl.getInstance().showNDX( cookie, element );
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to display remote NDX", e );
+        }
+    }
+
+    /**
      * Return the WCS center of the current image
      */
     public String wcsCenter()
@@ -64,6 +107,20 @@ public class SOGRemoteServices
     {
         try {
             return SOGRemoteControl.getInstance().wcsCenter();
+        }
+        catch (Exception e) {
+            throw new AxisFault( "Failed to get centre of WCS", e );
+        }
+    }
+
+    /**
+     * Return the WCS center of the current image
+     */
+    public String wcsCenter( String cookie )
+        throws AxisFault
+    {
+        try {
+            return SOGRemoteControl.getInstance().wcsCenter( cookie );
         }
         catch (Exception e) {
             throw new AxisFault( "Failed to get centre of WCS", e );
