@@ -73,13 +73,19 @@ public class SpecDataComp
      */
     protected SpecData lastCurrentSpec = null;
 
-    /** 
-     * Whether we're being careful to match coordinates 
+    /**
+     * Whether we're matching coordinate units between spectra.
      */
     private boolean coordinateMatching = false;
 
     /**
-     * Whether we're need to include spacing for error bars in the automatic
+     * Whether we're matching data units between spectra. This requires
+     * that coordinateMatching is also true.
+     */
+    private boolean dataUnitsMatching = true; // false;
+
+    /**
+     * Whether we are to include spacing for error bars in the automatic
      * ranging.
      */
     private boolean errorbarAutoRanging = false;
@@ -136,7 +142,26 @@ public class SpecDataComp
     }
 
     /**
-     * Set whether we need to add extra space in the autoranging for 
+     * Set whether we're being careful about matching data units between
+     * spectra. If so then AST will check if any Frames can be converted to
+     * preserve units.
+     */
+    public void setDataUnitsMatching( boolean on )
+    {
+        dataUnitsMatching = on;
+    }
+
+    /**
+     * Get whether we're being careful about matching data units between
+     * spectra.
+     */
+    public boolean isDataUnitsMatching()
+    {
+        return dataUnitsMatching;
+    }
+
+    /**
+     * Set whether we need to add extra space in the autoranging for
      * the errorbars, if displayed.
      */
     public void setErrorbarAutoRanging( boolean on )
@@ -279,7 +304,7 @@ public class SpecDataComp
     {
         if ( spectra.indexOf( spec ) > -1 ) {
             return true;
-        } 
+        }
         else {
             return false;
         }
@@ -307,7 +332,9 @@ public class SpecDataComp
         if ( currentSpec != null ) {
             StringBuffer name = new StringBuffer( currentSpec.getShortName() );
             if ( spectra.size() > 1 ) {
-                name.append("(+").append(spectra.size()-1).append(" others)");
+                name.append( "(+" )
+                    .append( spectra.size() - 1 )
+                    .append( " others)" );
             }
             return name.toString();
         }
@@ -364,11 +391,12 @@ public class SpecDataComp
             if ( ! spectrum.equals( currentSpec ) ) {
                 newrange = spectrum.getRange();
                 if ( coordinateMatching ) {
-                    //  Need to convert between these coordinates and
-                    //  those of the reference spectrum.
+                    //  Need to convert between these coordinates and those of
+                    //  the reference spectrum.
                     try {
                         newrange = transformRange( currentSpec, spectrum,
-                                                   newrange );
+                                                   newrange,
+                                                   dataUnitsMatching );
                     }
                     catch (SplatException e) {
                         failed++;
@@ -380,13 +408,13 @@ public class SpecDataComp
         }
         if ( lastException != null ) {
             throw new SplatException( "Failed to align coordinate systems",
-                                      lastException);
+                                      lastException );
         }
         return range;
     }
 
     /**
-     * Given a limit range, check if these need changing to include a
+     * Given a range of limits, check if these need changing to include a
      * new set of limits.
      */
     private void checkRangeLimits( double[] newrange, double[] range )
@@ -454,7 +482,8 @@ public class SpecDataComp
                     //  the reference spectrum.
                     try {
                         newrange = transformRange( currentSpec, spectrum,
-                                                   newrange);
+                                                   newrange,
+                                                   dataUnitsMatching );
                     }
                     catch (SplatException e) {
                         failed++;
@@ -507,7 +536,8 @@ public class SpecDataComp
                         //  those of the reference spectrum.
                         try {
                             newrange = transformRange( currentSpec, spectrum,
-                                                       newrange);
+                                                       newrange,
+                                                       dataUnitsMatching );
                         }
                         catch (SplatException e) {
                             failed++;
@@ -527,28 +557,36 @@ public class SpecDataComp
     }
 
     /**
-     * Transform range-like position-pairs between the plot
-     * coordinates of two spectra. The coordinate systems are aligned
-     * using astConvert if possible, otherwise the input coordinates
-     * are returned.
+     * Transform range-like position-pairs between the plot coordinates
+     * of two spectra. The coordinate systems are aligned using astConvert
+     * if possible, if not a {@link SplatExceotion} is thrown.
      *
      * The input and output coordinates are [x1,x2,y1,y2,...].
      */
     public double[] transformRange( SpecData target, SpecData source,
-                                    double[] range )
+                                    double[] range, boolean matchDataUnits )
         throws SplatException
     {
         double[] result = range;
         try {
-            //  Try to align the plotting FrameSets of the SpecData. Only
-            //  need to do this between DATAPLOT domains.
+            //  Try to align the plotting FrameSets of the SpecData. Only need
+            //  to do this between DATAPLOT domains. If requested set the
+            //  active units for the whole frame to get the data units aligned
+            //  actively too (SpecFrames are always on, so we just need to get
+            //  the data axis working).
             FrameSet to = target.getAst().getRef();
             FrameSet fr = source.getAst().getRef();
+            if ( matchDataUnits ) {
+                to.setActiveUnit( true );
+            }
             String stdofrest = null;
             FrameSet aligned = fr.convert( to, "DATAPLOT" );
             if ( aligned == null ) {
-                throw new SplatException( "Failed to aligned coordinates" +
-                                          " while transforming ranges" );
+                if ( matchDataUnits ) {
+                    throw new SplatException( "Failed to align spectral " +
+                                              "coordinates or data units" );
+                }
+                throw new SplatException( "Failed to spectral coordinates" );
             }
 
             //  2D coords, so need separate X,Y coords.
@@ -786,17 +824,17 @@ public class SpecDataComp
         }
         return 0;
     }
-    
+
     //
     // Implement the ComboBoxModel interface.
     //
-    
+
     public Object getSelectedItem()
     {
         // The current spectrum.
         return currentSpec;
     }
-    
+
     public void setSelectedItem( Object anItem )
     {
         if ( anItem instanceof SpecData ) {
@@ -836,12 +874,12 @@ public class SpecDataComp
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == ListDataListener.class ) {
                 if (e == null) {
-                    e = new ListDataEvent( this, 
-                                           ListDataEvent.INTERVAL_ADDED, 
+                    e = new ListDataEvent( this,
+                                           ListDataEvent.INTERVAL_ADDED,
                                            index, index );
                 }
                 ((ListDataListener)listeners[i+1]).intervalAdded( e );
-            }          
+            }
         }
     }
 
@@ -855,12 +893,12 @@ public class SpecDataComp
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == ListDataListener.class ) {
                 if (e == null) {
-                    e = new ListDataEvent( this, 
-                                           ListDataEvent.INTERVAL_REMOVED, 
+                    e = new ListDataEvent( this,
+                                           ListDataEvent.INTERVAL_REMOVED,
                                            index, index );
                 }
                 ((ListDataListener)listeners[i+1]).intervalRemoved( e );
-            }          
+            }
         }
     }
 }
