@@ -204,8 +204,13 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                    .setExpression( (String) value, null );
                     super.setValue( irow, value );
 
-                    /* This is a blunt instrument, but no event is defined to
-                     * describe all the data in a single column changing. */
+                    /* Message the table that its data may have changed.
+                     * Since every cell in one column is changing, 
+                     * potentially any cell in the table could change, since
+                     * it may be in a synthetic column depending on the
+                     * changed one.  Which is just as well, since no event
+                     * is defined to describe all the data in a single
+                     * column changing. */
                     viewModel.fireTableDataChanged();
                 }
                 catch ( CompilationException e ) {
