@@ -34,6 +34,7 @@ public class TableCopy {
         }
         usage.append( "\n   Usage: " )
              .append( cmdname )
+             .append( " [-disk]" )
              .append( " [-ofmt <out-format>] <in-table> <out-table>\n" );
         usage.append( "\n   Known out-formats:\n" );
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
@@ -58,6 +59,9 @@ public class TableCopy {
                         System.err.println( usage );
                         System.exit( 1 );
                     }
+                }
+                else if ( arg.equals( "-disk" ) ) {
+                    treader.setStoragePolicy( StoragePolicy.PREFER_DISK );
                 }
                 else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
                     System.out.println( usage );
