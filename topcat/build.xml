@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="0.2"/>
+  <property name="version" value="0.2a"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -417,7 +417,7 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.topcat.TableViewer"/>
         <attribute name="Class-Path"
-                   value="plot.jar jel_g.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar"/>
+                   value="plot.jar jel_g.jar jhall.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar"/>
       </manifest>
     </jar>
 
@@ -894,13 +894,8 @@
    !   ============
    !-->
   <target name="test"
-          description="-> does nothing">
-    <echo message="no tests defined"/>
-  </target>
-<!--
           depends="run-tests"
           description="-> run JUnit tests"/>
--->
 
   <target name="run-tests"
           depends="compile-tests"

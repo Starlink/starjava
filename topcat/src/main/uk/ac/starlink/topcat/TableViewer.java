@@ -20,6 +20,7 @@ import java.util.BitSet;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -30,6 +31,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -78,8 +80,6 @@ public class TableViewer extends AuxWindow {
     private ColumnInfoWindow colinfoWindow;
     private ParameterWindow paramWindow;
     private StatsWindow statsWindow;
-    private Action exitAct;
-    private Action closeAct;
     private Action newAct;
     private Action saveAct;
     private Action dupAct;
@@ -152,38 +152,37 @@ public class TableViewer extends AuxWindow {
         subsets.add( RowSubset.ALL );
 
         /* Create and configure actions. */
-        exitAct = new ViewerAction( "Exit", 0,
-                                    "Exit the application" );
-        closeAct = new ViewerAction( "Close", 0,
-                                     "Close this viewer" );
-        newAct = new ViewerAction( "New", 0,
+        newAct = new ViewerAction( "Open", ResourceIcon.LOAD, 
                                    "Open a new viewer window" );
-        saveAct = new ViewerAction( "Save", 0,
+        saveAct = new ViewerAction( "Save", ResourceIcon.SAVE,
                                     "Write out this table" );
-        dupAct = new ViewerAction( "Duplicate", 0,
-                       "Display another copy of this table in a new viewer" );
+        dupAct = new ViewerAction( "Duplicate", ResourceIcon.COPY,
+                                   "Display another copy of this table " +
+                                   "in a new viewer" );
 
-        mirageAct = new ViewerAction( "Mirage", 0,
+        mirageAct = new ViewerAction( "Mirage", 
                                       "Launch Mirage to display this table" );
-        plotAct = new ViewerAction( "Plot", 0,
+        plotAct = new ViewerAction( "Plot", ResourceIcon.PLOT,
                                     "Plot columns from this table" );
-        paramAct = new ViewerAction( "Table parameters", 0,
+        paramAct = new ViewerAction( "Table parameters", ResourceIcon.PARAMS,
                                      "Display table metadata" );
-        colinfoAct = new ViewerAction( "Column metadata", 0,
+        colinfoAct = new ViewerAction( "Column metadata", ResourceIcon.COLUMNS,
                                        "Display metadata for each column" );
-        statsAct = new ViewerAction( "Column statistics", 0,
+        statsAct = new ViewerAction( "Column statistics", ResourceIcon.STATS,
                                      "Display statistics for each column" );
-        unsortAct = new ViewerAction( "Unsort", 0,
+
+        unsortAct = new ViewerAction( "Unsort", ResourceIcon.UNSORT,
                                       "Display in original order" );
 
-        newsubsetAct = new ViewerAction( "New subset expression", 0,
+        newsubsetAct = new ViewerAction( "New subset expression",
                                          "Define a new row subset" );
-        includeAct = new ViewerAction( "Subset from selected rows", 0,
-            "Define a new row subset containing all currently selected rows" );
-        excludeAct = new ViewerAction( "Subset from unselected rows", 0,
-            "Define a new row subset containing all " +
-            "rows not currently selected" );
-        nosubsetAct = new ViewerAction( "View all rows", 0,
+        includeAct = new ViewerAction( "Subset from selected rows",
+                                       "Define a new row subset containing " +
+                                       "all currently selected rows" );
+        excludeAct = new ViewerAction( "Subset from unselected rows",
+                                       "Define a new row subset containing " +
+                                       "all rows not currently selected" );
+        nosubsetAct = new ViewerAction( "View all rows",
                                         "Don't use any row subsetting" );
 
         /* Configure the table. */
@@ -199,24 +198,19 @@ public class TableViewer extends AuxWindow {
 
         /* File menu. */
         JMenu fileMenu = getFileMenu();
-        fileMenu.add( new JMenuItem( newAct ), 0 );
-        fileMenu.add( new JMenuItem( dupAct ), 0 );
-        fileMenu.add( new JMenuItem( saveAct ), 0 );
-
-        /* Launch menu. */
-        if ( MirageHandler.isMirageAvailable() ) {
-            JMenu launchMenu = new JMenu( "Launch" );
-            mb.add( launchMenu );
-            launchMenu.add( mirageAct ).setIcon( null );
-        }
+        int fileMenuPos = 0;
+        fileMenu.insert( newAct, fileMenuPos++ ).setIcon( null );
+        fileMenu.insert( dupAct, fileMenuPos++ ).setIcon( null );
+        fileMenu.insert( saveAct, fileMenuPos++ ).setIcon( null );
+        fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Windows menu. */
         JMenu winMenu = new JMenu( "Windows" );
         mb.add( winMenu );
-        winMenu.add( paramAct );
-        winMenu.add( colinfoAct );
-        winMenu.add( statsAct );
-        winMenu.add( plotAct );
+        winMenu.add( paramAct ).setIcon( null );
+        winMenu.add( colinfoAct ).setIcon( null );
+        winMenu.add( statsAct ).setIcon( null );
+        winMenu.add( plotAct ).setIcon( null );
 
         /* Subset menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
@@ -234,6 +228,25 @@ public class TableViewer extends AuxWindow {
         JMenu applysubsetMenu = 
             subsets.makeJMenu( "Apply subset", applysubsetAct );
         subsetMenu.add( applysubsetMenu );
+
+        /* Launch menu. */
+        if ( MirageHandler.isMirageAvailable() ) {
+            JMenu launchMenu = new JMenu( "Launch" );
+            mb.add( launchMenu );
+            launchMenu.add( mirageAct ).setIcon( null );
+        }
+
+        /* Toolbar. */
+        JToolBar toolBar = getToolBar();
+        toolBar.add( newAct );
+        toolBar.add( dupAct );
+        toolBar.add( saveAct );
+        toolBar.addSeparator();
+        toolBar.add( paramAct );
+        toolBar.add( colinfoAct );
+        toolBar.add( statsAct );
+        toolBar.add( plotAct );
+        toolBar.addSeparator();
 
         /* Configure a listener for column popup menus. */
         MouseListener mousey = new MouseAdapter() {
@@ -274,6 +287,9 @@ public class TableViewer extends AuxWindow {
         };
         selectionModel.addListSelectionListener( selList );
         selList.valueChanged( null );
+
+        /* Add help information. */
+        addHelp( "TableViewer" );
 
         /* Display. */
         pack();
@@ -437,7 +453,7 @@ public class TableViewer extends AuxWindow {
                         }
                     };
                     subsets.add( yes );
-                    subsets.add( no );
+                    // subsets.add( no );
                 }
             }
         }
@@ -689,24 +705,18 @@ public class TableViewer extends AuxWindow {
         private final Window parent = TableViewer.this;
         private final TableViewer tv = TableViewer.this;
 
-        ViewerAction( String name, int iconId, String shortdesc ) {
-            super( name, iconId, shortdesc );
+        ViewerAction( String name, Icon icon, String shortdesc ) {
+            super( name, icon, shortdesc );
+        }
+
+        ViewerAction( String name, String shortdesc ) {
+            this( name, null, shortdesc );
         }
 
         public void actionPerformed( ActionEvent evt ) {
 
-            /* Exit the application. */
-            if ( this == exitAct ) {
-                System.exit( 0 );
-            }
-
-            /* Close this viewer window. */
-            else if ( this == closeAct ) {
-                dispose();
-            }
-
             /* Open a new table viewer window. */
-            else if ( this == newAct ) {
+            if ( this == newAct ) {
                 StarTable st = getChooser().getRandomTable( parent );
                 if ( st != null ) {
                     new TableViewer( st, parent );
@@ -762,8 +772,7 @@ public class TableViewer extends AuxWindow {
                     colinfoWindow = new ColumnInfoWindow( tv );
                 }
                 else {
-                    colinfoWindow.setState( Frame.NORMAL );
-                    colinfoWindow.show();
+                    colinfoWindow.makeVisible();
                 }
             }
 
@@ -775,8 +784,7 @@ public class TableViewer extends AuxWindow {
                 }
                 else {
                     statsWindow.setSubset( viewModel.getSubset() );
-                    statsWindow.setState( Frame.NORMAL );
-                    statsWindow.show();
+                    statsWindow.makeVisible();
                 }
             }
 

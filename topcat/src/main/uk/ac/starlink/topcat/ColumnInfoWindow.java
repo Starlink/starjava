@@ -247,6 +247,9 @@ public class ColumnInfoWindow extends AuxWindow {
         selectionModel.addListSelectionListener( selList );
         selList.valueChanged( null );
 
+        /* Add standard help actions. */
+        addHelp( "ColumnInfoWindow" );
+
         /* Make the component visible. */
         pack();
         setVisible( true );

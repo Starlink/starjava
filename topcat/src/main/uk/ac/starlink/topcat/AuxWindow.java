@@ -3,9 +3,13 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Frame;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -15,6 +19,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JToolBar;
@@ -37,8 +43,13 @@ class AuxWindow extends JFrame {
     private JLabel headingLabel;
     private JPanel mainArea;
     private JPanel controlPanel;
+    private JMenuBar menuBar;
+
+    private Action helpAct;
 
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
+    private static final Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs an AuxWindow based on a <tt>StarTable</tt>.
@@ -57,11 +68,13 @@ class AuxWindow extends JFrame {
         }
 
         /* Set up a basic menubar with a File menu. */
-        JMenuBar mb = new JMenuBar();
-        setJMenuBar( mb );
+        menuBar = new JMenuBar();
+        setJMenuBar( menuBar );
         fileMenu = new JMenu( "File" );
-        mb.add( fileMenu );
-        Action closeAct = new BasicAction( "Close", "Close this window" ) {
+        fileMenu.setMnemonic( KeyEvent.VK_F );
+        menuBar.add( fileMenu );
+        Action closeAct = new BasicAction( "Close", ResourceIcon.CLOSE,
+                                           "Close this window" ) {
             public void actionPerformed( ActionEvent evt ) {
                 dispose();
             }
@@ -71,9 +84,13 @@ class AuxWindow extends JFrame {
                 System.exit( 0 );
             }
         };
-        fileMenu.add( closeAct );
+        JMenuItem closeItem = fileMenu.add( closeAct );
+        closeItem.setIcon( null );
+        closeItem.setMnemonic( KeyEvent.VK_C );
         if ( TableViewer.isStandalone() ) {
-            fileMenu.add( exitAct );
+            JMenuItem exitItem = fileMenu.add( exitAct );
+            exitItem.setIcon( null );
+            exitItem.setMnemonic( KeyEvent.VK_X );
         }
 
         /* Set up a toolbar. */
@@ -110,6 +127,83 @@ class AuxWindow extends JFrame {
     }
 
     /**
+     * Adds help actions to this window, in the menu and toolbar.
+     * This method should generally be called by subclasses after they
+     * have added any other menus and toolbar buttons specific to their
+     * function, since the help buttons appear as the last ones.
+     * <p>
+     * An ID can be supplied to indicate the page which should be shown
+     * in the help viewer when context-sensitive help is requested.
+     * This may be <tt>null</tt> if no change in the help page should
+     * be made (for instance if there is no help specific to this window).
+     *
+     * @param  helpID  the ID of the help item for this window
+     */
+    protected void addHelp( String helpID ) {
+
+        /* Add a new help menu. */
+        JMenu helpMenu = new JMenu( "Help" );
+        helpMenu.setMnemonic( KeyEvent.VK_H );
+        menuBar.add( helpMenu );
+
+        /* Try to add an item to activate the help browser. */
+        Action helpAct = getHelpAction( helpID );
+        if ( helpAct != null ) {
+            toolBar.add( helpAct );
+            toolBar.addSeparator();
+            helpMenu.add( helpAct ).setIcon( null );
+            helpMenu.addSeparator();
+        }
+
+        /* Add an About action. */
+        Action aboutAct = new AbstractAction( "About TOPCAT" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Object[] message = new Object[] {
+                    "TOPCAT",
+                    "Tool for OPerations on Catalogues And Tables",
+                    "Version 0.2a",
+                    "Copyright " + '\u00a9' + 
+                    " Central Laboratory of the Research Councils",
+                    "Authors: Mark Taylor (Starlink)",
+                };
+                JOptionPane.showMessageDialog( AuxWindow.this, message,
+                                               "About TOPCAT",
+                                               JOptionPane.INFORMATION_MESSAGE,
+                                               ResourceIcon.TOPCAT_LOGO );
+            }
+        };
+        helpMenu.add( aboutAct );
+    }
+
+    /**
+     * Returns the action which will activate the help browser.
+     * <p>
+     * An ID can be supplied to indicate the page which should be shown.
+     * This may be <tt>null</tt> if no change in the help page should be made.
+     *
+     * @param   helpID   the ID of the help item for this window
+     * @return  help action - may be null if there is a problem setting it up
+     */
+    public Action getHelpAction( final String helpID ) {
+        if ( helpAct == null ) {
+            helpAct = new BasicAction( "Help browser", ResourceIcon.HELP,
+                                       "Display help browser" ) {
+                HelpWindow helpwin;
+                public void actionPerformed( ActionEvent evt ) {
+                    if ( helpwin == null ) {
+                        helpwin = HelpWindow.getInstance( AuxWindow.this );
+                    }
+                    else {
+                        helpwin.makeVisible();
+                    }
+                    helpwin.setID( helpID );
+                }
+            };
+        }
+        return helpAct;
+    }
+
+    /**
      * Makes the window look like it's doing something.  This currently
      * modifies the cursor to be busy/normal.
      *
@@ -117,6 +211,14 @@ class AuxWindow extends JFrame {
      */
     public void setBusy( boolean busy ) {
         setCursor( busy ? busyCursor : null );
+    }
+
+    /**
+     * Ensures that this window is posted in a visible fashion.
+     */
+    public void makeVisible() {
+        setState( Frame.NORMAL );
+        show();
     }
 
     /**
@@ -133,7 +235,9 @@ class AuxWindow extends JFrame {
     }
 
     /**
-     * Returns this window's toolbar.
+     * Returns this window's toolbar.  Any client which adds a group of
+     * tools to the toolbar should add a separator <em>after</em> the
+     * group.
      *
      * @return  the toolbar
      */
@@ -177,6 +281,10 @@ class AuxWindow extends JFrame {
      */
     public JPanel getControlPanel() {
         return controlPanel;
+    }
+
+    public Image getIconImage() {
+        return ResourceIcon.TOPCAT.getImage();
     }
 
     /**

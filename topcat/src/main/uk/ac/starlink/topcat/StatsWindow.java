@@ -84,7 +84,9 @@ public class StatsWindow extends AuxWindow {
         controlPanel.add( subSelector );
 
         /* Construct and place a widget for requesting a recalculation. */
-        Action recalcAct = new AbstractAction( "Recalculate" ) {
+        Action recalcAct = new BasicAction( "Recalculate", ResourceIcon.REDO,
+                                            "Recalculate the statistics for " +
+                                            "the current subset" ) {
             public void actionPerformed( ActionEvent evt ) {
                 RowSubset rset = (RowSubset) subSelector.getSelectedItem();
                 calcMap.remove( rset );
@@ -97,6 +99,9 @@ public class StatsWindow extends AuxWindow {
 
         /* Add a progress bar for table scanning. */
         progBar = placeProgressBar();
+
+        /* Add standard help actions. */
+        addHelp( "StatsWindow" );
 
         /* Make the component visible. */
         pack();

@@ -14,10 +14,10 @@ import javax.swing.JScrollPane;
 class SizingScrollPane extends JScrollPane {
 
     private int minWidth = 100;
-    private int maxWidth = 800;
-    private int defWidth = 600;
+    private int maxWidth = 700;
+    private int defWidth = 500;
     private int minHeight = 50;
-    private int maxHeight = 800;
+    private int maxHeight = 600;
     private int defHeight = 400;
     private int sbw;
     private int sbh;

@@ -112,6 +112,9 @@ public class ParameterWindow extends AuxWindow {
         configureColumnCount();
         configureRowCount();
 
+        /* Add standard help actions. */
+        addHelp( "ParameterWindow" );
+
         /* Display. */
         pack();
         setVisible( true );

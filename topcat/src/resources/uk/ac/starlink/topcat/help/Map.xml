@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE map
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/map_1_0.dtd">
+
+<!-- This map file defines the target->filename mapping used by the 
+ !   help files for the TOPCAT classes.
+ !   Note that it is expected to be combined with a second map which
+ !   knows about the mapping of icon names to URLs defined in the
+ !   uk.ac.starlink.topcat.ResourceIcon class.  This can be generated
+ !   automatically by invoking the static main method of ResourceIcon. 
+ !-->
+
+<map version="1.0">
+
+  <mapID target="Introduction" url="intro.html"/>
+
+  <mapID target="IO" url="io.html"/>
+  <mapID target="Read" url="io.html#read"/>
+  <mapID target="Write" url="io.html#write"/>
+
+  <mapID target="FITSRead" url="fits-read.html"/>
+  <mapID target="VOTableRead" url="votable-read.html"/>
+  <mapID target="JDBCRead" url="jdbc-read.html"/>
+  <mapID target="WDCRead" url="wdc-read.html"/>
+
+  <mapID target="FITSWrite" url="fits-write.html"/>
+  <mapID target="VOTableWrite" url="votable-write.html"/>
+  <mapID target="TextWrite" url="text-write.html"/>
+  <mapID target="JDBCWrite" url="jdbc-write.html"/>
+  <mapID target="MirageWrite" url="mirage.html"/>
+
+  <mapID target="Windows" url="windows.html"/>
+  <mapID target="TableViewer" url="browser.html"/>
+  <mapID target="ColumnInfoWindow" url="colinfo.html"/>
+  <mapID target="StatsWindow" url="stats.html"/>
+  <mapID target="PlotWindow" url="plot.html"/>
+  <mapID target="ParameterWindow" url="param.html"/>
+  <mapID target="HelpWindow" url="help.html"/>
+
+  <mapID target="RowSubset" url="subsets.html"/>
+  <mapID target="RowSubsetDefine" url="subsets.html#define"/>
+  <mapID target="RowSubsetUse" url="subsets.html#use"/>
+
+  <mapID target="SyntheticColumn" url="synthetic.html"/>
+
+  <mapID target="ExpressionSyntax" url="jel.html"/>
+
+  <mapID target="ReleaseNotes" url="release.html"/>
+
+  <mapID target="MirageLaunch" url="mirage.html#launch"/>
+
+</map>

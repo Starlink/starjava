@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE toc
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/toc_1_0.dtd">
+
+<toc version="1.0">
+
+  <tocitem target="Introduction" text="Introduction"/>
+
+  <tocitem target="IO" text="I/O">
+    <tocitem target="Read" text="Loading tables" image="LOAD">
+      <tocitem target="FITSRead" text="FITS"/>
+      <tocitem target="VOTableRead" text="VOTable"/>
+      <tocitem target="JDBCRead" text="JDBC"/>
+      <tocitem target="WDCRead" text="WDC"/>
+    </tocitem>
+
+    <tocitem target="Write" text="Saving tables" image="SAVE">
+      <tocitem target="FITSWrite" text="FITS"/>
+      <tocitem target="VOTableWrite" text="VOTable"/>
+      <tocitem target="JDBCWrite" text="JDBC"/>
+      <tocitem target="TextWrite" text="Text"/>
+      <tocitem target="MirageWrite" text="Mirage"/>
+    </tocitem>
+  </tocitem>
+
+  <tocitem target="Windows" text="Windows">
+    <tocitem target="TableViewer" text="Table browser" image="VIEWER"/>
+    <tocitem target="ColumnInfoWindow" text="Column metadata" image="COLUMNS"/>
+    <tocitem target="StatsWindow" text="Statistics" image="STATS"/>
+    <tocitem target="PlotWindow" text="Plot" image="PLOT"/>
+    <tocitem target="ParameterWindow" text="Table metadata" image="PARAMS"/>
+    <tocitem target="HelpWindow" text="Help" image="HELP"/>
+  </tocitem>
+
+  <tocitem target="RowSubset" text="Row Subsets">
+    <tocitem target="RowSubsetDefine" text="Definition"/>
+    <tocitem target="RowSubsetUse" text="Use"/>
+  </tocitem>
+
+  <tocitem target="SyntheticColumn" text="Synthetic Columns"/>
+
+  <tocitem target="ExpressionSyntax" text="Expression Syntax"/>
+
+  <tocitem target="ReleaseNotes" text="Release Notes"/>
+ 
+</toc>

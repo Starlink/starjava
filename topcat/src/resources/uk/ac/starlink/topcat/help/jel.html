@@ -1,0 +1,173 @@
+<html>
+<body>
+
+<h4>Expression Syntax</h4>
+
+<p>The expressions used to define 
+<a href="synthetic.html">Synthetic Columns</a> and some 
+<a href="subsets">Row Subsets</a> are actually expressions in 
+the Java language, which are compiled into Java bytecode before
+evaluation.  However, this does not mean that you need to be a 
+Java programmer to write them.  The syntax is pretty similar to C.
+
+<p>The following explanation gives
+some guidance and examples for writing these expressions.
+Unfortunately a complete tutorial on writing Java expressions is beyond
+the scope of this document, but it should provide enough information
+for even a novice to write useful expressions.
+
+<h5>Referencing cell values</h5>
+
+<p>To create a useful expression for a cell in a column, you will
+have to refer to other cells in different columns of the same table row.
+You can do this in two ways:
+<dl>
+<dt><strong>By Name</strong>
+<dd>The Name of the column may be used if it is unique (no other column in
+    the table has the same name) and if it has a suitable form.
+    This means that it must have the form of a Java variable - basically
+    starting with a letter and continuuing with 
+    letters or numbers.  In particular it cannot have any spaces in it.
+    The underscore and currency symbols count as
+    letters for this purpose.
+    Column names are treated case-insensitively.
+
+<dt><strong>By $ID</strong>
+<dd>The "$ID" identifier of the column may always be used to refer to it.
+    This is just a "$" sign followed by a unique integer assigned by the
+    viewer to each column when it is first encountered.
+    You can find out the $ID identifier by looking in the 
+    <a href="colinfo.html">Column Metadata Window</a>.
+</dl>
+
+<p>There is a special column whose name is "Index" and whose ID is "$0".
+The value of this is the same as the row number in the unsorted table 
+(the grey numbers on the left of the grid in the main browser window).
+
+<p>The value of the variables so referenced will be a primitive
+(boolean, byte, short, char, int, long, float, double) if the 
+column contains one of the corresponding types.  Otherwise it will
+be an Object of the type held by the column.
+
+<h5>Referencing Row Subset flags</h5>
+
+<p>If you have any Row Subsets defined you can also access the value
+of the boolean (true/false) flag indicating whether the current row
+is in that each subset.  Again there are two ways of doing this:
+<dl>
+<dt><strong>By Name</strong>
+<dd>The name assigned to the subset when it was created can be used
+    if it is unique and if it has a suitable form.  The same comments
+    apply as to column names above.
+
+<dt><strong>By #ID</strong>
+<dd>The "#ID" identifier of the subset may always be used to refer to it.
+    As for the "$ID" identifier for columns above, this is a unique
+    index preceded by a special symbol, "#".
+</dl>
+In either case, the value will be a boolean value; these can be useful
+in conjunction with the ternary "<tt>?&nbsp;:</tt>" operator or 
+when combining existing subsets using logical operators to create
+a new subset.
+
+
+<h5>Operators</h5>
+
+<p>The operators are pretty much the same as in C.
+The common ones are:
+<dl>
+<dt><strong>Arithmetic</strong>
+<dd>
+  <dl>
+  <dt><strong><tt>+</tt></strong> (add)
+  <dt><strong><tt>-</tt></strong> (substract)
+  <dt><strong><tt>*</tt></strong> (mutliply)
+  <dt><strong><tt>/</tt></strong> (divide)
+  <dt><strong><tt>%</tt></strong> (modulus)
+  </dl>
+
+<dt><strong>Logical</strong>
+<dd>
+  <dl>
+  <dt><strong><tt>!&nbsp;</tt></strong> (not)
+  <dt><strong><tt>&amp;&amp;</tt></strong> (and)
+  <dt><strong><tt>||</tt></strong> (or)
+  <dt><strong><tt>==</tt></strong> (identity)
+  <dt><strong><tt>!=</tt></strong> (non-identity)
+  <dt><strong><tt>&lt;&nbsp;</tt></strong> (less than)
+  <dt><strong><tt>&gt;&nbsp;</tt></strong> (greater than)
+  <dt><strong><tt>&lt;=</tt></strong> (less than or equal)
+  <dt><strong><tt>&gt;=</tt></strong> (greater than or equal)
+  </dl>
+
+<dt><strong>Other</strong>
+<dd>
+  <dl>
+  <dt><strong><tt>[]</tt></strong> (array dereferencing)
+  <dt><strong><tt>?:</tt></strong> (conditional switch)
+  <dt><strong><tt>instanceof</tt></strong> (class membership)
+  </dl>
+</dl>
+
+All the methods of the <tt>Math</tt> and <tt>String</tt> 
+classes are available too,
+for instance:
+<dl>
+<dt><strong>Math static methods</strong>
+<dd>
+  <dl>
+  <dt><strong><tt>abs(x)</tt></strong> (absolute value)
+  <dt><strong><tt>cos(x)</tt></strong> (cosine)
+  <dt><strong><tt>sqrt(x)</tt></strong> (square root)
+  <dt><strong><tt>max(a,b)</tt></strong> (maximum)
+  <dt><strong><tt>pow(a,b)</tt></strong> (exponentiation)
+  <dt><strong><tt>toRadians(deg)</tt></strong> (angle conversion)
+  </dl>
+
+<dt><strong>String instance methods</strong>
+<dd>
+  <dl>
+  <dt><strong><tt>startsWith(s)</tt></strong> (comparison)
+  <dt><strong><tt>equals(s)</tt></strong> (equality)
+  <dt><strong><tt>equalsIgnoreCase(s</tt>)</strong> (case-insensitive)
+  <dt><strong><tt>matches(regex)</tt></strong> (regular expression matching)
+  </dl>
+</dl>
+  
+
+<h5>Examples</h5>
+
+Here are some examples for synthetic columns:
+<dl>
+<dt><strong>Average</strong>
+<dd><pre>
+    ( first + second ) * 0.5
+    </pre>
+
+<dt><strong>Outlier clipping</strong>
+<dd><pre>
+    min( 1000, max( value, 0 ) )
+    </pre>
+</dl>
+
+and here are some examples of boolean expressions that could be used
+to define Row Subsets (or to create boolean synthetic columns):
+<dl>
+<dt><strong>Within a circle</strong>
+<dd><pre>
+    sqrt( pow($2,2) + pow($3,2) ) &lt; 0.01
+    </pre>
+
+<dt><strong>String matching</strong>
+<dd><pre>
+    CONSTELLATION.equalsIgnoreCase( "cygnus" )
+    </pre>
+</dl>
+
+<dt><strong>Combining subsets</strong>
+<dd><pre>
+    ( #1 && #2 ) && ! #3
+    </pre>
+
+</body>
+</html>

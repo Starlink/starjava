@@ -25,6 +25,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
@@ -35,6 +36,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
@@ -82,7 +84,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private ScatterPlotter activePlotter;
     private boolean showGrid = true;
     private String markStyle = "dots";
-    private Action fromvisibleAct;
+    private Action fromvisibleAction;
 
     private static final double MILLISECONDS_PER_YEAR 
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -179,8 +181,10 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         } );
 
         /* Add a menu for printing the graph. */
-        Action printAct = new BasicAction( "Print as EPS", 
-                                           "Print the graph to an EPS file" ) {
+        Action printAction = new BasicAction( "Print as EPS",
+                                              ResourceIcon.PRINT,
+                                              "Print the graph to an " +
+                                              "EPS file" ) {
             public void actionPerformed( ActionEvent evt ) {
 
                 /* Ask the user where to output the postscript. */
@@ -211,7 +215,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 }
             }
         };
-        getFileMenu().add( new JMenuItem( printAct ), 0 );
+        getFileMenu().insert( printAction, 0 ).setIcon( null );
 
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
@@ -261,15 +265,29 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
         Action gridAction = new BasicAction( "Show grid",
-                                "Select whether grid lines are displayed" ) {
+                                             ResourceIcon.GRID_ON,
+                                             "Select whether grid " +
+                                             "lines are displayed" ) {
             public void actionPerformed( ActionEvent evt ) {
                 gridModel.setSelected( ! gridModel.isSelected() );
             }
         };
+        final AbstractButton gridToolButton = new JButton( gridAction );
+        gridToolButton.setText( null );
+        gridModel.addItemListener( new ItemListener() {
+            { itemStateChanged( null ); }
+            public void itemStateChanged( ItemEvent evt ) {
+                gridToolButton.setIcon( gridModel.isSelected() 
+                                            ? ResourceIcon.GRID_OFF
+                                            : ResourceIcon.GRID_ON );
+            }
+        } );
 
         /* Action for resizing the plot. */
-        Action resizeAction = new BasicAction( "Fit to points",
-                                           "Resize plot to show all points" ) {
+        Action resizeAction = new BasicAction( "Rescale",
+                                               ResourceIcon.RESIZE,
+                                               "Rescale the plot to show " +
+                                               "all points points" ) {
             public void actionPerformed( ActionEvent evt ) {
                 lastPlot.fillPlot();
             }
@@ -292,7 +310,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Action for repdrawing the current plot. */
-        Action replotAction = new BasicAction( "Replot",
+        Action replotAction = new BasicAction( "Replot", ResourceIcon.REDO,
                                  "Redraw the plot with current table data" ) {
             public void actionPerformed( ActionEvent evt ) {
                 PlotWindow.this.actionPerformed( FORCE_REPLOT );
@@ -301,20 +319,22 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
         /* Construct a new menu for general plot operations. */
         JMenu plotMenu = new JMenu( "Plot" );
-        plotMenu.add( resizeAction );
-        plotMenu.add( replotAction );
+        plotMenu.add( resizeAction ).setIcon( null );
+        plotMenu.add( replotAction ).setIcon( null );
         JMenuItem gridItem = new JCheckBoxMenuItem( gridAction );
         gridItem.setModel( gridModel );
-        plotMenu.add( gridItem );
+        plotMenu.add( gridItem ).setIcon( null );
         plotMenu.add( markMenu );
         getJMenuBar().add( plotMenu );
 
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.add( subMenu );
-        fromvisibleAct = new BasicAction( "New subset from visible",
-                                          "Define a new row subset containing "
-                                        + "only currently plotted points" ) {
+        fromvisibleAction = new BasicAction( "New subset from visible",
+                                             ResourceIcon.VISIBLE_SUBSET,
+                                             "Define a new row subset " +
+                                             "containing only currently " +
+                                             "visible points" ) {
             public void actionPerformed( ActionEvent evt ) {
                 String name = TableViewer.enquireSubsetName( PlotWindow.this );
                 if ( name != null ) {
@@ -324,8 +344,19 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 }
             }
         };
-        subsetMenu.add( fromvisibleAct );
+        subsetMenu.add( fromvisibleAction ).setIcon( null );
         getJMenuBar().add( subsetMenu );
+
+        /* Add actions to the toolbar. */
+        getToolBar().add( printAction );
+        getToolBar().add( replotAction );
+        getToolBar().add( resizeAction );
+        getToolBar().add( gridToolButton );
+        getToolBar().add( fromvisibleAction );
+        getToolBar().addSeparator();
+
+        /* Add standard help actions. */
+        addHelp( "PlotWindow" );
 
         /* Do the plotting. */
         actionPerformed( FORCE_REPLOT );
@@ -444,7 +475,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      */
     public void setPlottedRows( BitSet prows ) {
         plottedRows = prows;
-        fromvisibleAct.setEnabled( plottedRows != null );
+        fromvisibleAction.setEnabled( plottedRows != null );
     }
 
     /**

@@ -1,0 +1,30 @@
+<html>
+<body>
+
+<h4>Reading World Data Centre tables</h4>
+
+<p>Some support is provided for files produced by the 
+<a href="http://www.wdc.rl.ac.uk/">World Data Centre
+for Solar Terrestrial Physics</a>
+The format itself apparently has no name, but files in this format
+look something like the following:
+<pre>
+Column formats and units - (Fixed format columns which are single space seperated.)
+------------------------
+Datetime (YYYY mm dd HHMMSS)            %4d %2d %2d %6d      -
+                                        %1s                  
+aa index - 3-HOURLY (Provisional)       %3d                  nT
+
+2000 01 01 000000  67
+2000 01 01 030000  32
+    ...
+</pre>
+
+<p>Compressed files, or ones referred to as URLs, may be used.
+
+<p>This handler is experimental; 
+it was reverse-engineered from looking at a couple of
+data files in the target format, and may not be very robust.
+
+</body>
+</html>

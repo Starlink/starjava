@@ -1,0 +1,72 @@
+<html>
+<body>
+
+<h3>Statistics Window</h3>
+
+<p>The Statistics Window can display statistics for the values in each
+of the table's columns.  The displayed grid has a row for each 
+column in the main table, and a column for each of a number of
+statistical quantities calculated on <a href="#subsets">some or all</a> of 
+the values in the data table column corresponding to that grid row:
+
+<dl>
+<dt><strong>Name</strong>
+<dd>The name of the column in the main table represented by this grid row.
+
+<dt><strong>Good cells</strong>
+<dd>The number of non-blank cells.
+
+<dt><strong>Bad cells</strong>
+<dd>The number of blank cells; the sum of
+    this value and the Good cells value will be the same for each
+    column.
+
+<dt><strong>Mean</strong>
+<dd>The mean value of the good cells.
+
+<dt><strong>S.D.</strong>
+<dd>The standard deviation of the good cells.
+
+<dt><strong>Minimum</strong>
+<dd>The minimum value.  For numeric columns the meaning of this is quite
+    obvious.  For other columns, if an ordering can be reasonably defined
+    on them, the 'smallest' value may be shown.  For instance string 
+    values will show the entry which would be first alphabetically.
+
+<dt><strong>Maximum</strong>
+<dd>As minimum, but shows the largest values.
+
+</dl>
+
+
+<h4><a name="subsets"></a>Controls</h4>
+
+<p>The quantities displayed in this window are not necessarily those for
+the entire table; they are those for a particular Row Subset.
+
+<p>At the bottom of the window is a selector button which allows you
+to select which subset you want the calculations to be done for.
+By clicking on this you can calculate the statistics for different
+subsets.
+Calculations are cached by subset, so that if you pick a subset for
+which calculations have already been done, the old results will be
+redisplayed.  If you want to recalculate them because the data have
+changed, you can use the Recalculate button.
+
+<p>When the window is first opened, or when it is invoked from a menu
+or the toolbar in the main
+browser window, the subset will correspond to the active subset in
+the main window.
+
+<h4>Progress Bar</h4>
+
+For a large table the calculations may take a while.  While they are
+being performed you can interact with the window as normal, 
+but a progress bar is shown at the bottom of the window.
+If you initiate a new calculation (by pushing the Recalculate button or
+selecting a new subset) or close the window during a calculation,
+the superceded calculation will be stopped.
+
+
+</body>
+</html>
