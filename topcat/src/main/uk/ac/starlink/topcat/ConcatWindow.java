@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.IOException;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,7 +24,9 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.ConcatStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
@@ -178,18 +181,33 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
      * @return  concatenated table
      */
     private StarTable makeTable() {
+        StarTable t1 = getBaseTable().getApparentStarTable();
+        final StarTable t2base = getAddedTable().getApparentStarTable();
         int ncol = colSelectors.length;
-        int[] colMap = new int[ ncol ];
+        ColumnStarTable t2 = ColumnStarTable
+                            .makeTableWithRows( t2base.getRowCount() );
         for ( int icol = 0; icol < ncol; icol++ ) {
-            TableColumn tcol = (TableColumn) colSelectors[ icol ]
-                               .getSelectedItem();
-            colMap[ icol ] = tcol instanceof StarTableColumn 
-                           ? ((StarTableColumn) tcol).getModelIndex()
-                           : -1;
+            TableColumn tcol = (TableColumn)
+                               colSelectors[ icol ].getSelectedItem();
+            ColumnData cdata;
+            if ( tcol instanceof StarTableColumn ) {
+                final int icol2 = ((StarTableColumn) tcol).getModelIndex();
+                cdata = new ColumnData( t2base.getColumnInfo( icol2 ) ) {
+                    public Object readValue( long irow ) throws IOException {
+                        return t2base.getCell( irow, icol2 );
+                    }
+                };
+            }
+            else {
+                cdata = new ColumnData( t1.getColumnInfo( icol ) ) {
+                    public Object readValue( long irow ) {
+                        return null;
+                    }
+                };
+            }
+            t2.addColumn( cdata );
         }
-        return new ConcatStarTable( getBaseTable().getApparentStarTable(),
-                                    getAddedTable().getApparentStarTable(),
-                                    colMap );
+        return new ConcatStarTable( new StarTable[] { t1, t2 } );
     }
 
     /**
