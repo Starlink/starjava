@@ -86,6 +86,11 @@ public class NDFJ
         catch (UnsatisfiedLinkError ue) {
             supported = false;
         }
+        catch (Exception ge) {
+            //  Unexpected error.
+            ge.printStackTrace();
+            supported = false;
+        }
         if ( ! supported ) {
             logger.warning( ( "Failed to load the " + 
                               Utilities.getReleaseName() + 
