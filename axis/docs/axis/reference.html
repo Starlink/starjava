@@ -18,7 +18,7 @@ h1 {  margin-left: -30px}
 <body bgcolor="#ffffff" text="#000000">
 <h1 align="center"><IMG height=96 src="axis.jpg" width=176></h1>
 <h1>Axis Reference Guide</h1>
-<p><i>Beta 2 Version</i></p>
+<p><i>1.0 Version</i></p>
 <h3>Table of Contents</h3>
 <ul>
   <li><a href="#Tools">Tools Reference</a></li>
@@ -93,6 +93,9 @@ h1 {  margin-left: -30px}
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -P, --password &lt;argument> <br>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   password to access the WSDL-URI <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -W, --noWrapped<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  turn off support for &quot;wrapped&quot; document/literal<br>
   &nbsp; 
 <h4> -h, --help</h4>
 Print the usage statement and exit 
@@ -192,7 +195,8 @@ only generates code for those elements in the WSDL file that are referenced.
 <p>For example, if a WSDL file only contained types, then all the listed types 
   would be generated.&nbsp; But if a WSDL file contained types and a portType, 
   then that portType will be generated and only those types that are referenced 
-  by that portType. 
+  by that portType.
+<p>Note that the anchor is searched for in the WSDL file appearing on the command line, <b>not</b> in imported WSDL files.  This allows one WSDL file to import constructs defined in another WSDL file without the nuisance of having all the imported WSDL file's constructs generated.
 <h4> -D, --Debug</h4>
 Print debug information, which currently is WSDL2Java's symbol table. 
 <h4> -T, --typeMappingVersion &lt;argument></h4>
@@ -207,6 +211,23 @@ This username is used in resolving the WSDL-URI provided as the input to WSDL2Ja
 <h4> -P, --password &lt;argument&gt;</h4>
 This password is used in resolving the WSDL-URI provided as the input to WSDL2Java. 
 &nbsp;If the URI contains a password, this will override the command line switch.&nbsp; 
+<br>
+<h4>-W, --noWrapped</h4>
+This turns off the special treatment of what is called "wrapped" document/literal
+style operations. &nbsp;By default, WSDL2Java will recognize the following
+conditions:<br>
+<ul>
+  <li>If an input message has is a single part.</li>
+  <li>The part is an element.</li>
+  <li>The element has the same name as the operation</li>
+  <li>The element's complex type has no attributes<br>
+  </li>
+</ul>
+When it sees this, WSDL2Java will 'unwrap' the top level element, and treat each 
+of the components of the element as arguments to the operation. This type of WSDL 
+is the default for Microsoft .NET web services, which wrap up RPC style arguments 
+in this top level schema element.<br>
+
 <h3><a name="Java2WSDL"></a>Java2WSDL Reference</h3>
 <p>Here is the help message generated from the current tool: </p>
 <p><tt><font color="#993366">Java2WSDL emitter</font></tt> <br>
@@ -217,6 +238,10 @@ This password is used in resolving the WSDL-URI provided as the input to WSDL2Ja
   <br>
   <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   print this message and exit</font></tt> <br>
+  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -I, --input 
+  &lt;argument></font></tt> <br>
+  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  input WSDL filename</font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -o, --output 
   &lt;argument></font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
@@ -229,6 +254,11 @@ This password is used in resolving the WSDL-URI provided as the input to WSDL2Ja
   &lt;argument></font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
   portType name (obtained from class-of-portType if not specified)</font></tt> 
+  <br>
+  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -b, --bindingName 
+  &lt;argument></font></tt> <br>
+  <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  binding name ((--servicePortName value + "SOAPBinding" if not specified)</font></tt> 
   <br>
   <tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -S, --serviceElementName 
   &lt;argument></font></tt> <br>
@@ -307,8 +337,8 @@ This password is used in resolving the WSDL-URI provided as the input to WSDL2Ja
   <tt><font color="#993366">Details:</font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp; portType element name= &lt.portTypeName 
   value> OR &lt;class-of-portType name></font></tt> <br>
-  <tt><font color="#993366">&nbsp;&nbsp; binding element&nbsp; name= &lt;--servicePortName 
-  value>SoapBinding</font></tt> <br>
+  <tt><font color="#993366">&nbsp;&nbsp; binding element&nbsp; name= &lt;--bindingName value> OR 
+  &lt;--servicePortName value>SoapBinding</font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp; service element&nbsp; name= &lt;--serviceElementName 
   value> OR &lt;portTypeName value>Service</font></tt> <br>
   <tt><font color="#993366">&nbsp;&nbsp; port element &nbsp;&nbsp;&nbsp; name= 
@@ -321,6 +351,12 @@ This password is used in resolving the WSDL-URI provided as the input to WSDL2Ja
 <p><b>-o, --output &lt;WSDL file></b> <br>
   Indicates the name of the output WSDL file.&nbsp; If not specified, a suitable 
   default WSDL file is written into the current directory. 
+<p><b>-I, --input &lt;WSDL file></b> <br>
+  Optional parameter that indicates the name of the input wsdl file.  The output
+  wsdl file will contain everything from the input wsdl file plus the new constructs.
+  If a new construct is already present in the input wsdl file, it is not added.
+  This option is useful for constructing a wsdl file with multiple ports, bindings,
+  or portTypes.
 <p><b>-l, --location &lt;location></b> <br>
   Indicates the url of the location of the service.&nbsp; The name after the last 
   slash or backslash is the name of the service port (unless overriden by the 
@@ -329,10 +365,13 @@ This password is used in resolving the WSDL-URI provided as the input to WSDL2Ja
 <p><b>-p, --portTypeName &lt;name></b> <br>
   Indicates the name to use use for the portType element. If not specified, the 
   class-of-portType name is used. 
-<p><b>-s, -serviceElementName &lt;name></b> <br>
+<p><b>-b, --bindingName &lt;name></b> <br>
+  Indicates the name to use use for the binding element. If not specified, the 
+  value of the --servicePortName + "SoapBinding" is used. 
+<p><b>-s, --serviceElementName &lt;name></b> <br>
   Indicates the name of the service element.&nbsp; If not specified, the service 
   element is the &lt;portTypeName>Service.&nbsp; 
-<p><b>-s, -servicePortName &lt;name></b> <br>
+<p><b>-s, --servicePortName &lt;name></b> <br>
   Indicates the name of the service port.&nbsp; If not specified, the service 
   port name is derived from the --location value.&nbsp; 
 <p><b>-n, --namespace &lt;target namespace></b> <br>
@@ -410,9 +449,11 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
   <dt><b><font face="Courier New, Courier, mono">&lt;service name=&quot;</font></b><font face="Courier New, Courier, mono"><i>name</i></font><b><font face="Courier New, Courier, mono">&quot; 
     provider=&quot;</font></b><font face="Courier New, Courier, mono"><i>provider</i></font><b><font face="Courier New, Courier, mono">&quot; 
     &gt;</font></b></dt>
-  <dd>Deploys/undeploys an Axis Service. Common options for this element (i.e. 
-    subelements of the form <code><b>&lt;parameter name=&quot;</b>name<b>&quot; 
-    value=&quot;</b>value<b>&quot;/&gt;</b>)</code> include: <br>
+  <dd>Deploys/undeploys an Axis Service. This is the most complex WSDD tag, so 
+    we're going to spend a little time on it.<br>
+    <br>
+    <b>Options</b> may be specified as follows : <code><b>&lt;parameter name=&quot;</b>name<b>&quot; 
+    value=&quot;</b>value<b>&quot;/&gt;</b></code>, and common ones include:<br>
     <br>
     <b>className</b> : the backend implementation class<br>
     <b>allowedMethods</b> : the allowed methods (use &quot;*&quot; to allow all 
@@ -433,11 +474,22 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
   &lt;parameter name=&quot;className&quot; value=&quot;test.Implementation&quot;/&gt;
   &lt;parameter name=&quot;allowedMethods&quot; value=&quot;*&quot;/&gt;
   &lt;namespace&gt;http://testservice/&lt;/namespace&gt;
-
+  &lt;requestFlow&gt; &lt;!-- Run these before processing the request --&gt;
+    &lt;handler type=&quot;java:MyHandlerClass&quot;/&gt;
+    &lt;handler type=&quot;somethingIDefinedPreviously&quot;/&gt;
+  &lt;/requestFlow&gt;
 &lt;/service&gt;</pre>
+    <b>Metadata</b> may be specified about particular operations in your service 
+    by using the &lt;operation&gt; tag inside a service. This enables you to map 
+    the java parameter names of a method to particular XML names, to specify the 
+    parameter modes for your parameters, and to map particular XML names to particular 
+    operations.<br>
+    <br>
+    &lt;operation name=&quot;method&quot;&gt;<br>
+    &lt;/operation&gt; <br>
   </dd>
-  <dt><b><br>
-    <font face="Courier New, Courier, mono">&lt;chain name=&quot;</font></b><font face="Courier New, Courier, mono"><i>name</i></font><b><font face="Courier New, Courier, mono">&quot;</font></b><b><font face="Courier New, Courier, mono">&gt;<br>
+  <dt>&nbsp;</dt>
+  <dt><b><font face="Courier New, Courier, mono">&lt;chain name=&quot;</font></b><font face="Courier New, Courier, mono"><i>name</i></font><b><font face="Courier New, Courier, mono">&quot;</font></b><b><font face="Courier New, Courier, mono">&gt;<br>
     &lt;<i>subelement</i>/&gt;...<br>
     &lt;/chain&gt; </font></b></dt>
   <dd>Defines a chain. Each <i>handler</i> (i.e. deployed handler name) in the 
@@ -451,7 +503,8 @@ namely &quot;http://xml.apache.org/axis/wsdd/&quot;.
     or may refer to previously defined &lt;handlers&gt;, with the &quot;type&quot; 
     of the handler referring to the name of the other handler definition:<br>
     <pre>&lt;handler name=&quot;logger&quot; type=&quot;java:org.apache.axis.handlers.LogHandler&quot;/&gt;<br>&lt;chain name=&quot;myChain&quot;/&gt;<br>   &lt;handler type=&quot;logger&quot;/&gt;<br>&lt;/chain&gt;</pre>
-  </dd>  <dt>&nbsp;</dt>
+  </dd>
+  <dt>&nbsp;</dt>
   <dt><b><font face="Courier New, Courier, mono">&lt;transport name=&quot;</font></b><font face="Courier New, Courier, mono"><i>name</i></font><b><font face="Courier New, Courier, mono">&quot;&gt;</font></b></dt>
   <dd>Defines a transport on the server side. Server transports are invoked when 
     an incoming request arrives. A server transport may define <b>&lt;requestFlow&gt;</b> 

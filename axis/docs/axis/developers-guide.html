@@ -24,17 +24,24 @@ h1 {  margin-left: -30px}
 
 <h1>
 Axis Developer's Guide</h1>
-<i>Alpha 3 Version</i>
+<i>1.0 Version</i>
 <h3>
 Table of Contents</h3>
 <a href="#Introduction">Introduction</a>
 <br><a href="#General Guidelines">General Guidelines</a>
 <br><a href="#Development Environment">Development Environment</a>
-<br><a href="#Logging/Tracing">Logging/Tracing</a>
+<br><a href="#Pluggable-Components">Pluggable-Components</a>
+<br>&nbsp;&nbsp;&nbsp;<a href="#Discovery">Discovery</a>
+<br>&nbsp;&nbsp;&nbsp;<a href="#Logging/Tracing">Logging/Tracing</a>
+<br><a href="#Configuration Properties">Configuration Properties</a>
+<br><a href="#Exception Handling">Exception Handling</a>
 <br><a href="#Compile And Run">Compile and Run</a>
 <br><a href="#Internationalization">Internationalization</a>
 <br><a href="#Adding Testcases">Adding Testcases</a>
+<br><a href="#TestStructure">Test and Samples Structure</a>
+<br><a href="#CodeChecks">Adding Source Code Checks</a>
 <br><a href="#Debugging">Debugging</a>
+<br><a href="#TCK">Running the JAX-RPC Compatibility Tests</a>
 <br>&nbsp;
 <h2>
 <a NAME="Introduction"></a>Introduction</h2>
@@ -79,8 +86,7 @@ run the <a href="http://xml.apache.org/~rubys/echotest.pl">echotest2 round 2 int
 The following packages are required for axis development:
 <ul>
 <li>
-<a href="http://jakarta.apache.org/ant/index.html">ant </a>- java based
-build tool</li>
+<a href="http://jakarta.apache.org/ant/index.html">ant </a>- java based build tool.  <B>Please Note:  Version 1.5 OR HIGHER is required</B></li>
 
 <li>
 <a href="http://www.junit.org">junit</a> - testing package</li>
@@ -100,7 +106,7 @@ code:
 <br><tt><font color="#009900">G:\\junit3.7\\junit.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\wsdl4j.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\axis.jar</font></tt>
-<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\log4j-core.jar</font></tt>
+<br><tt><font color="#009900">G:\\xml-axis\\java\\build\\lib\\log4j-1.2.4.jar</font></tt>
 <br><tt><font color="#009900">G:\\xml-axis\\java\\build\\classes</font></tt></blockquote>
 </blockquote>
 If you access the internet via a proxy server, you'll need to set an environment
@@ -111,7 +117,29 @@ variable so that the Axis tests do the same. Set ANT_OPTS to, for example:
 </blockquote>
 
 <h2>
-<a NAME="Logging/Tracing"></a>Logging/Tracing</h2>
+<a NAME="Pluggable-Components"></a>Pluggable-Components</h2>
+The <a href="architecture-guide.html">Axis Architecture Guide</a>
+explains the requirements for pluggable components.
+
+<h3>
+<a NAME="Discovery"></a>Discovery</h3>
+An axis-specific component factory should be created of the form:
+<ol>
+org.apache.axis.components.&lt;componentType>.&lt;factoryClassName>
+</ol>
+For example, <code>org.apache.axis.components.logger.LogFactory</code> is the factory,
+or discovery mechanism, for the logger component/service.
+<p>
+The <code>org.apache.axis.components.bytecode</code> package demonstrates
+both a factory, and supporting classes for different bytecode tools used
+by axis.  This is representative of a pluggable component that uses
+external tooling, but isolates them behind a 'thin' wrapper to AXIS,
+providing only the limited interface required by AXIS.
+This allows future designers
+and implementors to gain an explicit understanding of the AXIS's
+requirements on these tools.
+<h3>
+<a NAME="Logging/Tracing"></a>Logging/Tracing</h3>
 AXIS logging and tracing is based on the Logging component of the
 <a href="http://jakarta.apache.org/commons/index.html">Jakarta Commons</a>
 project, or the Jakarta Commons Logging (JCL) SPI.
@@ -122,7 +150,7 @@ other logging tools, including
 and
 <a>JDK 1.4</a>.
 The interface maps closely to Log4J and LogKit.
-<h3>Using the Logger SPI</h3>
+<h4>Using the Logger SPI</h4>
 <p>
 To use the JCL SPI from a Java class,
 include the following import statements:
@@ -130,7 +158,7 @@ include the following import statements:
 <code>
 import org.apache.commons.logging.Log;
 <br>
-import org.apache.commons.logging.LogFactory;
+import org.apache.axis.components.logger.LogFactory;
 <br>&nbsp;
 </code>
 </ul>
@@ -187,8 +215,8 @@ only needs to execute in support of logging,
 and that introduces undesirable runtime overhead
 in the general case (logging disabled).
 
-<h3>Guidelines</h3>
-<h4>Message Priorities</h4>
+<h4>Guidelines</h4>
+<h5>Message Priorities</h5>
 It is important to ensure that log message are
 appropriate in content and severity.
 The following guidelines are suggested:
@@ -222,7 +250,7 @@ Expect these to be written to logs only.
 These NEED NOT be internationalized, but it never hurts...</li>
 </ul>
 
-<h3><a NAME="Configuring the Logger">Configuring the Logger</a></h3>
+<h4><a NAME="Configuring the Logger">Configuring the Logger</a></h4>
 The Jakarta Commons Logging (JCL) SPI
 can be configured to use different logging toolkits.
 To configure which logger is used by the JCL, see the
@@ -233,7 +261,7 @@ logging toolkit being used.
 The JCL SPI (and hence AXIS) uses
 <a href="http://jakarta.apache.org/log4j/docs/index.html">Log4J</a>
 by default if it is available (in the CLASSPATH).
-<h4>Log4J</h4>
+<h5>Log4J</h5>
 As
 <a href="http://jakarta.apache.org/log4j/docs/index.html">Log4J</a>
 is the prefered/default logger for AXIS,
@@ -241,20 +269,37 @@ a <i>few</i> details are presented herein to get the developer going.
 <p>
 Configure Log4J using system properties and/or a properties file:
 <ul>
-<li><h5>log4j.configuration=<i>log4j.properties</i></h5></li>
+<li><strong>log4j.configuration=<i>log4j.properties</i></strong>
+<p>
 Use this system property to specify the name of a Log4J configuration file.
 If not specified, the default configuration file is <i>log4j.properties</i>.
-A <i>log4j.properties</i> file is provided in <code>axis.jar</code>,
-but can be overridden (?verify this still works?)
-by placing a file of the same name so as to
-appear before <code>axis.jar</code> in the CLASSPATH.
-
+A <i>log4j.properties</i> file is provided in <code>axis.jar</code>.
+<p>This properties file can sometimes be overridden by placing a file of
+the same name so as to appear before <code>axis.jar</code> in the CLASSPATH.
+However, the precise behaviour depends on the classloader that is in use
+at the time, so we don't recommend this technique.
+<p>
+A safe way of overriding the properties file is to replace it in axis.jar.
+However, this isn't very convenient, especially if you want to tweak the
+properties during a debug session to filter out unwanted log entries.
+A more convenient alternative is to use an absolute file path to specify
+the properties file. This will even ignore web app's and their classloaders.
+So, for example on Linux, you could specify the system property:
+<pre>
+log4j.configuration=file:/home/fred/log4j.props
+</pre>
+</li>
+<li><strong>log4j.debug</strong>
+A good way of telling where log4j is getting its configuration from is to
+set this system property and look at the messages on standard output.
 <br>&nbsp;
-<li><h5>log4j.rootCategory=<i>priority</i> [, <i>appender</i>]*</h5></li>
+</li>
+<li><strong>log4j.rootCategory=<i>priority</i> [, <i>appender</i>]*</strong>
 Set the default (root) logger priority.
 
 <br>&nbsp;
-<li><h5>log4j.logger.<i>logger.name</i>=<i>priority</i></h5></li>
+</li>
+<li><strong>log4j.logger.<i>logger.name</i>=<i>priority</i></strong>
 Set the priority for the named logger
 and all loggers hierarchically lower than, or below, the
 named logger.
@@ -278,8 +323,21 @@ Likewise, setting
 <code>log4j.logger.org.apache.axis=DEBUG</code>
 will enable debug message for all AXIS classes,
 but not for other Jakarta projects.
+<p>
+A combination of settings will enable you to see the log events that
+you are interested in and omit the others.
+For example, the combination:
+<pre>
+log4j.logger.org.apache.axis=DEBUG 
+log4j.logger.org.apache.axis.encoding=INFO
+log4j.logger.org.apache.axis.utils=INFO
+log4j.logger.org.apache.axis.message=INFO
+</pre>
+cuts down the number of a log entries produced by a single request to
+a manageable number.
 <br>&nbsp;
-<li><h5>log4j.appender.<i>appender</i>.Threshold=<i>priority</i></h5></li>
+</li>
+<li><strong>log4j.appender.<i>appender</i>.Threshold=<i>priority</i></strong>
 Log4J <i>appenders</i> correspond to different output devices:
 console, files, sockets, and others.
 If appender's <i>threshold</i>
@@ -290,6 +348,189 @@ at different log destinations.
 <p>
 For example: one can capture DEBUG (and higher) level information in a logfile,
 while limiting console output to INFO (and higher).
+</li>
+</ul>
+
+<h2>
+<a NAME="Configuration Properties"></a>Configuration Properties</h2>
+AXIS is in the process of moving away from using system properties
+as the primary point of internal configuration.
+Avoid calling <code>System.getProperty()</code>,
+and instead call <code>AxisEngine.getGlobalProperty</code>.
+<code>AxisEngine.getGlobalProperty</code> will
+call <code>System.getProperty</code>, and will (eventually)
+query other sources of configuration information.
+<p>
+Using this central point of access will allow the
+global configuration system to be redesigned
+to better support multiple AXIS engines in a
+single JVM.
+<p>
+A <code>getGlobalProperty()</code> method has also been added
+to <code>BasicHandler</code>.
+Handlers (ancestors of <code>BasicHandler</code>) should use this local method
+rather than accessing <code>AxisEngine.getGlobalProperty</code>.
+
+<h2>
+<a NAME="Exception Handling"></a>Exception Handling</h2>
+Guidelines for AXIS Exception Handling are based on best-practices
+for Exception Handling.
+While there are details specific to AXIS in these guidelines,
+they apply in principle to any project;
+they are included here for two reasons.
+First, because they are not listed elsewhere in the
+Apache/Jakarta guidelines (or haven't been found).
+Second, because adherence to these guidelines is
+considered crucial to enterprise ready middleware.
+<p>
+These guidelines are fundamentally independent of programming language.
+They are based on experience, but proper credit must be given to
+<i>More Effective C++</i>, by Scott Meyers,
+for opening the eyes of the innocent(?) many years ago.
+<p>
+Finally, these are guidelines.
+There will always be exceptions to these guidelines,
+in which case all that can be asked (as per these guidelines)
+is that they be logged in the form of comments in the code.
+<p>
+<ul>
+<li><h3>Primary Rule: Only Catch An Exception If You Know What To Do With It</h3></li>
+If code catches an exception, it should know what to do with it
+at that point in the program.
+Any exception to this rule must be documented with a GOOD reason.
+Code reviewers are invited to put on their vulture beaks and peck away...
+<p>
+There are a few corrollaries to this rule.
+<p>
+<ul>
+<li><h4>Handle Specific Exceptions in Inner Code</h4></li>
+Inner code is code <i>deep</i> within the program.
+Such code should catch specific exceptions,
+or categories of exceptions (parents in exception hierarchies),
+<u>if and only if</u> the exception can be resolved
+and normal flow restored to the code.
+Note that behaviour of this sort may be significantly
+different between non-interactive code versus an interactive tool.
+<p>
+<li><h4>Catch All Exceptions in Outermost Flow of Control</h4></li>
+Ultimately, all exceptions must be dealt with at one level or another.
+For command-line tools, this means the <code>main</code>
+method or program.
+For a middleware component, this is the entry point(s) into the component.
+For AXIS this is <code>AxisServlet</code> or equivalent.
+<p>
+After catching specific exceptions which can be resolved internally,
+the outermost code must ensure that all internally generated exceptions
+are caught and handled.
+While there is generally not much that can be done,
+at a minimum the code should <u>log the exception</u>.
+In addition to logging, the AXIS Server wraps all such exceptions
+in AxisFaults and returns them
+to the client code.
+<p>
+This may seem contrary to the primary rule,
+but in fact we are claiming that AXIS does know
+what to do with this type of exception:
+exit gracefully.
+</ul>
+<p>
+<li><h3>Catching and Logging Exceptions</h3></li>
+When an Exception is going to cross a component boundry
+(client/server, or system/business logic),
+the exception must be caught and logged by the
+throwing component.
+It may then be rethrown, or wrapped, as described below.
+<p>
+When in doubt, log the exception.
+<p>
+<ul>
+<li><h4>Catch and Throw</h4></li>
+If an exception is caught and rethrown (unresolved),
+logging of the exception is at the discretion of the coder and reviewers.
+If any comments are logged, the exception should also be logged.
+<p>
+When in doubt, log the exception and any related local information
+that can help to identify the complete context of the exception.
+<p>
+Log the exception as an <i>error</i> (<code>log.error()</code>)
+if it is known to be an unresolved or unresolvable error,
+otherwise log it at the <i>informative</i> level (<code>log.info()</code>).
+<p>
+<li><h4>Catch and Wrap</h4></li>
+When exception <code>e</code> is caught and wrapped
+by a new exception <code>w</code>,
+log exception <code>e</code> before throwing <code>w</code>.
+<p>
+Log the exception as an <i>error</i> (<code>log.error()</code>)
+if it is known to be an unresolved or unresolvable error,
+otherwise log it at the <i>informative</i> level (<code>log.info()</code>).
+<p>
+<li><h4>Catch and Resolve</h4></li>
+When exception <code>e</code> is caught and resolved,
+logging of the exception is at the discretion of the coder and reviewers.
+If any comments are logged, the exception should also be logged (<code>log.info()</code>).
+Issues that must be balanced are performance and problem resolvability.
+<p>
+Note that in many cases, ignoring the exception may be appropriate.
+<p>
+</ul>
+<li><h3>Respect Component Boundries</h3></li>
+There are multiple aspects of this guideline.
+On one hand, this means that business logic
+should be isolated from system logic.
+On the other hand, this means that
+client's should have limited exposure/visibility to
+implementation details of a server - particularly
+when the server is published to outside parties.
+This implies a well designed server interface.
+<p>
+<ul>
+<li><h4>Isolate System Logic from Business Logic</h4></li>
+Exceptions generated by the AXIS runtime
+should be handled, where possible,
+within the AXIS runtime.
+In the worst case the details of an exception are to be logged
+by the AXIS runtime,
+and a generally descriptive Exception raised to the Business Logic.
+<p>
+Exceptions raised in the business logic
+(this includes the server and AXIS handlers)
+must be delivered to the client code.
+<p>
+<li><h4>Protect System Code from User Code</h4></li>
+Protect the AXIS runtime from uncontrolled user business logic.
+For AXIS, this means that dynamically configurable
+<code>handlers</code>, <code>providers</code> and other
+user controllable hook-points must be guarded
+by <code>catch(Exception ...)</code>.
+Exceptions generated by user code and caught by system code should be:
+<ul>
+<li>Logged, and</li>
+<li>Delivered to the client program</li>
+</ul>
+<p>
+<li><h4>Isolate Visibility into Server from Client</h4></li>
+Specific exceptions should be logged at the server side,
+and more a general exception thrown to the client.
+This prevents clues as to the nature of the server
+(such as handlers, providers, etc)
+from being revealed to client code.
+The AXIS component boundries that should be respected are:
+<ul>
+<li>Client Code <--> AxisClient</li>
+<li>AxisClient <--> AxisServlet (AxisServer/AxisEngine)</li>
+<li>AxisServer/AxisEngine <--> Web Service</li>
+</ul>
+</ul>
+<p>
+<li><h3>Throwing Exceptions in Constructors</h3></li>
+Before throwing an exception in a constructor,
+ensure that any resources owned by the object are cleaned up.
+For objects holding resources,
+this requires catching <u>all</u> exceptions thrown by methods called
+within the constructor, cleaning up, and rethrowing the exceptions.
+<p>
+</ul>
 </ul>
 
 <h2>
@@ -343,38 +584,24 @@ resource property files (tcpmon.properties).</li>
 <li>
 The resource.properties file contains translation and usage instructions.&nbsp;
 Here is an example message:</li>
-
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
+<p>
 <p><font color="#009900">sample00=My name is {0}, and my title is {1}.</font>
 <br>&nbsp;
 <ol>
 <li>
 sample00 is the key that the code will use to access this message.</li>
-
 <li>
 The text after the = is the message text.</li>
-
 <li>
 The <font color="#009900">{<i>number</i>}</font> syntax defines the location
 for inserts.</li>
-
-<br>&nbsp;</ol>
-
+<p>
+</ol>
 <li>
-The code should use the static method org.apache.axis.utils.JavaUtils.getMessage
-method to obtain the text and add inserts.&nbsp; Here is an example usage:</li>
-
-<br>&nbsp;
-<p>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
-<br>&nbsp;
+The code should use the
+static method org.apache.axis.utils.JavaUtils.getMessage
+to obtain the text and add inserts.&nbsp; Here is an example usage:</li>
+<p>
 <p><font color="#009900">JavaUtils.getMessage("sample00", "Rich Scheuerle",
 "Software Developer");</font>
 <br>&nbsp;
@@ -403,6 +630,7 @@ the file to ease translation.</font></li>
 
 <h2>
 <a NAME="Adding Testcases"></a><font color="#000000">Adding Testcases</font></h2>
+<P>See Also: <a href="#TestStructure">Test and Samples Structure</a></P>
 <font color="#000000"><b>Editor's Note: </b>We need more effort to streamline
 and simplify the addition of tests.&nbsp; We also need to think about categorizing
 tests as the test bucket grows.</font>
@@ -446,6 +674,9 @@ own directory in the <tt>xml-axis/java/test</tt> directory</font></li>
 and existing tests, and then modify the test to suit your needs.&nbsp;
 This approach is becoming more complicated as the different kinds of tests
 grow.</font>
+<P>
+A good "non-wsdl" test for reference is test/saaj.
+</P>
 <h4>
 <font color="#000000">Creating a WSDL Test</font></h4>
 <font color="#000000">Here are the steps that I used to create the <tt>sequence</tt>
@@ -457,19 +688,16 @@ test:</font>
 <font color="#000000">Created a <tt>xml-axis/java/test/wsdl/sequence</tt>
 directory.</font></li>
 
-<br>&nbsp;
+<br>
 <li>
 <font color="#000000">Created a <tt>SequenceTest.wsdl</tt> file defining
 the webservice.</font></li>
-
-<br>&nbsp;
+<BR>
 <li>
 <font color="#000000">Ran the Wsdl2java emitter to create java files:</font></li>
-
-<br>&nbsp;
 <p><tt><font color="#993366">java org.apache.axis.wsdl.Wsdl2java -t -s
 SequenceTest.wsdl</font></tt>
-<br>&nbsp;
+<br>
 <ol>
 <li>
 <font color="#000000">The -t option causes the emitter to generate a *TestCase.java
@@ -493,33 +721,18 @@ and *SOAPBindingImpl.java).&nbsp; My sequence test has an another file
 due to some additional logic that I needed.</font></li>
 </ol>
 <tt><font color="#993366"></font></tt>
-<br>&nbsp;
+<BR>
 <li>
-<font color="#000000">The <tt>test/build_functional_tests.xml</tt> file
-controls the building of the tests.&nbsp; Locate the "wsdl-setup" target.&nbsp;
-You will see a clause that runs the Wsdl2java code:</font></li>
-
-
-<br>&nbsp;
-<p><tt><font color="#993366">&lt;ant antfile="test/wsdl/Wsdl2javaTestSuite.xml"/></font></tt>
-<p><font color="#000000">Following this clause you will see some clauses
-that copy java files from the test directories.&nbsp; If you have additional
-files, you may need to copy them over.&nbsp; Examine the clause that I
-added to copy over SequenceInfo.java.</font>
-<br>&nbsp;
-<li>
-<font color="#000000">Now go to the <tt>test/wsdl/Wsdl2javaTestSuite.xml
-</tt>file.&nbsp;
-This file contains the clauses to run wsdl2java.&nbsp; Add a wsdl2java
-clause.&nbsp; Here is the one for SequenceTest:</font></li>
-
-
-<br>&nbsp;
+<font color="#000000">The <tt>test/wsdl/sequence/build.xml</tt> file
+controls the building of this test.&nbsp; Locate the "compile" target.&nbsp;
+Add a clause that runs the Wsdl2java code.  I would recommend stealing something from the
+test/wsdl/roundtrip/build.xml file (it does a LOT of wsdl2java and java2wsdl calls).
+Here is the one for SequenceTest:</font></li>
 <p><tt><font color="#663366">&nbsp;&nbsp;&nbsp; </font><font color="#993366">&lt;!--
 Sequence Test --></font></tt>
-<br><tt><font color="#993366">&nbsp;&nbsp;&nbsp; &lt;wsdl2java url="test/wsdl/sequence/SequenceTest.wsdl"</font></tt>
+<br><tt><font color="#993366">&nbsp;&nbsp;&nbsp; &lt;wsdl2java url="${axis.home}/test/wsdl/sequence/SequenceTest.wsdl"</font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-output="build/work"</font></tt>
+output="${axis.home}/build/work"</font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 deployscope="session"</font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -533,15 +746,61 @@ verbose="no"</font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 testcase="no"></font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-&lt;mapping namespace="urn:SequenceTest2" package="test.wsdl.sequence"/></font></tt>
+&lt;mapping namespace="urn:SequenceTest2" package="test.wsdl.sequence"/&gt;</font></tt>
 <br><tt><font color="#993366">&nbsp;&nbsp;&nbsp; &lt;/wsdl2java></font></tt>
-<br>&nbsp;
+<br>
+<li>
+<font color="#000000">Enable the <font color="#993366">run</font><font color="#000000"> target in the new
+ build.xml file.</font> You need to choose from the execute-Component and the (soon to be introduced) 
+execute-Simple-Test target.  These control HOW the test is invoked when run as a single component.  
+The <font color="#993366">execute-Component</font> sets up the tcp-server and http-server prior to running the test, as 
+well as handles deploying and services that may be needed.  The <font color="#993366">execute-Simple-test</font> 
+simply invokes the raw test class file.<BR>
+<BR>
 <li>
 <font color="#000000">Done.&nbsp; Run </font><tt><font color="#993366">ant
 functional-tests</font><font color="#000000"> </font></tt><font color="#000000">to
 verify.&nbsp; Check in your test.</font></li>
 
 <br>&nbsp;</ol>
+
+<h2><a NAME="TestStructure"></a>Test Structure</H2>
+<a href="AxisTestRedesign.html">The Test and Samples Redesign Document is here</a><BR>
+<P>
+As of Axis 1.0, RC1, we have moved to a "componentized" test structure.  Instead of having one high-level large 
+recursive function, there are smaller, simple "component" build.xml files in the leaf level of the test/** and 
+samples/** trees.</P>
+<P>
+These "component" files have a common layout. Their primary targets are:<BR>
+<UL>
+<LI>clean - reset the build destination(s)
+<LI>compile - javac, wsdl2java, java2wsdl instructions
+<LI>run - "executes" the test
+</UL>
+</P>
+<P>A "sample" test xml file can be found in test/templateTest</P>
+<h2>
+<a NAME="CodeChecks"></a>Adding Source Code Checks</h2>
+The Axis build performs certain automated checks of the files in the
+source directory (java/src) to make sure certain conventions are
+followed such as using internationalised strings when issuing messages.
+<p>
+If a convention can be reduced to a regular expression match,
+it can be enforced at build time by updating
+java/test/utils/TestSrcContent.java.
+<p>
+All that is necessary is to add a pattern to the static FileNameContentPattern
+array.
+Each pattern has three parameters:
+<ol>
+<li>a pattern that matches filenames that are to be checked,</li>
+<li>a pattern to be searched for in the chosen files, and</li>
+<li>a boolean indicating whether the pattern is to be allowed
+(typically false indicating not allowed).</li>
+</ol>
+<p>
+A reasonable summary of the regular expression notation is provided in
+the <a href="http://jakarta.apache.org/oro/api/org/apache/oro/text/regex/package-summary.html">Jakarta ORO javadocs</a>.
 
 <h2>
 <a NAME="Debugging"></a>Debugging</h2>
@@ -681,5 +940,22 @@ take a few moments and introduce debug statements:
 If a debug message is useful for understanding a problem now,
 it may be useful again in the future to you or a peer.
 
+<h2>
+<a NAME="TCK"></a>Running the JAX-RPC Compatibility Tests</h2>
+As well as a specification, JAX-RPC has a Technology Compatibility Kit (TCK)
+which is available to members of the JAX-RPC Expert Group (and others?).
+<p>
+The kit comes as a zip file which you should unzip into a directory of your
+choosing.
+The installation instructions are in the JAX-RPC Release Notes document which
+is stored in the docs directory.
+If you open the index.html file in the docs directory using a web browser,
+you'll see a list of all the documents supplied with the kit.
+<p>
+Note that the kit includes the JavaTest test harness which is used for running
+the compatibility tests.
+<p>
+If any more information is needed about running these tests, please add
+it here!
 </body>
 </html>
