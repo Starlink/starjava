@@ -165,7 +165,7 @@ public class NDArrays {
                 }
             }
             else {
-                // assert false;
+                assert false;
             } 
         }
         acc1.close();
@@ -372,7 +372,7 @@ public class NDArrays {
 
         /* Change the shape and ordering if necessary. */
         if ( order != null && order != nda.getShape().getOrder() ) {
-            // assert nda.isRandom();  // from previous stanza
+            assert nda.isRandom();  // from previous stanza
             if ( window == null ) {
                 window = new NDShape( nda.getShape() );
             }

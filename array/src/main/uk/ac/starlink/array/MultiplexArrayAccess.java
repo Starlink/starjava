@@ -56,7 +56,7 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
             synchronized ( impl ) {
                 super.setOffset( off );
             }
-            // assert false;
+            assert false;
         }
     }
 

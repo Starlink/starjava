@@ -89,7 +89,7 @@ public class Type {
             maxval = - Double.MAX_VALUE;
         }
         else {
-            // assert false;
+            assert false;
             throw new Error();
         }
 
@@ -134,7 +134,7 @@ public class Type {
      * Returns a default bad value handler for this type.
      * For type BYTE, this is a null handler (no values considered bad),
      * and for the other types it is a handler using the value returned
-     * by the {@link defaultBadValue} method.
+     * by the {@link #defaultBadValue} method.
      *
      * @return   a BadHandler object implementing the default bad value 
      *           policy for this type

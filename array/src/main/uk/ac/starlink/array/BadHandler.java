@@ -363,9 +363,11 @@ public abstract class BadHandler {
                 };
             }
         }
+        else if ( type == null ) {
+            throw new NullPointerException();
+        }
         else {
-            return null;
-            // assert false;
+            throw new AssertionError( "Unknown type " + type );
         }
     }
 
@@ -438,8 +440,7 @@ public abstract class BadHandler {
                 == Double.doubleToRawLongBits( ((Double) bad2).doubleValue() );
             }
             else {
-                return false;
-                // assert false;
+                throw new AssertionError( "Unknown type " + type );
             }
         }
     }

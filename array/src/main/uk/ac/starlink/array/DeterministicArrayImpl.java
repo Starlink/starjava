@@ -106,13 +106,13 @@ public class DeterministicArrayImpl implements ArrayImpl {
                             ((double[]) buffer)[ start ] = val;
                         }
                         else {
-                            // assert false;
+                            assert false;
                         }
                     }
                 }
             }
             public void write( Object buffer, int start, int size ) {
-                // assert false;
+                assert false;
             }
             public boolean isMapped() {
                 return false;

@@ -90,6 +90,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.4"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -98,6 +99,7 @@
   <property name="junit.fork" value="false"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
+  <property name="junit.assertions" value="-enableassertions"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="src"/>
@@ -364,6 +366,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
+           source="${source.version}"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -743,6 +746,7 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
+             source="${source.version}"
              classpathref="classpath">
 
       <!-- Get a list of directories that name all the potential
@@ -814,6 +818,7 @@
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
+           source="${source.version}"
            deprecation="${deprecation}" >
       <classpath refid="tests-classpath"/>
     </javac>
@@ -836,6 +841,7 @@
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
 
       <sysproperty key="java.library.path" value="${dist.lib}"/>
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
@@ -870,6 +876,7 @@
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
     </junit>
