@@ -293,7 +293,8 @@ public class VOComponentDataNode extends DefaultDataNode {
      * @return   source
      */
     public static DOMSource getSource( VOElement voel ) {
-        return new DOMSource( voel, voel.getSystemId() );
+        return voel == null ? null
+                            : new DOMSource( voel, voel.getSystemId() );
     }
    
     /**
