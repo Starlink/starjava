@@ -13,7 +13,6 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.AbstractStarTable;
-import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -109,53 +108,6 @@ public abstract class BintableStarTable extends AbstractStarTable {
             public RowSequence getRowSequence() {
                 return new RandomRowSequence( this );
             }
-        };
-    }
-
-    /**
-     * Constructs a random-access StarTable from a sequential stream.
-     * This is done by reading all the data into memory straight away.
-     *
-     * @param  hdr  FITS header descrbing the HDU
-     * @param  stream   sequential stream positioned at the start of the
-     *         table data
-     */
-    public static StarTable makeRandomStarTable( Header hdr,
-                                                 final DataInput stream )
-            throws IOException, FitsException {
-        return new BintableStarTable( hdr ) {
-            long nrow = getRowCount();
-            int ncol = getColumnCount();
-            ArrayColumn[] columns = new ArrayColumn[ ncol ];
-            {
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    columns[ icol ] =
-                        ArrayColumn.makeColumn( getColumnInfo( icol ), nrow );
-                }
-                Object[] row = new Object[ ncol ];
-                for ( long lrow = 0; lrow < nrow; lrow++ ) {
-                    readRow( stream, row );
-                    for ( int icol = 0; icol < ncol; icol++ ) {
-                        columns[ icol ].storeValue( lrow, row[ icol ] );
-                    }
-                }
-             }
-             public boolean isRandom() {
-                 return true;  
-             }
-             public Object[] getRow( long lrow ) {
-                 Object[] row = new Object[ ncol ];
-                 for ( int icol = 0; icol < ncol; icol++ ) {
-                     row[ icol ] = getCell( lrow, icol );
-                 }
-                 return row;
-             }
-             public Object getCell( long lrow, int icol ) {
-                 return columns[ icol ].readValue( lrow );
-             }
-             public RowSequence getRowSequence() {
-                 return new RandomRowSequence( this );
-             }
         };
     }
 

@@ -247,10 +247,6 @@ public class FitsTableBuilder implements TableBuilder {
                 return BintableStarTable
                       .makeRandomStarTable( hdr, (RandomAccess) strm );
             }
-            else if ( wantRandom ) {
-                return BintableStarTable
-                      .makeRandomStarTable( hdr, (DataInput) strm );
-            }
             else {
                 return BintableStarTable
                       .makeSequentialStarTable( hdr, datsrc, datpos );
