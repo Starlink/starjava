@@ -18,12 +18,6 @@ import javax.swing.JComponent;
  * <p>
  * It is expected that such a pane of controls relate to the
  * configuration of an AST {@link Plot}.
- * <p>
- * The XMLEncodeAndDecode part of the interface is for storing and
- * restoring the state of the page to an XML description.
- * <p>
- * ChangeListener for being notified of any changes that should be
- * updated immediately.
  *
  * @author Peter W. Draper
  * @version $Id$

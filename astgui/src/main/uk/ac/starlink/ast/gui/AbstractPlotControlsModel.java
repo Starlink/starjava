@@ -16,9 +16,11 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.CDATASection;
-import org.w3c.dom.Element;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import uk.ac.starlink.util.XMLEncodeAndDecode;
 
 /**
  * This abstract class provides a default implementation for a

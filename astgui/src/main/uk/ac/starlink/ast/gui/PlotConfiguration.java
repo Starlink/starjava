@@ -14,10 +14,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import uk.ac.starlink.ast.Plot; // for documentation links
-
-import org.w3c.dom.Element;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import uk.ac.starlink.ast.Plot; // for documentation links
+import uk.ac.starlink.util.XMLEncodeAndDecode;
 
 /**
  * PlotConfiguration is a repository for all the configuration information
