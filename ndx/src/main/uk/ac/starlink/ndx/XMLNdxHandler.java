@@ -51,7 +51,7 @@ import uk.ac.starlink.util.URLUtils;
  * content of an element, e.g.:
  * <pre>
  *    &lt;variance url="http://archive.org/data/stars-vars.fits"/&gt;
- * <pre>
+ * </pre>
  * or
  * <pre>
  *    &lt;variance&gt;http://archive.org/data/stars-vars.fits&lt;/variance&gt;
