@@ -10,7 +10,6 @@ package nom.tam.fits;
  * improvements, enhancements and bug fixes.
  */
 
-import nom.tam.util.RandomAccess; // PWD: conflicts with java.util class.
 import java.io.*;
 import java.util.*;
 import nom.tam.util.RandomAccess;
