@@ -770,7 +770,7 @@
           haltonfailure="yes"
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
-      <sysproperty key="java.io.tmpfile" value="${build.tests}"/>
+      <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>

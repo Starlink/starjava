@@ -8,13 +8,20 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Order;
+import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.util.TestCase;
 
-public class HDSReferenceTest extends TestCase {
+public class HDSTest extends TestCase {
 
     public static String NDF_FILE = "uk/ac/starlink/hds/reduced_data1.sdf";
     public static String containerName;
     public static File containerFile;
+
+    public HDSTest( String name ) {
+        super( name );
+    }
 
     public void setUp() throws IOException {
         if ( containerFile == null ) {
@@ -37,10 +44,6 @@ public class HDSReferenceTest extends TestCase {
             istrm.close();
             ostrm.close();
         }
-    }
-
-    public HDSReferenceTest( String name ) {
-        super( name );
     }
 
     public void testHDSReference()
@@ -81,4 +84,68 @@ public class HDSReferenceTest extends TestCase {
                      r1.getContainerFile().getCanonicalPath() );
         assertArrayEquals( r3.getPath(), r1.getPath() );
     }
+
+    public void testArrayStructure() throws HDSException, IOException {
+        HDSReference cref = new HDSReference( containerFile );
+        HDSObject top = cref.getObject( "READ" );
+        ArrayStructure simpAry = 
+            new ArrayStructure( top.datFind( "VARIANCE" ) );
+        ArrayStructure primAry =
+            new ArrayStructure( simpAry.getData() );
+
+        assertEquals( "SIMPLE", simpAry.getStorage() );
+        assertEquals( "PRIMITIVE", primAry.getStorage() );
+
+        OrderedNDShape ssh = simpAry.getShape();
+        OrderedNDShape psh = primAry.getShape();
+        assertEquals( ssh.getOrder(), Order.COLUMN_MAJOR );
+        assertTrue( ! ssh.equals( psh ) );
+        assertArrayEquals( ssh.getDims(), psh.getDims() );
+        assertArrayNotEquals( ssh.getOrigin(), psh.getOrigin() );
+
+        HDSType styp = simpAry.getType();
+        HDSType ptyp = primAry.getType();
+        assertEquals( styp, ptyp );
+
+        String[] trace0 = new String[ 2 ];
+        String[] trace1 = new String[ 2 ];
+        String[] trace2 = new String[ 2 ];
+        String[] trace3 = new String[ 2 ];
+        simpAry.getData().hdsTrace( trace0 );
+        primAry.getData().hdsTrace( trace1 );
+        primAry.getHDSObject().hdsTrace( trace2 );
+        simpAry.getHDSObject().hdsTrace( trace3 );
+        assertArrayEquals( trace0, trace1 );
+        assertArrayEquals( trace0, trace2 );
+        assertArrayNotEquals( trace0, trace3 );
+        
+        top.datAnnul();
+ 
+        HDSObject wtop = cref.getObject( "UPDATE" );
+        String name = "new1";
+        HDSType htype = HDSType._INTEGER;
+        NDShape shape = new NDShape( new long[] { 21, 31, 41, },
+                                     new long[] { 2, 4, 8 } );
+        int npix = (int) shape.getNumPixels();
+        ArrayStructure wary = new ArrayStructure( wtop, name, htype, shape );
+        int[] wbuf = new int[ npix ];
+        fillRandom( wbuf, -100, 100 );
+        wary.getData().datPutvi( wbuf );
+        wtop.datAnnul();
+
+        HDSObject rtop = cref.getObject( "READ" );
+        ArrayStructure rary = new ArrayStructure( rtop.datFind( name ) );
+        int[] rbuf = rary.getData().datGetvi();
+        rtop.datAnnul();
+
+        assertArrayEquals( wbuf, rbuf );
+    }
+
+    public void testHDSType() {
+        HDSType htype;
+
+        htype = HDSType._REAL;
+        assertNotNull( htype.getBadValue() );
+    }
+
 }
