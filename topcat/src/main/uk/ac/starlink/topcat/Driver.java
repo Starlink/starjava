@@ -145,10 +145,7 @@ public class Driver {
         if ( cmdname == null ) {
             cmdname = Driver.class.getName();
         }
-        String usage = new StringBuffer()
-              .append( "Usage:\n" )
-              .append( "   " + cmdname + "[-demo] [table ...]\n" )
-              .toString();
+        String usage = "Usage: " + cmdname + " [-demo] [table ...]";
         setStandalone( true );
 
         /* Process flags.
