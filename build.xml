@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
- !  Main source build file
+ !   Main source build file
  !
  !   This file describes how to build the Starlink java system from a
  !   source release. It requires Apache ANT and a Java Development Kit.
@@ -53,6 +53,10 @@
   <!-- Directory that any archives should be placed into. The local
    !   directort by default -->
   <property name="star.archive.dir" value="${basedir}"/>
+
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
    !  ================
@@ -139,6 +143,9 @@
     
     <echo message="Executing HDX target: ${what}"/> 
     <ant dir="./hdx" target="${what}"/> 
+
+    <echo message="Executing JAIUtil target: ${what}"/>
+    <ant dir="./jaiutil" target="${what}"/>
     
     <echo message="Executing SOAPSERVER target: ${what}"/> 
     <ant dir="./soapserver" target="${what}"/> 
@@ -258,9 +265,8 @@
         <param name="what" value="javadoc-sources"/>
      </antcall>
 
-     <!-- A bug in 1.4.0 means that all return types (arrays?) must be
-      !   on the classpath, so we need this for the present (otherwise      
-      !   javadoc hangs). Supposedly fixed in 1.4.1
+     <!-- Generate a classpath that should include the compiled forms
+      !   of all the source we're about to document.
       !-->
      <path id="classpath">
        <dirset dir="${star.build.dir}">
@@ -279,7 +285,6 @@
               locale="en"
               windowtitle="${FullName} API"
               doctitle="${FullName}" 
-              verbose="true"
               protected="true"
               classpathref="classpath">
 
@@ -324,16 +329,32 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="jaiutil/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="soapserver/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
-      <!-- Link to the full Java API at SUNs website -->
-      <link offline="true" 
-            href="http://java.sun.com/j2se/1.4/docs/api/"
-            packagelistLoc="${support.docs}/javaapi/"/>
+      <group title="${FullName} API" packages="uk.ac.starlink.*"/>
 
-      <!-- TODO: link to third party docs, need fixed relative
+      <!-- Third party packages built from source -->
+      <packageset dir="tamfits/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+      <group title="nom.tam.fits API" packages="nom.*"/>
+
+      <packageset dir="jsky/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+      <group title="JSky API" packages="jsky.*"/>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}" 
+            packagelistLoc="${javaapi.lis}"/>
+
+      <!-- TODO: link to static third party docs, need fixed relative
        !   positions or pretend offline and use a package list -->
 
       <bottom>Copyright &#169; ${year} \\
