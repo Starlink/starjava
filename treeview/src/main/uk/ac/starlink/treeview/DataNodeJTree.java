@@ -193,12 +193,6 @@ public class DataNodeJTree extends JTree {
             }
         }
 
-        /* Activate new node expander if we need to do this.
-         * This step, which is executed synchronously, may be time-consuming. */
-        if ( newExpander != null ) {
-            newExpander.expandNode();
-        }
-
         /* Make sure the tree knows that this node is open not shut. */
         Object[] path = model.getPathToRoot( dataNode );
         if ( path != null ) {
@@ -208,6 +202,12 @@ public class DataNodeJTree extends JTree {
                     expandPath( tpath );
                 }
             } );
+        }
+
+        /* Activate new node expander if we need to do this.
+         * This step, which is executed synchronously, may be time-consuming. */
+        if ( newExpander != null ) {
+            newExpander.expandNode();
         }
 
         /* Finally, recursively expand all the node's children. */
