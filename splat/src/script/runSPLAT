@@ -37,11 +37,19 @@
 #-
 echo "Starting SPLAT"
 
+#  Skip the definition of SPLAT_DIR if it's in the standard place for
+#  old-SPLAT. Remove this when new SPLAT is the official release.
+if test "$SPLAT_DIR" = "/star/bin/splat" \
+        -o "$SPLAT_DIR" = "/stardev/bin/splat" ; then
+  SPLAT_DIR=""
+fi
+
 #  Locate this script or SPLAT_DIR to find our jar files etc.
 if test -z "$SPLAT_DIR"; then
    SPLAT_DIR=`dirname $0`
 fi
 echo "SPLAT_DIR = $SPLAT_DIR"
+
 
 # Set the amount of memory that we use for the heap. Increase this
 # if you start getting out of memory errors. Decrease it for smaller 
