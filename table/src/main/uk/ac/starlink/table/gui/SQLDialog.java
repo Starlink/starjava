@@ -52,6 +52,7 @@ public class SQLDialog extends JOptionPane {
         protoField = new JComboBox();
         protoField.addItem( "" );
         protoField.addItem( "mysql" );
+        protoField.addItem( "postgresql" );
         protoField.setEditable( true );
         protoField.setFont( inputFont );
         stack.addLine( "Protocol", "jdbc:", protoField );

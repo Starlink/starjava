@@ -69,12 +69,12 @@ public class StarTableSaver extends JOptionPane {
         formatModel = formatField.getModel();
 
         /* Define actions for invoking other dialogs. */
-        Action browseAction = new AbstractAction( "Browse files" ) {
+        Action browseAction = new AbstractAction( "Browse Files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setValue( new Integer( BROWSE_OPTION ) );
             }
         };
-        Action jdbcAction = new AbstractAction( "JDBC table" ) {
+        Action jdbcAction = new AbstractAction( "SQL Table" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setValue( new Integer( JDBC_OPTION ) );
             }
