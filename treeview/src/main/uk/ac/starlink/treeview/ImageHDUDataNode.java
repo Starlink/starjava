@@ -70,7 +70,13 @@ public class ImageHDUDataNode extends HDUDataNode {
 
         long[] axes = getDimsFromHeader( hdr );
         int ndim = axes.length;
-        if ( axes != null && ndim > 0 ) {
+        boolean ok = axes != null && ndim > 0;
+        if ( ok ) {
+            for ( int i = 0; i < ndim; i++ ) {
+                ok = ok && axes[ i ] > 0;
+            }
+        }
+        if ( ok ) {
             shape = new NDShape( axes );
         }
 
@@ -246,17 +252,20 @@ public class ImageHDUDataNode extends HDUDataNode {
                     return new TextViewer( header.iterator() );
                 }
             } );
-            try {
-                ArrayDataInput data = hdudata.getArrayData();
-                NDArray nda = FitsArrayBuilder.getInstance()
-                             .makeNDArray( data, AccessMode.READ );
-                if ( ! nda.getShape().equals( shape ) ) {
-                    nda = new BridgeNDArray( new MouldArrayImpl( nda, shape ) );
+            if ( shape != null ) {
+                try {
+                    ArrayDataInput data = hdudata.getArrayData();
+                    NDArray nda = FitsArrayBuilder.getInstance()
+                                 .makeNDArray( data, AccessMode.READ );
+                    if ( ! nda.getShape().equals( shape ) ) {
+                        nda = new BridgeNDArray( 
+                                      new MouldArrayImpl( nda, shape ) );
+                    }
+                    NDArrayDataNode.addDataViews( dv, nda, wcs );
                 }
-                NDArrayDataNode.addDataViews( dv, nda, wcs );
-            }
-            catch ( IOException e ) {
-                dv.logError( e );
+                catch ( IOException e ) {
+                    dv.logError( e );
+                }
             }
         }
         return fullview;
