@@ -139,7 +139,7 @@ public class NameParser
     public String getName()
     {
         if ( isLineIdentifier ) {
-            return pathParser.diskfile() + ".ids";
+            return pathParser.ndfname();
         }
         if ( isRemote ) {
             return url.toString();
