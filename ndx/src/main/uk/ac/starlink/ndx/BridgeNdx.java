@@ -149,11 +149,10 @@ public class BridgeNdx implements Ndx {
                         wcs = (FrameSet) fsobj;
                     }
                     else if ( fsobj instanceof Element ) {
-                        wcs = makeWCS( (Element) fsobj );
+                        wcs = makeWCS( new DOMSource( (Element) fsobj ) );
                     }
                     else if ( fsobj instanceof Source ) {
-                        Node el = new SourceReader().getDOM( (Source) fsobj );
-                        wcs = makeWCS( (Element) el );
+                        wcs = makeWCS( (Source) fsobj );
                     }
                     else {
                         logger.warning( "Unknown WCS object type " + fsobj );
@@ -161,9 +160,6 @@ public class BridgeNdx implements Ndx {
                 }
                 catch ( IOException e ) {
                     logger.warning( "Error retrieving WCS: " + e );
-                }
-                catch ( TransformerException e ) {
-                    logger.warning( "Error transforming WCS: " + e );
                 }
             }
 
@@ -183,12 +179,11 @@ public class BridgeNdx implements Ndx {
     }
 
 
-    private static FrameSet makeWCS( Element wcsel ) throws IOException {
+    private static FrameSet makeWCS( Source wcsrc ) throws IOException {
 
         //  Note namespace prefix is null as HDX should have
         //  transformed it!
-        XAstReader xr = new XAstReader();
-        return (FrameSet) xr.makeAst(wcsel, null);
+        return (FrameSet) new XAstReader().makeAst( wcsrc, null );
     }
 
     private FrameSet defaultWCS() {
@@ -296,11 +291,18 @@ public class BridgeNdx implements Ndx {
         
         /* Write a WCS element. */
         if ( impl.hasWCS() ) {
-            Node wcsContent = new XAstWriter().makeElement( getWCS(), null );
-            wcsContent = importNode( doc, wcsContent ); 
-            Element wcsEl = doc.createElement( "wcs" );
-            wcsEl.appendChild( wcsContent );
-            ndxEl.appendChild( wcsEl );
+            Source wcsSource = new XAstWriter().makeSource( getWCS(), null );
+            try {
+                Node wcsContent = new SourceReader().getDOM( wcsSource );
+                wcsContent = importNode( doc, wcsContent ); 
+                Element wcsEl = doc.createElement( "wcs" );
+                wcsEl.appendChild( wcsContent );
+                ndxEl.appendChild( wcsEl );
+            }
+            catch ( TransformerException e ) {
+                logger.warning( "Trouble transforming WCS: " + e.getMessage() );
+                ndxEl.appendChild( doc.createComment( "Broken WCS" ) );
+            }
         }
 
         /* Write an Etc element. */
