@@ -20,13 +20,22 @@
 #     {enter_further_changes_here}
 #-
 
-if test -f "configure"; then
-    ./configure --prefix=${TARGET_LIB}
-    make
-else
-    echo "Failed to locate build system"
-endif
+if ! test -f "configure"; then
+    echo "Failed to locate dist build system - attempting bootstrap"
+    if  test -f "bootstrap"; then
+        echo "./bootstrap"
+        ./bootstrap
+    else
+       echo "No bootstrap system either, failed."
+       exit 1
+    fi
+fi
 
+echo "./configure --prefix=${TARGET_LIB}"
+./configure --prefix=${TARGET_LIB}
+echo "make"
+make
+echo "make install"
+make install
 
-
-#  End of script.
+exit

@@ -735,16 +735,20 @@
       <fileset dir="${src.jni}">
          <include name="*.c"/>
          <include name="*.h"/>
-         <include name="Makefile.in"
+         <include name="aclocal.m4"/>
+         <include name="configure.ac"/>
          <include name="configure"/>
          <include name="config.guess"/>
          <include name="config.sub"/>
          <include name="depcomp"/>
+         <include name="install-sh"/>
          <include name="ltmain.sh"/>
          <include name="libtool"/>
          <include name="missing"/>
          <include name="mk"/>
          <include name="${link.script}"/>
+         <include name="Makefile.am"/>
+         <include name="Makefile.in"/>
       </fileset>
       <fileset dir="${build.ast}" includes="grf.h"/>
       <fileset dir="${build.ast}" includes="plot.h"/>
@@ -752,7 +756,7 @@
     </copy>
 
     <chmod perm="ugo+rx">
-      <fileset dir="${build.jni}" includes="mk ${link.script} ast_link"/>
+      <fileset dir="${build.jni}" includes="mk configure ${link.script} ast_link"/>
     </chmod>
 
     <javah classpath="${build.classes}" destdir="${build.jni}" verbose="yes">
