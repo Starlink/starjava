@@ -2,11 +2,14 @@ package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -16,81 +19,83 @@ import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.MouldArrayImpl;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.WindowArrayImpl;
 import uk.ac.starlink.ast.FrameSet;
 
 public class SliceViewer extends JPanel {
+
+    private NDArray nda;
+    private FrameSet wcs;
+    private Order order;
+    private OrderedNDShape depthShape;
+    private JComboBox orienter = new JComboBox();
+    private JSlider slider = new JSlider();
+    private JLabel planeLabel = new JLabel();
+    private Set planeSet = new HashSet();
+    private CardLayout flipper = new CardLayout();
+    private JPanel imageHolder = new JPanel( flipper );
     
-    public SliceViewer( final NDArray nda, final FrameSet wcs ) {
+    public SliceViewer( NDArray nda, FrameSet wcs ) {
         super( new BorderLayout() );
+        this.nda = nda;
+        this.wcs = wcs;
+        this.order = nda.getShape().getOrder();
 
         /* Set up a box for basic viewer controls. */
         Box controlBox = new Box( BoxLayout.Y_AXIS );
 
-        /* Get a shape of which each pixel represents one of the possible
-         * 2-dimensional slices of our NDArray.  It's a copy of the original
-         * shape, except the dummy dimensions are represented by bounds
-         * -Long.MIN_VALUE:-Long.MIN_VALUE. */
-        OrderedNDShape shape = nda.getShape();
-        long[] depthOrigin = shape.getOrigin();
-        long[] depthDims = shape.getDims();
-        int ndim = shape.getNumDims();
-        int ndummy = 2;
-        for ( int i = 0; i < ndim; i++ ) {
-            if ( depthDims[ i ] > 1 && ndummy > 0 ) {
-                depthOrigin[ i ] = -Long.MIN_VALUE;
-                depthDims[ i ] = 1;
-                ndummy--;
-            }
-        }
-        if ( ndummy != 0 ) {
-            throw new IllegalArgumentException(
-                "Too few non-dummy dimensions " + shape );
-        }
-        final OrderedNDShape depthShape =
-            new OrderedNDShape( depthOrigin, depthDims, shape.getOrder() );
-        int nplanes = (int) depthShape.getNumPixels();
-
-        /* Create and place the main viewer. */
-        final CardLayout flipper = new CardLayout();
-        final JPanel imageHolder = new JPanel( flipper );
-
         /* Set up a slice selection slider. */
-        final JSlider slider = new JSlider( 0, nplanes - 1 );
-        final JLabel planeLabel = new JLabel();
-        final Set planeSet = new HashSet();
         slider.addChangeListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
-                int value = slider.getValue();
-                long[] spec = depthShape.offsetToPosition( (long) value );
-                String name = makeName( spec );
-                planeLabel.setText( name + "   " );
-                if ( ! slider.getValueIsAdjusting() ) {
-
-                    /* Display the plane. */
-                    if ( ! planeSet.contains( name ) ) {
-                        try {
-                            planeSet.add( name );
-                            NDArray slice = getSlice( nda, spec );
-                            assert slice.getShape().getNumDims() == 2;
-                            ImageViewer iv = new ImageViewer( slice, wcs );
-                            imageHolder.add( iv, name );
-                        }
-                        catch ( IOException e ) {
-                            e.printStackTrace();
-                        }
-                    }
-                    flipper.show( imageHolder, name );
-                }
+                updateSliderPosition();
             }
         } );
 
-        /* Message the slider to generate the first image. */
-        slider.setValue( 0 );
+        /* Set up a slice orientation selector.  This contains one entry
+         * for each pair of non-degenerate dimensions over which slices
+         * can be taken. */
+        OrderedNDShape shape = nda.getShape();
+        int ndim = shape.getNumDims();
+        long[] dims = shape.getDims();
+        long[] origin = shape.getOrigin();
+        for ( int i = 0; i < ndim; i++ ) {
+            for ( int j = i + 1; j < ndim; j++ ) {
+                if ( dims[ i ] > 1 && dims[ j ] > 1 ) {
+                    long[] depthOrigin = (long[]) origin.clone();
+                    long[] depthDims = (long[]) dims.clone();
+                    depthOrigin[ i ] = -Long.MIN_VALUE;
+                    depthOrigin[ j ] = -Long.MIN_VALUE;
+                    depthDims[ i ] = 1;
+                    depthDims[ j ] = 1;
+                    NDShape dshape = new NDShape( depthOrigin, depthDims );
+                    orienter.addItem( dshape );
+                }
+            }
+        }
+        orienter.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+                    updateOrientation();
+                }
+            }
+        } );
+        int norient = orienter.getItemCount();
+        if ( norient < 1 ) {
+            throw new IllegalArgumentException(
+                "Too few non-dummy dimensions " + shape );
+        }
 
         /* Place the viewer. */
         add( imageHolder, BorderLayout.CENTER );
+
+        /* Place the orientation selector in the control box. */
+        Box orientBox = new Box( BoxLayout.X_AXIS );
+        orientBox.add( new JLabel( "Orientation selector: " ) );
+        orientBox.add( orienter );
+        orientBox.add( Box.createGlue() );
+        controlBox.add( orientBox );
 
         /* Place the slider in the control box. */
         Box sliderBox = new Box( BoxLayout.X_AXIS );
@@ -104,6 +109,50 @@ public class SliceViewer extends JPanel {
         if ( controlBox.getComponentCount() > 0 ) {
             TreeviewLAF.configureControlPanel( controlBox );
             add( controlBox, BorderLayout.NORTH );
+        }
+
+        /* Message the orientation control to generate the first image. */
+        orienter.setSelectedIndex( 0 );
+        updateOrientation();
+    }
+
+    /**
+     * Updates the display for a new slider position.
+     */
+    private void updateSliderPosition() {
+        int value = slider.getValue();
+        long[] spec = depthShape.offsetToPosition( (long) value );
+        String name = makeName( spec );
+        planeLabel.setText( name + "   " );
+        if ( ! slider.getValueIsAdjusting() ) {
+
+            /* Display the plane. */
+            if ( ! planeSet.contains( name ) ) {
+                try {
+                    planeSet.add( name );
+                    NDArray slice = getSlice( nda, spec );
+                    assert slice.getShape().getNumDims() == 2;
+                    ImageViewer iv = new ImageViewer( slice, null );
+                    imageHolder.add( iv, name );
+                }
+                catch ( IOException e ) {
+                    e.printStackTrace();
+                }
+            }
+            flipper.show( imageHolder, name );
+        }
+    }
+
+    /**
+     * Updates the display for a new slice orientation selection.
+     */
+    private void updateOrientation() {
+        NDShape dshape = (NDShape) orienter.getSelectedItem();
+        if ( ! dshape.equals( depthShape ) ) {
+            depthShape = new OrderedNDShape( dshape, order );
+            slider.setMinimum( 0 );
+            slider.setMaximum( (int) (depthShape.getNumPixels() - 1 ) );
+            slider.setValue( 0 );
         }
     }
 
