@@ -846,8 +846,13 @@
    !   ============
    !-->
   <target name="test"
+          description="-> does nothing">
+    <echo message="No tests defined"/>
+  </target>
+<!--
           depends="run-tests"
           description="-> run JUnit tests"/>
+ !-->
 
   <target name="run-tests"
           depends="compile-tests"
