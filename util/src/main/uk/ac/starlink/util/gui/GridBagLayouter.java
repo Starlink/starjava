@@ -199,6 +199,7 @@ public class GridBagLayouter
             case SCHEME4: {
                 addScheme4( component, complete );
             }
+            break;
             case SCHEME5: {
                 addScheme5( component, complete );
             }
