@@ -119,6 +119,9 @@
   <!-- Directory containing any JNI source code -->
   <property name="src.jni.dir" value="${src.dir}/jni"/>
 
+  <!-- Directory for demo data -->
+  <property name="src.etc" value="${src.dir}/etc"/>
+
   <!-- Directories for JUnit test cases and related files -->
   <property name="tests.dir" value="${src.dir}/testcases"/>
   <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
@@ -130,6 +133,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.etc" value="${build.dir}/etc"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
@@ -353,7 +357,7 @@
    !  copied into place here. 
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, build_demo"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -402,6 +406,41 @@
   </target>
 
   <!--
+   !   ===================
+   !   Construct demo data
+   !   ===================
+   !-->
+  <target name="build_demo">
+    <property name="src.demo" value="${src.etc}/demo"/>
+    <property name="build.demo" 
+              value="${build.classes}/uk/ac/starlink/topcat/demo"/>
+    <mkdir dir="${build.demo}"/>
+
+    <!-- Set up a file recording which demo files are to be used. -->
+    <property name="demo.list" value="${build.demo}/demo_list"/>
+    <delete file="${demo.list}" quiet="true"/>
+    <touch file="${demo.list}"/>
+
+    <copy todir="${build.demo}">
+      <fileset dir="${src.demo}/fits" includes="863sub.fits"/>
+      <fileset dir="${src.demo}/votable" includes="cover.xml,vizier.xml.gz"/>
+    </copy>
+    <echo append="true" file="${demo.list}" message="863sub.fits&#xA;"/>
+    <echo append="true" file="${demo.list}" message="cover.xml&#xA;"/>
+    <echo append="true" file="${demo.list}" message="vizier.xml.gz&#xA;"/>
+
+    <gzip src="${src.demo}/fits/tables.fit"
+          zipfile="${build.demo}/tables.fit.gz"/>
+    <echo append="true" file="${demo.list}" message="tables.fit.gz&#xA;"/>
+
+    <tar destfile="${build.demo}/demo.tar.bz2"
+         compression="bzip2"
+         basedir="${src.etc}"
+         includes="demo/votable/gliese2.vot,demo/fits/gliese2.FIT,demo/others/**"/>
+    <echo append="true" file="${demo.list}" message="demo.tar.bz2&#xA;"/>
+  </target>
+
+  <!--
    !   ============================
    !   Create the package jar files
    !   ============================
@@ -426,7 +465,7 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.topcat.TableViewer"/>
         <attribute name="Class-Path"
-                   value="plot.jar jel_g.jar jhall.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar"/>
+                   value="plot.jar jel_g.jar jhall.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar ../treeview/treeview.jar"/>
       </manifest>
     </jar>
 
