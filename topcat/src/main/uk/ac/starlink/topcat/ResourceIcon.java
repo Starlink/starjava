@@ -70,6 +70,8 @@ public class ResourceIcon implements Icon {
         HELP = makeIcon( "Help3.gif" ),
         DEMO = makeIcon( "demo.gif" ),
         HIDE = makeIcon( "hide1.gif" ),
+        TRUE = makeIcon( "true.gif" ),
+        FALSE = makeIcon( "false.gif" ),
 
         /* Windows. */
         COLUMNS = makeIcon( "colmeta0.gif" ),
