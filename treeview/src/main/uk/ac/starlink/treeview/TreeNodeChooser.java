@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
@@ -18,6 +19,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.TreeSelectionEvent;
@@ -33,13 +35,13 @@ import javax.swing.tree.TreePath;
 public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     private DataNodeJTree jtree;
-    private DataNodeTreeModel treeModel;
     private DataNodeFactory nodeMaker = new DataNodeFactory();
     private InfoPanel infoPanel;
     private NodeAncestorComboBox rootSelector;
     private JLabel nameLabel;
     private JLabel typeLabel;
     private JLabel descLabel;
+    private JTextField gotoField;
     private Action chooseAction;
     private Action cancelAction;
     private Action upAction;
@@ -54,6 +56,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         Border etchedBorder = BorderFactory.createEtchedBorder();
         setBorder( gapBorder );
         Box topBox = Box.createVerticalBox();
+        JPanel mainPanel = new JPanel();
         Box bottomBox = Box.createVerticalBox();
         add( topBox, BorderLayout.NORTH );
         add( bottomBox, BorderLayout.SOUTH );
@@ -76,18 +79,17 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         /* Add buttons for actions. */
         Action[] actions = configureActions();
         for ( int i = 0; i < actions.length; i++ ) {
-            rootBox.add( Box.createHorizontalStrut( 5 ) );
+            rootBox.add( Box.createHorizontalStrut( 10 ) );
             JButton butt = new JButton( actions[ i ] );
             butt.setMaximumSize( new Dimension( 100, 100 ) );
             butt.setText( null );
             rootBox.add( butt );
         }
         topBox.add( rootBox );
-        topBox.add( Box.createVerticalStrut( 5 ) );
+        topBox.add( Box.createVerticalStrut( 10 ) );
 
         /* Construct and place the tree widget itself. */
-        treeModel = new DataNodeTreeModel();
-        jtree = new DataNodeJTree( treeModel );
+        jtree = new DataNodeJTree( new DataNodeTreeModel() );
         jtree.addTreeSelectionListener( this );
         JScrollPane scroller = new JScrollPane( jtree );
         scroller.setBorder( etchedBorder );
@@ -102,7 +104,23 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         infoPanel.addItem( new JLabel( "Name:" ), nameLabel );
         infoPanel.addItem( new JLabel( "Type:" ), typeLabel );
         infoPanel.addItem( new JLabel( "Description:" ), descLabel );
+        infoPanel.setBorder( BorderFactory
+                            .createCompoundBorder( etchedBorder, gapBorder ) );
+        bottomBox.add( Box.createVerticalStrut( 10 ) );
         bottomBox.add( infoPanel );
+
+        /* Construct and place a location entry line. */
+        Box gotoBox = Box.createHorizontalBox();
+        gotoBox.add( new JLabel( "Go to: " ) );
+        gotoField = new JTextField();
+        gotoBox.add( gotoField );
+        gotoField.addActionListener( new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                setRootObject( gotoField.getText() );
+            }
+        } );
+        bottomBox.add( Box.createVerticalStrut( 10 ) );
+        bottomBox.add( gotoBox );
 
         /* Construct and place the control buttons. */
         cancelAction = 
@@ -114,6 +132,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         buttonBox.add( new JButton( chooseAction ) );
         buttonBox.add( Box.createHorizontalStrut( 5 ) );
         buttonBox.add( new JButton( cancelAction ) );
+        bottomBox.add( Box.createVerticalStrut( 10 ) );
         bottomBox.add( buttonBox );
     }
 
@@ -146,20 +165,28 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * @param  rootnew root
      */
     public void setRoot( DataNode root ) {
-        DataNode oldRoot = (DataNode) treeModel.getRoot();
+        DataNode oldRoot = (DataNode) jtree.getModel().getRoot();
+
+        /* No action if we have been asked to replace the root with the
+         * same thing. */
         if ( oldRoot == root ||
              oldRoot != null && root != null && 
-             oldRoot.toString().equals( root.toString() ) ) {
+             ("" + oldRoot).equals( "" + root ) &&
+             ("" + oldRoot.getPath()).equals( "" + root.getPath() ) ) {
             return;
         }
-        treeModel.setRoot( root );
+
+        /* Replace the whole model with a new one rooted at the given node.
+         * This causes fewer threading problems than changing the root
+         * node of the existing model. */
+        jtree.setModel( new DataNodeTreeModel( root ) );
         upAction.setEnabled( root.hasParentObject() );
         jtree.expandPath( new TreePath( root ) );
         rootSelector.setBottomNode( root );
     }
 
     public DataNode getRoot() {
-        return (DataNode) treeModel.getRoot();
+        return (DataNode) jtree.getModel().getRoot();
     }
 
     /**
