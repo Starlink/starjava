@@ -489,6 +489,54 @@ jobject jniastCheckNotNull( JNIEnv *env, jobject jObject ) {
 }
 
 
+char *jniastEscapePercents( JNIEnv *env, char *buf ) {
+/*
+*+
+*  Name:
+*     jniastEscapePercents
+
+*  Purpose:
+*     Escape dangerous characters in a printf-style format string.
+
+*  Description:
+*     Takes a string and returns a newly-allocated string with the same
+*     content but with any '%' character replaced by the sequence "%%".
+
+*  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     buf = char *
+*        String to be escaped.
+
+*  Return value:
+*     A string with special characters escaped.  Note this has been 
+*     allocated using jniastMalloc; it should be freed by the caller.
+*-
+*/
+   char *buf2;
+   char *p1;
+   char *p2;
+
+   /* Allocate a buffer which is big enough (in the worst case, every 
+    * character is a percent sign). */
+   buf2 = jniastMalloc( env, strlen( buf ) * 2 + 1 );
+
+   /* Transfer each character from the old buffer to the new one, adding an
+    * extra percent where necessary. */
+   p1 = buf;
+   p2 = buf2;
+   do {
+      if ( *p1 == '%' ) {
+         *(p2++) = '%';
+      }
+      *(p2++) = *(p1++);
+   } while ( *(p1 - 1) );
+
+   /* Return the altered buffer. */
+   return buf2;
+}
+
+
 void jniastTrace( JNIEnv *env, jobject obj ) {
 /*
 *+

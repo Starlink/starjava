@@ -98,6 +98,7 @@ int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel );
 jobject jniastCheckNotNull( JNIEnv *env, jobject jObject );
 jobject jniastMakeObject( JNIEnv *env, AstObject *objptr );
 int jniastGetNaxes( JNIEnv *env, AstFrame *frame );
+char *jniastEscapePercents( JNIEnv *env, char *buf );
 void *jniastMalloc( JNIEnv *env, size_t size );
 void jniastTrace( JNIEnv *env, jobject obj );
 

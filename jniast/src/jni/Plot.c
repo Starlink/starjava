@@ -500,12 +500,20 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_set(
    jstring jSettings     /* Name of the character attribute */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const char *settings = jniastGetUTF( env, jSettings );
+   const char *settings;
+   char *setbuf;
 
-   PLOTCALL(
-      astSet( pointer.Plot, "%s", settings );
-   )
-   jniastReleaseUTF( env, jSettings, settings );
+   if ( jniastCheckNotNull( env, jSettings ) ) {
+      settings = jniastGetUTF( env, jSettings );
+      setbuf = jniastEscapePercents( env, settings );
+      jniastReleaseUTF( env, jSettings, settings );
+
+      PLOTCALL(
+         astSet( pointer.Plot, setbuf );
+      )
+
+      free( setbuf );
+   } 
 }
 
 JNIEXPORT jboolean JNICALL Java_uk_ac_starlink_ast_Plot_test(

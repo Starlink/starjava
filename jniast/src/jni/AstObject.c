@@ -394,12 +394,20 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_set(
    jstring jSettings     /* Name of the character attribute */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const char *settings = jniastGetUTF( env, jSettings );
+   const char *settings;
+   char *setbuf;
 
-   ASTCALL(
-      astSet( pointer.AstObject, "%s", settings );
-   )
-   jniastReleaseUTF( env, jSettings, settings );
+   if ( jniastCheckNotNull( env, jSettings ) ) {
+      settings = jniastGetUTF( env, jSettings );
+      setbuf = jniastEscapePercents( env, settings );
+      jniastReleaseUTF( env, jSettings, settings );
+      
+      ASTCALL(
+         astSet( pointer.AstObject, setbuf );
+      )
+
+      free( setbuf );
+   }
 }
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_AstObject_show(

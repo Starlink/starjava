@@ -1,5 +1,6 @@
 package uk.ac.starlink.ast;
 
+import java.awt.Rectangle;
 import uk.ac.starlink.ast.grf.GrfEscape;
 import uk.ac.starlink.util.TestCase;
 
@@ -9,6 +10,18 @@ public class EscapeTest extends TestCase {
 
     public EscapeTest( String name ) {
         super( name );
+    }
+
+    public void testPlotEscapes() {
+        String tricky = "Axis %^50+ %s50+ one %s+ %^+";
+        String tidy = "Axis   one  ";
+
+        GrfEscape.setEscapes( true );
+        Plot p2 = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
+                            new double[] { 0., 0., 512., 512. } );
+        p2.set( "label(1)=" + tricky );
+        assertEquals( tricky, p2.getLabel(1) );
+        GrfEscape.setEscapes( false );
     }
 
     public void testEscapes() {
@@ -81,6 +94,47 @@ public class EscapeTest extends TestCase {
         checkText( GrfEscape.GRF__ESSTY, -1, "%t+" );
         checkText( GrfEscape.GRF__ESPOP,  0, "%-" );
         checkText( GrfEscape.GRF__ESPSH,  0, "%+" );
+    }
+
+    public void testMore() {
+        String tricky = "Axis %^50+ %s50+ one %s+ %^+";
+        String tidy = "Axis   one  ";
+        Frame frm = new Frame( 1 );
+
+        frm.setID( tricky );
+        GrfEscape.setEscapes( true );
+        assertEquals( frm.getID(), tricky );
+        GrfEscape.setEscapes( false );
+        assertEquals( frm.getID(), tidy );
+
+        frm.set( "ID=" + tricky );
+        // frm.setID( tricky );
+        GrfEscape.setEscapes( true );
+        assertEquals( frm.getID(), tricky );
+        GrfEscape.setEscapes( false );
+        assertEquals( frm.getID(), tidy );
+    }
+
+    public void testSet() {
+        GrfEscape.setEscapes( true );
+        exerciseSet( "LabelOne", "LabelTwo" );
+        exerciseSet( "%%%%%%%%", "label %d %s" );
+        exerciseSet( "label %d %s", "  %% %%x% %% " );
+    }
+
+    public void exerciseSet( String l1, String l2 ) {
+        Plot plot = new Plot( new Frame( 2 ), new Rectangle( 512, 512 ),
+                              new double[] { 0., 0., 512., 512. } );
+        String setting = "label(1)=" + l1 + ",label(2)=" + l2;
+
+        plot.set( setting );
+        assertEquals( l1, plot.getLabel( 1 ) );
+        assertEquals( l2, plot.getLabel( 2 ) );
+
+        Frame frm = new Frame( 2 );
+        frm.set( setting );
+        assertEquals( l1, frm.getLabel( 1 ) );
+        assertEquals( l2, frm.getLabel( 2 ) );
     }
 
 }
