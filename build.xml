@@ -137,6 +137,9 @@
     <echo message="Executing JNIHDS target: ${what}"/> 
     <ant dir="./jnihds" target="${what}"/> 
     
+    <echo message="Executing HDX target: ${what}"/> 
+    <ant dir="./hdx" target="${what}"/> 
+
     <echo message="Executing compatibility NDArray target: ${what}"/> 
     <ant dir="./oldarray" target="${what}"/> 
     
@@ -161,9 +164,6 @@
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
     
-    <echo message="Executing HDX target: ${what}"/> 
-    <ant dir="./hdx" target="${what}"/> 
-
     <echo message="Executing JAIUtil target: ${what}"/>
     <ant dir="./jaiutil" target="${what}"/>
     
