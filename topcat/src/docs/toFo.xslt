@@ -400,7 +400,7 @@
     </fo:block>
   </xsl:template>
 
-  <xsl:template match="sect|appendices/sect/subsect">
+  <xsl:template match="sect|appendices/sect">
     <fo:block id="{generate-id(.)}" break-before="page">
       <xsl:apply-templates/>
     </fo:block>
