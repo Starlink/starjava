@@ -425,7 +425,7 @@ public class DefaultGrf
 
         //  Just use textExtent on a simple string.
         bounds = textExtent( "ABCD", 0.0, 0.0, "CC", 1.0, 0.0 );
-        sizes[0] = bounds[2] - bounds[0];
+        sizes[0] = bounds[4] - bounds[0];
         bounds = textExtent( "ABCD", 0.0, 0.0, "CC", 0.0, 1.0 );
         sizes[1] = bounds[5] - bounds[1];
         return sizes;
