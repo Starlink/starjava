@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import uk.ac.starlink.array.AccessMode;
 
 /**
- * Manufactures Ndx objects from URLs.
+ * Performs I/O between Ndx objects and resources named by URLs.
  * Methods are available to construct a readable Ndx from a URL
  * pointing to an existing resource, or to construct a new Ndx located 
  * at a given URL and populate it from the content of an existing Ndx.
@@ -45,6 +44,9 @@ public class NdxIO {
      * Constructs an NdxIO with a default list of handlers.
      */
     public NdxIO() {
+
+        /* Construct the default list of handlers if it has not yet been done.
+         * (only required first time around). */
         if ( defaultHandlers == null ) {
             defaultHandlers = new ArrayList( 3 );
             Class[] noParams = new Class[ 0 ];
@@ -90,6 +92,8 @@ public class NdxIO {
             /* Add the XMLNdxHandler. */
             defaultHandlers.add( XMLNdxHandler.getInstance() );
         }
+
+        /* Set the handler list for this object from the default list. */
         handlers = new ArrayList( defaultHandlers );
     }
 
@@ -128,16 +132,14 @@ public class NdxIO {
      * Ndx resource at it.
      *
      * @param   url  a URL pointing to a resource representing an Ndx
-     * @param   mode the mode with which it should be accessed
      * @return   a readable Ndx object view of the resource at url, or
      *           null if one could not be found
      * @throws   IOException  if there is any I/O error
      */
-    public Ndx makeNdx( URL url, AccessMode mode )
-            throws IOException {
+    public Ndx makeNdx( URL url ) throws IOException {
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             NdxHandler handler = (NdxHandler) it.next();
-            Ndx nda = handler.makeNdx( url, mode );
+            Ndx nda = handler.makeNdx( url );
             if ( nda != null ) {
                 return nda;
             }
@@ -183,15 +185,14 @@ public class NdxIO {
      *
      * @param  location  the location of the resource.  If it cannot be
      *                   parsed as a URL it will be treated as a filename
-     * @param   mode the mode with which it should be accessed
      * @return   a readable Ndx object view of the resource at url, or
      *           null if one could not be found
      * @throws   IOException  if there is any I/O error
      * @throws FileNotFoundException  if the location doesn't look like a 
      *                     file or URL
      */
-    public Ndx makeNdx( String location, AccessMode mode ) throws IOException {
-        return makeNdx( getUrl( location ), mode );
+    public Ndx makeNdx( String location ) throws IOException {
+        return makeNdx( getUrl( location ) );
     }
 
     /**

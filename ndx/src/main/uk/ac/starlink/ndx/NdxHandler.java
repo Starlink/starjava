@@ -2,7 +2,6 @@ package uk.ac.starlink.ndx;
 
 import java.io.IOException;
 import java.net.URL;
-import uk.ac.starlink.array.AccessMode;
 
 /**
  * Interface for objects which can construct an Ndx from a URL.
@@ -19,7 +18,7 @@ import uk.ac.starlink.array.AccessMode;
 public interface NdxHandler {
 
     /**
-     * Constructs an Ndx based on the existing resource at a given URL.
+     * Constructs a readable Ndx based on the existing resource at a given URL.
      * If the resource is not recognised or it is not known how to
      * construct such an NDArray, then <tt>null</tt> should be returned.
      * If the resource exists but some error occurs in processing it,
@@ -31,11 +30,10 @@ public interface NdxHandler {
      *
      * @param   url   the URL of the resource from which an Ndx  is to
      *                be constructed
-     * @param   mode  the read/update/write mode with which to create the Ndx
      * @throws  IOException  if the URL is understood but an NDArray cannot
      *                       be made
      */
-    Ndx makeNdx( URL url, AccessMode mode ) throws IOException;
+    Ndx makeNdx( URL url ) throws IOException;
 
     /**
      * Constructs a new Ndx which is a copy of the given Ndx at a

@@ -29,7 +29,7 @@ public class CopyNdx {
     }
 
     public void makeCopy( URL inURL, URL outURL ) throws IOException {
-        Ndx indx = ndxio.makeNdx( inURL, AccessMode.READ );
+        Ndx indx = ndxio.makeNdx( inURL );
         if ( indx == null ) {
             throw new IOException( "Failed to resolve URL " + inURL );
         }
@@ -37,7 +37,7 @@ public class CopyNdx {
     }
 
     public void writeXML( URL inURL, OutputStream ostrm ) throws IOException {
-        Ndx indx = ndxio.makeNdx( inURL, AccessMode.READ );
+        Ndx indx = ndxio.makeNdx( inURL );
         try {
             sr.writeSource( indx.toXML(), ostrm );
         }

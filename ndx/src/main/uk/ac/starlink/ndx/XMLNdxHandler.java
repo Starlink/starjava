@@ -30,8 +30,12 @@ import uk.ac.starlink.util.SourceReader;
 
 /**
  * Turns URLs which reference XML files into Ndxs.
- * This is a quick and dirty implementation, and won't cope with 
+ * This is a quick and dirty implementation, and may not cope with 
  * weirdy XML files.
+ * <p>
+ * A URL is normally only considered suitable if it ends in '.xml'.  
+ * However, the special URL "<tt>file:-</tt>" may be used to 
+ * indicate standard input/output.
  */
 public class XMLNdxHandler implements NdxHandler {
 
@@ -55,13 +59,37 @@ public class XMLNdxHandler implements NdxHandler {
         return instance;
     }
 
-    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
-        if ( ! isXmlUrl( url ) ) {
+    /**
+     * Constructs an Ndx object from a URL pointing to an appropriate 
+     * XML resource.
+     *
+     * @param  url  a URL pointing to some XML representing an NDX
+     * @throws  IOException  if some error occurs in the I/O
+     */
+    public Ndx makeNdx( URL url ) throws IOException {
+        Source xsrc;
+        if ( url.toString().equals( "file:-" ) ) {
+            xsrc = new StreamSource( System.in );
+        }
+        else if ( isXmlUrl( url ) ) {
+            xsrc = new StreamSource( url.toString() );
+        }
+        else {
             return null;
         }
+        return makeNdx( xsrc );
+    }
+
+    /**
+     * Constructs a readable Ndx object from an XML source.
+     *
+     * @param  xsrc  an XML source containing the XML representation of
+     *               the NDX
+     * @throws  IOException  if some error occurs in the I/O
+     */
+    public Ndx makeNdx( Source xsrc ) throws IOException {
 
         /* Get a DOM. */
-        Source xsrc = new StreamSource( url.toString() );
         Node ndxdom;
         try {
             ndxdom = new SourceReader().getDOM( xsrc );
@@ -104,13 +132,13 @@ public class XMLNdxHandler implements NdxHandler {
                 Element cel = (Element) child;
                 String tagname = cel.getTagName();
                 if ( tagname.equals( "image" ) || tagname.equals( "data" ) ) {
-                    image = makeNDArray( cel, mode );
+                    image = makeNDArray( cel, AccessMode.READ );
                 }
                 else if ( tagname.equals( "variance" ) ) {
-                    variance = makeNDArray( cel, mode );
+                    variance = makeNDArray( cel, AccessMode.READ );
                 }
                 else if ( tagname.equals( "quality" ) ) {
-                    quality = makeNDArray( cel, mode );
+                    quality = makeNDArray( cel, AccessMode.READ );
                 }
                 else if ( tagname.equals( "title" ) ) {
                     title = getTextContent( cel );
@@ -219,28 +247,56 @@ public class XMLNdxHandler implements NdxHandler {
     }
     
 
-    public boolean outputNdx( URL url, Ndx original ) throws IOException {
-        if ( ! isXmlUrl( url ) ) {
-            return false;
-        }
+    /**
+     * Provides an XML Source representation of an existing Ndx object.
+     * <p>
+     * This method, which just invokes {@link Ndx#toXML}, is only really
+     * provided for symmetry with {@link
+     * #makeNdx(javax.xml.transform.Source)}.
+     *
+     * @param  ndx  the Ndx object to turn into XML
+     */
+    public Source outputNdx( Ndx ndx ) {
+        return ndx.toXML();
+    }
+
+    /**
+     * Writes an XML representation of an existing Ndx object to the given 
+     * (writable) URL.
+     *
+     * @param  url  the URL to which the Ndx is to be serialised
+     * @param  ndx  the Ndx object to serialise
+     * @throws java.net.UnknownServiceException if the URL does not support
+     *         output (most protocols, apart from <tt>file</tt>, don't)
+     * @throws IOException  if some other I/O error occurs, 
+     */
+    public boolean outputNdx( URL url, Ndx ndx ) throws IOException {
         OutputStream ostrm;
-        if ( url.getProtocol().equals( "file" ) ) {
-            String filename = url.getPath();
-            ostrm = new FileOutputStream( filename );
+        if ( url.toString().equals( "file:-" ) ) {
+            ostrm = System.out;
+        }
+        else if ( isXmlUrl( url ) ) {
+            if ( url.getProtocol().equals( "file" ) ) {
+                String filename = url.getPath();
+                ostrm = new FileOutputStream( filename );
+            }
+            else {
+                URLConnection conn = url.openConnection();
+                conn.setDoInput( false );
+                conn.setDoOutput( true );
+    
+                /* The following may throw a java.net.UnknownServiceException
+                 * (which is-a IOException) - in fact it almost certiainly will,
+                 * since I don't know of any URL protocols (including file)
+                 * which support output streams. */
+                conn.connect();
+                ostrm = conn.getOutputStream();
+            }
+            ostrm = new BufferedOutputStream( ostrm );
         }
         else {
-            URLConnection conn = url.openConnection();
-            conn.setDoInput( false );
-            conn.setDoOutput( true );
-
-            /* The following may throw a java.net.UnknownServiceException
-             * (which is-a IOException) - in fact it almost certiainly will,
-             * since I don't know of any URL protocols (including file)
-             * which support output streams. */
-            conn.connect();
-            ostrm = conn.getOutputStream();
+            return false;
         }
-        ostrm = new BufferedOutputStream( ostrm );
         SourceReader sr = new SourceReader();
 
         // this bit isn't safe - can't guarantee the transformer will be
@@ -248,7 +304,7 @@ public class XMLNdxHandler implements NdxHandler {
         sr.setIncludeDeclaration( true );
         sr.setIndent( 2 );
         try { 
-            sr.writeSource( original.toXML(), ostrm );
+            sr.writeSource( outputNdx( ndx ), ostrm );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )

@@ -1,7 +1,7 @@
 package uk.ac.starlink.fits;
 
-import java.io.CharArrayReader;
-import java.io.CharArrayWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +35,7 @@ import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
+import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.FitsChan;
@@ -93,7 +94,7 @@ public class FitsNdxHandler implements NdxHandler {
         return instance;
     }
 
-    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
+    public Ndx makeNdx( URL url ) throws IOException {
 
         /* Return null if it's not a FITS-like URL. */
         FitsURL furl = FitsURL.parseURL( url, extensions );
@@ -103,7 +104,7 @@ public class FitsNdxHandler implements NdxHandler {
 
         /* Try to get an image NDArray at this URL. */
         FitsArrayBuilder fab = FitsArrayBuilder.getInstance();
-        final NDArray image = fab.makeNDArray( url, mode );
+        final NDArray image = fab.makeNDArray( url, AccessMode.READ );
 
         /* Get the header block. */
         Header hdr = ((ReadableFitsArrayImpl) ((BridgeNDArray) image).getImpl())
@@ -133,7 +134,7 @@ public class FitsNdxHandler implements NdxHandler {
         if ( hdr.containsKey( FitsConstants.NDX_VARIANCE ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_VARIANCE );
             URL vurl = new URL( url, loc );
-            variance = fab.makeNDArray( vurl, mode );
+            variance = fab.makeNDArray( vurl, AccessMode.READ );
         }
         else {
             variance = null;
@@ -144,7 +145,7 @@ public class FitsNdxHandler implements NdxHandler {
         if ( hdr.containsKey( FitsConstants.NDX_QUALITY ) ) {
             String loc = hdr.getStringValue( FitsConstants.NDX_QUALITY );
             URL qurl = new URL( url, loc );
-            quality = fab.makeNDArray( qurl, mode );
+            quality = fab.makeNDArray( qurl, AccessMode.READ );
         }
         else {
             quality = null;
@@ -181,17 +182,12 @@ public class FitsNdxHandler implements NdxHandler {
             FitsURL xfurl = FitsURL.parseURL( xurl, extensions );
             if ( xfurl != null ) {
                 try {
-                    Source xsrc;
                     Fits fits = new Fits( xfurl.getContainer() );
                     BasicHDU xhdu = fits.getHDU( xfurl.getHDU() - 1 );
                     // assert xhdu instanceof ImageHDU;
-                    short[] shorts = (short[]) xhdu.getKernel();
-                    int nchar = shorts.length;
-                    char[] chars = new char[ nchar ];
-                    for ( int i = 0; i < nchar; i++ ) {
-                        chars[ i ] = (char) shorts[ i ];
-                    }
-                    xsrc = new StreamSource( new CharArrayReader( chars ) );
+                    byte[] bytes = (byte[]) xhdu.getKernel();
+                    Source xsrc = 
+                        new StreamSource( new ByteArrayInputStream( bytes ) );
                     etc = new SourceReader().getDOM( xsrc );
                 }
                 catch ( FitsException e ) {
@@ -341,29 +337,25 @@ public class FitsNdxHandler implements NdxHandler {
             NDArray qual = ndx.getQuality();
             HeaderCard[] qcards = new HeaderCard[] { 
                 commentCard( "QUALITY component of NDX structure" ) };
+            Type qtype = qual.getType();
             ArrayImpl qimpl =
-                new WritableFitsArrayImpl( qual.getShape(), qual.getType(),
-                                           qual.getBadHandler().getBadValue(),
-                                           strm, false, null );
+                new WritableFitsArrayImpl( qual.getShape(), qtype, null,
+                                           strm, false, qcards );
             NDArrays.copy( qual, new BridgeNDArray( qimpl ) );
         }
 
         /* Write the Etc component as a byte array if there is one. */
         if ( ndx.hasEtc() ) {
             try {
-                CharArrayWriter bufwr = new CharArrayWriter();
-                new SourceReader().writeSource( ndx.getEtc(), bufwr );
-                char[] chars = bufwr.toCharArray();
-                int nchar = chars.length;
-                short[] shorts = new short[ nchar ];
-                for ( int i = 0; i < nchar; i++ ) {
-                    shorts[ i ] = (short) chars[ i ];
-                }
-                Data etcData = new ImageData( shorts );
+                ByteArrayOutputStream bufos = new ByteArrayOutputStream();
+                new SourceReader().writeSource( ndx.getEtc(), bufos );
+                byte[] bytes = bufos.toByteArray();
+                Data etcData = new ImageData( bytes );
                 Header etcHeader = new Header( etcData );
                 etcHeader.insertComment( "ETC component of NDX structure" );
-                etcHeader.insertComment( "XML text encoded as char array" );
+                etcHeader.insertComment( "XML text encoded as byte array" );
                 etcHeader.removeCard( "SIMPLE" );
+                etcHeader.removeCard( "EXTEND" );
                 etcHeader.setXtension( "IMAGE" );
                 BasicHDU etcHdu = new ImageHDU( etcHeader, etcData );
                 etcHdu.write( strm );

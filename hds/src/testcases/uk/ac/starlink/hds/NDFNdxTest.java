@@ -61,7 +61,7 @@ public class NDFNdxTest extends TestCase {
         NdxHandler handler = NDFNdxHandler.getInstance();
 
         /* Read the NDF as an NDX. */
-        Ndx ndx = handler.makeNdx( ndfURL, AccessMode.READ );
+        Ndx ndx = handler.makeNdx( ndfURL );
 
         /* Get an NdxIO and check we are installed there. */
         NdxIO ndxio = new NdxIO();
@@ -77,14 +77,14 @@ public class NDFNdxTest extends TestCase {
         /* Write the NDX out as XML. */
         String xloc = tmpdir + "/" + "copy.xml";
         ndxio.outputNdx( xloc, ndx );
-        Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
+        Ndx xndx = ndxio.makeNdx( xloc );
         assertNdxEqual( ndx, xndx );
 
         /* Write the NDX out as an NDF. */
         ndxio.setHandlers( new NdxHandler[] { NDFNdxHandler.getInstance() } );
         String hloc = tmpdir + "/" + "copy.sdf";
         ndxio.outputNdx( hloc, ndx );
-        Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
+        Ndx hndx = ndxio.makeNdx( hloc );
         assertNdxEqual( ndx, hndx );
         
     }

@@ -28,7 +28,7 @@ import uk.ac.starlink.ndx.NdxImpl;
  * (no <tt>#</tt>), the object at the top level of the HDS container
  * file is understood.
  * <p>
- * This is a singleton class; use {@link getInstance} to get an instance.
+ * This is a singleton class; use {@link #getInstance} to get an instance.
  *
  * @author    Mark Taylor (Starlink)
  * @see  HDSReference
@@ -52,7 +52,7 @@ public class NDFNdxHandler implements NdxHandler {
         return instance;
     }
 
-    public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {
+    public Ndx makeNdx( URL url ) throws IOException {
         LocalHDS lobj = LocalHDS.getReadableHDS( url );
         if ( lobj == null ) {
             return null;
@@ -64,7 +64,7 @@ public class NDFNdxHandler implements NdxHandler {
         try {
             /* Construct an NdxImpl which will remove any temporary file
              * when it is finalize with. */
-            NdxImpl impl = new NDFNdxImpl( href, mode ) {
+            NdxImpl impl = new NDFNdxImpl( href, AccessMode.READ ) {
                 public void finalize() throws Throwable {
                     try {
                         super.finalize();
