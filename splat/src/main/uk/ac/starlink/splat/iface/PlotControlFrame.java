@@ -388,7 +388,9 @@ public class PlotControlFrame extends JFrame
         if ( configFrame == null ) {
             configFrame = new PlotConfigurator( "Plot configurator window",
                                                 plot,
-                                                plot.getPlotConfiguration() );
+                                                plot.getPlotConfiguration(),
+                                                "splat",
+                                                "PlotConfigs.xml" );
 
             //  Add controls for the extra facilities provided by the
             //  DivaPlot.
