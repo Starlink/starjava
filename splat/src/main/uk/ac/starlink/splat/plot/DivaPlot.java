@@ -187,7 +187,7 @@ public class DivaPlot
      * Object that contains the colour used for the component
      * background.
      */
-    protected ColourStore backgroundColourStore = 
+    protected ColourStore backgroundColourStore =
         new ColourStore( "background" );
 
      /**
@@ -271,7 +271,7 @@ public class DivaPlot
 
         //  Add a DivaPlotGraphicsPane to use for displaying
         //  interactive graphics elements.
-        graphicsPane = 
+        graphicsPane =
             new DivaPlotGraphicsPane( DrawActions.getTypedDecorator() );
         setCanvasPane( graphicsPane );
         getCanvasPane().setAntialiasing( false );
@@ -490,7 +490,7 @@ public class DivaPlot
         if ( dataLimits.isXFlipped() ) {
             baseBox[0] = xMax;
             baseBox[2] = xMin;
-        } 
+        }
         else {
             baseBox[0] = xMin;
             baseBox[2] = xMax;
@@ -601,7 +601,7 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed height. Follow this with a 
+     * Fit spectrum to the displayed height. Follow this with a
      * setScale( x, 1 ), to update the display.
      */
     public void fitToHeight()
@@ -720,7 +720,7 @@ public class DivaPlot
                 if ( dataLimits.isXFlipped() ) {
                     limits[0] = xMax;
                     limits[2] = xMin;
-                } 
+                }
                 else {
                     limits[0] = xMin;
                     limits[2] = xMax;
@@ -757,7 +757,7 @@ public class DivaPlot
      *
      * @param g Graphics object
      */
-    public void redrawAll( Graphics2D g ) 
+    public void redrawAll( Graphics2D g )
     {
         if ( spectra.count() == 0 ) {
             return;
@@ -772,14 +772,14 @@ public class DivaPlot
                 //  Scale of plot has changed or been set for the first
                 //  time. So we need to redraw everything.
                 xyScaled = false;
-                
+
                 //  Keep reference to existing AstPlot so we know how
                 //  graphics coordinates are already drawn.
                 Plot oldAstPlot = astJ.getPlot();
                 if ( oldAstPlot != null ) {
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
-                
+
                 //  Create an astPlot for the graphics, this is matched to the
                 //  component size and is how we get an apparent rescale of
                 //  drawing. So that we get linear axis 1 coordinates we must
@@ -796,17 +796,20 @@ public class DivaPlot
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
                         astJ.astPlot( this, baseBox,
-                                      graphicsEdges.getXFrac(),
-                                      graphicsEdges.getYFrac(),
+                                      graphicsEdges.getXLeft(),
+                                      graphicsEdges.getXRight(),
+                                      graphicsEdges.getYTop(),
+                                      graphicsEdges.getYBottom(),
                                       config.getAst() );
                     }
                     else {
-                        astJ.astPlot( this, baseBox, 0.05, 0.03, 
+                        astJ.astPlot( this, baseBox, 
+                                      0.05, 0.00, 0.03, 0.03, 
                                       config.getAst() );
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.03, "" );
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.03, "" );
                 }
 
                 // The plot must use our Grf implementation.
@@ -820,7 +823,7 @@ public class DivaPlot
                 //  labels when zoomed.
                 double xGap = 0.0;
                 if ( config != null ) {
-                    AstTicks astTicks = 
+                    AstTicks astTicks =
                         (AstTicks) config.getControlsModel( AstTicks.class );
                     xGap = astTicks.getXGap();
                 }
@@ -829,10 +832,10 @@ public class DivaPlot
                     xGap = xGap / Math.max( 1.0, xScale * 0.5 );
                     astJ.astSetPlot( "gap(1)=" + xGap );
                 }
-                
+
                 //  Clear all existing AST graphics
                 javaGrf.reset();
-                
+
                 //  Draw the coordinate grid/axes.
                 astJ.astGrid();
 
@@ -857,10 +860,10 @@ public class DivaPlot
             if ( graphicsHints != null ) {
                 graphicsHints.applyRenderingHints( (Graphics2D) g );
             }
-            
+
             //  Repaint all graphics.
             astJ.getPlot().paint( g );
-            
+
         }
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
@@ -1021,7 +1024,7 @@ public class DivaPlot
                 public void mouseMoved( MouseEvent e )
                 {
                     Plot astPlot = astJ.getPlot();
-                    if ( spectra.count() == 0 || ! readyToTrack || 
+                    if ( spectra.count() == 0 || ! readyToTrack ||
                          astPlot == null ) {
                         return;
                     }
@@ -1294,8 +1297,8 @@ public class DivaPlot
     public DrawActions getDrawActions()
     {
         if ( drawActions == null ) {
-            drawActions = 
-                new DrawActions( this, null, 
+            drawActions =
+                new DrawActions( this, null,
                                  PlotInterpolatorFactory.getInstance() );
         }
         return drawActions;

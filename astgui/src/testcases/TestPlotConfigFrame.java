@@ -146,12 +146,15 @@ public class TestPlotConfigFrame
         double yo = 0.0;
 
         //  Reserve some of the graphics area for annotations etc.
-        double xfrac = graphicsEdges.getXFrac() * dw;
-        double yfrac = graphicsEdges.getYFrac() * dh;
-        xo += xfrac;
-        yo += yfrac;
-        dw -= xfrac;
-        dh -= yfrac;
+        double xleft = graphicsEdges.getXLeft() * dw;
+        double xright = graphicsEdges.getXRight() * dw;
+
+        double ytop = graphicsEdges.getYTop() * dh;
+        double ybottom = graphicsEdges.getYBottom() * dh;
+        xo += xleft;
+        yo += ytop;
+        dw -= xright;
+        dh -= ybottom;
         Rectangle graphRect = new Rectangle( (int)xo, (int)yo, (int)dw, 
                                              (int)dh );
 
@@ -181,6 +184,11 @@ public class TestPlotConfigFrame
     public void setPlotColour( Color colour )
     {
         setBackground( colour );
+    }
+
+    public Color getPlotColour()
+    {
+        return getBackground();
     }
 
     public Frame getPlotCurrentFrame()

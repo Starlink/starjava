@@ -3,7 +3,9 @@
  *
  *  History:
  *     28-NOV-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     14-APR-2004 (Peter W. Draper):
+ *        Differentiated top/bottom and left/right from X and Y spacing.
  */
 package uk.ac.starlink.ast.gui;
 
@@ -36,7 +38,7 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * @see GraphicsHints
  * @see PlotConfigurator
  */
-public class GraphicsEdgesControls extends JPanel 
+public class GraphicsEdgesControls extends JPanel
     implements PlotControls, ChangeListener
 {
     /**
@@ -50,28 +52,57 @@ public class GraphicsEdgesControls extends JPanel
     protected JCheckBox clip = new JCheckBox();
 
     /**
-     * Spinner for controlling the space reserved for X labels.
+     * Spinner for controlling the space reserved for X labelling on left.
      */
-    protected JSpinner xFraction = null;
+    protected JSpinner xLeft = null;
 
     /**
-     * Spinner model for X fraction.
+     * Spinner for controlling the space reserved for X labelling on right.
      */
-    protected SpinnerNumberModel xFractionModel = 
+    protected JSpinner xRight = null;
+
+    /**
+     * Spinner model for X left fraction.
+     */
+    protected SpinnerNumberModel xLeftModel =
         new SpinnerNumberModel( 0.0,
                                 GraphicsEdges.GAP_MIN,
                                 GraphicsEdges.GAP_MAX,
                                 GraphicsEdges.GAP_STEP );
 
     /**
-     * Spinner for controlling the space reserved for Y labels.
+     * Spinner model for X right fraction.
      */
-    protected JSpinner yFraction = null;
+    protected SpinnerNumberModel xRightModel =
+        new SpinnerNumberModel( 0.0,
+                                GraphicsEdges.GAP_MIN,
+                                GraphicsEdges.GAP_MAX,
+                                GraphicsEdges.GAP_STEP );
 
     /**
-     * Spinner model for Y fraction.
+     * Spinner for controlling the space reserved for Y labelling at the top.
      */
-    protected SpinnerNumberModel yFractionModel = 
+    protected JSpinner yTop = null;
+
+    /**
+     * Spinner for controlling the space reserved for Y labelling at the
+     * bottom.
+     */
+    protected JSpinner yBottom = null;
+
+    /**
+     * Spinner model for Y top fraction.
+     */
+    protected SpinnerNumberModel yTopModel =
+        new SpinnerNumberModel( 0.0,
+                                GraphicsEdges.GAP_MIN,
+                                GraphicsEdges.GAP_MAX,
+                                GraphicsEdges.GAP_STEP );
+
+    /**
+     * Spinner model for Y bottom fraction.
+     */
+    protected SpinnerNumberModel yBottomModel =
         new SpinnerNumberModel( 0.0,
                                 GraphicsEdges.GAP_MIN,
                                 GraphicsEdges.GAP_MAX,
@@ -108,19 +139,33 @@ public class GraphicsEdgesControls extends JPanel
                 }
             });
 
-        //  Set X fraction.
-        xFraction = new JSpinner( xFractionModel );
-        xFraction.addChangeListener( new ChangeListener() {
+        //  Set X fractions.
+        xLeft = new JSpinner( xLeftModel );
+        xLeft.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
-                    matchXFraction();
+                    matchXLeft();
                 }
             });
 
-        //  Set Y fraction.
-        yFraction = new JSpinner( yFractionModel );
-        yFraction.addChangeListener( new ChangeListener() {
+        xRight = new JSpinner( xRightModel );
+        xRight.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
-                    matchYFraction();
+                    matchXRight();
+                }
+            });
+
+        //  Set Y fractions.
+        yTop = new JSpinner( yTopModel );
+        yTop.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    matchYTop();
+                }
+            });
+
+        yBottom = new JSpinner( yBottomModel );
+        yBottom.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    matchYBottom();
                 }
             });
 
@@ -130,22 +175,34 @@ public class GraphicsEdgesControls extends JPanel
         layouter.add( "Clip graphics:", false );
         layouter.add( clip, true );
 
-        layouter.add( "X reserve:", false );
-        layouter.add( xFraction, false );
+        layouter.add( "X left reserve:", false );
+        layouter.add( xLeft, false );
         layouter.eatLine();
 
-        layouter.add( "Y reserve:", false );
-        layouter.add( yFraction, false );
+        layouter.add( "X right reserve:", false );
+        layouter.add( xRight, false );
+        layouter.eatLine();
+
+        layouter.add( "Y top reserve:", false );
+        layouter.add( yTop, false );
+        layouter.eatLine();
+
+        layouter.add( "Y bottom reserve:", false );
+        layouter.add( yBottom, false );
         layouter.eatLine();
 
         layouter.eatSpare();
 
         //  Set tooltips.
         clip.setToolTipText( "Clip graphics to lie within border" );
-        xFraction.setToolTipText
-            ( "Set space reserved for X labels (fraction)" );
-        yFraction.setToolTipText
-            ( "Set space reserved for Y labels (fraction)" );
+        xLeft.setToolTipText
+            ( "Set space reserved on the left for X labels (fraction)" );
+        xRight.setToolTipText
+            ( "Set space reserved on the right for X labels (fraction)" );
+        yTop.setToolTipText
+            ( "Set space reserved on the top for Y labels (fraction)" );
+        yBottom.setToolTipText
+            ( "Set space reserved on the bottom for Y labels (fraction)" );
     }
 
     /**
@@ -165,8 +222,10 @@ public class GraphicsEdgesControls extends JPanel
     {
         edges.removeChangeListener( this );
         clip.setSelected( edges.isClipped() );
-        xFractionModel.setValue( new Double( edges.getXFrac() ) );
-        yFractionModel.setValue( new Double( edges.getYFrac() ) );
+        xLeftModel.setValue( new Double( edges.getXLeft() ) );
+        xRightModel.setValue( new Double( edges.getXRight() ) );
+        yTopModel.setValue( new Double( edges.getYTop() ) );
+        yBottomModel.setValue( new Double( edges.getYBottom() ) );
         edges.addChangeListener( this );
     }
 
@@ -187,19 +246,35 @@ public class GraphicsEdgesControls extends JPanel
     }
 
     /**
-     * Match X label fraction.
+     * Match left X label fraction.
      */
-    protected void matchXFraction()
+    protected void matchXLeft()
     {
-        edges.setXFrac( xFractionModel.getNumber().doubleValue() );
+        edges.setXLeft( xLeftModel.getNumber().doubleValue() );
     }
 
     /**
-     * Match Y label fraction.
+     * Match right X label fraction.
      */
-    protected void matchYFraction()
+    protected void matchXRight()
     {
-        edges.setYFrac( yFractionModel.getNumber().doubleValue() );
+        edges.setXRight( xRightModel.getNumber().doubleValue() );
+    }
+
+    /**
+     * Match top Y label fraction.
+     */
+    protected void matchYTop()
+    {
+        edges.setYTop( yTopModel.getNumber().doubleValue() );
+    }
+
+    /**
+     * Match bottom Y label fraction.
+     */
+    protected void matchYBottom()
+    {
+        edges.setYBottom( yBottomModel.getNumber().doubleValue() );
     }
 
 //

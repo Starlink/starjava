@@ -3,7 +3,9 @@
  *
  *  History:
  *     28-NOV-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     14-APR-2004 (Peter W. Draper):
+ *        Changed to differentiate left/right and top/bottom space.
  */
 package uk.ac.starlink.ast.gui;
 
@@ -30,14 +32,24 @@ public class GraphicsEdges
     protected boolean clip;
 
     /**
-     * Fraction of plot to keep for the X axis labels.
+     * Fraction of plot to keep for left labels.
      */
-    protected double xFrac;
+    protected double xLeft;
 
     /**
-     * Fraction of plot to keep for the Y axis labels.
+     * Fraction of plot to keep for right labels.
      */
-    protected double yFrac;
+    protected double xRight;
+
+    /**
+     * Fraction of plot to keep for the top labels.
+     */
+    protected double yTop;
+
+    /**
+     * Fraction of plot to keep for the bottom labels.
+     */
+    protected double yBottom;
 
     /**
      * The suggested minimum fraction.
@@ -68,8 +80,10 @@ public class GraphicsEdges
     public void setDefaults()
     {
         clip = true;
-        xFrac = 0.05;
-        yFrac = 0.03;
+        xLeft = 0.05;
+        xRight = 0.00;
+        yTop = 0.03;
+        yBottom = 0.03;
         fireChanged();
     }
 
@@ -91,36 +105,70 @@ public class GraphicsEdges
     }
 
     /**
-     * Get the fraction of display reserved for X labelling.
+     * Get the fraction of display reserved for X labelling on the left.
      */
-    public double getXFrac()
+    public double getXLeft()
     {
-        return xFrac;
+        return xLeft;
     }
 
     /**
-     * Set the fraction of display reserved for X labelling.
+     * Get the fraction of display reserved for X labelling on the right.
      */
-    public void setXFrac( double xFrac )
+    public double getXRight()
     {
-        this.xFrac = xFrac;
+        return xRight;
+    }
+
+    /**
+     * Set the fraction of display reserved for X labelling on the left.
+     */
+    public void setXLeft( double xLeft )
+    {
+        this.xLeft = xLeft;
         fireChanged();
     }
 
     /**
-     * Get the fraction of display reserved for Y labelling.
+     * Set the fraction of display reserved for X labelling on the right.
      */
-    public double getYFrac()
+    public void setXRight( double xRight )
     {
-        return yFrac;
+        this.xRight = xRight;
+        fireChanged();
     }
 
     /**
-     * Set the fraction of display reserved for Y labelling.
+     * Get the fraction of display reserved for Y labelling at the top.
      */
-    public void setYFrac( double yFrac )
+    public double getYTop()
     {
-        this.yFrac = yFrac;
+        return yTop;
+    }
+
+    /**
+     * Get the fraction of display reserved for Y labelling at the bottom.
+     */
+    public double getYBottom()
+    {
+        return yBottom;
+    }
+
+    /**
+     * Set the fraction of display reserved for Y labelling at the top.
+     */
+    public void setYTop( double yTop )
+    {
+        this.yTop = yTop;
+        fireChanged();
+    }
+
+    /**
+     * Set the fraction of display reserved for Y labelling at the bottom.
+     */
+    public void setYBottom( double yBottom )
+    {
+        this.yBottom = yBottom;
         fireChanged();
     }
 
@@ -137,8 +185,10 @@ public class GraphicsEdges
 
     public void encode( Element rootElement )
     {
-        addChildElement( rootElement, "xFrac", xFrac );
-        addChildElement( rootElement, "yFrac", yFrac );
+        addChildElement( rootElement, "xLeft", xLeft );
+        addChildElement( rootElement, "xRight", xRight );
+        addChildElement( rootElement, "yTop", yTop );
+        addChildElement( rootElement, "yBottom", yBottom );
         addChildElement( rootElement, "clip", clip );
     }
 
@@ -148,16 +198,37 @@ public class GraphicsEdges
      */
     public void setFromString( String name, String value )
     {
-        if ( name.equals( "xFrac" ) ) {
-            setXFrac( doubleFromString( value ) );
+        if ( name.equals( "xLeft" ) ) {
+            setXLeft( doubleFromString( value ) );
             return;
         }
-        if ( name.equals( "yFrac" ) ) {
-            setYFrac( doubleFromString( value ) );
+        if ( name.equals( "xRight" ) ) {
+            setXRight( doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yTop" ) ) {
+            setYTop( doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yBottom" ) ) {
+            setYBottom( doubleFromString( value ) );
             return;
         }
         if ( name.equals( "clip" ) ) {
             setClipped( booleanFromString( value ) );
+            return;
+        }
+
+        //  Backwards compatibility support. Left/right and top/bottom were a
+        //  single value.
+        if ( name.equals( "xFrac" ) ) {
+            setXLeft( doubleFromString( value ) );
+            setXRight( doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yFrac" ) ) {
+            setYTop( doubleFromString( value ) );
+            setYBottom( doubleFromString( value ) );
             return;
         }
     }    
