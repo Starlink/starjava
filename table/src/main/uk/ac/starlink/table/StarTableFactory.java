@@ -3,6 +3,7 @@ package uk.ac.starlink.table;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -16,6 +17,7 @@ import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
+import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
@@ -596,38 +598,20 @@ public class StarTableFactory {
                       it.hasNext(); ) {
                     TableBuilder builder = (TableBuilder) it.next();
                     if ( builder.canImport( flavor ) ) {
-                        DataSource datsrc = new DataSource() {
-                            protected InputStream getRawInputStream()
-                                    throws IOException {
-                                try {
-                                    return (InputStream) 
-                                           trans.getTransferData( flavor );
-                                }
-                                catch ( UnsupportedFlavorException e ) {
-                                    throw new RuntimeException(
-                                        "DataFlavor " + flavor + 
-                                        " support withdrawn?" );
-                                }
-                            }
-                            public URL getURL() {
-                                return null;
-                            }
-                        };
-                        StarTable startab =
-                            builder.makeStarTable( datsrc, requireRandom(),
-                                                   getStoragePolicy() );
-                        if ( startab != null ) {
-                            return prepareTable( startab );
+                        InputStream in;
+                        try {
+                            in = (InputStream) trans.getTransferData( flavor );
                         }
-                        else {
-                            msg.append( "Tried: " )
-                               .append( builder )
-                               .append( " on type " ) 
-                               .append( flavor.getPrimaryType() )
-                               .append( '/' )
-                               .append( flavor.getSubType() )
-                               .append( '\n' );
+                        catch ( UnsupportedFlavorException e ) {
+                            throw new RuntimeException(
+                                "DataFlavor " + flavor + 
+                                " support withdrawn?" );
                         }
+                        in = Compression.decompressStatic( in );
+                        in = new BufferedInputStream( in );
+                        RowStore store = getStoragePolicy().makeRowStore();
+                        builder.streamStarTable( in, store, null );
+                        return prepareTable( store.getStarTable() );
                     }
                 }
             }
