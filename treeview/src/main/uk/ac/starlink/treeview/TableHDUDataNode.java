@@ -14,6 +14,7 @@ import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * An implementation of the {@link DataNode} interface for 
@@ -86,9 +87,11 @@ public class TableHDUDataNode extends HDUDataNode
         if ( starTable == null ) {
             try {
                 ArrayDataInput istrm = hdudata.getArrayData();
+                DataSource datsrc = hdudata.getDataSource();
+                long offset = hdudata.getOffset();
                 starTable = FitsTableBuilder
-                           .attemptReadTable( istrm, true, null, 
-                                              new long[] { -1L } );
+                           .attemptReadTable( istrm, true, datsrc,
+                                              new long[] { offset } );
             }
             catch ( FitsException e ) {
                 throw (IOException) new IOException( e.getMessage() ) 

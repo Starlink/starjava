@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import nom.tam.util.ArrayDataInput;
 import uk.ac.starlink.fits.MappedFile;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
 /**
@@ -20,10 +21,12 @@ public class FITSFileDataNode extends FITSDataNode {
 
     private File file;
     private String name;
+    private FileDataSource fdatsrc;
 
     public FITSFileDataNode( FileDataSource fdatsrc ) 
             throws NoSuchDataException {
         super( fdatsrc );
+        this.fdatsrc = fdatsrc;
         file = fdatsrc.getFile();
         name = file.getName();
         setLabel( name );
@@ -47,6 +50,12 @@ public class FITSFileDataNode extends FITSDataNode {
                                               start, size );
                 chan.close();
                 return new MappedFile( niobuf );
+            }
+            public DataSource getDataSource() {
+                return fdatsrc;
+            }
+            public long getOffset() {
+                return start;
             }
             public String toString() {
                 return file + ":" + start + "+" + size;

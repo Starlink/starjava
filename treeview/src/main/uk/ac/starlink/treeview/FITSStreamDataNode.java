@@ -28,6 +28,12 @@ public class FITSStreamDataNode extends FITSDataNode {
                       pos += istrm.skip( start - pos ) );
                 return new BufferedDataInputStream( istrm );
             }
+            public DataSource getDataSource() {
+                return datsrc;
+            }
+            public long getOffset() {
+                return start;
+            }
         };
     }
 

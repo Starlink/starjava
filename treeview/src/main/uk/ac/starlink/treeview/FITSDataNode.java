@@ -328,7 +328,22 @@ public abstract class FITSDataNode extends DefaultDataNode
      * object on demand (more than once if necessary).
      */
     public static interface ArrayDataMaker {
+
+        /**
+         * Returns an ArrayDataInput object which can supply the array data.
+         */
         ArrayDataInput getArrayData() throws IOException;
+
+        /**
+         * Returns a DataSource which can supply the input stream again.
+         */
+        DataSource getDataSource();
+
+        /**
+         * Returns the offset into the datasource's input stream at which
+         * the ArrayDataInput data starts.
+         */
+        long getOffset();
     }
 
 }
