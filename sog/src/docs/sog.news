@@ -1,0 +1,10 @@
+1 SoG - Son of GAIA Java Image Display Tool
+
+  Changes this release:
+
+     - FITS images now use the JNIAST astrometry libraries (other
+       formats have always used this), so can now have a grid 
+       overlay plotted.
+
+Peter W. Draper (p.w.draper@durham.ac.uk)          9th October 2004
+
