@@ -197,6 +197,11 @@ public class ArrayBrowser extends JScrollPane {
                 dataTcm.getColumn( i ).setPreferredWidth( cwidth );
                 colTcm.getColumn( i ).setPreferredWidth( cwidth );
             }
+            int rwidth = 8 +
+                Math.max( StarJTable.getCellWidth( rowHead, 0, 0 ),
+                          StarJTable.getCellWidth( rowHead, nrow - 1, 0 ) );
+            rowHead.getColumnModel().getColumn( 0 )
+                   .setPreferredWidth( rwidth ); 
         }
 
         /* If it's not 2-d, treat it as 1-d. */
@@ -243,9 +248,10 @@ public class ArrayBrowser extends JScrollPane {
             /* Sort out column widths. */
             int w0 = Math.max( StarJTable.getCellWidth( tab, 0, 0 ),
                                StarJTable.getCellWidth( tab, nrow - 1, 0 ) )
-                   + 20;
+                   + 8;
             tcol0.setMinWidth( w0 );
             tcol0.setMaxWidth( w0 );
+            tcol0.setPreferredWidth( w0 );
             if ( alignRight ) {
                 int w1 = crend.getCellWidth() + 20;
                 tcol1.setMinWidth( w1 );
