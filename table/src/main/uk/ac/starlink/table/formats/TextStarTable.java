@@ -67,6 +67,7 @@ public class TextStarTable extends AbstractStarTable {
     private boolean[] maybeFloat_;
     private boolean[] maybeDouble_;
     private boolean[] maybeLong_;
+    private int[] stringLength_;
     private boolean dataStarted_;
     private List cellList_ = new ArrayList();
 
@@ -179,8 +180,10 @@ public class TextStarTable extends AbstractStarTable {
         for ( int icol = 0; icol < ncol_; icol++ ) {
             Class clazz;
             Decoder decoder;
+            ColumnInfo colinfo;
+            String name = "col" + ( icol + 1 );
             if ( maybeBoolean_[ icol ] ) {
-                clazz = Boolean.class;
+                colinfo = new ColumnInfo( name, Boolean.class, null );
                 decoder = new Decoder() {
                     Object decode( String value ) {
                         char v1 = value.charAt( 0 );
@@ -190,7 +193,7 @@ public class TextStarTable extends AbstractStarTable {
                 };
             }
             else if ( maybeInteger_[ icol ] ) {
-                clazz = Integer.class;
+                colinfo = new ColumnInfo( name, Integer.class, null );
                 decoder = new Decoder() {
                     Object decode( String value ) {
                         return new Integer( Integer.parseInt( value ) );
@@ -198,7 +201,7 @@ public class TextStarTable extends AbstractStarTable {
                 };
             }
             else if ( maybeFloat_[ icol ] ) {
-                clazz = Float.class;
+                colinfo = new ColumnInfo( name, Float.class, null );
                 decoder = new Decoder() {
                     Object decode( String value ) {
                         return new Float( Float.parseFloat( value ) );
@@ -206,7 +209,7 @@ public class TextStarTable extends AbstractStarTable {
                 };
             }
             else if ( maybeDouble_[ icol ] ) {
-                clazz = Double.class;
+                colinfo = new ColumnInfo( name, Double.class, null );
                 decoder = new Decoder() {
                     Object decode( String value ) {
                         return new Double( Double.parseDouble( value ) );
@@ -214,7 +217,7 @@ public class TextStarTable extends AbstractStarTable {
                 };
             }
             else if ( maybeLong_[ icol ] ) {
-                clazz = Long.class;
+                colinfo = new ColumnInfo( name, Long.class, null );
                 decoder = new Decoder() {
                     Object decode( String value ) {
                         return new Long( Long.parseLong( value ) );
@@ -222,6 +225,8 @@ public class TextStarTable extends AbstractStarTable {
                 };
             }
             else {
+                colinfo = new ColumnInfo( name, String.class, null );
+                colinfo.setElementSize( stringLength_[ icol ] );
                 clazz = String.class;
                 decoder = new Decoder() {
                     Object decode( String value ) {
@@ -229,8 +234,7 @@ public class TextStarTable extends AbstractStarTable {
                     }
                 };
             }
-            colInfos_[ icol ] = new ColumnInfo( "col" + ( icol + 1 ),
-                                                clazz, null );
+            colInfos_[ icol ] = colinfo;
             decoders_[ icol ] = decoder;
         }
     }
@@ -248,6 +252,7 @@ public class TextStarTable extends AbstractStarTable {
         maybeFloat_ = makeFlagArray( false );
         maybeDouble_ = makeFlagArray( true );
         maybeLong_ = makeFlagArray( true );
+        stringLength_ = new int[ ncol ];
         dataStarted_ = true;
     }
 
@@ -270,10 +275,14 @@ public class TextStarTable extends AbstractStarTable {
     private void evaluateRow( List row ) {
         assert row.size() == ncol_;
         for ( int icol = 0; icol < ncol_; icol++ ) {
-            String cell = (String) row.get( icol );
             boolean done = false;
-            if ( cell == null || cell.length() == 0 ) {
+            String cell = (String) row.get( icol );
+            int leng = cell.length();
+            if ( cell == null || leng == 0 ) {
                 done = true;
+            }
+            if ( leng > stringLength_[ icol ] ) {
+                stringLength_[ icol ] = leng;
             }
             if ( ! done && maybeBoolean_[ icol ] ) {
                 if ( cell.equalsIgnoreCase( "false" ) ||
