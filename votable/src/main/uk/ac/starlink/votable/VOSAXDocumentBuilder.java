@@ -34,8 +34,16 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
     private static final String[] ELEMENTS_WITH_ID = new String[] { 
-        "VOTABLE", "RESOURCE", "TABLE", "COOSYS", "GROUP", "PARAM", 
-        "FIELD", "VALUES", "INFO", "LINK",
+        "VOTABLE",
+        "RESOURCE",
+        "INFO",
+        "PARAM", 
+        "TABLE",
+        "FIELD",
+        "GROUP",
+        "VALUES",
+        "LINK",
+        "COOSYS",
     };
 
     public Node getNewestNode() {
