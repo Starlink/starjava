@@ -36,12 +36,12 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 /**
  * SpecData defines an interface for general access to spectral datasets of
- * differing fundamental data types and represents the main data model used in
- * SPLAT. 
+ * differing fundamental data types and represents the main data model used 
+ * in SPLAT.
  * <p>
  *
  * It uses a derived class of SpecDataImpl to a supported data format (i.e.
- * FITS, NDF and text files) to give generalised access to:
+ * FITS, NDF and text files etc.) to give generalised access to:
  * <ul>
  *   <li> the spectrum data
  *   <li> the associated data errors
@@ -69,12 +69,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * marker type and size, plus whether to show any errors as bars etc.). These
  * are stored in any serialized versions of this class. Rendering using the
  * Grf object primitives is performed by this class for spectra and error
- * bars. <p> 
- *
- * Facilities to store the association between this spectrum and the various
- * plots that it is currently associated with are also provided (but see the
- * SpecList or GlobalSpecPlotList classes for ways to structure the control of
- * many spectra, or many spectra and many plots). <p>
+ * bars. <p>
  *
  * General utilities for converting coordinates and looking up values are
  * provided, as are methods for specialised functions like formatting and
@@ -194,7 +189,6 @@ public class SpecData
         throws Throwable
     {
         this.impl = null;
-        this.views = null;
         this.xPos = null;
         this.yPos = null;
         this.yErr = null;
@@ -342,12 +336,6 @@ public class SpecData
      * file associations are difficult to maintain).
      */
     protected transient SpecDataImpl impl = null;
-
-    /**
-     * References to all known views (Plots) of this spectrum. Obviously this
-     * information must be lost when restoring the object from a stream.
-     */
-    protected transient ArrayList views = new ArrayList();
 
     /**
      * The X data values for the spectrum.
@@ -1026,7 +1014,7 @@ public class SpecData
     /**
      * Get the frequency that error bars are drawn.
      *
-     * @return the frequency 
+     * @return the frequency
      */
     public double getErrorFrequency()
     {
@@ -1050,7 +1038,7 @@ public class SpecData
     /**
      * Get the value of plotStyle.
      *
-     * @return the current plotting type (SpecData.POLYLINE, 
+     * @return the current plotting type (SpecData.POLYLINE,
      *         SpecData.HISTOGRAM or SpecData.POINT).
      */
     public int getPlotStyle()
@@ -1447,7 +1435,7 @@ public class SpecData
      * object.
      *
      * @param grf Grf object that can be drawn into using AST primitives.
-     * @param plot reference to AstPlot defining transformation from physical
+     * @param plot reference to Plot defining transformation from physical
      *      coordinates into graphics coordinates.
      * @param limits limits of the region to draw in physical coordinates
      *      (e.g. user defined ranges), used to clip graphics.
@@ -1557,7 +1545,7 @@ public class SpecData
         defaultGrf.attribute( Grf.GRF__COLOUR, errorColour, Grf.GRF__LINE );
         defaultGrf.attribute( Grf.GRF__WIDTH, lineThickness, Grf.GRF__LINE );
         defaultGrf.attribute( Grf.GRF__STYLE, lineStyle, Grf.GRF__LINE );
-        defaultGrf.attribute( defaultGrf.GRF__ALPHA, alphaComposite, 
+        defaultGrf.attribute( defaultGrf.GRF__ALPHA, alphaComposite,
                               Grf.GRF__LINE );
         renderErrorBars( defaultGrf, plot );
 
@@ -1602,7 +1590,7 @@ public class SpecData
      *
      * @param grf DefaultGrf object that can be drawn into using AST
      *            primitives.
-     * @param plot reference to AstPlot defining transformation from physical
+     * @param plot reference to Plot defining transformation from physical
      *             coordinates into graphics coordinates.
      */
     protected void renderErrorBars( DefaultGrf grf, Plot plot )
@@ -1703,25 +1691,25 @@ public class SpecData
      * @param oldState the state to return Grf object to.
      */
     protected void resetGrfAttributes( DefaultGrf grf,
-                                       DefaultGrfState oldState, 
+                                       DefaultGrfState oldState,
                                        boolean line )
     {
         if ( line ) {
-            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), 
+            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(),
                            Grf.GRF__LINE );
-            grf.attribute( Grf.GRF__STYLE, oldState.getStyle(), 
+            grf.attribute( Grf.GRF__STYLE, oldState.getStyle(),
                            Grf.GRF__LINE );
-            grf.attribute( Grf.GRF__WIDTH, oldState.getWidth(), 
+            grf.attribute( Grf.GRF__WIDTH, oldState.getWidth(),
                            Grf.GRF__LINE );
-            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(), 
+            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(),
                            Grf.GRF__LINE );
         }
         else {
-            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), 
+            grf.attribute( Grf.GRF__COLOUR, oldState.getColour(),
                            Grf.GRF__MARK );
-            grf.attribute( Grf.GRF__SIZE, oldState.getSize(), 
+            grf.attribute( Grf.GRF__SIZE, oldState.getSize(),
                            Grf.GRF__MARK );
-            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(), 
+            grf.attribute( grf.GRF__ALPHA, oldState.getAlpha(),
                            Grf.GRF__MARK );
         }
     }
@@ -1916,50 +1904,6 @@ public class SpecData
         return ASTJ.astFormat( axis, plot, value );
     }
 
-
-    /**
-     * Add a Plot reference to the list of known views of this spectrum.
-     *
-     * @param plot reference to a Plot
-     */
-    public void addPlot( Plot plot )
-    {
-        views.add( plot );
-    }
-
-
-    /**
-     * Remove a Plot reference.
-     *
-     * @param plot reference to a Plot
-     */
-    public void removePlot( Plot plot )
-    {
-        views.remove( plot );
-    }
-
-
-    /**
-     * Remove a Plot reference.
-     *
-     * @param index of the Plot
-     */
-    public void removePlot( int index )
-    {
-        views.remove( index );
-    }
-
-
-    /**
-     * Get the number of plots currently using this spectrum.
-     *
-     * @return number of plot currently using this spectrum.
-     */
-    public int plotCount()
-    {
-        return views.size();
-    }
-
 //
 // Column names and control (optional within the implementation).
 //
@@ -2124,7 +2068,6 @@ public class SpecData
         }
         return y;
     }
-
 
 //
 //  Serializable interface.

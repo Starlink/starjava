@@ -19,15 +19,13 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
-import uk.ac.starlink.ast.Plot;
 
 /**
  * SpecList is a singleton object that contains references to all the
- * known spectra and the relationship of these spectra to any Plots
- * that they are displayed in. The SpecList object should be updated
- * with any new spectra when they are created (by SpecDataFactory)
- * and also updated whenever a spectrum is destroyed or added or
- * removed from a Plot.
+ * known spectra. The SpecList object should be updated with any new spectra
+ * when they are created and also updated whenever a spectrum is
+ * destroyed. Normally this task will be performed using the 
+ * {@link GlobalSpecPlotList} object.
  *
  * @version $Id$
  * @author Peter W. Draper
@@ -73,25 +71,6 @@ public class SpecList implements Serializable
     public int specCount()
     {
         return spectra.size();
-    }
-
-    /**
-     *  Get the number of plots a spectrum is displayed in.
-     */
-    public int plotCount( SpecData spectrum )
-    {
-        return spectrum.plotCount();
-    }
-
-    /**
-     *  Get the number of plots a spectrum is displayed in.
-     */
-    public int plotCount( int index )
-    {
-        if ( index < specCount() ) {
-            return ((SpecData)spectra.get( index )).plotCount();
-        }
-        return 0;
     }
 
     /**
@@ -170,52 +149,6 @@ public class SpecList implements Serializable
             }
         }
         return -1;
-    }
-
-    /**
-     *  Add a Plot as a view for a spectrum.
-     */
-    public void addPlot( SpecData spectrum, Plot plot )
-    {
-        spectrum.addPlot( plot );
-    }
-
-    /**
-     *  Add a Plot as a view for a spectrum.
-     */
-    public void addPlot( int index, Plot plot )
-    {
-        if ( index < specCount() ) {
-            ((SpecData)spectra.get( index )).addPlot( plot );
-        }
-    }
-
-    /**
-     *  Remove a Plot as view for a spectrum.
-     */
-    public void removePlot( SpecData spectrum, Plot plot )
-    {
-        spectrum.removePlot( plot );
-    }
-
-    /**
-     *  Remove a Plot as view for a spectrum.
-     */
-    public void removePlot( int index, Plot plot )
-    {
-        if ( index < specCount() ) {
-            ((SpecData)spectra.get( index )).removePlot( plot );
-        }
-    }
-
-    /**
-     *  Remove a Plot as view for a spectrum.
-     */
-    public void removePlot( int specIndex, int plotIndex )
-    {
-        if ( specIndex < specCount() ) {
-            ((SpecData)spectra.get( specIndex )).removePlot( plotIndex );
-        }
     }
 
     /**
@@ -313,9 +246,9 @@ public class SpecList implements Serializable
             GlobalSpecPlotList gList = GlobalSpecPlotList.getInstance();
             for ( int i = 0; i < specList.specCount(); i++ ) {
                 SpecData specData = specList.get( i );
-                gList.add( specList.get( i ) ); //  TODO: need to add to
-                //  globallist to get events issued. May need
-                //  refactoring to another class.
+                gList.add( specList.get( i ) ); 
+                //  TODO: need to add to globallist to get events issued. 
+                //  May need refactoring to another class.
                 restored++;
             }
         } catch (Exception e) {
