@@ -29,6 +29,7 @@ public class CgiQuery {
      *          base URL
      */
     public CgiQuery( String base ) {
+        base = base.trim();
         try {
             new URL( base );
         }
