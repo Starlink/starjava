@@ -14,7 +14,7 @@ public abstract class DataNodeBuilder {
 
     private Constructor constructor;
     private Class argClass;
-    private static boolean verbose = false;
+    public static boolean verbose = false;
 
     /**
      * Determine whether this builder can be used to work on an object

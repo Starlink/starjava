@@ -201,12 +201,12 @@ public class DataNodeFactory implements Cloneable {
             DataNodeBuilder builder = (DataNodeBuilder) buildIt.next();
             if ( builder.suitable( objClass ) ) {
                 if ( verbose ) {
-                    verbStream.print( "    " + builder );
+                    verbStream.println( "    " + builder );
                 }
                 DataNode newNode = builder.buildNode( obj );
                 if ( newNode != null ) {
                     if ( verbose ) {
-                        verbStream.print( "SUCCESS: " + newNode );
+                        verbStream.println( "SUCCESS: " + newNode + "\n" );
                     }
                     newNode.setCreator( 
                         new CreationState( this, builder, obj ) );
