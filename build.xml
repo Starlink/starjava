@@ -122,6 +122,9 @@
 
     <echo message="Executing JNIAST target: ${what}"/>
     <ant dir="./jniast" target="${what}"/>
+
+    <echo message="Executing ASTGUI target: ${what}"/>
+    <ant dir="./astgui" target="${what}"/>
       
     <echo message="Executing JNIHDS target: ${what}"/> 
     <ant dir="./jnihds" target="${what}"/> 
@@ -309,6 +312,10 @@
       </packageset>
 
       <packageset dir="jniast/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="astgui/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
