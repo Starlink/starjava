@@ -4,12 +4,14 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 /**
  * Implements JDBCAuthenticator using a GUI.
@@ -20,6 +22,10 @@ public class SwingAuthenticator implements JDBCAuthenticator {
     private JPasswordField passField;
     private JPanel fieldPanel;
     private Component parent;
+
+    private String user;
+    private String pass;
+    private boolean refused;
 
     private JComponent getFieldPanel() {
         if ( fieldPanel == null ) {
@@ -80,22 +86,67 @@ public class SwingAuthenticator implements JDBCAuthenticator {
         return parent;
     }
 
+    /**
+     * This implementation of <tt>authenticate</tt> takes care to execute
+     * any GUI interactions on the AWT event dipatch thread, so it may
+     * be called from any thread.
+     */
     public String[] authenticate() throws IOException {
-        int opt = JOptionPane
-                 .showOptionDialog( parent, getFieldPanel(),
-                                    "JDBC Authenticator", 
-                                    JOptionPane.OK_CANCEL_OPTION,
-                                    JOptionPane.QUESTION_MESSAGE, null,
-                                    null, userField );
-        // should set the focus to the User field, but not sure how
-        if ( opt == JOptionPane.CANCEL_OPTION ) {
-            throw new IOException( "Authentication refused" );
+
+        /* Set up a runnable which can do the authentication. */
+        Runnable auth = new Runnable() {
+            public void run() {
+                int opt = JOptionPane
+                         .showOptionDialog( parent, getFieldPanel(),
+                                            "JDBC Authenticator", 
+                                            JOptionPane.OK_CANCEL_OPTION,
+                                            JOptionPane.QUESTION_MESSAGE, null,
+                                            null, userField );
+                // should set the focus to the User field, but not sure how
+                if ( opt == JOptionPane.CANCEL_OPTION ) {
+                    refused = true;
+                    user = null;
+                    pass = null;
+                }
+                else {
+                    refused = false;
+                    user = userField.getText();
+                    pass = new String( passField.getPassword() );
+                }
+            }
+        };
+
+        /* Invoke it appropriately for the thread we are on. */
+        if ( SwingUtilities.isEventDispatchThread() ) {
+            auth.run();
         }
         else {
-            String user = userField.getText();
-            String pass = new String( passField.getPassword() );
-            return new String[] { user, pass };
+            try {
+                SwingUtilities.invokeAndWait( auth );
+            }
+            catch ( InvocationTargetException e ) {
+                Throwable e1 = e.getTargetException();
+                if ( e1 instanceof IOException ) {
+                    throw (IOException) e1;
+                }
+                else {
+                    throw (IOException) new IOException( e1.getMessage() )
+                                       .initCause( e1 );
+                }
+            }
+            catch ( Exception e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
         }
+
+        /* Throw an exception if authentication was refused. */
+        if ( refused ) {
+            throw new IOException( "Authentication refused" );
+        }
+
+        /* Return the authentication information if all is well. */
+        return new String[] { user, pass };
     }
  
 }
