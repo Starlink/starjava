@@ -41,6 +41,8 @@ public class TablePipe extends TableTask {
 
     private final static String[] FILTER_NAMES = new String[] {
         SelectFilter.class.getName(),
+        ColumnSortFilter.class.getName(),
+        ExpressionSortFilter.class.getName(),
         EveryFilter.class.getName(),
         HeadFilter.class.getName(),
         TailFilter.class.getName(),
