@@ -17,8 +17,8 @@
 #
 #     The real "java" command is searched for in the following order:
 #
-#        - `cat $STARLINK/java/jrehome`/bin/java
-#        - `cat /star/java/jrehome`/bin/java
+#        - $STARLINK/java/jre/bin/java
+#        - /star/java/jre/bin/java
 #        - anywhere on the PATH
 #
 #     For development purposes it is possible to overide this
@@ -39,6 +39,9 @@
 #  History:
 #     24-OCT-2001 (PWD):
 #        Original version.
+#     02-OCT-2002 (PWD):
+#        Changed to look for a "jre" link in "/star/java" rather than 
+#        examining the contents of the "/star/java/jrehome" file.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -61,15 +64,15 @@ else
    #  command (only need JDK for development, use "STAR_JAVA" to
    #  override).
    if test "$STARLINK" != ""; then
-      if test -r "$STARLINK/java/jrehome"; then
-         java="`cat $STARLINK/java/jrehome`/bin/java"
+      if test -r "$STARLINK/java/jre/bin/java"; then
+         java="$STARLINK/java/jre/bin/java"
       fi
    fi
 
    #  If still not changed, look for "java" in the standard installation.
    if test "$java" = "java"; then
-      if test -r "/star/java/jrehome"; then
-         java="`cat /star/java/jrehome`/bin/java"
+      if test -r "/star/java/jre/bin/java"; then
+         java="/star/java/jre/bin/java"
       fi
    fi
 fi
