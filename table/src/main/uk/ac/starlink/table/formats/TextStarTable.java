@@ -114,7 +114,7 @@ public class TextStarTable extends AbstractStarTable {
                     Object[] row = new Object[ ncol_ ];
                     for ( int icol = 0; icol < ncol_; icol++ ) {
                         String sval = (String) cellList.get( icol );
-                        if ( sval != null ) {
+                        if ( sval != null && sval.length() > 0 ) {
                             row[ icol ] = decoders_[ icol ].decode( sval );
                         }
                     }
