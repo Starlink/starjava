@@ -53,6 +53,8 @@ public class StaticTreeViewer extends JFrame {
     private Action expandSelAct;
     private Action collapseSelAct;
     private Action helpAct;
+    private Action deleteAct;
+    private Action upAct;
 
     /** No details panel is displayed. */
     public static final short DETAIL_NONE = 0;
@@ -662,6 +664,52 @@ public class StaticTreeViewer extends JFrame {
         helpAct.putValue( Action.SHORT_DESCRIPTION,
                           "Show help text in info panel" );
 
+        /* Action for removing a top-level node from the tree. */
+        deleteAct = 
+            new AbstractAction( "Delete node from root",
+                                iconMaker.getIcon( IconFactory.DELETE ) ) {
+            public void actionPerformed( ActionEvent event ) {
+                MutableTreeNode tnode = 
+                    (MutableTreeNode) tree.getLastSelectedPathComponent();
+                treeModel.removeNodeFromParent( tnode );
+            }
+        };
+        deleteAct.putValue( Action.SHORT_DESCRIPTION,
+                            "Delete top level node from display" );
+
+        /* Action for adding a new level of nodes to the tree. */
+        upAct = 
+            new AbstractAction( "Add node parent",
+                                iconMaker.getIcon( IconFactory.UP ) ) {
+            public void actionPerformed( ActionEvent event ) {
+                TreePath tp = tree.getSelectionPath();
+                DataNode dn = getDataNodeFromTreePath( tp );
+                assert dn.hasParentObject(); // action only enabled if so
+                Object parent = dn.getParentObject();
+                DataNode pdn;
+                boolean error = false;
+                try { 
+                    pdn = nodeMaker.makeDataNode( DataNode.ROOT, parent );
+                }
+                catch ( NoSuchDataException e ) {
+                    pdn = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+                    error = true;
+                }
+                MutableTreeNode tnode =
+                    (MutableTreeNode) tree.getLastSelectedPathComponent();
+                MutableTreeNode root = (MutableTreeNode) treeModel.getRoot();
+                MutableTreeNode ptnode = new DefaultMutableTreeNode( pdn );
+                int pos = treeModel.getIndexOfChild( root, tnode );
+                if ( ! error ) {
+                    treeModel.removeNodeFromParent( tnode );
+                }
+                treeModel.insertNodeInto( ptnode, root, pos );
+                tree.setSelectionRow( pos );
+            }
+        };
+        upAct.putValue( Action.SHORT_DESCRIPTION,
+                        "Replace a top-level node by its parent" );
+
         /* Configure a selection listener to control availability of actions. */
         tree.getSelectionModel()
             .addTreeSelectionListener( new TreeSelectionListener() {
@@ -715,6 +763,8 @@ public class StaticTreeViewer extends JFrame {
         /* Add collapse/expand actions to menu and toolbar. */
         JMenu treeMenu = new JMenu( "Tree" );
         mb.add( treeMenu );
+        treeMenu.add( deleteAct ).setIcon( null );
+        treeMenu.add( upAct ).setIcon( null );
         treeMenu.add( collapseSelAct ).setIcon( null );
         treeMenu.add( expandSelAct ).setIcon( null );
         treeMenu.add( rCollapseSelAct ).setIcon( null );
@@ -726,6 +776,9 @@ public class StaticTreeViewer extends JFrame {
         tools.addSeparator();
         tools.add( rCollapseSelAct );
         tools.add( rExpandSelAct );
+        tools.addSeparator();
+        tools.add( upAct );
+        tools.add( deleteAct );
 
         /* Add the help menu action. */
         JMenu helpMenu = new JMenu( "Help" );
@@ -780,12 +833,18 @@ public class StaticTreeViewer extends JFrame {
                 expandSelAct.setEnabled( false );
                 collapseSelAct.setEnabled( false );
             }
+            boolean inRoot = ( tp.getPathCount() == 2 );
+            deleteAct.setEnabled( inRoot );
+            DataNode dn = getDataNodeFromTreePath( tp );
+            upAct.setEnabled( inRoot && dn.hasParentObject() );
         }
         else {
             rExpandSelAct.setEnabled( false );
             rCollapseSelAct.setEnabled( false );
             expandSelAct.setEnabled( false );
             collapseSelAct.setEnabled( false );
+            deleteAct.setEnabled( false );
+            upAct.setEnabled( false );
         }
     }
 

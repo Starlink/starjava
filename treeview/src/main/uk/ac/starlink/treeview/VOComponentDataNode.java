@@ -163,6 +163,14 @@ public class VOComponentDataNode extends DefaultDataNode {
         };
     }
 
+    public boolean hasParentObject() {
+        return vocel.getParentNode() != null;
+    }
+
+    public Object getParentObject() {
+        return new DOMSource( vocel.getParentNode() );
+    }
+
     public boolean hasFullView() {
         return true;
     }

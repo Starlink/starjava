@@ -71,6 +71,14 @@ public class DefaultDataNode implements DataNode {
         return Arrays.asList( getChildren() ).iterator();
     }
 
+    public boolean hasParentObject() {
+        return false;
+    }
+
+    public Object getParentObject() {
+        throw new UnsupportedOperationException();
+    }
+
     public void setLabel( String label ) {
         this.label = label;
     }

@@ -82,6 +82,26 @@ public interface DataNode {
     public Iterator getChildIterator();
 
     /**
+     * Indicates whether this node has an object it can call a parent.
+     * This is regardless of its position in the tree - it should not 
+     * keep track of how it was created to be able to answer yes to this.
+     *
+     * @return   true iff this node can present a parent object
+     * @see   #getParentObject
+     */
+    public boolean hasParentObject();
+
+    /**
+     * Returns an object which is in some sense the parent of the one
+     * this node is based on.
+     * This method should only be called if the {@link #hasParentObject}
+     * returns <tt>true</tt>.
+     *
+     * @return  an object which is the parent of this one
+     */
+    public Object getParentObject();
+
+    /**
      * Gets the label of this object.  This ought to return the same value
      * <code>getName</code> unless the user of the implementing class
      * has previously called <code>setLabel</code> to change it.

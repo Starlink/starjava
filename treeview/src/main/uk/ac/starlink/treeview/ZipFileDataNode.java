@@ -16,6 +16,7 @@ public class ZipFileDataNode extends DefaultDataNode {
 
     private String name;
     private ZipFile zfile;
+    private File file;
 
     /**
      * Initialises a <code>ZipFileDataNode</code> from a 
@@ -34,6 +35,7 @@ public class ZipFileDataNode extends DefaultDataNode {
         catch ( IOException e ) {
             throw new NoSuchDataException( e.getMessage() );
         }
+        this.file = file;
         name = file.getName();
         setLabel( name );
     }
@@ -89,6 +91,14 @@ public class ZipFileDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    public boolean hasParentObject() {
+        return file.getAbsoluteFile().getParentFile() != null;
+    }
+
+    public Object getParentObject() {
+        return file.getAbsoluteFile().getParentFile();
     }
 
     public String getName() {

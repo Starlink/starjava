@@ -44,6 +44,10 @@ public class DemoDataNode extends FileDataNode {
         return ": ";
     }
 
+    public boolean hasParentObject() {
+        return false;
+    }
+
     public String getNodeTLA() {
         return "DEM";
     }

@@ -32,6 +32,7 @@ public class HDSDataNode extends DefaultDataNode {
     private static IconFactory iconMaker = IconFactory.getInstance();
 
     private HDSObject hobj;
+    private HDSObject hparent;
     private OrderedNDShape shape;   // null for scalar
     private String type;
     private boolean isStruct;
@@ -59,6 +60,12 @@ public class HDSDataNode extends DefaultDataNode {
             this.name = hobj.datName();
             this.isStruct = hobj.datStruc();
             this.path = hobj.datRef();
+            try {
+                this.hparent = hobj.datParen();
+            }
+            catch ( HDSException e ) {
+                this.hparent = null;
+            }
             long[] dims = hobj.datShape();
             int ndim = dims.length;
             if ( ndim > 0 ) {
@@ -230,6 +237,14 @@ public class HDSDataNode extends DefaultDataNode {
                                       + "(programming error)" );
         }
         return children;
+    }
+
+    public boolean hasParentObject() {
+        return hparent != null;
+    }
+
+    public Object getParentObject() {
+        return hparent;
     }
 
     public String getDescription() {

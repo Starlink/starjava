@@ -4,6 +4,8 @@ import java.util.*;
 import java.io.*;
 import java.awt.*;
 import javax.swing.*;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSObject;
 
 /**
  * A {@link DataNode} representing a file or directory in the 
@@ -19,6 +21,7 @@ public class FileDataNode extends DefaultDataNode {
     private String name;
     private JPanel viewPanel;
     private File file;
+    private File parentFile;
     private JComponent fullView;
     private static Map knowndirs = new HashMap();
 
@@ -30,10 +33,21 @@ public class FileDataNode extends DefaultDataNode {
      */
     public FileDataNode( File file ) throws NoSuchDataException {
         this.file = file;
-        name = file.getName();
+        if ( file.getPath().equals( "/" ) ) {
+            name = "/";
+        }
+        else {
+            name = file.getName();
+        }
         setLabel( name );
-        if ( ! existsInDirectory() ) {
+        if ( ! existsInDirectory( file ) ) {
             throw new NoSuchDataException( "No such file " + file );
+        }
+        try {
+            this.parentFile = file.getCanonicalFile().getParentFile();
+        }
+        catch ( IOException e ) {
+            this.parentFile = null;
         }
     }
 
@@ -46,6 +60,17 @@ public class FileDataNode extends DefaultDataNode {
     public FileDataNode( String fileName ) throws NoSuchDataException {
         this( new File( fileName ) );
     }
+
+    /**
+     * Initialises a <code>FileDataNode</code> from a top-level HDSObject.
+     *
+     * @param  hobj  an HDSObject at the top of its container file
+     * @throws  NoSuchDataException  if <tt>hobj</tt> is not at top level
+     */
+    public FileDataNode( HDSObject hobj ) throws NoSuchDataException {
+        this( getTopLevelFile( hobj ) );
+    }
+
 
     public boolean allowsChildren() {
         return file.isDirectory();
@@ -75,6 +100,14 @@ public class FileDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException( "No remove" );
             }
         };
+    }
+
+    public boolean hasParentObject() {
+        return parentFile != null;
+    }
+
+    public Object getParentObject() {
+        return parentFile;
     }
 
     public String getName() {
@@ -128,7 +161,7 @@ public class FileDataNode extends DefaultDataNode {
      * referent of a symlink, but if I don't do it, there will be
      * confusion.
      */
-    private boolean existsInDirectory() {
+    private static boolean existsInDirectory( File file ) {
         boolean here;
         if ( file.isDirectory() ) {
             here = file.exists();
@@ -208,5 +241,33 @@ public class FileDataNode extends DefaultDataNode {
             catch ( IOException e ) {}
         }
         return fullView;
+    }
+
+    /**
+     * Gets the container file in which a given HDSObject is the 
+     * top level item.
+     *
+     * @param  hobj  an HDSObject at the top of its container file
+     * @throws  NoSuchDataException  if <tt>hobj</tt> is not at top level
+     */
+    private static File getTopLevelFile( HDSObject hobj )
+            throws NoSuchDataException {
+
+        /* Get the container file name and path. */
+        String[] trace = new String[ 2 ];
+        int level; 
+        try {
+            level = hobj.hdsTrace( trace );
+        }
+        catch ( HDSException e ) {
+            throw new NoSuchDataException( e );
+        }
+
+        /* See if there is a parent. */
+        if ( level > 1 ) {
+            throw new NoSuchDataException( 
+                          "HDSObject is not at the top of container file" );
+        }
+        return new File( trace[ 1 ] );
     }
 }

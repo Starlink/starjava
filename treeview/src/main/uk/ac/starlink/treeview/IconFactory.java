@@ -28,10 +28,13 @@ public class IconFactory {
     public static final short EXCISE = 22;
     public static final short OPEN = 23;
     public static final short CLOSE = 24;
+    public static final short DELETE = 31;
+    public static final short UP = 32;
     public static final short ARY0 = 91;
     public static final short ARY1 = 92;
     public static final short ARY2 = 93;
     public static final short ARY3 = 94;
+    public static final short WHAT = 99;
     public static final short LEAF = 101;
     public static final short PARENT = 102;
     public static final short SCALAR = 103;
@@ -132,6 +135,8 @@ public class IconFactory {
             case EXCISE:         iname = "MinusMinus.gif";           break;
             case OPEN:           iname = "Plus.gif";                 break;
             case CLOSE:          iname = "Minus.gif";                break;
+            case DELETE:         iname = "trasha2.gif";              break;
+            case UP:             iname = "Up.gif";                   break;
             case STOP:           iname = "Stop.gif";                 break;
             case EXIT:           iname = "multiply3.gif";            break;
             case HELP:           iname = "Help2.gif";                break;
@@ -141,6 +146,7 @@ public class IconFactory {
             case ARY1:           iname = "row.gif";                  break;
             case ARY2:           iname = "Sheet.gif";                break;
             case ARY3:           iname = "Sheets.gif";               break;
+            case WHAT:           iname = "burst.gif";                break;
             case LEAF:           iname = "Tree.leafIcon";            break;
             case PARENT:         iname = "Tree.closedIcon";          break;
             case SCALAR:         iname = "ball.black.gif";           break;

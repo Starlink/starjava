@@ -209,6 +209,14 @@ public class XMLDataNode extends DefaultDataNode {
         };
     }
 
+    public boolean hasParentObject() {
+        return domNode.getParentNode() != null;
+    }
+
+    public Object getParentObject() {
+        return new DOMSource( domNode.getParentNode() );
+    }
+
     public boolean hasFullView() {
         return true;
     }
