@@ -800,10 +800,13 @@
   <xsl:template name="trimVerb">
     <xsl:choose>
       <xsl:when test="function-available('String:replaceFirst')">
+        <xsl:variable name="s0">
+          <xsl:apply-templates select="text()"/>
+        </xsl:variable>
         <xsl:variable name="s1"
-                      select="String:replaceFirst(string(text()),'^ *\n', '')"/>
+                      select="String:replaceFirst(string($s0),'^\s*\n', '')"/>
         <xsl:variable name="s2"
-                      select="String:replaceFirst(string($s1), '\n *\z', '')"/>
+                      select="String:replaceFirst(string($s1), '\s*\z', '')"/>
         <xsl:value-of select="$s2"/>
       </xsl:when>
       <xsl:otherwise>
