@@ -1,4 +1,5 @@
-/* Copyright (C) 2002 Central Laboratory of the Research Councils
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
  *
  * History:
  *    21-SEP-1999 (Peter W. Draper):
@@ -41,7 +42,8 @@ import uk.ac.starlink.ast.Grf;
  * @version $Id$
  * @since 29-MAY-2002
  */
-public class ASTJ implements Serializable
+public class ASTJ
+    implements Serializable
 {
     //  ============
     //  Constructors
@@ -654,21 +656,15 @@ public class ASTJ implements Serializable
      *  @return the 1D mapping
      */
     static public Mapping get1DFrameSet( FrameSet frameset, int axis )
+        throws AstException
     {
-        try {
-            // Extract a 1D mapping
-            FrameSet framecopy = extract1DFrameSet( frameset, axis );
+        FrameSet framecopy = extract1DFrameSet( frameset, axis );
 
-            // And return the new, simplified, mapping
-            Mapping map1 = framecopy.getMapping( FrameSet.AST__BASE,
-                                                 FrameSet.AST__CURRENT );
-            Mapping map2 = map1.simplify();
-            return map2;
-        }
-        catch (Exception e) {
-            // Let it go.
-        }
-        return null;
+        // And return the new, simplified, mapping
+        Mapping map1 = framecopy.getMapping( FrameSet.AST__BASE,
+                                             FrameSet.AST__CURRENT );
+        Mapping map2 = map1.simplify();
+        return map2;
     }
 
     /**
@@ -858,11 +854,14 @@ public class ASTJ implements Serializable
 
     /**
      * Extract a spectral axis from the current FrameSet. The return
-     * is always a SpecFrame. If the selected axis of the current
-     * frame is a SpecFrame, then that is returned. Otherwise a search
-     * is made for a SpecFrame. Finally a SpecFrame is created using
-     * various heuristics (from sample code provided by David Berry,
-     * these use guesses from the available units).
+     * is a SpecFrame if any reason to create one can be deduced. If
+     * the selected axis of the current frame is a SpecFrame, then 
+     * that is returned. Otherwise a search is made for a SpecFrame.
+     * Next an attempt to create a SpecFrame is created using
+     * various heuristics (from sample code provided by David Berry, 
+     * these use guesses from the available units). Finally the original
+     * Frame is returned, if this is supposed to be a SpecFrame then
+     * the user will need to set this manually.
      */
     public Frame getSpectralAxisFrame( int axis )
     {
@@ -938,27 +937,33 @@ public class ASTJ implements Serializable
         }
         else {
             // Label not recognized. Check the units by applying them
-            // to some likely systems.
+            // to some likely systems. Need to actually use it to
+            // cause a check, hence to findFrame calls.
             String unit = picked.getC( "Unit(1)" );
+            SpecFrame simpleSpecFrame = new SpecFrame();
             try {
                 result.setC( "System", "Wave" );
-                result.setC( "Unit", unit );
+                result.setC( "Unit", unit );  
+                result.findFrame( simpleSpecFrame, "" );
             }
             catch (AstException e) {
                 try {
                     result.setC( "System", "Freq" );
                     result.setC( "Unit", unit );
+                    result.findFrame( simpleSpecFrame, "" );
                 }
                 catch (AstException e1) {
                     try {
                         result.setC( "System", "Vopt" );
                         result.setC( "Unit", unit );
+                        result.findFrame( simpleSpecFrame, "" );
                     }
                     catch (AstException e2) {
 
-                        // Default, wavelength in angstroms.
-                        result.setC( "System", "Wave" );
-                        result.setC( "Unit", "Angstrom" );
+                        // Default is the original frame. User will
+                        // have to set any SpecFrame attributes
+                        // interactively.
+                        return picked;
                     }
                 }
             }

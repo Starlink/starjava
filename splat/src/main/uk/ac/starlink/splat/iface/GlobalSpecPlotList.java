@@ -7,6 +7,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.plot.PlotControlList;
+import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * GlobalSpecPlotList is an aggregate singleton class that provides access
@@ -25,7 +26,7 @@ import uk.ac.starlink.splat.plot.PlotControlList;
  * @see SpecList
  * @see "The Singleton Design Pattern"
  */
-public class GlobalSpecPlotList 
+public class GlobalSpecPlotList
 {
 //
 //  Implement the singleton interface.
@@ -33,7 +34,7 @@ public class GlobalSpecPlotList
     /**
      *  Creates the single class instance.
      */
-    private static final GlobalSpecPlotList instance = 
+    private static final GlobalSpecPlotList instance =
         new GlobalSpecPlotList();
 
     /**
@@ -46,7 +47,7 @@ public class GlobalSpecPlotList
      *
      *  @return reference to the only instance of this class.
      */
-    public static GlobalSpecPlotList getReference() 
+    public static GlobalSpecPlotList getReference()
     {
         return instance;
     }
@@ -65,17 +66,17 @@ public class GlobalSpecPlotList
 //  Spectra changes interface.
 //
     protected EventListenerList specListeners = new EventListenerList();
-    
+
     /**
      *  Return the number of spectra in the global list.
      *
      *  @return the number of spectra in the global list.
      */
-    public int specCount() 
+    public int specCount()
     {
         return specList.specCount();
     }
-    
+
     /**
      *  Return the full (usually diskfile) name of a spectrum.
      *
@@ -83,7 +84,7 @@ public class GlobalSpecPlotList
      *
      *  @return full name of the spectrum.
      */
-    public String getFullName( int index ) 
+    public String getFullName( int index )
     {
         return specList.getFullName( index );
     }
@@ -95,7 +96,7 @@ public class GlobalSpecPlotList
      *
      *  @return short name of te spectrum.
      */
-    public String getShortName( int index ) 
+    public String getShortName( int index )
     {
         return specList.getShortName( index );
     }
@@ -106,7 +107,7 @@ public class GlobalSpecPlotList
      *  @param index index of the spectrum to modify.
      *  @param name the new short name for the spectrum.
      */
-    public void setShortName( int index, String name ) 
+    public void setShortName( int index, String name )
     {
         specList.setShortName( index, name );
         fireSpectrumChanged( index );
@@ -119,7 +120,7 @@ public class GlobalSpecPlotList
      *
      *  @return true if the name is known.
      */
-    public boolean specKnown( String name ) 
+    public boolean specKnown( String name )
     {
         return specList.known( name );
     }
@@ -131,7 +132,7 @@ public class GlobalSpecPlotList
      *
      *  @return the SpecData object or null.
      */
-    public SpecData getSpectrum( int index ) 
+    public SpecData getSpectrum( int index )
     {
         return specList.get( index );
     }
@@ -143,7 +144,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum or -1.
      */
-    public int getSpectrumIndex( SpecData spectrum ) 
+    public int getSpectrumIndex( SpecData spectrum )
     {
         return specList.indexOf( spectrum );
     }
@@ -154,7 +155,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of spectrum if found, -1 otherwise.
      */
-    public int getSpectrumIndex( String shortName ) 
+    public int getSpectrumIndex( String shortName )
     {
         return specList.indexOf( shortName );
     }
@@ -166,7 +167,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum in global list.
      */
-    public int add( SpecData spectrum ) 
+    public int add( SpecData spectrum )
     {
         if ( spectrum != null ) {
             int index = specList.add( spectrum );
@@ -185,7 +186,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum in global list, or -1.
      */
-    public int add( int index, SpecData spectrum ) 
+    public int add( int index, SpecData spectrum )
     {
         if ( spectrum != null ) {
             index = specList.add( index, spectrum );
@@ -203,7 +204,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum that was removed.
      */
-    public int removeSpectrum( SpecData spectrum ) 
+    public int removeSpectrum( SpecData spectrum )
     {
         int index = getSpectrumIndex( spectrum );
         return removeSpectrum( index );
@@ -217,7 +218,7 @@ public class GlobalSpecPlotList
      *
      *  @return index of the spectrum that was removed.
      */
-    public int removeSpectrum( int index ) 
+    public int removeSpectrum( int index )
     {
         fireSpectrumRemoved( index );
         specList.remove( index );
@@ -225,7 +226,7 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  Set a known Number property of a spectrum. 
+     *  Set a known Number property of a spectrum.
      *
      *  @param spectrum SpecData object to change.
      *
@@ -236,7 +237,7 @@ public class GlobalSpecPlotList
      *  @see #SpecData.setKnownNumberProperty()
      */
     public void setKnownNumberProperty( SpecData spectrum, int what,
-                                        Number value )  
+                                        Number value )
     {
         spectrum.setKnownNumberProperty( what, value );
         int index = specList.indexOf( spectrum );
@@ -255,7 +256,7 @@ public class GlobalSpecPlotList
         spectrum.setDrawErrorBars( show );
         fireSpectrumChanged( specList.indexOf( spectrum ) );
     }
-    
+
     /**
      *  Index of the "current" spectrum.
      */
@@ -267,7 +268,7 @@ public class GlobalSpecPlotList
      *
      * @param index index of the current spectrum.
      */
-    public void setCurrentSpectrum( int index ) 
+    public void setCurrentSpectrum( int index )
     {
         currentSpectrum = index;
         fireCurrentSpectrumChanged();
@@ -290,7 +291,7 @@ public class GlobalSpecPlotList
      *
      *  @param l the SpecListener
      */
-    public void addSpecListener( SpecListener l ) 
+    public void addSpecListener( SpecListener l )
     {
         specListeners.add( SpecListener.class, l );
     }
@@ -300,7 +301,7 @@ public class GlobalSpecPlotList
      *
      * @param l the SpecListener
      */
-    public void removeSpecListener( SpecListener l ) 
+    public void removeSpecListener( SpecListener l )
     {
         specListeners.remove( SpecListener.class, l );
     }
@@ -311,15 +312,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the spectrum that changed.
      */
-    protected void fireSpectrumAdded( int index ) 
+    protected void fireSpectrumAdded( int index )
     {
         Object[] listeners = specListeners.getListenerList();
         SpecChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == SpecListener.class ) {
                 if ( e == null ) {
-                    e = new SpecChangedEvent( this, 
-                                               SpecChangedEvent.ADDED, 
+                    e = new SpecChangedEvent( this,
+                                               SpecChangedEvent.ADDED,
                                                index );
                 }
                 ((SpecListener)listeners[i+1]).spectrumAdded( e );
@@ -333,15 +334,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the spectrum that changed.
      */
-    protected void fireSpectrumRemoved( int index ) 
+    protected void fireSpectrumRemoved( int index )
     {
         Object[] listeners = specListeners.getListenerList();
         SpecChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == SpecListener.class ) {
                 if ( e == null ) {
-                    e = new SpecChangedEvent( this, 
-                                               SpecChangedEvent.REMOVED, 
+                    e = new SpecChangedEvent( this,
+                                               SpecChangedEvent.REMOVED,
                                                index );
                 }
                 ((SpecListener)listeners[i+1]).spectrumRemoved( e );
@@ -355,15 +356,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the spectrum that changed.
      */
-    protected void fireSpectrumChanged( int index ) 
+    protected void fireSpectrumChanged( int index )
     {
         Object[] listeners = specListeners.getListenerList();
         SpecChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == SpecListener.class ) {
                 if ( e == null ) {
-                    e = new SpecChangedEvent( this, 
-                                               SpecChangedEvent.CHANGED, 
+                    e = new SpecChangedEvent( this,
+                                               SpecChangedEvent.CHANGED,
                                                index );
                 }
                 ((SpecListener)listeners[i+1]).spectrumChanged( e );
@@ -374,17 +375,17 @@ public class GlobalSpecPlotList
     /**
      * Send a SpecChangedEvent object specifying that the current
      * spectrum has been changed to all listeners for the global list
-     * of spectra. 
+     * of spectra.
      */
-    protected void fireCurrentSpectrumChanged() 
+    protected void fireCurrentSpectrumChanged()
     {
         Object[] listeners = specListeners.getListenerList();
         SpecChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == SpecListener.class ) {
                 if ( e == null ) {
-                    e = new SpecChangedEvent( this, 
-                                               SpecChangedEvent.CURRENT, 
+                    e = new SpecChangedEvent( this,
+                                               SpecChangedEvent.CURRENT,
                                                currentSpectrum );
                 }
                 ((SpecListener)listeners[i+1]).spectrumCurrent( e );
@@ -396,17 +397,17 @@ public class GlobalSpecPlotList
 //  Plot changes interface.
 //
     protected EventListenerList plotListeners = new EventListenerList();
-    
+
     /**
      * Return the number of plots in the global list.
-     * 
+     *
      * @return number of current plots.
      */
-    public int plotCount() 
+    public int plotCount()
     {
         return plotList.count();
     }
-    
+
     /**
      * Return the name of a plot.
      *
@@ -414,7 +415,7 @@ public class GlobalSpecPlotList
      *
      * @return name of the plot.
      */
-    public String getPlotName( int index ) 
+    public String getPlotName( int index )
     {
         return plotList.plotName( index );
     }
@@ -426,7 +427,7 @@ public class GlobalSpecPlotList
      *
      * @return reference to PlotControl object.
      */
-    public PlotControl getPlot( int index ) 
+    public PlotControl getPlot( int index )
     {
         return plotList.get( index );
     }
@@ -438,7 +439,7 @@ public class GlobalSpecPlotList
      *
      * @return global index of object, if found.
      */
-    public int getPlotIndex( PlotControl plot ) 
+    public int getPlotIndex( PlotControl plot )
     {
         return plotList.indexOf( plot );
     }
@@ -453,7 +454,7 @@ public class GlobalSpecPlotList
      *                   to be checked.
      * @return the plot index, or -1 if not located.
      */
-    public int getPlotIndex( int identifier ) 
+    public int getPlotIndex( int identifier )
     {
         return plotList.indexOf( identifier );
     }
@@ -465,7 +466,7 @@ public class GlobalSpecPlotList
      *
      *  @return global index of the plot.
      */
-    public int add( PlotControl plot ) 
+    public int add( PlotControl plot )
     {
         int index = plotList.add( plot );
         firePlotCreated( index );
@@ -476,10 +477,10 @@ public class GlobalSpecPlotList
      *  Remove a plot (immediately after destruction).
      *
      *  @param plot reference to the plot that has been deleted.
-     * 
+     *
      *  @return index of the removed plot.
      */
-    public int remove( PlotControl plot ) 
+    public int remove( PlotControl plot )
     {
         int index = plotList.remove( plot );
         firePlotRemoved( index );
@@ -492,11 +493,12 @@ public class GlobalSpecPlotList
      *  @param plotIndex index of the plot to add spectrum to.
      *  @param spectrum the spectrum to add.
      */
-    public void addSpectrum( int plotIndex, SpecData spectrum ) 
+    public void addSpectrum( int plotIndex, SpecData spectrum )
+        throws SplatException
     {
         ((PlotControl)plotList.get( plotIndex )).addSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Add a known spectrum to a plot.
@@ -504,12 +506,13 @@ public class GlobalSpecPlotList
      *  @param plot the plot to add spectrum to.
      *  @param spectrum the spectrum to add.
      */
-    public void addSpectrum( PlotControl plot, SpecData spectrum ) 
+    public void addSpectrum( PlotControl plot, SpecData spectrum )
+        throws SplatException
     {
         plot.addSpectrum( spectrum );
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
-    } 
+    }
 
     /**
      *  Add a known spectrum to a plot.
@@ -517,13 +520,14 @@ public class GlobalSpecPlotList
      *  @param plot the plot to add the spectrum to.
      *  @param specIndex global index of the spectrum.
      */
-    public void addSpectrum( PlotControl plot, int specIndex ) 
+    public void addSpectrum( PlotControl plot, int specIndex )
+        throws SplatException
     {
         SpecData spectrum = getSpectrum( specIndex );
         plot.addSpectrum( spectrum );
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
-    } 
+    }
 
     /**
      *  Add a known spectrum to a plot.
@@ -531,13 +535,14 @@ public class GlobalSpecPlotList
      *  @param plotIndex global index of the plot to add the spectrum to.
      *  @param specIndex global index of the spectrum.
      */
-    public void addSpectrum( int plotIndex, int specIndex ) 
+    public void addSpectrum( int plotIndex, int specIndex )
+        throws SplatException
     {
         SpecData spectrum = getSpectrum( specIndex );
         PlotControl plot = getPlot( plotIndex );
         plot.addSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Remove a known spectrum from a plot.
@@ -545,11 +550,11 @@ public class GlobalSpecPlotList
      *  @param plotIndex global index of the plot.
      *  @param spectrum the spectrum to remove.
      */
-    public void removeSpectrum( int plotIndex, SpecData spectrum ) 
+    public void removeSpectrum( int plotIndex, SpecData spectrum )
     {
         ((PlotControl)plotList.get( plotIndex)).removeSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Remove a known spectrum from a plot.
@@ -557,26 +562,26 @@ public class GlobalSpecPlotList
      *  @param plot the plot to remove the spectrum from.
      *  @param spectrum the spectrum to remove.
      */
-    public void removeSpectrum( PlotControl plot, SpecData spectrum ) 
+    public void removeSpectrum( PlotControl plot, SpecData spectrum )
     {
         int plotIndex = plotList.indexOf( plot );
         plot.removeSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Remove a known spectrum from a plot.
-     * 
+     *
      *  @param plot the plot to remove the spectrum from.
      *  @param specIndex global index of the spectrum.
      */
-    public void removeSpectrum( PlotControl plot, int specIndex ) 
+    public void removeSpectrum( PlotControl plot, int specIndex )
     {
         int plotIndex = plotList.indexOf( plot );
         SpecData spectrum = getSpectrum( specIndex );
         plot.removeSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Remove a known spectrum from a plot.
@@ -585,12 +590,12 @@ public class GlobalSpecPlotList
      *                   spectrum from.
      *  @param specIndex global index of the spectrum.
      */
-    public void removeSpectrum( int plotIndex, int specIndex ) 
+    public void removeSpectrum( int plotIndex, int specIndex )
     {
         SpecData spectrum = getSpectrum( specIndex );
         ((PlotControl)getPlot(plotIndex)).removeSpectrum( spectrum );
         firePlotChanged( plotIndex );
-    } 
+    }
 
     /**
      *  Return if a plot is displaying a given spectrum.
@@ -600,7 +605,7 @@ public class GlobalSpecPlotList
      *
      *  @return true if the plot is displaying the spectrum.
      */
-    public boolean isDisplaying( int plotIndex, SpecData spectrum ) 
+    public boolean isDisplaying( int plotIndex, SpecData spectrum )
     {
         return plotList.isDisplaying( plotIndex, spectrum );
     }
@@ -613,7 +618,7 @@ public class GlobalSpecPlotList
      *
      *  @return true of the plot is displaying the spectrum.
      */
-    public boolean isDisplaying( int plotIndex, int specIndex ) 
+    public boolean isDisplaying( int plotIndex, int specIndex )
     {
         SpecData spectrum = getSpectrum( specIndex );
         return plotList.isDisplaying( plotIndex, spectrum );
@@ -625,7 +630,7 @@ public class GlobalSpecPlotList
      *
      *  @param l the PlotListener
      */
-    public void addPlotListener( PlotListener l ) 
+    public void addPlotListener( PlotListener l )
     {
         plotListeners.add( PlotListener.class, l );
     }
@@ -635,7 +640,7 @@ public class GlobalSpecPlotList
      *
      * @param l the PlotListener
      */
-    public void removePlotListener( PlotListener l ) 
+    public void removePlotListener( PlotListener l )
     {
         plotListeners.remove( PlotListener.class, l );
     }
@@ -645,15 +650,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the plot that changed.
      */
-    protected void firePlotCreated( int index ) 
+    protected void firePlotCreated( int index )
     {
         Object[] listeners = plotListeners.getListenerList();
         PlotChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == PlotListener.class ) {
                 if ( e == null ) {
-                    e = new PlotChangedEvent( this, 
-                                              PlotChangedEvent.CREATED, 
+                    e = new PlotChangedEvent( this,
+                                              PlotChangedEvent.CREATED,
                                               index );
                 }
                 ((PlotListener)listeners[i+1]).plotCreated( e );
@@ -666,15 +671,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the plot that changed.
      */
-    protected void firePlotRemoved( int index ) 
+    protected void firePlotRemoved( int index )
     {
         Object[] listeners = plotListeners.getListenerList();
         PlotChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == PlotListener.class ) {
                 if ( e == null ) {
-                    e = new PlotChangedEvent( this, 
-                                              PlotChangedEvent.REMOVED, 
+                    e = new PlotChangedEvent( this,
+                                              PlotChangedEvent.REMOVED,
                                               index );
                 }
                 ((PlotListener)listeners[i+1]).plotRemoved( e );
@@ -687,15 +692,15 @@ public class GlobalSpecPlotList
      *
      * @param index Index of the plot that changed.
      */
-    protected void firePlotChanged( int index ) 
+    protected void firePlotChanged( int index )
     {
         Object[] listeners = plotListeners.getListenerList();
         PlotChangedEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
             if ( listeners[i] == PlotListener.class ) {
                 if ( e == null ) {
-                    e = new PlotChangedEvent( this, 
-                                              PlotChangedEvent.CHANGED, 
+                    e = new PlotChangedEvent( this,
+                                              PlotChangedEvent.CHANGED,
                                               index );
                 }
                 ((PlotListener)listeners[i+1]).plotChanged( e );

@@ -2,7 +2,7 @@
  * Copyright (C) 2003 Central Laboratory of the Research Councils
  *
  *  History:
- *     12-MAR-2003 (Peter W. Draper):
+ *     25-SEP-2000 (Peter W. Draper):
  *       Original version.
  */
 package uk.ac.starlink.splat.iface;
@@ -12,6 +12,9 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -32,15 +35,19 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -60,11 +67,11 @@ import uk.ac.starlink.splat.data.SpecDataImpl;
 import uk.ac.starlink.splat.data.SpecList;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
-import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -85,7 +92,8 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
  * plus more trivial options, like choosing the look and feel.
  * <p>
  * The actual display and interactive analysis of spectra takes place
- * in the plots (see #PlotControlFrame, #PlotControl and #Plot).
+ * in the plots (see {@link #PlotControlFrame}, {@link #PlotControl}
+ * and {@link #DivaPlot}).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -95,14 +103,11 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
  * @see #SplatPlotTable
  * @see #PlotControlFrame
  * @see #PlotControl
- * @see #Plot
- *
- * @since $Date$
- * @since 25-SEP-2000
+ * @see #DivaPlot
  */
-public class SplatBrowser 
+public class SplatBrowser
     extends JFrame
-            implements ItemListener
+    implements ItemListener, ActionListener
 {
     /**
      *  The global list of spectra and plots.
@@ -119,7 +124,7 @@ public class SplatBrowser
     /**
      * Default location of window.
      */
-    private static final Rectangle defaultWindowLocation = 
+    private static final Rectangle defaultWindowLocation =
         new Rectangle( 10, 10, 550, 450 );
 
     /**
@@ -165,7 +170,7 @@ public class SplatBrowser
     protected SplatPlotTable plotTable =  new SplatPlotTable( specList );
     protected TitledBorder selectedPropertiesTitle =
         BorderFactory.createTitledBorder( "Properties of current spectra:" );
-    
+
     /**
      * Whither orientation of split
      */
@@ -237,7 +242,6 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec )
     {
-        initProgressMonitor( 6, "Starting up..." );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initComponents();
@@ -246,7 +250,6 @@ public class SplatBrowser
             e.printStackTrace();
             return;
         }
-        closeProgressMonitor();
 
         //  Now add any command-line spectra. Do this after the
         //  interface is visible and in a separate thread from
@@ -262,10 +265,10 @@ public class SplatBrowser
             SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         threadLoadChosenSpectra();
+                        threadInitRemoteServices();
                     }
                 });
         }
-        initRemoteServices();
     }
 
     /**
@@ -273,21 +276,17 @@ public class SplatBrowser
      */
     protected void initComponents()
     {
-        updateProgressMonitor( "init interface" );
-
         //  Set up the content pane and window size.
         contentPane = (JPanel) getContentPane();
         contentPane.setLayout( mainLayout );
-        Utilities.setFrameLocation( (JFrame) this, defaultWindowLocation, 
+        Utilities.setFrameLocation( (JFrame) this, defaultWindowLocation,
                                     prefs, "SplatBrowser" );
         setTitle( Utilities.getFullDescription() );
 
         //  Set up menus and toolbar.
-        updateProgressMonitor( "menus" );
         setupMenusAndToolbar();
 
         //  Add the list of spectra to its scroller.
-        updateProgressMonitor( "global list" );
         specListScroller.getViewport().add( specList, null );
 
         //  Add titles and help to main components.
@@ -304,7 +303,6 @@ public class SplatBrowser
             ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 
         //  Double click on item(s) to display new plots.
-        updateProgressMonitor( "actions" );
         specList.addMouseListener( new MouseAdapter() {
                 public void mouseClicked( MouseEvent e ) {
                     if ( e.getClickCount() >= 2 ) {
@@ -323,7 +321,6 @@ public class SplatBrowser
         controlScroller.getViewport().add( controlArea, null );
 
         //  Set up split pane.
-        updateProgressMonitor( "split screen" );
         splitPane.setOneTouchExpandable( true );
         setSplitOrientation( true );
         specList.setSize( new Dimension( 190, 0 ) );
@@ -331,7 +328,6 @@ public class SplatBrowser
 
         //  Finally add the main components to the content and split
         //  panes.
-        updateProgressMonitor( "layout" );
         splitPane.setLeftComponent( specListScroller );
         splitPane.setRightComponent( controlScroller );
         controlArea.add( plotTable, BorderLayout.WEST );
@@ -589,11 +585,16 @@ public class SplatBrowser
         ImageIcon viewerImage =
             new ImageIcon(ImageHolder.class.getResource("table.gif"));
         LocalAction viewerAction =
-            new LocalAction( LocalAction.SPEC_VIEWER, 
+            new LocalAction( LocalAction.SPEC_VIEWER,
                              "View/modify spectra values", viewerImage,
                              "View/modify the values of the selected spectra");
         viewMenu.add( viewerAction );
         toolBar.add( viewerAction );
+
+        //  Add an action to cascade all the plot windows.
+        JMenuItem cascade = new JMenuItem( "Cascade all plots" );
+        viewMenu.add( cascade );
+        cascade.addActionListener( this );
     }
 
     /**
@@ -643,7 +644,7 @@ public class SplatBrowser
             splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
         }
         prefs.putBoolean( "SplatBrowser_vsplit", selected );
-    }        
+    }
 
     /**
      * Create the Operations menu and populate it with appropriate actions.
@@ -706,7 +707,7 @@ public class SplatBrowser
             //  Socket-based services.
             RemoteServer remoteServer = new RemoteServer( this );
             remoteServer.start();
-            
+
             //  SOAP based services.
             SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
             soapServer.setSplatBrowser( this );
@@ -717,6 +718,31 @@ public class SplatBrowser
             System.err.println( "Failed to start remote services" );
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Initialise the remote control services in a separate
+     * thread. Use this to get UI going quickly, but note that the
+     * remote services may take some time to initialise.
+     */
+    protected void threadInitRemoteServices()
+    {
+        Thread loadThread = new Thread( "Remote services loader" ) {
+                public void run() {
+                    try {
+                        initRemoteServices();
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+        // Thread runs at lowest priority and is a daemon (i.e. runs
+        // until application exits, but does not hold lock to exit).
+        loadThread.setDaemon( true );
+        loadThread.setPriority( Thread.MIN_PRIORITY );
+        loadThread.start();
     }
 
     /**
@@ -757,7 +783,8 @@ public class SplatBrowser
 
             //  If the user requested that opened spectra are also
             //  displayed, then respect this.
-            displayNewFiles = accessoryDisplayCheckBox.isSelected();
+            displayNewFiles = displayCheckBox.isSelected();
+            usertypeIndex = usertypeBox.getSelectedIndex();
             threadLoadChosenSpectra();
         }
     }
@@ -798,29 +825,25 @@ public class SplatBrowser
      * Initialise the file chooser to have the necessary filters.
      *
      * @param openDialog if true then the dialog is initialise for
-     * reading in spectra (this adds a component for displaying any
-     * spectra as well as opening).
+     *                   reading in spectra.
      */
     protected void initFileChooser( boolean openDialog )
     {
-        if (fileChooser == null ) {
+        if ( fileChooser == null ) {
             fileChooser = new JFileChooser( System.getProperty( "user.dir" ) );
             fileChooser.setMultiSelectionEnabled( true );
+            fileChooser.setFileView( new SpectralFileView() );
 
-            String[] textExtensions = { "txt", "lis" };
-            SpectralFileFilter textFileFilter =
-                new SpectralFileFilter( textExtensions, "TEXT files" );
-            fileChooser.addChoosableFileFilter( textFileFilter );
+            //  Add FileFilters based on extension for all known types.
+            SpectralFileFilter fileFilter = null;
+            String[][] extensions = SpecDataFactory.extensions;
+            String[] longNames = SpecDataFactory.longNames;
+            for ( int i = 1; i < longNames.length; i++ ) {
+                fileFilter = new SpectralFileFilter( extensions[i], longNames[i] );
+                fileChooser.addChoosableFileFilter( fileFilter );
+            }
 
-            String[] fitsExtensions = { "fits", "fit" };
-            SpectralFileFilter fitsFileFilter =
-                new SpectralFileFilter( fitsExtensions, "FITS files" );
-            fileChooser.addChoosableFileFilter( fitsFileFilter );
-
-            SpectralFileFilter hdsFileFilter =
-                new SpectralFileFilter ( "sdf", "HDS container files" );
-            fileChooser.addChoosableFileFilter( hdsFileFilter );
-
+            // FileFilter for all files (same as Factory types indexed by 0).
             fileChooser.addChoosableFileFilter
                 ( fileChooser.getAcceptAllFileFilter() );
         }
@@ -835,6 +858,12 @@ public class SplatBrowser
         }
     }
 
+    // OpenAccessory components. The usertypeIndex is most important.
+    protected int usertypeIndex = 0;
+    protected JPanel openAccessory = null;
+    protected JCheckBox displayCheckBox = null;
+    protected JComboBox usertypeBox = null;
+
     /**
      * Initialise the accessory components for opening
      * spectra. Currently these provide the ability to choose whether
@@ -842,15 +871,66 @@ public class SplatBrowser
      */
     protected void initOpenAccessory()
     {
-        openAccessory = new JPanel();
-        accessoryDisplayCheckBox = new JCheckBox( "Display" );
-        accessoryDisplayCheckBox.setToolTipText( "Display opened spectra "+
-                                                 "in new plot" );
-        accessoryDisplayCheckBox.setSelected( true );
-        openAccessory.add( accessoryDisplayCheckBox );
+        openAccessory = new JPanel( new GridBagLayout() );
+
+        displayCheckBox = new JCheckBox();
+        displayCheckBox.setToolTipText( "Display opened spectra in new plot" );
+        displayCheckBox.setSelected( true );
+        JLabel displayLabel = new JLabel( "Display: " );
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+
+        openAccessory.add( displayLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        openAccessory.add( displayCheckBox, gbc );
+        eatLine( openAccessory, gbc );
+
+        // User may override builtin file extensions by providing an
+        // explicit type.
+        usertypeBox = new JComboBox( SpecDataFactory.shortNames );
+        usertypeBox.setToolTipText
+            ( "Choose a type for the selected files" );
+        JLabel usertypeLabel = new JLabel( "Format: " );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+
+        openAccessory.add( usertypeLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        openAccessory.add( usertypeBox, gbc );
+        eatLine( openAccessory, gbc );
+        eatSpare( openAccessory, gbc );
     }
-    protected JPanel openAccessory = null;
-    protected JCheckBox accessoryDisplayCheckBox = null;
+
+    /**
+     * Eat to end of current line using GridBagLayout.
+     */
+    private void eatLine( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add( Box.createHorizontalGlue(), gbc );
+    }
+
+    /**
+     * East spare space at bottom of panel using GridBagLayout.
+     */
+    private void eatSpare( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
+        gbc.weightx = 0.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH    ;
+        panel.add( Box.createVerticalGlue(), gbc );
+    }
 
     /**
      * A request to save the spectrum stack has been received.
@@ -891,7 +971,7 @@ public class SplatBrowser
                 int nread = globalSpecList.readStack( file.getPath() );
 
                 //  If requested honour the display option.
-                if ( ( nread > 0 ) && accessoryDisplayCheckBox.isSelected() ) {
+                if ( ( nread > 0 ) && displayCheckBox.isSelected() ) {
                     int[] currentSelection = getSelectedSpectra();
                     int count = globalList.specCount();
                     specList.setSelectionInterval( count - nread, count - 1 );
@@ -1042,9 +1122,8 @@ public class SplatBrowser
                     }
                     finally {
 
-                        //  Always tidy up and rewaken interface
-                        //  when complete (including if an error
-                        //  is thrown).
+                        //  Always tidy up and rewaken interface when
+                        //  complete (including if an error is thrown).
                         resetWaitCursor();
                         waitTimer.stop();
                         closeProgressMonitor();
@@ -1067,7 +1146,9 @@ public class SplatBrowser
     private int filesDone = 0;
 
     /**
-     * Add spectra listed in the newFiles array to global list.
+     * Add spectra listed in the newFiles array to global list. If
+     * given attempt to open the files using the type provided by the
+     * user (in the open file dialog).
      */
     protected void addChosenSpectra()
     {
@@ -1075,7 +1156,7 @@ public class SplatBrowser
         filesDone = 0;
         int validFiles = 0;
         for ( int i = 0; i < newFiles.length; i++ ) {
-            if ( addSpectrum( newFiles[i].getPath() ) ) {
+            if ( addSpectrum( newFiles[i].getPath(), usertypeIndex ) ) {
                 validFiles++;
             }
             filesDone++;
@@ -1094,6 +1175,36 @@ public class SplatBrowser
                 }
             }
         }
+    }
+
+    /**
+     * Add a new spectrum, with a possibly pre-defined type, to the
+     * global list. This becomes the current spectrum.
+     *
+     *  @param name the name (i.e. file specification) of the spectrum
+     *              to add.
+     *  @param usertype index of the type of spectrum, 0 for default
+     *                  based on file extension, otherwise this is an
+     *                  index of the knownTypes array in 
+     *                  {@link SpecDataFactory}. 
+     *
+     *  @return true if spectrum is added, false otherwise.
+     */
+    public boolean addSpectrum( String name, int usertype )
+    {
+        try {
+            SpecDataFactory factory = SpecDataFactory.getReference();
+            SpecData spectrum = factory.get( name, usertype );
+            addSpectrum( spectrum );
+            return true;
+        }
+        catch ( SplatException e ) {
+            JOptionPane.showMessageDialog( this,
+                                           e.getMessage(),
+                                           "Error opening spectrum",
+                                           JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
     }
 
     /**
@@ -1176,6 +1287,8 @@ public class SplatBrowser
         if ( specIndices == null ) {
             return;
         }
+        SplatException lastException = null;
+        int failed = 0;
         int[] plotIndices = getSelectedPlots();
         if ( plotIndices != null ) {
             SpecData spec = null;
@@ -1183,12 +1296,21 @@ public class SplatBrowser
             for ( int i = 0; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
                 for ( int j = 0; j < plotIndices.length; j++ ) {
-                    globalList.addSpectrum( plotIndices[j], spec );
+                    try {
+                        globalList.addSpectrum( plotIndices[j], spec );
+                    }
+                    catch (SplatException e) {
+                        failed++;
+                        lastException = e;
+                        plotIndices[j] = -1;
+                    }
                 }
             }
             if ( fit ) {
                 for ( int j = 0; j < plotIndices.length; j++ ) {
-                    globalList.getPlot( plotIndices[j] ).fitToWidthAndHeight();
+                    if ( plotIndices[j] != -1 ) {
+                        globalList.getPlot( plotIndices[j] ).fitToWidthAndHeight();
+                    }
                 }
             }
         }
@@ -1198,11 +1320,20 @@ public class SplatBrowser
             PlotControlFrame plot = displaySpectrum( spec );
             for ( int i = 1; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
-                globalList.addSpectrum( plot.getPlot(), spec );
+                try {
+                    globalList.addSpectrum( plot.getPlot(), spec );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                }
             }
-            if ( fit ) {
+            if ( fit && failed < specIndices.length ) {
                 plot.getPlot().fitToWidthAndHeight();
             }
+        }
+        if ( lastException != null ) {
+            reportOpenListFailed( failed, lastException );
         }
     }
 
@@ -1238,9 +1369,23 @@ public class SplatBrowser
         //  Create a plot for our spectra and display them all.
         SpecData spec = globalList.getSpectrum( indices[0] );
         PlotControl plot = displaySpectrum( spec ).getPlot();
+        int failed = 0;
+        SplatException lastException = null;
         for ( int i = 1; i < openedCount; i++ ) {
             spec = globalList.getSpectrum( indices[i] );
-            globalList.addSpectrum( plot, spec );
+            try {
+                globalList.addSpectrum( plot, spec );
+            }
+            catch (SplatException e) {
+                failed++;
+                lastException = e;
+            }
+        }
+        if ( lastException != null ) {
+            reportOpenListFailed( failed, lastException );
+            if ( failed == openedCount ) {
+                return -1;
+            }
         }
         return plot.getIdentifier();
     }
@@ -1281,12 +1426,20 @@ public class SplatBrowser
         //  Access or create a plot for our spectra.
         int plotIndex = globalList.getPlotIndex( id );
         int newId = 0;
+        int failed = 0;
+        SplatException lastException = null;
         if ( plotIndex == -1 ) {
             SpecData spec = globalList.getSpectrum( indices[0] );
             PlotControlFrame plot = displaySpectrum( spec );
             for ( int i = 1; i < openedCount; i++ ) {
                 spec = globalList.getSpectrum( indices[i] );
-                globalList.addSpectrum( plot.getPlot(), spec );
+                try {
+                    globalList.addSpectrum( plot.getPlot(), spec );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                }
             }
             newId = plot.getPlot().getIdentifier();
         }
@@ -1295,11 +1448,41 @@ public class SplatBrowser
             SpecData spec = null;
             for ( int i = 0; i < openedCount; i++ ) {
                 spec = globalList.getSpectrum( indices[i] );
-                globalList.addSpectrum( plot, spec );
+                try {
+                    globalList.addSpectrum( plot, spec );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                }
+
             }
             newId = plot.getIdentifier();
         }
+        if ( failed != 0 ) {
+            reportOpenListFailed( failed, lastException );
+            if ( failed == openedCount ) {
+                return -1;
+            }
+        }
         return newId;
+    }
+
+    /**
+     * Make a report using an ExceptionDialog for when loading a list
+     * of spectra has failed for some.
+     */
+    private void reportOpenListFailed( int failed, 
+                                       SplatException lastException )
+    {
+        String message = null;
+        if ( failed == 1 ) {
+            message = "Failed to display a spectrum";
+        }
+        else {
+            message = "Failed to display " + failed + " spectra ";
+        }
+        new ExceptionDialog( this, message, lastException );
     }
 
     /**
@@ -1641,7 +1824,7 @@ public class SplatBrowser
         // unaryMathsFrame = null;
     }
 
-    /** 
+    /**
      * Create a new spectrum with a number of elements (greater than
      * 2) obtained interactively.
      */
@@ -1661,7 +1844,7 @@ public class SplatBrowser
                 try {
                     newSpec = SpecDataFactory.getReference()
                         .createEditable(name);
- 
+
                     //  Add the coords and data.
                     double[] coords = new double[nrows];
                     double[] data = new double[nrows];
@@ -1837,9 +2020,20 @@ public class SplatBrowser
     // Implement ItemListener interface. This is used for menus items
     // that do not require the full capabilities of an Action.
     //
-    public void itemStateChanged( ItemEvent e ) 
+    public void itemStateChanged( ItemEvent e )
     {
-        //  Just the split positioning at present.
+        //  Only used for split window request.
         setSplitOrientation( false );
+    }
+
+    //
+    // Implement ActionListener interface. This is used for menus items
+    // that do not require the full capabilities of an Action.
+    //
+    public void actionPerformed( ActionEvent e )
+    {
+        // The cascade request.
+        PlotWindowOrganizer organizer = new PlotWindowOrganizer();
+        organizer.cascade();
     }
 }

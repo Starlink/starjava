@@ -4,6 +4,8 @@ package uk.ac.starlink.splat.iface;
 import javax.swing.table.AbstractTableModel;
 
 import uk.ac.starlink.splat.util.FuzzyBoolean;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.ExceptionDialog;
 
 /**
  * PlotTableModel is an implementation of the TableModel interface for
@@ -138,7 +140,16 @@ public class PlotTableModel extends AbstractTableModel
                 FuzzyBoolean add = (FuzzyBoolean) value;
                 if ( add.isTrue() || add.isMaybe() ) {
                     for ( int i = 0; i < specIndices.length; i++ ) {
-                        globalList.addSpectrum( row, specIndices[i] );
+                        try {
+                            globalList.addSpectrum( row, specIndices[i] );
+                        }
+                        catch (SplatException e) {
+                            // Not happy to do this, but these
+                            // messages should probably not just be
+                            // dumped to the terminal.
+                            //e.printStackTrace();
+                            new ExceptionDialog( null, e );
+                        }
                     }
                 } else {
                     for ( int i = 0; i < specIndices.length; i++ ) {

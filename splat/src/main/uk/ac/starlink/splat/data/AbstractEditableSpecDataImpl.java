@@ -29,6 +29,7 @@ public abstract class AbstractEditableSpecDataImpl
      * etc.).
      */
     public AbstractEditableSpecDataImpl( String name ) 
+        throws SplatException
     {
         super( name );
     }
@@ -40,6 +41,7 @@ public abstract class AbstractEditableSpecDataImpl
      * @param spectrum the spectrum to clone.
      */
     public AbstractEditableSpecDataImpl( String name, SpecData spectrum ) 
+        throws SplatException
     {
         super( name, spectrum );
     }

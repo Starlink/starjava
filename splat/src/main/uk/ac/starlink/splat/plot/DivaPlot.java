@@ -509,6 +509,7 @@ public class DivaPlot
      * of the data values.
      */
     public void setDataLimits()
+        throws SplatException
     {
         if ( dataLimits == null ) {
             setAutoLimits();
@@ -532,6 +533,7 @@ public class DivaPlot
      * Set the plot limits to those of the data.
      */
     protected void setAutoLimits()
+        throws SplatException
     {
         double[] range = spectra.getAutoRange();
         xMin = range[0];
@@ -693,6 +695,7 @@ public class DivaPlot
      * style.
      */
     protected void drawSpectra()
+        throws SplatException
     {
         double[] limits = null;
         if ( graphicsEdges != null ) {

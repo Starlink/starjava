@@ -46,10 +46,11 @@ import javax.swing.border.TitledBorder;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.JPEGUtilities;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.plot.DivaPlot;
 
 /**
  * Provides controls for displaying a list of spectra in a plot. Each spectrum
@@ -603,7 +604,15 @@ public class SpecAnimatorFrame
                         lastAutoRange = spec.isUseInAutoRanging();
                         spec.setUseInAutoRanging( false );
                     }
-                    globalList.addSpectrum( animatePlot, spec );
+                    try {
+                        globalList.addSpectrum( animatePlot, spec );
+                    }
+                    catch (SplatException ignored) {
+                        // Failed to display spectrum, make a simple
+                        // report and pass on.
+                        ignored.printStackTrace();
+                        return;
+                    }
                     spectrumName.setText( spec.getShortName() );
                     removeLastSpectrum();
                     if ( scaleType == AUTO ) {

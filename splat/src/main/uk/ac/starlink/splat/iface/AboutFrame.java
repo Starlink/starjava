@@ -1,10 +1,16 @@
+/*
+ * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     07-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -19,6 +25,7 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
@@ -33,40 +40,49 @@ import uk.ac.starlink.splat.util.Utilities;
  * </pre>
  * and add this to a help button in the menu bar.
  *
- * @since $Date$
- * @since 07-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class AboutFrame extends JDialog
     implements ActionListener
 {
     protected JButton okButton = new JButton();
-    protected JEditorPane theLabel = new JEditorPane();
-    protected static ImageIcon splatImage = 
+    protected static ImageIcon splatImage =
         new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
-    protected JLabel theImage = new JLabel();
+
     protected String description =
         "<html>" +
-        "<h2 align=center><font color=red>"+Utilities.getFullDescription()+"</font></h2>" +
-        "<p align=center>Version: "+Utilities.getReleaseVersion() + "</p>" +
-        "<p align=center>Copyright (C) 2001 Central Laboratory of the Research Councils</p>"+
-        "<p align=center><i>Authors: Peter W. Draper</i></p>" +
+           "<h2 align=center> <font color=red>" +
+              Utilities.getFullDescription() + 
+           "</font></h2>" +
+           "<p align=center>Version: " + 
+              Utilities.getReleaseVersion() + 
+           "</p>" +
+           "<p align=center> " + 
+              Utilities.getCopyright() + 
+           "</p>" +
+           "<p align=center> Authors:<i> " + 
+              Utilities.getAuthors() + 
+           "</i></p>" +
+           "<p align=center> Licensing:<i> " + 
+              Utilities.getLicense() + 
+           "</i></p>" +
         "</html>";
-    
+
     /**
      * Create an instance. Use the getAction() method not this.
+     *
+     * @param parent parent Frame (can be null).
      */
-    public AboutFrame( Frame parent )
+    protected AboutFrame( Frame parent )
     {
         super( parent );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 400, 250 ) );
-            setVisible( true );
-        } catch( Exception e ) {
+            setSize( new Dimension( 360, 300 ) );
+        }
+        catch( Exception e ) {
             e.printStackTrace();
         }
     }
@@ -76,23 +92,32 @@ public class AboutFrame extends JDialog
      */
     protected void initUI() throws Exception
     {
-        this.setTitle( "About " + Utilities.getReleaseName() );
-        JPanel thePane = (JPanel) getContentPane();
-        thePane.setLayout( new BorderLayout() );
-        thePane.setBorder( BorderFactory.createEtchedBorder() );
-        theLabel.setContentType( "text/html" );
-        theLabel.setBackground( theImage.getBackground() );
-        theLabel.setText( description );
-        theLabel.setEditable( false );
-        theImage.setIcon( splatImage );
+        setTitle( "About " + Utilities.getReleaseName() );
+        JPanel mainPane = (JPanel) getContentPane();
+
+        mainPane.setLayout( new BorderLayout() );
+        mainPane.setBorder( BorderFactory.createEtchedBorder() );
+
+        JEditorPane htmlArea = new JEditorPane();
+        JLabel image = new JLabel();
+
+        htmlArea.setContentType( "text/html" );
+        htmlArea.setBackground( image.getBackground() );
+        htmlArea.setText( description );
+        htmlArea.setEditable( false );
+
+        image.setIcon( splatImage );
+        image.setVerticalAlignment( SwingConstants.TOP );
 
         okButton.setText( "OK" );
         okButton.addActionListener( this );
-        thePane.add( theImage, BorderLayout.WEST );
-        thePane.add( theLabel, BorderLayout.CENTER );
+
+        mainPane.add( image, BorderLayout.WEST );
+        mainPane.add( htmlArea, BorderLayout.CENTER );
 
         JPanel southPane = new JPanel();
-        thePane.add( southPane, BorderLayout.SOUTH );
+        mainPane.add( southPane, BorderLayout.SOUTH );
+
         southPane.add( Box.createHorizontalGlue() );
         southPane.add( okButton );
         southPane.add( Box.createHorizontalGlue() );
@@ -102,7 +127,7 @@ public class AboutFrame extends JDialog
     /**
      * Looks out for window closing events.
      */
-    protected void processWindowEvent(WindowEvent e) 
+    protected void processWindowEvent(WindowEvent e)
     {
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
             cancel();
@@ -114,7 +139,7 @@ public class AboutFrame extends JDialog
     /**
      * Close the window.
      */
-    protected void cancel() 
+    protected void cancel()
     {
         dispose();
     }
@@ -122,7 +147,7 @@ public class AboutFrame extends JDialog
     /**
      * Implements ActionListener interface. Closing window when requested.
      */
-    public void actionPerformed( ActionEvent e ) 
+    public void actionPerformed( ActionEvent e )
     {
         if ( e.getSource() == okButton ) {
             cancel();
@@ -131,8 +156,8 @@ public class AboutFrame extends JDialog
 
     /**
      * Image for action icons.
-     */ 
-    protected static ImageIcon aboutImage = 
+     */
+    protected static ImageIcon aboutImage =
         new ImageIcon( ImageHolder.class.getResource( "about.gif" ) );
 
     /**
@@ -157,11 +182,7 @@ public class AboutFrame extends JDialog
     protected static void helpAboutEvent( Frame parent )
     {
         AboutFrame dlg = new AboutFrame( parent );
-        Dimension dlgSize = dlg.getPreferredSize();
-        Dimension frmSize = parent.getSize();
-        Point loc = parent.getLocation();
-        dlg.setLocation( (frmSize.width - dlgSize.width) / 2 + loc.x,
-                         (frmSize.height - dlgSize.height) / 2 + loc.y);
+        dlg.setLocationRelativeTo( parent );
         dlg.setModal( true );
         dlg.show();
     }

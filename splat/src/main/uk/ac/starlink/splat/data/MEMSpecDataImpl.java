@@ -44,6 +44,7 @@ public class MEMSpecDataImpl
      * @param name a symbolic name for the spectrum.
      */
     public MEMSpecDataImpl( String name )
+        throws SplatException
     {
         super( name );
         this.shortName = name;
@@ -56,6 +57,7 @@ public class MEMSpecDataImpl
      * @param spectrum a SpecData object to copy.
      */
     public MEMSpecDataImpl( String name, SpecData spectrum )
+        throws SplatException
     {
         super( name, spectrum );
         this.shortName = name;
@@ -233,7 +235,8 @@ public class MEMSpecDataImpl
      *
      * @exception SplatException never thrown for this implementation.
      */
-    public void save() throws SplatException
+    public void save() 
+        throws SplatException
     {
         if ( errors != null ) {
 	   setData( astref, data, errors );
@@ -252,23 +255,29 @@ public class MEMSpecDataImpl
      * none are given.
      */
     protected void copyData( double[] coords, double[] data, double[] errors )
+        throws SplatException
     {
-        if ( coords != null ) {
-            this.coords = new double[coords.length];
-            System.arraycopy( coords, 0, this.coords, 0, coords.length );
+        try {
+            if ( coords != null ) {
+                this.coords = new double[coords.length];
+                System.arraycopy( coords, 0, this.coords, 0, coords.length );
+            }
+            if ( data != null ) {
+                this.data = new double[data.length];
+                System.arraycopy( data, 0, this.data, 0, data.length );
+            }
+            
+            //  Errors are special, null means none are present.
+            if ( errors != null ) {
+                this.errors = new double[data.length];
+                System.arraycopy( errors, 0, this.errors, 0, data.length );
+            }
+            else {
+                this.errors = null;
+            }
         }
-        if ( data != null ) {
-            this.data = new double[data.length];
-            System.arraycopy( data, 0, this.data, 0, data.length );
-        }
-
-        //  Errors are special, null means none are present.
-        if ( errors != null ) {
-            this.errors = new double[data.length];
-            System.arraycopy( errors, 0, this.errors, 0, data.length );
-        }
-        else {
-            this.errors = null;
+        catch (Exception e) {
+            throw new SplatException( e );
         }
     }
 
@@ -301,6 +310,7 @@ public class MEMSpecDataImpl
      * @param data the spectrum data values.
      */
     public void setData( double[] coords, double[] data )
+        throws SplatException
     {
         copyData( coords, data, null );
         createAst();
@@ -315,6 +325,7 @@ public class MEMSpecDataImpl
      * @param data the spectrum data values.
      */
     public void setData( FrameSet frameSet, double[] data )
+        throws SplatException
     {
         copyData( null, data, null );
         setAstCopy( frameSet );
@@ -357,6 +368,7 @@ public class MEMSpecDataImpl
      *               none.
      */
     public void setData( double[] coords, double[] data, double[] errors )
+        throws SplatException
     {
         copyData( coords, data, errors );
         createAst();
@@ -372,6 +384,7 @@ public class MEMSpecDataImpl
      *               none.
      */
     public void setData( FrameSet frameSet, double[] data, double[] errors )
+        throws SplatException
     {
         copyData( null, data, errors );
         setAstCopy( frameSet );

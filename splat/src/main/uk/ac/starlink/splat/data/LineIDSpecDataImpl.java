@@ -59,6 +59,5 @@ public interface LineIDSpecDataImpl
      * Return if the implementation has any data positions.
      */
     public boolean haveDataPositions();
-
 }
 

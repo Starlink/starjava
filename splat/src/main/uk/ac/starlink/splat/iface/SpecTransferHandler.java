@@ -19,6 +19,7 @@ import javax.swing.JList;
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * A TransferHandler for dragging and dropping SpecData instances
@@ -140,8 +141,14 @@ public class SpecTransferHandler
                         for ( int i = 0; i < spectra.size(); i++ ) {
                             SpecData spec = (SpecData) spectra.get( i );
                             if ( ! plot.isDisplayed( spec ) ) {
-                                globalList.addSpectrum( plot, spec );
-                                added++;
+                                try {
+                                    globalList.addSpectrum( plot, spec );
+                                    added++;
+                                }
+                                catch (SplatException e) {
+                                    // Not a good time to do anything.
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }

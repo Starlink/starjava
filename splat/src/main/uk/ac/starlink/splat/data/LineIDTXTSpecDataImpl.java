@@ -36,8 +36,8 @@ import uk.ac.starlink.splat.util.Utilities;
  * Whitespace separators are the space character, the tab character,
  * the newline character, the carriage-return character, and the
  * form-feed character. Any comments in the file must start in the
- * first column and be indicated by the characters "!" or "#". Blank
- * lines are also permitted.
+ * first column and be indicated by the characters "!", "#" or "*". 
+ * Blank lines are also permitted.
  *  <p>
  * Since the actual storage for text files is memory resident this
  * class extends MEMSpecDataImpl, providing the ability to
@@ -48,8 +48,7 @@ import uk.ac.starlink.splat.util.Utilities;
  * @version $Id$
  */
 public class LineIDTXTSpecDataImpl
-    extends MEMSpecDataImpl
-    implements LineIDSpecDataImpl
+    extends LineIDMEMSpecDataImpl
 {
     /**
      * Create an object by opening a text file and reading its
@@ -58,6 +57,7 @@ public class LineIDTXTSpecDataImpl
      * @param fileName the name of the text file.
      */
     public LineIDTXTSpecDataImpl( String fileName )
+        throws SplatException
     {
         super( fileName );
         this.fullName = fileName;
@@ -88,60 +88,10 @@ public class LineIDTXTSpecDataImpl
     }
 
     /**
-     * Return the line identification labels.
-     */
-    public String[] getLabels()
-    {
-        return labels;
-    }
-
-    /**
-     * Set all the labels.
-     */
-    public void setLabels( String[] labels ) 
-        throws SplatException
-    {
-        if ( coords == null || ( labels.length == coords.length ) ) {
-            this.labels = labels;
-        }
-        else {
-            throw new SplatException( "Array length must match coordinates" );
-        }
-    }
-
-    /**
-     * Get a specific label.
-     */ 
-    public String getLabel( int index )
-    {
-        if ( labels != null && ( index < labels.length ) ) {
-            return labels[index];
-        }
-        return null;
-    }
-
-    /**
-     * Set a specific label.
-     */
-    public void setLabel( int index, String label )
-    {
-        if ( getLabel( index ) != null ) {
-            labels[index] = label;
-        }
-    }
-
-    /**
-     * Return if there were a complete set of data positions.
-     */
-    public boolean haveDataPositions()
-    {
-        return haveDataPositions;
-    }
-
-    /**
      * Save the state to disk-file.
      */
-    public void save() throws SplatException
+    public void save() 
+        throws SplatException
     {
         saveToFile( fullName );
     }
@@ -156,27 +106,18 @@ public class LineIDTXTSpecDataImpl
     protected File file = null;
 
     /**
-     * Reference to the line ID strings.
-     */
-    protected String[] labels = null;
-
-    /**
-     * Whether there are a complete set of data positions.
-     */
-    protected boolean haveDataPositions = false;
-
-    /**
      * Open an existing text file and read the contents.
      *
      * @param fileName diskfile name of the text file.
      */
     protected void readFromFile( String fileName )
+        throws SplatException
     {
         //  Check file exists.
         file = new File( fileName );
         if ( ! file.exists() && file.canRead() && file.isFile() ) {
             file = null;
-            return;
+            throw new SplatException( "Cannot access file: " + fileName );
         }
         readData( file );
     }
@@ -187,12 +128,13 @@ public class LineIDTXTSpecDataImpl
      * @param fileName diskfile name of the text file.
      */
     protected void saveToFile( String fileName )
+        throws SplatException
     {
         // If file exists, then we need to be able to overwrite it.
         file = new File( fileName );
         if ( file.exists() && file.isFile() && ! file.canWrite() ) {
             file = null;
-            return;
+            throw new SplatException( "Cannot write to file: " + fileName );
         }
         writeData( file );
     }
@@ -203,6 +145,7 @@ public class LineIDTXTSpecDataImpl
      * @param file File object.
      */
     protected void readData( File file )
+        throws SplatException
     {
         //  Get a BufferedReader to read the file line-by-line. Note
         //  we are avoiding using StreamTokenizer directly, and doing
@@ -213,9 +156,9 @@ public class LineIDTXTSpecDataImpl
         try {
             f = new FileInputStream( file );
             r = new BufferedReader( new InputStreamReader( f ) );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            return;
+        } 
+        catch ( Exception e ) {
+            throw new SplatException( e );
         }
 
         //  First pass of file. Read file input until end of file
@@ -230,7 +173,7 @@ public class LineIDTXTSpecDataImpl
 
                 //  Skip blank and comment lines.
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
-                     raw.charAt(0) == '#' ) {
+                     raw.charAt(0) == '#' || raw.charAt(0) == '*' ) {
                     continue;
                 } else {
 
@@ -260,7 +203,7 @@ public class LineIDTXTSpecDataImpl
 
                 //  Skip blank and comment lines.
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
-                     raw.charAt(0) == '#' ) {
+                     raw.charAt(0) == '#' || raw.charAt(0) == '*' ) {
                     continue;
                 } else {
 
@@ -279,15 +222,17 @@ public class LineIDTXTSpecDataImpl
                 }
             }
         }
-        catch ( IOException e ) {
-            e.printStackTrace();
+        catch ( Exception e ) {
             try {
                 r.close();
                 f.close();
-            } catch ( Exception ex ) {
+            } 
+            catch ( Exception ex ) {
                 ex.printStackTrace();
             }
-            return;
+            throw new SplatException( "Error reading line identifiers"+
+                                      " from file: " + file + " (" +
+                                      e.getMessage() + ")", e );
         }
 
         //  Create the AST frameset that describes the data-coordinate
@@ -310,6 +255,7 @@ public class LineIDTXTSpecDataImpl
      * @param file File object.
      */
     protected void writeData( File file )
+        throws SplatException
     {
         //  Get a BufferedWriter to write the file line-by-line.
         FileOutputStream f = null;
@@ -317,16 +263,17 @@ public class LineIDTXTSpecDataImpl
         try {
             f = new FileOutputStream( file );
             r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            return;
+        } 
+        catch ( Exception e ) {
+            throw new SplatException( e );
         }
 
 
         // Add a header to the file.
         try {
             r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             e.printStackTrace();
         }
 

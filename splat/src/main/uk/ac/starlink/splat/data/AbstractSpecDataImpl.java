@@ -29,7 +29,11 @@ public abstract class AbstractSpecDataImpl
      * @param name The specification of the spectrum (disk file name
      * etc.).
      */
-    public AbstractSpecDataImpl( String name ) {}
+    public AbstractSpecDataImpl( String name ) 
+        throws SplatException
+    {
+        // Does nothing here.
+    }
 
     /**
      * Constructor, clone from another spectrum.
@@ -38,6 +42,7 @@ public abstract class AbstractSpecDataImpl
      * @param spectrum the spectrum to clone.
      */
     public AbstractSpecDataImpl( String name, SpecData spectrum ) 
+        throws SplatException
     {
         this.parentImpl = spectrum.getSpecDataImpl();
     }

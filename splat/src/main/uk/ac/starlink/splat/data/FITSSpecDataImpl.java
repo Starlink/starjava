@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     01-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ *     08-MAR-2002 (Peter W. Draper):
+ *       Changed to nom.tam.fits version 0.93
+ */
 package uk.ac.starlink.splat.data;
 
 import java.io.FileOutputStream;
@@ -25,10 +34,7 @@ import uk.ac.starlink.splat.util.SplatException;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @since 01-SEP-2000
  * @see "The Bridge Design Pattern"
- *
- * @history 08-MAR-2002 Changed to nom.tam.fits version 0.93
  */
 public class FITSSpecDataImpl 
     extends AbstractSpecDataImpl
@@ -41,6 +47,7 @@ public class FITSSpecDataImpl
      * Constructor - open a FITS file by file name.
      */
     public FITSSpecDataImpl( String fileName )
+        throws SplatException
     {
         super( fileName );
         hdunum = 0;
@@ -51,6 +58,7 @@ public class FITSSpecDataImpl
      * Constructor, creating an object by cloning another.
      */
     public FITSSpecDataImpl( String fileName, SpecData source )
+        throws SplatException
     {
         super( fileName );
         hdunum = 0;
@@ -144,7 +152,8 @@ public class FITSSpecDataImpl
     /**
      * Save spectrum to the associated disk-file.
      */
-    public void save() throws SplatException
+    public void save() 
+        throws SplatException
     {
         saveToFile();
     }
@@ -272,40 +281,36 @@ public class FITSSpecDataImpl
      *                 reference (format file.fits[0]).
      */
     protected void openForRead( String fileName )
+        throws SplatException
     {
         //  Parse the name to extract the HDU reference.
         InputNameParser namer = new InputNameParser( fileName );
         hdunum = namer.fitshdunum();
-        boolean ok = true;
         try {
             fitsref = new Fits( namer.fullname() );
         }
-        catch (Exception e ) {
-            e.printStackTrace();
+        catch ( Exception e ) {
             fitsref = null;
-            ok = false;
+            throw new SplatException( e );
         }
-        if ( ok ) {
-            try {
-                hdurefs = fitsref.read();
-            }
-            catch (Exception e ) {
-                e.printStackTrace();
-                hdurefs = null;
-                ok = false;
-            }
-            if ( ok ) {
 
-                //  Get short name.
-                String shortName = hdurefs[0].getObject();
-                if ( shortName != null ) {
-                    this.shortName = shortName;
-                } else {
-                    shortName = fileName;
-                }
-                fullName = fileName;
-            }
+        try {
+            hdurefs = fitsref.read();
         }
+        catch ( Exception e ) {
+            hdurefs = null;
+            throw new SplatException( e );
+        }
+
+        //  Get short name.
+        String shortName = hdurefs[0].getObject();
+        if ( shortName != null ) {
+            this.shortName = shortName;
+        } 
+        else {
+            shortName = fileName;
+        }
+        fullName = fileName;
     }
 
     /**
@@ -313,6 +318,7 @@ public class FITSSpecDataImpl
      * populate it. Will only succeed for clone spectra.
      */
     protected void saveToFile()
+        throws SplatException
     {
         //  Parse the name to extract the HDU reference and container
         //  file name. Extension number is ignored for now.
@@ -320,7 +326,6 @@ public class FITSSpecDataImpl
         hdunum = namer.fitshdunum();
         String container = namer.fullname();
 
-        boolean ok = true;
         try {
             // Create a null FITS object (TODO: deal with prior existence?).
             fitsref = new Fits();
@@ -369,9 +374,8 @@ public class FITSSpecDataImpl
             fitsref.write( os );
         }
         catch (Exception e ) {
-            e.printStackTrace();
             fitsref = null;
-            ok = false;
+            throw new SplatException( e );
         }
 
         //  No longer a memory clone, backing file is created.
@@ -461,7 +465,8 @@ public class FITSSpecDataImpl
     /**
      * Get a copy of the FITS spectrum data in double precision.
      */
-    protected double[] getDataCopy() throws FitsException
+    protected double[] getDataCopy() 
+        throws FitsException
     {
         double[] spectrum = null;
         if ( hdunum < hdurefs.length ) {
@@ -635,7 +640,6 @@ public class FITSSpecDataImpl
     {
         Frame frame = new Frame( 1 );
         FrameSet frameset = new FrameSet( frame );
-        //frame.annul();
         return frameset;
     }
 
@@ -651,7 +655,8 @@ public class FITSSpecDataImpl
             //  Query the current HDU.
             try {
                 return hdurefs[hdunum].getAxes();
-            } catch (FitsException e) {
+            } 
+            catch (FitsException e) {
                 //  Just ignore and return dummy dimension.
             }
         }

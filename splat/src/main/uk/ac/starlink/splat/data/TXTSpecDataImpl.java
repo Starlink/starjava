@@ -59,6 +59,7 @@ public class TXTSpecDataImpl
      * @param fileName the name of the text file.
      */
     public TXTSpecDataImpl( String fileName )
+        throws SplatException
     {
         super( fileName );
         this.fullName = fileName;
@@ -73,6 +74,7 @@ public class TXTSpecDataImpl
      * @param fileName the name of the text file.
      */
     public TXTSpecDataImpl( String fileName, SpecData source )
+        throws SplatException
     {
         super( fileName, source );
         this.fullName = fileName;
@@ -109,12 +111,13 @@ public class TXTSpecDataImpl
      * @param fileName diskfile name of the text file.
      */
     protected void readFromFile( String fileName )
+        throws SplatException
     {
         //  Check file exists.
         file = new File( fileName );
         if ( ! file.exists() && file.canRead() && file.isFile() ) {
             file = null;
-            return;
+            throw new SplatException( "Cannot access file: " + fileName );
         }
         readData( file );
     }
@@ -125,12 +128,13 @@ public class TXTSpecDataImpl
      * @param fileName diskfile name of the text file.
      */
     protected void saveToFile( String fileName )
+        throws SplatException
     {
         // If file exists, then we need to be able to overwrite it.
         file = new File( fileName );
         if ( file.exists() && file.isFile() && ! file.canWrite() ) {
             file = null;
-            return;
+            throw new SplatException( "Cannot write to file: " + fileName );
         }
         writeData( file );
     }
@@ -141,6 +145,7 @@ public class TXTSpecDataImpl
      * @param file File object.
      */
     protected void readData( File file )
+        throws SplatException
     {
         //  Get a BufferedReader to read the file line-by-line. Note
         //  we are avoiding using StreamTokenizer directly, and doing
@@ -151,9 +156,9 @@ public class TXTSpecDataImpl
         try {
             f = new FileInputStream( file );
             r = new BufferedReader( new InputStreamReader( f ) );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            return;
+        } 
+        catch ( Exception e ) {
+            throw new SplatException( e );
         }
 
         //  Storage of all values go into ArrayList vectors, until we
@@ -195,21 +200,23 @@ public class TXTSpecDataImpl
                 }
             }
         }
-        catch ( IOException e ) {
-            e.printStackTrace();
+        catch ( Exception e ) {
             try {
                 r.close();
                 f.close();
-            } catch ( Exception ex ) {
+            } 
+            catch ( Exception ex ) {
                 ex.printStackTrace();
             }
-            return;
+            throw new SplatException( "Error reading values from file: " + 
+                                      file + " (" + e.getMessage() + ")", e );
         }
         try {
             r.close();
             f.close();
-        } catch (Exception e) {
-            //  Do nothing.
+        } 
+        catch (Exception e) {
+            //  Do nothing, it's not fatal.
         }
 
         //  Create memory needed to store these coordinates.
@@ -244,6 +251,7 @@ public class TXTSpecDataImpl
      * @param file File object.
      */
     protected void writeData( File file )
+        throws SplatException
     {
         //  Get a BufferedWriter to write the file line-by-line.
         FileOutputStream f = null;
@@ -251,16 +259,16 @@ public class TXTSpecDataImpl
         try {
             f = new FileOutputStream( file );
             r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            return;
+        } 
+        catch ( Exception e ) {
+            throw new SplatException( e );
         }
-
 
         // Add a header to the file.
         try {
             r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -269,7 +277,8 @@ public class TXTSpecDataImpl
             for ( int i = 0; i < data.length; i++ ) {
                 try {
                     r.write( coords[i] + " " + data[i] +"\n" );
-                } catch (Exception e) {
+                } 
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -277,7 +286,8 @@ public class TXTSpecDataImpl
             for ( int i = 0; i < data.length; i++ ) {
                 try {
                     r.write( coords[i] + " " + data[i] + " " + errors[i] );
-                } catch (Exception e) {
+                } 
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -287,7 +297,8 @@ public class TXTSpecDataImpl
             r.newLine();
             r.close();
             f.close();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             //  Do nothing.
         }
     }

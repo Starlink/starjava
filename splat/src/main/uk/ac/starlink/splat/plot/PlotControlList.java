@@ -3,6 +3,7 @@ package uk.ac.starlink.splat.plot;
 import java.util.ArrayList;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * PlotControlList is a singleton object that contains references to
@@ -105,6 +106,7 @@ public class PlotControlList
      *  Add a spectrum to a plot.
      */
     public void addSpectrum( PlotControl plot, SpecData spec )
+        throws SplatException
     {
         plot.addSpectrum( spec );
     }
@@ -113,6 +115,7 @@ public class PlotControlList
      *  Add a spectrum to a plot.
      */
     public void addSpectrum( int index, SpecData spec )
+        throws SplatException
     {
         ((PlotControl)plots.get( index ) ).addSpectrum( spec );
     }

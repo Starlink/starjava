@@ -10,6 +10,7 @@ package uk.ac.starlink.splat.iface;
 import javax.swing.table.AbstractTableModel;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.LineIDSpecData;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.ast.gui.AstDouble;
@@ -44,7 +45,8 @@ public class SpecTableModel
     /**
      * Names for the table columns.
      */
-    protected String[] columnNames = { "coords", "data", "error" };
+    protected String[] columnNames = new String[3];
+    //{ "coords", "data", "error" };
 
     /**
      * Values of the spectrum
@@ -52,6 +54,12 @@ public class SpecTableModel
     protected double[] xData = null;
     protected double[] yData = null;
     protected double[] yDataErrors = null;
+    protected String[] lineIDs = null;
+
+    /**
+     * Is the spectrum a LineIDSpecData?
+     */
+    protected boolean lineID = false;
 
     /**
      *  Create an instance of this class.
@@ -79,7 +87,9 @@ public class SpecTableModel
             xData = null;
             yData = null;
             yDataErrors = null;
+            columnNames = null;
             readOnly = true;
+            lineID = false;
             update( false );
         }
         else if ( this.specData != specData ) {
@@ -87,6 +97,7 @@ public class SpecTableModel
 
             // Set readonly false, if possible.
             setReadOnly( false );
+            lineID = ( specData instanceof LineIDSpecData );
             update( true );
         }
     }
@@ -134,7 +145,20 @@ public class SpecTableModel
         if ( complete ) {
             xData = specData.getXData();
             yData = specData.getYData();
-            yDataErrors = specData.getYDataErrors();
+
+            columnNames[0] = specData.getAst().getRef().getC( "label(1)" );
+            columnNames[1] = specData.getAst().getRef().getC( "label(2)" );
+
+            if ( lineID  ) {
+                columnNames[2] = "Line ID";
+                yDataErrors = null;
+                lineIDs = ((LineIDSpecData) specData).getLabels();
+            }
+            else {
+                yDataErrors = specData.getYDataErrors();
+                columnNames[2] = "Error";
+                lineIDs = null;
+            }
         }
         fireTableStructureChanged();
     }
@@ -162,8 +186,13 @@ public class SpecTableModel
     public int getColumnCount()
     {
         if ( specData != null ) {
-            if ( yDataErrors != null ) {
+            if ( lineID ) {
                 return 3;
+            }
+            else {
+                if ( yDataErrors != null ) {
+                    return 3;
+                }
             }
         }
         return 2;
@@ -183,7 +212,14 @@ public class SpecTableModel
                    return new AstDouble( yData[row], getAstFrameSet(), 2 );
                }
                case 2: {
-                   return new AstDouble( yDataErrors[row], getAstFrameSet(), 2 );
+                   if ( lineID ) {
+                       return lineIDs[row];
+                   }
+                   else {
+                       return new AstDouble( yDataErrors[row], 
+                                             getAstFrameSet(), 2 );
+
+                   }
                }
             }
         }
@@ -195,7 +231,10 @@ public class SpecTableModel
      */
     public String getColumnName( int index )
     {
-        return columnNames[index];
+        if ( columnNames != null ) {
+            return columnNames[index];
+        }
+        return "";
     }
 
     /**
@@ -204,6 +243,9 @@ public class SpecTableModel
      */
     public Class getColumnClass( int index )
     {
+        if ( lineID && index == 2 ) {
+            return String.class;
+        }
         return AstDouble.class;
     }
 
@@ -222,30 +264,37 @@ public class SpecTableModel
     {
         if ( specData != null && ! readOnly ) {
 
-            //  Only get here for EditableSpecData types.
-            double dvalue = ((AstDouble)value).doubleValue();
-            EditableSpecData edit = (EditableSpecData) specData;
-
             //  These modifications could go wrong.
-            try {
-                switch ( column ) {
-                    case 0: {
-                        edit.setXDataValue( row, dvalue );
-                        update( true );
-                        break;
-                    }
-                    case 1: {
-                        edit.setYDataValue( row, dvalue );
-                        fireTableCellUpdated( row, column );
-                        break;
-                    }
-                    case 2: {
-                        edit.setYDataErrorValue(row, dvalue);
-                        fireTableCellUpdated( row, column );
-                        break;
+            try {   
+                if ( lineID && column == 2 ) {
+                    ((LineIDSpecData) specData).setLabel( row, 
+                                                          (String) value );
+                }
+                else {
+                    
+                    //  Only get here for EditableSpecData types.
+                    double dvalue = ((AstDouble)value).doubleValue();
+                    EditableSpecData edit = (EditableSpecData) specData;
+                    
+                    switch ( column ) {
+                       case 0: {
+                           edit.setXDataValue( row, dvalue );
+                           update( true );
+                           break;
+                       }
+                       case 1: {
+                           edit.setYDataValue( row, dvalue );
+                           fireTableCellUpdated( row, column );
+                           break;
+                       }
+                       case 2: {
+                           edit.setYDataErrorValue(row, dvalue);
+                           fireTableCellUpdated( row, column );
+                           break;
+                       }
                     }
                 }
-                globalList.notifySpecListeners( edit );
+                globalList.notifySpecListeners( specData );
             }
             catch (Exception e) {
                 ExceptionDialog eDialog = new ExceptionDialog( null, e );

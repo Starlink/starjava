@@ -35,7 +35,7 @@ public class Utilities
      */
     public static String getReleaseVersion()
     {
-        return "1.0-2";
+        return "1.1-0";
     }
 
     /**
@@ -69,6 +69,32 @@ public class Utilities
     public static String getTitle( String postfix )
     {
         return getReleaseName() + ": " + postfix;
+    }
+
+    /**
+     * Get the copyright information for the program.
+     */
+    public static String getCopyright()
+    {
+        return 
+        "Copyright (C) 2001-2003 Central Laboratory of the Research Councils";
+    }
+    
+    /**
+     * Get the authors of the program.
+     */
+    public static String getAuthors()
+    {
+        return "Peter W. Draper";
+    }
+
+    /**
+     * Get a short description of the licensing terms.
+     */
+    public static String getLicense()
+    {
+        return "SPLAT is free software under the terms of the "+
+            "GNU General Public License.";
     }
 
 //
@@ -110,6 +136,25 @@ public class Utilities
         return new File( getConfigDirectory(), name );
     }
 
+//
+// Files.
+//
+    /**
+     * Return the extension of a file's name.
+     *
+     * @param f the File.
+     */
+    public static String getExtension( File f )
+    {
+        if ( f != null ) {
+            String filename = f.getName();
+            int i = filename.lastIndexOf( '.' );
+            if ( i > 0 && i < filename.length() - 1 ) {
+                return filename.substring( i + 1 ).toLowerCase();
+            }
+        }
+        return null;
+    }
 
 //
 // Debugging routines.

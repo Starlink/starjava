@@ -90,6 +90,23 @@ public class LineIDSpecData
     }
 
     /**
+     * Set the labels.
+     */
+    public void setLabels( String[] labels )
+        throws SplatException
+    {
+        lineIDImpl.setLabels( labels );
+    }
+    
+    /**
+     * Set a specific label.
+     */
+    public void setLabel( int index, String label )
+    {
+        lineIDImpl.setLabel( index, label );
+    }
+
+    /**
      * Return if the backing implementation has valid positions for
      * the labels.
      */
@@ -105,7 +122,8 @@ public class LineIDSpecData
     public void drawSpec( Grf grf, Plot plot, double[] limits )
     {
         String[] labels = getLabels();
-        
+        double yshift = 0.1 * ( limits[3] - limits[1] );
+
         //  Need to generate positions for placing the labels. The
         //  various schemes for this are use any positions read from
         //  the implementation, use the positions from a SpecData and
@@ -123,13 +141,13 @@ public class LineIDSpecData
         if ( ypos != null ) {
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = ypos[j];
+                xypos[i + 1] = ypos[j] + yshift;
             }
         }
         else {
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = limits[1]; // or [3]?
+                xypos[i + 1] = limits[1] + yshift; // or limits[3]?
             }
         }
 
@@ -155,7 +173,7 @@ public class LineIDSpecData
 
         for ( int i = 0; i < labels.length; i++ ) {
             defaultGrf.text( labels[i], xygpos[0][i], xygpos[1][i], 
-                             "C", 1.0, 0.0 );
+                             "CC", 1.0, 0.0 );
         }
 
         defaultGrf.setClipRegion( null );

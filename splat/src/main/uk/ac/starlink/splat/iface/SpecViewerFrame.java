@@ -333,7 +333,6 @@ public class SpecViewerFrame
             coordinateGenerator
                 .setEditableSpecData( (EditableSpecData) specData );
         }
-        //refreshUndoRedo();
     }
 
     protected CoordinateGeneratorFrame coordinateGeneratorWindow = null;
@@ -363,7 +362,6 @@ public class SpecViewerFrame
                   JOptionPane.ERROR_MESSAGE );
         }
     }
-
 
     protected ColumnGeneratorFrame errorColumnWindow = null;
     protected ErrorColumnGenerator errorColumnGenerator = null;

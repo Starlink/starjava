@@ -1,5 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
+/*
+ * Copyright (C) 2002-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     28-MAY-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import java.io.IOException;
@@ -36,7 +41,6 @@ import uk.ac.starlink.splat.util.SplatException;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @since 28-MAY-2002
  * @see "The Bridge Design Pattern"
  */
 public class NDXSpecDataImpl 
@@ -51,6 +55,7 @@ public class NDXSpecDataImpl
      * should only contain a single NDX, that is a spectrum.
      */
     public NDXSpecDataImpl( String hdxName )
+        throws SplatException
     {
         super( hdxName );
         open( hdxName );
@@ -60,6 +65,7 @@ public class NDXSpecDataImpl
      * Constructor - use an NDX described in a DOM.
      */
     public NDXSpecDataImpl( Element ndxElement )
+        throws SplatException
     {
         super( "Wired NDX" );
         open( ndxElement );
@@ -70,9 +76,10 @@ public class NDXSpecDataImpl
      * another spectrum (usual starting point for saving).
      */
     public NDXSpecDataImpl( String hdxName, SpecData source )
+        throws SplatException
     {
         super( hdxName );
-        throw new RuntimeException
+        throw new SplatException
             ( "Duplication of NDX spectra not implemented" );
     }
 
@@ -152,9 +159,10 @@ public class NDXSpecDataImpl
     /**
      * Save the spectrum to disk-file.
      */
-    public void save() throws SplatException
+    public void save() 
+        throws SplatException
     {
-        throw new RuntimeException( "Saving NDX spectra is not implemented" );
+        throw new SplatException( "Saving NDX spectra is not implemented" );
     }
 
 //
@@ -208,6 +216,7 @@ public class NDXSpecDataImpl
      *                should be dealt with by HDX).
      */
     protected void open( String hdxName )
+        throws SplatException
     {
         // Read the complete document that we've been given.
         ////List ndxs = null;
@@ -228,12 +237,11 @@ public class NDXSpecDataImpl
             }
             ndx = ndxIO.makeNdx( url, AccessMode.READ );
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            return;
+        catch ( Exception e ) {
+            throw new SplatException( e );
         }
         if ( ndx == null ) {
-            throw new RuntimeException( "Document contains no NDXs" );
+            throw new SplatException( "Document contains no NDXs" );
         }
         fullName = hdxName;
         shortName = hdxName;
@@ -248,6 +256,7 @@ public class NDXSpecDataImpl
      * @param ndxElement the Element.
      */
     protected void open( Element ndxElement )
+        throws SplatException
     {
         ////List ndxs = null;
         ////HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
@@ -259,11 +268,10 @@ public class NDXSpecDataImpl
                                                        AccessMode.READ );
         }
         catch (Exception e) {
-            e.printStackTrace();
-            return;
+            throw new SplatException( e );
         }
         if ( ndx == null ) {
-            throw new RuntimeException( "Document contains no NDXs" );
+            throw new SplatException( "Document contains no NDXs" );
         }
 
         String title = ndx.hasTitle() ? ndx.getTitle() : "";
@@ -282,6 +290,7 @@ public class NDXSpecDataImpl
      * double precision array.
      */
     protected void readData()
+        throws SplatException
     {
         // Use a Requirements object to make sure that data is all the
         // same shape. We also require that the data be returned in
@@ -303,9 +312,8 @@ public class NDXSpecDataImpl
             }
         }
         catch (Exception e) {
-            e.printStackTrace();
             data = null;
-            return;
+            throw new SplatException( e );
         }
 
         //  No spectra longer than (int)?
@@ -334,12 +342,10 @@ public class NDXSpecDataImpl
                 }
             }
         }
-        catch ( IOException ie ) {
-            ie.printStackTrace();
+        catch ( IOException e ) {
             data = errors = null;
-            return;
+            throw new SplatException( e );
         }
-
         return;
     }
 
@@ -347,7 +353,8 @@ public class NDXSpecDataImpl
      * Finalise object. Free any resources associated with member
      * variables.
      */
-    protected void finalize() throws Throwable
+    protected void finalize() 
+        throws Throwable
     {
         if ( imAccess != null ) {
             imAccess.close();

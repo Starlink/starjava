@@ -5,6 +5,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.swing.filechooser.FileFilter;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * A convenience implementation of FileFilter that filters out
@@ -26,7 +27,7 @@ import javax.swing.filechooser.FileFilter;
  * @author Jeff Dinkins
  * @author Peter W. Draper
  */
-public class SpectralFileFilter extends FileFilter 
+public class SpectralFileFilter extends FileFilter
 {
     private static String TYPE_UNKNOWN = "Type Unknown";
     private static String HIDDEN_FILE = "Hidden File";
@@ -42,7 +43,7 @@ public class SpectralFileFilter extends FileFilter
      *
      * @see #addExtension
      */
-    public SpectralFileFilter() 
+    public SpectralFileFilter()
     {
         this.filters = new Hashtable();
     }
@@ -53,9 +54,9 @@ public class SpectralFileFilter extends FileFilter
      *
      * @see #addExtension
      */
-    public SpectralFileFilter(String extension) 
+    public SpectralFileFilter( String extension )
     {
-        this(extension,null);
+        this( extension,null );
     }
 
     /**
@@ -67,11 +68,11 @@ public class SpectralFileFilter extends FileFilter
      *
      * @see #addExtension
      */
-    public SpectralFileFilter(String extension, String description) 
+    public SpectralFileFilter( String extension, String description )
     {
         this();
-        if(extension!=null) addExtension(extension);
-        if(description!=null) setDescription(description);
+        if ( extension != null ) addExtension( extension );
+        if ( description != null ) setDescription( description );
     }
 
     /**
@@ -83,9 +84,9 @@ public class SpectralFileFilter extends FileFilter
      *
      * @see #addExtension
      */
-    public SpectralFileFilter(String[] filters) 
+    public SpectralFileFilter( String[] filters )
     {
-        this(filters, null);
+        this( filters, null );
     }
 
     /**
@@ -96,14 +97,14 @@ public class SpectralFileFilter extends FileFilter
      *
      * @see #addExtension
      */
-    public SpectralFileFilter(String[] filters, String description) 
+    public SpectralFileFilter( String[] filters, String description )
     {
         this();
-        for (int i = 0; i < filters.length; i++) {
+        for ( int i = 0; i < filters.length; i++ ) {
             // add filters one by one
-            addExtension(filters[i]);
+            addExtension( filters[i] );
         }
-        if(description!=null) setDescription(description);
+        if ( description != null ) setDescription( description );
     }
 
     /**
@@ -112,39 +113,20 @@ public class SpectralFileFilter extends FileFilter
      *
      * Files that begin with "." are ignored.
      *
-     * @see #getExtension
      * @see FileFilter#accepts
      */
-    public boolean accept(File f) 
+    public boolean accept( File f )
     {
-        if(f != null) {
-            if(f.isDirectory()) {
+        if ( f != null ) {
+            if ( f.isDirectory() ) {
                 return true;
             }
-            String extension = getExtension(f);
-            if(extension != null && filters.get(getExtension(f)) != null) {
+            String extension = Utilities.getExtension( f );
+            if ( extension != null && filters.get( extension ) != null ) {
                 return true;
-            };
+            }
         }
         return false;
-    }
-
-    /**
-     * Return the extension portion of the file's name .
-     *
-     * @see #getExtension
-     * @see FileFilter#accept
-     */
-     public String getExtension(File f) 
-    {
-        if(f != null) {
-            String filename = f.getName();
-            int i = filename.lastIndexOf('.');
-            if(i>0 && i<filename.length()-1) {
-                return filename.substring(i+1).toLowerCase();
-            };
-        }
-        return null;
     }
 
     /**
@@ -159,12 +141,12 @@ public class SpectralFileFilter extends FileFilter
      *
      * Note that the "." before the extension is not needed and will be ignored.
      */
-    public void addExtension(String extension) 
+    public void addExtension( String extension )
     {
-        if(filters == null) {
-            filters = new Hashtable(5);
+        if ( filters == null ) {
+            filters = new Hashtable( 5 );
         }
-        filters.put(extension.toLowerCase(), this);
+        filters.put( extension.toLowerCase(), this );
         fullDescription = null;
     }
 
@@ -178,21 +160,30 @@ public class SpectralFileFilter extends FileFilter
      * @see isExtensionListInDescription
      * @see FileFilter#getDescription
      */
-    public String getDescription() 
+    public String getDescription()
     {
-        if(fullDescription == null) {
-            if(description == null || isExtensionListInDescription()) {
-                fullDescription = description==null ? "(" : description + " (";
+        if ( fullDescription == null ) {
+            if ( description == null || isExtensionListInDescription() ) {
+                fullDescription = description;
+                if ( description != null ) {
+                    fullDescription += " (";
+                }
+                else {
+                    fullDescription = " (";
+                }
+
                 // build the description from the extension list
                 Enumeration extensions = filters.keys();
-                if(extensions != null) {
-                    fullDescription += "." + (String) extensions.nextElement();
-                    while (extensions.hasMoreElements()) {
-                        fullDescription += ", " + (String) extensions.nextElement();
+                if ( extensions != null ) {
+                    fullDescription += " ." + (String)extensions.nextElement();
+                    while ( extensions.hasMoreElements() ) {
+                        fullDescription += ", ." + 
+                            (String)extensions.nextElement();
                     }
                 }
                 fullDescription += ")";
-            } else {
+            } 
+            else {
                 fullDescription = description;
             }
         }
@@ -207,7 +198,7 @@ public class SpectralFileFilter extends FileFilter
      * @see setExtensionListInDescription
      * @see isExtensionListInDescription
      */
-    public void setDescription(String description) 
+    public void setDescription( String description )
     {
         this.description = description;
         fullDescription = null;
@@ -224,7 +215,7 @@ public class SpectralFileFilter extends FileFilter
      * @see setDescription
      * @see isExtensionListInDescription
      */
-    public void setExtensionListInDescription(boolean b) 
+    public void setExtensionListInDescription( boolean b )
     {
         useExtensionsInDescription = b;
         fullDescription = null;
@@ -241,7 +232,7 @@ public class SpectralFileFilter extends FileFilter
      * @see setDescription
      * @see setExtensionListInDescription
      */
-    public boolean isExtensionListInDescription() 
+    public boolean isExtensionListInDescription()
     {
         return useExtensionsInDescription;
     }

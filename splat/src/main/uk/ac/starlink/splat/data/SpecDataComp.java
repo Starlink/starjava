@@ -91,7 +91,7 @@ public class SpecDataComp
      * can be converted to preserve units, systems, etc. Switching
      * this on can be slow.
      */
-    public void setCoordinateMatching( boolean on ) 
+    public void setCoordinateMatching( boolean on )
     {
         coordinateMatching = on;
     }
@@ -99,7 +99,7 @@ public class SpecDataComp
     /**
      * Get whether we're being careful about matching coordinates.
      */
-    public boolean isCoordinateMatching() 
+    public boolean isCoordinateMatching()
     {
         return coordinateMatching;
     }
@@ -226,6 +226,7 @@ public class SpecDataComp
      *  Get the data range of all the spectra
      */
     public double[] getRange()
+        throws SplatException
     {
         double[] range = new double[4];
         range[0] = Double.MAX_VALUE;
@@ -234,6 +235,8 @@ public class SpecDataComp
         range[3] = -Double.MAX_VALUE;
         SpecData baseSpectrum = null;
         SpecData spectrum = null;
+        int failed  = 0;
+        SplatException lastException = null;
         for ( int i = 0; i < spectra.size(); i++ ) {
             spectrum = (SpecData) spectra.get(i);
             double[] newrange = spectrum.getRange();
@@ -241,13 +244,25 @@ public class SpecDataComp
                 if ( i > 0 ) {
                     //  Need to convert between these coordinates and
                     //  those of the reference spectrum.
-                    newrange = transformRange( baseSpectrum, spectrum, newrange);
+                    try {
+                        newrange = transformRange( baseSpectrum,
+                                                   spectrum,
+                                                   newrange);
+                    }
+                    catch (SplatException e) {
+                        failed++;
+                        lastException = e;
+                    }
                 }
                 else {
                     baseSpectrum = spectrum;
                 }
             }
             checkRangeLimits( newrange, range );
+        }
+        if ( lastException != null ) {
+            throw new SplatException( "Failed to align coordinate systems",
+                                      lastException);
         }
         return range;
     }
@@ -277,6 +292,7 @@ public class SpecDataComp
      *  Get the full data range of all the spectra.
      */
     public double[] getFullRange()
+        throws SplatException
     {
         double[] range = new double[4];
         range[0] = Double.MAX_VALUE;
@@ -285,6 +301,8 @@ public class SpecDataComp
         range[3] = -Double.MAX_VALUE;
         SpecData baseSpectrum = null;
         SpecData spectrum = null;
+        int failed = 0;
+        SplatException lastException = null;
         for ( int i = 0; i < spectra.size(); i++ ) {
             spectrum = (SpecData) spectra.get(i);
             double[] newrange = spectrum.getFullRange();
@@ -292,13 +310,25 @@ public class SpecDataComp
                 if ( i > 0 ) {
                     //  Need to convert between these coordinates and
                     //  those of the reference spectrum.
-                    newrange = transformRange( baseSpectrum, spectrum, newrange);
+                    try {
+                        newrange = transformRange( baseSpectrum,
+                                                   spectrum,
+                                                   newrange);
+                    }
+                    catch (SplatException e) {
+                        failed++;
+                        lastException = e;
+                    }
                 }
                 else {
                     baseSpectrum = spectrum;
                 }
             }
             checkRangeLimits( newrange, range );
+        }
+        if ( lastException != null ) {
+            throw new SplatException( "Failed to align coordinate systems",
+                                      lastException );
         }
         return range;
     }
@@ -311,6 +341,7 @@ public class SpecDataComp
      * then their range is also accomodated.
      */
     public double[] getAutoRange()
+        throws SplatException
     {
         double[] range = new double[4];
         range[0] = Double.MAX_VALUE;
@@ -322,6 +353,8 @@ public class SpecDataComp
         double newrange[];
         SpecData baseSpectrum = null;
         SpecData spectrum = null;
+        int failed = 0;
+        SplatException lastException = null;
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData)spectra.get(i);
             if ( spectrum.isUseInAutoRanging() || count == 1 ) {
@@ -335,8 +368,14 @@ public class SpecDataComp
                     if ( i > 0 ) {
                         //  Need to convert between these coordinates and
                         //  those of the reference spectrum.
-                        newrange = transformRange( baseSpectrum, spectrum,
-                                                   newrange);
+                        try {
+                            newrange = transformRange( baseSpectrum, spectrum,
+                                                       newrange);
+                        }
+                        catch (SplatException e) {
+                            failed++;
+                            lastException = e;
+                        }
                     }
                     else {
                         baseSpectrum = spectrum;
@@ -348,6 +387,10 @@ public class SpecDataComp
         }
         if ( used == 0 ) {
             range = getFullRange();
+        }
+        if ( lastException != null ) {
+            throw new SplatException( "Failed to align coordinate systems",
+                                      lastException );
         }
         return range;
     }
@@ -362,15 +405,20 @@ public class SpecDataComp
      */
     public double[] transformRange( SpecData target, SpecData source,
                                     double[] range )
+        throws SplatException
     {
         double[] result = range;
-        //  Try to align the plotting FrameSets of the SpecData. Only
-        //  need to do this between DATAPLOT domains. ?? Will this
-        //  work with CmpFrame containing one SpecFrame?
         try {
+            //  Try to align the plotting FrameSets of the SpecData. Only
+            //  need to do this between DATAPLOT domains. ?? Will this
+            //  work with CmpFrame containing one SpecFrame?
             FrameSet to = target.getAst().getRef();
             FrameSet fr = source.getAst().getRef();
             FrameSet aligned = fr.convert( to, "DATAPLOT" );
+            if ( aligned == null ) {
+                throw new SplatException( "Failed to aligned coordinates" +
+                                          " while transforming ranges");
+            }
 
             //  2D coords, so need separate X,Y coords.
             double xin[] = new double[range.length/2];
@@ -388,10 +436,11 @@ public class SpecDataComp
                 result[i+xin.length] = tmp[1][i];
             }
         }
-        catch (AstException e) {
-            e.printStackTrace();
+        catch (Exception e) {
+            // All Exceptions are recast to SplatExceptions.
+            throw new SplatException( e );
         }
-        return result;
+            return result;
     }
 
 
@@ -405,32 +454,32 @@ public class SpecDataComp
      */
     public double[] transformLimits( Plot plot, SpecData target,
                                      double[] limits )
+        throws SplatException
     {
         double[] result = limits;
-        try {
-            Frame to = plot.getFrame( FrameSet.AST__CURRENT );
-            Frame fr =
-                target.getAst().getRef().getFrame( FrameSet.AST__CURRENT );
-            FrameSet aligned = to.convert( fr, "DATAPLOT" );
-
-            //  2D coords, so need separate X,Y coords.
-            double xin[] = new double[limits.length/2];
-            double yin[] = new double[xin.length];
-            for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
-                xin[i] = limits[j];
-                yin[i] = limits[j+1];
-            }
-            double[][] tmp = aligned.tran2( xin.length, xin, yin, true );
-
-            // Put back to vectorized array.
-            result = new double[limits.length];
-            for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
-                result[j] = tmp[0][i];
-                result[j+1] = tmp[1][i];
-            }
+        Frame to = plot.getFrame( FrameSet.AST__CURRENT );
+        Frame fr =
+            target.getAst().getRef().getFrame( FrameSet.AST__CURRENT );
+        FrameSet aligned = to.convert( fr, "DATAPLOT" );
+        if ( aligned == null ) {
+            throw new SplatException( "Failed to aligned coordinates" +
+                                      " while transforming limits");
         }
-        catch (AstException e) {
-            e.printStackTrace();
+
+        //  2D coords, so need separate X,Y coords.
+        double xin[] = new double[limits.length/2];
+        double yin[] = new double[xin.length];
+        for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
+            xin[i] = limits[j];
+            yin[i] = limits[j+1];
+        }
+        double[][] tmp = aligned.tran2( xin.length, xin, yin, true );
+
+        // Put back to vectorized array.
+        result = new double[limits.length];
+        for ( int i = 0, j = 0; i < xin.length; i++, j+=2 ) {
+            result[j] = tmp[0][i];
+            result[j+1] = tmp[1][i];
         }
         return result;
     }
@@ -439,6 +488,7 @@ public class SpecDataComp
      *  Draw all spectra using the graphics context provided.
      */
     public void drawSpec( Grf grf, Plot plot, double[] limits )
+        throws SplatException
     {
         Plot localPlot = plot;
         double[] localLimits = limits;
@@ -464,27 +514,22 @@ public class SpecDataComp
      * returned.
      */
     public Plot alignPlots( Plot plot, SpecData source )
+        throws SplatException
     {
-        try {
-            Plot result = (Plot)plot.copy();
+        Plot result = (Plot)plot.copy();
 
-            //  Try to align the plot FrameSet and the SpecData. Only
-            //  need to do this between DATAPLOT domains.
-            Frame to =
-                result.getFrame( FrameSet.AST__CURRENT );
-
-            Frame from =
-                source.getAst().getRef().getFrame( FrameSet.AST__CURRENT );
-
-            FrameSet aligned = to.convert( from, "DATAPLOT" );
-
-            result.addFrame( FrameSet.AST__CURRENT, aligned, from );
-            return result;
+        //  Try to align the plot FrameSet and the SpecData. Only
+        //  need to do this between DATAPLOT domains.
+        Frame to = result.getFrame( FrameSet.AST__CURRENT );
+        Frame from = source.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
+        FrameSet aligned = to.convert( from, "DATAPLOT" );
+        if ( aligned == null ) {
+            throw new SplatException( "Failed to align coordinates" +
+                                      " while transforming between plots");
         }
-        catch (AstException e) {
-            e.printStackTrace();
-            return plot;
-        }
+
+        result.addFrame( FrameSet.AST__CURRENT, aligned, from );
+        return result;
     }
 
     /**

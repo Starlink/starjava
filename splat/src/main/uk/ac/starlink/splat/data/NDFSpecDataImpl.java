@@ -25,7 +25,7 @@ import uk.ac.starlink.splat.util.SplatException;
  * @version $Id$
  * @see "The Bridge Design Pattern"
  */
-public class NDFSpecDataImpl 
+public class NDFSpecDataImpl
     extends AbstractSpecDataImpl
     implements FITSHeaderSource
 {
@@ -36,6 +36,7 @@ public class NDFSpecDataImpl
      * Constructor - open a NDF by file name.
      */
     public NDFSpecDataImpl( String fileName )
+        throws SplatException
     {
         super( fileName );
         open( fileName );
@@ -46,6 +47,7 @@ public class NDFSpecDataImpl
      * another spectrum (usual starting point for saving).
      */
     public NDFSpecDataImpl( String fileName, SpecData source )
+        throws SplatException
     {
         super( fileName );
         fullName = fileName;
@@ -128,7 +130,8 @@ public class NDFSpecDataImpl
      * hasn't already been saved and is resident in a temporary NDF.
      * TODO: deal with situation when above isn't true.
      */
-    public void save() throws SplatException
+    public void save()
+        throws SplatException
     {
         //  Create a copy of the current NDF (which should be a
         //  temporary one, as only cloned NDFs can really be saved).
@@ -185,7 +188,7 @@ public class NDFSpecDataImpl
                 card = new HeaderCard( theNDF.getFitsHeader( i ) );
                 if ( card.isKeyValuePair() ) {
                     iter.add( card.getKey(), card );
-                } 
+                }
                 else {
                     iter.add( card );
                 }
@@ -207,7 +210,7 @@ public class NDFSpecDataImpl
      * Original specification of NDF.
      */
     protected String fullName;
-    
+
     /**
      * Finalise object. Free any resources associated with member
      * variables (not much to do here, NDFJ class frees AST frameset
@@ -226,9 +229,14 @@ public class NDFSpecDataImpl
      * @param fileName file name of the NDF.
      */
     protected void open( String fileName )
+        throws SplatException
     {
-        theNDF.open( fileName );
-        fullName = fileName;
+        if ( theNDF.open( fileName ) ) {
+            fullName = fileName;
+        }
+        else {
+            throw new SplatException( "Failed to open NDF: " + fileName );
+        }
     }
 
     /**
@@ -249,7 +257,7 @@ public class NDFSpecDataImpl
         //  Create the NDF. Use a copy if source is an NDF.
         if ( source.getDataFormat().equals( "NDF" ) ) {
             theNDF = ((NDFSpecDataImpl)source.getSpecDataImpl()).getTempCopy();
-        } 
+        }
         else {
             //  Look for a backing source that may be an NDF sometime
             //  back (only really works for EditableSpecData).
@@ -275,7 +283,7 @@ public class NDFSpecDataImpl
 
         //  If source offer FITS headers, then we need to copy these.
         if ( source.getSpecDataImpl().isFITSHeaderSource() ) {
-            Header headers = 
+            Header headers =
                 ((FITSHeaderSource)source.getSpecDataImpl()).getFitsHeaders();
             if ( headers != null ) {
                 Cursor iter = headers.iterator();
@@ -294,7 +302,7 @@ public class NDFSpecDataImpl
         theNDF.set1DDouble( "data", source.getYData() );
         if ( source.getYDataErrors() != null ) {
             theNDF.set1DDouble( "error", source.getYDataErrors() );
-        } 
+        }
         else {
             //  TODO: clear any existing variance component.
         }

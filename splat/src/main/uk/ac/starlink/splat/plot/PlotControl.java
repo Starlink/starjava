@@ -922,9 +922,16 @@ public class PlotControl
      * @param spec reference to a spectrum.
      */
     public void addSpectrum( SpecData spec )
+        throws SplatException
     {
         spectra.add( spec );
-        updatePlot();
+        try {
+            updateThePlot();
+        }
+        catch (SplatException e) {
+            spectra.remove( spec );
+            throw e;
+        }
     }
 
     /**
@@ -935,7 +942,12 @@ public class PlotControl
     public void removeSpectrum( SpecData spec )
     {
         spectra.remove( spec );
-        updatePlot();
+        try {
+            updateThePlot();
+        }
+        catch (SplatException e) {
+            // Do nothing, should be none-fatal.
+        }
     }
 
     /**
@@ -946,7 +958,12 @@ public class PlotControl
     public void removeSpectrum( int index )
     {
         spectra.remove( index );
-        updatePlot();
+        try {
+            updateThePlot();
+        }
+        catch (SplatException e) {
+            // Do nothing, should be none-fatal.
+        }
     }
 
     /**
@@ -1183,6 +1200,28 @@ public class PlotControl
     }
 
     /**
+     * Update the plot. Should be called when events that require the Plot to
+     * redraw itself occur (i.e. when spectra are added or removed and when
+     * the Plot configuration is changed).
+     */
+    public void updateThePlot()
+        throws SplatException
+    {
+        //  plot.update may throw a SplatException.
+        plot.update();
+        updateNames();
+
+        // Check if the X or Y data limits are supposed to match the
+        // viewable surface or not.
+        if ( plot.getDataLimits().isXFit() ) {
+            fitToWidth();
+        }
+        if ( plot.getDataLimits().isYFit() ) {
+            fitToHeight();
+        }
+    }
+
+    /**
      * Update the spectral names and lines. Need to do this when spectra are
      * added to, and removed from, the global list. See updatePlot().
      */
@@ -1283,31 +1322,6 @@ public class PlotControl
     }
 
     /**
-     * Update the plot. Should be called when events that require the Plot to
-     * redraw itself occur (i.e. when spectra are added or removed and when
-     * the Plot configuration is changed).
-     */
-    public void updatePlot()
-    {
-        try {
-            plot.update();
-            updateNames();
-        }
-        catch ( SplatException e ) {
-            //  Do nothing, probably not fatal.
-        }
-
-        // Check if the X or Y data limits are supposed to match the
-        // viewable surface or not.
-        if ( plot.getDataLimits().isXFit() ) {
-            fitToWidth();
-        }
-        if ( plot.getDataLimits().isYFit() ) {
-            fitToHeight();
-        }
-    }
-
-    /**
      * Get reference to the JViewport being used to display the spectra.
      *
      * @return reference to the JViewport.
@@ -1356,7 +1370,12 @@ public class PlotControl
         SpecData spectrum = globalList.getSpectrum( globalIndex );
         int localIndex = spectra.indexOf( spectrum );
         if ( localIndex > -1 ) {
-            updatePlot();
+            try {
+                updateThePlot();
+            }
+            catch (SplatException ignored) {
+                // Do nothing, should be none-fatal.
+            }
         }
     }
 
@@ -1433,9 +1452,18 @@ public class PlotControl
     }
 
 //
-// Implement PlotController interface. Note that the updatePlot()
-// method is part of this
+// Implement PlotController interface.
 //
+    public void updatePlot()
+    {
+        try {
+            updateThePlot();
+        }
+        catch (SplatException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void setPlotColour( Color color )
     {
         plot.setBackground( color );

@@ -213,7 +213,7 @@ public class PlotControlFrame
     protected void configureMenus()
     {
         //  Add the menuBar.
-        this.setJMenuBar( menuBar );
+        setJMenuBar( menuBar );
 
         //  Add the toolbar to a container. Need extra component for
         //  sensible float behaviour.
@@ -569,7 +569,7 @@ public class PlotControlFrame
     public void showPanner()
     {
         if ( pannerFrame == null ) {
-            pannerFrame = new PlotPannerFrame( this.getPlot() );
+            pannerFrame = new PlotPannerFrame( getPlot() );
             //  We'd like to know if the window is closed.
             pannerFrame.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
@@ -607,7 +607,7 @@ public class PlotControlFrame
     public void showCutter()
     {
         if ( cutterFrame == null ) {
-            cutterFrame = new SpecCutterFrame( this.getPlot() );
+            cutterFrame = new SpecCutterFrame( getPlot() );
             //  We'd like to know if the window is closed.
             cutterFrame.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
@@ -655,7 +655,7 @@ public class PlotControlFrame
     public void showFilter()
     {
         if ( filterFrame == null ) {
-            filterFrame = new SpecFilterFrame( this.getPlot() );
+            filterFrame = new SpecFilterFrame( getPlot() );
             //  We'd like to know if the window is closed.
             filterFrame.addWindowListener( new WindowAdapter() {
                     public void windowClosed( WindowEvent evt ) {
@@ -748,7 +748,7 @@ public class PlotControlFrame
      */
     public void closeWindow()
     {
-        this.dispose();
+        dispose();
         closeToolWindows();
     }
 

@@ -7,11 +7,22 @@ import javax.swing.JOptionPane;
 /**
  *  General class for all exceptions thrown in SPLAT.
  */
-public class SplatException extends Exception 
+public class SplatException 
+    extends Exception 
 {
-    public SplatException () 
+    public SplatException() 
     {
         super();
+    }
+    
+    public SplatException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
+
+    public SplatException( Throwable cause )
+    {
+        super( cause );
     }
 
     public SplatException ( String message ) 

@@ -60,10 +60,26 @@ public class ExceptionDialog
      */
     public ExceptionDialog( Component parent, Exception e )
     {
+        this( parent, e.getMessage(), e );
+    }
+
+    /**
+     * Create an error dialog that initially displays a given message,
+     * but which will also display the full text of the exception
+     * stack trace and the original exception message. 
+     * 
+     * @param the a parent for this window, can be null.
+     * @param detailMessage an message to explain the exception (may
+     *                      be the except message).
+     * @param e the exception to report and maybe display.
+     */
+    public ExceptionDialog( Component parent, String detailMessage, 
+                            Exception e )
+    {
         //  Initialize the interface and extract information to make
         //  the various reports.
         initUI();
-        makeReports( e );
+        makeReports( detailMessage, e );
 
         //  Create a suitable JOptionPane wth our messagesArea and two
         //  buttons, one for "OK" and the other (usually NO) for the
@@ -142,9 +158,12 @@ public class ExceptionDialog
     /**
      * Write the full exception and message to the report.
      */
-    protected void makeReports( Exception e )
+    protected void makeReports( String detailMessage, Exception e )
     {
-        message.setText( e.getMessage() );
+        message.setText( detailMessage );
+        if ( ! detailMessage.equals( e.getMessage() ) ) {
+            textArea.setText( message + "\n" );
+        }
         textArea.setText( e.getMessage() + "\n" );
         StackTraceElement[] elements = e.getStackTrace();
         for ( int i = 0; i < elements.length; i++ ) {

@@ -1091,36 +1091,41 @@ public class SpecData
             //  axis. The coordinates are chosen to run along the
             //  sigaxis (if input data has more than one dimension)
             //  and may be a distance, rather than absolute coordinate.
-            FrameSet specref = ast.makeSpectral( sigaxis, 0, yPos.length,
-                                                 impl.getProperty( "label" ),
-                                                 impl.getProperty( "units" ),
-                                                 false );
-            astJ = new ASTJ( specref, true );
+            try {
+                FrameSet specref = 
+                    ast.makeSpectral( sigaxis, 0, yPos.length,
+                                      impl.getProperty( "label" ),
+                                      impl.getProperty( "units" ),
+                                      false );
+                astJ = new ASTJ( specref, true );
 
-            //  Get the mapping for the X axis and check that it is
-            //  useful, i.e. we can invert it.
-            Mapping oned = astJ.get1DMapping( 1 );
-            boolean invertable = ( oned.getI( "TranInverse" ) == 1 );
-            if ( ! invertable ) {
-                throw new SplatException( "The coordinate axis " +
-                                          "of the spectrum '" + shortName +
-                                          "' does not increase or " +
-                                          "decrease monotonically.\n" +
-                                          "This means that it cannot " +
-                                          "be used." );
+                //  Get the mapping for the X axis and check that it is
+                //  useful, i.e. we can invert it.
+                Mapping oned = astJ.get1DMapping( 1 );
+                boolean invertable = ( oned.getI( "TranInverse" ) == 1 );
+                if ( ! invertable ) {
+                    throw new SplatException( "The coordinate axis " +
+                                              "of the spectrum '" + shortName +
+                                              "' does not increase or " +
+                                              "decrease monotonically.\n" +
+                                              "This means that it cannot " +
+                                              "be used." );
+                }
+
+                //  Get the centres of the pixel positions in current
+                //  coordinates (so we can eventually go from current
+                //  coordinates through to graphics coordinates when
+                //  actually drawing the spectrum).
+                double[] tPos = ASTJ.astTran1( oned, xPos, true );
+                xPos = tPos;
+                tPos = null;
+                
+                //  Set the axis range.
+                setRange();
             }
-
-            //  Get the centres of the pixel positions in current
-            //  coordinates (so we can eventually go from current
-            //  coordinates through to graphics coordinates when
-            //  actually drawing the spectrum).
-            double[] tPos = ASTJ.astTran1( oned, xPos, true );
-            //ASTJ.astAnnul( oned );
-            xPos = tPos;
-            tPos = null;
-
-            //  Set the axis range.
-            setRange();
+            catch (Exception e) {
+                throw new SplatException( e );
+            }
         }
     }
 
@@ -1717,17 +1722,17 @@ public class SpecData
     private void readObject( ObjectInputStream in )
         throws IOException, ClassNotFoundException
     {
-        in.defaultReadObject();
-        MEMSpecDataImpl newImpl = new MEMSpecDataImpl( shortName );
-        fullName = null;
-        if ( haveYDataErrors() ) {
-            newImpl.setData( getXData(), getYData(), getYDataErrors() );
-        }
-        else {
-            newImpl.setData( getXData(), getYData() );
-        }
-        this.impl = newImpl;
         try {
+            in.defaultReadObject();
+            MEMSpecDataImpl newImpl = new MEMSpecDataImpl( shortName );
+            fullName = null;
+            if ( haveYDataErrors() ) {
+                newImpl.setData( getXData(), getYData(), getYDataErrors() );
+            }
+            else {
+                newImpl.setData( getXData(), getYData() );
+            }
+            this.impl = newImpl;
             readData();
         }
         catch ( SplatException e ) {
