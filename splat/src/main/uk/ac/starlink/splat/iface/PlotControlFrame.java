@@ -144,6 +144,7 @@ public class PlotControlFrame
     protected JMenu optionsMenu = new JMenu();
     protected JMenu editMenu = new JMenu();
     protected JCheckBoxMenuItem coordinateMatching = null;
+    protected JCheckBoxMenuItem dataUnitsMatching = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem showShortNames = null;
@@ -508,9 +509,17 @@ public class PlotControlFrame
         coordinateMatching = new JCheckBoxMenuItem( "Match coordinates" );
         optionsMenu.add( coordinateMatching );
         coordinateMatching.addItemListener( this );
+
+        dataUnitsMatching = new JCheckBoxMenuItem( "Match data units" );
+        optionsMenu.add( dataUnitsMatching );
+        dataUnitsMatching.addItemListener( this );
+
         boolean state =
             prefs.getBoolean( "PlotControlFrame_coordinatematch", false );
         coordinateMatching.setSelected( state );
+
+        state = prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
+        dataUnitsMatching.setSelected( state );
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
@@ -1298,25 +1307,48 @@ public class PlotControlFrame
     {
         Object source = e.getSource();
 
-        if ( source.equals( coordinateMatching ) ) {
-            boolean state = coordinateMatching.isSelected();
-            specDataComp.setCoordinateMatching( state );
-            prefs.putBoolean( "PlotControlFrame_coordinatematch", state );
+        if ( source.equals( coordinateMatching ) ||
+             source.equals( dataUnitsMatching ) ) {
+
+            boolean state1 = coordinateMatching.isSelected();
+            boolean state2 = dataUnitsMatching.isSelected();
+
+            if ( source.equals( dataUnitsMatching ) ) {
+                // Need coordinateMatching when matching dataUnits. Coordinate
+                // matching cannot be switched off (SpecFrame active units).
+                if ( state2 ) {
+                    coordinateMatching.setSelected( true );
+                    state1 = true;
+                }
+            }
+            else {
+                if ( ! state1 ) {
+                    dataUnitsMatching.setSelected( false );
+                    state2 = false;
+                }
+            }
+
+            specDataComp.setCoordinateMatching( state1 );
+            specDataComp.setDataUnitsMatching( state2 );
+
+            prefs.putBoolean( "PlotControlFrame_coordinatematch", state1 );
+            prefs.putBoolean( "PlotControlFrame_dataunitsmatch", state2 );
             try {
                 plot.updateThePlot( null );
             }
             catch (SplatException se) {
-                // Coordinate matching has failed. Need to make this clear and
+                // Matching has failed. Need to make this clear and
                 // then rectify the situation by switching it off.
-                if ( state ) {
+                if ( state1 || state2 ) {
                     JOptionPane.showMessageDialog
-                        ( this, se.getMessage() + 
+                        ( this, se.getMessage() +
                           "\n Matching will be switched off",
-                          "Coordinate matching failed",
+                          "Matching failed",
                           JOptionPane.ERROR_MESSAGE );
 
                     //  Trigger rematch?
                     coordinateMatching.setSelected( false );
+                    dataUnitsMatching.setSelected( false );
                 }
             }
             return;
