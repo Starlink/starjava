@@ -1,0 +1,19 @@
+<!-- This DTD defines the format of a sketch model.
+@see SketchParser
+-->
+
+<!-- ============================================================== -->
+<!-- Sketch Model                                                   -->
+<!-- ============================================================== -->
+
+<!ELEMENT sketchModel (strokes+)>
+
+<!-- ============================================================== -->
+<!-- Timed Stroke
+<!-- ============================================================== -->
+
+<!ELEMENT stroke EMPTY>
+<!ATTLIST stroke
+color CDATA #REQUIRED
+linewidth CDATA #REQUIRED
+points CDATA #REQUIRED>
