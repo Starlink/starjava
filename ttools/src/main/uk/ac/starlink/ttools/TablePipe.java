@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
-import uk.ac.starlink.table.ExplodedStarTable;
 import uk.ac.starlink.table.ProgressLineStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -32,6 +30,8 @@ public class TablePipe extends TableTask {
     private ProcessingMode mode_;
     private List pipeline_ = new ArrayList();
     private final ProcessingMode[] modes_;
+    private final ProcessingFilter[] filters_;
+
     private final static String[] MODE_NAMES = new String[] {
         CopyMode.class.getName(),
         JdbcMode.class.getName(),
@@ -39,19 +39,23 @@ public class TablePipe extends TableTask {
         CountMode.class.getName(),
     };
 
+    private final static String[] FILTER_NAMES = new String[] {
+        SelectFilter.class.getName(),
+        AddColumnFilter.class.getName(),
+        KeepColumnFilter.class.getName(),
+        DeleteColumnFilter.class.getName(),
+        ExplodeFilter.class.getName(),
+    };
+
     public TablePipe() {
-        List modeList = new ArrayList();
-        Loader.loadProperties();
-        for ( int i = 0; i < MODE_NAMES.length; i++ ) {
-            Object mode = Loader.getClassInstance( MODE_NAMES[ i ],
-                                                   ProcessingMode.class );
-            if ( mode != null ) {
-                modeList.add( mode );
-            }
-        }
-        modeList.addAll( Loader.getClassInstances( "tpipe.modes",
-                                                   ProcessingMode.class ) );
-        modes_ = (ProcessingMode[]) modeList.toArray( new ProcessingMode[ 0 ] );
+        modes_ = (ProcessingMode[]) 
+                 Loader.getClassInstances( MODE_NAMES, "tpipe.modes",
+                                           ProcessingMode.class )
+                .toArray( new ProcessingMode[ 0 ] );
+        filters_ = (ProcessingFilter[])
+                   Loader.getClassInstances( FILTER_NAMES, "tpipe.filters",
+                                             ProcessingFilter.class )
+                  .toArray( new ProcessingFilter[ 0 ] );
     }
 
     public String getCommandName() {
@@ -79,72 +83,8 @@ public class TablePipe extends TableTask {
                     it.remove();
                     stream_ = true;
                 }
-                else if ( arg.equals( "-select" ) ) {
-                    it.remove();
-                    if ( it.hasNext() ) {
-                        final String expr = (String) it.next();
-                        it.remove();
-                        pipeline_.add( new Step() {
-                            public StarTable wrap( StarTable base )
-                                    throws IOException {
-                                try {
-                                    return new JELSelectorTable( base, expr );
-                                }
-                                catch ( CompilationException e ) {
-                                    String msg = "Bad expression \"" + expr +
-                                                 "\" (" + e.getMessage() + ")";
-                                    throw (IOException) new IOException( msg )
-                                                       .initCause( e );
-                                }
-                            }
-                        } );
-                    }
-                    else {
-                        return false;
-                    }
-                }
-                else if ( arg.equals( "-delcol" ) ) {
-                    it.remove();
-                    if ( it.hasNext() ) {
-                        final String colName = (String) it.next();
-                        it.remove();
-                        pipeline_.add( new Step() {
-                            public StarTable wrap( StarTable base )
-                                    throws IOException {
-                                int delIndex = new ColumnIdentifier( base )
-                                              .getColumnIndex( colName );
-                                if ( delIndex < 0 ) {
-                                    throw new IOException( "No such column " +
-                                                           colName );
-                                }
-                                int[] colMap = 
-                                    new int[ base.getColumnCount() - 1 ];
-                                int j = 0;
-                                for ( int i = 0; i < base.getColumnCount(); 
-                                      i++ ) {
-                                    if ( i != delIndex ) {
-                                        colMap[ j++ ] = i;
-                                    }
-                                }
-                                assert j == colMap.length;
-                                return new ColumnPermutedStarTable( base, 
-                                                                    colMap );
-                            }
-                        } );
-                    }
-                    else {
-                        return false;
-                    }
-                }
-                else if ( arg.equals( "-explode" ) ) {
-                    it.remove();
-                    pipeline_.add( new Step() {
-                        public StarTable wrap( StarTable base ) {
-                            return new ExplodedStarTable( base );
-                        }
-                    } );
-                }
                 else {
+
                     for ( int i = 0; i < modes_.length; i++ ) {
                         ProcessingMode mode = modes_[ i ];
                         if ( arg.equals( "-" + mode.getName() ) ) {
@@ -156,6 +96,28 @@ public class TablePipe extends TableTask {
                                 return false;
                             }
                         }
+                    }
+
+                    for ( int i = 0; i < filters_.length; i++ ) {
+                         ProcessingFilter filter = filters_[ i ];
+                         if ( arg.equals( "-" + filter.getName() ) ) {
+                             it.remove();
+                             ProcessingStep step = filter.createStep( it );
+                             if ( step == null ) {
+                                 String fname = filter.getName();
+                                 String fusage = filter.getFilterUsage();
+                                 String msg = fname + " mode usage: \n"
+                                            + "      -" + fname;
+                                 if ( fusage != null ) {
+                                     msg += " " + fusage;
+                                 }
+                                 System.err.println( msg );
+                                 return false;
+                             }
+                             else {
+                                 pipeline_.add( step );
+                             }
+                         }
                     }
                 }
             }
@@ -193,7 +155,7 @@ public class TablePipe extends TableTask {
             table = new ProgressLineStarTable( table, System.err );
         }
         for ( Iterator it = pipeline_.iterator(); it.hasNext(); ) {
-            Step step = (Step) it.next();
+            ProcessingStep step = (ProcessingStep) it.next();
             table = step.wrap( table );
         }
         return table;
@@ -251,9 +213,17 @@ public class TablePipe extends TableTask {
         }
 
         help.append( "\n   Filter flags - Use any sequence of:\n" );
-        help.append( "      -select <expr>\n" );
-        help.append( "      -delcol <col-id>\n" );
-        help.append( "      -explode\n" );
+        for ( int i = 0; i < filters_.length; i++ ) {
+            ProcessingFilter filter = filters_[ i ];
+            help.append( "      -" )
+                .append( filter.getName() );
+            String filterUsage = filter.getFilterUsage();
+            if ( filterUsage != null ) {
+                help.append( ' ' )
+                    .append( filterUsage );
+            }
+            help.append( '\n' );
+        }
 
         help.append( "\n   Auto-detected in-formats:\n" );
         for ( Iterator it = getTableFactory().getDefaultBuilders().iterator();
@@ -287,20 +257,6 @@ public class TablePipe extends TableTask {
         if ( ! new TablePipe().run( args ) ) {
             System.exit( 1 );
         }
-    }
-
-    /**
-     * Interface defining a processing step for a table pipeline.
-     */
-    private static abstract class Step {
-
-        /**
-         * Wraps an input table to provide an output table.
-         *
-         * @param  base  input table
-         * @return  output table
-         */
-        public abstract StarTable wrap( StarTable base ) throws IOException;
     }
 
 }
