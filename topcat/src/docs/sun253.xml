@@ -1856,11 +1856,16 @@ in this case it will just pop up the command window from which you
 can load in tables.  However you may specify flags and/or table locations.
 </p>
 
-<p>Curently the only defined flag is as follows:
+<p>Curently the only defined flags are these:
 <dl>
 <dt>-h</dt>
-<dd><p>If the <code>-h</code> flag is given, TOPCAT will write a usage
+<dd><p>If the <code>-h</code> flag is given, TOPCAT will write a short usage
     message and exit straight away.
+</p></dd>
+<dt>-demo</dt>
+<dd><p>The <code>-demo</code> flag causes the program to start up with
+    a few demonstration tables loaded in.  You can use these to play
+    around with its facilities.
 </p></dd>
 </dl>
 </p>
@@ -2200,6 +2205,7 @@ are welcomed.
     </ul>
 </li>
 <li>Hybrid DOM/SAX parsing of VOTables for improved efficiency/memory usage.</li>
+<li>New flag <code>-demo</code> starts up with demo data.</li>
 <li>Miscellaneous efficiency improvements and bug fixes.</li>
 </ul>
 </p></dd>
@@ -3810,16 +3816,21 @@ these steps, this dialogue may be inaccessible.
 <subhead><title>Example Tables</title></subhead>
 
 <p>Some example table data is provided with TOPCAT.
+which you can access in a number of ways:
 <ul>
-<li>To load an example table you can use the <label>Load Example Table</label>
-    item in the <label>Load Table</label> window's
-    <label>Examples</label> menu.</li>
-<li>The <label>Browse Example Hierarchy</label> item in that menu,
-    or equivalently the &IMG.DEMO; button in the toolbar, will
-    show you a hierarchy browser with a number of example tables of different
-    kinds, including some stored within a tar archive.  This option is
-    designed to show some of the organisational complexity which TOPCAT
-    can handle when loading tables.</li>
+<li>The simplest thing is to supply the "<code>-demo</code>" flag on 
+    the command line, which will cause the program to start up with
+    a few demonstration tables already loaded in.</li>
+<li>The <label>Browse Example Hierarchy</label> (&IMG.DEMO;)
+    button in the <ref id="LoadQueryWindow">Load Window</ref>
+    will pop up a 
+    <ref id="StarTableNodeChooser">Hierarchy Browser</ref>
+    looking at a hierarchy of tables in different formats.
+    This option is designed to show some of the organisational
+    complexity which TOPCAT can handle when browsing tables.</li>
+<li>The <label>Load Example Table</label> button in the 
+    <label>Load Window</label>'s <label>Examples</label> menu will 
+    just load a single example table into the program.</li>
 </ul>
 </p>
 
