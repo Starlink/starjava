@@ -9,7 +9,8 @@
  !   The main targets are:
  !
  !      build          -> compiles the system
- !      javadocs       -> creates the API documentation
+ !      javadocs       -> creates packages API documentation
+ !      javadocs-full  -> creates the complete API documentation
  !      install        -> installs the system and documentation
  !      install        -> deinstalls the system
  !      clean          -> cleans up the build
@@ -74,71 +75,76 @@
   <!-- Default target for the sub-packages -->
   <property name="what" value="build"/>
 
-   <!-- 
-    !  ======================================
-    !  Execute all ANT in all sub-directories
-    !  ======================================
-    !
-    !  Execute a target in each of the sub-directories. The target
-    !  invoked is defined by the "what" property. New packages should
-    !  have an entry created in the correct dependency order. Note
-    !  that all properties defined in this file are passed on.
-    !-->
+  <!-- Directory for the complete java documentation -->
+  <property name="dist.dir" value="${basedir}"/>
+  <property name="dist.docs" value="${dist.dir}/docs"/>
+  <property name="dist.javadocs" value="${dist.docs}/javadocs"/>
+
+  <!-- 
+   !  ======================================
+   !  Execute all ANT in all sub-directories
+   !  ======================================
+   !
+   !  Execute a target in each of the sub-directories. The target
+   !  invoked is defined by the "what" property. New packages should
+   !  have an entry created in the correct dependency order. Note
+   !  that all properties defined in this file are passed on.
+   !-->
   <target name="call_package_ant">
 
-     <echo message="Executing JUnit target: ${what}"/>
-     <ant dir="./junit" target="${what}"/>
+    <echo message="Executing JUnit target: ${what}"/>
+    <ant dir="./junit" target="${what}"/>
+    
+    <echo message="Executing tamfits target: ${what}"/>
+    <ant dir="./tamfits" target="${what}"/>
+    
+    <echo message="Executing axis target: ${what}"/>
+    <ant dir="./axis" target="${what}"/>
+    
+    <echo message="Executing dom4j target: ${what}"/>
+    <ant dir="./dom4j" target="${what}"/>
+    
+    <echo message="Executing Jetty target: ${what}"/>
+    <ant dir="./jetty" target="${what}"/>
+    
+    <echo message="Executing JSky target: ${what}"/>
+    <ant dir="./jsky" target="${what}"/>
+    
+    <echo message="Executing UTIL target: ${what}"/>
+    <ant dir="./util" target="${what}"/>
 
-     <echo message="Executing tamfits target: ${what}"/>
-     <ant dir="./tamfits" target="${what}"/>
-
-     <echo message="Executing axis target: ${what}"/>
-     <ant dir="./axis" target="${what}"/>
-
-     <echo message="Executing dom4j target: ${what}"/>
-     <ant dir="./dom4j" target="${what}"/>
-
-     <echo message="Executing Jetty target: ${what}"/>
-     <ant dir="./jetty" target="${what}"/>
-
-     <echo message="Executing JSky target: ${what}"/>
-     <ant dir="./jsky" target="${what}"/>
-
-     <echo message="Executing UTIL target: ${what}"/>
-     <ant dir="./util" target="${what}"/>
-
-     <echo message="Executing JNIAST target: ${what}"/>
-     <ant dir="./jniast" target="${what}"/>
-
-     <echo message="Executing JNIHDS target: ${what}"/>
-     <ant dir="./jnihds" target="${what}"/>
-
-     <echo message="Executing compatibility NDArray target: ${what}"/>
-     <ant dir="./oldarray" target="${what}"/>
-
-     <echo message="Executing NDArray target: ${what}"/>
-     <ant dir="./array" target="${what}"/>
-
-     <echo message="Executing NDX target: ${what}"/>
-     <ant dir="./ndx" target="${what}"/>
-
-     <echo message="Executing HDS target: ${what}"/>
-     <ant dir="./hds" target="${what}"/>
-
-     <echo message="Executing FITS target: ${what}"/>
-     <ant dir="./fits" target="${what}"/>
-
-     <echo message="Executing HDX target: ${what}"/>
-     <ant dir="./hdx" target="${what}"/>
-
-     <echo message="Executing SOAPSERVER target: ${what}"/>
-     <ant dir="./soapserver" target="${what}"/>
-
-     <echo message="Executing SOG target: ${what}"/>
-     <ant dir="./sog" target="${what}"/>
-
+    <echo message="Executing JNIAST target: ${what}"/>
+    <ant dir="./jniast" target="${what}"/>
+      
+    <echo message="Executing JNIHDS target: ${what}"/> 
+    <ant dir="./jnihds" target="${what}"/> 
+    
+    <echo message="Executing compatibility NDArray target: ${what}"/> 
+    <ant dir="./oldarray" target="${what}"/> 
+    
+    <echo message="Executing NDArray target: ${what}"/> 
+    <ant dir="./array" target="${what}"/> 
+    
+    <echo message="Executing NDX target: ${what}"/> 
+    <ant dir="./ndx" target="${what}"/> 
+    
+    <echo message="Executing HDS target: ${what}"/> 
+    <ant dir="./hds" target="${what}"/> 
+    
+    <echo message="Executing FITS target: ${what}"/> 
+    <ant dir="./fits" target="${what}"/> 
+    
+    <echo message="Executing HDX target: ${what}"/> 
+    <ant dir="./hdx" target="${what}"/> 
+    
+    <echo message="Executing SOAPSERVER target: ${what}"/> 
+    <ant dir="./soapserver" target="${what}"/> 
+    
+    <echo message="Executing SOG target: ${what}"/> 
+    <ant dir="./sog" target="${what}"/> 
+    
   </target>
-
+  
   <!--
    !   =================
    !   Prepare the build
@@ -160,7 +166,7 @@
       </replacetokens>
     </filterchain>
   </target>
-
+  
   <!--
    !   ==================
    !   Build all packages
@@ -217,12 +223,12 @@
   </target>
 
   <!--
-   !   =============================
-   !   Creates the API documentation
-   !   =============================
+   !   =========================================
+   !   Creates API documentation in each package
+   !   =========================================
    !
-   ! This is a difficult job as we may want to build all javadocs 
-   ! into a single tree... So avoid for now and just do what we can.
+   !  Create the documentation in each package.
+   !
    !-->
   <target name="javadocs" depends="prepare" 
           description="--> generate the java documentation">
@@ -230,6 +236,61 @@
      <antcall target="call_package_ant">
         <param name="what" value="javadocs"/>
      </antcall>
+
+  </target>
+
+  <!--
+   !   =============================================
+   !   Creates the complete system API documentation
+   !   =============================================
+   !
+   !  Creates the complete javadocs for all local source packages.
+   !-->
+  <target name="javadocs-full" depends="prepare" 
+          description="--> generate the complete java documentation">
+
+     <!-- First make the all the java source available in a suitable
+      !   fashion for gathering together into a single fileset-->
+     <antcall target="call_package_ant">
+        <param name="what" value="javadoc-sources"/>
+     </antcall>
+
+     <!-- A bug in 1.4.0 means that all return types (arrays?) must be
+      !   on the classpath, so we need this for the
+      !   present (otherwise javadoc hangs). Supposedly fixed in 1.4.1
+      !-->
+     <path id="classpath">
+       <dirset dir="${star.build.dir}">
+          <include name="*/build/classes"/>
+       </dirset>
+       <fileset dir="${star.build.dir}">
+          <include name="*/lib/*/*.jar"/>
+       </fileset>
+     </path>
+
+     <mkdir dir="${dist.javadocs}"/>
+     <javadoc useexternalfile="yes"
+              destdir="${dist.javadocs}"
+              author="true"
+              version="true"
+              locale="en"
+              windowtitle="${FullName} API"
+              doctitle="${FullName}" 
+              verbose="true"
+              protected="true"
+              classpathref="classpath">
+
+      <!-- Get all java source files from the build/java directories-->
+      <fileset dir="${basedir}">
+         <include name="*/build/java/**/*.java"/>
+      </fileset>
+
+      <group title="${Name} API" packages="${package.name}*"/>
+
+      <bottom>Copyright &#169; ${year} \\
+              CLRC: Central Laboratory of the Research Councils.
+              All Rights Reserved.</bottom>
+    </javadoc>
 
   </target>
 
