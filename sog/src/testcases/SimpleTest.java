@@ -3,8 +3,8 @@
 package uk.ac.starlink.sog;
 
 import uk.ac.starlink.soap.AppHttpSOAPServer;
-import org.mortbay.util.Code;
-import org.mortbay.util.Log;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import java.net.URL;
 
 /**
@@ -14,6 +14,8 @@ import java.net.URL;
  */
 public class SimpleTest
 {
+    private static Log log = LogFactory.getLog( SimpleTest.class );
+
     public static void main(String[] arg)
     {
         AppHttpSOAPServer tempserver = null;
@@ -32,12 +34,12 @@ public class SimpleTest
                 public void run()
                 {
                     setName( "Shutdown" );
-                    Log.event( "Shutdown hook executing" );
+                    log.info( "Shutdown hook executing" );
                     try {
                         server.stop();
                     }
                     catch(Exception e) {
-                        Code.warning( e );
+                        log.warn( e.getMessage(), e );
                     }
 
                     // Try to avoid JVM crash
@@ -45,7 +47,7 @@ public class SimpleTest
                         Thread.sleep( 1000 );
                     }
                     catch( Exception e ) {
-                        Code.warning( e );
+                        log.warn( e.getMessage(), e );
                     }
                 }
             };
