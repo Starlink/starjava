@@ -400,8 +400,6 @@ public class NdfMaker {
         }
     }
 
-
-
     /**
      * Turn the WCS frameset into a suitable form for an NDF.
      * The NDF library reconstructs a WCS FrameSet to some extent when
@@ -422,49 +420,91 @@ public class NdfMaker {
             return origWcs;
         }
 
-        /* Needs fixing - create a new FrameSet with the same Base frame,
+        /* If it looks right except that it's missing an AXIS Frame
+         * (this is sometimes removed by early versions of NDFNdxImpl),
+         * just add a new AXIS Frame which is a copy of the PIXEL one. */
+        else if ( origWcs.getNframe() >=2 &&
+             origWcs.getFrame( 1 ).getDomain().equals( "GRID" ) &&
+             origWcs.getFrame( 2 ).getDomain().equals( "PIXEL" ) ) {
+
+            /* Make a copy of the original FrameSet and remove all but the
+             * first two Frames (GRID and PIXEL). */
+            FrameSet wcs = (FrameSet) origWcs.copy();
+            while ( wcs.getNframe() > 2 ) {
+                wcs.removeFrame( wcs.getNframe() );
+            }
+
+            /* Add an AXIS Frame as the third one which is a copy of the
+             * PIXEL Frame. */
+            Frame axframe = (Frame) wcs.getFrame( 2 ).copy();
+            axframe.setDomain( "AXIS" );
+            int ndim = axframe.getNaxes();
+            wcs.addFrame( 2, new UnitMap( ndim ), axframe );
+
+            /* Add any remaining frames from the original frameset. */
+            int extras = origWcs.getNframe() - 2;
+            for ( int i = 0; i < extras; i++ ) {
+                wcs.addFrame( FrameSet.AST__BASE,
+                              origWcs.getMapping( FrameSet.AST__BASE, i + 3 )
+                                     .simplify(),
+                              origWcs.getFrame( i + 3 ) );
+            }
+
+            /* Set the current frame correctly. */
+            int cur = origWcs.getCurrent();
+            wcs.setCurrent( cur <= 2 ? cur : cur + 1 );
+
+            /* Return the doctored frameset. */
+            return wcs;
+        }
+        
+        /* It needs fixing - create a new FrameSet with the same Base frame,
          * newly created PIXEL and AXIS frames, and the rest of the frames
          * from the original grafted on after. */
-        Frame gridframe = (Frame) origWcs.getFrame( 1 ).copy();
-        gridframe.setDomain( "GRID" );
-        FrameSet wcs = new FrameSet( gridframe );
+        else {
+            Frame gridframe = (Frame) origWcs.getFrame( 1 ).copy();
+            gridframe.setDomain( "GRID" );
+            FrameSet wcs = new FrameSet( gridframe );
 
-        /* Create a mapping between the GRID and PIXEL frames. */
-        int ndim = shape.getNumDims();
-        double[] ina = new double[ ndim ];
-        double[] inb = new double[ ndim ];
-        double[] outa = new double[ ndim ];
-        double[] outb = new double[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            double trans = shape.getOrigin()[ i ] - 0.5;
-            ina[ i ] = 0.0;
-            inb[ i ] = 1.0;
-            outa[ i ] = ina[ i ] + trans;
-            outb[ i ] = inb[ i ] + trans;
+            /* Create a mapping between the GRID and PIXEL frames. */
+            int ndim = shape.getNumDims();
+            double[] ina = new double[ ndim ];
+            double[] inb = new double[ ndim ];
+            double[] outa = new double[ ndim ];
+            double[] outb = new double[ ndim ];
+            for ( int i = 0; i < ndim; i++ ) {
+                double trans = shape.getOrigin()[ i ] - 0.5;
+                ina[ i ] = 0.0;
+                inb[ i ] = 1.0;
+                outa[ i ] = ina[ i ] + trans;
+                outb[ i ] = inb[ i ] + trans;
+            }
+            Mapping pmap = new WinMap( ndim, ina, inb, outa, outb );
+
+            /* Add the PIXEL and AXIS frames to the new frameset. */
+            Frame pixframe = new Frame( ndim );
+            pixframe.setDomain( "PIXEL" );
+            wcs.addFrame( 1, pmap, pixframe );
+            Frame axframe = new Frame( ndim );
+            axframe.setDomain( "AXIS" );
+            wcs.addFrame( 2, new UnitMap( ndim ), axframe );
+
+            /* Add any remaining frames from the original frameset. */
+            int extras = origWcs.getNframe() - 1;
+            for ( int i = 0; i < extras; i++ ) {
+                wcs.addFrame( FrameSet.AST__BASE,
+                              origWcs.getMapping( FrameSet.AST__BASE, i + 2 )
+                                     .simplify(),
+                              origWcs.getFrame( i + 2 ) );
+            }
+
+            /* Set the current frame correctly. */
+            int cur = origWcs.getCurrent();
+            wcs.setCurrent( cur <= 1 ? cur : cur + 2 );
+
+            /* Return the doctored frameset. */
+            return wcs;
         }
-        Mapping pmap = new WinMap( ndim, ina, inb, outa, outb );
-
-        /* Add the PIXEL and AXIS frames to the new frameset. */
-        Frame pixframe = new Frame( ndim );
-        pixframe.setDomain( "PIXEL" );
-        wcs.addFrame( 1, pmap, pixframe );
-        Frame axframe = new Frame( ndim );
-        axframe.setDomain( "AXIS" );
-        wcs.addFrame( 2, new UnitMap( ndim ), axframe );
-
-        /* Add any remaining frames from the original frameset. */
-        int extras = origWcs.getNframe() - 1;
-        for ( int i = 0; i < extras; i++ ) {
-            wcs.addFrame( FrameSet.AST__BASE,
-                          origWcs.getMapping( FrameSet.AST__BASE, i + 2 ),
-                          origWcs.getFrame( i + 2 ) );
-        }
-
-        /* Set the current frame correctly. */
-        wcs.setCurrent( origWcs.getCurrent() + 2 );
-
-        /* Return the doctored frameset. */
-        return wcs;
     }
 
 }

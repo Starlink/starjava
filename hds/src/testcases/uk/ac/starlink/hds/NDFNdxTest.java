@@ -16,6 +16,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArrays;
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxIO;
@@ -88,7 +89,6 @@ public class NDFNdxTest extends TestCase {
         ndxio.outputNdx( hloc, ndx );
         Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
         assertNdxEqual( ndx, hndx );
-        
     }
 
     private void assertNdxEqual( Ndx ndx1, Ndx ndx2 )
@@ -123,7 +123,21 @@ public class NDFNdxTest extends TestCase {
             assertEquals( sw1.toString().replaceAll( "\\s", "" ),
                           sw2.toString().replaceAll( "\\s", "" ) );
         }
+        assertEquals( astNormalize( ndx1.getAst() ), 
+                      astNormalize( ndx2.getAst() ) );
+    }
 
-        assertEquals( ndx1.getAst(), ndx2.getAst() );
+    /** 
+     * Reconstructs a FrameSet from scratch so that its internal structure
+     * is canonical.  This is used for FrameSet comparisons.
+     */
+    private static FrameSet astNormalize( FrameSet fset1 ) {
+        FrameSet fset2 = new FrameSet( fset1.getFrame( 1 ) );
+        for ( int i = 2; i <= fset1.getNframe(); i++ ) {
+            fset2.addFrame( 1, 
+                            fset1.getMapping( 1, i ).simplify(), 
+                            fset1.getFrame( i ) );
+        }
+        return fset2;
     }
 }

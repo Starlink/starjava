@@ -3,6 +3,7 @@ package uk.ac.starlink.hds;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
@@ -14,9 +15,13 @@ import org.w3c.dom.Node;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Channel;
+import uk.ac.starlink.ast.CmpMap;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ndx.NdxImpl;
 import uk.ac.starlink.util.URLUtils;
 
@@ -35,6 +40,13 @@ class NDFNdxImpl implements NdxImpl {
     private NDArray image;
     private NDArray variance;
     private NDArray quality;
+
+    /* Indices at which standard Frames are expected in NDF's WCS FrameSet. */
+    private static final int GRID_FRAME = 1;
+    private static final int PIXEL_FRAME = 2;
+    private static final int AXIS_FRAME = 3;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.hds" );
 
     /**
      * Present an NdxImpl view of an existing NDF specified by an 
@@ -55,7 +67,6 @@ class NDFNdxImpl implements NdxImpl {
               mode );
     }
 
-    
     /**
      * Present an NdxImpl view of an existing NDF specified by an
      * <tt>HDSObject</tt>.
@@ -112,15 +123,72 @@ class NDFNdxImpl implements NdxImpl {
 
     public Object getWCS() {
         try {
+
+            /* Get an AST Channel from the WCS component. */
             Channel chan = new ARYReadChannel( wcsArray() );
+
+            /* Read a FrameSet from it. */
             FrameSet fset = (FrameSet) chan.read();
+
+            /* This will require some doctoring, since its PIXEL and AXIS 
+             * Frames are not trustworthy (the Fortran NDF library would 
+             * ignore these and regenerate them during a call to NDF_GTWCS).
+             * First check that it looks as expected. */
+            if ( fset.getFrame( GRID_FRAME ).getDomain().equals( "GRID" ) &&
+                 fset.getFrame( PIXEL_FRAME ).getDomain().equals( "PIXEL" ) &&
+                 fset.getFrame( AXIS_FRAME ).getDomain().equals( "AXIS" ) ) {
+
+                /* Get and check the shape of the image grid. */
+                NDShape shape = image.getShape();
+                if ( fset.getFrame( 1 ).getNaxes() != shape.getNumDims() ) {
+                    logger.warning( "Wrong shaped WCS object in NDF" );
+                    return null;
+                }
+
+                /* Remap a PIXEL Frame correctly using the GRID Frame
+                 * and the origin offset. */
+                int ndim = shape.getNumDims();
+                double[] ina = new double[ ndim ];
+                double[] inb = new double[ ndim ];
+                double[] outa = new double[ ndim ];
+                double[] outb = new double[ ndim ];
+                long[] origin = shape.getOrigin();
+                for ( int i = 0; i < ndim; i++ ) {
+                    ina[ i ] = 0.0;
+                    inb[ i ] = 1.0;
+                    outa[ i ] = ina[ i ] + origin[ i ] - 1.5;
+                    outb[ i ] = inb[ i ] + origin[ i ] - 1.5;
+                }
+                Mapping pmap =
+                    new CmpMap( fset.getMapping( PIXEL_FRAME, GRID_FRAME ),
+                                new WinMap( ndim, ina, inb, outa, outb ), true )
+                   .simplify();
+                fset.remapFrame( PIXEL_FRAME, pmap );
+
+                /* The AXIS Frame will probably either be identical to the 
+                 * PIXEL Frame or wrong, so just delete it.  
+                 * TODO: Should really write code to construct a correct AXIS
+                 * Frame from any existing AXIS component in the NDF. */
+                fset.removeFrame( AXIS_FRAME );
+            }
+
+            /* Unexpected configuration of frameset read from WCS component. */
+            else {
+                logger.warning( "Unexpected Frame configuration in read WCS" );
+            }
+
+            /* Return the doctored or undoctored FrameSet. */
             return fset;
         }
+
+        /* Treat errors by logging an error and returning null. */
         catch ( HDSException e ) {
-            throw new RuntimeException( e );
+            logger.warning( "Trouble reading WCS FrameSet from NDF: " + e );
+            return null;
         }
         catch ( IOException e ) {
-            throw new RuntimeException( e );
+            logger.warning( "Trouble reading WCS FrameSet from NDF: " + e );
+            return null;
         }
     }
 
