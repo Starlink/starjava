@@ -293,7 +293,7 @@ public class TableViewer extends JFrame {
             cmdname = "TableViewer";
         }
         String usage = "Usage:\n" 
-                     + "   " + $cmdname + " [table ...]\n";
+                     + "   " + cmdname + " [table ...]\n";
         if ( args.length > 0 ) {
             int nok = 0;
             for ( int i = 0; i < args.length; i++ ) {
