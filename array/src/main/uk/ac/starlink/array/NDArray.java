@@ -167,12 +167,30 @@ public interface NDArray extends ArrayDescription {
      * in particular that no further invocations will be made of the 
      * getAccess method.
      * <p>
-     * This method should in general be invoked on every NDArray when it 
-     * is no longer required for pixel access to allow reclamation
-     * of non-memory resources.  In the case of writable arrays it may
-     * also be required to ensure that data is flushed from buffers back
-     * to the pixel array.  Multiple calls of this method may harmlessly
-     * be made.
+     * This method should be invoked on an NDArray
+     * when it is no longer required for pixel access.
+     * This allows reclamation of non-memory resources, and in the case
+     * of writable arrays it may also be required to ensure that data
+     * is flushed from buffers back to the actual pixel array.
+     * <p>
+     * An array should not however be closed if some other object might
+     * still require pixel access to it via a retained reference.
+     * The general rule is that an application
+     * which obtains a new NDArray from a URL should arrange for 
+     * <tt>close</tt> to be called 
+     * on it at the end of its lifetime, but that utility routines which
+     * perform operations on an NDArray should not close it after use
+     * (though they should close any <tt>ArrayAccess</tt> objects
+     * which they take out).
+     * Note that closing an NDArray will normally result in closing any
+     * arrays which it wraps.
+     * <p>
+     * NDArray implementations should make an attempt to tidy up in their 
+     * finalizers, so failing to call <tt>close</tt> on an NDArray
+     * <i>which is not being used for write access</i> is in most
+     * cases not critical.
+     * <p>
+     * Multiple calls of this method may harmlessly be made.
      *
      * @throws  IOException  if some I/O error occurred
      */
