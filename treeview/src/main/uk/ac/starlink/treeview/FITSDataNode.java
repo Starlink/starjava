@@ -201,9 +201,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     }
 
                     /* Remember parentage of the new node. */
-                    if ( dnode instanceof DefaultDataNode ) {
-                        ((DefaultDataNode) dnode).setParentObject( datsrc );
-                    }
+                    dnode.setParentObject( datsrc );
                     dnode.setCreator( new CreationState( parent ) );
 
                     /* Read the next header. */

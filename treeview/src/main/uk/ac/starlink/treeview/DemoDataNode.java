@@ -59,7 +59,7 @@ public class DemoDataNode extends FileDataNode {
                 DataNode node = (DataNode) it.next();
                 if ( node.getName().equals( "ndx" ) ) {
                     DataNodeFactory maker =
-                        (DataNodeFactory) node.getChildMaker().clone();
+                        new DataNodeFactory( node.getChildMaker() );
                     maker.setPreferredClass( NdxDataNode.class );
                     node.setChildMaker( maker );
                 }

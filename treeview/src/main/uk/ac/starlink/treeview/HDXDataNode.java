@@ -194,7 +194,7 @@ public class HDXDataNode extends DefaultDataNode {
      * an HDXDataNode can have an HDXDataNode as a child node.
      */
     public DataNodeFactory getChildMaker() {
-        DataNodeFactory dfact = new DataNodeFactory();
+        DataNodeFactory dfact = new DataNodeFactory( super.getChildMaker() );
         dfact.removeNodeClass( HDXDataNode.class );
         return dfact;
     }

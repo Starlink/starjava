@@ -9,6 +9,7 @@ public abstract class SimpleDataNodeBuilder extends DataNodeBuilder {
 
     private Class argClass;
     private String name;
+    private Class nodeClass;
 
     /**
      * Construct a new builder which will turn out DataNodes from
@@ -21,6 +22,7 @@ public abstract class SimpleDataNodeBuilder extends DataNodeBuilder {
     protected SimpleDataNodeBuilder( String name, Class argClass ) {
         this.name = name;
         this.argClass = argClass;
+        this.nodeClass = DataNode.class;
     }
 
     /**
@@ -35,9 +37,14 @@ public abstract class SimpleDataNodeBuilder extends DataNodeBuilder {
      */
     protected SimpleDataNodeBuilder( Class nodeClass, Class argClass ) {
         this( nodeClass.getName(), argClass );
+        this.nodeClass = nodeClass;
     }
 
     abstract public DataNode buildNode( Object obj ) throws NoSuchDataException;
+
+    public Class getNodeClass() {
+        return nodeClass;
+    }
 
     public boolean suitable( Class objClass ) {
         return argClass.isAssignableFrom( objClass );

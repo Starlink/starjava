@@ -443,7 +443,7 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
 
     private DataNode makeNDFChild( Object childObj ) {
         if ( ndfChildMaker == null ) {
-            ndfChildMaker = (DataNodeFactory) getChildMaker().clone();
+            ndfChildMaker = new DataNodeFactory( getChildMaker() );
             ndfChildMaker.removeNodeClass( NDFDataNode.class );
         }
         return makeChild( childObj, this, ndfChildMaker );
@@ -451,7 +451,7 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
 
     private DataNodeFactory getAxisChildMaker() {
         if ( axisChildMaker == null ) {
-            axisChildMaker = (DataNodeFactory) getChildMaker().clone();
+            axisChildMaker = new DataNodeFactory( getChildMaker() );
             axisChildMaker.removeNodeClass( NDFDataNode.class );
             axisChildMaker.removeNodeClass( ARYDataNode.class );
         }

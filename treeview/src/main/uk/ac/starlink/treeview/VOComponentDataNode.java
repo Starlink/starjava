@@ -279,8 +279,8 @@ public class VOComponentDataNode extends DefaultDataNode {
     }
 
     public DataNodeFactory getChildMaker() {
-        DataNodeFactory dfact = new DataNodeFactory();
-        dfact.setPreferredBuilder( new VODataNodeBuilder() );
+        DataNodeFactory dfact = new DataNodeFactory( super.getChildMaker() );
+        dfact.getBuilders().add( 0, new VODataNodeBuilder() );
         return dfact;
     }
 

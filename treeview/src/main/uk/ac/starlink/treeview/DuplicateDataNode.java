@@ -42,6 +42,10 @@ public class DuplicateDataNode implements DataNode {
         return base.getParentObject();
     }
 
+    public void setParentObject( Object parent ) {
+        base.setParentObject( parent );
+    }
+
     public String getLabel() {
         return base.getLabel();
     }

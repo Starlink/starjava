@@ -95,7 +95,7 @@ public class ARYDataNode extends HDSDataNode {
      */
     public synchronized DataNodeFactory getChildMaker() {
         if ( customChildMaker == null ) {
-            customChildMaker = (DataNodeFactory) super.getChildMaker().clone();
+            customChildMaker = new DataNodeFactory( super.getChildMaker() );
             customChildMaker.removeNodeClass( ARYDataNode.class );
             customChildMaker.removeNodeClass( WCSDataNode.class );
             customChildMaker.removeNodeClass( NDFDataNode.class );

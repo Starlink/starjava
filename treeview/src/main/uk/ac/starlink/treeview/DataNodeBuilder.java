@@ -51,6 +51,19 @@ public abstract class DataNodeBuilder {
     public abstract DataNode buildNode( Object obj ) throws NoSuchDataException;
 
     /**
+     * Returns the class which all nodes returned by the {@link #buildNode}
+     * method will belong to.  DataNodeBuilder's implementation of this
+     * returns <tt>DataNode.class</tt>, but implementations which can
+     * be more specific should override this method.
+     *
+     * @return   superclass of all the classes of DataNode this builder
+     *           can build
+     */
+    public Class getNodeClass() {
+        return DataNode.class;
+    }
+
+    /**
      * Returns an array of DataNodeBuilder objects which are all the
      * ones that can be found by reflection in the supplied class.
      *
@@ -343,8 +356,8 @@ public abstract class DataNodeBuilder {
         }
 
         /* Do the actual configuration. */
-        if ( parent != null && node instanceof DefaultDataNode ) {
-            ((DefaultDataNode) node).setParentObject( parent );
+        if ( parent != null ) {
+            node.setParentObject( parent );
         }
         if ( path != null ) {
             node.setPath( path );

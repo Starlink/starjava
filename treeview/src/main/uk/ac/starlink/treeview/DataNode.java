@@ -107,6 +107,16 @@ public interface DataNode {
     public Object getParentObject();
 
     /**
+     * Sets the object which is in some sense the parent of the one
+     * this node is based on.  The parent is <em>not</em> a <tt>DataNode</tt>,
+     * it is something which may get fed to a <tt>DataNodeFactory</tt>
+     * to create <tt>DataNode</tt>.
+     * 
+     * @param parentObj  an object which is the parent of this one
+     */
+    public void setParentObject( Object parentObj );
+
+    /**
      * Gets the label of this object.  This ought to return the same value
      * <code>getName</code> unless the user of the implementing class
      * has previously called <code>setLabel</code> to change it.

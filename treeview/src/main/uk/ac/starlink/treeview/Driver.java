@@ -117,11 +117,11 @@ public class Driver {
                     orient = StaticTreeViewer.DETAIL_NONE;
                 }
                 else if ( arg.equals( "-strict" ) ) {
-                    nodeFactory.setNodeClassList( new ArrayList() );
+                    List builders = nodeFactory.getBuilders();
+                    nodeFactory.getBuilders().removeAll( builders );
                 }
                 else if ( arg.equals( "-debug" ) ) {
-                    nodeFactory.setVerbose( true );
-                    DataNodeBuilder.verbose = true;
+   System.err.println( "debug" );
                 }
                 else if ( arg.equals( "-demo" ) ) {
                     try {
@@ -212,17 +212,9 @@ public class Driver {
             msg.append( "\nNo such object " )
                .append( '"' )
                .append( nodename )
-               .append( '"' )
-               .append( "\nTried:\n" );
-            List tried = nodeFactory.getClassesTried();
-            for ( Iterator it = tried.iterator(); it.hasNext(); ) {
-                msg.append( "    " )
-                   .append( it.next() )
-                   .append( "\n" );
-            }
-            msg.append( "\n" );
+               .append( '"' );
             exitWithError( msg.toString() );
-            throw new Error();  // not reached
+            throw new AssertionError();
         }
     }
 
