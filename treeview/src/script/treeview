@@ -1,5 +1,31 @@
 #!/bin/sh
 
+#+
+#  Name:
+#     treeview
+
+#  Purpose:
+#     Invokes the Treeview application on Unix
+
+#  Description:
+#     This shell script invokes the Treeview application.
+#     It locates a JVM and invokes 'java -jar' on the treeview.jar jar file,
+#     also setting some properties which Treeview uses to work out the
+#     positions of auxiliary files and so on.
+#
+#     However, the Treeview application itself will do its best to guess
+#     values for these properties if they have not been defined when it 
+#     wakes up.  Therefore it is usually possible to bypass this script
+#     if desired (for instance on non-Unix operating systems) by 
+#     simply invoking 'java -jar treeview.jar'.  If native libraries are
+#     being used, the system should be set up so that the directory
+#     containing them is on the java.library.path.  On Unix this would be
+#     done by putting wherever/java/lib on LD_LIBRARY_PATH.
+
+#  Authors:
+#     MBT: Mark Taylor (Starlink)
+#-
+
 #  Find where this script is located.
 
 if test -z "$TREEVIEW_DIR"; then

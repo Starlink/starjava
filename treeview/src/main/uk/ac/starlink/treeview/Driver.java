@@ -3,8 +3,11 @@ package uk.ac.starlink.treeview;
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.hds.HDSPackage;
 
@@ -22,6 +25,9 @@ public class Driver {
     public static void main( String[] args ) {
         boolean textView = false;
         short orient = StaticTreeViewer.DETAIL_BESIDE;
+
+        /* Ensure we have best guesses for various properties. */
+        guessProperties();
 
         /* Get the name we are running under. */
         String cmdName = 
@@ -210,7 +216,8 @@ public class Driver {
             msg.append( "\nNo such object " )
                .append( '"' )
                .append( nodename )
-               .append( '"' );
+               .append( '"' )
+               .append( "\nTried:\n" );
             List tried = nodeFactory.getClassesTried();
             for ( Iterator it = tried.iterator(); it.hasNext(); ) {
                 msg.append( "    " )
@@ -221,6 +228,76 @@ public class Driver {
             exitWithError( msg.toString() );
             throw new Error();  // not reached
         }
+    }
+
+    /**
+     * Gets values for various properties.  With luck these will have
+     * been set by whoever invoked this driver, but in the case that
+     * they haven't make pretty-good guesses about them.
+     */
+    private static void guessProperties() {
+        Properties props = System.getProperties();
+        String prefix = "uk.ac.starlink.treeview.";
+
+        String cmdnameProp = prefix + "cmdname";
+        if ( ! props.containsKey( cmdnameProp ) ) {
+            props.setProperty( cmdnameProp, "treeview" );
+        }
+
+        String stardir = probableStarjavaDirectory();
+        if ( stardir != null ) {
+            String demodirProp = prefix + "demodir";
+            if ( ! props.containsKey( demodirProp ) ) {
+                props.setProperty( demodirProp, stardir + "etc/treeview/demo" );
+            }
+
+            String sogdirProp = prefix + "sogdir";
+            if ( ! props.containsKey( sogdirProp ) ) {
+                props.setProperty( sogdirProp, stardir + "bin/sog" );
+            }
+
+            String splatdirProp = prefix + "splatdir";
+            if ( ! props.containsKey( splatdirProp ) ) {
+                props.setProperty( splatdirProp, stardir + "bin/splat" );
+            }
+        }
+    }
+
+    /**
+     * Tries to work out the starlink java directory by looking at where
+     * the jar file this driver was invoked from lives.  Of course there 
+     * might not be one, for instance if the jar file was downloaded over 
+     * a wire.  In this case null is returned.
+     *
+     * @return  a string giving a directory name and ending with "/", or null
+     */
+    private static String probableStarjavaDirectory() {
+        URL classURL = Driver.class.getResource( "Driver.class" );
+        Matcher matcher = Pattern.compile( "jar:file:(.*)!.*" )
+                                 .matcher( classURL.toString() );
+        if ( matcher.matches() ) {
+            File jarfile = new File( matcher.group( 1 ) );
+            if ( jarfile.exists() ) {
+                File sjfile;
+                try {
+                    sjfile = jarfile.getCanonicalFile()  // treeview.jar
+                                    .getParentFile()     // treeview
+                                    .getParentFile()     // lib
+                                    .getParentFile();    // java
+                                                 
+                }
+                catch ( IOException e ) {
+                    return null;
+                }
+                catch ( NullPointerException e ) {
+                    return null;
+                }
+                if ( sjfile.exists() ) {
+                    return sjfile.toString() + "/";
+                }
+            }
+        }
+        return null;
     }
 
     private static void exitWithError( String msg ) {
