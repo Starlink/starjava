@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !  {Package} build file
+ !  AGLIB build file
  !
- !   This file describes how to build and install the {Package}
- !   package from its binary release. {Package} is a pre-built third
+ !   This file describes how to build and install the AGLIB
+ !   package from its binary release. AGLIB is a pre-built third
  !   party package that is permanently in the "dist" configuration.
  !
  !   The main targets are:
@@ -13,7 +13,6 @@
  !      clean            -> removes local copies
  !      deinstall        -> undo the install target
  !      dist             -> makes package into dist state
-
  !      export           -> creates the full distribution archives
  !      export-runonly   -> same as export
  !      export-source    -> same as export
@@ -35,7 +34,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for AGLIB" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,9 +76,9 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="AGLIB"/>
+  <property name="name" value="aglib"/>
+  <property name="version" value="0.1"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -119,7 +118,7 @@
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="{package_original_home_page}"/>
+  <property name="home.page" value="http://software.astrogrid.org/"/>
 
   <!--
    !   =================
@@ -158,7 +157,6 @@
    !   Create the package jar file
    !   ===========================
    !
-
    !  Update the manifest of the package main jar file, if
    !  needed. This is typically the jar file with the main package
    !  classes. If this package has more than one such jar file, then
@@ -170,9 +168,12 @@
   <target name="jars"
           description="-> does nothing">
 
-     <!-- Add the manifest to the jar file, just an update -->
-    <jar destfile="${dist.lib.pkg}/{package.jar}" basedir="${dist.dir}"
-         update="true" excludes="**">
+    <!-- Add the manifest to the jar file. -->
+    <!-- Since the names are in flux, create a new jar file with the 
+     !   name "aglib.jar" here; it will just contain the manifest
+     !   pointing to the other jars. -->
+    <jar destfile="${dist.lib.pkg}/aglib.jar"
+         basedir="${dist.dir}" excludes="**">
 
       <!-- Create the manifest, note wraps in column 80 are done
        !   automatically, so just use a single line. Dependencies
@@ -210,11 +211,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
-         <vendor>{Vendor}</vendor>
+         <title>AstroGrid Client Development Kit</title>
+         <vendor>AstroGrid UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>{Package} - Webstart edition</description>
+         <description>AstroGrid - Webstart edition</description>
          <offline_allowed/>
       </information>
 
@@ -383,27 +384,16 @@
     <mkdir dir="${star.lib}"/>
     <mkdir dir="${star.docs}"/>
 
-    <loggedcopy todir="${star.bin}"
-                logfile="${install.log}"
-                overwrite="${install.overwrite}"
-                logfileAppend="false">
-      <fileset dir="${dist.bin}"/>
-    </loggedcopy>
-
-    <!-- Also remove the package-specific directory.
-     !   Note exact format is required.-->
-    <echo file="${install.log}" append="true">${star.bin.pkg}
-</echo>
-
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}"/>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.lib.pkg}
 </echo>
 
+<!--
     <loggedcopy todir="${star.docs}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -412,6 +402,7 @@
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
+-->
 
   </target>
 
