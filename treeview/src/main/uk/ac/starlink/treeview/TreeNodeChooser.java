@@ -274,7 +274,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         jtree.setModel( new DataNodeTreeModel( root ) );
         setBusy( false );
         configureActionAvailability( null );
-        jtree.expandPath( new TreePath( root ) );
+        jtree.expandPathLater( new TreePath( root ) );
         rootSelector.setBottomNode( root );
     }
 
@@ -363,19 +363,6 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         dialog.pack();
         dialog.setLocationRelativeTo( parent );
         return dialog;
-    }
-
-    /**
-     * This method is used whenever a new DataNode needs to be created
-     * from an object.
-     *
-     * @param  parent  new data node's parent (may be null for root)
-     * @param  obj     the object from which to construct the new data node
-     * @return  the new data node based on <tt>obj</tt>
-     */
-    public DataNode makeDataNode( DataNode parent, Object obj )
-            throws NoSuchDataException {
-        return getNodeMaker().makeDataNode( parent, obj );
     }
 
     /**
@@ -555,13 +542,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                     Object[] children = evt.getChildren();
                     for ( int i = 0; i < children.length; i++ ) {
                         if ( isChoosable( (DataNode) children[ i ] ) ) {
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    if ( model == jtree.getModel() ) {
-                                        jtree.expandPath( path );
-                                    }
-                                }
-                            } );
+                            jtree.expandPathLater( path );
                         }
                     }
                 }
@@ -637,12 +618,6 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         }
         public void actionPerformed( ActionEvent evt ) {
 
-            /* If we are inside a dialog, dispose it. */
-            if ( currentDialog != null ) {
-                currentDialog.dispose();
-                currentDialog = null;
-            }
-
             /* Work out what node has been selected, if any. */
             DataNode node;
             if ( useSelection ) {
@@ -656,9 +631,14 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             /* Record what it was. */
             chosenNode = node;
 
+            /* If we are inside a dialog, dispose it. */
+            if ( currentDialog != null ) {
+                currentDialog.dispose();
+                currentDialog = null;
+            }
+
             /* Invoke a handler. */
             selectNode( node );
         }
     }
-
 }

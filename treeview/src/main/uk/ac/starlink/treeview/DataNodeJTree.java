@@ -136,28 +136,10 @@ public class DataNodeJTree extends JTree {
             new TreePath( model.getPathToRoot( dataNode ) );
         final TreeModelListener expanderListener = new TreeModelListener() {
             public void treeNodesInserted( TreeModelEvent evt ) {
-                final TreePath path = evt.getTreePath();
+                TreePath path = evt.getTreePath();
                 if ( startPath.isDescendant( path ) &&
                      ! hasBeenExpanded( path ) ) {
-
-                    /* It's not clear to me why this has to be invoked using
-                     * invokeLater, since as a model listener method it's
-                     * going to be invoked from the event dispatch thread
-                     * in any case.  However, if you do it inline you end
-                     * up with a bad gappy JTree.  This may be some sort of
-                     * JTree implementaiton bug which doesn't like a tree
-                     * expansion going on in the middle of other tree 
-                     * processing.  Or I may be misunderstanding the 
-                     * constraints on how one should use a JTree */
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            DataNode dnode = 
-                                (DataNode) path.getLastPathComponent();
-                            if ( model.containsNode( dnode ) ) {
-                                expandPath( path );
-                            }
-                        }
-                    } );
+                    expandPathLater( path );
                 }
             }
             public void treeNodesChanged( TreeModelEvent evt ) {}
@@ -188,7 +170,7 @@ public class DataNodeJTree extends JTree {
      * the event-dispatcher thread.  Only the model is affected, 
      * to reflect the new nodes in the visual appearance of the JTree
      * a suitable TreeModelListener has to be installed to listen for
-     * new nodes being added and do suitable expandPath calls.
+     * new nodes being added and do suitable {@link #expandPathLater} calls.
      *
      * @param   modelNode  the node to expand
      */
@@ -254,6 +236,30 @@ public class DataNodeJTree extends JTree {
               it.hasNext(); ) {
              recursiveExpand( (TreeModelNode) it.next() );
         }
+    }
+
+    /**
+     * Submits a path expansion to the event queue for later invocation.
+     * In several cases it seems that invoking 
+     * {@link javax.swing.JTree#expandPath(javax.swing.tree.TreePath)} 
+     * on the JTree directly, even from the event dispatch thread, has the
+     * effect of messing up the tree's visual representation (leaving
+     * gaps between nodes).  I'm guessing this is because JTree doesn't
+     * expect expandPath to be performed during tree gui processing
+     * which is already taking place.  Doing it like this seems to
+     * alleviate the problem (I hope).
+     *
+     * @param   path  the path to expand
+     */
+    public void expandPathLater( final TreePath path ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                DataNode node = (DataNode) path.getLastPathComponent();
+                if ( model.containsNode( node ) ) {
+                    expandPath( path );
+                }
+            }
+        } );
     }
 
     /**
