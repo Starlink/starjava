@@ -949,34 +949,41 @@ public class DrawActions
         figure = null;
         switch ( drawingMode ) {
            case LINE:
-               figure = figureFactory.create( DrawFigureFactory.LINE, props );
+               figure = figureFactory.create( DrawFigureFactory.LINE, 
+                                              props );
                line = (Line2D.Double) figure.getShape();
                break;
 
            case RECTANGLE:
-               figure = figureFactory.create( DrawFigureFactory.RECTANGLE, props );
+               figure = figureFactory.create( DrawFigureFactory.RECTANGLE, 
+                                              props);
                break;
 
            case XRANGE:
-               figure = figureFactory.create( DrawFigureFactory.XRANGE, props );
+               figure = figureFactory.create( DrawFigureFactory.XRANGE, 
+                                              props );
                break;
 
            case ELLIPSE:
-               figure = figureFactory.create( DrawFigureFactory.ELLIPSE, props );
+               figure = figureFactory.create( DrawFigureFactory.ELLIPSE, 
+                                              props );
                break;
 
            case POLYLINE:
-               figure = figureFactory.create( DrawFigureFactory.POLYLINE, props );
+               figure = figureFactory.create( DrawFigureFactory.POLYLINE, 
+                                              props );
                polyline = (Polyline2D.Double) figure.getShape();
                break;
 
            case POLYGON:
-               figure = figureFactory.create( DrawFigureFactory.POLYGON, props );
+               figure = figureFactory.create( DrawFigureFactory.POLYGON, 
+                                              props );
                polygon = (Polygon2D.Double) figure.getShape();
                break;
 
            case FREEHAND:
-               figure = figureFactory.create( DrawFigureFactory.FREEHAND, props );
+               figure = figureFactory.create( DrawFigureFactory.FREEHAND, 
+                                              props );
                freehand = (Polyline2D.Double) figure.getShape();
                break;
 
@@ -1074,38 +1081,52 @@ public class DrawActions
     public void mouseDragged( MouseEvent e )
     {
         if ( figure != null ) {
-            //  Update figure being created to follow a drag. Most
-            //  figures are updated with a new shape to show the new
-            //  position replacing an old one (previous endX,endY for
-            //  new endX,endY), but the freehand has a new point added
-            //  for each drag event.
 
-            int endX = e.getX();
-            int endY = e.getY();
+            //  Update figure being created to follow a drag. Most figures are
+            //  updated with a new shape to show the new position replacing an
+            //  old one (previous x1,y1 for new x1,y1), but the freehand has a
+            //  new point added for each drag event. Rectangular shaped
+            //  objects are corrected to have positive widths and heights.
+
+            int x0 = startX;
+            int y0 = startY;
+            int x1 = e.getX();
+            int y1 = e.getY();
             int n;
 
             Shape shape = null;
             switch ( drawingMode ) {
                case LINE:
-                   shape = new Line2D.Double( startX, startY, endX, endY );
+                   shape = new Line2D.Double( x0, y0, x1, y1 );
                    break;
 
                case RECTANGLE:
-                   shape = new Rectangle2D.Double( startX, startY,
-                                                   endX - startX,
-                                                   endY - startY );
-                   break;
-
                case XRANGE:
-                   shape = new Rectangle2D.Double( startX, startY,
-                                                   endX - startX,
-                                                   endY - startY );
+                   if ( x1 < x0 ) {
+                       int tmp = x1;
+                       x1 = x0;
+                       x0 = tmp;
+                   }
+                   if ( y1 < y0 ) {
+                       int tmp = y1;
+                       y1 = y0;
+                       y0 = tmp;
+                   }
+                   shape = new Rectangle2D.Double( x0, y0, x1 - x0, y1 - y0 );
                    break;
 
                case ELLIPSE:
-                   shape = new Ellipse2D.Double( startX, startY,
-                                                 endX - startX,
-                                                 endY - startY );
+                   if ( x1 < x0 ) {
+                       int tmp = x1;
+                       x1 = x0;
+                       x0 = tmp;
+                   }
+                   if ( y1 < y0 ) {
+                       int tmp = y1;
+                       y1 = y0;
+                       y0 = tmp;
+                   }
+                   shape = new Ellipse2D.Double( x0, y0, x1 - x0, y1 - y0 );
                    break;
 
                case POLYLINE:
@@ -1115,7 +1136,7 @@ public class DrawActions
                    for ( int i = 1; i < n; i++ ) {
                        pl.lineTo( polyline.getX( i ), polyline.getY(i ) );
                    }
-                   pl.lineTo( endX, endY );
+                   pl.lineTo( x1, y1 );
                    shape = pl;
                    break;
 
@@ -1126,12 +1147,12 @@ public class DrawActions
                    for ( int i = 1; i < n; i++ ) {
                        pg.lineTo( polygon.getX( i ), polygon.getY( i ) );
                    }
-                   pg.lineTo( endX, endY );
+                   pg.lineTo( x1, y1 );
                    shape = pg;
                    break;
 
                case FREEHAND:
-                   freehand.lineTo( endX, endY );
+                   freehand.lineTo( x1, y1 );
                    shape = freehand;
                    break;
 
@@ -1142,7 +1163,7 @@ public class DrawActions
                    Interpolator i = c.getInterpolator();
                    i.setCoords( curve.getXVertices(), curve.getYVertices(),
                                 true );
-                   c.lineTo( endX, endY );
+                   c.lineTo( x1, y1 );
                    c.orderVertices(); // Curves must be monotonic.
                    shape = c;
                    break;
