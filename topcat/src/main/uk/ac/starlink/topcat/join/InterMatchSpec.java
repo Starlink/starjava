@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -117,26 +119,22 @@ public class InterMatchSpec extends MatchSpec {
         RowMatcher matcher = new RowMatcher( engine, tables );
         matcher.setIndicator( indicator );
         List matches;
+        Map matchScores;
         if ( nTable == 2 ) {
-            matches = matcher.findPairMatches( ! useAlls[ 0 ], ! useAlls[ 1 ] );
+            matchScores = matcher.findPairMatches( ! useAlls[ 0 ],
+                                                   ! useAlls[ 1 ] );
+            matches = new ArrayList( matchScores.keySet() );
+            Collections.sort( matches );
         }
         else {
             matches = matcher.findGroupMatches( useAlls );
+            matchScores = null;
         }
         int nrow = matches.size();
 
-        /* Count the number of matches made. */
-        matchCount = 0;
-        for ( Iterator it = matches.iterator(); it.hasNext(); ) {
-            RowLink link = (RowLink) it.next();
-            if ( link.size() > 0 ) {
-                matchCount++;
-            }
-        }
-
         /* Create a new table based on the matched lines we have identified. */
         result = MatchStarTables
-                .makeJoinTable( bases, matches,
+                .makeJoinTable( bases, matches, matchScores,
                                 getDefaultFixActions( nTable ) );
         addMatchMetadata( result, getDescription(), engine, tables );
 
@@ -146,6 +144,7 @@ public class InterMatchSpec extends MatchSpec {
         for ( int i = 0; i < nTable; i++ ) {
             bitsets[ i ] = new BitSet();
         }
+        matchCount = 0;
         int irow = 0;
         for ( Iterator it = matches.iterator(); it.hasNext(); ) {
             RowLink link = (RowLink) it.next();
@@ -153,6 +152,9 @@ public class InterMatchSpec extends MatchSpec {
             for ( int i = 0; i < nref; i++ ) {
                 int iTable = link.getRef( i ).getTableIndex();
                 bitsets[ iTable ].set( irow );
+            }
+            if ( nref > 1 ) {
+                matchCount++;
             }
             irow++;
         }
