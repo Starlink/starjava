@@ -189,7 +189,7 @@
    !-->
   <extclasspath id="installed.classpath">
 
-     <!-- Depends on nothing -->
+     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
   </extclasspath>
   
@@ -211,7 +211,7 @@
    !-->
   <extclasspath id="built.jarpath">
 
-     <!-- Depends on nothing -->
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
 
   </extclasspath>
 
@@ -901,6 +901,20 @@
    !-->
   <target name="test"
           description="-> does nothing"/>
+
+  <!-- RUN up UI for graphics toolkit (for testing/inspecting) -->
+  <target name="testui"
+          depends="build">
+
+    <!-- Run up from the local build, enable for remote JPDA debugging-->
+    <java classname="uk.ac.starlink.diva.TestDrawActions" fork="true">
+      <classpath refid="classpath"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7005"/>
+    </java>
+  </target>
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
