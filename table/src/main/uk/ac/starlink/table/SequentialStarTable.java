@@ -70,6 +70,7 @@ public abstract class SequentialStarTable extends AbstractStarTable {
     public void next() throws IOException {
         if ( hasNextRow() ) {
             currentRowData = getNextRow();
+            current++;
         }
         else {
             currentRowData = null;
