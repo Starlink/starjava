@@ -1,102 +1,101 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2004 Central Laboratory of the Research Councils
  *
  *  History:
- *     21-MAY-2001 (Peter W. Draper):
+ *     01-FEB-2004 (Peter W. Draper):
  *       Original version.
  */
 package uk.ac.starlink.splat.util;
 
+import uk.ac.starlink.splat.data.AnalyticSpectrum;
+
 /**
- * Abstract class of for functions that perform fitting of a function
- * to a spectral line. Examples of derived classes are GaussianFitter,
- * LorentzFitter and VoigtFitter. Fitters should honour the basic set
- * of interface methods defined here. Any common functionality that
- * can be shared should also be implemented here.
+ * Interface for functions that perform fitting of a function
+ * to a spectral line using a {@link LevMarq} non-linear minimisation.
+ * It extends the {@link AnalyticSpectrum} and {@link LevMarqFunc}
+ * interfaces.
+ * <p>
+ * Examples of derived classes are GaussianFitter, LorentzFitter and
+ * VoigtFitter. A abstract base class for FunctionFitters is provided in 
+ * {@link AbstractFunctionFitter}.
  *
  * @author Peter W. Draper
  * @version $Id$
  * @see GaussianFitter
  * @see LorentzFitter
  * @see VoigtFitter 
+ * @see AbstractFunctionFitter
+ * @see AnalyticSpectrum
+ * @see LevMarqFunc
  */
-public abstract class FunctionFitter
+public interface FunctionFitter
+    extends AnalyticSpectrum, LevMarqFunc
 {
     /**
      * Get Chi square for the fit.
      */
-    public abstract double getChi();
+    public double getChi();
 
     /**
      * Get the centre of fit.
      */
-    public abstract double getCentre();
+    public double getCentre();
 
     /**
      * Get the scale height of fit.
      */
-    public abstract double getScale();
+    public double getScale();
 
     /**
      * Get the integrated intensity of the fit.
      */
-    public abstract double getFlux();
+    public double getFlux();
 
     /**
-     * Evaluate the function at a set of given X positions.
-     *
-     * @param x array of X positions at which to evaluate.
-     * @return array of values at given X's.
-     */
-    public double[] evalArray( double[] x )
-    {
-        double[] y = new double[x.length];
-        for ( int i = 0; i < x.length; i++ ) {
-            y[i] = evalPoint( x[i] );
-        }
-        return y;
-    }
-
-    /**
-     * Evaluate the function at a single position.
-     *
-     * @param x X position at which to evaluate.
-     * @return value at X
-     */
-    public abstract double evalPoint( double x );
-
-    /**
-     *  Calculate an RMS to the given data for the fit.
+     * Calculate an RMS to the given data for the fit.
      *
      * @param x array of X coordinates.
      * @param y array of data values for each X coordinate.
      */
-    public double calcRms( double[] x, double[] y )
-    {
-        double rmssum = 0.0;
-        double dy = 0.0;
-        for ( int i = 0; i < x.length; i++ ) {
-            dy = y[i] - evalPoint( x[i] );
-            rmssum += dy * dy;
-        }
-        return Math.sqrt( rmssum / (double)( x.length - 1 ) );
-    }
+    public double calcRms( double[] x, double[] y );
 
     /**
-     *  Calculate an RMS to the given data and pre-calculated fit.
+     * Calculate an RMS to the given data and pre-calculated fit.
      *
      * @param x array of X coordinates.
      * @param y array of data values for each X coordinate.
      * @param fity array of model values for each X coordinate.
      */
-    public double calcRms( double[] x, double[] y, double[] fity )
-    {
-        double rmssum = 0.0;
-        double dy = 0.0;
-        for ( int i = 0; i < x.length; i++ ) {
-            dy = y[i] - fity[i];
-            rmssum += dy * dy;
-        }
-        return Math.sqrt( rmssum / (double)( x.length - 1 ) );
-    }
+    public double calcRms( double[] x, double[] y, double[] fity );
+
+    /**
+     * Return the number of parameters used to describe this
+     * function. This is the size of the {@link LevMarqFunc#eval}  
+     * a parameter.
+     * 
+     * @return number of parameters used to describe this function.
+     */
+    public int getNumParams();
+
+    /**
+     * Return the parameters of this function as a list.
+     */
+    public double[] getParams();
+
+    /**
+     * Set the parameters of this function from an array of doubles.
+     */
+    public void setParams( double[] params );
+
+    /** 
+     * Return the floating states of the various parameters. This
+     * determines if the values are fixed and should not be changed,
+     * or may float. The default state should be floating.
+     */
+    //public boolean[] getFloating();
+    
+    /**
+     * Set the floating state of the variuous parameters.
+     */
+    //public void setFloating( boolean[] floating );
 }
