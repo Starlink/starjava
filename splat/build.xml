@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "../project.dtd">
-
 <!--
- !   SPLAT build file
+ !   SOG build file
  !
- !   This file describes how to build the SPLAT package from a source
+ !   This file describes how to build the SOG package from a source
  !   release. It requires Apache ANT and a Java Development Kit.
  !
- !   In addition SPLAT may have requirements for other "core" and
+ !   In addition SOG may have requirements for other "core" and
  !   "third-party" packages to complete the compilation and any
  !   testing.
  !
@@ -17,7 +15,7 @@
  !      build            -> compiles the source code
  !      clean            -> cleans up build and dist products
  !      deinstall        -> undo the install target
- !      dist             -> configures the local binary distribution
+ !      dist             -> creates the local binary distribution
  !      export           -> creates the full distribution archives
  !      export-runonly   -> creates the runonly distribution archives
  !      export-source    -> creates the source distribution archives
@@ -25,18 +23,18 @@
  !      install-runonly  -> install a runonly distribution into Starlink tree
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
- !      javadoc-sources  -> make source files for release API documention
- !      test             -> run up SPLAT from local build
+ !      javadoc-sources  -> does nothing
+ !      test             -> run up SOG from local build
  !
  !   Authors:
- !      Peter W. Draper (26-JUL-2002)
+ !      Peter W. Draper (9-JUL-2002)
  !
  !   Version:
  !      $Id$
  !
  !-->
 
-<project name="Build file for SPLAT" default="build" basedir=".">
+<project name="Build file for SOG" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -60,7 +58,7 @@
   <!-- Directory to install into (install target, usually /star/java)-->
   <property name="star.install" value="${star.dir}"/>
 
-  <!-- Directory that contains the Starlink jar and shareable library tree -->
+  <!-- Directory that contains the Starlink jar tree -->
   <property name="star.jar.dir" value="${star.dir}/lib"/>
 
   <!-- Directory that contains the locally built sources (usually
@@ -82,25 +80,27 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="SPLAT"/>
-  <property name="name" value="splat"/>
-  <property name="version" value="2.0"/>
+  <property name="Name" value="SOG"/>
+  <property name="name" value="sog"/>
+  <property name="version" value="0.2"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="uk.ac.starlink.splat"/>
+  <property name="package.name" value="uk.ac.starlink.sog"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.4"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
 
   <!-- JUnit test options -->
-  <property name="junit.fork" value="false"/>
+  <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
+  <property name="junit.assertions" value="-enableassertions"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
@@ -118,11 +118,8 @@
    !   distributed (normally these would belong in a proper package)-->
   <property name="src.jars.dir" value="${src.dir}/lib"/>
 
-  <!-- Directory containing JNI source code -->
+  <!-- Directory containing any JNI source code -->
   <property name="src.jni.dir" value="${src.dir}/jni"/>
-
-  <!-- Directory for miscellaneous files -->
-  <property name="src.etc" value="${src.dir}/etc"/>
 
   <!-- Directories for JUnit test cases and related files -->
   <property name="tests.dir" value="${src.dir}/testcases"/>
@@ -138,7 +135,6 @@
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
-  <property name="build.jni" value="${build.dir}/jni"/>
 
   <!-- Distribution directories, these are created in the current
    !   directory, unless dist.dir is redefined. Files that will be
@@ -157,10 +153,6 @@
   <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
   <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
-
-  <!-- Architecture-specific files (shared libraries) will be placed in
-   !   an appropriate subdirectory of dist.lib -->
-  <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
 
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
@@ -202,6 +194,9 @@
    !-->
   <extclasspath id="installed.classpath">
 
+    <!-- JSky -->
+    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
+
     <!-- JNIAST -->
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
@@ -211,20 +206,14 @@
     <!-- DIVA -->
     <pathelement location="${star.jar.dir}/diva/diva.jar"/>
 
-    <!-- HDX -->
-    <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
+    <!-- JAIUtil -->
+    <pathelement location="${star.jar.dir}/jaiutil/jaiutil.jar"/>
 
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
 
-    <!-- PAL -->
-    <pathelement location="${star.jar.dir}/pal/pal.jar"/>
-
     <!-- ASTGUI -->
     <pathelement location="${star.jar.dir}/astgui/astgui.jar"/>
-
-    <!-- TABLE -->
-    <pathelement location="${star.jar.dir}/table/table.jar"/>
 
   </extclasspath>
 
@@ -245,14 +234,13 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
+    <pathelement location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
-    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
-    <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
+    <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
+    <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
     <pathelement location="${star.build.dir}/diva/lib/diva/diva.jar"/>
-    <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
-    <pathelement location="${star.build.dir}/pal/lib/pal/pal.jar"/>
+    <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/astgui/lib/astgui/astgui.jar"/>
-    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -262,9 +250,9 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
-     <fileset dir="${src.jars.dir}">
+     <!--<fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
-     </fileset>
+     </fileset>-->
   </path>
 
   <path id="built.classpath">
@@ -328,13 +316,12 @@
    ! this throws a <fail> and exits the build.
    !-->
   <target name="check_packages"
-          unless="runonly.install"
-          if="fasttest">
+          unless="runonly.install">
 
     <!--  Need NDArray -->
     <available property="array.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hdx.array.NDArray"/>
+               classname="uk.ac.starlink.array.NDArray"/>
 
     <fail message="No NDArray available" unless="array.present"/>
 
@@ -351,6 +338,20 @@
                classname="uk.ac.starlink.ndx.Ndx"/>
 
     <fail message="No NDX available" unless="ndx.present"/>
+
+    <!--  Need JAIUtil -->
+    <available property="jaiutil.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.jaiutil.HDXCodec"/>
+
+    <fail message="No JAIUtil available" unless="jaiutil.present"/>
+
+    <!--  Need JSky -->
+    <available property="jsky.present"
+               classpathref="classpath"
+               classname="jsky.app.jskycat.JSkyCat"/>
+
+    <fail message="No JSky classes available" unless="jsky.present"/>
 
     <!-- Need SOAPSERVER -->
     <available property="soapserver.present"
@@ -391,6 +392,7 @@
 
   </target>
 
+
   <!--
    !   ==============
    !   Build the code
@@ -407,6 +409,7 @@
 
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
+           source="${source.version}"
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
@@ -416,9 +419,7 @@
 
       <!-- Exclude any Java files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/retired_code/*"/>
-      <exclude name="**/*Test*"/>
-      <exclude name="**/ExtractNDFWCS2XML.java"/>
+      <!-- <exclude name=""/>-->
     </javac>
 
     <!-- Copy extra files that should live with packages classes
@@ -427,7 +428,7 @@
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
         <include name="**/images/**"/>
-        <include name="**/support/**"/>
+        <include name="**/*.xml"/>
       </fileset>
     </copy>
 
@@ -435,86 +436,10 @@
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
-    <mkdir dir="${dist.lib.pkg}"/>
+    <!--<mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
-    </copy>
-
-    <!-- Build any shareable libraries needed to support this package.
-     !   This goes straight into the distribution directory to save on
-     !   space, and to make it immediately available to locally built
-     !   packages  -->
-    <antcall target="execute_mk_script">
-      <param name="mk.action" value="build"/>
-    </antcall>
-
-  </target>
-
-  <!--
-   !  ===================================
-   !  Execute shareable library MK script
-   !  ===================================
-   !
-   !  Execute the "mk" script that creates the package shareable
-   !  library. The action performed is controlled by the "mk.action"
-   !  property that should be defined before an antcall to this
-   !  target.
-   !-->
-  <target name="execute_mk_script">
-
-    <!-- Execute the given action for all known operating system types.
-     !   This uses modified mk and makefiles from an old-style system
-     !   which should be stored in ${src.jni.dir} along with the source
-     !   code. Note some of these OS names seem to change from time to
-     !   time and across JVMs, so beware. Clearly this is not portable.
-     !-->
-
-    <!-- Copy all source code into the build directory (keeps any
-     !   intermediary files out of the source tree) -->
-    <copy todir="${build.jni}">
-      <fileset dir="${src.jni.dir}" includes="*"/>
-    </copy>
-    <chmod perm="ugo+rx" dir="${build.jni}" includes="*"/>
-
-    <!-- Local and installed versions of any shareable libraries that we
-     !   require to resolve against in a form for the UNIX "ld" command
-     !-->
-    <property name="jniast.share"
-        value="-L${star.jar.dir}/${os.arch}
-               -L${star.build.dir}/jniast/lib/${os.arch} -ljniast"/>
-
-    <property name="java.shareables" value="${jniast.share}"/>
-
-    <mkdir dir="${dist.lib.arch}"/>
-
-    <echo message="java.home=${java.home}"/>
-
-    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Linux">
-      <env key="SYSTEM" value="ix86_Linux"/>
-      <env key="JAVA_SYSTEM" value="linux"/>
-      <env key="JAVA_HOME" value="${java.home}/.."/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
-      <arg line="${mk.action}"/>
-    </exec>
-
-    <exec dir="${build.jni}" executable="${build.jni}/mk" os="SunOS">
-      <env key="SYSTEM" value="sun4_Solaris"/>
-      <env key="JAVA_SYSTEM" value="solaris"/>
-      <env key="JAVA_HOME" value="${java.home}/.."/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
-      <arg line="${mk.action}"/>
-    </exec>
-
-    <exec dir="${build.jni}" executable="${build.jni}/mk" os="OSF1">
-      <env key="SYSTEM" value="alpha_OSF1"/>
-      <env key="JAVA_SYSTEM" value="alpha"/>
-      <env key="JAVA_HOME" value="${java.home}/.."/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
-      <arg line="${mk.action}"/>
-    </exec>
+    </copy>-->
 
   </target>
 
@@ -540,10 +465,9 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Main-Class"
-                   value="uk.ac.starlink.splat.SplatMain"/>
+        <attribute name="Main-Class" value="uk.ac.starlink.sog.SOG"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
-      </manifest>
+     </manifest>
     </jar>
 
     <!-- Sign all jar files -->
@@ -551,13 +475,12 @@
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
-       <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
     </signjar>
 
   </target>
 
-
-  <!--
+ <!--
    !   ========================================
    !   Make package JNLP file for Java webstart
    !   ========================================
@@ -571,12 +494,11 @@
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>Starlink SPLAT - A Spectral Analysis Tool</title>
+         <title>SoG - Son of GAIA</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
-         <icon kind="splash" href="splat_splash.gif"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>Starlink SPLAT - Webstart edition</description>
+         <description>SoG - Webstart edition</description>
          <offline_allowed/>
        </information>
        <security>
@@ -584,26 +506,21 @@
        </security>
        <resources>
          <j2se version="1.4+"/>
-         <j2se version="1.4+"/>
-         <jar href="splat/splat.jar" main="true"/>
-         <extension name="SPLAT_PARTS" href="splat-parts.jnlp"/>
-
-         <!-- Decouple potential circular dependencies -->
-         <extension name="TREEVIEW-PARTS" href="treeview-parts.jnlp"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="SOG-PARTS" href="${name}-parts.jnlp"/>
        </resources>
-       <application_desc main_class="uk.ac.starlink.splat.SplatMain"/>
+       <application_desc main_class="uk.ac.starlink.sog.SOG"/>
      </jnlp>
 
      <!-- May be needed as a component so provide that too -->
      <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
           codebase="${webstart.codebase}">
       <information>
-         <title>Starlink SPLAT - A Spectral Analysis Tool</title>
-         <vendor>Starlink UK</vendor>
+         <title>SoG - Son of GAIA</title>
+         <vendor>ESO</vendor>
          <homepage href="${home.page}"/>
-         <icon kind="splash" href="splat_splash.gif"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink SPLAT - Webstart edition"</description>
+         <description>SoG - Webstart edition</description>
          <offline_allowed/>
        </information>
        <security>
@@ -611,17 +528,15 @@
        </security>
        <resources>
          <j2se version="1.4+"/>
-         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
-         <extension name="ASTGUI" href="astgui.jnlp"/>
+         <jar href="${name}/${name}.jar"/>
+         <extension name="JSKY-PARTS" href="jsky-parts.jnlp"/>
+         <extension name="ARRAY" href="array.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
+         <extension name="JAIUTIL" href="jaiutil.jnlp"/>
+         <extension name="HDS" href="hds.jnlp"/> 
          <extension name="JNIAST" href="jniast.jnlp"/>
          <extension name="SOAPSERVER" href="soapserver.jnlp"/>
-         <extension name="FITS" href="fits.jnlp"/>
-         <extension name="HDS" href="hds.jnlp"/>
-         <extension name="PAL" href="pal.jnlp"/>
-         <extension name="DIVA" href="diva.jnlp"/>
-         <extension name="HELP" href="help.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="ASTGUI" href="astgui.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
@@ -652,25 +567,19 @@
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
-    <mkdir dir="${dist.lib.arch}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+    <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
     <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
 
-    <!-- Copy auxiliary files. -->
-    <copy todir="${dist.etc.pkg}">
-      <fileset dir="${src.etc}"/>
-    </copy>
-
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
-    <copy todir="${dist.docs.pkg}">
+    <!--<copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
-    </copy>
+    </copy>-->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -680,8 +589,7 @@
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
-    <chmod perm="ugo+rx" dir="${dist.lib}" type="file" includes="libsplat*"
-           failonerror="${chmod.fail}"/>
+
   </target>
 
   <!--
@@ -782,9 +690,9 @@
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
-      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -811,9 +719,9 @@
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
-      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -841,7 +749,7 @@
     <delete dir="${dist.bin}"/>
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
-    <delete dir="${dist.etc}"/>
+    <!--<delete dir="${dist.etc}"/>-->
 
   </target>
 
@@ -869,14 +777,11 @@
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
-    <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
-
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
+    <!--<mkdir dir="${star.etc.pkg}"/>-->
     <mkdir dir="${star.docs.pkg}"/>
-    <mkdir dir="${star.lib.arch}"/>
 
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
@@ -904,7 +809,6 @@
         <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
-        <include name="**/libsplat.*"/>
       </fileset>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.lib.pkg}
@@ -927,15 +831,6 @@
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
 
-    <loggedcopy todir="${star.etc}"
-                logfile="${install.log}"
-                overwrite="${install.overwrite}"
-                logfileAppend="true">
-      <fileset dir="${dist.etc}"/>
-    </loggedcopy>
-    <echo file="${install.log}" append="true">${star.etc.pkg}
-</echo>
-
   </target>
 
   <!--
@@ -954,9 +849,8 @@
      <mkdir dir="${dist.dir}"/>
      <mkdir dir="${dist.bin.pkg}"/>
      <mkdir dir="${dist.lib.pkg}"/>
-     <mkdir dir="${dist.lib.arch}"/>
      <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+     <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
      <!-- Do normal install, but with many targets switched off-->
      <antcall target="install">
@@ -971,7 +865,7 @@
    !   De-install from the "Starlink" tree
    !   ===================================
    !
-   !  Uses the content of the "${install.log}" to remove the files
+   ! Uses the content of the "${install.log}" to remove the files
    !  that were copied into place by the install target. If this fails
    !  then hopefully the log file will not be deleted!
    !-->
@@ -1022,16 +916,10 @@
              doctitle="${Name}"
              classpathref="classpath">
 
-      <doclet name="com.sun.tools.doclets.standard.Standard">
-        <param name="-breakiterator"/>
-      </doclet>
-
       <!-- Get a list of directories that name all the potential
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
-         <exclude name="**/retired_code"/>
-         <exclude name="**/*Test*"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
@@ -1044,7 +932,6 @@
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
     </javadoc>
-
   </target>
 
   <!-- This checks if the javadocs are up to date with respect to the
@@ -1066,7 +953,7 @@
    !
    !  Just copies the sources into the correct place.
    !-->
-    <target name="javadoc-sources"
+  <target name="javadoc-sources"
           description="-> make source files for release API documentation">
      <mkdir dir="${build.java}"/>
 
@@ -1075,12 +962,6 @@
 
     <copy todir="${build.java}">
       <fileset dir="${java.dir}" defaultexcludes="yes">
-        <include name="**/*.java"/>
-        <exclude name="**/retired_code/*"/>
-        <exclude name="**/*Test*"/>
-        <exclude name="**/ExtractNDFWCS2XML.java"/>
-        <exclude name="**/FITS.java"/>
-        <exclude name="**/*Holder.java"/>
       </fileset>
     </copy>
 
@@ -1090,19 +971,83 @@
    !   =================
    !   Compile testcases
    !   =================
-   ! Note these are not JUnit based
    !-->
   <target name="compile-tests"
           depends="build"
           if="junit.present">
+
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
+           source="${source.version}"
            deprecation="${deprecation}" >
+
       <classpath refid="tests-classpath"/>
+
     </javac>
+
+  </target>
+
+  <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="test"
+          depends="run-tests"
+          description="-> run JUnit tests"/>
+
+  <target name="run-tests"
+          depends="compile-tests"
+          if="junit.present">
+
+    <junit printsummary="${junit.summary}" haltonfailure="yes"
+           filtertrace="${junit.filtertrace}"
+           fork="${junit.fork}">
+
+      <classpath refid="tests-classpath"/>
+
+      <jvmarg value="${junit.assertions}"/>
+
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+
+      <formatter type="brief" usefile="false"/>
+
+      <batchtest>
+        <fileset dir="${tests.dir}">
+          <include name="**/JUnit*"/>
+        </fileset>
+      </batchtest>
+
+    </junit>
+
+  </target>
+
+  <target name="run-single-test"
+          if="testcase"
+          depends="compile-tests"
+          description="-> runs the single unit test defined in the testcase property">
+
+    <junit printsummary="${junit.summary}"
+          haltonfailure="yes"
+          fork="${junit.fork}"
+          filtertrace="${junit.filtertrace}">
+
+      <sysproperty key="hdx.home" value="${hdx.home}"/>
+      <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="tests-classpath.value"
+                   value="${tests-classpath.value}"/>
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
+      <formatter type="plain" usefile="false"/>
+      <test name="${testcase}"/>
+
+    </junit>
+
   </target>
 
   <!--
@@ -1111,62 +1056,46 @@
    !   ============
    ! Note these are not JUnit based.
    !-->
-  <target name="test"
-          depends="compile-tests">
-    <!-- does nothing, no tests in SPLAT -->
-  </target>
-
-  <!-- Compile all code and run up the UI -->
   <target name="fullui"
           depends="compile-tests">
-    <antcall target="debugui"/>
-  </target>
 
-  <!-- RUN up UI without compilation dependency (for testing/inspecting 
-   !   when coding not complete). -->
-  <target name="debugui">
-
-    <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
-    <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
-      <classpath refid="tests-classpath"/>
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xnoagent"/>
-      <jvmarg value="-Djava.compiler=NONE"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
-      <jvmarg value="-Dsplat.etc=${src.etc}"/>
-      <jvmarg value="-Dsplat.development=${splat.development}"/>
-      <arg value="src/etc/testdata/ramp.txt"/>
-    </java>
-  </target>
-
-  <!-- RUN up UI without compilation dependency and without remote
-   !   debugging support -->
-  <target name="plainui">
-
-    <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
+    <!-- Run up SOG from the local build, setup to be debugged from socket -->
+    <java classname="uk.ac.starlink.sog.SOG" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
-      <arg value="src/etc/testdata/ramp.txt"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7001"/>
+      <arg line="-port 8082 -internalframes"/>
+      <arg value="src/etc/data/cobe.xml"/>
     </java>
+
   </target>
 
-  <!-- Execute a given class with up to two arguments -->
-  <property name="runclass" value="uk.ac.starlink.splat.SplatMain"/>
-  <property name="runclass.args1" value=""/>
-  <property name="runclass.args2" value=""/>
-  <target name="runclass" 
+  <target name="photomui"
           depends="compile-tests">
 
-    <java classname="${runclass}" fork="true">
+    <java classname="uk.ac.starlink.sog.photom.AperturePhotometryFrame" 
+          fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
       <jvmarg value="-Djava.compiler=NONE"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
-      <arg value="${runclass.args1}"/>
-      <arg value="${runclass.args2}"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7002"/>
     </java>
+
+  </target>
+
+  <target name="photomws"
+          depends="compile-tests">
+
+    <java classname="uk.ac.starlink.sog.photom.PhotomWS" 
+          fork="true">
+      <classpath refid="tests-classpath"/>
+    </java>
+
   </target>
 
   <!--

@@ -82,7 +82,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SOG"/>
   <property name="name" value="sog"/>
-  <property name="version" value="0.1"/>
+  <property name="version" value="0.2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.sog"/>
@@ -1014,7 +1014,6 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1042,7 +1041,6 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>

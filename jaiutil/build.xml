@@ -79,7 +79,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="JAIUtil"/>
   <property name="name" value="jaiutil"/>
-  <property name="version" value="1.0"/>
+  <property name="version" value="1.1"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.jaiutil"/>
@@ -969,7 +969,6 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -997,7 +996,6 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
-      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
