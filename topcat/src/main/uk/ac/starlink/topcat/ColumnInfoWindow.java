@@ -13,6 +13,7 @@ import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.Icon;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
@@ -31,7 +32,6 @@ import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.gui.TableRowHeader;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A window which displays metadata about each of the columns in a table.
@@ -187,7 +187,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         } );
 
         /* Add expression column. */
-        metas.add( new ValueInfoMetaColumn( SyntheticColumn.EXPR_INFO ) {
+        metas.add( new ValueInfoMetaColumn( PlasticStarTable.EXPR_INFO ) {
             private SyntheticColumn getSyntheticColumn( int irow ) {
                 ColumnData coldata = 
                     dataModel.getColumnData( getModelIndexFromRow( irow ) );
@@ -214,22 +214,57 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                     viewModel.fireTableDataChanged();
                 }
                 catch ( CompilationException e ) {
-                    ErrorDialog.showError( e, "Bad expression", 
-                                           ColumnInfoWindow.this );
+                    String[] msg = new String[] {
+                        "Syntax error in synthetic column expression \"" + 
+                        value + "\":",
+                        e.getMessage(),
+                    };
+                    JOptionPane.showMessageDialog( ColumnInfoWindow.this, msg,
+                                                   "Expression Syntax Error",
+                                                   JOptionPane.ERROR_MESSAGE );
                 }
             }
         } );
            
-        /* Add description column. */
+        /* Add description column. 
+         * Synthetic and normal (non-synthetic) columns are handled a bit 
+         * differently.  For normal columns, the value displayed is the
+         * column's Description attribute itself (ColumnInfo.getDescription).
+         * For synthetic columns it's the BASE_DESCRIPTION auxiliary
+         * metadata item; the Description attribute contains that plus
+         * the current expression in brackets. */
         metas.add( new MetaColumn( "Description", String.class ) {
             public Object getValue( int irow ) {
-                return getColumnInfo( irow ).getDescription();
+                ColumnInfo colinfo = getColumnInfo( irow );
+                DescribedValue basedescValue = getBaseDescription( irow );
+                return basedescValue == null 
+                     ? colinfo.getDescription()
+                     : basedescValue.getValue();
             }
             public boolean isEditable( int irow ) {
                 return irow > 0;
             }
             public void setValue( int irow, Object value ) {
-                getColumnInfo( irow ).setDescription( (String) value );
+                String sval = (String) value;
+                ColumnInfo colinfo = getColumnInfo( irow );
+                DescribedValue basedescValue = getBaseDescription( irow );
+                if ( basedescValue == null ) {
+                    colinfo.setDescription( sval );
+                }
+                else {
+                    basedescValue.setValue( sval );
+                    colinfo.setDescription( sval + " (" 
+                                          + getExpression( irow ).getValue()
+                                          + ")" );
+                }
+            }
+            private DescribedValue getBaseDescription( int irow ) {
+                return getColumnInfo( irow )
+                      .getAuxDatum( PlasticStarTable.BASE_DESCRIPTION_INFO );
+            }
+            private DescribedValue getExpression( int irow ) {
+                return getColumnInfo( irow )
+                      .getAuxDatum( PlasticStarTable.EXPR_INFO );
             }
         } );
 
@@ -265,7 +300,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         List auxInfos = new ArrayList( dataModel.getColumnAuxDataInfos() );
 
         /* Remove any from this list which we have already added explicitly. */
-        auxInfos.remove( SyntheticColumn.EXPR_INFO );
+        auxInfos.remove( PlasticStarTable.EXPR_INFO );
         auxInfos.remove( PlasticStarTable.COLID_INFO );
         
         /* Add all the remaining aux columns. */

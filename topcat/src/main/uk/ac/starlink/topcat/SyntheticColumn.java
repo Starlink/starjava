@@ -42,9 +42,6 @@ public class SyntheticColumn extends ColumnData {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
-    public final static ValueInfo EXPR_INFO = 
-        new DefaultValueInfo( "Expression", String.class, 
-                              "Algebraic expression for column value" );
 
     /**
      * Constructs a new synthetic column from an algebraic expression 
@@ -102,10 +99,31 @@ public class SyntheticColumn extends ColumnData {
             actualType = wrapPrimitiveClass( actualType );
         }
 
-        /* Configure the column metadata correctly for this expression. */
+        /* Configure the column data type correctly for this expression. */
         ColumnInfo colinfo = getColumnInfo();
-        colinfo.setAuxDatum( new DescribedValue( EXPR_INFO, expression ) );
         colinfo.setContentClass( actualType );
+
+        /* Store the value of the expression in the column metadata. */
+        ValueInfo exprInfo = PlasticStarTable.EXPR_INFO;
+        colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
+        
+        /* We also want to store the information in the column's
+         * Description, since this gives a better chance of it being
+         * serialized when the table is saved.  To do this we stash 
+         * away the original value of the description in a new value 
+         * (BASE_DESCRIPTION) and append the expression to the base
+         * description.  We have to do it like this to prevent the
+         * expressions getting repeatedly added onto the end if they
+         * are changed. */
+        ValueInfo basedescInfo = PlasticStarTable.BASE_DESCRIPTION_INFO;
+        DescribedValue basedescValue = colinfo.getAuxDatum( basedescInfo );
+        if ( basedescValue == null ) {
+            basedescValue = new DescribedValue( basedescInfo, 
+                                                colinfo.getDescription() );
+            colinfo.setAuxDatum( basedescValue );
+        }
+        colinfo.setDescription( basedescValue.getValue() + 
+                                " (" + expression + ")" );
     }
 
     public Object readValue( long lrow ) throws IOException {
