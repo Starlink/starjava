@@ -32,9 +32,9 @@ import uk.ac.starlink.ast.gui.AbstractPlotControlsModel;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.Percentile;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * DataLimitControls creates a "page" of widgets that are a view of a

@@ -47,9 +47,9 @@ import uk.ac.starlink.pal.Observatory;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * Window for choosing to set or modify the properties of the X axis

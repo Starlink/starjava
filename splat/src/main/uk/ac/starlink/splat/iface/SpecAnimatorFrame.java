@@ -45,7 +45,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.GridBagLayouter;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.splat.util.JPEGUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;

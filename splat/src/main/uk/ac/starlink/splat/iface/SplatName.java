@@ -16,7 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.util.GridBagLayouter;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * SplatName is a composite widget for displaying and modifying the

@@ -38,9 +38,9 @@ import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.PolynomialFitter;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * PolyFitFrame display a series of controls that allow a polynomial

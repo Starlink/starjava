@@ -14,7 +14,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.ProxySetup;
+import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.Loader;
 
 /**

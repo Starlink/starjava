@@ -67,11 +67,11 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * This is the main class for the SPLAT program. It creates the

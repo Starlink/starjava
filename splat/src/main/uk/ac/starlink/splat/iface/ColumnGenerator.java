@@ -36,8 +36,8 @@ import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
-import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * Provides basic facilities for generating new data column values for
