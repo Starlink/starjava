@@ -82,7 +82,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SOAPSERVER"/>
   <property name="name" value="soapserver"/>
-  <property name="version" value="0.2"/>
+  <property name="version" value="0.3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.soap"/>
