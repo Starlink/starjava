@@ -37,7 +37,8 @@ import diva.util.java2d.ShapeUtilities;
  *
  * @version	$Revision: 1.9 $
  * @author 	John Reekie
- */
+ * @author Peter Draper (p.w.draper@durham.ac.uk)
+ */ 
 public class PathFigure extends AbstractFigure implements ShapedFigure {
 
     /** The stroke.
@@ -51,6 +52,10 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
      /** The shape of the figure
      */
     private Shape _shape;
+
+    /** The color compositing operator
+     */
+    private Composite _composite = AlphaComposite.SrcOver; // opaque
 
     /** Create a new figure with the given shape. The figure, by
      *  default, is stroked with a unit-width continuous black stroke.
@@ -126,6 +131,13 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
         return _paint;
     }
 
+    /**
+     * Get the compositing operator
+     */
+    public Composite getComposite() {
+        return _composite;
+    }
+
     /** Test if this figure intersects the given rectangle. 
      * If the figure is not visible, always return false.
      */
@@ -145,6 +157,7 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
         }
 	g.setStroke(_stroke);
         g.setPaint(_paint);
+        g.setComposite(_composite);
         g.draw(_shape);
     }
 
@@ -220,6 +233,13 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
 	repaint();
         _paint = p;
 	repaint();
+    }
+
+    /** Set the compositing operation for this figure.
+     */
+    public void setComposite (AlphaComposite c) {
+        _composite = c;
+        repaint();
     }
 
     /** Transform the figure with the supplied transform. This can be
