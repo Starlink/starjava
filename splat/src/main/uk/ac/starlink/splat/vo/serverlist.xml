@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+
+<serverlist>
+
+<!-- List of Known SSAP servers and their URLs -->
+
+<server description="IUE Newly Extracted Spectra"
+        baseurl="http://sdc.laeff.esa.es/ines/jsp/siap.jsp?"/>
+<server description="HST/STECF FOS"
+        baseurl="http://archive.eso.org/bin/fos_ssap.pl?"/>
+<server description="Infrared Space Observatory"
+        baseurl="http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap.jsp?imageType=spectrum"/>
+
+</serverlist>
