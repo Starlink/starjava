@@ -142,12 +142,15 @@ public class StarTableDataNode extends DefaultDataNode
                 break;
             }
         }
-        dv.addPane( "Columns", new ComponentMaker() {
-            public JComponent getComponent() {
-                MetamapGroup metagroup = new ColumnsMetamapGroup( startable );
-                return new MetaTable( metagroup );
-            }
-        } );
+        if ( ncols > 0 ) {
+            dv.addPane( "Columns", new ComponentMaker() {
+                public JComponent getComponent() {
+                    MetamapGroup metagroup = 
+                        new ColumnsMetamapGroup( startable );
+                    return new MetaTable( metagroup );
+                }
+            } );
+        }
         if ( npar > 0 ) {
             dv.addPane( "Parameters", new ComponentMaker() {
                 public JComponent getComponent() {
@@ -157,29 +160,33 @@ public class StarTableDataNode extends DefaultDataNode
                 }
             } );
         }
-        dv.addPane( "Table data", new ComponentMaker() {
-            public JComponent getComponent() throws IOException {
-                StarTable rtab = tgetter.getRandomTable();
-                StarJTable sjt = new StarJTable( rtab, true );
-                sjt.configureColumnWidths( 800, 100 );
-                return sjt;
-            }
-        } );
+        if ( ncols > 0 && nrows != 0 ) {
+            dv.addPane( "Table data", new ComponentMaker() {
+                public JComponent getComponent() throws IOException {
+                    StarTable rtab = tgetter.getRandomTable();
+                    StarJTable sjt = new StarJTable( rtab, true );
+                    sjt.configureColumnWidths( 800, 100 );
+                    return sjt;
+                }
+            } );
+        }
 
         List actions = new ArrayList();
-        Icon tcic = IconFactory.getIcon( IconFactory.TOPCAT );
-        Action topcatAct = new AbstractAction( "TOPCAT", tcic ) {
-            public void actionPerformed( ActionEvent evt ) {
-                try {
-                    new TableViewer( tgetter.getRandomTable(), null );
+        if ( ncols > 0 ) {
+            Icon tcic = IconFactory.getIcon( IconFactory.TOPCAT );
+            Action topcatAct = new AbstractAction( "TOPCAT", tcic ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    try {
+                        new TableViewer( tgetter.getRandomTable(), null );
+                    }
+                    catch ( IOException e ) {
+                        beep();
+                        e.printStackTrace();
+                    }
                 }
-                catch ( IOException e ) {
-                    beep();
-                    e.printStackTrace();
-                }
-            }
-        };
-        actions.add( topcatAct );
+            };
+            actions.add( topcatAct );
+        }
         dv.addActions( (Action[]) actions.toArray( new Action[ 0 ] ) );
     }
 

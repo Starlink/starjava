@@ -40,7 +40,7 @@ public class VOTableTableDataNode extends VOComponentDataNode
         desc = "(" 
              + votable.getColumnCount() 
              + "x" 
-             + ( ( nrows > 0 ) ? "" + nrows : "?" )
+             + ( ( nrows >= 0 ) ? "" + nrows : "?" )
              + ")";
         setIconID( IconFactory.TABLE );
     }
