@@ -16,25 +16,25 @@ package uk.ac.starlink.topcat.func;
 public class TwoQZ {
 
     /** String prepended to the object NAME for the FITS spectra file URL. */
-    public static final String SPEC_BASE =
+    public static final String TWOQZ_SPEC_BASE =
         "http://www.2dfquasar.org/fits/";
 
     /** String appended to the object NAME for the FITS spectra file URL. */
-    public static final String SPEC_TAIL = ".fits.gz";
+    public static final String TWOQZ_SPEC_TAIL = ".fits.gz";
 
     /** String prepended to the object NAME for the FITS postage stamp URL. */
-    public static final String FITS_IMAGE_BASE = 
+    public static final String TWOQZ_FITS_IMAGE_BASE = 
         "http://www.2dfquasar.org/postfits/";
 
     /** String appended to the object NAME for the FITS postage stamp URL. */
-    public static final String FITS_IMAGE_TAIL = ".fits.gz";
+    public static final String TWOQZ_FITS_IMAGE_TAIL = ".fits.gz";
 
     /** String prepended to the object NAME for the JPEG postage stamp URL. */
-    public static final String JPEG_IMAGE_BASE =
+    public static final String TWOQZ_JPEG_IMAGE_BASE =
         "http://www.2dfquasar.org/postjpg/";
 
     /** String appended to the object NAME for the JPEG postage stamp URL. */
-    public static final String JPEG_IMAGE_TAIL = ".jpg";
+    public static final String TWOQZ_JPEG_IMAGE_TAIL = ".jpg";
 
     /**
      * Private constructor prevents instantiation.
@@ -52,9 +52,9 @@ public class TwoQZ {
      */
     public static String spectra2QZ( String name, int nobs ) {
         String[] locs = new String[ nobs ];
-        String base = SPEC_BASE + getSubdir( name );
+        String base = TWOQZ_SPEC_BASE + getSubdir( name );
         for ( int i = 0; i < nobs; i++ ) {
-            locs[ i ] = base + name + (char) ( 'a' + i ) + SPEC_TAIL;
+            locs[ i ] = base + name + (char) ( 'a' + i ) + TWOQZ_SPEC_TAIL;
         }
         return Spectrum.displaySpectra( "2QZ", locs );
     }
@@ -67,8 +67,8 @@ public class TwoQZ {
      * @return  short log message
      */
     public static String image2QZ( String name ) {
-        String loc = FITS_IMAGE_BASE + getSubdir( name ) + name +
-                     FITS_IMAGE_TAIL;
+        String loc = TWOQZ_FITS_IMAGE_BASE + getSubdir( name ) + name +
+                     TWOQZ_FITS_IMAGE_TAIL;
         return Image.displayImage( "2QZ", loc );
     }
 
@@ -80,8 +80,8 @@ public class TwoQZ {
      * @return  short log message
      */
     public static String jpeg2QZ( String name ) {
-        String loc = JPEG_IMAGE_BASE + getSubdir( name ) + name +
-                     JPEG_IMAGE_TAIL;
+        String loc = TWOQZ_JPEG_IMAGE_BASE + getSubdir( name ) + name +
+                     TWOQZ_JPEG_IMAGE_TAIL;
         return Image.displayImage( "2QZ", loc );
     }
 

@@ -14,7 +14,7 @@ package uk.ac.starlink.topcat.func;
 public class Sdss {
 
     /** Base URL for SkyServer JPEG retrieval service. */
-    public static final String BASE_URL = 
+    public static final String SDSS_BASE_URL = 
         "http://skyservice.pha.jhu.edu/dr2/ImgCutout/getjpeg.aspx";
 
     /**
@@ -36,7 +36,7 @@ public class Sdss {
      */
     public static String sdssCutout( String label, double ra, double dec, 
                                      int pixels ) {
-        String query = new CgiQuery( BASE_URL )
+        String query = new CgiQuery( SDSS_BASE_URL )
              .addArgument( "ra", Math.toDegrees( ra ) )
              .addArgument( "dec", Math.toDegrees( dec ) )
              .addArgument( "height", pixels )
@@ -60,7 +60,7 @@ public class Sdss {
      */
     public static String sdssCutout( double ra, double dec, int pixels,
                                      double scale ) {
-        String query = new CgiQuery( BASE_URL )
+        String query = new CgiQuery( SDSS_BASE_URL )
              .addArgument( "ra", Math.toDegrees( ra ) )
              .addArgument( "dec", Math.toDegrees( dec ) )
              .addArgument( "height", pixels )

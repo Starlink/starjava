@@ -26,7 +26,7 @@ import uk.ac.starlink.util.FileDataSource;
 public class SuperCosmos {
 
     /** Base URL for SuperCOSMOS image cutout service. */
-    public static final String BASE_URL =
+    public static final String SSS_BASE_URL =
         "http://www-wfau.roe.ac.uk/~sss/cgi-bin/sss_topcat_pix.cgi";
 
     private static final Band UKST_B = new Band( 1, "UK Schmidt Blue" );
@@ -219,7 +219,7 @@ public class SuperCosmos {
      */
     private static String sssCutout( double ra, double dec, String mimeType,
                                      double x, double y, Band waveband ) {
-        final CgiQuery query = new CgiQuery( BASE_URL )
+        final CgiQuery query = new CgiQuery( SSS_BASE_URL )
             .addArgument( "ra", Coords.radiansToHms( ra, 5 ).trim() )
             .addArgument( "dec", Coords.radiansToDms( dec, 4 ).trim() )
             .addArgument( "mime-type", mimeType )
