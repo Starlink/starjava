@@ -75,6 +75,9 @@ public class TupleSelector extends JPanel {
      * Returns the effective table described by this panel.
      * This is based on the table selected in the table selection box,
      * but containing only those columns in the argument selection box(es).
+     * The returned table is an effective view of a snapshot of 
+     * the Apparent Table, which is to say that its rows are permuted
+     * according to the current sort order and selection.
      *
      * @return  effective table selected by the user in this panel
      * @throws  IllegalStateException with a sensible message if the 
@@ -84,7 +87,7 @@ public class TupleSelector extends JPanel {
         if ( tcModel == null ) {
             throw new IllegalStateException( "No table selected" );
         }
-        final StarTable baseTable = tcModel.getViewModel().getSnapshot();
+        final StarTable baseTable = tcModel.getDataModel();
         ColumnStarTable effTable = new ColumnStarTable( baseTable ) {
             public long getRowCount() {
                 return baseTable.getRowCount();
@@ -98,7 +101,7 @@ public class TupleSelector extends JPanel {
             }
             effTable.addColumn( cdata );
         }
-        return effTable;
+        return tcModel.getViewModel().getRowPermutedView( effTable );
     }
 
     /**
