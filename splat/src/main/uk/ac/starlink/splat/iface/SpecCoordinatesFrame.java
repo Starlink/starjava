@@ -908,6 +908,7 @@ public class SpecXCoordTypeFrame
 
                 for ( int i = 1; i < indices.length; i++ ) {
                     spec = globalList.getSpectrum( indices[i] );
+                    if ( spec == null ) continue;
                     frameSet = spec.getFrameSet();
                     picked = frameSet.pickAxes( 1, iaxes, null );
                     if ( picked instanceof SpecFrame ) {
