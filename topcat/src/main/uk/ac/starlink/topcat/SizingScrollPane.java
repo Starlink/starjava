@@ -16,7 +16,7 @@ class SizingScrollPane extends JScrollPane {
     private int minWidth = 100;
     private int maxWidth = 700;
     private int defWidth = 500;
-    private int minHeight = 50;
+    private int minHeight = 100;
     private int maxHeight = 600;
     private int defHeight = 400;
     private int sbw;

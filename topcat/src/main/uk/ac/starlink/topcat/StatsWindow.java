@@ -181,8 +181,8 @@ public class StatsWindow extends AuxWindow {
         long nrow = stats.ngoodrow;
         String head = new StringBuffer()
             .append( "Statistics for " )
-            .append( rset == RowSubset.ALL ? "all rows"
-                                           : ( "row subset: " + rset ) )
+            .append( rset == RowSubset.ALL 
+                          ? "all rows" : ( "row subset: " + rset.getName() ) )
             .append( " (" )
             .append( nrow )
             .append( ' ' )
