@@ -95,6 +95,7 @@ public class XAstReader {
         private String valueName = XAstNames.VALUE;
         private String className = XAstNames.CLASS;
         private String quotedName = XAstNames.QUOTED;
+        private String defaultName = XAstNames.DEFAULT;
 
         ChannelWriter( String prefix ) {
             this.prefix = prefix;
@@ -106,6 +107,7 @@ public class XAstReader {
                 valueName = prefix + valueName;
                 className = prefix + className;
                 quotedName = prefix + quotedName;
+                defaultName = prefix + defaultName;
             }
         }
 
@@ -134,10 +136,14 @@ public class XAstReader {
                         String attName = subel.getAttribute( nameName );
                         String attVal = subel.getAttribute( valueName );
                         String quoteVal = subel.getAttribute( quotedName );
+                        String defaultVal = subel.getAttribute( defaultName );
                         if ( Boolean.valueOf( quoteVal ).booleanValue() ) {
                             attVal = '"' + attVal + '"';
                         }
-                        appendLine( attName + " = " + attVal );
+                        boolean isDefault = 
+                            Boolean.valueOf( defaultVal ).booleanValue();
+                        String line = attName + " = " + attVal;
+                        appendLine( isDefault ? ( "# " + line ) : line );
                     }
                     else if ( name.equals( isaName ) ) {
                         appendLine( "IsA " + subel.getAttribute( className ) );

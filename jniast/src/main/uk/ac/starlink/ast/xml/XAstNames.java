@@ -52,4 +52,12 @@ abstract class XAstNames {
      * the start and appended to the end of the value of the NAME attribute.
      */
     public static final String QUOTED = "quoted";
+
+    /**
+     * XML attribute name in ATTRIBUTE element indicating whether the 
+     * attribute in question represents a default value.  If it does, 
+     * then the reader should ignore it (rather than setting it, which
+     * would cause it to become set rather than un-set in AST terms).
+     */
+    public static final String DEFAULT = "default";
 }
