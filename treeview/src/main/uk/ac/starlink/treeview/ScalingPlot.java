@@ -120,8 +120,6 @@ public class ScalingPlot extends JPanel {
      * plot repainted (unless it hasn't been painted for the first time yet).
      */
     public void refreshPlot() {
-
-        /* Only need to do anything if we have
         if ( plot != null ) {
             lastSize = null;
             repaint();
