@@ -86,15 +86,11 @@ public class ErrorDialog extends JDialog {
         main.add( iconPanel, BorderLayout.WEST );
 
         /* Create and place the component which will hold the main display. */
-        JComponent holderBox = new JPanel( new BorderLayout() ) {
-            public Dimension getPreferredSize() {
-                Dimension dim = super.getPreferredSize();
-                return new Dimension( Math.max( dim.width, 256 ),
-                                      Math.max( dim.height, 64 ) );
-            }
-        };
+        JComponent holderBox = new JPanel( new BorderLayout() );
         holderBox.setBorder( gapBorder );
-        holderBox.add( holder_ );
+        holderBox.add( holder_, BorderLayout.CENTER );
+        holderBox.add( Box.createHorizontalStrut( 256 ), BorderLayout.SOUTH );
+        holderBox.add( Box.createVerticalStrut( 64 ), BorderLayout.WEST );
         main.add( holderBox, BorderLayout.CENTER );
 
         /* Create and place the buttons. */
@@ -158,7 +154,6 @@ public class ErrorDialog extends JDialog {
             ta.append( trace );
             ta.setCaretPosition( 0 );
             JScrollPane scroller = new JScrollPane( ta );
-            scroller.setPreferredSize( new Dimension( 500, 200 ) );
             detailPanel_ = scroller;
         }
         return detailPanel_;
@@ -190,10 +185,12 @@ public class ErrorDialog extends JDialog {
         void setShowDetail( boolean detail ) {
             holder_.removeAll();
             if ( detail ) {
+                holder_.setLayout( new BorderLayout() );
                 holder_.add( getDetailPanel() );
                 putValue( NAME, "Hide Details" );
             }
             else {
+                holder_.setLayout( new FlowLayout() );
                 holder_.add( getSummaryPanel() );
                 putValue( NAME, "Show Details" );
             }
@@ -258,6 +255,7 @@ public class ErrorDialog extends JDialog {
 
     public static void main( String[] args ) {
         showError( null, "Error", new Error( "Some trouble" ), args );
+        System.exit( 0 );
     }
 
 }
