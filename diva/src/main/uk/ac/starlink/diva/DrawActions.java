@@ -52,6 +52,7 @@ import javax.swing.event.MouseInputListener;
 
 import uk.ac.starlink.diva.geom.InterpolatedCurve2D;
 import uk.ac.starlink.diva.images.ImageHolder;
+import uk.ac.starlink.diva.interp.BasicInterpolatorFactory;
 import uk.ac.starlink.diva.interp.Interpolator;
 import uk.ac.starlink.diva.interp.InterpolatorFactory;
 import uk.ac.starlink.util.gui.SelectStringDialog;
@@ -263,13 +264,11 @@ public class DrawActions
 
     // Interpolated curves.
 
-    /** The InterpolatorFactory */
-    protected InterpolatorFactory interpolatorFactory = 
-        InterpolatorFactory.getReference();
+    /** The default InterpolatorFactory */
+    protected InterpolatorFactory interpolatorFactory = null;
 
     /** Actions used to create a curve */
-    protected AbstractAction[] curveActions = 
-        new AbstractAction[InterpolatorFactory.NUM_INTERPOLATORS];
+    protected AbstractAction[] curveActions = null;
 
     /** Current curve interpolator. */
     protected int interpolator = InterpolatorFactory.HERMITE;
@@ -290,8 +289,25 @@ public class DrawActions
      */
     public DrawActions( Draw canvas, FigureStore store )
     {
+        this( canvas, store, BasicInterpolatorFactory.getInstance() );
+    }
+
+    /**
+     * Create an instance for use with a specified Draw and
+     * InterpolatorFactory.
+     *
+     * @param canvas on which graphics will be drawn.
+     * @param store used to save and restore graphics, null for none.
+     * @param factory an {@link InterpolatorFactory}.
+     */
+    public DrawActions( Draw canvas, FigureStore store, 
+                        InterpolatorFactory factory )
+    {
         this.canvas = canvas;
         graphics = canvas.getGraphicsPane();
+        if ( factory != null ) {
+            setInterpolatorFactory( factory );
+        }
 
         canvas.addMouseListener( this );
         canvas.addMouseMotionListener( this );
@@ -319,10 +335,6 @@ public class DrawActions
         for ( int i = 0; i < NUM_COMPOSITES; i++ ) {
             compositeActions[i] = new CompositeAction( COMPOSITE_NAMES[i],
                                                        COMPOSITES[i] );
-        }
-
-        for ( int i = 0; i < InterpolatorFactory.NUM_INTERPOLATORS; i++ ) {
-            curveActions[i] = new CurveAction( i );
         }
 
         n = fonts.size();
@@ -604,6 +616,29 @@ public class DrawActions
     }
 
     /**
+     * Set the InterpolatorFactory.
+     */
+    public void setInterpolatorFactory( InterpolatorFactory factory )
+    {
+        this.interpolatorFactory = factory;
+
+        //  Update the Actions for this factory.
+        int n = interpolatorFactory.getInterpolatorCount();
+        curveActions = new AbstractAction[n];
+        for ( int i = 0; i < n; i++ ) {
+            curveActions[i] = new CurveAction( i );
+        }
+    }
+
+    /**
+     * Get the InterpolatorFactory.
+     */
+    public InterpolatorFactory getInterpolatorFactory()
+    {
+        return interpolatorFactory;
+    }
+
+    /**
      * Set the interpolated curve type.
      */
     public void setCurve( int interpolator )
@@ -783,8 +818,14 @@ public class DrawActions
             }
             else if ( drawingMode == CURVE ) {
                 if ( count == 1 ) {
+                    // Check if figure is complete. Interpolated lines may
+                    // have points limits and we should stop when they are
+                    // full. 
                     curve = (InterpolatedCurve2D) figure.getShape();
-                    return;
+                    if ( ! curve.isFull() ) {
+                        return;
+                    }
+                    figure.setInteractor( si );
                 }
                 else if ( count > 1 ) {
                     figure.setInteractor( si );
@@ -1098,10 +1139,9 @@ public class DrawActions
                    n = curve.getVertexCount();
                    InterpolatedCurve2D c =
                        new InterpolatedCurve2D( makeInterpolator() );
-                   c.moveTo( curve.getXVertex( 0 ), curve.getYVertex( 0 ) );
-                   for ( int i = 1; i < n; i++ ) {
-                       c.lineTo( curve.getXVertex( i ), curve.getYVertex(i ) );
-                   }
+                   Interpolator i = c.getInterpolator();
+                   i.setCoords( curve.getXVertices(), curve.getYVertices(),
+                                true );
                    c.lineTo( endX, endY );
                    c.orderVertices(); // Curves must be monotonic.
                    shape = c;
@@ -1148,7 +1188,7 @@ public class DrawActions
     /**
      * Remove all figures created by this instance.
      */
-    public void clear()
+    public synchronized void clear()
     {
         ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
@@ -1396,7 +1436,7 @@ public class DrawActions
         };
 
     /** Local base class for creating menu/toolbar actions. */
-    abstract class GraphicsAction
+    protected abstract class GraphicsAction
         extends AbstractAction
     {
         String name;
@@ -1423,7 +1463,7 @@ public class DrawActions
     /**
      * Local class used to set the drawing mode.
      */
-    class DrawingModeAction
+    protected class DrawingModeAction
         extends GraphicsAction
     {
         int drawingMode;
@@ -1443,7 +1483,7 @@ public class DrawActions
     /**
      * Local class used to set the line width.
      */
-    class LineWidthAction
+    protected class LineWidthAction
         extends GraphicsAction
     {
         int width;
@@ -1463,7 +1503,7 @@ public class DrawActions
     /**
      * Local class used to set the outline color for figures.
      */
-    class OutlineAction
+    protected class OutlineAction
         extends AbstractAction
     {
         Paint color;
@@ -1483,7 +1523,7 @@ public class DrawActions
     /**
      * Local class used to set the fill color for figures.
      */
-    class FillAction
+    protected class FillAction
         extends AbstractAction
     {
         Paint color;
@@ -1503,7 +1543,7 @@ public class DrawActions
     /**
      * Local class used to set the transparency for figures.
      */
-    class CompositeAction
+    protected class CompositeAction
         extends AbstractAction
     {
         AlphaComposite composite;
@@ -1523,7 +1563,7 @@ public class DrawActions
     /**
      * Local class used to set the label font.
      */
-    class FontAction
+    protected class FontAction
         extends AbstractAction
     {
         Font font;
@@ -1543,14 +1583,14 @@ public class DrawActions
     /**
      * Local class used to set the interpolated curve type.
      */
-    class CurveAction
+    protected class CurveAction
         extends AbstractAction
     {
         int interpolator = InterpolatorFactory.HERMITE;
 
         public CurveAction( int interpolator )
         {
-            super( InterpolatorFactory.shortNames[interpolator] );
+            super( interpolatorFactory.getShortName( interpolator ) );
             this.interpolator = interpolator;
         }
 
