@@ -133,6 +133,7 @@
           description="-> add manifest to axis jar file">
 
     <!-- Add the manifest to the axis.jar file, just an update -->
+    <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/org.mortbay.jetty.jar" basedir="${dist.dir}"
          update="true" excludes="**">
 
