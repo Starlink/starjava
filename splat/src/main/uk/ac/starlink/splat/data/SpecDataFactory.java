@@ -280,12 +280,14 @@ public class SpecDataFactory
                 //  Remote plainer formats (FITS, NDF) need a local copy.
                 if ( isRemote ) {
                     PathParser p = remoteToLocalFile( url );
-                    namer = new NameParser( p.ndfname() );
+                    if ( p != null ) {
+                        namer = new NameParser( p.ndfname() );
+                    }
                 }
                 impl = makeLocalFileImpl( namer.getName(), namer.getFormat() );
             }
         }
-        catch (SplatException e) {
+        catch (Exception e) {
             impl = null;
         }
 
@@ -822,7 +824,7 @@ public class SpecDataFactory
             datsrc.close();
         }
         catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             namer = null;
         }
         return namer;
