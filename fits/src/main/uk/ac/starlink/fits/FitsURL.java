@@ -10,7 +10,8 @@ import java.util.regex.Pattern;
 /**
  * Parses a URL as referring to a Fits resource.
  * It splits the URL into the URL of the container file and the 
- * HDU number (starting at 1).
+ * HDU number.  The primary HDU is numbered 0, the first extension is
+ * numbered 1.
  */
 class FitsURL {
 
@@ -81,7 +82,7 @@ class FitsURL {
         }
         else {
             basicURL = url;
-            hduIndex = 1;
+            hduIndex = 0;
         }
 
         /* See if the basic URL ends in one of the known FITS extensions,

@@ -250,9 +250,9 @@ public class FitsNdxHandler implements NdxHandler {
         if ( furl == null ) {
             return false;
         }
-        if ( furl.getHDU() != 1 ) {
+        if ( furl.getHDU() != 0 ) {
             throw new IOException( 
-                "Cannot write an NDX at HDU > 1 in FITS file (" + url + ")" );
+                "Cannot write an NDX at HDU > 0 in FITS file (" + url + ")" );
         }
 
         /* Construct Header object containing information about this NDX. */
@@ -268,14 +268,14 @@ public class FitsNdxHandler implements NdxHandler {
             cardlist.add( commentCard( "DATA component of NDX structure" ) );
 
             /* Work out what additional HDUs will go where. */
-            ihdu = ++nhdu;
+            ihdu = nhdu++;
             if ( ndx.hasVariance() ) {
-                vhdu = ++nhdu;
+                vhdu = nhdu++;
             }
             if ( ndx.hasQuality() ) {
-                qhdu = ++nhdu;
+                qhdu = nhdu++;
             }
-            xhdu = ++nhdu;
+            xhdu = nhdu++;
 
             /* Write a header indicating where the XML HDU can be found. */
             cardlist.add( 

@@ -386,7 +386,7 @@ public class XMLNdxHandler implements NdxHandler {
             int hdu = 0;
 
             NDArray inda2;
-            URL iurl = new URL( aurl, "#" + ++hdu );
+            URL iurl = new URL( aurl, "#" + hdu++ );
             NDArray inda1 = ndx.getImage();
             inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
                                         inda1.getType(),
@@ -395,7 +395,7 @@ public class XMLNdxHandler implements NdxHandler {
 
             NDArray vnda2;
             if ( ndx.hasVariance() ) {
-                URL vurl = new URL( aurl, "#" + ++hdu );
+                URL vurl = new URL( aurl, "#" + hdu++ );
                 NDArray vnda1 = ndx.getVariance();
                 vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
                                             vnda1.getType(),
@@ -408,7 +408,7 @@ public class XMLNdxHandler implements NdxHandler {
 
             NDArray qnda2;
             if ( ndx.hasQuality() ) {
-                URL qurl = new URL( aurl, "#" + ++hdu );
+                URL qurl = new URL( aurl, "#" + hdu++ );
                 NDArray qnda1 = ndx.getQuality();
                 BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
                 qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
@@ -474,7 +474,7 @@ public class XMLNdxHandler implements NdxHandler {
 
         /* Make NDArrays containing the data. */
         int hdu = 0;
-        URL iurl = new URL( aurl, "#" + ++hdu );
+        URL iurl = new URL( aurl, "#" + hdu++ );
         NDArray inda1 = template.getImage();
         NDArray inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
                                             inda1.getType(), 
@@ -482,7 +482,7 @@ public class XMLNdxHandler implements NdxHandler {
 
         NDArray vnda2;
         if ( template.hasVariance() ) { 
-            URL vurl = new URL( aurl, "#" + ++hdu );
+            URL vurl = new URL( aurl, "#" + hdu++ );
             NDArray vnda1 = template.getVariance();
             vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
                                         vnda1.getType(),
@@ -494,7 +494,7 @@ public class XMLNdxHandler implements NdxHandler {
 
         NDArray qnda2;
         if ( template.hasQuality() ) {
-            URL qurl = new URL( aurl, "#" + ++hdu );
+            URL qurl = new URL( aurl, "#" + hdu++ );
             NDArray qnda1 = template.getQuality();
             BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
             qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),

@@ -43,7 +43,7 @@ public class FitsURLTest extends TestCase {
         assertEquals( hdu, fu1.getHDU() );
         assertEquals( hdu, fu2.getHDU() );
         assertTrue( hdu != fu0.getHDU() );
-        assertEquals( 1, fu0.getHDU() );
+        assertEquals( 0, fu0.getHDU() );
     }
 
     public void testInvalid() throws MalformedURLException {

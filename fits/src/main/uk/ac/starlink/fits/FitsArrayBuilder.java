@@ -54,9 +54,9 @@ import uk.ac.starlink.array.TypeConverter;
  * The <i>fits-url.fit</i> represents the full absolute or relative URL 
  * of a FITS file, and the <i>hdu-num</i>, if present, is the index
  * of the HDU within it.  If no HDU is given, the first HDU 
- * (<i>hdu-num</i>=1) is understood.
+ * (<i>hdu-num</i>=0) is understood.
  * <p>
- * When writing a new NDArray, if <i>hdu-num</i>==1 then any existing 
+ * When writing a new NDArray, if <i>hdu-num</i>==0 then any existing 
  * FITS file of the same name will be erased.  It is possible to 
  * write to HDUs after the first one by specifying the appropriate
  * <i>hdu-num</i>, but only if this refers to the first non-existent
@@ -121,7 +121,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
 
             /* Work out the start and size of the relevant HDU. */
             BufferedFile bstrm = new BufferedFile( filename );
-            FitsConstants.skipHDUs( bstrm, hdu - 1 );
+            FitsConstants.skipHDUs( bstrm, hdu );
             long start = bstrm.getFilePointer();
             FitsConstants.skipHDUs( bstrm, 1 );
             long leng = bstrm.getFilePointer() - start;
@@ -150,7 +150,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
             stream = new BufferedDataInputStream( istrm );
 
             /* Advance to the correct point in the stream. */
-            FitsConstants.skipHDUs( stream, hdu - 1 );
+            FitsConstants.skipHDUs( stream, hdu );
         }
         return stream;
     }
@@ -254,9 +254,9 @@ public class FitsArrayBuilder implements ArrayBuilder {
      * HDU in a FITS
      * file, or leaves the HDU index unspecified, any existing FITS
      * file will be overwritten by a new single-HDU file.
-     * An HDU index greter than 1 may be specified only if the 
-     * URL has the <tt>file:</tt> protocol, and if it is one greater
-     * than the number of HDUs currently in the FITS file.
+     * An HDU index greater than 0 may be specified only if the 
+     * URL has the <tt>file:</tt> protocol, and if it is equal to
+     * the number of HDUs currently in the FITS file.
      *
      * @param  url    the URL at which the resource backing the NDArray is
      *                to be written
@@ -290,7 +290,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
             String filename = container.getPath();
 
             /* First HDU - this will erase any existing data in that file. */
-            if ( hdu == 1 ) {
+            if ( hdu == 0 ) {
                 if ( new File( filename ).delete() ) {
                     logger.warning( "Deleted existing file " + filename + 
                                     " prior to rewriting" );
@@ -301,10 +301,10 @@ public class FitsArrayBuilder implements ArrayBuilder {
             /* HDU other than first - this can be done, but only if it 
              * follows the final existing HDU. */
             else {
-                // assert hdu > 1;
+                assert hdu > 0;
                 BufferedFile bstrm = new BufferedFile( filename, "r" );
                 long pos = 0;
-                int ihdu = 1;
+                int ihdu = 0;
                 long leng = bstrm.length();
                 while ( pos < leng && ihdu < hdu ) {
                     bstrm.seek( pos );
@@ -336,7 +336,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
 
         /* Fall back to a simple output stream if necessary. */
         else {
-            if ( hdu > 1 ) {
+            if ( hdu > 0 ) {
                 throw new IOException(
                     "Can't access HDU after first one in non-seekable stream" );
             }
@@ -354,7 +354,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
         }
 
         /* Make the implementation. */
-        boolean primary = hdu == 1;
+        boolean primary = hdu == 0;
         Number badval = getBlankValue( type, bh );
         ArrayImpl impl = new WritableFitsArrayImpl( shape, type, badval,
                                                     stream, primary, null );

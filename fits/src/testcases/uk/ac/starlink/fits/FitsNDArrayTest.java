@@ -31,8 +31,8 @@ public class FitsNDArrayTest extends TestCase {
         int hdu = 0;
         int xdim = 100;
         int ydim = 80;
-        for ( Iterator tit = Type.allTypes().iterator(); tit.hasNext(); ) {
-            hdu++;
+        for ( Iterator tit = Type.allTypes().iterator(); tit.hasNext();
+              hdu++ ) {
             Type type = (Type) tit.next();
             NDShape shape = 
                 new NDShape( new long[] { 51, 101 },
@@ -47,7 +47,7 @@ public class FitsNDArrayTest extends TestCase {
                 // OK
             }
          
-            URL url = ( hdu == 1 ) ? container
+            URL url = ( hdu == 0 ) ? container
                                    : new URL( container, "#" + hdu );
             NDArray nda1 = fact.makeNewNDArray( url, shape, type, null );
   
