@@ -259,24 +259,26 @@ public class SOGNavigatorImageDisplay
         else {
             //  FITS Image. 13/01/03 is much faster than HDX FITS access...
             try {
-                fitsImage = new FITSImage(_filename);
-                initFITSImage(fitsImage);
-                setImage(fitsImage);
+                fitsImage = new FITSImage( _filename );
+                initFITSImage( fitsImage );
+                setImage( fitsImage );
             }
-            catch (Exception e) {
+            catch ( Exception e ) {
                 // fall back to JAI method
                 try {
-                    setImage(JAI.create("fileload", _filename));
+                    setImage( JAI.create( "fileload", _filename ) );
                 }
-                catch (Exception exception) {
+                catch ( Exception exception ) {
                     _filename = null;
                     _url = _origURL = null;
                     clear();
+
+                    //  Use first error, it's the most specific.
                     if ( handle ) {
-                        DialogUtil.error( exception );
+                        DialogUtil.error( e );
                     }
                     else {
-                        throw exception;
+                        throw e;
                     }
                 }
             }
