@@ -463,9 +463,12 @@ public class Header implements FitsElement {
 	    }
 
 	    String key = fcard.getKey();
-	    if (key != null && cards.containsKey(key)) {
-		System.err.println("Warning: multiple occurrences of key:"+key);
-	    }
+
+            // MBT: Commented out warning 7-Feb-2003 - many FITS files seem to
+            // have duplicated keywords, and it messes up the output
+	    // if (key != null && cards.containsKey(key)) {
+	    //    System.err.println("Warning: multiple occurrences of key:"+key);
+	    // }
 	    // save card
 	    addLine(fcard);
 	    if (cbuf.substring(0,8).equals("END     ")) {
