@@ -122,7 +122,10 @@
    !   Build the code
    !   ==============
    !
-   !  Nothing to do.
+   !  Update the jar-file manifest. Note this target should be ran
+   !  before checking in the jar files (to update the manifest) and
+   !  will need repeating if the dependencies change. For safety 
+   !  this target will be executed as part of a system "build".
    !-->
   <target name="build"
           depends="prepare"
