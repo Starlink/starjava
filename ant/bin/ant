@@ -117,10 +117,10 @@ fi
 #  [ -n "$CLASSPATH" ] &&
 #    CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
 #fi
-#
-## set ANT_LIB location
-#ANT_LIB="${ANT_HOME}/lib"
-#
+
+# set ANT_LIB location
+ANT_LIB="${ANT_HOME}/lib"
+
 #if [ -z "$JAVACMD" ] ; then 
 #  if [ -n "$JAVA_HOME"  ] ; then
 #    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then 
