@@ -7,8 +7,6 @@ import java.net.URL;
 import javax.swing.JComponent;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
-import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Generic data node representing some stream of data.

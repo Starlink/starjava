@@ -13,9 +13,7 @@ import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.tree.TreePath;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TemporaryFileDataSource;
-import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Handles transferable exports to and from from the DataNodeJTree.
@@ -236,7 +234,7 @@ public class DataNodeTransferHandler extends TransferHandler {
                 }
             }
             else {
-                obj = new URLDataSource( url );
+                obj = DataSource.makeDataSource( url );
             }
         }
 

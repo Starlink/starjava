@@ -16,7 +16,6 @@ import javax.xml.transform.dom.DOMSource;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
-import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Constructs a DataNode from an Object using a particular method or

@@ -16,7 +16,6 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Node;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
-import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Factory class for constructing {@link DataNode} objects.
