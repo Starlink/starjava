@@ -320,7 +320,6 @@
 
     <fail message="No NDX available" unless="ndx.present"/>
 
-    
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
                classpathref="classpath"
@@ -498,7 +497,8 @@
         <attribute name="Class-Path"
 value="bsh-1.1a18.jar colt.jar diva.jar jama.jar jdom.jar jhall.jar 
 ../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar 
-../jniast/jniast.jar ../fits/fits.jar ../hds/hds.jar"/>
+../jniast/jniast.jar ../fits/fits.jar ../hds/hds.jar ../table/table.jar
+../topcat/topcat.jar"/>
       </manifest>
     </jar>
   </target>
