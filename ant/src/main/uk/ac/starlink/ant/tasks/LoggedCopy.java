@@ -170,7 +170,6 @@ public class LoggedCopy extends Copy
             //  other processes may write to it).
             if ( logfileWriter != null ) {
                 try {
-                    System.out.println( "Closing logfile" );
                     logfileWriter.close();
                     logfileWriter = null;
                 }
