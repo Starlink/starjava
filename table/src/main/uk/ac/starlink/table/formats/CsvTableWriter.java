@@ -113,7 +113,7 @@ public class CsvTableWriter implements StarTableWriter {
     }
 
     /**
-     * Writes a single field of CVS output.  Any special characters in 
+     * Writes a single field of CSV output.  Any special characters in 
      * the <tt>value</tt> are escaped as necessary.
      *
      * @param  out  output stream
