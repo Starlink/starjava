@@ -45,6 +45,49 @@ public class Strings {
     }
 
     /**
+     * Concatenates three strings.  
+     * In most cases the same effect can be achieved by
+     * writing <code>s1+s2+s3</code>, but blank values can sometimes appear as
+     * the string "<code>null</code>" if you do it like that.
+     *
+     * @example  <code>concat("a", "b", "c") = "abc"</code>
+     *
+     * @param s1  first string
+     * @param s2  second string
+     * @param s3  third string
+     * @return  <code>s1</code> followed by <code>s2</code> 
+     *          followed by <code>s3</code>
+     */
+    public static String concat( String s1, String s2, String s3 ) {
+        return ( s1 == null ? "" : s1 ) 
+             + ( s2 == null ? "" : s2 )
+             + ( s3 == null ? "" : s3 );
+    }
+
+    /**
+     * Concatenates four strings.  
+     * In most cases the same effect can be achieved by
+     * writing <code>s1+s2+s3+s4</code>, 
+     * but blank values can sometimes appear as
+     * the string "<code>null</code>" if you do it like that.
+     *
+     * @example  <code>concat("a", "b", "c", "d") = "abcd"</code>
+     *
+     * @param s1  first string
+     * @param s2  second string
+     * @param s3  third string
+     * @param s4  fourth string
+     * @return  <code>s1</code> followed by <code>s2</code> 
+     *          followed by <code>s3</code> followed by <code>s4</code>
+     */
+    public static String concat( String s1, String s2, String s3, String s4 ) {
+        return ( s1 == null ? "" : s1 ) 
+             + ( s2 == null ? "" : s2 )
+             + ( s3 == null ? "" : s3 )
+             + ( s4 == null ? "" : s4 );
+    }
+
+    /**
      * Determines whether two strings are equal.
      * Note you should use this function instead of <code>s1==s2</code>,
      * which can (for technical reasons) return false even if the
