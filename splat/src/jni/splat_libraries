@@ -30,10 +30,6 @@
 
 #.
 
-#  Get a list of the NDF libraries.
-
-ndf_libs=`ndf_link` 
-
 #  Set the list of directories we will search for the libraries.
 #  If this in ADDLIBS first followed by any directories in 
 #  $STARLINK/lib or /star/lib. Decided against LD_LIBRARY_PATH
@@ -42,7 +38,7 @@ ndf_libs=`ndf_link`
 
 library_path=""
 if test "$ADDLIBS" != ""; then
-   library_path="$ADDLIBS "
+   library_path="`echo ' '$ADDLIBS|sed 's/ -L/ /g'` "
 fi
 #if test "$LD_LIBRARY_PATH" != ""; then
 #   library_path="${library_path}`echo $LD_LIBRARY_PATH| sed 's/:/ /g'` "
@@ -56,7 +52,7 @@ fi
 #  Ok, now create the actual list. The main problem is that libraries
 #  are identified using the "-l" form, whereas we need the full names
 #  to extract the ".o" files. The list also contains a reference to
-#  the AST libraries that we need to remove.
+#  the AST libraries that we need to remove (get these from JNIAST).
 
 list=""
 for f in `ndf_link` ""; do
