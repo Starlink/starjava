@@ -20,6 +20,7 @@ import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.RandomAccess;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
@@ -46,9 +47,13 @@ public class FitsTableBuilder implements TableBuilder {
      *
      * @param  datsrc  the source of the FITS table data
      * @param  wantRandom  whether a random-access table is preferred
-     * @return  a new StarTable based on <tt>datsrc</tt>
+     * @param  storagePolicy   a StoragePolicy object which may be used to
+     *         supply scratch storage if the builder needs it
+     * @return  a new StarTable based on <tt>datsrc</tt>, or <tt>null</tt>
+     *          if it doesn't look like a FITS table
      */
-    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom ) 
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
+                                    StoragePolicy policy )
             throws IOException {
 
         /* Check if this looks like a FITS file. */
