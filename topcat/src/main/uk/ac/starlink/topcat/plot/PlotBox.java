@@ -27,7 +27,14 @@ ENHANCEMENTS, OR MODIFICATIONS.
 @ProposedRating Yellow (cxh@eecs.berkeley.edu)
 @AcceptedRating Yellow (cxh@eecs.berkeley.edu)
 */
-package ptolemy.plot;
+
+/*
+ * This class has been taken from Ptplot 5.2 
+ * (http://ptolemy.eecs.berkeley.edu/java/ptplot/).
+ * and adapted for use by TOPCAT by Mark Taylor
+ */
+
+package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -86,6 +93,38 @@ import javax.swing.SwingUtilities;
 //////////////////////////////////////////////////////////////////////////
 //// PlotBox
 /**
+This class provides a labeled box within which to place a data plot.
+
+ * <em>
+ * <h2>Note</h2>
+ * This class has been taken from Ptplot 5.2 
+ * (http://ptolemy.eecs.berkeley.edu/java/ptplot/).
+ * and adapted for use by TOPCAT.
+ * It has been abstracted from that package and copied into the
+ * TOPCAT classes for the following reasons:
+ * <ol>
+ * <li>There was a very small number of modifications needed which couldn't
+ *     be handled by subclassing
+ * <li>The rest of the Ptplot package wasn't required any more by TOPCAT
+ * </ol>
+ *
+ * <p>The following changes have been made from the original:
+ * <ol>
+ * <li>This comment block inserted
+ * <li>The {@link #_zoom} method promoted to <tt>protected</tt>
+ * <li>Commented out members concerned with importing/exporting plot state;
+ *     this functionality is not provided in this way from TOPCAT and 
+ *     some of these methods referenced other PtPlot classes
+ * <li>Commented out the key listener, since these key bindings are not
+ *     wanted in a TOPCAT context
+ * </ol>
+ * There are several features of PlotBox remaining which TOPCAT is unlikely
+ * to use; it would be possible to tidy things up by writing a new class
+ * with code copied from here where required.
+ * </em>
+ *
+ * @author   Mark Taylor (Starlink)
+
 This class provides a labeled box within which to place a data plot.
 A title, X and Y axis labels, tick marks, and a legend are all supported.
 Zooming in and out is supported.  To zoom in, drag the mouse
@@ -236,7 +275,7 @@ it can only be viewed by a browser that supports JDK 1.2, or a plugin.
 @version $Id$
 @since Ptolemy II 0.2
 */
-public class PlotBox extends JPanel implements Printable {
+class PlotBox extends JPanel implements Printable {
 
     ///////////////////////////////////////////////////////////////////
     ////                         constructor                       ////
@@ -252,7 +291,7 @@ public class PlotBox extends JPanel implements Printable {
         // Create a right-justified layout with spacing of 2 pixels.
         setLayout(new FlowLayout(FlowLayout.RIGHT, 2, 2));
         addMouseListener(new ZoomListener());
-        addKeyListener(new CommandListener());
+//      addKeyListener(new CommandListener());
         addMouseMotionListener(new DragListener());
         // This is something we want to do only once...
         _measureFonts();
@@ -410,127 +449,127 @@ public class PlotBox extends JPanel implements Printable {
         }
     }
 
-    /** Export a description of the plot.
-     *  Currently, only EPS is supported.  But in the future, this
-     *  may cause a dialog box to open to allow the user to select
-     *  a format.  If the argument is null, then the description goes
-     *  to the clipboard.  Otherwise, it goes to the specified file.
-     *  To send it to standard output, use
-     *  <code>System.out</code> as an argument.
-     *  @param file A file writer to which to send the description.
-     */
-    public synchronized void export(OutputStream out) {
-        try {
-            EPSGraphics g = new EPSGraphics(out, _width, _height);
-            _drawPlot(g, false);
-            g.showpage();
-        } catch (RuntimeException ex) {
-            String message = "Export failed: " + ex.getMessage();
-            JOptionPane.showMessageDialog(this, message,
-                    "Ptolemy Plot Message",
-                    JOptionPane.ERROR_MESSAGE);
-            // Rethrow the exception so that we don't report success,
-            // and so the stack trace is displayed on standard out.
-            throw (RuntimeException)ex.fillInStackTrace();
-        }
-    }
+//  /** Export a description of the plot.
+//   *  Currently, only EPS is supported.  But in the future, this
+//   *  may cause a dialog box to open to allow the user to select
+//   *  a format.  If the argument is null, then the description goes
+//   *  to the clipboard.  Otherwise, it goes to the specified file.
+//   *  To send it to standard output, use
+//   *  <code>System.out</code> as an argument.
+//   *  @param file A file writer to which to send the description.
+//   */
+//  public synchronized void export(OutputStream out) {
+//      try {
+//          EPSGraphics g = new EPSGraphics(out, _width, _height);
+//          _drawPlot(g, false);
+//          g.showpage();
+//      } catch (RuntimeException ex) {
+//          String message = "Export failed: " + ex.getMessage();
+//          JOptionPane.showMessageDialog(this, message,
+//                  "Ptolemy Plot Message",
+//                  JOptionPane.ERROR_MESSAGE);
+//          // Rethrow the exception so that we don't report success,
+//          // and so the stack trace is displayed on standard out.
+//          throw (RuntimeException)ex.fillInStackTrace();
+//      }
+//  }
 
-    // CONTRIBUTED CODE.
-    // I wanted the ability to use the Plot object in a servlet and to
-    // write out the resultant images. The following routines,
-    // particularly exportImage(), permit this. I also had to make some
-    // minor changes elsewhere. Rob Kroeger, May 2001.
+//  // CONTRIBUTED CODE.
+//  // I wanted the ability to use the Plot object in a servlet and to
+//  // write out the resultant images. The following routines,
+//  // particularly exportImage(), permit this. I also had to make some
+//  // minor changes elsewhere. Rob Kroeger, May 2001.
+//
+//  // NOTE: This code has been modified by EAL to conform with Ptolemy II
+//  // coding style.
+//
+//  /** Create a BufferedImage and draw this plot to it.
+//   *  The size of the returned image matches the current size of the plot.
+//   *  This method can be used, for
+//   *  example, by a servlet to produce an image, rather than
+//   *  requiring an applet to instantiate a PlotBox.
+//   *  @return An image filled by the plot.
+//   */
+//  public synchronized BufferedImage exportImage() {
+//      Rectangle rectangle = new Rectangle(_preferredWidth, _preferredHeight);
+//      return exportImage(
+//              new BufferedImage(
+//                  rectangle.width,
+//                  rectangle.height,
+//                  BufferedImage.TYPE_INT_ARGB),
+//              rectangle,
+//              _defaultImageRenderingHints(),
+//              false);
+//  }
 
-    // NOTE: This code has been modified by EAL to conform with Ptolemy II
-    // coding style.
+//  /** Create a BufferedImage the size of the given rectangle and draw
+//   *  this plot to it at the position specified by the rectangle.
+//   *  The plot is rendered using anti-aliasing.
+//   *  @param rectangle The size of the plot. This method can be used, for
+//   *  example, by a servlet to produce an image, rather than
+//   *  requiring an applet to instantiate a PlotBox.
+//   *  @return An image containing the plot.
+//   */
+//  public synchronized BufferedImage exportImage(Rectangle rectangle) {
+//      return exportImage(
+//              new BufferedImage(
+//                  rectangle.width,
+//                  rectangle.height,
+//                  BufferedImage.TYPE_INT_ARGB),
+//              rectangle,
+//              _defaultImageRenderingHints(),
+//              false);
+//  }
 
-    /** Create a BufferedImage and draw this plot to it.
-     *  The size of the returned image matches the current size of the plot.
-     *  This method can be used, for
-     *  example, by a servlet to produce an image, rather than
-     *  requiring an applet to instantiate a PlotBox.
-     *  @return An image filled by the plot.
-     */
-    public synchronized BufferedImage exportImage() {
-        Rectangle rectangle = new Rectangle(_preferredWidth, _preferredHeight);
-        return exportImage(
-                new BufferedImage(
-                    rectangle.width,
-                    rectangle.height,
-                    BufferedImage.TYPE_INT_ARGB),
-                rectangle,
-                _defaultImageRenderingHints(),
-                false);
-    }
+//  /** Draw this plot onto the specified image at the position of the
+//   *  specified rectangle with the size of the specified rectangle.
+//   *  The plot is rendered using anti-aliasing.
+//   *  This can be used to paint a number of different
+//   *  plots onto a single buffered image.  This method can be used, for
+//   *  example, by a servlet to produce an image, rather than
+//   *  requiring an applet to instantiate a PlotBox.
+//   *  @param bufferedImage Image onto which the plot is drawn.
+//   *  @param rectangle The size and position of the plot in the image.
+//   *  @param hints Rendering hints for this plot.
+//   *  @param transparent Indicator that the background of the plot
+//   *   should not be painted.
+//   *  @return The modified bufferedImage.
+//   */
+//  public synchronized BufferedImage exportImage(
+//          BufferedImage bufferedImage,
+//          Rectangle rectangle,
+//          RenderingHints hints,
+//          boolean transparent) {
+//      Graphics2D graphics = bufferedImage.createGraphics();
+//      graphics.addRenderingHints(_defaultImageRenderingHints());
+//      if ( !transparent ) {
+//          graphics.setColor(Color.white);	// set the background color
+//          graphics.fill(rectangle);
+//      }
+//      _drawPlot(graphics, false , rectangle);
+//      return bufferedImage;
+//  }
 
-    /** Create a BufferedImage the size of the given rectangle and draw
-     *  this plot to it at the position specified by the rectangle.
-     *  The plot is rendered using anti-aliasing.
-     *  @param rectangle The size of the plot. This method can be used, for
-     *  example, by a servlet to produce an image, rather than
-     *  requiring an applet to instantiate a PlotBox.
-     *  @return An image containing the plot.
-     */
-    public synchronized BufferedImage exportImage(Rectangle rectangle) {
-        return exportImage(
-                new BufferedImage(
-                    rectangle.width,
-                    rectangle.height,
-                    BufferedImage.TYPE_INT_ARGB),
-                rectangle,
-                _defaultImageRenderingHints(),
-                false);
-    }
-
-    /** Draw this plot onto the specified image at the position of the
-     *  specified rectangle with the size of the specified rectangle.
-     *  The plot is rendered using anti-aliasing.
-     *  This can be used to paint a number of different
-     *  plots onto a single buffered image.  This method can be used, for
-     *  example, by a servlet to produce an image, rather than
-     *  requiring an applet to instantiate a PlotBox.
-     *  @param bufferedImage Image onto which the plot is drawn.
-     *  @param rectangle The size and position of the plot in the image.
-     *  @param hints Rendering hints for this plot.
-     *  @param transparent Indicator that the background of the plot
-     *   should not be painted.
-     *  @return The modified bufferedImage.
-     */
-    public synchronized BufferedImage exportImage(
-            BufferedImage bufferedImage,
-            Rectangle rectangle,
-            RenderingHints hints,
-            boolean transparent) {
-        Graphics2D graphics = bufferedImage.createGraphics();
-        graphics.addRenderingHints(_defaultImageRenderingHints());
-        if ( !transparent ) {
-            graphics.setColor(Color.white);	// set the background color
-            graphics.fill(rectangle);
-        }
-        _drawPlot(graphics, false , rectangle);
-        return bufferedImage;
-    }
-
-    /**	Draw this plot onto the provided image.
-     *  This method does not paint the background, so the plot is
-     *  transparent.  The plot fills the image, and is rendered
-     *  using anti-aliasing.  This method can be used to overlay
-     *  multiple plots on the same image, although you must use care
-     *  to ensure that the axes and other labels are identical.
-     *  Hence, it is usually better to simply combine data sets into
-     *  a single plot.
-     *  @param bufferedImage The image onto which to render the plot.
-     *  @return The modified bufferedImage.
-     */
-    public synchronized BufferedImage exportImage(BufferedImage bufferedImage) {
-        return exportImage(
-                bufferedImage,
-                new Rectangle(
-                    bufferedImage.getWidth(),
-                    bufferedImage.getHeight()),
-                _defaultImageRenderingHints(),
-                true);
-    }
+//  /**	Draw this plot onto the provided image.
+//   *  This method does not paint the background, so the plot is
+//   *  transparent.  The plot fills the image, and is rendered
+//   *  using anti-aliasing.  This method can be used to overlay
+//   *  multiple plots on the same image, although you must use care
+//   *  to ensure that the axes and other labels are identical.
+//   *  Hence, it is usually better to simply combine data sets into
+//   *  a single plot.
+//   *  @param bufferedImage The image onto which to render the plot.
+//   *  @return The modified bufferedImage.
+//   */
+//  public synchronized BufferedImage exportImage(BufferedImage bufferedImage) {
+//      return exportImage(
+//              bufferedImage,
+//              new Rectangle(
+//                  bufferedImage.getWidth(),
+//                  bufferedImage.getHeight()),
+//              _defaultImageRenderingHints(),
+//              true);
+//  }
 
     /** Rescale so that the data that is currently plotted just fits.
      *  This is done based on the protected variables _xBottom, _xTop,
@@ -774,9 +813,9 @@ public class PlotBox extends JPanel implements Printable {
     public void init() {
         setButtons(true);
 
-        if (_filespec != null) {
-            parseFile(_filespec, _documentBase);
-        }
+//      if (_filespec != null) {
+//          parseFile(_filespec, _documentBase);
+//      }
     }
 
     /** Paint the component contents, which in this base class is
@@ -791,91 +830,91 @@ public class PlotBox extends JPanel implements Printable {
         // requestFocus();
     }
 
-    /** Syntactic sugar for parseFile(filespec, documentBase).
-     *  This method is deprecated.  Use read() to read the old file
-     *  format, or use one of the classes in the plotml package to
-     *  read the XML-based file format.
-     *  @deprecated
-     */
-    public void parseFile(String filespec) {
-        parseFile(filespec, (URL)null);
-    }
+//  /** Syntactic sugar for parseFile(filespec, documentBase).
+//   *  This method is deprecated.  Use read() to read the old file
+//   *  format, or use one of the classes in the plotml package to
+//   *  read the XML-based file format.
+//   *  @deprecated
+//   */
+//  public void parseFile(String filespec) {
+//      parseFile(filespec, (URL)null);
+//  }
 
-    /** Open up the input file, which could be stdin, a URL, or a file.
-     *  @deprecated This method is deprecated.  Use read() instead.
-     */
-    public synchronized void parseFile(String filespec, URL documentBase) {
-        DataInputStream in = null;
-        if (filespec == null || filespec.length() == 0) {
-            // Open up stdin
-            in = new DataInputStream(System.in);
-        } else {
-            try {
-                URL url = null;
-                if (documentBase == null && _documentBase != null) {
-                    documentBase = _documentBase;
-                }
-                if (documentBase == null) {
-                    url = new URL(filespec);
-                } else {
-                    try {
-                        url = new URL(documentBase, filespec);
-                    } catch (NullPointerException e) {
-                        // If we got a NullPointerException, then perhaps we
-                        // are calling this as an application, not as an applet
-                        url = new URL(filespec);
-                    }
-                }
-                in = new DataInputStream (url.openStream());
-            } catch (MalformedURLException e) {
-                try {
-                    // Just try to open it as a file.
-                    in = new DataInputStream(new FileInputStream(filespec));
-                } catch (FileNotFoundException me) {
-                    _errorMsg = new String [2];
-                    _errorMsg[0] = "File not found: " + filespec;
-                    _errorMsg[1] = me.getMessage();
-                    return;
-                } catch (SecurityException me) {
-                    _errorMsg = new String [2];
-                    _errorMsg[0] = "Security Exception: " + filespec;
-                    _errorMsg[1] = me.getMessage();
-                    return;
-                }
-            } catch (IOException ioe) {
-                _errorMsg = new String [3];
-                _errorMsg[0] = "Failure opening URL: ";
-                _errorMsg[1] = " " + filespec;
-                _errorMsg[2] = ioe.getMessage();
-                return;
-            }
-        }
-
-        // At this point, we've opened the data source, now read it in
-        try {
-            BufferedReader din = new BufferedReader(
-                    new InputStreamReader(in));
-            String line = din.readLine();
-            while (line != null) {
-                _parseLine(line);
-                line = din.readLine();
-            }
-        } catch (MalformedURLException e) {
-            _errorMsg = new String [2];
-            _errorMsg[0] = "Malformed URL: " + filespec;
-            _errorMsg[1] = e.getMessage();
-            return;
-        } catch (IOException e) {
-            _errorMsg = new String [2];
-            _errorMsg[0] = "Failure reading data: " + filespec;
-            _errorMsg[1] = e.getMessage();
-            _errorMsg[1] = e.getMessage();
-        } finally {
-            try {
-                in.close();
-            } catch (IOException me) {}
-        }
-    }
+//  /** Open up the input file, which could be stdin, a URL, or a file.
+//   *  @deprecated This method is deprecated.  Use read() instead.
+//   */
+//  public synchronized void parseFile(String filespec, URL documentBase) {
+//      DataInputStream in = null;
+//      if (filespec == null || filespec.length() == 0) {
+//          // Open up stdin
+//          in = new DataInputStream(System.in);
+//      } else {
+//          try {
+//              URL url = null;
+//              if (documentBase == null && _documentBase != null) {
+//                  documentBase = _documentBase;
+//              }
+//              if (documentBase == null) {
+//                  url = new URL(filespec);
+//              } else {
+//                  try {
+//                      url = new URL(documentBase, filespec);
+//                  } catch (NullPointerException e) {
+//                      // If we got a NullPointerException, then perhaps we
+//                      // are calling this as an application, not as an applet
+//                      url = new URL(filespec);
+//                  }
+//              }
+//              in = new DataInputStream (url.openStream());
+//          } catch (MalformedURLException e) {
+//              try {
+//                  // Just try to open it as a file.
+//                  in = new DataInputStream(new FileInputStream(filespec));
+//              } catch (FileNotFoundException me) {
+//                  _errorMsg = new String [2];
+//                  _errorMsg[0] = "File not found: " + filespec;
+//                  _errorMsg[1] = me.getMessage();
+//                  return;
+//              } catch (SecurityException me) {
+//                  _errorMsg = new String [2];
+//                  _errorMsg[0] = "Security Exception: " + filespec;
+//                  _errorMsg[1] = me.getMessage();
+//                  return;
+//              }
+//          } catch (IOException ioe) {
+//              _errorMsg = new String [3];
+//              _errorMsg[0] = "Failure opening URL: ";
+//              _errorMsg[1] = " " + filespec;
+//              _errorMsg[2] = ioe.getMessage();
+//              return;
+//          }
+//      }
+//
+//      // At this point, we've opened the data source, now read it in
+//      try {
+//          BufferedReader din = new BufferedReader(
+//                  new InputStreamReader(in));
+//          String line = din.readLine();
+//          while (line != null) {
+//              _parseLine(line);
+//              line = din.readLine();
+//          }
+//      } catch (MalformedURLException e) {
+//          _errorMsg = new String [2];
+//          _errorMsg[0] = "Malformed URL: " + filespec;
+//          _errorMsg[1] = e.getMessage();
+//          return;
+//      } catch (IOException e) {
+//          _errorMsg = new String [2];
+//          _errorMsg[0] = "Failure reading data: " + filespec;
+//          _errorMsg[1] = e.getMessage();
+//          _errorMsg[1] = e.getMessage();
+//      } finally {
+//          try {
+//              in.close();
+//          } catch (IOException me) {}
+//      }
+//  }
 
     /** Print the plot to a printer, represented by the specified graphics
      *  object.
@@ -906,70 +945,70 @@ public class PlotBox extends JPanel implements Printable {
         return Printable.PAGE_EXISTS;
     }
 
-    /** Read commands and/or plot data from an input stream in the old
-     *  (non-XML) file syntax.
-     *  To update the display, call repaint(), or make the plot visible with
-     *  setVisible(true).
-     *  <p>
-     *  To read from standard input, use:
-     *  <pre>
-     *     read(System.in);
-     *  </pre>
-     *  To read from a url, use:
-     *  <pre>
-     *     read(url.openStream());
-     *  </pre>
-     *  To read a URL from within an applet, use:
-     *  <pre>
-     *     URL url = new URL(getDocumentBase(), urlSpec);
-     *     read(url.openStream());
-     *  </pre>
-     *  Within an application, if you have an absolute URL, use:
-     *  <pre>
-     *     URL url = new URL(urlSpec);
-     *     read(url.openStream());
-     *  </pre>
-     *  To read from a file, use:
-     *  <pre>
-     *     read(new FileInputStream(filename));
-     *  </pre>
-     *  @param in The input stream.
-     *  @exception IOException If the stream cannot be read.
-     */
-    public synchronized void read(InputStream in) throws IOException {
-        try {
-            // NOTE: I tried to use exclusively the jdk 1.1 Reader classes,
-            // but they provide no support like DataInputStream, nor
-            // support for URL accesses.  So I use the older classes
-            // here in a strange mixture.
+//  /** Read commands and/or plot data from an input stream in the old
+//   *  (non-XML) file syntax.
+//   *  To update the display, call repaint(), or make the plot visible with
+//   *  setVisible(true).
+//   *  <p>
+//   *  To read from standard input, use:
+//   *  <pre>
+//   *     read(System.in);
+//   *  </pre>
+//   *  To read from a url, use:
+//   *  <pre>
+//   *     read(url.openStream());
+//   *  </pre>
+//   *  To read a URL from within an applet, use:
+//   *  <pre>
+//   *     URL url = new URL(getDocumentBase(), urlSpec);
+//   *     read(url.openStream());
+//   *  </pre>
+//   *  Within an application, if you have an absolute URL, use:
+//   *  <pre>
+//   *     URL url = new URL(urlSpec);
+//   *     read(url.openStream());
+//   *  </pre>
+//   *  To read from a file, use:
+//   *  <pre>
+//   *     read(new FileInputStream(filename));
+//   *  </pre>
+//   *  @param in The input stream.
+//   *  @exception IOException If the stream cannot be read.
+//   */
+//  public synchronized void read(InputStream in) throws IOException {
+//      try {
+//          // NOTE: I tried to use exclusively the jdk 1.1 Reader classes,
+//          // but they provide no support like DataInputStream, nor
+//          // support for URL accesses.  So I use the older classes
+//          // here in a strange mixture.
+//
+//          BufferedReader din = new BufferedReader(
+//                  new InputStreamReader(in));
+//
+//          try {
+//              String line = din.readLine();
+//              while (line != null) {
+//                  _parseLine(line);
+//                  line = din.readLine();
+//              }
+//          } finally {
+//              din.close();
+//          }
+//      } catch (IOException e) {
+//          _errorMsg = new String [2];
+//          _errorMsg[0] = "Failure reading input data.";
+//          _errorMsg[1] = e.getMessage();
+//          throw e;
+//      }
+//  }
 
-            BufferedReader din = new BufferedReader(
-                    new InputStreamReader(in));
-
-            try {
-                String line = din.readLine();
-                while (line != null) {
-                    _parseLine(line);
-                    line = din.readLine();
-                }
-            } finally {
-                din.close();
-            }
-        } catch (IOException e) {
-            _errorMsg = new String [2];
-            _errorMsg[0] = "Failure reading input data.";
-            _errorMsg[1] = e.getMessage();
-            throw e;
-        }
-    }
-
-    /** Read a single line command provided as a string.
-     *  The commands can be any of those in the ASCII file format.
-     *  @param command A command.
-     */
-    public synchronized void read(String command) {
-        _parseLine(command);
-    }
+//  /** Read a single line command provided as a string.
+//   *  The commands can be any of those in the ASCII file format.
+//   *  @param command A command.
+//   */
+//  public synchronized void read(String command) {
+//      _parseLine(command);
+//  }
 
     /** Remove the legend (displayed at the upper right) for the specified
      *  data set. If the dataset is not found, nothing will occur.
@@ -1333,154 +1372,154 @@ public class PlotBox extends JPanel implements Printable {
         _setYRange(min, max);
     }
 
-    /** Write the current data and plot configuration to the
-     *  specified stream in PlotML syntax.  PlotML is an XML
-     *  extension for plot data.  The written information is
-     *  standalone, in that it includes the DTD (document type
-     *  definition).  This makes is somewhat verbose.  To get
-     *  smaller files, use the two argument version of write().
-     *  The output is buffered, and is flushed and
-     *  closed before exiting.  Derived classes should override
-     *  writeFormat and writeData rather than this method.
-     *  @param out An output stream.
-     */
-    public void write(OutputStream out) {
-        write(out, null);
-    }
+//  /** Write the current data and plot configuration to the
+//   *  specified stream in PlotML syntax.  PlotML is an XML
+//   *  extension for plot data.  The written information is
+//   *  standalone, in that it includes the DTD (document type
+//   *  definition).  This makes is somewhat verbose.  To get
+//   *  smaller files, use the two argument version of write().
+//   *  The output is buffered, and is flushed and
+//   *  closed before exiting.  Derived classes should override
+//   *  writeFormat and writeData rather than this method.
+//   *  @param out An output stream.
+//   */
+//  public void write(OutputStream out) {
+//      write(out, null);
+//  }
 
-    /** Write the current data and plot configuration to the
-     *  specified stream in PlotML syntax.  PlotML is an XML
-     *  scheme for plot data. The URL (relative or absolute) for the DTD is
-     *  given as the second argument.  If that argument is null,
-     *  then the PlotML PUBLIC DTD is referenced, resulting in a file
-     *  that can be read by a PlotML parser without any external file
-     *  references, as long as that parser has local access to the DTD.
-     *  The output is buffered, and is flushed and
-     *  closed before exiting.  Derived classes should override
-     *  writeFormat and writeData rather than this method.
-     *  @param out An output stream.
-     *  @param dtd The reference (URL) for the DTD, or null to use the
-     *   PUBLIC DTD.
-     */
-    public synchronized void write(OutputStream out, String dtd) {
-        write(new OutputStreamWriter(out), dtd);
-    }
+//  /** Write the current data and plot configuration to the
+//   *  specified stream in PlotML syntax.  PlotML is an XML
+//   *  scheme for plot data. The URL (relative or absolute) for the DTD is
+//   *  given as the second argument.  If that argument is null,
+//   *  then the PlotML PUBLIC DTD is referenced, resulting in a file
+//   *  that can be read by a PlotML parser without any external file
+//   *  references, as long as that parser has local access to the DTD.
+//   *  The output is buffered, and is flushed and
+//   *  closed before exiting.  Derived classes should override
+//   *  writeFormat and writeData rather than this method.
+//   *  @param out An output stream.
+//   *  @param dtd The reference (URL) for the DTD, or null to use the
+//   *   PUBLIC DTD.
+//   */
+//  public synchronized void write(OutputStream out, String dtd) {
+//      write(new OutputStreamWriter(out), dtd);
+//  }
 
-    /** Write the current data and plot configuration to the
-     *  specified stream in PlotML syntax.  PlotML is an XML
-     *  scheme for plot data. The URL (relative or absolute) for the DTD is
-     *  given as the second argument.  If that argument is null,
-     *  then the PlotML PUBLIC DTD is referenced, resulting in a file
-     *  that can be read by a PlotML parser without any external file
-     *  references, as long as that parser has local access to the DTD.
-     *  The output is buffered, and is flushed and
-     *  closed before exiting.
-     *  @param out An output writer.
-     *  @param dtd The reference (URL) for the DTD, or null to use the
-     *   PUBLIC DTD.
-     */
-    public synchronized void write(Writer out, String dtd) {
-        // Auto-flush is disabled.
-        PrintWriter output = new PrintWriter(new BufferedWriter(out), false);
-        if (dtd == null) {
-            output.println("<?xml version=\"1.0\" standalone=\"yes\"?>");
-            output.println(
-                    "<!DOCTYPE plot PUBLIC \"-//UC Berkeley//DTD PlotML 1//EN\"");
-            output.println(
-                    "    \"http://ptolemy.eecs.berkeley.edu/xml/dtd/PlotML_1.dtd\">");
-        } else {
-            output.println("<?xml version=\"1.0\" standalone=\"no\"?>");
-            output.println("<!DOCTYPE plot SYSTEM \"" + dtd + "\">");
-        }
-        output.println("<plot>");
-        output.println("<!-- Ptolemy plot, version " + PTPLOT_RELEASE
-                + " , PlotML format. -->");
-        writeFormat(output);
-        writeData(output);
-        output.println("</plot>");
-        output.flush();
-        // NOTE: We used to close the stream, but if this is part
-        // of an exportMoML operation, that is the wrong thing to do.
-        // if (out != System.out) {
-        //    output.close();
-        // }
-    }
+//  /** Write the current data and plot configuration to the
+//   *  specified stream in PlotML syntax.  PlotML is an XML
+//   *  scheme for plot data. The URL (relative or absolute) for the DTD is
+//   *  given as the second argument.  If that argument is null,
+//   *  then the PlotML PUBLIC DTD is referenced, resulting in a file
+//   *  that can be read by a PlotML parser without any external file
+//   *  references, as long as that parser has local access to the DTD.
+//   *  The output is buffered, and is flushed and
+//   *  closed before exiting.
+//   *  @param out An output writer.
+//   *  @param dtd The reference (URL) for the DTD, or null to use the
+//   *   PUBLIC DTD.
+//   */
+//  public synchronized void write(Writer out, String dtd) {
+//      // Auto-flush is disabled.
+//      PrintWriter output = new PrintWriter(new BufferedWriter(out), false);
+//      if (dtd == null) {
+//          output.println("<?xml version=\"1.0\" standalone=\"yes\"?>");
+//          output.println(
+//                  "<!DOCTYPE plot PUBLIC \"-//UC Berkeley//DTD PlotML 1//EN\"");
+//          output.println(
+//                  "    \"http://ptolemy.eecs.berkeley.edu/xml/dtd/PlotML_1.dtd\">");
+//      } else {
+//          output.println("<?xml version=\"1.0\" standalone=\"no\"?>");
+//          output.println("<!DOCTYPE plot SYSTEM \"" + dtd + "\">");
+//      }
+//      output.println("<plot>");
+//      output.println("<!-- Ptolemy plot, version " + PTPLOT_RELEASE
+//              + " , PlotML format. -->");
+//      writeFormat(output);
+//      writeData(output);
+//      output.println("</plot>");
+//      output.flush();
+//      // NOTE: We used to close the stream, but if this is part
+//      // of an exportMoML operation, that is the wrong thing to do.
+//      // if (out != System.out) {
+//      //    output.close();
+//      // }
+//  }
 
-    /** Write plot data information to the specified output stream in PlotML.
-     *  In this base class, there is no data to write, so this method
-     *  returns without doing anything.
-     *  @param output A buffered print writer.
-     */
-    public synchronized void writeData(PrintWriter output) {
-    }
+//  /** Write plot data information to the specified output stream in PlotML.
+//   *  In this base class, there is no data to write, so this method
+//   *  returns without doing anything.
+//   *  @param output A buffered print writer.
+//   */
+//  public synchronized void writeData(PrintWriter output) {
+//  }
 
-    /** Write plot format information to the specified output stream in PlotML.
-     *  Derived classes should override this method to first call
-     *  the parent class method, then add whatever additional format
-     *  information they wish to add to the stream.
-     *  @param output A buffered print writer.
-     */
-    public synchronized void writeFormat(PrintWriter output) {
-        // NOTE: If you modify this, you should change the _DTD variable
-        // accordingly.
-        if (_title != null) output.println(
-                "<title>" + _title + "</title>");
-        if (_xlabel != null) output.println(
-                "<xLabel>" + _xlabel + "</xLabel>");
-        if (_ylabel != null) output.println(
-                "<yLabel>" + _ylabel + "</yLabel>");
-        if (_xRangeGiven) output.println(
-                "<xRange min=\"" + _xlowgiven + "\" max=\""
-                + _xhighgiven + "\"/>");
-        if (_yRangeGiven) output.println(
-                "<yRange min=\"" + _ylowgiven + "\" max=\""
-                + _yhighgiven + "\"/>");
-        if (_xticks != null && _xticks.size() > 0) {
-            output.println("<xTicks>");
-            int last = _xticks.size() - 1;
-            for (int i = 0; i <= last; i++) {
-                output.println("  <tick label=\""
-                        + (String)_xticklabels.elementAt(i) + "\" position=\""
-                        + (Double)_xticks.elementAt(i) + "\"/>");
-            }
-            output.println("</xTicks>");
-        }
-        if (_yticks != null && _yticks.size() > 0) {
-            output.println("<yTicks>");
-            int last = _yticks.size() - 1;
-            for (int i = 0; i <= last; i++) {
-                output.println("  <tick label=\""
-                        + (String)_yticklabels.elementAt(i) + "\" position=\""
-                        + (Double)_yticks.elementAt(i) + "\"/>");
-            }
-            output.println("</yTicks>");
-        }
-        if (_xlog) output.println("<xLog/>");
-        if (_ylog) output.println("<yLog/>");
-        if (!_grid) output.println("<noGrid/>");
-        if (_wrap) output.println("<wrap/>");
-        if (!_usecolor) output.println("<noColor/>");
-    }
+//  /** Write plot format information to the specified output stream in PlotML.
+//   *  Derived classes should override this method to first call
+//   *  the parent class method, then add whatever additional format
+//   *  information they wish to add to the stream.
+//   *  @param output A buffered print writer.
+//   */
+//  public synchronized void writeFormat(PrintWriter output) {
+//      // NOTE: If you modify this, you should change the _DTD variable
+//      // accordingly.
+//      if (_title != null) output.println(
+//              "<title>" + _title + "</title>");
+//      if (_xlabel != null) output.println(
+//              "<xLabel>" + _xlabel + "</xLabel>");
+//      if (_ylabel != null) output.println(
+//              "<yLabel>" + _ylabel + "</yLabel>");
+//      if (_xRangeGiven) output.println(
+//              "<xRange min=\"" + _xlowgiven + "\" max=\""
+//              + _xhighgiven + "\"/>");
+//      if (_yRangeGiven) output.println(
+//              "<yRange min=\"" + _ylowgiven + "\" max=\""
+//              + _yhighgiven + "\"/>");
+//      if (_xticks != null && _xticks.size() > 0) {
+//          output.println("<xTicks>");
+//          int last = _xticks.size() - 1;
+//          for (int i = 0; i <= last; i++) {
+//              output.println("  <tick label=\""
+//                      + (String)_xticklabels.elementAt(i) + "\" position=\""
+//                      + (Double)_xticks.elementAt(i) + "\"/>");
+//          }
+//          output.println("</xTicks>");
+//      }
+//      if (_yticks != null && _yticks.size() > 0) {
+//          output.println("<yTicks>");
+//          int last = _yticks.size() - 1;
+//          for (int i = 0; i <= last; i++) {
+//              output.println("  <tick label=\""
+//                      + (String)_yticklabels.elementAt(i) + "\" position=\""
+//                      + (Double)_yticks.elementAt(i) + "\"/>");
+//          }
+//          output.println("</yTicks>");
+//      }
+//      if (_xlog) output.println("<xLog/>");
+//      if (_ylog) output.println("<yLog/>");
+//      if (!_grid) output.println("<noGrid/>");
+//      if (_wrap) output.println("<wrap/>");
+//      if (!_usecolor) output.println("<noColor/>");
+//  }
 
-    /** Write the current data and plot configuration to the
-     *  specified stream in the old PtPlot syntax.
-     *  The output is buffered, and is flushed and
-     *  closed before exiting.  Derived classes should override
-     *  _writeOldSyntax() rather than this method.
-     *  @param out An output stream.
-     *  @deprecated
-     */
-    public synchronized void writeOldSyntax(OutputStream out) {
-        // Auto-flush is disabled.
-        PrintWriter output = new PrintWriter(new BufferedOutputStream(out),
-                false);
-        _writeOldSyntax(output);
-        output.flush();
-        // Avoid closing standard out.
-        if (out != System.out) {
-            output.close();
-        }
-    }
+//  /** Write the current data and plot configuration to the
+//   *  specified stream in the old PtPlot syntax.
+//   *  The output is buffered, and is flushed and
+//   *  closed before exiting.  Derived classes should override
+//   *  _writeOldSyntax() rather than this method.
+//   *  @param out An output stream.
+//   *  @deprecated
+//   */
+//  public synchronized void writeOldSyntax(OutputStream out) {
+//      // Auto-flush is disabled.
+//      PrintWriter output = new PrintWriter(new BufferedOutputStream(out),
+//              false);
+//      _writeOldSyntax(output);
+//      output.flush();
+//      // Avoid closing standard out.
+//      if (out != System.out) {
+//          output.close();
+//      }
+//  }
 
     /** Zoom in or out to the specified rectangle.
      *  This method calls repaint().
@@ -2147,110 +2186,110 @@ public class PlotBox extends JPanel implements Printable {
                 "Ptolemy Plot Help Window", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    /** Parse a line that gives plotting information.  In this base
-     *  class, only lines pertaining to the title and labels are processed.
-     *  Everything else is ignored. Return true if the line is recognized.
-     *  It is not synchronized, so its caller should be.
-     *  @param line A line of text.
-     */
-    protected boolean _parseLine(String line) {
-        // If you modify this method, you should also modify write()
-
-        // We convert the line to lower case so that the command
-        // names are case insensitive.
-        String lcLine = new String(line.toLowerCase());
-        if (lcLine.startsWith("#")) {
-            // comment character
-            return true;
-        } else if (lcLine.startsWith("titletext:")) {
-            setTitle((line.substring(10)).trim());
-            return true;
-        } else if (lcLine.startsWith("title:")) {
-            // Tolerate alternative tag.
-            setTitle((line.substring(10)).trim());
-            return true;
-        } else if (lcLine.startsWith("xlabel:")) {
-            setXLabel((line.substring(7)).trim());
-            return true;
-        } else if (lcLine.startsWith("ylabel:")) {
-            setYLabel((line.substring(7)).trim());
-            return true;
-        } else if (lcLine.startsWith("xrange:")) {
-            int comma = line.indexOf(",", 7);
-            if (comma > 0) {
-                String min = (line.substring(7, comma)).trim();
-                String max = (line.substring(comma+1)).trim();
-                try {
-                    Double dmin = new Double(min);
-                    Double dmax = new Double(max);
-                    setXRange(dmin.doubleValue(), dmax.doubleValue());
-                } catch (NumberFormatException e) {
-                    // ignore if format is bogus.
-                }
-            }
-            return true;
-        } else if (lcLine.startsWith("yrange:")) {
-            int comma = line.indexOf(",", 7);
-            if (comma > 0) {
-                String min = (line.substring(7, comma)).trim();
-                String max = (line.substring(comma+1)).trim();
-                try {
-                    Double dmin = new Double(min);
-                    Double dmax = new Double(max);
-                    setYRange(dmin.doubleValue(), dmax.doubleValue());
-                } catch (NumberFormatException e) {
-                    // ignore if format is bogus.
-                }
-            }
-            return true;
-        } else if (lcLine.startsWith("xticks:")) {
-            // example:
-            // XTicks "label" 0, "label" 1, "label" 3
-            _parsePairs(line.substring(7), true);
-            return true;
-        } else if (lcLine.startsWith("yticks:")) {
-            // example:
-            // YTicks "label" 0, "label" 1, "label" 3
-            _parsePairs(line.substring(7), false);
-            return true;
-        } else if (lcLine.startsWith("xlog:")) {
-            if (lcLine.indexOf("off",5) >= 0) {
-                _xlog = false;
-            } else {
-                _xlog = true;
-            }
-            return true;
-        } else if (lcLine.startsWith("ylog:")) {
-            if (lcLine.indexOf("off",5) >= 0) {
-                _ylog = false;
-            } else {
-                _ylog = true;
-            }
-            return true;
-        } else if (lcLine.startsWith("grid:")) {
-            if (lcLine.indexOf("off",5) >= 0) {
-                _grid = false;
-            } else {
-                _grid = true;
-            }
-            return true;
-        } else if (lcLine.startsWith("wrap:")) {
-            if (lcLine.indexOf("off",5) >= 0) {
-                _wrap = false;
-            } else {
-                _wrap = true;
-            }
-            return true;
-        } else if (lcLine.startsWith("color:")) {
-            if (lcLine.indexOf("off",6) >= 0) {
-                _usecolor = false;
-            } else {
-                _usecolor = true;
-            }
-            return true;
-        }
-        return false;
-    }
+//  /** Parse a line that gives plotting information.  In this base
+//   *  class, only lines pertaining to the title and labels are processed.
+//   *  Everything else is ignored. Return true if the line is recognized.
+//   *  It is not synchronized, so its caller should be.
+//   *  @param line A line of text.
+//   */
+//  protected boolean _parseLine(String line) {
+//      // If you modify this method, you should also modify write()
+//
+//      // We convert the line to lower case so that the command
+//      // names are case insensitive.
+//      String lcLine = new String(line.toLowerCase());
+//      if (lcLine.startsWith("#")) {
+//          // comment character
+//          return true;
+//      } else if (lcLine.startsWith("titletext:")) {
+//          setTitle((line.substring(10)).trim());
+//          return true;
+//      } else if (lcLine.startsWith("title:")) {
+//          // Tolerate alternative tag.
+//          setTitle((line.substring(10)).trim());
+//          return true;
+//      } else if (lcLine.startsWith("xlabel:")) {
+//          setXLabel((line.substring(7)).trim());
+//          return true;
+//      } else if (lcLine.startsWith("ylabel:")) {
+//          setYLabel((line.substring(7)).trim());
+//          return true;
+//      } else if (lcLine.startsWith("xrange:")) {
+//          int comma = line.indexOf(",", 7);
+//          if (comma > 0) {
+//              String min = (line.substring(7, comma)).trim();
+//              String max = (line.substring(comma+1)).trim();
+//              try {
+//                  Double dmin = new Double(min);
+//                  Double dmax = new Double(max);
+//                  setXRange(dmin.doubleValue(), dmax.doubleValue());
+//              } catch (NumberFormatException e) {
+//                  // ignore if format is bogus.
+//              }
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("yrange:")) {
+//          int comma = line.indexOf(",", 7);
+//          if (comma > 0) {
+//              String min = (line.substring(7, comma)).trim();
+//              String max = (line.substring(comma+1)).trim();
+//              try {
+//                  Double dmin = new Double(min);
+//                  Double dmax = new Double(max);
+//                  setYRange(dmin.doubleValue(), dmax.doubleValue());
+//              } catch (NumberFormatException e) {
+//                  // ignore if format is bogus.
+//              }
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("xticks:")) {
+//          // example:
+//          // XTicks "label" 0, "label" 1, "label" 3
+//          _parsePairs(line.substring(7), true);
+//          return true;
+//      } else if (lcLine.startsWith("yticks:")) {
+//          // example:
+//          // YTicks "label" 0, "label" 1, "label" 3
+//          _parsePairs(line.substring(7), false);
+//          return true;
+//      } else if (lcLine.startsWith("xlog:")) {
+//          if (lcLine.indexOf("off",5) >= 0) {
+//              _xlog = false;
+//          } else {
+//              _xlog = true;
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("ylog:")) {
+//          if (lcLine.indexOf("off",5) >= 0) {
+//              _ylog = false;
+//          } else {
+//              _ylog = true;
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("grid:")) {
+//          if (lcLine.indexOf("off",5) >= 0) {
+//              _grid = false;
+//          } else {
+//              _grid = true;
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("wrap:")) {
+//          if (lcLine.indexOf("off",5) >= 0) {
+//              _wrap = false;
+//          } else {
+//              _wrap = true;
+//          }
+//          return true;
+//      } else if (lcLine.startsWith("color:")) {
+//          if (lcLine.indexOf("off",6) >= 0) {
+//              _usecolor = false;
+//          } else {
+//              _usecolor = true;
+//          }
+//          return true;
+//      }
+//      return false;
+//  }
 
     /** Set the visibility of the Fill button.
      *  This is deprecated.  Use setButtons().
@@ -2274,50 +2313,50 @@ public class PlotBox extends JPanel implements Printable {
 	_padding = padding;
     }
 
-    /** Write plot information to the specified output stream in the
-     *  old PtPlot syntax.
-     *  Derived classes should override this method to first call
-     *  the parent class method, then add whatever additional information
-     *  they wish to add to the stream.
-     *  It is not synchronized, so its caller should be.
-     *  @param output A buffered print writer.
-     *  @deprecated
-     */
-    protected void _writeOldSyntax(PrintWriter output) {
-        output.println("# Ptolemy plot, version 2.0");
-        if (_title != null) output.println("TitleText: " + _title);
-        if (_xlabel != null) output.println("XLabel: " + _xlabel);
-        if (_ylabel != null) output.println("YLabel: " + _ylabel);
-        if (_xRangeGiven) output.println("XRange: " + _xlowgiven
-                + ", " + _xhighgiven);
-        if (_yRangeGiven) output.println("YRange: " + _ylowgiven
-                + ", " + _yhighgiven);
-        if (_xticks != null && _xticks.size() > 0) {
-            output.print("XTicks: ");
-            int last = _xticks.size() - 1;
-            for (int i = 0; i < last; i++) {
-                output.print("\"" + (String)_xticklabels.elementAt(i) + "\" "
-                        + (Double)_xticks.elementAt(i) + ", ");
-            }
-            output.println("\"" + (String)_xticklabels.elementAt(last) + "\" "
-                    + (Double)_xticks.elementAt(last));
-        }
-        if (_yticks != null && _yticks.size() > 0) {
-            output.print("YTicks: ");
-            int last = _yticks.size() - 1;
-            for (int i = 0; i < last; i++) {
-                output.print("\"" + (String)_yticklabels.elementAt(i) + "\" "
-                        + (Double)_yticks.elementAt(i) + ", ");
-            }
-            output.println("\"" + (String)_yticklabels.elementAt(last) + "\" "
-                    + (Double)_yticks.elementAt(last));
-        }
-        if (_xlog) output.println("XLog: on");
-        if (_ylog) output.println("YLog: on");
-        if (!_grid) output.println("Grid: off");
-        if (_wrap) output.println("Wrap: on");
-        if (!_usecolor) output.println("Color: off");
-    }
+//  /** Write plot information to the specified output stream in the
+//   *  old PtPlot syntax.
+//   *  Derived classes should override this method to first call
+//   *  the parent class method, then add whatever additional information
+//   *  they wish to add to the stream.
+//   *  It is not synchronized, so its caller should be.
+//   *  @param output A buffered print writer.
+//   *  @deprecated
+//   */
+//  protected void _writeOldSyntax(PrintWriter output) {
+//      output.println("# Ptolemy plot, version 2.0");
+//      if (_title != null) output.println("TitleText: " + _title);
+//      if (_xlabel != null) output.println("XLabel: " + _xlabel);
+//      if (_ylabel != null) output.println("YLabel: " + _ylabel);
+//      if (_xRangeGiven) output.println("XRange: " + _xlowgiven
+//              + ", " + _xhighgiven);
+//      if (_yRangeGiven) output.println("YRange: " + _ylowgiven
+//              + ", " + _yhighgiven);
+//      if (_xticks != null && _xticks.size() > 0) {
+//          output.print("XTicks: ");
+//          int last = _xticks.size() - 1;
+//          for (int i = 0; i < last; i++) {
+//              output.print("\"" + (String)_xticklabels.elementAt(i) + "\" "
+//                      + (Double)_xticks.elementAt(i) + ", ");
+//          }
+//          output.println("\"" + (String)_xticklabels.elementAt(last) + "\" "
+//                  + (Double)_xticks.elementAt(last));
+//      }
+//      if (_yticks != null && _yticks.size() > 0) {
+//          output.print("YTicks: ");
+//          int last = _yticks.size() - 1;
+//          for (int i = 0; i < last; i++) {
+//              output.print("\"" + (String)_yticklabels.elementAt(i) + "\" "
+//                      + (Double)_yticks.elementAt(i) + ", ");
+//          }
+//          output.println("\"" + (String)_yticklabels.elementAt(last) + "\" "
+//                  + (Double)_yticks.elementAt(last));
+//      }
+//      if (_xlog) output.println("XLog: on");
+//      if (_ylog) output.println("YLog: on");
+//      if (!_grid) output.println("Grid: off");
+//      if (_wrap) output.println("Wrap: on");
+//      if (!_usecolor) output.println("Color: off");
+//  }
 
     ///////////////////////////////////////////////////////////////////
     ////                         protected variables               ////
@@ -2836,70 +2875,70 @@ public class PlotBox extends JPanel implements Printable {
         return numdigits;
     }
 
-    /*
-     * Parse a string of the form: "word num, word num, word num, ..."
-     * where the word must be enclosed in quotes if it contains spaces,
-     * and the number is interpreted as a floating point number.  Ignore
-     * any incorrectly formatted fields.  I <i>xtick</i> is true, then
-     * interpret the parsed string to specify the tick labels on the x axis.
-     * Otherwise, do the y axis.
-     */
-    private void _parsePairs(String line, boolean xtick) {
-        // Clear current ticks first.
-        if (xtick) {
-            _xticks = null;
-            _xticklabels = null;
-        } else {
-            _yticks = null;
-            _yticklabels = null;
-        }
+//  /*
+//   * Parse a string of the form: "word num, word num, word num, ..."
+//   * where the word must be enclosed in quotes if it contains spaces,
+//   * and the number is interpreted as a floating point number.  Ignore
+//   * any incorrectly formatted fields.  I <i>xtick</i> is true, then
+//   * interpret the parsed string to specify the tick labels on the x axis.
+//   * Otherwise, do the y axis.
+//   */
+//  private void _parsePairs(String line, boolean xtick) {
+//      // Clear current ticks first.
+//      if (xtick) {
+//          _xticks = null;
+//          _xticklabels = null;
+//      } else {
+//          _yticks = null;
+//          _yticklabels = null;
+//      }
+//
+//      int start = 0;
+//      boolean cont = true;
+//      while (cont) {
+//          int comma = line.indexOf(",", start);
+//          String pair = null ;
+//          if (comma > start) {
+//              pair = (line.substring(start, comma)).trim();
+//          } else {
+//              pair = (line.substring(start)).trim();
+//              cont = false;
+//          }
+//          int close = -1;
+//          int open = 0;
+//          if (pair.startsWith("\"")) {
+//              close = pair.indexOf("\"",1);
+//              open = 1;
+//          } else {
+//              close = pair.indexOf(" ");
+//          }
+//          if (close > 0) {
+//              String label = pair.substring(open, close);
+//              String index = (pair.substring(close+1)).trim();
+//              try {
+//                  double idx = (Double.valueOf(index)).doubleValue();
+//                  if (xtick) addXTick(label, idx);
+//                  else addYTick(label, idx);
+//              } catch (NumberFormatException e) {
+//                  System.err.println("Warning from PlotBox: " +
+//                          "Unable to parse ticks: " + e.getMessage());
+//                  // ignore if format is bogus.
+//              }
+//          }
+//          start = comma + 1;
+//          comma = line.indexOf(",",start);
+//      }
+//  }
 
-        int start = 0;
-        boolean cont = true;
-        while (cont) {
-            int comma = line.indexOf(",", start);
-            String pair = null ;
-            if (comma > start) {
-                pair = (line.substring(start, comma)).trim();
-            } else {
-                pair = (line.substring(start)).trim();
-                cont = false;
-            }
-            int close = -1;
-            int open = 0;
-            if (pair.startsWith("\"")) {
-                close = pair.indexOf("\"",1);
-                open = 1;
-            } else {
-                close = pair.indexOf(" ");
-            }
-            if (close > 0) {
-                String label = pair.substring(open, close);
-                String index = (pair.substring(close+1)).trim();
-                try {
-                    double idx = (Double.valueOf(index)).doubleValue();
-                    if (xtick) addXTick(label, idx);
-                    else addYTick(label, idx);
-                } catch (NumberFormatException e) {
-                    System.err.println("Warning from PlotBox: " +
-                            "Unable to parse ticks: " + e.getMessage());
-                    // ignore if format is bogus.
-                }
-            }
-            start = comma + 1;
-            comma = line.indexOf(",",start);
-        }
-    }
-
-    /** Return a default set of rendering hints for image export, which
-     *  specifies the use of anti-aliasing.
-     */
-    private RenderingHints _defaultImageRenderingHints() {
-        RenderingHints hints = new RenderingHints(null);
-        hints.put(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
-        return hints;
-    }
+//  /** Return a default set of rendering hints for image export, which
+//   *  specifies the use of anti-aliasing.
+//   */
+//  private RenderingHints _defaultImageRenderingHints() {
+//      RenderingHints hints = new RenderingHints(null);
+//      hints.put(RenderingHints.KEY_ANTIALIASING,
+//              RenderingHints.VALUE_ANTIALIAS_ON);
+//      return hints;
+//  }
 
     /*
      * Given a number, round up to the nearest power of ten
@@ -3002,7 +3041,7 @@ public class PlotBox extends JPanel implements Printable {
      *  @param x The final x position.
      *  @param y The final y position.
      */
-    void _zoom(int x, int y) {
+    protected void _zoom(int x, int y) {
         // FIXME: This is friendly because Netscape 4.0.3 cannot access it if
         // it is private!
 
@@ -3296,69 +3335,69 @@ public class PlotBox extends JPanel implements Printable {
     private transient boolean _drawn = false;
     private transient boolean _zooming = false;
 
-    // NOTE: It is unfortunate to have to include the DTD here, but there
-    // seems to be no other way to ensure that the generated data exactly
-    // matches the DTD.
-    private static final String _DTD =
-    "<!-- PlotML DTD, created by Edward A. Lee, eal@eecs.berkeley.edu.\n"
-    + "   See http://ptolemy.eecs.berkeley.edu/java/ptplot -->\n"
-    + "<!ELEMENT plot (barGraph | bin | dataset | default | noColor | \n"
-    + "	noGrid | title | wrap | xLabel | xLog | xRange | xTicks | yLabel | \n"
-    + " yLog | yRange | yTicks)*>\n"
-    + "  <!ELEMENT barGraph EMPTY>\n"
-    + "    <!ATTLIST barGraph width CDATA #IMPLIED>\n"
-    + "    <!ATTLIST barGraph offset CDATA #IMPLIED>\n"
-    + "  <!ELEMENT bin EMPTY>\n"
-    + "    <!ATTLIST bin width CDATA #IMPLIED>\n"
-    + "    <!ATTLIST bin offset CDATA #IMPLIED>\n"
-    + "  <!ELEMENT dataset (m | move | p | point)*>\n"
-    + "    <!ATTLIST dataset connected (yes | no) #IMPLIED>\n"
-    + "    <!ATTLIST dataset marks (none | dots | points | various) #IMPLIED>\n"
-    + "    <!ATTLIST dataset name CDATA #IMPLIED>\n"
-    + "    <!ATTLIST dataset stems (yes | no) #IMPLIED>\n"
-    + "  <!ELEMENT default EMPTY>\n"
-    + "    <!ATTLIST default connected (yes | no) \"yes\">\n"
-    + "    <!ATTLIST default marks (none | dots | points | various) \"none\">\n"
-    + "    <!ATTLIST default stems (yes | no) \"no\">\n"
-    + "  <!ELEMENT noColor EMPTY>\n"
-    + "  <!ELEMENT noGrid EMPTY>\n"
-    + "  <!ELEMENT title (#PCDATA)>\n"
-    + "  <!ELEMENT wrap EMPTY>\n"
-    + "  <!ELEMENT xLabel (#PCDATA)>\n"
-    + "  <!ELEMENT xLog EMPTY>\n"
-    + "  <!ELEMENT xRange EMPTY>\n"
-    + "    <!ATTLIST xRange min CDATA #REQUIRED>\n"
-    + "    <!ATTLIST xRange max CDATA #REQUIRED>\n"
-    + "  <!ELEMENT xTicks (tick)+>\n"
-    + "  <!ELEMENT yLabel (#PCDATA)>\n"
-    + "  <!ELEMENT yLog EMPTY>\n"
-    + "  <!ELEMENT yRange EMPTY>\n"
-    + "    <!ATTLIST yRange min CDATA #REQUIRED>\n"
-    + "    <!ATTLIST yRange max CDATA #REQUIRED>\n"
-    + "  <!ELEMENT yTicks (tick)+>\n"
-    + "    <!ELEMENT tick EMPTY>\n"
-    + "      <!ATTLIST tick label CDATA #REQUIRED>\n"
-    + "      <!ATTLIST tick position CDATA #REQUIRED>\n"
-    + "    <!ELEMENT m EMPTY>\n"
-    + "      <!ATTLIST m x CDATA #IMPLIED>\n"
-    + "      <!ATTLIST m x CDATA #REQUIRED>\n"
-    + "      <!ATTLIST m lowErrorBar CDATA #IMPLIED>\n"
-    + "      <!ATTLIST m highErrorBar CDATA #IMPLIED>\n"
-    + "    <!ELEMENT move EMPTY>\n"
-    + "      <!ATTLIST move x CDATA #IMPLIED>\n"
-    + "      <!ATTLIST move x CDATA #REQUIRED>\n"
-    + "      <!ATTLIST move lowErrorBar CDATA #IMPLIED>\n"
-    + "      <!ATTLIST move highErrorBar CDATA #IMPLIED>\n"
-    + "    <!ELEMENT p EMPTY>\n"
-    + "      <!ATTLIST p x CDATA #IMPLIED>\n"
-    + "      <!ATTLIST p x CDATA #REQUIRED>\n"
-    + "      <!ATTLIST p lowErrorBar CDATA #IMPLIED>\n"
-    + "      <!ATTLIST p highErrorBar CDATA #IMPLIED>\n"
-    + "    <!ELEMENT point EMPTY>\n"
-    + "      <!ATTLIST point x CDATA #IMPLIED>\n"
-    + "      <!ATTLIST point x CDATA #REQUIRED>\n"
-    + "      <!ATTLIST point lowErrorBar CDATA #IMPLIED>\n"
-    + "      <!ATTLIST point highErrorBar CDATA #IMPLIED>";
+//  // NOTE: It is unfortunate to have to include the DTD here, but there
+//  // seems to be no other way to ensure that the generated data exactly
+//  // matches the DTD.
+//  private static final String _DTD =
+//  "<!-- PlotML DTD, created by Edward A. Lee, eal@eecs.berkeley.edu.\n"
+//  + "   See http://ptolemy.eecs.berkeley.edu/java/ptplot -->\n"
+//  + "<!ELEMENT plot (barGraph | bin | dataset | default | noColor | \n"
+//  + "	noGrid | title | wrap | xLabel | xLog | xRange | xTicks | yLabel | \n"
+//  + " yLog | yRange | yTicks)*>\n"
+//  + "  <!ELEMENT barGraph EMPTY>\n"
+//  + "    <!ATTLIST barGraph width CDATA #IMPLIED>\n"
+//  + "    <!ATTLIST barGraph offset CDATA #IMPLIED>\n"
+//  + "  <!ELEMENT bin EMPTY>\n"
+//  + "    <!ATTLIST bin width CDATA #IMPLIED>\n"
+//  + "    <!ATTLIST bin offset CDATA #IMPLIED>\n"
+//  + "  <!ELEMENT dataset (m | move | p | point)*>\n"
+//  + "    <!ATTLIST dataset connected (yes | no) #IMPLIED>\n"
+//  + "    <!ATTLIST dataset marks (none | dots | points | various) #IMPLIED>\n"
+//  + "    <!ATTLIST dataset name CDATA #IMPLIED>\n"
+//  + "    <!ATTLIST dataset stems (yes | no) #IMPLIED>\n"
+//  + "  <!ELEMENT default EMPTY>\n"
+//  + "    <!ATTLIST default connected (yes | no) \"yes\">\n"
+//  + "    <!ATTLIST default marks (none | dots | points | various) \"none\">\n"
+//  + "    <!ATTLIST default stems (yes | no) \"no\">\n"
+//  + "  <!ELEMENT noColor EMPTY>\n"
+//  + "  <!ELEMENT noGrid EMPTY>\n"
+//  + "  <!ELEMENT title (#PCDATA)>\n"
+//  + "  <!ELEMENT wrap EMPTY>\n"
+//  + "  <!ELEMENT xLabel (#PCDATA)>\n"
+//  + "  <!ELEMENT xLog EMPTY>\n"
+//  + "  <!ELEMENT xRange EMPTY>\n"
+//  + "    <!ATTLIST xRange min CDATA #REQUIRED>\n"
+//  + "    <!ATTLIST xRange max CDATA #REQUIRED>\n"
+//  + "  <!ELEMENT xTicks (tick)+>\n"
+//  + "  <!ELEMENT yLabel (#PCDATA)>\n"
+//  + "  <!ELEMENT yLog EMPTY>\n"
+//  + "  <!ELEMENT yRange EMPTY>\n"
+//  + "    <!ATTLIST yRange min CDATA #REQUIRED>\n"
+//  + "    <!ATTLIST yRange max CDATA #REQUIRED>\n"
+//  + "  <!ELEMENT yTicks (tick)+>\n"
+//  + "    <!ELEMENT tick EMPTY>\n"
+//  + "      <!ATTLIST tick label CDATA #REQUIRED>\n"
+//  + "      <!ATTLIST tick position CDATA #REQUIRED>\n"
+//  + "    <!ELEMENT m EMPTY>\n"
+//  + "      <!ATTLIST m x CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST m x CDATA #REQUIRED>\n"
+//  + "      <!ATTLIST m lowErrorBar CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST m highErrorBar CDATA #IMPLIED>\n"
+//  + "    <!ELEMENT move EMPTY>\n"
+//  + "      <!ATTLIST move x CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST move x CDATA #REQUIRED>\n"
+//  + "      <!ATTLIST move lowErrorBar CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST move highErrorBar CDATA #IMPLIED>\n"
+//  + "    <!ELEMENT p EMPTY>\n"
+//  + "      <!ATTLIST p x CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST p x CDATA #REQUIRED>\n"
+//  + "      <!ATTLIST p lowErrorBar CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST p highErrorBar CDATA #IMPLIED>\n"
+//  + "    <!ELEMENT point EMPTY>\n"
+//  + "      <!ATTLIST point x CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST point x CDATA #REQUIRED>\n"
+//  + "      <!ATTLIST point lowErrorBar CDATA #IMPLIED>\n"
+//  + "      <!ATTLIST point highErrorBar CDATA #IMPLIED>";
 
 
     ///////////////////////////////////////////////////////////////////
@@ -3385,9 +3424,9 @@ public class PlotBox extends JPanel implements Printable {
                 }
             } else if (event.getSource() == _resetButton) {
                 resetAxes();
-            } else if (event.getSource() == _formatButton) {
-                PlotFormatter fmt = new PlotFormatter(PlotBox.this);
-                fmt.openModal();
+//          } else if (event.getSource() == _formatButton) {
+//              PlotFormatter fmt = new PlotFormatter(PlotBox.this);
+//              fmt.openModal();
             }
         }
     }
@@ -3438,98 +3477,98 @@ public class PlotBox extends JPanel implements Printable {
         }
     }
 
-    class CommandListener implements KeyListener {
-        public void keyPressed(KeyEvent e) {
-            int keycode = e.getKeyCode();
-            switch(keycode) {
-            case KeyEvent.VK_CONTROL:
-                _control = true;
-                break;
-            case KeyEvent.VK_SHIFT:
-                _shift = true;
-                break;
-            case KeyEvent.VK_C:
-                if (_control) {
-                    // The "null" sends the output to the clipboard.
-                    export(null);
-                    String message =
-                        "Encapsulated PostScript (EPS) " +
-                        "exported to clipboard.";
-                    JOptionPane.showMessageDialog(PlotBox.this, message,
-                            "Ptolemy Plot Message",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-                break;
-            case KeyEvent.VK_D:
-                if (!_control && _shift) {
-                    write(System.out);
-                    String message = "Plot data sent to standard out.";
-                    JOptionPane.showMessageDialog(PlotBox.this, message,
-                            "Ptolemy Plot Message",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-                if (_control) {
-                    // xgraph and many other Unix apps use Control-D to exit
-                    System.exit(1);
-                }
-                break;
-            case KeyEvent.VK_E:
-                if (!_control && _shift) {
-                    export(System.out);
-                    String message =
-                        "Encapsulated PostScript (EPS) " +
-                        "exported to standard out.";
-                    JOptionPane.showMessageDialog(PlotBox.this, message,
-                            "Ptolemy Plot Message",
-                            JOptionPane.INFORMATION_MESSAGE);
-                }
-                break;
-            case KeyEvent.VK_F:
-                if (!_control && _shift) {
-                    fillPlot();
-                }
-                break;
-            case KeyEvent.VK_H:
-                if (!_control && _shift) {
-                    _help();
-                }
-                break;
-            case KeyEvent.VK_Q:
-                if (!_control) {
-                    // xv uses q to quit.
-                    System.exit(1);
-                }
-                break;
-            case KeyEvent.VK_SLASH:
-                if (_shift) {
-                    // Question mark is SHIFT-SLASH
-                    _help();
-                }
-                break;
-            default:
-                // None
-            }
-        }
-        public void keyReleased(KeyEvent e) {
-            int keycode = e.getKeyCode();
-            switch(keycode) {
-            case KeyEvent.VK_CONTROL:
-                _control = false;
-                break;
-            case KeyEvent.VK_SHIFT:
-                _shift = false;
-                break;
-            default:
-                // None
-            }
-        }
-
-        // The keyTyped method is broken in jdk 1.1.4.
-        // It always gets "unknown key code".
-        public void keyTyped(KeyEvent e) {
-        }
-
-        private boolean _control = false;
-        private boolean _shift = false;
-    }
+//  class CommandListener implements KeyListener {
+//      public void keyPressed(KeyEvent e) {
+//          int keycode = e.getKeyCode();
+//          switch(keycode) {
+//          case KeyEvent.VK_CONTROL:
+//              _control = true;
+//              break;
+//          case KeyEvent.VK_SHIFT:
+//              _shift = true;
+//              break;
+//          case KeyEvent.VK_C:
+//              if (_control) {
+//                  // The "null" sends the output to the clipboard.
+//                  export(null);
+//                  String message =
+//                      "Encapsulated PostScript (EPS) " +
+//                      "exported to clipboard.";
+//                  JOptionPane.showMessageDialog(PlotBox.this, message,
+//                          "Ptolemy Plot Message",
+//                          JOptionPane.INFORMATION_MESSAGE);
+//              }
+//              break;
+//          case KeyEvent.VK_D:
+//              if (!_control && _shift) {
+//                  write(System.out);
+//                  String message = "Plot data sent to standard out.";
+//                  JOptionPane.showMessageDialog(PlotBox.this, message,
+//                          "Ptolemy Plot Message",
+//                          JOptionPane.INFORMATION_MESSAGE);
+//              }
+//              if (_control) {
+//                  // xgraph and many other Unix apps use Control-D to exit
+//                  System.exit(1);
+//              }
+//              break;
+//          case KeyEvent.VK_E:
+//              if (!_control && _shift) {
+//                  export(System.out);
+//                  String message =
+//                      "Encapsulated PostScript (EPS) " +
+//                      "exported to standard out.";
+//                  JOptionPane.showMessageDialog(PlotBox.this, message,
+//                          "Ptolemy Plot Message",
+//                          JOptionPane.INFORMATION_MESSAGE);
+//              }
+//              break;
+//          case KeyEvent.VK_F:
+//              if (!_control && _shift) {
+//                  fillPlot();
+//              }
+//              break;
+//          case KeyEvent.VK_H:
+//              if (!_control && _shift) {
+//                  _help();
+//              }
+//              break;
+//          case KeyEvent.VK_Q:
+//              if (!_control) {
+//                  // xv uses q to quit.
+//                  System.exit(1);
+//              }
+//              break;
+//          case KeyEvent.VK_SLASH:
+//              if (_shift) {
+//                  // Question mark is SHIFT-SLASH
+//                  _help();
+//              }
+//              break;
+//          default:
+//              // None
+//          }
+//      }
+//      public void keyReleased(KeyEvent e) {
+//          int keycode = e.getKeyCode();
+//          switch(keycode) {
+//          case KeyEvent.VK_CONTROL:
+//              _control = false;
+//              break;
+//          case KeyEvent.VK_SHIFT:
+//              _shift = false;
+//              break;
+//          default:
+//              // None
+//          }
+//      }
+//
+//      // The keyTyped method is broken in jdk 1.1.4.
+//      // It always gets "unknown key code".
+//      public void keyTyped(KeyEvent e) {
+//      }
+//
+//      private boolean _control = false;
+//      private boolean _shift = false;
+//  }
 }

@@ -31,6 +31,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.topcat.plot.PlotWindow;
 
 /**
  * Defines all the state for the representation of a given table as
