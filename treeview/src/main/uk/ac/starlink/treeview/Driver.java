@@ -36,13 +36,6 @@ public class Driver {
         hasAST = AstPackage.isAvailable();
         hasHDS = HDSPackage.isAvailable();
 
-
-        /* Treat the special case in which no command-line arguments are
-         * specified; do current directory. */
-        if ( args.length == 0 ) {
-            args = new String[] { "." };
-        }
-     
         /* Set up a HashMap mapping flags to expected Node type of argument. */
         HashMap nodeTypeFlags = new HashMap();
         if ( hasHDS ) {
@@ -125,25 +118,18 @@ public class Driver {
 
             /* Process node argument; the current factory settings are used. */
             else {
-                try {
-                    DataNode node = nodeFactory.makeDataNode( arg );
-                    node.setLabel( arg );
-                    topNodes.add( node );
-                }
-                catch ( NoSuchDataException e ) {
-                    String msg = "\nNo such object \"" + arg + "\"";
-                    if ( true ) {
-                        msg += " - tried:\n";
-                        List tried = nodeFactory.getClassesTried();
-                        for ( Iterator it = tried.iterator(); it.hasNext(); ) {
-                            msg += "    " + it.next().toString() + "\n";
-                        }
-                    }
-                    msg += "\n";
-                    exitWithError( msg );
-                    throw new Error();  // not reached
-                }
+                topNodes.add( makeDataNode( nodeFactory, arg ) );
             }
+        }
+
+        /* If there were no nodes specified, default to the current 
+         * directory. */
+        if ( topNodes.size() == 0 ) {
+            String dfltarg = new File( "." ).getAbsolutePath();
+            if ( dfltarg.endsWith( File.separatorChar + "." ) ) {
+                dfltarg = dfltarg.substring( 0, dfltarg.length() - 1 );
+            }
+            topNodes.add( makeDataNode( nodeFactory, dfltarg ) );
         }
 
         /* Check for presence of JAI if we might need it (i.e. if we are
@@ -168,26 +154,19 @@ public class Driver {
         /* Make a tree out of all the node arguments we got. */
         DefaultDataNode root;
         final DataNode[] topChildren = 
-                (DataNode[]) topNodes.toArray( new DataNode[ 0 ] );
-        if ( topNodes.size() > 0 ) {
+            (DataNode[]) topNodes.toArray( new DataNode[ 0 ] );
 
-            /* Construct root as a DefaultDataNode able also to bear 
-             * children. */
-            root = new DefaultDataNode() {
-                private DataNode[] children = topChildren;
-                public boolean allowsChildren() {
-                    return true;
-                }
-                public DataNode[] getChildren() {
-                    return children;
-                }
-            };
-        }
-        else {
-            root = null;
-            exitWithError( usageMsg );
-        }
+        /* Construct root as a DefaultDataNode able also to bear children. */
+        root = new DefaultDataNode() {
+            public boolean allowsChildren() {
+                return true;
+            }
+            public DataNode[] getChildren() {
+                return topChildren;
+            }
+        };
 
+        /* View the tree. */
         if ( textView ) {
             viewAsText( root );
         }
@@ -213,6 +192,35 @@ public class Driver {
     public static void viewAsText( DataNode root ) {
         TreeWriter tw = new TreeWriter( System.out );
         tw.write( root );
+    }
+
+    /**
+     * Make a node from a string argument, and exit the JVM gracefully
+     * if it can't be done.
+     */
+    private static DataNode makeDataNode( DataNodeFactory nodeFactory, 
+                                          String nodename ) {
+        try {
+            DataNode node = nodeFactory.makeDataNode( nodename );
+            node.setLabel( nodename );
+            return node;
+        }
+        catch ( NoSuchDataException e ) {
+            StringBuffer msg = new StringBuffer();
+            msg.append( "\nNo such object " )
+               .append( '"' )
+               .append( nodename )
+               .append( '"' );
+            List tried = nodeFactory.getClassesTried();
+            for ( Iterator it = tried.iterator(); it.hasNext(); ) {
+                msg.append( "    " )
+                   .append( it.next() )
+                   .append( "\n" );
+            }
+            msg.append( "\n" );
+            exitWithError( msg.toString() );
+            throw new Error();  // not reached
+        }
     }
 
     private static void exitWithError( String msg ) {
