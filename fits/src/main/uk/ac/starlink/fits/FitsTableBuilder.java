@@ -34,6 +34,14 @@ import uk.ac.starlink.util.IOUtils;
  * Implementation of the <tt>TableBuilder</tt> interface which 
  * gets <tt>StarTable</tt>s from FITS files.
  *
+ * <p>The table implementation used by uncompressed binary FITS tables
+ * stored on disk <em>maps</em> the file into memory 
+ * ({@link java.nio.MappedByteBuffer}) rather than reading the stream as such;  
+ * this makes table construction very fast and cheap on memory, regardless of
+ * storage policy.  This behaviour can be inhibited by referring to the
+ * file location as a URL (e.g. "file:spec23.fits" rather than "spec23.fits"),
+ * which fools the handler into thinking that it can't be mapped.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class FitsTableBuilder implements TableBuilder {
