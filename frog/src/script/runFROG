@@ -72,14 +72,22 @@ if test ! -f "$appjar"; then
    exit
 fi
 
-# Make sure that we get the frog_docs.jar file nito the CLASSPATH
+# Make sure that we get the frog_docs.jar file into the CLASSPATH
 if test -z "$CLASSPATH"; then
    CLASSPATH=$FROG_DIR/../../lib/frog/frog_help.jar
 else
    CLASSPATH=$FROG_DIR/../../lib/frog/frog_help.jar:${CLASSPATH}
 fi
 export CLASSPATH
-#echo $CLASSPATH
+
+#  Check if we are running Cygwin. If so then convert PATHs to Windows format.
+case "`uname`" in
+  CYGWIN*)
+   appjar=`cygpath --windows "$appjar"`
+   CLASSPATH=`cygpath --windows --path "$CLASSPATH"`
+   ;;
+esac
+
 
 # Run up the main application. Uses the JVM located by the starjava
 # script
