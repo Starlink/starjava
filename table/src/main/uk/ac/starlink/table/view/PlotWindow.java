@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.Date;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -51,6 +52,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private BitSet plottedRows = new BitSet();
     private PlotBox plot;
 
+    private static final double MILLISECONDS_PER_YEAR 
+                              = 365.25 * 24 * 60 * 60 * 1000;
+
     /**
      * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
      * <tt>TableColumnModel</tt>.
@@ -89,7 +93,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             StarTableColumn tcol = (StarTableColumn) tcmodel.getColumn( i );
             ColumnInfo cinfo = tcol.getColumnInfo();
             int index = tcol.getModelIndex();
-            if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ) {
+            if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ||
+                 Date.class.isAssignableFrom( cinfo.getContentClass() ) ) {
                 ColumnEntry colent = new ColumnEntry( cinfo, index );
                 xColBox.addItem( colent );
                 yColBox.addItem( colent );
@@ -131,7 +136,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 int index = added.getModelIndex();
                 ColumnInfo cinfo = added.getColumnInfo();
                 if ( Number.class
-                           .isAssignableFrom( cinfo.getContentClass() ) ) {
+                           .isAssignableFrom( cinfo.getContentClass() ) ||
+                     Date.class
+                         .isAssignableFrom( cinfo.getContentClass() ) ) {
                     ColumnEntry colent = new ColumnEntry( cinfo, index );
                     xColBox.addItem( colent );
                     yColBox.addItem( colent );
@@ -243,10 +250,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                     try {
                         Object xval = stable.getCell( lrow, xcol );
                         Object yval = stable.getCell( lrow, ycol );
-                        if ( xval instanceof Number &&
-                             yval instanceof Number ) {
-                            double x = ((Number) xval).doubleValue();
-                            double y = ((Number) yval).doubleValue();
+                        double x = doubleValue( xval );
+                        double y = doubleValue( yval );
+                        if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
                             if ( state.xLog && x <= 0.0 ||
                                  state.yLog && y <= 0.0 ) {
                                 // can't take log of negative value
@@ -318,8 +324,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 if ( plottedRows.get( irow ) ) {
                     Object xval = stable.getCell( lrow, xcol );
                     Object yval = stable.getCell( lrow, ycol );
-                    double x = ((Number) xval).doubleValue();
-                    double y = ((Number) yval).doubleValue();
+                    double x = doubleValue( xval );
+                    double y = doubleValue( yval );
                     if ( x >= x0 && x <= x1 && y >= y0 && y <= y1 ) {
                         visibleRows.set( irow );
                     }
@@ -346,6 +352,27 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             plot = makePlot( state );
             plotPanel.add( plot, BorderLayout.CENTER );
             plotPanel.revalidate();
+        }
+    }
+
+    /**
+     * Returns a numeric (double) value for the given object where it
+     * can be done. 
+     *
+     * @param  value  an object
+     * @return  floating point representation of <tt>value</tt>, or 
+     *          NaN if it can't be done
+     */
+    private double doubleValue( Object value ) {
+        if ( value instanceof Number ) {
+            return ((Number) value).doubleValue();
+        }
+        else if ( value instanceof Date ) {
+            long milliseconds = ((Date) value).getTime();
+            return 1970.0 + milliseconds / MILLISECONDS_PER_YEAR;
+        }
+        else {
+            return Double.NaN;
         }
     }
 
