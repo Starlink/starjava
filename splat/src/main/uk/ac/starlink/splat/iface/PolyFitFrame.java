@@ -3,7 +3,10 @@
  *
  *  History:
  *     06-JAN-2001 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     26-JUN-2003 (Peter W. Draper):
+ *        Added divide spectrum option (needed to normalize fluxes,
+ *        especially for absorption lines).
  */
 package uk.ac.starlink.splat.iface;
 
@@ -48,17 +51,21 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * is the currently selected one in a specified PlotControlFrame.
  * <p>
  * The result of a fit is displayed as a spectrum in its own right, and
- * (optionallY) as a spectrum with the polynomial subtracted.
+ * (optionally) as a spectrum with the polynomial subtracted.
  * <p>
  * When closed this window will be hidden, not disposed. If this
  * therefore necessary that the user disposes of it when it is really
  * no longer required.
+ * <p>
+ * The fit can optionally be subtracted from the spectrum, or divided
+ * into the spectrum.
  *
  * @author Peter W. Draper
  * @version $Id$
  * @see PolynomialFitter
  */
-public class PolyFitFrame extends JFrame
+public class PolyFitFrame
+    extends JFrame
 {
     /**
      * List of spectra that we have created.
@@ -112,6 +119,11 @@ public class PolyFitFrame extends JFrame
     protected JRadioButton subtractNothing = new JRadioButton();
     protected JRadioButton subtractFromAbove = new JRadioButton();
     protected JRadioButton subtractFromBelow = new JRadioButton();
+
+    /**
+     *  Whether to create a normalized spectrum.
+     */
+    protected JCheckBox divideSpectrum = new JCheckBox();
 
     /**
      *  Ranges of data that are to be fitted.
@@ -181,8 +193,8 @@ public class PolyFitFrame extends JFrame
         //  This all goes in a JPanel in the center that has a
         //  GridBagLayout.
         JPanel centre = new JPanel();
-        GridBagLayouter layouter = 
-            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 ); 
+        GridBagLayouter layouter =
+            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 );
         contentPane.add( centre, BorderLayout.CENTER );
 
         //  Add degree control.
@@ -206,18 +218,20 @@ public class PolyFitFrame extends JFrame
         //  version of the spectrum.  There are three options, do not,
         //  subtract background from spectrum and subtract spectrum
         //  from background (emission-v-absorption).
-        JPanel subtractBox = new JPanel();
+        layouter.add( new JLabel( "Subtract fit from spectrum:" ), false );
+
         subtractNothing.setText( "No" );
         subtractNothing.setToolTipText( "Do not subtract fit from spectrum" );
-        subtractBox.add( subtractNothing );
+        layouter.add( subtractNothing, false );
 
         subtractFromBelow.setText( "As base line" );
         subtractFromBelow.setToolTipText( "Subtract fit from spectrum" );
-        subtractBox.add( subtractFromBelow );
+        layouter.add( subtractFromBelow, false );
 
         subtractFromAbove.setText( "As ceiling" );
         subtractFromAbove.setToolTipText( "Subtract spectrum from fit" );
-        subtractBox.add( subtractFromAbove );
+        layouter.add( subtractFromAbove, false );
+        layouter.eatLine();
 
         ButtonGroup subtractGroup = new ButtonGroup();
         subtractGroup.add( subtractNothing );
@@ -225,8 +239,11 @@ public class PolyFitFrame extends JFrame
         subtractGroup.add( subtractFromAbove );
         subtractNothing.setSelected( true );
 
-        layouter.add( new JLabel( "Subtract fit from spectrum:" ), false );
-        layouter.add( subtractBox, true );
+        //  Decide if we should generate and display a divided
+        //  version of the spectrum.
+        divideSpectrum.setToolTipText( "Divide spectrum by fit" );
+        layouter.add( new JLabel( "Divide spectrum by fit:" ), false );
+        layouter.add( divideSpectrum, true );
 
         //  List of regions of spectrum to fit.
         rangeList = new XGraphicsRangesView( plot.getPlot().getPlot() );
@@ -272,11 +289,11 @@ public class PolyFitFrame extends JFrame
         setJMenuBar( menuBar );
 
         //  Action bar uses a BoxLayout.
-        topActionBar.setLayout( new BoxLayout( topActionBar, 
+        topActionBar.setLayout( new BoxLayout( topActionBar,
                                                BoxLayout.X_AXIS ) );
         topActionBar.setBorder( BorderFactory.
-                                createEmptyBorder( 3, 3, 3, 3 ) ); 
-        botActionBar.setLayout( new BoxLayout( botActionBar, 
+                                createEmptyBorder( 3, 3, 3, 3 ) );
+        botActionBar.setLayout( new BoxLayout( botActionBar,
                                                BoxLayout.X_AXIS ) );
         botActionBar.setBorder( BorderFactory.
                                 createEmptyBorder( 3, 3, 3, 3 ) );
@@ -362,7 +379,7 @@ public class PolyFitFrame extends JFrame
         actionBarContainer.add( botActionBar, BorderLayout.SOUTH );
 
         //  Create the Help menu.
-        HelpFrame.createHelpMenu( "polynomial-fit-window", "Help on window", 
+        HelpFrame.createHelpMenu( "polynomial-fit-window", "Help on window",
                                   menuBar, null );
 
 
@@ -451,12 +468,14 @@ public class PolyFitFrame extends JFrame
         //  plot.
         double[] fitY = fitter.evalArray( oldX );
         String name = "Polynomial Fit: " + (++fitCounter);
-        displayFit( name, oldX, fitY );
+        displayFit( name, currentSpectrum, fitY, null );
 
         //  Also create and display the subtracted form of the
         //  spectrum.
-        subtractAndDisplayFit( currentSpectrum.getShortName(), 
-                               name, oldX, oldY, oldErr, fitY );
+        subtractAndDisplayFit( currentSpectrum, name, fitY );
+
+        //  And the normalized form.
+        divideAndDisplayFit( currentSpectrum, name, fitY );
 
         //  Make a report of the fit results.
         reportResults( name, fitter, newX, newY, ( weights != null ),
@@ -464,36 +483,66 @@ public class PolyFitFrame extends JFrame
     }
 
     /**
-     * Display the fit as a spectrum in the associated plot. This is
-     * created as a memory spectrum and is excluded from any
-     * auto-ranging. The default line style is red and dot-dashed.
+     * Create and display a new spectrum with the fit data values.
      */
-    protected void displayFit( String name, double[] coords,
-                               double[] data )
+    protected void displayFit( String name, SpecData spectrum, 
+                               double[] data, double[] errors )
+    {
+        SpecData newSpec = createNewSpectrum( name, spectrum, data, errors );
+        if ( newSpec != null ) {
+            try {
+                newSpec.setType( SpecData.POLYNOMIAL );
+                newSpec.setUseInAutoRanging( false );
+                globalList.addSpectrum( plot.getPlot(), newSpec );
+
+                //  Default line is red and dot-dash.
+                globalList.setKnownNumberProperty
+                    ( newSpec, SpecData.LINE_COLOUR,
+                      new Integer( Color.red.getRGB() ) );
+                globalList.setKnownNumberProperty( newSpec, 
+                                                   SpecData.LINE_STYLE,
+                                                   new Integer( 6 ) );
+            }
+            catch (Exception e) {
+                // Do nothing.
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Create a new spectrum with the given data and errors.
+     * 
+     * @param name the short name for the new spectrum
+     * @param spectrum a spectrum that this new spectrum is related
+     *                 (i.e. has same coordinates).
+     * @param data the new data values.
+     * @param errors the new errors (if any, null for none).
+     */
+    protected SpecData createNewSpectrum( String name, SpecData spectrum, 
+                                          double[] data, double[] errors )
     {
         try {
-            EditableSpecData polySpec = SpecDataFactory.getReference().
-                createEditable( name );
-            polySpec.setData( coords, data );
-            polySpec.setType( SpecData.POLYNOMIAL );
-            polySpec.setUseInAutoRanging( false );
-            globalList.add( polySpec );
-            globalList.addSpectrum( plot.getPlot(), polySpec );
-
-            //  Default line is red and dot-dash.
-            globalList.setKnownNumberProperty( polySpec, SpecData.LINE_COLOUR,
-                                               new Integer(Color.red.getRGB()));
-            globalList.setKnownNumberProperty( polySpec, SpecData.LINE_STYLE,
-                                               new Integer( 6 ) );
+            EditableSpecData newSpec = 
+                SpecDataFactory.getReference().createEditable( name );
+            if ( errors == null ) {
+                newSpec.setData( spectrum.getFrameSet(), data );
+            }
+            else {
+                newSpec.setData( spectrum.getFrameSet(), data, errors );
+            }
+            globalList.add( newSpec );
 
             //  Keep a local reference so we can delete it, if asked
             //  to reset.
-            localList.add( polySpec );
+            localList.add( newSpec );
 
-        } 
+            return newSpec;
+        }
         catch ( Exception e ) {
             //  Do nothing.
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -502,51 +551,43 @@ public class PolyFitFrame extends JFrame
      * plot. The subtracted spectrum is created as a memory spectrum
      * The default line colour is yellow.
      */
-    protected void subtractAndDisplayFit( String specName, String polyName, 
-                                          double[] coords, double[] data, 
-                                          double[] errors, double[] fit )
+    protected void subtractAndDisplayFit( SpecData spectrum, String polyName,
+                                          double[] fitData )
     {
         if ( subtractNothing.isSelected() ) return;
 
         //  Subtract the polynomial from the spectrum. Note this is
         //  noiseless so we can preserve any error information.
+        double[] data = spectrum.getYData();
         String name;
+        String specName = spectrum.getShortName();
         double[] newData;
         if ( subtractFromBelow.isSelected() ) {
             name = "Diff: (" + specName + ") - (" + polyName + ") ";
-            newData = subtractData( data, fit );
+            newData = subtractData( data, fitData );
         }
         else {
             name = "Diff: (" + polyName + ") - (" + specName + ") ";
-            newData = subtractData( fit, data );
+            newData = subtractData( fitData, data );
         }
-        try {
-            EditableSpecData subtractSpec = SpecDataFactory.getReference().
-                createEditable( name );
-            if ( errors != null ) {
-                subtractSpec.setData( coords, newData, errors );
+        SpecData newSpec = createNewSpectrum( name, spectrum, newData,
+                                              spectrum.getYDataErrors() );
+        if ( newSpec != null ) {
+            try {
+                globalList.addSpectrum( plot.getPlot(), newSpec );
+
+                //  Default line is gray.
+                globalList.setKnownNumberProperty
+                    ( newSpec, SpecData.LINE_COLOUR,
+                      new Integer( Color.darkGray.getRGB() ) );
+                
+                //  Get the plot to scale itself to fit in Y.
+                plot.getPlot().fitToHeight();
             }
-            else {
-                subtractSpec.setData( coords, newData );
+            catch (Exception e) {
+                // Do nothing.
+                e.printStackTrace();
             }
-            globalList.add( subtractSpec );
-            globalList.addSpectrum( plot.getPlot(), subtractSpec );
-
-            //  Default line is green.
-            globalList.setKnownNumberProperty( subtractSpec,
-                                SpecData.LINE_COLOUR, 
-                                new Integer(Color.darkGray.getRGB()));
-
-            //  Keep a local reference so we can delete it, if asked
-            //  to reset.
-            localList.add( subtractSpec );
-
-            //  Get the plot to scale itself to fit in Y.
-            plot.getPlot().fitToHeight();
-        } 
-        catch ( Exception e ) {
-            //  Do nothing.
-            e.printStackTrace();
         }
     }
 
@@ -567,6 +608,83 @@ public class PolyFitFrame extends JFrame
         return result;
     }
 
+    /**
+     * Display the current spectrum divided by the current fit if
+     * requested.  The new spectrum is created as a memory spectrum
+     * The default line colour is cyan.
+     */
+    protected void divideAndDisplayFit( SpecData spectrum, String polyName,
+                                        double[] fit )
+    {
+        if ( ! divideSpectrum.isSelected() ) return;
+
+        String specName = spectrum.getShortName();
+        double[] data = spectrum.getYData();
+        double[] errors = spectrum.getYDataErrors();
+        double[] newData = new double[data.length];
+        double[] newErrors = null;
+        if ( errors != null ) {
+            newErrors = new double[data.length];
+        }
+        String name = "Ratio: (" + specName + ") by (" + polyName + ") ";
+        divideData( data, errors, fit, newData, newErrors );
+        SpecData newSpec = createNewSpectrum( name, spectrum, newData,
+                                              newErrors );
+        if ( newSpec != null ) {
+            try {
+                globalList.addSpectrum( plot.getPlot(), newSpec );
+
+                //  Default line is cyan.
+                globalList.setKnownNumberProperty
+                    ( newSpec, SpecData.LINE_COLOUR,
+                      new Integer( Color.cyan.getRGB() ) );
+            
+                //  Get the plot to scale itself to fit in Y.
+                plot.getPlot().fitToHeight();
+            }
+            catch (Exception e) {
+                // Do nothing
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     *  Divide two data arrays that may contain BAD data and have
+     *  associated errors.
+     */
+    protected void divideData( double[] inData, double[] inErrors,
+                               double[] divData,
+                               double[] outData, double[] outErrors )
+    {
+        if ( inErrors != null && outErrors != null ) {
+            for ( int i = 0; i < inData.length; i++ ) {
+                if ( inData[i] != SpecData.BAD &&
+                     divData[i] != SpecData.BAD && divData[i] != 0.0 &&
+                     inErrors[i] != SpecData.BAD 
+                   ) {
+                    outData[i] = inData[i] / divData[i];
+                    outErrors[i] = inErrors[i] / divData[i];
+                }
+                else {
+                    outData[i] = SpecData.BAD;
+                    outErrors[i] = SpecData.BAD;
+                }
+            }
+        }
+        else {
+            for ( int i = 0; i < inData.length; i++ ) {
+                if ( inData[i] != SpecData.BAD &&
+                     divData[i] != SpecData.BAD && divData[i] != 0.0 
+                   ) {
+                    outData[i] = inData[i] / divData[i];
+                }
+                else {
+                    outData[i] = SpecData.BAD;
+                }
+            }
+        }
+    }
 
     /**
      * Write a simple report of the details of a fit to the results area.
@@ -666,7 +784,7 @@ public class PolyFitFrame extends JFrame
                     break;
                 }
             }
-        } 
+        }
         else {
             while ( low < high - 1 ) {
                 mid = ( low + high ) / 2;
@@ -688,7 +806,7 @@ public class PolyFitFrame extends JFrame
         int index = 0;
         if ( ( value - array[low] ) < ( array[high] - value ) ) {
             index = low;
-        } 
+        }
         else {
             index = high;
         }

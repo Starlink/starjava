@@ -4,6 +4,8 @@
  *  History:
  *     19-JAN-2001 (Peter W. Draper):
  *       Original version.
+ *     04-JUL-2003 (Peter W. Draper):
+ *       Added constant value backgrounds.
  */
 package uk.ac.starlink.splat.iface;
 
@@ -12,6 +14,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -20,6 +24,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -34,11 +39,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.GaussianFitter;
 import uk.ac.starlink.splat.util.LorentzFitter;
 import uk.ac.starlink.splat.util.QuickLineFitter;
@@ -71,14 +78,19 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * @version $Id$
  * @see PlotControlFrame
  */
-public class LineFitFrame 
-    extends JFrame 
-    implements PlotListener
+public class LineFitFrame
+    extends JFrame
+    implements PlotListener, ActionListener
 {
     /**
      * The list of all the spectra that we've created.
      */
     protected SpecSubList localList = new SpecSubList();
+
+    /**
+     * The constant spectrum if created.
+     */
+    protected EditableSpecData constantSpectrum = null;
 
     /**
      * Content pane of frame.
@@ -103,11 +115,25 @@ public class LineFitFrame
     protected PlotControlFrame plot = null;
 
     /**
+     * Chooser for the background values, either constant or
+     * spectrum/polynomial.
+     */
+    protected JLabel backgroundSourceLabel = new JLabel();
+    protected JRadioButton consBackgroundSource = new JRadioButton();
+    protected JRadioButton polyBackgroundSource = new JRadioButton();
+
+    /**
+     * The background value, if a constant.
+     */
+    protected JComboBox backgroundValue = new JComboBox();
+    protected JLabel backgroundValueLabel = new JLabel();
+
+    /**
      * JComboBox that displays the list of available spectrum to use
      * as the background.
      */
     protected JComboBox backgroundSpectra = new JComboBox();
-    protected JLabel backgroundLabel = new JLabel();
+    protected JLabel backgroundSpectraLabel = new JLabel();
     protected boolean backgroundWarningIssued = false;
 
     /**
@@ -145,6 +171,11 @@ public class LineFitFrame
      * generating shortnames for the spectra created).
      */
     protected static int fitCounter = 0;
+
+    /**
+     * Whether any polynomials were detected on start up.
+     */
+    protected boolean havePolynomials = true;
 
     /**
      * Create an instance.
@@ -237,17 +268,57 @@ public class LineFitFrame
         changeVoigtFitsEvent();
         layouter.add( Box.createHorizontalBox(), true );
 
+        // The type of background, use a constant or other spectrum.
+        backgroundSourceLabel.setText( "Background type:" );
+        consBackgroundSource.setText( "Constant" );
+        consBackgroundSource.setToolTipText
+            ( "Use a constant value as background" );
+        consBackgroundSource.addActionListener( this );
+
+        polyBackgroundSource.setText( "Polynomial" );
+        polyBackgroundSource.setToolTipText
+            ( "Use a polynomial fit (or other spectrum) as background" );
+        polyBackgroundSource.addActionListener( this );
+
+        ButtonGroup sourceGroup = new ButtonGroup();
+        sourceGroup.add( consBackgroundSource );
+        sourceGroup.add( polyBackgroundSource );
+
+        layouter.add( backgroundSourceLabel, false );
+        layouter.add( consBackgroundSource, false );
+        layouter.add( polyBackgroundSource, true );
+
+        if ( havePolynomials ) {
+            polyBackgroundSource.setSelected( true );
+        }
+        else {
+            consBackgroundSource.setSelected( true );
+        }
+        toggleBackgroundSource();
+
         //  Add controls for choosing the background spectrum.
-        backgroundLabel.setText( "Background fit:" );
-        backgroundLabel.setForeground( Color.red );
-        layouter.add( backgroundLabel, false );
+        backgroundSpectraLabel.setText( "Background fit:" );
+        backgroundSpectraLabel.setForeground( Color.red );
+        layouter.add( backgroundSpectraLabel, false );
         String tipText = "Select a spectrum to use as background, "+
             "should normally be a fit (*)";
-        backgroundLabel.setToolTipText( tipText );
+        backgroundSpectraLabel.setToolTipText( tipText );
 
         backgroundSpectra.setRenderer( new LineRenderer() );
         layouter.add( backgroundSpectra, true );
         backgroundSpectra.setToolTipText( tipText );
+
+        //  Add controls for setting the background value. Should be decimal.
+        backgroundValueLabel.setText( "Background value:" );
+        backgroundValue.addItem( new Integer( 1 ) );
+        backgroundValue.addItem( new Integer( 0 ) );
+        DecimalFormat format = new DecimalFormat();
+        DecimalComboBoxEditor editor = new DecimalComboBoxEditor( format );
+        backgroundValue.setEditor( editor );
+        backgroundValue.setEditable( true );
+
+        layouter.add( backgroundValueLabel, false );
+        layouter.add( backgroundValue, true );
 
         //  Add controls for using any errors as weights.
         errorLabel.setText( "Use errors as weights:" );
@@ -275,7 +346,7 @@ public class LineFitFrame
         setTitle( Utilities.getTitle( "Measure Spectral Lines" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( actionBar, BorderLayout.SOUTH );
-        setSize( new Dimension( 500, 600 ) );
+        setSize( new Dimension( 500, 800 ) );
         setVisible( true );
     }
 
@@ -422,16 +493,16 @@ public class LineFitFrame
         }
         else {
             //  Select the first polynomial fit that we can discover.
-            boolean located = false;
+            havePolynomials = false;
             for ( int i = 0; i < globalList.specCount(); i++ ) {
                 if ( globalList.getSpectrum( i ).getType() ==
                      SpecData.POLYNOMIAL ) {
-                    located = true;
+                    havePolynomials = true;
                     model.setSelectedItem( globalList.getSpectrum( i ) );
                     break;
                 }
             }
-            if ( ! located && ! backgroundWarningIssued ) {
+            if ( ! havePolynomials && ! backgroundWarningIssued ) {
                 JOptionPane.showMessageDialog
                     ( this,
                       "You do not seem to have any fits to a local \n"+
@@ -440,7 +511,7 @@ public class LineFitFrame
                       "this task first (unless you have an existing \n"+
                       "spectrum that defines the background for your \n"+
                       "lines, or you have a background subtracted \n"+
-                      "spectrum). ",
+                      "or normalized spectrum). ",
                       "No known background",
                       JOptionPane.INFORMATION_MESSAGE );
 
@@ -474,12 +545,40 @@ public class LineFitFrame
     }
 
     /**
+     * Get the background value.
+     */
+    protected double getBackgroundValue()
+    {
+        double value = SpecData.BAD;
+        try {
+            Object target = backgroundValue.getEditor().getItem();
+            if ( target instanceof Number ) {
+                value = ((Number) target).doubleValue();
+            }
+            else if ( target instanceof String ) {
+                value = Double.parseDouble( (String) target );
+            }
+            else {
+                // Should never happen.
+                JOptionPane.showMessageDialog
+                    ( this, "background value object has a unknown type",
+                      "Unknown background type",
+                      JOptionPane.INFORMATION_MESSAGE );
+            }
+        }
+        catch (NumberFormatException e) {
+            new ExceptionDialog( this, e );
+        }
+        return value;
+    }
+
+    /**
      *  Fit all lines using the currently selected fitting types.
      */
     public void fitLines()
     {
         //  Extract all ranges, obtain current and background spectra,
-        //  set up gaussian solver and do it. Add line fit as a new
+        //  set up various solvers and do it. Add line fit as a new
         //  spectrum and display.
         SpecData currentSpectrum = plot.getPlot().getCurrentSpectrum();
         double[] specXData = currentSpectrum.getXData();
@@ -498,20 +597,39 @@ public class LineFitFrame
                                            JOptionPane.INFORMATION_MESSAGE );
             return;
         }
-        SpecData backgroundSpectrum = getBackgroundSpectrum( false );
+
+        //  Determine the background to be used. This can be another
+        //  spectrum or a constant.
+        boolean polySource = polyBackgroundSource.isSelected();
+        SpecData backgroundSpectrum = null;
+        double backgroundValue = SpecData.BAD;
+        if ( polySource ) {
+            backgroundSpectrum = getBackgroundSpectrum( false );
+        }
+        else {
+            backgroundValue = getBackgroundValue();
+            if ( backgroundValue == SpecData.BAD ) {
+                return;
+            }
+        }
+
         double[] backYData = null;
-        if ( backgroundSpectrum != null ) {
+        if ( polySource && backgroundSpectrum != null ) {
             //  Get background values that match the positions of the
             //  spectrum we're going to fit. TODO: record associated
             //  spectrum with background, that would usually avoid
             //  this calculation? Need full evaluation so that we can
             //  add background to fits.
             backYData = backgroundSpectrum.evalYDataArray( specXData );
-        } else {
+        } 
+        else if ( polySource && backgroundSpectrum == null ) {
             JOptionPane.showMessageDialog( this,
-                                           "Using a zero background",
+                                           "Cannot subtract a spectrum " +
+                                           " from itself. Using a zero" + 
+                                           "background",
                                            "background null",
                                            JOptionPane.INFORMATION_MESSAGE );
+            backgroundValue = 0.0;
         }
 
         // Loop over each line.
@@ -524,7 +642,9 @@ public class LineFitFrame
             int n = extractLineData( ranges[i], ranges[i+1],
                                      specXData, specYData,
                                      specYDataErrors,
-                                     backYData, extracts );
+                                     backYData, 
+                                     backgroundValue,
+                                     extracts );
             if ( n == 0 ) {
                 JOptionPane.showMessageDialog( this,
                                                "Line contains no valid data",
@@ -543,24 +663,35 @@ public class LineFitFrame
             //  Get some useful line parameters that we can as guesses
             //  for the minimisation.
             double[] guess = quickFit( nline, XSpecXData, XSpecYData,
-                                       XBackYData );
+                                       XBackYData, backgroundValue );
 
             //  Fit the line.
             if ( fitGaussians.isSelected() ) {
                 doFitGaussian( nline, XSpecXData, XSpecYData,
                                XSpecYDataWeights, guess[1], guess[2],
-                               guess[3], specXData, backYData );
+                               guess[3], specXData, backYData,
+                               backgroundValue );
 
             }
             if ( fitLorentzians.isSelected() ) {
                 doFitLorentzian( nline, XSpecXData, XSpecYData,
                                  XSpecYDataWeights, guess[1],
-                                 guess[2], guess[3], specXData, backYData );
+                                 guess[2], guess[3], specXData, 
+                                 backYData, backgroundValue );
             }
             if ( fitVoigts.isSelected() ) {
                 doFitVoigts( nline, XSpecXData, XSpecYData,
                              XSpecYDataWeights, guess[1], guess[2],
-                             guess[3], specXData, backYData );
+                             guess[3], specXData, backYData,
+                             backgroundValue );
+            }
+
+            // If using a constant background create a spectrum to
+            // show this.
+            if ( XBackYData == null ) {
+                updateConstantSpectrum( backgroundValue,
+                                        XSpecXData[0], 
+                                        XSpecXData[XSpecXData.length-1] );
             }
         }
     }
@@ -578,6 +709,8 @@ public class LineFitFrame
      * @param backYData data values of the background, these should
      *                  match the data values of the spectrum (i.e. be
      *                  at same coordinates), null for none.
+     * @param backgroundValue if backYData is null then this value
+     *                        defines the background.
      * @param extracts ArrayList for containing references to the
      *                 four extracted double arrays. These are the
      *                 extracted coordinates, the extracted background
@@ -592,6 +725,7 @@ public class LineFitFrame
                                    double[] specYData,
                                    double[] specYDataErrors,
                                    double[] backYData,
+                                   double backgroundValue,
                                    ArrayList extracts )
     {
         int n = 0;
@@ -633,8 +767,8 @@ public class LineFitFrame
                     }
                 }
             }
-        } else if ( backYData != null ) {
-
+        } 
+        else if ( backYData != null ) {
             //  Have background data and no errors.
             n = 0;
             for ( int j = low; j < high; j++ ) {
@@ -661,9 +795,11 @@ public class LineFitFrame
                     }
                 }
             }
-        } else if ( specYDataErrors != null ) {
+        } 
+        else if ( specYDataErrors != null ) {
 
-            //  Have errors but no background data.
+            //  Have errors but no background spectrum. Will need to
+            //  subtract a constant.
             n = 0;
             for ( int j = low; j < high; j++ ) {
                 if ( specXData[j] != SpecData.BAD &&
@@ -681,16 +817,18 @@ public class LineFitFrame
                          specYData[j] != SpecData.BAD ) {
 
                         XSpecXData[n] = specXData[j];
-                        XSpecYData[n] = specYData[j];
+                        XSpecYData[n] = specYData[j] - backgroundValue;
                         XSpecYDataWeights[n] = 1.0 /
                             ( specYDataErrors[j] * specYDataErrors[j] );
                         n++;
                     }
                 }
             }
-        } else {
+        } 
+        else {
 
-            //  Have no errors or background data.
+            //  Have no errors or background spectrum, will need to
+            //  subtract a constant.
             n = 0;
             for ( int j = low; j < high; j++ ) {
                 if ( specXData[j] != SpecData.BAD &&
@@ -707,7 +845,7 @@ public class LineFitFrame
                          specYData[j] != SpecData.BAD ) {
 
                         XSpecXData[n] = specXData[j];
-                        XSpecYData[n] = specYData[j];
+                        XSpecYData[n] = specYData[j] - backgroundValue;
                         n++;
                     }
                 }
@@ -729,10 +867,12 @@ public class LineFitFrame
      * The results are the guess for peak, centre and width.
      */
     public double[] quickFit( int lineIndex, double[] coords,
-                              double[] data, double[] background )
+                              double[] data, double[] background,
+                              double backgroundValue )
     {
         QuickLineFitter fitter = new QuickLineFitter( coords, data,
-                                                      background );
+                                                      background, 
+                                                      backgroundValue );
         double[] results = new double[6];
         results[0] = lineIndex;
         results[1] = fitter.getPeak();
@@ -760,10 +900,11 @@ public class LineFitFrame
             fitY[0] = results[1] * 0.5 + background[left];
             fitY[1] = results[1]       + background[centre];
             fitY[2] = results[1] * 0.5 + background[right];
-        } else {
-            fitY[0] = results[1] * 0.5;
-            fitY[1] = results[1];
-            fitY[2] = results[1] * 0.5;
+        } 
+        else {
+            fitY[0] = results[1] * 0.5 + backgroundValue;
+            fitY[1] = results[1]       + backgroundValue;
+            fitY[2] = results[1] * 0.5 + backgroundValue;
         }
         displayFit( "Quick Fit: " + fitCounter, fitX, fitY, 3 );
 
@@ -787,21 +928,26 @@ public class LineFitFrame
      *                  to be evaluated (usually larger than region to
      *                  be fit).
      * @param genBackground the background values for each coordinate
-     *                      in genCoords (this is added to the fit).
+     *                      in genCoords (this is added to the fit),
+     *                      null for none.
+     * @param genBackgroundValue a single background value used if
+     *                           genBackground is null.
      */
     protected void doFitGaussian( int lineIndex, double[] fitCoords,
                                   double[] fitData, double[] fitWeights,
                                   double peak, double centre,
                                   double width, double[] genCoords,
-                                  double[] genBackground )
+                                  double[] genBackground,
+                                  double genBackgroundValue )
     {
         GaussianFitter fitter = null;
         if ( fitWeights == null ) {
             fitter = new GaussianFitter( fitCoords, fitData, peak,
                                          centre, width );
-        } else {
-            fitter = new GaussianFitter( fitCoords, fitData,
-                                         fitWeights, peak, centre, width );
+        } 
+        else {
+            fitter = new GaussianFitter( fitCoords, fitData, fitWeights, 
+                                         peak, centre, width );
         }
         double[] fitY = fitter.evalArray( genCoords );
 
@@ -809,6 +955,11 @@ public class LineFitFrame
         if ( genBackground != null ) {
             for ( int l = 0; l < fitY.length; l++ ) {
                 fitY[l] += genBackground[l];
+            }
+        }
+        else if ( genBackgroundValue != 0.0 ) {
+            for ( int l = 0; l < fitY.length; l++ ) {
+                fitY[l] += genBackgroundValue;
             }
         }
         displayFit( "Gaussian Fit: " + fitCounter, genCoords, fitY, 0 );
@@ -840,18 +991,22 @@ public class LineFitFrame
      *                  be fit).
      * @param genBackground the background values for each coordinate
      *                      in genCoords (this is added to the fit).
+     * @param genBackgroundValue a single background value used if
+     *                           genBackground is null.
      */
     protected void doFitLorentzian( int lineIndex, double[] fitCoords,
                                     double[] fitData, double[] fitWeights,
                                     double peak, double centre,
                                     double width, double[] genCoords,
-                                    double[] genBackground )
+                                    double[] genBackground,
+                                    double genBackgroundValue )
     {
         LorentzFitter fitter = null;
         if ( fitWeights == null ) {
             fitter = new LorentzFitter( fitCoords, fitData, peak,
                                         centre, width );
-        } else {
+        } 
+        else {
             fitter = new LorentzFitter( fitCoords, fitData,
                                         fitWeights, peak, centre, width );
         }
@@ -861,6 +1016,11 @@ public class LineFitFrame
         if ( genBackground != null ) {
             for ( int l = 0; l < fitY.length; l++ ) {
                 fitY[l] += genBackground[l];
+            }
+        }
+        else if ( genBackgroundValue != 0.0 ) {
+            for ( int l = 0; l < fitY.length; l++ ) {
+                fitY[l] += genBackgroundValue;
             }
         }
         displayFit( "Lorentzian Fit: " + fitCounter, genCoords, fitY, 1 );
@@ -892,18 +1052,22 @@ public class LineFitFrame
      *                  be fit).
      * @param genBackground the background values for each coordinate
      *                      in genCoords (this is added to the fit).
+     * @param genBackgroundValue a single background value used if
+     *                           genBackground is null.
      */
     protected void doFitVoigts( int lineIndex, double[] fitCoords,
                                 double[] fitData, double[] fitWeights,
                                 double peak, double centre,
                                 double width, double[] genCoords,
-                                double[] genBackground )
+                                double[] genBackground,
+                                double genBackgroundValue )
     {
         VoigtFitter fitter = null;
         if ( fitWeights == null ) {
             fitter = new VoigtFitter( fitCoords, fitData, peak,
                                       centre, width * 0.25, width *.75 );
-        } else {
+        } 
+        else {
             fitter = new VoigtFitter( fitCoords, fitData, fitWeights,
                                       peak, centre, width * 0.25, width *.75 );
         }
@@ -913,6 +1077,11 @@ public class LineFitFrame
         if ( genBackground != null ) {
             for ( int l = 0; l < fitY.length; l++ ) {
                 fitY[l] += genBackground[l];
+            }
+        }
+        else if ( genBackgroundValue != 0.0 ) {
+            for ( int l = 0; l < fitY.length; l++ ) {
+                fitY[l] += genBackgroundValue;
             }
         }
         displayFit( "Voigt Fit: " + fitCounter, genCoords, fitY, 2 );
@@ -927,6 +1096,44 @@ public class LineFitFrame
         results[5] = fitter.getFlux();
         results[6] = fitter.calcRms( fitCoords, fitData );
         lineView.addOrUpdateLine( LineProperties.VOIGT, results );
+    }
+
+    /**
+     * Update or create the constant value background spectrum.
+     */
+    protected void updateConstantSpectrum( double value, 
+                                           double high, double low )
+    {
+        try {
+            boolean created = false;
+            if ( constantSpectrum == null ) {
+                constantSpectrum = 
+                    SpecDataFactory.getReference().createEditable( "dummy" );
+                created = true;
+            }
+
+            // Update values -- edit spectrum
+            double[] coords = new double[2];
+            coords[0] = low * 1.1;
+            coords[1] = high * 1.1; 
+            double[] values = new double[2];
+            values[0] = value;
+            values[1] = value;
+            
+            constantSpectrum.setData( coords, values );
+            constantSpectrum.setType( SpecData.POLYNOMIAL );
+            constantSpectrum.setUseInAutoRanging( false );
+            constantSpectrum.setShortName( "Constant " + value );
+            
+            if ( created ) {
+                globalList.add( constantSpectrum );
+                globalList.addSpectrum( plot.getPlot(), constantSpectrum );
+            }
+        }
+        catch (Exception e) {
+            // Not important.
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -1028,21 +1235,26 @@ public class LineFitFrame
                 mid = ( low + high ) / 2;
                 if ( value < array[mid] ) {
                     high = mid;
-                } else if ( value > array[mid] ) {
+                } 
+                else if ( value > array[mid] ) {
                     low = mid;
-                } else {
+                } 
+                else {
                     low = mid;
                     break;
                 }
             }
-        } else {
+        } 
+        else {
             while ( low < high - 1 ) {
                 mid = ( low + high ) / 2;
                 if ( value > array[mid] ) {
                     high = mid;
-                } else if ( value < array[mid] ) {
+                } 
+                else if ( value < array[mid] ) {
                     low = mid;
-                } else {
+                } 
+                else {
                     low = mid;
                     break;
                 }
@@ -1053,7 +1265,8 @@ public class LineFitFrame
         int index = 0;
         if ( ( value - array[low] ) < ( array[high] - value ) ) {
             index = low;
-        } else {
+        } 
+        else {
             index = high;
         }
         return index;
@@ -1066,7 +1279,8 @@ public class LineFitFrame
     {
         if ( fitGaussians.isSelected() ) {
             lineView.addView( LineProperties.GAUSS );
-        } else {
+        } 
+        else {
             lineView.removeView( LineProperties.GAUSS );
         }
     }
@@ -1078,7 +1292,8 @@ public class LineFitFrame
     {
         if ( fitLorentzians.isSelected() ) {
             lineView.addView( LineProperties.LORENTZ );
-        } else {
+        } 
+        else {
             lineView.removeView( LineProperties.LORENTZ );
         }
     }
@@ -1090,11 +1305,27 @@ public class LineFitFrame
     {
         if ( fitVoigts.isSelected() ) {
             lineView.addView( LineProperties.VOIGT );
-        } else {
+        } 
+        else {
             lineView.removeView( LineProperties.VOIGT );
         }
     }
 
+    /**
+     * Toggle the interface to reflect the source of the background.
+     */
+    protected void toggleBackgroundSource()
+    {
+        boolean polySource = polyBackgroundSource.isSelected();
+        if ( polySource ) {
+            backgroundSpectra.setEnabled( true );
+            backgroundValue.setEnabled( false );
+        }
+        else {
+            backgroundSpectra.setEnabled( false );
+            backgroundValue.setEnabled( true );
+        }
+    }
 
     /**
      * Fit action. Perform a fit of all lines.
@@ -1186,6 +1417,14 @@ public class LineFitFrame
         public void actionPerformed( ActionEvent ae ) {
             deleteFits();
         }
+    }
+
+//
+// ActionListener interface.
+//
+    public void actionPerformed( ActionEvent e )
+    {
+        toggleBackgroundSource();
     }
 
 //
