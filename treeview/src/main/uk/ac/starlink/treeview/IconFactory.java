@@ -150,14 +150,14 @@ public class IconFactory {
             case ZIPFILE:        iname = "squishdir2.gif";           break;
             case ZIPENTRY:       iname = "squishfile2.gif";          break;
             case WCS:            iname = "world1.gif";               break;
-            case FITS:           iname = "dstar3.gif";               break;
+            case FITS:           iname = "gstar2.gif";               break;
             case HDU:            iname = "TileCascade.gif";          break;
             case FRAME:          iname = "axes42.gif";               break;
             case SKYFRAME:       iname = "axes62.gif";               break;
             case HISTORY:        iname = "book2.gif";                break;
             case HISTORY_RECORD: iname = "mini-doc.gif";             break;
             case TABLE:          iname = "table10.gif";              break;
-            case TREE:           iname = "TREE26.gif";               break;
+            case TREE:           iname = "TREE28.gif";               break;
             case ERROR:          iname = "madsmiley.gif";            break;
             case XML_DOCUMENT:   iname = "xml_doc.gif";              break;
             case XML_ELEMENT:    iname = "xml_el.gif";               break;
@@ -175,7 +175,7 @@ public class IconFactory {
             case SOG:            iname = "sogimage.gif";             break;
             case HANDLE_EXPAND:  iname = "Tree.expandedIcon";        break;
             case HANDLE_COLLAPSE:iname = "Tree.collapsedIcon";       break;
-            case TREE_LOGO:      iname = "TREE25.gif";               break;
+            case TREE_LOGO:      iname = "TREE27.gif";               break;
             case STARLINK_LOGO:  iname = "starlinklogo3.gif";        break;
             case HANDLE1:        iname = "handle1.gif";              break;
             case HANDLE2:        iname = "handle2.gif";              break;
