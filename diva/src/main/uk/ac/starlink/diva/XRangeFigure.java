@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     08-JAN-2001 (Peter W. Draper):
@@ -143,6 +143,29 @@ public class XRangeFigure
     {
         if ( isTransformFreely() || ! constrain ) {
             super.transform( at );
+            Shape s = getShape();
+            if ( s instanceof Rectangle2D ) {
+                //  Rectangles should not have negative widths or heights.
+                Rectangle2D r = (Rectangle2D)s;
+                if ( r.getWidth() < 0.0 || r.getHeight() < 0.0 ) {
+                    double x = r.getX();
+                    double y = r.getY();
+                    double w = r.getWidth();
+                    double h = r.getHeight();
+                    if ( w < 0.0 ) {
+                        x = x + w;
+                        w = Math.abs( w );
+                    }
+                    if ( h < 0.0 ) {
+                        y = y + h;
+                        h = Math.abs( h );
+                    }
+                    repaint();
+                    r.setFrame( x, y, w, h );
+                    repaint();
+                    fireChanged();
+                }
+            }
         } 
         else {
             AffineTransform xOnly = new AffineTransform();

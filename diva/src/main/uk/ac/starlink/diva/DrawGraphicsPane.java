@@ -98,17 +98,6 @@ public class DrawGraphicsPane
     }
 
     /**
-     * Create and add a new Figure. The type should be one supported
-     * by the FigureFactory class.
-     */
-    public Figure createFigure( int type, FigureProps props )
-    {
-        Figure figure = DrawFigureFactory.getReference().create( type, props );
-        addFigure( figure );
-        return figure;
-    }
-
-    /**
      * Add an existing Figure.
      */
     public void addFigure( Figure figure )
@@ -167,7 +156,7 @@ public class DrawGraphicsPane
      */
     public void addSelectionListener( SelectionListener l )
     {
-        selectionInteractor.getSelectionModel().addSelectionListener(l);
+        selectionInteractor.getSelectionModel().addSelectionListener( l );
     }
 
     /**

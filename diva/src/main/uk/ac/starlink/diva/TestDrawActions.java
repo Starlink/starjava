@@ -49,6 +49,10 @@ public class TestDrawActions
                                                      "drawnfigures" );
         DrawActions drawActions = new DrawActions( canvas,  store );
 
+        //  Add a re-defined character.
+        FigureProps props = new FigureProps( 10.0, 10.0, 100.0, 50.0 );
+        drawActions.createDrawFigure( DrawFigureFactory.ELLIPSE, props );
+
         JFrame frame = new JFrame( "TestDrawActions" );
         frame.setSize( new Dimension( 200, 200 ) );
         frame.getContentPane().setLayout( new BorderLayout() );
