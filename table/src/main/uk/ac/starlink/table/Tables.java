@@ -225,6 +225,25 @@ public class Tables {
     }
 
     /**
+     * Indicates whether a given value is conventionally regarded as a 
+     * blank value.  For most objects this is equivalent to testing
+     * whether it is equall to <tt>null</tt>, but some classes have
+     * additional non-<tt>null</tt> values which count as blanks,
+     * for instance zero-length Strings and floating Not-A-Number values.
+     *
+     * @param  value  value to test
+     * @return  true iff <tt>value</tt> counts as a blank value
+     */
+    public static boolean isBlank( Object value ) {
+        return ( value == null ) 
+            || ( value instanceof Float && ((Float) value).isNaN() )
+            || ( value instanceof Double && ((Double) value).isNaN() )
+            || ( value instanceof String && ((String) value).length() == 0 )
+            || ( value.getClass().isArray() && Array.getLength( value ) == 0 )
+            || false;
+    }
+
+    /**
      * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
      * If the supplied long integer <tt>lval</tt> is out of the range
      * which can be represented in an <tt>int</tt>, then unlike a

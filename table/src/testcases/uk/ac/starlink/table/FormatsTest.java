@@ -573,16 +573,7 @@ public class FormatsTest extends TestCase {
     }
 
     static Object blankToNull( Object o ) {
-        if ( o == null ||
-             o instanceof String && ((String) o).length() == 0 ||
-             o instanceof Float && Float.isNaN( ((Float) o).floatValue() ) ||
-             o instanceof Double && Double.isNaN( ((Double) o).doubleValue() ) ||
-             o.getClass().isArray() && Array.getLength( o ) == 0 ) {
-            return null;
-        }
-        else {
-            return o;
-        }
+        return Tables.isBlank( o ) ? null : o;
     }
              
     static class ValueInfoComparator implements Comparator {
