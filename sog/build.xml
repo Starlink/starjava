@@ -82,7 +82,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SOG"/>
   <property name="name" value="sog"/>
-  <property name="version" value="0.2"/>
+  <property name="version" value="0.3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.sog"/>
@@ -1068,7 +1068,7 @@
       <jvmarg value="-Xnoagent"/>
       <jvmarg value="-Djava.compiler=NONE"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7001"/>
-      <arg line="-port 8082 -internalframes"/>
+      <arg line="-port 8082"/>
       <arg value="src/etc/data/cobe.xml"/>
     </java>
 
