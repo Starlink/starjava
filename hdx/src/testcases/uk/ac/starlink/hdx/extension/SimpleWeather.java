@@ -2,6 +2,7 @@ package uk.ac.starlink.hdx.extension;
 
 import uk.ac.starlink.hdx.*;
 import org.w3c.dom.*;
+import java.net.URI;
 
 /**
  * Simple weather type, to exercise registration of new types.
@@ -14,34 +15,43 @@ import org.w3c.dom.*;
  * </pre>
  */
 public class SimpleWeather {
-    private static HdxResourceType myType;
+    private static HdxResourceType weatherType;
+
+    private String cloudColour;
+    private URI uri;
+    
     static {
         try {
-            System.err.println("Initialising SimpleWeather...");
-            myType = HdxResourceType.newHdxResourceType("weather");
-            System.err.println("Registered weather type: " + myType);
-            myType.setElementValidator(new ElementValidator() {
+            weatherType = HdxResourceType.newHdxResourceType("weather");
+            weatherType.setElementValidator(new ElementValidator() {
                 public boolean validateElement(Element el) {
-                    if (HdxResourceType.match(el) != myType)
+                    try {
+                        if (HdxResourceType.match(el) != weatherType)
+                            return false;
+                        if (findCloudColour(el) == null)
+                            return false;
+                        URI uri = findDataURI(el);
+                        // returned -- element is OK
+                        return true;
+                    } catch (HdxException ex) {
+                        // findDataURI threw this
                         return false;
-                    return findCloudColour(el) != null;
+                    }
                 }
             });
-            myType.registerHdxResourceFactory(new HdxResourceFactory() {
+            weatherType.registerHdxResourceFactory(new HdxResourceFactory() {
                 public Object getObject(Element el)
                     throws HdxException {
                     return new SimpleWeather(el);
                 }
             });
-            myType.setConstructedClass
+            weatherType.setConstructedClass
                 ("uk.ac.starlink.hdx.extension.SimpleWeather");
         } catch (HdxException ex) {
             throw new PluginException
                 ("Failed to register SimpleWeather type:" + ex);
         }
     }
-
-    private String cloudColour;
 
     public SimpleWeather() {
         cloudColour = "transparent!";
@@ -54,7 +64,20 @@ public class SimpleWeather {
             throw new HdxException("Weather element -- bad cloud information");
         else
             cloudColour = cc;
+        uri = findDataURI(el);
         assert cloudColour != null;
+    }
+
+    public SimpleWeather(String colour, String uri)
+            throws HdxException {
+        try {
+            cloudColour = colour;
+            if (uri != null)
+                this.uri = new URI(uri);
+            //System.err.println("colour=" + this.cloudColour + "  uri=" + this.uri);
+        } catch (java.net.URISyntaxException ex) {
+            throw new HdxException("Error creating URI: " + ex);
+        }
     }
 
     /**
@@ -63,6 +86,10 @@ public class SimpleWeather {
      */
     public String getCloudColour() {
         return cloudColour;
+    }
+
+    public URI getDataURI() {
+        return uri;
     }
 
     /**
@@ -80,5 +107,165 @@ public class SimpleWeather {
         else
             return colour;
     }
+
+    private static URI findDataURI(Element el) 
+            throws HdxException {
+        try {
+            NodeList dataElements = el.getElementsByTagName("data");
+            if (dataElements.getLength() != 1)
+                return null;
+            Element data = (Element) dataElements.item(0);
+            String uri = data.getAttribute("uri");
+            if (uri.length() == 0)
+                return null;
+            else
+                return new URI(uri);
+        } catch (java.net.URISyntaxException ex) {
+            throw new HdxException("URI attribute invalid");
+        }
+    }
+
+//     public DOMFacade getDOMFacade() {
+//         return new SimpleWeatherDOMFacade();
+//     }
+
+    public HdxFacade getHdxFacade() {
+        return new SimpleWeatherHdxFacade();
+    }
+    
+
+    /**
+     * DOMFacade for SimpleWeather.  In a normal class, if we had a
+     * DOMFacade, we would use it to implement the
+     * getObject method in the type initialization above.  But we
+     * don't do that here so that we can test both types of
+     * functionality.  That is, don't mistake this testing code for a paradigm.
+     */
+    protected class SimpleWeatherHdxFacade
+            extends AbstractHdxFacade {
+        //private Document doc;
+        
+        public Object synchronizeElement(Element el, Object memento) {
+            // Pig-ignorant at present -- if there's anything attached
+            // to this element at all, assume we've been here before,
+            // and it's all correct
+            if (el.hasAttributes() || el.hasChildNodes())
+                return null;
+
+            Document doc = el.getOwnerDocument();
+            Element cloud = doc.createElement("cloud");
+            cloud.setAttribute("colour", getCloudColour());
+            el.appendChild(cloud);
+            if (uri != null) {
+                Element data = doc.createElement("data");
+                data.setAttribute("uri", uri.toString());
+                el.appendChild(data);
+            }
+//             System.err.println
+//                     ("SimpleWeatherHdxFacade.synchronizeElement(colour="
+//                      + SimpleWeather.this.cloudColour + '='
+//                      + getCloudColour()
+//                      + ", uri=" + SimpleWeather.this.uri + '='
+//                      + getDataURI()
+//                      + ") produced "
+//                      + HdxDocument.NodeUtil.serializeNode(el));
+            return null;
+        }
+
+//         public Element getDOM(URI base) {
+//             // base not used
+//             if (doc == null) {
+//                 doc = (HdxDocument)HdxDOMImplementation
+//                         .getInstance()
+//                         .createDocument(null, "weather", null);
+//                 Element top = doc.createElement("weather");
+//                 doc.appendChild(top);
+//                 Element cloud = doc.createElement("cloud");
+//                 cloud.setAttribute("colour", getCloudColour());
+//                 top.appendChild(cloud);
+//                 if (uri != null) {
+//                     Element data = doc.createElement("data");
+//                     data.setAttribute("uri", uri.toString());
+//                     top.appendChild(data);
+//                 }
+// //                 System.err.println("SimpleWeatherDOMFacade.getDOM(colour="
+// //                                    + SimpleWeather.this.cloudColour + '='
+// //                                    + getCloudColour()
+// //                                    + ", uri=" + SimpleWeather.this.uri + '='
+// //                                    + getDataURI()
+// //                                    + ") produced "
+// //                                    + HdxDocument.NodeUtil.serializeNode(doc));
+//             }
+//             Element de = doc.getDocumentElement();
+//             assert de.getTagName().equals("weather");
+//             return de;
+//         }
+        
+        public Object getObject(Element el)
+                throws HdxException {
+            if (HdxResourceType.match(el) != weatherType)
+                throw new HdxException
+                        ("getObject was asked to realised a foreign type");
+            return SimpleWeather.this;
+        }
+        
+        public HdxResourceType getHdxResourceType() {
+            return weatherType;
+        }
+    }
+
+
+//     /**
+//      * DOMFacade for SimpleWeather.  In a normal class, if we had a
+//      * DOMFacade, we would use it to implement the
+//      * getObject method in the type initialization above.  But we
+//      * don't do that here so that we can test both types of
+//      * functionality.  That is, don't mistake this testing code for a paradigm.
+//      */
+//     protected class SimpleWeatherDOMFacade
+//             extends AbstractDOMFacade {
+//         private Document doc;
+        
+//         public Element getDOM(URI base) {
+//             // base not used
+//             if (doc == null) {
+//                 doc = (HdxDocument)HdxDOMImplementation
+//                         .getInstance()
+//                         .createDocument(null, "weather", null);
+//                 Element top = doc.createElement("weather");
+//                 doc.appendChild(top);
+//                 Element cloud = doc.createElement("cloud");
+//                 cloud.setAttribute("colour", getCloudColour());
+//                 top.appendChild(cloud);
+//                 if (uri != null) {
+//                     Element data = doc.createElement("data");
+//                     data.setAttribute("uri", uri.toString());
+//                     top.appendChild(data);
+//                 }
+// //                 System.err.println("SimpleWeatherDOMFacade.getDOM(colour="
+// //                                    + SimpleWeather.this.cloudColour + '='
+// //                                    + getCloudColour()
+// //                                    + ", uri=" + SimpleWeather.this.uri + '='
+// //                                    + getDataURI()
+// //                                    + ") produced "
+// //                                    + HdxDocument.NodeUtil.serializeNode(doc));
+//             }
+//             Element de = doc.getDocumentElement();
+//             assert de.getTagName().equals("weather");
+//             return de;
+//         }
+        
+//         public Object getObject(Element el)
+//                 throws HdxException {
+//             if (HdxResourceType.match(el) != weatherType)
+//                 throw new HdxException
+//                         ("getObject was asked to realised a foreign type");
+//             return SimpleWeather.this;
+//         }
+        
+//         public HdxResourceType getHdxResourceType() {
+//             return weatherType;
+//         }
+//     }
 }
 
