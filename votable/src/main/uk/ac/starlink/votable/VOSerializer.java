@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeSet;
@@ -137,6 +138,15 @@ public abstract class VOSerializer {
                     else {
                         writer.write( "/>" );
                     }
+                    writer.newLine();
+                }
+
+                /* If it's a URL write it as a LINK. */
+                else if ( param.getValue() instanceof URL ) {
+                    writer.write( "<LINK"
+                        + formatAttribute( "title", pinfo.getName() )
+                        + formatAttribute( "href", param.getValue().toString() )
+                        + ">" );
                     writer.newLine();
                 }
 
