@@ -263,12 +263,13 @@ public class NDShape implements Cloneable {
      * @param  other  an NDShape object for comparison with this one
      */
     public boolean sameShape( NDShape other ) {
-        return Arrays.equals( other.getOrigin(), this.getOrigin() ) 
+        return other != null
+            && Arrays.equals( other.getOrigin(), this.getOrigin() ) 
             && Arrays.equals( other.getDims(), this.getDims() );
     }
 
     public boolean equals( Object other ) {
-        if ( other.getClass().equals( this.getClass() ) ) {
+        if ( other != null && other.getClass().equals( this.getClass() ) ) {
             NDShape o = (NDShape) other;
             return Arrays.equals( o.origin, this.origin )
                 && Arrays.equals( o.dims, this.dims );

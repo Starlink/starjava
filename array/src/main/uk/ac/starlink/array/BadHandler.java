@@ -372,7 +372,8 @@ public abstract class BadHandler {
     }
 
     public boolean equals( Object other ) {
-        return this.getClass() == other.getClass() 
+        return other != null 
+            && this.getClass() == other.getClass() 
             && this.getType() == ((BadHandler) other).getType() 
             && equalValues( this.getType(), 
                             this.getBadValue(), 

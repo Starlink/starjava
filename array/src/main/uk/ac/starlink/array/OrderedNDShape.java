@@ -272,7 +272,7 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      * @param  other  an OrderedNDShape object for comparison with this one
      */
     public boolean equals( Object other ) {
-        if ( other.getClass().equals( this.getClass() ) ) {
+        if ( other != null && other.getClass().equals( this.getClass() ) ) {
             OrderedNDShape o = (OrderedNDShape) other;
             return Arrays.equals( o.origin, this.origin )
                 && Arrays.equals( o.dims, this.dims ) 
