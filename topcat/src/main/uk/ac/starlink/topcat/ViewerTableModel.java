@@ -5,6 +5,7 @@ import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.EditableColumn;
+import uk.ac.starlink.table.RowPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -58,10 +59,11 @@ public class ViewerTableModel extends AbstractTableModel {
      */
     public void setOrder( int[] order ) {
         if ( order != null && order.length != startable.getRowCount() ) {
-            throw new IllegalArgumentException( "Wrong number of rows!" );
+            throw new IllegalArgumentException( "Wrong number of rows!"
+                + " (" + order.length + " != " + startable.getRowCount() );
         }
-        this.rowMap = getRowMap( order, rset, getTableRowCount() );
         this.order = order;
+        setRowMap( getRowMap( order, rset, getTableRowCount() ) );
         fireTableDataChanged();
     }
 
@@ -96,6 +98,15 @@ public class ViewerTableModel extends AbstractTableModel {
      */
     public int[] getRowMap() {
         return rowMap;
+    }
+
+    /**
+     * Sets the mapping from base table rows to the columns visible
+     * in this model.
+     */
+    public void setRowMap( int[] rowMap ) {
+        this.rowMap = rowMap;
+        fireTableDataChanged();
     }
 
     /**
@@ -201,5 +212,27 @@ public class ViewerTableModel extends AbstractTableModel {
     private int getTableRowCount() {
         return AbstractStarTable.checkedLongToInt( startable.getRowCount() );
     }
-    
+
+    /**
+     * Returns a new StarTable whose data corresponds to the current state of 
+     * this ViewerTableModel.  It has the same row ordering and subset,
+     * but subsequent changes to this model will not affect the data
+     * viewed from the resulting object.
+     *
+     * @return   StarTable view of a snapshot of the data available from this 
+     *           model
+     */
+    public StarTable getSnapshot() {
+        if ( rowMap == null ) {
+            return startable;
+        }
+        else {
+            int nrow = rowMap.length;
+            long[] rowMapCopy = new long[ nrow ];
+            for ( int i = 0; i < nrow; i++ ) {
+                rowMapCopy[ i ] = (long) rowMap[ i ];
+            }
+            return new RowPermutedStarTable( startable, rowMapCopy );
+        }
+    }
 }
