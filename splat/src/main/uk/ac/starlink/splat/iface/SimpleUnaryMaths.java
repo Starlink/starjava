@@ -25,8 +25,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
-import uk.ac.starlink.splat.data.MEMSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.ast.gui.DecimalField;
@@ -92,11 +93,6 @@ public class SimpleUnaryMaths extends JFrame
     protected JButton closeButton = new JButton();
 
     /**
-     * The main SplatBrowser window.
-     */
-    protected SplatBrowser browser = null;
-
-    /**
      * Menubar and various menus and items that it contains.
      */
     protected JMenuBar menuBar = new JMenuBar();
@@ -107,9 +103,8 @@ public class SimpleUnaryMaths extends JFrame
     /**
      * Create an instance.
      */
-    public SimpleUnaryMaths( SplatBrowser browser )
+    public SimpleUnaryMaths()
     {
-        this.browser = browser;
         contentPane = (JPanel) getContentPane();
         initUI();
         HelpFrame.createHelpMenu( "unary-maths", "Help on window",
@@ -356,16 +351,17 @@ public class SimpleUnaryMaths extends JFrame
     protected void createNewSpectrum( String name, double[] coords,
                                       double[] data, double[] errors )
     {
-        //  Create a memory spectrum to contain the fit.
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        if ( errors != null ) {
-            memSpecImpl.setData( data, coords, errors );
-        }
-        else {
-            memSpecImpl.setData( data, coords );
-        }
         try {
-            SpecData newSpec = new SpecData( memSpecImpl );
+            //  Create a memory spectrum to contain the fit.
+            EditableSpecData newSpec = SpecDataFactory.getReference().
+                createEditable( name );
+        
+            if ( errors != null ) {
+                newSpec.setData( data, coords, errors );
+            }
+            else {
+                newSpec.setData( data, coords );
+            }
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

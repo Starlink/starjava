@@ -1,12 +1,11 @@
 package uk.ac.starlink.splat.iface;
 
-
 import javax.swing.SwingUtilities;
 
 /**
- * Main class for the ASDAT browser application. This application
- * displays and controls a list of known spectra. These can be
- * displayed in their own window, or in an existing window with
+ * Main class for the SPLAT, Spectral Analysis Tool, application. 
+ * This application displays and controls a list of known spectra. 
+ * These can be displayed in their own window, or in an existing window with
  * other spectra. Various display properties of the spectrum can be
  * set using this browser (i.e. the line colour, width and style).
  *

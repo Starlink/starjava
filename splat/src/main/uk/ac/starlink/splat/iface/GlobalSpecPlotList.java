@@ -168,9 +168,12 @@ public class GlobalSpecPlotList
      */
     public int add( SpecData spectrum ) 
     {
-        int index = specList.add( spectrum );
-        fireSpectrumAdded( index );
-        return index;
+        if ( spectrum != null ) {
+            int index = specList.add( spectrum );
+            fireSpectrumAdded( index );
+            return index;
+        }
+        return -1;
     }
 
     /**
@@ -184,9 +187,12 @@ public class GlobalSpecPlotList
      */
     public int add( int index, SpecData spectrum ) 
     {
-        index = specList.add( index, spectrum );
-        fireCurrentSpectrumChanged();
-        return index;
+        if ( spectrum != null ) {
+            index = specList.add( index, spectrum );
+            fireCurrentSpectrumChanged();
+            return index;
+        }
+        return -1;
     }
 
     /**
@@ -265,6 +271,17 @@ public class GlobalSpecPlotList
     {
         currentSpectrum = index;
         fireCurrentSpectrumChanged();
+    }
+
+    /**
+     *  Notify any listeners that the spectrum data has changed.
+     *
+     *  @param spectrum the SpecData object that has changed.
+     */
+    public void notifySpecListeners( SpecData spectrum )
+    {
+        int index = specList.indexOf( spectrum );
+        fireSpectrumChanged( index );
     }
 
     /**

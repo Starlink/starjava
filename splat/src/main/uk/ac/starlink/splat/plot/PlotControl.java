@@ -61,7 +61,6 @@ import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
 import uk.ac.starlink.ast.gui.PlotController;
-import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -198,11 +197,6 @@ public class PlotControl
     protected SimpleDataLimitControls simpleDataLimits = null;
 
     /**
-     * Full data limits control configuration.
-     */
-    protected DataLimits dataLimits = new DataLimits();
-
-    /**
      * Graphics edges configuration.
      */
     protected GraphicsEdges graphicsEdges = new GraphicsEdges();
@@ -333,7 +327,7 @@ public class PlotControl
 
         //  Add the SimpleDataLimitControls to quickly choose a cut on the Y
         //  range.
-        simpleDataLimits = new SimpleDataLimitControls( dataLimits, this );
+        simpleDataLimits = new SimpleDataLimitControls();
         gbc.anchor = GridBagConstraints.EAST;
         gbc.gridx = 5;
         gbc.gridy = 0;
@@ -406,6 +400,11 @@ public class PlotControl
         //  do the drawing.
         plot = new DivaPlot( spectra );
         plot.addPlotScaledListener( this );
+
+        //  Now that this is configured, we can properly configure the
+        //  SimpleDataLimits object (needs the DataLimits object from
+        //  the DivaPlot).
+        simpleDataLimits.setPlot( this );
 
         //  Plot does the drawing of the spectrum, but is contained
         //  with a JScrollPane, so its size can be greater than the
@@ -1278,10 +1277,10 @@ public class PlotControl
 
         // Check if the X or Y data limits are supposed to match the
         // viewable surface or not.
-        if ( dataLimits.isXFit() ) {
+        if ( plot.getDataLimits().isXFit() ) {
             fitToWidth();
         }
-        if ( dataLimits.isYFit() ) {
+        if ( plot.getDataLimits().isYFit() ) {
             fitToHeight();
         }
     }

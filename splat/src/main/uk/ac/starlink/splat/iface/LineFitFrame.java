@@ -31,8 +31,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import uk.ac.starlink.splat.data.MEMSpecDataImpl;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.GaussianFitter;
 import uk.ac.starlink.splat.util.LorentzFitter;
@@ -985,10 +986,10 @@ public class LineFitFrame extends JFrame implements PlotListener
                                double[] data, int colourScheme )
     {
         //  Create a memory spectrum to contain the fit.
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        memSpecImpl.setData( data, coords );
         try {
-            SpecData lineSpec = new SpecData( memSpecImpl );
+            EditableSpecData lineSpec = SpecDataFactory.getReference().
+                createEditable( name );
+            lineSpec.setData( data, coords );
             lineSpec.setType( SpecData.LINEFIT );
             lineSpec.setUseInAutoRanging( false );
             globalList.add( lineSpec );

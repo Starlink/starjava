@@ -46,7 +46,12 @@ public class NumberCellRenderer extends DefaultTableCellRenderer
     { 
         super.getTableCellRendererComponent( table, value, isSelected,
                                              hasFocus, row, column ); 
-        setText( value.toString() );
+        try {
+            setText( value.toString() );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         return this;
     }
 }

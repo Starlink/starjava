@@ -59,15 +59,22 @@ public class SimpleDataLimitControls
     /**
      * Create an instance.
      *
-     * @param dataLimits the DataLimits object that is our data model.
      * @param control used to query about current limits of displayed
      *      spectrum.
      */
-    public SimpleDataLimitControls( DataLimits dataLimits, PlotControl control )
+    public SimpleDataLimitControls( PlotControl control ) 
     {
         setPlot( control );
         initUI();
-        setDataLimits( dataLimits );
+    }
+
+    /**
+     * Create an instance. Must set the PlotControl object, before
+     * making any use of this object.
+     */
+    public SimpleDataLimitControls() 
+    {
+        initUI();
     }
 
     /**
@@ -79,6 +86,7 @@ public class SimpleDataLimitControls
     {
         this.control = control;
         this.plot = control.getPlot();
+        setDataLimits( plot.getDataLimits() );
     }
 
     /**
@@ -101,6 +109,8 @@ public class SimpleDataLimitControls
         //  Add the default list of cuts.
         yPercentiles.setEditable( false );
         yPercentiles.addItem( "automatic" );
+        yPercentiles.addItem( new Double( 110.0 ) );
+        yPercentiles.addItem( new Double( 105.0 ) );
         yPercentiles.addItem( new Double( 99.9 ) );
         yPercentiles.addItem( new Double( 99.5 ) );
         yPercentiles.addItem( new Double( 99.0 ) );

@@ -274,7 +274,7 @@ public class DataLimitControls
         // Percentile cuts for Y axis values.
         yPercentiles =
             new FloatJSlider( new FloatJSliderModel( 100.0, 50.0,
-                                                     100.0, 0.1 ) );
+                                                     110.0, 0.1 ) );
         yPercentiles.addChangeListener(
             new ChangeListener()
             {
@@ -450,11 +450,19 @@ public class DataLimitControls
         xFit.setSelected( dataLimits.isXFit() );
         yFit.setSelected( dataLimits.isYFit() );
 
+        xFlipped.setSelected( dataLimits.isXFlipped() );
+        yFlipped.setSelected( dataLimits.isYFlipped() );
+
         if ( ! astDoubleFieldMatched ) {
-            xLower.setText( plot.format( 1, dataLimits.getXLower() ) );
-            xUpper.setText( plot.format( 1, dataLimits.getXUpper() ) );
-            yLower.setText( plot.format( 2, dataLimits.getYLower() ) );
-            yUpper.setText( plot.format( 2, dataLimits.getYUpper() ) );
+            try {
+                xLower.setText( plot.format( 1, dataLimits.getXLower() ) );
+                xUpper.setText( plot.format( 1, dataLimits.getXUpper() ) );
+                yLower.setText( plot.format( 2, dataLimits.getYLower() ) );
+                yUpper.setText( plot.format( 2, dataLimits.getYUpper() ) );
+            }
+            catch (Exception e) {
+                System.out.println( e.getMessage() );
+            }
         }
 
         if ( dataLimits.isXAutoscaled() ) {

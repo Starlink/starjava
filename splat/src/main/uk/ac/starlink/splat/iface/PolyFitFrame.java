@@ -30,8 +30,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
 
-import uk.ac.starlink.splat.data.MEMSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.PolynomialFitter;
 import uk.ac.starlink.splat.util.Utilities;
@@ -501,11 +502,10 @@ public class PolyFitFrame extends JFrame
     protected void displayFit( String name, double[] coords,
                                double[] data )
     {
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        memSpecImpl.setData( data, coords );
-
         try {
-            SpecData polySpec = new SpecData( memSpecImpl );
+            EditableSpecData polySpec = SpecDataFactory.getReference().
+                createEditable( name );
+            polySpec.setData( data, coords );
             polySpec.setType( SpecData.POLYNOMIAL );
             polySpec.setUseInAutoRanging( false );
             globalList.add( polySpec );
@@ -551,17 +551,15 @@ public class PolyFitFrame extends JFrame
             name = "Diff: (" + polyName + ") - (" + specName + ") ";
             newData = subtractData( fit, data );
         }
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        
-        if ( errors != null ) {
-            memSpecImpl.setData( newData, coords, errors );
-        }
-        else {
-            memSpecImpl.setData( newData, coords );
-        }
-
         try {
-            SpecData subtractSpec = new SpecData( memSpecImpl );
+            EditableSpecData subtractSpec = SpecDataFactory.getReference().
+                createEditable( name );
+            if ( errors != null ) {
+                subtractSpec.setData( newData, coords, errors );
+            }
+            else {
+                subtractSpec.setData( newData, coords );
+            }
             globalList.add( subtractSpec );
             globalList.addSpectrum( plot.getPlot(), subtractSpec );
 

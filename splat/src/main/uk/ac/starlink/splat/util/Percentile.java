@@ -97,6 +97,17 @@ public class Percentile
         else if ( percentile == 0.0 ) {
             return min;
         }
+
+        // If the percentile is outside the range 0 to 100, then we
+        // need to calculate the difference and add or subtract this
+        // from the min/max.
+        double realPercentile = percentile;
+        if ( realPercentile > 100.0 ) {
+            percentile = percentile - 100.0;
+        }
+        else if ( realPercentile < 0.0 ) {
+            percentile = Math.abs( percentile );
+        }
         double value = 0.0;
 
         // Calculate how many counts the percentile position
@@ -126,7 +137,19 @@ public class Percentile
             // Remember this count for use in interpolation.
             last = count;
         }
-        return Math.max( min, Math.min( max, value ) );
+
+        // Return is clipped to min/max unless the percentile
+        // requested was outside the range 0 to 100.
+        value = Math.max( min, Math.min( max, value ) );
+        if ( realPercentile != percentile ) {
+            if ( realPercentile > 100.0 ) {
+                value = max + value;
+            } 
+            else if ( realPercentile < 0.0 ) {
+                value = min - value;
+            }
+        }
+        return value;
     }
 
     /**

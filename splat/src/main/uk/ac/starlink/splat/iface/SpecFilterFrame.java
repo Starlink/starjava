@@ -1,12 +1,3 @@
-/*
- * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
- *
- *  History:
- *     15-JUN-2001 (Peter W. Draper):
- *       Original version.
- *     28-JAN-2003 (Peter W. Draper):
- *       Added delete facilities.
- */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -29,6 +20,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -37,20 +29,22 @@ import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.Utilities;
 
 /**
- * Provides a toolbox with number of ways to cut out or remove parts
- * of a spectrum. The result becomes a new memory spectrum on the global
- * list.
+ * Provides a toolbox with number of ways to filter a spectrum.
+ * The result becomes a new memory spectrum on the global list.
  *
+ * @since $Date$
+ * @since 15-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @see #SpecCutter
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ * @see SpecFilter
  */
-public class SpecCutterFrame extends JFrame
+public class SpecFilterFrame extends JFrame
 {
     /**
      * List of spectra that we have created.
      */
-    protected ArrayList localList = new ArrayList( 5 );
+    protected ArrayList localList = new ArrayList();
 
     /**
      * Content pane of frame.
@@ -77,7 +71,8 @@ public class SpecCutterFrame extends JFrame
     protected PlotControl plot = null;
 
     /**
-     *  Ranges of the spectrum.
+     *  Ranges of the spectrum to process. If not set whole spectrum
+     *  is used.
      */
     protected XGraphicsRangesView rangeList = null;
 
@@ -95,11 +90,12 @@ public class SpecCutterFrame extends JFrame
     /**
      * Create an instance.
      */
-    public SpecCutterFrame( PlotControl plot )
+    public SpecFilterFrame( PlotControl plot )
     {
         contentPane = (JPanel) getContentPane();
         setPlot( plot );
-        initUI();
+        initBasicUI();
+        initControlArea();
         initFrame();
     }
 
@@ -115,7 +111,7 @@ public class SpecCutterFrame extends JFrame
 
     /**
      * Set the PlotControlFrame that has the spectrum that we are to
-     * process.
+     * filter.
      *
      * @param plot the PlotControl reference.
      */
@@ -127,15 +123,12 @@ public class SpecCutterFrame extends JFrame
     /**
      * Initialise the main part of the user interface.
      */
-    protected void initUI()
+    protected void initBasicUI()
     {
-        //  The layout is a BorderLayout with the list of regions in
-        //  the center and the toolbox below this.
+        //  The layout is a BorderLayout with the complex controls
+        //  being held in a tabbed area in the centre and the action
+        //  bar held in the south area.
         contentPane.setLayout( new BorderLayout() );
-
-        //  Add the list of regions.
-        rangeList = new XGraphicsRangesView( plot.getPlot() );
-        contentPane.add( rangeList, BorderLayout.CENTER );
 
         //  Add the menuBar.
         setJMenuBar( menuBar );
@@ -152,10 +145,8 @@ public class SpecCutterFrame extends JFrame
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon resetImage = new ImageIcon(
             ImageHolder.class.getResource( "reset.gif" ) );
-        ImageIcon cutterImage = new ImageIcon(
-            ImageHolder.class.getResource( "cutter.gif" ) );
-        ImageIcon deleteImage = new ImageIcon(
-            ImageHolder.class.getResource( "erase.gif" ) );
+        ImageIcon filterImage = new ImageIcon(
+            ImageHolder.class.getResource( "filter.gif" ) );
         ImageIcon helpImage = new ImageIcon(
             ImageHolder.class.getResource( "help.gif" ) );
 
@@ -167,41 +158,23 @@ public class SpecCutterFrame extends JFrame
         ReadAction readAction = new ReadAction( "Read ranges", readImage );
         fileMenu.add( readAction );
 
-        //  Add action to cut out all regions.
-        CutAction cutAction =
-            new CutAction( "Cut", cutterImage );
-        fileMenu.add( cutAction );
-        JButton cutButton = new JButton( cutAction );
+        //  Add action to filter all regions.
+        FilterAction filterAction =
+            new FilterAction( "Filter", filterImage );
+        fileMenu.add( filterAction );
+        JButton filterButton = new JButton( filterAction );
         actionBar.add( Box.createGlue() );
-        actionBar.add( cutButton );
-        cutButton.setToolTipText( "Cut out all regions" );
+        actionBar.add( filterButton );
+        filterButton.setToolTipText( "Filter all regions" );
 
-        //  Add action to cut out the selected regions.
-        CutSelectedAction cutSelectedAction =
-            new CutSelectedAction( "Cut Selected", cutterImage );
-        fileMenu.add( cutSelectedAction );
-        JButton cutSelectedButton = new JButton( cutSelectedAction );
+        //  Add action to filter the selected regions.
+        FilterSelectedAction filterSelectedAction =
+            new FilterSelectedAction( "Filter Selected", filterImage );
+        fileMenu.add( filterSelectedAction );
+        JButton filterSelectedButton = new JButton( filterSelectedAction );
         actionBar.add( Box.createGlue() );
-        actionBar.add( cutSelectedButton );
-        cutSelectedButton.setToolTipText( "Cut out the selected regions" );
-
-        //  Add action to delete all regions.
-        DeleteAction deleteAction =
-            new DeleteAction( "Delete", deleteImage );
-        fileMenu.add( deleteAction );
-        JButton deleteButton = new JButton( deleteAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( deleteButton );
-        deleteButton.setToolTipText( "Delete all regions" );
-
-        //  Add action to just delete the selected regions.
-        DeleteSelectedAction deleteSelectedAction =
-            new DeleteSelectedAction( "Delete Selected", deleteImage );
-        fileMenu.add( deleteSelectedAction );
-        JButton deleteSelectedButton = new JButton( deleteSelectedAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( deleteSelectedButton );
-        deleteSelectedButton.setToolTipText( "Delete the selected regions" );
+        actionBar.add( filterSelectedButton );
+        filterSelectedButton.setToolTipText( "Filter the selected regions" );
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
@@ -209,7 +182,7 @@ public class SpecCutterFrame extends JFrame
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
-        resetButton.setToolTipText( "Clear all produced spectra and ranges" );
+        resetButton.setToolTipText( "Clear all associated spectra and ranges" );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
@@ -222,7 +195,7 @@ public class SpecCutterFrame extends JFrame
         actionBar.add( Box.createGlue() );
 
         //  Add the help menu.
-        HelpFrame.createHelpMenu( "cutter-window", "Help on window",
+        HelpFrame.createHelpMenu( "filter-window", "Help on window",
                                   menuBar, null );
     }
 
@@ -231,45 +204,34 @@ public class SpecCutterFrame extends JFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Cut/Delete regions from a spectrum" ) );
+        setTitle( Utilities.getTitle( "Filter regions of a spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         setSize( new Dimension( 500, 300 ) );
         setVisible( true );
     }
 
     /**
-     *  Do the cut, to either all the ranges or just the selected
-     *  ones.
-     *
-     *  @param selected true if we should just cut to selected ranges.
+     * Initialise the control area. This contains three tabs, the type
+     * of filtering to apply, the parameters related to the chosen
+     * type, and the regions (if any) of the spectrum to process.
      */
-    public void cut( boolean selected )
+    protected void initControlArea()
     {
-        //  Extract all ranges and obtain current spectrum.
-        SpecData currentSpectrum = plot.getCurrentSpectrum();
-        if ( currentSpectrum == null ) {
-            return; // No spectrum available, so do nothing.
-        }
-
-        double[] ranges = rangeList.getRanges( selected );
-        if ( ranges.length == 0 ) {
-            return; // No ranges, so nothing to do.
-        }
-
-        //  Perform the cut operation and add the spectrum to the
-        //  global list.
-        SpecData newSpec =
-            SpecCutter.getReference().cutRanges( currentSpectrum, ranges );
-        localList.add( newSpec );
+        JTabbedPane tabbedPane = new JTabbedPane();
+        
+        tabbedPane.addTab( "Filter Type", new JPanel() );
+        tabbedPane.addTab( "Parameters", new JPanel() );
+        tabbedPane.addTab( "Regions", new JPanel() );
+        contentPane.add( tabbedPane, BorderLayout.CENTER );
     }
 
     /**
-     *  Do the delete, to either all the ranges or just the selected
-     *  ones.
+     *  Apply the filter, to either the full spectrum, all the ranges
+     *  or just the selected ones.
      *
-     *  @param selected true if we should just delete selected ranges.
+     *  @param selected true if we should just filter the selected ranges.
      */
-    public void delete( boolean selected )
+    public void filter( boolean selected )
     {
         //  Extract all ranges and obtain current spectrum.
         SpecData currentSpectrum = plot.getCurrentSpectrum();
@@ -277,15 +239,17 @@ public class SpecCutterFrame extends JFrame
             return; // No spectrum available, so do nothing.
         }
 
-        double[] ranges = rangeList.getRanges( selected );
-        if ( ranges.length == 0 ) {
-            return; // No ranges, so nothing to do.
-        }
+        //double[] ranges = rangeList.getRanges( selected );
+        //if ( ranges.length == 0 ) {
+        //return; // No ranges, so nothing to do.
+        //}
 
-        //  Perform the cut operation and add the spectrum to the
+        //  Perform the filter operation and add the spectrum to the
         //  global list.
+        //SpecData newSpec =
+        //    SpecFilter.getReference().filter( currentSpectrum, ranges );
         SpecData newSpec =
-            SpecCutter.getReference().deleteRanges( currentSpectrum, ranges );
+            SpecFilter.getReference().filter( currentSpectrum, plot );
         localList.add( newSpec );
     }
 
@@ -294,14 +258,14 @@ public class SpecCutterFrame extends JFrame
      */
     protected void closeWindowEvent()
     {
-        rangeList.deleteAllRanges();
+        //rangeList.deleteAllRanges();
         this.dispose();
     }
 
     /**
-     *  Delete all known cuts and deletes.
+     *  Delete all known spectra.
      */
-    protected void deleteCuts()
+    protected void deleteSpectra()
     {
         for ( int i = 0; i < localList.size(); i++ ) {
             globalList.removeSpectrum( (SpecData)localList.get( i ) );
@@ -310,15 +274,15 @@ public class SpecCutterFrame extends JFrame
     }
 
     /**
-     * Reset all controls and dispose of all associated cuts.
+     * Reset all controls and dispose of all associated filtered spectra.
      */
     protected void resetActionEvent()
     {
         //  Remove any spectra.
-        deleteCuts();
+        deleteSpectra();
 
         //  Remove any graphics and ranges.
-        rangeList.deleteAllRanges();
+        //rangeList.deleteAllRanges();
     }
 
     /**
@@ -391,60 +355,34 @@ public class SpecCutterFrame extends JFrame
     }
 
     /**
-     * Cut action. Cuts out all ranges.
+     * Filter action.
      */
-    protected class CutAction extends AbstractAction
+    protected class FilterAction extends AbstractAction
     {
-        public CutAction( String name, Icon icon ) {
+        public FilterAction( String name, Icon icon ) {
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            cut( false );
+            filter( false );
         }
     }
 
     /**
-     * Cut selected action. Performs cut of only selected ranges.
+     * Filter selected action. Performs filter of only selected ranges.
      */
-    protected class CutSelectedAction extends AbstractAction
+    protected class FilterSelectedAction extends AbstractAction
     {
-        public CutSelectedAction( String name, Icon icon ) {
+        public FilterSelectedAction( String name, Icon icon ) {
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            cut( true );
-        }
-    }
-
-    /**
-     * Delete action. Deletes all ranges.
-     */
-    protected class DeleteAction extends AbstractAction
-    {
-        public DeleteAction( String name, Icon icon ) {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae ) {
-            delete( false );
-        }
-    }
-
-    /**
-     * Delete selected action. Performs delete of selected ranges.
-     */
-    protected class DeleteSelectedAction extends AbstractAction
-    {
-        public DeleteSelectedAction( String name, Icon icon ) {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae ) {
-            delete( true );
+            filter( true );
         }
     }
 
     /**
      * Inner class defining Action for closing window and keeping the
-     * cuts.
+     * results.
      */
     protected class CloseAction extends AbstractAction
     {

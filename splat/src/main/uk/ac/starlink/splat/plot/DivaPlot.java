@@ -31,6 +31,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.EventListenerList;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
@@ -744,104 +745,111 @@ public class DivaPlot
         if ( spectra.count() == 0 ) {
             return;
         }
+        try {
 
-        //  XXX restore the correct DefaultGrf object to the AST interface.
-        astJ.setGraphic( javaGrf );
+            //  XXX restore the correct DefaultGrf object to the AST interface.
+            astJ.setGraphic( javaGrf );
 
-        if ( xyScaled ) {
+            if ( xyScaled ) {
 
-            //  Scale of plot has changed or been set for the first
-            //  time. So we need to redraw everything.
-            xyScaled = false;
-
-            //  Keep reference to existing AstPlot so we know how
-            //  graphics coordinates are already drawn.
-            Plot oldAstPlot = astJ.getPlot();
-            if ( oldAstPlot != null ) {
-                oldAstPlot = (Plot) oldAstPlot.clone();
-            }
-
-            //  Create an astPlot for the graphics, this is matched to
-            //  the component size and is how we get an apparent
-            //  rescale of drawing. So that we get linear axis 1
-            //  coordinates we must choose the current frame as the
-            //  base frame (so that the mapping from graphics to
-            //  physical is linear). We also add any AST plotting
-            //  configuration options. TODO: stop using ASTJ class.
-            FrameSet astref = astJ.getRef();
-            String current = astref.getC( "Current" );
-            String base = astref.getC( "Base" );
-            astref.set( "Base=" + current );
-
-            if ( config != null ) {
-                if ( graphicsEdges != null ) {
-                    astJ.astPlot( this, baseBox,
-                                  graphicsEdges.getXFrac(),
-                                  graphicsEdges.getYFrac(),
-                                  config.getAst() );
+                //  Scale of plot has changed or been set for the first
+                //  time. So we need to redraw everything.
+                xyScaled = false;
+                
+                //  Keep reference to existing AstPlot so we know how
+                //  graphics coordinates are already drawn.
+                Plot oldAstPlot = astJ.getPlot();
+                if ( oldAstPlot != null ) {
+                    oldAstPlot = (Plot) oldAstPlot.clone();
+                }
+                
+                //  Create an astPlot for the graphics, this is matched to
+                //  the component size and is how we get an apparent
+                //  rescale of drawing. So that we get linear axis 1
+                //  coordinates we must choose the current frame as the
+                //  base frame (so that the mapping from graphics to
+                //  physical is linear). We also add any AST plotting
+                //  configuration options. TODO: stop using ASTJ class.
+                FrameSet astref = astJ.getRef();
+                String current = astref.getC( "Current" );
+                String base = astref.getC( "Base" );
+                astref.set( "Base=" + current );
+                
+                if ( config != null ) {
+                    if ( graphicsEdges != null ) {
+                        astJ.astPlot( this, baseBox,
+                                      graphicsEdges.getXFrac(),
+                                      graphicsEdges.getYFrac(),
+                                      config.getAst() );
+                    }
+                    else {
+                        astJ.astPlot( this, baseBox, 0.05, 0.00, 
+                                      config.getAst() );
+                    }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, config.getAst() );
+                    astJ.astPlot( this, baseBox, 0.05, 0.0, "" );
                 }
+
+                // The plot must use our Grf implementation.
+                astJ.getPlot().setGrf( javaGrf );
+
+                //  Restore the base plot as promised.
+                astref.set( "Base=" + base );
+
+                //  If requested (i.e. the default gap is chosen) then
+                //  decrease the gap between X major ticks so we see more
+                //  labels when zoomed.
+                double xGap = 0.0;
+                if ( config != null ) {
+                    AstTicks astTicks = 
+                        (AstTicks) config.getControlsModel( AstTicks.class );
+                    xGap = astTicks.getXGap();
+                }
+                if ( xGap == 0.0 || xGap == DefaultGrf.BAD ) {
+                    xGap = astJ.getPlot().getD( "gap(1)" );
+                    xGap = xGap / Math.max( 1.0, xScale * 0.5 );
+                    astJ.astSetPlot( "gap(1)=" + xGap );
+                }
+                
+                //  Clear all existing AST graphics
+                javaGrf.reset();
+                
+                //  Draw the coordinate grid/axes.
+                astJ.astGrid();
+
+                //  Draw the spectra.
+                drawSpectra();
+
+                //  Resize overlay graphics.
+                if ( oldAstPlot != null ) {
+                    redrawOverlay( oldAstPlot );
+                    oldAstPlot.annul();
+                }
+
+                //  Inform any listeners that the Plot has been scaled.
+                fireScaled();
+
+                //  Drawn at least once, so OK to track mouse events. XXX
+                //  still a few seen AST errors about null pointer..
+                readyToTrack = true;
             }
-            else {
-                astJ.astPlot( this, baseBox, 0.05, 0.0, "" );
+
+            //  Use antialiasing for either the text, lines and text, or
+            //  nothing.
+            if ( graphicsHints != null ) {
+                graphicsHints.applyRenderingHints( (Graphics2D) g );
             }
-
-            // The plot must use our Grf implementation.
-            astJ.getPlot().setGrf( javaGrf );
-
-            //  Restore the base plot as promised.
-            astref.set( "Base=" + base );
-
-            //  If requested (i.e. the default gap is chosen) then
-            //  decrease the gap between X major ticks so we see more
-            //  labels when zoomed.
-            double xGap = 0.0;
-            if ( config != null ) {
-                AstTicks astTicks = 
-                    (AstTicks) config.getControlsModel( AstTicks.class );
-                xGap = astTicks.getXGap();
-            }
-            if ( xGap == 0.0 || xGap == DefaultGrf.BAD ) {
-
-                //  TODO: make this work again.
-                xGap = astJ.getPlot().getD( "gap(1)" );
-                xGap = xGap / Math.max( 1.0, xScale * 0.5 );
-                astJ.astSetPlot( "gap(1)=" + xGap );
-            }
-
-            //  Clear all existing AST graphics
-            javaGrf.reset();
-
-            //  Draw the coordinate grid/axes.
-            astJ.astGrid();
-
-            //  Draw the spectra.
-            drawSpectra();
-
-            //  Resize overlay graphics.
-            if ( oldAstPlot != null ) {
-                redrawOverlay( oldAstPlot );
-                oldAstPlot.annul();
-            }
-
-            //  Inform any listeners that the Plot has been scaled.
-            fireScaled();
-
-            //  Drawn at least once, so OK to track mouse events. XXX
-            //  still a few seen AST errors about null pointer..
-            readyToTrack = true;
+            
+            //  Repaint all graphics.
+            astJ.getPlot().paint( g );
+            
         }
-
-        //  Use antialiasing for either the text, lines and text, or
-        //  nothing.
-        if ( graphicsHints != null ) {
-            graphicsHints.applyRenderingHints( (Graphics2D) g );
+        catch (Exception e) {
+            // Trap all Exceptions and continue so we can recover
+            // when we try to repaint.
+            System.out.println( e.getMessage() );
         }
-
-        //  Repaint all graphics.
-        astJ.getPlot().paint( g );
     }
 
     /**
@@ -995,11 +1003,12 @@ public class DivaPlot
             {
                 public void mouseMoved( MouseEvent e )
                 {
-                    if ( spectra.count() == 0 || ! readyToTrack ) {
+                    Plot astPlot = astJ.getPlot();
+                    if ( spectra.count() == 0 || ! readyToTrack || 
+                         astPlot == null ) {
                         return;
                     }
-                    String[] xypos = spectra.formatLookup( e.getX(),
-                                                           astJ.getPlot() );
+                    String[] xypos = spectra.formatLookup( e.getX(), astPlot );
                     tracker.updateCoords( xypos[0], xypos[1] );
                     setVHairPosition( e.getX() );
                 }
@@ -1050,9 +1059,9 @@ public class DivaPlot
     }
 
     /**
-     * Return a label that can be used to identify the units of the given
-     * axis. Note the AST description will be used if the plot hasn't been
-     * drawn yet (these are generally the same).
+     * Return a label that can be used to identity the values of an
+     * axis. Note the AST description will be used if the plot hasn't
+     * been drawn yet (these are generally the same).
      *
      * @param axis the axis
      * @return The axis label
@@ -1071,8 +1080,10 @@ public class DivaPlot
         //  Try WCS description.
         FrameSet astref = astJ.getRef();
         if ( astref != null ) {
-            astref.getC( "label(" + axis + ")" );
+            return astref.getC( "label(" + axis + ")" );
         }
+
+        // Default value.
         return new String( "Axis" + axis );
     }
 

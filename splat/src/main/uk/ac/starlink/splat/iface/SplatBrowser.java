@@ -13,6 +13,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import javax.swing.AbstractAction;
@@ -37,7 +38,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 
-import uk.ac.starlink.splat.data.MEMSpecDataImpl;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -179,6 +180,11 @@ public class SplatBrowser extends JFrame
      * Frame with unary maths operator controls.
      */
     protected SimpleUnaryMaths unaryMathsFrame = null;
+
+    /**
+     * Spectrum viewer frames.
+     */
+    protected ArrayList specViewerFrames = null;
 
     /**
      * The look and feel, plus metal themes manager.
@@ -537,6 +543,16 @@ public class SplatBrowser extends JFrame
             "Display selected spectra in a single plot, one at a time");
         viewMenu.add( animateAction );
         toolBar.add( animateAction );
+
+        //  Add an action to view the values of the spectra.
+        ImageIcon viewerImage =
+            new ImageIcon(ImageHolder.class.getResource("table.gif"));
+        LocalAction viewerAction =
+            new LocalAction( LocalAction.SPEC_VIEWER, "View spectra values",
+                             viewerImage,
+                             "View/modify the values of the selected spectra");
+        viewMenu.add( viewerAction );
+        toolBar.add( viewerAction );
     }
 
     /**
@@ -620,14 +636,21 @@ public class SplatBrowser extends JFrame
      */
     protected void initRemoteServices()
     {
-        //  Socket-based services.
-        RemoteServer remoteServer = new RemoteServer( this );
-        remoteServer.start();
-
-        //  SOAP based services.
-        SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
-        soapServer.setSplatBrowser( this );
-        soapServer.start();
+        try {
+            //  Socket-based services.
+            RemoteServer remoteServer = new RemoteServer( this );
+            remoteServer.start();
+            
+            //  SOAP based services.
+            SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
+            soapServer.setSplatBrowser( this );
+            soapServer.start();
+        }
+        catch (Exception e) {
+            // Not fatal, just no remote control.
+            System.err.println( "Failed to start remote services" );
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -697,9 +720,9 @@ public class SplatBrowser extends JFrame
             }
             else {
                 //  This occasionally happens (1.4), not sure why...
-                JOptionPane.showMessageDialog( this, 
-                                               "No spectrum selected", 
-                                               "No write", 
+                JOptionPane.showMessageDialog( this,
+                                               "No spectrum selected",
+                                               "No write",
                                                JOptionPane.WARNING_MESSAGE );
             }
         }
@@ -1243,6 +1266,30 @@ public class SplatBrowser extends JFrame
     }
 
     /**
+     * Display windows for viewing and possibly modifying the values
+     * of the currently selected spectra as formatted numbers (uses a
+     * JTable).
+     */
+    public void viewSelectedSpectra()
+    {
+        if ( specViewerFrames == null ) {
+            specViewerFrames = new ArrayList();
+        }
+
+        // Get the selected spectra.
+        int[] indices = getSelectedSpectra();
+        if ( indices != null ) {
+
+            //  And create view of each one.
+            SpecData spec = null;
+            for ( int i = 0; i < indices.length; i++ ) {
+                spec = globalList.getSpectrum( indices[i] );
+                specViewerFrames.add( new SpecViewerFrame( spec ) );
+            }
+        }
+    }
+
+    /**
      * Remove the currently selected spectra from the global list and
      * this interface.
      */
@@ -1330,15 +1377,15 @@ public class SplatBrowser extends JFrame
         int[] indices = getSelectedSpectra();
         if ( indices != null ) {
             SpecData spec = null;
-            SpecDataImpl impl = null;
+            EditableSpecData newSpec = null;
             String name = null;
             for ( int i = 0; i < indices.length; i++ ) {
                 spec = globalList.getSpectrum( indices[i] );
                 name = "Copy of: " + spec.getShortName();
-                impl = new MEMSpecDataImpl( name, spec );
                 try {
-                    spec = new SpecData( impl );
-                    globalList.add( spec );
+                    newSpec = SpecDataFactory.getReference().
+                        createEditable( name, spec );
+                    globalList.add( newSpec );
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -1472,7 +1519,7 @@ public class SplatBrowser extends JFrame
     public void showBinaryMathsWindow()
     {
         if ( binaryMathsFrame == null ) {
-            binaryMathsFrame = new SimpleBinaryMaths( this );
+            binaryMathsFrame = new SimpleBinaryMaths();
 
             //  We'd like to know if the window is closed.
             binaryMathsFrame.addWindowListener( new WindowAdapter() {
@@ -1502,7 +1549,7 @@ public class SplatBrowser extends JFrame
     public void showUnaryMathsWindow()
     {
         if ( unaryMathsFrame == null ) {
-            unaryMathsFrame = new SimpleUnaryMaths( this );
+            unaryMathsFrame = new SimpleUnaryMaths();
 
             //  We'd like to know if the window is closed.
             unaryMathsFrame.addWindowListener( new WindowAdapter() {
@@ -1558,19 +1605,20 @@ public class SplatBrowser extends JFrame
         public static final int SINGLE_DISPLAY = 2;
         public static final int MULTI_DISPLAY = 3;
         public static final int ANIMATE_DISPLAY = 4;
-        public static final int SAVE_STACK = 5;
-        public static final int READ_STACK = 6;
-        public static final int REMOVE_SPECTRA = 7;
-        public static final int SELECT_SPECTRA = 8;
-        public static final int DESELECT_SPECTRA = 9;
-        public static final int COLOURIZE = 10;
-        public static final int REMOVE_PLOTS = 11;
-        public static final int SELECT_PLOTS = 12;
-        public static final int DESELECT_PLOTS = 13;
-        public static final int BINARY_MATHS = 14;
-        public static final int UNARY_MATHS = 15;
-        public static final int COPY_SPECTRA = 16;
-        public static final int EXIT = 17;
+        public static final int SPEC_VIEWER = 5;
+        public static final int SAVE_STACK = 6;
+        public static final int READ_STACK = 7;
+        public static final int REMOVE_SPECTRA = 8;
+        public static final int SELECT_SPECTRA = 9;
+        public static final int DESELECT_SPECTRA = 10;
+        public static final int COLOURIZE = 11;
+        public static final int REMOVE_PLOTS = 12;
+        public static final int SELECT_PLOTS = 13;
+        public static final int DESELECT_PLOTS = 14;
+        public static final int BINARY_MATHS = 15;
+        public static final int UNARY_MATHS = 16;
+        public static final int COPY_SPECTRA = 17;
+        public static final int EXIT = 18;
 
         private int type = 0;
 
@@ -1609,6 +1657,10 @@ public class SplatBrowser extends JFrame
                break;
                case ANIMATE_DISPLAY: {
                    animateSelectedSpectra();
+               }
+               break;
+               case SPEC_VIEWER: {
+                   viewSelectedSpectra();
                }
                break;
                case SAVE_STACK: {

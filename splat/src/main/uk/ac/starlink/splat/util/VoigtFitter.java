@@ -24,32 +24,37 @@ public class VoigtFitter
     /**
      * The scale factor.
      */
-    private double scale = 1.0;
+    protected double scale = 1.0;
 
     /**
      * The peak height of error function (scale factor for scale).
      */
-    private double peak = 1.0;
+    protected double peak = 1.0;
 
     /**
      * The gaussian width.
      */
-    private double gwidth = 1.0;
+    protected double gwidth = 1.0;
 
     /**
      * The lorentzian width.
      */
-    private double lwidth = 1.0;
+    protected double lwidth = 1.0;
 
     /**
      * The centre.
      */
-    private double centre = 0.0;
+    protected double centre = 0.0;
 
     /**
      * The chi square of the fit.
      */
-    private double chiSquare = 0.0;
+    protected double chiSquare = 0.0;
+
+    /**
+     * For sub-classes.
+     */
+    protected VoigtFitter() {}
 
     /**
      * Fit a Voigt function to unweighted data points.

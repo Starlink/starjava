@@ -23,8 +23,9 @@ import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
-import uk.ac.starlink.splat.data.MEMSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -89,11 +90,6 @@ public class SimpleBinaryMaths extends JFrame
     protected JButton closeButton = new JButton();
 
     /**
-     * The main SplatBrowser window.
-     */
-    protected SplatBrowser browser = null;
-
-    /**
      * Menubar and various menus and items that it contains.
      */
     protected JMenuBar menuBar = new JMenuBar();
@@ -109,9 +105,8 @@ public class SimpleBinaryMaths extends JFrame
     /**
      * Create an instance.
      */
-    public SimpleBinaryMaths( SplatBrowser browser )
+    public SimpleBinaryMaths()
     {
-        this.browser = browser;
         contentPane = (JPanel) getContentPane();
         initUI();
         HelpFrame.createHelpMenu( "binary-maths", "Help on window",
@@ -385,11 +380,11 @@ public class SimpleBinaryMaths extends JFrame
     protected void createNewSpectrum( String name, double[] coords, 
                                       double[] data )
     {
-        //  Create a memory spectrum to contain the fit.
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        memSpecImpl.setData( data, coords );
         try {
-            SpecData newSpec = new SpecData( memSpecImpl );
+            //  Create a memory spectrum to contain the fit.
+            EditableSpecData newSpec = SpecDataFactory.getReference().
+                createEditable( name );
+            newSpec.setData( data, coords );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

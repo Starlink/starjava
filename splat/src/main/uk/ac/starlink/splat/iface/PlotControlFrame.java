@@ -81,6 +81,11 @@ public class PlotControlFrame extends JFrame
     protected SpecCutterFrame cutterFrame = null;
 
     /**
+     * The filter window.
+     */
+    protected SpecFilterFrame filterFrame = null;
+
+    /**
      *  The global list of spectra and plots.
      */
     protected GlobalSpecPlotList globalList =
@@ -105,6 +110,7 @@ public class PlotControlFrame extends JFrame
     protected JPanel toolBarContainer = new JPanel();
     protected JButton configButton = new JButton();
     protected JButton viewCutterButton = new JButton();
+    protected JButton filterButton = new JButton();
     protected JButton regionCutterButton = new JButton();
     protected JButton fitHeightButton = new JButton();
     protected JButton fitWidthButton = new JButton();
@@ -303,6 +309,8 @@ public class PlotControlFrame extends JFrame
             ImageHolder.class.getResource( "cutter.gif" ) );
         ImageIcon regionCutterImage = new ImageIcon(
             ImageHolder.class.getResource( "regioncutter.gif" ) );
+        ImageIcon filterImage = new ImageIcon(
+            ImageHolder.class.getResource( "filter.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -337,6 +345,13 @@ public class PlotControlFrame extends JFrame
         lineFitButton = toolBar.add( lineFitAction );
         lineFitButton.setToolTipText(
                       "Fit spectral lines using a variety of functions" );
+
+        FilterAction filterAction =
+            new FilterAction( "Filter spectrum", filterImage );
+        analysisMenu.add( filterAction );
+        filterButton = toolBar.add( filterAction );
+        filterButton.setToolTipText(
+                     "Apply a filter to the current spectrum" );
     }
 
     /**
@@ -389,7 +404,7 @@ public class PlotControlFrame extends JFrame
             configFrame = new PlotConfigurator( "Plot configurator window",
                                                 plot,
                                                 plot.getPlotConfiguration(),
-                                                "splat",
+                                                Utilities.getApplicationName(),
                                                 "PlotConfigs.xml" );
 
             //  Add controls for the extra facilities provided by the
@@ -605,6 +620,44 @@ public class PlotControlFrame extends JFrame
     }
 
     /**
+     *  Activate the filter window.
+     */
+    public void showFilter()
+    {
+        if ( filterFrame == null ) {
+            filterFrame = new SpecFilterFrame( this.getPlot() );
+            //  We'd like to know if the window is closed.
+            filterFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        filterClosed();
+                    }
+                });
+        } else {
+            Utilities.raiseFrame( filterFrame );
+        }
+    }
+
+    /**
+     * Filter window is closed.
+     */
+    protected void filterClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // filterFrame = null;
+    }
+
+    /**
+     *  Close the filter window.
+     */
+    protected void closeFilter()
+    {
+        if ( filterFrame != null ) {
+            filterFrame.dispose();
+            filterFrame = null;
+        }
+    }
+
+    /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.
      */
@@ -636,6 +689,7 @@ public class PlotControlFrame extends JFrame
         closeLineFitFrame();
         closePanner();
         closeCutter();
+        closeFilter();
     }
 
     /**
@@ -784,6 +838,19 @@ public class PlotControlFrame extends JFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             showCutter();
+        }
+    }
+
+    /**
+     *  Inner class defining Action for filtering spectrum.
+     */
+    protected class FilterAction extends AbstractAction
+    {
+        public FilterAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            showFilter();
         }
     }
 
