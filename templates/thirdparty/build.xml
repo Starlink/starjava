@@ -146,8 +146,7 @@
        !   are named using relative URLs-->
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" 
-                   value="{other_package_jar_files}"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
 
     </jar>

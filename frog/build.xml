@@ -494,11 +494,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class"
                    value="uk.ac.starlink.frog.FrogMain"/>
-        <attribute name="Class-Path"
-value="bsh-1.1a18.jar colt.jar diva.jar jama.jar jdom.jar jhall.jar 
-../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar 
-../jniast/jniast.jar ../fits/fits.jar ../hds/hds.jar ../table/table.jar
-../topcat/topcat.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
   </target>

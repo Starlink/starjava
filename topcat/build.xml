@@ -464,8 +464,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class"
                    value="uk.ac.starlink.topcat.TableViewer"/>
-        <attribute name="Class-Path"
-                   value="plot.jar jel_g.jar jhall.jar ../util/util.jar ../table/table.jar ../mirage/mirage.jar ../treeview/treeview.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
 

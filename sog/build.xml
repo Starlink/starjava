@@ -450,10 +450,8 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.sog.SOG"/>
-        <attribute name="Class-Path"
-value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar 
-../fits/fits.jar ../hds/hds.jar ../jniast/jniast.jar ../soapserver/soapserver.jar ../astgui/astgui.jar"/>
-      </manifest>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
+     </manifest>
     </jar>
   </target>
 

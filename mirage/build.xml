@@ -416,8 +416,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" 
                    value="uk.ac.starlink.mirage.MirageDriver"/>
-        <attribute name="Class-Path"
-           value="../table/table.jar ../util/util.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
 

@@ -412,8 +412,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path"
-            value="../hdx/hdx.jar ../ndx/ndx.jar ../array/array.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
 

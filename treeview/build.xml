@@ -622,8 +622,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
-        <attribute name="Class-Path"
-           value="commons-net-1.0.0.jar ../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../hdx/hdx.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../sog/sog.jar ../axis/axis.jar ../ant.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
 

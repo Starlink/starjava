@@ -385,10 +385,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="jsky.app.jskycat.JSkyCat"/>
-        <attribute name="Class-Path" 
-                   value="hcompress.jar jel.jar jfreechart.jar 
-         jcommon.jar log4j.jar sun-util.jar dom4j.jar ../diva/diva.jar
-         ../tamfits/tamfits.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
   </target>

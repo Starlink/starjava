@@ -380,6 +380,10 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
+       <manifest>
+          <attribute name="Built-By" value="${user.name}"/>
+          <attribute name="Class-Path" value="${jar.class.path}"/>
+       </manifest>
     </jar>
   </target>
 

@@ -141,8 +141,7 @@
        !   this. TODO: perform this task automatically?-->
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" 
-                   value="javax.servlet.jar javax.xml.jaxp.jar org.apache.crimson.jar org.apache.jasper.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
   </target>

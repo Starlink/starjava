@@ -142,8 +142,7 @@
        !   this. TODO: perform this task automatically?-->
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" 
-                   value="axis-ant.jar commons-discovery.jar jaxrpc.jar saaj.jar commons-logging.jar log4j-1.2.4.jar wsdl4j.jar"/>
+        <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
       
     </jar>
