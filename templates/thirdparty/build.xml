@@ -21,6 +21,7 @@
  !      install-runonly  -> same as install
  !      jars             -> does nothing
  !      javadocs         -> does nothing
+ !      javadoc-sources  -> does nothing
  !      test             -> may run a test for checking package function
  !
  !   The targets that do nothing are provided for compatibility with
@@ -395,6 +396,17 @@
    !  Does nothing.
    !-->
   <target name="javadocs"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ==========================================
+   !   Creates the API documentation java sources
+   !   ==========================================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadoc-sources"
           description="-> does nothing">
   </target>
 
