@@ -15,6 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 
@@ -95,7 +96,8 @@ public abstract class QueryWindow extends AuxWindow {
 
         /* Place the components into the window. */
         Box iconBox = new Box( BoxLayout.Y_AXIS );
-        iconBox.add( new JLabel( ResourceIcon.QUERY ) );
+        iconBox.add( new JLabel( UIManager
+                                .getIcon( "OptionPane.questionIcon" ) ) );
         iconBox.setBorder( blankBorder );
         stack.setBorder( blankBorder );
         auxControls.setBorder( blankBorder );

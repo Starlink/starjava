@@ -129,9 +129,6 @@ public class ResourceIcon implements Icon {
         FUNCTION_NODE = makeIcon( "fx_leaf.gif" ),
         CONSTANT_NODE = makeIcon( "c_leaf.gif" ),
 
-        /* Metal. */
-        QUERY = makeIcon( "query_message.gif" ),
-
         /* Dummy terminator. */
         dummy = DO_WHAT;
 
