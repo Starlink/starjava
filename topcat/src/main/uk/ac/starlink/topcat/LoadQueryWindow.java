@@ -77,7 +77,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
         this.tableFactory = tableFactory;
 
         /* Place the field for entering the location. */
-        locField = new JTextField( 24 );
+        locField = new JTextField();
         getStack().addLine( "Location", locField );
 
         /* Define the actions for starting other dialogues. */
