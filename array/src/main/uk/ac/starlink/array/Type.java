@@ -40,6 +40,8 @@ public class Type {
     private final int nBytes;
     private final Number defaultBadValue;
     private final boolean isFloating;
+    private final double minval;
+    private final double maxval;
 
     /*
      * Private sole constructor.
@@ -51,30 +53,40 @@ public class Type {
             nBytes = 1;
             defaultBadValue = new Byte( (byte) 0x80 );
             isFloating = false;
+            minval = (double) Byte.MIN_VALUE;
+            maxval = (double) Byte.MAX_VALUE;
         }
         else if ( name.equals( "short" ) ) {
             clazz = short.class;
             nBytes = 2;
             defaultBadValue = new Short( (short) 0x8000 );
             isFloating = false;
+            minval = (double) Short.MIN_VALUE;
+            maxval = (double) Short.MAX_VALUE;
         }
         else if ( name.equals( "int" ) ) {
             clazz = int.class;
             nBytes = 4;
             defaultBadValue = new Integer( 0x80000000 );
             isFloating = false;
+            minval = (double) Integer.MIN_VALUE;
+            maxval = (double) Integer.MAX_VALUE;
         }
         else if ( name.equals( "float" ) ) {
             clazz = float.class;
             nBytes = 4;
             defaultBadValue = new Float( Float.NaN );
             isFloating = true;
+            minval = (double) Float.MAX_VALUE;
+            maxval = (double) - Float.MAX_VALUE;
         }
         else if ( name.equals( "double" ) ) {
             clazz = double.class;
             nBytes = 8;
             defaultBadValue = new Double( Double.NaN );
             isFloating = true;
+            minval = Double.MAX_VALUE;
+            maxval = - Double.MAX_VALUE;
         }
         else {
             // assert false;
@@ -134,6 +146,25 @@ public class Type {
      */
     public boolean isFloating() {
         return isFloating;
+    }
+
+    /**
+     * Returns the lowest (= most negative) value which 
+     * can be represented by this type.
+     *
+     * @return  lowest value this type can represent, as a <tt>double</tt>
+     */
+    public double minimumValue() {
+        return minval;
+    }
+
+    /**
+     * Returns the highest value which can be represented by this type.
+     *
+     * @return  highest value this type can represetn, as a <tt>double</tt>
+     */
+    public double maximumValue() {
+        return maxval;
     }
 
     /**
