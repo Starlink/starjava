@@ -813,18 +813,9 @@ public class ASTJ
         // in general), then create a FluxFrame using them. Otherwise we use a
         // plain Frame to just represent the data values/coordinates.
         Frame f2 = null;
-        boolean haveFluxFrame = false;
         if ( ! units.equals( "" ) && ! units.equals( "unknown" ) ) {
             try {
-                f2 = new FluxFrame();
-                f2.setUnit( 1, units );
-
-                // Get the default System value from the FluxFrame. This will
-                // depend on the units. If the units do not correspond to any
-                // of the supported flux systems, then an exception will be
-                // thrown.
-                String system = f2.getSystem();
-                haveFluxFrame = true;
+                f2 = createFluxFrame( units, null, true );
             }
             catch (AstException e) {
                 //  Units are invalid.
@@ -833,7 +824,9 @@ public class ASTJ
                              e.getMessage() + ")" );
             }
         }
+        boolean haveFluxFrame = true;
         if ( f2 == null ) {
+            haveFluxFrame = false;
             f2 = new Frame( 1 );
         }
 
@@ -886,6 +879,38 @@ public class ASTJ
         result.addFrame( FrameSet.AST__BASE, map, frame2 );
 
         return result;
+    }
+
+    /**
+     * Attempt to create a FluxFrame using the given units and or
+     * attributes. If throwError is true then a failure results in an
+     * AstException being thrown, otherwise a null is returned on failure.
+     */
+    public static createFluxFrame( String units, String attributes, 
+                                   boolean throwError )
+        throws AstException
+    {
+        try {
+            FluxFrame f = new FluxFrame();
+            if ( units != null ) {
+                f.setUnit( 1, units );
+            }
+            if ( attributes != null ) {
+                f.set( attribues );
+            }
+
+            // Get the default System value from the FluxFrame. This will
+            // depend on the units. If the units do not correspond to any of
+            // the supported flux systems, then an exception will be thrown.
+            String system = f.getSystem();
+            return f;
+        }
+        catch (AstException e) {
+            if ( throwError ) {
+                throw e;
+            }
+        }
+        return null;
     }
 
     /**
