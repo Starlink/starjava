@@ -130,4 +130,12 @@ public class ChunkStepper {
             throw new NoSuchElementException();
         }
     }
+
+    /**
+     * Returns the length of this ChunkStepper as supplied to the constructor -
+     * the total number of elements over which it will iterate.
+     */
+    public long getTotalLength() {
+        return length;
+    }
 }
