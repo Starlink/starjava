@@ -26,7 +26,8 @@ import java.util.regex.Pattern;
  * {@link #UCD_DEFINITIONS_LOC}.  If this resource is unavailable at
  * runtime, a warning will be written to the logging system.
  * The original source of this text file was
- * <a href="http://vizier.u-strasbg.fr/viz-bin/UCDs">http://vizier.u-strasbg.fr/viz-bin/UCDs</a>.
+ * the CDS <a href="http://vizier.u-strasbg.fr/viz-bin/UCDs">List of 
+ * all UCDs</a>.
  *
  * @author   Mark Taylor (Starlink)
  */
