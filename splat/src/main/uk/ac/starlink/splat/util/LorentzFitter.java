@@ -191,6 +191,30 @@ public class LorentzFitter
     }
 
     /**
+     * Get if the scale height is held fixed.
+     */
+    public boolean getScaleFixed()
+    {
+        return fixed[SCALE];
+    }
+
+    /**
+     * Get if the width is held fixed.
+     */
+    public boolean getWidthFixed()
+    {
+        return fixed[WIDTH];
+    }
+
+    /**
+     * Get if the centre is being held fixed.
+     */
+    public boolean getCentreFixed()
+    {
+        return fixed[CENTRE];
+    }
+
+    /**
      * Get the integrated flux of the fit.
      */
     public double getFlux()

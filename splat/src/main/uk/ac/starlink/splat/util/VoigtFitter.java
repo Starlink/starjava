@@ -200,6 +200,38 @@ public class VoigtFitter
     }
 
     /**
+     * Get if the scale height is held fixed.
+     */
+    public boolean getScaleFixed()
+    {
+        return fixed[SCALE];
+    }
+
+    /**
+     * Get if the Gaussian width is held fixed.
+     */
+    public boolean getGWidthFixed()
+    {
+        return fixed[GWIDTH];
+    }
+
+    /**
+     * Get if the Lorentzian width is held fixed.
+     */
+    public boolean getLWidthFixed()
+    {
+        return fixed[LWIDTH];
+    }
+
+    /**
+     * Get if the centre is being held fixed.
+     */
+    public boolean getCentreFixed()
+    {
+        return fixed[CENTRE];
+    }
+
+    /**
      * Get the total flux of the fit.
      */
     public double getFlux()

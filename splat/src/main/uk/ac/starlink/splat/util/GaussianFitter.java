@@ -191,6 +191,30 @@ public class GaussianFitter
     }
 
     /**
+     * Get if the scale height is held fixed.
+     */
+    public boolean getScaleFixed()
+    {
+        return fixed[SCALE];
+    }
+
+    /**
+     * Get if the sigam is held fixed.
+     */
+    public boolean getSigmaFixed()
+    {
+        return fixed[SIGMA];
+    }
+
+    /**
+     * Get if the centre is being held fixed.
+     */
+    public boolean getCentreFixed()
+    {
+        return fixed[CENTRE];
+    }
+
+    /**
      * Get the integrated intensity of the gaussian.
      *
      * This is scale * sigma * sqrt( 2 * pi ).
