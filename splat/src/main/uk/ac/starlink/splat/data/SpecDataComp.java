@@ -567,6 +567,8 @@ public class SpecDataComp
                                     double[] range, boolean matchDataUnits )
         throws SplatException
     {
+        if ( range == null ) return null;
+
         double[] result = range;
         try {
             //  Try to align the plotting FrameSets of the SpecData. Only need
@@ -627,6 +629,8 @@ public class SpecDataComp
                                      double[] limits, boolean matchDataUnits )
         throws SplatException
     {
+        if ( limits == null ) return null;
+
         double[] result = limits;
         Frame to = plot.getFrame( FrameSet.AST__CURRENT );
         Frame fr =
