@@ -352,10 +352,10 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new HTMMatchEngine( someAngle ),
             new SphericalPolarMatchEngine( someLength ),
             new EqualsMatchEngine(),
-            new CartesianMatchEngine( 1, someLength ),
-            new CartesianMatchEngine( 2, someLength ),
-            new CartesianMatchEngine( 3, someLength ),
-            new CartesianMatchEngine( 4, someLength ),
+            new CartesianMatchEngine( 1, someLength, false ),
+            new CartesianMatchEngine( 2, someLength, false ),
+            new CartesianMatchEngine( 3, someLength, false ),
+            new CartesianMatchEngine( 4, someLength, false ),
         };
     }
 
