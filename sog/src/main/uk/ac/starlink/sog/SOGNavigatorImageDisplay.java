@@ -32,7 +32,7 @@ import org.w3c.dom.Element;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
 import uk.ac.starlink.hdx.HdxException;
-import uk.ac.starlink.hdx.jai.HDXImage;
+import uk.ac.starlink.jaiutil.HDXImage;
 import uk.ac.starlink.hdx.Ndx;
 
 /**
@@ -357,4 +357,18 @@ public class SOGNavigatorImageDisplay
         return doExit;
     }
 
+    /**
+     * Return true if the given filename has a suffix that indicates
+     * that it is not a FITS file and is one of the standard JAI
+     * supported image types. Need to override this so that XML files
+     * are re-directed.
+     */
+    public boolean isJAIImageType( String filename ) 
+    {
+        System.out.println( "isJAIImageType: " + filename );
+        if ( filename.endsWith("xml") ) {
+            return true;
+        }
+        return super.isJAIImageType( filename );
+    }
 }
