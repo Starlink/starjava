@@ -252,6 +252,11 @@ public class SplatBrowser
     protected SpecCoordinatesFrame coordinatesFrame = null;
 
     /**
+     * Data units viewer frame.
+     */
+    protected SpecDataUnitsFrame dataUnitsFrame = null;
+
+    /**
      * Whether the application is embedded. In this case application
      * exit is assumed controlled by the embedding app.
      */
@@ -781,9 +786,9 @@ public class SplatBrowser
         viewMenu.add( viewerAction );
         toolBar.add( viewerAction );
 
-        //  Add an action to set the units of the X axis.
+        //  Add an action to set the spectral coordinates (x units).
         ImageIcon specCoordsImage =
-            new ImageIcon(ImageHolder.class.getResource("xunits.gif"));
+            new ImageIcon( ImageHolder.class.getResource( "xunits.gif" ) );
         LocalAction specCoordsAction =
             new LocalAction( LocalAction.SPECCOORDS_VIEWER,
                              "View/modify spectral coordinates",
@@ -791,6 +796,17 @@ public class SplatBrowser
                              " coordinates of the selected spectra");
         viewMenu.add( specCoordsAction );
         toolBar.add( specCoordsAction );
+
+        //  Add an action to set the data units (y units).
+        ImageIcon dataUnitsImage =
+            new ImageIcon( ImageHolder.class.getResource( "yunits.gif" ) );
+        LocalAction dataUnitsAction =
+            new LocalAction( LocalAction.DATAUNITS_VIEWER,
+                             "View/modify data units",
+                             dataUnitsImage, "View/modify the data" +
+                             " units of the selected spectra");
+        viewMenu.add( dataUnitsAction );
+        toolBar.add( dataUnitsAction );
 
         //  Add an action to cascade all the plot windows.
         JMenuItem cascade = new JMenuItem( "Cascade all plots" );
@@ -1946,8 +1962,8 @@ public class SplatBrowser
     }
 
     /**
-     * Display a window for viewing and possibly modifying the
-     * coordinate type of the X axis.
+     * Display a window for viewing and possibly modifying the spectral
+     * coordinates.
      */
     public void viewSpecCoordinates()
     {
@@ -1976,6 +1992,38 @@ public class SplatBrowser
     {
         // Nullify if method for closing switches to dispose.
         // coordinatesFrame = null;
+    }
+
+    /**
+     * Display a window for viewing and possibly modifying the data units.
+     */
+    public void viewDataUnits()
+    {
+        if ( dataUnitsFrame == null ) {
+            dataUnitsFrame = new SpecDataUnitsFrame( specList );
+
+            //  We'd like to know if the window is closed.
+            dataUnitsFrame.addWindowListener( new WindowAdapter()
+            {
+                public void windowClosed( WindowEvent evt )
+                {
+                    dataUnitsClosed();
+                }
+            });
+        }
+        else {
+            Utilities.raiseFrame( dataUnitsFrame );
+            dataUnitsFrame.setSelectionFrom( specList );
+        }
+    }
+
+    /**
+     * Window for viewing and modifying the data units is closed.
+     */
+    protected void dataUnitsClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // dataUnitsFrame = null;
     }
 
     /**
@@ -2412,21 +2460,22 @@ public class SplatBrowser
         public static final int ANIMATE_DISPLAY = 8;
         public static final int SPEC_VIEWER = 9;
         public static final int SPECCOORDS_VIEWER = 10;
-        public static final int SAVE_STACK = 11;
-        public static final int READ_STACK = 12;
-        public static final int REMOVE_SPECTRA = 13;
-        public static final int SELECT_SPECTRA = 14;
-        public static final int DESELECT_SPECTRA = 15;
-        public static final int COLOURIZE = 16;
-        public static final int REMOVE_PLOTS = 17;
-        public static final int SELECT_PLOTS = 18;
-        public static final int DESELECT_PLOTS = 19;
-        public static final int BINARY_MATHS = 20;
-        public static final int UNARY_MATHS = 21;
-        public static final int COPY_SPECTRA = 22;
-        public static final int COPYSORT_SPECTRA = 23;
-        public static final int CREATE_SPECTRUM = 24;
-        public static final int EXIT = 25;
+        public static final int DATAUNITS_VIEWER = 11;
+        public static final int SAVE_STACK = 12;
+        public static final int READ_STACK = 13;
+        public static final int REMOVE_SPECTRA = 14;
+        public static final int SELECT_SPECTRA = 15;
+        public static final int DESELECT_SPECTRA = 16;
+        public static final int COLOURIZE = 17;
+        public static final int REMOVE_PLOTS = 18;
+        public static final int SELECT_PLOTS = 19;
+        public static final int DESELECT_PLOTS = 20;
+        public static final int BINARY_MATHS = 21;
+        public static final int UNARY_MATHS = 22;
+        public static final int COPY_SPECTRA = 23;
+        public static final int COPYSORT_SPECTRA = 24;
+        public static final int CREATE_SPECTRUM = 25;
+        public static final int EXIT = 26;
 
         private int type = 0;
 
@@ -2501,6 +2550,11 @@ public class SplatBrowser
 
                case SPECCOORDS_VIEWER: {
                    viewSpecCoordinates();
+               }
+               break;
+
+               case DATAUNITS_VIEWER: {
+                   viewDataUnits();
                }
                break;
 
