@@ -13,11 +13,13 @@ import diva.canvas.TransformContext;
 
 import diva.util.java2d.ShapeUtilities;
 
-import java.awt.Font;
-import java.awt.Shape;
-import java.awt.Paint;
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
 
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
@@ -39,6 +41,7 @@ import javax.swing.SwingConstants;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie  (johnr@eecs.berkeley.edu)
+ * @author Peter Draper (p.w.draper@durham.ac.uk)
  * @version $Revision: 1.19 $
  */
 public class LabelFigure extends AbstractFigure {
@@ -101,6 +104,10 @@ public class LabelFigure extends AbstractFigure {
         SwingConstants.NORTH_WEST,
         SwingConstants.NORTH_EAST
     };
+
+    /** The color compositing operator
+     */
+    private Composite _composite = AlphaComposite.SrcOver; // opaque
 
     /**
      * Construct an empty label figure.
@@ -256,6 +263,13 @@ public class LabelFigure extends AbstractFigure {
     }
 
     /**
+     * Get the compositing operator
+     */
+    public Composite getComposite() {
+        return _composite;
+    }
+
+    /**
      * Get the string.
      */
     public String getString() {
@@ -277,11 +291,19 @@ public class LabelFigure extends AbstractFigure {
             _transformContext.push(g);
 
             g.setPaint(_fillPaint);
+            g.setComposite(_composite);
 	    g.fill(_shape);
 
             // Pop the context
             _transformContext.pop(g);
         }
+    }
+
+    /** Set the compositing operation for this figure.
+     */
+    public void setComposite (AlphaComposite c) {
+        _composite = c;
+        repaint();
     }
 
     /**
