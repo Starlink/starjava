@@ -97,7 +97,9 @@ public abstract class DataSource {
      *
      * @return  a URL corresponding to this source, or <tt>null</tt>
      */
-    abstract public URL getURL();
+    public URL getURL() {
+        return null;
+    }
 
     /**
      * Returns the maximum length of the intro buffer.
