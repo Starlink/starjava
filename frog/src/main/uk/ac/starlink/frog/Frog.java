@@ -31,7 +31,7 @@ import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.FrogException;
 import uk.ac.starlink.frog.util.FrogSOAPServer;
-import uk.ac.starlink.frog.util.RemoteServer;
+//import uk.ac.starlink.frog.util.RemoteServer;
 
 // Data Handlers
 import uk.ac.starlink.frog.data.TimeSeriesManager;
@@ -1531,8 +1531,8 @@ public class Frog extends JFrame
         if ( ! embedded ) {
             try {
                 //  Socket-based services.
-                RemoteServer remoteServer = new RemoteServer( this );
-                remoteServer.start();
+                //RemoteServer remoteServer = new RemoteServer( this );
+                //remoteServer.start();
                 
                 //  SOAP based services.
                 FrogSOAPServer soapServer = FrogSOAPServer.getInstance();
@@ -1541,7 +1541,7 @@ public class Frog extends JFrame
             }
             catch (Exception e) {
                 // Not fatal, just no remote control.
-                debugManager.print( "    Failed to start remote services..." );
+                debugManager.print( "    Failed to start SOAP services..." );
                 debugManager.print( e.getMessage() );
             }
         }
