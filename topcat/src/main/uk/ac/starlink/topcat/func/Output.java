@@ -22,34 +22,34 @@ public class Output {
     /**
      * Outputs a string value to the user log.
      *
-     * @param  val  value
+     * @param  str  string value to output
      * @return  short report message
      */
-    public static String print( String val ) {
-        return val;
+    public static String print( String str ) {
+        return str;
     }
 
     /**
      * Outputs a numeric value to the user log.
      *
-     * @param   val  value
+     * @param   num  numeric value to output
      * @return  short report message
      */
-    public static String print( double val ) {
+    public static String print( double num ) {
 
         /* Since this method is declared to take double, any numeric 
          * argument can be widened to fit in it, so we don't need to 
          * clutter up the public interface with lots of overloaded print()
          * methods.  The downcasting is done so that you don't get
          * extra decimal places when they didn't ought to be there. */
-        if ( (double) (long) val == val ) {
-            return Long.toString( (long) val );
+        if ( (double) (long) num == num ) {
+            return Long.toString( (long) num );
         }
-        else if ( (double) (float) val == val ) {
-            return Float.toString( (float) val );
+        else if ( (double) (float) num == num ) {
+            return Float.toString( (float) num );
         }
         else {
-            return Double.toString( val );
+            return Double.toString( num );
         }
     }
 }
