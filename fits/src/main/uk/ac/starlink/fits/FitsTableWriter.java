@@ -145,7 +145,9 @@ public class FitsTableWriter implements StarTableWriter {
             strm = new DataOutputStream( ostrm ) {
                 public void close() throws IOException {
                     super.close();
-                    tmpFile1.delete();
+                    if ( tmpfile1 != null ) {
+                        tmpFile1.delete();
+                    }
                 }
             };
         }
