@@ -7,9 +7,14 @@
  */
 package uk.ac.starlink.splat.util;
 
-import java.lang.reflect.Method;
+import java.awt.Component;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import javax.swing.Icon;
+
+import uk.ac.starlink.splat.data.SpecData;
+
 
 /**
  * Import any parts of Treeview that we can make use of. Keep this
@@ -29,14 +34,20 @@ public class TreeviewAccess
     private boolean available = false;
 
     //  Classes of Treeview that we need.
+
+    //  IconFactory.
     private Class iconFactory = null;
+
+    //  SplatNodeChooser choose method.
+    private Method chooserMethod = null;
+    private Object chooserObject = null;
 
     //  Only one instance needed.
     private TreeviewAccess()
     {
         // Do the initialisations.
         try {
-            iconFactory = 
+            iconFactory =
                 this.getClass().forName("uk.ac.starlink.treeview.IconFactory");
             available = true;
         }
@@ -93,5 +104,50 @@ public class TreeviewAccess
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    /**
+     * Get the SplatNodeChooser to make a choice of spectrum.
+     */
+    public SpecData splatNodeChooser( Component parent, String buttonText,
+                                      String title )
+        throws SplatException
+    {
+        if ( ! available ) {
+            return null;
+        }
+        if ( chooserMethod == null || chooserObject == null ) {
+            try {
+                Class chooserClass = Class.forName
+                    ( "uk.ac.starlink.treeview.splat.SplatNodeChooser",
+                      true,
+                      Thread.currentThread().getContextClassLoader() );
+                Constructor chooserConstructor = 
+                    chooserClass.getConstructor( new Class[0] );
+                chooserObject = 
+                    chooserConstructor.newInstance( new Object[0] );
+                chooserMethod = chooserClass.getMethod( "choose",
+                                                        new Class[] {
+                                                            Component.class,
+                                                            String.class,
+                                                            String.class
+                                                        } );
+            }
+            catch (Exception e) {
+                // Shouldn't happen for trivial reasons as we've
+                // checked availability.
+                throw new SplatException( e );
+            }
+        }
+        try {
+            return (SpecData) chooserMethod.invoke( chooserObject,
+                                                    new Object[] { parent,
+                                                                   buttonText,
+                                                                   title } );
+        }
+        catch (Exception e) {
+            throw new SplatException( e );
+        }
     }
 }
