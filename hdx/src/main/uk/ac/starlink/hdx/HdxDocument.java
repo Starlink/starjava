@@ -465,23 +465,6 @@ public class HdxDocument
         }
 
         /**
-         * Gets the DOM from the facade, performing some extra checks.
-         *
-         * @throws PluginException (unchecked exception) if the object
-         * returned by {@link DOMFacade#getDOM} does not match the type
-         * {@link #resourceType} declared in the constructor.
-         */
-        private HdxElement getDOM() {
-            Element el = facade.getDOM(null);
-            assert el instanceof HdxElement;
-            if (! el.getTagName().equals(resourceType.xmlName()))
-                throw new PluginException
-                    ("Facade.getDOM(null) returned " + el.getTagName()
-                     + ", not " + resourceType.xmlName() + " as required");
-            return (HdxElement)el;
-        }
-
-        /**
          * Calls <code>synchronizeElement</code> to make sure that
          * this element is up-to-date with respect to the element.
          * This method is (currently) only called within methods which
