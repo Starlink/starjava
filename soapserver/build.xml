@@ -871,11 +871,15 @@
    ! Note these are not JUnit based.
    !-->
   <target name="test"
+          description="does nothing"/>
+
+  <target name="testserver"
           depends="compile-tests">
     
     <!-- Run a detached process that we can send a SOAP message to -->
     <echo message="Running up EchoServer..."/>
-    <exec executable="src/testcases/runEchoServer.sh" dir=".">
+    <exec executable="src/testcases/runEchoServer.sh" 
+          dir="." timeout="20000">
       <env key="CLASSPATH" value="${tests-classpath.value}"/>
     </exec>
 
@@ -913,7 +917,6 @@
    ! at head of document to include.
    !-->
   <target name="dtd">
-
      <antstructure output="project.dtd"/>
   </target>
 
