@@ -41,7 +41,7 @@ public class VOComponentDataNode extends DefaultDataNode
         "VOTABLE", "RESOURCE", "DESCRIPTION", "DEFINITIONS", "INFO", 
         "PARAM", "TABLE", "FIELD", "VALUES", "MIN", "MAX", "OPTION", 
         "LINK", "DATA", "TABLEDATA", "TR", "TD", "BINARY", "FITS", 
-        "STREAM", "COOSYS",
+        "STREAM", "COOSYS", "GROUP", "FIELDref", "PARAMref",
     } ) );
 
     protected final VOElement vocel;
@@ -73,8 +73,7 @@ public class VOComponentDataNode extends DefaultDataNode
         String nameval = vocel.getAttribute( "name" );
         name = vocel.getHandle();
 
-        parentObj = new DOMSource( vocel.getElement().getParentNode(),
-                                   systemId );
+        parentObj = getSource( vocel.getParent() );
 
         setLabel( name );
         setIconID( IconFactory.VOCOMPONENT );
@@ -135,7 +134,7 @@ public class VOComponentDataNode extends DefaultDataNode
         List children = new ArrayList();
         for ( Iterator it = getChildElements( vocel ).iterator(); 
               it.hasNext(); ) {
-            Source xsrc = ((VOElement) it.next()).getSource();
+            Source xsrc = getSource( ((VOElement) it.next()) );
             children.add( makeChild( xsrc ) );
         }
         return children.iterator();
@@ -167,11 +166,11 @@ public class VOComponentDataNode extends DefaultDataNode
 
     private TableElement[] getTables() {
         if ( tables == null ) {
-            VOElement[] tableEls = vocel.getDescendantsByName( "TABLE" );
-            int nt = tableEls.length;
+            NodeList tableEls = vocel.getElementsByTagName( "TABLE" );
+            int nt = tableEls.getLength();
             tables = new TableElement[ nt ];
             for ( int i = 0; i < nt; i++ ) {
-                tables[ i ] = (TableElement) tableEls[ i ];
+                tables[ i ] = (TableElement) tableEls.item( i );
             }
         }
         return tables;
@@ -195,9 +194,9 @@ public class VOComponentDataNode extends DefaultDataNode
                                             final VOElement voel ) {
 
         /* Collect useful children. */
-        String systemId = voel.getSystemId();
         Map atts = new TreeMap();
         String description = null;
+        String systemId = voel.getSystemId();
         List infonames = new ArrayList();
         List infovals = new ArrayList();
         final List params = new ArrayList();
@@ -205,7 +204,7 @@ public class VOComponentDataNode extends DefaultDataNode
         int ninfo = 0;
 
         
-        for ( Node child = voel.getElement().getFirstChild(); child != null;
+        for ( Node child = voel.getFirstChild(); child != null;
               child = child.getNextSibling() ) {
             if ( child instanceof Attr ) {
                 Attr att = (Attr) child;
@@ -228,11 +227,10 @@ public class VOComponentDataNode extends DefaultDataNode
                     ninfo++;
                 }
                 else if ( elname.equals( "PARAM" ) ) {
-                    params.add( new ParamElement( childEl, systemId, vofact ) );
+                    params.add( (ParamElement) childEl );
                 }
                 else if ( elname.equals( "COOSYS" ) ) {
-                    coosyss.add( vofact
-                                .makeVOElement( childEl, systemId ) );
+                    coosyss.add( (VOElement) childEl );
                 }
             }
         }
@@ -264,7 +262,7 @@ public class VOComponentDataNode extends DefaultDataNode
         if ( coosyss.size() == 1 ) {
             dv.addSubHead( "Coordinate system" );
             VOElement coosys = (VOElement) coosyss.get( 0 );
-            String text = coosys.getTextContent().trim();
+            String text = DOMUtils.getTextContent( coosys ).trim();
             String id = coosys.getID();
             String equinox = coosys.getAttribute( "equinox" );
             String epoch = coosys.getAttribute( "epoch" );
@@ -307,9 +305,19 @@ public class VOComponentDataNode extends DefaultDataNode
         /* XML view. */
         dv.addPane( "XML content", new ComponentMaker() {
             public JComponent getComponent() {
-                return new TextViewer( voel.getSource() );
+                return new TextViewer( getSource( voel ) );
             }
         } );
+    }
+
+    /**
+     * Returns a DOM source associated with a given VO Element.
+     *
+     * @param  voel  element
+     * @return   source
+     */
+    public static DOMSource getSource( VOElement voel ) {
+        return new DOMSource( voel, voel.getSystemId() );
     }
    
     /**

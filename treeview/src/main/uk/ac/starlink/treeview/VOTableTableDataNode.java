@@ -31,9 +31,9 @@ public class VOTableTableDataNode extends VOComponentDataNode
             throw new NoSuchDataException( "Not a TABLE element" );
         }
         votable = (TableElement) getElement();
-        long nrows = votable.getRowCount();
+        long nrows = votable.getNrows();
         desc = "(" 
-             + votable.getColumnCount() 
+             + votable.getFields().length 
              + "x" 
              + ( ( nrows >= 0 ) ? "" + nrows : "?" )
              + ")";

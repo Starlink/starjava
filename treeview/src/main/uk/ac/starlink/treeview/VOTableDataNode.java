@@ -65,7 +65,8 @@ public class VOTableDataNode extends DocumentDataNode {
             for ( Iterator it = VOComponentDataNode
                                .getChildElements( getVOElement() ).iterator(); 
                   it.hasNext(); ) {
-                Source xsrc = ((VOElement) it.next()).getSource();
+                VOElement el = (VOElement) it.next();
+                Source xsrc = new DOMSource( el, el.getSystemId() );
                 children.add( makeChild( xsrc ) );
             }
         }
