@@ -1,5 +1,9 @@
 package uk.ac.starlink.table;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.InputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -171,6 +175,143 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( URL url ) throws IOException {
         return makeStarTable( new URLDataSource( url ) );
+    }
+
+    /**
+     * Constructs a StarTable from a 
+     * {@link java.awt.datatransfer.Transferable} object.  
+     * In conjunction with a suitable {@link javax.swing.TransferHandler}
+     * this makes it easy to accept drop of an object representing a table
+     * which has been dragged from another application.
+     * <p>
+     * The implementation of this method currently tries the following 
+     * on a given transferable to turn it into a table:
+     * <ul>
+     * <li>If it finds a {@link java.net.URL} object, passes that to the
+     *     URL factory method
+     * <li>If it finds a transferable that will supply an
+     *     {@link java.io.InputStream}, turns it into a 
+     *     {@link java.util.DataSource} and passes that to the 
+     *     <tt>DataSource</tt> constructor
+     * </ul>
+     * <p>
+     * This method doesn't throw an exception if it fails to come up
+     * with a StarTable, it merely returns <tt>null</tt>.  This is because
+     * with many flavours to choose from, it's not clear which exception
+     * ought to get thrown.
+     *
+     * @param  trans  the Transferable object to construct a table from
+     * @return  a new StarTable constructed from the Transferable, or
+     *          <tt>null</tt> if it can't be done
+     * @see  #canImport
+     */
+    public StarTable makeStarTable( final Transferable trans )
+            throws IOException {
+
+        /* Go through all the available flavours offered by the transferable. */
+        DataFlavor[] flavors = trans.getTransferDataFlavors();
+        StringBuffer msg = new StringBuffer();
+        for ( int i = 0; i < flavors.length; i++ ) {
+            final DataFlavor flavor = flavors[ i ];
+            String mimeType = flavor.getMimeType();
+            Class clazz = flavor.getRepresentationClass();
+
+            /* If it represents a URL, get the URL and offer it to the
+             * URL factory method. */
+            if ( clazz.equals( URL.class ) ) {
+                try {
+                    Object data = trans.getTransferData( flavor );
+                    if ( data instanceof URL ) {
+                        URL url = (URL) data;
+                        return makeStarTable( url );
+                    }
+                }
+                catch ( UnsupportedFlavorException e ) {
+                    throw new RuntimeException( "DataFlavor " + flavor 
+                                              + " support withdrawn?" );
+                }
+                catch ( UnknownTableFormatException e ) {
+                    msg.append( e.getMessage() );
+                }
+            }
+
+            /* If we can get a stream, see if any of the builders will
+             * take it. */
+            if ( InputStream.class.isAssignableFrom( clazz ) && 
+                 ! flavor.isFlavorSerializedObjectType() ) {
+                for ( Iterator it = builders.iterator(); it.hasNext(); ) {
+                    TableBuilder builder = (TableBuilder) it.next();
+                    if ( builder.canImport( flavor ) ) {
+                        DataSource datsrc = new DataSource() {
+                            protected InputStream getRawInputStream()
+                                    throws IOException {
+                                try {
+                                    return (InputStream) 
+                                           trans.getTransferData( flavor );
+                                }
+                                catch ( UnsupportedFlavorException e ) {
+                                    throw new RuntimeException(
+                                        "DataFlavor " + flavor + 
+                                        " support withdrawn?" );
+                                }
+                            }
+                            public URL getURL() {
+                                return null;
+                            }
+                        };
+                        StarTable startab = builder.makeStarTable( datsrc );
+                        if ( startab != null ) {
+                            return startab;
+                        }
+                        else {
+                            msg.append( "Tried: " )
+                               .append( builder )
+                               .append( " on type " ) 
+                               .append( flavor.getPrimaryType() )
+                               .append( '/' )
+                               .append( flavor.getSubType() )
+                               .append( '\n' );
+                        }
+                    }
+                }
+            }
+        }
+
+        /* No luck. */
+        throw new UnknownTableFormatException( msg.toString() );
+    }
+
+    /**
+     * Indicates whether a particular set of <tt>DataFlavor</tt> ojects
+     * offered by a <tt>{@link java.awt.datatransfer.Transferable}
+     * is suitable for attempting to turn the <tt>Transferable</tt>
+     * into a StarTable.
+     * <p>
+     * Each of the builder objects is queried about whether it can 
+     * import the given flavour, and if one says it can, a true value
+     * is returned.  A true value is also returned if one of the flavours
+     * has a representation class of {@link java.net.URL}.
+     *
+     * @param  flavors  the data flavours offered
+     */
+    public boolean canImport( DataFlavor[] flavors ) {
+        for ( int i = 0; i < flavors.length; i++ ) {
+            DataFlavor flavor = flavors[ i ];
+            String mimeType = flavor.getMimeType();
+            Class clazz = flavor.getRepresentationClass();
+            if ( clazz.equals( URL.class ) ) {
+                return true;
+            }
+            else {
+                for ( Iterator it = builders.iterator(); it.hasNext(); ) {
+                    TableBuilder builder = (TableBuilder) it.next();
+                    if ( builder.canImport( flavor ) ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**

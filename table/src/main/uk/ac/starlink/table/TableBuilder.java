@@ -1,5 +1,6 @@
 package uk.ac.starlink.table;
 
+import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import uk.ac.starlink.util.DataSource;
 
@@ -24,6 +25,34 @@ public interface TableBuilder {
      * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
      *          if this handler can't handle it
      */
-    public StarTable makeStarTable( DataSource datsrc ) throws IOException;
+    StarTable makeStarTable( DataSource datsrc ) throws IOException;
 
+    /**
+     * Indicates whether this builder is able to turn a resource of
+     * media type indicated by <tt>flavor</tt> into a table.
+     * It should return <tt>true</tt> if it thinks that its 
+     * {@link #makeStarTable} method stands a reasonable chance of 
+     * successfully constructing a <tt>StarTable</tt> from a 
+     * <tt>DataSource</tt> whose input stream is described by the
+     * {@link java.awt.datatransfer.DataFlavor} <tt>flavor</tt>.
+     * It will typically make this determination based on the flavor's
+     * MIME type.  
+     * <p>
+     * For reasons of efficiency it is probably not a 
+     * good idea to return <tt>true</tt> unless the flavor looks like
+     * it is targeted at this builder; for instance a builder which 
+     * uses a text-based format should probably return false for a 
+     * flavor which indicates a MIME type of <tt>text/plain</tt>.
+     * <p>
+     * This method is used in supporting drag and drop functionality
+     * (see {@link 
+     * StarTableFactory#canImport(java.awt.datatransfer.DataFlavor[])}).
+     *
+     * @param  flavor  the DataFlavor whose suitability as stream input
+     *         is to be assessed
+     * @return <tt>true</tt> iff this builder reckons it stands a good 
+     *         chance of turning a stream of type <tt>flavor</tt> into a 
+     *         <tt>StarTable</tt>
+     */
+    boolean canImport( DataFlavor flavor );
 }

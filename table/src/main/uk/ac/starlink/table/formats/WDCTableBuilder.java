@@ -1,5 +1,6 @@
 package uk.ac.starlink.table.formats;
 
+import java.awt.datatransfer.DataFlavor;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
@@ -41,6 +42,13 @@ public class WDCTableBuilder implements TableBuilder {
         // st.setURL( datsrc.getURL() );
         // st.setName( datsrc.getName() );
         return st;
+    }
+
+    /**
+     * Returns false since there is no MIME type which targets WDC format.
+     */
+    public boolean canImport( DataFlavor flavor ) {
+        return false;
     }
 
     public static String readLine( BufferedInputStream strm ) 
