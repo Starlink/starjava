@@ -6,8 +6,9 @@ import junit.framework.AssertionFailedError;
 
 /**
  * This class extends {@link junit.framework.TestCase}, providing some 
- * additional assertions for convenience.  All the existing methods
- * of <tt>TestCase</tt> are simply delegated to the superclass.
+ * additional assertions and methods for providing test data for convenience.
+ * All the existing methods of <tt>TestCase</tt> are simply delegated 
+ * to the superclass.
  * <p>
  * Some of the methods are concerned with providing random values;
  * these are deterministic in that the random seed is set to a fixed
@@ -486,7 +487,7 @@ public class TestCase extends junit.framework.TestCase {
      * range appropriate for the primitive type in question the range
      * will be suitably clipped.
      *
-     * @param  array  an array of primitives array to be filled with 
+     * @param  array  an array of primitives to be filled with 
      *                random values
      * @param  min    the smallest value which will be used
      *                (will be converted to the appropriate primitive type)
@@ -563,7 +564,7 @@ public class TestCase extends junit.framework.TestCase {
      * range appropriate for the primitive type in question the range
      * will be suitably clipped.
      *
-     * @param  array  an array of primitives array to be filled with 
+     * @param  array  an array of primitives to be filled with 
      *                random values
      * @param  min    the smallest value which will be used
      *                (will be converted to the appropriate primitive type)
@@ -574,6 +575,80 @@ public class TestCase extends junit.framework.TestCase {
      */
     public void fillRandom( Object array, int min, int max ) {
         fillRandom( array, (double) min, (double) max + 0.99 );
+    }
+
+    /**
+     * Fills a given array with a regular pattern of integer values.
+     * The elements of the array will take the values 
+     * <tt>min, min+1, min+2 .. max-1, min, min+1, min+2..</tt> and so on.
+     * If the <tt>max&lt;min</tt> then the values will start at <tt>min</tt>
+     * and keep increasing.
+     * <p>
+     * The results might not be as expected if you use a <tt>min</tt> and
+     * <tt>max</tt> values outside the range of the numeric type in question.
+     *
+     * @param  array   an array of primitives to be filled with cycling values
+     * @param  min     the first value
+     * @param  max     the highest value, or if less than <tt>min</tt> an
+     *                 indication that there is no maximum
+     * @throws IllegalArgumentException  if <tt>array</tt> is not an array
+     *         of a suitable primitive type
+     */
+    public void fillCycle( Object array, int min, int max ) {
+        Class clazz = array.getClass().getComponentType();
+        int size = Array.getLength( array );
+        if ( clazz == byte.class ) {
+            byte[] arr = (byte[]) array;
+            byte val = (byte) min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = (byte) min;
+            }
+        }
+        else if ( clazz == short.class ) {
+            short[] arr = (short[]) array;
+            short val = (short) min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = (short) min;
+            }
+        }
+        else if ( clazz == int.class ) {
+            int[] arr = (int[]) array;
+            int val = min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = min;
+            }
+        }
+        else if ( clazz == long.class ) {
+            long[] arr = (long[]) array;
+            long val = min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = min;
+            }
+        }
+        else if ( clazz == float.class ) {
+            float[] arr = (float[]) array;
+            float val = min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = min;
+            }
+        }
+        else if ( clazz == double.class ) {
+            double[] arr = (double[]) array;
+            double val = min;
+            for ( int i = 0; i < size; i++ ) {
+                arr[ i ] = val++;
+                if ( val > max ) val = min;
+            }
+        }
+        else {
+            throw new IllegalArgumentException(
+                "Unsupported array type or not an array " + array.getClass() );
+        }
     }
 
     private String combineMessages( String msg, String detail ) {
