@@ -9,6 +9,8 @@
  * Peter W. Draper 2002/10/03  Added constructor that takes an
  *                             ImageProcessor, needed so that
  *                             sub-classes can define their own
+ *                             Added setCanvasDraw, so that can be 
+ *                             supplied with a sub-class
  */
 
 package jsky.image.gui;
@@ -428,6 +430,10 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
         return _canvasDraw;
     }
 
+    /** PWD: Set the object that manages interactive drawing on the image */
+    public void setCanvasDraw( CanvasDraw canvasDraw ) {
+	    _canvasDraw = canvasDraw;
+    }
 
     /**
      * Set the image file to display.
