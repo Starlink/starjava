@@ -1143,6 +1143,20 @@
     </java>
   </target>
 
+  <!-- Execute a given class with up to two arguments -->
+  <property name="runclass" value="uk.ac.starlink.splat.SplatMain"/>
+  <property name="runclass.args1" value=""/>
+  <property name="runclass.args2" value=""/>
+  <target name="runclass" 
+          depends="compile-tests">
+
+    <java classname="${runclass}" fork="true">
+      <classpath refid="tests-classpath"/>
+      <arg value="${runclass.args1}"/>
+      <arg value="${runclass.args2}"/>
+    </java>
+  </target>
+
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
    !
