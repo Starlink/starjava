@@ -79,6 +79,7 @@ public class ResourceIcon implements Icon {
         VIEWER = makeIcon( "browser1.gif" ),
         SUBSETS = makeIcon( "venn2.gif" ),
         FUNCTION = makeIcon( "fx2.gif" ),
+        MATCH = makeIcon( "match1.gif" ),
 
         /* Specific actions. */
         UNSORT = DO_WHAT,
