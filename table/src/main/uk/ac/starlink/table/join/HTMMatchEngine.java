@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -33,21 +34,11 @@ public class HTMMatchEngine implements MatchEngine {
     private HTMindex htm;
     private DescribedValue sepValue = new SeparationValue();
 
-    private static final DefaultValueInfo RA_INFO = 
-        new DefaultValueInfo( "RA", Number.class, "Right Ascension" );
-    private static final DefaultValueInfo DEC_INFO =
-        new DefaultValueInfo( "Dec", Number.class, "Declination" );
     private static final DefaultValueInfo SEP_INFO =
         new DefaultValueInfo( "Error", Double.class, 
                               "Maximum separation along a great circle" );
     static {
-        RA_INFO.setUnitString( "radians" );
-        DEC_INFO.setUnitString( "radians" );
         SEP_INFO.setUnitString( "radians" );
-        RA_INFO.setNullable( false );
-        DEC_INFO.setNullable( false );
-        RA_INFO.setUCD( "POS_EQ_RA" );
-        DEC_INFO.setUCD( "POS_EQ_DEC" );
     }
 
     /**
@@ -164,7 +155,7 @@ public class HTMMatchEngine implements MatchEngine {
     }
 
     public ValueInfo[] getTupleInfos() {
-        return new ValueInfo[] { RA_INFO, DEC_INFO };
+        return new ValueInfo[] { Tables.RA_INFO, Tables.DEC_INFO };
     }
 
     public DescribedValue[] getMatchParameters() {

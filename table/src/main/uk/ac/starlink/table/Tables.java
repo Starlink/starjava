@@ -27,9 +27,32 @@ public class Tables {
      * that a <tt>null</tt> is returned from the table interrogation methods
      * if that is what is meant.
      */
-    public static ValueInfo NULL_VALUE_INFO =
+    public static final ValueInfo NULL_VALUE_INFO =
         new DefaultValueInfo( "NULL_VALUE", Object.class,
                               "Integer value which represents a null" );
+
+    /**
+     * ValueInfo representing Right Ascension. 
+     * The units are radians and it is non-nullable.
+     */
+    public static final DefaultValueInfo RA_INFO =
+        new DefaultValueInfo( "RA", Number.class, "Right Ascension" );
+
+    /**
+     * ValueInfo representing Declination.
+     * The units are radians and it is non-nullable.
+     */
+    public static final DefaultValueInfo DEC_INFO =
+        new DefaultValueInfo( "Dec", Number.class, "Declination" );
+
+    static {
+        RA_INFO.setUnitString( "radians" );
+        DEC_INFO.setUnitString( "radians" );
+        RA_INFO.setNullable( false );
+        DEC_INFO.setNullable( false );
+        RA_INFO.setUCD( "POS_EQ_RA" );
+        DEC_INFO.setUCD( "POS_EQ_DEC" );
+    }
 
     /**
      * Returns a table based on a given table and guaranteed to have 
