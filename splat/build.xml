@@ -427,6 +427,7 @@
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
         <include name="**/images/**"/>
+        <include name="**/support/**"/>
       </fileset>
     </copy>
 
@@ -620,7 +621,7 @@
          <extension name="PAL" href="pal.jnlp"/>
          <extension name="DIVA" href="diva.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
-         <extension name="TABLE" href="table.jnlp"/>
+         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
@@ -1133,6 +1134,7 @@
       <jvmarg value="-Djava.compiler=NONE"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
       <jvmarg value="-Dsplat.etc=${src.etc}"/>
+      <jvmarg value="-Dsplat.development=${splat.development}"/>
       <arg value="src/etc/testdata/ramp.txt"/>
     </java>
   </target>
@@ -1158,6 +1160,10 @@
 
     <java classname="${runclass}" fork="true">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
       <arg value="${runclass.args1}"/>
       <arg value="${runclass.args2}"/>
     </java>
