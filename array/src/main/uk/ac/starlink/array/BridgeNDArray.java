@@ -2,6 +2,11 @@ package uk.ac.starlink.array;
 
 import java.io.IOException;
 import java.net.URL;
+import uk.ac.starlink.hdx.DOMFacade;
+import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.hdx.HdxResourceType;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Class providing an {@link NDArray} implementation based on an
@@ -153,4 +158,85 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         return buf.toString();
     }
 
+    public DOMFacade getDOMFacade(HdxResourceType hdxType) {
+        return new BridgeNDArrayDOMFacade(hdxType);
+    }
+    
+    protected class BridgeNDArrayDOMFacade
+            extends uk.ac.starlink.hdx.AbstractDOMFacade {
+        /*
+         * Implement the DOMFacade by creating a DOM using
+         * HdxElements, and caching it.
+         * Implement setAttribute by calling setAttribute on the top
+         * element of that cached DOM.
+         *
+         * XXX Is this sufficient?  Can this become out of date?  Are
+         * the attributes purely for information, or should they modify
+         * instance variables of the BridgeNDArray?
+         */
+        private HdxResourceType type;
+        private Document cachedDoc;
+
+        public BridgeNDArrayDOMFacade(HdxResourceType type) {
+            this.type = type;
+        }
+        
+        public Element getDOM(URL base) {
+            if (cachedDoc == null) {
+                cachedDoc = uk.ac.starlink.hdx.HdxDOMImplementation
+                        .getInstance()
+                        .createDocument(null, "array", null);
+                Element el = cachedDoc.createElement(type.xmlName());
+                cachedDoc.appendChild(el);
+            }
+            assert cachedDoc != null;
+            Element ret = cachedDoc.getDocumentElement();
+            assert ret.getTagName().equals(type.xmlName());
+            return ret;
+        }
+        
+        public Object getObject(Element el) 
+                throws HdxException {
+            if (type != HdxResourceType.match(el))
+                throw new HdxException
+                        ("getObject asked to realise bad type "
+                         + el.getTagName());
+            return BridgeNDArray.this;
+        }
+
+        /** 
+         * Sets an attribute on the element this object is the facade
+         * for.  If an attribute is `set' to a null value, it is removed.
+         *
+         * @param el the element which is to have the attribute set
+         *
+         * @param name the attribute which is to be set
+         *
+         * @param value the new value of the attribute.  If the value is
+         * null, the attribute is removed.  Setting the value to the empty
+         * string is allowed, and is not the same as setting it to null.
+         *
+         * @return true if the operation succeeded, or false if there
+         * was some problem with the arguments
+         */
+        public boolean setAttribute(Element el, String name, String value) {
+            if (el == null || name == null) {
+                System.err.println("BridgeNDArrayDOMFacade: null el or name");
+                return false;
+            }
+            Element myDocEl = getDOM(null);
+            if (! myDocEl.getTagName().equals(el.getTagName())) {
+                System.err.println
+                       ("BridgeNDArrayDOMFacade: inconsitent arguments: given "
+                        + el.getTagName() + ", but managing "
+                        + myDocEl.getTagName());
+                return false;
+            }
+            if (value == null)
+                myDocEl.removeAttribute(name);
+            else
+                myDocEl.setAttribute(name, value);
+            return true;
+        }
+    }
 }

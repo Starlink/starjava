@@ -191,4 +191,16 @@ public interface NDArray extends ArrayDescription {
      */
     void close() throws IOException;
 
+    /**
+     * Obtains a DOMFacade representing this array.
+     *
+     * <p>Since the array does not `know' which type of element it is
+     * representing, this must be passed to it when the
+     * <code>DOMFacade</code> is created.
+     *
+     * @param hdxType the type of the element which this array is
+     * to represent
+     */
+    uk.ac.starlink.hdx.DOMFacade getDOMFacade
+            (uk.ac.starlink.hdx.HdxResourceType hdxType);
 }
