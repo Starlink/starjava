@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.util.List;
 
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
@@ -303,15 +304,26 @@ public class SpecDataFactory
     protected SpecDataImpl makeFITSSpecDataImpl( String specspec )
         throws SplatException
     {
-        SpecDataImpl impl = new FITSSpecDataImpl( specspec );
-        String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
+        SpecDataImpl impl = null;
+        try {
+            impl = new FITSSpecDataImpl( specspec );
+        }
+        catch (SplatException e ) {
+            e.printStackTrace();
+        }
 
-        if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ) {
+        // Table, if it is an table extension, or the data array size is 0
+        // (may be primary).
+        String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
+        int dims[] = impl.getDims();
+        if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ||
+             dims == null || dims[0] == 0 ) {
             try {
                 DataSource datsrc = new FileDataSource( specspec );
                 StarTable starTable =
                     new FitsTableBuilder().makeStarTable( datsrc, true );
-                impl = new TableSpecDataImpl( starTable );
+                impl = new TableSpecDataImpl( starTable, specspec,
+                                              datsrc.getURL().toString() );
             }
             catch (Exception e) {
                 throw new SplatException( "Failed to open FITS table", e );
@@ -456,6 +468,99 @@ public class SpecDataFactory
     }
 
     /**
+     * Create an clone of an existing spectrum by transforming it into
+     * another implementation format. The destination format is
+     * as given.
+     *
+     * @param source SpecData object to be cloned.
+     * @param specspec name of the resultant clone (defines
+     *                 implementation type).
+     * @param type the type of spectrum
+     * @param format if the type is table this maybe a suggested format
+     *
+     * @return the cloned SpecData object.
+     * @exception SplatException maybe thrown if there are problems
+     *            creating the new SpecData object or the implementation.
+     */
+    public SpecData getClone( SpecData source, String specspec, int type,
+                              String format )
+        throws SplatException
+    {
+        String sourceType = source.getDataFormat();
+
+        //  Create an implementation object using the source to
+        //  provide the content (TODO: could be more efficient?).
+        SpecDataImpl impl = null;
+
+        // LineIDs can only be cloned to LineIDs.
+        if ( source instanceof LineIDSpecData ) {
+            impl = new LineIDTXTSpecDataImpl( specspec,
+                                              (LineIDSpecData) source );
+        }
+        else {
+            switch (type) {
+               case FITS: {
+                   impl = new FITSSpecDataImpl( specspec, source );
+               }
+               break;
+               case HDS: {
+                   impl = new NDFSpecDataImpl( specspec, source );
+               }
+               break;
+               case TEXT: {
+                   impl = new TXTSpecDataImpl( specspec, source );
+               }
+               break;
+               case HDX: {
+                   impl = new NDXSpecDataImpl( specspec, source );
+               }
+               break;
+               case TABLE: {
+                   impl = new TableSpecDataImpl( specspec, source, format );
+               }
+               break;
+               default: {
+                   // DEFAULT or unknown.
+                   return getClone( source, specspec );
+               }
+            }
+        }
+        SpecData specData = makeSpecDataFromImpl( impl );
+        specData.setType( source.getType() );
+        return specData;
+    }
+
+    /**
+     * Create an clone of an existing spectrum by transforming it into
+     * table implementation format. The destination format is
+     * decided using the given string or naming rules if the format is
+     * null.
+     *
+     * @param source SpecData object to be cloned.
+     * @param specspec name of the table implementation.
+     * @param format the table format, null for use builtin rules.
+     *
+     * @return the cloned SpecData object.
+     * @exception SplatException maybe thrown if there are problems
+     *            creating the new SpecData object or the implementation.
+     */
+    public SpecData getTableClone( SpecData source, String specspec,
+                                   String format )
+        throws SplatException
+    {
+        SpecDataImpl impl = new TableSpecDataImpl( specspec, source, format );
+        return new SpecData( impl );
+    }
+
+    /**
+     * Return a list of the supported table formats.
+     */
+    public List getKnownTableFormats()
+    {
+        return TableSpecDataImpl.getKnownFormats();
+    }
+
+    /**
      * Create spectrum that can have its values modified or
      * individually edited. Initially the object contains no
      * coordinates or data, so space for these must be allocated and
@@ -513,7 +618,7 @@ public class SpecDataFactory
                                             boolean sort )
         throws SplatException
     {
-        EditableSpecData editableSpecData = 
+        EditableSpecData editableSpecData =
             createEditable( shortname, specData );
         if ( sort && ! specData.isMonotonic() ) {
             editableSpecData.sort();
@@ -527,7 +632,19 @@ public class SpecDataFactory
     public SpecData get( StarTable table )
         throws SplatException
     {
-        throw new SplatException( "tables not supported" );
+        SpecDataImpl impl = new TableSpecDataImpl( table );
+        return new SpecData( impl );
+    }
+
+    /**
+     * Create a SpecData for a given {@link StarTable}. Also provide a
+     * short and full names for the table (these are often blank).
+     */
+    public SpecData get( StarTable table, String shortName, String fullName )
+        throws SplatException
+    {
+        SpecDataImpl impl = new TableSpecDataImpl(table, shortName, fullName);
+        return new SpecData( impl );
     }
 
     /**
@@ -537,6 +654,17 @@ public class SpecDataFactory
         throws SplatException
     {
         SpecDataImpl impl = new NDXSpecDataImpl( ndx );
+        return new SpecData( impl );
+    }
+
+    /**
+     * Create a SpecData for a given {@link Ndx}. Also provide a short name
+     * and full name.
+     */
+    public SpecData get( Ndx ndx, String shortName, String fullName )
+        throws SplatException
+    {
+        SpecDataImpl impl = new NDXSpecDataImpl( ndx, shortName, fullName );
         return new SpecData( impl );
     }
 }
