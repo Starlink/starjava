@@ -25,11 +25,11 @@
 Research Councils}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.3}
+\newcommand{\stardocnumber}    {243.4}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {19 May 2004}
+\newcommand{\stardocdate}      {9 November 2004}
 \newcommand{\stardoctitle}     {SPLAT - A Spectral Analysis Tool}
-\newcommand{\stardocversion}   {2.1}
+\newcommand{\stardocversion}   {2.2}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT} is an extensible analysis and display tool for extracted
@@ -445,7 +445,7 @@ the command-line:
 \end{quote}
 Which will read the spectrum stored in the named file. \SPLAT\ will read
 spectra stored in most astronomical formats (Starlink NDF, FITS spectra and
-tables, simple TEXT files)
+tables, simple TEXT files).
 
 Now that you've actually read in a spectrum it will be immediately
 displayed in a `plot'. Have a look at this plot window briefly, if you
@@ -2181,7 +2181,8 @@ stored as 1D spectra or as columns in tables. 1D spectral formats supported
 are Starlink NDF \& NDX, FITS and simple TEXT files. Table formats supported
 are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
 formats currently have the best coordinate system support, so are recommended
-when a choice can be made.
+when a choice can be made. Some support is available for 2 and 3D data, see
+later).
 
 Normally \SPLAT\ differentiates these types using a preset list of file
 extensions, for instance NDFs can only be stored in container files that have
@@ -2190,10 +2191,24 @@ the extension \hitext{.sdf}, FITS files usually have one of the extensions
 and NDX format spectra, when stored on disk, will have extension
 \hitext{.xml}. However, you can choose a specific format when opening a file
 using the \submenuitem{File}{Open} dialogue, so you can ask that a TEXT file
-is opened as a table, this allows you to select the columns.
+is opened as a table, this allows you to select the columns. Alternatively you
+can specify a type for all the spectra opened on the command-line using the
+\verb|--type| argument. Valid values for \verb|--type| are:
+\begin{quote}
+\begin{verbatim}
+  fits
+  hds
+  text
+  hdx
+  table
+  line ids
+\end{verbatim}
+\end{quote}
+You free to truncate these values as long as they remain unique (so
+\verb|--type line| will work for line identifiers).
 
-Line identifier catalogues are a special case and currently have a single one
-format - TEXT based in files with extension \hitext{.ids}.
+Currently line identifier catalogues represent a special case and currently
+may have a single format - TEXT based in files with extension \hitext{.ids}.
 
 1D spectra stored in TEXT files must have the format of one, two or three
 columns of data, separated by whitespace (that is spaces or tabs). Any
@@ -2205,7 +2220,7 @@ allowed. The three columns should have the following values:
 \end{verbatim}
 \end{quote}
 The wavelength and error columns being optional (if you don't have a
-wavelength column a simple row index is used, note also you cannot have errors
+wavelength column a simple row index is used, note you cannot have errors
 without wavelengths) . If you choose to open a TEXT file as a table you can
 select which columns should be used for these values, and the following rules
 apply:
@@ -2246,8 +2261,48 @@ choose the component to display directly.
 
 Internally all these formats are stored as double precision
 coordinates and data values. \SPLAT\ only requires that
-\textit{coordinates increase or decrease monotonically} 
+\textit{coordinates increase or decrease monotonically}
 when performing any analyses.
+
+\subsection{Handling 2 and 3D data}
+
+If you have images or cubes that contain data that you want to view as spectra
+in some fashion, then \SPLAT\ will attempt to do this for you. There are three
+fundamental modes for doing this:
+\begin{itemize}
+
+\item by collapsing images into a single \hitext{spectrum} by adding together
+all values that lie perpendicular to the dispersion axis (so the spectrum runs
+along this axis, what a good spectral displaying tool should do),
+
+\item by expanding images and cubes into a spectrum for each line running
+along the dispersion axis,
+
+\item by vectorizing the whole data into a single line (created by joining
+everything line-by-line).
+
+\end{itemize}
+
+The default is to collapse. When collapsing cubes you have the option of which
+axis to step along selecting image planes, this is known as the
+\hitext{select} axis. To determine which option is used to handle your cubes or
+images you can either set values on the command-line, along with your spectra,
+or choose options in the open file dialogue. A command line that uses axis 3 as
+the dispersion axis and steps along axis 2 when choosing image planes might
+look like:
+\begin{quote}
+\begin{verbatim}
+  % splat --ndaction collapse --dispax 3 --selectax 2 <spectral_cube> &
+\end{verbatim}
+\end{quote}
+or in shorthand:
+\begin{quote}
+\begin{verbatim}
+  % splat -n c -d 3 -s 2 <spectral_cube> &
+\end{verbatim}
+\end{quote}
+If you don't choose a dispersion axis \SPLAT\ will make a good intelligent
+guess about this and step along the first axis that isn't the dispersion axis.
 
 %%%% Removed for the moment, may all be changing a lot soon.
 %
@@ -2401,7 +2456,32 @@ Niemeyer (\htmladdnormallink{http://www.beanshell.org}
                             {http://www.beanshell.org}).
 
 \section{Changes}
-\subsection{This release, 2.1}
+
+\subsection{This release (2.2)}
+
+ The following changes have been made in this release.
+ \begin{itemize}
+    \item A bug in the astrometry reading software has been fixed. This led to
+      the application of \hitext{CDELT1} \textit{and} \hitext{CD1\_1} scales to the
+      wavelength range of some spectra (notable those produced by IRAF), which
+      meant that the range was underestimated by a scale \hitext{CDELT1}.
+
+    \item You can now specify the spectrum type on the command-line using the
+      \verb|--type| option. Valid values are: \hitext{fits}, \hitext{hds},
+      \hitext{text}, \hitext{hdx}, \hitext{table} and \hitext{line ids}.
+
+    \item You can now open a spectrum using a URL, so spectra stored on remote
+      servers can be downloaded and displayed.
+
+    \item The handling of 2D and 3D input data has been enhanced. Previously
+      such data was just "vectorized" (that is laid out line-by-line and
+      displayed as a single spectrum ), now such data is collapsed down onto
+      the dispersion axis (if one can be determined). For 3D data each image
+      plane is collapsed in a similar fashion. You can also choose to extract
+      each line as a spectrum.
+\end{itemize}
+
+\subsection{Release 2.1}
 
 This is a new release of SPLAT which is now part of the Starlink
 Java Collection and is now released under the GPL.
@@ -2420,7 +2500,7 @@ The most significant visible changes to SPLAT are:
     also supports AST escaped text sequences for super and subscripting.
 
     \item Plot annotations. You can now add arbitrary text and shapes to a
-    plot. 
+    plot.
 
     \item Interactive background estimation. \SPLAT\ now offers the ability to
     draw interpolated spline-like backgrounds for your spectra.

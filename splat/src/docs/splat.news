@@ -3,46 +3,26 @@
  This is a new release of SPLAT which is now part of the Starlink
  Java Collection and is now released under the GPL.
 
- The most significant visible changes to SPLAT are:
+ The following changes have been made in this release.
 
-    - Tables support. You can now read and write spectra in tables
-      of various kinds, for instance FITS (binary and ASCII), VOTable and
-      various text formats.
+    - A bug in the astrometry reading software has been fixed. This led to the
+      application of CDELT1 and CD1_1 scales to the wavelength range of some
+      spectra (produced by IRAF), which meant that the range was underestimated
+      by a scale CDELT1.
 
-    - Component browser. SPLAT now incorporates a Treeview-like component
-      browser so you can select FITS file extensions (tables and spectra)
-      and NDF components.
+    - You can now specify the spectrum type on the command-line using the 
+      --type option. Valid values are: "fits","hds","text","hdx","table" 
+      and "line ids".
 
-    - Log axes. You can now draw either axis using log spacing. SPLAT
-      also supports AST escaped text sequences for super and subscripting.
+    - You can now open a spectrum using a URL, so spectra stored on remote
+      servers can be downloaded and displayed.
 
-    - Plot annotations. You can now add arbitrary text and shapes to a plot.
+    - The handling of 2D and 3D input data has been enhanced. Previously
+      such data was just "vectorized" (that is laid out line-by-line and
+      displayed as a single spectrum ), now such data is collapsed down onto
+      the dispersion axis (if one can be determined). For 3D data each image
+      plane is collapsed in a similar fashion. You can also choose to extract
+      each line as a spectrum.
 
-    - Interactive background estimation. SPLAT now offers the ability to
-      draw interpolated spline-like backgrounds for your spectra.
+Peter W. Draper (p.w.draper@durham.ac.uk)          9th October 2004
 
-    - Better printing facilities. Printing to postscript is now a separate,
-      always available, option.
-
-    - You can now divide a spectrum by its background to normalize absorption
-      spectra.
-
-    - Line deblending. SPLAT now has a command-line script for deblending
-      lines using Gaussian, Lorentzian or Voigt profiles. This may become
-      part of a proper toolbox in some future release.
-
-Other changes include, selection of the columns used from a table, text files
-may now just contain a single column, many new options for configuring the
-interface, the plot window now retains its size, and the restriction that all
-spectra should have monotonic coordinates has been removed (you can plot
-these, but the results may be unpredictable).
-
-Peter W. Draper (p.w.draper@durham.ac.uk)          11th May 2004
-
-A bug in the astrometry reading software has been fixed. This led to the 
-application of CDELT1 and CD1_1 scales to the wavelength range of some
-spectra (produced by IRAF), which meant that the range was underestimated
-by a scale CDELT1.
-
-
-Peter W. Draper (p.w.draper@durham.ac.uk)          9th Sep 2004
