@@ -4,8 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -295,16 +297,43 @@ public class AuxWindow extends JFrame {
      * @param   second  second window
      */
     public static void positionAfter( Component first, Window second ) {
-        Point pos = null; 
-        if ( first != null ) {
-            pos = first.getLocation();
+
+        /* Only attempt anything if the two windows exist on the same
+         * display device. */
+        GraphicsConfiguration gc = second.getGraphicsConfiguration();
+        if ( first == null || gc.equals( first.getGraphicsConfiguration() ) ) {
+
+            /* Work out the position of the first window. */
+            Point pos = null; 
+            if ( first != null ) {
+                pos = first.getLocation();
+            }
+            if ( pos == null ) {
+                pos = new Point( 20, 20 );
+            }
+
+            /* Set a new position relative to that. */
+            pos.x += 60;
+            pos.y += 60;
+
+            /* As long as we won't go outside the bounds of the screen,
+             * reposition the second window accordingly. */
+            // This code, though well-intentioned, doesn't do anythiing very
+            // useful since the bounds of the new window are typically
+            // both zero (because it's not been posted to the screen yet
+            // or something).  Not sure what to do about this.
+            Rectangle newloc = new Rectangle( second.getBounds() );
+            newloc.setLocation( pos );
+            Rectangle screen = gc.getBounds();
+            // The Rectangle.contains(Rectangle) method is no good here -
+            // always returns false for height/width = 0 for some reason.
+            if ( screen.x <= newloc.x &&
+                 screen.y <= newloc.y &&
+                 ( screen.x + screen.width ) >= ( newloc.x + newloc.width ) &&
+                 ( screen.y + screen.height ) >= ( newloc.y + newloc.height ) ){
+                second.setLocation( pos );
+            }
         }
-        if ( pos == null ) {
-            pos = new Point( 20, 20 );
-        }
-        pos.x += 60;
-        pos.y += 60;
-        second.setLocation( pos );
     }
 
     /**
