@@ -11,4 +11,13 @@
 <server description="Infrared Space Observatory"
         baseurl="http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap.jsp?imageType=spectrum"/>
 
+<!-- Produces the new SED-type results, so not used yet
+<server description="SDSS"
+        baseurl="http://test.voservices.net/ssap/SSAP.asmx/getSSAPInfo?FORMAT=*"/>
+-->
+
+<server description="HyperLeda FITS Archive"
+        baseurl="http://vo.obspm.fr/cgi-bin/siap/ssapHFA.pl?"/>
+<server description="Far Ultraviolet Spectroscopic Explorer"
+        baseurl="http://vo.obspm.fr/cgi-bin/siap/ssapFUSE.pl?"/>
 </serverlist>
