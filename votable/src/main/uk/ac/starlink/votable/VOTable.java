@@ -16,6 +16,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.StarEntityResolver;
 
 /**
  * Class representing the top-level VOTABLE element of a VOTable document.
@@ -188,7 +189,7 @@ public class VOTable extends VOElement {
                 throw new RuntimeException( e2 );  // shouldn't happen?
             }
         }
-        parser.setEntityResolver( VOTableEntityResolver.getInstance() );
+        parser.setEntityResolver( StarEntityResolver.getInstance() );
 
         /* Configure the error handler according to whether we are validating
          * or not. */
