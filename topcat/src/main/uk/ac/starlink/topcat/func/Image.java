@@ -8,12 +8,12 @@ package uk.ac.starlink.topcat.func;
 import java.util.ArrayList;
 import java.util.List;
 import uk.ac.starlink.topcat.ImageWindow;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
  * Functions for display of graphics-format images in a window.
- * Supported image formats include GIF and JPEG and PNG.
- * The display is based on the image loading facilities of the java
- * Abstract Windowing Toolkit.
+ * Supported image formats include GIF, JPEG, PNG and FITS,
+ * which may be compressed.
  *
  * @author   Mark Taylor (Starlink)
  * @since    1 Oct 2004
@@ -29,19 +29,26 @@ public class Image {
     }
 
     /**
-     * Displays the file at a given location in an Image Window.
+     * Displays the file at the given location in an image viewer;
+     * if SoG is available that will be used, otherwise a basic image window.
      * <code>loc</code> should be a filename or URL, pointing to an
-     * image in JPEG or GIF format.
+     * image in one of the supported formats.
      *
      * @param  loc  image location
      * @return  short log message
      */
     public static String displayImage( String loc ) {
-        return displayImageMulti( new String[] { loc } );
+        if ( TopcatUtils.canSog() ) {
+            return Sog.sog( loc );
+        }
+        else {
+            return displayBasicImage( loc );
+        }
     }
 
     /**
-     * Displays two files at given locations as images in two Image Windows.
+     * Displays two files at given locations as images in two image viewers;
+     * if SoG is available that will be used, otherwise a basic image window.
      * This may be useful to compare two images which correspond to
      * the same table row.
      *
@@ -50,17 +57,65 @@ public class Image {
      * @return  short report message
      */
     public static String displayImage2( String loc1, String loc2 ) {
-        return displayImageMulti( new String[] { loc1, loc2 } );
+        if ( TopcatUtils.canSog() ) {
+            return Sog.sog2( loc1, loc2 );
+        }
+        else {
+            return displayBasicImage2( loc1, loc2 );
+        }
     }
 
     /**
      * Generic routine for displaying multiple images simultaneously in
-     * Image Windows.
+     * image viewers; 
+     * if SoG is available that will be used, otherwise a basic image window.
      *
      * @param  locs  array of image file locations (file/URL)
      * @return  short log message
      */
     public static String displayImageMulti( String[] locs ) {
+        if ( TopcatUtils.canSog() ) {
+            return Sog.sogMulti( locs );
+        }
+        else {
+            return displayBasicImageMulti( locs );
+        }
+    }
+
+    /**
+     * Displays the file at a given location in a basic Image Window.
+     * <code>loc</code> should be a filename or URL, pointing to an
+     * image in one of the supported formats.
+     *
+     * @param  loc  image location
+     * @return  short log message
+     */
+    public static String displayBasicImage( String loc ) {
+        return displayBasicImageMulti( new String[] { loc } );
+    }
+
+    /**
+     * Displays two files at given locations as images in two basic 
+     * Image Windows.
+     * This may be useful to compare two images which correspond to
+     * the same table row.
+     *
+     * @param  loc1  location of first image
+     * @param  loc2  location of second image
+     * @return  short report message
+     */
+    public static String displayBasicImage2( String loc1, String loc2 ) {
+        return displayBasicImageMulti( new String[] { loc1, loc2 } );
+    }
+
+    /**
+     * Generic routine for displaying multiple images simultaneously in
+     * basic Image Windows.
+     *
+     * @param  locs  array of image file locations (file/URL)
+     * @return  short log message
+     */
+    public static String displayBasicImageMulti( String[] locs ) {
         int nimage = locs.length;
         ImageWindow[] viewers = getViewers( nimage );
         String[] msgs = new String[ nimage ];
