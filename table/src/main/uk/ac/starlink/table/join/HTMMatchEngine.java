@@ -180,8 +180,6 @@ public class HTMMatchEngine implements MatchEngine {
      */
     private double calculateSeparation( double ra1, double dec1,
                                         double ra2, double dec2 ) {
-
-        // this formula isn't too good for small angles!
         return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
     }
 
