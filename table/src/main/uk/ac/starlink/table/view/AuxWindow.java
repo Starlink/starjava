@@ -41,7 +41,7 @@ class AuxWindow extends JFrame {
         /* Set up a basic menubar with a File menu. */
         JMenuBar mb = new JMenuBar();
         setJMenuBar( mb );
-        JMenu fileMenu = new JMenu( "File" );
+        fileMenu = new JMenu( "File" );
         mb.add( fileMenu );
         Action closeAct = new BasicAction( "Close", "Close this window" ) {
             public void actionPerformed( ActionEvent evt ) {
