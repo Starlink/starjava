@@ -112,13 +112,13 @@ public class JCanvas extends JComponent implements Printable {
         AffineTransform at =
             _canvasPane.getTransformContext().getInverseTransform();
         layerevent.transform(at);
-        
+
         // Process it on the pane
         String tip = _canvasPane.getToolTipText(layerevent);
 	return tip;
     }
 
-    
+
     /** Return whether or not focus should be traversable across this object.
      *  This must return true to allow keyboard events to be grabbed.  Return
      *  true in this class.
@@ -126,7 +126,7 @@ public class JCanvas extends JComponent implements Printable {
     public boolean isFocusTraversable() {
         return true;
     }
-    
+
     /** Paint the canvas. Every layer in this canvas will be
      * requested to paint itself.
      * <p>
@@ -138,7 +138,10 @@ public class JCanvas extends JComponent implements Printable {
      * posted by Jonathon Knudsen to the Java2D mailing list, May
      * 1998.
      */
-    public void paint (Graphics g) {
+    public void paintComponent(Graphics g) {
+        // PWD: change from public void paint (Graphics g) {
+        // to Swing compatible paintComponent.
+
         // It appears that Swing already sets the clip region when
         // we are ready to draw. So let's see if we are drawing the
         // whole canvas or not...
@@ -209,7 +212,9 @@ public class JCanvas extends JComponent implements Printable {
             g.drawImage(_offscreen, clip.x, clip.y, null);
         }
 
-	super.paint(g);
+	//PWD: change from 
+        //  super.paint(g);
+	super.paintComponent( g );
     }
 
     /** Print the canvas to a printer, represented by the specified graphics
@@ -224,8 +229,8 @@ public class JCanvas extends JComponent implements Printable {
      */
     public int print(Graphics graphics, PageFormat format,
             int index) throws PrinterException {
-        
-        Dimension dimension = getSize();        
+
+        Dimension dimension = getSize();
         Rectangle2D bounds = new Rectangle2D.Double (
                 0, 0,
                 dimension.width, dimension.height);
@@ -257,8 +262,8 @@ public class JCanvas extends JComponent implements Printable {
                 format.getImageableHeight());
         ((Graphics2D) graphics).transform(CanvasUtilities.computeFitTransform(
                 printRegion, pageBounds));
-        graphics.setClip(printRegion);        
-        
+        graphics.setClip(printRegion);
+
         paint(graphics);
         return Printable.PAGE_EXISTS;
     }
@@ -327,7 +332,7 @@ public class JCanvas extends JComponent implements Printable {
 
     /** Process a mouse motion event. This method overrides the
      * inherited method to create a LayerEvent or LayerMotionEvent
-     * and pass the event on to its pane (if it is not null).  
+     * and pass the event on to its pane (if it is not null).
      * The mouse event is passed to the superclass' method for
      * handling.
      */
@@ -354,7 +359,7 @@ public class JCanvas extends JComponent implements Printable {
         AffineTransform at =
             _canvasPane.getTransformContext().getInverseTransform();
         layerevent.transform(at);
-        
+
         // Process it on the pane
         _canvasPane.dispatchEvent(layerevent);
     }
