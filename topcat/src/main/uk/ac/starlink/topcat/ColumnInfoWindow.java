@@ -29,6 +29,7 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ShapeIterator;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -538,40 +539,6 @@ public class ColumnInfoWindow extends TopcatViewWindow {
             new DescribedValue( TopcatUtils.COLID_INFO, 
                                 RandomJELRowReader.COLUMN_ID_CHAR + "0" ) );
         return cinfo;
-    }
-
-    /**
-     * Iterates over an int array representing a hypercuboidal shape,
-     * returning a position array each time.
-     */
-    private class ShapeIterator implements Iterator {
-        final int[] shape_;
-        final int ndim_;
-        int[] pos_;
-        ShapeIterator( int[] shape ) {
-            shape_ = shape;
-            ndim_ = shape.length;
-            pos_ = new int[ ndim_ ];
-        }
-        public boolean hasNext() {
-            return pos_ != null;
-        }
-        public Object next() {
-            int[] next = (int[]) pos_.clone();
-            for ( int j = 0; j < ndim_; j++ ) {
-                if ( ++pos_[ j ] < shape_[ j ] ) {
-                    return next;
-                }
-                else {
-                    pos_[ j ] = 0;
-                }
-            }
-            pos_ = null;
-            return next;
-        }
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
     }
 
     /**
