@@ -16,17 +16,17 @@
 
   <something>
     <stuff
-      ns4:name='ndx'
+      ns4:hdxname='ndx'
       xml:base='../../../../../etc/testcases/' 
       xmlns:ns4='http://www.starlink.ac.uk/HDX'>
       <cheesy
-	ns5:name='image'
+	ns5:hdxname='image'
 	ns5:uri="file:test1.fits"
 	xmlns:ns5='http://www.starlink.ac.uk/HDX'>
 	chewing-gum
       </cheesy>
       <wotsit xmlns:ns6='http://www.starlink.ac.uk/HDX'>
-	<thingy ns6:name='quality'>
+	<thingy ns6:hdxname='quality'>
 	  file:test2.fits
 	</thingy>
       </wotsit>
