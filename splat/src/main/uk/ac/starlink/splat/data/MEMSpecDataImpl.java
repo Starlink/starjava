@@ -8,12 +8,13 @@
 package uk.ac.starlink.splat.data;
 
 import nom.tam.fits.Header;
+import nom.tam.fits.HeaderCard;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.LutMap;
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.ast.ASTJ;;
 
 /**
  * This class provides an implementation of SpecDataImpl to access
@@ -62,18 +63,25 @@ public class MEMSpecDataImpl
         super( name, spectrum );
         this.shortName = name;
 
-        //  Use the AST system from the spectrum, rather than creating
-        //  our own.
-        setAstCopy( spectrum.getFrameSet() );
-        copyData( spectrum.getXData(), spectrum.getYData(), 
+        //  Use the AST system from the spectrum, rather than creating our
+        //  own. Pick the first axis of the SpecData FrameSet. This should be
+        //  1D and match the physical to data coordinates, but note we are
+        //  losing any connection to the original WCS and dimensionality.
+        FrameSet mainFrameSet = spectrum.getAst().getRef();
+        FrameSet frameSet = ASTJ.get1DFrameSet( mainFrameSet, 1 );
+        setAstCopy( frameSet );
+        copyData( spectrum.getXData(), spectrum.getYData(),
                   spectrum.getYDataErrors() );
 
         //  Record any source of header information.
-        if ( spectrum.getSpecDataImpl().isFITSHeaderSource() )
-        {
-            headers = ((FITSHeaderSource)spectrum.getSpecDataImpl())
-                .getFitsHeaders();
+        if ( spectrum.getSpecDataImpl().isFITSHeaderSource() ) {
+            headers = 
+               ((FITSHeaderSource)spectrum.getSpecDataImpl()).getFitsHeaders();
         }
+
+        //  Retain the data units and label.
+        dataUnits = mainFrameSet.getC( "unit(2)" );
+        dataLabel = mainFrameSet.getC( "label(2)" );
     }
 
     /**
@@ -153,6 +161,38 @@ public class MEMSpecDataImpl
         return "MEMORY";
     }
 
+    /**
+     * Return a known descriptive label. The only fully supported values are
+     * "title" (shortname), "label" and "units". These may be retained from a
+     * spectrum used to initialise this one. Other values may be queried from
+     * any attached FITS headers.
+     */
+    public String getProperty( String prop )
+    {
+        if ( prop.equalsIgnoreCase( "title" ) ) {
+            return shortName;
+        }
+
+        if ( prop.equalsIgnoreCase( "label" ) && dataLabel != null ) {
+            return dataLabel;
+        }
+
+        if ( prop.equalsIgnoreCase( "units" ) && dataUnits != null ) {
+            return dataUnits;
+        }
+
+        if ( getFitsHeaders() != null ) {
+            String scard = getFitsHeaders().findKey( prop );
+            if ( scard != null ) {
+                HeaderCard card = new HeaderCard( scard );
+                if ( card != null ) {
+                    return card.getValue();
+                }
+            }
+        }
+        return "";
+    }
+
 //
 //  Implementation specific methods and variables.
 //
@@ -187,6 +227,16 @@ public class MEMSpecDataImpl
     protected FrameSet astref = null;
 
     /**
+     * The units of the data values (if known).
+     */
+    protected String dataUnits = null;
+
+    /**
+     * The label of the data values (if known).
+     */
+    protected String dataLabel = null;
+
+    /**
      * Finalise object. Free any resources associated with member
      * variables.
      */
@@ -202,22 +252,49 @@ public class MEMSpecDataImpl
     }
 
     /**
-     * Create an AST frameset that relates the spectrum coordinate to
-     * data values positions. This is straight-forward and just
-     * creates a look-up-table to map the given coordinates to grid
-     * positions. The lookup table mapping is simplified as this
-     * should cause any linear transformations to be replaced with a
-     * WinMap.
+     * Create an AST {@link FrameSet} that relates the spectrum coordinate to
+     * data values positions. Using the given FrameSet to define the
+     * coordinate systems of the coordinates and data (the coordinate system is
+     * the current {@link Frame} and the data the base Frame). The FrameSet
+     * should be 1D and if null then default systems will be created.
+     */
+    protected void createAst( FrameSet sourceSet )
+    {
+        if ( sourceSet != null ) {
+            createAst( (Frame) sourceSet.getFrame( FrameSet.AST__BASE ).copy(),
+                       (Frame) sourceSet.getFrame( FrameSet.AST__CURRENT ).copy() );
+        }
+        else {
+            createAst();
+        }
+    }
+
+    /**
+     * Create an default AST FrameSet when we have no information about the
+     * coordinate system or data units.
      */
     protected void createAst()
     {
-        //  Create two simple frames, one for the indices of the data
-        //  counts and one for the coordinates. Note we no longer
-        //  label these as known.
-        Frame baseframe = new Frame( 1 );
-        baseframe.set( "Label(1)=Data count" );
-        Frame currentframe = new Frame( 1 );
-        currentframe.set( "Label(1)=X coordinate" );
+        createAst( null, null );
+    }
+
+    /**
+     * Create an AST {@link FrameSet} that relates the spectrum coordinate to
+     * data values positions. Using the given {@link Frame}'s to define the
+     * coordinate systems of the coordinates and data (the coordinate system
+     * is the current and base the data). The Frames should be 1D and if null
+     * then default systems will be created.
+     */
+    protected void createAst( Frame baseframe, Frame currentframe )
+    {
+        if ( baseframe == null ) {
+            baseframe = new Frame( 1 );
+            baseframe.set( "Label(1)=Data count" );
+        }
+        if ( currentframe == null ) {
+            currentframe = new Frame( 1 );
+            currentframe.set( "Label(1)=X coordinate" );
+        }
 
         //  Create an AST lutmap that relates the index of the data
         //  counts to the coordinates.
@@ -237,24 +314,23 @@ public class MEMSpecDataImpl
      *
      * @exception SplatException never thrown for this implementation.
      */
-    public void save() 
+    public void save()
         throws SplatException
     {
         if ( errors != null ) {
-	   setData( astref, data, errors );
+            setFullData( astref, data, errors );
         }
         else {
-	   setData( astref, data );
+	   setFullData( astref, data );
 	}
     }
 
     /**
-     * Make local copies of any given coordinates, data and errors.
-     * Caller is responsible for post-initialisation (i.e. calling
-     * createAst, if no FrameSet is available) and ensuring that the
-     * post-setup is valid (i.e. if coords and data lengths match, and
-     * that data and coords or a WCS are present). Errors are reset if
-     * none are given.
+     * Make local copies of any given coordinates, data and errors.  Caller is
+     * responsible for post-initialisation (i.e. calling createAst, if no
+     * FrameSet is available) and ensuring that the post-setup is valid
+     * (i.e. if coords and data lengths match, and that data and coords or a
+     * WCS are present). Errors are reset if none are given.
      */
     protected void copyData( double[] coords, double[] data, double[] errors )
         throws SplatException
@@ -268,7 +344,7 @@ public class MEMSpecDataImpl
                 this.data = new double[data.length];
                 System.arraycopy( data, 0, this.data, 0, data.length );
             }
-            
+
             //  Errors are special, null means none are present.
             if ( errors != null ) {
                 this.errors = new double[data.length];
@@ -293,7 +369,7 @@ public class MEMSpecDataImpl
     protected Header headers = new Header();
 
     /**
-     * Return any FITS headers we have accumilated.
+     * Return any FITS headers we have accumulated.
      */
     public Header getFitsHeaders()
     {
@@ -304,121 +380,86 @@ public class MEMSpecDataImpl
     // Editable interface.
     //
 
-    /**
-     * Set the spectrum data and coordinates. No errors. Takes
-     * complete copies of the data.
-     *
-     * @param coords the spectrum coordinates, one per data value.
-     * @param data the spectrum data values.
-     */
-    public void setData( double[] coords, double[] data )
+    public void setSimpleData( double[] coords, double[] data )
         throws SplatException
     {
         copyData( coords, data, null );
         createAst();
     }
 
-    /**
-     * Set the spectrum data and WCS. No errors. Takes complete copies
-     * of the data.
-     *
-     * @param frameSet the FrameSet for mapping data indices to
-     *                 coordinates.
-     * @param data the spectrum data values.
-     */
-    public void setData( FrameSet frameSet, double[] data )
+    public void setSimpleUnitData( FrameSet sourceSet, double[] coords,
+                                   double[] data )
+        throws SplatException
+    {
+        copyData( coords, data, null );
+        createAst( sourceSet );
+    }
+
+    public void setFullData( FrameSet frameSet, double[] data )
         throws SplatException
     {
         copyData( null, data, null );
         setAstCopy( frameSet );
     }
 
-    /**
-     * Set the spectrum data. No errors. Doesn't copy the data, just
-     * keeps references (quick but less safe).
-     *
-     * @param coords the spectrum coordinates, one per data value.
-     * @param data the spectrum data values.
-     */
-    public void setDataQuick( double[] coords, double[] data )
+    public void setSimpleDataQuick( double[] coords, double[] data )
     {
         this.data = data;
         this.coords = coords;
         createAst();
     }
 
-    /**
-     * Set the spectrum data and WCS. No errors. Doesn't copy the
-     * data, just keeps references (quick but less safe).
-     *
-     * @param frameSet the FrameSet for mapping data indices to
-     *                 coordinates.
-     * @param data the spectrum data values.
-     */
-    public void setDataQuick( FrameSet frameSet, double[] data )
+    public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords,
+                                        double[] data )
+    {
+        this.data = data;
+        this.coords = coords;
+        createAst( sourceSet );
+    }
+
+    public void setFullDataQuick( FrameSet frameSet, double[] data )
     {
         this.data = data;
         setAstCopy( frameSet );
     }
 
-    /**
-     * Set the spectrum data. With errors.
-     *
-     * @param coords the spectrum coordinates, one per data value.
-     * @param data the spectrum data values.
-     * @param errors the errors of the spectrum data values. Null for
-     *               none.
-     */
-    public void setData( double[] coords, double[] data, double[] errors )
+    public void setSimpleData( double[] coords, double[] data, double[] errors )
         throws SplatException
     {
         copyData( coords, data, errors );
         createAst();
     }
 
-    /**
-     * Set the spectrum data and WCS. With errors.
-     *
-     * @param frameSet the FrameSet for mapping data indices to
-     *                 coordinates.
-     * @param data the spectrum data values.
-     * @param errors the errors of the spectrum data values. Null for
-     *               none.
-     */
-    public void setData( FrameSet frameSet, double[] data, double[] errors )
+    public void setSimpleUnitData( FrameSet sourceSet, double[] coords,
+                                   double[] data, double[] errors )
+        throws SplatException
+    {
+        copyData( coords, data, errors );
+        createAst( sourceSet );
+    }
+
+    public void setFullData( FrameSet frameSet, double[] data, double[] errors )
         throws SplatException
     {
         copyData( null, data, errors );
         setAstCopy( frameSet );
     }
 
-    /**
-     * Set the spectrum data. With errors. Doesn't copy the data, just
-     * keeps references (quick but less safe).
-     *
-     * @param data the spectrum data values.
-     * @param coords the spectrum coordinates, one per data value.
-     * @param errors the errors of the spectrum data values. Null for
-     *               none.
-     */
-    public void setDataQuick( double[] coords, double[] data, double[] errors )
+    public void setSimpleDataQuick( double[] coords, double[] data, double[] errors )
     {
-        setDataQuick( coords, data );
+        setSimpleDataQuick( coords, data );
         this.errors = errors;
     }
 
-    /**
-     * Set the spectrum data and WCS. With errors. Doesn't copy the
-     * data, just keeps references (quick but less safe).
-     *
-     * @param frameSet the FrameSet for mapping data indices to
-     *                 coordinates.
-     * @param data the spectrum data values.
-     * @param errors the errors of the spectrum data values. Null for
-     *               none.
-     */
-    public void setDataQuick( FrameSet frameSet, double[] data,
-                              double[] errors )
+    public void setSimpleUnitDataQuick( FrameSet sourceSet, double[] coords,
+                                        double[] data, double[] errors )
+    {
+        setSimpleUnitDataQuick( sourceSet, coords, data );
+        this.errors = errors;
+    }
+
+    public void setFullDataQuick( FrameSet frameSet, double[] data,
+                                  double[] errors )
     {
         this.data = data;
         this.errors = errors;
@@ -426,10 +467,6 @@ public class MEMSpecDataImpl
         createCoords();
     }
 
-    /**
-     * Change a coordinate value. Need to re-generate the AST frameset
-     * after each change (for batch changes, use the setData methods).
-     */
     public void setXDataValue( int index, double value )
         throws SplatException
     {
@@ -445,9 +482,6 @@ public class MEMSpecDataImpl
         }
     }
 
-    /**
-     * Change a data value.
-     */
     public void setYDataValue( int index, double value )
         throws SplatException
     {
@@ -459,9 +493,6 @@ public class MEMSpecDataImpl
         }
     }
 
-    /**
-     * Change a data error value.
-     */
     public void setYDataErrorValue( int index, double value )
         throws SplatException
     {
@@ -479,10 +510,6 @@ public class MEMSpecDataImpl
         }
     }
 
-    /**
-     * Accept a new FrameSet. The existing FrameSet is annulled,
-     * unless a reference to it is given.
-     */
     public void setAst( FrameSet frameSet )
         throws SplatException
     {
@@ -495,9 +522,9 @@ public class MEMSpecDataImpl
     }
 
     /**
-     * Accept a new FrameSet making a copy of it. The existing
-     * FrameSet is annulled, unless a reference to it is given. If the
-     * copy fails then a default FrameSet is created.
+     * Accept a new FrameSet making a copy of it. The existing FrameSet is
+     * annulled, unless a reference to it is given. If the copy fails then a
+     * default FrameSet is created.
      */
     public void setAstCopy( FrameSet frameSet )
     {
@@ -513,11 +540,10 @@ public class MEMSpecDataImpl
     }
 
     /**
-     * Create a set of coordinates that match the current
-     * FrameSet. This is necessary so that "createAst" can always
-     * succeed and is necessary for single editable coordinates. This
-     * may fail if the WCS isn't 1D, so we need to work around that
-     * possibility.
+     * Create a set of coordinates that match the current FrameSet. This is
+     * necessary so that "createAst" can always succeed and is necessary for
+     * single editable coordinates. This may fail if the WCS isn't 1D, so we
+     * need to work around that possibility.
      */
     protected void createCoords()
     {
@@ -526,7 +552,7 @@ public class MEMSpecDataImpl
         for ( int i = 0; i < data.length; i++ ) {
             coords[i] = (double) ( i + 1 );
         }
-        Mapping mapping = ASTJ.get1DFrameSet( astref, 1 );
+        Mapping mapping = ASTJ.get1DMapping( astref, 1 );
         coords = ASTJ.astTran1( mapping, coords, true );
     }
 }
