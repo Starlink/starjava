@@ -111,6 +111,10 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         return this;
     }
 
+    public void paintSurface( Graphics g ) {
+        paintComponent( g );
+    }
+
     protected void _zoom( int x, int y ) {
         double oldXMin = _xMin;
         double oldXMax = _xMax;

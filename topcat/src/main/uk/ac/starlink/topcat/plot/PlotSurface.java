@@ -81,4 +81,19 @@ public interface PlotSurface {
      * @return  plot surface display component
      */
     JComponent getComponent();
+
+    /**
+     * Paints the plotting surface.
+     * This should do roughly the same as <tt>getComponent.paintComponent</tt>,
+     * except that it's public.
+     *
+     * <p>Requiring this here isn't very tidy, but following quite a bit of
+     * experimentation I can't work out any other way to do scatter plot
+     * image caching while still drawing to a potentially 
+     * hardware-accelerated graphics context 
+     * (see {@link ScatterPlot} implementation).
+     *
+     * @param  g  graphics context
+     */
+    void paintSurface( Graphics g );
 }

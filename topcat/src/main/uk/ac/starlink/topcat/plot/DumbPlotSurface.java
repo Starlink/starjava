@@ -1,6 +1,7 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Shape;
 import java.util.BitSet;
@@ -54,6 +55,10 @@ class DumbPlotSurface extends JComponent implements PlotSurface {
 
     public JComponent getComponent() {
         return this;
+    }
+
+    public void paintSurface( Graphics g ) {
+        paintComponent( g );
     }
 
 }

@@ -2,9 +2,9 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Shape;
-import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import javax.swing.JComponent;
@@ -37,7 +37,7 @@ public class ScatterPlot extends JComponent implements Printable {
     private PlotSurface lastSurface_;
     private int lastWidth_;
     private int lastHeight_;
-    private BufferedImage image_;
+    private Image image_;
 
     /**
      * Constructs a new scatter plot, specifying the initial plotting surface
@@ -267,12 +267,30 @@ public class ScatterPlot extends JComponent implements Printable {
 
     /**
      * Graphical component which does the actual plotting of the points.
+     * Its basic job is to call {@link @drawPoints} in its 
+     * {@link paintComponent} method.  However it makes things a bit more
+     * complicated than that for the purposes of efficiency.
      */
     private class ScatterDataPanel extends JComponent {
+
         ScatterDataPanel() {
             setOpaque( false );
         }
+
+        /**
+         * Draws the component to a graphics context which probably 
+         * represents the screen, by calling {@link #drawPoints}.
+         * Since <tt>drawPoints</tt> might be fairly expensive 
+         * (if there are a lot of points), and <tt>paintComponent</tt> 
+         * can be called often without the data changing 
+         * (e.g. cascading window uncover events) it is advantageous 
+         * to cache the drawing in an Image and effectively
+         * blit it to the screen on subsequent paint requests.
+         */
         protected void paintComponent( Graphics g ) {
+ 
+            /* If the plotting requirements have changed since last time
+             * we painted, we can use the cached image. */
             int width = getBounds().width;
             int height = getBounds().height;
             if ( state_ == lastState_ &&
@@ -282,20 +300,64 @@ public class ScatterPlot extends JComponent implements Printable {
                  height == lastHeight_ ) {
                 assert image_ != null;
             }
+
+            /* We need to replot the points. */
             else {
-                image_ = new BufferedImage( width, height,
-                                            BufferedImage.TYPE_INT_ARGB );
-                Graphics ig = image_.createGraphics();
-                super.paintComponent( ig );
+
+                /* Get an image to plot into.  Take care that this is an
+                 * image which can take advantage of hardware acceleration
+                 * (e.g. "new BufferedImage()" is no good). */
+                image_ = createImage( width, height );
+                Graphics ig = image_.getGraphics();
+
+                /* Unfortunately, accelerated-graphics-capable contexts
+                 * are unable to handle transparency very well.  This means
+                 * that the plotting surface will not show up behind the
+                 * plotted points in the cached image buffer, even though
+                 * this component is supposed to be transparent. 
+                 * So we fudge it by calling the plotting surface's 
+                 * <tt>paintSurface</tt> method (introduced for this purpose)
+                 * here.  This is not incredibly tidy. */
+                surface_.paintSurface( ig );
+
+                /* Plot the actual points into the cached buffer. */
                 drawPoints( ig, surface_ );
+
+                /* Record the state which corresponds to the most recent
+                 * plot into the cached buffer. */
                 lastState_ = state_;
                 lastSurface_ = surface_;
                 lastPoints_ = points_;
                 lastWidth_ = width;
                 lastHeight_ = height;
             }
-            boolean done = ((Graphics2D) g).drawImage( image_, 0, 0, null );
+
+            /* Copy the image from the (new or old) cached buffer onto
+             * the graphics context we are being asked to paint into. */
+            boolean done = g.drawImage( image_, 0, 0, null );
             assert done;
+        }
+
+        /**
+         * The normal implementation for this method calls 
+         * <tt>paintComponent</tt> somewhere along the way.
+         * However, if we are painting the component 
+         * for some reason other than posting it
+         * on the screen, we don't want to use the cached-image approach
+         * used in <tt>paintComponent</tt>, since it might be a 
+         * non-pixelised graphics context (e.g. postscript).
+         * So for <tt>printComponent</tt>, just invoke <tt>drawPoints</tt>
+         * straightforwardly.
+         *
+         * <p>A more respectable way to do this might be to test the
+         * <tt>Graphics2D.getDeviceConfiguration().getDevice().getType()</tt>
+         * value in <tt>paintComponent</tt> - however, for at least one
+         * known printer-type graphics context 
+         * (<tt>org.jibble.epsgraphics.EpsGraphics2D</tt>) this returns
+         * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
+         */
+        protected void printComponent( Graphics g ) {
+            drawPoints( g, surface_ );
         }
     }
 
