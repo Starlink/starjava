@@ -114,7 +114,7 @@ Table data and metadata can be edited and the resulting modified table
 can be written out in a wide range of output formats.
 </px>
 
-<px>TOPCAT is written in pure Java and available under the 
+<px>TOPCAT is written in pure Java and is available under the 
 GNU General Public Licence.  Its underlying table processing facilities
 are provided by the Starlink Tables Infrastructure Library.
 </px>
@@ -133,7 +133,7 @@ A common astronomical example of a table is an object catalogue.
 </p>
 
 <p>TOPCAT can read in tables in a number of formats, allow you to
-inspect and manipulate them in a number of ways, and if you have
+inspect and manipulate them in various ways, and if you have
 edited them optionally write them out in the modified state for later use,
 again in a variety of formats.
 Here is a summary of its main capabilities:
@@ -175,8 +175,9 @@ such as changing the current
 change the <ref id="apparent" plaintextref="yes">Apparent Table</ref>, 
 which is a view
 of the table used for things such as saving it and performing row matches.
-Any changes you make do not modify the tables on disk (or wherever they
-came from), but if you want to save the changes you have made,
+Changes that you make do not directly modify the tables on disk 
+(or wherever they came from), 
+but if you want to save the changes you have made,
 you can <ref id="StarTableSaver">write</ref> 
 the modified table(s) to a new location.
 </p>
@@ -196,12 +197,13 @@ read in its HTML form than on paper.
 </p>
 
 <p>Recent news about the program can be found on the
-<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT web page</webref>.
+<webref url="http://www.starlink.ac.uk/topcat/" plaintextref="yes"
+        >TOPCAT web page</webref>.
 It has been written by the
 <webref url="http://www.starlink.ac.uk/">Starlink</webref> project.
 The underlying table handling facilities are supplied by
 the Starlink Tables Infrastructure Library
-(<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>),
+<webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>,
 which is documented more fully in &SUN.252;.
 It is written in pure Java (the current version requires J2SE1.4 or 1.5/5.0)
 which makes it highly portable, since it can run on any machine which has
@@ -230,7 +232,7 @@ that make up the data, the data and metadata themselves, and so on.
 While manipulating it you can modify the way that the table appears
 to the program, by changing or adding data or metadata, 
 or changing the order or selection of columns or rows that are visible.
-For each table the "apparent table" is a table which corresponds to
+For each table its "apparent table" is a table which corresponds to
 the current state of the table according to the changes that you have made.
 </p>
 
@@ -295,8 +297,9 @@ displays its columns in the order that they appear in the Apparent Table.
 <subhead><title>Row Subsets</title></subhead>
 
 <p>An important feature of TOPCAT is the ability to define and use 
-<label>Row Subsets</label>.  A Row Subset is effectively a table composed
-from some subset of the rows in a whole table being viewed by the application.
+<label>Row Subsets</label>.  A Row Subset is a selection of the 
+rows within a whole table being viewed within the application, 
+or equivalently a new table composed from some subset of its rows.
 You can define these and use them in several different ways;
 the usefulness comes from defining them in one context and using them
 in another.
@@ -455,9 +458,9 @@ rows in their currently sorted order in the
 <p>When each table is imported it has a list of columns.
 Each column has header information which determines the kind of 
 data which can fill the cells of that column as well as a name,
-and maybe some additional information like units and UCD
-(<webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
-         >Unified Content Descriptor</webref>).
+and maybe some additional information like units and 
+<webref url="http://vizier.u-strasbg.fr/doc/UCD.htx"
+         >Unified Content Descriptor</webref>.
 All this information can be viewed, and in some cases modified,
 in the <ref id="ColumnInfoWindow">Columns Window</ref>.
 </p>
@@ -713,17 +716,16 @@ you should be just fine.
 <p>Here are the detailed rules for how the ASCII-format tables are 
 interpreted:
 <ul>
-<li>Bytes in the file are interpreted as ASCII characters
-    (UTF-8-encoded Unicode)</li>
+<li>Bytes in the file are interpreted as ASCII characters</li>
 <li>Each table row is represented by a single line of text</li>
 <li>Lines are terminated by one or more contiguous line termination
     characters: line feed (0x0A) or carriage return (0x0D)</li>
 <li>Within a line, fields are separated by one or more whitespace
     characters: space (" ") or tab (0x09)</li>
 <li>A field is either an unquoted sequence of non-whitespace characters,
-    or a sequence of non-newline characters between matching quote
-    characters: either single quotes (') or double quotes (") -
-    spaces are therefore allowed in quoted fields.</li>
+    or a sequence of non-newline characters between matching
+    single (') or double (") quote characters -
+    spaces are therefore allowed in quoted fields</li>
 <li>Within a quoted field, whitespace characters are permitted and are
     treated literally</li>
 <li>Within a quoted field, any character preceded by a backslash character
@@ -821,7 +823,8 @@ you wish to load a table in <code>ascii</code> format.
 text-based format in which fields are delimited by commas.
 Spreadsheets and databases are often able to export data in some 
 variant of it.  The intention is that TOPCAT can read tables in 
-the version of the format spoken by MS Excel, though the documentation
+the version of the format spoken by MS Excel amongst other applications, 
+though the documentation
 on which it was based was not obtained directly from Microsoft.
 </p>
 
@@ -1108,6 +1111,7 @@ designed to be read by humans.  No reader exists for this format.
 format, described in more detail in <ref id="inCsv"/>.
 This can be useful for importing into certain external applications,
 such as some spreadsheets or databases.
+The first row written contains the column names.
 </p>
 
 </subsubsect>
@@ -1205,6 +1209,7 @@ suitable for insertion into a document intended for publication.
 <subhead><title>Mirage Format</title></subhead>
 
 <p><webref url="http://www.bell-labs.com/project/mirage/index.html"
+           plaintextref="yes"
            >Mirage</webref>
 is a powerful standalone java tool developed at Bell Labs for analysis of
 multidimensional data.  It uses its own file format for input.
@@ -1262,7 +1267,7 @@ table format in question.
 
 <p>Explaining how to write such handlers is beyond the scope of this
 document - see the user document and javadocs for 
-<webref url="http://www.starlink.ac.uk/stil/">STIL</webref>.
+<webref url="http://www.starlink.ac.uk/stil/" plaintextref="yes">STIL</webref>.
 </p>
 
 </subsect>
@@ -1369,7 +1374,7 @@ For another, defining what is meant by "referring to the same thing"
 may not be straightforward.  There is also the problem of 
 actually identifying these matches
 in a relatively efficient way (without explicitly comparing each
-row in one table with each row in the other, which is far too slow
+row in one table with each row in the other, which would be far too slow
 for large tables).
 </p>
 
@@ -1465,7 +1470,7 @@ first principles of how it all works.
 <p>The basic algorithm for matching is based on dividing up the space
 of possibly-matching rows into an (indeterminate) number of bins.  
 These bins will typically correspond to disjoint cells of a physical
-coordinate space, but need not do so.  In the first step, each
+or notional coordinate space, but need not do so.  In the first step, each
 row of each table is assessed to determine which bins might contain
 matches to it - this will generally be the bin that it falls into and
 any "adjacent" bins within a distance corresponding to the matching
@@ -1554,7 +1559,7 @@ but the kinds of actions which are envisaged are to display one or
 more images or spectra relating to the row you have identified.
 One of the options available for instance retrieves a postage-stamp image
 of a few arcminutes around the sky position defined by the row
-from the SuperCOSMOS all-sky image survey and pops it up in a viewer
+from a SuperCOSMOS all-sky image survey and pops it up in a viewer
 window.  So for instance having spotted an interesting point in a 
 plot of a galaxy catalogue you can click on it, and immediately see 
 a picture to identify its morphological type.
@@ -1930,7 +1935,7 @@ name clashes are a possibility.
 </p>
 
 <p>This cleverness is all made possible by the rather wonderful
-<webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>.
+<webref url="http://galaxy.fzu.cz/JEL/" plaintextref="yes">JEL</webref>.
 </p>
 
 </subsubsect>
@@ -1967,6 +1972,7 @@ probably best off ignoring this feature.
 <p>Here are some examples for synthetic columns 
 (i.e. expressions which return values to appear in the table):
 <dl>
+
 <dt>Average</dt>
 <dd><p><verbatim>
     (first + second) * 0.5
@@ -1996,13 +2002,11 @@ probably best off ignoring this feature.
 
 <dt>Conversion between numeric types</dt>
 <dd><p><verbatim>
-    (short) obs_type
-    (double) range
-</verbatim>
-<em>or</em>
-<verbatim>
      toShort(obs_type)
      toDouble(range)
+</verbatim><em>or</em><verbatim>
+    (short) obs_type
+    (double) range
 </verbatim></p></dd>
 
 <dt>Conversion from sexagesimal to radians</dt>
@@ -2031,6 +2035,7 @@ probably best off ignoring this feature.
 <dd><p><verbatim>
     NULL_jmag ? 9999 : jmag
 </verbatim></p></dd>
+
 </dl>
 
 and here are some examples of boolean expressions that could be used
@@ -2043,9 +2048,10 @@ to define <ref id="subsets">row subsets</ref>
     <![CDATA[RA > 100 && RA < 120 && Dec > 75 && Dec < 85]]>
 </verbatim></p></dd>
 
-<dt>Within a circle near the origin</dt>
+<dt>Within a circle</dt>
 <dd><p><verbatim>
     &column.id.char;2*&column.id.char;2 + &column.id.char;3*&column.id.char;3 &lt; 1
+    skyDistance(ra0,dec0,degreesToRadians(RA),degreesToRadians(DEC))&lt;15*ARC_MINUTE
 </verbatim></p></dd>
 
 <dt>First 100 rows</dt>
@@ -2063,6 +2069,7 @@ to define <ref id="subsets">row subsets</ref>
     equals(SECTOR, "ZZ9 Plural Z Alpha")
     equalsIgnoreCase(SECTOR, "zz9 plural z alpha")
     startsWith(SECTOR, "ZZ")
+    contains(ph_qual, "U")
 </verbatim></p></dd>
 
 <dt>String regular expression matching</dt>
@@ -2088,7 +2095,7 @@ to define <ref id="subsets">row subsets</ref>
 <subhead><title>Adding User-Defined Functions</title></subhead>
 
 <p>The functions provided by default for use with algebraic expressions,
-while powerful, may not provide all the expressions you need.
+while powerful, may not provide all the operations you need.
 For this reason, it is possible to write your own extensions to the
 expression language.  In this way you can specify abritrarily complicated
 functions.
@@ -2173,8 +2180,10 @@ you can probably ignore this section.
 What follows is a description of how to start the program up, 
 and various command line arguments and configuration options which can't be 
 changed from within the program.
+Some examples are given in <ref id="invokeExamples"/>.
 Actually obtaining the program is not covered here; please see
-the TOPCAT web page <webref url="http://www.starlink.ac.uk/topcat/"/>.
+the TOPCAT web page 
+<webref url="http://www.starlink.ac.uk/topcat/"/>.
 </p>
 
 <p>There are various ways of starting up TOPCAT depending on how (and whether)
@@ -2297,7 +2306,7 @@ The meaning of the flags is as follows:
     <code>-f &lt;format&gt;</code>
     sequence must be in the named format until the next <code>-f</code> flag.
     The names of both the auto-detected formats (ones which don't need
-    a <code>-f</code> and the non-auto-detected formats (ones which do)
+    a <code>-f</code>) and the non-auto-detected formats (ones which do)
     are given in the usage message you can see by giving the 
     <code>-help</code> flag (this message is shown above).
     You may also use the classname of a class on the classpath which
@@ -2355,7 +2364,7 @@ in particular for:
 <li>Providing extended algebraic functions (see <ref id="jelExtend"/>)</li>
 <li>Launching Mirage (see <ref id="mirage"/>)</li>
 <li>Installing I/O handlers for new table formats
-    (see <ref id="customHandlers"/>.</li>
+    (see <ref id="customHandlers"/>)</li>
 </ul>
 </p>
 
@@ -2571,6 +2580,85 @@ results of any experiments you carry out.
 Sun maintain a list of JDBC drivers for various databases; it can be found at
 <webref url="http://servlet.java.sun.com/products/jdbc/drivers"/>.
 </p>
+
+</subsect>
+
+<subsect id="invokeExamples">
+<subhead><title>Examples</title></subhead>
+
+<p>Here are some examples of invoking TOPCAT from the command line.
+In each case two forms are shown: one using the <code>topcat</code>
+script, and one using the jar file directly.  In the latter case,
+the <code>java</code> command is assumed to be on the your path, and
+the jar file itself, assumed in directory <code>my/tcdir</code>, 
+might be called <code>topcat.jar</code>, 
+<code>topcat-full.jar</code>, or something else, but the form 
+of the command is the same.
+
+<dl>
+
+<dt>No arguments</dt>
+<dd><p><verbatim>
+    topcat
+    java -jar topcat.jar
+</verbatim></p></dd>
+
+<dt>Output usage message</dt>
+<dd><p><verbatim>
+    topcat -h
+    java -jar topcat.jar -h
+</verbatim></p></dd>
+
+<dt>Load a FITS file</dt>
+<dd><p><verbatim>
+    topcat testcat.fits
+    java -jar my/tcdir/topcat.jar testcat.fits
+</verbatim></p></dd>
+
+<dt>Loading files of various formats</dt>
+<dd><p><verbatim>
+    topcat t1.fits -f ascii t2.txt t3.txt -f votable t4.xml
+    java -jar my/tcdir/topcat.jar t1.fits -f ascii t2.txt t3.txt -f votable t4.xml
+</verbatim></p></dd>
+
+<dt>Use disk storage format and boosted heap memory</dt>
+<dd><p><verbatim>
+    topcat -Xmx256M -disk 
+    java -Xmx256M -jar my/tcdir/topcat.jar -disk
+</verbatim></p></dd>
+
+<dt>Make custom functions available</dt>
+<dd><p><verbatim>
+    topcat -classpath my/funcdir/funcs.jar -Djel.classes=my.ExtraFuncs t1.fits
+    java -classpath my/tcdir/topcat.jar:my/funcdir/funcs.jar \
+         -Djel.classes=func.ExtraFuncs \
+         uk.ac.starlink.topcat.Driver t1.fits
+</verbatim></p></dd>
+
+<dt>Make PostgreSQL database connectivity available</dt>
+<dd><p><verbatim>
+    topcat -classpath my/jdbcdir/pg73jdbc3.jar -Djdbc.drivers=org.postgresql.Driver
+    java -classpath my/tcdir/topcat.jar:my/jdbcdir/pg73jdbc3.jar \
+         -Djdbc.drivers=org.postgresql.Driver uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+
+<dt>Use custom I/O handlers</dt>
+<dd><p><verbatim>
+    topcat -classpath my/driverdir/drivers.jar \
+           -Dstartable.readers=my.MyTableBuilder \
+           -Dstartable.writers=my.MyTableWriter \
+    java -classpath my/tcdir/topcat.jar:my/driverdir/drivers.jar \
+         -Dstartable.readers=my.MyTableBuilder \
+         -Dstartable.writers=my.MyTableWriter \
+         uk.ac.starlink.topcat.Driver
+</verbatim></p></dd>
+
+</dl>
+The <code>-Dx=y</code> definitions can be avoided by putting equivalent
+<code>x=y</code> lines into the <code>.starjava.properties</code> in your
+home directory.
+</p>
+
 
 </subsect>
 
@@ -3010,8 +3098,8 @@ may provide some other less-commonly-required actions too.
         </p></dd>
 
     <dt>&IMG.EXIT; Exit</dt>
-    <dd><p>Exits TOPCAT.  You will be prompted to confirm this action,
-        since it might result in loss of data.
+    <dd><p>Exits TOPCAT.  You will be prompted to confirm this action
+        if tables are loaded, since it might result in loss of data.
         </p></dd>
 
     </dl>
@@ -3035,6 +3123,7 @@ may provide some other less-commonly-required actions too.
     <dt>About TOPCAT</dt>
     <dd><p>Pops up a little window giving information on the version and
         authorship of the program.
+        It also reports on availability of some optional components.
         </p></dd>
 
     </dl>
@@ -3329,7 +3418,8 @@ these views are described in more details in <ref id="views"/>.
     </p></dd>
 
 <dt>&IMG.COLUMNS; <ref id="ColumnInfoWindow">Columns Window</ref></dt>
-<dd><p>Displays metadata about each column such as data type, units, UCDs etc.
+<dd><p>Displays metadata about each column such as data type, units,
+    description, UCDs etc.
     </p></dd>
 
 <dt>&IMG.SUBSETS; <ref id="SubsetWindow">Subsets Window</ref></dt>
@@ -3671,7 +3761,7 @@ on them as usual.
     has been selected by clicking on its row, 
     then clicking this button will remove it. 
     You will be prompted before the removal takes place.
-    Some parameters such as Rows Count cannot be removed.
+    Some parameters such as Row Count cannot be removed.
     </p></dd>
 </dl>
 </p>
@@ -3839,22 +3929,20 @@ so can be changed by dragging the column headers around in the
     like "_old" to its name.
     </p></dd>
 
-<dt>&IMG.HIDE;  Hide Selected Column(s)</dt>
-<dd><p>If any of the JTable rows are selected, then clicking this button
+<dt>&IMG.HIDE; Hide Selected Column(s)</dt>
+<dd><p>If any of the columns are selected, then clicking this button
     will hide them, that is, remove them from the
     current <ref id="columns">Column Set</ref>.
     This has the same effect as deselecting all the checkboxes corresponding
     to these columns in the <label>Visible</label> column.
-    Only available if some rows are selected.
     </p></dd>
 
 <dt>&IMG.REVEAL; Reveal Selected Column(s)</dt>
-<dd><p>If any of the JTable rows are selected, then clicking this button
+<dd><p>If any of the columns are selected, then clicking this button
     will make sure they are visible, that is, that they appear in
     the current <ref id="columns">Column Set</ref>.
     This has the same effect as selecting all the checkboxes corresponding
     to these columns in the <label>Visible</label> column.
-    Only available if some rows are selected.
     </p></dd>
 
 <dt>&IMG.UP; Sort Selected Up</dt>
@@ -4031,7 +4119,7 @@ The following columns are shown by default:
 
 </dl>
 Several additional items of statistical information are also calculated,
-but the columns displaying these are hidden by default.
+but the columns displaying these are hidden by default to avoid clutter.
 You can reveal these by using the <label>Display</label> menu:
 <dl>
 
@@ -4167,8 +4255,8 @@ Each one consists of two parts:
 
 <dt>Flip checkbox</dt>
 <dd><p>This checkbox can be clicked to toggle whether the axis in question
-    is to be plotted reversed.  Normally (unchecked) X axis increases
-    left to right and Y axis increases bottom to top.  When checked, 
+    is to be plotted reversed.  Normally (unticked) X axis increases
+    left to right and Y axis increases bottom to top.  When ticked, 
     X axis increases right to left, and Y axis increases top to bottom.
     </p></dd>
 </dl>
@@ -4346,7 +4434,7 @@ you're in it.  Here's what the plot looks like while you're drawing:
 <figureimage src="&FIG.PlotWindow_blob;"/>
 </figure>
 <p>When you're happy with the region you've defined, click the
-toolbar button again.
+&IMG.BLOB_SUBSET_END; toolbar button again.
 </p>
 
 <p>In either case, when you have indicated that you want to define a 
@@ -4445,7 +4533,7 @@ one of the other methods for specifying a table to load.
 <p>The <label>Format</label> selector must be set correctly:
 the "(auto)" setting will automatically pick up VOTable or FITS tables,
 otherwise you will need to select the option describing the format of
-the file you are attempting to load.
+the file you are attempting to load (see <ref id="inFormats"/>).
 </p>
 
 </subsubsect>
@@ -4478,7 +4566,7 @@ double-click on it or select it by clicking once and click the
 The <label>Table Format</label> selector must be set correctly:
 the "(auto)" setting will automatically pick up VOTable or FITS tables,
 otherwise you will need to select the option describing the format of
-the file you are attempting to load.
+the file you are attempting to load (see <ref id="inFormats"/>).
 If you pick a file which cannot be converted
 into a table an error window will pop up.
 </p>
@@ -5073,7 +5161,7 @@ in terms of a metric on that space to count as a match.
 <dd><p>Comparison of positions on the celestial sphere.
     In this case you will need to specify columns giving
     Right Ascension and Declination
-    for each table participating in the match
+    for each table participating in the match.
     The Error value you must fill in is the maximum separation of matched
     points in around a great circle.
     </p></dd>
@@ -5291,7 +5379,7 @@ be examined, manipulated and saved like any other.
 <dl>
 
 <dt><ref id="matchCriteria">Match Criteria box</ref></dt>
-<dd><p>Allows you to define what counds as a match between two rows
+<dd><p>Allows you to define what counts as a match between two rows
     (the same as for pair matching).
     </p></dd>
 
@@ -5454,8 +5542,6 @@ in the control window will indicate the action you have configured.
     compressed using gzip, Unix compress, or bzip2 format.
     Select the column which contains the location, and activating a 
     row will pop up an image viewer to display it.
-    Note this may not be possible if some components are not installed
-    (see <ref id="viewers"/>).
     </p></dd>
 
 <dt>Display Named Spectrum</dt>
@@ -5464,6 +5550,8 @@ in the control window will indicate the action you have configured.
     The spectrum may be in FITS or text format, optionally compressed.
     Select the column which contains the location, an activating a
     row will try to pop up a spectrum viewer to display it.
+    Note this may not be possible if some components are not installed
+    (see <ref id="viewers"/>).
     </p></dd>
 
 <dt>Execute Custom Code</dt>
@@ -5603,9 +5691,8 @@ you can also find the HTML version in the topcat jar file at
 or, if you have a full TOPCAT installation, in 
 <code>docs/topcat/sun253/sun253.html</code> and
 <code>docs/topcat/sun253.pdf</code>
-(<webref url="sun253.html"
-         hypertext="HTML here"
-         plaintext="HTML available directly from the HTML file"/>).
+(the single-page HTML version is available 
+<webref url="sun253.html">here</webref> in the HTML version).
 </p>
 
 <p>The help browser is an HTML browser and some of the hyperlinks in
