@@ -29,6 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Action which controls logging in to and out of a remote service using
@@ -247,7 +248,9 @@ public class ConnectorAction extends AbstractAction {
                 value = text == null || text.length() == 0 ? null : text;
             }
             if ( key.isRequired() && value == null ) {
-                complain( "Must supply value for field " + key.getName() );
+                String msg = "Must supply value for field " + key.getName();
+                JOptionPane.showMessageDialog( entryPanel_, msg, "Login Error",
+                                               JOptionPane.ERROR_MESSAGE );
                 return;
             }
             valueMap.put( key, value );
@@ -275,7 +278,8 @@ public class ConnectorAction extends AbstractAction {
                             setConnection( conn );
                         }
                         else {
-                            complain( error.getMessage() );
+                            ErrorDialog.showError( entryPanel_, "Login Error",
+                                                   error );
                         }
                         setEnabled( true );
                     }
@@ -290,11 +294,6 @@ public class ConnectorAction extends AbstractAction {
         for ( Iterator it = fieldMap_.keySet().iterator(); it.hasNext(); ) {
             ((JTextField) fieldMap_.get( it.next() )).setEnabled( enabled );
         }
-    }
-
-    private void complain( String msg ) {
-        JOptionPane.showMessageDialog( entryPanel_, msg, "Login Error",
-                                       JOptionPane.ERROR_MESSAGE );
     }
 
     /**
