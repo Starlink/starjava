@@ -291,6 +291,7 @@
 
   <!-- Turn this path into a string which is passed to the tests -->
   <property name="tests-classpath.value" refid="tests-classpath"/>
+  <property name="build.tests.loc" location="${build.tests}"/>
 
   <!--
    !    =========================================
@@ -930,7 +931,7 @@
            fork="${junit.fork}">
       <classpath refid="tests-classpath"/>
 
-      <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
+      <sysproperty key="java.io.tmpdir" value="${build.tests.loc}"/>
       <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"

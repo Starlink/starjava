@@ -46,6 +46,7 @@ public class FitsNdxTest extends TestCase {
 
     public void setUp() {
         tmpdir = System.getProperty( "java.io.tmpdir" );
+	System.out.println( "tmpdir = " + tmpdir );
     }
 
     public void testHandler() throws TransformerException, IOException,
@@ -65,14 +66,14 @@ public class FitsNdxTest extends TestCase {
 
         /* Write the NDX out as XML. */
         Ndx ndx = virtualNdx();
-        String xloc = tmpdir + "/" + "copy.xml";
+        String xloc = tmpdir + File.separator + "copy.xml";
         ndxio.outputNdx( xloc, ndx );
         Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
         assertNdxEqual( ndx, xndx );
 
         /* Write the NDX out as a new FITS file via the NdxIO. */
         ndxio.setHandlers( new NdxHandler[] { FitsNdxHandler.getInstance() } );
-        String hloc = tmpdir + "/" + "copy.fits";
+        String hloc = tmpdir + File.separator + "copy.fits";
         ndxio.outputNdx( hloc, ndx );
         Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
         assertNdxEqual( ndx, hndx );
@@ -109,12 +110,12 @@ public class FitsNdxTest extends TestCase {
          * via XML for comparison
          */
         Ndx ndx = virtualNdx();
-        String xloc = tmpdir + "/" + "copy.xml";
+        String xloc = tmpdir + File.separator + "copy.xml";
         ndxio.outputNdx(xloc, ndx);
 
         // Write the NDX out as a new FITS file.
         ndxio.setHandlers(new NdxHandler[] { FitsNdxHandler.getInstance() } );
-        String hloc = tmpdir + "/" + "copy.fits";
+        String hloc = tmpdir + File.separator + "copy.fits";
         ndxio.outputNdx(hloc, ndx);
 
         // Setup done
