@@ -15,6 +15,8 @@ import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 
 public class NDArrayDataNode extends DefaultDataNode {
 
@@ -162,7 +164,15 @@ public class NDArrayDataNode extends DefaultDataNode {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent() 
                         throws IOException, SplatException {
-                    return new SpectrumViewer( enda, "NDArray" );
+                    Ndx ndx;
+                    if ( endim == 1 && ndim != 1 ) {
+                        ndx = new DefaultMutableNdx( enda );
+                        ((DefaultMutableNdx) ndx).setWCS( wcs );
+                    }
+                    else {
+                        ndx = new DefaultMutableNdx( rnda );
+                    }
+                    return new GraphViewer( ndx );
                 }
             } );
         }

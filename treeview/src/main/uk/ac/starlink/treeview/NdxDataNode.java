@@ -296,8 +296,6 @@ public class NdxDataNode extends DefaultDataNode {
         final FrameSet ast = Driver.hasAST ? Ndxs.getAst( ndx ) : null;
         final NDShape shape = image.getShape();
         final int ndim = shape.getNumDims();
-        final String title = ndx.hasTitle() ? ndx.getTitle()
-                                            : "Spectrum data";
 
         /* Get a version with degenerate dimensions collapsed.  Should really
          * also get a corresponding WCS and use that, but I haven't worked
@@ -337,7 +335,7 @@ public class NdxDataNode extends DefaultDataNode {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent()
                         throws IOException, SplatException {
-                    return new SpectrumViewer( eimage, title );
+                    return new GraphViewer( ndx );
                 }
             } );
         }
