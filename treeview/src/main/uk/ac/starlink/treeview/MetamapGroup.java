@@ -102,4 +102,13 @@ public class MetamapGroup {
     public Map[] getMetamaps() {
         return metamaps;
     }
+
+    /**
+     * Returns the number of metadata maps.
+     *
+     * @return  the number of maps in this group
+     */
+    public int getNumMaps() {
+        return metamaps.length;
+    }
 }

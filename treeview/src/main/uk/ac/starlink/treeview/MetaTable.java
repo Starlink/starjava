@@ -5,6 +5,7 @@ import java.util.Map;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.table.gui.MultilineJTable;
 import uk.ac.starlink.table.gui.StarJTable;
 
 /**
@@ -13,15 +14,19 @@ import uk.ac.starlink.table.gui.StarJTable;
  * with one column for each of the keys contained by at least one of
  * the maps.
  */
-public class MetaTable extends JTable {
+   public class MetaTable extends MultilineJTable {
+// public class MetaTable extends javax.swing.JTable {
 
     /**
      * Constructs a MetaTable component from a MetamapGroup.
+     *
+     * @param metagroup  the group to be displayed
      */
-    public MetaTable( MetamapGroup metagroup  ) {
-        final Map[] metamaps = metagroup.getMetamaps();
-        final List knownKeys = metagroup.getKnownKeys();
-        TableModel tmodel = new AbstractTableModel() {
+    public MetaTable( final MetamapGroup metagroup ) {
+        super();
+        TableModel baseModel = new AbstractTableModel() {
+            private Map[] metamaps = metagroup.getMetamaps();
+            private List knownKeys = metagroup.getKnownKeys();
             public int getRowCount() {
                 return metamaps.length;
             }
@@ -35,9 +40,9 @@ public class MetaTable extends JTable {
                 return (String) knownKeys.get( icol );
             }
         };
-        setModel( tmodel );
+        setModel( baseModel );
         setAutoResizeMode( AUTO_RESIZE_OFF );
-        StarJTable.configureColumnWidths( this, 300 );
+        StarJTable.configureColumnWidths( this, 20000, 100 );
     }
 
 }

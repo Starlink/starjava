@@ -8,6 +8,11 @@ import java.util.Map;
 import uk.ac.starlink.table.ColumnHeader;
 import uk.ac.starlink.table.StarTable;
 
+/**
+ * A MetamapGroup which describes the columns of a StarTable.
+ *
+ * @author  Mark Taylor (Starlink)
+ */
 public class StarTableMetamapGroup extends MetamapGroup {
 
     private static final String INDEX_KEY = "Index";
