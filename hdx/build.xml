@@ -814,26 +814,30 @@
    !   =================
    ! !!UNTESTED just lifted from ANT. Uncomment when ready to try it!!
    !-->
-<!--  <target name="compile-tests"
+  <target name="compile-tests"
           depends="build"
           if="junit.present">
+
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
            deprecation="${deprecation}" >
+
       <classpath refid="tests-classpath"/>
+
     </javac>
+
   </target>
--->
+
   <!--
    !   ============
    !   Run testcase
    !   ============
    ! !!UNTESTED just lifted from ANT!!
    !-->
-<!--  <target name="test"
+  <target name="test"
           depends="run-tests"
           description="-> run JUnit tests"/>
 
@@ -844,10 +848,9 @@
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
-      <classpath refid="tests-classpath"/>
-      <classpath refid="classes.zip"/>
 
-      <sysproperty key="hdx.home" value="${hdx.home}"/>
+      <classpath refid="tests-classpath"/>
+
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
@@ -856,11 +859,12 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/*Test*"/>
+          <include name="**/JUnit*"/>
         </fileset>
       </batchtest>
 
     </junit>
+
   </target>
 
   <target name="run-single-test"
@@ -871,18 +875,16 @@
     <junit printsummary="${junit.summary}"
           haltonfailure="yes"
           fork="${junit.fork}"
-          filtertrace="${junit.filtertrace}">
+          filtertrace="${junit.filtertrace}" verbose="true">
       <sysproperty key="hdx.home" value="${hdx.home}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
-      <sysproperty key="tests-classpath.value"
+      <sysproperty key="tests-classpath.value" 
                    value="${tests-classpath.value}"/>
-      <classpath refid="classes.zip"/>
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
     </junit>
   </target>
--->
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
