@@ -182,7 +182,7 @@ public class SuperJar {
         /* Recurse. */
         Attributes atts = manifest.getMainAttributes();
         String classpath = atts.getValue( Attributes.Name.CLASS_PATH );
-        if ( classpath != null ) {
+        if ( classpath != null && classpath.trim().length() > 0 ) {
             File dir = jfile.getParentFile();
             String[] cpents = classpath.trim().split( " +" );
             for ( int i = 0; i < cpents.length; i++ ) {
