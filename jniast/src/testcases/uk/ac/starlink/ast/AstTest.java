@@ -788,8 +788,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V3\\.4-0; " +
-                                           "JNIAST java V3\\.4-0" )
+                                           "JNIAST native V3\\.5-0; " +
+                                           "JNIAST java V3\\.5-0" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
@@ -798,8 +798,8 @@ public class AstTest extends TestCase {
         System.out.println( AstObject.reportVersions() );
         assertTrue( "Checking AST version: " + AstObject.reportVersions(),
                     ( astMajor > 3 ) ||
-                    ( astMajor == 3 && astMinor > 4 ) ||
-                    ( astMajor == 3 && astMinor == 4 && astRelease >= 0 ) );
+                    ( astMajor == 3 && astMinor > 5 ) ||
+                    ( astMajor == 3 && astMinor == 5 && astRelease >= 4 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {
