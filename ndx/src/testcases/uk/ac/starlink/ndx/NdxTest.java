@@ -26,6 +26,7 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.array.TypeConverter;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.hds.HDSPackage;
+import uk.ac.starlink.hdx.HdxFacade;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.SourceReader;
 
@@ -143,7 +144,13 @@ public class NdxTest extends TestCase {
         /* Have a go at data across the network. */
         Ndx rndx = ndxio.makeNdx( remoteNDX, AccessMode.READ );
         ndxio.outputNdx( rname + ".sdf", rndx );
- 
+
+        // Confirm HdxFacade assertions
+        HdxFacade hf = vndx.getHdxFacade();
+        Class c = hf.getHdxResourceType().getConstructedClass();
+        assertTrue(c != Object.class);
+        assertTrue(c.isInstance(vndx));
+        
     }
 
     public void testNdxs() throws IOException, TransformerException {
