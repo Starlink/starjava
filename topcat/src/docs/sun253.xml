@@ -2332,6 +2332,14 @@ The meaning of the flags is as follows:
     actions can result in disk thrashing and become very slow.
     </p></dd>
 
+<dt>-noserv</dt>
+<dd><p>By default, if the relevant classes are available, TOPCAT 
+    starts up an AXIS server which can accept 
+    requests using the SOAP protocol to display tables from other
+    applications.  Specifying the <code>-noserv</code> flag prevents
+    the server being started.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -3224,6 +3232,11 @@ introduced since the last version:
   </p></dd>
 </dl></p>
 </dd>
+
+<dt>Version 1.6</dt>
+<dd><p><ul>
+    <li>SOAP services</li>
+ </ul></p></dd>
 
 </dl>
 </p>
