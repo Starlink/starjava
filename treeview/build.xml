@@ -347,11 +347,11 @@
    !    ============
    !    Used by test targets for locating native libraries.
    !-->
-  <path id="libpath">
+  <path id="tests-libpath.id">
     <pathelement path="${java.library.path}"/>
     <pathelement location="${star.jar.dir}/${os.arch}"/>
   </path>
-  <property name="libpath" refid="libpath"/>
+  <property name="tests-libpath" refid="tests-libpath.id"/>
 
   <!--
    !    =========================================
@@ -1122,7 +1122,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="uk.ac.starlink.treeview.test.args"
                    value="${treeview.args}"/>
-      <sysproperty key="java.library.path" value="${libpath}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
 
       <formatter type="brief" usefile="false"/>
 

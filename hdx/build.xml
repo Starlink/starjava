@@ -292,6 +292,18 @@
   <property name="tests-classpath.value" refid="tests-classpath"/>
 
   <!--
+   !    ============
+   !    Library path
+   !    ============
+   !    Used by test targets for locating native libraries.
+   !-->
+  <path id="tests-libpath.id">
+    <pathelement path="${java.library.path}"/>
+    <pathelement location="${star.jar.dir}/${os.arch}"/>
+  </path>
+  <property name="tests-libpath" refid="tests-libpath.id"/>
+
+  <!--
    !    =========================================
    !    Check availability of direct dependencies
    !    =========================================
@@ -908,6 +920,7 @@
                    value="${tests-classpath.value}"/>
       <sysproperty key="Hdx.properties"
                    value="${tests.etc.dir}/Hdx.properties"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
 
       <!--formatter type="brief" usefile="true"/-->
       <formatter type="brief" usefile="false"/>
@@ -937,6 +950,7 @@
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value" 
                    value="${tests-classpath.value}"/>
+      <sysproperty key="java.library.path" value="${tests-libpath}"/>
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
