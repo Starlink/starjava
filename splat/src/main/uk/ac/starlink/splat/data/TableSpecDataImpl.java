@@ -488,7 +488,8 @@ public class TableSpecDataImpl
     }
 
     /**
-     * Read a column from the table into the given array.
+     * Read a column from the table into the given array. Any NaN values are
+     * remapped to BAD.
      */
     protected void readColumn( double[] data, int index )
         throws SplatException
@@ -496,10 +497,15 @@ public class TableSpecDataImpl
         try {
             RowSequence rseq = starTable.getRowSequence();
             int i = 0;
+            double v = 0.0;
             while( rseq.hasNext() ) {
                 rseq.next();
                 Number value = (Number) rseq.getCell( index );
-                data[i++] = value.doubleValue();
+                v = value.doubleValue();
+                if ( v != v ) {  // Double.isNaN
+                    v = SpecData.BAD;
+                }
+                data[i++] = v;
             }
             rseq.close();
         }
@@ -507,7 +513,6 @@ public class TableSpecDataImpl
             throw new SplatException( "Failed reading table column" , e );
         }
     }
-
 
     /**
      * Read all the data from the table. Efficient, does one pass.
@@ -519,18 +524,32 @@ public class TableSpecDataImpl
             RowSequence rseq = starTable.getRowSequence();
             int i = 0;
             Number value;
+            double v;
             while( rseq.hasNext() ) {
                 rseq.next();
 
                 value = (Number) rseq.getCell( coordColumn );
-                coords[i] = value.doubleValue();
+                v = value.doubleValue();
+                if ( v != v ) {  // Double.isNaN
+                    v = SpecData.BAD;
+                }
+                coords[i] = v;
+
 
                 value = (Number) rseq.getCell( dataColumn );
-                data[i] = value.doubleValue();
+                v = value.doubleValue();
+                if ( v != v ) {  // Double.isNaN
+                    v = SpecData.BAD;
+                }
+                data[i] = v;
 
                 if ( errorColumn != -1 ) {
                     value = (Number) rseq.getCell( errorColumn );
-                    errors[i] = value.doubleValue();
+                    v = value.doubleValue();
+                    if ( v != v ) {  // Double.isNaN
+                        v = SpecData.BAD;
+                    }
+                    errors[i] = v;
                 }
                 i++;
             }
