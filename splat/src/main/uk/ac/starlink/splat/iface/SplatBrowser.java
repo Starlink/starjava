@@ -513,6 +513,15 @@ public class SplatBrowser
         fileMenu.add( browseAction );
         toolBar.add( browseAction );
 
+        //  Add action to re-open a list of spectra if possible.
+        ImageIcon reOpenImage = 
+            new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
+        LocalAction reOpenAction  = new LocalAction( LocalAction.REOPEN,
+                                                   "Re-Open", openImage,
+                                                   "Re-Open selected spectra");
+        fileMenu.add( reOpenAction );
+        toolBar.add( reOpenAction );
+
         //  Add action to save a spectrum
         ImageIcon saveImage = 
             new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
@@ -1886,6 +1895,29 @@ public class SplatBrowser
     }
 
     /**
+     * Re-open the selected spectra. This should cause any changed contents to
+     * be propagated into any plots etc. This may not be possible if any of
+     * the spectra are not backed by a local disk file.
+     */
+    public void reOpenSelectedSpectra()
+    {
+        int[] indices = getSelectedSpectra();
+        if ( indices != null ) {
+            SpecData spec = null;
+            for ( int i = 0; i < indices.length; i++ ) {
+                spec = globalList.getSpectrum( indices[i] );
+                try {
+                    specDataFactory.reOpen( spec );
+                    globalList.notifySpecListeners( spec );
+                }
+                catch (SplatException e) {
+                    new ExceptionDialog( this, e );
+                }
+            }
+        }        
+    }
+
+    /**
      * Remove a plot from the global list.
      *
      * @param plot reference to the frame (i.e. window) containing the
@@ -2149,26 +2181,27 @@ public class SplatBrowser
         public static final int SAVE = 0;
         public static final int OPEN = 1;
         public static final int BROWSE = 2;
-        public static final int SINGLE_DISPLAY = 3;
-        public static final int MULTI_DISPLAY = 4;
-        public static final int ANIMATE_DISPLAY = 5;
-        public static final int SPEC_VIEWER = 6;
-        public static final int XCOORDTYPE_VIEWER = 7;
-        public static final int SAVE_STACK = 8;
-        public static final int READ_STACK = 9;
-        public static final int REMOVE_SPECTRA = 10;
-        public static final int SELECT_SPECTRA = 11;
-        public static final int DESELECT_SPECTRA = 12;
-        public static final int COLOURIZE = 13;
-        public static final int REMOVE_PLOTS = 14;
-        public static final int SELECT_PLOTS = 15;
-        public static final int DESELECT_PLOTS = 16;
-        public static final int BINARY_MATHS = 17;
-        public static final int UNARY_MATHS = 18;
-        public static final int COPY_SPECTRA = 19;
-        public static final int COPYSORT_SPECTRA = 20;
-        public static final int CREATE_SPECTRUM = 21;
-        public static final int EXIT = 22;
+        public static final int REOPEN = 3;
+        public static final int SINGLE_DISPLAY = 4;
+        public static final int MULTI_DISPLAY = 5;
+        public static final int ANIMATE_DISPLAY = 6;
+        public static final int SPEC_VIEWER = 7;
+        public static final int XCOORDTYPE_VIEWER = 8;
+        public static final int SAVE_STACK = 9;
+        public static final int READ_STACK = 10;
+        public static final int REMOVE_SPECTRA = 11;
+        public static final int SELECT_SPECTRA = 12;
+        public static final int DESELECT_SPECTRA = 13;
+        public static final int COLOURIZE = 14;
+        public static final int REMOVE_PLOTS = 15;
+        public static final int SELECT_PLOTS = 16;
+        public static final int DESELECT_PLOTS = 17;
+        public static final int BINARY_MATHS = 18;
+        public static final int UNARY_MATHS = 19;
+        public static final int COPY_SPECTRA = 20;
+        public static final int COPYSORT_SPECTRA = 21;
+        public static final int CREATE_SPECTRUM = 22;
+        public static final int EXIT = 23;
 
         private int type = 0;
 
@@ -2201,6 +2234,10 @@ public class SplatBrowser
                break;
                case BROWSE: {
                    showSplatNodeChooser();
+               }
+               break;
+               case REOPEN: {
+                   reOpenSelectedSpectra();
                }
                break;
                case SINGLE_DISPLAY: {

@@ -109,19 +109,52 @@ public class SpecData
 
     /**
      * Create an instance using the data in a given SpecDataImpl
-     * object.  Do not attempt to read the data. This is provided for
-     * sub-classes that will deal with the data at some later time.
+     * object.  Do not attempt to read the data if suggested. This variant is
+     * provided for sub-classes that will deal with the data at some later
+     * time.
      *
      * @param impl a concrete implementation of a SpecDataImpl class that
      *             will be used for spectral data in of some format.
-     * @param check if true then a check for the presence of data will
-     *              be made, before attempting a read. Otherwise no
-     *              check will be made and either absence will be
-     *              indicated by throwing an error.
+     * @param check if true then a check for the presence of data will be
+     *              made, before attempting a read. Otherwise no check will be
+     *              made and problems will be indicated by throwing an error
+     *              at a later time.
      * @exception SplatException thrown if there are problems obtaining
      *            spectrum information.
      */
     protected SpecData( SpecDataImpl impl, boolean check )
+        throws SplatException
+    {
+        setSpecDataImpl( impl, check );
+    }
+
+    /**
+     * Set the {@link SpecDataImpl} instance.
+     *
+     * @param impl a concrete implementation of a SpecDataImpl class that
+     *             will be used for spectral data in of some format.
+     * @exception SplatException thrown if there are problems obtaining
+     *            spectrum information.
+     */
+    public void setSpecDataImpl( SpecDataImpl impl )
+        throws SplatException
+    {
+        setSpecDataImpl( impl, false );
+    }
+
+    /**
+     * Set the {@link SpecDataImpl} instance.
+     *
+     * @param impl a concrete implementation of a SpecDataImpl class that
+     *             will be used for spectral data in of some format.
+     * @param check if true then a check for the presence of data will be
+     *              made, before attempting a read. Otherwise no check will be
+     *              made and problems will be indicated by throwing an error
+     *              at a later time.
+     * @exception SplatException thrown if there are problems obtaining
+     *            spectrum information.
+     */
+    protected void setSpecDataImpl( SpecDataImpl impl, boolean check )
         throws SplatException
     {
         this.impl = impl;
@@ -130,6 +163,18 @@ public class SpecData
         if ( ! check || ( check && impl.getData() != null  ) ) {
             readData();
         }
+    }
+
+    /**
+     * Return the SpecDataImpl object so that it can expose very data specific
+     * methods (if needed, you really shouldn't use this).
+     *
+     * @return SpecDataImpl object defining the data access used by this
+     *      instance.
+     */
+    public SpecDataImpl getSpecDataImpl()
+    {
+        return impl;
     }
 
     /**
@@ -763,19 +808,6 @@ public class SpecData
 
 
     /**
-     * Return the SpecDataImpl object so that it can expose very data specific
-     * methods (if needed, you really shouldn't use this).
-     *
-     * @return SpecDataImpl object defining the data access used by this
-     *      instance.
-     */
-    public SpecDataImpl getSpecDataImpl()
-    {
-        return impl;
-    }
-
-
-    /**
      * Set the thickness of the line used to plot the spectrum.
      *
      * @param lineThickness the line width to be used when plotting.
@@ -1148,7 +1180,7 @@ public class SpecData
     }
 
 
-    /** 
+    /**
      * Return the most significant axis of the data held by the
      * implemenation. This is the default axis that is used.
      */
