@@ -45,6 +45,13 @@ public class Driver {
     private static StarTableFactory tabfact = new StarTableFactory( true );
     private static ControlWindow control;
     private static String[] extraLoaders;
+    private static String[] KNOWN_DIALOGS = new String[] {
+        "uk.ac.starlink.table.gui.SQLReadDialog",
+        "uk.ac.starlink.vo.ConeSearchDialog",
+        "uk.ac.starlink.vo.SiapTableLoadDialog",
+        "uk.ac.starlink.vo.RegistryTableLoadDialog",
+        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
+    };
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -400,7 +407,7 @@ public class Driver {
         }
         TableLoadDialog[] dialogs = (TableLoadDialog[]) 
                                     dList.toArray( new TableLoadDialog[ 0 ] );
-        return new StarTableChooser( tabfact, dialogs );
+        return new StarTableChooser( tabfact, dialogs, KNOWN_DIALOGS );
     }
 
     /**

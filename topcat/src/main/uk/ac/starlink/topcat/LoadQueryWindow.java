@@ -63,6 +63,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
         /* Add the main chooser widget. */
         getAuxControlPanel().add( chooser_ );
+        getJMenuBar().add( chooser_.makeKnownDialogsMenu() );
 
         /* Demo actions. */
         JMenu demoMenu = new JMenu( "Examples" );
