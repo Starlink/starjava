@@ -104,8 +104,8 @@ public class GraphViewer extends DivaPlot {
             this.ast = Ndxs.getAst( ndx );
             this.shape = ndx.getImage().getShape();
             this.title = ndx.hasTitle() ? ndx.getTitle() : null;
-            this.label = ndx.hasLabel() ? ndx.getLabel() : null;
-            this.units = ndx.hasUnits() ? ndx.getUnits() : null;
+            this.label = ndx.hasLabel() ? ndx.getLabel() : "";
+            this.units = ndx.hasUnits() ? ndx.getUnits() : "";
             int npix = (int) ndx.getImage().getShape().getNumPixels();
 
             Requirements req = new Requirements( AccessMode.READ )
