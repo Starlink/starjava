@@ -38,10 +38,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_WinMap_construct(
    jdoubleArray jOutb    /* Coordinates of B corner of output window */
 ) {
    AstPointer pointer;
-   const double *ina;
-   const double *inb;
-   const double *outa;
-   const double *outb;
+   const double *ina = NULL;
+   const double *inb = NULL;
+   const double *outa = NULL;
+   const double *outb = NULL;
 
    /* Check that our arrays are large enough. */
    if ( jniastCheckArrayLength( env, jIna, ncoord ) &&
@@ -66,14 +66,22 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_WinMap_construct(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jIna, 
-                                             (jdouble *) ina, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jInb,
-                                             (jdouble *) inb, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jOuta,
-                                             (jdouble *) outa, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jOutb,
-                                             (jdouble *) outb, JNI_ABORT );
+         if ( ina ) {
+            (*env)->ReleaseDoubleArrayElements( env, jIna, 
+                                                (jdouble *) ina, JNI_ABORT );
+         }
+         if ( inb ) {
+            (*env)->ReleaseDoubleArrayElements( env, jInb,
+                                                (jdouble *) inb, JNI_ABORT );
+         }
+         if ( outa ) {
+            (*env)->ReleaseDoubleArrayElements( env, jOuta,
+                                                (jdouble *) outa, JNI_ABORT );
+         }
+         if ( outb ) {
+            (*env)->ReleaseDoubleArrayElements( env, jOutb,
+                                                (jdouble *) outb, JNI_ABORT );
+         }
       )
 
       /* Set the pointer field of the java object. */

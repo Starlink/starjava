@@ -37,8 +37,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PolyMap_construct(
    jdoubleArray jCoeff_i /* Inverse coefficients. */
 ) {
    AstPointer pointer;
-   const double *coeff_f;
-   const double *coeff_i;
+   const double *coeff_f = NULL;
+   const double *coeff_i = NULL;
 
    /* Validate arguments. */
    if ( ( ncoeff_f <= 0 ||
@@ -59,12 +59,12 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PolyMap_construct(
                                                   ncoeff_i, coeff_i, "" );
       )
       ALWAYS(
-         if ( ncoeff_f > 0 ) {
+         if ( coeff_f ) {
             (*env)->ReleaseDoubleArrayElements( env, jCoeff_f, 
                                                 (jdouble *) coeff_f,
                                                 JNI_ABORT );
          }
-         if ( ncoeff_i > 0 ) {
+         if ( coeff_i ) {
             (*env)->ReleaseDoubleArrayElements( env, jCoeff_i,
                                                 (jdouble *) coeff_i,
                                                 JNI_ABORT );

@@ -89,8 +89,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
 ) {
    AstPointer pointer;
    AstPointer frmpointer;
-   const float *graphbox;
-   const double *basebox;
+   const float *graphbox = NULL;
+   const double *basebox = NULL;
 
    /* Ensure that method IDs etc which may be required by methods in the
     * Plot class are initialized. */
@@ -114,10 +114,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_construct(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseFloatArrayElements( env, jGraphbox, 
-                                            (jfloat *) graphbox, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jBasebox, 
-                                             (jdouble *) basebox, JNI_ABORT );
+         if ( graphbox ) {
+            (*env)->ReleaseFloatArrayElements( env, jGraphbox, 
+                                               (jfloat *) graphbox,
+                                               JNI_ABORT );
+         }
+         if ( basebox ) {
+            (*env)->ReleaseDoubleArrayElements( env, jBasebox, 
+                                                (jdouble *) basebox,
+                                                JNI_ABORT );
+         }
       )
 
       /* Set the pointer field to hold the AST pointer for this object. */
@@ -228,8 +234,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_curve(
    jdoubleArray jFinish  /* End coordinates */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const double *start;
-   const double *finish;
+   const double *start = NULL;
+   const double *finish = NULL;
    int nax;
 
    nax = jniastGetNaxes( env, pointer.Frame );
@@ -243,10 +249,16 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_curve(
          astCurve( pointer.Plot, start, finish );
       )
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jStart, (jdouble *) start,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jFinish, (jdouble *) finish,
-                                             JNI_ABORT );
+         if ( start ) {
+            (*env)->ReleaseDoubleArrayElements( env, jStart,
+                                               (jdouble *) start,
+                                                JNI_ABORT );
+         }
+         if ( finish ) {
+            (*env)->ReleaseDoubleArrayElements( env, jFinish,
+                                               (jdouble *) finish,
+                                               JNI_ABORT );
+         }
       )
    }
 }
@@ -286,7 +298,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
    jdouble length        /* Length of the grid line */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this ); 
-   const double *start;
+   const double *start = NULL;
    int nax;
 
    nax = jniastGetNaxes( env, pointer.Frame );
@@ -297,8 +309,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_gridLine(
          astGridLine( pointer.Plot, (int) axis, start, (double) length );
       )
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jStart, (jdouble *) start, 
-                                             JNI_ABORT );
+         if ( start ) {
+            (*env)->ReleaseDoubleArrayElements( env, jStart, (jdouble *) start, 
+                                                JNI_ABORT );
+         }
       )
    }
 }
@@ -382,7 +396,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
    const char *text;
    const char *just;
    const float up[ 2 ];
-   const double *pos;
+   const double *pos = NULL;
    int nax;
 
    nax = jniastGetNaxes( env, pointer.Frame );
@@ -398,8 +412,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_text(
          astText( pointer.Plot, text, pos, up, just );
       )
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPos, (jdouble *) pos,
-                                             JNI_ABORT );
+         if ( pos ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPos, (jdouble *) pos,
+                                                JNI_ABORT );
+         }
       )
    }
    jniastReleaseUTF( env, jText, text );

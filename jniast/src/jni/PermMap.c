@@ -37,8 +37,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PermMap_construct(
    jdoubleArray jConstant/* Optional fixed values */
 ) {
    AstPointer pointer;
-   const int *inperm;
-   const int *outperm;
+   const int *inperm = NULL;
+   const int *outperm = NULL;
    const double *constant;
 
    if ( jniastCheckArrayLength( env, jInperm, nin ) &&
@@ -65,10 +65,14 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PermMap_construct(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseIntArrayElements( env, jInperm, 
-                                          (jint *) inperm, JNI_ABORT );
-         (*env)->ReleaseIntArrayElements( env, jOutperm, 
-                                          (jint *) outperm, JNI_ABORT );
+         if ( inperm ) {
+            (*env)->ReleaseIntArrayElements( env, jInperm, 
+                                             (jint *) inperm, JNI_ABORT );
+         }
+         if ( outperm ) {
+            (*env)->ReleaseIntArrayElements( env, jOutperm, 
+                                             (jint *) outperm, JNI_ABORT );
+         }
          if ( constant != NULL ) {
             (*env)->ReleaseDoubleArrayElements( env, jConstant, 
                                                 (jdouble *) constant,

@@ -50,9 +50,9 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
    jdoubleArray jC       /* Third point coordinates */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const double *a;
-   const double *b;
-   const double *c;
+   const double *a = NULL;
+   const double *b = NULL;
+   const double *c = NULL;
    int naxes;
    jdouble result;
 
@@ -74,12 +74,18 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_angle(
 
       /* Release resources. */
       ALWAYS( 
-         (*env)->ReleaseDoubleArrayElements( env, jA, (jdouble *) a,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jB, (jdouble *) b,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jC, (jdouble *) c,
-                                             JNI_ABORT );
+         if ( a ) {
+            (*env)->ReleaseDoubleArrayElements( env, jA, (jdouble *) a,
+                                                JNI_ABORT );
+         }
+         if ( b ) {
+            (*env)->ReleaseDoubleArrayElements( env, jB, (jdouble *) b,
+                                                JNI_ABORT );
+         }
+         if ( c ) {
+            (*env)->ReleaseDoubleArrayElements( env, jC, (jdouble *) c,
+                                                JNI_ABORT );
+         }
       )
    }
 
@@ -95,8 +101,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axAngle(
    jint axis             /* Index of axis to use */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const double *a;
-   const double *b;
+   const double *a = NULL;
+   const double *b = NULL;
    int naxes;
    jdouble result;
    
@@ -116,10 +122,14 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_axAngle(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jA, (jdouble *) a,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jB, (jdouble *) b,
-                                             JNI_ABORT );
+         if ( a ) {
+            (*env)->ReleaseDoubleArrayElements( env, jA, (jdouble *) a,
+                                                JNI_ABORT );
+         }
+         if ( b ) {
+            (*env)->ReleaseDoubleArrayElements( env, jB, (jdouble *) b,
+                                                JNI_ABORT );
+         }
       )
    }
 
@@ -200,8 +210,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_distance(
    jdoubleArray jPoint2  /* Coordinates of second point */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const double *point1;
-   const double *point2;
+   const double *point1 = NULL;
+   const double *point2 = NULL;
    jdouble dist;
    int naxes;
 
@@ -221,10 +231,14 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_distance(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPoint1, (jdouble *) point1, 
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint2, (jdouble *) point2, 
-                                             JNI_ABORT );
+         if ( point1 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint1,
+                                                (jdouble *) point1, JNI_ABORT );
+         }
+         if ( point2 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint2,
+                                                (jdouble *) point2, JNI_ABORT );
+         }
       )
    }
 
@@ -300,7 +314,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_norm(
    jdoubleArray jValue   /* Coordinates for normalisation */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   double *value;
+   double *value = NULL;
    int naxes;
 
    /* Check arguments look OK. */
@@ -317,7 +331,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_norm(
 
       /* Copy the results back to the java array. */
       ALWAYS( 
-         (*env)->ReleaseDoubleArrayElements( env, jValue, value, 0 );
+         if ( value ) {
+            (*env)->ReleaseDoubleArrayElements( env, jValue, value, 0 );
+         }
       )
    }
 }
@@ -331,9 +347,9 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_offset(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    jdoubleArray jPoint3;
-   const double *point1;
-   const double *point2;
-   double *point3;
+   const double *point1 = NULL;
+   const double *point2 = NULL;
+   double *point3 = NULL;
    int naxes;
 
    /* Check the arguments look OK. */
@@ -359,12 +375,18 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_offset(
 
       /* Release resources and copy result into java array. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPoint1, (jdouble *) point1,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint2, (jdouble *) point2,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint3, (jdouble *) point3,
-                                             0 );
+         if ( point1 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint1,
+                                                (jdouble *) point1, JNI_ABORT );
+         }
+         if ( point2 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint2,
+                                                (jdouble *) point2, JNI_ABORT );
+         }
+         if ( point3 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint3,
+                                                (jdouble *) point3, 0 );
+         }
       )
    }
 
@@ -382,8 +404,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_offset2(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    jdouble newangle;
-   const double *point1;
-   double *point2;
+   const double *point1 = NULL;
+   double *point2 = NULL;
 
    /* Check the jPoint2 array is large enough to hold the data we will
     * write into it. */
@@ -403,10 +425,14 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Frame_offset2(
 
       /* Release resources and copy values back to java array. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPoint1, (jdouble *) point1,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint2, (jdouble *) point2,
-                                             0 );
+         if ( point1 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint1,
+                                                (jdouble *) point1, JNI_ABORT );
+         }
+         if ( point2 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint2,
+                                                (jdouble *) point2, 0 );
+         }
       )
    }
 
@@ -420,7 +446,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_permAxes(
    jintArray jPerm       /* Axis permutation */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const int *perm;
+   const int *perm = NULL;
    int naxes;
 
    /* Check the arguments look OK. */
@@ -437,7 +463,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Frame_permAxes(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseIntArrayElements( env, jPerm, (jint *) perm, 0 );
+         if ( perm ) {
+            (*env)->ReleaseIntArrayElements( env, jPerm, (jint *) perm, 0 );
+         }
       )
    }
 }
@@ -450,7 +478,7 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_pickAxes(
    jobjectArray jMapArr  /* Slot for new mapping */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const int *axes;
+   const int *axes = NULL;
    AstMapping *map;
    AstFrame *newframe;
 
@@ -477,8 +505,10 @@ JNIEXPORT jobject JNICALL Java_uk_ac_starlink_ast_Frame_pickAxes(
 
       /* Release resources. */
       ALWAYS(
-         (*env)->ReleaseIntArrayElements( env, jAxes, (jint *) axes,
-                                          JNI_ABORT );
+         if ( axes ) {
+            (*env)->ReleaseIntArrayElements( env, jAxes, (jint *) axes,
+                                             JNI_ABORT );
+         }
       )
    }
 
@@ -495,11 +525,11 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
    jdoubleArray jPoint4  /* Fourth point (returned) */
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
-   const double *point1;
-   const double *point2;
-   const double *point3;
-   double *point4;
-   double *d;
+   const double *point1 = NULL;
+   const double *point2 = NULL;
+   const double *point3 = NULL;
+   double *point4 = NULL;
+   double *d = NULL;
    jdoubleArray jD = NULL;
    int naxes;
 
@@ -526,16 +556,25 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Frame_resolve(
 
       /* Release resources, copying output data back. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPoint1, (jdouble *) point1,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint2, (jdouble *) point2,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint3, (jdouble *) point3,
-                                             JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jPoint4, (jdouble *) point4,
-                                             0 );
-         (*env)->ReleaseDoubleArrayElements( env, jD, (double *) d, 
-                                             0 );
+         if ( point1 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint1,
+                                                (jdouble *) point1, JNI_ABORT );
+         }
+         if ( point2 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint2,
+                                                (jdouble *) point2, JNI_ABORT );
+         }
+         if ( point3 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint3,
+                                                (jdouble *) point3, JNI_ABORT );
+         }
+         if ( point4 ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPoint4,
+                                               (jdouble *) point4, 0 );
+         }
+         if ( d ) {
+            (*env)->ReleaseDoubleArrayElements( env, jD, (double *) d, 0 );
+         }
       )
    }
    return jD;

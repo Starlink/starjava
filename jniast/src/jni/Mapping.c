@@ -172,9 +172,9 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_mapBox(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    jdoubleArray jResult = NULL;
-   double *result;
-   const double *lbnd_in;
-   const double *ubnd_in;
+   double *result = NULL;
+   const double *lbnd_in = NULL;
+   const double *ubnd_in = NULL;
    double *xl;
    double *xu;
    int nin;
@@ -220,18 +220,26 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_mapBox(
 
       /* Release resources and copy data back. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jLbnd_in, 
-                                             (jdouble *) lbnd_in, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jUbnd_in,
-                                             (jdouble *) ubnd_in, JNI_ABORT );
-         if ( xl != NULL ) {
+         if ( lbnd_in ) {
+            (*env)->ReleaseDoubleArrayElements( env, jLbnd_in, 
+                                                (jdouble *) lbnd_in,
+                                                JNI_ABORT );
+         }
+         if ( ubnd_in ) {
+            (*env)->ReleaseDoubleArrayElements( env, jUbnd_in,
+                                                (jdouble *) ubnd_in,
+                                                JNI_ABORT );
+         }
+         if ( xl ) {
             (*env)->ReleaseDoubleArrayElements( env, jXl, (jdouble *) xl, 0 );
          }
-         if ( xu != NULL ) {
+         if ( xu ) {
             (*env)->ReleaseDoubleArrayElements( env, jXu, (jdouble *) xu, 0 );
          }
-         (*env)->ReleaseDoubleArrayElements( env, jResult, 
-                                             (jdouble *) result, 0 );
+         if ( result ) {
+            (*env)->ReleaseDoubleArrayElements( env, jResult, 
+                                                (jdouble *) result, 0 );
+         }
       )
    }
    return jResult;
@@ -247,8 +255,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran1(
 ) {
    AstPointer pointer = jniastGetPointerField( env, this );
    jdoubleArray jXout = NULL;
-   double *xin;
-   double *xout;
+   double *xin = NULL;
+   double *xout = NULL;
 
    /* Check the input array is long enough. */
    if ( jniastCheckArrayLength( env, jXin, npoint ) ) {
@@ -267,8 +275,12 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tran1(
 
       /* Unmap the arrays. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jXout, xout, 0 );
-         (*env)->ReleaseDoubleArrayElements( env, jXin, xin, JNI_ABORT );
+         if ( xout ) {
+            (*env)->ReleaseDoubleArrayElements( env, jXout, xout, 0 );
+         }
+         if ( xin ) {
+            (*env)->ReleaseDoubleArrayElements( env, jXin, xin, JNI_ABORT );
+         }
       )
    }
 
@@ -289,8 +301,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranN(
    jdoubleArray jOut = NULL;
    int indim;
    int outdim;
-   double *in;
-   double *out;
+   double *in = NULL;
+   double *out = NULL;
 
    /* Perform validation of things which may cause trouble before getting
     * caught by the more exhaustive validation of the AST routine. */
@@ -319,8 +331,12 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranN(
 
       /* Unmap the arrays. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jIn, in, JNI_ABORT );
-         (*env)->ReleaseDoubleArrayElements( env, jOut, out, 0 );
+         if ( in ) {
+            (*env)->ReleaseDoubleArrayElements( env, jIn, in, JNI_ABORT );
+         }
+         if ( out ) {
+            (*env)->ReleaseDoubleArrayElements( env, jOut, out, 0 );
+         }
       )
    }
 
@@ -496,7 +512,7 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
    double rate = AST__BAD;
    int nin;
    double *d2;
-   double *at;
+   double *at = NULL;
 
    /* Validate parameters. */
    ASTCALL(
@@ -522,7 +538,9 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
 
       /* Release resources and copy data back. */
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jAt, at, JNI_ABORT );
+         if ( at ) {
+            (*env)->ReleaseDoubleArrayElements( env, jAt, at, JNI_ABORT );
+         }
          if ( d2 != NULL ) {
             (*env)->ReleaseDoubleArrayElements( env, jD2, d2, 0 );
          }
@@ -585,16 +603,16 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
    Xjtype##Array jOut_var/* Output variance grid */ \
 ) { \
    AstPointer pointer = jniastGetPointerField( env, this ); \
-   int *lbnd; \
-   int *lbnd_in; \
-   int *lbnd_out; \
-   int *ubnd; \
-   int *ubnd_in; \
-   int *ubnd_out; \
-   Xtype *in; \
-   Xtype *out; \
-   Xtype *in_var; \
-   Xtype *out_var; \
+   int *lbnd = NULL; \
+   int *lbnd_in = NULL; \
+   int *lbnd_out = NULL; \
+   int *ubnd = NULL; \
+   int *ubnd_in = NULL; \
+   int *ubnd_out = NULL; \
+   Xtype *in = NULL; \
+   Xtype *out = NULL; \
+   Xtype *in_var = NULL; \
+   Xtype *out_var = NULL; \
    int interp; \
    int flags; \
    int nbad; \
@@ -754,27 +772,48 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
          ; \
    } \
    ALWAYS( \
-      (*env)->ReleaseIntArrayElements( env, jLbnd, (jint *) lbnd, \
-                                       JNI_ABORT ); \
-      (*env)->ReleaseIntArrayElements( env, jUbnd, (jint *) ubnd, \
-                                       JNI_ABORT ); \
-      (*env)->ReleaseIntArrayElements( env, jLbnd_in, (jint *) lbnd_in, \
-                                       JNI_ABORT ); \
-      (*env)->ReleaseIntArrayElements( env, jUbnd_in, (jint *) ubnd_in, \
-                                       JNI_ABORT ); \
-      (*env)->ReleaseIntArrayElements( env, jLbnd_out, (jint *) lbnd_out, \
-                                       JNI_ABORT ); \
-      (*env)->ReleaseIntArrayElements( env, jUbnd_out, (jint *) ubnd_out, \
-                                       JNI_ABORT ); \
-      (*env)->Release##XJtype##ArrayElements( env, jIn, (Xjtype *) in, \
-                                       JNI_ABORT ); \
-      (*env)->Release##XJtype##ArrayElements( env, jOut, (Xjtype *) out, 0 ); \
-      if ( jIn_var != NULL ) { \
-         (*env)->Release##XJtype##ArrayElements( env, jIn_var, \
-                                                 (Xjtype *) in_var, \
+      if ( lbnd ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd, (jint *) lbnd, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd, (jint *) ubnd, \
+                                          JNI_ABORT ); \
+      } \
+      if ( lbnd_in ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd_in, (jint *) lbnd_in, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd_in ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd_in, (jint *) ubnd_in, \
+                                          JNI_ABORT ); \
+      } \
+      if ( lbnd_out ) { \
+         (*env)->ReleaseIntArrayElements( env, jLbnd_out, (jint *) lbnd_out, \
+                                          JNI_ABORT ); \
+      } \
+      if ( ubnd_out ) { \
+         (*env)->ReleaseIntArrayElements( env, jUbnd_out, (jint *) ubnd_out, \
+                                          JNI_ABORT ); \
+      } \
+      if ( in ) { \
+         (*env)->Release##XJtype##ArrayElements( env, jIn, (Xjtype *) in, \
                                                  JNI_ABORT ); \
-         (*env)->Release##XJtype##ArrayElements( env, jOut_var, \
-                                                 (Xjtype *) out_var, 0 ); \
+      } \
+      if ( out ) { \
+         (*env)->Release##XJtype##ArrayElements( env, jOut, \
+                                                 (Xjtype *) out, 0 ); \
+      } \
+      if ( jIn_var != NULL ) { \
+         if ( in_var ) { \
+            (*env)->Release##XJtype##ArrayElements( env, jIn_var, \
+                                                    (Xjtype *) in_var, \
+                                                    JNI_ABORT ); \
+         } \
+         if ( out_var ) { \
+            (*env)->Release##XJtype##ArrayElements( env, jOut_var, \
+                                                    (Xjtype *) out_var, 0 ); \
+         } \
       } \
    ) \
  \
