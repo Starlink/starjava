@@ -5,13 +5,15 @@
    Prerequisites
    -------------
 
-First make sure you have a 1.4.x J2SE SDK available. Downloads are available from:
+First make sure you have a 1.4.x J2SE SDK available. Downloads are available 
+from:
 
    http://java.sun.com/
 
-Currently all development is performed using version 1.4.x and the system is
-known not to build using 1.5. The current plans are to look at moving to 1.5
-sometime during 2005. Note we cannot distribute the SDK for licensing reasons.
+Currently all development is performed using version 1.4.x. The system is
+known to build using 1.5, but it has not been extensively tested. The current
+plans are to look at moving to 1.5 officially sometime during 2005. Note we
+cannot distribute the SDK for licensing reasons.
 
 You will also need to have JAI installed as part of the SDK. JAI is the "Java
 Advanced Imaging API" which is currently part of SUNs "Desktop Java". The
@@ -25,6 +27,10 @@ Now define STAR_JAVA to point at the "java" command of this:
 Alternatively install the SDK into /star/java and create a file "jdkhome" in
 this directory that contains the full name of the host directory (this is the
 method used in JRE releases made by Starlink).
+
+In addition to this you will need a Starlink classic installation. This is
+required for building parts of SPLAT (and JNIAST/JNIHDS, although these
+packages come with re-built native libraries for common platforms).
 
    Build ANT
    ---------
@@ -59,6 +65,20 @@ of the package subdirectories and performs "ant build" on each package. If it
 reports that you cannot compile the Java files, make sure that the SDK is on
 your PATH (a javac command is required).
 
+If you have a classic Starlink installation that is not installed in /star,
+you will need to re-define the ANT property "stardev". If we assume the new
+root is "/star-local", then the simplest way to do this is just to use
+-Dstardev=/star-local on the command-line:
+
+   % ant -Dstardev=/star-local
+
+Alternatively, if you expect to do this a lot, define the value in the file
+$HOME/.stardev.properties, in which you should put the single line:
+
+   stardev=/star-local
+
+Other ANT properties can be added on additional lines.
+
    Install everything
    ------------------
 
@@ -78,4 +98,4 @@ STARJAVA already installed check the environment variables and aliases and
 re-define these as appropriate).
 
 
-Peter W. Draper 03-DEC-2004 (p.w.draper@durham.ac.uk)
+Peter W. Draper 15-MAR-2005 (p.w.draper@durham.ac.uk)
