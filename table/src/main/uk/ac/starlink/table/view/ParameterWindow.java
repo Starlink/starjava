@@ -7,12 +7,18 @@ import java.util.Iterator;
 import java.util.Map;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfoMapGroup;
 import uk.ac.starlink.table.gui.MapGroupTableModel;
 import uk.ac.starlink.table.gui.MultilineJTable;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -21,11 +27,24 @@ import uk.ac.starlink.util.MapGroup;
  */
 public class ParameterWindow extends AuxWindow {
 
-    public ParameterWindow( StarTable startab, Component parent ) {
-        super( "Table Parameters", startab, parent );
+    private StarTableModel stmodel;
+    private TableColumnModel tcmodel;
+    private AbstractTableModel pmodel;
+    private int colsIndex;
+    private int rowsIndex;
+    private ValueInfoMapGroup mg;
+    private Map colsMap;
+    private Map rowsMap;
+
+    public ParameterWindow( StarTableModel stmodel, TableColumnModel tcmodel,
+                            Component parent ) {
+        super( "Table Parameters", stmodel, parent );
+        this.stmodel = stmodel;
+        this.tcmodel = tcmodel;
+        StarTable startab = stmodel.getStarTable();
 
         /* Construct a MapGroup to hold per-table metadata. */
-        ValueInfoMapGroup mg = new ValueInfoMapGroup();
+        mg = new ValueInfoMapGroup();
 
         /* Add table name if applicable. */
         String name = startab.getName();
@@ -47,17 +66,15 @@ public class ParameterWindow extends AuxWindow {
 
         /* Add table shape. */
         int ncol = startab.getColumnCount();
-        Map colsMap = new HashMap();
+        colsMap = new HashMap();
         colsMap.put( ValueInfoMapGroup.NAME_KEY, "Column count" );
-        colsMap.put( ValueInfoMapGroup.VALUE_KEY, new Integer( ncol ) );
+        colsIndex = mg.getMaps().size();
         mg.addMap( colsMap );
         long nrow = startab.getRowCount();
-        if ( nrow >= 0 ) {
-            Map rowsMap = new HashMap();
-            rowsMap.put( ValueInfoMapGroup.NAME_KEY, "Row count" );
-            rowsMap.put( ValueInfoMapGroup.VALUE_KEY, new Long( nrow ) );
-            mg.addMap( rowsMap );
-        }
+        rowsMap = new HashMap();
+        rowsMap.put( ValueInfoMapGroup.NAME_KEY, "Row count" );
+        rowsIndex = mg.getMaps().size();
+        mg.addMap( rowsMap );
 
         /* Add the actual table parameters as such. */
         for ( Iterator it = startab.getParameters().iterator(); 
@@ -67,15 +84,58 @@ public class ParameterWindow extends AuxWindow {
         }
 
         /* Turn the MapGroup into a JTable. */
-        JTable jtab = new MultilineJTable( new MapGroupTableModel( mg ) );
+        pmodel = new MapGroupTableModel( mg );
+        JTable jtab = new JTable( pmodel );
         jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+        jtab.setColumnSelectionAllowed( false );
+        jtab.setRowSelectionAllowed( false );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
+        
 
         /* Place the table into a scrollpane in this frame. */
         getContentPane().add( new SizingScrollPane( jtab ) );
+
+        /* Ensure that subsequent changes to the table shape are reflected
+         * in this window. */
+        stmodel.addTableModelListener( new TableModelListener() {
+            public void tableChanged( TableModelEvent evt ) {
+                configureRowCount();
+            }
+        } );
+        tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
+            public void columnAdded( TableColumnModelEvent evt ) {
+                configureColumnCount();
+            }
+            public void columnRemoved( TableColumnModelEvent evt ) {
+                configureColumnCount();
+            }
+        } );
+        configureColumnCount();
+        configureRowCount();
 
         /* Display. */
         pack();
         setVisible( true );
     }
+
+    private void configureColumnCount() {
+        int ncol = tcmodel.getColumnCount();
+        assert colsMap == mg.getMaps().get( colsIndex );
+        assert colsMap.get( ValueInfoMapGroup.NAME_KEY )
+                      .equals( "Column count" );
+        colsMap.put( ValueInfoMapGroup.VALUE_KEY, new Integer( ncol ) );
+        pmodel.fireTableRowsUpdated( colsIndex, colsIndex );
+    }
+
+    private void configureRowCount() {
+        assert rowsMap == mg.getMaps().get( rowsIndex );
+        assert rowsMap.get( ValueInfoMapGroup.NAME_KEY )
+                      .equals( "Row count" );
+        int nrow = stmodel.getRowCount();
+        rowsMap.put( ValueInfoMapGroup.VALUE_KEY, 
+                     ( nrow >= 0 ) ? (Object) new Long( nrow )
+                                   : (Object) "?" );
+        pmodel.fireTableRowsUpdated( rowsIndex, rowsIndex );
+    }
+
 }

@@ -13,11 +13,18 @@ import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import ptolemy.plot.Plot;
 import ptolemy.plot.PlotBox;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.table.gui.StarTableModel;
 
 /**
  * Top level window which presents plots derived from a <tt>StarTable</tt>.
@@ -28,7 +35,8 @@ import uk.ac.starlink.table.StarTable;
  */
 public class PlotWindow extends AuxWindow implements ActionListener {
 
-    private StarTable startab;
+    private StarTableModel stmodel;
+    private TableColumnModel tcmodel;
     private JComboBox xColBox;
     private JComboBox yColBox;
     private JCheckBox xLogBox;
@@ -37,14 +45,19 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private PlotState lastState;
 
     /**
-     * Constructs a PlotWindow from a given StarTable.
+     * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
+     * <tt>TableColumnModel</tt>.
      *
-     * @param   startab  the startable from which to plot columns
+     * @param   stmodel  the StarTableModel from which to plot columns
+     * @param   tcmodel  the TableColumn
      * @param   parent  the parent component
      */
-    public PlotWindow( StarTable startab, Component parent ) {
-        super( "Table Plotter", startab, parent );
-        this.startab = startab;
+    public PlotWindow( StarTableModel stmodel, TableColumnModel tcmodel,
+                       Component parent ) {
+        super( "Table Plotter", stmodel, parent );
+        this.stmodel = stmodel;
+        this.tcmodel = tcmodel;
+        StarTable startab = getStarTable();
 
         /* Do some window setup. */
         setSize( 400, 400 );
@@ -65,10 +78,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         xColBox = new JComboBox();
         yColBox = new JComboBox();
         int nok = 0;
-        for ( int i = 0; i < startab.getColumnCount(); i++ ) {
-            ColumnInfo cinfo = startab.getColumnInfo( i );
+        for ( int i = 0; i < tcmodel.getColumnCount(); i++ ) {
+            int index = tcmodel.getColumn( i ).getModelIndex();
+            ColumnInfo cinfo = startab.getColumnInfo( index );
             if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ) {
-                ColumnEntry colent = new ColumnEntry( cinfo, i );
+                ColumnEntry colent = new ColumnEntry( cinfo, index );
                 xColBox.addItem( colent );
                 yColBox.addItem( colent );
                 nok++;
@@ -97,6 +111,42 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         xLogBox.addActionListener( this );
         yLogBox.addActionListener( this );
 
+        /* Arrange for new columns to be reflected in this window,
+         * by adding them to the plot column selection boxes.  Don't bother 
+         * changing things if a column is removed or moved though. */
+        tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
+            public void columnAdded( TableColumnModelEvent evt ) {
+                TableColumnModel tcmodel = PlotWindow.this.tcmodel;
+                assert tcmodel == evt.getSource();
+                TableColumn added = tcmodel.getColumn( evt.getToIndex() );
+                int index = added.getModelIndex();
+                ColumnInfo cinfo = ((StarTableColumn) added).getColumnInfo();
+                if ( Number.class
+                           .isAssignableFrom( cinfo.getContentClass() ) ) {
+                    ColumnEntry colent = new ColumnEntry( cinfo, index );
+                    xColBox.addItem( colent );
+                    yColBox.addItem( colent );
+                }
+            }
+        } );
+
+        /* Arrange for changes in relevant parts of the table data itself 
+         * to cause a replot (this liveness of the plot should perhaps
+         * be optional for performance reasons and just so that you know
+         * where you are? */
+        stmodel.addTableModelListener( new TableModelListener() {
+            public void tableChanged( TableModelEvent evt ) {
+                int icol = evt.getColumn();
+                if ( evt.getFirstRow() == TableModelEvent.HEADER_ROW ||
+                     icol == TableModelEvent.ALL_COLUMNS ||
+                     icol == lastState.xCol.index ||
+                     icol == lastState.yCol.index ) {
+                    lastState = null;
+                    actionPerformed( null );
+                }
+            }
+        } );
+      
         /* Construct a panel which will hold the plot itself. */
         plotPanel = new JPanel( new BorderLayout() );
 
@@ -114,12 +164,22 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
+     * Returns the StarTable whose data is being plotted here.
+     *
+     * @param the startable
+     */
+    private StarTable getStarTable() {
+        return stmodel.getStarTable();
+    }
+
+    /**
      * Returns a plot component based on a given plotting state.
      *
      * @param  state  the PlotState determining plot characteristics
      * @return  a PlotBox component representing the plot
      */
     private PlotBox makePlot( PlotState state ) {
+        StarTable startab = getStarTable();
         int xcol = state.xCol.index;
         int ycol = state.yCol.index;
         ColumnInfo xColumn = state.xCol.info;
@@ -211,7 +271,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * combobox.
      */
     private static class ColumnEntry {
-        int index;
+        int index;  // index in TableModel, not TableColumnModel
         ColumnInfo info;
         public ColumnEntry( ColumnInfo info, int index ) {
             this.info = info;

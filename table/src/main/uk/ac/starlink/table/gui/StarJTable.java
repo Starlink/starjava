@@ -5,10 +5,13 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -70,6 +73,9 @@ public class StarJTable extends JTable {
      * Sets this <tt>StarJTable</tt> up to display a given 
      * <tt>StarTable</tt> object,
      * optionally with a dummy first column displaying the row number.
+     * This table's model will be set to a {@link StarTableModel},
+     * and the colum model will be set to one of which all the columns
+     * are {@link StarTableColumn}s.
      *
      * @param  startable  the <tt>StarTable</tt> to display
      * @param  rowHeader  whether column 0 should contain row indices
@@ -81,20 +87,28 @@ public class StarJTable extends JTable {
         setModel( new StarTableModel( startable, rowHeader ) );
         this.startable = startable;
 
-        /* Set up renderers. */
-        TableColumnModel tcm = getColumnModel();
-        int extraCols = rowHeader ? 1 : 0;
+        /* Set up the column and column model. */
+        TableColumnModel tcm = new DefaultTableColumnModel();
+        int jcol = 0;
+
+        /* Construct a dummy column for the index entries if required. */
         if ( rowHeader ) {
-            tcm.getColumn( 0 ).setCellRenderer( getRowHeaderRenderer() );
+            ColumnInfo rhColInfo = new ColumnInfo( new DefaultValueInfo(
+                "Index", Integer.class, "Row index" ) );
+            TableColumn rhcol = new StarTableColumn( rhColInfo, jcol++ );
+            rhcol.setCellRenderer( getRowHeaderRenderer() );
+            tcm.addColumn( rhcol );
         }
+
+        /* Construct proper columns for the entries from the StarTable. */
         for ( int icol = 0; icol < startable.getColumnCount(); icol++ ) {
-            ValueInfo cinfo = startable.getColumnInfo( icol );
-            TableCellRenderer crend = cinfo.getCellRenderer();
-            if ( crend == null ) {
-                crend = new ValueInfoCellRenderer( cinfo );
-            }
-            tcm.getColumn( extraCols + icol ).setCellRenderer( crend );
+            ColumnInfo cinfo = startable.getColumnInfo( icol );
+            TableColumn tcol = new StarTableColumn( cinfo, jcol++ );
+            tcm.addColumn( tcol );
         }
+
+        /* Set the column model to the one we have constructed. */
+        setColumnModel( tcm );
     }
 
     /**

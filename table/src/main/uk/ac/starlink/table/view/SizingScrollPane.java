@@ -21,6 +21,7 @@ class SizingScrollPane extends JScrollPane {
     private int defHeight = 400;
     private int sbw;
     private int sbh;
+    private int headh;
 
     /**
      * Constructs an empty scroll pane.
@@ -43,17 +44,26 @@ class SizingScrollPane extends JScrollPane {
     public Dimension getPreferredSize() {
         if ( getViewport() != null && getViewport().getView() != null ) {
 
-            // I can't get this right - I want it to resize to exactly
-            // the shape of the view if that is within a reasonable size,
-            // or have a scrollbar in each appropriate direction if it's
-            // too big.  But I always get gaps or scrollbars when they
-            // shouldn't be there.
             Dimension vdim = getViewport().getView().getPreferredSize();
-            int vw = vdim.width + 6;
-            int vh = vdim.height + 6;
+
+
+            // Don't know why I need these plus fours, but it doesn't seem
+            // to be quite big enough without.
+            int vw = vdim.width + 4;
+            int vh = vdim.height + 4;
+
+            Component rHead = getRowHeader();
+            if ( rHead != null ) {
+                vw += rHead.getPreferredSize().width;
+            }
+            Component cHead = getColumnHeader();
+            if ( cHead != null ) {
+                vh += cHead.getPreferredSize().height;
+            }
+
             int w = Math.max( Math.min( vw, maxWidth ), minWidth );
             int h = Math.max( Math.min( vh, maxHeight ), minHeight );
-            return new Dimension( w + sbw, h + sbh );
+            return new Dimension( w, h );
         }
         else {
             return new Dimension( defWidth, defHeight );

@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * @author   Mark Taylor (Starlink)
  */
-interface ColumnData {
+public interface ColumnData {
 
     /**
      * Stores a given value in a given row for this column.

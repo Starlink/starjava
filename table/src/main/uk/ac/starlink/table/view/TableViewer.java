@@ -3,10 +3,14 @@ package uk.ac.starlink.table.view;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,14 +22,24 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableChooser;
+import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -40,10 +54,19 @@ import uk.ac.starlink.util.Loader;
  */
 public class TableViewer extends JFrame {
 
-    private StarTable startab;
-    private JTable jtab;
+    /**
+     * State about the data is stored primarily in this StarTableModel.
+     * The point of this is that the model can be
+     * passed to other windows which can add listeners if they wish
+     * to track changes in the data as they occur.  Passing the StarTable
+     * object itself around is no good for this since it does not have
+     * all the necessary machinery of listeners and event handling.
+     */
+    private StarTableModel stmodel;
+    private TableColumnModel tcmodel;
+
+    private StarJTable jtab;
     private JScrollPane scrollpane;
-    private JPanel mainpanel;
     private Action exitAct;
     private Action closeAct;
     private Action openAct;
@@ -90,10 +113,11 @@ public class TableViewer extends JFrame {
         /* Do basic setup. */
         super();
         AuxWindow.positionAfter( sibling, this );
-        scrollpane = new SizingScrollPane();
-        mainpanel = new JPanel( new BorderLayout() );
-        getContentPane().add( mainpanel );
-        mainpanel.add( scrollpane, BorderLayout.CENTER );
+        jtab = new StarJTable( false );
+        jtab.setColumnSelectionAllowed( true );
+        scrollpane = new SizingScrollPane( jtab );
+        getContentPane().add( scrollpane, BorderLayout.CENTER );
+        scrollpane.setRowHeaderView( new TableRowHeader( jtab ) );
 
         /* Create and configure actions. */
         exitAct = new ViewerAction( "Exit", 0,
@@ -159,6 +183,30 @@ public class TableViewer extends JFrame {
         metaMenu.add( paramAct ).setIcon( null );
         metaMenu.add( colinfoAct ).setIcon( null );
 
+        /* Configure a listener for column popup menus. */
+        MouseListener mousey = new MouseAdapter() {
+            public void mousePressed( MouseEvent evt ) {
+                maybeShowPopup( evt );
+            }
+            public void mouseReleased( MouseEvent evt ) {
+                maybeShowPopup( evt );
+            }
+            private void maybeShowPopup( MouseEvent evt ) {
+                if ( evt.isPopupTrigger() ) {
+                    int jcol = jtab.columnAtPoint( evt.getPoint() );
+                    if ( jcol >= 0 ) {
+                        JPopupMenu popper = columnPopup( jcol );
+                        if ( popper != null ) {
+                            popper.show( evt.getComponent(),
+                                         evt.getX(), evt.getY() );
+                        }
+                    }
+                }
+            }
+        };
+        jtab.addMouseListener( mousey );
+        jtab.getTableHeader().addMouseListener( mousey );
+
         /* Display. */
         pack();
         setVisible( true );
@@ -179,18 +227,52 @@ public class TableViewer extends JFrame {
                 throw new IllegalArgumentException( 
                     "Can't use non-random table" );
             }
-            this.startab = startab;
-            jtab = new StarJTable( startab, true );
-            ((StarJTable) jtab).configureColumnWidths( 300, 20 );
-            scrollpane.setViewportView( jtab );
+            jtab.setStarTable( startab, false );
+            scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
+            stmodel = (StarTableModel) jtab.getModel();
+            tcmodel = jtab.getColumnModel();
+            jtab.configureColumnWidths( 300, 20 );
         }
         else {
-            this.startab = null;
-            this.jtab = null;
-            scrollpane.setViewportView( null );
+            jtab.setStarTable( null, false );
+            stmodel = null;
+            tcmodel = null;
         }
         setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, startab ) );
         configureActions();
+    }
+
+    /**
+     * Returns a StarTable representing the table data as displayed by
+     * this viewer.  This may differ from the original StarTable object
+     * held by it in a number of ways; it may have a different row order,
+     * different column orderings, and added or removed columns.
+     *
+     * @return  a StarTable object representing what this viewer appears
+     *          to be showing
+     */
+    public StarTable getApparentStarTable() {
+        return getApparentStarTable( tcmodel, stmodel );
+    }
+
+    /**
+     * Returns a StarTable representing the table data as displayed by a
+     * given TableColumnModel and StarTableModel.  The columns may differ
+     * from those in the model, as determined by the column model.
+     *
+     * @param  tcmodel  the column model
+     * @param  stmodel  the table model
+     * @return  a StarTable representing what <tt>tcmodel</tt> and 
+     *          <tt>stmodel</tt> appear to display
+     */
+    public static StarTable getApparentStarTable( TableColumnModel tcmodel,
+                                                  StarTableModel stmodel ) {
+        int ncol1 = tcmodel.getColumnCount();
+        int[] colmap = new int[ ncol1 ];
+        for ( int i = 0; i < ncol1; i++ ) {
+            colmap[ i ] = tcmodel.getColumn( i ).getModelIndex();
+        }
+        return new ColumnPermutedStarTable( stmodel.getStarTable(), colmap );
     }
 
     /**
@@ -253,9 +335,25 @@ public class TableViewer extends JFrame {
      * of the viewer changes.
      */
     private void configureActions() {
-        boolean hasTable = startab != null;
+        boolean hasTable = stmodel != null;
         saveAct.setEnabled( hasTable );
         dupAct.setEnabled( hasTable );
+    }
+
+    /**
+     * Returns a popup menu for a given column.
+     *
+     * @param  icol the model column to which the menu applies
+     */
+    private JPopupMenu columnPopup( final int jcol ) {
+        JPopupMenu popper = new JPopupMenu();
+        Action deleteAct = new AbstractAction( "Delete" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                tcmodel.removeColumn( tcmodel.getColumn( jcol ) );
+            }
+        };
+        popper.add( deleteAct );
+        return popper;
     }
 
     /**
@@ -303,21 +401,21 @@ public class TableViewer extends JFrame {
 
             /* Open the same table in a new viewer. */
             else if ( this == dupAct ) {
-                assert startab != null;  // action would be disabled 
-                new TableViewer( startab, parent );
+                assert stmodel != null;  // action would be disabled 
+                new TableViewer( getApparentStarTable(), parent );
             }
 
             /* Save the table to a file. */
             else if ( this == saveAct ) {
-                assert startab != null;  // action would be disabled 
-                getSaver().saveTable( startab, parent );
+                assert stmodel != null;  // action would be disabled 
+                getSaver().saveTable( getApparentStarTable(), parent );
             }
 
             /* Launch Mirage. */
             else if ( this == mirageAct ) {
                 assert MirageHandler.isMirageAvailable();
                 try {
-                    MirageHandler.invokeMirage( startab, null );
+                    MirageHandler.invokeMirage( getApparentStarTable(), null );
                 }
                 catch ( Exception e ) {
                     JOptionPane.showMessageDialog( parent, e.toString(),
@@ -328,17 +426,20 @@ public class TableViewer extends JFrame {
 
             /* Open a plot window. */
             else if ( this == plotAct ) {
-                wtracker.register( new PlotWindow( startab, parent ) );
+                wtracker
+               .register( new PlotWindow( stmodel, tcmodel, parent ) );
             }
 
             /* Display table parameters. */
             else if ( this == paramAct ) {
-                wtracker.register( new ParameterWindow( startab, parent ) );
+                wtracker
+               .register( new ParameterWindow( stmodel, tcmodel, parent ) );
             }
 
             /* Display column parameters. */
             else if ( this == colinfoAct ) {
-                wtracker.register( new ColumnInfoWindow( startab, parent ) );
+                wtracker
+               .register( new ColumnInfoWindow( stmodel, tcmodel, parent ) );
             }
 
             /* Shouldn't happen. */

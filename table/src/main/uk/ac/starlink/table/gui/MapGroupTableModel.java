@@ -20,8 +20,6 @@ public class MapGroupTableModel extends AbstractTableModel {
 
     /**
      * Constructs a TableModel from a given MapGroup.
-     * The model is based on the state of <tt>mapgroup</tt> at the time of
-     * this call, and its data does not change.
      *
      * @param   mapgroup  group to snapshot
      */

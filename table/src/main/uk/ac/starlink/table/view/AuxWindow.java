@@ -5,6 +5,7 @@ import java.awt.Point;
 import java.awt.Window;
 import javax.swing.JFrame;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.gui.StarTableModel;
 
 /**
  * Provides a common superclass for windows popped up by the TableViewer
@@ -33,12 +34,26 @@ class AuxWindow extends JFrame {
     }
 
     /**
+     * Constructs an AuxWindow based on a <tt>StarTableModel</tt>.
+     * 
+     * @param  baseTitle  the window basic title (the name of <tt>startab</tt>
+     *         will be incorporated into the title if it has one
+     * @param  stmodel   the StarTableModel which this window describes
+     * @param  parent   the parent component of the new window - may be
+     *         used for positioning
+     */
+    public AuxWindow( String baseTitle, StarTableModel stmodel, 
+                      Component parent ) {
+        this( baseTitle, stmodel.getStarTable(), parent );
+    }
+
+    /**
      * Constructs an AuxWindow.
      *
      * @param  title window title
      */
     public AuxWindow( String title, Component parent ) {
-        this( title, null, parent );
+        this( title, (StarTable) null, parent );
     }
 
     /**

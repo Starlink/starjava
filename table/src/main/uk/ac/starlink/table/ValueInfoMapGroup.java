@@ -52,6 +52,18 @@ public class ValueInfoMapGroup extends MapGroup {
     }
 
     /**
+     * Constructs a <tt>ValueInfoMapGroup</tt> based on the column 
+     * information in a <tt>StarTable</tt>.
+     * This convenience constructor just calls {@link #addTableColumns}.
+     *
+     * @param  startab  the StarTable to base it on
+     */
+    public ValueInfoMapGroup( StarTable startab ) {
+        this();
+        addTableColumns( startab );
+    }
+
+    /**
      * Adds a new Map to the group which contains the metadata in a 
      * <tt>ValueInfo</tt> object.
      *

@@ -61,4 +61,31 @@ public class Tables {
         }
         return infos;
     }
+
+    /**
+     * Returns a table equivalent to the original but with a given column
+     * deleted.  The result may or may not be the same object as the
+     * input table.
+     *
+     * @param  startab  the table from which to delete a column
+     * @param  icol     the index of the column to be deleted
+     * @throws  IndexOutOfBoundsException if <tt>startab</tt> has no column
+     *          at <tt>icol</tt>
+     */
+    public static StarTable deleteColumn( StarTable startab, int icol ) {
+        int ncol = startab.getColumnCount();
+        if ( icol < 0 || icol >= ncol ) {
+            throw new IndexOutOfBoundsException( 
+                "Deleted column " + icol + " out of range 0.." + ( ncol - 1 ) );
+        }
+        int[] colmap = new int[ ncol - 1 ];
+        int j = 0;
+        for ( int i = 0; i < ncol; i++ ) {
+            if ( i != icol ) {
+                colmap[ j++ ] = i;
+            }
+        }
+        assert j == ncol - 1;
+        return new ColumnPermutedStarTable( startab, colmap );
+    }
 }

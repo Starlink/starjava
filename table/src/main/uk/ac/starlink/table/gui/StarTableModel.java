@@ -14,12 +14,17 @@ import uk.ac.starlink.table.StarTable;
  * <p>
  * One extra bit of functionality is enabled, namely that an extra column
  * containing row indices may be provided.
+ * <p>
+ * As well as providing the data model for a <tt>JTable</tt>, this 
+ * class can be used as a general wrapper for <tt>StarTable</tt> objects
+ * when the event handling mechanism it supplies is required.
  * 
  * @author   Mark Taylor (Starlink)
+ * @see      javax.swing.JTable
  */
 public class StarTableModel extends AbstractTableModel {
 
-    private StarTable startable;
+    protected StarTable startable;
     private boolean rowHeader;
     private int extraCols;
 
@@ -55,7 +60,7 @@ public class StarTableModel extends AbstractTableModel {
     public StarTableModel( StarTable startable, boolean rowHeader ) {
         super();
         this.startable = startable;
-        this.rowHeader = true;
+        this.rowHeader = rowHeader;
         extraCols = rowHeader ? 1 : 0;
 
         /* Ensure that we have a random access table to use, and that it
