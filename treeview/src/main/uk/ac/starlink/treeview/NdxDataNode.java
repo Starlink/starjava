@@ -319,7 +319,7 @@ public class NdxDataNode extends DefaultDataNode {
         } );
 
         dv.addPane( "Array statistics", new ComponentMaker() {
-            public JComponent getComponent() throws IOException {
+            public JComponent getComponent() {
                 return new StatsViewer( image );
             }
         } );
