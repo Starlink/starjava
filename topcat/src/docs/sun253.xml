@@ -2753,13 +2753,13 @@ User comments, suggestions, requests and bug reports to the above address
 are welcomed.
 </p>
 
-<subsect>
+<subsect id="versions">
 <subhead><title>Version History</title></subhead>
 
 <p>Releases to date have been as follows:
 <dl>
 
-<dt>Version 1.3 (October 2004)</dt>
+<dt>Version 1.3 (20 October 2004)</dt>
 <dd><p>This version has introduced many improvements in scalability,
 efficiency and functionality.  TOPCAT is now quite happy with tables
 of a million rows or more (and hundreds of columns) even on systems 
@@ -2860,6 +2860,9 @@ The main improvements are as follows:
     <ul>
     <li>Clicking a point in the plot highlights the corresponding row in the
         data window and vice versa</li>
+    <li>Can display sky cutout region near highlighted row/point
+        on activation</li>
+    <li>Can configure user-defined actions on activation</li>
     </ul>
     </p></dd>
 
