@@ -329,9 +329,14 @@ public class ColumnInfoWindow extends TopcatViewWindow {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = ColumnInfoWindow.this;
                 int[] selrows = jtab.getSelectedRows();
-                int insertPos = selrows.length > 0 
-                              ? selrows[ selrows.length - 1 ]
-                              : -1;
+                int insertPos;
+                if ( selrows.length > 0 ) {
+                    int iSel = selrows[ selrows.length - 1 ];
+                    insertPos = getActiveIndexFromRow( iSel );
+                }
+                else {
+                    insertPos = -1;
+                }
                 new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
             }
         };
@@ -399,6 +404,16 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     private int getColumnListIndexFromRow( int irow ) {
         assert irow > 0;
         return irow - 1;
+    }
+
+    private int getActiveIndexFromRow( int irow ) {
+        int iActive = 0;
+        for ( int i = 1; i <= irow; i++ ) {
+            if ( columnList.isActive( getColumnListIndexFromRow( i ) ) ) {
+                iActive++;
+            }
+        }
+        return iActive;
     }
 
     private TableColumn getColumnFromRow( int irow ) {
