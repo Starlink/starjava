@@ -28,6 +28,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -48,6 +49,7 @@ import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
@@ -268,6 +270,18 @@ public class TableViewer extends AuxWindow
             }
         };
 
+        final TransferHandler saveTransferHandler = new TransferHandler() {
+            public int getSourceActions( JComponent comp ) {
+                return COPY;
+            }
+            public Icon getVisualRepresentation( Transferable trans ) {
+                return ResourceIcon.VIEWER;
+            }
+            protected Transferable createTransferable( JComponent comp ) {
+                return taboutput.transferStarTable( getApparentStarTable() );
+            }
+        };
+
         /* Configure the table. */
         if ( startab != null ) {
             setStarTable( startab );
@@ -362,7 +376,7 @@ public class TableViewer extends AuxWindow
         JToolBar toolBar = getToolBar();
         toolBar.add( newAct ).setTransferHandler( loadTransferHandler );
         toolBar.add( dupAct );
-        toolBar.add( saveAct );
+        final JButton saveButton = toolBar.add( saveAct );
         toolBar.addSeparator();
         toolBar.add( paramAct );
         toolBar.add( colinfoAct );
@@ -370,6 +384,13 @@ public class TableViewer extends AuxWindow
         toolBar.add( subsetsAct );
         toolBar.add( plotAct );
         toolBar.addSeparator();
+
+        /* Do some d'n'd configuration of the save button.  We have to 
+         * recognise a drag gesture by hand.  */
+        saveButton.setTransferHandler( saveTransferHandler );
+        MouseInputAdapter dragListener = new DragListener();
+        saveButton.addMouseMotionListener( dragListener );
+        saveButton.addMouseListener( dragListener );
 
         /* Configure a listener for column popup menus. */
         MouseListener mousey = new MouseAdapter() {
