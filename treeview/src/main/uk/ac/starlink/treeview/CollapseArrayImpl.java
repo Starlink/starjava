@@ -22,6 +22,7 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
     private final long[] baseOrigin;
     private final long[] baseDims;
     private final BadHandler baseHandler;
+    private final Type baseType;
     private final OrderedNDShape shape;
     private final Type type;
     private final BadHandler handler;
@@ -55,10 +56,11 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
         this.baseNda = nda;
         this.baseShape = baseNda.getShape();
         this.baseHandler = baseNda.getBadHandler();
+        this.baseType = baseNda.getType();
         this.collAxis = collAxis;
         this.collOrigin = collOrigin;
         this.collDim = collDim;
-        this.collapsor = getMeanCollapsor( nda.getType() );
+        this.collapsor = getMeanCollapsor( baseType );
         int baseNdim = baseShape.getNumDims();
         this.hasFitsOrder = baseShape.getOrder().isFitsLike();
         this.ndim = baseNdim - 1;
@@ -159,7 +161,7 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
             baseAcc = baseNda.getAccess();
             offset = 0L;
             assert collDim < Integer.MAX_VALUE; // checked in constructor
-            cbuf = type.newArray( (int) collDim );
+            cbuf = baseType.newArray( (int) collDim );
 
             baseStart0 = collOrigin - baseOrigin[ collAxis ];
             for ( int i = 0; i < collAxis; i++ ) {
