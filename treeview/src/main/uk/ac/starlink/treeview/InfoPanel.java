@@ -30,21 +30,18 @@ public class InfoPanel extends JPanel {
      * Constructs a new InfoPanel.
      */
     public InfoPanel() {
-  javax.swing.border.Border lineBorder = javax.swing.BorderFactory.createMatteBorder( 1, 1, 1, 1, java.awt.Color.black );
-        Border gapBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         setLayout( new BoxLayout( this, BoxLayout.X_AXIS ) );
         JComponent iconPanel = Box.createVerticalBox();
-        iconPanel.setBorder( gapBorder );
         iconLabel = new JLabel();
         iconLabel.setAlignmentX( 0.5f );
         iconPanel.add( iconLabel );
         iconPanel.add( Box.createHorizontalStrut( 32 ) );
         iconPanel.add( Box.createVerticalGlue() );
         add( iconPanel );
+        add( Box.createHorizontalStrut( 5 ) );
 
         itemGrid = new GridBagLayout();
         itemPanel = new JPanel( itemGrid );
-        itemPanel.setBorder( gapBorder );
         add( itemPanel );
         add( Box.createHorizontalGlue() );
     }
@@ -78,6 +75,12 @@ public class InfoPanel extends JPanel {
         cons.weightx = 0.0;
         itemGrid.setConstraints( label, cons );
         itemPanel.add( label );
+        cons.gridx++;
+
+        /* Add a gap. */
+        Component pad = Box.createHorizontalStrut( 10 );
+        itemGrid.setConstraints( pad, cons );
+        itemPanel.add( pad );
         cons.gridx++;
 
         /* Create a new label to contain the value. */
