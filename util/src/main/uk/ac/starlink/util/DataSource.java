@@ -620,6 +620,42 @@ public abstract class DataSource {
     }
 
     /**
+     * Returns an input stream based on the given location string.
+     * The location may be a URL or filename or the string "-" to represent
+     * System.in, and may represent compressed or uncompressed data; 
+     * the returned stream will be an uncompressed version.
+     *
+     * @param  location  URL, filename or "-"
+     * @return  uncompressed stream containing the data at <tt>location</tt>
+     * @throws  FileNotFoundException  if <tt>location</tt> is not an existing
+     *          file or a valid URL
+     * @throws  IOException  if there is an error obtaining the stream
+     */
+    public static InputStream getInputStream( String location )
+            throws IOException {
+        InputStream rawStream;
+        if ( location.equals( "-" ) ) {
+            rawStream = System.in;
+        }
+        else {
+            try {
+                rawStream = new URL( location ).openStream();
+            }
+            catch ( MalformedURLException e ) {
+                File file = new File( location );
+                if ( file.exists() ) {
+                    rawStream = new FileInputStream( file );
+                }
+                else {
+                    throw new FileNotFoundException( 
+                        "\"" + location + "\" is not a file or valid URL" );
+                }
+            }
+        }
+        return Compression.decompressStatic( rawStream );
+    }
+
+    /**
      * Private class which provides an input stream corresponding to this
      * DataSource, but skipping the first few bytes.  The idea is that
      * it consumes no expensive resources if it is never read.
