@@ -20,7 +20,8 @@ import uk.ac.starlink.util.SourceReader;
  * 
  * @author  Mark Taylor (Starlink)
  * @since   4 Feb 2005
- * @see  <http://cdsweb.u-strasbg.fr/cdsws/name_resolver.gml>
+ * @see  <a href="http://cdsweb.u-strasbg.fr/cdsws/name_resolver.gml"
+ *          >Sesame Documentation</a>
  */
 public class ResolverInfo {
 
