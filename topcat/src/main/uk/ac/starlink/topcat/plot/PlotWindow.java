@@ -3,16 +3,17 @@ package uk.ac.starlink.topcat.plot;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
@@ -20,7 +21,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.print.StreamPrintServiceFactory;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -45,6 +45,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
+import org.jibble.epsgraphics.EpsGraphics2D;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
@@ -88,7 +89,6 @@ public class PlotWindow extends TopcatViewWindow
     private JFileChooser printSaver_;
     private BitSet visibleRows_;
 
-    private static final String PRINT_MIME_TYPE = "application/postscript";
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
     private static Logger logger = 
@@ -216,10 +216,12 @@ public class PlotWindow extends TopcatViewWindow
         };
 
         /* Action for printing. */
-        Action printAction = new BasicAction( "Print", ResourceIcon.PRINT,
-                                              "Export to postscript" ) {
+        Action printAction = new BasicAction( "Export as EPS",
+                                              ResourceIcon.PRINT,
+                                              "Export to Encapsulated " +
+                                              "Postscript" ) {
             public void actionPerformed( ActionEvent evt ) {
-                print();
+                exportEPS();
             }
         };
         int fileMenuPos = 0;
@@ -391,60 +393,55 @@ public class PlotWindow extends TopcatViewWindow
     }
 
     /**
-     * Prints the currently plotted graph.
+     * Exports the currently displayed plot to encapsulated postscript.
+     * The user is prompted to supply a filename.
      */
-    private void print() {
-        StreamPrintServiceFactory factory = 
-            getPrintServiceFactory( PRINT_MIME_TYPE );
-        if ( factory != null ) {
-            JFileChooser chooser = getPrintSaver();
-            if ( chooser.showSaveDialog( this ) 
-                 == JFileChooser.APPROVE_OPTION ) {
-                try {
-                    File file = chooser.getSelectedFile();
-                    OutputStream ostrm = new FileOutputStream( file );
-                    PrinterJob job = PrinterJob.getPrinterJob();
-                    job.setPrintService( factory.getPrintService( ostrm ) );
-                    job.setPrintable( plot_ );
-                    if ( job.printDialog() ) {
-                        job.print();
-                    }
-                }
-                catch ( IOException e ) {
-                    ErrorDialog.showError( e, "Error writing to file", this );
-                }
-                catch ( PrinterException e ) {
-                    ErrorDialog.showError( e, "Printer error", this );
-                }
-            }
-        }
-        else {
-            JOptionPane.showMessageDialog( this, "Sorry, no print service " +
-                                           "is available", "No Print Service",
-                                           JOptionPane.ERROR_MESSAGE );
-        }
-    }
+    private void exportEPS() {
 
-    /**
-     * Look for a stream printing service which can print in a given format.
-     * If one with the requested MIME type is available, it is returned.
-     * Otherwise, if some other streaming print service is available,
-     * that is returned.  If there are no streaming print services,
-     * <tt>null</tt> is returned.
-     *
-     * @param  mtype  desired MIME type for output
-     * @return  print service, preferably of type <tt>mimeType</tt>,
-     *          or <tt>null</tt>
-     */
-    private StreamPrintServiceFactory getPrintServiceFactory( String mtype ) {
-        StreamPrintServiceFactory[] services =
-            PrinterJob.lookupStreamPrintServices( null );
-        for ( int i = 0; i < services.length; i++ ) {
-            if ( mtype.equals( services[ i ].getOutputFormat() ) ) {
-                return services[ i ];
+        /* Prompt the user to select a file for output. */
+        JFileChooser chooser = getPrintSaver();
+        if ( chooser.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
+            OutputStream ostrm = null;
+            try {
+
+                /* Construct a stream for the EPS to be written to.
+                 * We shove an extra 'showpage' at the end, since the jibble
+                 * class doesn't do this, and it's more useful with. */
+                File file = chooser.getSelectedFile();
+                ostrm = new FilterOutputStream( new FileOutputStream( file ) ) {
+                    public void close() throws IOException {
+                        String tailString = "\nshowpage\n";
+                        int nTail = tailString.length();
+                        byte[] tailBytes = new byte[ nTail ];
+                        for ( int i = 0; i < nTail; i++ ) {
+                            tailBytes[ i ] = (byte) tailString.charAt( i );
+                        }
+                        write( tailBytes );
+                        super.close();
+                    }
+                };
+
+                /* Construct a graphics object which will write postscript
+                 * down this stream. */
+                Rectangle bounds = plot_.getBounds();
+                EpsGraphics2D g2 = 
+                    new EpsGraphics2D( tcModel_.getLabel(), ostrm, 
+                                       bounds.x, bounds.y, 
+                                       bounds.x + bounds.width,
+                                       bounds.y + bounds.height );
+
+                /* Do the drawing. */
+                plot_.print( g2 );
+
+                /* Note this close call *must* be made, otherwise the 
+                 * eps file is not flushed or correctly terminated. 
+                 * This closes the output stream too. */
+                g2.close();
+            }
+            catch ( IOException e ) {
+                ErrorDialog.showError( e, "Error writing to file", this );
             }
         }
-        return services.length > 0 ? services[ 0 ] : null;
     }
 
     /**
@@ -456,6 +453,8 @@ public class PlotWindow extends TopcatViewWindow
     private JFileChooser getPrintSaver() {
         if ( printSaver_ == null ) {
             printSaver_ = new JFileChooser( "." );
+            printSaver_.setApproveButtonText( "Write EPS" );
+            printSaver_.setDialogTitle( "Export Plot as EPS" );
             printSaver_.setAcceptAllFileFilterUsed( true );
             FileFilter psFilter = new FileFilter() {
                 public String getDescription() {

@@ -2183,10 +2183,12 @@ following pre-existing tools:
 <p>Apart from Java itself, the following external libraries provide
 important bits of its functionality:
 <ul>
-<li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
-    (Ptolemy) for plotting</li>
 <li><webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>
     (GNU) for algebraic expression evaluation</li>
+<li><webref url="http://ptolemy.eecs.berkeley.edu/java/ptplot5.2/ptolemy/plot/doc/index.htm">Ptplot</webref>
+    (Ptolemy) for plotting</li>
+<li><webref url="http://www.jibble.org/epsgraphics/">EPSGraphics2D</webref>
+    (Jibble) for postscript output</li>
 <li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
     (Sloan Digital Sky Survey) for celestial sphere row matching</li>
 </ul>
