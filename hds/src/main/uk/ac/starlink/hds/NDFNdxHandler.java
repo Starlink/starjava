@@ -6,10 +6,17 @@ import java.net.URL;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSPackage;
+import uk.ac.starlink.hdx.HdxDocument;
+import uk.ac.starlink.hdx.HdxDocumentFactory;
+import uk.ac.starlink.hdx.HdxDOMImplementation;
+import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Turns URLs which reference NDF structures into Ndx objects.
@@ -35,10 +42,18 @@ import uk.ac.starlink.ndx.NdxImpl;
  * @author    Mark Taylor (Starlink)
  * @see  HDSReference
  */
-public class NDFNdxHandler implements NdxHandler {
+public class NDFNdxHandler
+        implements NdxHandler, HdxDocumentFactory {
 
     /** Sole instance of the class. */
     private static NDFNdxHandler instance = new NDFNdxHandler();
+
+    // register ourself as an HdxDocumentFactory, as described in
+    // HdxFactory
+    static {
+        uk.ac.starlink.hdx.HdxFactory.registerHdxDocumentFactory
+                ( getInstance() );
+    }
 
     /**
      * Private sole constructor.
@@ -171,5 +186,38 @@ public class NDFNdxHandler implements NdxHandler {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    /* Implement HdxDocumentFactory */
+
+    public Document makeHdxDocument( java.net.URL url )
+            throws HdxException {
+        try {
+            Ndx hdsNdx = makeNdx( url, AccessMode.READ );
+            if ( hdsNdx == null )
+                // failed to create -- nothing to do with us
+                return null;
+
+            HdxDocument doc = (HdxDocument)HdxDOMImplementation
+                    .getInstance()
+                    .createDocument( null, "hdx", null );
+            Element el = doc.createElement( "hdx" );
+            doc.appendChild( el );
+            Element ndxEl = doc.createElement( hdsNdx.getHdxFacade() );
+            el.appendChild( ndxEl );
+            
+            return doc;
+        } catch (IOException ex) {
+            // Method makeNdx thought it should have been able to
+            // handle this, but processing failed.  We reprocess this
+            // into an HdxException.
+            throw new HdxException( "Failed to handle URL " + url
+                                    + " (" + ex + ")" );
+        }
+    }
+
+    public javax.xml.transform.Source makeHdxSource( java.net.URL url )
+            throws HdxException {
+        return new javax.xml.transform.dom.DOMSource( makeHdxDocument( url ) );
     }
 }
