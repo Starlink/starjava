@@ -3,12 +3,16 @@ package uk.ac.starlink.table.jdbc;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -18,6 +22,10 @@ import uk.ac.starlink.util.Loader;
 public class JDBCFormatter {
 
     private Connection conn;
+    private Map typeNames;
+
+    private static Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.table.jdbc" );
 
     public JDBCFormatter( Connection conn ) {
         this.conn = conn;
@@ -32,7 +40,9 @@ public class JDBCFormatter {
         /* Table deletion. */
         Statement stmt = conn.createStatement();
         try {
-            stmt.executeUpdate( "DELETE FROM " + tableName );
+            String cmd = "DELETE FROM " + tableName;
+            logger.info( cmd );
+            stmt.executeUpdate( cmd );
         }
         catch ( SQLException e ) {
             // no action - might not be there
@@ -67,7 +77,14 @@ public class JDBCFormatter {
             cnames.add( colName );
 
             /* Add the column name to the statement string. */
-            sqlTypes[ icol ] = getSqlType( col.getContentClass() );
+            Class colClazz = col.getContentClass();
+            sqlTypes[ icol ] = getSqlType( colClazz );
+            String tName = typeName( sqlTypes[ icol ] );
+            if ( tName == null ) {
+                sqlTypes[ icol ] = Types.NULL;
+                logger.warning( "Can't write column " + colName + " type " 
+                              + colClazz );
+            }
             if ( sqlTypes[ icol ] != Types.NULL ) {
                 if ( ! first ) {
                     cmd.append( ',' );
@@ -76,12 +93,13 @@ public class JDBCFormatter {
                 cmd.append( ' ' )
                .append( colName )
                .append( ' ' )
-               .append( typeName( sqlTypes[ icol ] ) );
+               .append( tName );
             }
         }
         cmd.append( " )" );
 
         /* Create the table. */
+        logger.info( cmd.toString() );
         stmt.executeUpdate( cmd.toString() );
 
         /* Prepare a statement for adding the data. */
@@ -155,27 +173,78 @@ public class JDBCFormatter {
             return Types.CHAR;
         }
         else if ( clazz.equals( String.class ) ) {
-            return Types.BLOB;
+            return Types.VARCHAR;
         }
         else {
             return Types.BLOB;
         }
     }
 
-    public static String typeName( int sqlType ) {
-        switch ( sqlType ) {
-            case Types.NULL:        return "NULL";
-            case Types.TINYINT:     return "TINYINT";
-            case Types.SMALLINT:    return "SMALLINT";
-            case Types.INTEGER:     return "INTEGER";
-            case Types.BIGINT:      return "BIGINT";
-            case Types.FLOAT:       return "FLOAT";
-            case Types.DOUBLE:      return "DOUBLE";
-            case Types.BIT:         return "BIT";
-            case Types.CHAR:        return "CHAR";
-            case Types.LONGVARCHAR: return "LONGVARCHAR";
-            case Types.BLOB:        return "BLOB";
-            default:                return "unknown-type";
+    /**
+     * Returns the name used by the connection's database to reference a 
+     * JDBC type.
+     * 
+     * @param  sqlType  type id (as per {@link java.sql.Types})
+     * @return  connection-specific type name
+     */
+    public String typeName( int sqlType ) throws SQLException {
+        if ( typeNames == null ) {
+            typeNames = makeTypesMap( conn );
+        }
+        Object key = new Integer( sqlType );
+        return typeNames.containsKey( key ) ? (String) typeNames.get( key )
+                                            : null;
+    }
+
+    /**
+     * Returns a mapping of Type id to SQL type name.  The map key is
+     * an Integer object with the value of the corresponding 
+     * {@link java.sql.Types} constant and the value is a string which
+     * <tt>conn</tt> will understand.
+     *
+     * @param  conn  the connection to work out the mapping for
+     * @return   a new type id-&gt;name mapping for <tt>conn</tt>
+     */
+    private static Map makeTypesMap( Connection conn ) throws SQLException {
+        Map types = new HashMap();
+        ResultSet typeInfos = conn.getMetaData().getTypeInfo();
+        while ( typeInfos.next() ) {
+            String name = typeInfos.getString( "TYPE_NAME" );
+            int id = (int) typeInfos.getShort( "DATA_TYPE" );
+            Object key = new Integer( id );
+            if ( ! types.containsKey( key ) ) {
+                types.put( key, name );
+            }
+        }
+        typeInfos.close();
+        if ( ! types.containsKey( new Integer( Types.NULL ) ) ) {
+            types.put( new Integer( Types.NULL ), "NULL" );
+        }
+        setTypeFallback( types, Types.FLOAT, Types.REAL );
+        setTypeFallback( types, Types.REAL, Types.FLOAT );
+        setTypeFallback( types, Types.FLOAT, Types.DOUBLE );
+        setTypeFallback( types, Types.DOUBLE, Types.FLOAT );
+        setTypeFallback( types, Types.SMALLINT, Types.INTEGER );
+        setTypeFallback( types, Types.TINYINT, Types.SMALLINT );
+        setTypeFallback( types, Types.BIGINT, Types.INTEGER );
+        return types;
+    }
+
+    /**
+     * Doctors a type map by adding an entry for a given type <tt>req</tt> 
+     * with a copy of an existing one <tt>fallback</tt>, if the map
+     * doesn't contain <tt>req</tt> in the first place.
+     *
+     * @param  types  type -> name mapping
+     * @param  req   required type code
+     * @param  fallback  fallback type code
+     */
+    private static void setTypeFallback( Map types, int req, int fallback ) {
+        Object reqKey = new Integer( req );
+        Object fallbackKey = new Integer( fallback );
+        if ( ! types.containsKey( reqKey ) &&
+             types.containsKey( fallbackKey ) ) {
+            types.put( reqKey, types.get( fallbackKey ) );
         }
     }
 
