@@ -337,7 +337,7 @@
     <!--  Need JNIAST -->
     <available property="jniast.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.ast.AstObject"/>
+               classname="uk.ac.starlink.ast.Grf"/>
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 

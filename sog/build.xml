@@ -328,7 +328,7 @@
     <!--  Need JNIAST -->
     <available property="jniast.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.ast.AstObject"/>
+               classname="uk.ac.starlink.ast.Grf"/>
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 
@@ -1068,7 +1068,7 @@
       <jvmarg value="-Xnoagent"/>
       <jvmarg value="-Djava.compiler=NONE"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7001"/>
-      <arg line="-port 8082"/>
+      <arg line="-port 8082 -internalframes"/>
       <arg value="src/etc/data/cobe.xml"/>
     </java>
 
