@@ -49,7 +49,7 @@ public class AkimaSplineInterp
     {
         // See which way the X coordinates increase. If not increasing
         // we need to create an inverted list.
-        if ( check ) {
+        if ( check && x.length >= 2 ) {
             if ( x[1] < x[0] ) {
                 decr = true;
             }
