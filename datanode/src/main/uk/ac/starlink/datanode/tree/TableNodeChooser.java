@@ -10,7 +10,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.CompressedDataNode;
 import uk.ac.starlink.datanode.nodes.DataNode;
@@ -111,8 +111,8 @@ public class TableNodeChooser extends TreeNodeChooser {
             return node == null ? null : makeStarTable( node );
         }
         catch ( IOException e ) {
-            ErrorDialog.showError( e, "Failed to make StarTable from " + node,
-                                   parent );
+            ErrorDialog.showError( parent, "Bad Table", e,
+                                   "Failed to make StarTable from " + node );
             return null;
         }
     }

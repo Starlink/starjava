@@ -12,7 +12,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.CompressedDataNode;
 import uk.ac.starlink.datanode.nodes.DataNode;
@@ -124,8 +124,8 @@ public class NdxNodeChooser extends TreeNodeChooser {
             return node == null ? null : makeNdx( node );
         }
         catch ( IOException e ) {
-            ErrorDialog.showError( e, "Failed to make NDX from " + node,
-                                   parent );
+            ErrorDialog.showError( parent, "Bad NDX", e,
+                                   "Failed to make NDX from " + node );
             return null;
         }
     }
