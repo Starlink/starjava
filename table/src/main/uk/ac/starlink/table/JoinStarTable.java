@@ -41,7 +41,8 @@ public class JoinStarTable extends AbstractStarTable {
     private final List auxData;
 
     /**
-     * Constructs a new JoinStarTable from a list of constituent tables.
+     * Constructs a new JoinStarTable from a list of constituent tables,
+     * optionally renaming duplicated column names.
      *
      * @param  tables  array of constituent table objects providing the 
      *         data and metadata for a new joined table
@@ -135,6 +136,17 @@ public class JoinStarTable extends AbstractStarTable {
             rand = rand && tables[ itab ].isRandom();
         }
         isRandom = rand;
+    }
+
+    /**
+     * Constructs a new JoinStarTable from a list of constituent tables.
+     * No column renaming is done.
+     *
+     * @param  tables  array of constituent table objects providing the 
+     *         data and metadata for a new joined table
+     */
+    public JoinStarTable( StarTable[] tables ) {
+        this( tables, null );
     }
 
     /**
