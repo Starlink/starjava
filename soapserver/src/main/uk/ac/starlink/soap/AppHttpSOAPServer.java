@@ -233,7 +233,7 @@ public class AppHttpSOAPServer
            }
         }   
         System.setProperty( "jetty.port", Integer.toString( usingPort ) );
-        portNum = usingPort;
+        this.portNum = usingPort;
     }
     
     /**
