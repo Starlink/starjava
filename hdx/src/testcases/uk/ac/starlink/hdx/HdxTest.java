@@ -199,7 +199,7 @@ public class HdxTest
     public void testHdxDocumentImportNode()
             throws Exception {
         String xmlin
-      = "<doc id='top'><child id='kid'>Hello there<grandchild name='gc1'/><?pis just say no?><grandchild name='gc2' att='low'>kid</grandchild><!--nothing--></child><![CDATA[Ouch!?/.><]]><child id='kid2'/></doc>";
+      = "<doc id='top'><child id='kid'>Hello there<grandchild name='gc1'/><?pis just say no?><grandchild name='gc2' att='low'>kid</grandchild><!--nothing--></child>Ouch!?/.&lt;&gt;<child id='kid2'/></doc>";
         Element in = stringToDom(xmlin);
         
         Document hdx
