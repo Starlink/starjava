@@ -70,7 +70,6 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
 
     private final JTree tree = new JTree( new DefaultMutableTreeNode() );
     private final JEditorPane docPane;
-    private final DefaultMutableTreeNode calcNode;
     private final DefaultMutableTreeNode activNode;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static Map objLabels = new HashMap();
@@ -88,16 +87,14 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
         super( "Available Functions", parent );
         final DefaultMutableTreeNode root = (DefaultMutableTreeNode)
                                             getTreeModel().getRoot();
-        calcNode = new DefaultMutableTreeNode( Heading.GENERAL, true );
-        activNode = new DefaultMutableTreeNode( Heading.ACTIVATION, true );
-        root.add( calcNode );
-        root.add( activNode );
 
         /* Put class information into the tree. */
         for ( Iterator it = JELUtils.getGeneralStaticClasses().iterator();
               it.hasNext(); ) {
-            addStaticClass( (Class) it.next(), calcNode );
+            addStaticClass( (Class) it.next(), root );
         }
+        activNode = new DefaultMutableTreeNode( Heading.ACTIVATION, true );
+        root.add( activNode );
         for ( Iterator it = JELUtils.getActivationStaticClasses().iterator();
               it.hasNext(); ) {
             addStaticClass( (Class) it.next(), activNode );
@@ -189,7 +186,6 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
         /* Open up the top level. */
         TreePath rootPath = new TreePath( root );
         tree.expandPath( rootPath );
-        tree.expandPath( rootPath.pathByAddingChild( calcNode ) );
 
         /* Listen to the tree. */
         tree.addTreeSelectionListener( this );
