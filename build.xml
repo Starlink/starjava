@@ -18,7 +18,7 @@
  !      export-full    -> exports all monolithic archives
  !      export-full-source -> exports full source archives
  !      export-full-built  -> exports monolithic runtime distributions
- !      export-full-docs   -> exports monolithic javadocs archive
+ !      export-full-docs   -> exports monolithic docs archive
  !      test           -> run any JUnit tests in the system
  !      keystore       -> generate a keystore for signing jar files
  !
@@ -628,15 +628,18 @@
    !   =================================
    !-->
   <target name="export-full-docs"
-          depends="javadocs-full"
-          description="--> exports monolithic javadocs archive">
+          depends="javadocs-full,install"
+          description="--> exports monolithic doc and javadoc archive">
     <zip destfile="${star.archive.dir}/${archive.name}-docs.zip">
       <zipfileset dir="${support.etc}" includes="${licence.file}"
                                              prefix="${archive.top}"/>
       <zipfileset dir="${docs.dir}/javadocs" prefix="${archive.top}javadocs"/>
+
+      <!-- Pick up non-javadoc docs from the installation -->
+      <zipfileset dir="${star.install}/docs" prefix="${archive.top}docs"
+         excludes="**/javadocs/**"/>
     </zip>
   </target>
-
 
   <!--
    !   =================
