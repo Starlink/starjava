@@ -676,6 +676,14 @@ public class SOGNavigatorImageDisplay
     }
 
     /**
+     * Get the image background colour.
+     */
+    public Color getPlotColour()
+    {
+        return getBackground();
+    }
+
+    /**
      * Return a reference to the Frame used to define the
      * current coordinates. Using the WCS FrameSet.
      */
