@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.sql.DriverManager;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -62,6 +63,13 @@ public class StarTableChooser extends JOptionPane {
                 setValue( new Integer( JDBC_OPTION ) );
             }
         };
+
+        /* Deactivate the JDBC action if there are no drivers installed. */
+        if ( DriverManager.getDrivers().hasMoreElements() ) {
+            jdbcAction.setEnabled( false );
+            jdbcAction.putValue( Action.SHORT_DESCRIPTION,
+                                 "No JDBC drivers installed" );
+        }
 
         /* Set up the panel for invoking other dialogs. */
         actionsPanel = new JPanel();

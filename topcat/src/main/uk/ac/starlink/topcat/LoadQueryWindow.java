@@ -5,6 +5,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.sql.DriverManager;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -58,7 +59,7 @@ public class LoadQueryWindow extends QueryWindow {
         locField = new JTextField( 24 );
         getStack().addLine( "Location", locField );
 
-        /* Place the buttons for starting other dialogues. */
+        /* Define the actions for starting other dialogues. */
         Action browseAction = new AbstractAction( "Browse Files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 fileDialog();
@@ -69,6 +70,15 @@ public class LoadQueryWindow extends QueryWindow {
                 jdbcDialog();
             }
         };
+
+        /* Deactivate the JDBC action if no JDBC drivers are installed. */
+        if ( ! DriverManager.getDrivers().hasMoreElements() ) {
+            jdbcAction.setEnabled( false );
+            jdbcAction.putValue( Action.SHORT_DESCRIPTION, 
+                                 "No JDBC drivers installed" );
+        }
+
+        /* Place the buttons for the other dialogues. */
         JPanel controls = getAuxControlPanel();
         controls.add( new JButton( browseAction ) );
         controls.add( new JButton( jdbcAction ) );

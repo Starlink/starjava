@@ -3,6 +3,7 @@ package uk.ac.starlink.table.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.sql.DriverManager;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -67,7 +68,7 @@ public class StarTableSaver extends JOptionPane {
         }
         formatModel = formatField.getModel();
 
-        /* Actions for invoking other dialogs. */
+        /* Define actions for invoking other dialogs. */
         Action browseAction = new AbstractAction( "Browse files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 setValue( new Integer( BROWSE_OPTION ) );
@@ -78,6 +79,13 @@ public class StarTableSaver extends JOptionPane {
                 setValue( new Integer( JDBC_OPTION ) );
             }
         };
+
+        /* Deactivate the JDBC action if no JDBC drivers are installed. */
+        if ( ! DriverManager.getDrivers().hasMoreElements() ) {
+            jdbcAction.setEnabled( false );
+            jdbcAction.putValue( Action.SHORT_DESCRIPTION,
+                                 "No JDBC drivers installed" );
+        }
 
         /* Set up the panel for specifying name and format. */
         LabelledComponentStack locPanel = new LabelledComponentStack();

@@ -147,6 +147,16 @@ public class JDBCHandler {
     }
 
     /**
+     * Indicates whether any drivers are installed.
+     *
+     * @return  <tt>true</tt> iff at least one JDBC driver is available
+     *          for URL resolution
+     */
+    public static boolean hasDrivers() {
+        return DriverManager.getDrivers().hasMoreElements();
+    }
+
+    /**
      * Unescapes URL-type escaped characters (%xx).
      *
      * @param   url   string which may contain escaped characters
