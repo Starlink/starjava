@@ -821,7 +821,7 @@ The anatomy of a plot window is shown below:
 
 \mainfigure{plot3}
 
-It has three main region, the menubar \& toolbar, the control panel and
+It has three main regions, the menubar \& toolbar, the control panel and
 the display area.\\
 
 \subheading{The display area}
@@ -862,8 +862,10 @@ the display area.\\
  \begin{itemize}
 
   \item Continuous coordinate and data readout: when you move the mouse
-  pointer over the display area the coordinates and data value of the
-  nearest point of the current spectrum are shown in the control panel.
+  pointer over the display area the coordinates and data value of the nearest
+  point of the current spectrum are shown in the control panel.  If the
+  readout is not updating you have probably moved outside of the extent of the
+  current spectrum (the one selected in the \labelitem{Displaying:} control).
 
   If the vertical hair is enabled, then this also follows the mouse
   pointer.
@@ -945,6 +947,12 @@ the display area.\\
  decrease the zoom by one, or you can choose a zoom from the drop-down
  lists, or you can type in a decimal value (which should be greater
  than equal to one) and press \hitext{<Return>}.
+
+  The \labelitem{:log} controls determine if either of the axes are drawing
+  using log spacing (this is not possible if either axis spans the value
+  zero). Finer control of the log spacing and labelling can obtained using the
+  plot configuration window.
+
 \end{quote}
 
 \subheading{Toolbar and menus}
@@ -1044,7 +1052,8 @@ the display area.\\
 
  \begin{itemize}
 
-  \item \submenuitem{Options}{Match coordinates}. When this is selected the
+  \item \submenuitem{Options}{Match coordinates and/or fluxes}. 
+  When this is selected the
   plot will attempt to use any coordinate information associated with the
   displayed spectra to \textit{align} them in the coordinate system of the
   current spectrum (this is the one shown in the \labelitem{Displaying:}
@@ -1055,6 +1064,8 @@ the display area.\\
   coordinates defined, so by default this option is switched off. To inspect
   or define coordinates for a spectrum use the \inline{xunits} option in the
   browser window.
+
+  \item \submenuitem{Options}{Match non-flux data units}.
 
   \item \submenuitem{Options}{Error bar auto-ranging}. When auto-ranging a
   spectrum that has associated errors the limits do not include the extent of
