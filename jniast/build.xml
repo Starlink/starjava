@@ -418,6 +418,12 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="ppc"/>
     </antcall>
+
+    <!-- In case the current architecture is not one of those named above,
+     !   make sure that gets done too. -->
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="${os.arch}"/>
+    </antcall>
   </target>
 
   <!-- Architecture-specific JNI jar file unpacker -->
@@ -629,6 +635,7 @@
     </antcall>
 
     <!-- Jar it up and copy it into the source tree ready for CVS checkin -->
+    <mkdir dir="${src.lib.arch}"/>
     <jar destfile="${src.lib.arch}/${name}_libs.jar"
          basedir="${build.lib.arch}">
       <manifest>
