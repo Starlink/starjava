@@ -33,8 +33,14 @@ public class HDSPackage {
                 int i = HDSObject.DAT__SZNAM;
                 loaded = Boolean.TRUE;
             }
+            catch ( UnsatisfiedLinkError e ) {
+                loaded = Boolean.FALSE;
+            }
             catch ( LinkageError e ) {
                 loaded = Boolean.FALSE;
+                e.printStackTrace();
+            }
+            if ( ! loaded.booleanValue() ) {
                 logger.warning( "JNIHDS native library not on java.lang.path "
                               + "- no NDF/HDS access" );
             }
