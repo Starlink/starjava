@@ -22,7 +22,8 @@
  !      install          -> install distribution into Starlink tree
  !      install-runonly  -> install a runonly distribution into Starlink tree
  !      jars             -> creates the package jar file
- !      javadocs         -> creates the API documentation
+ !      javadocs         -> creates the package API documentation
+ !      javadoc-sources  -> make source files for release API documention
  !!
  !! test targets yet to be done.
  !!
@@ -126,6 +127,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
@@ -801,7 +803,7 @@
              classpathref="classpath">
 
       <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="src/main" defaultexcludes="yes">
+      <fileset dir="${java.dir}" defaultexcludes="yes">
           <exclude name="**/NdxDomImpl.java"/>
           <exclude name="**/support/*"/>
           <exclude name="**/makefile"/>
@@ -816,6 +818,7 @@
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
     </javadoc>
+
   </target>
 
   <!-- This checks if the javadocs are up to date with respect to the
@@ -831,10 +834,48 @@
   </target>
 
   <!--
+   !   =========================================
+   !   Makes the API java source files available
+   !   =========================================
+   !
+   !  The full API documentation is created from all the various
+   !  packages (of which this package is just one). This target makes
+   !  the source code that should be used in the full public API
+   !  available in a special part of the build tree so that it can be
+   !  automatically discovered. This method works around two potential
+   !  problems, not all source code the in src/main directories should be
+   !  in the API docs, and it's not possible to make this distinction
+   !  easily outside this package (cannot pass out a fileset), plus
+   !  some code is generated, so cannot be located by scanning the
+   !  src/main tree. When javadocs can be generated incrementally this
+   !  arrangement should be reworked to generate whatever is needed as
+   !  part of the javadocs target.
+   !-->
+  <target name="javadoc-sources"
+          description="-> make source files for release API documention">
+
+    <mkdir dir="${build.java}"/>
+
+    <!-- Copy and/or generate the source to be included when creating
+     !   the full Starlink API javadocs-->
+
+    <copy todir="${build.java}">
+      <fileset dir="${java.dir}" defaultexcludes="yes">
+          <exclude name="**/NdxDomImpl.java"/>
+          <exclude name="**/support/*"/>
+          <exclude name="**/makefile"/>
+          <exclude name="**/testcases/*"/>
+          <exclude name="**/VERSION"/>
+          <exclude name="**/README"/>
+      </fileset>
+    </copy>
+
+  </target>
+
+  <!--
    !   =================
    !   Compile testcases
    !   =================
-   ! !!UNTESTED just lifted from ANT. Uncomment when ready to try it!!
    !-->
   <target name="compile-tests"
           depends="build"
@@ -857,7 +898,6 @@
    !   ============
    !   Run testcase
    !   ============
-   ! !!UNTESTED just lifted from ANT!!
    !-->
   <target name="test"
           depends="run-tests"
@@ -897,7 +937,8 @@
     <junit printsummary="${junit.summary}"
           haltonfailure="yes"
           fork="${junit.fork}"
-          filtertrace="${junit.filtertrace}" verbose="true">
+          filtertrace="${junit.filtertrace}">
+
       <sysproperty key="hdx.home" value="${hdx.home}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value" 
@@ -905,7 +946,9 @@
       <classpath refid="tests-classpath"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
+
     </junit>
+
   </target>
 
   <!--

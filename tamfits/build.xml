@@ -20,10 +20,9 @@
  !      install-runonly  -> install a runonly distribution into Starlink tree
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
+ !      javadoc-sources  -> does nothing
  !      test             -> does nothing at present
- !!
- !! test targets yet to be done.
- !!
+ !
  !   Authors:
  !      Peter W. Draper (14-JUL-2002)
  !
@@ -770,6 +769,17 @@
               targetfile="${dist.javadocs}/packages.html" >
         <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
+  </target>
+
+  <!--
+   !   ==========================================
+   !   Creates the API documentation java sources
+   !   ==========================================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadoc-sources"
+          description="-> does nothing">
   </target>
 
   <!--

@@ -20,6 +20,7 @@
  !      install-runonly  -> same as install
  !      jars             -> does nothing
  !      javadocs         -> does nothing
+ !      javadoc-sources  -> does nothing
  !
  !   The targets that do nothing are provided for compatibility with
  !   the normal build system.
@@ -356,6 +357,17 @@
    !  Does nothing.
    !-->
   <target name="javadocs"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ==========================================
+   !   Creates the API documentation java sources
+   !   ==========================================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadoc-sources"
           description="-> does nothing">
   </target>
 

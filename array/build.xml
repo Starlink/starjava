@@ -17,6 +17,7 @@
  !      install-runonly  -> install a runonly distribution into Starlink tree
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
+ !      javadoc-sources  -> make source files for release API documention
  !      test             -> runs JUnit tests
  !
  !   Authors:
@@ -155,9 +156,6 @@
 
   <!-- Non-standard source file directories -->
   <property name="src.perl" value="${src.dir}/perl"/>
-
-  <!-- Non-standard build file directories -->
-  <property name="build.java" value="${build.dir}/java"/>
 
   <!-- Non-standard files -->
   <property name="perl" value="/stardev/Perl/bin/perl"/>
@@ -785,6 +783,29 @@
         <srcfiles dir= "${build.java}" includes="**/*.java"/>
     </uptodate>
 
+  </target>
+
+  <!--
+   !   =========================================
+   !   Makes the API java source files available
+   !   =========================================
+   !
+   !  The full API documentation is created from all the various
+   !  packages (of which this package is just one). This target makes
+   !  the source code that should be used in the full public API
+   !  available in a special part of the build tree so that it can be
+   !  automatically discovered. This method works around two potential
+   !  problems, not all source code the in src/main directories should be
+   !  in the API docs, and it's not possible to make this distinction
+   !  easily outside this package (cannot pass out a fileset), plus
+   !  some code is generated, so cannot be located by scanning the
+   !  src/main tree. When javadocs can be generated incrementally this
+   !  arrangement should be reworked to generate whatever is needed as
+   !  part of the javadocs target.
+   !-->
+  <target name="javadoc-sources"
+          depends="prepare,assemble_java"
+          description="-> make source files for release API documention">
   </target>
 
   <!--
