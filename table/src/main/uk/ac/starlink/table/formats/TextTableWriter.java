@@ -134,7 +134,7 @@ public class TextTableWriter implements StarTableWriter {
             strm.write( ' ' );
             String datum = ( data[ i ] == null ) ? "" : data[ i ];
             int padding = colwidths[ i ] - datum.length();
-            strm.write( datum.getBytes(), 0,
+            strm.write( getBytes( datum ), 0,
                         Math.min( colwidths[ i ], datum.length() ) );
             if ( padding > 0 ) {
                 for ( int j = 0; j < padding; j++ ) {
@@ -145,5 +145,26 @@ public class TextTableWriter implements StarTableWriter {
         }
         strm.write( '|' );
         strm.write( '\n' );
+    }
+
+    /**
+     * Returns a byte array corresponding to a given string.
+     *
+     * @param  str  string to decode
+     */
+    private static byte[] getBytes( String str ) {
+
+        /* The decoding here is not that respectable (doesn't properly
+         * handle Unicode), but it makes a big performance difference,
+         * e.g. when writing out a table. 
+         * Leave it unless we find ourselves using much in the way of
+         * unicode characters.
+         * The correct way would be do use str.decode(). */
+        int leng = str.length();
+        byte[] buf = new byte[ leng ];
+        for ( int i = 0; i < leng; i++ ) {
+            buf[ i ] = (byte) str.charAt( i );
+        }
+        return buf;
     }
 }

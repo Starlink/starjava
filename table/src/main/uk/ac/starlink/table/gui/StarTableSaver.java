@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
@@ -219,9 +220,12 @@ public class StarTableSaver extends JOptionPane {
         /* Set up a progress window. */
         final JFrame progFrame = new JFrame( "Saving table" );
         Box box = new Box( BoxLayout.Y_AXIS );
+        box.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         progFrame.getContentPane().add( box, BorderLayout.CENTER );
         box.add( new JLabel( "Writing table to " + loc ) );
+        box.add( Box.createVerticalStrut( 5 ) );
         box.add( progBar );
+        box.add( Box.createVerticalStrut( 5 ) );
 
         /* Set up a thread to do the writing. */
         final Thread saveThread = new Thread() {
@@ -250,8 +254,10 @@ public class StarTableSaver extends JOptionPane {
             }
         };
         JButton cancelButt = new JButton( cancelAct );
-        cancelButt.setAlignmentX( SwingConstants.CENTER );
-        box.add( cancelButt );
+        Box cancelBox = new Box( BoxLayout.X_AXIS );
+        cancelBox.add( Box.createHorizontalGlue() );
+        cancelBox.add( cancelButt );
+        box.add( cancelBox );
 
         /* Reveal the progress window. */
         progFrame.setLocationRelativeTo( parent );

@@ -192,7 +192,7 @@ public class DefaultValueInfo implements ValueInfo {
     }
 
     public boolean isArray() {
-        return contentClass.getComponentType() != null;
+        return contentClass.isArray();
     }
 
     public int[] getShape() {
@@ -382,6 +382,11 @@ public class DefaultValueInfo implements ValueInfo {
 
         /* If zero length string is required, return that. */
         if ( maxLength <= 0 ) {
+            return "";
+        }
+
+        /* If it's a null value, return the empty string. */
+        if ( value == null ) {
             return "";
         }
     
