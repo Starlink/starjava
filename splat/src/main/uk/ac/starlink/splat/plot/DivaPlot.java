@@ -557,6 +557,15 @@ public class DivaPlot
         xMax = range[1];
         yMin = range[2];
         yMax = range[3];
+
+        if ( xMin == SpecData.BAD || xMax == SpecData.BAD ||
+             yMin == SpecData.BAD || yMax == SpecData.BAD ) {
+
+            //  At least one set of ranges is bad.
+            throw new SplatException( "Cannot determine automatic " +
+                                      "limits for the spectrum: \"" + 
+                                      spectra.getShortName() + "\"" );
+        }
     }
 
     /**
@@ -781,11 +790,11 @@ public class DivaPlot
     public void redrawAll( Graphics2D g )
     {
         //  No spectra or not realized then nothing to do yet.
-        if ( spectra.count() == 0 || getPreferredSize().width == 0 
+        if ( spectra.count() == 0 || getPreferredSize().width == 0
              || ! isVisible() ) {
             return;
         }
-        
+
         //  If we fail in the next section, then we should be ready to redraw
         //  it all next time, so remember if this was requested.
         boolean wasScaled = xyScaled;
@@ -793,33 +802,33 @@ public class DivaPlot
         try {
             //  Restore the correct DefaultGrf object to the AST interface.
             astJ.setGraphic( javaGrf );
-            
+
             if ( xyScaled ) {
 
                 //  Scale of plot has changed or been set for the first
                 //  time. So we need to redraw everything.
                 xyScaled = false;
-                
+
                 //  Keep reference to existing AstPlot so we know how graphics
                 //  coordinates are already drawn.
                 Plot oldAstPlot = astJ.getPlot();
                 if ( oldAstPlot != null ) {
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
-                
+
                 //  Create an astPlot for the graphics, this is matched to the
                 //  component size and is how we get an apparent rescale of
                 //  drawing. So that we get linear axis 1 coordinates we must
                 //  choose the current frame as the base frame (so that the
                 //  mapping from graphics to physical is linear). We also add
                 //  any AST plotting configuration options.
-                
+
                 //  TODO: stop using ASTJ class.
                 FrameSet astref = astJ.getRef();
                 int current = astref.getCurrent();
                 int base = astref.getBase();
                 astref.setBase( current );
-                
+
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
                         astJ.astPlot( this, baseBox,
@@ -830,55 +839,55 @@ public class DivaPlot
                                       config.getAst() );
                     }
                     else {
-                        astJ.astPlot( this, baseBox, 
-                                      0.05, 0.00, 0.03, 0.05, 
+                        astJ.astPlot( this, baseBox,
+                                      0.05, 0.00, 0.03, 0.05,
                                       config.getAst() );
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05, 
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05,
                                   "" );
                 }
-                
+
                 // The plot must use our Grf implementation.
                 astJ.getPlot().setGrf( javaGrf );
-                
+
                 //  Restore the base plot.
                 astref.setBase( base );
-                
+
                 //  If requested (i.e. the default gap is chosen) then
                 //  decrease the gap between X major ticks so we see more
                 //  labels when zoomed.
                 double xGap = 0.0;
                 if ( config != null ) {
-                    AstTicks astTicks = (AstTicks) 
+                    AstTicks astTicks = (AstTicks)
                         config.getControlsModel( AstTicks.class );
                     xGap = astTicks.getXGap();
                 }
-                if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) && 
+                if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) &&
                      xScale > 2.0 ) {
                     xGap = astJ.getPlot().getD( "gap(1)" );
                     xGap = xGap / Math.max( 1.0, xScale * 0.5 );
                     astJ.astSetPlot( "gap(1)=" + xGap );
                 }
-                
+
                 //  Clear all existing AST graphics
                 javaGrf.reset();
-                
+
                 //  Draw the coordinate grid/axes.
                 astJ.astGrid();
-                
+
                 //  Draw the spectra.
                 drawSpectra();
-                
+
                 //  Resize overlay graphics.
                 if ( oldAstPlot != null ) {
                     redrawOverlay( oldAstPlot );
                 }
-                
+
                 //  Inform any listeners that the Plot has been scaled.
                 fireScaled();
-                
+
                 //  Drawn at least once, so OK to track mouse events. XXX
                 //  still a few seen AST errors about null pointer..
                 readyToTrack = true;
@@ -889,10 +898,10 @@ public class DivaPlot
             if ( graphicsHints != null ) {
                 graphicsHints.applyRenderingHints( (Graphics2D) g );
             }
-            
+
             //  Repaint all graphics.
             astJ.getPlot().paint( g );
-            
+
         }
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
@@ -910,7 +919,7 @@ public class DivaPlot
             }
         }
     }
-    
+
     /**
      * Redraw any overlay graphics to match a change in size.
      *
