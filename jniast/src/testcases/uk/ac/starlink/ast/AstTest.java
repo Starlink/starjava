@@ -623,13 +623,15 @@ public class AstTest extends TestCase {
         toplev.getContentPane().add( pan2 );
         toplev.pack();
         Plot plot2 = new Plot( new Frame( 2 ), pan2.getVisibleRect(),
-                               new double[] { 5e-3, 5e-3, 5e3, 5e3 },
+                               new double[] { 5.5e0, 5e-3, 4.5e1, 5e3 },
                                60, 60, 60, 60 );
+        plot2.setLogTicks( 1, false );
+        plot2.setLogTicks( 2, true );
         pan2.plot = plot2;
         plot2.setColour( Color.black.getRGB() );
         plot2.setGrid( true );
         plot2.setMinTickLen( plot2.getMinTickLen( 1 ) * 2.0 );
-        plot2.curve( new double[] { 0, 0 }, new double[] { 1e8, 1e8 } );
+        plot2.curve( new double[] { 0, 0 }, new double[] { 5e1, 5e3 } );
         plot2.setLogPlot( true );
         plot2.setNumLab( true );
         plot2.setTextLab( false );
