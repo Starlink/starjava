@@ -17,10 +17,6 @@ public class ZipFileDataNode extends DefaultDataNode {
     private String name;
     private ZipFile zfile;
 
-    private static String[] ZipExtensions = new String[] {
-        ".jar", ".zip",
-    };
-
     /**
      * Initialises a <code>ZipFileDataNode</code> from a 
      * <code>File</code> object.
@@ -29,7 +25,9 @@ public class ZipFileDataNode extends DefaultDataNode {
      *               which the node is to be created
      */
     public ZipFileDataNode( File file ) throws NoSuchDataException {
-        checkCouldBeZip( file );
+        if ( ! checkCouldBeZip( file ) ) {
+            throw new NoSuchDataException( "Wrong magic number for Zip" );
+        }
         try {
             zfile = new ZipFile( file );
         }
@@ -119,14 +117,13 @@ public class ZipFileDataNode extends DefaultDataNode {
      * This is not required, but speeds up the DataNodeFactory's operation
      * a great deal.
      */
-    private void checkCouldBeZip( File file ) throws NoSuchDataException {
-        String fname = file.getName().toLowerCase();
-        for ( int i = ZipExtensions.length - 1; i >= 0; i-- ) {
-            if ( fname.endsWith( ZipExtensions[ i ] ) ) {
-                return;
-            }
+    private static boolean checkCouldBeZip( File file ) {
+        try {
+            return ( isMagic( startBytes( file, 80 ) ) );
         }
-        throw new NoSuchDataException( "Wrong extension for a Zip file" );
+        catch ( IOException e ) {
+            return false;
+        }
     }
 
     /*

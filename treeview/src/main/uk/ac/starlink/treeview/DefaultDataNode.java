@@ -1,5 +1,9 @@
 package uk.ac.starlink.treeview;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.awt.*;
 import javax.swing.*;
@@ -211,5 +215,32 @@ public class DefaultDataNode implements DataNode {
      */
     public static void beep() {
         Toolkit.getDefaultToolkit().beep();
+    }
+
+    /**
+     * Gets the first few bytes of a file.
+     * This utility function is suitable for magic number checks.
+     *
+     * @param  file  the file in question
+     * @param  nbytes  the number of bytes to retrieve
+     * @return   an nbytes-element array of the starting bytes in the file.
+     *           If it's not long enough, non-existent bytes will appear
+     *           as zeros.
+     * @throws  IOException if there is some problem reading
+     */
+    public static byte[] startBytes( File file, int nbytes )
+            throws IOException {
+        byte[] buf = new byte[ nbytes ];
+        InputStream strm = null;
+        try {
+            strm = new FileInputStream( file );
+            strm.read( buf );
+            return buf;
+        }
+        finally {
+            if ( strm != null ) {
+                strm.close();
+            }
+        }
     }
 }

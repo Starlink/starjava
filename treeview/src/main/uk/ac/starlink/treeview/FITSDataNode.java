@@ -30,11 +30,6 @@ public class FITSDataNode extends DefaultDataNode {
     private BufferMaker bufmake;
     private FileChannel chan;
 
-    public static String[] FITSExtensions = new String[] {
-        ".fit", ".dst", ".fits", ".fts", ".lilo", ".lihi", ".silo", 
-        ".sihi", ".mxlo", ".mxhi", ".rilo", ".rihi", ".vdlo", ".vdhi", 
-    };
-
     /**
      * Initialises a <code>FITSDataNode</code> from a <code>File</code> object.
      *
@@ -42,7 +37,9 @@ public class FITSDataNode extends DefaultDataNode {
      *               from which the node is to be created.
      */
     public FITSDataNode( File file ) throws NoSuchDataException {
-        checkCouldBeFITS( file );
+        if ( ! checkCouldBeFITS( file ) ) {
+            throw new NoSuchDataException( "Wrong magic number for FITS" );
+        }
         try {
             RandomAccessFile raf = new RandomAccessFile( file.getPath(), "r" );
             chan = raf.getChannel();
@@ -175,19 +172,27 @@ public class FITSDataNode extends DefaultDataNode {
         return "FITS data";
     }
 
+    public static boolean isMagic( byte[] magic ) {
+        try {
+            return new String( magic, "US-ASCII" ).startsWith( "SIMPLE  =" );
+        }
+        catch ( UnsupportedEncodingException e ) {
+            throw new AssertionError( "Of course it's supported" );
+        }
+    }
+
     /*
      * Throws a NoSuchDataException if this file isn't worth trying.
      * This is not required, but speeds up the DataNodeFactory's operation
      * a great deal.
      */
-    private void checkCouldBeFITS( File file ) throws NoSuchDataException {
-        String fname = file.getName().toLowerCase();
-        for ( int i = 0; i < FITSExtensions.length; i++ ) {
-            if ( fname.endsWith( FITSExtensions[ i ] ) ) {
-                return;
-            }
+    private static boolean checkCouldBeFITS( File file ) {
+        try {
+            return ( isMagic( startBytes( file, 80 ) ) );
         }
-        throw new NoSuchDataException( "Wrong extension for a FITS file" );
+        catch ( IOException e ) {
+            return false;
+        }
     }
 
     /*
