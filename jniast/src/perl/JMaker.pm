@@ -95,7 +95,9 @@ sub jdocize {
 sub deSentence {
    my( $text ) = @_;
    if ( $text ) {
-      substr( $text, 0, 1 ) =~ tr/A-Z/a-z/;
+      if ( $text =~ /^[A-Z][a-z ]/ ) {
+         substr( $text, 0, 1 ) =~ tr/A-Z/a-z/;
+      }
       $text =~ s/[\.\s]*$//;
    }
    return $text;
