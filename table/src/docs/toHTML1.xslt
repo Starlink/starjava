@@ -157,7 +157,7 @@
         </xsl:choose>
         <xsl:if test="@member"> 
           <xsl:value-of select="'#'"/>
-          <xsl:value-of select="@member"/>
+          <xsl:value-of select="normalize-space(@member)"/>
         </xsl:if>
       </xsl:attribute>
       <xsl:choose>

@@ -49,7 +49,9 @@
         <h2>Abstract</h2> 
       </xsl:if>
       <xsl:apply-templates select="subhead|p|px"/>
-      <xsl:apply-templates mode="toc" select="sect|subsect|subsubsect"/>
+      <ul>
+        <xsl:apply-templates mode="toc" select="sect|subsect|subsubsect"/>
+      </ul>
       <hr/>
       <xsl:call-template name="navBar"/>
       <xsl:call-template name="pageFooter"/>

@@ -11,6 +11,7 @@
 <ul>
 <li><a href="#intro">What is STIL?</a>
 <li><a href="#features">Features</a>
+<li><a href="#votable-features">VOTable Features</a>
 <li><a href="#docs">Documentation</a>
 <li><a href="#download">How to obtain it</a>
 <li><a href="#contact">Further Information</a>
@@ -19,7 +20,7 @@
 <hr>
 <h2><a name="intro"></a><img src="stil_small.gif">&nbsp;What is STIL?</h2>
 
-<p>Starlink Tables Infrastructure Library is a set of java classes
+<p>Starlink Tables Infrastructure Library is a set of Java classes
 which allow generic input, processing and output of tabular data.
 It presents to the application programmer a view of a table which
 looks the same regardless of whether it came from a FITS file,
@@ -49,12 +50,15 @@ The table I/O has the following features:
 <li>Access to large tables is possible (not constrained by memory)
 <li>Additional methods for VOTable manipulation
 <li>Full javadocs and programmer's overview documentation
+<li>GUI components provided including full table drag and drop support
 </ul>
 
-<p>STIL includes sophisticated 
-<strong><a href="http://cdsweb.u-strasbg.fr/doc/VOTable/">VOTable</a> 
-I/O facilities</strong> which can,
-if desired, be used largely independently of the rest of the package.
+<h3><a name="votable-features"></a>VOTable Features</h3>
+
+<p>STIL includes sophisticated facilities for 
+<a href="http://cdsweb.u-strasbg.fr/doc/VOTable/">VOTable</a> I/O
+which can, if desired, be used largely independently 
+of the rest of the package.
 As well as the general features listed above this has the following features:
 <ul>
 <li>Reads all VOTable data formats (TABLEDATA, FITS, BINARY)
@@ -69,7 +73,7 @@ As well as the general features listed above this has the following features:
 <hr>
 <h2><a name="docs"></a><img src="stil_small.gif">&nbsp;Supported Formats</h2>
 
-The following formats are supported for table input:
+The following formats are currently supported for table input:
 <ul>
 <li>FITS
 <li>VOTable
@@ -93,7 +97,8 @@ and the following for table output:
 
 There are two main sources of documentation for STIL:
 <ul>
-<li>The main programmer's overview document is SUN/252, available as:
+<li>The main programmer's overview document is <strong>SUN/252</strong>, 
+available as:
   <ul>
   <li><a href="sun252.html">Single HTML document</a>
   <li><a href="sun252/index.html">Multi-page HTML document</a>
@@ -120,7 +125,6 @@ You can get STIL in one of the following ways:
     (all the STIL libraries are contained in the TOPCAT installation)
 <li>Download the standalone jar file <a href="stil.jar"/>stil.jar</a>
 </ul>
-CVS access to the source code repository may be possible too.
 
 <p>The source code is also available:
 <ul>
@@ -130,18 +134,21 @@ Note that while this archive contains most or all of the original
 code in STIL it may not suffice to build it.  If you need build files
 etc, contact me.
 
+<p>STIL has been developed using J2SE 1.4.1, but is expected to work with any
+1.4 version of the J2SE.
+
 <hr>
 <h2><a name="contact"></a><img src="stil_small.gif">&nbsp;Further Information</h2>
 <p>If you have any comments, questions, requests, bugs etc, please contact me:
 <ul>
-<li>Author <a href="http://www.star.bris.ac.uk/~mbt/">Mark Taylor</a>,
+<li>Author: <a href="http://www.star.bris.ac.uk/~mbt/">Mark Taylor</a>,
             <a href="http://www.star.bris.ac.uk/">Astrophysics group</a>,
             <a href="http://www.phy.bris.ac.uk/">Physics Department</a>,
             <a href="http://www.bris.ac.uk/">Bristol University</a>
 
 <li>Email: <a href="mailto:m.b.taylor@bristol.ac.uk">m.b.taylor@bristol.ac.uk</a
 >
-<li>STIL WWW page: <a href="http://www.star.bristol.ac.uk/topcat/">http://www.star.bristol.ac.uk/~mbt/stil/</a>
+<li>STIL WWW page: <a href="http://www.star.bristol.ac.uk/~mbt/stil/">http://www.star.bristol.ac.uk/~mbt/stil/</a>
 <li>Starlink: <a href="http://www.starlink.ac.uk/">http://www.starlink.ac.uk/</a>
 </ul>
 

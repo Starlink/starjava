@@ -1,6 +1,7 @@
 <?xml version='1.0'?>
 <!DOCTYPE sun SYSTEM "docs.dtd" [
   <!ENTITY coredocs "http://java.sun.com/j2se/1.4/docs/api/">
+  <!ENTITY j2se     "http://java.sun.com/j2se/1.4/docs/guide/">
   <!ENTITY nbsp     "&#xA0;">
 ]>
 
@@ -45,8 +46,8 @@ facilities and the format-specific handlers is open and pluggable,
 so that handlers for new formats can easily be added.
 </px>
 
-<px>The VOTable handling in particular is provided by a high quality 
-library which performs efficient XML parsing and can read and 
+<px>The VOTable handling in particular is provided by classes
+which perform efficient XML parsing and can read and 
 write VOTables in any of the defined formats (TABLEDATA, BINARY or FITS).
 It may be used on its own for VOTable I/O without much reference to
 the format-independent parts of the library.
@@ -72,8 +73,9 @@ several known table formats.
 <p>This document is a programmers' overview of the abilities of the STIL
 libraries, including some tutorial explanation and example code.  
 Some parts of it may also be useful background reading for users
-of applications built on it.
-All the classes and methods are not described in detail here;
+of applications built on STIL.
+Exhaustive descriptions of all the classes and methods are not
+given here;
 that information can be found in the <javadoc class=".">javadocs</javadoc>,
 which should be read in conjunction with this document if you are 
 actually using these libraries.
@@ -128,7 +130,7 @@ for instance user-defined ones.
 The <javadoc class="uk.ac.starlink.table.StarTable" member="getParameters()"/>
 method returns a list of 
 <javadoc class="uk.ac.starlink.table.DescribedValue"/>
-objects which contain a value and some metadata describing it
+objects which contain a scalar or array value and some metadata describing it
 (name, units, UCD).  This list can be read or altered as required.
 </p>
 
@@ -173,8 +175,8 @@ under various circumstances.
          member="getContentClass()"/> method, 
 is of particular importance.  Every object in the column described
 by that metadata should be an instance of the 
-<javadoc class="java.lang.Class" docset="&coredocs;"/> 
-<code>getContentClass</code>returns
+<javadoc class="java.lang.Class" docset="&coredocs;"/> that
+<code>getContentClass</code> returns
 (or of one of its subtypes), or <code>null</code>.
 There is nothing in the tables infrastructure which can enforce
 this, but a table which doesn't follow this rule is considered broken,
@@ -184,19 +186,20 @@ Such a broken table might result from a bug in the I/O handler used
 to obtain the table in the first place, or a badly-formed table that
 it has read, or a bug in one of the wrapper classes upstream from
 the table instance being used.
+Because of the extensible nature of the infrastructure, 
+such bugs are not necessarily STIL's fault.
 </p>
 
-<p>This class can be anything 
-(with the exception of <code>null</code>
-and the primitive types like <code>int.class</code>), 
+<p>Any class can be used
+(with the exception the primitive types like <code>int.class</code>), 
 but most table I/O handlers can only
 cope with certain types of value - typically those corresponding to
 the java primitive classes (numeric and boolean ones) and 
 <javadoc class="java.lang.String" docset="&coredocs;"/>s, so these
 are the most important ones to deal with.  The contents of a table
 cell must always (as far as the access methods are concerned) be
-an <javadoc class="java.lang.Object" docset="&coredocs;"/>,
-so primitive values cannot be used directly.
+an <javadoc class="java.lang.Object" docset="&coredocs;"/> or 
+<code>null</code>, so primitive values cannot be used directly.
 The general rule for primitive-like (numeric or boolean) values
 is that a scalar should be represented by the appropriate wrapper class
 (<javadoc class="java.lang.Integer" docset="&coredocs;"/>,
@@ -243,7 +246,7 @@ In either case, most of the data access methods are declared to
 throw an <javadoc class="java.io.IOException" docset="&coredocs;"/>;
 this is because the <code>StarTable</code> object may be obtaining
 its data from anywhere, for instance reading it directly off disk
-on demand, so it needs to have some way to signal an error in 
+on demand, so it needs to have some way to signal an error when
 obtaining the cell data.
 </p>
 
@@ -252,7 +255,7 @@ obtaining the cell data.
 
 <p>It is always possible to access a table's data sequentially,
 that is starting with the first row and reading forward a row at
-a time to the last row; it may or may not be possible to tell
+a time to the last row; it may or may not be possible to tell in advance
 (using <javadoc class="uk.ac.starlink.table.StarTable" member="getRowCount()"/>)
 how many rows there are.
 To perform sequential access, use the
@@ -275,7 +278,7 @@ or two use <code>getCell</code>.
 You cannot move the iterator backwards.
 When obtained, a <code>RowSequence</code> is positioned before the
 first row in the table, so it is necessary to call <code>next</code>
-before the first datum is accessed.
+before the first row is accessed.
 </p>
 
 <p>Here is an example of how to sum the values in one of the numeric columns
@@ -285,7 +288,8 @@ of a table.  Since only one value is required from each row,
     double sumColumn( StarTable table, int icol ) throws IOException {
 
         // Check that the column contains values that can be cast to Number.
-        Class colClass = table.getColumnInfo( icol );
+        ColumnInfo colInfo = table.getColumnInfo( icol );
+        Class colClass = colInfo.getContentClass();
         if ( ! Number.class.isAssignableFrom( colClass ) ) {
             throw new IllegalArgumentException( "Column not numeric" );
         }
@@ -333,7 +337,8 @@ method returns true, then it is possible to access the cells of a
 table in any order.  This is done using the 
 <javadoc class="uk.ac.starlink.table.StarTable" member="getCell(long, int)"/>
 or <javadoc class="uk.ac.starlink.table.StarTable" member="getRow(long)"/>
-methods directly on the table itself.  Similar comments about 
+methods directly on the table itself (not on a <code>RowSequence</code>).
+Similar comments about 
 whether to use <code>getCell</code> or <code>getRow</code> apply as
 in <ref id="sequential">the previous section</ref>.
 </p>
@@ -365,9 +370,10 @@ StarTable object based on that data structure.
 </p>
 
 <p>Clearly, this might be an expensive process.  For this reason
-it is usually good practice to convert a table to random-access 
-at the top level of an application in which random access will be
-required at various points, and for general-purpose utility methods
+if you have an application in which random access will be required
+at various points, it is usually a good idea to ensure you have a
+random-access table at the application's top level, 
+and for general-purpose utility methods
 to require random-access tables 
 (throwing an exception if they get a sequential-only one).
 The alternative practice of utility methods converting argument tables 
@@ -417,7 +423,7 @@ and will write in a format determined by the filename
 or a format string which might be selected by the user at runtime.
 The generic approach is more flexible in a multi-format
 environment, but if you know what format you want to deal with
-then nothing is gained by using it. 
+then not much is gained by using it. 
 </p>
 
 <p>By way of example: here is how you can load a table which might be
@@ -514,7 +520,8 @@ If no StarTable can be created (for instance because the file named doesn't
 exist, or because it is not in any of the supported formats)
 then some sort of <code>IOException</code> will be thrown.
 Note that if the target stream is compressed in one of the supported 
-formats (gzip, bzip2, Unix compress) it will get uncompressed automatically
+formats (gzip, bzip2, Unix compress) it should 
+get uncompressed automatically
 (the work for this is done by the 
 <javadoc class="uk.ac.starlink.util.DataSource"/> class).
 </p>
@@ -528,24 +535,25 @@ A preference for one or other of these can be indicated to the
 (or at construction time).
 This gives handlers an opportunity to return different <code>StarTable</code>
 implementations which are efficient for different patterns of access,
-but note it does <em>not</em> guarantee that tables generated by the factory
+but note it is only a hint and 
+does <em>not</em> guarantee that tables generated by the factory
 will be random-access; see <ref id="randomTable"/> for that.
 </p>
 
 <p>Here is a trivial example showing how to read a table file:
 <verbatim>
-    public StarTable loadTable( File name ) throws IOException {
+    public StarTable loadTable( File file ) throws IOException {
         return new StarTableFactory().makeStarTable( file.toString() );
     }
 </verbatim>
 If you want to ensure that the table you get provides random access,
-(see <ref id="tableData"/>
+(see <ref id="tableData"/>)
 you should do something like this:
 <verbatim>
-    public StarTable loadRandomTable( File name ) throws IOException {
+    public StarTable loadRandomTable( File file ) throws IOException {
         StarTableFactory factory = new StarTableFactory();
         factory.setWantRandom( true );
-        StarTable table = factory.makeStarTable( tile.toString() );
+        StarTable table = factory.makeStarTable( file.toString() );
         return Tables.randomTable( table );
     }
 </verbatim>
@@ -573,8 +581,8 @@ it mediates between code which wants to output a table and a
 set of format-specific output handler objects.
 The <javadoc class="uk.ac.starlink.table.StarTableOutput"
              member="writeStarTable(uk.ac.starlink.table.StarTable,
-                     java.lang.String,
-                     java.lang.String)"/> method
+                                    java.lang.String,
+                                    java.lang.String)"/> method
 is used to write out a <code>StarTable</code> object.
 When invoking this method, you specify the location to which 
 you want to output the table (usually, but not necessarily, a filename)
@@ -636,12 +644,13 @@ a legal FITS file, since the primary HDU cannot contain a table.
 
 <p>If the table is stored in a FITS binary table extension in a file
 on local disk in uncompressed form, then the file will be <em>mapped</em>
+(using a <javadoc class="java.nio.MappedByteBuffer" docset="&coredocs;"/>)
 rather than read when the <code>StarTable</code> is constructed.
 This means that constructing the StarTable is very fast, and a FITS
 table of any size can be examined, not limited by available memory.
-Subsequent reads may be slower, however, since a read from a mapped
+Subsequent reads may take time, however, since a read from a mapped
 file is done each time.
-To foil this behaviour, refer to the file as a URL, for instance
+To inhibit this behaviour, refer to the file as a URL, for instance
 using the designation 'file:spec23.fits' rather than 'spec23.fits'; 
 this fools the handler into thinking that the file cannot be mapped,
 and it reads it all into memory at once.
@@ -661,12 +670,15 @@ but BINARY table reading is mostly done using custom code.
 <p>The <javadoc class="uk.ac.starlink.votable.VOTableBuilder"/> class
 reads VOTables; with a very few exceptions, it ought to handle any table
 which conforms to the VOTable 1.0 specification.
-In particular, it can deal with data encoded in TABLEDATA, BINARY or FITS 
-format.
+In particular, it can deal with 
+a DATA element whose content is encoded using any of the formats
+TABLEDATA, BINARY or FITS.
 </p>
 
-<p>A VOTable document is a hierarchical structure which can contain
-more than one TABLE element.  By default, the StarTableFactory
+<p>While VOTable documents often contain a single table, the format
+describes a hierarchical structure which can contain zero or more
+TABLE elements.
+By default, the <code>StarTableFactory</code>
 will find the first one in the document for you, which in the 
 (common) case that the document contains only one table is just
 what you want.
@@ -703,8 +715,9 @@ many possibilities of different delimiters and formats for exactly
 how values are specified, it won't always succeed.
 </p>
 
-<p>The way the text-format table reader is written makes it unsuitable
-for reading enormous text-format tables.
+<p>The way the text-format table reader is written currently 
+makes it unsuitable for reading enormous text-format tables
+(its scalability may be improved in future).
 </p>
 
 <p>Here are the rules for how the ASCII-format table handler reads tables:
@@ -896,7 +909,7 @@ will output a two-HDU FITS file; the first
 </p>
 
 <p>To write the FITS header for the table extension, certain things
-need to be known which may not be available from the <code>StarTale</code>
+need to be known which may not be available from the <code>StarTable</code>
 object being written; in particular the number of rows and the
 size of any variable-sized arrays (including variable-length strings)
 in the table.  This may necessitate two passes through the data to
@@ -964,7 +977,8 @@ exists for this format.
 <subhead><title>HTML</title></subhead>
 
 <p>The <javadoc class="uk.ac.starlink.table.formats.HTMLTableWriter"/>
-class writes tables as HTML 3.2 &lt;TABLE&gt; elements.
+class writes tables as HTML 3.2 
+<webref url="http://www.w3c.org/TR/REC-html32#table">TABLE</webref> elements.
 According to configuration this may be a freestanding HTML document
 or the TABLE element on its own (suitable for incorporation into larger
 HTML documents).
@@ -990,7 +1004,8 @@ many columns.
 <p><webref url="http://www.bell-labs.com/project/mirage/"
         hypertext="Mirage"
         plaintext="Mirage (see http://www.bell-labs.com/project/mirage/)"/>
-is a powerful standalone tool developed at Bell Labs for analysis
+is a powerful standalone tool developed at Bell Labs for
+interactive analysis
 of multidimensional data.  It uses its own file format for input.
 The <javadoc class="uk.ac.starlink.mirage.MirageTableWriter"/>
 class can write tables in this format.
@@ -1010,14 +1025,14 @@ of a given SQL query on a database table,
 or store a <code>StarTable</code> as a new table in an existing
 database.
 Note that this does <em>not</em> allow you to work on the database 'live'.
-The classes that control these operations live in the
+The classes that control these operations mostly live in the
 <javadoc class="uk.ac.starlink.table.jdbc."/> package.
 </p>
 
-<p>SQL I/O is handled by slightly different mechanisms than the
+<p>Database I/O is handled by slightly different mechanisms than the
 other format-specific I/O, but if you are using the generic I/O facilities
 you really don't need to worry about that - the generic reader/writer
-still does the job of turning a string into a StarTable saving a 
+still does the job of turning a string into a StarTable/saving a 
 StarTable to a location specified by a string, it's just that
 in this case the string represents an SQL query/table rather than
 the location of a stream of bytes.
@@ -1030,7 +1045,9 @@ By default this prompt is to standard output (expecting a response
 on standard input), but some other mechanism, for instance a 
 graphical one, can be used by modifying the factory's
 <javadoc class="uk.ac.starlink.table.StarTableFactory"
-         member="getJDBCHander()">JDBCHandler</javadoc>.
+         member="getJDBCHandler()">JDBCHandler</javadoc>.
+For more information on GUI-friendly use of SQL databases,
+see <ref id="sqlGui"/>.
 </p>
 
 <subsubsect>
@@ -1038,7 +1055,8 @@ graphical one, can be used by modifying the factory's
 
 <p>Java/STIL does not come with the facility to use any particular
 SQL database "out of the box"; some additional configuration must
-be done before it can work.  This is standard JDBC practice,
+be done before it can work.  
+This is standard <webref url="&j2se;/jdbc/">JDBC</webref> practice,
 as explained in the documentation of the
 <javadoc class="java.sql.DriverManager" docset="&coredocs;" 
          plaintext="java.sql.DriverManager"/>
@@ -1057,14 +1075,15 @@ One gotcha to note is that an invocation like this will not work
 if you are using '<code>java&#xa0;-jar</code>' to invoke your application;
 if the <code>-jar</code> flag is used then any class path set on
 the command line or in the CLASSPATH environment variable or elsewhere
-is completely ignored.  This is a consequence of java's security model.
+is completely ignored.  This is a consequence of Java's security model.
 </p>
 
 <p>For both the reader and the writer described below, the string
 passed to specify the database query/table may or may not require
 additional authentication before the read/write can be carried out.
 The general rule is that an attempt will be made to connect with
-the database without authentication, and if this fails the user
+the database without asking the user for authentication, 
+but if this fails the user
 will be queried for username and password, following which a second
 attempt will be made.  If username/password has already been 
 solicited, this will be used on subsequent connection attempts.
@@ -1079,7 +1098,7 @@ If generic I/O is being used, you can use the
 <javadoc class="uk.ac.starlink.table.StarTableOutput"/> being used.
 </p>
 
-<p>To the author's knowledge, STIL has so far only been used
+<p>To the author's knowledge, STIL has so far been used
 with the following RDBMSs and drivers:
 <dl>
 <dt><webref url="http://www.mysql.org/">MySQL</webref></dt>
@@ -1094,7 +1113,7 @@ with the following RDBMSs and drivers:
     </p></dd>
 <dt><webref url="http://www.postgresql.org/">PostgreSQL</webref></dt>
 <dd><p>PostgreSQL 7.4.1 apparently works with the JDBC driver it comes with.
-    Thanks to Jonathan Irwin for writing a patch to make this work.
+    Thanks to Jonathan Irwin for submitting a patch to make this work.
     </p></dd>
 </dl>
 Other RDBMSs and drivers ought to work in principle - please let us know
@@ -1168,32 +1187,42 @@ which would write a new table called "newtab" in the MySQL database
 <subhead><title>GUI Support</title></subhead>
 
 <p>STIL provides a number of facilities to make life easier if you 
-are writing table-aware applications which use a graphical user interface.
-Most, but not all, of these live in the 
+are writing table-aware applications with a graphical user interface.
+Most of these live in the 
 <javadoc class="uk.ac.starlink.table.gui."/> package.
 </p>
 
 <subsect>
 <subhead><title>Drag and Drop</title></subhead>
 
-<p>Facilities are provided in the generic I/O classes to make 
-drag and drop of tables very straightforward.
-Dragging is done by clicking down a mouse button on some visual
+<p>From a user's point of view dragging is done 
+by clicking down a mouse button on some visual
 component (the "drag source") and moving the mouse until it is
 over a second component (the "drop target") at which point the
-button is released.
+button is released. 
+The semantics of this are defined by the application,
+but it usually signals that the dragged object (in this case a table)
+has been moved or copied from the drag source to the drop target;
+it's an intuitive and user-friendly way to offer transfer of an 
+object from one place (application window) to another.
+</p>
+
+<p>Facilities are provided in the generic I/O classes to make 
+drag and drop of tables very straightforward.
 The hard work is done by Swing's 
-<webref url="http://java.sun.com/j2se/1.4.1/docs/guide/dragndrop/index.html"
-        >Drag and Drop</webref> facilities;
+<webref url="&j2se;/dragndrop/">Drag and Drop</webref> facilities;
 STIL provides interfaces between this system and its own generic I/O
 facilities so that you can add table transfer into your graphical 
 applications with a minimum of effort.
 A table is transferred from the drag source to the drop target
-by serializing it as an inline VOTable; in this way all the 
+by serializing it as an inline VOTable and effectively squirting it
+down a pipe from the one to the other; in this way all the 
 data and metadata are transferred without any reference to local
-files or other resources, so that it will work between
-different JVMs or different hosts just as well as between different
-parts of the same application.
+files or other resources, so that it will work between applications
+running on different JVMs or different hosts 
+just as well as between different
+parts of the same application, as long as both windows are visible on
+the same display device.
 </p>
 
 <p>Dragging and dropping are handled separately but in either
@@ -1211,7 +1240,15 @@ do be the drag source/drop target using its
 
 <p>To allow a Swing component to accept tables that are dropped onto it,
 implement <code>TransferHandler</code>'s 
-<code>canImport</code> and <code>importData</code>
+<javadoc class="javax.swing.TransferHandler"
+         member="canImport(javax.swing.JComponent,
+                           java.awt.datatransfer.DataFlavor[])"
+         docset="&coredocs;"/>
+and
+<javadoc class="javax.swing.TransferHandler"
+         member="importData(javax.swing.JComponent,
+                            java.awt.datatransfer.Transferable)"
+         docset="&coredocs;"/>
 methods like this:
 <verbatim>
     class TableDragTransferHandler extends TransferHandler {
@@ -1234,12 +1271,15 @@ methods like this:
         }
     }
 </verbatim>
-Then any time a table is dropped on that window, the 
+Then any time a table is dropped on that window, your
 <code>processDroppedTable</code> method will be called on it.
 </p>
 
-<p>To allow tables to be dragged off of a component, implement
-the <code>createTransferable</code> method like this
+<p>To allow tables to be dragged off of a component, implement the
+<javadoc class="javax.swing.TransferHandler"
+         member="createTransferable(javax.swing.JComponent)"
+         docset="&coredocs;"/>
+method like this:
 <verbatim>
     class TableDropTransferHandler extends TransferHandler {
         StarTableOutput writer = new StarTableOutput();
@@ -1250,13 +1290,19 @@ the <code>createTransferable</code> method like this
         }
     }
 </verbatim>
-(you may want to override <code>getSourceActions</code> and
-<code>getVisualRepresentation</code> as well).
+(you may want to override 
+<javadoc class="javax.swing.TransferHandler"
+         member="getSourceActions(javax.swing.JComponent)"
+         docset="&coredocs;"/>
+and
+<javadoc class="javax.swing.TransferHandler"
+         member="getVisualRepresentation(java.awt.datatransfer.Transferable)"
+         docset="&coredocs;"/>
+as well.
 For some Swing components 
 (see the
-<webref url="http://java.sun.com/j2se/1.4.1/docs/guide/swing/1.4/dnd.html"
-        >Swing data transfer documentation</webref>
-for a list), 
+<webref url="&j2se;/swing/1.4/dnd.html">Swing Data Transfer 
+documentation</webref> for a list), 
 this is all that is required.
 For others, you will need to arrange to recognise the drag gesture
 and trigger the <code>TransferHandler</code>'s 
@@ -1283,7 +1329,7 @@ or drag them onto the 'load' button.
 <subsect>
 <subhead><title>Table Chooser Components</title></subhead>
 
-<p>Some components exist to make it easier to load or save tables:
+<p>Some graphical components exist to make it easier to load or save tables:
 <dl>
 
 <dt><javadoc class="uk.ac.starlink.table.gui.StarTableChooser"/></dt>
@@ -1293,23 +1339,23 @@ but it handles turning selected items into a <code>StarTable</code> for you.
 </p></dd>
 
 <dt><javadoc class="uk.ac.starlink.table.gui.StarTableNodeChooser"/></dt>
-<dd><p>This loads tables as well, and looks similar to the application,
+<dd><p>This loads tables as well,
 but it presents a more sophisticated interface to the user.
 It allows hierarchical browsing of nodes
 beyond the directory/file level - for instance you can see the
 hierarchical structure of RESOURCE and TABLE elements in a VOTable document,
 or the list of HDUs in a FITS file,
 and pick the TABLE element that you are interested in.
-It uses the same classes as the 
+It uses the same classes and appearance as the 
 <webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref> 
 application to achieve this.
 </p></dd>
 
 <dt><javadoc class="uk.ac.starlink.table.gui.StarTableSaver"/></dt>
-<dd><p>This also resembles a <code>javax.swing.JFileChooser</code>,
+<dd><p>This also resembles a <code>JFileChooser</code>,
 but is used for saving tables.
 As well as allowing the user to browse the filesystem and select a
-filename, it also allows him/her to select the output file format in
+filename, it also allows him/her to select the output file format
 from the list of those which the <code>StarTableOutput</code> 
 knows about.
 </p></dd>
@@ -1319,7 +1365,7 @@ knows about.
 
 </subsect>
 
-<subsect>
+<subsect id="sqlGui">
 <subhead><title>SQL Database Interaction</title></subhead>
 
 <p>As explained in <ref id="jdbc"/>,
@@ -1331,9 +1377,9 @@ information...) in most cases this requires rather user-unfriendly
 URLs to be entered.
 For graphical applications, special dialogue components are supplied
 which makes this much easier for the user.  These contain
-one box per piece of information, so that the user does not need
+one input field per piece of information, so that the user does not need
 to remember or understand the JDBC-driver-specific URL.
-There are two of these:
+There are two of these components:
 <javadoc class="uk.ac.starlink.table.gui.SQLReadDialog"/> for reading
 tables and 
 <javadoc class="uk.ac.starlink.table.gui.SQLWriteDialog"/>
@@ -1343,14 +1389,14 @@ for writing them.
 </subsect>
 </sect>
 
-<sect>
+<sect id="process">
 <subhead><title>Processing StarTables</title></subhead>
 
 <p>The <javadoc class="uk.ac.starlink.table."/> package provides
 many generic facilities for table processing.
 These make heavy use of the "pull-model" of processing, in which
 the work of turning one table to another is not done at the time
-such a transformation is specified, but only when the table data
+such a transformation is specified, but only when the transformed table data
 is actually required, for instance to write it out to disk as a new
 table file or to display it in a GUI component such as a <code>JTable</code>.
 One big advantage of this is that calculations which are never used
@@ -1367,7 +1413,7 @@ This is a table which wraps itself round another one (its "base" table),
 using calls to the base table to provide the basic data/metadata 
 but making some some modifications before it returns it to the caller.
 Tables can be wrapped around each other many layers deep like an onion.
-This is very much like the way that 
+This is rather like the way that 
 <javadoc class="java.io.FilterInputStream" docset="&coredocs;"
          >java.io.FilterInputStream</javadoc>s work.
 </p>
@@ -1379,7 +1425,7 @@ the base table.
 Its subclasses generally leave most of the methods alone, but
 override those which relate to the behaviour they want to change.
 Here is an example of a very simple wrapper table, which simply
-capitalizes it base table's name:
+capitalizes its base table's name:
 <verbatim>
     class CapitalizeStarTable extends WrapperStarTable {
         public CapitalizeStarTable( StarTable baseTable ) {
@@ -1392,21 +1438,22 @@ capitalizes it base table's name:
 </verbatim>
 As you can see, this has a constructor which passes the base table to
 the <javadoc class="uk.ac.starlink.table.WrapperStarTable"
-             member="WrapperStarTable(uk.ac.starlink.StarTable)"/>
+             member="WrapperStarTable(uk.ac.starlink.table.StarTable)"/>
 constructor itself, which takes the base table as an argument.
-Wrapper tables which do any meaningful wrapping will have to have
+Wrapper tables which do any meaningful wrapping will have
 a constructor which takes a table, though they may take additional
 arguments as well.
 More often it is the data which is modified and the metadata which is
 left the same - some examples of this are given in <ref id="wrapExamples"/>.
-Some wrapper tables wrap more than one table, joining two base tables
+Some wrapper tables wrap more than one table, 
+for instance joining two base tables
 to produce a third one which draws data and/or metadata from both.
 </p>
 
 <p>The idea of wrappers is used on some components other than 
 <code>StarTable</code>s themselves: there are
-<javadoc class="uk.ac.starlink.table.WrapperColumn"/>s and
-<javadoc class="uk.ac.starlink.table.WrapperRowSequence"/>s as well.
+<javadoc class="uk.ac.starlink.table.WrapperRowSequence"/>s and
+<javadoc class="uk.ac.starlink.table.WrapperColumn"/>s as well.
 These can be useful in implementing wrapper tables.
 </p>
 
@@ -1416,7 +1463,7 @@ which goes through all the rows of a table calculating new values
 and writing them to arrays, then creates a new table based on the arrays.
 If you familiarise yourself with the set of wrapper tables supplied
 by STIL, hopefully you will often find there are ones there which
-you can adapt or use to do much of the work for you.
+you can use or adapt to do much of the work for you.
 </p>
 </subsect>
 
@@ -1467,7 +1514,14 @@ line of text on the terminal for command-line applications.
 <subsect id="wrapExamples">
 <subhead><title>Examples</title></subhead>
 
-<subsubsect>
+<p>This section gives a few examples of how STIL's wrapper classes
+can be used or adapted to perform useful table processing.
+If you follow what's going on here, you should be able to write
+table processing classes which fit in well with the existing STIL
+infrastructure.
+</p>
+
+<subsubsect id="createExample">
 <subhead><title>Turn a set of arrays into a StarTable</title></subhead>
 
 <p>Suppose you have three arrays representing a set of points on the plane, 
@@ -1544,8 +1598,113 @@ Here is how it can be done:
         }
     }
 </verbatim>
+In this case it is only necessary to implement the 
+<code>getCell</code>
+method; 
+<javadoc class="uk.ac.starlink.table.RandomStarTable"/> 
+implements the other data access methods 
+(<code>getRow</code>, <code>getRowSequence</code>) in terms of this.
 </p>
 
+</subsubsect>
+
+<subsubsect>
+<subhead><title>Add a new column</title></subhead>
+
+<p>Here is how you can add a new column to a table.
+First, we define a wrapper table class which contains only a single
+column, in this case formed from summing all the columns of its base
+table in the same row.  
+We subclass <javadoc class="uk.ac.starlink.table.AbstractStarTable"/>,
+implementing its abstract methods as well as the <code>getCell</code>
+method which may be required if the base table is random-access.
+<verbatim><![CDATA[
+    class SumColumnStarTable extends AbstractStarTable {
+
+        StarTable baseTable_;
+        ColumnInfo colInfo0_ = 
+            new ColumnInfo( "Sum", Double.class, "Sum of other columns" );
+
+        // Constructs a new summation table from a base table.
+        SumColumnStarTable( StarTable baseTable ) {
+            baseTable_ = baseTable;
+        }
+
+        // Has a single column.
+        public getColumnCount() {
+            return 1;
+        }
+
+        // The single column is the sum of the other columns.
+        public ColumnInfo getColumnInfo( int icol ) {
+            if ( icol != 0 ) throw new IllegalArgumentException();
+            return colInfo0_;
+        }
+
+        // Has the same number of rows as the base table.
+        public getRowCount() {
+            return baseTable_.getRowCount();
+        }
+
+        // Provides random access iff the base table does.
+        public boolean isRandom() {
+            return baseTable_.isRandom();
+        }
+
+        // Get the row from the base table, and sum elements to produce value.
+        public Object getCell( long irow, int icol ) throws IOException {
+            if ( icol != 0 ) throw new IllegalArgumentException();
+            return calculateSum( baseTable_.getRow( irow ) );
+        }
+
+        // Use a WrapperRowSequence based on the base table's RowSequence.
+        // Wrapping a RowSequence is quite like wrapping the table itself;
+        // we just need to override the methods which require new behaviour.
+        public RowSequence getRowSequence() throws IOException {
+            final RowSequence baseSeq = baseTable.getRowSequence();
+            return new WrapperRowSequence( baseSeq ) {
+
+                public Object getCell( int icol ) throws IOException {
+                    if ( icol != 0 ) throw new IllegalArgumentException();
+                    return calculateSum( baseSeq.getRow() );
+                }
+
+                public Object getRow() throws IOException {
+                    return new Object[] { getCell( 0 ) };
+                }
+            };
+        }
+
+        // This method does the arithmetic work, summing all the numeric 
+        // columns in a row (array of cell value objects) and returning 
+        // a Double.
+        Double calculateSum( Object[] row ) {
+            double sum = 0.0;
+            for ( int icol = 0; icol < row.length; icol++ ) {
+                Object value = row[ icol ];
+                if ( value instanceof Number ) {
+                    sum += ((Number) value).doubleValue();
+                }
+            }
+            return new Double( sum );
+        }
+    }
+]]></verbatim>
+We could use this class on its own if we just wanted a 1-column table 
+containing summed values.
+The following snippet however combines an instance of this class with
+the table that it is summing from, resulting in an n+1 column table
+in which the last column is the sum of the others:
+<verbatim><![CDATA[
+    StarTable getCombinedTable( StarTable inTable ) {
+        StarTable[] tableSet = new StarTable[ 2 ];
+        tableSet[ 0 ] = inTable;
+        tableSet[ 1 ] = new SumColumnStarTable( inTable );
+        StarTable combinedTable = new JoinStarTable( tableSet );
+        return combinedTable;
+    }
+]]></verbatim>
+</p>
 </subsubsect>
 
 <subsubsect>
@@ -1588,10 +1747,24 @@ as described in <ref id="randomTable"/>, and similar caveats apply to it.
 </subsubsect>
 
 </subsect>
+
+<subsect>
+<subhead><title>Table Joins</title></subhead>
+
+<p>Some fairly sophisticated classes for performing table joins 
+(by matching values of columns between tables) are
+available in the <javadoc class="uk.ac.starlink.table.join."/> package.
+These are mostly working, but not fully supported or described in 
+this document, and they are subject to changes in future releases.
+Watch this space, or contact the author if you are keen to use this
+functionality.
+</p>
+</subsect>
+
 </sect>
 
 <sect id="votable">
-<subhead><title>VOTable access</title></subhead>
+<subhead><title>VOTable Access</title></subhead>
 
 <p>VOTable is an XML-based format for storage and transmission of
 tabular data, endorsed by the 
@@ -1605,7 +1778,7 @@ The current version of STIL supports version 1.0 of the format
 
 <p>As with the other handlers tabular data can be read from and
 written to VOTable documents using the generic facilities described
-elsewhere in this document.  However if you know you're going to be
+in <ref id="io"/>.  However if you know you're going to be
 dealing with VOTables the VOTable-specific parts of
 the library can be used on their own; this may be more convenient and
 it also allows access to some features specific to VOTables.
@@ -1643,17 +1816,18 @@ available in any other VOTable libraries.
 </ul>
 Additionally the handling of variable-length fields in BINARY streams
 is done according to the VOTable 1.1 specification not the VOTable 1.0 one
-(probably no table has ever been written using the latter).
+(probably no table has ever been written using the latter, 
+so this is a Good Thing).
 </p>
 
 <subsect id='voFormats'>
-<subhead><title>Tabular data formats</title></subhead>
+<subhead><title>DATA Element Formats</title></subhead>
 
 <p>The actual table data (cell contents, as opposed to metadata) 
 in a VOTable are stored in a TABLE's DATA element.
 The VOTable standard allows it to be stored in a number of ways;
 It may be present as XML elements in a TABLEDATA element, 
-or as binary data in one of two formats, BINARY and FITS;
+or as binary data in one of two formats, BINARY or FITS;
 if binary the data may either be available externally from a given URL
 or present in a STREAM element encoded as character data using the
 Base64 scheme.
@@ -1688,8 +1862,8 @@ Here are examples of what the different forms of the DATA element look like:
 </verbatim>
 External files may also be compressed using gzip.
 The FITS ones look pretty much like the binary ones, though in the case
-of an externally referenced FITS file the file in the URL is a 
-fully functioning FITS file with (at least) one TABLE or BINTABLE extension.
+of an externally referenced FITS file, the file in the URL is a 
+fully functioning FITS file with (at least) one BINTABLE extension.
 </p>
 
 <p>At the time of writing, most VOTables in the wild are written 
@@ -1728,34 +1902,35 @@ and arrays are represented by an array of primitives of the corresponding
 type.  Arrays are only ever one-dimensional - information about any
 multidimensional shape they may have is supplied separately
 (use the <code>getShape</code> method on the corresponding 
-<code>ColumnInfo</code>).
+<javadoc class="uk.ac.starlink.table.ColumnInfo"/>).
 There are a couple of exceptions to this: arrays with 
-<code>datatype="char"</code> are represented by String objects
+<code>datatype="char"</code> or <code>"unicodeChar"</code> 
+are represented by String objects
 since that is almost always what is intended
 (n-dimensional arrays of <code>char</code> are treated as if they were
 (n-1)-dimensional arrays of Strings),
 and <code>unsignedByte</code> types are represented as if they were 
-<code>short</code>s, since in java bytes are always signed.
+<code>short</code>s, since in Java bytes are always signed.
 Complex values are represented just like an array of the corresponding
 type but with an extra dimension of size two (the most rapidly varying).
 </p>
 
 <p>Here is how all VOTable datatypes are represented then:
 <verbatim><![CDATA[
-    datatype        Class for arraysize<=1   Class for arraysize>1
-    --------        ----------------------   ---------------------
-    boolean         Boolean                  boolean[]
-    bit             boolean[]                boolean[]
-    unsignedByte    Short                    short[]
-    short           Short                    short[]
-    int             Integer                  int[]
-    long            Long                     long[]
-    char            Char                     String
-    unicodeChar     Char                     String
-    float           Float                    float[]
-    double          Double                   double[]
-    floatComplex    float[]                  float[]
-    doubleComplex   double[]                 double[]
+    datatype        Class for scalar   Class for arraysize>1
+    --------        ----------------   ---------------------
+    boolean         Boolean            boolean[]
+    bit             boolean[]          boolean[]
+    unsignedByte    Short              short[]
+    short           Short              short[]
+    int             Integer            int[]
+    long            Long               long[]
+    char            Char               String
+    unicodeChar     Char               String
+    float           Float              float[]
+    double          Double             double[]
+    floatComplex    float[]            float[]
+    doubleComplex   double[]           double[]
 ]]></verbatim>
 </p>
 
@@ -1771,10 +1946,12 @@ you can do this:
 <verbatim>
     Class clazz = starTable.getColumnInfo(3).getContentClass();
 </verbatim>
-Every object obtained from a cell in that column can be cast to
-the class <code>clazz</code> (though note it may also be <code>null</code>).
-Useful tip: for generic processing it is often handy to cast scalar 
-cell contents to type <javadoc class='java.lang.Number' docset='&coredocs;'/>.
+Every value obtained from a cell in that column can be cast to
+the class <code>clazz</code> (though note such a value might be 
+<code>null</code>).
+Useful tip: for generic processing it is often handy to cast 
+numeric scalar cell contents to type 
+<javadoc class='java.lang.Number' docset='&coredocs;'/>.
 </p>
 
 
@@ -1784,10 +1961,11 @@ cell contents to type <javadoc class='java.lang.Number' docset='&coredocs;'/>.
 <p>The simplest way to read a VOTable is to use 
 the generic table reading method described
 in <ref id="genericInput"/>, in which you just submit the URL or
-filename of a document to a <code>StarTableFactory</code>, 
-and get back a <code>StarTable</code> object.  
+filename of a document to a 
+<javadoc class="uk.ac.starlink.table.StarTableFactory"/>,
+and get back a <javadoc class="uk.ac.starlink.table.StarTable"/> object.  
 If you're after one of several TABLE elements in a document,
-you can specify this by using a specifying its number as the URL's
+you can specify this by giving its number as the URL's
 fragment ID (the bit after the '#' sign).
 </p>
 
@@ -1801,9 +1979,11 @@ read from the first and fourth TABLE elements in the file "tabledoc.xml":
 </p>
 
 <p>If you know it's going to be a VOTable (rather than, e.g., a FITS table)
-you could use a <code>VOTableBuilder</code> instead of a 
+you could use a <javadoc class="uk.ac.starlink.votable.VOTableBuilder"/> 
+instead of a 
 <code>StarTableFactory</code>, which works in much
-the same way, though you need to supply a <code>DataSource</code> 
+the same way, though you need to supply a 
+<javadoc class="uk.ac.starlink.util.DataSource"/> 
 rather than a URL.  In most cases there is no particular advantage to this.
 </p>
 
@@ -1812,7 +1992,7 @@ VOTable document is available from the resulting <code>StarTable</code> object,
 as table parameters, columnInfos or the data itself.
 If you are just trying to extract the data and metadata from a 
 single TABLE element somewhere in a VOTable document, either of
-these methods should be fine.
+these procedures should be fine.
 </p>
 </subsubsect>
 
@@ -1826,8 +2006,8 @@ which can be navigated using the <code>getChildren</code> method and so on.
 Some of the nodes in this tree are of specialised subclasses of
 VOElement; these nodes provide extra functionality relevant to their
 r&#xf4;le in a VOTable document.  
-For instance a <code>ParamElement</code> object (which represents 
-a PARAM element in the XML document)
+For instance a <javadoc class="uk.ac.starlink.votable.ParamElement"/> 
+object (which represents a PARAM element in the XML document)
 has a <code>getObject</code> method, which returns the parameter's
 value as a Java object - this may be an <code>Integer</code>,
 or a <code>float[]</code> array, or some other type of item, 
@@ -1845,10 +2025,11 @@ The best way to obtain the actual table data (values of the cells)
 from a <code>TableElement</code> 
 is to construct a 
 <javadoc class='uk.ac.starlink.votable.VOStarTable'/> from it,
-which can be interrogated as described elsewhere in this document
-to obtain its data and metadata.
+which can be interrogated for its data and metadata as described
+in <ref id="starTable"/>.
 The returned <code>StarTable</code> may or may not provide random
-access (<code>isRandom</code> may or not return true).
+access (<javadoc class="uk.ac.starlink.table.StarTable" member="isRandom()"/>
+may or not return true).
 This reflects how the data has been obtained - if it's a binary 
 stream from a remote URL it may only be possible to read the rows from
 start to finish a row at a time, but if it's a set of DOM nodes 
@@ -1862,7 +2043,8 @@ as usual (see <ref id="randomTable"/>).
 </p>
 
 <p>It is also possible to access the table data directly (without
-making it into a <code>StarTable</code> by using the <code>getData</code>
+making it into a <code>StarTable</code>) by using the 
+<javadoc class="uk.ac.starlink.votable.TableElement" member="getData()"/>
 method of the <code>TableElement</code>, but in this case you need
 to work a bit harder to extract some of the data and metadata in
 useful forms.  See the <javadoc class='uk.ac.starlink.votable.TabularData'/>
@@ -1870,8 +2052,8 @@ documentation for details.
 </p>
 
 <p>Where possible, STIL uses a hybrid SAX/DOM approach to 
-constructing the tree of VOElements which represents the VOTable
-document.
+constructing the tree of <code>VOElement</code>s 
+which represents the VOTable document.
 In general it builds a DOM of the whole document with the exception
 of the children of STREAM or TABLEDATA elements, 
 since these are the ones which contain the actual table data cells, and 
@@ -1911,9 +2093,10 @@ several <code>makeVOElement</code> methods to obtain a top-level
 <code>VOElement</code> object.  You can then interrogate the resulting
 tree using methods like <code>getChildren</code>, <code>getParent</code>,
 <code>getAttribute</code> etc.
-When you get to a TABLE element (<code>TableElement</code> object),
-turn it into a <code>StarTable</code> using the <code>VOStarTable</code>
-adapter class.
+When you get to a TABLE element 
+(<javadoc class="uk.ac.starlink.votable.TableElement"/> object),
+you can turn it into a <code>StarTable</code> using the 
+<javadoc class="uk.ac.starlink.votable.VOStarTable"/> adapter class.
 The top-level element you get in this way will typically be a 
 VOTABLE element, since that is normally the top element of a VOTable
 document, but STIL does not require this - for instance the XML document 
@@ -1970,7 +2153,7 @@ table data.
 you can use instead the 
 <javadoc class="uk.ac.starlink.votable.VOTableBuilder" 
          member="streamStarTable(java.io.InputStream,
-                                 uk.ac.starlink.table.StarTable,
+                                 uk.ac.starlink.table.TableSink,
                                  java.lang.String)"/> 
 method of <code>VOTableBuilder</code>, which effectively turns a 
 stream of bytes containing a VOTable document into a stream of 
@@ -2028,16 +2211,19 @@ the first column and the average of its values (assumed numerical):
 <p>To write a VOTable using STIL you have to prepare a 
 <javadoc class='uk.ac.starlink.table.StarTable'/> 
 object which defines the output table's metadata and data.  
-The <code>uk.ac.starlink.table</code> package
+The <javadoc class="uk.ac.starlink.table."/> package
 provides a rich set of facilities for creating and modifying these,
-as described elsewhere in this document. 
-In general the FIELD arraysize and datatype attributes are determined
+as described in <ref id="process"/>
+(see <ref id="createExample"/> for an example of how to
+turn a set of arrays into a <code>StarTable</code>).
+In general the FIELD <code>arraysize</code> and <code>datatype</code> 
+attributes are determined
 from column classes using the same mappings described in 
 <ref id='readVotable'/>.
 </p>
 
-<p>A range of facilities for writing StarTables out as VOTables
-is offered, allowing control over the data format and the structure
+<p>A range of facilities for writing <code>StarTable</code>s out as
+VOTables is offered, allowing control over the data format and the structure
 of the resulting document.
 </p>
 
@@ -2056,17 +2242,24 @@ This can be easily done using the generic output facilities described in
 <subhead><title>Single VOTable output</title></subhead>
 
 <p>The simplest way to output a table in VOTable format is to
-use a <javadoc class='uk.ac.starlink.votable.VOTableWriter'/>.
-This can be configured/constructed to write its output in any of
+use a <javadoc class='uk.ac.starlink.votable.VOTableWriter'/>,
+which can write an XML document containing a single TABLE 
+within a single RESOURCE within a top-level VOTABLE element.
+The writer can be configured/constructed to write its output in any of
 the formats described in <ref id='voFormats'/> (TABLEDATA,
-inline FITS etc).  This will write an XML document containing
-a single TABLE within a single RESOURCE within a top-level VOTABLE 
-element.  In the case of streamed output which is not inline,
+inline FITS etc) by using its
+<javadoc class="uk.ac.starlink.votable.VOTableWriter"
+         member="setDataFormat(uk.ac.starlink.votable.DataFormat)"
+         >DataFormat</javadoc> and
+<javadoc class="uk.ac.starlink.votable.VOTableWriter"
+         member="setInline(boolean)">inline</javadoc>
+attributes.  
+In the case of streamed output which is not inline,
 the streamed (BINARY or FITS) data will be written to a new file
 with a name similar to that of the main XML output file.
 </p>
 
-<p>Assuming that you already have your StarTable
+<p>Assuming that you already have your <code>StarTable</code>
 to output, here is how you could write it out in all the possible
 formats:
 <verbatim>
@@ -2104,9 +2297,16 @@ superstructure you wish.
 
 <p>Once you have obtained your <code>VOSerializer</code> by specifying
 the table it will serialize and the data format it will use, 
-you should invoke its <code>writeFields</code> method followed by
-either <code>writeInlineDataElement</code> or 
-<code>writeHrefDataElement</code>.
+you should invoke its 
+<javadoc class="uk.ac.starlink.votable.VOSerializer"
+         member="writeFields(java.io.BufferedWriter)"/> method followed by
+either 
+<javadoc class="uk.ac.starlink.votable.VOSerializer"
+         member="writeInlineDataElement(java.io.BufferedWriter)"/> or 
+<javadoc class="uk.ac.starlink.votable.VOSerializer"
+         member="writeHrefDataElement(java.io.BufferedWriter,
+                                      java.lang.String,
+                                      java.io.DataOutput)"/>.
 For inline output, the output should be sent to the same stream 
 to which the XML itself is written.  In the latter case however, 
 you can decide where the streamed data goes, allowing possibilities such
@@ -2120,7 +2320,7 @@ ensure that the href associated with it (written into the STREAM element's
 <p>Here is an example of how you could write two inline tables 
 in the same RESOURCE element:
 <verbatim><![CDATA[
-    void writeTables( StarTable t1, StarTable t2 ) {
+    void writeTables( StarTable t1, StarTable t2 ) throws IOException {
         BufferedWriter out = 
             new BufferedWriter( new OutputStreamWriter( System.out ) );
 
@@ -2147,7 +2347,7 @@ and here is how you could write a table with its data streamed to a
 binary file with a given name (rather than the automatically chosen
 one selected by <code>VOTableWriter</code>):
 <verbatim><![CDATA[
-    void writeTable( StarTable table, File binaryFile ) {
+    void writeTable( StarTable table, File binaryFile ) throws IOException {
         BufferedWriter out = 
             new BufferedWriter( new OutputStreamWriter( System.out ) );
 
@@ -2157,7 +2357,7 @@ one selected by <code>VOTableWriter</code>):
         VOSerializer ser = VOSerializer.makeSerializer( DataFormat.BINARY, table );
         ser.writeFields( out );
         DataOutputStream binOut = 
-            new DataOutputStream( new FileOutputStream( binOut ) );
+            new DataOutputStream( new FileOutputStream( binaryFile ) );
         ser.writeHrefDataElement( out, "file:" + binaryFile, binOut );
         binOut.close();
         out.write( "</TABLE>\n" );
@@ -2191,9 +2391,9 @@ generic I/O facilities described in <ref id="io"/>.
 </p>
 
 <p>The application is the <code>main</code> method of 
-<javadoc class="uk.ac.starlink.table.TableCopy"/>, though it may be
+<javadoc class="uk.ac.starlink.table.TableCopy"/>, though it might get 
 moved in future releases.
-Invoking it with the "-help" flag will print a usage message.
+Invoking it with the "<code>-help</code>" flag will print a usage message.
 Assuming STIL is on your classpath:
 <verbatim><![CDATA[
     java uk.ac.starlink.table.TableCopy -help
@@ -2217,7 +2417,7 @@ Assuming STIL is on your classpath:
 which should be fairly self-explanatory.
 According to how you have downloaded STIL you may also be able to
 invoke it using the "<code>tablecopy</code>" script.
-For some, though not all, output formats, using "-" as the 
+For some, though not all, output formats, using "<code>-</code>" as the 
 <code>out-table</code> argument will write to standard output.
 You can't use the same trick for standard input I'm afraid.
 </p>
@@ -2229,10 +2429,11 @@ You can't use the same trick for standard input I'm afraid.
     tablecopy stars.fits stars.xml
 </verbatim>
 </li>
-<li>Print the contents of the fifth &lt;TABLE&gt; element in a VOTable
-document to standard output in human-readable format:
+<li>Print the contents of the fifth &lt;TABLE&gt; element in a 
+compressed VOTable document at the end of a URL 
+to standard output in human-readable format:
 <verbatim>
-    tablecopy -ofmt text vizier.xml#4 -
+    tablecopy -ofmt text http://remote.host/data/vizier.xml.gz#4 -
 </verbatim>
 </li>
 <li>Write the results of an SQL query on a MySQL database
@@ -2266,6 +2467,23 @@ All its table I/O and processing is built on STIL.
 
 <sect>
 <subhead><title>Acknowledgements</title></subhead>
+
+<p>My thanks are due to a number of people who have
+contributed help to me in writing this 
+document and the STIL software, including:
+<ul>
+<li>Clive Davenhall (AstroGrid, RoE)</li>
+<li>David Giaretta (Starlink, RAL)</li>
+<li>Jonathan Irwin (IoA)</li>
+<li>Clive Page (AstroGrid, Leicester)</li>
+</ul>
+</p>
+
+<p>Tom McGlynn's 
+<webref url="http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v0.9/"
+        >nom.tam.fits</webref>,
+package is used for some parts of the FITS table handling.
+</p>
 </sect>
 
 <sect>
