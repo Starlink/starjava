@@ -16,7 +16,7 @@ import javax.swing.event.MouseInputAdapter;
  * 
  * @author   Mark Taylor (Starlink)
  */
-class DragListener extends MouseInputAdapter {
+public class DragListener extends MouseInputAdapter {
 
     /** Mouse button with which the drag is done. */
     private static final int BUTTON = MouseEvent.BUTTON1;
