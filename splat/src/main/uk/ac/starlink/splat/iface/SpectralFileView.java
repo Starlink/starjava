@@ -13,11 +13,11 @@ import javax.swing.Icon;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.TreeviewAccess;
+import uk.ac.starlink.datanode.nodes.IconFactory;
 
 /**
  * Set the Icons for any spectral types that are known to SPLAT
- * (really Treeview and SPLAT).
+ * (really Datanode and SPLAT).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -55,25 +55,22 @@ public class SpectralFileView
         Icon icon = null;
         
         if ( extension != null ) {
-            TreeviewAccess access = TreeviewAccess.getInstance();
-            if ( access.isAvailable() ) {
-                String[][] extensions = SpecDataFactory.extensions;
-                String[] treeviewIcons = SpecDataFactory.treeviewIcons;
-                for ( int i = 0; i < extensions.length; i++ ) {
-                    for ( int j = 0; j < extensions[i].length; j++ ) {
-                        if ( extensions[i][j].equals( extension ) ) {
-                            icon = access.getTreeviewIcon( treeviewIcons[i] );
-                            break;
-                        }
+            String[][] extensions = SpecDataFactory.extensions;
+            short[] datanodeIcons = SpecDataFactory.datanodeIcons;
+            for ( int i = 0; i < extensions.length; i++ ) {
+                for ( int j = 0; j < extensions[i].length; j++ ) {
+                    if ( extensions[i][j].equals( extension ) ) {
+                        icon = IconFactory.getIcon( datanodeIcons[i] );
+                        break;
                     }
-                    if ( icon != null ) break;
                 }
+                if ( icon != null ) break;
             }
         }
         return icon;
     }
     
-    //  The following code would let Treeview decide which icons
+    //  The following code would let Datanode decide which icons
     //  to use. Seemed a bit slow in practice.
     //         DataNodeFactory factory = new DataNodeFactory();
     //         try {

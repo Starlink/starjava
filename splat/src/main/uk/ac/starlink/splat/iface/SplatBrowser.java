@@ -68,7 +68,6 @@ import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.TreeviewAccess;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 import uk.ac.starlink.util.gui.GridBagLayouter;
@@ -224,6 +223,11 @@ public class SplatBrowser
      *  Stack open or save chooser.
      */
     protected BasicFileChooser stackChooser = null;
+
+    /**
+     *  SplatNodeChooser for using DataNode explorer.
+     */
+    protected SplatNodeChooser splatNodeChooser = null;
 
     /**
      * SpecAnimatorFrame window for displaying a series of spectra,
@@ -1123,14 +1127,10 @@ public class SplatBrowser
     public void showSplatNodeChooser()
     {
         SpecData specData = null;
-        try {
-            specData = TreeviewAccess.getInstance().splatNodeChooser
-                ( this, "Open", "Select spectrum" );
+        if ( splatNodeChooser == null ) {
+            splatNodeChooser = new SplatNodeChooser();
         }
-        catch (SplatException e) {
-            new ExceptionDialog( this, e );
-            return;
-        }
+        specData = splatNodeChooser.choose( this, "Open", "Select spectrum" );
         if ( specData != null ) {
             addSpectrum( specData );
             displaySpectrum( specData );
