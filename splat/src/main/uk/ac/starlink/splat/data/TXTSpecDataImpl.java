@@ -25,10 +25,12 @@ import uk.ac.starlink.splat.util.Utilities;
  *  This class provides an implementation of SpecDataImpl to access
  *  spectra stored in text files.
  *  <p>
- *  Text files are assumed to be plain and contain either two, three
- *  or more whitespace separated columns. If two columns are present
+ *  Text files are assumed to be plain and contain either one, two,
+ *  three or more whitespace separated columns. If two columns are present
  *  then these are the wavelength and data count, if three or more
- *  then the third column should be the error in the count.
+ *  then the third column should be the error in the count. If only 
+ *  one column is present then this is the data count, and a false
+ *  axis of indices is created (starting at 1).
  *  <p>
  *  Whitespace separators are the space character, the tab character,
  *  the newline character, the carriage-return character, and the
@@ -185,7 +187,7 @@ public class TXTSpecDataImpl
                     //  TODO: restore shortname etc?
                 } else {
 
-                    // Read at least two floating numbers from line
+                    // Read at least one or two floating numbers from line
                     // and no more than 3.
                     st = new StringTokenizer( raw );
                     count = Math.min( st.countTokens(), 3 );
@@ -233,10 +235,17 @@ public class TXTSpecDataImpl
                 data[i] = ((Float)vec[1].get(i)).floatValue();
                 errors[i] = ((Float)vec[2].get(i)).floatValue();
             }
-        } else {
+        } 
+        else if ( nwords == 2 ) {
             for ( int i = 0; i < nlines; i++ ) {
                 coords[i] = ((Float)vec[0].get(i)).floatValue();
                 data[i] = ((Float)vec[1].get(i)).floatValue();
+            }
+        }
+        else if ( nwords == 1 ) {
+            for ( int i = 0; i < nlines; i++ ) {
+                coords[i] = i + 1;
+                data[i] = ((Float)vec[0].get(i)).floatValue();
             }
         }
 
