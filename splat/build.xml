@@ -3,7 +3,7 @@
 <!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "../project.dtd">
 
 <!--
- !  SPLAT build file
+ !   SPLAT build file
  !
  !   This file describes how to build the SPLAT package from a source
  !   release. It requires Apache ANT and a Java Development Kit.
@@ -25,10 +25,9 @@
  !      install-runonly  -> install a runonly distribution into Starlink tree
  !      jars             -> creates the package jar file
  !      javadocs         -> creates the API documentation
+ !      javadoc-sources  -> make source files for release API documention
  !      test             -> run up SPLAT from local build
- !!
- !! test targets yet to be done.
- !!
+ !
  !   Authors:
  !      Peter W. Draper (26-JUL-2002)
  !
@@ -69,8 +68,12 @@
   <property name="star.build.dir" value="${basedir}/../"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
+
+  <!-- URL and package-list for linking against full Java docs -->
+  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
    !  ================
@@ -230,13 +233,13 @@
 
   <path id="built.classpath">
 
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
+
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
-
-    <!-- Local third party jars -->
-    <path refid="package.jars"/>
 
     <!-- Directly dependent third party jars -->
     <path refid="built.jarpath"/>
@@ -882,15 +885,17 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
              doctitle="${Name}"
              classpathref="classpath">
 
-      <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="${java.dir}" defaultexcludes="yes">
-        <include name="**/*.java"/>
-        <exclude name="**/retired_code/*"/>
-        <exclude name="**/*Test*"/>
-        <exclude name="**/ExtractNDFWCS2XML.java"/>
-        <exclude name="**/FITS.java"/>
-        <exclude name="**/*Holder.java"/>
-      </fileset>
+      <!-- Get a list of directories that name all the potential
+       !   java packages -->
+      <packageset dir="${java.dir}" defaultexcludes="yes">
+         <include name="**"/>
+         <exclude name="**/retired_code"/>
+         <exclude name="**/*Test*"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" href="${javaapi.url}"
+            packagelistLoc="${javaapi.lis}"/>
 
       <group title="${Name} API" packages="${package.name}*"/>
 
@@ -898,6 +903,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
     </javadoc>
+
   </target>
 
   <!-- This checks if the javadocs are up to date with respect to the
@@ -911,6 +917,17 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
         <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
   </target>
+
+  <!-- Pattern for javadoc-sources when enabled -->
+  <!-- Exclude broken and test files etc. from the document -->
+  <!--<fileset dir="${java.dir}" defaultexcludes="yes">
+        <include name="**/*.java"/>
+        <exclude name="**/retired_code/*"/>
+        <exclude name="**/*Test*"/>
+        <exclude name="**/ExtractNDFWCS2XML.java"/>
+        <exclude name="**/FITS.java"/>
+        <exclude name="**/*Holder.java"/>
+      </fileset>-->
 
   <!--
    !   =================
