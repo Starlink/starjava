@@ -197,7 +197,7 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
         else if ( wcsob instanceof Source ) {
             Source wcssrc = (Source) wcsob;
             try {
-                ast = (FrameSet) new XAstReader().makeAst( wcssrc, null );
+                ast = (FrameSet) new XAstReader().makeAst( wcssrc );
             }
             catch ( IOException e ) {
                 throw (RuntimeException)

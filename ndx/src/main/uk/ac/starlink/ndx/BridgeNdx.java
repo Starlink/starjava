@@ -399,7 +399,7 @@ public class BridgeNdx implements Ndx {
                     if ( child instanceof Element &&
                          ((Element) child).getTagName().equals( "FrameSet" ) ) {
                         return (FrameSet) new XAstReader()
-                                         .makeAst( (Element) child, null );
+                                         .makeAst( (Element) child );
                     }
                 }
                 throw new IOException( "No <FrameSet> element in <wcs>" );
@@ -586,7 +586,7 @@ public class BridgeNdx implements Ndx {
         /* Write a WCS element. */
         if ( hasWCS() ) {
             FrameSet wfset = getAst();
-            Source wcsSource = new XAstWriter().makeSource( wfset, null );
+            Source wcsSource = new XAstWriter().makeSource( wfset );
             try {
                 Node wcsContent = new SourceReader().getDOM( wcsSource );
                 wcsContent = importNode( doc, wcsContent ); 

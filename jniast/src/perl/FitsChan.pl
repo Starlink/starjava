@@ -265,6 +265,15 @@ my( @carLinArgs ) = (
 makeGetAttrib( @carLinArgs );
 makeSetAttrib( @carLinArgs );
 
+my( @CDMatrixArgs ) = (
+   name => ( $aName = "CDMatrix" ),
+   type => "boolean",
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @CDMatrixArgs );
+makeSetAttrib( @CDMatrixArgs );
+
 my( @defB1950Args ) = (
    name => ( $aName = "defB1950" ),
    type => "boolean",

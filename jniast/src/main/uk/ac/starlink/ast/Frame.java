@@ -57,10 +57,10 @@ public class Frame extends Mapping {
 
     /** 
      * Calculate the angle subtended by two points at a third point.   
-     * This function 
-     * finds the angle at point B between the line joining points A and B, 
-     * and the line joining points C and B. These lines will in fact be 
-     * geodesic curves appropriate to the Frame in use. For instance, in 
+     * This function
+     * finds the angle at point B between the line joining points A and B,
+     * and the line joining points C and B. These lines will in fact be
+     * geodesic curves appropriate to the Frame in use. For instance, in
      * SkyFrame, they will be great circles.
      * <h4>Notes</h4>
      * <br> - A value of AST__BAD will also be returned if points A and B are
@@ -82,8 +82,8 @@ public class Frame extends Mapping {
      * 
      * @return  The angle in radians, from the line AB to the line CB. If the
      * Frame is 2-dimensional, it will be in the range $\pm \pi$,
-     * and positive rotation is in the same sense as rotation from 
-     * the positive direction of axis 2 to the positive direction of 
+     * and positive rotation is in the same sense as rotation from
+     * the positive direction of axis 2 to the positive direction of
      * axis 1. If the Frame has more than 2 axes, a positive value will
      * always be returned in the range zero to $\pi$.
      * 
@@ -93,10 +93,10 @@ public class Frame extends Mapping {
 
     /** 
      * Returns the angle from an axis, to a line through two points.   
-     * This function 
+     * This function
      * finds the angle, as seen from point A, between the positive
-     * direction of a specified axis, and the geodesic curve joining point 
-     * A to point B. 
+     * direction of a specified axis, and the geodesic curve joining point
+     * A to point B.
      * <h4>Notes</h4>
      * <br> - The geodesic curve used by this function is the path of
      * shortest distance between two points, as defined by the
@@ -117,12 +117,12 @@ public class Frame extends Mapping {
      * measured (axis numbering starts at 1 for the first axis).
      * 
      * @return  The angle in radians, from the positive direction of the
-     * specified axis, to the line AB. If the Frame is 2-dimensional, 
-     * it will be in the range $\pm \pi$, and positive rotation is in 
-     * the same sense as rotation from the positive direction of axis 2 
-     * to the positive direction of axis 1. If the Frame has more than 2 
-     * axes, a positive value will always be returned in the range zero 
-     * to $\pi$. 
+     * specified axis, to the line AB. If the Frame is 2-dimensional,
+     * it will be in the range $\pm \pi$, and positive rotation is in
+     * the same sense as rotation from the positive direction of axis 2
+     * to the positive direction of axis 1. If the Frame has more than 2
+     * axes, a positive value will always be returned in the range zero
+     * to $\pi$.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -130,11 +130,11 @@ public class Frame extends Mapping {
 
     /** 
      * Find the distance between two axis values.   
-     * This function returns a signed value representing the axis increment 
+     * This function returns a signed value representing the axis increment
      * from axis value v1 to axis value v2.
      * <p>
      * For a simple Frame, this is a trivial operation returning the
-     * difference between the two axis values. But for other derived classes 
+     * difference between the two axis values. But for other derived classes
      * of Frame (such as a SkyFrame) this is not the case.
      * <h4>Notes</h4>
      * <br> - This function will return a "bad" result value (AST__BAD) if
@@ -160,7 +160,7 @@ public class Frame extends Mapping {
      * increment onto a supplied axis value.
      * <p>
      * For a simple Frame, this is a trivial operation returning the
-     * sum of the two supplied values. But for other derived classes 
+     * sum of the two supplied values. But for other derived classes
      * of Frame (such as a SkyFrame) this is not the case.
      * <h4>Notes</h4>
      * <br> - This function will return a "bad" result value (AST__BAD) if
@@ -211,7 +211,7 @@ public class Frame extends Mapping {
      * considered, and so on, until success is achieved.
      * <h4>Notes</h4>
      * <br> -  The Mapping represented by the returned FrameSet results in
-     * alignment taking place in the coordinate system specified by the 
+     * alignment taking place in the coordinate system specified by the
      * AlignSystem attribute of the "to" Frame. See the description of the
      * AlignSystem attribute for further details.
      * <br> - When aligning (say) two images, which have been calibrated by
@@ -371,7 +371,7 @@ public class Frame extends Mapping {
      * information.
      * <h4>Notes</h4>
      * <br> -  The Mapping represented by the returned FrameSet results in
-     * alignment taking place in the coordinate system specified by the 
+     * alignment taking place in the coordinate system specified by the
      * AlignSystem attribute of the "template" Frame. See the description
      * of the AlignSystem attribute for further details.
      * <br> - Beware of setting the Domain attribute of the template and then
@@ -512,8 +512,8 @@ public class Frame extends Mapping {
 
     /** 
      * Determines how the Unit attribute will be used.   
-     * This function 
-     * returns the current value of the ActiveUnit flag for a Frame. See 
+     * This function
+     * returns the current value of the ActiveUnit flag for a Frame. See
      * the description of the astSetActiveUnit function
      * for a description of the ActiveUnit flag.
      * <h4>Notes</h4>
@@ -621,25 +621,25 @@ public class Frame extends Mapping {
      * @param   angle
      * The angle (in radians) from the positive direction of the second
      * axis, to the direction of the required position, as seen from
-     * the starting position. Positive rotation is in the sense of 
-     * rotation from the positive direction of axis 2 to the positive 
+     * the starting position. Positive rotation is in the sense of
+     * rotation from the positive direction of axis 2 to the positive
      * direction of axis 1.
      * 
      * @param   offset
      * The required offset from the first point along the geodesic
      * curve. If this is positive, it will be in the direction of the
      * given angle. If it is negative, it will be in the opposite
-     * direction. 
+     * direction.
      * 
      * @param   point2
      * An array of double, with one element for each Frame axis
      * in which the coordinates of the required point will be returned.
      * 
-     * @return  The direction of the geodesic curve at the end point. That is, the 
+     * @return  The direction of the geodesic curve at the end point. That is, the
      * angle (in radians) between the positive direction of the second
      * axis and the continuation of the geodesic curve at the requested
      * end point. Positive rotation is in the sense of rotation from
-     * the positive direction of axis 2 to the positive direction of axis 
+     * the positive direction of axis 2 to the positive direction of axis
      * 1.
      * 
      * @throws  AstException  if an error occurred in the AST library
@@ -719,9 +719,9 @@ public class Frame extends Mapping {
      * Resolve a vector into two orthogonal components.   
      * This function resolves a vector into two perpendicular components.
      * The vector from point 1 to point 2 is used as the basis vector.
-     * The vector from point 1 to point 3 is resolved into components 
-     * parallel and perpendicular to this basis vector. The lengths of the 
-     * two components are returned, together with the position of closest 
+     * The vector from point 1 to point 3 is resolved into components
+     * parallel and perpendicular to this basis vector. The lengths of the
+     * two components are returned, together with the position of closest
      * aproach of the basis vector to point 3.
      * <h4>Notes</h4>
      * <br> - Each vector used in this function is the path of
@@ -750,8 +750,8 @@ public class Frame extends Mapping {
      * basis vector to point 3 will be returned.
      * 
      * @return  a two element array in which to return the results.  The first element is The address of a location at which to return the distance from
-     * point 1 to point 4 (that is, the length of the component parallel 
-     * to the basis vector). Positive values are in the same sense as 
+     * point 1 to point 4 (that is, the length of the component parallel
+     * to the basis vector). Positive values are in the same sense as
      * movement from point 1 to point 2.
      * <p>The second element is The address of a location at which to return the distance from
      * point 4 to point 3 (that is, the length of the component
@@ -763,58 +763,58 @@ public class Frame extends Mapping {
 
     /** 
      * Specify how the Unit attribute should be used.   
-     * This function 
-     * sets the current value of the ActiveUnit flag for a Frame, which 
+     * This function
+     * sets the current value of the ActiveUnit flag for a Frame, which
      * controls how the Frame
      * behaves when it is used (by astFindFrame) as a template to match
      * another (target) Frame, or is used as the "to" Frame by astConvert.
-     * It determines if the Mapping between the template and target Frames 
-     * should take differences in axis units into account. The default value 
-     * for simple Frames is zero, which preserves the behaviour of versions 
+     * It determines if the Mapping between the template and target Frames
+     * should take differences in axis units into account. The default value
+     * for simple Frames is zero, which preserves the behaviour of versions
      * of AST prior to version 2.0.
      * <p>
      * If the ActiveUnit flag of the template Frame is zero, then the
      * Mapping will ignore any difference in the Unit attributes of
-     * corresponding template and target axes. In this mode, the Unit 
+     * corresponding template and target axes. In this mode, the Unit
      * attributes are purely descriptive commentary for the benefit of
      * human readers and do not influence the Mappings between Frames.
      * This is the behaviour which all Frames had in older version of AST,
      * prior to the introduction of this attribute.
      * <p>
      * If the ActiveUnit flag of the template Frame is non-zero, then the
-     * Mapping from template to target will take account of any difference 
+     * Mapping from template to target will take account of any difference
      * in the axis Unit attributes, where-ever possible. For instance, if
-     * corresponding target and template axes have Unit strings of "km" and 
+     * corresponding target and template axes have Unit strings of "km" and
      * "m", then the FrameSet class will use a ZoomMap to connect them
      * which introduces a scaling of 1000. If no Mapping can be found
      * between the corresponding units string, then an error is reported.
-     * In this mode, it is assumed that values of the Unit attribute conform 
+     * In this mode, it is assumed that values of the Unit attribute conform
      * to the syntax for units strings described in the FITS WCS Paper I
-     * "Representations of world coordinates in FITS" (Greisen & Calabretta). 
+     * "Representations of world coordinates in FITS" (Greisen & Calabretta).
      * Particularly, any of the named unit symbols, functions, operators or
-     * standard multiplier prefixes listed within that paper can be used within 
+     * standard multiplier prefixes listed within that paper can be used within
      * a units string. A units string may contain symbols for unit which are
-     * not listed in the FITS paper, but transformation to any other units 
-     * will then not be possible (except to units which depend only on the 
+     * not listed in the FITS paper, but transformation to any other units
+     * will then not be possible (except to units which depend only on the
      * same unknown units - thus "flops" can be transformed to "Mflops"
      * even though "flops" is not a standard FITS unit symbol).
      * <p>
-     * If the ActiveUnit flag is non-zero, setting a new Unit value for an 
-     * axis may also change its Label and Symbol attributes. For instance, if 
+     * If the ActiveUnit flag is non-zero, setting a new Unit value for an
+     * axis may also change its Label and Symbol attributes. For instance, if
      * an axis has Unit "Hz" and Label "frequency", then changing its Unit to
      * "log(Hz)" will change its Label to "log( frequency )". In addition,
-     * the Axis Format attribute will be cleared when-ever a new value 
+     * the Axis Format attribute will be cleared when-ever a new value
      * is assigned to the Unit attribute.
      * <p>
      * Note, if a non-zero value is set for the ActiveUnit flag, then changing a
-     * Note, if a .TRUE. value is set for the ActiveUnit flag, then changing a 
-     * Unit value for the current Frame within a FrameSet will result in the 
-     * Frame being re-mapped (that is, the Mappings which define the 
-     * relationships between Frames within the FrameSet will be modified to 
-     * take into account the change in Units). 
+     * Note, if a .TRUE. value is set for the ActiveUnit flag, then changing a
+     * Unit value for the current Frame within a FrameSet will result in the
+     * Frame being re-mapped (that is, the Mappings which define the
+     * relationships between Frames within the FrameSet will be modified to
+     * take into account the change in Units).
      * <h4>Notes</h4>
      * <br> - The ActiveUnit flag resembles a Frame attribute, except that it
-     * cannot be tested or cleared, and it cannot be accessed using the 
+     * cannot be tested or cleared, and it cannot be accessed using the
      * generic astGet<X> and astSet<X> functions.
      * <br> - The astGetActiveUnit function can be used to retrieve the current
      * value of the ActiveUnit flag.
@@ -988,27 +988,27 @@ public class Frame extends Mapping {
      * This attribute controls how a Frame behaves when it is used (by
      * astFindFrame or astConvert) as a template to match another (target)
      * Frame. It identifies the coordinate system in which the two Frames
-     * will be aligned by the match. 
+     * will be aligned by the match.
      * <p>
      * The values which may be assigned to this attribute, and its default
      * value, depend on the class of Frame and are described in the
-     * "Applicability" section below. In general, the AlignSystem attribute 
-     * will accept any of the values which may be assigned to the System 
+     * "Applicability" section below. In general, the AlignSystem attribute
+     * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
      * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
-     * coordinate system specified by the AlignSystem attribute as an 
-     * intermediate coordinate system. The total returned Mapping will first 
-     * map positions from the first Frame into this intermediate coordinate 
-     * system, using the attributes of the first Frame. It will then map 
-     * these positions from the intermediate coordinate system into the 
-     * second Frame, using the attributes of the second Frame. 
+     * coordinate system specified by the AlignSystem attribute as an
+     * intermediate coordinate system. The total returned Mapping will first
+     * map positions from the first Frame into this intermediate coordinate
+     * system, using the attributes of the first Frame. It will then map
+     * these positions from the intermediate coordinate system into the
+     * second Frame, using the attributes of the second Frame.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The AlignSystem attribute for a basic Frame always equals "Cartesian",
-     *    and may not be altered. 
+     *    and may not be altered.
      * <dt>CmpFrame</dt><dd>
      *    The AlignSystem attribute for a CmpFrame always equals "Compound",
      *    and may not be altered.
@@ -1016,7 +1016,7 @@ public class Frame extends Mapping {
      *    The AlignSystem attribute of a FrameSet is the same as that of its
      *    current Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
-     *    The default AlignSystem attribute for a SkyFrame is "FK5".
+     *    The default AlignSystem attribute for a SkyFrame is "ICRS".
      * <dt>SpecFrame</dt><dd>
      *    The default AlignSystem attribute for a SpecFrame is "Wave"
      *    (wavelength).
@@ -1036,27 +1036,27 @@ public class Frame extends Mapping {
      * This attribute controls how a Frame behaves when it is used (by
      * astFindFrame or astConvert) as a template to match another (target)
      * Frame. It identifies the coordinate system in which the two Frames
-     * will be aligned by the match. 
+     * will be aligned by the match.
      * <p>
      * The values which may be assigned to this attribute, and its default
      * value, depend on the class of Frame and are described in the
-     * "Applicability" section below. In general, the AlignSystem attribute 
-     * will accept any of the values which may be assigned to the System 
+     * "Applicability" section below. In general, the AlignSystem attribute
+     * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
      * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
-     * coordinate system specified by the AlignSystem attribute as an 
-     * intermediate coordinate system. The total returned Mapping will first 
-     * map positions from the first Frame into this intermediate coordinate 
-     * system, using the attributes of the first Frame. It will then map 
-     * these positions from the intermediate coordinate system into the 
-     * second Frame, using the attributes of the second Frame. 
+     * coordinate system specified by the AlignSystem attribute as an
+     * intermediate coordinate system. The total returned Mapping will first
+     * map positions from the first Frame into this intermediate coordinate
+     * system, using the attributes of the first Frame. It will then map
+     * these positions from the intermediate coordinate system into the
+     * second Frame, using the attributes of the second Frame.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
      *    The AlignSystem attribute for a basic Frame always equals "Cartesian",
-     *    and may not be altered. 
+     *    and may not be altered.
      * <dt>CmpFrame</dt><dd>
      *    The AlignSystem attribute for a CmpFrame always equals "Compound",
      *    and may not be altered.
@@ -1064,7 +1064,7 @@ public class Frame extends Mapping {
      *    The AlignSystem attribute of a FrameSet is the same as that of its
      *    current Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
-     *    The default AlignSystem attribute for a SkyFrame is "FK5".
+     *    The default AlignSystem attribute for a SkyFrame is "ICRS".
      * <dt>SpecFrame</dt><dd>
      *    The default AlignSystem attribute for a SpecFrame is "Wave"
      *    (wavelength).
@@ -1090,11 +1090,11 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is to display all axis 
+     *    The default supplied by the Frame class is to display all axis
      *    values, without any limit.
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Bottom value to -90 degrees 
-     *    for latitude axes, and 0 degrees for co-latitude axes. The 
+     *    The SkyFrame class re-defines the default Bottom value to -90 degrees
+     *    for latitude axes, and 0 degrees for co-latitude axes. The
      *    default for longitude axes is to display all axis values.
      * <p>
      * </dl>
@@ -1130,11 +1130,11 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is to display all axis 
+     *    The default supplied by the Frame class is to display all axis
      *    values, without any limit.
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Bottom value to -90 degrees 
-     *    for latitude axes, and 0 degrees for co-latitude axes. The 
+     *    The SkyFrame class re-defines the default Bottom value to -90 degrees
+     *    for latitude axes, and 0 degrees for co-latitude axes. The
      *    default for longitude axes is to display all axis values.
      * <p>
      * </dl>
@@ -1524,10 +1524,10 @@ public class Frame extends Mapping {
     /**
      * Get 
      * epoch of observation.  
-     * This attribute is used to qualify the coordinate systems described by 
-     * a Frame, by giving the moment in time when the coordinates are known 
-     * to be correct. Often, this will be the date of observation, and is 
-     * important in cases where coordinates systems move with respect to each 
+     * This attribute is used to qualify the coordinate systems described by
+     * a Frame, by giving the moment in time when the coordinates are known
+     * to be correct. Often, this will be the date of observation, and is
+     * important in cases where coordinates systems move with respect to each
      * other over the course of time.
      * <p>
      * The Epoch attribute is stored as a Modified Julian Date, but
@@ -1574,46 +1574,46 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    All Frames have this attribute. The basic Frame class provides 
+     *    All Frames have this attribute. The basic Frame class provides
      *    a default of J2000.0 (Julian) but makes no use of the Epoch value.
      *    This is because the Frame class does not distinguish between
      *    different Cartesian coordinate systems (see the System attribute).
      * <dt>CmpFrame</dt><dd>
      *    The default Epoch value for a CmpFrame is selected as follows;
-     *    if the Epoch attribute has been set in the first component Frame 
+     *    if the Epoch attribute has been set in the first component Frame
      *    then the Epoch value from the first component Frame is used as
-     *    the default for the CmpFrame. Otherwise, if the Epoch attribute has 
-     *    been set in the second component Frame then the Epoch value from the 
-     *    second component Frame is used as the default for the CmpFrame. 
+     *    the default for the CmpFrame. Otherwise, if the Epoch attribute has
+     *    been set in the second component Frame then the Epoch value from the
+     *    second component Frame is used as the default for the CmpFrame.
      *    Otherwise, the default Epoch value from the first component
-     *    Frame is used as the default for the CmpFrame. 
+     *    Frame is used as the default for the CmpFrame.
      * <dt>FrameSet</dt><dd>
-     *    The Epoch attribute of a FrameSet is the same as that of its current 
-     *    Frame (as specified by the Current attribute). 
+     *    The Epoch attribute of a FrameSet is the same as that of its current
+     *    Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
      *    The coordinates of sources within a SkyFrame can changed with time
      *    for various reasons, including: (i) changing aberration of light
-     *    caused by the observer's velocity (e.g. due to the Earth's motion 
-     *    around the Sun), (ii) changing gravitational deflection by the Sun 
-     *    due to changes in the observer's position with time, (iii) fictitious 
-     *    motion due to rotation of non-inertial coordinate systems (e.g. the 
+     *    caused by the observer's velocity (e.g. due to the Earth's motion
+     *    around the Sun), (ii) changing gravitational deflection by the Sun
+     *    due to changes in the observer's position with time, (iii) fictitious
+     *    motion due to rotation of non-inertial coordinate systems (e.g. the
      *    old FK4 system), and (iv) proper motion of the source itself (although
      *    this last effect is not handled by the SkyFrame class because it
      *    affects individual sources rather than the coordinate system as
      *    a whole).
      * <p>
-     *    The default Epoch value in a SkyFrame is B1950.0 (Besselian) for the 
+     *    The default Epoch value in a SkyFrame is B1950.0 (Besselian) for the
      *    old FK4-based coordinate systems (see the System attribute) and
      *    J2000.0 (Julian) for all others.
      * <p>
-     *    Care must be taken to distinguish the Epoch value, which relates to 
-     *    motion (or apparent motion) of the source, from the superficially 
-     *    similar Equinox value. The latter is used to qualify a coordinate 
-     *    system which is itself in motion in a (notionally) predictable way 
-     *    as a result of being referred to a slowly moving reference plane 
-     *    (e.g. the equator). 
+     *    Care must be taken to distinguish the Epoch value, which relates to
+     *    motion (or apparent motion) of the source, from the superficially
+     *    similar Equinox value. The latter is used to qualify a coordinate
+     *    system which is itself in motion in a (notionally) predictable way
+     *    as a result of being referred to a slowly moving reference plane
+     *    (e.g. the equator).
      * <p>
-     *    See the description of the System attribute for details of which 
+     *    See the description of the System attribute for details of which
      *    qualifying attributes apply to each celestial coordinate system.
      * </dl>
      * 
@@ -1627,10 +1627,10 @@ public class Frame extends Mapping {
     /**
      * Set 
      * epoch of observation.  
-     * This attribute is used to qualify the coordinate systems described by 
-     * a Frame, by giving the moment in time when the coordinates are known 
-     * to be correct. Often, this will be the date of observation, and is 
-     * important in cases where coordinates systems move with respect to each 
+     * This attribute is used to qualify the coordinate systems described by
+     * a Frame, by giving the moment in time when the coordinates are known
+     * to be correct. Often, this will be the date of observation, and is
+     * important in cases where coordinates systems move with respect to each
      * other over the course of time.
      * <p>
      * The Epoch attribute is stored as a Modified Julian Date, but
@@ -1677,46 +1677,46 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    All Frames have this attribute. The basic Frame class provides 
+     *    All Frames have this attribute. The basic Frame class provides
      *    a default of J2000.0 (Julian) but makes no use of the Epoch value.
      *    This is because the Frame class does not distinguish between
      *    different Cartesian coordinate systems (see the System attribute).
      * <dt>CmpFrame</dt><dd>
      *    The default Epoch value for a CmpFrame is selected as follows;
-     *    if the Epoch attribute has been set in the first component Frame 
+     *    if the Epoch attribute has been set in the first component Frame
      *    then the Epoch value from the first component Frame is used as
-     *    the default for the CmpFrame. Otherwise, if the Epoch attribute has 
-     *    been set in the second component Frame then the Epoch value from the 
-     *    second component Frame is used as the default for the CmpFrame. 
+     *    the default for the CmpFrame. Otherwise, if the Epoch attribute has
+     *    been set in the second component Frame then the Epoch value from the
+     *    second component Frame is used as the default for the CmpFrame.
      *    Otherwise, the default Epoch value from the first component
-     *    Frame is used as the default for the CmpFrame. 
+     *    Frame is used as the default for the CmpFrame.
      * <dt>FrameSet</dt><dd>
-     *    The Epoch attribute of a FrameSet is the same as that of its current 
-     *    Frame (as specified by the Current attribute). 
+     *    The Epoch attribute of a FrameSet is the same as that of its current
+     *    Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
      *    The coordinates of sources within a SkyFrame can changed with time
      *    for various reasons, including: (i) changing aberration of light
-     *    caused by the observer's velocity (e.g. due to the Earth's motion 
-     *    around the Sun), (ii) changing gravitational deflection by the Sun 
-     *    due to changes in the observer's position with time, (iii) fictitious 
-     *    motion due to rotation of non-inertial coordinate systems (e.g. the 
+     *    caused by the observer's velocity (e.g. due to the Earth's motion
+     *    around the Sun), (ii) changing gravitational deflection by the Sun
+     *    due to changes in the observer's position with time, (iii) fictitious
+     *    motion due to rotation of non-inertial coordinate systems (e.g. the
      *    old FK4 system), and (iv) proper motion of the source itself (although
      *    this last effect is not handled by the SkyFrame class because it
      *    affects individual sources rather than the coordinate system as
      *    a whole).
      * <p>
-     *    The default Epoch value in a SkyFrame is B1950.0 (Besselian) for the 
+     *    The default Epoch value in a SkyFrame is B1950.0 (Besselian) for the
      *    old FK4-based coordinate systems (see the System attribute) and
      *    J2000.0 (Julian) for all others.
      * <p>
-     *    Care must be taken to distinguish the Epoch value, which relates to 
-     *    motion (or apparent motion) of the source, from the superficially 
-     *    similar Equinox value. The latter is used to qualify a coordinate 
-     *    system which is itself in motion in a (notionally) predictable way 
-     *    as a result of being referred to a slowly moving reference plane 
-     *    (e.g. the equator). 
+     *    Care must be taken to distinguish the Epoch value, which relates to
+     *    motion (or apparent motion) of the source, from the superficially
+     *    similar Equinox value. The latter is used to qualify a coordinate
+     *    system which is itself in motion in a (notionally) predictable way
+     *    as a result of being referred to a slowly moving reference plane
+     *    (e.g. the equator).
      * <p>
-     *    See the description of the System attribute for details of which 
+     *    See the description of the System attribute for details of which
      *    qualifying attributes apply to each celestial coordinate system.
      * </dl>
      * 
@@ -2606,15 +2606,23 @@ public class Frame extends Mapping {
      *    The System attribute for a CmpFrame always equals "Compound",
      *    and may not be altered. In addition, the CmpFrame class allows
      *    the System attribute to be referenced for a component Frame by
-     *    including the index of an axis within the required component 
-     *    Frame. For instance, "System(3)" refers to the System attribute 
+     *    including the index of an axis within the required component
+     *    Frame. For instance, "System(3)" refers to the System attribute
      *    of the component Frame which includes axis 3 of the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The System attribute of a FrameSet is the same as that of its
      *    current Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class supports the following System values and 
+     *    The SkyFrame class supports the following System values and
      *    associated celestial coordinate systems:
+     * <p>
+     *    - "ICRS": The Internation Celestial Reference System, realised
+     *    through the Hipparcos catalogue. Whilst not an equatorial system
+     *    by definition, the ICRS is very close to the FK5 (J2000) system
+     *    and is usually treated as an equatorial system. The distinction
+     *    between ICRS and FK5 (J2000) only becomes important when accuracies
+     *    of 50 milli-arcseconds or better are required. ICRS need not be
+     *    qualified by an Equinox value.
      * <p>
      *    - "FK4": The old FK4 (barycentric) equatorial coordinate system,
      *    which should be qualified by an Equinox value. The underlying
@@ -2655,6 +2663,13 @@ public class Frame extends Mapping {
      *    ecliptic and mean equinox specified by the qualifying Equinox
      *    value.
      * <p>
+     *    - "HELIOECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
+     *    ecliptic and mean equinox of J2000.0, in which an offset is added to
+     *    the longitude value which results in the centre of the sun being at 
+     *    zero longitude at the date given by the Epoch attribute. Attempts to 
+     *    set a value for the Equinox attribute will be ignored, since this 
+     *    system is always referred to J2000.0.
+     * <p>
      *    - "GALACTIC": Galactic coordinates (IAU 1958).
      * <p>
      *    - "SUPERGALACTIC": De Vaucouleurs Supergalactic coordinates.
@@ -2663,17 +2678,17 @@ public class Frame extends Mapping {
      *    Mapping can be created between a pair of SkyFrames if either of the
      *    SkyFrames has System set to "Unknown".
      * <p>
-     *    Currently, the default System value is "FK5". However, this
+     *    Currently, the default System value is "ICRS". However, this
      *    default may change in future as new astrometric standards
      *    evolve. The intention is to track the most modern appropriate
      *    standard. For this reason, you should use the default only if
      *    this is what you intend (and can tolerate any associated slight
-     *    change in future). If you intend to use the FK5 system
+     *    change in future). If you intend to use the ICRS system
      *    indefinitely, then you should specify it explicitly.
      * <dt>SpecFrame</dt><dd>
-     *    The SpecFrame class supports the following System values and 
+     *    The SpecFrame class supports the following System values and
      *    associated spectral coordinate systems (the default is "WAVE" -
-     *    wavelength):
+     *    wavelength). They are all defined in FITS-WCS paper III:
      * <p>
      *    - "FREQ": Frequency (GHz)
      *    - "ENER" or "ENERGY": Energy (J)
@@ -2684,11 +2699,11 @@ public class Frame extends Mapping {
      *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
      *    - "ZOPT" or "REDSHIFT": Reshift (dimensionless)
      *    - "BETA": Beta factor (dimensionless)
-     *    - "VELO" or "VREL": Relativistic velocity (km/s)
+     *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
      *    The default value for the Unit attribute for each system is shown
-     *    in parentheses. Note that the default value for the ActiveUnit flag 
-     *    is non-zero 
+     *    in parentheses. Note that the default value for the ActiveUnit flag
+     *    is non-zero
      *    for a SpecFrame, meaning that changes to the Unit attribute for
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
@@ -2727,15 +2742,23 @@ public class Frame extends Mapping {
      *    The System attribute for a CmpFrame always equals "Compound",
      *    and may not be altered. In addition, the CmpFrame class allows
      *    the System attribute to be referenced for a component Frame by
-     *    including the index of an axis within the required component 
-     *    Frame. For instance, "System(3)" refers to the System attribute 
+     *    including the index of an axis within the required component
+     *    Frame. For instance, "System(3)" refers to the System attribute
      *    of the component Frame which includes axis 3 of the CmpFrame.
      * <dt>FrameSet</dt><dd>
      *    The System attribute of a FrameSet is the same as that of its
      *    current Frame (as specified by the Current attribute).
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class supports the following System values and 
+     *    The SkyFrame class supports the following System values and
      *    associated celestial coordinate systems:
+     * <p>
+     *    - "ICRS": The Internation Celestial Reference System, realised
+     *    through the Hipparcos catalogue. Whilst not an equatorial system
+     *    by definition, the ICRS is very close to the FK5 (J2000) system
+     *    and is usually treated as an equatorial system. The distinction
+     *    between ICRS and FK5 (J2000) only becomes important when accuracies
+     *    of 50 milli-arcseconds or better are required. ICRS need not be
+     *    qualified by an Equinox value.
      * <p>
      *    - "FK4": The old FK4 (barycentric) equatorial coordinate system,
      *    which should be qualified by an Equinox value. The underlying
@@ -2776,6 +2799,13 @@ public class Frame extends Mapping {
      *    ecliptic and mean equinox specified by the qualifying Equinox
      *    value.
      * <p>
+     *    - "HELIOECLIPTIC": Ecliptic coordinates (IAU 1980), referred to the
+     *    ecliptic and mean equinox of J2000.0, in which an offset is added to
+     *    the longitude value which results in the centre of the sun being at 
+     *    zero longitude at the date given by the Epoch attribute. Attempts to 
+     *    set a value for the Equinox attribute will be ignored, since this 
+     *    system is always referred to J2000.0.
+     * <p>
      *    - "GALACTIC": Galactic coordinates (IAU 1958).
      * <p>
      *    - "SUPERGALACTIC": De Vaucouleurs Supergalactic coordinates.
@@ -2784,17 +2814,17 @@ public class Frame extends Mapping {
      *    Mapping can be created between a pair of SkyFrames if either of the
      *    SkyFrames has System set to "Unknown".
      * <p>
-     *    Currently, the default System value is "FK5". However, this
+     *    Currently, the default System value is "ICRS". However, this
      *    default may change in future as new astrometric standards
      *    evolve. The intention is to track the most modern appropriate
      *    standard. For this reason, you should use the default only if
      *    this is what you intend (and can tolerate any associated slight
-     *    change in future). If you intend to use the FK5 system
+     *    change in future). If you intend to use the ICRS system
      *    indefinitely, then you should specify it explicitly.
      * <dt>SpecFrame</dt><dd>
-     *    The SpecFrame class supports the following System values and 
+     *    The SpecFrame class supports the following System values and
      *    associated spectral coordinate systems (the default is "WAVE" -
-     *    wavelength):
+     *    wavelength). They are all defined in FITS-WCS paper III:
      * <p>
      *    - "FREQ": Frequency (GHz)
      *    - "ENER" or "ENERGY": Energy (J)
@@ -2805,11 +2835,11 @@ public class Frame extends Mapping {
      *    - "VOPT" or "VOPTICAL": Optical velocity (km/s)
      *    - "ZOPT" or "REDSHIFT": Reshift (dimensionless)
      *    - "BETA": Beta factor (dimensionless)
-     *    - "VELO" or "VREL": Relativistic velocity (km/s)
+     *    - "VELO" or "VREL": Apparent radial ("relativistic") velocity (km/s)
      * <p>
      *    The default value for the Unit attribute for each system is shown
-     *    in parentheses. Note that the default value for the ActiveUnit flag 
-     *    is non-zero 
+     *    in parentheses. Note that the default value for the ActiveUnit flag
+     *    is non-zero
      *    for a SpecFrame, meaning that changes to the Unit attribute for
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
@@ -2917,11 +2947,11 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is to display all axis 
+     *    The default supplied by the Frame class is to display all axis
      *    values, without any limit.
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Top value to +90 degrees 
-     *    for latitude axes, and 180 degrees for co-latitude axes. The 
+     *    The SkyFrame class re-defines the default Top value to +90 degrees
+     *    for latitude axes, and 180 degrees for co-latitude axes. The
      *    default for longitude axes is to display all axis values.
      * <p>
      * </dl>
@@ -2957,11 +2987,11 @@ public class Frame extends Mapping {
      * <h4>Class Applicability</h4>
      * <dl>
      * <dt>Frame</dt><dd>
-     *    The default supplied by the Frame class is to display all axis 
+     *    The default supplied by the Frame class is to display all axis
      *    values, without any limit.
      * <dt>SkyFrame</dt><dd>
-     *    The SkyFrame class re-defines the default Top value to +90 degrees 
-     *    for latitude axes, and 180 degrees for co-latitude axes. The 
+     *    The SkyFrame class re-defines the default Top value to +90 degrees
+     *    for latitude axes, and 180 degrees for co-latitude axes. The
      *    default for longitude axes is to display all axis values.
      * <p>
      * </dl>

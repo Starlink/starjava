@@ -76,7 +76,15 @@ my( @args );
 makeGetAttrib( @args );
 
 @args = (
-   name => ( $aName = "pVj_m" ),
+   name => ( $aName = "natLon" ),
+   type => 'float',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+
+@args = (
+   name => ( $aName = "pVi_m" ),
    type => 'float',
    purpose => AttPurpose( $aName ),
    descrip => AttDescrip( $aName ),

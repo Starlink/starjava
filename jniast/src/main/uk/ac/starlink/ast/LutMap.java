@@ -24,10 +24,13 @@ package uk.ac.starlink.ast;
  * linearly between the appropriate entries in the table. If the
  * index lies outside the range of the table, linear extrapolation
  * is used based on the two nearest entries (i.e. the two entries
- * at the start or end of the table, as appropriate).
+ * at the start or end of the table, as appropriate). If either of the
+ * entries used for the interplation has a value of AST__BAD, then the 
+ * interpolated value is returned as AST__BAD.
  * <p>
- * If the lookup table entries increase or decrease monotonically,
- * then the inverse transformation may also be performed.
+ * If the lookup table entries increase or decrease monotonically (and
+ * if the table contains no AST__BAD values), then the inverse 
+ * transformation may also be performed.
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_LutMap'>AST LutMap</a> 

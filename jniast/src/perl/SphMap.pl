@@ -38,5 +38,14 @@ my( @args );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
 
+@args = (
+   name => ( $aName = "polarLong" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
 print "}\n";
 

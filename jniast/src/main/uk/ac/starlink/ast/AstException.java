@@ -157,6 +157,24 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__BADNO" );
        }
    }
+   /** Status constant for error "PolyMap contains illegal power value" */
+   public static final int AST__BADPW;
+   static {
+       try { AST__BADPW = getErrConst( "AST__BADPW" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADPW" );
+       }
+   }
+   /** Status constant for error "ShiftMap contains no shift information" */
+   public static final int AST__BADSM;
+   static {
+       try { AST__BADSM = getErrConst( "AST__BADSM" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADSM" );
+       }
+   }
    /** Status constant for error "WinMap contains no bounds information" */
    public static final int AST__BADWM;
    static {
@@ -994,7 +1012,7 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__WRNFA" );
        }
    }
-   /** Status constant for error "Invalid units specification" */
+   /** Status constant for error "invalid units specification" */
    public static final int AST__BADUN;
    static {
        try { AST__BADUN = getErrConst( "AST__BADUN" ); }
@@ -1003,7 +1021,7 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__BADUN" );
        }
    }
-   /** Status constant for error "No rest frequency is defined" */
+   /** Status constant for error "no rest frequency is defined" */
    public static final int AST__NORSF;
    static {
        try { AST__NORSF = getErrConst( "AST__NORSF" ); }
@@ -1012,7 +1030,7 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__NORSF" );
        }
    }
-   /** Status constant for error "No standard of rest is defined" */
+   /** Status constant for error "no standard of rest is defined" */
    public static final int AST__NOSOR;
    static {
        try { AST__NOSOR = getErrConst( "AST__NOSOR" ); }
@@ -1021,13 +1039,58 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__NOSOR" );
        }
    }
-   /** Status constant for error "Invalid SpecMap" */
+   /** Status constant for error "invalid SpecMap" */
    public static final int AST__SPCIN;
    static {
        try { AST__SPCIN = getErrConst( "AST__SPCIN" ); }
        catch( IllegalArgumentException e ) {
            throw new LinkageError(
                 "Unknown AST error constant AST__SPCIN" );
+       }
+   }
+   /** Status constant for error "invalid XML name or prefix" */
+   public static final int AST__XMLNM;
+   static {
+       try { AST__XMLNM = getErrConst( "AST__XMLNM" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__XMLNM" );
+       }
+   }
+   /** Status constant for error "invalid XML comment text" */
+   public static final int AST__XMLCM;
+   static {
+       try { AST__XMLCM = getErrConst( "AST__XMLCM" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__XMLCM" );
+       }
+   }
+   /** Status constant for error "invalid XML processing instruction target text" */
+   public static final int AST__XMLPT;
+   static {
+       try { AST__XMLPT = getErrConst( "AST__XMLPT" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__XMLPT" );
+       }
+   }
+   /** Status constant for error "invalid XML content item index" */
+   public static final int AST__XMLIT;
+   static {
+       try { AST__XMLIT = getErrConst( "AST__XMLIT" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__XMLIT" );
+       }
+   }
+   /** Status constant for error "supplied XML document is not well formed" */
+   public static final int AST__XMLWF;
+   static {
+       try { AST__XMLWF = getErrConst( "AST__XMLWF" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__XMLWF" );
        }
    }
 }

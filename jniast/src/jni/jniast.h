@@ -33,9 +33,9 @@
 #define PACKAGE_PATH "uk/ac/starlink/ast/"
 
 /* Required versions of the AST package. */
-#define JNIAST_MAJOR_VERS 2
-#define JNIAST_MINOR_VERS 0
-#define JNIAST_RELEASE 4 
+#define JNIAST_MAJOR_VERS 3
+#define JNIAST_MINOR_VERS 1
+#define JNIAST_RELEASE 5
 
 /* Typedefs. */
 typedef union {
@@ -50,12 +50,15 @@ typedef union {
    AstCmpFrame *CmpFrame;    /* Pointer to C AstCmpFrame struct */
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
+   AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */
    AstMathMap *MathMap;      /* Pointer to C AstMathMap struct */
    AstMatrixMap *MatrixMap;  /* Pointer to C AstMatrixMap struct */
    AstPcdMap *PcdMap;        /* Pointer to C AstPcdMap struct */
    AstPermMap *PermMap;      /* Pointer to C AstPermMap struct */
+   AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
+   AstShiftMap *ShiftMap;    /* Pointer to C AstGrismMap struct */
    AstSlaMap *SlaMap;        /* Pointer to C AstSlaMap struct */
    AstSpecFrame *SpecFrame;  /* Pointer to C AstSpecFrame struct */
    AstSpecMap *SpecMap;      /* Pointer to C AstSpecMap struct */

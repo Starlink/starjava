@@ -109,8 +109,7 @@ public class AstTest extends TestCase {
 
     }
 
-    public void testChannel() throws IOException {
-        Channel chan = new TestChannel();
+    private void exerciseChannel( Channel chan ) throws IOException {
         chan.write( new FrameSet( frm ) );
         FrameSet f2 = (FrameSet) chan.read();
         assertEquals( f2.getNframe(), 1 );
@@ -120,6 +119,15 @@ public class AstTest extends TestCase {
         assertEquals( -1, chan.getI( "Full" ) );
         chan.setFull( 10 );
         assertEquals( 1, chan.getI( "Full" ) );
+    }
+
+    public void testChannel() throws IOException {
+        exerciseChannel( new TestChannel() );
+    }
+
+    public void testXmlChan() throws IOException {
+        XmlChan xchan = new MemoryXmlChan();
+        exerciseChannel( xchan );
     }
 
     public void testFitsChan() throws IOException {
@@ -354,6 +362,19 @@ public class AstTest extends TestCase {
         assertArrayEquals( small, skidoodiks.tran1( 1, small, true ) );
         assertArrayEquals( small, skidoodiks.tran1( 1, small, false ) );
 
+        // rate
+        double[] d2 = new double[] { -21. };
+        assertEquals( 2.0, zoomer.rate( new double[ 2 ], 1, 1, null ) );
+        assertEquals( 0.0, zoomer.rate( new double[ 2 ], 1, 2, d2 ) );
+        assertEquals( d2[ 0 ], 0.0 );
+        try {
+            zoomer.rate( new double[ 1 ], 1, 2, null );
+            fail();
+        }
+        catch ( RuntimeException e ) {
+            // ok
+        }
+
         // simplify
         assertTrue( skidoodiks.getClass().equals( CmpMap.class ) );
         assertTrue( skidoodiks.simplify().getClass().equals( UnitMap.class ) );
@@ -408,9 +429,55 @@ public class AstTest extends TestCase {
         assertArrayEquals( resulta[ 0 ], resultc[ 0 ] );
         assertArrayEquals( resulta[ 1 ], resultc[ 1 ] );
 
-        double[][] resultd = imap.tran2( 3, xina, yina, true );
+        XmlChan xc = new MemoryXmlChan();
+        xc.write( kmap );
+        Mapping lmap = (Mapping) xc.read();
+        double[][] resultd = lmap.tran2( 3, xina, yina, true );
         assertArrayEquals( resulta[ 0 ], resultd[ 0 ] );
         assertArrayEquals( resulta[ 1 ], resultd[ 1 ] );
+
+        double[][] resulte = imap.tran2( 3, xina, yina, true );
+        assertArrayEquals( resulta[ 0 ], resulte[ 0 ] );
+        assertArrayEquals( resulta[ 1 ], resulte[ 1 ] );
+    }
+
+    public void testPolyMap() {
+        // y = 3*x*x.
+        Mapping poly = new PolyMap( 1, 1, 
+                                    1, new double[] { 3.0, 1., 2. },
+                                    0, null );
+        double x = 29.;
+        assertEquals( 3 * x * x, 
+                      poly.tran1( 1, new double[] { x }, true )[ 0 ] );
+    }
+
+    public void testGrismMap() {
+        GrismMap gmap = new GrismMap();
+        assertEquals( 0.0, gmap.getGrismEps() );
+        gmap.setGrismEps( 0.25 );
+        assertEquals( 0.25, gmap.getGrismEps() );
+        // ?? don't know enough about grisms to come up with a sensible
+        // transformation test.
+    }
+
+    public void testShiftMap() {
+        double xoff = 23.;
+        double yoff = 5.;
+        Mapping shifty = new ShiftMap( new double[] { xoff, yoff } ); 
+        double[][] out = shifty.tran2( 1, new double[ 1 ], 
+                                          new double[ 1 ], true );
+        assertEquals( xoff, out[ 0 ][ 0 ] );
+        assertEquals( yoff, out[ 1 ][ 0 ] );
+        Mapping unshift = new WinMap( 2, new double[] { 0, 0 },
+                                         new double[] { 1, 1 },
+                                         new double[] { 0-xoff, 0-yoff },
+                                         new double[] { 1-xoff, 1-yoff } );
+        Mapping unit = new CmpMap( shifty, unshift, true );
+        out = unit.tran2( 1, new double[ 1 ], new double[ 1 ], true );
+        assertEquals( 0.0, out[ 0 ][ 0 ] );
+        assertEquals( 0.0, out[ 1 ][ 0 ] );
+        assertTrue( ! UnitMap.class.equals( unit.getClass() ) );
+        assertEquals( UnitMap.class, unit.simplify().getClass() );
     }
 
     public void testPlot() {
@@ -527,17 +594,18 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V2\\.0-4; " +
-                                           "JNIAST java V2\\.0-4" )
+                                           "JNIAST native V3\\.1-5; " +
+                                           "JNIAST java V3\\.1-5" )
                                  .matcher( AstObject.reportVersions() );
-        assertTrue( matcher.matches() );
+        assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
         int astMinor = Integer.parseInt( matcher.group( 2 ) );
         int astRelease = Integer.parseInt( matcher.group( 3 ) );
         System.out.println( AstObject.reportVersions() );
         assertTrue( "Checking AST version: " + AstObject.reportVersions(),
-                    ( astMajor > 2 ) ||
-                    ( astMajor == 2 && astMinor == 0 && astRelease >= 6 ) );
+                    ( astMajor > 3 ) ||
+                    ( astMajor == 3 && astMinor > 1 ) ||
+                    ( astMajor == 3 && astMinor == 1 && astRelease >= 5 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {

@@ -137,7 +137,7 @@ public class WCSDataNode extends DefaultDataNode {
         } );
         dv.addPane( "XML view", new ComponentMaker() {
             public JComponent getComponent() throws TransformerException {
-                Element el = new XAstWriter().makeElement( wcs, null );
+                Element el = new XAstWriter().makeElement( wcs );
                 return new TextViewer( new DOMSource( el ) );
             }
         } );
@@ -212,7 +212,7 @@ public class WCSDataNode extends DefaultDataNode {
                             DOMUtils.getChildElementByName( el, "FrameSet" );
                         if ( fsel != null ) {
                             return (FrameSet) new XAstReader()
-                                             .makeAst( fsel, null );
+                                             .makeAst( fsel );
                         }
                     }
                 }

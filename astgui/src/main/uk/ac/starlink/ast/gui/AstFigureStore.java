@@ -123,7 +123,7 @@ public class AstFigureStore
                                                               PLOT_TAG );
                 plotElement.setAttribute( "encoding", "AST-XML" );
                 Result result = new DOMResult( plotElement );
-                Source source = astWriter.makeSource( plot, null );
+                Source source = astWriter.makeSource( plot );
                 Transformer trans = new SourceReader().getTransformer();
                 try {
                     trans.transform( source, result );
@@ -145,7 +145,7 @@ public class AstFigureStore
         Element plotElement = (Element) children.get( 0 );
 
         try {
-            return (Plot) astReader.makeAst( plotElement, null );
+            return (Plot) astReader.makeAst( plotElement );
         }
         catch (Exception e) {
             e.printStackTrace();

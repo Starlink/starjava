@@ -629,6 +629,39 @@ makeNativeMethod(
    ],
 );
 
+makeNativeMethod(
+   name => ( $fName = "rate" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   return => { type => 'double', descrip => ReturnDescrip( $fName ), },
+   params => [
+      {
+         name => ( $aName = "at" ),
+         type => 'double[]',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ax1" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "ax2" ),
+         type => 'int',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+      {
+         name => ( $aName = "d2" ),
+         type => 'double[]',
+         descrip => q{
+            optional array - if not <code>null</code>, an estimate of the
+            second derivative of the Mapping function at the specified
+            point will be written into its first element
+         },
+      },
+   ],
+);
+
 my( @args );
 
 @args = (

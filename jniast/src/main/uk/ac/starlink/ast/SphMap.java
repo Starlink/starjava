@@ -122,4 +122,34 @@ public class SphMap extends Mapping {
        setB( "UnitRadius", unitRadius );
     }
 
+    /**
+     * Get 
+     * the longitude value to assign to either pole.  
+     * This attribute holds the longitude value, in radians, to be
+     * returned when a Cartesian position corresponding to either the north
+     * or south pole is transformed into spherical coordinates. The
+     * default value is zero.
+     * 
+     *
+     * @return  polarLong  this object's PolarLong attribute
+     */
+    public double getPolarLong() {
+        return getD( "PolarLong" );
+    }
+
+    /**
+     * Set 
+     * the longitude value to assign to either pole.  
+     * This attribute holds the longitude value, in radians, to be
+     * returned when a Cartesian position corresponding to either the north
+     * or south pole is transformed into spherical coordinates. The
+     * default value is zero.
+     * 
+     *
+     * @param  polarLong   the PolarLong attribute of this object
+     */
+    public void setPolarLong( double polarLong ) {
+       setD( "PolarLong", polarLong );
+    }
+
 }

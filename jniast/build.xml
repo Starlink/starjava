@@ -87,7 +87,7 @@
    !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="2.0-4"/>
+  <property name="version" value="3.1-5"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -467,6 +467,10 @@
       <param name="pj.cfile" value="frameset.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="GrismMap"/>
+      <param name="pj.cfile" value="grismmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="LutMap"/>
       <param name="pj.cfile" value="lutmap.c"/>
     </antcall>
@@ -493,6 +497,14 @@
     <antcall target="perl_to_java">
       <param name="pj.class" value="Plot"/>
       <param name="pj.cfile" value="plot.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="PolyMap"/>
+      <param name="pj.cfile" value="polymap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="ShiftMap"/>
+      <param name="pj.cfile" value="shiftmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
       <param name="pj.class" value="SlaMap"/>
@@ -525,6 +537,10 @@
     <antcall target="perl_to_java">
       <param name="pj.class" value="WinMap"/>
       <param name="pj.cfile" value="winmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="XmlChan"/>
+      <param name="pj.cfile" value="xmlchan.c"/>
     </antcall>
     <antcall target="perl_to_java">
       <param name="pj.class" value="ZoomMap"/>
@@ -709,6 +725,7 @@
       <class name="${package.name}.FitsChan"/>
       <class name="${package.name}.Frame"/>
       <class name="${package.name}.FrameSet"/>
+      <class name="${package.name}.GrismMap"/>
       <class name="${package.name}.IntraMap"/>
       <class name="${package.name}.LutMap"/>
       <class name="${package.name}.Mapping"/>
@@ -717,6 +734,8 @@
       <class name="${package.name}.PcdMap"/>
       <class name="${package.name}.PermMap"/>
       <class name="${package.name}.Plot"/>
+      <class name="${package.name}.PolyMap"/>
+      <class name="${package.name}.ShiftMap"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>
       <class name="${package.name}.SpecFrame"/>

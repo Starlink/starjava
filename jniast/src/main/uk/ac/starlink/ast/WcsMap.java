@@ -10,11 +10,11 @@ package uk.ac.starlink.ast;
  * Java interface to the AST WcsMap class
  *  - implement a FITS-WCS sky projection. 
  * This class is used to represent sky coordinate projections as
- * described in the (draft) FITS world coordinate system (FITS-WCS)
- * paper by E.W. Griesen and M. Calabretta (A & A, in preparation).
- * This paper defines a set of functions, or sky projections, which
- * transform longitude-latitude pairs representing spherical
- * celestial coordinates into corresponding pairs of Cartesian
+ * described in the FITS world coordinate system (FITS-WCS) paper II 
+ * "Representations of Celestial Coordinates in FITS" by M. Calabretta 
+ * and E.W. Griesen. This paper defines a set of functions, or sky 
+ * projections, which transform longitude-latitude pairs representing 
+ * spherical celestial coordinates into corresponding pairs of Cartesian
  * coordinates (and vice versa).
  * <p>
  * A WcsMap is a specialised form of Mapping which implements these
@@ -23,11 +23,12 @@ package uk.ac.starlink.ast;
  * deprecated "TAN with polynomial correction terms" projection which 
  * is refered to here by the code "TPN". Using the FITS-WCS terminology, 
  * the transformation is between "native spherical" and "projection
- * plane" coordinates.  These coordinates may, optionally, be embedded in 
- * a space with more than two dimensions, the remaining coordinates being 
- * copied unchanged. Note, however, that for consistency with other AST
- * facilities, a WcsMap handles coordinates that represent angles
- * in radians (rather than the degrees used by FITS-WCS).
+ * plane" coordinates (also called "intermediate world coordinates".  
+ * These coordinates may, optionally, be embedded in a space with more 
+ * than two dimensions, the remaining coordinates being copied unchanged. 
+ * Note, however, that for consistency with other AST facilities, a 
+ * WcsMap handles coordinates that represent angles in radians (rather 
+ * than the degrees used by FITS-WCS).
  * <p>
  * The type of FITS-WCS projection to be used and the coordinates
  * (axes) to which it applies are specified when a WcsMap is first
@@ -37,7 +38,7 @@ package uk.ac.starlink.ast;
  * <p>
  * Each WcsMap also allows up to 100 "projection parameters" to be
  * associated with each axis. These specify the precise form of the 
- * projection, and are accessed using PVj_m attribute, where "j" is 
+ * projection, and are accessed using PVi_m attribute, where "i" is 
  * the integer axis index (starting at 1), and m is an integer
  * "parameter index" in the range 0 to 99. The number of projection
  * parameters required by each projection, and their meanings, are 
@@ -177,15 +178,27 @@ public class WcsMap extends Mapping {
      * native latitude of the reference point of a FITS-WCS projection.  
      * This attribute gives the latitude of the reference point of the
      * FITS-WCS projection implemented by a WcsMap. The value is in
-     * radians in the "native spherical" coordinate system. In some
-     * cases, this latitude value may be determined by one or more
-     * projection parameter values supplied for the WcsMap using its
-     * PVj_m attribute.
+     * radians in the "native spherical" coordinate system. This value is
+     * fixed for most projections, for instance it is PI/2 (90 degrees)
+     * for all zenithal projections. For some projections (e.g. the conics) 
+     * the value is not fixed, but is specified by parameter one on the 
+     * latitude axis. 
+     * <p>
+     * FITS-WCS paper II introduces the concept of a "fiducial point"
+     * which is logical distinct from the projection reference point.
+     * It is easy to confuse the use of these two points. The fiducial
+     * point is the point which has celestial coordinates given by the
+     * CRVAL FITS keywords. The native spherical coordinates for this point
+     * default to the values of the NatLat and NatLon, but these defaults
+     * mey be over-ridden by values stored in the PVi_j keywords. Put
+     * another way, the CRVAL keywords will by default give the celestial
+     * coordinates of the projection reference point, but may refer to
+     * some other point if alternative native longitude and latitude values 
+     * are provided through the PVi_j keywords.
+     * <p>
+     * The NatLat attribute is read-only. 
      * <h4>Notes</h4>
-     * <br> - A value of AST__BAD is returned if no latitude value is
-     * available.
-     * <br> - For a definition of the reference point for a projection, see
-     * the FITS-WCS paper.
+     * <br> - A default value of AST__BAD is used if no latitude value is available.
      *
      * @return  natLat  this object's NatLat attribute
      */
@@ -195,113 +208,149 @@ public class WcsMap extends Mapping {
 
     /**
      * Get 
-     * fITS-WCS projection parameters.  
-     * This attribute specifies the projection parameter values to be
-     * used by a WcsMap when implementing a FITS-WCS sky projection. 
-     * Each PV attribute name should include two integers, j and m, 
-     * separated by an underscore. The axis index is specified 
-     * by j, and should be in the range 1 to 99. The parameter number 
-     * is specified by m, and should be in the range 0 to 99. For 
-     * example, "PV2_1=45.0" would specify a value for projection 
-     * parameter 1 of axis 2 in a WcsMap.
+     * native longitude of the reference point of a FITS-WCS projection.  
+     * This attribute gives the longitude of the reference point of the
+     * FITS-WCS projection implemented by a WcsMap. The value is in
+     * radians in the "native spherical" coordinate system, and will
+     * usually be zero. See the description of attribute NatLat for further 
+     * information.
      * <p>
-     * These projection parameters correspond exactly to the values
-     * stored using the FITS-WCS keywords "PV1_1", "PV1_2", etc. This
-     * means that projection parameters which correspond to angles must
-     * be given in degrees (despite the fact that the angular
-     * coordinates and other attributes used by a WcsMap are in
-     * radians).
-     * <p>
-     * The set of projection parameters used by a WcsMap depends on the
-     * type of projection, which is determined by its WcsType
-     * parameter.  Most projections either do not require projection
-     * parameters, or use parameters 1 and 2 associated with the latitude 
-     * axis. You should consult the FITS-WCS paper for details.
-     * <p>
-     * Some projection parameters have default values (as defined in
-     * the FITS-WCS paper) which apply if no explicit value is given.
-     * You may omit setting a value for these "optional" parameters and the 
-     * default will apply. Some projection parameters, however, have no 
-     * default and a value must be explicitly supplied.  This is most 
-     * conveniently
-     * done using the "options" argument of astWcsMap (q.v.) when a WcsMap
-     * is first created. An error will result when a WcsMap is used to
-     * transform coordinates if any of its required projection
-     * parameters has not been set and lacks a default value.
-     * <p>
-     * A "get" operation for a parameter which has not been assigned a value 
-     * will return the default value defined in the FITS-WCS paper, or 
-     * AST__BAD if the paper indicates that the parameter has no default.
-     * A default value of zero is returned for parameters which are not
-     * accessed by the projection.
-     * <h4>Notes</h4>
-     * <br> - If the projection parameter values given for a WcsMap do not
-     * satisfy all the required constraints (as defined in the FITS-WCS
-     * paper), then an error will result when the WcsMap is used to
-     * transform coordinates.
+     * The NatLon attribute is read-only. 
+     * 
      *
-     * @return  pVj_m  this object's PVj_m attribute
+     * @return  natLon  this object's NatLon attribute
      */
-    public float getPVj_m() {
-        return getF( "PVj_m" );
-    }
-
-    /**
-     * Set 
-     * fITS-WCS projection parameters.  
-     * This attribute specifies the projection parameter values to be
-     * used by a WcsMap when implementing a FITS-WCS sky projection. 
-     * Each PV attribute name should include two integers, j and m, 
-     * separated by an underscore. The axis index is specified 
-     * by j, and should be in the range 1 to 99. The parameter number 
-     * is specified by m, and should be in the range 0 to 99. For 
-     * example, "PV2_1=45.0" would specify a value for projection 
-     * parameter 1 of axis 2 in a WcsMap.
-     * <p>
-     * These projection parameters correspond exactly to the values
-     * stored using the FITS-WCS keywords "PV1_1", "PV1_2", etc. This
-     * means that projection parameters which correspond to angles must
-     * be given in degrees (despite the fact that the angular
-     * coordinates and other attributes used by a WcsMap are in
-     * radians).
-     * <p>
-     * The set of projection parameters used by a WcsMap depends on the
-     * type of projection, which is determined by its WcsType
-     * parameter.  Most projections either do not require projection
-     * parameters, or use parameters 1 and 2 associated with the latitude 
-     * axis. You should consult the FITS-WCS paper for details.
-     * <p>
-     * Some projection parameters have default values (as defined in
-     * the FITS-WCS paper) which apply if no explicit value is given.
-     * You may omit setting a value for these "optional" parameters and the 
-     * default will apply. Some projection parameters, however, have no 
-     * default and a value must be explicitly supplied.  This is most 
-     * conveniently
-     * done using the "options" argument of astWcsMap (q.v.) when a WcsMap
-     * is first created. An error will result when a WcsMap is used to
-     * transform coordinates if any of its required projection
-     * parameters has not been set and lacks a default value.
-     * <p>
-     * A "get" operation for a parameter which has not been assigned a value 
-     * will return the default value defined in the FITS-WCS paper, or 
-     * AST__BAD if the paper indicates that the parameter has no default.
-     * A default value of zero is returned for parameters which are not
-     * accessed by the projection.
-     * <h4>Notes</h4>
-     * <br> - If the projection parameter values given for a WcsMap do not
-     * satisfy all the required constraints (as defined in the FITS-WCS
-     * paper), then an error will result when the WcsMap is used to
-     * transform coordinates.
-     *
-     * @param  pVj_m   the PVj_m attribute of this object
-     */
-    public void setPVj_m( float pVj_m ) {
-       setF( "PVj_m", pVj_m );
+    public float getNatLon() {
+        return getF( "NatLon" );
     }
 
     /**
      * Get 
-     * fITS-WCS projection type.  
+     * FITS-WCS projection parameters.  
+     * This attribute specifies the projection parameter values to be
+     * used by a WcsMap when implementing a FITS-WCS sky projection. 
+     * Each PV attribute name should include two integers, i and m, 
+     * separated by an underscore. The axis index is specified 
+     * by i, and should be in the range 1 to 99. The parameter number 
+     * is specified by m, and should be in the range 0 to 99. For 
+     * example, "PV2_1=45.0" would specify a value for projection 
+     * parameter 1 of axis 2 in a WcsMap.
+     * <p>
+     * These projection parameters correspond exactly to the values
+     * stored using the FITS-WCS keywords "PV1_1", "PV1_2", etc. This
+     * means that projection parameters which correspond to angles must
+     * be given in degrees (despite the fact that the angular
+     * coordinates and other attributes used by a WcsMap are in
+     * radians).
+     * <p>
+     * The set of projection parameters used by a WcsMap depends on the
+     * type of projection, which is determined by its WcsType
+     * parameter.  Most projections either do not require projection
+     * parameters, or use parameters 1 and 2 associated with the latitude 
+     * axis. You should consult the FITS-WCS paper for details.
+     * <p>
+     * Some projection parameters have default values (as defined in
+     * the FITS-WCS paper) which apply if no explicit value is given.
+     * You may omit setting a value for these "optional" parameters and the 
+     * default will apply. Some projection parameters, however, have no 
+     * default and a value must be explicitly supplied.  This is most 
+     * conveniently
+     * done using the "options" argument of astWcsMap (q.v.) when a WcsMap
+     * is first created. An error will result when a WcsMap is used to
+     * transform coordinates if any of its required projection
+     * parameters has not been set and lacks a default value.
+     * <p>
+     * A "get" operation for a parameter which has not been assigned a value 
+     * will return the default value defined in the FITS-WCS paper, or 
+     * AST__BAD if the paper indicates that the parameter has no default.
+     * A default value of zero is returned for parameters which are not
+     * accessed by the projection.
+     * <p>
+     * Note, the FITS-WCS paper reserves parameters 1 and 2 on the longitude 
+     * axis to hold the native longitude and latitude of the fiducial
+     * point of the projection, in degrees. The default values for these
+     * parameters are determined by the projection type. The AST-specific
+     * TPN projection does not use this convention - all projection
+     * parameters for both axes are used to represent polynomical correction 
+     * terms, and the native longitude and latitude at the fiducial point may
+     * not be changed from the default values of zero and 90 degrees.
+     * <h4>Notes</h4>
+     * <br> - If the projection parameter values given for a WcsMap do not
+     * satisfy all the required constraints (as defined in the FITS-WCS
+     * paper), then an error will result when the WcsMap is used to
+     * transform coordinates.
+     *
+     * @return  pVi_m  this object's PVi_m attribute
+     */
+    public float getPVi_m() {
+        return getF( "PVi_m" );
+    }
+
+    /**
+     * Set 
+     * FITS-WCS projection parameters.  
+     * This attribute specifies the projection parameter values to be
+     * used by a WcsMap when implementing a FITS-WCS sky projection. 
+     * Each PV attribute name should include two integers, i and m, 
+     * separated by an underscore. The axis index is specified 
+     * by i, and should be in the range 1 to 99. The parameter number 
+     * is specified by m, and should be in the range 0 to 99. For 
+     * example, "PV2_1=45.0" would specify a value for projection 
+     * parameter 1 of axis 2 in a WcsMap.
+     * <p>
+     * These projection parameters correspond exactly to the values
+     * stored using the FITS-WCS keywords "PV1_1", "PV1_2", etc. This
+     * means that projection parameters which correspond to angles must
+     * be given in degrees (despite the fact that the angular
+     * coordinates and other attributes used by a WcsMap are in
+     * radians).
+     * <p>
+     * The set of projection parameters used by a WcsMap depends on the
+     * type of projection, which is determined by its WcsType
+     * parameter.  Most projections either do not require projection
+     * parameters, or use parameters 1 and 2 associated with the latitude 
+     * axis. You should consult the FITS-WCS paper for details.
+     * <p>
+     * Some projection parameters have default values (as defined in
+     * the FITS-WCS paper) which apply if no explicit value is given.
+     * You may omit setting a value for these "optional" parameters and the 
+     * default will apply. Some projection parameters, however, have no 
+     * default and a value must be explicitly supplied.  This is most 
+     * conveniently
+     * done using the "options" argument of astWcsMap (q.v.) when a WcsMap
+     * is first created. An error will result when a WcsMap is used to
+     * transform coordinates if any of its required projection
+     * parameters has not been set and lacks a default value.
+     * <p>
+     * A "get" operation for a parameter which has not been assigned a value 
+     * will return the default value defined in the FITS-WCS paper, or 
+     * AST__BAD if the paper indicates that the parameter has no default.
+     * A default value of zero is returned for parameters which are not
+     * accessed by the projection.
+     * <p>
+     * Note, the FITS-WCS paper reserves parameters 1 and 2 on the longitude 
+     * axis to hold the native longitude and latitude of the fiducial
+     * point of the projection, in degrees. The default values for these
+     * parameters are determined by the projection type. The AST-specific
+     * TPN projection does not use this convention - all projection
+     * parameters for both axes are used to represent polynomical correction 
+     * terms, and the native longitude and latitude at the fiducial point may
+     * not be changed from the default values of zero and 90 degrees.
+     * <h4>Notes</h4>
+     * <br> - If the projection parameter values given for a WcsMap do not
+     * satisfy all the required constraints (as defined in the FITS-WCS
+     * paper), then an error will result when the WcsMap is used to
+     * transform coordinates.
+     *
+     * @param  pVi_m   the PVi_m attribute of this object
+     */
+    public void setPVi_m( float pVi_m ) {
+       setF( "PVi_m", pVi_m );
+    }
+
+    /**
+     * Get 
+     * FITS-WCS projection type.  
      * <p>
      *       The <code>WcsType</code> attribute specifies which type of 
      *       FITS-WCS projection will be performed by this <code>WcsMap</code>.
@@ -318,7 +367,7 @@ public class WcsMap extends Mapping {
 
     /**
      * Get 
-     * fITS-WCS projection axes. 
+     * FITS-WCS projection axes. 
      * This attribute gives the indices of the longitude and latitude
      * coordinates of the FITS-WCS projection within the coordinate
      * space used by a WcsMap. These indices are defined when the

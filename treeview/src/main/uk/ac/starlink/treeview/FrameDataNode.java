@@ -106,7 +106,7 @@ public class FrameDataNode extends DefaultDataNode {
                         public JComponent getComponent() 
                                 throws TransformerException {
                             Element el = new XAstWriter()
-                                        .makeElement( frame, null );
+                                        .makeElement( frame );
                             return new TextViewer( new DOMSource( el ) );
                         }
                     } );

@@ -87,6 +87,7 @@ C_ROUTINES = \
    FitsChan.c \
    Frame.c \
    FrameSet.c \
+   GrismMap.c \
    IntraMap.c \
    LutMap.c \
    Mapping.c \
@@ -95,8 +96,10 @@ C_ROUTINES = \
    PcdMap.c \
    PermMap.c \
    Plot.c \
+   PolyMap.c \
    SkyFrame.c \
    SlaMap.c \
+   ShiftMap.c \
    SpecFrame.c \
    SpecMap.c \
    SphMap.c \

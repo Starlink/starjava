@@ -264,7 +264,7 @@ public class XMLNdxHandler implements NdxHandler {
                     }
                     try {
                         wcs = (FrameSet) new XAstReader()
-                                        .makeAst( wcssrc, null );
+                                        .makeAst( wcssrc );
                     }
                     catch ( IOException e ) {
                         wcs = null;

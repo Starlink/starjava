@@ -15,6 +15,8 @@
 *  History:
 *     18-SEP-2001 (MBT):
 *        Original version.
+*     4-FEB-2004 (MBT):
+*        Added XmlChan support.
 *-
 */
 
@@ -36,12 +38,27 @@ typedef struct {
    jmethodID sinkMethodID;
 } ChanInfo;
 
+typedef AstChannel *(*ChannelForFunc)( const char *(*)( void ),
+                                       char *(*)( const char *(*)( void ) ),
+                                       void (*)( const char * ),
+                                       void (*)( void (*)( const char * ),
+                                                 const char * ),
+                                       const char *, ... );
+
 
 /* Static function prototypes. */
 static char *sourceWrap( const char *( *source )() ); 
 static void sinkWrap( void ( *sink )( const char * ), const char *line );
 static void initializeIDs( JNIEnv *env );
 static void fillChaninfo( JNIEnv *env, jobject this );
+static void constructFlavouredChannel( JNIEnv *env, jobject this, 
+                                       ChannelForFunc func );
+static AstChannel *xmlChanFor( const char *(*)( void ),
+                               char *(*)( const char *(*)( void ) ),
+                               void (*)( const char * ),
+                               void (*)( void (*)( const char * ),
+                                         const char * ),
+                               const char *, ... );
 
 
 /* Static variables. */
@@ -53,43 +70,20 @@ static jmethodID UnChannelizeMethodID;
 
 /* Instance methods. */
 
-JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_construct(
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_constructChannel(
    JNIEnv *env,          /* Interface pointer */
    jobject this          /* Instance object */
 ) {
-   AstPointer pointer;
-   AstPointer infopointer;
-   ChanInfo *chaninfo;
-
-   /* Ensure that the Channel field and method ID values which will
-    * be used by the source and sink wrapper functions are initialized. */
-   initializeIDs( env );
-
-   /* Allocate space for the chaninfo structure and store its location in
-    * the chaninfo instance variable of this object.  The structure will
-    * be used to hold pointers required by the sourceWrap and sinkWrap
-    * routines. */
-   chaninfo = jniastMalloc( env, sizeof( ChanInfo ) );
-   infopointer.ptr = chaninfo;
-   if ( ! (*env)->ExceptionCheck( env ) ) {
-      (*env)->SetLongField( env, this, ChaninfoFieldID, infopointer.jlong );
-   }
-   
-   /* Construct the AST Channel itself, using references to the chaninfo
-    * structure.  We are subverting the AST machinery here in order to 
-    * permit an implementation which will allow multiple simultaneously
-    * active channels. */
-   ASTCALL(
-      pointer.Channel =
-         astChannelFor( (const char *(*)()) chaninfo, sourceWrap,
-                        (void (*)( const char * )) chaninfo, sinkWrap, "" );
-   )
-
-   /* Store the pointer to the AST object in an instance variable. */
-   if ( ! (*env)->ExceptionCheck( env ) ) {
-      jniastSetPointerField( env, this, pointer );
-   }
+   constructFlavouredChannel( env, this, astChannelFor );
 }
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_constructXmlChan(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this          /* Instance object */
+) {
+   constructFlavouredChannel( env, this, xmlChanFor );
+}
+   
 
 JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_destroy(
    JNIEnv *env,          /* Interface pointer */
@@ -194,6 +188,71 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Channel_write(
 
 
 /* Static functions. */
+
+static void constructFlavouredChannel( JNIEnv *env, jobject this, 
+                                       ChannelForFunc func ) {
+   AstPointer pointer;
+   AstPointer infopointer;
+   ChanInfo *chaninfo;
+
+   /* Ensure that the Channel field and method ID values which will
+    * be used by the source and sink wrapper functions are initialized. */
+   initializeIDs( env );
+
+   /* Allocate space for the chaninfo structure and store its location in
+    * the chaninfo instance variable of this object.  The structure will
+    * be used to hold pointers required by the sourceWrap and sinkWrap
+    * routines. */
+   chaninfo = jniastMalloc( env, sizeof( ChanInfo ) );
+   infopointer.ptr = chaninfo;
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      (*env)->SetLongField( env, this, ChaninfoFieldID, infopointer.jlong );
+   }
+   
+   /* Construct the AST Channel itself, using references to the chaninfo
+    * structure.  We are subverting the AST machinery here in order to 
+    * permit an implementation which will allow multiple simultaneously
+    * active channels. */
+   ASTCALL(
+      pointer.Channel =
+         func( (const char *(*)()) chaninfo, sourceWrap,
+               (void (*)( const char * )) chaninfo, sinkWrap, "" );
+   )
+
+   /* Store the pointer to the AST object in an instance variable. */
+   if ( ! (*env)->ExceptionCheck( env ) ) {
+      jniastSetPointerField( env, this, pointer );
+   }
+}
+
+/*
+*+
+*  Name:
+*     xmlChanFor
+
+*  Purpose:
+*     Retyped wrapper round astXmlChanFor
+
+*  Description:
+*     This function is a wrapper around astXmlChanFor which exists solely 
+*     to cast its return type from AstXmlChan* to AstChannel* - the other 
+*     arguments are just passed through with no change (except for the 
+*     varargs, which are never used).
+*
+*     This prevents the compiler from issuing a warning.  One could equally
+*     just cast astXmlChanFor to ChannelForFunc when it is used, but
+*     doing it like this makes it more explicit what is going on.
+*-
+*/
+static AstChannel *xmlChanFor( const char *(* source)( void ),
+                               char *(* source_wrap)( const char *(*)( void ) ),
+                               void (* sink)( const char * ),
+                               void (* sink_wrap)( void (*)( const char * ),
+                                                   const char * ),
+                               const char *options, ... ) {
+    return (AstChannel *) astXmlChanFor( source, source_wrap, sink, sink_wrap,
+                                         options );
+}
 
 static void initializeIDs( JNIEnv *env ) {
 /*

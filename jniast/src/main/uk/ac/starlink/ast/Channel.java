@@ -8,7 +8,7 @@ import java.util.*;
  * class.  This class is used for reading and writing AST objects from/to
  * external media.  The <code>Channel</code> class itself reads
  * from <code>System.in</code> or another <code>InputStream</code>
- * and writes to <code>System.out</code> or another <code>PrintStream</code>.
+ * and writes to <code>System.out</code> or another <code>OutputStream</code>.
  * To perform I/O to some other object, extend this class and 
  * override the <code>source</code> and <code>sink</code> methods.
  *
@@ -22,18 +22,18 @@ public class Channel extends AstObject {
     private long chaninfo;
 
     private BufferedReader inreader;
-    private PrintStream outstream;
+    private OutputStream outstream;
 
     /**
      * Creates a channel which reads from the given <code>InputStream</code>
-     * and writes to the given <code>PrintStream</code>.
+     * and writes to the given <code>OutputStream</code>.
      * 
      * @param   in   a stream to read AST objects from.  If <code>null</code>,
      *               then <code>System.in</code> is used.
      * @param   out  a stream to write AST objects to.  If <code>null</code>,
      *               then <code>System.out</code> is used.
      */
-    public Channel( InputStream in, PrintStream out ) {
+    public Channel( InputStream in, OutputStream out ) {
         if ( in == null ) {
             in = System.in;
         }
@@ -101,7 +101,7 @@ public class Channel extends AstObject {
      * <p>
      * This method is called by the <code>write</code> method.
      * To implement a channel which writes to a source other than
-     * an <code>PrintStream</code>, override this method.  The method
+     * an <code>OutputStream</code>, override this method.  The method
      * can do anything it likes with its argument, and may throw
      * an exception in case of error.
      *
@@ -111,10 +111,25 @@ public class Channel extends AstObject {
      * @throws IOException  if an I/O error occurs during writing.
      */
     protected void sink( String line ) throws IOException {
-        outstream.println( line );
+        outstream.write( line.getBytes() );
+        outstream.write( (byte) '\n' );
     }
 
-    private native void construct();
+    /**
+     * Performs native operations required for construction of a valid
+     * Channel.
+     */
+    private void construct() {
+        if ( this instanceof XmlChan ) {
+            constructXmlChan();
+        }
+        else {
+            constructChannel();
+        }
+    }
+
+    private native void constructChannel();
+    private native void constructXmlChan();
     private native void destroy();
 
     /**

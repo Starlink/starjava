@@ -120,6 +120,8 @@ public class SlaMap extends Mapping {
      * <br> - "EQECL" (DATE): Convert equatorial J2000.0 to ecliptic coordinates.
      * <br> - "GALEQ": Convert galactic coordinates to J2000.0 equatorial.
      * <br> - "EQGAL": Convert J2000.0 equatorial to galactic coordinates.
+     * <br> - "HFK5Z" (JEPOCH): Convert ICRS coordinates to J2000.0 equatorial.
+     * <br> - "FK5HZ" (JEPOCH): Convert J2000.0 equatorial coordinates to ICRS.
      * <br> - "GALSUP": Convert galactic to supergalactic coordinates.
      * <br> - "SUPGAL": Convert supergalactic coordinates to galactic.
      * <p>
@@ -140,6 +142,8 @@ public class SlaMap extends Mapping {
      * <br> - "EQHPC" (DATE,OBSX,OBSY,OBSZ): Convert J2000.0 equatorial coordinates to Helioprojective-Cartesian.
      * <br> - "HPREQ" (DATE,OBSX,OBSY,OBSZ): Convert Helioprojective-Radial coordinates to J2000.0 equatorial.
      * <br> - "EQHPR" (DATE,OBSX,OBSY,OBSZ): Convert J2000.0 equatorial coordinates to Helioprojective-Radial.
+     * <br> - "HEEQ" (DATE): Convert helio-ecliptic coordinates to J2000.0 equatorial.
+     * <br> - "EQHE" (DATE): Convert J2000.0 equatorial coordinates to helio-ecliptic.
      * <p>
      * 
      * @see <a href="http://star-www.rl.ac.uk/star/docs/sun67.htx/sun67.html">SUN/67 - SLALIB</a>

@@ -834,6 +834,52 @@ public class Mapping extends AstObject {
      */
     public native double[][] tranP( int npoint, int ncoord_in, double[][] in, boolean forward, int ncoord_out );
 
+    /** 
+     * Calculate the rate of change of a Mapping output.   
+     * This function 
+     * evaluates the rate of change of a specified output of the supplied
+     * Mapping with respect to a specified input, at a specified input
+     * position. 
+     * <p>
+     * The result is estimated by interpolating the function using a
+     * fourth order polynomial in the neighbourhood of the specified
+     * position. The size of the neighbourhood used is chosen to minimise
+     * the RMS residual per unit length between the interpolating
+     * polynomial and the supplied Mapping function. This method produces
+     * good accuracy but can involve evaluating the Mapping 100 or more
+     * times.
+     * <h4>Notes</h4>
+     * <br> - A value of AST__BAD will be returned if this function is invoked
+     * with the global error status set, or if it should fail for any
+     * reason.
+     * @param   at
+     * The address of an 
+     * array holding the axis values at the position at which the rate
+     * of change is to be evaluated. The number of elements in this
+     * array should equal the number of inputs to the Mapping.
+     * 
+     * @param   ax1
+     * The index of the Mapping output for which the rate of change is to 
+     * be found (output numbering starts at 1 for the first output).
+     * 
+     * @param   ax2
+     * The index of the Mapping input which is to be varied in order to
+     * find the rate of change (input numbering starts at 1 for the first 
+     * input).
+     * 
+     * @param   d2
+     * optional array - if not <code>null</code>, an estimate of the
+     *             second derivative of the Mapping function at the specified
+     *             point will be written into its first element
+     *          
+     * @return  The rate of change of Mapping output "ax1" with respect to input 
+     * "ax2", evaluated at "at", or AST__BAD if the value cannot be 
+     * calculated.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native double rate( double[] at, int ax1, int ax2, double[] d2 );
+
     /**
      * Get 
      * mapping inversion flag.  

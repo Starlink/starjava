@@ -13,7 +13,7 @@ package uk.ac.starlink.ast;
  * celestial longitude/latitude coordinate systems. The particular
  * celestial coordinate system to be represented is specified by
  * setting the SkyFrame's System attribute (currently, the default
- * is FK5) qualified, as necessary, by a mean Equinox value and/or
+ * is ICRS) qualified, as necessary, by a mean Equinox value and/or
  * an Epoch.
  * <p>
  * All the coordinate values used by a SkyFrame are in
@@ -141,8 +141,8 @@ public class SkyFrame extends Frame {
      * the point on the sky that defines the coordinate origin (the
      * intersection of the two planes termed the "mean equinox") move
      * with time according to some model which removes the more rapid
-     * fluctuations. The SkyFrame class supports both the old FK4 and
-     * the current FK5 models.
+     * fluctuations. The SkyFrame class supports both the FK4 and
+     * FK5 models.
      * <p>
      * The position of a fixed source expressed in any of these
      * coordinate systems will appear to change with time due to
@@ -193,8 +193,8 @@ public class SkyFrame extends Frame {
      * the point on the sky that defines the coordinate origin (the
      * intersection of the two planes termed the "mean equinox") move
      * with time according to some model which removes the more rapid
-     * fluctuations. The SkyFrame class supports both the old FK4 and
-     * the current FK5 models.
+     * fluctuations. The SkyFrame class supports both the FK4 and
+     * FK5 models.
      * <p>
      * The position of a fixed source expressed in any of these
      * coordinate systems will appear to change with time due to

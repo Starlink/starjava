@@ -43,6 +43,7 @@
 
 package JMaker;
 use Exporter;
+use warnings FATAL => qw(all);
 
 @ISA = qw( Exporter );
 @EXPORT = qw(

@@ -484,6 +484,55 @@ JNIEXPORT jobjectArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranP(
    return jOut;
 }
 
+JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_Mapping_rate(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jdoubleArray jAt,     /* Position array. */
+   jint ax1,             /* Axis for which rate is to be calculated. */
+   jint ax2,             /* Axis to vary. */
+   jdoubleArray jD2      /* Array to accept second derivative. */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   double rate = AST__BAD;
+   int nin;
+   double *d2;
+   double *at;
+
+   /* Validate parameters. */
+   ASTCALL(
+      nin = astGetI( pointer.Frame, "Nin" );
+   )
+
+   if ( jniastCheckArrayLength( env, jAt, nin ) &&
+        ( ( jD2 == NULL ) || jniastCheckArrayLength( env, jD2, 1 ) ) ) {
+
+      /* Get C arrays from java data. */
+      at = (*env)->GetDoubleArrayElements( env, jAt, NULL );
+      if ( jD2 ) {
+         d2 = (*env)->GetDoubleArrayElements( env, jD2, NULL );
+      }
+      else {
+         d2 = NULL;
+      }
+
+      /* Call the AST routine to do the work. */
+      ASTCALL(
+         rate = astRate( pointer.Mapping, at, (int) ax1, (int) ax2, d2 );
+      )
+
+      /* Release resources and copy data back. */
+      ALWAYS(
+         (*env)->ReleaseDoubleArrayElements( env, jAt, at, JNI_ABORT );
+         if ( d2 != NULL ) {
+            (*env)->ReleaseDoubleArrayElements( env, jD2, d2, 0 );
+         }
+      )
+   }
+
+   /* Return the result. */
+   return (jdouble) rate;
+}
+
 
 #define MAKE_RESAMPLEX(Xletter,Xtype,Xjtype,XJtype,Xjsign) \
  \
