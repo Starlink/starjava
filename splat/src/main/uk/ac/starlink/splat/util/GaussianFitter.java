@@ -249,6 +249,16 @@ public class GaussianFitter
         this.fixed[2] = fixed[2];
     }
 
+    public String toString()
+    {
+        return "GaussianFitter[" + 
+            "flux = " + getFlux() + ", " +
+            "scale = " + getScale() + ", " +
+            "centre = " + getCentre() + ", " +
+            "sigma = " + getSigma() +
+            "]";
+    }
+
     //
     // Implementation of the LevMarqFunc interface.
     //

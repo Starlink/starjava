@@ -225,4 +225,17 @@ public class PolynomialFitter
         }
         return Math.sqrt( rmssum / (double)( x.length - 1 ) );
     }
+
+    public String toString()
+    {
+        StringBuffer buffer = 
+            new StringBuffer( "PolynomialFitter[" );
+        buffer.append ( "degree = " + coeffs.length );
+        buffer.append( ", coefficients = " + coeffs[1] );
+        for ( int i = 1; i < coeffs.length; i++ ) {
+            buffer.append( ", " + coeffs[i] );
+        }
+        buffer.append( "]" );
+        return buffer.toString();
+    }
 }

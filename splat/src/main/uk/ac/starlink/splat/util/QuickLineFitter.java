@@ -31,7 +31,7 @@ package uk.ac.starlink.splat.util;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class QuickLineFitter 
+public class QuickLineFitter
 {
     // Does not extend FunctionFitter as very specialised.
     /**
@@ -80,7 +80,7 @@ public class QuickLineFitter
      *                   Note if used it is assumed that this value is
      *                   subtracted from the background.
      */
-    public QuickLineFitter( double[] xcoords, double[] data, double[] back, 
+    public QuickLineFitter( double[] xcoords, double[] data, double[] back,
                             double backValue )
     {
         doCalc( xcoords, data, back, backValue );
@@ -93,7 +93,7 @@ public class QuickLineFitter
      *                 background values.
      *  @param data the background subtracted spectra data.
      *  @param back the background values for each data value. May be
-     *              NULL. 
+     *              NULL.
      *  @param backValue a background value to be used if back is NULL.
      */
     protected void doCalc( double[] xcoords, double[] data, double[] back,
@@ -134,7 +134,7 @@ public class QuickLineFitter
                     sum -= data[i] / backValue;
                 }
             }
-        } 
+        }
         else {
             //  Background is zero.
             for ( int i = 0; i < xcoords.length; i++ ) {
@@ -155,7 +155,7 @@ public class QuickLineFitter
             sum = -sum;
             sign = -1.0;
             peak = max;
-        } 
+        }
         else {
 
             //  Must be an absorption line.
@@ -169,9 +169,9 @@ public class QuickLineFitter
         // and 0.8413 of the total.  For a Gaussian these give +/- 1
         // standard deviation from the median.  Compute width and
         // asymmetry parameters.
-        double xsigl = splitSum( sum, 0.1587, data, back, backValue, 
+        double xsigl = splitSum( sum, 0.1587, data, back, backValue,
                                  xcoords, sign );
-        double xsigu = splitSum( sum, 0.8413, data, back, backValue, 
+        double xsigu = splitSum( sum, 0.8413, data, back, backValue,
                                  xcoords, sign );
 
         width = 1.1775 * ( xsigu - xsigl );
@@ -182,7 +182,7 @@ public class QuickLineFitter
         // by scaling sum by dispersion, if known.
         if ( back != null || backValue != 0.0 ) {
             equivalentWidth = sum * scale;
-        } 
+        }
         else {
             equivalentWidth = 0.0;
         }
@@ -245,6 +245,18 @@ public class QuickLineFitter
         return 0.0;
     }
 
+    public String toString()
+    {
+        return "QuickLineFitter[" +
+            "centre = " + getCentre() + ", " +
+            "peak = " + getPeak() + ", " +
+            "width = " + getWidth() + ", " +
+            "equivalent width = " + getEquivalentWidth() + ", " +
+            "asymmetry = " + getAsymmetry() + ", " +
+            "absorption = " + isAbsorption() +
+            "]";
+    }
+
     /**
      *
      * Computes data value for which area from is frac times total area.
@@ -263,7 +275,7 @@ public class QuickLineFitter
      * @see "Figaro:splitsum"
      */
     protected double splitSum( double sum, double frac, double[] data,
-                               double[] back, double backValue, 
+                               double[] back, double backValue,
                                double[] xcoords, double sign )
     {
         if ( sum == 0.0 ) {
@@ -275,7 +287,7 @@ public class QuickLineFitter
         int mbound = ubound - 2;
         double exch = 0.0;
         if ( backValue == 0.0 ) backValue = 1.0;
-        
+
         if ( back != null ) {
             for ( int i = 0; i < ubound - 2; i++ ) {
                 if ( back[i] != 0.0 ) {
@@ -286,7 +298,7 @@ public class QuickLineFitter
                     break;
                 }
             }
-        } 
+        }
         else {
             for ( int i = 0; i < ubound - 2; i++ ) {
                 a += ( 1.0 - ( data[i] + backValue ) / backValue ) * sign;
@@ -305,11 +317,11 @@ public class QuickLineFitter
                 exch = 1.0 - exes /
                        ( 1.0 - ( data[mbound+1] + back[mbound+1] ) /
                          back[mbound+1] ) * sign;
-            } 
+            }
             else {
                 exch = 0.0;
             }
-        } 
+        }
         else {
             exch = 1.0 - exes /
                 ( 1.0 - ( data[mbound+1] + backValue ) / backValue ) * sign;

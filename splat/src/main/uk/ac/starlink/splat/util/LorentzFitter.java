@@ -246,6 +246,18 @@ public class LorentzFitter
         this.fixed[2] = fixed[2];
     }
 
+    public String toString()
+    {
+        return "LorentzFitter[" + 
+            "flux = " + getFlux() + ", " +
+            "scale = " + getScale() + ", " +
+            "centre = " + getCentre() + ", " +
+            "width = " + getWidth() +
+            "]";
+    }
+
+
+
 //
 // Implementation of the LevMarqFunc interface.
 //
