@@ -12,6 +12,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -167,11 +168,21 @@ public abstract class LoadQueryWindow extends QueryWindow {
             assert table != null;
             if ( tableConsumer_ == this ) {
 
-                /* Hide the loader window. */
-                LoadQueryWindow.this.dispose();
+                /* Check we have at least one row. */
+                if ( table.getRowCount() > 0 ) {
 
-                /* Pass the table to the method that actually wants it. */
-                performLoading( table, id_ );
+                    /* Hide the loader window. */
+                    LoadQueryWindow.this.dispose();
+
+                    /* Pass the table to the method that actually wants it. */
+                    performLoading( table, id_ );
+                }
+                else {
+                    JOptionPane.showMessageDialog( LoadQueryWindow.this,
+                                                   "Table contained no rows",
+                                                   "Empty Table",
+                                                   JOptionPane.ERROR_MESSAGE );
+                }
             }
         }
     }
