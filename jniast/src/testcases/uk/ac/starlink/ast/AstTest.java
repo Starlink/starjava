@@ -322,6 +322,11 @@ public class AstTest extends TestCase {
         assertEquals( ref1, sk8.getSkyRefP( 1 ), 1e-10 );
         assertEquals( ref2, sk8.getSkyRefP( 2 ), 1e-10 );
         assertEquals( ref, sk8.getSkyRefP() );
+
+        sk8.setAlignOffset( true );
+        assertTrue( sk8.getAlignOffset() );
+        sk8.setAlignOffset( false );
+        assertTrue( ! sk8.getAlignOffset() );
     }
 
     public void testDSBSpecFrame() {
