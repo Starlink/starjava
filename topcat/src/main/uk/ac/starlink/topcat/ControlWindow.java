@@ -312,7 +312,7 @@ public class ControlWindow extends AuxWindow
         fileMenu.insertSeparator( fileMenuPos++ );
 
         /* Add a menu for the table views. */
-        JMenu viewMenu = new JMenu( "Table Views" );
+        JMenu viewMenu = new JMenu( "TableViews" );
         viewMenu.setMnemonic( KeyEvent.VK_V );
         viewMenu.add( viewerAct );
         viewMenu.add( paramAct );
