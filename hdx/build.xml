@@ -97,10 +97,13 @@
   <property name="junit.summary" value="no"/>
 
   <!-- Directory containing the package source -->
-  <property name="src.dir" value="src"/>
+  <property name="src.dir" value="${basedir}/src"/>
 
   <!-- Directory containing the java source (top of the namespace)-->
   <property name="java.dir" value="${src.dir}/main"/>
+
+  <!-- Directory containing miscellaneous docs -->
+  <property name="src.docs" value="${src.dir}/docs"/>
 
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
@@ -109,39 +112,40 @@
    !   distributed (normally these would belong in a proper package)-->
   <property name="src.jars.dir" value="${src.dir}/lib"/>
 
+  <!-- Directory containing any JNI source code -->
+  <property name="src.jni.dir" value="${src.dir}/jni"/>
+
   <!-- Directories for JUnit test cases and related files -->
-  <property name="tests.dir" value="src/testcases"/>
-  <property name="tests.etc.dir" value="src/etc/testcases"/>
+  <property name="tests.dir" value="${src.dir}/testcases"/>
+  <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
 
   <!-- File types that should not be passed through a filterchain when
    !   copying -->
   <property name="unfiltered.files" value="**/*.gif,**/*.jpg,**/*.ico"/>
 
   <!-- Directories to receive the various build components -->
-  <property name="build.dir" value="build"/>
+  <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
-  <property name="build.lib" value="${build.dir}/lib"/>
-  <property name="build.javadocs" value="${build.dir}/javadocs"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
   <!-- Distribution directories, these are created in the current
    !   directory, unless dist.dir is redefined. Files that will be
    !   installed under a package name prefixed directory should be
-   !   placed in the ".pkg" variants -->
+   !   placed in the ".pkg" variants. Note some build components may
+   !   be placed directly here for efficiency-->
   <property name="dist.dir" value="${basedir}"/>
-
   <property name="dist.bin" value="${dist.dir}/bin"/>
   <property name="dist.lib" value="${dist.dir}/lib"/>
   <property name="dist.src" value="${dist.dir}/src"/>
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
 
-  <property name="dist.bin.pkg" value="${dist.dir}/bin/${name}"/>
-  <property name="dist.lib.pkg" value="${dist.dir}/lib/${name}"/>
-  <property name="dist.docs.pkg" value="${dist.dir}/docs/${name}"/>
-  <property name="dist.etc.pkg" value="${dist.dir}/etc/${name}"/>
-  <property name="dist.javadocs" value="${dist.dir}/docs/${name}/javadocs"/>
+  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
+  <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
+  <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
+  <property name="dist.javadocs" value="${dist.docs}/${name}/javadocs"/>
 
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
@@ -165,7 +169,7 @@
    !   It's best to have a classpath (rather than use the extension
    !   mechanism) during development as this allows us to compile
    !   without having to work these dependencies out anyway (may 
-   !   be fixed in Java1.5) plus we can execute against locally build
+   !   be fixed in Java1.5) plus we can execute against locally built
    !   class files in preference to installed ones (an externally
    !   defined CLASSPATH can also be used as needed). 
    !-->
@@ -192,17 +196,17 @@
    !   part of handling the classpath. The local classes will be in
    !   the "build/classes" part of each package, plus third party
    !   packages will have their jar files in the "dist" directories.
-   !   Having the third party jars not installed means that the 
-   !   building a classpath based on their manifest class-paths will 
-   !   not resolve all references (these may be to other third party
-   !   jars, that are normally resolved using relative URLs). The way
-   !   that this is resolved is simply to locate all "build/classes"
-   !   directories and all jar files in the "dist" parts and just add
-   !   these all to the classpath. Known third party dependencies are
-   !   added after the "build/classes" directories using the
-   !   "extclasspath" type, just so that they will be referred to
-   !   first. If this doesn't work as expected add the additional
-   !   classes/jars to the external classpath.  
+   !   Having the third party jars not installed means that building a
+   !   classpath based on their manifest class-paths will not resolve
+   !   all references (these may be to other third party jars, that
+   !   are normally resolved using relative URLs). The way that this
+   !   is resolved is simply to locate all "build/classes" directories
+   !   and all jar files in the "dist" parts and just add these all
+   !   to the classpath. Known third party dependencies are added
+   !   after the "build/classes" directories using the "extclasspath"
+   !   type, just so that they will be referred to first. If this
+   !   doesn't work as expected add the additional classes/jars to
+   !   the external classpath.
    !-->
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
@@ -211,12 +215,28 @@
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/dom4j/lib/dom4j/dom4j-full.jar"/>
   </extclasspath>
+
+  <!-- Local third party jars. Normally these will be kept in their
+   !   own third party package, but may be kept here temporarily, so
+   !   if there are version conflicts that cannot be addressed.
+   !   They are installed with the package jar files and should be
+   !   entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  </path>
+
   <path id="built.classpath">
 
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
       <include name="*/build/classes"/>
     </dirset>
+
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
 
     <!-- Directly dependent third party jars -->
     <path refid="built.jarpath"/>
@@ -229,7 +249,7 @@
 
     <!-- Note in passing a more elegant way to resolve these jars
      !   would be to extend <extclasspath> to go looking for dependent
-     !   jars using an additional resolving mechanism-->
+     !   jars using an additional URL resolving mechanism-->
   
   </path>
 
@@ -335,16 +355,14 @@
    !
    !  The results of the compilation are placed in the build.classes
    !  directory. Other files that are also needed in the classes tree
-   !  should also be copied into place here.
+   !  (i.e. resources like images) should also be copied into place here.
    !-->
   <target name="build"
           depends="prepare, check_packages"
           unless="runonly.install"
           description="-> compiles the source code">
 
-    <mkdir dir="${build.dir}"/>
     <mkdir dir="${build.classes}"/>
-    <mkdir dir="${build.lib}"/>
     <javac srcdir="${java.dir}"
            destdir="${build.classes}"
            debug="${debug}"
@@ -367,8 +385,12 @@
       </fileset>
     </copy>
 
-    <!-- Third party jars, if any -->
-    <copy todir="${build.lib}">
+    <!-- Local third party jars, if any. Copy straight into
+     !   distribution directories to save on unnecessary copies and to
+     !   make these available for resolution by other locally built
+     !   packages that are using this one -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
 
@@ -380,16 +402,19 @@
    !   ============================
    !
    !  Creates a jar file from the build.classes directory tree. If
-   !  jars of components are also required these should be created
-   !  here too. Note this requires a manifest file that defines the 
-   !  jars that we directly depend on (using relative URLs).
+   !  jars of sub-components are also required these should be also
+   !  created here. Note this requires a manifest file that defines the
+   !  jars that we directly depend on (using relative URLs) on and, if
+   !  appropriate, defines the application entrance point. The jar
+   !  files should be placed directly in the distribution directories.
    !-->
   <target name="jars"
           depends="build"
           unless="runonly.install"
           description="-> creates the package jar file">
 
-    <jar destfile="${build.lib}/${name}.jar"
+    <mkdir dir="${dist.lib.pkg}"/>
+    <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
@@ -398,51 +423,47 @@
 ../jnihds/jnihds.jar ../jniast/jniast.jar ../dom4j/dom4j-full.jar"/>
       </manifest>
     </jar>
-
   </target>
 
   <!--
-   !   =============================
-   !   Create the local distribution
-   !   =============================
+   !   =================================
+   !   Configures the local distribution
+   !   =================================
    !
-   !  Creates a local distribution in the directory "dist.dir"
-   !  (usually the current directory). Installations are based on this
-   !  distribution. If the "runonly.install" parameter is set then this
-   !  target is skipped (needed for releases that do not have source).
+   !  Completes the creation of the local distribution into the
+   !  directory "dist.dir" (usually the current directory).
+   !  Installations and exports are based on the state of this
+   !  distribution, so it must be performed before installation or
+   !  export. If the "runonly.install" parameter is set then this
+   !  target is skipped (needed for releases that do not have
+   !  source). Much of the work of getting the distribution
+   !  directories into the correct state is performed by the dependency
+   !  targets.
    !-->
   <target name="dist"
           depends="build,jars,javadocs"
           unless="runonly.install"
-          description="-> creates the local binary distribution">
+          description="-> configures the local binary distribution">
 
+    <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
     <mkdir dir="${dist.bin.pkg}"/>
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
     <mkdir dir="${dist.etc.pkg}"/>
 
+    <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
 
-    <copy todir="${dist.lib.pkg}">
-      <fileset dir="${build.lib}">
-        <include name="**/*.jar"/>
-        <include name="**/*.zip"/>
-      </fileset>
+    <!-- Copy extra documentation, note doesn't include javadocs these
+     !   are generated from the source-->
+    <copy todir="${dist.docs.pkg}">
+      <fileset dir="${src.docs}"/>
     </copy>
 
-    <copy todir="${dist.javadocs}">
-      <fileset dir="${build.javadocs}" excludes="${unfiltered.files}"/>
-      <filterchain refid="filters"/>
-    </copy>
-
-    <copy todir="${dist.javadocs}" filtering="false">
-      <fileset dir="${build.javadocs}" includes="${unfiltered.files}"/>
-    </copy>
-
-    <!-- Set permissions on contents of distribution directory -->
+    <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
@@ -557,6 +578,9 @@
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
+
+        <!-- Exclude local development support from distribution-->
+        <exclude name="local/**" if="source.required"/>
       </zipfileset>
 
     </zip>
@@ -583,6 +607,7 @@
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
+        <exclude name="local/**" if="source.required"/>
       </tarfileset>
     </tar>
 
@@ -647,6 +672,12 @@
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
+    <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+      <fileset dir="${star.bin}">
+        <present targetdir="${dist.bin}" present="both"/>
+      </fileset>
+    </chmod>
+
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -677,7 +708,7 @@
   <!--
    !   ========================================
    !   Install runonly into the "Starlink" tree
-   !   =========================================
+   !   ========================================
    !
    ! Do an install using only the contents of a binary release (a
    ! source-free runonly system).
@@ -707,18 +738,21 @@
    !   ===================================
    !
    ! Uses the content of the "${install.log}" to remove the files
-   ! that were copied into place by the install target.
+   !  that were copied into place by the install target. If this fails
+   !  then hopefully the log file will not be deleted!
    !-->
   <target name="deinstall"
           description="-> undo the install target">
 
     <loadfile property="files" srcFile="${install.log}"/>
-    <listdelete>
+
+    <listdelete quiet="false" failonerror="true">
       <filelist dir="/" files="${files}"/>
     </listdelete>
 
-  </target>
+    <delete file="${install.log}"/>
 
+  </target>
 
   <!--
    !   =============================
@@ -734,15 +768,15 @@
           unless="javadoc.notrequired"
           description="-> creates the API documentation">
 
-    <mkdir dir="${build.javadocs}"/>
+    <mkdir dir="${dist.javadocs}"/>
     <javadoc useexternalfile="yes"
-             destdir="${build.javadocs}"
+             destdir="${dist.javadocs}"
              author="true"
              version="true"
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-             classpath="classpath">
+             classpathref="classpath">
 
       <!-- Exclude broken and test files etc. from the document -->
       <fileset dir="src/main" defaultexcludes="yes">
@@ -760,7 +794,6 @@
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
     </javadoc>
-
   </target>
 
   <!-- This checks if the javadocs are up to date with respect to the
@@ -769,12 +802,10 @@
    !   javadoc.notrequired is already set (by .properties) -->
   <target name="javadoc_check"
           unless="javadoc.notrequired">
-
     <uptodate property="javadoc.notrequired"
-              targetfile="${build.javadocs}/packages.html" >
+              targetfile="${dist.javadocs}/packages.html" >
         <srcfiles dir= "${java.dir}" includes="**/*.java"/>
     </uptodate>
-
   </target>
 
   <!--
