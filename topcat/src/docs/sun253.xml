@@ -76,7 +76,7 @@
 <docnumber>253</docnumber>
 
 <history><version><px>$Id$</px></version></history>
-<docdate>October 2004</docdate>
+<docdate>February 2005</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -3076,7 +3076,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.4 (3 Feb 2005)</dt>
+<dt>Version 1.4 (4 Feb 2005)</dt>
 <dd><p><dl>
 
     <dt>Load Dialogues</dt>
