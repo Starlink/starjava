@@ -5,6 +5,8 @@ import java.text.DecimalFormat;
 import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 
+import uk.ac.starlink.ast.gui.DecimalField;
+
 /**
  * DecimalComboBoxEditor extends BasicComboBoxEditor to provide a
  * mechanism for making the editable values of a JComboBox decimal

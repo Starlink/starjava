@@ -29,6 +29,7 @@ import uk.ac.starlink.splat.data.MEMSpecDataImpl;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.ast.gui.DecimalField;
 
 /**
  * Interface to perform simple mathematical operations one a spectrum.

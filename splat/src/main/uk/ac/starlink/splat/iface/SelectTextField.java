@@ -14,12 +14,15 @@ import javax.swing.JTextField;
 import javax.swing.event.EventListenerList;
 import javax.swing.text.Document;
 
+import uk.ac.starlink.ast.gui.SelectCharacters;
+import uk.ac.starlink.ast.gui.SelectCharactersEvent;
+import uk.ac.starlink.ast.gui.SelectCharactersListener;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 
 /**
  * A SpecialTextField contains a JTextField and a button for
  * choosing amongst all the available characters in the font (so that
- * special characters can be used, and for selectin
+ * special characters can be used).
  *
  * @since $Date$
  * @since 06-NOV-2000

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
-import uk.ac.starlink.splat.ast.AstDouble;
+import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.splat.plot.XRangeFigure;
 import uk.ac.starlink.splat.plot.DivaPlot;
 

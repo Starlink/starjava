@@ -6,7 +6,7 @@
 
 package uk.ac.starlink.splat.iface;
 
-import uk.ac.starlink.splat.ast.AstDouble;
+import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.splat.plot.DivaPlot;
 

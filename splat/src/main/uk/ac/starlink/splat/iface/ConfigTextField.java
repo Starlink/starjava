@@ -12,6 +12,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.ast.gui.SelectCharacters;
+import uk.ac.starlink.ast.gui.SelectCharactersListener;
+import uk.ac.starlink.ast.gui.SelectCharactersEvent;
+
 
 /**
  * A SpecialTextField contains a JTextField and a button for

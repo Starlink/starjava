@@ -20,6 +20,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.ast.gui.AstStyleBox;
+import uk.ac.starlink.ast.gui.ColourIcon;
+import uk.ac.starlink.ast.gui.DecimalField;
 
 /**
  * SplatSelectedProperties defines objects for viewing the image

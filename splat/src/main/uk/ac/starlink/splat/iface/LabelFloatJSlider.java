@@ -16,6 +16,8 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import uk.ac.starlink.ast.gui.DecimalField;
+
 /**
  * Creates a compound component that displays a label, floating
  * points text entry field and a coupled slider.

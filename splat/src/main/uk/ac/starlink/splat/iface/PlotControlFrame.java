@@ -19,9 +19,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import uk.ac.starlink.ast.gui.PlotConfigurator;
+import uk.ac.starlink.ast.gui.GraphicsHintsControls;
+import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
+import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -48,16 +53,10 @@ public class PlotControlFrame extends JFrame
     protected SpecDataComp specDataComp;
 
     /**
-     *  PlotConfig object for containing the complete Graphics
-     *  configuration of the Plot (not for any AST spectral line properties).
-     */
-    protected PlotConfig config = new PlotConfig();
-
-    /**
-     * PlotConfigFrame window for changing the Plot configuration
+     * PlotConfigurator window for changing the Plot configuration
      * values (created when required).
      */
-    protected PlotConfigFrame configFrame = null;
+    protected PlotConfigurator configFrame = null;
 
     /**
      * PolyFitFrame window for fitting a polynomial to the spectrum
@@ -152,7 +151,6 @@ public class PlotControlFrame extends JFrame
         }
         this.specDataComp = plot.getSpecDataComp();
         initUI( title );
-        plot.setConfig( config );
     }
 
     /**
@@ -167,7 +165,6 @@ public class PlotControlFrame extends JFrame
         plot = new PlotControl( file );
         this.specDataComp = plot.getSpecDataComp();
         initUI( title );
-        plot.setConfig( config );
     }
 
     /**
@@ -347,7 +344,7 @@ public class PlotControlFrame extends JFrame
      */
     protected void setupHelpMenu()
     {
-        HelpFrame.createHelpMenu( "plot-window", "Help on window", 
+        HelpFrame.createHelpMenu( "plot-window", "Help on window",
                                   menuBar, toolBar );
     }
 
@@ -389,7 +386,24 @@ public class PlotControlFrame extends JFrame
     public void configPlot()
     {
         if ( configFrame == null ) {
-            configFrame = new PlotConfigFrame( config, plot );
+            configFrame = new PlotConfigurator( "Plot configurator window",
+                                                plot,
+                                                plot.getPlotConfiguration() );
+
+            //  Add controls for the extra facilities provided by the
+            //  DivaPlot.
+            DivaPlot divaPlot = plot.getPlot();
+            configFrame.addExtraControls
+                (new DataLimitControls(divaPlot.getDataLimits(), plot), false);
+            configFrame.addExtraControls
+                (new GraphicsHintsControls(divaPlot.getGraphicsHints()), true);
+            configFrame.addExtraControls
+                (new GraphicsEdgesControls(divaPlot.getGraphicsEdges()), true);
+
+            ComponentColourControls colourPanel = new ComponentColourControls
+                ( plot, divaPlot.getBackgroundColourStore(),
+                  "Plot Background", "Background", "Colour:" );
+            configFrame.addExtraControls( colourPanel, true );
 
             //  We'd like to know if the window is closed.
             configFrame.addWindowListener( new WindowAdapter() {
@@ -628,7 +642,6 @@ public class PlotControlFrame extends JFrame
     protected void finalize() throws Throwable
     {
         closeToolWindows();
-        config = null;
         super.finalize();
     }
 

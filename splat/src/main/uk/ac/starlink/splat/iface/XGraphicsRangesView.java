@@ -35,7 +35,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import uk.ac.starlink.splat.ast.AstDouble;
+import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
 import uk.ac.starlink.splat.plot.XRangeFigure;

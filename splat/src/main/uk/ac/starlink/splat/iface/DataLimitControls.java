@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    16-NOV-2000 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ * History:
+ *    16-NOV-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
@@ -14,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -24,7 +26,11 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import uk.ac.starlink.splat.ast.AstDouble;
+import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.ast.gui.AstDoubleField;
+import uk.ac.starlink.ast.gui.PlotControls;
+import uk.ac.starlink.ast.gui.PlotConfigurator;  // For javadocs
+import uk.ac.starlink.ast.gui.AbstractPlotControlsModel;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.PlotControl;
@@ -40,11 +46,12 @@ import uk.ac.starlink.splat.plot.DivaPlot;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see #DataLimits, #PlotConfigFrame.
+ * @see DataLimits
+ * @see PlotConfigurator
  */
 public class DataLimitControls
      extends JPanel
-     implements ChangeListener, DocumentListener
+     implements PlotControls, ChangeListener, DocumentListener
 {
     /**
      * DataLimits model for current state.
@@ -132,6 +139,16 @@ public class DataLimitControls
     private boolean astDoubleFieldMatched = false;
 
     /**
+     * The default title for these controls.
+     */
+    protected static String defaultTitle = "Axis Data Limits:";
+
+    /**
+     * The default short name for these controls.
+     */
+    protected static String defaultName = "Limits";
+
+    /**
      * Create an instance.
      *
      * @param dataLimits the DataLimits object that is our data model.
@@ -160,14 +177,6 @@ public class DataLimitControls
     public PlotControl getPlot()
     {
         return control;
-    }
-
-    /**
-     * Reset controls to defaults.
-     */
-    public void reset()
-    {
-        dataLimits.setDefaults();
     }
 
     /**
@@ -214,22 +223,22 @@ public class DataLimitControls
             } );
 
         //  Limits as AstDoubles...
-        xLower = new AstDoubleField( 0.0, plot, 1 );
+        xLower = new AstDoubleField( 0.0, control, 1 );
         Document doc = xLower.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", xLower );
 
-        yLower = new AstDoubleField( 0.0, plot, 2 );
+        yLower = new AstDoubleField( 0.0, control, 2 );
         doc = yLower.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", yLower );
 
-        xUpper = new AstDoubleField( 0.0, plot, 1 );
+        xUpper = new AstDoubleField( 0.0, control, 1 );
         doc = xUpper.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", xUpper );
 
-        yUpper = new AstDoubleField( 0.0, plot, 2 );
+        yUpper = new AstDoubleField( 0.0, control, 2 );
         doc = yUpper.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", yUpper );
@@ -577,6 +586,58 @@ public class DataLimitControls
             dataLimits.setYUpper( upper );
             dataLimits.setYLower( lower );
         }
+    }
+
+// Implement the PlotControls interface
+//
+    /**
+     * Return a title for these controls (for the border).
+     */
+    public String getControlsTitle()
+    {
+        return defaultTitle;
+    }
+
+    /**
+     * Return a short name for these controls (for the tab).
+     */
+    public String getControlsName()
+    {
+        return defaultName;
+    }
+
+    /**
+     * Reset controls to the defaults.
+     */
+    public void reset()
+    {
+        dataLimits.setDefaults();
+    }
+
+    /**
+     * Return a reference to the JComponent sub-class that will be
+     * displayed (normally a reference to this).
+     */
+    public JComponent getControlsComponent()
+    {
+        return this;
+    }
+
+    /**
+     * Return reference to the AbstractPlotControlsModel. This defines
+     * the actual state of the controls and stores the current values.
+     */
+    public AbstractPlotControlsModel getControlsModel()
+    {
+        return dataLimits;
+    }
+
+    /**
+     * Return the class of object that we expect as our model.
+     */
+    public static Class getControlsModelClass()
+    {
+        return DataLimits.class;
     }
 
 //
