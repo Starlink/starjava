@@ -70,6 +70,8 @@ public class LevMarq
     private int mfit;
     private int mparam = 20;
 
+    private boolean converged = false;
+
     private LevMarqFunc funcs = null;
 
     /**
@@ -86,7 +88,7 @@ public class LevMarq
 
         //  Initialise local variables.
         mfit = mparam;
-        converge = 0.9999;
+        converge = 0.999;
     }
 
     /**
@@ -718,6 +720,7 @@ public class LevMarq
 	}
     }
 
+
     /**
      * Do the fit to the data using the current parameter values as
      * the starting position.
@@ -732,6 +735,7 @@ public class LevMarq
 
         alambda = -1.0F;
         chi2 = mrqmin();
+        converged = true;
 	do {
 	    oldchi2 = chi2;
 	    oldalambda = alambda;
@@ -744,7 +748,10 @@ public class LevMarq
 	    if ( oldalambda <= alambda ) {
 		ratio = 0;
 		ncount++;
-		if ( ncount == iterations ) ratio = 1.0;
+		if ( ncount == iterations ) {
+                    ratio = 1.0;
+                    converged = false;
+                }
 	    }
 	    else {
                 ratio = chi2 / oldchi2;
@@ -769,5 +776,13 @@ public class LevMarq
         for ( int i = 1; i <= ndata; i++ ) {
             fit[i] = funcs.eval( x[i], a, mparam, dyda );
         }
+    }
+
+    /**
+     * Find out how the minimisation halted.
+     */
+    public boolean isConverged()
+    {
+        return converged;
     }
 }
