@@ -23,7 +23,8 @@ import uk.ac.starlink.ast.grf.DefaultGrf;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class AstTicks extends AbstractPlotControlsModel
+public class AstTicks
+    extends AbstractPlotControlsModel
 {
     /**
      * Whether tick marking is set or unset.
@@ -67,6 +68,20 @@ public class AstTicks extends AbstractPlotControlsModel
      * units of the Y axis.
      */
     protected double yGap;
+
+    /**
+     * The gap between X axis major ticks (set to 0 if not set),
+     * when drawing with log spacing. This is a power of 10, not the actual
+     * gap.
+     */
+    protected int xLogGap;
+
+    /**
+     * The gap between Y axis major ticks (set to 0 if not set),
+     * when drawing with log spacing. This is a power of 10, not the actual
+     * gap.
+     */
+    protected int yLogGap;
 
     /**
      * Length of the major tick marks of the X axis. Set as a fraction of the
@@ -158,6 +173,8 @@ public class AstTicks extends AbstractPlotControlsModel
         colour = Color.black;
         xGap = DefaultGrf.BAD;
         yGap = DefaultGrf.BAD;
+        xLogGap = 0;
+        yLogGap = 0;
         majorXTicklen = 0.015;
         majorYTicklen = 0.015;
         minorXTicklen = 0.007;
@@ -374,6 +391,58 @@ public class AstTicks extends AbstractPlotControlsModel
     {
         return yGap;
     }
+
+
+    /**
+     * Set log spacing power of 10 for major ticks along the X axis.
+     * A setting of 0 indicates that the default value should be used.
+     *
+     * @param xLogGap The new xLogGap value
+     */
+    public void setXLogGap( int xLogGap )
+    {
+        this.xLogGap = xLogGap;
+        if ( xLogGap != 0 ) {
+            setState( true );
+        }
+        fireChanged();
+    }
+
+    /**
+     * Get the gap power of 10 for the major ticks on an X log axis.
+     *
+     * @return The xLogGap value
+     */
+    public int getXLogGap()
+    {
+        return xLogGap;
+    }
+
+    /**
+     * Set log spacing power of 10 for major ticks along the X axis.
+     * A setting of 0 indicates that the default value should be used.
+     *
+     * @param yLogGap The new yLogGap value
+     */
+    public void setYLogGap( int yLogGap )
+    {
+        this.yLogGap = yLogGap;
+        if ( yLogGap != 0 ) {
+            setState( true );
+        }
+        fireChanged();
+    }
+
+    /**
+     * Get the gap power of 10 for the major ticks on an Y log axis.
+     *
+     * @return The yLogGap value
+     */
+    public int getYLogGap()
+    {
+        return yLogGap;
+    }
+
 
     /**
      * Set the line width. The value DefaultGrf.BAD means no value.
@@ -673,6 +742,14 @@ public class AstTicks extends AbstractPlotControlsModel
                 buffer.append( ",LogTicks(2)=0" );
             }
         }
+        if ( xLogGap != 0 ) {
+            buffer.append( ",LogGap(1)=" );
+            buffer.append( Math.pow( 10.0, xLogGap ) );
+        }
+        if ( yLogGap != 0 ) {
+            buffer.append( ",LogGap(2)=" );
+            buffer.append( Math.pow( 10.0, yLogGap ) );
+        }
 
         //  Axis options.
         if ( xGap != DefaultGrf.BAD ) {
@@ -754,6 +831,8 @@ public class AstTicks extends AbstractPlotControlsModel
         addChildElement( rootElement, "logSpacingSet", logSpacingSet );
         addChildElement( rootElement, "xLogSpacing", xLogSpacing );
         addChildElement( rootElement, "yLogSpacing", yLogSpacing );
+        addChildElement( rootElement, "xLogGap", xLogGap );
+        addChildElement( rootElement, "yLogGap", yLogGap );
 
         addChildElement( rootElement, "xGap", xGap );
         addChildElement( rootElement, "yGap", yGap );
@@ -802,6 +881,15 @@ public class AstTicks extends AbstractPlotControlsModel
         }
         if ( name.equals( "yLogSpacing" ) ) {
             setYLogSpacing( booleanFromString( value ) );
+        }
+
+        if ( name.equals( "xLogGap" ) ) {
+            setXLogGap( intFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yLogGap" ) ) {
+            setYLogGap( intFromString( value ) );
+            return;
         }
 
         if ( name.equals( "colour" ) ) {

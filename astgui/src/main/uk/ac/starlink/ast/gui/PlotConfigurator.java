@@ -225,7 +225,7 @@ public class PlotConfigurator
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( tabbedPane, BorderLayout.CENTER );
         contentPane.add( actionBar, BorderLayout.SOUTH );
-        setSize( new Dimension( 400, 700 ) );
+        setSize( new Dimension( 400, 750 ) );
         setVisible( true );
     }
 

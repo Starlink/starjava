@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 
+import javax.swing.AbstractSpinnerModel;
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -75,6 +76,20 @@ public class TickControls extends JPanel
      * Check box for whether to use log spacing for Y axis.
      */
     protected JCheckBox yLogSpacing = new JCheckBox();
+
+    /**
+     * Entry for ratio gap between major ticks for log X axis.
+     */
+    protected JSpinner xLogGap = null;
+    protected SpinnerNumberModel xLogGapModel =
+        new SpinnerNumberModel( 0, 0, 10, 1 );
+
+    /**
+     * Entry for the gap between major ticks on the Y axis.
+     */
+    protected JSpinner yLogGap = null;
+    protected SpinnerNumberModel yLogGapModel =
+        new SpinnerNumberModel( 0, 0, 10, 1 );
 
     /**
      * Entry for gap between major ticks on the X axis.
@@ -227,6 +242,21 @@ public class TickControls extends JPanel
                 }
             });
 
+        //  Major gap spacing for log axes. A ratio.
+        xLogGap = new JSpinner( xLogGapModel );
+        xLogGap.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    matchXLogGap();
+                }
+            });
+        yLogGap = new JSpinner( yLogGapModel );
+        yLogGap.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    matchYLogGap();
+                }
+            });
+
+
         //  Separation between major ticks. Use an AstDouble related
         //  control to get values in the units of the X axis.
         xMajorGap = new AstDoubleField( 0.0, controller, 1 );
@@ -306,6 +336,12 @@ public class TickControls extends JPanel
         layouter.add( "Show ticks:", false );
         layouter.add( show, true );
 
+        layouter.add( "X spacing:", false );
+        layouter.add( xMajorGap, true );
+
+        layouter.add( "Y spacing:", false );
+        layouter.add( yMajorGap, true );
+
         layouter.add( "Set log spacing:", false );
         layouter.add( logSpacingSet, true );
 
@@ -315,11 +351,13 @@ public class TickControls extends JPanel
         layouter.add( "Y log spacing:", false );
         layouter.add( yLogSpacing, true );
 
-        layouter.add( "X spacing:", false );
-        layouter.add( xMajorGap, true );
+        layouter.add( "X log gap", false );
+        layouter.add( xLogGap, false );
+        layouter.eatLine();
 
-        layouter.add( "Y spacing:", false );
-        layouter.add( yMajorGap, true );
+        layouter.add( "Y log gap", false );
+        layouter.add( yLogGap, false );
+        layouter.eatLine();
 
         addLineControls( layouter );
 
@@ -358,6 +396,11 @@ public class TickControls extends JPanel
             ( "Use log spacing settings to override defaults" );
         xLogSpacing.setToolTipText( "Use log spacing for X axis ticks" );
         yLogSpacing.setToolTipText( "Use log spacing for Y axis ticks" );
+        xLogGap.setToolTipText
+          ("Gap ratio for major ticks when X is log axis, <Return> to accept");
+        yLogGap.setToolTipText
+          ("Gap ratio for major ticks when Y is log axis, <Return> to accept");
+
         xMajorGap.setToolTipText
             ("Gap between major ticks (units of X axis), <Return> to accept");
         yMajorGap.setToolTipText
@@ -396,6 +439,9 @@ public class TickControls extends JPanel
         xLogSpacing.setSelected( astTicks.getXLogSpacing() );
         yLogSpacing.setSelected( astTicks.getYLogSpacing() );
         matchLogSpacingSet();
+
+        xLogGap.setValue( new Integer( astTicks.getXLogGap() ) );
+        yLogGap.setValue( new Integer( astTicks.getYLogGap() ) );
 
         inhibitLineChangeListener = true;
         lineControls.setThick( (int) astTicks.getWidth() );
@@ -471,6 +517,8 @@ public class TickControls extends JPanel
         astTicks.setLogSpacingSet( set );
         xLogSpacing.setEnabled( set );
         yLogSpacing.setEnabled( set );
+        xLogGap.setEnabled( set );
+        yLogGap.setEnabled( set );
     }
 
     /**
@@ -487,6 +535,22 @@ public class TickControls extends JPanel
     protected void matchYLogSpacing()
     {
         astTicks.setYLogSpacing( yLogSpacing.isSelected() );
+    }
+
+    /**
+     * Match X log axis ratio for the major gap.
+     */
+    protected void matchXLogGap()
+    {
+        astTicks.setXLogGap( xLogGapModel.getNumber().intValue() );
+    }
+
+    /**
+     * Match Y log axis ratio for the major gap.
+     */
+    protected void matchYLogGap()
+    {
+        astTicks.setYLogGap( yLogGapModel.getNumber().intValue() );
     }
 
     /**
@@ -657,4 +721,5 @@ public class TickControls extends JPanel
     {
         updateFromAstTicks();
     }
+
 }
