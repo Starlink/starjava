@@ -640,8 +640,15 @@ public class FitsTableWriter implements StarTableWriter {
             strm = new BufferedDataOutputStream( System.out );
         }
         else {
-            strm = new BufferedFile( location, "rw" );
-            ((BufferedFile) strm).setLength( 0L );
+            BufferedFile bstrm = new BufferedFile( location, "rw" );
+            strm = bstrm;
+
+            /* Attempting to set the length to zero if it's already zero 
+             * can sometimes throw an exception (if it's /dev/null).
+             * So don't set the length unnecessarily. */
+            if ( bstrm.length() > 0L ) {
+                bstrm.setLength( 0L );
+            }
         }
 
         /* Write a null header for the primary HDU. */
