@@ -105,7 +105,7 @@ public class XmlDoclet extends MemberDoclet {
         out( "<dd>" );
         String comment = clazz.commentText();
         if ( comment != null ) {
-            out( pWrap( comment ) );
+            out( doctorText( comment ) );
         }
        out( "<p><dl>" );
     }
@@ -121,7 +121,7 @@ public class XmlDoclet extends MemberDoclet {
         out( "<dt>" + memName + "</dt>" );
         String comment = mem.commentText();
         if ( comment != null ) {
-            out( "<dd>" +  pWrap( comment ) + "</dd>" );
+            out( "<dd>" + doctorText( comment ) + "</dd>" );
         }
     }
 
@@ -182,6 +182,20 @@ public class XmlDoclet extends MemberDoclet {
             out_.write( line );
             out_.write( '\n' );
         }
+    }
+
+    /**
+     * Attempts to turn HTML text into XML.  It's pretty ad-hoc, and many
+     * things can go wrong with it - using this relies on the various
+     * document tests picking up anything that goes wrong.
+     *
+     * @param  text  HTML-type text
+     * @return  XML-type text
+     */
+    private static String doctorText( String text ) {
+        text = text.replaceAll( "<a href=", "<webref url=" )
+                   .replaceAll( "</a>", "</webref>" );
+        return pWrap( text );
     }
 
 }
