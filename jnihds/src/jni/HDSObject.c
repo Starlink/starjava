@@ -277,6 +277,9 @@ static jstring makeString(
 
          /* Convert the C string into a java String. */
          result = (*env)->NewStringUTF( env, cbuf );
+
+         /* Free the memory. */
+         free( cbuf );
       }
    }
 
