@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.join;
 
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -13,11 +14,12 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class SphericalPolarMatchEngine extends IsotropicCartesianMatchEngine {
+public class SphericalPolarMatchEngine implements MatchEngine {
 
     private Double[] work0_ = new Double[ 3 ];
     private Double[] work1_ = new Double[ 3 ];
     private Double[] work2_ = new Double[ 3 ];
+    private final IsotropicCartesianMatchEngine spaceEngine_;
 
     private static final DefaultValueInfo RA_INFO =
         new DefaultValueInfo( "RA", Number.class, "Right Ascension" );
@@ -43,15 +45,15 @@ public class SphericalPolarMatchEngine extends IsotropicCartesianMatchEngine {
      * @param   err  maximum separation for a match
      */
     public SphericalPolarMatchEngine( double err ) {
-        super( 3, err, false );
-        ((DefaultValueInfo) errorParam_.getInfo())
+        spaceEngine_ = new IsotropicCartesianMatchEngine( 3, err, false );
+        ((DefaultValueInfo) spaceEngine_.errorParam_.getInfo())
                            .setUnitString( "Units of radius" );
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         polarToCartesian( tuple1, work1_ );
         polarToCartesian( tuple2, work2_ );
-        return super.matchScore( work1_, work2_ );
+        return spaceEngine_.matchScore( work1_, work2_ );
     }
 
     public Object[] getBins( Object[] tuple ) {
@@ -59,7 +61,7 @@ public class SphericalPolarMatchEngine extends IsotropicCartesianMatchEngine {
              tuple[ 1 ] instanceof Number &&
              tuple[ 2 ] instanceof Number ) {
             polarToCartesian( tuple, work0_ );
-            return super.getBins( work0_ );
+            return spaceEngine_.getBins( work0_ );
         }
         else {
             return NO_BINS;
@@ -69,6 +71,22 @@ public class SphericalPolarMatchEngine extends IsotropicCartesianMatchEngine {
     public ValueInfo[] getTupleInfos() {
         return new ValueInfo[] { RA_INFO, DEC_INFO, R_INFO };
     }
+
+    public DescribedValue[] getMatchParameters() {
+        return spaceEngine_.getMatchParameters();
+    }
+
+    /**
+     * Returns false.  It would probably be possible to implement this,
+     * but not very easy.
+     */
+    public boolean canBoundMatch() {
+        return false;
+    }
+    public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
+        throw new UnsupportedOperationException();
+    }
+
 
     public String toString() {
         return "Spherical Polar";

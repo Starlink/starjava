@@ -175,6 +175,92 @@ public class HTMMatchEngine implements MatchEngine {
         return "Sky";
     }
 
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] radecMinIn,
+                                          Comparable[] radecMaxIn ) {
+
+        /* Get numeric values of RA and Dec input limits. */
+        double rMinIn = radecMinIn[ 0 ] == null 
+                      ? Double.NaN 
+                      : ((Number) radecMinIn[ 0 ]).doubleValue();
+        double dMinIn = radecMinIn[ 1 ] == null 
+                      ? Double.NaN
+                      : ((Number) radecMinIn[ 1 ]).doubleValue();
+        double rMaxIn = radecMaxIn[ 0 ] == null 
+                      ? Double.NaN
+                      : ((Number) radecMaxIn[ 0 ]).doubleValue();
+        double dMaxIn = radecMaxIn[ 1 ] == null 
+                      ? Double.NaN
+                      : ((Number) radecMaxIn[ 1 ]).doubleValue();
+
+        /* Calculate the corresponding output limits - these are similar,
+         * but including an extra error of separation in any direction. 
+         * Any that we can't work out for one reason or another is stored
+         * as NaN. */
+        double rMinOut;
+        double rMaxOut;
+        double dMinOut = dMinIn - separation;
+        double dMaxOut = dMaxIn + separation;
+        if ( ! Double.isNaN( dMinOut ) && ! Double.isNaN( dMaxOut ) ) {
+            double rDiffMax = 
+                Math.max( Math.abs( separation / Math.cos( dMinOut ) ),
+                          Math.abs( separation / Math.cos( dMaxOut ) ) );
+            rMinOut = rMinIn - rDiffMax;
+            rMaxOut = rMaxIn + rDiffMax;
+        }
+        else {
+            rMinOut = Double.NaN;
+            rMaxOut = Double.NaN;
+        }
+
+        /* Finally prepare the results as Number objects.  It's a bit
+         * fiddly since we have to make sure that the returned objects
+         * are of the same type as the input ones (since otherwise 
+         * comparisons on them will probably fail with a ClassCastException).
+         * We only consider the possibility here that they are of type
+         * Float or Double - in the weird case in which they are not,
+         * null values are returned, which is quite legal and will not 
+         * lead to incorrect results (only perhaps less efficient). */
+        Comparable[] radecMinOut = new Comparable[ 2 ];
+        Comparable[] radecMaxOut = new Comparable[ 2 ];
+        if ( ! Double.isNaN( rMinOut ) ) {
+            if ( radecMinIn[ 0 ] instanceof Float ) {
+                radecMinOut[ 0 ] = new Float( (float) rMinOut );
+            }
+            else if ( radecMinIn[ 0 ] instanceof Double ) {
+                radecMinOut[ 0 ] = new Double( rMinOut );
+            }
+        }
+        if ( ! Double.isNaN( dMinOut ) ) {
+            if ( radecMinIn[ 1 ] instanceof Float ) {
+                radecMinOut[ 1 ] = new Float( (float) dMinOut );
+            }
+            else if ( radecMinIn[ 1 ] instanceof Double ) {
+                radecMinOut[ 1 ] = new Double( dMinOut );
+            }
+        }
+        if ( ! Double.isNaN( rMaxOut ) ) {
+            if ( radecMaxIn[ 0 ] instanceof Float ) {
+                radecMaxOut[ 0 ] = new Float( (float) rMaxOut );
+            }
+            else if ( radecMaxIn[ 0 ] instanceof Double ) {
+                radecMaxOut[ 0 ] = new Double( rMaxOut );
+            }
+        }
+        if ( ! Double.isNaN( dMaxOut ) ) {
+            if ( radecMaxIn[ 1 ] instanceof Float ) {
+                radecMaxOut[ 1 ] = new Float( (float) dMaxOut );
+            }
+            else if ( radecMaxIn[ 1 ] instanceof Double ) {
+                radecMaxOut[ 1 ] = new Double( dMaxOut );
+            }
+        }
+        return new Comparable[][] { radecMinOut, radecMaxOut };
+    }
+
     /**
      * Returns the distance along a great circle between two points.
      *
@@ -201,8 +287,8 @@ public class HTMMatchEngine implements MatchEngine {
      * @param   dec2 declination of point 2 in radians
      * @return  angular separation of point 1 and point 2 in radians
      */
-    private double cosineSeparationFormula( double ra1, double dec1,
-                                            double ra2, double dec2 ) {
+    private static double cosineSeparationFormula( double ra1, double dec1,
+                                                   double ra2, double dec2 ) {
         return Math.acos( Math.sin( dec1 ) * Math.sin( dec2 ) +
                           Math.cos( dec1 ) * Math.cos( dec2 ) 
                                            * Math.cos( ra1 - ra2 ) );
@@ -226,8 +312,8 @@ public class HTMMatchEngine implements MatchEngine {
      * @return  angular separation of point 1 and point 2 in radians
      * @see  <http://www.census.gov/geo/www/gis-faq.txt>
      */
-    private double haversineSeparationFormula( double ra1, double dec1,
-                                               double ra2, double dec2 ) {
+    private static double haversineSeparationFormula( double ra1, double dec1,
+                                                     double ra2, double dec2 ) {
         double sd2 = Math.sin( 0.5 * ( dec2 - dec1 ) );
         double sr2 = Math.sin( 0.5 * ( ra2 - ra1 ) );
         double a = sd2 * sd2 + 

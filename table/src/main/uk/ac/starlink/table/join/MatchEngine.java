@@ -16,7 +16,7 @@ import uk.ac.starlink.table.ValueInfo;
  * such as RA and Dec.
  * <p>
  * The business end of the interface consists of two methods.  
- * One tests whether two tuples as count matching or not,
+ * One tests whether two tuples count as matching or not,
  * and assigns a closeness score if they are (in practice, this is likely to 
  * compare corresponding elements of the two submitted tuples allowing
  * for some error in each one).  The second is a bit more subtle:
@@ -122,4 +122,61 @@ public interface MatchEngine {
      * @return  array of described values which influence the match
      */
     DescribedValue[] getMatchParameters();
+
+    /**
+     * Given a range of tuple values, returns a range outside which 
+     * no match to anything within that range can result.
+     * If the tuples on which this engine works represent some kind of
+     * space, the input values and output values specify a 
+     * hyper-rectangular region of this space.
+     * In the common case in which the match criteria are based on 
+     * proximity in this space up to a certain error, this method should
+     * return a rectangle which is like the input one but broadened in
+     * each direction by an amount corresponding to the error.
+     *
+     * <p>Both the input and output rectangles are specified by tuples
+     * representing its opposite corners; equivalently, they are the
+     * minimum and maximum values of each tuple element.
+     * In either the input or output min/max tuples, any element may be
+     * <tt>null</tt> to indicate that no information is available on
+     * the bounds of that tuple element (coordinate).
+     *
+     * <p>This method can be used by match algorithms which know in advance
+     * the range of coordinates they will match against and wish 
+     * to reduce workload by not attempting matches which are bound to fail.
+     *
+     * <p>For example, a 1-d Cartesian match engine with an 
+     * isotropic match error 0.5
+     * would turn input values of ((0,200),(10,210)) into output values 
+     * ((-0.5,199.5),(10.5,210.5)).
+     *
+     * <p>This method will only be called if {@link #canBoundMatch}
+     * returns true.  Thus engines that cannot provide any useful 
+     * information along these lines (for instance because none of its
+     * tuple elements is {@link java.lang.Comparable} do not need to
+     * implement it in a meaningful way.
+     *
+     * @param  minTuple  tuple consisting of the minimum values of each
+     *         tuple element in a possible match
+     *         (to put it another way - coordinates of one corner of a
+     *         tuple-space rectangle containing such a match)
+     * @param  maxTuple  tuple consisting of the maximum values of each
+     *         tuple element in a possible match
+     *         (to put it another way - coordinates of the other corner of a
+     *         tuple-space rectangle containing such a match)
+     * @return 2-element array of tuples -
+     *         effectively <tt>(minTuple,maxTuple)</tt> broadened by errors
+     * @see   #canBoundMatch
+     */
+    Comparable[][] getMatchBounds( Comparable[] minTuple,
+                                   Comparable[] maxTuple );
+
+    /**
+     * Indicates that the {@link #getMatchBounds} method can be invoked
+     * to provide some sort of useful result.
+     *
+     * @return  true  iff  <tt>getMatchBounds</tt> may provide useful 
+     *          information
+     */
+    boolean canBoundMatch();
 }

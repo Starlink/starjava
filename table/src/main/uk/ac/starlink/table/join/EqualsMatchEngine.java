@@ -38,6 +38,14 @@ public class EqualsMatchEngine implements MatchEngine {
         return new DescribedValue[ 0 ];
     }
 
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] min, Comparable[] max ) {
+        return new Comparable[][] { min, max };
+    }
+
     public String toString() {
         return "Exact Value";
     }

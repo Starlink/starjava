@@ -101,10 +101,7 @@ public class RowMatcher {
         startMatch();
 
         /* Get the possible candidates for inter-table links. */
-        long nr1 = tables[ 0 ].getRowCount();
-        long nr2 = tables[ 1 ].getRowCount();
-        Set possibleLinks = nr1 < nr2 ? getPossibleInterLinks( 0, 1 )
-                                      : getPossibleInterLinks( 1, 0 );
+        Set possibleLinks = getPossibleInterLinks( 0, 1 );
 
         /* Get all the possible inter-table pairs. */
         Map pairScores = findInterPairs( possibleLinks, 0, 1 );
@@ -436,8 +433,7 @@ public class RowMatcher {
 
     /**
      * Gets a list of all the pairs of rows which constitute possible 
-     * links between two tables.  For reasons of efficiency, it's
-     * probably best if <tt>index1</tt> refers to the shorter of the tables.
+     * links between two tables.
      *
      * @param   index1   index of the first table
      * @param   index2   index of the second table
@@ -446,49 +442,140 @@ public class RowMatcher {
      */
     private Set getPossibleInterLinks( int index1, int index2 )
             throws IOException, InterruptedException {
+        int ncol = tables[ index1 ].getColumnCount();
+        if ( tables[ index2 ].getColumnCount() != ncol ) {
+            throw new IllegalStateException();
+        }
+
+        long nIncludedRows1 = tables[ index1 ].getRowCount();
+        long nIncludedRows2 = tables[ index2 ].getRowCount();
+
+        /* If we have a match engine which is capable of working out a 
+         * restricted region over which matches are possible, find the
+         * intersection of those ranges for the two tables being matched.
+         * This will enable us to throw out any potential matches outside
+         * this region without having to bin them, and can save a lot
+         * of time and memory for some cases. */
+        Comparable[] min = new Comparable[ ncol ];
+        Comparable[] max = new Comparable[ ncol ];
+        if ( engine.canBoundMatch() ) {
+            Comparable[][] bounds1 = getBounds( index1 );
+            Comparable[][] bounds2 = getBounds( index2 );
+            Comparable[] min1 = bounds1[ 0 ];
+            Comparable[] max1 = bounds1[ 1 ];
+            Comparable[] min2 = bounds2[ 0 ];
+            Comparable[] max2 = bounds2[ 1 ];
+            for ( int i = 0; i < ncol; i++ ) {
+                if ( min1[ i ] != null && min2[ i ] != null ) {
+                    min[ i ] = min1[ i ].compareTo( min2[ i ] ) > 0 ? min1[ i ]
+                                                                    : min2[ i ];
+                }
+                if ( max1[ i ] != null && max2[ i ] != null ) {
+                    max[ i ] = max1[ i ].compareTo( max2[ i ] ) < 0 ? max1[ i ]
+                                                                    : max2[ i ];
+                }
+            }
+            logTupleBounds( "Potential match region: ", min, max );
+
+            /* Count the rows in the match region for each table. */
+            nIncludedRows1 = countInRange( index1, min, max );
+            nIncludedRows2 = countInRange( index2, min, max );
+        }
+
+        /* Now do the actual binning and identification of possible links.
+         * For efficiency, we want to do the table which will fill the 
+         * smallest number of bins first (presumably the one with the
+         * smallest number of rows in the match region. */
+        return nIncludedRows1 < nIncludedRows2 
+             ? getPossibleInterLinks( index1, index2, min, max )
+             : getPossibleInterLinks( index2, index1, min, max );
+    }
+        
+    /**
+     * Gets a list of all the pairs of rows which constitute possible 
+     * links between two tables.  For efficiency reasons, 
+     * the table at <tt>index1</tt> ought to be the one with fewer
+     * rows in the match region.
+     *
+     * @param   index1   index of the first table
+     * @param   index2   index of the second table
+     * @param   min      array of tuple elements to consider as minimum
+     *                   values to consider for the match.
+     *                   If one of the elements, or <tt>min</tt> itself,
+     *                   is null, no minimum is considered to be in effect
+     * @param   max      array of tuple elements to consider as maximum
+     *                   values to consider for the match.
+     *                   If one of the elements, or <tt>min</tt> itself,
+     *                   is null, no maximum is considered to be in effect
+     * @return  set of {@link RowLink} objects which constitute possible
+     *          matches
+     */
+    public Set getPossibleInterLinks( int index1, int index2,
+                                      Comparable[] min, Comparable[] max )
+            throws IOException, InterruptedException {
         BinContents bins = new BinContents( indicator );
 
         /* Bin all the rows in the first (hopefully shorter) table. */
-        ProgressRowSequence rseq1 = 
-            new ProgressRowSequence( tables[ index1 ], indicator,
-                                     "Binning rows for table " + 
-                                     ( index1 + 1 ) );
-        for ( long lrow1 = 0; rseq1.hasNext(); lrow1++ ) {
-            rseq1.nextProgress();
-            Object[] keys = engine.getBins( rseq1.getRow() );
-            int nkey = keys.length;
-            if ( nkey > 0 ) {
-                RowRef rref = new RowRef( index1, lrow1 );
-                for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                    bins.putRowInBin( keys[ ikey ], rref );
+        { // code block prevents variable leakage
+            ProgressRowSequence rseq1 = 
+                new ProgressRowSequence( tables[ index1 ], indicator,
+                                         "Binning rows for table " + 
+                                         ( index1 + 1 ) );
+            long exclude1 = 0;
+            for ( long lrow1 = 0; rseq1.hasNext(); lrow1++ ) {
+                rseq1.nextProgress();
+                Object[] row = rseq1.getRow();
+                if ( inRange( row, min, max ) ) {
+                    Object[] keys = engine.getBins( row );
+                    int nkey = keys.length;
+                    if ( nkey > 0 ) {
+                        RowRef rref = new RowRef( index1, lrow1 );
+                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                            bins.putRowInBin( keys[ ikey ], rref );
+                        }
+                    }
                 }
             }
+            rseq1.close();
+            if ( exclude1 > 0 ) {
+                indicator.logMessage( exclude1 + 
+                                      " rows excluded (out of match region)" );
+            }
         }
-        rseq1.close();
 
         /* Bin any of the rows in the second table which will go in bins
          * we've already added from the first one.  There's no point in
          * doing ones which haven't been filled by the first table, 
          * since they can't result in inter-table matches. */
-        ProgressRowSequence rseq2 =
-            new ProgressRowSequence( tables[ index2 ], indicator,
-                                     "Binning rows for table " + 
-                                     ( index2 + 1 ) );
-        for ( long lrow2 = 0; rseq2.hasNext(); lrow2++ ) {
-            rseq2.nextProgress();
-            Object[] keys = engine.getBins( rseq2.getRow() );
-            int nkey = keys.length;
-            if ( nkey > 0 ) {
-                RowRef rref = new RowRef( index2, lrow2 );
-                for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                    Object key = keys[ ikey ];
-                    if ( bins.containsKey( key ) ) {
-                        bins.putRowInBin( key, rref );
+        { // code block prevents variable leakage
+            ProgressRowSequence rseq2 =
+                new ProgressRowSequence( tables[ index2 ], indicator,
+                                         "Binning rows for table " + 
+                                         ( index2 + 1 ) );
+            long exclude2 = 0;
+            for ( long lrow2 = 0; rseq2.hasNext(); lrow2++ ) {
+                rseq2.nextProgress();
+                Object[] row = rseq2.getRow();
+                if ( inRange( row, min, max ) ) {
+                    Object[] keys = engine.getBins( row );
+                    int nkey = keys.length;
+                    if ( nkey > 0 ) {
+                        RowRef rref = new RowRef( index2, lrow2 );
+                        for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                            Object key = keys[ ikey ];
+                            if ( bins.containsKey( key ) ) {
+                                bins.putRowInBin( key, rref );
+                            }
+                        }
                     }
                 }
             }
+            rseq2.close();
+            if ( exclude2 > 0 ) {
+                indicator.logMessage( exclude2 +
+                                      " rows excluded (out of match region)" );
+            }
         }
-        rseq2.close();
 
         /* Return the result. */
         return bins.getRowLinks();
@@ -885,6 +972,209 @@ public class RowMatcher {
                                                   + " is not random access" );
             }
         }
+    }
+
+    /**
+     * Calculates the upper and lower bounds of the region in tuple-space
+     * for one of this matcher's tables.  
+     *
+     * @param   tIndex  index of the table to calculate limits for
+     * @return  2-element Object[] array; first element contains a tuple
+     *          giving the minimum values of all tuple elements that need 
+     *          to be considered and the second element does the same
+     *          for maximum values.  These points are opposite corners of
+     *          a hyper-rectangle in tuple-space.  Any of the elements may
+     *          be null to indicate no limit in that direction. 
+     *          All non-null elements will be {@link java.lang.Comparable}.
+     */
+    private Comparable[][] getBounds( int tIndex )
+            throws IOException, InterruptedException {
+
+        /* We can only do anything useful the match engine knows how to
+         * calculate bounds. */
+        if ( ! engine.canBoundMatch() ) {
+            return new Comparable[ 2 ][];
+        }
+
+        /* See which columns are comparable. */
+        StarTable table = tables[ tIndex ];
+        int ncol = table.getColumnCount();
+        boolean[] isComparable = new boolean[ ncol ];
+        int ncomp = 0;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            if ( Comparable.class.isAssignableFrom( table.getColumnInfo( icol )
+                                                   .getContentClass() ) ) {
+                isComparable[ icol ] = true;
+                ncomp++;
+            }
+        }
+
+        /* If none of the columns are comparable, there's no point. */
+        if ( ncomp == 0 ) {
+            return new Comparable[ 2 ][];
+        }
+
+        /* Go through each row finding the minimum and maximum value 
+         * for each column (coordinate). */
+        Comparable[] mins = new Comparable[ ncol ];
+        Comparable[] maxs = new Comparable[ ncol ];
+        ProgressRowSequence rseq =
+            new ProgressRowSequence( table, indicator,
+                                     "Assessing range of coordinates " +
+                                     "from table " + ( tIndex + 1 ) );
+        boolean success;
+        try {
+            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
+                rseq.nextProgress();
+                Object[] row = rseq.getRow();
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    if ( isComparable[ icol ] ) {
+                        Object cell = row[ icol ];
+                        if ( cell instanceof Comparable ) {
+                            Comparable val = (Comparable) cell;
+                            if ( mins[ icol ] == null || 
+                                 mins[ icol ].compareTo( val ) > 0 ) {
+                                mins[ icol ] = val;
+                            }
+                            if ( maxs[ icol ] == null ||
+                                 maxs[ icol ].compareTo( val ) < 0 ) {
+                                maxs[ icol ] = val;
+                            }
+                        }
+                    }
+                }
+            }
+            success = true;
+        }
+
+        /* It's possible, though not particularly likely, that a 
+         * compareTo invocation can result in a ClassCastException 
+         * (e.g. comparing an Integer to a Double).  If so, just give up. */
+        catch ( ClassCastException e ) {
+            success = false;
+        }
+
+        /* Either way, the row sequence has to be closed or the logging
+         * will get in a twist. */
+        finally {
+            rseq.close();
+        }
+
+        /* Report and return. */
+        if ( success ) {
+            logTupleBounds( "Limits are: ", mins, maxs );
+
+            /* Get the match engine to convert the min/max values into 
+             * a possible match region (presumably by adding a separation
+             * region on). */
+            return engine.getMatchBounds( mins, maxs );
+        }
+        else {
+            indicator.logMessage( "Bound calculation failed " +
+                                  "(ClassCastException)" );
+            return new Comparable[ 2 ][];
+        }
+    }
+
+    /**
+     * Determines whether a point in tuple-space is within a range in 
+     * the same space.  Each element of the 'point' is compared with 
+     * a given minimum and maximum; the point is considered in range if 
+     * each element (coordinate) of <tt>row</tt> 
+     * is between the corresponding elements
+     * of the <tt>min</tt> and <tt>max</tt> arrays (inclusive) <em>or</em>
+     * if any of the participants in the comparison is <tt>null</tt>.
+     * The way it's used, it is important that if in doubt, it should
+     * be considered in range.
+     * 
+     * <p>As a special case, if either of the arrays <tt>max</tt> or 
+     * <tt>min</tt> is <tt>null</tt>, the point is considered to be in range.
+     * 
+     * @param  row  point to assess
+     * @param  min  lower bound of permissible coordinates
+     * @param  max  upper bound of permissible coordinates
+     * @return true iff <tt>row</tt> is between <tt>min</tt> and <tt>max</tt>
+     */
+    private boolean inRange( Object[] row, 
+                             Comparable[] min, Comparable[] max ) {
+        if ( min != null && max != null ) {
+            int ncol = row.length;
+            for ( int i = 0; i < ncol; i++ ) {
+                if ( row[ i ] instanceof Comparable ) {
+                    Comparable val = (Comparable) row[ i ];
+                    if ( min[ i ] != null && val.compareTo( min[ i ] ) < 0 ||
+                         max[ i ] != null && val.compareTo( max[ i ] ) > 0 ) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Returns the number of rows in a table which fall within a given
+     * range of min/max values.
+     * 
+     * @param  tIndex  index of table to assess
+     * @param  min  lower bound of permissible coordinates
+     * @param  max  upper bound of permissible coordinates
+     * @return  number of rows of <tt>table</tt> that fall in the coordinate
+     *          range defined by <tt>min</tt> and <tt>max</tt>
+     */
+    private long countInRange( int tIndex, Comparable[] min, 
+                               Comparable[] max )
+            throws IOException, InterruptedException {
+        ProgressRowSequence rseq = 
+            new ProgressRowSequence( tables[ tIndex ], indicator, 
+                                     "Counting rows in match region " +
+                                     "for table " + ( tIndex + 1 ) );
+        long nInclude = 0;
+        for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
+            rseq.nextProgress();
+            if ( inRange( rseq.getRow(), min, max ) ) {
+                nInclude++;
+            }
+        }
+        rseq.close();
+        indicator.logMessage( nInclude + " rows in match region" );
+        return nInclude;
+    }
+
+    /**
+     * Writes a log message to the indicator about a set of min..max 
+     * limits.
+     *
+     * @param  heading  lead text
+     * @param  mins     minimum values
+     * @param  maxs     maximum values
+     */
+    private void logTupleBounds( String heading, Object[] mins, 
+                                 Object[] maxs ) {
+        int ncol = 0;
+        if ( mins != null ) {
+            ncol = mins.length;
+        }
+        else if ( maxs != null ) {
+            ncol = maxs.length;
+        }
+        if ( ncol == 0 ) {
+            return;
+        }
+        StringBuffer sbuf = new StringBuffer();
+        for ( int i = 0; i < ncol; i++ ) {
+            if ( i > 0 ) {
+                sbuf.append( ", " );
+            }
+            if ( mins != null && mins[ i ] instanceof Number ) {
+                sbuf.append( ((Number) mins[ i ]).floatValue() );
+            }
+            sbuf.append( " .. " );
+            if ( maxs != null && maxs[ i ] instanceof Number ) {
+                sbuf.append( ((Number) maxs[ i ]).floatValue() );
+            }
+        }
+        indicator.logMessage( heading + sbuf );
     }
 
     /**

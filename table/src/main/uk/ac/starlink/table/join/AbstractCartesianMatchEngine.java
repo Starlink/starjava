@@ -150,6 +150,87 @@ public abstract class AbstractCartesianMatchEngine implements MatchEngine {
         return infos;
     }
 
+    public boolean canBoundMatch() {
+        return true;
+    }
+
+    public Comparable[][] getMatchBounds( Comparable[] minTuple, 
+                                          Comparable[] maxTuple ) {
+        minTuple = (Comparable[]) minTuple.clone();
+        maxTuple = (Comparable[]) maxTuple.clone();
+        for ( int i = 0; i < ndim_; i++ ) {
+            double err = getError( i );
+
+            /* The output minimum for each dimension is the input minimum
+             * minus the error in that dimension.  Calculate it and
+             * set the result as the same kind of object (or null). */
+            if ( minTuple[ i ] instanceof Number ) {
+                double min = ((Number) minTuple[ i ]).doubleValue() - err;
+                Class clazz = minTuple[ i ].getClass();
+                Comparable min1;
+                if ( clazz == Byte.class && 
+                     Math.floor( min ) >= Byte.MIN_VALUE ) {
+                    min1 = (Comparable) new Byte( (byte) Math.floor( min ) );
+                }
+                else if ( clazz == Short.class &&
+                          Math.floor( min ) >= Short.MIN_VALUE ) {
+                    min1 = (Comparable) new Short( (short) Math.floor( min ) );
+                }
+                else if ( clazz == Integer.class &&
+                          Math.floor( min ) >= Integer.MIN_VALUE ) {
+                    min1 = (Comparable) new Integer( (int) Math.floor( min ) );
+                }
+                else if ( clazz == Long.class &&
+                          Math.floor( min ) >= Long.MIN_VALUE ) {
+                    min1 = (Comparable) new Long( (long) Math.floor( min ) );
+                }
+                else if ( clazz == Float.class ) {
+                    min1 = (Comparable) new Float( (float) min );
+                }
+                else if ( clazz == Double.class ) {
+                    min1 = (Comparable) new Double( min );
+                }
+                else {
+                    min1 = null;
+                }
+                minTuple[ i ] = min1;
+            }
+
+            /* Do the same for the output maximum, this time adding the
+             * error. */
+            if ( maxTuple[ i ] instanceof Number ) {
+                double max = ((Number) maxTuple[ i ]).doubleValue() + err;
+                Class clazz = maxTuple[ i ].getClass();
+                Comparable max1;
+                if ( clazz == Byte.class &&
+                     Math.ceil( max ) <= Byte.MAX_VALUE ) {
+                    max1 = (Comparable) new Byte( (byte) Math.ceil( max ) );
+                }
+                else if ( clazz == Short.class &&
+                          Math.ceil( max ) <= Short.MAX_VALUE ) {
+                    max1 = (Comparable) new Short( (short) Math.ceil( max ) );
+                }
+                else if ( clazz == Integer.class &&
+                          Math.ceil( max ) <= Integer.MAX_VALUE ) {
+                    max1 = (Comparable) new Integer( (int) Math.ceil( max ) );
+                }
+                else if ( clazz == Float.class ) {
+                    max1 = (Comparable) new Float( (float) max );
+                }
+                else if ( clazz == Double.class ) {
+                    max1 = (Comparable) new Double( max );
+                }
+                else {
+                    max1 = null;
+                }
+                maxTuple[ i ] = max1;
+            }
+        }
+
+        /* Return the doctored result. */
+        return new Comparable[][] { minTuple, maxTuple };
+    }
+
     public abstract DescribedValue[] getMatchParameters();
 
     /**
