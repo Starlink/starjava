@@ -90,10 +90,10 @@ public class GraphicsHintsControls extends JPanel
         //  Add components.
         GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        layouter.add( "Text:", false );
+        layouter.add( "Anti-aliased text:", false );
         layouter.add( textAntialiased, true );
 
-        layouter.add( "Everything:", false );
+        layouter.add( "Anti-aliased everything:", false );
         layouter.add( allAntialiased, true );
 
         layouter.eatSpare();
