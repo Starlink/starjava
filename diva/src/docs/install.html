@@ -1,4 +1,4 @@
-<!-- Copyright (c) 1998-2000 The Regents of the University of California. -->
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
 <!-- All rights reserved. See the file COPYRIGHT for details.             -->
 <HTML>
 
@@ -14,39 +14,71 @@
 
 
 	<H1>Installation</H1>
-	<P>Installing and compiling Diva is fairly easy if you're used to working with Java. Diva 0.2 compiles with <B>JDK1.2</B>
-	(final). <!-- You
-can obtain this release from Sun's Java Developer Connection
-at:
+	<P>Installing and compiling Diva is fairly easy if you're used to working with Java. Diva 0.3 compiles with <B>JDK1.3</B>.
 
-<pre>
-  <a href="http://developer.java.sun.com/developer/earlyAccess/jdk12/beta4/newindex.html">http://developer.java.sun.com/developer/earlyAccess/jdk12/beta4/newindex.html</a>
-</pre>
-
-(See below for information on JDK1.2beta4 versus
-the latest release, JDK1.2rc1.)
- -->
 	<H2>Installing and compiling the source release</H2>
 
 	<OL>
 	<LI>Download the gzipped tar file or the zip file. Change to a directory that you want to place Diva in, and either
-	<PRE>  gzcat diva-<!--releaseversion-->0.2<!--/releaseversion-->.tar.gz | tar -xf -
+	<PRE>  gzcat diva-<!--releaseversion-->0.3<!--/releaseversion-->.tar.gz | tar -xf -
 </PRE>
 	or
-	<PRE>  unzip -a diva-<!--releaseversion-->0.2<!--/releaseversion-->.zip
+	<PRE>  unzip -a diva-<!--releaseversion-->0.3<!--/releaseversion-->.zip
 </PRE>
-	This will create a directory <B>diva</B> in the current directory. On Windows, you can also use a utility such
-	as WinZip.
+	This will create a directory <B>diva</B> in the current
+	directory. On Windows, you can also use a utility such as
+	WinZip.
 
-	<LI>In the <B>diva</B> directory, type <B>./configure</B>.
-	This will create the file <B>vars.mk</B> with the appropriate settings for your system.
-	
-	<LI>In the <B>diva</B> directory, type <B>make packages</B>.
-	<LI>Go to the <A HREF="../demo/index.html">demo page</A> to run the demos.
+	<LI> In the <B>diva</B> directory, type <B>./configure</B> (see
+	below for arguments to configure). This is a shell script that
+	creates some makefiles with appropriate settings for your
+	installation.
+
+	<p> On windows, we recommend the Cygwin utilities and shell for
+	doing this.
+
+	<LI>In the <B>diva</B> directory, type <B>make</B>, or
+	<b>make fast</b>.
+
 	</OL>
 
-	<P>Note 1: If you are a known Diva developer or user and Tcl is set up on your installation, you can automate the
+	<H2>Arguments to the configure script</H2>
+
+The following arguments can be provided on the command line to the
+configure script.
+
+<ul>
+<li> <b>--with-java=DIR</b>. DIR is the directory in which the JDK is
+installed. On Unix systems with Java installed in /usr/java, this
+argument is not needed. On other systems, or if you wish to build and
+run Diva with a different JDK installation, you will need to provide
+this argument. Example:
+
+<pre>
+     ./configure --with-java="c:/tools/jdk1.3.1"
+</pre>
+
+<li> <b>--with-calligrapher=JARFILE</b>. Use this option only if you have
+the commercial Calligrapher package installed. JARFILE is the full path to the Calligrapher JAR file.
+
+<li> <b>--with-freemarker=FREEMARKER</b>. Use this option if you have
+installed <a href="http://freemarker.sourceforge.net/">FreeMarker</a>.
+FreeMarker is required by the diva.util.snippets package. FREEMARKER
+is the root of the FreeMarker installation. For example:
+
+<pre>
+     ./configure --with-freemarker="c:/java/freemarker"
+</pre>
+
+
+<li> <b>--enable-multistroke</b>. Use this option to enable
+the experimental multistroke recognition algorithm.
+
+</ul>
+
 	<H2>Installing and running with the JAR file</H2>
+
+<P> [FIXME this is broken]
 
 	<OL>
 	<LI>Download the jar file by right-clicking on the link.
@@ -58,6 +90,8 @@ the latest release, JDK1.2rc1.)
 </BODY>
 
 </HTML>
+
+
 
 
 

@@ -1,0 +1,55 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>The diva.canvas demo</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+<!--/navbar-->
+
+
+
+	<H1>The diva.sketch.trainer demo</H1>
+	<P ALIGN="CENTER"><IMG SRC="images/trainer.gif" WIDTH="664" HEIGHT="525" ALIGN="BOTTOM" BORDER="0"></P>
+	<P><A HREF="howtorun.html">How to run the demo</A></P>
+	<P>The trainer program allows users to create customized gestures for their applications. The user enters about
+	15-20 samples for each type of gesture that they want to train. For example, if one wants to train triangles, sketch
+	a bunch of triangles in the editor (pictured above), enter &quot;triangle&quot; in the <I>Training Class Type </I>text
+	box, and press <I>Add</I>. This will add the triangle samples to the training set. The tag &quot;triangle&quot;
+	will show up in the <I>Training Classes</I> window. The user can save the training data in a file with &quot;.tc&quot;
+	extension. The file can be loaded at a later time for modification.</P>
+	<P>The<I> Training Classes</I> window displays a list of gesture types that are currently in the training set.
+	One can click on the label to view the set of samples for that gesture. A set of samples can be removed from the
+	training set by selecting on the label and press <I>Delete</I>.</P>
+	<P>After the samples are entered, one can test the recognition by clicking the <I>Train</I> button. This will launch
+	a sketch board which has a recognition engine embedded in it. The recognition engine trains on the samples and
+	should now be able to classify a gesture according to what it has learned from the training data. The default confidence
+	threshold is 80%, which means that if a gesture has been classified as a certain type with an 80% or greater confidence,
+	it is recognized and its type is displayed next to its figure. If the confidence is below the threshold, the gesture
+	is unrecognized. The confidence threshold can be adjusted using the slider on the bottom of the window.</P>
+	<P><BR>
+	<B>Note</B></P>
+
+	<P>The gesture recognition in this application currently supports single-stroke gestures, which means that in order
+	for a gesture to be recognized it has to be completed in one stroke (a path formed from pen down to pen up). Also
+	the recognition is direction-dependent, therefore a gesture has to be drawn in the same way as it is trained. The
+	lack of multi-stroke gestures and direction independence is not a shortcoming of the recognition archicture, but
+	rather this particular recognizer implementation. See the package documentation for details.
+
+
+
+<!--footer-->
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+

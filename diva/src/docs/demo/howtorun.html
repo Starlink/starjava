@@ -1,0 +1,62 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>How to run the demos</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+<!--/navbar-->
+
+
+<H1>How to run the demos</H1>
+<P>The five demos are located in:
+
+<UL>
+	<LI><CODE>diva/canvas/demo/CanvasDemo.java</CODE>
+	<LI><CODE>diva/graph/demo/GraphDemo.java</CODE>
+	<LI><CODE>diva/sketch/demo/SketchDemo.java</CODE>
+	<LI><CODE>diva/whiteboard/demo/WhiteboardDemo.java</CODE>
+	<LI><CODE>diva/sketch/trainer/Trainer.java</CODE>
+</UL>
+
+<P>Here are three ways to run the demos:</P>
+
+<DL>
+	<DT>Using make</DT>
+	<DD>If you have <A HREF="../install.html">installed and compiled</A> the source release, change to one of the above
+	directories and simply enter:
+	<PRE>  make run
+</PRE>
+	This will start Java on the appropriate demo.
+	<DT>By hand</DT>
+	<DD>If you have the source release but compiled by hand, type in something like the following:
+	<PRE>   c:/jdk1.2/bin/java -classpath ../../.. diva.canvas.demo.CanvasDemo
+</PRE>
+	If <B>java</B> (1.2) is in your PATH, then you can just do
+	<PRE>   java -classpath ../../.. diva.canvas.demo.CanvasDemo
+</PRE>
+	<DT>Using the jar file</DT>
+	<DD>If you downloaded the jar file, change to the directory in which the jar file was downloaded and enter something
+	like this:
+	<PRE>    c:/jdk1.2/bin/java -classpath diva.jar diva.canvas.demo.CanvasDemo
+</PRE>
+	If <B>java</B> (1.2) is in your PATH, then you can just do
+	<PRE>   java -classpath diva.jar diva.canvas.demo.CanvasDemo</PRE>
+</DL>
+
+
+
+<!--footer-->
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+

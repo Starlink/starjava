@@ -1,0 +1,136 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
+<HEAD>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html;CHARSET=iso-8859-1">
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<META NAME="GENERATOR" Content="Visual Page 1.1a for Windows">
+	<TITLE>Diva Demos</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+<!--/navbar-->
+<P>
+<TABLE BORDER="0" WIDTH="100%">
+	<TR>
+		<TD HEIGHT="120" ALIGN="RIGHT" VALIGN="BOTTOM">
+			<H1 ALIGN="RIGHT">Demos
+		</TD>
+		<TD HEIGHT="120">&nbsp;</TD>
+	</TR>
+	<TR>
+		<TD VALIGN="TOP">
+			<P><BR>
+			<BR>
+			<A HREF="graph.html"><IMG SRC="images/graph-small.gif" WIDTH="180" HEIGHT="192" ALIGN="LEFT" BORDER="0" HSPACE="15"
+			VSPACE="6" valign="bottom"></A>
+			<H3>The diva.graph demo</H3>
+			<P><BR>
+			The graph demo demonstrates basic graph editing and layout functionality, illustrates the key points of the graph
+			architecture. A graph is constructed programmatically, and can then be edited interactively by the user. There
+			are two views of the graph: one which has an automatic layout algorithm applied each time a new node is added,
+			and one which uses a random or user-driven layout.<BR>
+			<BR>
+			The interaction and display in the graph editor, although currently fairly simple, uses the features of the Diva
+			canvas to good effect. The use of two views of the graph highlights the Swing-style model-view-controller architecture
+			of the graph package.<BR>
+			<BR>
+			<A HREF="graph.html">More information</A><BR>
+			<BR>
+			<BR>
+			<BR>
+			<A HREF="canvas.html"><IMG SRC="images/canvas-small.gif" WIDTH="353" HEIGHT="221" ALIGN="RIGHT" BORDER="0" HSPACE="15"
+			VSPACE="6" valign="top"></A>
+			<H3>The diva.canvas demo</H3>
+			<P><BR>
+			The canvas demo illustrates the main architectural features of the canvas. The window contains a single instance
+			of JCanvas, containing an instance of GraphicsPane. The six sliders control the scale, rotation, translation, and
+			shear of the top-level pane.<BR>
+			<BR>
+			The pane contains a number of figures that can be selected and manipulated. Note the use of translucent fills and
+			arbitrary clip-regions supported by Java2D. The Diva canvas is a relatively light-weight layer over Java2D, so
+			any rendering that can be done in Java2D can also be done in canvas figures.<BR>
+			<BR>
+			Two of the figures recursively contain panes -- one is another GraphicsPane, and the other is a graph editor. The
+			graph editor can be manipulated in the same manner is described for the graph demo above. We plan to use this hierarchical
+			structuring facility to explore display and navigation through complex information spaces.<BR>
+			<BR>
+			<B>Note:</B> The demo is currently very sluggish due to problems in Java2D's hit-testing code. A bug report has
+			been filed, and this problem will hopefully be fixed in the next maintenance release. Also note that this problem
+			is most noticeable with examples that use GeneralPath; please see the canvas tutorials for some examples that do
+			not have this problem.<BR>
+			<BR>
+			<A HREF="canvas.html">More information</A><BR>
+			<BR>
+			<BR>
+			<BR>
+			<A HREF="sketch.html"><IMG SRC="images/sketch-small.gif" WIDTH="179" HEIGHT="158" ALIGN="LEFT" BORDER="0" HSPACE="15"
+			VSPACE="6" valign="bottom"></A>
+			<H3>The diva.sketch demo</H3>
+			<P><BR>
+			The sketch demo demonstrates a sketch-based editor that is built using the diva.sketch package. This is a simple
+			editor that allows free-hand drawing. The editing window contains an instance of JSketch which by default sets
+			up all the necessary classes to handle sketch input. JSketch uses Diva canvas package that implements scaling and
+			dragging of figures. <BR>
+			<BR>
+			<BR>
+			<A HREF="sketch.html">More information</A><BR>
+			<BR>
+			<BR>
+			<BR>
+			<A HREF="whiteboard.html"><IMG SRC="images/whiteboard-small.gif" WIDTH="200" HEIGHT="144" ALIGN="LEFT" BORDER="0"
+			HSPACE="15" VSPACE="6" valign="bottom"></A>
+			<H3>The diva.whiteboard demo</H3>
+			<P><BR>
+			The whiteboard demo is a digital whiteboard which supports multiple documents and pages, saving and loading sketches,
+			changing pen colors and widths, and other basic whiteboard capabilities. In addition, it supports basic editing
+			commands such as selection and deletion using pen gestures.<BR>
+			<BR>
+			<BR>
+			<A HREF="whiteboard.html">More information</A><BR>
+			<BR>
+			<BR>
+			<A HREF="whiteboard.html"></A></P>
+
+			<P><A HREF="uml.html"><IMG SRC="images/blackjack-small.gif" WIDTH="200" HEIGHT="144" ALIGN="LEFT" BORDER="0" HSPACE="15"
+			VSPACE="6" valign="bottom"></A>
+			<H3>The diva.whiteboard.uml demo</H3>
+			<P><BR>
+			The UML editor is a digital whiteboard application with an embedded sketch interpreter that understands a subset
+			of the notations of UML class diagrams. It provides basic electronic whiteboard features, gesture command editing,
+			and recognition of classes and relations in UML static structure diagrams.<BR>
+			<BR>
+			<A HREF="whiteboard.html">More information</A><BR>
+			<BR>
+			<A HREF="whiteboard.html"></A></P>
+
+			<P><BR>
+			<A HREF="trainer.html"><IMG SRC="images/trainer-small.gif" WIDTH="217" HEIGHT="220" ALIGN="LEFT" BORDER="0" HSPACE="15"
+			VSPACE="6" valign="bottom"></A>
+			<H3>The diva.sketch.trainer application</H3>
+			<P><BR>
+			Sketch trainer is a program that allows users to create customized gestures for their application. Users enter
+			about 15-20 samples for each type of gesture (e.g. square, triangle, circle, etc.) and can save the training samples
+			to a file. The user can also load in a previously created training file and modify its contents graphically.</P>
+
+			<P>After the samples are created, the user can test the recognition by pressing on the <I>Train</I> button. This
+			will launch a sketching window in which gestures are recognized if they are similar to the training data. If a
+			gesture is recognized, its type will be shown next to its figure. <BR>
+			<BR>
+			<BR>
+			<A HREF="trainer.html">More information</A>
+		</TD>
+		<TD>&nbsp;</TD>
+	</TR>
+</TABLE>
+<!--footer--> <!--/footer-->
+
+</BODY>
+
+</HTML>
+
