@@ -134,8 +134,8 @@ public class DataNodeTreeModel implements TreeModel {
                     }
                 }.start();
             }
+            return modelNode.getChildren().size();
         }
-        return modelNode.getChildren().size();
     }
 
     /**
