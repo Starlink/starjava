@@ -261,6 +261,26 @@ public class DefaultDataNode implements DataNode {
     }
 
     /**
+     * Gets an input stream from a file.  The main work that this 
+     * convenience method does is to rethrow an IOException as a 
+     * NoSuchDataException.
+     *
+     * @param  file  the file
+     * @return  a new input stream based on <tt>file</tt>
+     * @throws  NoSuchDataException  if something goes wrong (like the file
+     *          doesn't exist)
+     */
+    public static InputStream getInputStream( File file )
+            throws NoSuchDataException {
+        try {
+            return new FileInputStream( file );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
+    }
+
+    /**
      * Gets the first few bytes of a file.
      * This utility function is suitable for magic number checks.
      *
@@ -285,5 +305,36 @@ public class DefaultDataNode implements DataNode {
                 strm.close();
             }
         }
+    }
+
+    /**
+     * Gets the first few bytes from a stream.  The stream must support
+     * marks (see {@link java.io.InputStream#markSupported}) - so wrap
+     * your stream in a BufferedInputStream if it can't do this.
+     * This utility function is suitable for magic number checks.
+     *
+     * @param  strm  the buffered input stream
+     * @param  nbytes  the number of bytes to retrieve
+     * @return   an nbytes-element array of the starting bytes in the file.
+     *           If it's not long enough, non-existent bytes will appear
+     *           as zeros.
+     * @throws IllegalArgumentException  if <tt>strm</tt> does not support
+     *         marking
+     */
+    public static byte[] startBytes( InputStream strm, int nbytes ) 
+            throws IOException {
+        if ( ! strm.markSupported() ) {
+            throw new IllegalArgumentException( "Stream " + strm +
+                                                " does not support marks" );
+        }
+        strm.mark( nbytes );
+        byte[] buf = new byte[ nbytes ];
+        try {
+            strm.read( buf );
+        }
+        finally {
+            strm.reset();
+        }
+        return buf;
     }
 }

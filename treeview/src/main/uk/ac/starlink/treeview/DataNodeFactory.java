@@ -23,6 +23,7 @@ import java.text.*;
  * <li> {@link VOTableDataNode}
  * <li> {@link XMLDataNode}
  * <li> {@link ZipFileDataNode}
+ * <li> {@link TarFileDataNode}
  * <li> {@link NDArrayDataNode}
  * <li> {@link FileDataNode}
  * </ul>
@@ -355,6 +356,7 @@ public class DataNodeFactory implements Cloneable {
                 VOTableTableDataNode.class,
                 VOComponentDataNode.class,
                 ZipFileDataNode.class,
+                TarFileDataNode.class,
                 NDArrayDataNode.class,
                 FileDataNode.class,
             };

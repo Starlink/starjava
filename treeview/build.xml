@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Treeview"/>
   <property name="name" value="treeview"/>
-  <property name="version" value="2.0-4"/>
+  <property name="version" value="2.0-5"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
@@ -446,6 +446,12 @@
                classname="org.apache.axis.Message"/>
     <fail message="No Axis available" unless="axis.present"/>
 
+    <!-- Need Ant -->
+    <available property="ant.present"
+               classpathref="classpath"
+               classname="org.apache.tools.tar.TarEntry"/>
+    <fail message="No Ant available" unless="ant.present"/>
+
   </target>
 
   <!--
@@ -560,7 +566,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar"/>
+           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar ../ant.jar"/>
       </manifest>
     </jar>
 

@@ -64,6 +64,8 @@ public class IconFactory {
     public static final short XML_DTD = 127;
     public static final short NDX = 130;
     public static final short HDX_CONTAINER = 131;
+    public static final short TARFILE = 132;
+    public static final short TARENTRY = 133;
     public static final short VOTABLE = 140;
     public static final short VOCOMPONENT = 141;
     public static final short SPLAT = 200;
@@ -177,6 +179,8 @@ public class IconFactory {
             case XML_DTD:        iname = "xml_dtd.gif";              break;
             case NDX:            iname = "fuzz3.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
+            case TARFILE:        iname = "squishdir2.gif";           break;
+            case TARENTRY:       iname = "squishfile2.gif";          break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPLAT:          iname = "multidisplay.gif";         break;

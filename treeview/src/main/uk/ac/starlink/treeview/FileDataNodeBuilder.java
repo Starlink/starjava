@@ -73,8 +73,8 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         }
 
         try {
-            strm.mark( 80 );
-            byte[] magic = new byte[ 80 ];
+            strm.mark( 300 );
+            byte[] magic = new byte[ 300 ];
             strm.read( magic );
             strm.reset();
 
@@ -130,6 +130,11 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             /* Zip/jar file? */
             if ( ZipFileDataNode.isMagic( magic ) ) {
                 return new ZipFileDataNode( file );
+            }
+
+            /* Tar file? */
+            if ( TarFileDataNode.isMagic( magic ) ) {
+                return new TarFileDataNode( file );
             }
 
             /* XML file? */
