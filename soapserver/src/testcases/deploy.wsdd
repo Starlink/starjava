@@ -1,0 +1,9 @@
+<deployment xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+ <service name="EchoServer" provider="java:RPC">
+  <parameter name="className" value="EchoServer"/>
+  <parameter name="allowedMethods" value="echo"/>
+ </service>
+
+</deployment>

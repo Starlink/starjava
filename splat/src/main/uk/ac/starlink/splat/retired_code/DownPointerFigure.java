@@ -1,0 +1,113 @@
+package uk.ac.starlink.splat.plot;
+
+import diva.canvas.*;
+import diva.canvas.event.*;
+import diva.canvas.interactor.*;
+import diva.canvas.toolbox.*;
+import diva.canvas.connector.*;
+import diva.util.gui.*;
+import diva.util.java2d.*;
+
+import java.awt.*;
+import java.awt.geom.*;
+
+public class DownPointerFigure extends AbstractFigure 
+{
+    // General path for polygon and arrow head components.
+    GeneralPath shape;
+    
+    /** 
+     * Create a new instance.
+     */
+    public DownPointerFigure( double x, double y, double length, float width, 
+                       double arrowsize ) 
+    {
+        this.x = x;
+        this.y = y;
+        this.length = length;
+        this.width = width;
+        this.vertical = vertical;
+        this.arrowsize = arrowsize;
+        reshape();
+        setWidth( width );
+    }
+
+    public void reshape () 
+    {   
+        shape = new GeneralPath();
+        Line2D line = new Line2D.Double( x, y, x, y + length );
+        Polygon2D polygon = new Polygon2D.Double();
+        
+        double l1 = arrowsize * 1.0;
+        double l2 = arrowsize * 0.3;
+        double w = arrowsize * 0.4;
+        double yn = y + length;
+        polygon.moveTo( x     , yn      );
+        polygon.lineTo( x + w , yn - l2 );
+        polygon.lineTo( x     , yn + l1 );
+        polygon.lineTo( x - w , yn - l2 );
+        polygon.closePath();
+        
+        shape.append( line, false );
+        shape.append( polygon, false );
+    }
+    
+    private double x = 0.0;
+    private double y = 0.0;
+    private double length = 25.0;
+    private double arrowsize = 12.0;
+    private double width = 1.0;
+    private boolean vertical = true;
+    private Stroke widthStroke;
+    public void setWidth( float width ) 
+    {
+        widthStroke = new BasicStroke( width );
+    }
+    
+    /** 
+     * Get the bounds of this figure.
+     */
+    public Rectangle2D getBounds () 
+    {
+        return widthStroke.createStrokedShape( shape ).getBounds2D();
+    }
+    
+    /** 
+     * Get the shape of this figure.
+     */
+    public Shape getShape () 
+    {
+            return shape;
+    }
+    
+    /**
+     * Paint this figure onto the given graphics context. 
+     */
+        public void paint (Graphics2D g) 
+    {
+        g.setStroke( widthStroke );
+        g.setPaint( Color.black );
+        g.draw( shape );
+        g.fill( shape );
+    }
+    
+    /** 
+     * Transform the object.
+     */
+    public void transform ( AffineTransform at ) 
+    {
+        repaint();
+        double[] srcPts = new double[4];
+        srcPts[0] = x;
+        srcPts[1] = y;
+        srcPts[2] = x;
+        srcPts[3] = y + length;
+        double[] dstPts = new double[4];
+        at.transform( srcPts, 0, dstPts, 0, 2 );
+        x = dstPts[0];
+        y = dstPts[1];
+        length = dstPts[3] - dstPts[1];
+        reshape();
+        repaint();
+    }
+}

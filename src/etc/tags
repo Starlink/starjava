@@ -1,0 +1,28 @@
+Tags File
+=========
+
+This file provides an informal record of each tag applied to the Starlink
+java CVS repository.
+
+r0-1:
+   Date:   20-DEC-2002(?)
+   Tagger: Mark Taylor
+   Info:   Initial tag.
+
+r0-2:
+   Date:   11-FEB-2003
+   Tagger: Mark Taylor
+   Info:   Corresponds to Treeview 2.1.  Certain packages in the repository
+           were not tagged at this point since they have broken build/test
+           targets: the new packages COCO, PAL, RV are omitted because the
+           install targets don't quite work and recent changes related to
+           HDX are omitted because they cause some of the test targets to
+           fail (FITS, HDS).
+
+r0-3:
+   Date:   21-FEB-2003
+   Tagger: Mark Taylor
+   Info:   Added now non-broken copies of COCO, PAL, RV and fixed JNIAST so
+           that you don't now need to copy an external AST source file
+           into the source directory.
+

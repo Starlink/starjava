@@ -1,0 +1,18 @@
+package uk.ac.starlink.ast;
+
+/**
+ * Java interface to the AST Axis
+ * class.  It stores information associated with a particular axis of
+ * an <code>Frame</code>.  It is used internally by AST and has no
+ * constructor function.  You should encounter it only within the output
+ * of an <code>Channel</code>.
+ *
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Axis'>AST Axis</a>
+ * @author   Mark Taylor (Starlink)
+ * @version  $Id$
+ */
+public class Axis extends AstObject {
+    /* Dummy constructor. */
+    protected Axis() {
+    }
+}

@@ -1,0 +1,20 @@
+#
+# Default logging configuration file for JSky.
+# You can specify a different file by defining the jsky.util.logger.config
+# system property (pass -Djsky.util.logger.config=$LOG_CONFIG to java).
+# This file creates a single log appender that uses System.out for
+# prioities greater than INFO (WARNING/ERROR).
+# See the log4j docs for a description of what is legal.
+#
+# $Id: logConfig.prop,v 1.1 2002/08/08 22:40:55 gillies Exp $
+
+# Set root category priority to INFO set its appender to A1
+log4j.rootCategory=INFO, A1
+
+# A1 is set to FileAppender which is set to system out
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=System.out
+
+# A1 uses PatternLayout
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r[%t] %-5p %c %x - %m%n

@@ -1,0 +1,224 @@
+<!--
+
+This DTD describes the format of an XML catalog server description file.
+  
+There are two types of XML files that use this DTD:
+
+  1: A top level catalog directory file (see conf/AstroCat.xml), which
+     lists only the names and types of catalogs that are defined
+     elsewhere. 
+
+  2: A catalog description file that describes the query parameters for a
+     single catalog.  In this case, the XML file describes the CGI-BIN
+     parameters and the catalog server URL. 
+     
+In the first case, the XML file contains a list of catalogs. The
+"path" attribute of a catalog element can point to another XML file
+describing the catalog server in more detail, or the "class" attribute
+can point to a Java class that implements a catalog directory.  If no
+path or class attributes are given, the catalog is expected be defined
+elsewhere (for example, in the skycat.cfg file). Such entries are
+included in the AstroCat.xml file, so that they appear in the catalog
+menu in the user interface. Only catalogs in the top level directory
+appear in the menu. The others are only accessible via the catalog
+tree widget.
+  
+Plot symbol descriptions may be included in either type of XML file.
+When you edit the plot symbol descriptions in the user interface, they
+are saved in the ~/.jsky/AstroCat.xml file and override the
+descriptions in the detailed XML files.
+
+
+  $Id: AstroCat.dtd,v 1.2 2002/08/20 09:57:57 brighton Exp $
+-->
+
+
+<!-- The ASTROCAT_DTD_VERSION is updated whenever the structure or content
+     of the DTD is altered.
+-->
+<!ENTITY ASTROCAT_DTD_VERSION "0.1">
+
+
+<!-- catalogs is the top level element and contains a list of catalog elements.
+
+     The root element is required to have a version attribute set to
+     the value of the DTD used in the document.
+-->
+<!ELEMENT catalogs (catalog)+>
+<!ATTLIST catalogs
+          version   CDATA #FIXED "&ASTROCAT_DTD_VERSION;"
+>
+
+
+<!-- A catalog element describes one HTTP based catalog server
+
+     Attributes:
+
+     id                a short identifier for the catalog
+
+     name              the display name of the catalog
+
+     description       a short description of the catalog (also used for copyright notice)
+
+     docURL            a URL pointing to documentation for the catalog
+
+     type              identifies the type of the catalog 
+                       (one of "catalog", "archive", "imagesvr", "directory", "namesvr", ...)
+
+     protocol          "http" for remote server (default), "file" for local catalog command
+
+     host              the host name for HTTP access
+
+     port              the port number for HTTP access (default: 80)
+
+     path              the path for HTTP access, without parameters
+
+     class             If the type attribute is set to "directory", and the path attribute is not set, 
+                       this should be the path name of a Java class that implements the method  
+		       "public static CatalogDirectory getDirectory()", which returns a catalog directory 
+		       by searching the default locations. 
+                       
+-->
+<!ELEMENT catalog (params?, symbols?)>
+<!ATTLIST catalog
+          id               CDATA #IMPLIED
+          name             CDATA #REQUIRED
+          description      CDATA #IMPLIED
+          docURL           CDATA #IMPLIED
+          type             CDATA #REQUIRED
+          protocol         CDATA #IMPLIED
+          host             CDATA #IMPLIED
+          port             CDATA #IMPLIED
+          path             CDATA #REQUIRED
+          class            CDATA #IMPLIED
+>
+
+
+<!-- params contains a list of param elements describing the catalog's query parameters.
+-->
+<!ELEMENT params (param)+>
+
+
+<!-- A param element describes one catalog server parameter
+
+     Attributes:
+
+     id                the parameter name used in the URL or command line
+
+     name              the display name of the parameter
+
+     description       a short description of the parameter
+
+     value             the default value of the parameter
+
+     (The following attributes are needed for center position and radius related parameters)
+
+     type              the parameter type (used to identify key parameters for cone search)
+                       for example: "ra", "dec", "radec", "radius", "equinox", "epoch". 
+		       May also be "hidden", if the parameter should be included in the URL, but 
+		       not displayed (in which case the "value" attribute should be defined).
+
+     units             units of the parameter: for example: "arcmin", "arcsec", "deg", "hours"
+
+     format            the format that the server expects the parameter in 
+                       for example: "h:m:s", "d:m:s", "h m s", "d m s", "hours", "deg"
+-->
+<!ELEMENT param (options)?>
+<!ATTLIST param
+          id               CDATA #REQUIRED
+          name             CDATA #REQUIRED
+          description      CDATA #REQUIRED
+          value            CDATA #IMPLIED
+          type             CDATA #IMPLIED
+          units            CDATA #IMPLIED
+          format           CDATA #IMPLIED
+>
+
+
+
+<!-- options contains a list of option elements describing a parameter's possible values
+-->
+<!ELEMENT options (option)+>
+
+
+<!-- An option element describes one of the possible parameter values
+
+     Attributes:
+
+     name              the display name of this option
+
+     value             the value to use for this option
+-->
+<!ELEMENT option EMPTY>
+<!ATTLIST option
+          name             CDATA #REQUIRED
+          value            CDATA #REQUIRED
+>
+
+
+
+<!-- symbols contains a list of plot symbol definitions that describe how to plot rows in
+     a table returned from this catalog as an image overlay. 
+-->
+<!ELEMENT symbols (symbol)+>
+
+
+<!-- A symbol element describes how to plot a row in a table returned from a query to this
+     catalog. 
+
+     Attributes:
+
+     name            a name to display for this symbol definition in a property editor
+
+     description     an optional description of this plot symbol definition
+
+     raCol           Optional index of the center position RA column (default 1)
+
+     decCol          Optional index of the center position Dec column (default 2)
+
+     equinox         Optional equinox of RA and DEC (default J2000)
+
+     columnsUsed     a space separated list of column names that are used as variables in expressions 
+                     (default: none).
+
+     shape           the shape of the plot symbol: one of :"circle", "square", "plus",
+	             "cross", "triangle", "diamond", "ellipse", "compass", "line", "arrow"
+		     (default: "circle")
+
+     color           the symbol's color: one of: "black", "blue", "cyan", "darkGray","gray", 
+	             "green", "lightGray", "magenta", "orange", "pink", "red",  "white", "yellow"
+		     (default: "white")
+
+     The following five attributes may all be expressions in Java syntax using column names as variables.
+
+     condition       the symbol is only drawn if the condition evaluates to true (default: true)
+
+     ratio           the x/y ratio (ellipticity ratio) of the symbol (default: 1)
+
+     angle           the rotation angle, from WCS north, in degrees (default: 0)
+
+     label           a text label to display next to the symbol (default: no label)
+
+     size            the size (radius) of the symbol in the given units (default: 5 pixels)
+
+
+     units           the units of the symbol size: one of: "deg" (WCS degrees),
+                     "image" (image pixels, default)
+-->
+<!ELEMENT symbol EMPTY>
+<!ATTLIST symbol
+          name           CDATA #REQUIRED
+          description    CDATA #IMPLIED
+          raCol          CDATA #IMPLIED
+          decCol         CDATA #IMPLIED
+          equinox        CDATA #IMPLIED
+          columnsUsed    CDATA #IMPLIED
+          shape          CDATA #IMPLIED
+          color          CDATA #IMPLIED
+          condition      CDATA #IMPLIED
+          ratio          CDATA #IMPLIED
+          angle          CDATA #IMPLIED
+          label          CDATA #IMPLIED
+          size           CDATA #IMPLIED
+          units          CDATA #IMPLIED>
+

@@ -1,0 +1,79 @@
+#!/bin/sh
+
+#  Note JVM seems to depend on /bin/sh signature, do not remove.
+
+#  mk-like script for wrapping build of JNI shareable library
+
+#  Export "local" definitions to the environment for use by make.
+      export BLD_SHR
+      export CC
+      export CFLAGS
+      export SHARE
+
+#  Java system exports.
+      export JAVA_SYSTEM
+      export JAVA_HOME
+
+      echo "Running MK script..."
+
+#  Check that the SYSTEM environment variable is defined.
+      if test "$SYSTEM" = ""; then
+         echo "mk: Please define the environment variable SYSTEM to identify"
+         echo "    your computer system (the prologue in the mk script file"
+         echo "    contains more information if you require it)."
+
+#  If OK, test for each recognised system.
+      else
+         case "$SYSTEM" in
+
+#  DEC Alpha:
+#  =========
+#  DEC Alpha machines running OSF1.
+#  -------------------------------
+            alpha_OSF1)
+               BLD_SHR='f() ld -shared -o $$1 $$2 $$3 -lfor -lFutil -lUfor -lm -lots -lc; f'
+               CC='cc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -pthread'
+               SHARE='.so'
+               JAVA_SYSTEM='alpha'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
+#  SUN Sparcstations running SunOS 5.x (Solaris).
+#  ---------------------------------------------
+            sun4_Solaris)
+               BLD_SHR='f() f77 -G -o $$1 $$2 -Bstatic -L/opt/SUNWspro/WS6U2/lib -lF77 -lM77 -lsunmath -Bdynamic -lm -lcx -lc; f'
+               CC='cc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O -K PIC'
+               SHARE='.so'
+               JAVA_SYSTEM='solaris'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
+#  PC systems:
+#  ==========
+#  Intel PC running Linux.
+#  ----------------------
+            ix86_Linux)
+               BLD_SHR='f() { g77 -shared -o $$1 $$2 -lg2c -lm -lgcc -lc;}; f'
+               CC='gcc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O'
+               SHARE='.so'
+               JAVA_SYSTEM='linux'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
+#  Issue a warning if SYSTEM is not recognised.
+            *)
+               SOURCE_VARIANT='unknown'
+               echo "mk: WARNING: value of SYSTEM = $SYSTEM not recognised..."
+               echo "             ...assuming default system characteristics"
+               echo '             ...setting SOURCE_VARIANT to "unknown"'
+               ;;
+         esac
+
+#  Invoke make with the appropriate environment variables set to override
+#  default macros defined in the makefile.
+         echo make -e $*
+         make -e $*
+      fi
