@@ -315,7 +315,14 @@
                    select="substring(@class, 1, string-length(@class)-1)"/>
             </xsl:when>
             <xsl:when test="@member">
-              <xsl:value-of select="substring-before(@member, '(')"/>
+              <xsl:choose>
+                <xsl:when test="contains(@member, '(')">
+                  <xsl:value-of select="substring-before(@member, '(')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:value-of select="@member"/>
+                </xsl:otherwise>
+              </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
               <xsl:call-template name="lastPart">
