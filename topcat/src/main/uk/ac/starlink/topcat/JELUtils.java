@@ -106,7 +106,7 @@ public class JELUtils {
             /* Combine to produce the final list. */
             staticClasses = classList;
         }
-        return Collections.unmodifiableList( staticClasses );
+        return staticClasses;
     }
 
      /**
