@@ -12,6 +12,8 @@
     <tocitem target="DirectInvoke" text="Direct invocation"/>
   </tocitem>
 
+  <tocitem target="TableCopy" text="Table conversion"/>
+
   <tocitem target="IO" text="I/O">
     <tocitem target="Read" text="Loading tables" image="LOAD">
       <tocitem target="FITSRead" text="FITS"/>
@@ -56,5 +58,7 @@
   <tocitem target="ExpressionSyntax" text="Expression Syntax"/>
 
   <tocitem target="ReleaseNotes" text="Release Notes"/>
+
+  <tocitem target="Acknowledgements" text="Acknowledgements"/>
  
 </toc>

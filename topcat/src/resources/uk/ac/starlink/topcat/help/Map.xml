@@ -19,6 +19,8 @@
   <mapID target="ScriptInvoke" url="script.html"/>
   <mapID target="DirectInvoke" url="direct.html"/>
 
+  <mapID target="TableCopy" url="tablecopy.html"/>
+
   <mapID target="IO" url="io.html"/>
   <mapID target="Read" url="io.html#read"/>
   <mapID target="Write" url="io.html#write"/>
@@ -61,5 +63,7 @@
   <mapID target="ReleaseNotes" url="release.html"/>
 
   <mapID target="MirageLaunch" url="mirage.html#launch"/>
+
+  <mapID target="Acknowledgements" url="ack.html"/>
 
 </map>
