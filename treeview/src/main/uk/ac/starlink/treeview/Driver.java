@@ -4,6 +4,7 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.logging.Logger;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.hds.HDSPackage;
 
@@ -13,6 +14,10 @@ public class Driver {
 
     public static boolean hasAST;
     public static boolean hasHDS;
+    public static boolean hasJAI;
+
+    private static Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.treeview" );
 
     public static void main( String[] args ) {
         boolean textView = false;
@@ -30,6 +35,7 @@ public class Driver {
          * is likely to lead to problems. */
         hasAST = AstPackage.isAvailable();
         hasHDS = HDSPackage.isAvailable();
+
 
         /* Treat the special case in which no command-line arguments are
          * specified and give a very simple usage message. */
@@ -126,6 +132,25 @@ public class Driver {
                     exitWithError( msg );
                     throw new Error();  // not reached
                 }
+            }
+        }
+
+        /* Check for presence of JAI if we might need it (i.e. if we are
+         * running in graphical mode. */
+        if ( textView ) {
+            hasJAI = false;
+        }
+        else {
+            try {
+                /* Use this class because it's lightweight and won't cause a
+                 * whole cascade of other classes to be loaded. */
+                new javax.media.jai.util.CaselessStringKey( "dummy" );
+                hasJAI = true;
+            }
+            catch ( NoClassDefFoundError e ) {
+                hasJAI = false;
+                logger.warning( 
+                    "JAI extension not present - no image display" );
             }
         }
 

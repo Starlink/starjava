@@ -166,7 +166,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             } );
         }
-        if ( endim == 2 ) {
+        if ( endim == 2 && Driver.hasJAI ) {
             dv.addPane( "Image view", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim == 2 && ndim != 2 ) {
@@ -178,7 +178,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             } );
         }
-        if ( endim > 2 ) {
+        if ( endim > 2 && Driver.hasJAI ) {
             dv.addPane( "Slice view", new ComponentMaker2() {
                 public JComponent[] getComponents() throws IOException {
                     if ( endim != ndim ) {

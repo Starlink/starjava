@@ -337,7 +337,7 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        if ( ndim == 2 || endim == 2 ) {
+        if ( ( ndim == 2 || endim == 2 ) && Driver.hasJAI ) {
             dv.addPane( "Image display", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim == 2 && ndim != 2 ) {
@@ -350,7 +350,7 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        if ( endim > 2) {
+        if ( endim > 2 && Driver.hasJAI ) {
             dv.addPane( "Slice display", new ComponentMaker2() {
                 public JComponent[] getComponents() {
                     if ( endim != ndim ) {
