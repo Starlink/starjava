@@ -7,8 +7,7 @@ import java.io.IOException;
  * StarTable.  This may be used to transmit a table from one place to
  * another in one go (passing a {@link StarTable} argument may be unsuitable
  * in that it requires the row sequence to be accessible multiple times).
- * a source.  Any source which uses this interface must do so in
- * the following sequence:
+ * Any source which uses this interface must do so in the following sequence:
  * <ol>
  * <li>Call {@link #acceptMetadata} once
  * <li>Call {@link #acceptRow} once for each row in the table
