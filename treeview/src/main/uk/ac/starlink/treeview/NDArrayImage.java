@@ -159,4 +159,13 @@ public class NDArrayImage extends SimpleRenderedImage {
         }
     }
 
+    public void finalize() throws Throwable {
+        try {
+            tileCache.removeTiles( this );
+        }
+        finally {
+            super.finalize();
+        }
+    }
+
 }
