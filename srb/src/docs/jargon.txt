@@ -1,0 +1,5 @@
+This package uses JARGON, SDSC's pure java SRB interface.
+
+The jargon.jar file is got from http://www.sdsc.edu/srb/jargon/index.html.
+I'm not sure what release it is!  It's something before 1.4.9, which
+doesn't appear to work for me.
