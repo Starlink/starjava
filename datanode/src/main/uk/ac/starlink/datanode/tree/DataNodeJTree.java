@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -18,7 +20,14 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import uk.ac.starlink.connect.Branch;
+import uk.ac.starlink.connect.Connection;
+import uk.ac.starlink.connect.Connector;
+import uk.ac.starlink.connect.ConnectorManager;
+import uk.ac.starlink.datanode.factory.DataNodeFactory;
+import uk.ac.starlink.datanode.nodes.BranchDataNode;
 import uk.ac.starlink.datanode.nodes.DataNode;
+import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 
 /**
  * A JTree configured to display a {@link DataNodeTreeModel}.
@@ -287,6 +296,68 @@ public class DataNodeJTree extends JTree {
         return dragNow == null
                    ? null
                    : (DataNode) dragNow.getLastPathComponent();
+    }
+
+    /**
+     * Returns a set of actions which can make connections to known virtual
+     * filestores, as supplied by 
+     * {@link uk.ac.starlink.connect.ConnectorManager}.
+     * Each action will result in the user being prompted for authorization
+     * information, and if this is satisfactory, a new node representing
+     * the root of the resulting virtual filestore being added to this tree.
+     * 
+     * @param  factory  data node factory which will be used to create
+     *         new data nodes for any connections which are opened
+     */
+    public Action[] getConnectionActions( final DataNodeFactory factory ) {
+        Connector[] connectors = ConnectorManager.getConnectors();
+        Action[] connectActions = new Action[ connectors.length ];
+        for ( int i = 0; i < connectActions.length; i++ ) {
+            final Connector connector = connectors[ i ];
+            Action connAct = new AbstractAction() { 
+                public void actionPerformed( ActionEvent evt ) {
+                    connectorLogin( connector, factory );
+                }
+            };
+            String name = connector.getName();
+            connAct.putValue( Action.NAME, name + " Connection" );
+            connAct.putValue( Action.SMALL_ICON, connector.getIcon() );
+            connAct.putValue( Action.SHORT_DESCRIPTION, 
+                              "Browse files in a " + name + " filestore" );
+            connectActions[ i ] = connAct;
+        }
+        return connectActions;
+    }
+
+    /**
+     * Opens a connection for a given connector, prompting the user for
+     * authorization information and adding a new node to this tree if
+     * one results.
+     *
+     * @param   connector  the connector to sue
+     * @param   factory  data node factory for creating the new node
+     */
+    private void connectorLogin( Connector connector,
+                                 DataNodeFactory factory ) {
+        Connection connection = 
+            ConnectorManager.showConnectionDialog( this, connector );
+        if ( connection != null ) {
+            Branch branch = connection.getRoot();
+            DataNode node;
+            try {
+                node = factory.makeDataNode( null, branch );
+                if ( node instanceof BranchDataNode ) {
+                    ((BranchDataNode) node).setConnection( connection );
+                }
+            }
+            catch ( NoSuchDataException e ) {
+                node = factory.makeErrorDataNode( null, e );
+            }
+            model.appendNode( node, (DataNode) model.getRoot() );
+            TreePath tpath = new TreePath( model.getPathToRoot( node ) );
+            scrollPathToVisible( tpath );
+            setSelectionPath( tpath );
+        }
     }
 
 }
