@@ -49,6 +49,7 @@ public class StarTableFactory {
     private List builders;
     private JDBCHandler jdbcHandler;
     private boolean wantRandom;
+    private StoragePolicy storagePolicy;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
@@ -142,6 +143,31 @@ public class StarTableFactory {
     }
 
     /**
+     * Sets the storage policy.  This may be used to determine what kind
+     * of scratch storage is used when constructing tables.
+     *
+     * @param  policy  the new storage policy object
+     */
+    public void setStoragePolicy( StoragePolicy policy ) {
+        storagePolicy = policy;
+    }
+
+    /**
+     * Returns the current storage policy.  This may be used to determine
+     * what kind of scratch storage is used when constructing tables.
+     * If it has not been set explicitly, the default policy is used 
+     * ({@link StoragePolicy#getDefaultPolicy}).
+     *
+     * @param   return  storage policy object
+     */
+    public StoragePolicy getStoragePolicy() {
+        if ( storagePolicy == null ) {
+            storagePolicy = StoragePolicy.getDefaultPolicy();
+        }
+        return storagePolicy;
+    }
+
+    /**
      * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt> 
      * object.  
      *
@@ -155,7 +181,8 @@ public class StarTableFactory {
     public StarTable makeStarTable( DataSource datsrc ) throws IOException {
         for ( Iterator it = builders.iterator(); it.hasNext(); ) {
             TableBuilder builder = (TableBuilder) it.next();
-            StarTable startab = builder.makeStarTable( datsrc, wantRandom );
+            StarTable startab = builder.makeStarTable( datsrc, wantRandom(),
+                                                       getStoragePolicy() );
             if ( startab != null ) {
                 if ( startab instanceof AbstractStarTable ) {
                     AbstractStarTable abst = (AbstractStarTable) startab;
@@ -204,7 +231,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( String location ) throws IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return getJDBCHandler().makeStarTable( location, wantRandom );
+            return getJDBCHandler().makeStarTable( location, wantRandom() );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -308,7 +335,8 @@ public class StarTableFactory {
                             }
                         };
                         StarTable startab =
-                            builder.makeStarTable( datsrc, wantRandom );
+                            builder.makeStarTable( datsrc, wantRandom(),
+                                                   getStoragePolicy() );
                         if ( startab != null ) {
                             return startab;
                         }

@@ -3,6 +3,7 @@ package uk.ac.starlink.table.formats;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.DataSource;
@@ -20,7 +21,8 @@ public class TextTableBuilder implements TableBuilder {
         return false;
     }
 
-    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
+                                    StoragePolicy policy )
             throws IOException {
         return new TextStarTable( datsrc );
     }

@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.util.DataSource;
 
@@ -19,7 +20,8 @@ import uk.ac.starlink.util.DataSource;
  */
 public class WDCTableBuilder implements TableBuilder {
 
-    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
+                                    StoragePolicy storagePolicy )
             throws IOException {
 
         /* If it doesn't start how we expect WDC text to start, bail

@@ -30,10 +30,13 @@ public interface TableBuilder {
      * @param  datsrc  the DataSource containing the table resource
      * @param  wantRandom  whether, preferentially, a random access table
      *         should be returned
+     * @param  storagePolicy  a StoragePolicy object which may be used to
+     *         supply scratch storage if the builder needs it
      * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
      *          if this handler can't handle it
      */
-    StarTable makeStarTable( DataSource datsrc, boolean wantRandom ) 
+    StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
+                             StoragePolicy storagePolicy ) 
             throws IOException;
 
     /**
