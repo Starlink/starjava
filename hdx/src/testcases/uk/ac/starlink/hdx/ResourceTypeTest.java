@@ -124,6 +124,10 @@ public class ResourceTypeTest
         assertNull(grandkid.getPreviousSibling());
         assertSame(kid, grandkid.getParentNode());
 
+        // This is another test which is vulnerable to the Xalan bug
+        if (XmlParserFeatureset.getInstance().xalanHasEndEndDocumentBug())
+            return;
+
         // Check serialisation -- this is another way of checking the
         // sanity of the DOM which the Facade produces, since the
         // transformation has to traverse the DOM using the Node methods.
