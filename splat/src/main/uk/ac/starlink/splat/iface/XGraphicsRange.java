@@ -314,7 +314,6 @@ public class XGraphicsRange
      */
     public void figureCreated( FigureChangedEvent e )
     {
-        System.out.println( "Created Figure in XGraphicsRange" );
         //  Is this an XRangeFigure?
         if ( e.getSource() instanceof XRangeFigure ) {
 
@@ -334,7 +333,6 @@ public class XGraphicsRange
     {
         // Kill this also and any references to it.
         figure = null;
-        System.out.println( "Figure removed" );
     }
 
     /**
@@ -342,8 +340,6 @@ public class XGraphicsRange
      */
     public void figureChanged( FigureChangedEvent e )
     {
-        System.out.println( "Figure changed" );
-
         // Update any references to show new coordinates.
         model.changeRange( pane.indexOf( (XRangeFigure) e.getSource() ) );
     }
