@@ -33,8 +33,10 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
+import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.topcat.plot.PlotWindow;
 
 /**
@@ -63,10 +65,11 @@ public class TopcatModel {
     private final OptionsListModel activators;
     private final ComboBoxModel sortSelectionModel;
     private final ComboBoxModel subsetSelectionModel;
-    private final ButtonModel sortSenseModel;
+    private final SortSenseModel sortSenseModel;
     private final Collection listeners;
     private final Map columnSelectorMap;
     private final int id;
+    private final ControlWindow controlWindow;
     private String location;
     private String label;
     private Activator activator;
@@ -78,6 +81,7 @@ public class TopcatModel {
     private SubsetWindow subsetWindow;
     private PlotWindow plotWindow;
     private ActivationQueryWindow activationWindow;
+    private SaveQueryWindow saveWindow;
 
     private Action newsubsetAct;
     private Action unsortAct;
@@ -88,6 +92,7 @@ public class TopcatModel {
     private TopcatWindowAction subsetAct;
     private TopcatWindowAction plotAct;
     private TopcatWindowAction activationAct;
+    private TopcatWindowAction saveAct;
     private TopcatWindowAction[] windowActions;
 
     private static int instanceCount = 0;
@@ -97,7 +102,9 @@ public class TopcatModel {
      *
      * @param   startab  the StarTable
      */
-    public TopcatModel( StarTable startab, String location ) {
+    public TopcatModel( StarTable startab, String location, 
+                        ControlWindow controlWindow ) {
+        this.controlWindow = controlWindow;
 
         /* Ensure that we have random access. */
         if ( ! startab.isRandom() ) {
@@ -218,6 +225,8 @@ public class TopcatModel {
         activationAct = new TopcatWindowAction( 
                            "Set Activation Action", null,
                            "Set what happens when a row/point is clicked on" );
+        saveAct = new TopcatWindowAction( "Save Table", ResourceIcon.SAVE,
+                                          "Write out the current table" );
 
         /* Set up the listeners. */
         listeners = new ArrayList();
@@ -435,7 +444,7 @@ public class TopcatModel {
      *
      * @return  sort direction model
      */
-    public ButtonModel getSortSenseModel() {
+    public JToggleButton.ToggleButtonModel getSortSenseModel() {
         return sortSenseModel;
     }
 
@@ -631,6 +640,16 @@ public class TopcatModel {
      */
     public Action getActivationAction() {
         return activationAct;
+    }
+
+    /**
+     * Gets an action which allows the user to save the table corresponding
+     * to this mode.  This will result in a dialogue box.
+     *
+     * @return  save action
+     */
+    public Action getSaveAction() {
+        return saveAct;
     }
 
     /**
@@ -999,6 +1018,9 @@ public class TopcatModel {
             else if ( this == activationAct ) {
                 return activationWindow != null;
             }
+            else if ( this == saveAct ) {
+                return saveWindow != null;
+            }
             else {
                 throw new AssertionError();
             }
@@ -1048,6 +1070,16 @@ public class TopcatModel {
                         new ActivationQueryWindow( tcModel, parent );
                 }
                 return activationWindow;
+            }
+            else if ( this == saveAct ) {
+                if ( ! hasWindow() ) {
+                    StarTableOutput sto = controlWindow.getTableOutput();
+                    TableLoadChooser loadChooser = 
+                        controlWindow.getLoadChooser();
+                    saveWindow = new SaveQueryWindow( tcModel, sto, loadChooser,
+                                                      parent );
+                }
+                return saveWindow;
             }
             else {
                 throw new AssertionError();

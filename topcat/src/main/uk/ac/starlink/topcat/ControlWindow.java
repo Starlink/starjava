@@ -64,7 +64,6 @@ import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
 import uk.ac.starlink.table.gui.TableLoadChooser;
-import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.gui.ErrorDialog;
@@ -107,7 +106,6 @@ public class ControlWindow extends AuxWindow
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
     private StarTableFactory tabfact = new StarTableFactory( true );
     private TableLoadChooser loadChooser;
-    private TableSaveChooser saveChooser;
     private LoadQueryWindow loadWindow;
     private ConcatWindow concatWindow;
 
@@ -200,8 +198,6 @@ public class ControlWindow extends AuxWindow
                                        "Join tables by concatenating them" );
         readAct.setEnabled( canRead );
 
-        writeAct = new ExportAction( "Save Table", ResourceIcon.SAVE,
-                                     "Write out the current table" );
         dupAct = new ExportAction( "Duplicate Table", ResourceIcon.COPY,
                                    "Create a duplicate of the current table" );
         mirageAct = new ExportAction( "Export To Mirage", null,
@@ -220,6 +216,8 @@ public class ControlWindow extends AuxWindow
                                     "Display statistics for each column" );
         plotAct = new ModelAction( "Plot", ResourceIcon.PLOT,
                                    "Plot table columns" );
+        writeAct = new ModelAction( "Save Table", ResourceIcon.SAVE,
+                                    "Write out the current table" );
 
         matchActs = new Action[] {
             new MatchWindowAction( "Internal Match", ResourceIcon.MATCH1,
@@ -385,7 +383,7 @@ public class ControlWindow extends AuxWindow
      */
     public TopcatModel addTable( StarTable table, String location,
                                  boolean select ) {
-        TopcatModel tcModel = new TopcatModel( table, location );
+        TopcatModel tcModel = new TopcatModel( table, location, this );
         tcModel.setLabel( shorten( location ) );
         tablesModel.addElement( tcModel );
         if ( select || tablesList.getSelectedValue() == null ) {
@@ -447,29 +445,6 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
-     * Returns a dialog used for saving tables.
-     *
-     * @return  a table saver
-     */
-    public TableSaveChooser getSaveChooser() {
-        if ( saveChooser == null ) {
-            saveChooser = new TableSaveChooser() {
-                public StarTable getTable() {
-                    TopcatModel tcModel = getCurrentModel();
-                    return tcModel == null
-                         ? null
-                         : tcModel.getApparentStarTable();
-                }
-            };
-            saveChooser.setTableOutput( taboutput );
-            if ( loadChooser != null ) {
-                saveChooser.configureFromLoader( loadChooser );
-            }
-        }
-        return saveChooser;
-    }
-
-    /**
      * Returns a dialog used for doing table concatenation.
      *
      * @return  concatenation window
@@ -491,6 +466,15 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns the table output manager used by this window.
+     *
+     * @return  table outputter
+     */
+    public StarTableOutput getTableOutput() {
+        return taboutput;
+    }
+
+    /**
      * Sets the table factory used by this window.
      *
      * @param   tabfact   table factory
@@ -507,9 +491,6 @@ public class ControlWindow extends AuxWindow
     public TableLoadChooser getLoadChooser() {
         if ( loadChooser == null ) {
             loadChooser = new TableLoadChooser( getTableFactory() );
-            if ( saveChooser != null ) {
-                loadChooser.configureFromSaver( saveChooser );
-            }
         }
         return loadChooser;
     }
@@ -817,6 +798,9 @@ public class ControlWindow extends AuxWindow
             else if ( this == plotAct ) {
                 act = tcModel.getPlotAction();
             }
+            else if ( this == writeAct ) {
+                act = tcModel.getSaveAction();
+            }
             else {
                 throw new AssertionError();
             }
@@ -955,10 +939,7 @@ public class ControlWindow extends AuxWindow
             TopcatModel tcModel = getCurrentModel();
             assert tcModel != null : "Action should be disabled!";
             StarTable table = tcModel.getApparentStarTable();
-            if ( this == writeAct ) {
-                getSaveChooser().showSaveDialog( window );
-            }
-            else if ( this == dupAct ) {
+            if ( this == dupAct ) {
                 addTable( table, "Copy of " + tcModel.getID(), true );
             }
             else if ( this == mirageAct ) {
