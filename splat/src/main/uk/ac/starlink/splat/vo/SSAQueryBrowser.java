@@ -207,7 +207,7 @@ public class SSAQueryBrowser
         queryPanel.setBorder
             ( BorderFactory.createTitledBorder( "Search region:" ) );
 
-        GridBagLayouter layouter = 
+        GridBagLayouter layouter =
             new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 );
         contentPane.add( queryPanel, BorderLayout.NORTH );
 
@@ -218,7 +218,7 @@ public class SSAQueryBrowser
                                   "and press return to get coordinates" );
         layouter.add( nameLabel, false );
         layouter.add( nameField, false );
-        
+
         JButton nameLookup = new JButton( "Lookup" );
         layouter.add( nameLookup, true );
 
@@ -259,7 +259,7 @@ public class SSAQueryBrowser
         layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
                                     " from given centre, arcminutes" );
-        
+
         //  Do the search.
         JButton goButton = new JButton( "Go" );
         JPanel buttonPanel = new JPanel();
@@ -290,17 +290,27 @@ public class SSAQueryBrowser
         resultsPanel.add( resultsPane, BorderLayout.CENTER );
 
         JPanel controlPanel = new JPanel();
-        JButton displayButton = new JButton( "Display" );
-        controlPanel.add( displayButton );
-        resultsPanel.add( controlPanel, BorderLayout.SOUTH );
+        JButton displaySelectedButton = new JButton( "Display selected" );
+        controlPanel.add( displaySelectedButton );
 
         //  Add action to display all currently selected spectra.
-        displayButton.addActionListener( new ActionListener() {
+        displaySelectedButton.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
-                    displaySelectedSpectra();
+                    displaySpectra( true );
                 }
             });
 
+        JButton displayAllButton = new JButton( "Display all" );
+        controlPanel.add( displayAllButton );
+
+        //  Add action to display all spectra.
+        displayAllButton.addActionListener( new ActionListener() {
+                public void actionPerformed( ActionEvent e ) {
+                    displaySpectra( false );
+                }
+            });
+
+        resultsPanel.add( controlPanel, BorderLayout.SOUTH );
         contentPane.add( resultsPanel, BorderLayout.CENTER );
     }
 
@@ -380,7 +390,7 @@ public class SSAQueryBrowser
         //  Get the position.
         String ra = raField.getText();
         String dec = decField.getText();
-        if ( ra == null || ra.length() == 0 || 
+        if ( ra == null || ra.length() == 0 ||
              dec == null || dec.length() == 0 ) {
             JOptionPane.showMessageDialog( this,
                   "You have not supplied a search centre",
@@ -424,17 +434,17 @@ public class SSAQueryBrowser
      * If it does not already exist, make the panel used to display
      * the progress of network access.
      */
-    protected void makeProgressPanel() 
+    protected void makeProgressPanel()
     {
         if ( progressPanel == null ) {
             progressPanel = ProgressPanel.makeProgressPanel
-                ( "Querying SSA servers for spectra..." );
+                ( "Querying SSA servers for spectra...", this );
 
             //  When the cancel button is pressed we want to stop the
             //  SwingWorker thread.
-            progressPanel.addActionListener( new ActionListener() 
+            progressPanel.addActionListener( new ActionListener()
             {
-                public void actionPerformed( ActionEvent e ) 
+                public void actionPerformed( ActionEvent e )
                 {
                     if ( worker != null ) {
                         worker.interrupt();
@@ -454,10 +464,10 @@ public class SSAQueryBrowser
         final ArrayList localQueryList = queryList;
         makeProgressPanel();
 
-        worker = new SwingWorker() 
+        worker = new SwingWorker()
         {
             boolean interrupted = false;
-            public Object construct() 
+            public Object construct()
             {
                 try {
                     runProcessQueryList( localQueryList );
@@ -468,13 +478,13 @@ public class SSAQueryBrowser
                 return null;
             }
 
-            public void finished() 
+            public void finished()
             {
                 System.out.println( "SwingWorker finished: " + interrupted );
                 progressPanel.stop();
                 worker = null;
                 queryThread = null;
-                
+
                 //  Display the results.
                 if ( ! interrupted ) {
                     makeResultsDisplay( localQueryList );
@@ -489,28 +499,31 @@ public class SSAQueryBrowser
     /**
      * Do the query to all the SSAP servers.
      */
-    private void doProcessQueryList( ArrayList queryList )
+    private void runProcessQueryList( ArrayList queryList )
         throws InterruptedException
     {
-        Iterator i = queryList.iterator();
+        //  We just download VOTables, so avoid attempting to build the other
+        //  formats.
         StarTableFactory factory = new StarTableFactory();
         TableBuilder[] blist = { new VOTableBuilder() };
         factory.setDefaultBuilders( blist );
+
         StarTable starTable = null;
-        
+        Iterator i = queryList.iterator();
         //int j = 0;
         while( i.hasNext() ) {
             try {
                 SSAQuery ssaQuery = (SSAQuery) i.next();
                 URL url = ssaQuery.getQueryURL();
-                progressPanel.logMessage
-                    ( ssaQuery.getDescription() );
+                progressPanel.logMessage( "Querying: " +
+                                          ssaQuery.getDescription() );
                 starTable = factory.makeStarTable( url );
                 ssaQuery.setStarTable( starTable );
-                
-                //uk.ac.starlink.table.StarTableOutput sto = 
+                progressPanel.logMessage( "Done" );
+
+                //uk.ac.starlink.table.StarTableOutput sto =
                 //    new uk.ac.starlink.table.StarTableOutput();
-                //sto.writeStarTable( starTable, 
+                //sto.writeStarTable( starTable,
                 //                    "votable" + j + ".xml", null);
                 //j++;
             }
@@ -562,7 +575,7 @@ public class SSAQueryBrowser
      * Get the main SPLAT browser to download and display any selected
      * spectra.
      */
-    protected void displaySelectedSpectra()
+    protected void displaySpectra( boolean selected )
     {
         //  List of all spectra to be loaded and there data formats.
         ArrayList specList = new ArrayList();
@@ -570,73 +583,28 @@ public class SSAQueryBrowser
 
         //  Visit all the tabbed StarJTables.
         Iterator i = starJTables.iterator();
-        StarJTable table;
-        StarTable starTable;
-        ColumnInfo colInfo;
-        int ncol;
-        int linkcol;
-        int typecol;
         RowSequence rseq = null;
         while ( i.hasNext() ) {
-            table = (StarJTable) i.next();
-            //  Check for a selection.
-            int[] selection = table.getSelectedRows();
-            if ( selection.length > 0 ) {
-                starTable = table.getStarTable();
-                
-                //  Check for a column that contains links to the actual data
-                //  (XXX these could be XML links to data within this
-                //  document). The signature for this is an UCD of DATA_LINK.
-                ncol = starTable.getColumnCount();
-                linkcol = -1;
-                typecol = -1;
-                for( int k = 0; k < ncol; k++ ) {
-                    colInfo = starTable.getColumnInfo( k );
-                    if ( colInfo.getUCD().equalsIgnoreCase( "DATA_LINK" ) ) {
-                        linkcol = k;
-                    }
-                    if ( colInfo.getUCD()
-                         .equalsIgnoreCase( "VOX:SPECTRUM_FORMAT" ) ) {
-                        typecol = k;
-                    }
-                }
-                if ( linkcol != -1 ) {
-                    //  Have a DATA_LINK column, so gather the URLs it
-                    //  contains from the selected rows.
-                    try { 
-                        rseq = starTable.getRowSequence();
-                        while ( rseq.hasNext() ) { 
-                            rseq.next(); 
-                            specList.add( rseq.getCell( linkcol ) );
-                            if ( typecol != -1 ) {
-                                typeList.add( rseq.getCell( typecol ) );
-                            }
-                        } 
-                    }
-                    catch (IOException ie) {
-                        ie.printStackTrace();
-                    }
-                    finally { 
-                        try { 
-                            rseq.close(); 
-                        }
-                        catch (IOException iie) {
-                            // Ignore.
-                        }
-                    }
-                }
-            }
+            extractSpectraFromTable( (StarJTable) i.next(), specList,
+                                     typeList, selected );
         }
 
-        //  If we no spectra complain and stop.
+        //  If we have no spectra complain and stop.
         if ( specList.size() == 0 ) {
-            JOptionPane.showMessageDialog( this, "There are no spectra selected",
-                                           "No spectra", JOptionPane.ERROR_MESSAGE );
+            String mess;
+            if ( selected ) {
+                mess = "There are no spectra selected";
+            }
+            else {
+                mess = "No spectra available";
+            }
+            JOptionPane.showMessageDialog( this, mess, "No spectra", 
+                                           JOptionPane.ERROR_MESSAGE );
             return;
         }
 
         //  Create the String[] list of names and also transform MIME types
-        //  into SPLAT types. 
+        //  into SPLAT types.
         int nspec = specList.size();
         String[] spectra = new String[nspec];
         for ( int k = 0; k < nspec; k++ ) {
@@ -645,39 +613,145 @@ public class SSAQueryBrowser
         int ntypes = typeList.size();
         int[] types = null;
         if ( ntypes > 0 ) {
-            String type = null;
-            types = new int[ntypes];
-            for ( int k = 0; k < ntypes; k++ ) {
-                type = (String) typeList.get( k );
-                if ( type.equals( "application/fits" ) ) {
-                    //  FITS format, is that image or table?
-                    types[k] = SpecDataFactory.FITS;
-                }
-                else if ( type.equals( "spectrum/fits" ) ) {
-                    //  FITS format, is that image or table? Don't know who
-                    //  thought this was a mime-type?
-                    types[k] = SpecDataFactory.FITS;
-                }
-                else if ( type.equals( "text/plain" ) ) {
-                    //  ASCII table of some kind.
-                    types[k] = SpecDataFactory.TABLE;
-                }
-                else if ( type.equals( "application/x-votable+xml" ) ) {
-                    // VOTable spectrum.
-                    types[k] = SpecDataFactory.TABLE;
-                }
-                else {
-                    types[k] = SpecDataFactory.DEFAULT;
-                }
-            }
+            types = mimeToSPLATTypes( typeList );
         }
 
         //  And load and display...
         browser.threadLoadSpectra( spectra, types );
     }
 
+    /**
+     * Extract all the links to spectra for downloading, plus the associated
+     * data formats, if available from the rows of table. Can return the
+     * selected spectra, if requested, otherwise all spectra are returned.
+     */
+    private void extractSpectraFromTable(StarJTable table, ArrayList specList,
+                                         ArrayList typeList, boolean selected)
+    {
+        int[] selection = null;
+        //  Check for a selection if required.
+        if ( selected ) {
+            selection = table.getSelectedRows();
+        }
 
+        // Only do this if we're processing all rows or we have a selection.
+        if ( selection == null || selection.length > 0 ) {
+            StarTable starTable = table.getStarTable();
 
+            //  Check for a column that contains links to the actual data
+            //  (XXX these could be XML links to data within this
+            //  document). The signature for this is an UCD of DATA_LINK.
+            int ncol = starTable.getColumnCount();
+            int linkcol = -1;
+            int typecol = -1;
+            ColumnInfo colInfo;
+            for( int k = 0; k < ncol; k++ ) {
+                colInfo = starTable.getColumnInfo( k );
+                if (colInfo.getUCD().equalsIgnoreCase("DATA_LINK")) {
+                    linkcol = k;
+                }
+                if (colInfo.getUCD().equalsIgnoreCase("VOX:SPECTRUM_FORMAT")) {
+                    typecol = k;
+                }
+            }
+            
+            //  If we have a DATA_LINK column, gather the URLs it contains
+            //  that are appropriate.
+            if ( linkcol != -1 ) {
+                RowSequence rseq = null;
+                try {
+                    if ( ! selected ) {
+                        //  Using all rows.
+                        rseq = starTable.getRowSequence();
+                        while ( rseq.hasNext() ) {
+                            rseq.next();
+                            specList.add( rseq.getCell( linkcol ) );
+                            if ( typecol != -1 ) {
+                                typeList.add( rseq.getCell( typecol ) );
+                            }
+                        }
+                    }
+                    else {
+                        //  Just using selected rows. To do this we step
+                        //  through the table and check if that row is the
+                        //  next one in the selection (the selection is
+                        //  sorted).
+                        rseq = starTable.getRowSequence();
+                        int k = 0; // Table row
+                        int l = 0; // selection index
+                        while ( rseq.hasNext() ) {
+                            rseq.next();
+                            if ( k == selection[l] ) {
+
+                                // Store this one as matches selection.
+                                specList.add( rseq.getCell( linkcol ) );
+                                if ( typecol != -1 ) {
+                                    typeList.add( rseq.getCell(typecol) );
+                                }
+
+                                //  Move to next selection.
+                                l++;
+                                if ( l >= selection.length ) {
+                                    break;
+                                }
+                            }
+                            k++;
+                        }
+                    }
+                }
+                catch (IOException ie) {
+                    ie.printStackTrace();
+                }
+                finally {
+                    try {
+                        if ( rseq != null ) {
+                            rseq.close();
+                        }
+                    }
+                    catch (IOException iie) {
+                        // Ignore.
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Convert a list of mime types into the equivalent SPLAT types (these are
+     * int constants defined in SpecDataFactory).
+     */
+    private int[] mimeToSPLATTypes( ArrayList typeList )
+    {
+        int ntypes = typeList.size();
+        int[] types = new int[ntypes];
+        String type = null;
+        for ( int k = 0; k < ntypes; k++ ) {
+            type = (String) typeList.get( k );
+            if ( type.equals( "application/fits" ) ) {
+                //  FITS format, is that image or table?
+                types[k] = SpecDataFactory.FITS;
+            }
+            else if ( type.equals( "spectrum/fits" ) ) {
+                //  FITS format, is that image or table? Don't know who
+                //  thought this was a mime-type?
+                types[k] = SpecDataFactory.FITS;
+            }
+            else if ( type.equals( "text/plain" ) ) {
+                //  ASCII table of some kind.
+                types[k] = SpecDataFactory.TABLE;
+            }
+            else if ( type.equals( "application/x-votable+xml" ) ) {
+                // VOTable spectrum.
+                types[k] = SpecDataFactory.TABLE;
+            }
+            else {
+                // Hope the URL has a recognisable file extension.
+                types[k] = SpecDataFactory.DEFAULT;
+            }
+        }
+        return types;
+    }
+        
     /**
      *  Close the window.
      */
