@@ -713,8 +713,7 @@
          <j2se version="1.4+"/>
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"
                   excludes="**/showndx.jar" />
-         <jar href="ant.jar"/>
- 
+
          <extension name="ARRAY" href="array.jnlp"/>
          <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
          <extension name="FITS" href="fits.jnlp"/>
