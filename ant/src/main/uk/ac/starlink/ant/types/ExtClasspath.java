@@ -90,17 +90,27 @@ public class ExtClasspath extends Path
     {
         log( "[extclasspath] adding extension jar files from " + jarFile, 
              Project.MSG_VERBOSE );
-
         File jarBase = jarFile.getParentFile();
         File newJarFile = null;
         String s[] = getDownloads( jarFile );
         if ( s != null && s.length > 0 ) {
             for ( int j = 0; j < s.length; j++ ) {
                 newJarFile = new File( jarBase, s[j] );
+                newJarFile = newJarFile.getAbsoluteFile();
+
+                //  Add this Jar file if it exists on disk and hasn't
+                //  been seen already. Visit its extension jar files
+                //  too.
                 if ( newJarFile.exists() ) {
                     if ( "jar".equals( getExtension( newJarFile ) ) ) {
+
+                        //  Note this compares absolute name against those
+                        //  visited already.
                         if ( jarsDone.indexOf( newJarFile ) == -1 ) {
                             setLocation( newJarFile );
+
+                            // Mark this as done now, before visiting
+                            // its extensions.
                             jarsDone.add( newJarFile );
                             addDownloads( newJarFile );
                             log( "[extclasspath] adding " + newJarFile + 
@@ -110,13 +120,13 @@ public class ExtClasspath extends Path
                         else {
                             log( "[extclasspath] dropping " + newJarFile + 
                                  " from extension jar files as already done",
-                                 Project.MSG_VERBOSE ) ;
+                                 Project.MSG_VERBOSE );
                         }
                     }
                     else {
                         log( "[extclasspath] dropping " + newJarFile + 
                              " from extension jar files as not jar file",
-                             Project.MSG_VERBOSE ) ;
+                             Project.MSG_VERBOSE );
                     }
                 }
                 else {
