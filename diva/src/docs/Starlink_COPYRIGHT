@@ -1,0 +1,5 @@
+Some parts of this package are copyright (C) CLRC. These are
+released under the GNU Public Licence, the Diva parts (mainly
+the Java source code "src/main/diva/...") have their own 
+copyright, which can be found in this directory in the file
+COPYRIGHT.
