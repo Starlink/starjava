@@ -1044,12 +1044,16 @@
    !-->
   <target name="test"
           depends="compile-tests">
-
     <!-- Run up FROG from the local build -->
-    <java classname="uk.ac.starlink.frog.FrogMain" fork="true">
-      <classpath refid="tests-classpath"/>
-      <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
-    </java>
+  <!--
+   ! Test commented out as it's not a unit test, fails when headless,
+   ! and never returns (MBT).
+   !
+   !<java classname="uk.ac.starlink.frog.FrogMain" fork="true">
+   !  <classpath refid="tests-classpath"/>
+   !  <sysproperty key="java.awt.headless" value="${java.awt.headless}"/>
+   !</java>
+   !-->
   </target>
 
   <!--
