@@ -325,7 +325,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             bgroup.add( item );
         }
 
-        /* Action for repdrawing the current plot. */
+        /* Action for redrawing the current plot. */
         Action replotAction = new BasicAction( "Replot", ResourceIcon.REDO,
                                  "Redraw the plot with current table data" ) {
             public void actionPerformed( ActionEvent evt ) {
