@@ -81,5 +81,6 @@ $starjava \
    -Duk.ac.starlink.treeview.sogdir="$SOG_DIR" \
    -Duk.ac.starlink.treeview.splatdir="$SPLAT_DIR" \
    -enableassertions \
-   -jar $appjar $*
+   -classpath $appjar:${CLASSPATH} uk.ac.starlink.treeview.Driver \
+   "$@"
   
