@@ -80,6 +80,7 @@ public class ResourceIcon implements Icon {
         SUBSETS = makeIcon( "venn2.gif" ),
         FUNCTION = makeIcon( "fx2.gif" ),
         MATCH = makeIcon( "match1.gif" ),
+        CONCAT = makeIcon( "concat4.gif" ),
 
         /* Specific actions. */
         UNSORT = DO_WHAT,
@@ -92,6 +93,7 @@ public class ResourceIcon implements Icon {
         COUNT = makeIcon( "ab3.gif" ),
         UP = makeIcon( "arrow_n.gif" ),
         DOWN = makeIcon( "arrow_s.gif" ),
+        INVERT = makeIcon( "invert3.gif" ),
 
         FORWARD = makeIcon( "Forward24.gif" ),
         BACKWARD = makeIcon( "Back24.gif" ),

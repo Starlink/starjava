@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
 import javax.swing.JProgressBar;
@@ -34,6 +35,10 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
     private final Map subsetCounts;
     private final PlasticStarTable dataModel;
     private final MetaColumnTableModel subsetsTableModel;
+    private final Action addAct;
+    private final Action tocolAct;
+    private final Action countAct;
+    private final Action invertAct;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -86,43 +91,24 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         getMainArea().add( new SizingScrollPane( jtab ) );
 
         /* Action for adding a new subset. */
-        Action addAction = new BasicAction( "New subset", ResourceIcon.ADD,
-                                            "Define a new subset using " +
-                                            "algebraic expression" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                Component parent = SubsetWindow.this;
-                new SyntheticSubsetQueryWindow( tcModel, parent );
-            }
-        };
+        addAct = new SubsetAction( "New subset", ResourceIcon.ADD,
+                                   "Define a new subset using " +
+                                   "algebraic expression" );
 
         /* Action for turning a subset into a column. */
-        final Action tocolAction =
-            new BasicAction( "To column", ResourceIcon.TO_COLUMN,
-                             "Create new boolean column from selected " +
-                             "subset" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    Component parent = SubsetWindow.this;
-                    SyntheticColumnQueryWindow colwin = 
-                        new SyntheticColumnQueryWindow( tcModel, -1, parent );
-                    int irow = jtab.getSelectedRow();
-                    colwin.setExpression( getSubsetID( irow ) );
-                    colwin.setName( getSubsetName( irow ) );
-                }
-           };
+        tocolAct = new SubsetAction( "To column", ResourceIcon.TO_COLUMN,
+                                     "Create new boolean column from " +
+                                     "selected subset" );
 
         /* Action for counting subset sizes. */
-        final Action countAction = 
-            new BasicAction( "Count rows", ResourceIcon.COUNT,
-                             "Count the number of rows in each subset" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    if ( activeCounter != null ) {
-                        activeCounter.interrupt();
-                    }
-                    SubsetCounter sc = new SubsetCounter();
-                    activeCounter = sc;
-                    sc.start();
-                }
-            };
+        countAct = new SubsetAction( "Count rows", ResourceIcon.COUNT,
+                                     "Count the number of rows in each " +
+                                     "subset" );
+
+        /* Action for producing inverse subset. */
+        invertAct = new SubsetAction( "Invert subset", ResourceIcon.INVERT,
+                                      "Create new subset complementary to " +
+                                      "selected subset" );
 
         /* Add a selection listener to ensure that the right actions 
          * are enabled/disabled. */
@@ -130,7 +116,8 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
             public void valueChanged( ListSelectionEvent evt ) {
                 int nsel = jtab.getSelectedRowCount();
                 boolean hasUniqueSelection = nsel == 1;
-                tocolAction.setEnabled( hasUniqueSelection );
+                tocolAct.setEnabled( hasUniqueSelection );
+                invertAct.setEnabled( hasUniqueSelection );
             }
         };
         ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -138,17 +125,19 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         selList.valueChanged( null );
  
         /* Toolbar. */
-        getToolBar().add( addAction );
-        getToolBar().add( tocolAction );
-        getToolBar().add( countAction );
+        getToolBar().add( addAct );
+        getToolBar().add( invertAct );
+        getToolBar().add( tocolAct );
+        getToolBar().add( countAct );
         getToolBar().addSeparator();
 
         /* Subsets menu. */
         JMenu subsetsMenu = new JMenu( "Subsets" );
         subsetsMenu.setMnemonic( KeyEvent.VK_S );
-        subsetsMenu.add( addAction ).setIcon( null );
-        subsetsMenu.add( tocolAction ).setIcon( null );
-        subsetsMenu.add( countAction ).setIcon( null );
+        subsetsMenu.add( addAct ).setIcon( null );
+        subsetsMenu.add( invertAct ).setIcon( null );
+        subsetsMenu.add( tocolAct ).setIcon( null );
+        subsetsMenu.add( countAct ).setIcon( null );
         getJMenuBar().add( subsetsMenu );
 
         /* Display menu. */
@@ -196,7 +185,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         /* Expression column for algebraic subsets. */
         MetaColumn exprCol = new MetaColumn( "Expression", String.class ) { 
             public Object getValue( int irow ) {
-                RowSubset rset = (RowSubset) subsets.get( irow );
+                RowSubset rset = getSubset( irow );
                 if ( rset instanceof SyntheticRowSubset ) {
                     return ((SyntheticRowSubset) rset ).getExpression();
                 }
@@ -205,10 +194,10 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
                 }
             }
             public boolean isEditable( int irow ) {
-                return subsets.get( irow ) instanceof SyntheticRowSubset;
+                return getSubset( irow ) instanceof SyntheticRowSubset;
             }
             public void setValue( int irow, Object value ) {
-                RowSubset rset = (RowSubset) subsets.get( irow );
+                RowSubset rset = getSubset( irow );
                 try {
                     RowSubset newSet = 
                         new SyntheticRowSubset( dataModel, subsets,
@@ -226,7 +215,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         /* Column ID column for column subsets. */
         MetaColumn colCol = new MetaColumn( "Column $ID", String.class ) {
             public Object getValue( int irow ) {
-                RowSubset rset = (RowSubset) subsets.get( irow );
+                RowSubset rset = getSubset( irow );
                 if ( rset instanceof BooleanColumnRowSubset ) {
                     ColumnInfo cinfo = ((BooleanColumnRowSubset) rset)
                                       .getColumnInfo();
@@ -253,6 +242,16 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
     }
 
     /**
+     * Returns the subset at a given row of the displayed jtable.
+     *
+     * @param  irow  row index
+     * @return  subset at <tt>irow</tt>
+     */
+    private RowSubset getSubset( int irow ) {
+        return (RowSubset) subsets.get( irow );
+    }
+
+    /**
      * Returns the subset ID string for the subset at a given position
      * in the subsets list (row in the presentation table).
      *
@@ -271,7 +270,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
      * @return  subset name
      */
     private String getSubsetName( int irow ) {
-        return ((RowSubset) subsets.get( irow )).getName();
+        return getSubset( irow ).getName();
     }
 
     /**
@@ -282,7 +281,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
      * @return  subset count object (probably a Number or null)
      */
     private Object getSubsetSize( int irow ) {
-        RowSubset rset = (RowSubset) subsets.get( irow );
+        RowSubset rset = getSubset( irow );
         Number count = (Number) subsetCounts.get( rset );
         return ( count == null || count.longValue() < 0 ) ? null : count;
     }
@@ -311,6 +310,48 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
     }
     public void intervalRemoved( ListDataEvent evt ) {
         subsetsTableModel.fireTableDataChanged();
+    }
+
+    /**
+     * Implementation of actions specific to this window.
+     */
+    private class SubsetAction extends BasicAction {
+        SubsetAction( String name, Icon icon, String description ) {
+            super( name, icon, description );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            Component parent = SubsetWindow.this;
+            if ( this == addAct ) {
+                new SyntheticSubsetQueryWindow( tcModel, parent );
+            }
+
+            else if ( this == tocolAct ) {
+                SyntheticColumnQueryWindow colwin =
+                    new SyntheticColumnQueryWindow( tcModel, -1, parent );
+                int irow = jtab.getSelectedRow();
+                colwin.setExpression( getSubsetID( irow ) );
+                colwin.setName( getSubsetName( irow ) );
+            }
+
+            else if ( this == countAct ) {
+                if ( activeCounter != null ) {
+                    activeCounter.interrupt();
+                }
+                SubsetCounter sc = new SubsetCounter();
+                activeCounter = sc;
+                sc.start();
+            }
+
+            else if ( this == invertAct ) {
+                int irow = jtab.getSelectedRow();
+                subsets.add( new InverseRowSubset( getSubset( irow ) ) );
+            }
+
+            else {
+                throw new AssertionError();
+            }
+        }
     }
 
 
