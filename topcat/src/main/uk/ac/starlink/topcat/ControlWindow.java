@@ -63,8 +63,8 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
-import uk.ac.starlink.table.gui.StarTableChooser;
-import uk.ac.starlink.table.gui.StarTableSaver;
+import uk.ac.starlink.table.gui.TableLoadChooser;
+import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.ErrorDialog;
@@ -106,9 +106,9 @@ public class ControlWindow extends AuxWindow
     private final ComboBoxModel dummyComboBoxModel = new DefaultComboBoxModel();
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
     private StarTableFactory tabfact = new StarTableFactory( true );
-    private StarTableChooser loadChooser;
+    private TableLoadChooser loadChooser;
+    private TableSaveChooser saveChooser;
     private LoadQueryWindow loadWindow;
-    private StarTableSaver saver;
     private ConcatWindow concatWindow;
 
     private final JTextField idField = new JTextField();
@@ -442,10 +442,6 @@ public class ControlWindow extends AuxWindow
                     addTable( st, loc, true );
                 }
             };
-            if ( saver != null ) {
-                File dir = saver.getFileChooser().getCurrentDirectory();
-                loadWindow.getFileChooser().setCurrentDirectory( dir );
-            }
         }
         return loadWindow;
     }
@@ -455,16 +451,22 @@ public class ControlWindow extends AuxWindow
      *
      * @return  a table saver
      */
-    public StarTableSaver getSaver() {
-        if ( saver == null ) {
-            File dir = ( loadWindow == null )
-                           ? new File( "." )
-                           : loadWindow.getFileChooser().getCurrentDirectory();
-            saver = new StarTableSaver();
-            saver.getFileChooser().setCurrentDirectory( dir );
-            saver.setStarTableOutput( taboutput );
+    public TableSaveChooser getSaveChooser() {
+        if ( saveChooser == null ) {
+            saveChooser = new TableSaveChooser() {
+                public StarTable getTable() {
+                    TopcatModel tcModel = getCurrentModel();
+                    return tcModel == null
+                         ? null
+                         : tcModel.getApparentStarTable();
+                }
+            };
+            saveChooser.setTableOutput( taboutput );
+            if ( loadChooser != null ) {
+                saveChooser.configureFromLoader( loadChooser );
+            }
         }
-        return saver;
+        return saveChooser;
     }
 
     /**
@@ -502,9 +504,12 @@ public class ControlWindow extends AuxWindow
      *
      * @return  load chooser dialogue
      */
-    public StarTableChooser getLoadChooser() {
+    public TableLoadChooser getLoadChooser() {
         if ( loadChooser == null ) {
-            loadChooser = new StarTableChooser( getTableFactory() );
+            loadChooser = new TableLoadChooser( getTableFactory() );
+            if ( saveChooser != null ) {
+                loadChooser.configureFromSaver( saveChooser );
+            }
         }
         return loadChooser;
     }
@@ -514,7 +519,7 @@ public class ControlWindow extends AuxWindow
      *
      * @param  chooser  load chooser dialogue
      */
-    public void setLoadChooser( StarTableChooser chooser ) {
+    public void setLoadChooser( TableLoadChooser chooser ) {
         this.loadChooser = chooser;
     }
 
@@ -951,7 +956,7 @@ public class ControlWindow extends AuxWindow
             assert tcModel != null : "Action should be disabled!";
             StarTable table = tcModel.getApparentStarTable();
             if ( this == writeAct ) {
-                getSaver().saveTable( table, window );
+                getSaveChooser().showSaveDialog( window );
             }
             else if ( this == dupAct ) {
                 addTable( table, "Copy of " + tcModel.getID(), true );

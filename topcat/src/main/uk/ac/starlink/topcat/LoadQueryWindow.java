@@ -19,7 +19,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.gui.BasicTableConsumer;
 import uk.ac.starlink.table.gui.LoadWorker;
-import uk.ac.starlink.table.gui.StarTableChooser;
+import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableConsumer;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -38,7 +38,7 @@ import uk.ac.starlink.util.ErrorDialog;
  */
 public abstract class LoadQueryWindow extends QueryWindow {
 
-    private final StarTableChooser chooser_;
+    private final TableLoadChooser chooser_;
     private final StarTableFactory tableFactory_;
     private final JProgressBar progBar_;
     private TopcatTableConsumer tableConsumer_;
@@ -52,7 +52,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
      * @param  factory   table factory
      * @param  parent   parent component
      */
-    public LoadQueryWindow( StarTableFactory factory, StarTableChooser chooser,
+    public LoadQueryWindow( StarTableFactory factory, TableLoadChooser chooser,
                             Component parent ) {
         super( "Load New Table", parent, false, true );
         tableFactory_ = factory;
@@ -118,15 +118,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
      */
     protected abstract void performLoading( StarTable startab,
                                             String location );
-
-    /**
-     * Returns the file chooser widget used by this window.
-     *
-     * @return  file chooser
-     */
-    public JFileChooser getFileChooser() {
-        return chooser_.getFileChooser();
-    }
 
     /**
      * Display the window.  The default implementation is overridden to 

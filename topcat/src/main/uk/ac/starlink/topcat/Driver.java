@@ -22,7 +22,7 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
-import uk.ac.starlink.table.gui.StarTableChooser;
+import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.util.ErrorDialog;
@@ -57,7 +57,6 @@ public class Driver {
         "uk.ac.starlink.vo.ConeSearchDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
         // "uk.ac.starlink.vo.SiapTableLoadDialog",
-        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
     };
 
     /**
@@ -169,6 +168,7 @@ public class Driver {
             // never mind
             cmdname = null;
         }
+        Loader.tweakGuiForMac();
 
         /* Prepare basic usage message. */
         if ( cmdname == null ) {
@@ -178,7 +178,7 @@ public class Driver {
         String pad = pre.replaceAll( ".", " " );
         String usage = 
               pre + " [-help] [-demo] [-disk]\n" 
-            + pad + " [-tree] [-sql] [-myspace] [-cone] [-siap] [-registry]\n"
+            + pad + " [-tree] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -213,11 +213,6 @@ public class Driver {
             else if ( arg.equals( "-sql" ) ) {
                 it.remove();
                 loaderList.add( SQLReadDialog.class.getName() );
-            }
-            else if ( arg.equals( "-myspace" ) ) {
-                it.remove();
-                loaderList.add( "uk.ac.starlink.astrogrid." +
-                                "MyspaceTableLoadDialog" );
             }
             else if ( arg.equals( "-cone" ) ) {
                 it.remove();
@@ -342,7 +337,7 @@ public class Driver {
      */
     private static ControlWindow getControlWindow() {
         if ( control == null ) {
-            StarTableChooser chooser = makeLoadChooser();
+            TableLoadChooser chooser = makeLoadChooser();
             control = ControlWindow.getInstance();
             control.setTableFactory( tabfact );
             control.setLoadChooser( chooser );
@@ -368,20 +363,20 @@ public class Driver {
     }
 
     /**
-     * Creates a StarTableChooser suitable for use by the application.
+     * Creates a TableLoadChooser suitable for use by the application.
      *
      * @return  new chooser
      */
-    private static StarTableChooser makeLoadChooser() {
+    private static TableLoadChooser makeLoadChooser() {
 
         /* If we have been requested to use any extra load dialogues,
          * install them into the chooser here.  It would be more
          * straightforward to do this using the system property mechanism
-         * designed for this (set StarTableChooser.LOAD_DIALOGS_PROPERTY),
+         * designed for this (set TableLoadChooser.LOAD_DIALOGS_PROPERTY),
          * but this would fail with a SecurityException under some 
          * circumstances (unsigned WebStart). */
         List dList = new ArrayList();
-        dList.addAll( Arrays.asList( StarTableChooser
+        dList.addAll( Arrays.asList( TableLoadChooser
                                     .makeDefaultLoadDialogs() ) );
         List nameList = new ArrayList();
         for ( Iterator it = dList.iterator(); it.hasNext(); ) {
@@ -406,7 +401,7 @@ public class Driver {
         }
         TableLoadDialog[] dialogs = (TableLoadDialog[]) 
                                     dList.toArray( new TableLoadDialog[ 0 ] );
-        return new StarTableChooser( tabfact, dialogs, KNOWN_DIALOGS );
+        return new TableLoadChooser( tabfact, dialogs, KNOWN_DIALOGS );
     }
 
     /**
@@ -523,7 +518,6 @@ public class Driver {
            .append( p2 + "-tree      hierarchy browser" )
            .append( p2 + "-sql       SQL query on relational database" )
            .append( p2 + "-cone      cone search dialogue" )
-           .append( p2 + "-myspace   MySpace browser" )
            .append( p2 + "-registry  VO registry query" )
            .append( p2 + "-siap      Simple Image Access Protocol queries" );
 
