@@ -16,6 +16,7 @@ public class PlotState {
     private boolean grid_;
     private RowSubset[] usedSubsets_;
     private MarkStyle[] styles_;
+    private boolean[] regressions_;
 
     /**
      * Constructs a PlotState giving the columns which it will plot.
@@ -110,13 +111,15 @@ public class PlotState {
      * @throws IllegalArgumentException if <tt>subsets</tt> and <tt>styles</tt>
      *         do not have the same number of elements
      */
-    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles ) {
-        if ( subsets.length != styles.length ) {
-            throw new IllegalArgumentException( "Subsets and styles arrays " +
-                                                "have different lengths" );
+    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles,
+                            boolean[] regressions ) {
+        int nset = subsets.length;
+        if ( styles.length != nset || regressions.length != nset ) {
+            throw new IllegalArgumentException( "Unequal arrays lengths" );
         }
         usedSubsets_ = subsets;
         styles_ = styles;
+        regressions_ = regressions;
     }
 
     /**
@@ -136,10 +139,22 @@ public class PlotState {
      * The array itself is returned, not a clone.
      *
      * @return  array of marker styles
-     *          (same length as {@link #getSubsets}
+     *          (same length as {@link #getSubsets})
      */
     public MarkStyle[] getStyles() {
         return styles_;
+    }
+
+    /**
+     * Returns an array of flags indicating whether a regression line is
+     * to be drawn for each subset.
+     * The array itself is returned, not a clone.
+     *
+     * @return  array of regression line flags
+     *          (same length as {@link #getSubsets})
+     */
+    public boolean[] getRegressions() {
+        return regressions_;
     }
 
     public boolean equals( Object otherObject ) {
@@ -152,7 +167,8 @@ public class PlotState {
                 && yLog_ == other.yLog_
                 && grid_ == other.grid_
                 && Arrays.equals( usedSubsets_, other.usedSubsets_ )
-                && Arrays.equals( styles_, other.styles_ );
+                && Arrays.equals( styles_, other.styles_ )
+                && Arrays.equals( regressions_, other.regressions_ );
         }
         else {
             return false;
@@ -169,6 +185,7 @@ public class PlotState {
         for ( int i = 0; i < usedSubsets_.length; i++ ) {
             code = 23 * code + usedSubsets_[ i ].hashCode();
             code = 23 * code + styles_[ i ].hashCode();
+            code = 23 * code + ( regressions_[ i ] ? 0 : 1 );
         }
         return code;
     }

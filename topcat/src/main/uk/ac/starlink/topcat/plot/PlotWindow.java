@@ -33,7 +33,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonModel;
 import javax.swing.ComboBoxModel;
-import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -47,6 +47,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.ListSelectionModel;
 import javax.swing.OverlayLayout;
 import javax.swing.table.TableColumn;
 import javax.swing.event.ListSelectionEvent;
@@ -94,6 +95,7 @@ public class PlotWindow extends TopcatViewWindow
     private final JCheckBox xLogBox_;
     private final JCheckBox yLogBox_;
     private final ListSelectionModel subSelModel_;
+    private final ListSelectionModel regressionSelModel_;
     private final ButtonModel gridModel_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final Action fromvisibleAction_;
@@ -197,8 +199,15 @@ public class PlotWindow extends TopcatViewWindow
         xLogBox_.addActionListener( this );
         yLogBox_.addActionListener( this );
 
+        /* Set up a listener to do some sensible resetting when axis choices
+         * are changed. */
+        ItemListener axisListener = new AxisListener();
+        xColBox_.addItemListener( axisListener );
+        yColBox_.addItemListener( axisListener );
+
         /* Get a menu for selecting row subsets to plot. */
-        CheckBoxMenu subMenu = subsets_.makeCheckBoxMenu( "Subsets to plot" );
+        CheckBoxMenu subMenu = subsets_.makeCheckBoxMenu( "Points" );
+        subMenu.setMnemonic( KeyEvent.VK_O );
         subSelModel_ = subMenu.getSelectionModel();
 
         /* Do the same thing as a scrollable box in the control panel. */
@@ -228,6 +237,12 @@ public class PlotWindow extends TopcatViewWindow
         subSelRecorder_ = new OrderedSelectionRecorder( subSelModel_ );
         subSelModel_.addListSelectionListener( this );
         subSelModel_.addListSelectionListener( subSelRecorder_ );
+
+        /* Set up a model describing which regression lines will be plotted. */
+        CheckBoxMenu regressionMenu = subsets_.makeCheckBoxMenu( "Regression" );
+        regressionMenu.setMnemonic( KeyEvent.VK_R );
+        regressionSelModel_ = regressionMenu.getSelectionModel();
+        regressionSelModel_.addListSelectionListener( this );
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -354,7 +369,6 @@ public class PlotWindow extends TopcatViewWindow
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
-        subsetMenu.add( subMenu );
         blobAction_ = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
                 if ( activeBlob_ ) {
@@ -408,6 +422,12 @@ public class PlotWindow extends TopcatViewWindow
             markerMenu.add( profileAct );
         }
         getJMenuBar().add( markerMenu );
+
+        /* Add menu for which subsets to plot. */
+        getJMenuBar().add( subMenu );
+
+        /* Add menu for which subsets to draw regression lines of. */
+        getJMenuBar().add( regressionMenu );
 
         /* Add actions to the toolbar. */
         getToolBar().add( printAction );
@@ -530,7 +550,7 @@ public class PlotWindow extends TopcatViewWindow
         PointRegistry plotted = new PointRegistry();
         int nVisible = 0;
         for ( int ip = 0; ip < np; ip++ ) {
-            Point point = surface.dataToGraphics( xv[ ip ], yv[ ip ] );
+            Point point = surface.dataToGraphics( xv[ ip ], yv[ ip ], true );
             if ( point != null ) {
                 int xp = point.x;
                 int yp = point.y;
@@ -710,12 +730,14 @@ public class PlotWindow extends TopcatViewWindow
         int nrsets = selection.length;
         RowSubset[] usedSubsets = new RowSubset[ nrsets ];
         MarkStyle[] styles = new MarkStyle[ nrsets ];
+        boolean[] regressions = new boolean[ nrsets ];
         for ( int isel = 0; isel < nrsets; isel++ ) {
             int isub = selection[ isel ];
             usedSubsets[ isel ] = (RowSubset) subsets_.get( isub );
             styles[ isel ] = markers_.getStyle( isub );
+            regressions[ isel ] = regressionSelModel_.isSelectedIndex( isub );
         }
-        state.setSubsets( usedSubsets, styles );
+        state.setSubsets( usedSubsets, styles, regressions );
         return state;
     }
 
@@ -838,6 +860,36 @@ public class PlotWindow extends TopcatViewWindow
                 }
                 else {
                     plot_.setActivePoint( -1 );
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper class to watch axis selection changes and reset certain
+     * options in a sensible way.
+     */
+    private class AxisListener implements ItemListener {
+        private StarTableColumn lastXAxis_;
+        private StarTableColumn lastYAxis_;
+        public void itemStateChanged( ItemEvent evt ) {
+            if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+                StarTableColumn xAxis = (StarTableColumn) 
+                                        xColBox_.getSelectedItem();
+                StarTableColumn yAxis = (StarTableColumn)
+                                        yColBox_.getSelectedItem();
+                boolean xChanged = xAxis != lastXAxis_;
+                boolean yChanged = yAxis != lastYAxis_;
+                lastXAxis_ = xAxis;
+                lastYAxis_ = yAxis;
+                if ( xChanged ) {
+                    xLogBox_.setSelected( false );
+                }
+                if ( yChanged ) {
+                    yLogBox_.setSelected( false );
+                }
+                if ( xChanged || yChanged ) {
+                    regressionSelModel_.clearSelection();
                 }
             }
         }

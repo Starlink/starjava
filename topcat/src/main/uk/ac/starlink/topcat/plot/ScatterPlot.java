@@ -6,9 +6,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.OverlayLayout;
@@ -207,38 +211,80 @@ public class ScatterPlot extends JComponent implements Printable {
      * using its current plotting surface to define the mapping of data
      * to graphics space.
      *
-     * @param  g  graphics context
+     * @param  graphics  graphics context
      */
-    private void drawPoints( Graphics g ) {
+    private void drawData( Graphics graphics ) {
         Points points = points_;
         PlotState state = state_;
 
-        Shape oldClip = g.getClip();
+        /* Clone the graphics context and configure the clip to correspond
+         * to the plotting surface. */
+        Graphics2D g; 
+        g = (Graphics2D) graphics.create();
         g.setClip( surface_.getClip() );
 
+        /* Draw the points, optionally accumulating statistics for 
+         * X-Y correlations if we're going to need to draw regression lines. */
         double[] xv = points.getXVector();
         double[] yv = points.getYVector();
         int np = points.getCount();
         RowSubset[] sets = state.getSubsets();
         MarkStyle[] styles = state.getStyles();
+        boolean[] regressions = state.getRegressions();
         int nset = sets.length;
+        XYStats[] statSets = new XYStats[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = styles[ is ];
+            boolean regress = regressions[ is ];
+            XYStats stats = null;
+            if ( regress ) {
+                stats = new XYStats( state_.isXLog(), state_.isYLog() );
+                statSets[ is ] = stats;
+            }
             int maxr = style.getMaximumRadius();
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
-                    Point point = surface_.dataToGraphics( xv[ ip ], yv[ ip ] );
+                    double x = xv[ ip ];
+                    double y = yv[ ip ];
+                    Point point = surface_.dataToGraphics( x, y, true );
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
                         if ( g.hitClip( xp, yp, maxr, maxr ) ) {
                             style.drawMarker( g, xp, yp );
+                            if ( regress ) {
+                                stats.addPoint( x, y );
+                            }
                         }
                     }
                 }
             }
         }
-        g.setClip( oldClip );
+
+        /* Draw regression lines as required. */
+        g.setRenderingHint( RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_ON );
+        g.setStroke( new BasicStroke( 2, BasicStroke.CAP_ROUND,
+                                      BasicStroke.JOIN_ROUND ) );
+        for ( int is = 0; is < nset; is++ ) {
+            XYStats stats = statSets[ is ];
+            if ( stats != null ) {
+                double[] ends = stats.linearRegressionLine();
+                if ( ends != null ) {
+                    Point p1 = surface_.dataToGraphics( ends[ 0 ], ends[ 1 ],
+                                                        false );
+                    Point p2 = surface_.dataToGraphics( ends[ 2 ], ends[ 3 ],
+                                                        false );
+                    if ( p1 != null && p2 != null ) {
+                        Color styleColor = styles[ is ].getColor();
+                        g.setColor( new Color( styleColor.getRed(),
+                                               styleColor.getGreen(), 
+                                               styleColor.getBlue(), 160 ) );
+                        g.drawLine( p1.x, p1.y, p2.x, p2.y );
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -346,11 +392,13 @@ public class ScatterPlot extends JComponent implements Printable {
             if ( activePoint_ >= 0 ) {
                 Point p = surface_
                       .dataToGraphics( points_.getXVector()[ activePoint_ ], 
-                                       points_.getYVector()[ activePoint_ ] );
+                                       points_.getYVector()[ activePoint_ ],
+                                       true );
                 if ( p != null ) {
                     Graphics2D g = (Graphics2D) g2.create();
                     g.setColor( new Color( 0, 0, 0, 192 ) );
-                    g.setStroke( new BasicStroke( 2 ) );
+                    g.setStroke( new BasicStroke( 2, BasicStroke.CAP_ROUND,
+                                                  BasicStroke.JOIN_ROUND ) );
                     g.translate( p.x, p.y );
                     g.drawOval( -6, -6, 13, 13 );
                     g.drawLine( 0, +4, 0, +8 );
@@ -378,7 +426,7 @@ public class ScatterPlot extends JComponent implements Printable {
 
     /**
      * Graphical component which does the actual plotting of the points.
-     * Its basic job is to call {@link @drawPoints} and {@link drawAnnotations}
+     * Its basic job is to call {@link @drawData} and {@link drawAnnotations}
      * in its {@link paintComponent} method.  
      * However it makes things a bit more
      * complicated than that for the purposes of efficiency.
@@ -391,9 +439,9 @@ public class ScatterPlot extends JComponent implements Printable {
 
         /**
          * Draws the component to a graphics context which probably 
-         * represents the screen, by calling {@link #drawPoints}
+         * represents the screen, by calling {@link #drawData}
          * and {@link #drawAnnotations}.
-         * Since <tt>drawPoints</tt> might be fairly expensive 
+         * Since <tt>drawData</tt> might be fairly expensive 
          * (if there are a lot of points), and <tt>paintComponent</tt> 
          * can be called often without the data changing 
          * (e.g. cascading window uncover events) it is advantageous 
@@ -434,7 +482,7 @@ public class ScatterPlot extends JComponent implements Printable {
                 surface_.paintSurface( ig );
 
                 /* Plot the actual points into the cached buffer. */
-                drawPoints( ig );
+                drawData( ig );
 
                 /* Record the state which corresponds to the most recent
                  * plot into the cached buffer. */
@@ -460,7 +508,7 @@ public class ScatterPlot extends JComponent implements Printable {
          * on the screen, we don't want to use the cached-image approach
          * used in <tt>paintComponent</tt>, since it might be a 
          * non-pixelised graphics context (e.g. postscript).
-         * So for <tt>printComponent</tt>, just invoke <tt>drawPoints</tt>
+         * So for <tt>printComponent</tt>, just invoke <tt>drawData</tt>
          * straightforwardly.
          *
          * <p>A more respectable way to do this might be to test the
@@ -471,7 +519,7 @@ public class ScatterPlot extends JComponent implements Printable {
          * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
          */
         protected void printComponent( Graphics g ) {
-            drawPoints( g );
+            drawData( g );
             drawAnnotations( g );
         }
     }
