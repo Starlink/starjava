@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -71,15 +72,17 @@ public abstract class FITSDataNode extends DefaultDataNode {
                 else {
                     throw new AssertionError();
                 }
-                long dataSize = FitsConstants.getDataSize( primaryHeader );
-                if ( fileSize == headerSize + dataSize ) {
-                    long[] dims = ImageHDUDataNode
-                                 .getDimsFromHeader( primaryHeader );
-                    if ( dims.length == 0 ) {
-                        description = "(header only)";
-                    }
-                    else {
-                        description = NDShape.toString( dims );
+                if ( headerSize != -1 ) {
+                    long dataSize = FitsConstants.getDataSize( primaryHeader );
+                    if ( fileSize == headerSize + dataSize ) {
+                        long[] dims = ImageHDUDataNode
+                                     .getDimsFromHeader( primaryHeader );
+                        if ( dims.length == 0 ) {
+                            description = "(header only)";
+                        }
+                        else {
+                            description = NDShape.toString( dims );
+                        }
                     }
                 }
             }
@@ -91,13 +94,14 @@ public abstract class FITSDataNode extends DefaultDataNode {
             throw new NoSuchDataException( e );
         }
         finally { 
-            if ( istrm != null ) {
-                try {
+            try {
+                datsrc.close();
+                if ( istrm != null ) {
                     istrm.close();
                 }
-                catch ( IOException e ) {
-                    // too bad
-                }
+            }
+            catch ( IOException e ) {
+                // too bad
             }
         }
         this.name = datsrc.getName();
@@ -132,9 +136,11 @@ public abstract class FITSDataNode extends DefaultDataNode {
         final DataNode parent = this;
         final ArrayDataInput istrm;
         final Header firstHeader; 
+        final int firstHeaderSize;
         try {
             istrm = getDataInput();
-            firstHeader = new Header( istrm );
+            firstHeader = new Header();
+            firstHeaderSize = FitsConstants.readHeader( firstHeader, istrm );
         }
         catch ( TruncatedFileException e ) {
             return Collections
@@ -150,6 +156,8 @@ public abstract class FITSDataNode extends DefaultDataNode {
             private int nchild = 0;
             private boolean broken = false;
             private Header nextHeader = firstHeader;
+            private int nextHeaderSize = firstHeaderSize;
+            private long hduStart = 0L;
 
             public Object next() {
                 DataNode dnode;
@@ -158,12 +166,15 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     /* Construct a new node from the header we have ready. */
                     try {
                         Header hdr = nextHeader;
-                        long start = hdr.getFileOffset();
+                        int headsize = nextHeaderSize;
                         long datsize = getDataSize( hdr );
-                        long headsize = hdr.getSize();
                         long hdusize = headsize + datsize;
-                        ArrayDataMaker hdudata = getArrayData( start, hdusize );
-                        istrm.skip( datsize );
+                        for ( long nskip = datsize; nskip > 0; ) {
+                             nskip -= istrm.skip( nskip );
+                        }
+                        ArrayDataMaker hdudata = 
+                            getArrayData( hduStart, hdusize );
+                        hduStart += hdusize;
                         try {
                             if ( hdr.containsKey( "XTENSION" ) && 
                                  AsciiTableHDU.isHeader( hdr ) ) {
@@ -201,7 +212,9 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     /* Read the next header. */
                     nchild++;
                     try {
-                        nextHeader = new Header( istrm );
+                        nextHeader = new Header();
+                        nextHeaderSize = 
+                            FitsConstants.readHeader( nextHeader, istrm );
                     }
                     catch ( IOException e ) {
                         nextHeader = null;
