@@ -31,14 +31,14 @@ import uk.ac.starlink.ast.Plot;
  *
  * @see SpecDataFactory
  * @see "The Singleton Design Pattern"
- * 
+ *
  */
-public class SpecList implements Serializable 
+public class SpecList implements Serializable
 {
     /**
      *  Create the single class instance.
      */
-    private static final SpecList instance = new SpecList(); 
+    private static final SpecList instance = new SpecList();
 
     /**
      *  Hide the constructor from use.
@@ -48,11 +48,11 @@ public class SpecList implements Serializable
     /**
      *  Return reference to the only allowed instance of this class.
      */
-    public static SpecList getReference() 
+    public static SpecList getReference()
     {
         return instance;
     }
-    
+
     /**
      *  ArrayList of references to spectra
      */
@@ -67,7 +67,7 @@ public class SpecList implements Serializable
     /**
      *  Get the number of spectra.
      */
-    public int specCount() 
+    public int specCount()
     {
         return spectra.size();
     }
@@ -75,7 +75,7 @@ public class SpecList implements Serializable
     /**
      *  Get the number of plots a spectrum is displayed in.
      */
-    public int plotCount( SpecData spectrum ) 
+    public int plotCount( SpecData spectrum )
     {
         return spectrum.plotCount();
     }
@@ -83,15 +83,18 @@ public class SpecList implements Serializable
     /**
      *  Get the number of plots a spectrum is displayed in.
      */
-    public int plotCount( int specIndex ) 
+    public int plotCount( int index )
     {
-        return ((SpecData)spectra.get( specIndex )).plotCount();
+        if ( index < specCount() ) {
+            return ((SpecData)spectra.get( index )).plotCount();
+        }
+        return 0;
     }
 
     /**
      *  Add a spectrum.
      */
-    public int add( SpecData spectrum ) 
+    public int add( SpecData spectrum )
     {
         spectra.add( spectrum );
         return spectra.size() - 1;
@@ -100,12 +103,13 @@ public class SpecList implements Serializable
     /**
      *  Add or replace a spectrum.
      */
-    public int add( int index, SpecData spectrum ) 
+    public int add( int index, SpecData spectrum )
     {
-        if ( index < spectra.size() ) {
+        if ( index < specCount() ) {
             spectra.set( index, spectrum );
             return index;
-        } else {
+        } 
+        else {
             return add( spectrum );
         }
     }
@@ -113,33 +117,40 @@ public class SpecList implements Serializable
     /**
      *  Remove a spectrum.
      */
-    public int remove( SpecData spectrum ) 
+    public int remove( SpecData spectrum )
     {
         int index = spectra.indexOf( spectrum );
-        spectra.remove( index );
+        if ( index != -1 ) {
+            spectra.remove( index );
+        }
         return index;
     }
 
     /**
      *  Remove a spectrum.
      */
-    public void remove( int index ) 
+    public void remove( int index )
     {
-        spectra.remove( index );
+        if ( index < specCount() ) {
+            spectra.remove( index );
+        }
     }
 
     /**
      *  Get a spectrum by index.
      */
-    public SpecData get( int index ) 
+    public SpecData get( int index )
     {
-        return (SpecData)spectra.get( index );
+        if ( index < specCount() ) {
+            return (SpecData)spectra.get( index );
+        }
+        return null;
     }
 
     /**
      *  Get the index of a spectrum.
      */
-    public int indexOf( SpecData spectrum ) 
+    public int indexOf( SpecData spectrum )
     {
         return spectra.indexOf( spectrum );
     }
@@ -148,7 +159,7 @@ public class SpecList implements Serializable
      *  Return the index of a spectrum with the given short
      *  name. Returns -1 if unsuccessful.
      */
-    public int indexOf( String shortName ) 
+    public int indexOf( String shortName )
     {
         for ( int i = 0; i < spectra.size(); i++ ) {
             if ( getShortName( i ).equals( shortName ) ) {
@@ -161,7 +172,7 @@ public class SpecList implements Serializable
     /**
      *  Add a Plot as a view for a spectrum.
      */
-    public void addPlot( SpecData spectrum, Plot plot ) 
+    public void addPlot( SpecData spectrum, Plot plot )
     {
         spectrum.addPlot( plot );
     }
@@ -169,15 +180,17 @@ public class SpecList implements Serializable
     /**
      *  Add a Plot as a view for a spectrum.
      */
-    public void addPlot( int index, Plot plot ) 
+    public void addPlot( int index, Plot plot )
     {
-        ((SpecData)spectra.get( index )).addPlot( plot ); 
+        if ( index < specCount() ) {
+            ((SpecData)spectra.get( index )).addPlot( plot );
+        }
     }
 
     /**
      *  Remove a Plot as view for a spectrum.
      */
-    public void removePlot( SpecData spectrum, Plot plot ) 
+    public void removePlot( SpecData spectrum, Plot plot )
     {
         spectrum.removePlot( plot );
     }
@@ -185,47 +198,59 @@ public class SpecList implements Serializable
     /**
      *  Remove a Plot as view for a spectrum.
      */
-    public void removePlot( int index, Plot plot ) 
+    public void removePlot( int index, Plot plot )
     {
-        ((SpecData)spectra.get( index )).removePlot( plot );
+        if ( index < specCount() ) {
+            ((SpecData)spectra.get( index )).removePlot( plot );
+        }
     }
 
     /**
      *  Remove a Plot as view for a spectrum.
      */
-    public void removePlot( int specIndex, int plotIndex ) 
+    public void removePlot( int specIndex, int plotIndex )
     {
-        ((SpecData)spectra.get( specIndex )).removePlot( plotIndex );
+        if ( specIndex < specCount() ) {
+            ((SpecData)spectra.get( specIndex )).removePlot( plotIndex );
+        }
     }
 
     /**
      *  Return the full (i.e. disk file) name of a spectrum.
      */
-    public String getFullName( int index ) 
+    public String getFullName( int index )
     {
-        return ((SpecData)spectra.get( index )).getFullName();
+        if ( index < specCount() ) {
+            return ((SpecData)spectra.get( index )).getFullName();
+        }
+        return null;
     }
 
     /**
      *  Return the symbolic name of a spectrum.
      */
-    public String getShortName( int index ) 
+    public String getShortName( int index )
     {
-        return ((SpecData)spectra.get( index )).getShortName();
+        if ( index < specCount() ) {
+            return ((SpecData)spectra.get( index )).getShortName();
+        }
+        return null;
     }
 
     /**
      *  Set the symbolic name of a spectrum.
      */
-    public void setShortName( int index, String name ) 
+    public void setShortName( int index, String name )
     {
-        ((SpecData)spectra.get( index )).setShortName( name );
+        if ( index < specCount() ) {
+            ((SpecData)spectra.get( index )).setShortName( name );
+        }
     }
 
     /**
      *  Set the name of a spectrum.
      */
-    public void setShortName( SpecData spectrum, String name ) 
+    public void setShortName( SpecData spectrum, String name )
     {
         spectrum.setShortName( name );
     }
@@ -234,7 +259,7 @@ public class SpecList implements Serializable
      *  See if a spectrum is already present using its specification
      * (i.e. file name).
      */
-    public boolean known( String fileName ) 
+    public boolean known( String fileName )
     {
         for ( int i = 0; i < spectra.size(); i++ ) {
             if ( ((SpecData) spectra.get(i)).getFullName().equals( fileName ) ) {
@@ -249,7 +274,7 @@ public class SpecList implements Serializable
      * is Gzipped to save space and should be restored using the
      * readStack method (which appends the previous state).
      */
-    public void writeStack( String fileName ) 
+    public void writeStack( String fileName )
     {
         try {
             OutputStream file = new FileOutputStream( fileName );

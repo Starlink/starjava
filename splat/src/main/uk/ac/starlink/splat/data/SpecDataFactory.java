@@ -59,7 +59,8 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-    public SpecData get( String specspec ) throws SplatException
+    public SpecData get( String specspec ) 
+        throws SplatException
     {
         SpecDataImpl impl = null;
 
@@ -159,5 +160,38 @@ public class SpecDataFactory
         SpecData specData = new SpecData( impl );
         specData.setType( source.getType() );
         return specData;
+    }
+
+
+    /**
+     * Create spectrum that can have its values modified or
+     * individually editted. Initially the object contains no
+     * coordinates or data, so space for these must be allocated and
+     * set using the {@link EditableSpecData.setData} method.
+     *
+     * @param shortname the short name to use for the spectrum.
+     *
+     * @return an EditableSpecData object.
+     */
+    public EditableSpecData createEditable( String shortname )
+        throws SplatException
+    {
+        return new EditableSpecData( new MEMSpecDataImpl( shortname ) );
+    }
+    /**
+
+     * Copy a spectrum into one that can have its values modified or
+     * individually editted.
+     *
+     * @param shortname the short name to use for the spectrum copy.
+     *
+     * @return an EditableSpecData object.
+     */
+    public EditableSpecData createEditable( String shortname, 
+                                            SpecData specData )
+        throws SplatException
+    {
+        return new EditableSpecData
+            ( new MEMSpecDataImpl( shortname, specData ) );
     }
 }

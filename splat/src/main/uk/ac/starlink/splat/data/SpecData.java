@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    01-SEP-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     01-SEP-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import java.awt.Color;
@@ -76,16 +77,14 @@ import uk.ac.starlink.ast.grf.DefaultGrfState;
  * units, like RA or Dec).
  *
  * @author Peter W. Draper
- * @created May 31, 2002
  * @version $Id$
  * @see SpecDataImpl
  * @see SpecDataFactory
- * @see SpecDataAccess
  * @see AnalyticSpectrum
  * @see "The Bridge Design Pattern"
  */
 public class SpecData
-     implements SpecDataAccess, AnalyticSpectrum, Serializable
+     implements AnalyticSpectrum, Serializable
 {
     //  =============
     //  Constructors.
@@ -102,12 +101,33 @@ public class SpecData
     public SpecData( SpecDataImpl impl )
         throws SplatException
     {
+        this( impl, false );
+    }
+
+    /**
+     * Create an instance using the data in a given SpecDataImpl
+     * object.  Do not attempt to read the data. This is provided for
+     * sub-classes that will deal with the data at some later time.
+     *
+     * @param impl a concrete implementation of a SpecDataImpl class that
+     *             will be used for spectral data in of some format.
+     * @param check if true then a check for the presence of data will
+     *              be made, before attempting a read. Otherwise no
+     *              check will be made and either absence will be
+     *              indicated by throwing an error.
+     * @exception SplatException thrown if there are problems obtaining
+     *            spectrum information.
+     */
+    protected SpecData( SpecDataImpl impl, boolean check )
+        throws SplatException
+    {
         this.impl = impl;
         shortName = impl.getShortName();
         fullName = impl.getFullName();
-        readData();
+        if ( ! check || ( check && impl.getData() != null  ) ) {
+            readData();
+        }
     }
-
 
     /**
      * Finalise object. Free any resources associated with member variables.
@@ -456,7 +476,7 @@ public class SpecData
      *
      * The spectrum created here is not added to any lists or created with any
      * configuration other than the default values (i.e. you must do this part
-     * yourself) and is only keep in memory.
+     * yourself) and is only kept in memory.
      *
      * @param name short name for the spectrum.
      * @param ranges an array of pairs of physical coordinates. These define
@@ -475,7 +495,7 @@ public class SpecData
         int[] low;
         int[] high;
         int nvals = nRanges - 1;
-        // for gaps.
+
         for ( int i = 0, j = 0; j < nRanges; i += 2, j++ ) {
             low = bound( ranges[i] );
             lower[j] = low[1];
@@ -525,22 +545,145 @@ public class SpecData
         }
 
         //  And create the memory spectrum.
-        MEMSpecDataImpl memSpecImpl = new MEMSpecDataImpl( name );
-        if ( newErrors == null ) {
-            memSpecImpl.setData( newData, newCoords );
+        return createNewSpectrum( name, newData, newCoords, newErrors );
+    }
+
+    /**
+     * Create a new spectrum by deleting sections of this spectrum. The
+     * section extents are defined in physical coordinates. Each section will
+     * not contain any values that lie outside of its physical coordinate
+     * range. <p>
+     *
+     * The spectrum created here is not added to any lists or created with any
+     * configuration other than the default values (i.e. you must do this part
+     * yourself) and is only kept in memory.
+     *
+     * @param name short name for the spectrum.
+     * @param ranges an array of pairs of physical coordinates. These define
+     *      the extents of the ranges to delete.
+     * @return a spectrum that contains data only from outside the
+     *      given ranges. May be null if all values are to be deleted.
+     */
+    public SpecData getSubSet( String name, double[] ranges )
+    {
+        //  Locate the index of the positions just below and above our
+        //  physical value pairs and count the number of values that
+        //  will be deleted.
+        int nRanges = ranges.length / 2;
+        int[] lower = new int[nRanges];
+        int[] upper = new int[nRanges];
+        int[] low;
+        int[] high;
+        int ndelete = 0;
+
+        for ( int i = 0, j = 0; j < nRanges; i += 2, j++ ) {
+            low = bound( ranges[i] );
+            lower[j] = low[1];
+            high = bound( ranges[i + 1] );
+            upper[j] = high[0];
+            ndelete += high[0] - low[1] + 1;
         }
-        else {
-            memSpecImpl.setData( newData, newCoords, newErrors );
+        if ( ndelete >= xPos.length ) {
+            return null;
         }
+
+        //  Start copying remain data. The size of result spectrum is
+        //  the current size, minus the number of positions that will
+        //  be erased, plus one per range to hold the BAD value to
+        //  form the break.
+        int nkeep = xPos.length - ndelete + nRanges;
+        System.out.println( "nkeep = " + nkeep );
+        double[] newCoords = new double[nkeep];
+        double[] newData = new double[nkeep];
+        int length = 0;
+        for ( int i = 0, j = 0, k = 0; i < xPos.length; i++ ) {
+            System.out.println( i + ", " + j + ", " + k );
+            System.out.println( lower[j] + ": " + upper[j] );
+            if ( i >= lower[j] && i <= upper[j] ) {
+                //  Arrived within a range, so mark one mid-range
+                //  position BAD (so show the break) and skip to the
+                //  end. Set for next valid range.
+                newCoords[k] = xPos[i];
+                newData[k] = BAD;
+                k++;
+                if ( j + 1 == nRanges ) {
+                    //  No more ranges, so just complete the copy.
+                    for ( int l = upper[j]; l < xPos.length; l++ ) {
+                        System.out.println( k + ", " + l );
+                        if ( k < nkeep ) {
+                            newCoords[k] = xPos[l];
+                            newData[k] = yPos[l];
+                        }
+                        k++;
+                    }
+                    i = xPos.length;
+                    break;
+                }
+                j++;
+            }
+            else {
+                newCoords[k] = xPos[i];
+                newData[k] = yPos[i];
+                k++;
+            }
+        }
+
+        //  Same for errors, if have any.
+        double[] newErrors = null;
+        if ( haveYDataErrors() ) {
+            newErrors = new double[nkeep];
+
+            for ( int i = 0, j = 0, k = 0; i < xPos.length; i++ ) {
+                if ( i > lower[j] && i < upper[j] ) {
+                    //  Arrived within a range, so mark one mid-range
+                    //  position BAD (so show the break) and skip to the
+                    //  end. Set for next valid range.
+                    newErrors[k] = BAD;
+                    k++;
+                    j++;
+                    if ( j == nRanges ) {
+                        //  No more ranges, so just complete the copy.
+                        for ( int l = i; l < xPos.length; l++ ) {
+                            newErrors[k++] = yErr[l];
+                        }
+                        break;
+                    }
+                }
+                else {
+                    newErrors[k++] = yErr[i];
+                }
+            }
+        }
+
+        //  And create the memory spectrum.
+        return createNewSpectrum( name, newData, newCoords, newErrors );
+    }
+
+    /**
+     * Create a new (memory-resident) spectrum from the given data
+     */
+    protected SpecData createNewSpectrum( String name, double[] data,
+                                          double[] coords, 
+                                          double[] errors )
+    {
+        EditableSpecData newSpec = null;
         try {
-            return new SpecData( memSpecImpl );
+            newSpec = SpecDataFactory.getReference().createEditable( name );
+            if ( errors == null ) {
+                System.out.println( "setDataQuick: " + data + ", " +
+                                    coords );
+                newSpec.setDataQuick( data, coords );
+            }
+            else {
+                newSpec.setDataQuick( data, coords, errors );
+            }
         }
         catch ( Exception e ) {
             e.printStackTrace();
+            newSpec = null;
         }
-        return null;
+        return newSpec;
     }
-
 
     /**
      * Get the data ranges in the X and Y axes. Does not include data errors.
@@ -891,39 +1034,13 @@ public class SpecData
         }
         catch (RuntimeException e) {
             // None specific errors, like no data...
-            throw new SplatException( "Failed to read data: " + 
+            throw new SplatException( "Failed to read data: " +
                                       e.getMessage() );
         }
 
         // Check we have some data.
-        if ( yPos == null ) { 
+        if ( yPos == null ) {
             throw new SplatException( "Spectrum does not contain any data" );
-        }
-
-        //  Now get the data value range.
-        double yMin = Double.MAX_VALUE;
-        double yMax = Double.MIN_VALUE;
-        double fullYMin = Double.MAX_VALUE;
-        double fullYMax = Double.MIN_VALUE;
-        if ( yErr != null ) {
-            for ( int i = 0; i < yPos.length; i++ ) {
-                if ( yPos[i] != SpecData.BAD ) {
-                    yMin = Math.min( yMin, yPos[i] );
-                    yMax = Math.max( yMax, yPos[i] );
-                    fullYMin = Math.min( fullYMin, yPos[i] -
-                        ( yErr[i] * 0.5 ) );
-                    fullYMax = Math.max( fullYMax, yPos[i] +
-                        ( yErr[i] * 0.5 ) );
-                }
-            }
-        }
-        else {
-            for ( int i = 0; i < yPos.length; i++ ) {
-                if ( yPos[i] != SpecData.BAD ) {
-                    yMin = Math.min( yMin, yPos[i] );
-                    yMax = Math.max( yMax, yPos[i] );
-                }
-            }
         }
 
         //  Create the init "wavelength" positions as simple
@@ -932,8 +1049,6 @@ public class SpecData
         for ( int i = 0; i < yPos.length; i++ ) {
             xPos[i] = (double) ( i + 1 );
         }
-        double xMin = 1.0;
-        double xMax = yPos.length + 1.0;
 
         //  Get the dimensionality of the spectrum. If more than 1 we
         //  need to pick out a significant axis to work with.
@@ -989,49 +1104,78 @@ public class SpecData
             //  coordinates through to graphics coordinates when
             //  actually drawing the spectrum).
             double[] tPos = ASTJ.astTran1( oned, xPos, true );
+            ASTJ.astAnnul( oned );
             xPos = tPos;
             tPos = null;
 
-            //  Get the axis range.
-            xMin = Double.MAX_VALUE;
-            xMax = Double.MIN_VALUE;
-            for ( int i = 0; i < xPos.length; i++ ) {
-                if ( xPos[i] != SpecData.BAD ) {
-                    xMin = Math.min( xMin, xPos[i] );
-                    xMax = Math.max( xMax, xPos[i] );
-                }
-            }
-            if ( xMin == Double.MAX_VALUE ||
-                xMax == Double.MIN_VALUE ) {
-                xMin = 0.0;
-                xMax = 0.0;
-            }
-            ASTJ.astAnnul( oned );
-
-            //  Record data ranges.
-            range[0] = xMin;
-            range[1] = xMax;
-            range[2] = yMin;
-            range[3] = yMax;
-
-            fullRange[0] = xMin;
-            fullRange[1] = xMax;
-            if ( yErr != null ) {
-                fullRange[2] = fullYMin;
-                fullRange[3] = fullYMax;
-            }
-            else {
-                fullRange[2] = yMin;
-                fullRange[3] = yMax;
-            }
-
-            //  Add slack so that error bars do not abut the edges.
-            double slack = ( fullRange[3] - fullRange[2] ) * SLACK;
-            fullRange[2] = fullRange[2] - slack;
-            fullRange[3] = fullRange[3] + slack;
+            //  Set the axis range.
+            setRange();
         }
     }
 
+    /**
+     * Set the range available in the data.
+     */
+    public void setRange()
+    {
+        double xMin = Double.MAX_VALUE;
+        double xMax = Double.MIN_VALUE;
+        double yMin = Double.MAX_VALUE;
+        double yMax = Double.MIN_VALUE;
+        double fullYMin = Double.MAX_VALUE;
+        double fullYMax = Double.MIN_VALUE;
+        if ( yErr != null ) {
+            for ( int i = 0; i < yPos.length; i++ ) {
+                if ( yPos[i] != SpecData.BAD ) {
+                    xMin = Math.min( xMin, xPos[i] );
+                    xMax = Math.max( xMax, xPos[i] );
+                    yMin = Math.min( yMin, yPos[i] );
+                    yMax = Math.max( yMax, yPos[i] );
+
+                    fullYMin = Math.min( fullYMin, 
+                                         yPos[i] - ( yErr[i] * 0.5 ) );
+                    fullYMax = Math.max( fullYMax, 
+                                         yPos[i] + ( yErr[i] * 0.5 ) );
+                }
+            }
+        }
+        else {
+            for ( int i = 0; i < yPos.length; i++ ) {
+                if ( yPos[i] != SpecData.BAD ) {
+                    xMin = Math.min( xMin, xPos[i] );
+                    xMax = Math.max( xMax, xPos[i] );
+                    yMin = Math.min( yMin, yPos[i] );
+                    yMax = Math.max( yMax, yPos[i] );
+                }
+            }
+        }
+        if ( xMin == Double.MAX_VALUE || xMax == Double.MIN_VALUE ) {
+            xMin = 0.0;
+            xMax = 0.0;
+        }
+
+        //  Record data ranges.
+        range[0] = xMin;
+        range[1] = xMax;
+        range[2] = yMin;
+        range[3] = yMax;
+        
+        fullRange[0] = xMin;
+        fullRange[1] = xMax;
+        if ( yErr != null ) {
+            fullRange[2] = fullYMin;
+            fullRange[3] = fullYMax;
+        }
+        else {
+            fullRange[2] = yMin;
+            fullRange[3] = yMax;
+        }
+        
+        //  Add slack so that error bars do not abut the edges.
+        double slack = ( fullRange[3] - fullRange[2] ) * SLACK;
+        fullRange[2] = fullRange[2] - slack;
+        fullRange[3] = fullRange[3] + slack;
+    }        
 
     /**
      * Draw the spectrum onto the given widget using a suitable AST GRF
@@ -1149,11 +1293,11 @@ public class SpecData
      * Draw the spectrum using the current spectrum plotting style.
      *
      * @param grf DefaultGrf object that can be drawn into using AST
-     *            primitives. 
+     *            primitives.
      * @param xpos graphics X coordinates of spectrum
      * @param ypos graphics Y coordinates of spectrum
      */
-    protected void renderSpectrum( DefaultGrf grf, double[] xpos, 
+    protected void renderSpectrum( DefaultGrf grf, double[] xpos,
                                    double[] ypos )
     {
         grf.polyline( xpos, ypos );
@@ -1165,7 +1309,7 @@ public class SpecData
      * by half a standard deviation, with a serif at each end.
      *
      * @param grf DefaultGrf object that can be drawn into using AST
-     *            primitives. 
+     *            primitives.
      * @param plot reference to AstPlot defining transformation from physical
      *             coordinates into graphics coordinates.
      */
@@ -1250,7 +1394,7 @@ public class SpecData
      * @param grf Grf object being used.
      * @param oldState the state to return Grf object to.
      */
-    protected void resetGrfAttributes( DefaultGrf grf, 
+    protected void resetGrfAttributes( DefaultGrf grf,
                                        DefaultGrfState oldState )
     {
         grf.attribute( Grf.GRF__COLOUR, oldState.getColour(), Grf.GRF__LINE );
@@ -1293,60 +1437,68 @@ public class SpecData
         return result;
     }
 
-
     /**
      * Locate the indices of the two coordinates that lie closest to a given
-     * coordinate. In the case of an exact match then both indices are
-     * returned as the same value.
+     * coordinate. In the case of an exact match or value that lies
+     * beyond the edges, then both indices are returned as the same value.
      *
      * @param xcoord the coordinate value to bound.
      * @return array of two integers, the lower and upper indices.
      */
     public int[] bound( double xcoord )
     {
-        //  Use a binary search as values should be sorted to increase
-        //  in either direction (wavelength, pixel coordinates etc.).
+        int bounds[] = new int[2];
         int low = 0;
         int high = xPos.length - 1;
-        int mid = 0;
-        if ( xPos[0] < xPos[high] ) {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( xcoord < xPos[mid] ) {
-                    high = mid;
-                }
-                else if ( xcoord > xPos[mid] ) {
-                    low = mid;
-                }
-                else {
-                    // Exact match.
-                    low = high = mid;
-                    break;
-                }
-            }
+
+        // Check off scale.
+        if ( xcoord < xPos[low] ) {
+            high = low;
+        }
+        else if ( xcoord > xPos[high] ) {
+            low = high;
         }
         else {
-            while ( low < high - 1 ) {
-                mid = ( low + high ) / 2;
-                if ( xcoord > xPos[mid] ) {
-                    high = mid;
+            //  Use a binary search as values should be sorted to increase
+            //  in either direction (wavelength, pixel coordinates etc.).
+            int mid = 0;
+            if ( xPos[0] < xPos[high] ) {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( xcoord < xPos[mid] ) {
+                        high = mid;
+                    }
+                    else if ( xcoord > xPos[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
                 }
-                else if ( xcoord < xPos[mid] ) {
-                    low = mid;
-                }
-                else {
-                    // Exact match.
-                    low = high = mid;
-                    break;
+            }
+            else {
+                while ( low < high - 1 ) {
+                    mid = ( low + high ) / 2;
+                    if ( xcoord > xPos[mid] ) {
+                        high = mid;
+                    }
+                    else if ( xcoord < xPos[mid] ) {
+                        low = mid;
+                    }
+                    else {
+                        // Exact match.
+                        low = high = mid;
+                        break;
+                    }
                 }
             }
         }
-        int bounds[] = new int[2];
         bounds[0] = low;
         bounds[1] = high;
         return bounds;
     }
-
 
     /**
      * Lookup the physical values (i.e. wavelength and data value) that

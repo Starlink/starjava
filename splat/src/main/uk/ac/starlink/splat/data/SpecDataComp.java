@@ -33,7 +33,7 @@ import uk.ac.starlink.splat.util.SplatException;
  * composite plots, but I'm keeping this simple for now and only
  * allowing the import of single spectra at a time.
  */
-public class SpecDataComp implements SpecDataAccess 
+public class SpecDataComp 
 {
     /** 
      *  List of references to the spectra. Note that indexing this

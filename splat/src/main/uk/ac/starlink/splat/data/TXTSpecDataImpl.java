@@ -274,8 +274,10 @@ public class TXTSpecDataImpl extends SpecDataImpl
         vec[2] = new ArrayList();
 
         //  Read file input until end of file occurs.
-        String raw = null;
         String clean = null;
+        String raw = null;
+        StringTokenizer st = null;
+        int count = 0;
         int nlines = 0;
         int nwords = 0;
         try {
@@ -290,8 +292,8 @@ public class TXTSpecDataImpl extends SpecDataImpl
 
                     // Read at least two floating numbers from line
                     // and no more than 3.
-                    StringTokenizer st = new StringTokenizer( raw );
-                    int count = Math.min( st.countTokens(), 3 );
+                    st = new StringTokenizer( raw );
+                    count = Math.min( st.countTokens(), 3 );
                     nwords = Math.max( count, nwords );
                     for ( int i = 0; i < count; i++ ) {
                         vec[i].add( new Float( st.nextToken() ) );

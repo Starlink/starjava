@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     3-FEB-2003(Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import uk.ac.starlink.ast.Grf;
@@ -8,12 +15,9 @@ import uk.ac.starlink.splat.ast.ASTJ;
  *  General interface that objects providing public access to spectral
  *  data should implement.
  *  <p>
- *  @since $Date$
- *  @since 21-SEP-2000
  *  @version $Id$
  *  @author Peter W. Draper
  *  @see SpecData
- *
  */
 public interface SpecDataAccess 
 {
@@ -67,5 +71,4 @@ public interface SpecDataAccess
      *  
      */
     public double[] lookup( int xg, Plot plot );
-
 }
