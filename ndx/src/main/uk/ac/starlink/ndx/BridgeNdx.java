@@ -227,6 +227,9 @@ public class BridgeNdx implements Ndx {
                 String scheme = baseUri.getScheme();
                 String auth = baseUri.getAuthority();
                 String path = baseUri.getPath();
+                if ( path == null ) {
+                    path = "";
+                }
                 path = path.replaceFirst( "[^/]*$", "" );
                 baseUri = new URI( scheme, auth, path, "", "" );
             }
