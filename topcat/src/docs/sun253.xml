@@ -2759,6 +2759,14 @@ are welcomed.
 <p>Releases to date have been as follows:
 <dl>
 
+<dt>Version 1.3-1 (10 November 2004)</dt>
+<dd><p>Minor changes:
+<ul>
+<li>2MASS cutout servers now available from Activation Window</li>
+<li>Added Starlink logo to all windows</li>
+</ul>
+</p></dd>
+
 <dt>Version 1.3 (20 October 2004)</dt>
 <dd><p>This version has introduced many improvements in scalability,
 efficiency and functionality.  TOPCAT is now quite happy with tables
