@@ -64,6 +64,7 @@ public abstract class BasicTableLoadDialog extends JPanel
      *         tooltip text)
      */
     public BasicTableLoadDialog( String name, String description ) {
+        super( new BorderLayout() );
         name_ = name;
         description_ = description;
         okAction_ = new AbstractAction( "OK" ) {
