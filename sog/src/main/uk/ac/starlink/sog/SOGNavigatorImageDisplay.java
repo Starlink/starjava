@@ -15,8 +15,9 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.InputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
@@ -27,6 +28,7 @@ import javax.swing.SwingUtilities;
 import jsky.coords.CoordinateConverter;
 import jsky.coords.WorldCoordinateConverter;
 import jsky.image.ImageProcessor;
+import jsky.image.gui.ImageHistoryItem;
 import jsky.image.fits.codec.FITSImage;
 import jsky.navigator.NavigatorImageDisplay;
 import jsky.util.FileUtil;
@@ -105,7 +107,7 @@ public class SOGNavigatorImageDisplay
      * DivaMainImageDisplay as we need to control creation differently
      * to how JSky works... XXX need to track any changes.
      */
-    public void setFilename( String fileOrUrl ) 
+    public void setFilename( String fileOrUrl )
     {
         if ( fileOrUrl.startsWith( "http:" ) ) {
             setURL( FileUtil.makeURL( null, fileOrUrl ) );
@@ -148,16 +150,18 @@ public class SOGNavigatorImageDisplay
                 clear();
             }
         }
-        else if ( _filename.endsWith( "xml" ) || 
+        else if ( _filename.endsWith( "xml" ) ||
                   _filename.endsWith( "sdf" )  ) {
+            System.out.println( "Loading NDX: " + _filename );
             //  HDX/NDF
             try {
                 hdxImage = new HDXImage( _filename );
+                initHDXImage( hdxImage );
                 setImage( PlanarImage.wrapRenderedImage( hdxImage ) );
             }
             catch ( IOException e ) {
                 DialogUtil.error( e );
-                _filename = null; 
+                _filename = null;
                 _url = _origURL = null;
                 clear();
             }
@@ -272,6 +276,28 @@ public class SOGNavigatorImageDisplay
     }
 
     /**
+     * Called after a new HDXImage object was created to do HDX
+     * specific initialization.
+     */
+    protected void initHDXImage( HDXImage hdxImage)
+        throws IOException
+    {
+        // If the user previously set the image scale, restore it here
+        // to avoid doing it twice
+        ImageHistoryItem hi = getImageHistoryItem( new File(_filename) );
+        float scale;
+        if ( hi != null ) {
+            scale = hi.getScale();
+        }
+        else {
+            scale = getScale();
+        }
+        if ( scale != 1.0F ) {
+            hdxImage.setScale( scale );
+        }
+    }
+
+    /**
      * Initialize the world coordinate system, if the image properties
      * (keywords) support it
      */
@@ -353,9 +379,10 @@ public class SOGNavigatorImageDisplay
     protected void showGridControls()
     {
         if ( plotConfigurator == null ) {
-            plotConfigurator = 
+            plotConfigurator =
                 new PlotConfigurator( "Grid Overlay Configuration",
-                                      this, plotConfiguration );
+                                      this, plotConfiguration,
+                                      "jsky", "PlotConfig.xml" );
 
             //  Add in extra graphics hints controls (anti-aliasing).
             plotConfiguration.add( graphicsHints );
@@ -363,7 +390,7 @@ public class SOGNavigatorImageDisplay
                 ( new GraphicsHintsControls( graphicsHints ), true );
 
             //  Set the default configuration of the controls.
-            InputStream defaultConfig = 
+            InputStream defaultConfig =
                 getClass().getResourceAsStream( "defaultgrid.xml" );
             ConfigurationStore store = new ConfigurationStore( defaultConfig );
             Element defaultElement = store.getState( 0 );
@@ -436,9 +463,9 @@ public class SOGNavigatorImageDisplay
         int dh = (int) Math.max( canvasbox[1], canvasbox[3] ) - yo;
         Rectangle graphRect = new Rectangle( xo, yo, dw, dh );
 
-        //  Transform these positions back into image coordinates. 
-        //  These are suitably "untransformed" from the graphics 
-        //  position and should be the bottom-left and top-right 
+        //  Transform these positions back into image coordinates.
+        //  These are suitably "untransformed" from the graphics
+        //  position and should be the bottom-left and top-right
         //  corners.
         double[] basebox = new double[4];
         p = new Point2D.Double();
@@ -512,7 +539,7 @@ public class SOGNavigatorImageDisplay
 
 //
 // PlotController interface.
-//    
+//
     /**
      * Draw a grid over the currently displayed image.
      */
@@ -569,7 +596,7 @@ public class SOGNavigatorImageDisplay
     {
         return photometryAction;
     }
-    
+
     /**
      * Erase the grid, if drawn.
      */
@@ -591,4 +618,36 @@ public class SOGNavigatorImageDisplay
         photometryWindow.setVisible( true );
     }
     private AperturePhotometryFrame photometryWindow = null;
+
+    /**
+     * Set the scale (zoom factor) for the image.
+     * This also adjusts the origin so that the center of the image
+     * remains about the same.
+     */
+    public void setScale( float scale )
+    {
+        super.setScale( scale );
+
+        //  HDX speed ups? Done after super-class, which should take
+        //  care of setting new scale and centering.
+        if ( hdxImage != null ) {
+            boolean needsUpdate = false;
+            try {
+                needsUpdate = hdxImage.setScale( scale );
+                setPrescaled(  hdxImage.getSubsample() != 1 );
+            }
+            catch(IOException e) {
+                DialogUtil.error(e);
+            }
+            if ( ! needsUpdate && scale == getScale() ) {
+                return;
+            }
+            if ( needsUpdate ) {
+                ImageProcessor ip = getImageProcessor();
+                ip.setSourceImage( PlanarImage.wrapRenderedImage( hdxImage ),
+                                   ip );
+                ip.update();
+            }
+        }
+    }
 }
