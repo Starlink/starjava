@@ -66,11 +66,16 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
                 return new FITSStreamDataNode( datsrc );
             }
 
+            /* Tar file? */
+            if ( TarStreamDataNode.isMagic( magic ) ) {
+                return new TarStreamDataNode( datsrc );
+            }
+
             /* XML file? */
             else if ( XMLDataNode.isMagic( magic ) ) {
-                DOMSource xsrc = makeDOMSource( datsrc );
                 String path = DefaultDataNode.getPath( datsrc );
                 String label = DefaultDataNode.getName( datsrc );
+                DOMSource xsrc = makeDOMSource( datsrc );
 
                 /* NDX? */
                 try {

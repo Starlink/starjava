@@ -363,6 +363,11 @@ public class DefaultDataNode implements DataNode {
             throw new IllegalArgumentException( "Stream " + strm +
                                                 " does not support marks" );
         }
+        if ( ! DataSource.markSupported( strm ) ) {
+            throw new IllegalArgumentException( 
+                "Don't use an InflaterInputStream - in Sun's 1.4.1 java " +
+                "it erroneously claims to support marks (bug #4812237)" );
+        }
         strm.mark( nbytes );
         byte[] buf = new byte[ nbytes ];
         try {

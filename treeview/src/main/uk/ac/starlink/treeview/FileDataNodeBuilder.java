@@ -73,7 +73,6 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             /* Make a DataSource from the file. */
             datsrc = new FileDataSource( file );
 
-
             /* If there is compression, pass it to the handler for streams. */
             Compression compress = datsrc.getCompression();
             if ( datsrc.getCompression() != Compression.NONE ) {
