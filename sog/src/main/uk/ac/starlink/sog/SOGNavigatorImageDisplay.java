@@ -15,10 +15,11 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.awt.image.Raster;
+import java.util.Iterator;
 
 import javax.media.jai.JAI;
 import javax.media.jai.PlanarImage;
@@ -41,7 +42,12 @@ import jsky.util.gui.DialogUtil;
 
 import org.w3c.dom.Element;
 
+import nom.tam.fits.Header;
+
+import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.AstPackage;
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
@@ -427,7 +433,21 @@ public class SOGNavigatorImageDisplay
     protected void initWCS()
     {
         if ( getFitsImage() != null ) {
-            super.initWCS();
+            // If we have JNIAST available might as well use it's superior
+            // facilities for WCS.
+            if ( AstPackage.isAvailable() ) {
+                try {
+                    initWCSFromFits();
+                }
+                catch ( AstException e ) {
+                    e.printStackTrace();
+                    super.initWCS();
+                }
+            }
+            else {
+                //  Fallback to JSky support.
+                super.initWCS();
+            }
             return;
         }
 
@@ -466,6 +486,46 @@ public class SOGNavigatorImageDisplay
         }
         if ( ! getWCS().isWCS() ) {
             setWCS( null );
+        }
+    }
+
+    /**
+     * Initialise the WCS using the FITS header in a FITSImage.
+     */
+    protected void initWCSFromFits()
+        throws AstException
+    {
+        //  Access the header.
+        Header hdr = getFitsImage().getHeader();
+
+        //  Arrange to read the headers into a FITS channel.
+        final Iterator cardIt = hdr.iterator();
+        Iterator lineIt = new Iterator() 
+        {
+            public boolean hasNext() 
+            { 
+                return cardIt.hasNext();
+            }
+            public Object next() 
+            {
+                return cardIt.next().toString();
+            }
+            public void remove() 
+            { 
+                throw new UnsupportedOperationException();
+            }
+        };
+        FitsChan fchan = new FitsChan( lineIt );
+        AstObject aobj = fchan.read();
+
+        //  If we have a FrameSet, use this as the WCS.
+        if ( aobj != null && aobj instanceof FrameSet ) {
+            setWCS( new AstTransform( (FrameSet) aobj, 
+                                      getImageWidth(),
+                                      getImageHeight() ) );
+        }
+        else {
+            throw new AstException( "Failed to read FITS WCS using JNIAST" );
         }
     }
 
