@@ -58,23 +58,28 @@ public abstract class StoragePolicy {
      */
     public static StoragePolicy getDefaultPolicy() {
         if ( defaultInstance_ == null ) {
-            String pref = System.getProperty( PREF_PROPERTY );
-            if ( "disk".equals( pref ) ) {
-                defaultInstance_ = PREFER_DISK;
+            try {
+                String pref = System.getProperty( PREF_PROPERTY );
+                if ( "disk".equals( pref ) ) {
+                    defaultInstance_ = PREFER_DISK;
+                }
+                else if ( "memory".equals( pref ) ) {
+                    defaultInstance_ = PREFER_MEMORY;
+                }
+                else if ( "discard".equals( pref ) ) {
+                    defaultInstance_ = DISCARD;
+                }
+                else {
+                    StoragePolicy named =
+                        (StoragePolicy) 
+                        Loader.getClassInstance( pref, StoragePolicy.class );
+                    defaultInstance_ = named != null 
+                                     ? named
+                                     : (StoragePolicy) PREFER_MEMORY;
+                }
             }
-            else if ( "memory".equals( pref ) ) {
+            catch ( SecurityException e ) {
                 defaultInstance_ = PREFER_MEMORY;
-            }
-            else if ( "discard".equals( pref ) ) {
-                defaultInstance_ = DISCARD;
-            }
-            else {
-                StoragePolicy named =
-                    (StoragePolicy) 
-                    Loader.getClassInstance( pref, StoragePolicy.class );
-                defaultInstance_ = named != null 
-                                 ? named
-                                 : (StoragePolicy) PREFER_MEMORY;
             }
         }
         return defaultInstance_;
