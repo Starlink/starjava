@@ -1691,18 +1691,20 @@ public class SplatBrowser
         int failed = 0;
         final int[] plotIndices = getSelectedPlots();
         if ( plotIndices != null ) {
-            SpecData spec = null;
+
+            //  Add all spectra in a single list for efficiency.
+            SpecData spectra[] = new SpecData[specIndices.length];
             for ( int i = 0; i < specIndices.length; i++ ) {
-                spec = globalList.getSpectrum( specIndices[i] );
-                for ( int j = 0; j < plotIndices.length; j++ ) {
-                    try {
-                        globalList.addSpectrum( plotIndices[j], spec );
-                    }
-                    catch (SplatException e) {
-                        failed++;
-                        lastException = e;
-                        plotIndices[j] = -1;
-                    }
+                spectra[i] = globalList.getSpectrum( specIndices[i] );
+            }
+            for ( int j = 0; j < plotIndices.length; j++ ) {
+                try {
+                    globalList.addSpectra( plotIndices[j], spectra );
+                }
+                catch (SplatException e) {
+                    failed++;
+                    lastException = e;
+                    plotIndices[j] = -1;
                 }
             }
             if ( fit ) {
@@ -1728,15 +1730,19 @@ public class SplatBrowser
             spec = globalList.getSpectrum( specIndices[0] );
             final PlotControlFrame plot = displaySpectrum( spec );
             plotIndex = globalList.getPlotIndex( plot.getPlot() );
-            for ( int i = 1; i < specIndices.length; i++ ) {
-                spec = globalList.getSpectrum( specIndices[i] );
-                try {
-                    globalList.addSpectrum( plot.getPlot(), spec );
-                }
-                catch (SplatException e) {
-                    failed++;
-                    lastException = e;
-                }
+
+            //  Add all spectra in a single list for efficiency.
+            SpecData spectra[] = new SpecData[specIndices.length];
+            for ( int i = 0; i < specIndices.length; i++ ) {
+                spectra[i] = globalList.getSpectrum( specIndices[i] );
+            }
+
+            try {
+                globalList.addSpectra( plot.getPlot(), spectra );
+            }
+            catch (SplatException e) {
+                failed++;
+                lastException = e;
             }
             if ( fit && failed < specIndices.length ) {
                 //  Do fit to width and height after realisation.
@@ -1765,7 +1771,7 @@ public class SplatBrowser
      * @param list the list of spectra file names (or disk
      *             specifications).
      * @return the identifier of the plot that the spectra are
-     *         displayed in, -1 if it fails.
+     *         displayed in, -1 if it fails to display or open any spectra.
      */
     public int displaySpectra( String list )
     {
@@ -1789,40 +1795,39 @@ public class SplatBrowser
         //  Create a plot for our spectra and display them all.
         SpecData spec = globalList.getSpectrum( indices[0] );
         PlotControl plot = displaySpectrum( spec ).getPlot();
-        int failed = 0;
         SplatException lastException = null;
-        for ( int i = 1; i < openedCount; i++ ) {
-            spec = globalList.getSpectrum( indices[i] );
+
+        if ( openedCount > 1 ) {
+            SpecData[] spectra = new SpecData[openedCount-1];
+            for ( int i = 0; i < openedCount - 1; i++ ) {
+                spectra[i] = globalList.getSpectrum( indices[i+1] );
+            }
             try {
-                globalList.addSpectrum( plot, spec );
+                globalList.addSpectra( plot, spectra );
             }
             catch (SplatException e) {
-                failed++;
                 lastException = e;
             }
         }
         if ( lastException != null ) {
-            reportOpenListFailed( failed, lastException );
-            if ( failed == openedCount ) {
-                return -1;
-            }
+            new ExceptionDialog( this, "Failed to display spectra", 
+                                 lastException );
+            return -1;
         }
         return plot.getIdentifier();
     }
 
     /**
      * Display a list of spectra given by their file names, in a plot
-     * specified by its identifier. The file names are assumed to be
-     * in a space separated list stored in a single String. If the
-     * plot doesn't exist then it is created and the identifier of
-     * that plot is returned (which will be different from the one
-     * requested).
+     * specified by its identifier. The file names are assumed to be in a
+     * space separated list stored in a single String. If the plot doesn't
+     * exist then it is created and the identifier of that plot is returned
+     * (which will be different from the one requested).
      *
      * @param id the plot identifier number.
-     * @param list the list of spectra file names (or disk
-     *             specifications).
+     * @param list the list of spectra file names (or disk specifications).
      * @return the id of the plot that the spectra are displayed
-     *         in, -1 if it fails.
+     *         in, -1 if it fails to display.
      */
     public int displaySpectra( int id, String list )
     {
@@ -1830,6 +1835,15 @@ public class SplatBrowser
         StringTokenizer st = new StringTokenizer( list );
         int count = st.countTokens();
         if ( count == 0 ) return -1;
+
+        //  Access plot for our spectra.
+        int plotIndex = globalList.getPlotIndex( id );
+        PlotControl plot = globalList.getPlot( plotIndex );
+
+        //  No sensible index, so create a plot.
+        if ( plotIndex == -1 ) {
+            return displaySpectra( list );
+        }
 
         //  Attempt to open each one and keep a list of their
         //  indices.
@@ -1843,54 +1857,29 @@ public class SplatBrowser
         }
         if ( openedCount == 0 ) return -1;
 
-        //  Access or create a plot for our spectra.
-        int plotIndex = globalList.getPlotIndex( id );
-        int newId = 0;
-        int failed = 0;
-        SplatException lastException = null;
-        if ( plotIndex == -1 ) {
-            SpecData spec = globalList.getSpectrum( indices[0] );
-            PlotControlFrame plot = displaySpectrum( spec );
-            for ( int i = 1; i < openedCount; i++ ) {
-                spec = globalList.getSpectrum( indices[i] );
-                try {
-                    globalList.addSpectrum( plot.getPlot(), spec );
-                }
-                catch (SplatException e) {
-                    failed++;
-                    lastException = e;
-                }
-            }
-            newId = plot.getPlot().getIdentifier();
-        }
-        else {
-            PlotControl plot = globalList.getPlot( plotIndex );
-            SpecData spec = null;
-            for ( int i = 0; i < openedCount; i++ ) {
-                spec = globalList.getSpectrum( indices[i] );
-                try {
-                    globalList.addSpectrum( plot, spec );
-                }
-                catch (SplatException e) {
-                    failed++;
-                    lastException = e;
-                }
 
-            }
-            newId = plot.getIdentifier();
+        SplatException lastException = null;
+        SpecData spectra[] = new SpecData[openedCount];
+        for ( int i = 0; i < openedCount; i++ ) {
+            spectra[i] = globalList.getSpectrum( indices[i] );
         }
-        if ( failed != 0 ) {
-            reportOpenListFailed( failed, lastException );
-            if ( failed == openedCount ) {
-                return -1;
-            }
+        try {
+            globalList.addSpectra( plot, spectra );
         }
-        return newId;
+        catch (SplatException e) {
+            lastException = e;
+        }
+        if ( lastException != null ) {
+            new ExceptionDialog( this, "Failed to display spectra", 
+                                 lastException );
+            return -1;
+        }
+        return id;
     }
 
     /**
      * Make a report using an ExceptionDialog for when loading a list
-     * of spectra has failed for some.
+     * of spectra has failed for some reason.
      */
     private void reportOpenListFailed( int failed,
                                        SplatException lastException )
