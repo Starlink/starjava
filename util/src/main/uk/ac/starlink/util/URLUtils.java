@@ -46,6 +46,9 @@ public class URLUtils {
         catch ( MalformedURLException e ) {
             throw protestFileProtocolIsLegal( e );
         }
+        catch ( SecurityException e ) {
+            defaultContext = null;
+        }
     }
 
     /**
@@ -70,6 +73,14 @@ public class URLUtils {
             try {
                 URI uri = new File( location ).toURI();
                 return new URL( uri.toString() );
+            }
+            catch ( MalformedURLException e2 ) {
+                throw protestFileProtocolIsLegal( e2 );
+            }
+        }
+        catch ( SecurityException e ) {
+            try {
+                return new URL( "file:" + location );
             }
             catch ( MalformedURLException e2 ) {
                 throw protestFileProtocolIsLegal( e2 );
