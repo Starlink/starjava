@@ -22,7 +22,7 @@ import uk.ac.starlink.util.Loader;
  * @author   Mark Taylor
  * @since    11 Feb 2005
  */
-public class TableTool extends TableTask {
+public class TablePipe extends TableTask {
 
     private String inLoc_;
     private String inFmt_;
@@ -36,7 +36,7 @@ public class TableTool extends TableTask {
         CountMode.class.getName(),
     };
 
-    public TableTool() {
+    public TablePipe() {
         List modeList = new ArrayList();
         Loader.loadProperties();
         for ( int i = 0; i < MODE_NAMES.length; i++ ) {
@@ -46,13 +46,13 @@ public class TableTool extends TableTask {
                 modeList.add( mode );
             }
         }
-        modeList.addAll( Loader.getClassInstances( "ttool.modes",
+        modeList.addAll( Loader.getClassInstances( "tpipe.modes",
                                                    ProcessingMode.class ) );
         modes_ = (ProcessingMode[]) modeList.toArray( new ProcessingMode[ 0 ] );
     }
 
     public String getCommandName() {
-        return "ttool";
+        return "tpipe";
     }
 
     public boolean setArgs( List argList ) {
@@ -231,7 +231,7 @@ public class TableTool extends TableTask {
     }
 
     public static void main( String[] args ) {
-        if ( ! new TableTool().run( args ) ) {
+        if ( ! new TablePipe().run( args ) ) {
             System.exit( 1 );
         }
     }

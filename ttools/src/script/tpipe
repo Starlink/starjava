@@ -1,10 +1,10 @@
 
 #+
 #  Name:
-#     ttool
+#     tpipe
 
 #  Purpose:
-#     Invokes the TTOOL utility on Unix
+#     Invokes the TPIPE utility on Unix
 
 #  Description:
 #     This shell script invokes one of the utilities in the TTOOLS package.
@@ -65,7 +65,7 @@ done
 cmd="$starjava \
      $javaArgs \
      -classpath ${appjar}:${CLASSPATH} \
-     uk.ac.starlink.ttools.TableTool \
+     uk.ac.starlink.ttools.TablePipe \
      $appArgs"
 
 #  Echo it if verbose.
