@@ -303,7 +303,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         Action resizeAction = new BasicAction( "Rescale",
                                                ResourceIcon.RESIZE,
                                                "Rescale the plot to show " +
-                                               "all points points" ) {
+                                               "all points" ) {
             public void actionPerformed( ActionEvent evt ) {
                 lastPlot.fillPlot();
             }
