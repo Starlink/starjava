@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,5 +88,147 @@ public class Tables {
         }
         assert j == ncol - 1;
         return new ColumnPermutedStarTable( startab, colmap );
+    }
+
+    /**
+     * Diagnostic method which tests the invariants of a StarTable.
+     * This method returns no value, and throws an exception if a table
+     * is illegal in some way.
+     * If this method throws an exception when called on a given StarTable,
+     * that table is deemed to be bad in some way (buggy implementation
+     * or I/O trouble during access).
+     * This method is provided for convenience and diagnostics 
+     * because there are a number of ways, some of them subtle, in which
+     * a StarTable can fail to fulfil its general contract.
+     * <p>
+     * That a table passes this test does not guarantee that the table has
+     * no bugs.  This method should not generally be used in production
+     * code, since it may be expensive in time and/or memory.
+     *
+     * @param  table  table to test
+     * @throws  AssertionError  if an invariant is violated
+     * @throws  IOException   if there is an I/O error
+     */
+    public static void checkTable( StarTable table ) throws IOException {
+        int formatChars = 100;
+        int ncol = table.getColumnCount();
+        long nrow = table.getRowCount();
+        boolean isRandom = table.isRandom();
+
+        /* Check a random-access table knows how many rows it has. */
+        if ( isRandom ) {
+            assertTrue( nrow >= 0 );
+        }
+
+        /* Check the shape arrays look OK. */
+        int[] nels = new int[ ncol ];
+        Class[] classes = new Class[ ncol ];
+        ColumnInfo[] colinfos = new ColumnInfo[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo cinfo = table.getColumnInfo( icol );
+            colinfos[ icol ] = cinfo;
+            classes[ icol ] = cinfo.getContentClass();
+            int[] dims = cinfo.getShape();
+            if ( dims != null ) {
+                int ndim = dims.length;
+                assertTrue( ndim > 0 );
+                assertTrue( cinfo.getContentClass().isArray() );
+                int nel = 1;
+                for ( int i = 0; i < ndim; i++ ) {
+                    nel *= dims[ i ];
+                    assertTrue( dims[ i ] != 0 );
+                    if ( i < ndim - 1 ) {
+                        assertTrue( dims[ i ] > 0 );
+                    }
+                }
+                nels[ icol ] = nel;
+            }
+            assertTrue( cinfo.getContentClass().isArray() == cinfo.isArray() );
+        }
+
+        /* Get a RowSequence object and check it can't be read before a next. */
+        RowSequence rseq = table.getRowSequence();
+        try {
+            rseq.getRow();
+            assertTrue( false );
+        }
+        catch ( IllegalStateException e ) {
+            // ok
+        }
+
+        /* Read all cells. */
+        long lrow = 0L;
+        while ( rseq.hasNext() ) {
+            rseq.next();
+            assertTrue( lrow == rseq.getRowIndex() );
+            Object[] row = rseq.getRow();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+
+                /* Check that elements got in different ways look the same. */
+                Object cell = row[ icol ];
+                Object val1 = cell;
+                Object val2 = rseq.getCell( icol );
+                Object val3 = null;
+                if ( isRandom ) {
+                    val3 = table.getCell( lrow, icol );
+                }
+                boolean isNull = cell == null;
+                if ( isNull ) {
+                    assertTrue( colinfos[ icol ].isNullable() );
+                    assertTrue( val2 == null );
+                    if ( isRandom ) {
+                        assertTrue( val3 == null);
+                    }
+                }
+                else {
+                    String s1 = colinfos[ icol ]
+                               .formatValue( val1, formatChars );
+                    assertTrue( s1.equals( colinfos[ icol ]
+                                          .formatValue( val2, formatChars ) ) );
+                    if ( isRandom ) {
+                        assertTrue( s1.equals( colinfos[ icol ]
+                                              .formatValue( val3,
+                                                            formatChars ) ) );
+                    }
+                }
+
+                /* If the cell is an array, check it's the right shape. */
+                if ( cell != null && cell.getClass().isArray() ) {
+                    int nel = Array.getLength( cell );
+                    if ( nels[ icol ] < 0 ) {
+                        assertTrue( nel % nels[ icol ] == 0 );
+                    }
+                    else {
+                        assertTrue( nels[ icol ] == nel );
+                    }
+                }
+
+                /* Check the cell is of the declared type. */
+                if ( cell != null ) {
+                    assertTrue( classes[ icol ]
+                               .isAssignableFrom( cell.getClass() ) );
+                }
+            }
+            lrow++;
+        }
+
+        /* Check that the claimed number of rows is correct. */
+        if ( nrow >= 0 ) {
+            assertTrue( lrow == nrow );
+        }
+    }
+
+    /**
+     * Implements assertion semantics.  This differs from the <tt>assert</tt>
+     * Java 1.4 language element in that the assertion is always done,
+     * it doesn't depend on the JVM running in assertions-enabled mode.
+     *
+     * @param  ok  the thing that should be true
+     * @throws  AssertionError  if <tt>ok</tt> is <tt>false</tt>
+     */
+    private static void assertTrue( boolean ok ) {
+        if ( ! ok ) {
+            throw new AssertionError();
+        }
     }
 }
