@@ -103,8 +103,10 @@
       <fo:block text-align="center">
         <xsl:element name="fo:external-graphic">
           <xsl:attribute name="src">
-            <xsl:value-of select="$BASEDIR"/>
-            <xsl:text>/../</xsl:text>
+            <xsl:if test="$BASEDIR!='.'">
+              <xsl:value-of select="$BASEDIR"/>
+              <xsl:text>/</xsl:text>
+            </xsl:if>
             <xsl:value-of select="$COVERIMAGE"/>
           </xsl:attribute>
         </xsl:element>

@@ -1127,7 +1127,7 @@
           style="${src.docs}/toFo.xslt">
       <param name="VERSION" expression="${version}"/>
       <param name="BASEDIR" expression="${build.docs}/${user.doc}"/>
-      <param name="COVERIMAGE" expression="multishot.gif"/>
+      <param name="COVERIMAGE" expression="../multishot.gif"/>
     </xslt>
     <java classname="org.apache.fop.apps.Fop"
           failonerror="yes"
