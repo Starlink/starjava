@@ -633,7 +633,7 @@
    !-->
   <target name="sign_ant">
 
-    <ant dir="./ant" target="sign_jars"/>
+    <ant dir="./ant" inheritAll="false" target="sign_jars"/>
 
   </target>
 
