@@ -188,17 +188,18 @@ public class ScatterPlot extends JComponent implements Printable {
     }
 
     /**
-     * Plots the points of this scatter plot onto a given graphics surface.
+     * Plots the points of this scatter plot onto a given graphics context
+     * using its current plotting surface to define the mapping of data
+     * to graphics space.
      *
      * @param  g  graphics context
-     * @param  gs  surface which defines the mapping of data to graphics space
      */
-    private void drawPoints( Graphics g, PlotSurface gs ) {
+    private void drawPoints( Graphics g ) {
         Points points = points_;
         PlotState state = state_;
 
         Shape oldClip = g.getClip();
-        g.setClip( gs.getClip() );
+        g.setClip( surface_.getClip() );
 
         double[] xv = points.getXVector();
         double[] yv = points.getYVector();
@@ -211,7 +212,7 @@ public class ScatterPlot extends JComponent implements Printable {
             int maxr = style.getMaximumRadius();
             for ( int ip = 0; ip < np; ip++ ) {
                 if ( sets[ is ].isIncluded( (long) ip ) ) {
-                    Point point = gs.dataToGraphics( xv[ ip ], yv[ ip ] );
+                    Point point = surface_.dataToGraphics( xv[ ip ], yv[ ip ] );
                     if ( point != null ) {
                         int xp = point.x;
                         int yp = point.y;
@@ -321,7 +322,7 @@ public class ScatterPlot extends JComponent implements Printable {
                 surface_.paintSurface( ig );
 
                 /* Plot the actual points into the cached buffer. */
-                drawPoints( ig, surface_ );
+                drawPoints( ig );
 
                 /* Record the state which corresponds to the most recent
                  * plot into the cached buffer. */
@@ -357,7 +358,7 @@ public class ScatterPlot extends JComponent implements Printable {
          * the wrong value (TYPE_IMAGE_BUFFER not TYPE_PRINTER).
          */
         protected void printComponent( Graphics g ) {
-            drawPoints( g, surface_ );
+            drawPoints( g );
         }
     }
 
