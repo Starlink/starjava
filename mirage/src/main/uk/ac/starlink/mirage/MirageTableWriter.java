@@ -6,24 +6,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StreamStarTableWriter;
 
-public class MirageTableWriter implements StarTableWriter {
+public class MirageTableWriter extends StreamStarTableWriter {
 
-    public void writeStarTable( StarTable startab, String location )
+    public void writeStarTable( StarTable startab, OutputStream out )
             throws IOException {
-        if ( location.equals( "-" ) ) {
-            MirageFormatter mf = new MirageFormatter( System.out );
-            mf.writeMirageFormat( startab );
-        }
-        else {
-            File file = new File( location );
-            OutputStream ostrm = new FileOutputStream( file );
-            PrintStream pstrm = new PrintStream( ostrm );
-            MirageFormatter mf = new MirageFormatter( pstrm );
-            mf.writeMirageFormat( startab );
-            pstrm.close();
-        }
+        PrintStream pstrm = out instanceof PrintStream 
+                          ? (PrintStream) out
+                          : new PrintStream( out );
+        MirageFormatter mf = new MirageFormatter( pstrm );
+        mf.writeMirageFormat( startab );
+        pstrm.flush();
     }
 
     public boolean looksLikeFile( String filename ) {
