@@ -434,6 +434,7 @@
      !   which have found their way into the build directory (this can
      !   happen during javadoc building). -->
     <mkdir dir="${build.classes}"/>
+    <delete dir="${build.java}/uk/ac/starlink/vo"/>
     <javac srcdir="${java.dir}:${build.java}"
            destdir="${build.classes}"
            debug="${debug}"
@@ -442,7 +443,6 @@
            optimize="${optimize}">
       <classpath refid="classpath"/>
       <include name="**/*.java"/>
-      <exclude name="**/uk/ac/starlink/**"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
