@@ -123,7 +123,7 @@ public class HDSType {
 
     /**
      * Gets an HDSType from its HDS name.  This does the opposite of
-     * the {@link #name} method.
+     * the {@link #getName} method.
      *
      * @param   name  name of the HDS type, including prepended underscore.
      *                Not case sensitive.

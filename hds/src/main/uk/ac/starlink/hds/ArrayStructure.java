@@ -194,7 +194,7 @@ public class ArrayStructure {
     /**
      * Gets the shape of the array.  This includes the origin and dimensions
      * information.  The pixel ordering scheme is always 
-     * {@link Order.COLUMN_MAJOR}.
+     * {@link uk.ac.starlink.array.Order#COLUMN_MAJOR}.
      *
      * @return  the shape of the array
      */

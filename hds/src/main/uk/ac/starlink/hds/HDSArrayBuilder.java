@@ -30,7 +30,7 @@ import uk.ac.starlink.array.Type;
  * (no <tt>#</tt>), the object at the top level of the HDS container
  * file is understood.
  * <p>
- * This is a singleton class; use {@link getInstance} to get an instance.
+ * This is a singleton class; use {@link #getInstance} to get an instance.
  *
  * @author    Mark Taylor (Starlink)
  * @see  HDSReference

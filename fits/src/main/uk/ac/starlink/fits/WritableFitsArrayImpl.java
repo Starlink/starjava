@@ -112,7 +112,7 @@ class WritableFitsArrayImpl implements ArrayImpl {
             if ( type == Type.FLOAT || type == Type.DOUBLE ) {
                 // no BLANK value, use NaN
             }
-            else {
+            else if ( badValue != null ) {
                 cardlist.add( new HeaderCard( "BLANK", badValue.longValue(), 
                                               "Bad pixel value" ) );
             }
