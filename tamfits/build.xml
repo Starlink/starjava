@@ -401,15 +401,15 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
+    <!--<mkdir dir="${dist.bin.pkg}"/>-->
     <mkdir dir="${dist.lib.pkg}"/>
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+    <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
     <!-- Copy any startup scripts etc. -->
-    <copy todir="${dist.bin.pkg}">
+    <!--<copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
-    </copy>
+    </copy>-->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
@@ -422,9 +422,9 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
-    <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
+    <!--<chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
-    </chmod>
+    </chmod>-->
 
   </target>
 
@@ -520,15 +520,15 @@
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
       <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
 
-      <zipfileset dir="${dist.bin}" prefix="${name}/bin">
+      <!--<zipfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
       <zipfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </zipfileset>
-      <zipfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<zipfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </zipfileset>
+      </zipfileset>-->
 
       <zipfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -549,15 +549,15 @@
         <include name="build.xml"/>
       </tarfileset>
 
-      <tarfileset dir="${dist.bin}" prefix="${name}/bin">
+      <!--<tarfileset dir="${dist.bin}" prefix="${name}/bin">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
       <tarfileset dir="${dist.lib}" prefix="${name}/lib">
         <include name="**" if="binary.required"/>
       </tarfileset>
-      <tarfileset dir="${dist.etc}" prefix="${name}/etc">
+      <!--<tarfileset dir="${dist.etc}" prefix="${name}/etc">
         <include name="**" if="binary.required"/>
-      </tarfileset>
+      </tarfileset>-->
 
       <tarfileset dir="${src.dir}" prefix="${name}/src">
         <include name="**" if="source.required"/>
@@ -582,10 +582,10 @@
           description="-> cleans up build and dist products">
 
     <delete dir="${build.dir}"/>
-    <delete dir="${dist.bin}"/>
+    <!--<delete dir="${dist.bin}"/>-->
     <delete dir="${dist.lib}"/>
     <delete dir="${dist.docs}"/>
-    <delete dir="${dist.etc}"/>
+    <!--<delete dir="${dist.etc}"/>-->
 
   </target>
 
@@ -614,28 +614,28 @@
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
+    <!--<mkdir dir="${star.bin.pkg}"/>-->
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
+    <!--<mkdir dir="${star.etc.pkg}"/>-->
     <mkdir dir="${star.docs.pkg}"/>
 
-    <loggedcopy todir="${star.bin}"
+    <!--<loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="false">
       <fileset dir="${dist.bin}"/>
-    </loggedcopy>
+    </loggedcopy>-->
 
-    <chmod perm="ugo+rx" failonerror="${chmod.fail}">
+    <!--<chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
-    </chmod>
+    </chmod>-->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
@@ -673,10 +673,10 @@
      <!-- Make sure that the expected file structure exists, some
           of these files can be missing if originally empty -->
      <mkdir dir="${dist.dir}"/>
-     <mkdir dir="${dist.bin.pkg}"/>
+     <!--<mkdir dir="${dist.bin.pkg}"/>-->
      <mkdir dir="${dist.lib.pkg}"/>
      <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+     <!--<mkdir dir="${dist.etc.pkg}"/>-->
 
      <!-- Do normal install, but with many targets switched off-->
      <antcall target="install">
