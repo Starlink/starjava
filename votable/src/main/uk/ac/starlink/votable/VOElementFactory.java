@@ -421,10 +421,32 @@ public class VOElementFactory {
         /* Parse using a custom handler. */
         VOTableDOMBuilder db = new VOTableDOMBuilder( getStoragePolicy() );
         parser.setContentHandler( db );
-        parser.parse( insource );
+        try {
+            parser.parse( insource );
+        }
+        catch ( SAXException e ) {
+            throw fixStackTrace( e );
+        }
 
         /* Return the built document. */
         return db.getDocument();
+    }
+
+    /**
+     * Fixes up the stack trace for a SAXException.  SAXException's error
+     * embedding mechanism predates the Java one, which means that although
+     * the SAXException contains the cause of the error, it's not inserted
+     * into the stack trace by the 1.4 JVM.  This method modifies a
+     * SAXException so that it is.
+     *
+     * @param  e  exception
+     * @return  tweaked <tt>e</tt>
+     */
+    private static SAXException fixStackTrace( SAXException e ) {
+        if ( e.getException() != null && e.getCause() == null ) {
+            e.initCause( e.getException() );
+        }
+        return e;
     }
 
 }
