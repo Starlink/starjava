@@ -57,6 +57,7 @@ import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Turns URLs which reference FITS files or HDUs into Ndx objects.
@@ -410,8 +411,16 @@ public class FitsNdxHandler
 
         /* Write the XML as bytes in an ASCII table extension. */
         try {
+            uk.ac.starlink.hdx.HdxContainer hdx
+                    = HdxFactory
+                    .getInstance()
+                    .newHdxContainer( ondx.getHdxFacade() );
+
             ByteArrayOutputStream bufos = new ByteArrayOutputStream();
-            new SourceReader().writeSource( ondx.toXML( url ), bufos );
+            new SourceReader()
+                    .writeSource( hdx.getSource( URLUtils.urlToUri(url) ),
+                                  bufos );
+
             byte[] bytes = bufos.toByteArray();
             int nchar = bytes.length;
             AddableHeader hdr = new AddableHeader();
@@ -444,6 +453,9 @@ public class FitsNdxHandler
         catch ( TransformerException e ) {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
+        } catch (uk.ac.starlink.hdx.HdxException e) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
 
         strm.close();
@@ -467,35 +479,37 @@ public class FitsNdxHandler
         return new HeaderCard( image );
     }
 
-    public org.w3c.dom.Document makeHdxDocument(java.net.URL url)
+    // implement HdxDocumentFactory
+
+    public org.w3c.dom.Document makeHdxDocument( java.net.URL url )
             throws HdxException {
         try {
-            Ndx fitsNdx = makeNdx(url, AccessMode.READ);
-            if (fitsNdx == null)
+            Ndx fitsNdx = makeNdx( url, AccessMode.READ );
+            if ( fitsNdx == null )
                 // nothing to do with us
                 return null;
         
             HdxDocument doc = (HdxDocument)HdxDOMImplementation
                     .getInstance()
-                    .createDocument(null, "hdx", null);
-            Element el = doc.createElement("hdx");
-            doc.appendChild(el);
-            Element ndxEl = doc.createElement(BridgeNdx.getHdxType(),
-                                              fitsNdx.getDOMFacade());
-            el.appendChild(ndxEl);
+                    .createDocument( null, "hdx", null );
+            Element el = doc.createElement( "hdx" );
+            doc.appendChild( el );
+            Element ndxEl = doc.createElement( fitsNdx.getHdxFacade() );
+            el.appendChild( ndxEl );
             return doc;
-        } catch (IOException ex) {
-            // Method makeNdx thought it should have been able to
-            // handle this, but processing failed.  We reprocess this
-            // into an HdxException.
-            throw new HdxException("Failed to handle URL " + url
-                                   + " (" + ex + ")");
+        } catch ( IOException ex ) {
+            /*
+             * Method makeNdx thought it should have been able to
+             * handle this, but processing failed.  We reprocess this
+             * into an HdxException.
+             */
+            throw new HdxException( "Failed to handle URL " + url
+                                    + " (" + ex + ")");
         }
     }
 
-    public javax.xml.transform.Source makeHdxSource(java.net.URL url)
+    public javax.xml.transform.Source makeHdxSource( java.net.URL url )
             throws HdxException {
-        return new DOMSource(makeHdxDocument(url));
+        return new DOMSource( makeHdxDocument( url ) );
     }
-    
 }
