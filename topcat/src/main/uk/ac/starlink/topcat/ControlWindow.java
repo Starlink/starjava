@@ -25,6 +25,7 @@ import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.ListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -55,6 +56,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarTableSaver;
+import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
 import uk.ac.starlink.util.ErrorDialog;
 
@@ -67,6 +69,7 @@ import uk.ac.starlink.util.ErrorDialog;
  */
 public class ControlWindow extends AuxWindow
                            implements ListSelectionListener, 
+                                      ListDataListener,
                                       TableModelListener,
                                       TableColumnModelListener,
                                       TopcatListener {
@@ -78,6 +81,7 @@ public class ControlWindow extends AuxWindow
     private final TableModelListener tableWatcher = this;
     private final TopcatListener topcatWatcher = this;
     private final ListSelectionListener selectionWatcher = this;
+    private final ListDataListener tablesWatcher = this;
     private final TableColumnModelListener columnWatcher = this;
     private final WindowListener windowWatcher = new ControlWindowListener();
     private final StarTableFactory tabfact = new StarTableFactory( true );
@@ -95,8 +99,10 @@ public class ControlWindow extends AuxWindow
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
     private LoadQueryWindow loadWindow;
     private StarTableSaver saver;
+    private MatchWindow matchWindow;
 
     private final JTextField idField = new JTextField();
+    private final JLabel indexLabel = new JLabel();
     private final JLabel locLabel = new JLabel();
     private final JLabel nameLabel = new JLabel();
     private final JLabel rowsLabel = new JLabel();
@@ -117,6 +123,7 @@ public class ControlWindow extends AuxWindow
     private final Action dupAct;
     private final Action mirageAct;
     private final Action removeAct;
+    private final Action matchAct;
 
     /**
      * Constructs a new window.
@@ -130,6 +137,7 @@ public class ControlWindow extends AuxWindow
 
         /* Watch the list. */
         tablesList.addListSelectionListener( selectionWatcher );
+        tablesModel.addListDataListener( tablesWatcher );
 
         /* Watch the label field. */
         idField.addActionListener( new ActionListener() {
@@ -173,6 +181,8 @@ public class ControlWindow extends AuxWindow
                                        "Forget about the current table" );
         readAct = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                      "Open a new table" );
+        matchAct = new ControlAction( "Match Rows", ResourceIcon.MATCH,
+                                      "Join tables using row matching" );
         readAct.setEnabled( canRead );
 
         writeAct = new ExportAction( "Save Table", ResourceIcon.SAVE,
@@ -201,6 +211,7 @@ public class ControlWindow extends AuxWindow
         /* Add general control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
         toolBar.add( readAct ).setTransferHandler( importTransferHandler );
+        toolBar.add( matchAct );
         toolBar.addSeparator();
 
         /* Add export buttons to the toolbar. */
@@ -230,6 +241,7 @@ public class ControlWindow extends AuxWindow
 
         /* Display the window. */
         updateInfo();
+        updateControls();
         pack();
         setVisible( true );
     }
@@ -256,10 +268,13 @@ public class ControlWindow extends AuxWindow
      *         <tt>table</tt> - preferably a URL or filename or something
      * @param  select  true iff the newly-added table should become the
      *         currently selected table
+     * @return the newly-created TopcatModel object corresponding to 
+     *         <tt>table</tt>
      */
-    public void addTable( StarTable table, String location, boolean select ) {
+    public TopcatModel addTable( StarTable table, String location,
+                                 boolean select ) {
         TopcatModel tcModel = new TopcatModel( table, location );
-        tcModel.setLabel( location );
+        tcModel.setLabel( shorten( location ) );
         tablesModel.addElement( tcModel );
         if ( select || tablesList.getSelectedValue() == null ) {
             tablesList.setSelectedValue( tcModel, true );
@@ -267,6 +282,7 @@ public class ControlWindow extends AuxWindow
         if ( select ) {
             makeVisible();
         }
+        return tcModel;
     }
 
     /**
@@ -289,6 +305,16 @@ public class ControlWindow extends AuxWindow
      */
     private TopcatModel getCurrentModel() {
         return (TopcatModel) tablesList.getSelectedValue();
+    }
+
+    /**
+     * Returns the list model which keeps track of which tables are available
+     * to the application.
+     *
+     * @return  list model of known tables
+     */
+    public ListModel getTablesListModel() {
+        return tablesModel;
     }
 
     /**
@@ -326,6 +352,18 @@ public class ControlWindow extends AuxWindow
             saver.setStarTableOutput( taboutput );
         }
         return saver;
+    }
+
+    /**
+     * Returns a dialog used for doing table joins.
+     *
+     * @return matcher window
+     */
+    public MatchWindow getMatchWindow() {
+        if ( matchWindow == null ) {
+            matchWindow = new MatchWindow( this );
+        }
+        return matchWindow;
     }
 
     /**
@@ -391,6 +429,7 @@ public class ControlWindow extends AuxWindow
             String name = dataModel.getName();
 
             idField.setText( tcModel.getLabel() );
+            indexLabel.setText( tcModel.getID() + ": " );
             locLabel.setText( loc );
             nameLabel.setText( loc.equals( name ) ? null : name );
             rowsLabel.setText( totRows + 
@@ -408,6 +447,7 @@ public class ControlWindow extends AuxWindow
         }
         else {
             idField.setText( null );
+            indexLabel.setText( "0: " );
             locLabel.setText( null );
             nameLabel.setText( null );
             rowsLabel.setText( null );
@@ -436,6 +476,15 @@ public class ControlWindow extends AuxWindow
         hideAct.setEnabled( hasModel );
         idField.setEnabled( hasModel );
         idField.setEditable( hasModel );
+    }
+
+    /**
+     * Updates some window state.  This should be called at least when the
+     * list of tables changes.
+     */
+    public void updateControls() {
+        boolean hasTables = tablesModel.getSize() > 0;
+        matchAct.setEnabled( hasTables );
     }
 
     /*
@@ -507,6 +556,16 @@ public class ControlWindow extends AuxWindow
     public void columnMoved( TableColumnModelEvent evt ) {}
     public void columnSelectionChanged( ListSelectionEvent evt ) {}
 
+    public void contentsChanged( ListDataEvent evt ) {
+        updateControls();
+    }
+    public void intervalAdded( ListDataEvent evt ) {
+        updateControls();
+    }
+    public void intervalRemoved( ListDataEvent evt ) {
+        updateControls();
+    }
+
 
     /**
      * General control actions.
@@ -527,6 +586,9 @@ public class ControlWindow extends AuxWindow
                               "Confirm Remove" ) ) {
                     removeTable( tcModel );
                 }
+            }
+            else if ( this == matchAct ) {
+                getMatchWindow().makeVisible();
             }
         }
     }
@@ -589,6 +651,24 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Utility method to turn a location string into a shorter version 
+     * by stripping directory information etc.
+     *
+     * @param  label  original label
+     * @return  possibly shortened version
+     */
+    private static String shorten( String label ) {
+        int sindex = label.lastIndexOf( '/' );
+        if ( sindex < 0 || sindex == label.length() - 1 ) {
+            sindex = label.lastIndexOf( '\\' );
+        }
+        if ( sindex > 0 && sindex < label.length() - 1 ) {
+            label = label.substring( sindex + 1 );
+        }
+        return label;
+    }
+
+    /**
      * Actions which correspond to output of a table.
      */
     private class ExportAction extends BasicAction {
@@ -605,7 +685,7 @@ public class ControlWindow extends AuxWindow
                 getSaver().saveTable( table, window );
             }
             else if ( this == dupAct ) {
-                addTable( table, "Copy of " + tcModel, true );
+                addTable( table, "Copy of " + tcModel.getID(), true );
             }
             else if ( this == mirageAct ) {
                 assert MirageHandler.isMirageAvailable();

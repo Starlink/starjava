@@ -28,7 +28,7 @@ import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 
@@ -590,6 +590,24 @@ public class TopcatModel {
     }
 
     /**
+     * Appends all the columns in a given table as new columns in this one.
+     *
+     * @param  colTable  table containing columns to be grafted onto this
+     *         table
+     */
+    public void appendColumns( final StarTable colTable ) {
+        for ( int i = 0; i < colTable.getColumnCount(); i++ ) {
+            final int icol = i;
+            ColumnData cdata = new ColumnData( colTable.getColumnInfo( i ) ) {
+                public Object readValue( long lrow ) throws IOException {
+                    return colTable.getCell( lrow, icol );
+                }
+            };
+            appendColumn( cdata, -1 );
+        }
+    }
+
+    /**
      * Adds a new row subset to the list which this viewer knows about.
      *
      * @param  rset  the new row subset
@@ -686,24 +704,11 @@ public class TopcatModel {
      */
     public StarTable getApparentStarTable() {
         int ncol = columnModel.getColumnCount();
-        final int nrow = viewModel.getRowCount();
-        ColumnStarTable appTable = new ColumnStarTable( dataModel ) {
-            public long getRowCount() {
-                return (long) nrow;
-            }
-        };
+        int[] colMap = new int[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            final int modelIndex = columnModel.getColumn( icol )
-                                              .getModelIndex();
-            ColumnInfo colinfo = dataModel.getColumnInfo( modelIndex );
-            ColumnData coldata = new ColumnData( colinfo ) {
-                public Object readValue( long lrow ) {
-                    return viewModel.getValueAt( (int) lrow, modelIndex );
-                }
-            };
-            appTable.addColumn( coldata );
+            colMap[ icol ] = columnModel.getColumn( icol ).getModelIndex();
         }
-        return appTable; 
+        return new ColumnPermutedStarTable( viewModel.getSnapshot(), colMap );
     }
 
     /**
@@ -832,7 +837,7 @@ public class TopcatModel {
                         rowMap[ i ] = rowMap[ j ];
                         rowMap[ j ] = c;
                     }
-                    viewModel.setOrder( rowMap );
+                    viewModel.setRowMap( rowMap );
                 }
 
                 /* Store the changed state. */
@@ -867,9 +872,8 @@ public class TopcatModel {
         /**
          * Defines which columns can be sorted on - only the comparable ones.
          */
-        protected boolean acceptColumn( TableColumn tcol ) {
-            StarTableColumn stcol = (StarTableColumn) tcol;
-            Class clazz = stcol.getColumnInfo().getContentClass();
+        public boolean acceptColumn( ColumnInfo cinfo ) {
+            Class clazz = cinfo.getContentClass();
             return Comparable.class.isAssignableFrom( clazz );
         }
 
