@@ -25,8 +25,9 @@
 
 <project name="Build file for HDX" default="build" basedir=".">
 
-  <!-- If this file exists then any properties contained within it
-   !   will override those defined here -->
+  <!-- If either or both of these files exist then any properties
+   !   contained within them will override those defined here.  -->
+  <property file="${user.home}/.stardev.properties"/>
   <property file=".properties"/>
 
   <!--

@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "../project.dtd">
-
 <!--
  !  Jetty build file
  !
@@ -38,8 +36,9 @@
 
 <project name="Build file for Jetty" default="build" basedir=".">
 
-  <!-- If this file exists then any properties contained within it
-   !   will override those defined here -->
+  <!-- If either or both of these files exist then any properties
+   !   contained within them will override those defined here.  -->
+  <property file="${user.home}/.stardev.properties"/>
   <property file=".properties"/>
 
   <!-- Properties will also be set for all environment variables
