@@ -271,8 +271,8 @@ public class LineIDTXTSpecDataImpl
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
                      raw.charAt(0) == '#' || raw.charAt(0) == '*' ) {
                     continue;
-                } else {
-
+                } 
+                else {
                     // Should be nwords per line.
                     st = new StringTokenizer( raw );
                     coords[nlines] = Float.parseFloat( st.nextToken() );
