@@ -69,9 +69,9 @@ public class ResourceIcon implements Icon {
         DELETE = makeIcon( "trash2.gif" ),
         HELP = makeIcon( "Help3.gif" ),
         DEMO = makeIcon( "demo.gif" ),
-        HIDE = makeIcon( "hide1.gif" ),
-        TRUE = makeIcon( "true.gif" ),
-        FALSE = makeIcon( "false.gif" ),
+        HIDE = makeIcon( "false.gif" ),
+        REVEAL = makeIcon( "true.gif" ),
+        HIDE_WINDOWS = makeIcon( "hide1.gif" ),
 
         /* Windows. */
         COLUMNS = makeIcon( "colmeta0.gif" ),

@@ -329,11 +329,13 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                                           "Add a new column defined " +
                                           "algebraically from existing ones" );
         hidecolAct = new ColumnInfoAction( "Hide selected column(s)",
-                                           ResourceIcon.FALSE,
+                                           ResourceIcon.HIDE,
                                            "Hide all selected columns" );
         revealcolAct = new ColumnInfoAction( "Reveal selected column(s)",
-                                             ResourceIcon.TRUE,
+                                             ResourceIcon.REVEAL,
                                              "Reveal all selected columns" );
+        final Action sortupAct = new SortAction( true );
+        final Action sortdownAct = new SortAction( false );
 
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
@@ -341,8 +343,6 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         colMenu.add( addcolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
-        final Action sortupAct = new SortAction( true );
-        final Action sortdownAct = new SortAction( false );
         colMenu.add( sortupAct );
         colMenu.add( sortdownAct );
         getJMenuBar().add( colMenu );
@@ -372,6 +372,9 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         getToolBar().add( addcolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
+        getToolBar().addSeparator();
+        getToolBar().add( sortupAct );
+        getToolBar().add( sortdownAct );
         getToolBar().addSeparator();
 
         /* Add standard help actions. */
@@ -531,7 +534,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         private boolean ascending;
 
         public SortAction( boolean ascending ) {
-            super( "Sort selected " + ( ascending ? "up" : "down" ),
+            super( "Sort Selected " + ( ascending ? "Up" : "Down" ),
                    ascending ? ResourceIcon.UP : ResourceIcon.DOWN );
             this.ascending = ascending;
             putValue( SHORT_DESCRIPTION, "Sort rows by " + 
