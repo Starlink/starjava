@@ -1,11 +1,12 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    12-SEP-1999 (Peter W. Draper):
-//       Original version.
-//    06-JUN-2002 (Peter W. Draper):
-//       Changed to use JNIAST instead of local JNI version.
-
+/*
+ * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    12-SEP-1999 (Peter W. Draper):
+ *       Original version.
+ *    06-JUN-2002 (Peter W. Draper):
+ *       Changed to use JNIAST instead of local JNI version.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.JCanvas;
