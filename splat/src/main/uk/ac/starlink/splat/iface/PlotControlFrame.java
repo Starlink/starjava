@@ -59,7 +59,7 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
- * object. 
+ * object.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -1302,7 +1302,23 @@ public class PlotControlFrame
             boolean state = coordinateMatching.isSelected();
             specDataComp.setCoordinateMatching( state );
             prefs.putBoolean( "PlotControlFrame_coordinatematch", state );
-            plot.updatePlot();
+            try {
+                plot.updateThePlot( null );
+            }
+            catch (SplatException se) {
+                // Coordinate matching has failed. Need to make this clear and
+                // then rectify the situation by switching it off.
+                if ( state ) {
+                    JOptionPane.showMessageDialog
+                        ( this, se.getMessage() + 
+                          "\n Matching will be switched off",
+                          "Coordinate matching failed",
+                          JOptionPane.ERROR_MESSAGE );
+
+                    //  Trigger rematch?
+                    coordinateMatching.setSelected( false );
+                }
+            }
             return;
         }
         if ( source.equals( errorbarAutoRanging ) ) {
