@@ -13,12 +13,12 @@ import java.io.IOException;
  */
 class BitDecoder extends NumericDecoder {
 
-    BitDecoder( long[] arraysize ) {
-        super( arraysize );
+    BitDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
 
-    public Class getBaseClass() {
-        return char.class;
+    BitDecoder( long[] arraysize ) {
+        this( boolean[].class, arraysize );
     }
 
     public boolean isNull( Object array, int index ) {
@@ -27,12 +27,12 @@ class BitDecoder extends NumericDecoder {
 
     public Object decodeStream( DataInput strm ) throws IOException {
         int num = getNumItems( strm );
-        char[] result = new char[ num ];
+        boolean[] result = new boolean[ num ];
         for ( int i = 0; i < num;  ) {
             byte b = strm.readByte();
             for ( int j = 0; j < 8 && i++ > 0; j++, i++ ) {
                 boolean set = ( ( b >>> ( 7 - j ) ) & ( (byte) 1 ) ) == 1;
-                result[ i ] = set ? '1' : '0';
+                result[ i ] = set;
             }
         }
         return result;
@@ -49,20 +49,20 @@ class BitDecoder extends NumericDecoder {
     }
 
     Object getEmptyArray( int size ) {
-        return new char[ size ];
+        return new boolean[ size ];
     }
 
     void decodeString1( Object array, int index, String txt ) {
-        ((char[]) array)[ index ] = ( txt.charAt( 0 ) == '1' ) ? '1' : '0';
+        ((boolean[]) array)[ index ] = txt.charAt( 0 ) == '1';
     }
 }
 
 class ScalarBitDecoder extends BitDecoder {
     ScalarBitDecoder() {
-        super( SCALAR_SIZE );
+        super( Boolean.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
-        char[] arr = (char[]) array;
-        return isNull( arr, 0 ) ? null : new Character( arr[ 0 ] );
+        boolean[] arr = (boolean[]) array;
+        return isNull( arr, 0 ) ? null : Boolean.valueOf( arr[ 0 ] );
     }
 }

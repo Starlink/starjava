@@ -1,13 +1,19 @@
 package uk.ac.starlink.votable;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.logging.Logger;
+import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
@@ -16,11 +22,21 @@ import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Implementation of the <tt>StarTableWriter</tt> interface for
- * VOTables.
+ * VOTables.  The <tt>dataFormat</tt> and <tt>inline</tt> attributes
+ * can be modified to affect how the bulk cell data are output -
+ * this may be in TABLEDATA, FITS or BINARY format, and in the 
+ * latter two cases may be either inline as base64 encoded CDATA or
+ * to a separate stream.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class VOTableWriter implements StarTableWriter {
+
+    private Format dataFormat = Format.TABLEDATA;
+    private boolean inline = true;
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Writes a StarTable to a given location.
@@ -39,16 +55,17 @@ public class VOTableWriter implements StarTableWriter {
             throws IOException { 
 
         /* Get the stream to write to. */
-        PrintStream out;
+        OutputStream out;
+        File file;
         if ( location.equals( "-" ) ) {
-            out = new PrintStream( System.out );
+            file = null;
+            out = System.out;
         }
         else {
-            out = new PrintStream( 
-                      new BufferedOutputStream( 
-                          new FileOutputStream( new File( location ) ) ) );
+            file = new File( location );
+            out = new BufferedOutputStream( new FileOutputStream( file ) );
         }
-        writeStarTable( startab, out );
+        writeStarTable( startab, out, file );
     }
 
     /**
@@ -60,20 +77,46 @@ public class VOTableWriter implements StarTableWriter {
      *
      * @param   startab  the table to write
      * @param   out  the stream down which to write the table
+     * @param   file  the filename to which <tt>out</tt> refers; this is used
+     *          if necessary to come up with a suitable filename for
+     *          related files which need to be written.  May be <tt>null</tt>.
      */
-    public void writeStarTable( StarTable startab, PrintStream out ) 
+    public void writeStarTable( StarTable startab, OutputStream out,
+                                File file ) 
             throws IOException {
 
+        /* For most of the output we write to a Writer; it is obtained
+         * here and uses the default encoding.  If we write bulk data
+         * into the XML (using Base64 encoding) we write that direct to
+         * the underlying output stream, taking care to flush before and
+         * after.  This relies on the fact that the characters output
+         * from the base64 encoding have 1-byte representations in the
+         * XML encoding we are using which are identical to their base64
+         * byte equivalents.  So don't use UTF-16. 
+         * Although we frequently want to write a string followed by a 
+         * new line, we don't use a PrintWriter here, since that doesn't
+         * throw any exceptions; we would like exceptions to be thrown
+         * where they occur. */
+        BufferedWriter writer = 
+            new BufferedWriter( new OutputStreamWriter( out ) );
+
         /* Output preamble. */
-        out.println( "<?xml version='1.0'?>" );
-        out.println( "<!DOCTYPE VOTABLE SYSTEM "
-                  +  "'http://us-vo.org/xml/VOTable.dtd'>" );
-        out.println( "<VOTABLE version='1.0'>" );
-        out.println( "<!--" );
-        out.println( " !  VOTable written by " + 
-                     formatText( this.getClass().getName() ) );
-        out.println( " !-->" );
-        out.println( "<RESOURCE>" );
+        writer.write( "<?xml version='1.0'?>" );
+        writer.newLine();
+        writer.write( "<!DOCTYPE VOTABLE SYSTEM "
+                    + "'http://us-vo.org/xml/VOTable.dtd'>" );
+        writer.newLine();
+        writer.write( "<VOTABLE version='1.0'>" );
+        writer.newLine();
+        writer.write( "<!--" );
+        writer.newLine();
+        writer.write( " !  VOTable written by " + 
+                      formatText( this.getClass().getName() ) );
+        writer.newLine();
+        writer.write( " !-->" );
+        writer.newLine();
+        writer.write( "<RESOURCE>" );
+        writer.newLine();
 
         /* Output table parameters as PARAM elements. */
         String description = null;
@@ -90,98 +133,135 @@ public class VOTableWriter implements StarTableWriter {
             /* Otherwise, output the characteristics. */
             else {
                 Encoder encoder = Encoder.getEncoder( pinfo );
-                String valtext = encoder.encodeAsText( param.getValue() );
-                String content = encoder.getFieldContent();
-                
-                out.print( "<PARAM" );
-                out.print( formatAttributes( encoder.getFieldAttributes() ) );
-                out.print( formatAttribute( "value", valtext ) );
-                if ( content.length() > 0 ) {
-                    out.println( ">" );
-                    out.println( content );
-                    out.println( "</PARAM>" );
+                if ( encoder == null ) {
+                    logger.warning( "Can't output parameter " + pinfo.getName()
+                                  + " of type " 
+                                  + pinfo.getContentClass().getName() );
                 }
                 else {
-                    out.println( "/>" );
+                    String valtext = encoder.encodeAsText( param.getValue() );
+                    String content = encoder.getFieldContent();
+                
+                    writer.write( "<PARAM" );
+                    writer.write( formatAttributes( encoder
+                                                   .getFieldAttributes() ) );
+                    writer.write( formatAttribute( "value", valtext ) );
+                    if ( content.length() > 0 ) {
+                        writer.write( ">" );
+                        writer.newLine();
+                        writer.write( content );
+                        writer.newLine();
+                        writer.write( "</PARAM>" );
+                    }
+                    else {
+                        writer.write( "/>" );
+                    }
+                    writer.newLine();
                 }
             }
         }
 
         /* Start the TABLE element itself. */
-        out.print( "<TABLE" );
+        writer.write( "<TABLE" );
         String tname = startab.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
-            out.print( formatAttribute( "name", tname.trim() ) );
+            writer.write( formatAttribute( "name", tname.trim() ) );
         }
-        out.println( ">" );
+        writer.write( ">" );
+        writer.newLine();
 
         /* Output a DESCRIPTION element if we have something suitable. */
         if ( description != null && description.trim().length() > 0 ) {
-            out.println( "<DESCRIPTION>" );
-            out.println( formatText( description.trim() ) );
-            out.println( "</DESCRIPTION>" );
+            writer.write( "<DESCRIPTION>" );
+            writer.newLine();
+            writer.write( formatText( description.trim() ) );
+            writer.newLine();
+            writer.write( "</DESCRIPTION>" );
+            writer.newLine();
         }
 
-        /* Output table columns as FIELD elements. */
-        int ncol = startab.getColumnCount();
-        Encoder[] encoders = new Encoder[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            ValueInfo cinfo = startab.getColumnInfo( icol );
-            Encoder encoder = Encoder.getEncoder( cinfo );
-            encoders[ icol ] = encoder;
-            String content = encoder.getFieldContent();
-            out.print( "<FIELD" );
-            out.print( formatAttributes( encoder.getFieldAttributes() ) );
-            if ( content.length() > 0 ) {
-                out.println( ">" );
-                out.println( content );
-                out.println( "</FIELD>" );
-            }
-            else {
-                out.println( "/>" );
-            }
-        }
+        /* Get the format to provide a configuration object which describes
+         * exactly how the data from each cell is going to get written. */
+        VOSerializer serializer = dataFormat.getSerializer( startab );
+        String tagname = dataFormat.getTagName();
+
+        /* Output FIELD headers as determined by this object. */
+        serializer.writeFields( writer );
 
         /* Start the DATA element. */
-        out.println( "<DATA>" );
+        writer.write( "<DATA>" );
+        writer.newLine();
+        writer.write( "<" + tagname + ">" );
+        writer.newLine();
 
-        /* Output the actual cell values within a TABLEDATA element. */
-        out.println( "<TABLEDATA>" );
-        for ( RowSequence rseq = startab.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            out.println( "  <TR>" );
-            Object[] rowdata = rseq.getRow();
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                out.print( "    <TD>" );
-                out.print( formatText( encoders[ icol ]
-                                      .encodeAsText( rowdata[ icol ] ) ) );
-                out.println( "</TD>" );
+        /* Treat elements which write to a STREAM element. */
+        if ( serializer instanceof VOStreamable ) {
+            VOStreamable streamer = (VOStreamable) serializer;
+
+            /* Case where the STREAM is to go to an external file. */
+            if ( ! inline && file != null ) {
+                String basename = file.getName();
+                int dotpos = basename.lastIndexOf( '.' );
+                basename = dotpos > 0 ? basename.substring( 0, dotpos )
+                                      : basename;
+                String dataname = basename + "-data" + 
+                                  dataFormat.getExtension();
+                writer.write( "<STREAM" + 
+                              formatAttribute( "href", dataname ) + "/>" );
+                writer.newLine();
+                File datfile = new File( file.getParentFile(), dataname );
+                OutputStream strm =
+                    new BufferedOutputStream( new FileOutputStream( datfile ) );
+                streamer.streamData( strm );
+                strm.close();
             }
-            out.println( "  </TR>" );
 
-            /* PrintStreams don't check for errors, so do it here. */
-            if ( out.checkError() ) {
-                throw new IOException( "Error writing data" );
+            /* Case where the STREAM is written inline base64-encoded. */
+            else {
+                writer.write( "<STREAM" + 
+                              formatAttribute( "encoding", "base64" ) + ">" );
+                writer.newLine();
+                writer.flush();
+                Base64OutputStream b64strm = new Base64OutputStream( out, 16 );
+                streamer.streamData( b64strm );
+                b64strm.endBase64();
+                b64strm.flush();
+                writer.write( "</STREAM>" );
+                writer.newLine();
             }
         }
-        out.println( "</TABLEDATA>" );
 
-        /* Close open elements. */
-        out.println( "</DATA>" );
-        out.println( "</TABLE>" );
-        out.println( "</RESOURCE>" );
-        out.println( "</VOTABLE>" );
-        out.flush();
+        /* If it's not going to a STREAM is has to be TABLEDATA. */
+        else {
+            assert serializer instanceof TabledataVOSerializer;
+            assert dataFormat == Format.TABLEDATA;
+            ((TabledataVOSerializer) serializer).writeData( writer );
+        }
+
+        /* Close the open elements and tidy up. */
+        writer.write( "</" + tagname + ">" );
+        writer.newLine();
+        writer.write( "</DATA>" );
+        writer.newLine();
+        writer.write( "</TABLE>" );
+        writer.newLine();
+        writer.write( "</RESOURCE>" );
+        writer.newLine();
+        writer.write( "</VOTABLE>" );
+        writer.newLine();
+        writer.flush();
     }
 
     /**
-     * Returns true for filenames with the extension ".xml" or ".votable";
+     * Returns true for filenames with the extension ".xml", ".vot" or
+     * ".votable";
      *
      * @param  name of the file 
      * @return  true if <tt>filename</tt> looks like the home of a VOTable
      */
     public boolean looksLikeFile( String filename ) {
         return filename.endsWith( ".xml" )
+            || filename.endsWith( ".vot" )
             || filename.endsWith( ".votable" );
     }
 
@@ -195,6 +275,69 @@ public class VOTableWriter implements StarTableWriter {
     }
 
     /**
+     * Sets the format in which the table data will be output.
+     *
+     * @param  bulk data format
+     */
+    public void setDataFormat( Format format ) {
+        this.dataFormat = format;
+    }
+
+    /**
+     * Returns the format in which this writer will output the bulk table data.
+     *
+     * @return  bulk data format
+     */
+    public Format getDataFormat() {
+        return dataFormat;
+    }
+
+    /**
+     * Sets whether STREAM elements should be written inline or to an
+     * external file in the case of FITS and BINARY encoding.
+     *
+     * @param  inline  <tt>true</tt> iff streamed data will be encoded 
+     *         inline in the STREAM element
+     */
+    public void setInline( boolean inline ) {
+        this.inline = inline;
+    }
+
+    /**
+     * Indicates whether STREAM elements will be written inline or to 
+     * an external file in the case of FITS and BINARY encoding.
+     *
+     * @return  <tt>true</tt> iff streamed data will be encoded inline in
+     *          the STREAM element
+     */
+    public boolean getInline() {
+        return inline;
+    }
+
+    /**
+     * Writes a FIELD element to a writer.
+     *
+     * @param  content  text content of the element, if any
+     * @param  attributes   a name-value map of attributes
+     * @param  writer    destination stream
+     */ 
+    static void writeFieldElement( BufferedWriter writer, String content,
+                                   Map attributes ) throws IOException {
+        writer.write( "<FIELD" + formatAttributes( attributes ) );
+        if ( content != null && content.length() > 0 ) {
+            writer.write( '>' );
+            writer.newLine();
+            writer.write( content );
+            writer.newLine();
+            writer.write( "</FIELD>" );
+        }
+        else {
+            writer.write( "/>" );
+        }
+        writer.newLine();
+    }
+
+    /**
      * Turns a Map of name,value pairs into a string of attribute 
      * assignments suitable for putting in an XML start tag.
      * The resulting string starts with, but does not end with, whitespace.
@@ -203,7 +346,7 @@ public class VOTableWriter implements StarTableWriter {
      * @param  atts  Map of name,value pairs
      * @return  a string of name="value" assignments
      */
-    private static String formatAttributes( Map atts ) {
+    static String formatAttributes( Map atts ) {
         StringBuffer sbuf = new StringBuffer();
         for ( Iterator it = new TreeSet( atts.keySet() ).iterator();
               it.hasNext(); ) {
@@ -263,5 +406,69 @@ public class VOTableWriter implements StarTableWriter {
             }
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Class of objects representing the different serialization formats
+     * into which VOTable cell data can be written.  Each of the 
+     * available formats is
+     * represented by a static final member of this class.
+     * Members of this class know how to supply a {@link VOSerializer}
+     * object for a given StarTable; it is the VOSerializer which
+     * does the hard work of writing the bulk table data.
+     */
+    public static abstract class Format {
+        private final String name;
+        private final String extension;
+        private Format( String name, String extension ) {
+            this.name = name;
+            this.extension = extension;
+        }
+        public String getTagName() {
+            return name;
+        }
+        public String getExtension() {
+            return extension;
+        }
+        public String toString() {
+            return name;
+        }
+
+        /**
+         * Returns a serializer object which can do the hard work 
+         * of serializing a StarTable object to a VOTable TABLE 
+         * element in the format represented by this object.
+         *
+         * @param   table  the table which must be serialized
+         * @return  a serializer object which can serialize <tt>table</tt>
+         *          in the way defined for this data format
+         */
+        public abstract VOSerializer getSerializer( StarTable table )
+               throws IOException;
+
+        /** TABLEDATA format (pure XML). */
+        public static final Format TABLEDATA = 
+            new Format( "TABLEDATA", null ) {
+                VOSerializer getSerializer( StarTable table ) {
+                    return new TabledataVOSerializer( table );
+                }
+            };
+
+        /** FITS format. */
+        public static final Format FITS = 
+            new Format( "FITS", ".fits" ) {
+                VOSerializer getSerializer( StarTable table )
+                        throws IOException{
+                    return new FITSVOSerializer( table );
+                }
+            };
+
+        /** Raw binary format. */
+        public static final Format BINARY =
+            new Format( "BINARY", ".bin" ) {
+                VOSerializer getSerializer( StarTable table ) {
+                    return new BinaryVOSerializer( table );
+                }
+            };
     }
 }

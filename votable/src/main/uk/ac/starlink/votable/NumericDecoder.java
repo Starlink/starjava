@@ -9,12 +9,14 @@ abstract class NumericDecoder extends Decoder {
     /**
      * Does required setup for a NumericDecoder.
      *
-     * @param  the dimensions of objects with this type - the last element
-     *         of the array may be negative to indicate unknown slowest-varying
-     *         dimension
+     * @param  arraysize the dimensions of objects with this type - 
+     *         the last element of the array may be negative to 
+     *         indicate unknown slowest-varying dimension
+     * @param  clazz  class to which all return values of <tt>decode*</tt>
+     *         methods will belong
      */
-    NumericDecoder( long[] arraysize ) {
-        super( arraysize );
+    NumericDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
 
     /**
@@ -57,6 +59,20 @@ abstract class NumericDecoder extends Decoder {
     abstract void decodeStream1( Object array, int index, DataInput strm )
             throws IOException;
 
+    /**
+     * Turns an array representing the data decoded by this object into
+     * the form it will be seen by the outside world as.  The default
+     * is a no-op, but subclasses may override this to provide different
+     * packaging behaviour.
+     *
+     * @param  array   the raw value read
+     * @return   the value to be returned by the outside world by the
+     *           <tt>decode*</tt> methods
+     */
+    Object packageArray( Object array ) {
+        return array;
+    }
+
     public Object decodeString( String txt ) {
         StringTokenizer st = new StringTokenizer( txt );
         int ntok = st.countTokens();
@@ -98,10 +114,10 @@ class ShortDecoder extends NumericDecoder {
     private short bad;
     private boolean hasBad = false;
     ShortDecoder( long[] arraysize ) {
-        super( arraysize );
+        this( short[].class, arraysize );
     }
-    public Class getBaseClass() {
-        return short.class;
+    ShortDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
     void setNullValue( String txt ) {
         bad = Short.parseShort( txt );
@@ -127,7 +143,7 @@ class ShortDecoder extends NumericDecoder {
 
 class ScalarShortDecoder extends ShortDecoder {
     ScalarShortDecoder() {
-        super( SCALAR_SIZE );
+        super( Short.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         short[] arr = (short[]) array;
@@ -136,8 +152,11 @@ class ScalarShortDecoder extends ShortDecoder {
 }
 
 class UnsignedByteDecoder extends ShortDecoder {
+    UnsignedByteDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
+    }
     UnsignedByteDecoder( long[] arraysize ) {
-        super( arraysize );
+        this( short[].class, arraysize );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -148,7 +167,7 @@ class UnsignedByteDecoder extends ShortDecoder {
 
 class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
     ScalarUnsignedByteDecoder() {
-        super( SCALAR_SIZE );
+        super( Short.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         short[] arr = (short[]) array;
@@ -159,11 +178,11 @@ class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
 class IntDecoder extends NumericDecoder {
     private int bad;
     private boolean hasBad = false;
-    IntDecoder( long[] arraysize ) {
-        super( arraysize );
+    IntDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
-    public Class getBaseClass() {
-        return int.class;
+    IntDecoder( long[] arraysize ) {
+        this( int[].class, arraysize );
     }
     void setNullValue( String txt ) {
         bad = Integer.parseInt( txt );
@@ -189,7 +208,7 @@ class IntDecoder extends NumericDecoder {
 
 class ScalarIntDecoder extends IntDecoder {
     ScalarIntDecoder() {
-        super( SCALAR_SIZE );
+        super( Integer.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         int[] arr = (int[]) array;
@@ -200,11 +219,11 @@ class ScalarIntDecoder extends IntDecoder {
 class LongDecoder extends NumericDecoder {
     private long bad;
     private boolean hasBad = false;
-    LongDecoder( long[] arraysize ) {
-        super( arraysize );
+    LongDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
-    public Class getBaseClass() {
-        return long.class;
+    LongDecoder( long[] arraysize ) {
+        this( long[].class, arraysize );
     }
     void setNullValue( String txt ) {
         bad = Long.parseLong( txt );
@@ -230,7 +249,7 @@ class LongDecoder extends NumericDecoder {
 
 class ScalarLongDecoder extends LongDecoder {
     ScalarLongDecoder() {
-        super( SCALAR_SIZE );
+        super( Long.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         long[] arr = (long[]) array;
@@ -239,11 +258,11 @@ class ScalarLongDecoder extends LongDecoder {
 }
 
 class FloatDecoder extends NumericDecoder {
-    FloatDecoder( long[] arraysize ) {
-        super( arraysize );
+    FloatDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
-    public Class getBaseClass() {
-        return float.class;
+    FloatDecoder( long[] arraysize ) {
+        this( float[].class, arraysize );
     }
     void setNullValue( String txt ) {
         // no action
@@ -268,7 +287,7 @@ class FloatDecoder extends NumericDecoder {
 
 class ScalarFloatDecoder extends FloatDecoder {
     ScalarFloatDecoder() {
-        super( SCALAR_SIZE );
+        super( Float.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         float[] arr = (float[]) array;
@@ -277,11 +296,11 @@ class ScalarFloatDecoder extends FloatDecoder {
 }
 
 class DoubleDecoder extends NumericDecoder {
-    DoubleDecoder( long[] arraysize ) {
-        super( arraysize );
+    DoubleDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
-    public Class getBaseClass() {
-        return double.class;
+    DoubleDecoder( long[] arraysize ) {
+        this( double[].class, arraysize );
     }
     void setNullValue( String txt ) {
         // no action
@@ -306,7 +325,7 @@ class DoubleDecoder extends NumericDecoder {
 
 class ScalarDoubleDecoder extends DoubleDecoder {
     ScalarDoubleDecoder() {
-        super( SCALAR_SIZE );
+        super( Double.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
         double[] arr = (double[]) array;

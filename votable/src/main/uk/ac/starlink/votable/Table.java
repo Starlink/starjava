@@ -23,6 +23,28 @@ import uk.ac.starlink.util.SourceReader;
  * a table object, this will return an instance of one of the 
  * data-bearing subclasses of Table according to the data described
  * by the XML.
+ * <p>
+ * The objects obtained from the table cells 
+ * (using the <tt>nextRow</tt> method) are of course determined by 
+ * the Field corresponding to the column in question, in particular its
+ * <tt>arraysize</tt> and <tt>datatype</tt> attributes.  What object is
+ * returned is given by the following rules:
+ * <ul>
+ * <li>If the element is a scalar or (fixed-dimension) 1-element array,
+ *     a primitive wrapper object (<tt>Integer</tt>, <tt>Float</tt> etc)
+ *     will be normally be returned
+ * <li>If the element is an array, a java array of primitives 
+ *     (<tt>int[]</tt>, <tt>float[]</tt> etc) will normally be returned.
+ *     This is stored in column-major order, where that makes a
+ *     difference (for arrays with more than one diemension).
+ * <li>Complex types types are treated by adding an extra dimension to the 
+ *     shape of the data, the most rapidly varying, of size 2.
+ * <li>Character (<tt>char</tt> and <tt>unicodeChar</tt>) arrays are
+ *     automatically turned into Strings or String arrays, with
+ *     dimensionality one less than that suggested by the <tt>arraysize</tt>
+ *     attribute
+ * <li>The element may be <tt>null</tt>
+ * </ul>
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -145,17 +167,6 @@ public class Table extends VOElement {
     /**
      * Returns the next row of elements in the table.
      * The returned row is an array of Objects, with numColumns elements.
-     * Each element will be one of the following:
-     * <ul>
-     * <li>a primitive wrapper object (<tt>Integer</tt>, <tt>Float</tt> etc)
-     *     if the element is a scalar
-     * <li>a java array of primitives (<tt>int[]</tt>, <tt>float[]</tt> etc)
-     *     if the element is an array.  This is stored in column-major
-     *     order, where that makes a difference (for arrays with more than
-     *     one diemension).
-     * </ul>
-     * Complex types are treated by adding an extra dimension to the 
-     * shape of the data, the most rapidly varying, of size 2.
      *
      * @return  an array of Objects representing the next row to be accesssed.
      * @throws  NoSuchElementException  if {@link #hasNextRow} would return 

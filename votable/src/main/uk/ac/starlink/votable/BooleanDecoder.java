@@ -4,18 +4,17 @@ import java.io.DataInput;
 import java.io.IOException;
 
 class BooleanDecoder extends NumericDecoder {
-    private char bad = ' ';
 
-    BooleanDecoder( long[] arraysize ) {
-        super( arraysize );
+    BooleanDecoder( Class clazz, long[] arraysize ) {
+        super( clazz, arraysize );
     }
 
-    public Class getBaseClass() {
-        return char.class;
+    BooleanDecoder( long[] arraysize ) {
+        this( boolean[].class, arraysize );
     }
 
     public boolean isNull( Object array, int index ) {
-        return ((char[]) array)[ index ] == bad;
+        return false;
     }
 
     void setNullValue( String txt ) {
@@ -23,55 +22,53 @@ class BooleanDecoder extends NumericDecoder {
     }
 
     Object getEmptyArray( int size ) {
-        return new char[ size ];
+        return new boolean[ size ];
     }
 
     void decodeString1( Object array, int index, String txt ) {
-        if ( txt.length() == 0 ) {
-            setBad1( array, index );
-            return;
+        int leng = txt.length();
+        Boolean flag = null;
+        for ( int i = 0; flag == null && i < leng; i++ ) {
+            switch ( txt.charAt( i ) ) {
+                case 'T':
+                case 't':
+                case '1':
+                    flag = Boolean.TRUE;
+                    break;
+                case 'F':
+                case 'f':
+                case '0':
+                    flag = Boolean.FALSE;
+            }
         }
-        else if ( txt.length() > 1 ) {
-            txt = txt.trim();
-        }
-        ((char[]) array)[ index ] = decodeChar( txt.charAt( 0 ) );
+        ((boolean[]) array)[ index ] = flag == Boolean.TRUE;
     }
 
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
-        ((char[]) array)[ index ] = 
-            decodeChar( (char) ( (char) 0x00ff & (char) strm.readByte() ) );
-    }
-
-    void setBad1( Object array, int index ) {
-        ((char[]) array)[ index ] = bad;
-    }
-
-    private char decodeChar( char chr ) {
-        switch ( chr ) {
+        boolean flag;
+        switch ( (char) 0x00ff & (char) strm.readByte() ) {
             case 'T':
             case 't':
             case '1':
-                return 'T';
-            case 'F':
-            case 'f':
-            case '0':
-                return 'F';
-            case '?':
-            case ' ':
-                return bad;
+                flag = true;
             default:
-                return bad;
+                flag = false;
         }
+        ((boolean[]) array)[ index ] = flag;
+    }
+
+    void setBad1( Object array, int index ) {
+        // can't get here?
     }
 }
 
 class ScalarBooleanDecoder extends BooleanDecoder {
     ScalarBooleanDecoder() {
-        super( SCALAR_SIZE );
+        super( Boolean.class, SCALAR_SIZE );
     }
     Object packageArray( Object array ) {
-        char[] arr = (char[]) array;
-        return isNull( arr, 0 ) ? null : new Character( arr[ 0 ] );
+        boolean[] arr = (boolean[]) array;
+        return Boolean.valueOf( arr[ 0 ] );
     }
 }

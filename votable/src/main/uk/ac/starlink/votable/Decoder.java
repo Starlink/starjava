@@ -33,6 +33,7 @@ abstract class Decoder {
     protected boolean isVariable;
     protected int sliceSize;
     protected long[] arraysize;
+    private final Class clazz;
 
     /**
      * Sets the null (bad) value to be used by the decoder from a string.
@@ -72,23 +73,16 @@ abstract class Decoder {
     abstract public boolean isNull( Object array, int index );
 
     /**
-     * Returns the base class for objects returned by this decoder.
-     * Objects returned by the <tt>decode*</tt> methods of this decoder
-     * will be arrays of the class returned by this method.
-     *
-     * @param  the class of which decoded values are arrays (or possibly
-     *         NDArrays or something, depending on <tt>packageArray</tt>
-     */
-    abstract public Class getBaseClass();
-
-    /**
      * Does required setup for a decoder given its shape.
      *
-     * @param  the dimensions of objects with this type - the last element
-     *         of the array may be negative to indicate unknown slowest-varying
-     *         dimension
+     * @param  clazz  the class to which all objects returned by the 
+     *         <tt>decode*</tt> methods will belong
+     * @param  arraysize  the dimensions of objects with this type - 
+     *         the last element of the array may be negative to
+     *         indicate unknown slowest-varying dimension
      */
-    protected Decoder( long[] arraysize ) {
+    protected Decoder( Class clazz, long[] arraysize ) {
+        this.clazz = clazz;
         this.arraysize = arraysize;
         int ndim = arraysize.length;
         if ( ndim == 0 ) {
@@ -111,6 +105,17 @@ abstract class Decoder {
             }
             sliceSize = (int) ss;
         }
+    }
+
+    /**
+     * Returns the class for objects returned by this decoder.
+     * Objects returned by the <tt>decode*</tt> methods of this decoder
+     * will be instances of the class returned by this method, or <tt>null</tt>.
+     *
+     * @param  returned object class
+     */
+    public Class getContentClass() {
+        return clazz;
     }
 
     /**
@@ -137,7 +142,7 @@ abstract class Decoder {
      * reading a count from the stream.
      */
     int getNumItems( DataInput strm ) throws IOException {
-        return sliceSize * ( isVariable ? strm.readInt() : 1 );
+        return isVariable ? strm.readInt() : sliceSize;
     }
 
     /**
@@ -167,101 +172,6 @@ abstract class Decoder {
      */
     public int getElementSize() {
         return -1;
-    }
-
-    /**
-     * Turns a primitive numeric array into an object suitable for
-     * returning as the result of a cell query.
-     * <p>The current implementation just returns the array itself;
-     * in principle you could decide to return it as an NDArray or something.
-     *
-     * @param  array  a java array object
-     */
-    Object packageArray( Object array ) {
-
-        /* If we've got a scalar or vector, the array itself will do. */
-        if ( arraysize.length <= 1 ) {
-            return array;
-        }
-        else {
-            return array;
-        }
-    }
-
-    /**
-     * Returns an object array based on the given object, which may be
-     * an array of arrays (for instance float[][] to represent a 2-d array).
-     *
-     * @param   aoa  an object encoding the values.  May be an array, an
-     *          array of arrays, an array of arrays of arrays...
-     *          All the base arrays must be of the same primitive or
-     *          object type.
-     * @return  an object containing the decoded values
-     */
-    public Object decodeArrayOfArrays( Object aoa ) {
-        return packageArray( vectorise( aoa ) );
-    }
-
-    /**
-     * Turns an array of arrays of some primitive type into a single
-     * java primitive array.
-     * <p>
-     * This method is only necessary because the nom.tam.fits classes
-     * return data as arrays of arrays..  I should really write my
-     * own fits data access classes which return data as vectors in the
-     * first place.
-     *
-     * @param   an array, or an array of arrays, or an array of arrays of
-     *          arrays... all the base arrays must be of the same
-     *          primitive or object type
-     * @return  a single java array containing all the elements in the
-     *          base arrays of <tt>aoa</tt>
-     */
-    private Object vectorise( Object aoa ) {
-        Class cls = aoa.getClass();
-
-        /* If it's a vector already, return it. */
-        if ( isBasicArray( aoa.getClass() ) ) {
-            return aoa;
-        }
-
-        /* Construct a List of 1-d arrays containing the data. */
-        List loa = new ArrayList();
-        accumulateListOfArrays( aoa, loa );
-        int na = loa.size();
-        int nel = 0;
-        for ( Iterator it = loa.iterator(); it.hasNext(); ) {
-            nel += Array.getLength( it.next() );
-        }
-
-        /* Create a new 1-d array to contain the elements. */
-        Object vec = Array.newInstance( loa.get( 0 ).getClass()
-                                           .getComponentType(), nel );
-
-        /* Copy the elements in. */
-        int vpos = 0;
-        for ( Iterator it = loa.iterator(); it.hasNext(); ) {
-            Object array = it.next();
-            int asiz = Array.getLength( array );
-            System.arraycopy( array, 0, vec, vpos, asiz );
-            vpos += asiz;
-        }
-        return vec;
-    }
-    private static void accumulateListOfArrays( Object aoa, List loa ) {
-        Class cls = aoa.getClass();
-        if ( isBasicArray( cls ) ) {
-            loa.add( aoa );
-        }
-        else {
-            int na = Array.getLength( aoa );
-            for ( int i = 0; i < na; i++ ) {
-                accumulateListOfArrays( Array.get( aoa, i ), loa );
-            }
-        }
-    }
-    private static boolean isBasicArray( Class cls ) {
-        return cls.getComponentType().getComponentType() == null;
     }
 
     /**
@@ -342,10 +252,10 @@ abstract class Decoder {
                            : new LongDecoder( arraysize );
         }
         else if ( datatype.equals( "char" ) ) {
-            dec = new CharDecoder( arraysize );
+            dec = CharDecoders.makeCharDecoder( arraysize );
         }
         else if ( datatype.equals( "unicodeChar" ) ) {
-            dec = new UnicodeCharDecoder( arraysize );
+            dec = CharDecoders.makeUnicodeCharDecoder( arraysize );
         }
         else if ( datatype.equals( "float" ) ) {
             dec = isScalar ? new ScalarFloatDecoder()
@@ -390,11 +300,7 @@ abstract class Decoder {
 
     private static class UnknownDecoder extends Decoder {
         public UnknownDecoder( long[] arraysize ) {
-            super( new long[] { -1L } );
-        }
-
-        public Class getBaseClass() {
-            return String.class;
+            super( String[].class, new long[] { -1L } );
         }
 
         public Object decodeString( String txt ) {

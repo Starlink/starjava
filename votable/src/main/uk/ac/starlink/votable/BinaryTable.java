@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import javax.xml.transform.dom.DOMSource;
@@ -65,9 +66,27 @@ class BinaryTable extends Table {
 
     private Object[] obtainNextRow() throws IOException {
         Object[] rowContents = new Object[ ncols ];
-        for ( int icol = 0; icol < ncols; icol++ ) {
-            rowContents[ icol ] = getField( icol ).getDecoder()
-                                 .decodeStream( istrm );
+        int icol = 0;
+        try {
+            for ( ; icol < ncols; icol++ ) {
+                rowContents[ icol ] = getField( icol ).getDecoder()
+                                     .decodeStream( istrm );
+            }
+        }
+
+        /* An EOFException in the first column is taken to mean that the
+         * stream ended at the end of the last row.  In fact this isn't
+         * the only possible explanation (EOF could have been reached 
+         * midway through reading the first column rather than at its
+         * start) but given we've only got a DataInput it's hard to 
+         * detect EOF in any more respectable way. */
+        catch ( EOFException e ) {
+            if ( icol == 0 ) {
+                return null;
+            }
+            else {
+                throw e;
+            }
         }
         return rowContents;
     }

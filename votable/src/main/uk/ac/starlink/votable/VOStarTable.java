@@ -24,7 +24,6 @@ import uk.ac.starlink.table.ValueInfo;
 public class VOStarTable extends AbstractStarTable {
 
     private Table votable;
-    private VOStarValueAdapter[] adapters;
     private List params;
     private Source tabsrc;
     private int ncol;
@@ -59,11 +58,6 @@ public class VOStarTable extends AbstractStarTable {
          * objects). */
         votable = Table.makeTable( tabsrc );
         ncol = votable.getColumnCount();
-        adapters = new VOStarValueAdapter[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            adapters[ i ] = VOStarValueAdapter
-                           .makeAdapter( votable.getField( i ) );
-        }
     }
 
     public int getColumnCount() {
@@ -142,14 +136,10 @@ public class VOStarTable extends AbstractStarTable {
                 for ( int i = 0; i < paramels.length; i++ ) {
                     Param pel = (Param) paramels[ i ];
                     DescribedValue dval = 
-                        new DescribedValue( getValueInfo( pel ) );
-                    Object pval = pel.getObject();
-                    Object val = pval == null 
-                               ? null
-                               : VOStarValueAdapter.makeAdapter( pel )
-                                                   .adapt( pval );
-                    dval.setValue( val );
-                    params.add( dval );
+                        new DescribedValue( getValueInfo( pel ),
+                                            pel.getObject() );
+                    params.add( new DescribedValue( getValueInfo( pel ),
+                                                    pel.getObject() ) );
                 }
             }
         }
@@ -177,14 +167,7 @@ public class VOStarTable extends AbstractStarTable {
                     }
                     public Object next() {
                         try {
-                            Object[] row = vtab.nextRow();
-                            for ( int i = 0; i < row.length; i++ ) {
-                                Object val = row[ i ];
-                                row[ i ] = val == null 
-                                         ? null 
-                                         : adapters[ i ].adapt( val );
-                            }
-                            return row;
+                            return vtab.nextRow();
                         }
                         catch ( IOException e ) {
                             throw new IteratorRowSequence
@@ -201,14 +184,7 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object[] getRow( long lrow ) throws IOException {
         if ( isRandom() ) {
-            Object[] row = ((RandomTable) votable)
-                          .getRow( checkedLongToInt( lrow ) );
-            for ( int i = 0; i < row.length; i++ ) {
-                Object val = row[ i ];
-                row[ i ] = val == null ? null
-                                       : adapters[ i ].adapt( row[ i ] );
-            }
-            return row;
+            return ((RandomTable) votable).getRow( checkedLongToInt( lrow ) );
         }
         else {
             throw new UnsupportedOperationException();
@@ -217,10 +193,8 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object getCell( long lrow, int icol ) throws IOException {
         if ( isRandom() ) {
-            Object val = ((RandomTable) votable)
-                        .getCell( checkedLongToInt( lrow ), icol );
-            return val == null ? null 
-                               : adapters[ icol ].adapt( val );
+            return ((RandomTable) votable)
+                  .getCell( checkedLongToInt( lrow ), icol );
         }
         else {
             throw new UnsupportedOperationException();
@@ -239,16 +213,18 @@ public class VOStarTable extends AbstractStarTable {
      * @return  a ValueInfo suitable for <tt>field</tt>
      */
     private static ValueInfo getValueInfo( Field field ) {
-        Class clazz = VOStarValueAdapter.makeAdapter( field )
-                     .getContentClass();
+        Decoder decoder = field.getDecoder();
+        Class clazz = decoder.getContentClass();
         String name = field.getHandle();
+        long[] shapel = decoder.getDecodedShape();
         DefaultValueInfo info = new DefaultValueInfo( name, clazz );
         info.setDescription( field.getDescription() );
         info.setUnitString( field.getUnit() );
         info.setUCD( field.getUcd() );
-        info.setShape( Decoder.longsToInts( field.getDecoder()
-                                                 .getDecodedShape() ) );
-        info.setElementSize( field.getDecoder().getElementSize() );
+        info.setShape( ( shapel == null || shapel.length == 0 ) 
+                            ? null
+                            : Decoder.longsToInts( shapel ) );
+        info.setElementSize( decoder.getElementSize() );
         return info;
     }
 

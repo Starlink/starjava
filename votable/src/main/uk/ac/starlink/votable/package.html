@@ -21,8 +21,8 @@ The classes in this package fall into the following categories:
     was wanted.
 <dt>Compatibility classes:
 <dd>The {@link uk.ac.starlink.votable.VOStarTable} 
-    class provides an adaptor between 
-    a VOTable TABLE element and a {@link uk.ac.starlink.table.StarTable}.
+    and {@link uk.ac.starlink.votable.VOTableWriter}
+    classes implement interfaces defined in the <tt>table</tt> package.
 </dl>
 
 <p>Elements in the VOTable DTD are represented by instances of
@@ -48,7 +48,7 @@ DOM tree/SAX stream/whatever if
 you're not interested in the whole document, 
 or if you prefer to navigate around the XML using other techniques.
 The purpose of using an XML <tt>Source</tt> here is twofold:
-it provides neutrality between the DOM and SAX views (and others),
+it provides neutrality between the DOM and SAX views (and in principle others),
 and it encourages the use of a System ID associated with the 
 XML itself.  A System ID may well be required as a base for 
 resolving relative URLs, for instance within 
@@ -63,8 +63,6 @@ do this without any change in software using this package.
 These classes currently provide read-only access to VOTables
 according to the VOTable DTD version 1.0.
 All three defined data implementations (TABLEDATA, FITS and BINARY)
-are supported, though the BINARY support is so far entirely untested 
-(hence probably not working); if someone can provide some test data
-then some progress might be made on this.
+are supported.
 
 </body>

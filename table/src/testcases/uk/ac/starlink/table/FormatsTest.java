@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -8,11 +9,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import junit.framework.AssertionFailedError;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.TestCase;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.VOTableWriter;
 
 public class FormatsTest extends TestCase {
@@ -41,7 +45,7 @@ public class FormatsTest extends TestCase {
     }
 
     public void setUp() {
-        AutoStarTable ctable = new AutoStarTable( 123 );
+        AutoStarTable ctable = new AutoStarTable( 200 );
         table = ctable;
         ctable.setName( "Test Table" );
 
@@ -128,6 +132,108 @@ public class FormatsTest extends TestCase {
                 checkStarTable( st2 );
             }
         }
+    }
+
+    public void testVOTable() throws IOException, SAXException {
+        VOTableWriter vohandler = new VOTableWriter();
+
+        assertEquals( VOTableWriter.Format.TABLEDATA,
+                      vohandler.getDataFormat() );
+        assertTrue( vohandler.getInline() );
+        exerciseVOTableWriter( vohandler, getTempFile( "in-td.vot" ), false );
+
+        vohandler.setDataFormat( VOTableWriter.Format.FITS );
+        vohandler.setInline( false );
+        assertTrue( ! vohandler.getInline() );
+        exerciseVOTableWriter( vohandler, getTempFile( "ex-fits.vot" ), true );
+
+        vohandler.setDataFormat( VOTableWriter.Format.FITS );
+        vohandler.setInline( true );
+        assertEquals( VOTableWriter.Format.FITS,
+                      vohandler.getDataFormat() );
+        exerciseVOTableWriter( vohandler, getTempFile( "in-fits.vot" ), true );
+
+        vohandler.setDataFormat( VOTableWriter.Format.BINARY );
+        vohandler.setInline( false );
+        assertEquals( VOTableWriter.Format.BINARY, vohandler.getDataFormat() );
+        assertTrue( ! vohandler.getInline() );
+        exerciseVOTableWriter( vohandler, getTempFile( "ex-bin.vot" ), true );
+
+        vohandler.setInline( true );
+        exerciseVOTableWriter( vohandler, getTempFile( "in-bin.vot" ), true );
+    }
+
+    public void exerciseVOTableWriter( VOTableWriter writer, File loc,
+                                       boolean squashNulls )
+            throws IOException, SAXException {
+        StarTable t1 = table;
+        writer.writeStarTable( t1, loc.toString() );
+        assertValidXML( new FileInputStream( loc ) );
+        StarTable t2 = new StarTableFactory()
+                      .makeStarTable( loc.toString() );
+        assertTrue( t2 instanceof VOStarTable );
+        checkStarTable( t2 );
+
+        assertVOTableEquals( t1, t2, squashNulls );
+    }
+
+    public void assertVOTableEquals( StarTable t1, StarTable t2,
+                                     boolean squashNulls ) throws IOException {
+        int ncol = t1.getColumnCount();
+        assertEquals( ncol, t2.getColumnCount() );
+        assertValueSetEquals( t1.getParameters(), t2.getParameters() );
+        assertEquals( t1.getName(), t2.getName() );
+
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo cinfo1 = t1.getColumnInfo( icol );
+            ColumnInfo cinfo2 = t2.getColumnInfo( icol );
+            Class clazz1 = cinfo1.getContentClass();
+            Class clazz2 = cinfo2.getContentClass();
+            if ( clazz1 == byte[].class && clazz2 == short[].class ||
+                 clazz1 == Byte.class && clazz2 == Short.class ) {
+                // ok
+            }
+            else {
+                assertValueInfoConsistent( cinfo1, cinfo2 );
+            }
+        }
+
+        RowSequence rseq1 = t1.getRowSequence();
+        RowSequence rseq2 = t2.getRowSequence();
+        while ( rseq1.hasNext() ) {
+            assertTrue( rseq1.hasNext() );
+            assertTrue( rseq2.hasNext() );
+            rseq1.next();
+            rseq2.next();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                Object cell1 = rseq1.getCell( icol );
+                Object cell2 = rseq2.getCell( icol );
+                if ( cell1 instanceof byte[] && cell2 instanceof short[] ) {
+                    int nel = ((short[]) cell2).length;
+                    short[] c1x = new short[ nel ];
+                    for ( int i = 0; i < nel; i++ ) {
+                        c1x[ i ] = ((byte[]) cell1)[ i ];
+                    }
+                    cell1 = c1x;
+                }
+                else if ( cell1 instanceof Byte && cell2 instanceof Short ) {
+                    cell1 = new Short( ((Number) cell1).shortValue() );
+                }
+                try {
+                    assertScalarOrArrayEquals( cell1, cell2 );
+                }
+                catch ( AssertionFailedError e ) {
+                    if ( squashNulls && cell1 == null ) {
+                        // ok
+                    }
+                    else {
+                        throw e;
+                    }
+                }
+            }
+        }
+        assertTrue( ! rseq1.hasNext() );
+        assertTrue( ! rseq2.hasNext() );
     }
 
     public void testFits() throws IOException {
@@ -279,7 +385,7 @@ public class FormatsTest extends TestCase {
             assertArrayEquals( o1, o2 );
         }
         else {
-            assertEquals( o1, o2 );
+            assertEquals( nanToNull( o1 ), nanToNull( o2 ) );
         }
     }
 
@@ -295,7 +401,7 @@ public class FormatsTest extends TestCase {
         for ( int i = 0; i < nparam; i++ ) {
             DescribedValue dv1 = (DescribedValue) dvals1.get( i );
             DescribedValue dv2 = (DescribedValue) dvals2.get( i );
-            assertEquals( dv1.getValue(), dv2.getValue() );
+            assertScalarOrArrayEquals( dv1.getValue(), dv2.getValue() );
             assertValueInfoEquals( dv1.getInfo(), dv2.getInfo() );
         }
     }
@@ -309,11 +415,40 @@ public class FormatsTest extends TestCase {
         assertEquals( v1.getContentClass(), v2.getContentClass() );
         assertEquals( v1.getName(), v2.getName() );
         assertEquals( v1.getDescription(), v2.getDescription() );
-        assertArrayEquals( v1.getShape(), v2.getShape() );
         assertEquals( v1.getUCD(), v2.getUCD() );
         assertEquals( v1.getUnitString(), v2.getUnitString() );
         assertEquals( v1.isArray(), v2.isArray() );
+        assertArrayEquals( v1.getShape(), v2.getShape() );
     }
+
+    void assertValueInfoConsistent( ValueInfo v1, ValueInfo v2 ) {
+        assertEquals( v1.getContentClass(), v2.getContentClass() );
+        assertEquals( v1.getName(), v2.getName() );
+        assertEquals( v1.getDescription(), v2.getDescription() );
+        assertEquals( v1.getUCD(), v2.getUCD() );
+        assertEquals( v1.getUnitString(), v2.getUnitString() );
+        assertEquals( v1.isArray(), v2.isArray() );
+        int[] s1 = v1.getShape();
+        int[] s2 = v2.getShape();
+
+        /* Last element of dims can be -1 if unknown. */
+        if ( s1 == null ) {
+            assertTrue( s2 == null );
+        }
+        else {
+            int ndim = s1.length;
+            assertEquals( ndim, s2.length );
+            for ( int i = 0; i < ndim - 1; i++ ) {
+                assertEquals( s1[ i ], s2[ i ] );
+            }
+            if ( ndim > 0 ) {
+                int last1 = s1[ ndim - 1 ];
+                int last2 = s2[ ndim - 1 ];
+                assertTrue( last1 == last2 || last1 * last2 < 0 );
+            }
+        }
+    }
+        
 
     /**
      * Checks table invariants.  Any StarTable should be able to run
@@ -371,6 +506,16 @@ public class FormatsTest extends TestCase {
         }
     }
 
+    static Object nanToNull( Object o ) {
+        if ( ( o instanceof Float || o instanceof Double ) &&
+             Double.isNaN( ((Number) o).doubleValue() ) ) {
+            return null;
+        }
+        else {
+            return o;
+        }
+    }
+
     static class ValueInfoComparator implements Comparator {
         public int compare( Object o1, Object o2 ) {
             return ((ValueInfo) o1).getName()
@@ -386,9 +531,16 @@ public class FormatsTest extends TestCase {
     }
 
     File getTempFile( String suffix ) throws IOException {
-        File f = File.createTempFile( "table", suffix );
-        f.deleteOnExit();
+        File f;
+        File markDir = new File( "/mbt/scratch/table" );
+        if ( markDir.exists() && markDir.canWrite() ) {
+            f = new File( markDir, suffix );
+        }
+        else {
+            f = File.createTempFile( "table", suffix );
+            f.deleteOnExit();
+        }
         return f;
-        // return new File( "/mbt/scratch/table", suffix );
     }
+
 }

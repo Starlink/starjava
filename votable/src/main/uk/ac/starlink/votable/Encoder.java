@@ -1,34 +1,30 @@
 package uk.ac.starlink.votable;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * Handles writing an Object to a VOTable element.
- * Obtain a concrete instance of one of this abstract class's subclasses
- * using the static {@link #getEncoder} method.
+ * Handles writing an Object to a VOTable element.  Obtain a concrete
+ * instance of one of this abstract class's subclasses using the static
+ * {@link #getEncoder} method.  Encoders deal with serializing data
+ * objects (e.g. objects which live in the cell of a StarTable) to 
+ * a 'native' VOTable serialization format, that is TABLEDATA or BINARY.
  *
- * @author  Mark Taylor (Starlink)
+ * @author   Mark Taylor (Starlink)
  */
-class Encoder {
+abstract class Encoder {
 
-    private final ValueInfo info;
-    private final Map attMap;
-    private int padToLength = -1;
+    final ValueInfo info;
+    final Map attMap = new HashMap();
+    final StringBuffer content = new StringBuffer();
 
-    /**
-     * Private sole constructor - initialises an Encoder from a ValueInfo
-     * object.
-     *
-     * @param   info  the ValueInfo representing the kinds of object
-     *          this will have to encode
-     */
-    private Encoder( ValueInfo info ) {
-        this.info = info;
-        attMap = determineFieldAttributes();
-    }
+    private final static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Returns a text string which represents a given value of the type
@@ -40,205 +36,61 @@ class Encoder {
      * @return  text representing the value suitable for inclusion in
      *          an XML attribute value or CDATA element
      */
-    public String encodeAsText( Object value ) {
-
-        /* You might expect the encoding to be done using this object's
-         * knowledge about the objects it is supposed to encode.  
-         * However, that would't really gain you much, so it just does it
-         * based on the object value itself. */
-        if ( value == null ) {
-            return "";
-        }
-        else if ( ! value.getClass().isArray() ) {
-            return formatValue( value );
-        }
-        else {
-            int nel = Array.getLength( value );
-            StringBuffer sbuf = new StringBuffer();
-            if ( padToLength > 0 ) {
-                for ( int i = 0; i < nel; i++ ) {
-                    String s = formatValue( Array.get( value, i ) );
-                    int vleng = s.length();
-                    if ( vleng <= padToLength ) {
-                        sbuf.append( s );
-                        for ( int j = vleng; j < padToLength; j++ ) {
-                            sbuf.append( ' ' );
-                        }
-                    }
-                    else {
-                        sbuf.append( s.substring( 0, padToLength ) );
-                    }
-                }
-            }
-            else {
-                for ( int i = 0; i < nel; i++ ) {
-                    if ( i > 0 ) {
-                        sbuf.append( ' ' );
-                    }
-                    sbuf.append( formatValue( Array.get( value, i ) ) );
-                }
-            }
-            return sbuf.toString();
-        }
-    }
+    abstract public String encodeAsText( Object value );
 
     /**
-     * Returns a map of key, value pairs representing a set of XML
-     * attributes describing the objects encoded by this object.
-     * The attributes can be used to qualify a FIELD or PARAM 
-     * element in a VOTable document.
+     * Writes a given value of the type handled by this encoder out to
+     * a stream in BINARY serialization format.  Any required element
+     * count is included.
      *
-     * @return  a map of attribute name, attribute value pairs applying
-     *          to this encoder
+     * @param  value  the value to write (of the type handled by this encoder)
+     * @param  out  destination stream
      */
-    public Map getFieldAttributes() {
-        return attMap;
-    }
+    abstract public void encodeToStream( Object value, DataOutput out )
+            throws IOException;
 
     /**
-     * Examines this object's ValueInfo to determine what the XML
-     * attributes of the corresponding FIELD element will be.
-     * May perform some additional configuration of this object too.
-     * Should be called in the constructor.
+     * Constructs a new encoder which can serialize cell data of a 
+     * type described by a given ValueInfo object.
      *
-     * @return  attribute map
+     * @param  info  description of the data this encoder will have 
+     *               to serialize
+     * @param  datatype  value of the datatype attribute
      */
-    private Map determineFieldAttributes() {
-        Map atts = new HashMap();
+    private Encoder( ValueInfo info, String datatype ) {
+        this.info = info;
+
+        /* Datatype attribute. */
+        attMap.put( "datatype", datatype );
 
         /* Name attribute. */
         String name = info.getName();
         if ( name != null ) {
-            atts.put( "name", name.trim() );
+            attMap.put( "name", name.trim() );
         }
 
         /* Unit attribute. */
         String units = info.getUnitString();
         if ( units != null ) {
-            atts.put( "unit", units );
+            attMap.put( "unit", units );
         }
 
         /* UCD attribute. */
         String ucd = info.getUCD();
         if ( ucd != null ) {
-            atts.put( "ucd", ucd );
+            attMap.put( "ucd", ucd );
         }
 
-        /* Get the class of objects to be encoded. */
-        Class cls = info.getContentClass();
-        if ( cls == null ) {
-            cls = Object.class;
-        }
-
-        /* Get the datatype. */
-        String datatype;
-        boolean stringLike = false;
-        if ( cls.equals( Byte.class ) || cls.equals( byte[].class ) ) {
-            datatype = "short";  // Java byte type is signed, so use short here
-        }
-        else if ( cls.equals( Short.class ) || cls.equals( short[].class ) ) {
-            datatype = "short";
-        }
-        else if ( cls.equals( Integer.class ) || cls.equals( int[].class ) ) {
-            datatype = "int";
-        }
-        else if ( cls.equals( Long.class ) || cls.equals( long[].class ) ) {
-            datatype = "long";
-        }
-        else if ( cls.equals( Float.class ) || cls.equals( float[].class ) ) {
-            datatype = "float";
-        }
-        else if ( cls.equals( Double.class ) || cls.equals( double[].class ) ) {
-            datatype = "double";
-        }
-        else if ( cls.equals( Boolean.class ) || 
-                  cls.equals( boolean[].class ) ) {
-            datatype = "boolean";
-        }
-        else if ( cls.equals( String.class ) ) { 
-            datatype = "char";  // shoud be unicodeChar really?
-            stringLike = true;
-        }
-        else if ( cls.equals( char[].class ) ) {
-            datatype = "char";
-            stringLike = true;
-        }
-        else if ( cls.equals( Character.class ) ) {
-            datatype = "char";
-        }
-        else {
-            datatype = "char";  // generic
-            stringLike = true;
-        }
-        atts.put( "datatype", datatype );
-
-        /* If we have an array type, work out what shape it will be. */
-        int[] shape = null;
-        if ( cls.getComponentType() != null ) {
-            shape = info.getShape();
-        }
-
-        /* If we have a string-like type, give it an extra variable-sized
-         * dimension, since in VOTable strings have to be represented as
-         * arrays of characters. */
-        if ( stringLike ) {
-
-            /* Try to ascertain the number of characters in each string. */
-            int maxLength = info.getElementSize();
-            if ( maxLength <= 0 ) {
-                maxLength = -1;
-            }
-
-            /* For a scalar string, call it a fixed- or variable-length
-             * 1-d array of characters. */
-            if ( shape == null || shape.length == 0 ) {
-                shape = new int[] { maxLength };
-            }
-
-            /* For an array of strings whose dimensions are fully known,
-             * call it an (ndim+1)-dimensional array of characters. */
-            else if ( maxLength > 0 && shape[ shape.length - 1 ] > 0 ) {
-                int[] s2 = shape;
-                int ndim = s2.length;
-                shape = new int[ ndim + 1 ];
-                shape[ 0 ] = maxLength;
-                System.arraycopy( s2, 0, shape, 1, ndim );
-                padToLength = maxLength;
-            }
-
-            /* Otherwise, we have no choice but to collapse it into a 
-             * 1-d variable-length array of characters. */
-            else {
-                shape = new int[] { -1 };
+        /* Description information. */
+        String desc = info.getDescription();
+        if ( desc != null ) {
+            desc = desc.trim();
+            if ( desc.length() > 0 ) { 
+                content.append( "<DESCRIPTION>" )
+                       .append( VOTableWriter.formatText( desc ) )
+                       .append( "</DESCRIPTION>" );
             }
         }
-
-        /* If necessary, set the arraysize attribute. */
-        if ( shape != null ) {
-            StringBuffer sbuf = new StringBuffer();
-            if ( shape != null ) {
-                for ( int i = 0; i < shape.length; i++ ) {
-                    boolean last = ( i == ( shape.length - 1 ) );
-                    int dim = shape[ i ];
-                    if ( i < shape.length - 1 ) {
-                        sbuf.append( dim )
-                            .append( 'x' );
-                    }
-                    else {
-                        if ( dim < 0 ) {
-                            sbuf.append( '*' );
-                        }
-                        else {
-                            sbuf.append( dim );
-                        }
-                    }
-                }
-            }
-            atts.put( "arraysize", sbuf.toString() );
-        }
-
-        /* Return the attribute map. */
-        return atts;
     }
 
     /**
@@ -250,18 +102,20 @@ class Encoder {
      *          may be empty but will not be <tt>null</tt>
      */
     public String getFieldContent() {
-        String desc = info.getDescription();
-        if ( desc != null ) {
-            desc = desc.trim();
-            if ( desc.length() > 0 ) {
-                return new StringBuffer()
-                    .append( "<DESCRIPTION>" )
-                    .append( VOTableWriter.formatText( desc ) )
-                    .append( "</DESCRIPTION>" )
-                    .toString();
-            }
-        }
-        return "";
+        return content.toString();
+    }
+
+    /**
+     * Returns a map of key, value pairs representing a set of XML
+     * attributes describing the objects encoded by this object.
+     * The attributes can be used to qualify a FIELD or PARAM
+     * element in a VOTable document.
+     *
+     * @return  a map of attribute name, attribute value pairs applying
+     *          to this encoder
+     */
+    public Map getFieldAttributes() {
+        return attMap;
     }
 
     /**
@@ -274,22 +128,555 @@ class Encoder {
      */
     public static Encoder getEncoder( ValueInfo info ) {
 
-        /* This just invokes the constructor.  You can imagine implementations
-         * which return objects of different Encoder subclass types
-         * based on the info argument though, so the public interface is
-         * like this in case the implementation changes in the future. */
-        return new Encoder( info );
+        Class clazz = info.getContentClass();
+        int[] dims = info.getShape();
+        final boolean isNullable = info.isNullable();
+        final boolean isVariable = dims != null 
+                                && dims.length > 0 
+                                && dims[ dims.length - 1 ] < 0;
+
+        if ( clazz == Boolean.class ) {
+            return new ScalarEncoder( info, "boolean", null ) {
+                public String encodeAsText( Object val ) {
+                    Boolean value = (Boolean) val;
+                    return value == null 
+                               ? "" 
+                               : ( value.booleanValue() ? "T" : "F" );
+                }
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Boolean value = (Boolean) val;
+                    char b = value == null
+                                   ? ' '
+                                   : ( value.booleanValue() ? 'T' : 'F' );
+                    out.write( (int) b );
+                }
+            };
+        }
+
+        else if ( clazz == Byte.class ||
+                  clazz == Short.class ) {
+            final int badVal = Short.MIN_VALUE;
+            String badString = isNullable ? Integer.toString( badVal ) : null;
+            return new ScalarEncoder( info, "short", badString ) {
+                public void encodeToStream( Object val, DataOutput out ) 
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeShort( value == null ? badVal
+                                                  : value.intValue() );
+                }
+            };
+        }
+
+        else if ( clazz == Integer.class ) {
+            final int badVal = Integer.MIN_VALUE;
+            String badString = isNullable ? Integer.toString( badVal ) 
+                                          : null;
+            return new ScalarEncoder( info, "int", badString ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeInt( value == null ? badVal 
+                                                : value.intValue() );
+                }
+            };
+        }
+
+        else if ( clazz == Long.class ) {
+            final long badVal = Long.MIN_VALUE;
+            String badString = isNullable ? Long.toString( badVal ) : null;
+            return new ScalarEncoder( info, "long", badString ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeLong( value == null ? badVal
+                                                 : value.longValue() );
+                }
+            };
+        }
+
+        else if ( clazz == Float.class ) {
+            return new ScalarEncoder( info, "float", null ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeFloat( value == null ? Float.NaN
+                                                  : value.floatValue() );
+                }
+            };
+        }
+
+        else if ( clazz == Double.class ) {
+            return new ScalarEncoder( info, "double", null ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Number value = (Number) val;
+                    out.writeDouble( value == null ? Double.NaN
+                                                   : value.doubleValue() );
+                }
+            };
+        }
+
+        else if ( clazz == Character.class ) {
+            final int badVal = (int) '\0';
+            return new ScalarEncoder( info, "char", null ) {
+                public void encodeToStream( Object val, DataOutput out )
+                        throws IOException {
+                    Character value = (Character) val;
+                    out.write( value == null ? badVal 
+                                             : (int) value.charValue() );
+                }
+            };
+        }
+
+        if ( clazz == boolean[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    boolean value = ((boolean[]) array)[ index ];
+                    out.write( value ? 'T' : 'F' );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.write( ' ' );
+                }
+            };
+            return isVariable
+                 ? (Encoder) new VariableArrayEncoder( info, "boolean",
+                                                       dims, enc1 )
+                 : (Encoder) new FixedArrayEncoder( info, "boolean",
+                                                    dims, enc1 );
+        }
+
+        else if ( clazz == byte[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    byte value = ((byte[]) array)[ index ];
+                    out.writeShort( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeShort( 0x0 );
+                }
+            };
+            return isVariable
+                ? (Encoder) new VariableArrayEncoder( info, "short",
+                                                      dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "short",
+                                                   dims, enc1 );
+        }
+
+        else if ( clazz == short[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    short value = ((short[]) array)[ index ];
+                    out.writeShort( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeShort( 0x0 );
+                }
+            };
+            return isVariable
+                ? (Encoder) new VariableArrayEncoder( info, "short",
+                                                      dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "short",
+                                                   dims, enc1 );
+        }
+
+        else if ( clazz == int[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    int value = ((int[]) array)[ index ];
+                    out.writeInt( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeInt( 0 );
+                }         
+            };
+            return isVariable
+                ? (Encoder) new VariableArrayEncoder( info, "int", dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "int", dims, enc1 );
+        }
+
+        else if ( clazz == long[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    long value = ((long[]) array)[ index ];
+                    out.writeLong( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeLong( 0L );
+                }
+            };
+            return isVariable 
+                ? (Encoder) new VariableArrayEncoder( info, "long", dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "long", dims, enc1 );
+        }
+
+        else if ( clazz == float[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    float value = ((float[]) array)[ index ];
+                    out.writeFloat( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeFloat( Float.NaN );
+                }
+            };
+            return isVariable
+                ? (Encoder) new VariableArrayEncoder( info, "float",
+                                                      dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "float",
+                                                   dims, enc1 );
+        }
+
+        else if ( clazz == double[].class ) {
+            Encoder1 enc1 = new Encoder1() {
+                public void encode1( Object array, int index, DataOutput out )
+                        throws IOException {
+                    double value = ((double[]) array)[ index ];
+                    out.writeDouble( value );
+                }
+                public void pad1( DataOutput out ) throws IOException {
+                    out.writeDouble( Double.NaN );
+                }
+            };
+            return isVariable
+                ? (Encoder) new VariableArrayEncoder( info, "double",
+                                                      dims, enc1 )
+                : (Encoder) new FixedArrayEncoder( info, "double",
+                                                   dims, enc1 );
+        }
+
+        else if ( clazz == String.class ) {
+            final int nChar = clazz == String.class ? info.getElementSize()
+                                                    : -1;
+
+            /* Fixed length strings. */
+            if ( nChar > 0 ) {
+                final byte[] padBuf = new byte[ nChar ];
+                return new Encoder( info, "char" ) {
+                    /*anonymousConstructor*/ {
+                        attMap.put( "arraysize", Integer.toString( nChar ) );
+                    }
+
+                    public String encodeAsText( Object val ) {
+                        return val == null ? "" : val.toString();
+                    }
+
+                    public void encodeToStream( Object val, DataOutput out )
+                            throws IOException {
+                        int i = 0;
+                        if ( val != null ) {
+                           String value = val.toString();
+                           int limit = Math.min( value.length(), nChar );
+                           for ( ; i < limit; i++ ) {
+                               out.write( value.charAt( i ) );
+                           }
+                           out.write( padBuf, 0, limit - i );
+                        }
+                    }
+                };
+            }
+
+            /* Variable length strings. */
+            else {
+                return new Encoder( info, "char" ) {
+                    /*anonymousConstructor*/ {
+                        attMap.put( "arraysize", "*" );
+                    }
+
+                    public String encodeAsText( Object val ) {
+                        return val == null ? "" : val.toString();
+                    }
+
+                    public void encodeToStream( Object val, DataOutput out )
+                            throws IOException {
+                        if ( val == null ) {
+                            out.writeInt( 0 );
+                        }
+                        else {
+                            String value = val.toString();
+                            int leng = value.length();
+                            out.writeInt( leng );
+                            for ( int i = 0 ; i < leng; i++ ) {
+                                out.write( value.charAt( i ) );
+                            }
+                        }
+                    }
+                };
+            }
+        }
+
+        else if ( clazz == String[].class ) {
+            final int nChar = clazz == String[].class ? info.getElementSize()
+                                                      : -1;
+            if ( nChar < 0 ) {
+                logger.warning(
+                    "Oh dear - can't serialize array of variable-length " +
+                    "strings to VOTable - sorry" );
+                return null;
+            }
+
+            /* Add an extra dimension since writing treats a string as an
+             * array of chars. */
+            int[] charDims = new int[ dims.length + 1 ];
+            charDims[ 0 ] = nChar;
+            System.arraycopy( dims, 0, charDims, 1, dims.length );
+
+            /* Work out the arraysize attribute. */
+            StringBuffer sbuf = new StringBuffer();
+            for ( int i = 0; i < charDims.length; i++ ) {
+                if ( i > 0 ) {
+                    sbuf.append( 'x' );
+                }
+                if ( i == charDims.length - 1 && charDims[ i ] < 0 ) {
+                    sbuf.append( '*' );
+                }
+                else {
+                    sbuf.append( charDims[ i ] );
+                }
+            }
+            int ns = 0;
+            if ( ! isVariable ) {
+                ns = 1;
+                for ( int i = 0; i < dims.length; i++ ) {
+                    ns *= dims[ i ];
+                }
+            }
+            final String arraysize = sbuf.toString();
+            final int nString = ns;
+
+            return new Encoder( info, "char" ) {
+                char[] cbuf = new char[ nChar ];
+                byte[] bbuf = new byte[ nChar ];
+                byte[] padding = new byte[ nChar ];
+
+                /*anonymousConstructor*/ {
+                    attMap.put( "arraysize", arraysize );
+                }
+              
+                public String encodeAsText( Object val ) {
+                    if ( val != null ) {
+                        Object[] value = (Object[]) val;
+                        StringBuffer sbuf = new StringBuffer();
+                        for ( int i = 0; i < value.length; i++ ) {
+                            Object el = value[ i ];
+                            String str = el == null ? "" : el.toString();
+                            int j = 0;
+                            int limit = Math.min( str.length(), nChar );
+                            for ( ; j < limit; j++ ) {
+                                cbuf[ j ] = str.charAt( j );
+                            }
+                            for ( ; j < nChar; j++ ) {
+                                cbuf[ j ] = ' ';
+                            }
+                            sbuf.append( new String( cbuf ) );
+                        }
+                        return sbuf.toString();
+                    }
+                    else {
+                        return null;
+                    }
+                }
+
+                public void encodeToStream( Object val, DataOutput out ) 
+                        throws IOException {
+                    Object[] value = val == null ? new Object[ 0 ] 
+                                                 : (Object[]) val;
+                    int slimit;
+                    if ( isVariable ) {
+                        slimit = value.length;
+                        out.writeInt( nChar * slimit );
+                    }
+                    else {
+                        slimit = Math.min( value.length, nString );
+                    }
+                    int is = 0;
+                    for ( ; is < slimit; is++ ) {
+                        Object v = value[ is ];
+                        String str = v == null ? "" : v.toString();
+                        int climit = Math.min( str.length(), nChar );
+                        int ic = 0;
+                        for ( ; ic < climit; ic++ ) {
+                            bbuf[ ic ] = (byte) str.charAt( ic );
+                        }
+                        for ( ; ic < nChar; ic++ ) {
+                            bbuf[ ic ] = (byte) '\0';
+                        }
+                        out.write( bbuf );
+                    }
+                    if ( ! isVariable ) {
+                        for ( ; is < nString; is++ ) {
+                            out.write( padding );
+                        }
+                    }
+                }
+            };
+        }
+
+        /* Not a type we can do anything with. */
+        return null;
     }
 
     /**
-     * Turns a single object into a string for text encoding.
+     * Encoder subclass which can encode scalar objects.
      */
-    private String formatValue( Object value ) {
-        if ( value instanceof Boolean ) {
-            return ((Boolean) value).booleanValue() ? "T" : "F";
+    private static abstract class ScalarEncoder extends Encoder {
+
+        /**
+         * Constructs a new ScalarEncoder.
+         *
+         * @param   info  valueinfo describing the encoder
+         * @param   datatype  votable datatype attribute for this encoder
+         * @param   nullString  string representation of the bad value for 
+         *          this encoder (may be null)
+         */
+        ScalarEncoder( ValueInfo info, String datatype, String nullString ) {
+            super( info, datatype );
+
+            /* Set up bad value representation. */
+            if ( nullString != null ) {
+                if ( content.length() > 0 ) {
+                    content.append( '\n' );
+                }
+                content.append( "<VALUES null='" )
+                       .append( nullString )
+                       .append( "'/>" );
+            }
         }
-        else {
-            return value.toString();
+
+        public String encodeAsText( Object val ) {
+            return val == null ? "" : val.toString();
         }
+    }
+
+    /**
+     * Abstract Encoder subclass which can encode arrays.
+     */
+    private static abstract class ArrayEncoder extends Encoder {
+        final Encoder1 enc1;
+
+        ArrayEncoder( ValueInfo info, String datatype, int[] dims,
+                      Encoder1 enc1 ) {
+            super( info, datatype );
+            this.enc1 = enc1;
+
+            /* Set up the arraysize element. */
+            StringBuffer sizeBuf = new StringBuffer();
+            for ( int i = 0; i < dims.length; i++ ) {
+                if ( i > 0 ) {
+                    sizeBuf.append( 'x' );
+                }
+                if ( i == dims.length - 1 && dims[ i ] < 0 ) {
+                    sizeBuf.append( '*' );
+                }
+                else {
+                    sizeBuf.append( dims[ i ] );
+                }
+            }
+            attMap.put( "arraysize", sizeBuf.toString() );
+        }
+
+        public String encodeAsText( Object val ) {
+            if ( val == null ) {
+                return "";
+            }
+            else {
+                int nel = Array.getLength( val );
+                StringBuffer sbuf = new StringBuffer();
+                for ( int i = 0; i < nel; i++ ) {
+                    if ( i > 0 ) {
+                        sbuf.append( ' ' );
+                    }
+                    sbuf.append( Array.get( val, i ).toString() );
+                }
+                return sbuf.toString();
+            }
+        }
+    }
+
+    /**
+     * Encoder subclass which can encode variable length arrays.
+     */
+    private static class VariableArrayEncoder extends ArrayEncoder {
+        VariableArrayEncoder( ValueInfo info, String datatype, int[] dims,
+                              Encoder1 enc1 ) {
+            super( info, datatype, dims, enc1 );
+        }
+
+        public void encodeToStream( Object val, DataOutput out )
+                throws IOException {
+            if ( val == null ) {
+                out.writeInt( 0 );
+            }
+            else {
+                int nel = Array.getLength( val );
+                out.writeInt( nel );
+                for ( int i = 0; i < nel; i++ ) {
+                    enc1.encode1( val, i, out );
+                }
+            }
+        }
+    }
+
+    /**
+     * Encoder subclass which can encode fixed length arrays.
+     */
+    private static class FixedArrayEncoder extends ArrayEncoder {
+        final int nfixed;
+        FixedArrayEncoder( ValueInfo info, String datatype, int[] dims,
+                           Encoder1 enc1 ) {
+            super( info, datatype, dims, enc1 );
+            int nfixed = 1;
+            for ( int i = 0; i < dims.length; i++ ) {
+                nfixed *= dims[ i ];
+            }
+            this.nfixed = nfixed;
+        }
+
+        public void encodeToStream( Object val, DataOutput out )
+                throws IOException {
+            int i = 0;
+            if ( val != null ) {
+                int nel = Array.getLength( val );
+                int limit = Math.min( nel, nfixed );
+                for ( ; i < limit; i++ ) {
+                    enc1.encode1( val, i, out );
+                }
+            }
+            for ( ; i < nfixed; i++ ) {
+                enc1.pad1( out );
+            }
+        }
+    }
+
+    /**
+     * Helper interface which defines the behaviour of an object which can
+     * write one element of an array to a stream.
+     */
+    private static interface Encoder1 {
+
+        /**
+         * Writes one element of a given array to an output stream.
+         *
+         * @param  array  array object
+         * @param  index  the index of <tt>array</tt> to be written
+         * @param  out   destination stream
+         */
+        void encode1( Object array, int index, DataOutput out )
+            throws IOException;
+
+        /**
+         * Writes one padding element to an output stream.
+         * The streamed output must comprise the same number of bytes as
+         * a call to <tt>encode1</tt>.
+         *
+         * @param  out   destination stream
+         */
+        void pad1( DataOutput out ) throws IOException;
     }
 }
