@@ -77,16 +77,16 @@ public class Type {
             nBytes = 4;
             defaultBadValue = new Float( Float.NaN );
             isFloating = true;
-            minval = (double) Float.MAX_VALUE;
-            maxval = (double) - Float.MAX_VALUE;
+            minval = (double) - Float.MAX_VALUE;
+            maxval = (double) Float.MAX_VALUE;
         }
         else if ( name.equals( "double" ) ) {
             clazz = double.class;
             nBytes = 8;
             defaultBadValue = new Double( Double.NaN );
             isFloating = true;
-            minval = Double.MAX_VALUE;
-            maxval = - Double.MAX_VALUE;
+            minval = - Double.MAX_VALUE;
+            maxval = Double.MAX_VALUE;
         }
         else {
             assert false;
