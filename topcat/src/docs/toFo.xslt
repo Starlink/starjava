@@ -250,7 +250,10 @@
       </xsl:when>
       <xsl:when test="string(.)">
         <xsl:apply-templates/>
-        <xsl:call-template name="webRefNote"/>
+        <!-- <xsl:call-template name="webRefNote"/> -->
+        <xsl:text> (</xsl:text>
+        <xsl:value-of select="@url"/>
+        <xsl:text>)</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <fo:inline font-family="sans-serif">
