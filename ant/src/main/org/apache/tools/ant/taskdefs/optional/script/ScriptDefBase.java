@@ -1,0 +1,98 @@
+/*
+ * Copyright  2000-2004 The Apache Software Foundation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+package org.apache.tools.ant.taskdefs.optional.script;
+
+import org.apache.tools.ant.Task;
+import org.apache.tools.ant.MagicNames;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DynamicConfigurator;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+
+/**
+ * The script execution class. This class finds the defining script task
+ * and passes control to that task's executeScript method.
+ *
+ * @since Ant 1.6
+ */
+public class ScriptDefBase extends Task implements DynamicConfigurator {
+
+    /** Nested elements */
+    private Map nestedElementMap = new HashMap();
+
+    /** Attributes */
+    private Map attributes = new HashMap();
+
+    /**
+     * Locate the script defining task and execute the script by passing
+     * control to it
+     */
+    public void execute() {
+        getScript().executeScript(attributes, nestedElementMap);
+    }
+
+    private ScriptDef getScript() {
+        String name = getTaskType();
+        Map scriptRepository
+            = (Map) getProject().getReference(MagicNames.SCRIPT_REPOSITORY);
+        if (scriptRepository == null) {
+            throw new BuildException("Script repository not found for " + name);
+        }
+
+        ScriptDef definition = (ScriptDef) scriptRepository.get(getTaskType());
+        if (definition == null) {
+            throw new BuildException("Script definition not found for " + name);
+        }
+        return definition;
+    }
+
+    /**
+     * Create a nested element
+     *
+     * @param name the nested element name
+     * @return the element to be configured
+     */
+    public Object createDynamicElement(String name)  {
+        List nestedElementList = (List) nestedElementMap.get(name);
+        if (nestedElementList == null) {
+            nestedElementList = new ArrayList();
+            nestedElementMap.put(name, nestedElementList);
+        }
+        Object element = getScript().createNestedElement(name);
+        nestedElementList.add(element);
+        return element;
+    }
+
+    /**
+     * Set a task attribute
+     *
+     * @param name the attribute name.
+     * @param value the attribute's string value
+     */
+    public void setDynamicAttribute(String name, String value) {
+        ScriptDef definition = getScript();
+        if (!definition.isAttributeSupported(name)) {
+                throw new BuildException("<" + getTaskType()
+                    + "> does not support the \"" + name + "\" attribute");
+        }
+
+        attributes.put(name, value);
+    }
+}
+
