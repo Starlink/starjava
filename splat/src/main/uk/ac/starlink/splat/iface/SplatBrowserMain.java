@@ -23,6 +23,10 @@ import uk.ac.starlink.util.Loader;
  * These can be displayed in their own window, or in an existing window with
  * other spectra. Various display properties of the spectrum can be
  * set using this browser (i.e. the line colour, width and style).
+ * <p>
+ * Note this entry point doesn't provide a splash screen see the
+ * {@link uk.ac.starlink.splat.SplatMain} class if you want that
+ * ability.
  *
  * @author Peter W. Draper (Starlink, Durham University)
  * @version $Id$
@@ -50,37 +54,14 @@ public class SplatBrowserMain
         //  be useful in locating resources etc.
         guessProperties();
 
-        //  Make splash screen and interface visible. Do these from
-        //  event threads as parts of GUI could be realized before
-        //  returning (not thread safe). SplatSplash dies after a
-        //  given time.
-        final SplatSplash splashFrame = new SplatSplash();
-        try {
-            SwingUtilities.invokeAndWait( new Runnable() {
-                    public void run()
-                    {
-                        // Sometimes this appears as an empty window!
-                        splashFrame.repaint();
-                        splashFrame.setVisible( true );
-                        splashFrame.repaint();
-                    }
-                });
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        //  Make interface visible. Do this from an event thread as
+        //  parts of the GUI could be realized before returning (not
+        //  thread safe).
         SwingUtilities.invokeLater( new Runnable() {
                 public void run()
                 {
                     browser = new SplatBrowser( spectra );
                     browser.setVisible( true );
-                    try {
-                        splashFrame.setVisible( false );
-                    }
-                    catch (Exception e) {
-                        // Do nothing, could have been disposed already.
-                    }
                 }
             });
     }
