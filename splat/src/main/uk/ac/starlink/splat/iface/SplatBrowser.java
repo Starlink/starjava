@@ -52,9 +52,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -203,13 +201,12 @@ public class SplatBrowser
     protected BasicFileChooser fileChooser = null;
 
     /**
-     *  Names of files that are passed to other threads for loading.
+     *  Names of files for loading.
      */
     protected String[] newFiles = null;
 
     /**
-     *  Whether files loaded in other threads should also be displayed
-     *  (in a single new plot).
+     *  Whether files loaded should also be displayed (in a single new plot).
      */
     protected boolean displayNewFiles = false;
 
@@ -222,13 +219,6 @@ public class SplatBrowser
      *  Stack open or save chooser.
      */
     protected BasicFileChooser stackChooser = null;
-
-    /**
-     *  Progress monitor for startup and loading files.
-     */
-    protected int progressValue;
-    protected int progressMaximum;
-    protected ProgressMonitor progressMonitor = null;
 
     /**
      * SpecAnimatorFrame window for displaying a series of spectra,
@@ -286,7 +276,7 @@ public class SplatBrowser
      *  @param inspec list of spectra to add. If null then none are
      *                added.
      */
-    public SplatBrowser( String[] inspec ) 
+    public SplatBrowser( String[] inspec )
     {
         this( inspec, false );
     }
@@ -414,52 +404,6 @@ public class SplatBrowser
     }
 
     /**
-     * Initialise the startup progress monitor.
-     *
-     * @param intervals the number of intervals (i.e. calls to
-     *                   updateProgressMonitor) expected before action
-     *                   is complete.
-     * @param title the title for the monitor window.
-     * @see #updateProgressMonitor
-     */
-    protected void initProgressMonitor( int intervals, String title )
-    {
-        closeProgressMonitor();
-        progressValue = 0;
-        progressMaximum = intervals - 1;
-        progressMonitor = new ProgressMonitor( this, title, "", 0,
-                                               progressMaximum );
-        progressMonitor.setMillisToDecideToPopup( 500 );
-        progressMonitor.setMillisToPopup( 250 );
-    }
-
-    /**
-     *  Update the progress monitor.
-     *
-     *  @param note note to show in the progress monitor dialog.
-     *
-     *  @see #initProgressMonitor
-     */
-    protected void updateProgressMonitor( String note )
-    {
-        progressMonitor.setProgress( ++progressValue );
-        progressMonitor.setNote( note );
-    }
-
-    /**
-     *  Close the progress monitor.
-     *
-     *  @see #initProgressMonitor
-     */
-    protected void closeProgressMonitor()
-    {
-        if ( progressMonitor != null ) {
-            progressMonitor.close();
-            progressMonitor = null;
-        }
-    }
-
-    /**
      *  Setup the menus and toolbar.
      */
     protected void setupMenusAndToolbar()
@@ -506,7 +450,7 @@ public class SplatBrowser
         menuBar.add( fileMenu );
 
         //  Add action to open a list of spectrum stored in files.
-        ImageIcon openImage = 
+        ImageIcon openImage =
             new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         LocalAction openAction  = new LocalAction( LocalAction.OPEN,
                                                    "Open", openImage,
@@ -515,10 +459,10 @@ public class SplatBrowser
         toolBar.add( openAction );
 
         //  Add action to open a spectrum using a typed in location (URL).
-        ImageIcon locationImage = 
+        ImageIcon locationImage =
             new ImageIcon( ImageHolder.class.getResource( "location.gif" ) );
         LocalAction locationAction  = new LocalAction( LocalAction.LOCATION,
-                                                       "Location", 
+                                                       "Location",
                                                        locationImage,
                                                        "Open location" );
         fileMenu.add( locationAction );
@@ -526,7 +470,7 @@ public class SplatBrowser
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
-        ImageIcon browseImage = 
+        ImageIcon browseImage =
             new ImageIcon( ImageHolder.class.getResource( "browse.gif" ) );
             javax.swing.plaf.metal.MetalIconFactory.getTreeControlIcon(true);
 
@@ -537,7 +481,7 @@ public class SplatBrowser
         toolBar.add( browseAction );
 
         //  Add action to re-open a list of spectra if possible.
-        ImageIcon reOpenImage = 
+        ImageIcon reOpenImage =
             new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
         LocalAction reOpenAction  = new LocalAction( LocalAction.REOPEN,
                                                    "Re-Open", reOpenImage,
@@ -546,7 +490,7 @@ public class SplatBrowser
         toolBar.add( reOpenAction );
 
         //  Add action to save a spectrum
-        ImageIcon saveImage = 
+        ImageIcon saveImage =
             new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         LocalAction saveAction  =
             new LocalAction( LocalAction.SAVE, "Save", saveImage,
@@ -555,7 +499,7 @@ public class SplatBrowser
         toolBar.add( saveAction );
 
         //  Add an action to read in a stack of spectra.
-        ImageIcon readStackImage = 
+        ImageIcon readStackImage =
             new ImageIcon( ImageHolder.class.getResource( "readstack.gif" ) );
         LocalAction readStackAction =
             new LocalAction( LocalAction.READ_STACK, "Read stack",
@@ -565,7 +509,7 @@ public class SplatBrowser
         toolBar.add( readStackAction );
 
         //  Add an action to save the stack of spectra.
-        ImageIcon saveStackImage = 
+        ImageIcon saveStackImage =
             new ImageIcon( ImageHolder.class.getResource( "savestack.gif" ) );
         LocalAction saveStackAction =
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
@@ -574,7 +518,7 @@ public class SplatBrowser
         toolBar.add( saveStackAction );
 
         //  Add an action to exit application.
-        ImageIcon exitImage = 
+        ImageIcon exitImage =
             new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
                                                   "Exit", exitImage,
@@ -749,7 +693,7 @@ public class SplatBrowser
         //  Add option to choose a different colour for each spectrum as they
         //  are loaded.
         colourAsLoadedItem = new JCheckBoxMenuItem( "Auto-colour" );
-        ImageIcon rainbowImage = 
+        ImageIcon rainbowImage =
             new ImageIcon( ImageHolder.class.getResource( "rainbow.gif" ) );
         colourAsLoadedItem.setIcon( rainbowImage );
         optionsMenu.add( colourAsLoadedItem );
@@ -831,7 +775,7 @@ public class SplatBrowser
     {
         if ( init ) {
             //  Restore state of button from Preferences.
-            boolean state = prefs.getBoolean( "SplatBrowser_showshortnames", 
+            boolean state = prefs.getBoolean( "SplatBrowser_showshortnames",
                                               true );
             showShortNamesItem.setSelected( state );
         }
@@ -903,7 +847,7 @@ public class SplatBrowser
                 //  Socket-based services.
                 RemoteServer remoteServer = new RemoteServer( this );
                 remoteServer.start();
-                
+
                 //  SOAP based services.
                 SplatSOAPServer soapServer = SplatSOAPServer.getInstance();
                 soapServer.setSplatBrowser( this );
@@ -918,9 +862,9 @@ public class SplatBrowser
     }
 
     /**
-     * Initialise the remote control services in a separate
-     * thread. Use this to get UI going quickly, but note that the
-     * remote services may take some time to initialise.
+     * Initialise the remote control services in a separate thread. Use this
+     * to get UI going quickly, but note that the remote services may take
+     * some time to initialise.
      */
     protected void threadInitRemoteServices()
     {
@@ -943,7 +887,7 @@ public class SplatBrowser
     }
 
     /**
-     *  Colourize, that is automatically set the colour of all spectra.  
+     *  Colourize, that is automatically set the colour of all spectra.
      *  The colours applied depend on the number of spectra shown.
      */
     protected void colourizeSpectra()
@@ -1129,8 +1073,8 @@ public class SplatBrowser
     protected JCheckBox stackOpenDisplayCheckBox = null;
 
     /**
-     * Initialise the accessory components for opening a stack of spectra. 
-     * Currently this provides the ability to choose whether to display 
+     * Initialise the accessory components for opening a stack of spectra.
+     * Currently this provides the ability to choose whether to display
      * any opened spectra.
      */
     protected void initStackOpenAccessory()
@@ -1156,14 +1100,14 @@ public class SplatBrowser
     protected JComboBox saveTabletypeBox = null;
 
     /**
-     * Initialise the accessory components for saving spectra. 
+     * Initialise the accessory components for saving spectra.
      * Currently these provide the ability to choose whether
      * to display any opened spectra.
      */
     protected void initSaveAccessory()
     {
         saveAccessory = new JPanel();
-        GridBagLayouter layouter = 
+        GridBagLayouter layouter =
             new GridBagLayouter( saveAccessory, GridBagLayouter.SCHEME5 );
         layouter.setInsets( new Insets( 0, 3, 3, 0 ) );
 
@@ -1229,13 +1173,8 @@ public class SplatBrowser
 
                 //  If requested honour the display option.
                 if ( ( nread > 0 ) && stackOpenDisplayCheckBox.isSelected() ) {
-                    int[] currentSelection = getSelectedSpectra();
                     int count = globalList.specCount();
-                    specList.setSelectionInterval( count - nread, count - 1 );
-                    multiDisplaySelectedSpectra( true );
-                    if ( currentSelection != null ) {
-                        specList.setSelectedIndices( currentSelection );
-                    }
+                    displayRange( count - nread, count - 1 );
                 }
             }
             else {
@@ -1285,7 +1224,7 @@ public class SplatBrowser
     protected void showLocationChooser()
     {
         if ( locationChooser == null ) {
-            locationChooser = new HistoryStringDialog( this, "URL/Location", 
+            locationChooser = new HistoryStringDialog( this, "URL/Location",
                                                        "Enter a location" );
         }
         String result = locationChooser.showDialog( locationChooser );
@@ -1297,10 +1236,35 @@ public class SplatBrowser
     }
 
     /**
+     * Open and display all the spectra listed in the newFiles array. Uses a
+     * thread to load the files so that we do not block the UI (although the
+     * wait cursor is enabled so no interaction can be performed).
+     */
+    protected void threadLoadChosenSpectra()
+    {
+        SpectrumIO sio = SpectrumIO.getInstance();
+        sio.load( this, newFiles, displayNewFiles, openUsertypeIndex );
+    }
+
+    /**
+     * Save a spectrum. Uses a thread to load the files so that we do not
+     * block the UI (although the wait cursor is enabled so no interaction can
+     * be performed).
+     * @param globalIndex global list index of the spectrum to save.
+     * @param target the file to write the spectrum into.
+     */
+    protected void threadSaveSpectrum( int globalIndex, String target )
+    {
+        SpectrumIO sio = SpectrumIO.getInstance();
+        sio.save( this, globalIndex, target );
+    }
+
+
+    /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.
      */
-    protected void setWaitCursor()
+    public void setWaitCursor()
     {
         Cursor wait = Cursor.getPredefinedCursor( Cursor.WAIT_CURSOR );
         Component glassPane = getGlassPane();
@@ -1312,148 +1276,12 @@ public class SplatBrowser
     /**
      * Undo the action of the setWaitCursor method.
      */
-    protected void resetWaitCursor()
+    public void resetWaitCursor()
     {
         getGlassPane().setCursor( null );
         getGlassPane().setVisible( false );
     }
 
-    /**
-     * Load all the spectra stored in the newFiles array. Use a new
-     * Thread so that we do not block the GUI or event threads.
-     */
-    protected void threadLoadChosenSpectra()
-    {
-        if ( newFiles != null ) {
-
-            //  Monitor progress by checking the filesDone variable.
-            initProgressMonitor( newFiles.length, "Loading spectra..." );
-            waitTimer = new Timer ( 250, new ActionListener() {
-                    public void actionPerformed( ActionEvent e ) {
-                        progressMonitor.setProgress( filesDone );
-                        if ( filesDone < newFiles.length ) {
-                            progressMonitor.setNote( newFiles[filesDone] );
-                        }
-                    }
-                });
-            setWaitCursor();
-            waitTimer.start();
-
-            //  Now create the thread that reads the spectra.
-            Thread loadThread = new Thread( "Spectra loader" ) {
-                    public void run() {
-                        try {
-                            addChosenSpectra();
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        finally {
-
-                            //  Always tidy up and rewaken interface
-                            //  when complete (including if an error
-                            //  is thrown).
-                            resetWaitCursor();
-                            waitTimer.stop();
-                            closeProgressMonitor();
-                        }
-                    }
-                };
-
-            //  Start loading spectra.
-            loadThread.start();
-        }
-    }
-
-    /**
-     * Save a given spectrum as a file. Use a thread so that we do not
-     * block the GUI or event threads.
-     *
-     * @param globalIndex the index on the global list of the spectrum
-     *                    to save.
-     * @param target the file to write the spectrum into.
-     */
-    protected void threadSaveSpectrum( int globalIndex, String target )
-    {
-        final int localGlobalIndex = globalIndex;
-        final String localTarget = target;
-
-        //  Monitor progress by checking the filesDone variable.
-        initProgressMonitor( 1, "Saving spectrum..." );
-        progressMonitor.setNote( "as " + localTarget );
-        waitTimer = new Timer ( 250, new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    progressMonitor.setProgress( filesDone );
-                }
-            });
-        setWaitCursor();
-        waitTimer.start();
-
-        //  Now create the thread that saves the spectrum.
-        Thread saveThread = new Thread( "Spectrum saver" ) {
-                public void run() {
-                    try {
-                        saveSpectrum( localGlobalIndex, localTarget );
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    finally {
-
-                        //  Always tidy up and rewaken interface when
-                        //  complete (including if an error is thrown).
-                        resetWaitCursor();
-                        waitTimer.stop();
-                        closeProgressMonitor();
-                    }
-                }
-            };
-
-        //  Start saving spectrum.
-        saveThread.start();
-    }
-
-    /**
-     * Timer for used for event queue actions.
-     */
-    private Timer waitTimer;
-
-    /**
-     * Number of spectra currently loaded by the addChosenSpectra method.
-     */
-    private int filesDone = 0;
-
-    /**
-     * Add spectra listed in the newFiles array to global list. If
-     * given attempt to open the files using the type provided by the
-     * user (in the open file dialog).
-     */
-    protected void addChosenSpectra()
-    {
-        // Add all spectra.
-        filesDone = 0;
-        int validFiles = 0;
-        for ( int i = 0; i < newFiles.length; i++ ) {
-            if ( addSpectrum( newFiles[i], openUsertypeIndex ) ) {
-                validFiles++;
-            }
-            filesDone++;
-        }
-
-        //  And now display them if required.
-        if ( displayNewFiles && validFiles > 0 ) {
-            int[] currentSelection = getSelectedSpectra();
-            int count = globalList.specCount();
-            if ( count - newFiles.length <= count - 1 ) {
-                specList.setSelectionInterval( count - newFiles.length,
-                                               count - 1 );
-                multiDisplaySelectedSpectra( true );
-                if ( currentSelection != null ) {
-                    specList.setSelectedIndices( currentSelection );
-                }
-            }
-        }
-    }
 
     /**
      * Add a new spectrum, with a possibly pre-defined type, to the
@@ -1525,7 +1353,7 @@ public class SplatBrowser
     }
 
     /**
-     * Display all the spectra that are selected in the global list view. 
+     * Display all the spectra that are selected in the global list view.
      * Each spectrum is displayed in a new plot.
      */
     public void displaySelectedSpectra()
@@ -1584,9 +1412,9 @@ public class SplatBrowser
             if ( fit ) {
                 //  Do fit to width and height after realisation.
                 Runnable later = new Runnable() {
-                        public void run() 
+                        public void run()
                         {
-                            GlobalSpecPlotList globalList = 
+                            GlobalSpecPlotList globalList =
                                 GlobalSpecPlotList.getInstance();
                             for ( int j = 0; j < plotIndices.length; j++ ) {
                                 if ( plotIndices[j] != -1 ) {
@@ -1616,7 +1444,7 @@ public class SplatBrowser
             if ( fit && failed < specIndices.length ) {
                 //  Do fit to width and height after realisation.
                 Runnable later = new Runnable() {
-                        public void run() 
+                        public void run()
                         {
                             plot.getPlot().fitToWidthAndHeight();
                         }
@@ -1764,7 +1592,7 @@ public class SplatBrowser
      * Make a report using an ExceptionDialog for when loading a list
      * of spectra has failed for some.
      */
-    private void reportOpenListFailed( int failed, 
+    private void reportOpenListFailed( int failed,
                                        SplatException lastException )
     {
         String message = null;
@@ -1898,7 +1726,7 @@ public class SplatBrowser
      */
     public PlotControlFrame displaySpectrum( String spectrum )
     {
-        // NOTE: At time of writing, TOPCAT uses this method to obtain 
+        // NOTE: At time of writing, TOPCAT uses this method to obtain
         // a PlotControlFrame under control of the SplatBrowser
         // (but the value of the spectrum argument is unimportant).
 
@@ -1961,6 +1789,27 @@ public class SplatBrowser
     }
 
     /**
+     * Display a range of spectra, currently shown in the global list, in the
+     * selected plot, or a new one if none are selected.
+     *
+     * @param lower the index of the first spectrum to display.
+     * @param upper the index of the last spectrum to display.
+     */
+    public void displayRange( int lower, int upper )
+    {
+        if ( lower <= upper ) {
+            //  Get the current selection, this is restored later.
+            int[] currentSelection = getSelectedSpectra();
+
+            specList.setSelectionInterval( lower, upper );
+            multiDisplaySelectedSpectra( true );
+            if ( currentSelection != null ) {
+                specList.setSelectedIndices( currentSelection );
+            }
+        }
+    }
+
+    /**
      * Make copies of all the selected spectra. These are memory copies. If
      * sort is true then the coordinates are sorted into increasing order and
      * any duplicates are removed.
@@ -2006,7 +1855,7 @@ public class SplatBrowser
                     new ExceptionDialog( this, e );
                 }
             }
-        }        
+        }
     }
 
     /**
@@ -2117,8 +1966,8 @@ public class SplatBrowser
     {
         SpecData source = globalList.getSpectrum( globalIndex );
         try {
-            SpecData target = 
-                specDataFactory.getClone( source, spectrum, saveUsertypeIndex, 
+            SpecData target =
+                specDataFactory.getClone( source, spectrum, saveUsertypeIndex,
                    (String) saveTabletypeBox.getItemAt( saveTabletypeIndex ) );
             target.save();
             globalList.add( globalIndex, target );
@@ -2236,7 +2085,7 @@ public class SplatBrowser
 
     /**
      * A request to exit the application has been received. Only do
-     * this if we're not embedded. In that case just make the window 
+     * this if we're not embedded. In that case just make the window
      * iconized.
      */
     protected void exitApplicationEvent()
@@ -2307,14 +2156,14 @@ public class SplatBrowser
          *             appears in all labels).
          * @param help the tooltip help for any labels (can be null).
          */
-        public LocalAction( int type, String name, Icon icon, String help ) 
+        public LocalAction( int type, String name, Icon icon, String help )
         {
             super( name, icon );
             this.type = type;
             putValue( SHORT_DESCRIPTION, help );
         }
 
-        public void actionPerformed( ActionEvent ae ) 
+        public void actionPerformed( ActionEvent ae )
         {
             switch ( type ) {
                case SAVE: {
