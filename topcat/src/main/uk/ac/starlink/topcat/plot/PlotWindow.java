@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -25,6 +26,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -43,8 +46,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.AbstractButton;
 import javax.swing.JToggleButton;
+import javax.swing.OverlayLayout;
 import javax.swing.table.TableColumn;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -82,6 +85,7 @@ public class PlotWindow extends TopcatViewWindow
     private final TopcatModel tcModel_;
     private final OptionsListModel subsets_;
     private final ScatterPlot plot_;
+    private final BlobPanel blobPanel_;
     private final JComboBox xColBox_;
     private final JComboBox yColBox_;
     private final JCheckBox xLogBox_;
@@ -90,10 +94,12 @@ public class PlotWindow extends TopcatViewWindow
     private final ButtonModel gridModel_;
     private final OrderedSelectionRecorder subSelRecorder_;
     private final Action fromvisibleAction_;
+    private final Action blobAction_;
     private JFileChooser printSaver_;
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
     private MarkStyleProfile markers_ = MARKER_PROFILES[ 1 ];
+    private boolean activeBlob_;
 
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -202,17 +208,21 @@ public class PlotWindow extends TopcatViewWindow
 
         /* Construct a panel which will hold the plot itself. */
         plot_ = new ScatterPlot( new PtPlotSurface( this ) );
-        JPanel plotPanel = new JPanel( new BorderLayout() );
-        plotPanel.add( plot_, BorderLayout.CENTER );
+        blobPanel_ = new BlobPanel();
+        blobPanel_.setVisible( false );
+        JPanel plotPanel = new JPanel();
+        plotPanel.setLayout( new OverlayLayout( plotPanel ) );
+        plotPanel.add( blobPanel_ );
+        plotPanel.add( plot_ );
         plotPanel.setPreferredSize( new Dimension( 500, 300 ) );
 
         /* Listen for point-clicking events on the plot. */
         /* I have to reach right in to find the plot surface component to
          * add the mouse listener to it; it would be tidier to just add
          * the listener to the plot component itself, but that doesn't
-         * receive the mouse events.  I don't understand which components
-         * in the hierarchy receive the mouse events (had this problem 
-         * before) - can anyone tell me where this is documented?? */
+         * receive the mouse events, since it's not the deepest visible
+         * component.  Doing it this way is probably easier than mucking
+         * about with glassPanes. */
         plot_.getSurface().getComponent()
              .addMouseListener( new PointClickListener() );
 
@@ -276,6 +286,19 @@ public class PlotWindow extends TopcatViewWindow
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.setMnemonic( KeyEvent.VK_S );
         subsetMenu.add( subMenu );
+        blobAction_ = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( activeBlob_ ) {
+                    useBlob();
+                    setActiveBlob( false );
+                }
+                else {
+                    setActiveBlob( true );
+                }
+            }
+        };
+        setActiveBlob( false );
+        blobAction_.setEnabled( false );
         fromvisibleAction_ = new BasicAction( "New subset from visible",
                                               ResourceIcon.VISIBLE_SUBSET,
                                               "Define a new row subset " +
@@ -293,6 +316,7 @@ public class PlotWindow extends TopcatViewWindow
             }
         };
         fromvisibleAction_.setEnabled( false );
+        subsetMenu.add( blobAction_ );
         subsetMenu.add( fromvisibleAction_ );
         getJMenuBar().add( subsetMenu );
 
@@ -320,6 +344,7 @@ public class PlotWindow extends TopcatViewWindow
         getToolBar().add( printAction );
         getToolBar().add( resizeAction );
         getToolBar().add( gridButton );
+        getToolBar().add( blobAction_ );
         getToolBar().add( fromvisibleAction_ );
         getToolBar().addSeparator();
 
@@ -361,6 +386,13 @@ public class PlotWindow extends TopcatViewWindow
         PlotState state = getPlotState();
         PlotState lastState = plot_.getState();
         if ( force || ! state.equals( lastState ) ) {
+
+            /* Cancel any active blob-drawing.  This is necesary since 
+             * the replot may put a different set of points inside it.
+             * As a secondary consideration, forcing a replot by resizing 
+             * the window etc is an intuitive way for the user to escape 
+             * a blob-drawing session). */
+            setActiveBlob( false );
 
             /* Send the plot component the most up to date plotting state. */
             plot_.setState( state );
@@ -450,6 +482,7 @@ public class PlotWindow extends TopcatViewWindow
         visiblePoints_ = plotted;
         visibleRows_ = visible;
         fromvisibleAction_.setEnabled( nVisible > 0 );
+        blobAction_.setEnabled( nVisible > 0 );
     }
 
     /**
@@ -460,6 +493,45 @@ public class PlotWindow extends TopcatViewWindow
      */
     private void activatePoint( int ip ) {
         System.out.println( "    row index: " + ip );
+    }
+
+    /**
+     * Determine whether we are currently in blob-drawing mode or not.
+     *
+     * @param  activeBlob true iff blob is being drawn
+     */
+    private void setActiveBlob( boolean active ) {
+        activeBlob_ = active;
+        blobPanel_.clear();
+        blobPanel_.setVisible( active );
+        blobAction_.putValue( Action.NAME, 
+                              active ? "Finish Drawing Region"
+                                     : "Draw Subset Region" );
+        blobAction_.putValue( Action.SMALL_ICON,
+                              active ? ResourceIcon.BLOB_SUBSET_END
+                                     : ResourceIcon.BLOB_SUBSET );
+        blobAction_.putValue( Action.SHORT_DESCRIPTION,
+                              active ? "Define subset from currently-drawn " +
+                                       "region"
+                                     : "Draw a region on the plot to define " +
+                                       "a new row subset" );
+    }
+
+    /**
+     * Called when the user has indicated that the blob he has drawn is
+     * finished and ready to be turned into a subset.
+     */
+    private void useBlob() {
+        Shape blob = blobPanel_.getBlob();
+        String name = tcModel_.enquireSubsetName( PlotWindow.this );
+        if ( name != null ) {
+            int inew = subsets_.size();
+            RowSubset blobSet =
+                new BitsRowSubset( name, 
+                                   visiblePoints_.getContainedPoints( blob ) );
+            subsets_.add( blobSet );
+            subSelModel_.addSelectionInterval( inew, inew );
+        }
     }
 
     /**
