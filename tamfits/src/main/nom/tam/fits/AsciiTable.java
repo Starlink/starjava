@@ -643,9 +643,9 @@ public class AsciiTable extends Data implements TableData {
 	  Cursor iter = hdr.iterator();
 	  iter.setKey("NAXIS2");
 	  iter.next();
-	  iter.add(new HeaderCard("PCOUNT", 0, "No group data"));
-	  iter.add(new HeaderCard("GCOUNT", 1, "One group"));
-	  iter.add(new HeaderCard("TFIELDS", nFields, "Number of fields in table"));
+	  iter.add("PCOUNT", new HeaderCard("PCOUNT", 0, "No group data"));
+	  iter.add("GCOUNT", new HeaderCard("GCOUNT", 1, "One group"));
+	  iter.add("TFIELDS", new HeaderCard("TFIELDS", nFields, "Number of fields in table"));
 	  
 	  for (int i=0; i<nFields; i += 1) {
 	      addColInfo(i, iter);

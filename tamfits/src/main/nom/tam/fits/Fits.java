@@ -77,7 +77,7 @@ import nom.tam.util.*;
   * in the source code or included in or referred to in any
   * derived software.
   *
-  * @version 0.93  October 10, 2000
+  * @version 0.96a  October 10, 2000
   */
 public class Fits {
 
@@ -116,8 +116,11 @@ public class Fits {
 	 // Version 0.92: Fix bug in BinaryTable when reading from stream.
 	 // Version 0.93: Supports HIERARCH header cards.  Added FitsElement interface.
 	 //               Several bug fixes especially for null HDUs.
+	 // Version 0.96: Address issues with mandatory keywords.
+	 //               Fix problem where some keywords were not properly keyed.
+	 // Version 0.96a: Update version in FITS
 
-         return "0.93";
+         return "0.96a";
     }
         
     /** Create an empty Fits object which is not

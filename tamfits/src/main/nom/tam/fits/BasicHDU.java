@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.ArrayDataOutput;
+import java.util.Iterator;
 
 import java.util.Date;
 
@@ -155,7 +156,6 @@ public abstract class BasicHDU implements FitsElement
           return false;
       }
 
-      System.out.print(" "+name+"="+value+";");
       return true;
   }
     
@@ -450,6 +450,44 @@ public abstract class BasicHDU implements FitsElement
       } else {
 	  this.isPrimary = newPrimary;
       }
+      
+      // Some FITS readers don't like the PCOUNT and GCOUNT keywords
+      // in a primary array or they EXTEND keyword in extensions.
+      
+      if (isPrimary && !myHeader.getBooleanValue("GROUPS", false)) {
+	  myHeader.deleteKey("PCOUNT");
+	  myHeader.deleteKey("GCOUNT");
+      }
+      
+      if (isPrimary) {
+	  HeaderCard card = myHeader.findCard("EXTEND");
+	  if (card == null) {
+	      myHeader.addValue("EXTEND", true, "Allow extensions");
+	  }
+      }
+      
+      if (!isPrimary) {
+	  
+	  Iterator iter = myHeader.iterator();
+	  
+	  int pcount = myHeader.getIntValue("PCOUNT", 0);
+	  int gcount = myHeader.getIntValue("GCOUNT", 1);
+	  int naxis  = myHeader.getIntValue("NAXIS", 0);
+	  myHeader.deleteKey("EXTEND");
+	  HeaderCard card;
+	  HeaderCard pcard = myHeader.findCard("PCOUNT");
+	  HeaderCard gcard = myHeader.findCard("GCOUNT");
+	  
+	  myHeader.getCard(2+naxis);
+	  if (pcard == null) {
+	      myHeader.addValue("PCOUNT", pcount, "Required value");
+	  }
+	  if (gcard == null) {
+	      myHeader.addValue("GCOUNT", gcount, "Required value");	  
+	  }
+	  iter = myHeader.iterator();
+      }
+	  
   }
     
     /** Add information to the header */

@@ -2,6 +2,7 @@ package nom.tam.fits;
 
 import java.io.IOException;
 import nom.tam.util.*;
+import java.util.Iterator;
 
 
 /*
@@ -94,6 +95,7 @@ public class AsciiTableHDU extends TableHDU {
     public static Header manufactureHeader(Data d) throws FitsException {
 	Header hdr = new Header();
 	d.fillHeader(hdr);
+	Iterator iter = hdr.iterator();
 	return hdr;
     }
     

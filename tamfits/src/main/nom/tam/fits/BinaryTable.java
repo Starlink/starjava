@@ -406,7 +406,7 @@ public class BinaryTable extends Data implements TableData {
 	if (dimens[col].length > 0 && ((flags[col]&COL_VARYING) == 0)) {
 	    StringBuffer tdim = new StringBuffer();
 	    char comma = '(';
-	    for (int i=0; i<dimens[col].length; i += 1) {
+	    for (int i=dimens[col].length-1; i >= 0; i -= 1) {
 		tdim.append(comma);
 		tdim.append(dimens[col][i]);
 		comma = ',';
