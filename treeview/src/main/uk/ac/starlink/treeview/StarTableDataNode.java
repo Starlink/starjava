@@ -29,6 +29,7 @@ import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
 import uk.ac.starlink.topcat.TableViewer;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
 
 /**
@@ -201,21 +202,27 @@ public class StarTableDataNode extends DefaultDataNode
                 return name == null ? "Table" : name;
             }
             public InputStream getRawInputStream() throws IOException {
-                PipedOutputStream ostrm = new PipedOutputStream();
+                final PipedOutputStream ostrm = new PipedOutputStream();
                 PipedInputStream istrm = new PipedInputStream( ostrm );
-                final PrintStream pstrm = new PrintStream( ostrm );
                 new Thread() {
                     public void run() {
                         try {
-                            new VOTableWriter().writeStarTable( startable, 
-                                                                pstrm );
+                            VOTableWriter vosquirt = new VOTableWriter();
+                            vosquirt.setDataFormat( DataFormat.BINARY );
+                            vosquirt.setInline( true );
+                            vosquirt.writeStarTable( startable, ostrm, null );
                         }
                         catch ( IOException e ) {
                             // May well catch an IOException if the reader
                             // stops reading
                         }
                         finally {
-                            pstrm.close();
+                            try {
+                                ostrm.close();
+                            }
+                            catch ( IOException e ) {
+                                // no action
+                            }
                         }
                     }
                 }.start();
