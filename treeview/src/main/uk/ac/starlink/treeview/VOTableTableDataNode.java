@@ -15,7 +15,6 @@ import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.votable.Field;
 import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.votable.Table;
-import uk.ac.starlink.votable.VOTableFormatException;
 import uk.ac.starlink.util.DOMUtils;
 
 public class VOTableTableDataNode extends VOComponentDataNode 
@@ -29,9 +28,6 @@ public class VOTableTableDataNode extends VOComponentDataNode
         super( xsrc, "TABLE" );
         try {
             votable = new Table( xsrc );
-        }
-        catch ( VOTableFormatException e ) {
-            throw new NoSuchDataException( e );
         }
         catch ( TransformerException e ) {
             throw new NoSuchDataException( e );
