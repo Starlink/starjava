@@ -75,6 +75,9 @@
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
+  <!-- Directory containing native libraries. -->
+  <property name="star.lib.arch" value="${star.dir}/lib/${os.arch}"/>
+
   <!--
    !  ================
    !  Local Properties
@@ -811,6 +814,7 @@
       <classpath refid="tests-classpath"/>
 
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
+      <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
@@ -838,6 +842,7 @@
           filtertrace="${junit.filtertrace}">
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <classpath refid="tests-classpath"/>

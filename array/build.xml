@@ -843,7 +843,6 @@
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
 
-      <sysproperty key="java.library.path" value="${dist.lib}"/>
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
@@ -870,7 +869,6 @@
           haltonfailure="yes"
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
-      <sysproperty key="java.library.path" value="${dist.lib}"/>
       <sysproperty key="java.io.tmpfile" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"

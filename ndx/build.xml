@@ -71,6 +71,9 @@
    !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
 
+  <!-- Directory containing native libraries. -->
+  <property name="star.lib.arch" value="${star.dir}/lib/${os.arch}"/>
+
   <!-- URL and package-list for linking against full Java docs -->
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
@@ -845,6 +848,7 @@
 
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
 
@@ -871,6 +875,7 @@
           filtertrace="${junit.filtertrace}">
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <classpath refid="tests-classpath"/>
