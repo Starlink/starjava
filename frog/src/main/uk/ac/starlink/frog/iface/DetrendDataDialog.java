@@ -508,6 +508,15 @@ public class DetrendDataDialog extends JInternalFrame
            e.printStackTrace();
            return;
          }
+         
+         // grab the origin
+         if( currentSeries.getOrigin().equals( "a File" ) ) {
+              String key = seriesManager.getKey( inital );
+              newSeries.setOrigin( key );
+              debugManager.print("            setOrigin( " + key + ")");
+         } else {
+              newSeries.setOrigin( currentSeries.getOrigin() );
+         }
                            
          // Load the new series into a PlotControlFrame
          debugManager.print( "            Calling threadLoadNewSeries()..." );
@@ -533,6 +542,9 @@ public class DetrendDataDialog extends JInternalFrame
                             debugManager.print(
                                        "                Spawned thread...");
                             addDetrendedSeries();
+                            if ( seriesManager.getAuto() ) {  
+                               displayMetaData();
+                            }   
                         }
                         catch (Exception error) {
                             error.printStackTrace();
@@ -612,6 +624,30 @@ public class DetrendDataDialog extends JInternalFrame
           frame.getPlot().setStatusTextTwo( "" ); 
    
     }
+
+   
+   /**
+     * Display the meta-data popup abotu the series
+     */ 
+    protected void displayMetaData( ) 
+    {    
+        debugManager.print( "           void displayMetaData( )" );
+        
+        int seriesID = seriesManager.getCurrentID();
+        String frameKey = "Time Series " + seriesID;
+        debugManager.print("             Time Series " + seriesID );
+    
+        PlotControlFrame currFrame = seriesManager.getFrame( frameKey );   
+         
+        // display some meta data
+        MetaDataPopup meta = new MetaDataPopup( currFrame );
+        Frog frame = debugManager.getFrog();
+        JDesktopPane desktop = frame.getDesktop();
+        desktop.add(meta);
+        meta.show();          
+        debugManager.print("             Displaying popup..." );
+    }
+    
     
     /**
      * Set the main cursor to indicate waiting for some action to

@@ -21,11 +21,15 @@ import uk.ac.starlink.table.ColumnStarTable;
 
 import uk.ac.starlink.topcat.TableViewer;
 
+import uk.ac.starlink.frog.Frog;
 import uk.ac.starlink.frog.data.TimeSeries;
 import uk.ac.starlink.frog.data.TimeSeriesComp;
 import uk.ac.starlink.frog.data.TimeSeriesManager;
 import uk.ac.starlink.frog.data.TimeSeriesFactory;
 import uk.ac.starlink.frog.data.GramManager;
+import uk.ac.starlink.frog.data.SinFit;
+import uk.ac.starlink.frog.data.MEMTimeSeriesImpl;
+import uk.ac.starlink.frog.iface.MetaDataPopup;
 import uk.ac.starlink.frog.iface.images.ImageHolder;
 import uk.ac.starlink.frog.iface.SimpleDataLimitMenu;
 import uk.ac.starlink.frog.iface.FoldSeriesDialog;
@@ -37,6 +41,7 @@ import uk.ac.starlink.frog.util.FrogException;
 import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.JPEGUtility;
+import uk.ac.starlink.frog.fit.LeastSquaresFitSin;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
@@ -81,7 +86,15 @@ public class PlotControlFrame extends JInternalFrame
      *  Save file chooser.
      */
     protected JFileChooser fileChooser = null;
-
+    
+    /**
+     * Menu item which allows the user to fit the rawe data. This item
+     * is located ni the fitMeny sub-menu of the opsMenu (Operations Menu).
+     * We define this as class wide so we can toggle it on and off when we 
+     * have already fitted the data.
+     */
+    JMenuItem rawSeriesItem; 
+    
     /**
      * Timer for used for event queue actions.
      */
@@ -429,9 +442,6 @@ public class PlotControlFrame extends JInternalFrame
         }
     }
  
- 
- 
- 
     /**
      *  Configure the Display menu.
      */
@@ -615,41 +625,106 @@ public class PlotControlFrame extends JInternalFrame
            }
         }); 
         opsMenu.add(periodItem);      
-    
-       // Fold series
-       JMenuItem foldSeriesItem = new JMenuItem("Fold Series");
-       foldSeriesItem.addActionListener( new ActionListener() {
-           public void actionPerformed(ActionEvent e) { 
 
-               debugManager.print( "Creating Fold Series Dialog...");
-               doFold( false, false );     
-           }
+        // fit series
+        rawSeriesItem = new JMenuItem("Fit Data");
+        rawSeriesItem.addActionListener( new ActionListener() {
+            public void actionPerformed(ActionEvent e) { 
+                debugManager.print( "Fitting time series...");
+                doFit( );     
+            }
         }); 
-        opsMenu.add(foldSeriesItem);         
-        
-       // Fold and binseries
-       JMenuItem binSeriesItem = new JMenuItem("Fold & Bin Series");
-       binSeriesItem.addActionListener( new ActionListener() {
-           public void actionPerformed(ActionEvent e) { 
+        opsMenu.add(rawSeriesItem);
 
-               debugManager.print( "Creating Fold Series Dialog...");
-               doFold( true, false );     
-           }
-        }); 
-        opsMenu.add(binSeriesItem);        
+        // Folding menu
+        final JMenu foldMenu = new JMenu( "Fold Data" );
+        foldMenu.addMenuListener( new MenuListener() {
+           public void menuSelected(MenuEvent e) {   
+           
+              // Fold series
+              JMenuItem foldSeriesItem = new JMenuItem("Fold Only");
+              foldSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doFold( false, false );     
+                  }
+              }); 
+              foldMenu.add(foldSeriesItem);         
         
-       // Fold and fit series
-       JMenuItem fitSeriesItem = new JMenuItem("Fold & Fit Series");
-       fitSeriesItem.addActionListener( new ActionListener() {
-           public void actionPerformed(ActionEvent e) { 
+              // Fold and binseries
+              JMenuItem binSeriesItem = new JMenuItem("Fold and Bin Data");
+              binSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doFold( true, false );     
+                  }
+              }); 
+              foldMenu.add(binSeriesItem);        
+                   
+           }
+             
+           public void menuDeselected(MenuEvent e) {
+              foldMenu.removeAll();
+           }
+           
+           public void menuCanceled(MenuEvent e) { 
+              foldMenu.removeAll();
+           }      
+        
+        });
+        opsMenu.add(foldMenu);
 
-               debugManager.print( "Creating Fold Series Dialog...");
-               doFold( true, true );     
-           }
-        }); 
-        opsMenu.add(fitSeriesItem);          
+/*        
+        // fitting menu
+        final JMenu fitMenu = new JMenu( "Fit Data" );
+        fitMenu.addMenuListener( new MenuListener() {
+           public void menuSelected(MenuEvent e) {   
+ 
+              // fit series
+              rawSeriesItem = new JMenuItem("Fit Data");
+              rawSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Fitting time series...");
+                      doFit( );     
+                  }
+              }); 
+              fitMenu.add(rawSeriesItem);
+                                 
+              // Fold and fit series
+              JMenuItem fitSeriesItem = new JMenuItem("Fit Folded Data");
+              fitSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doFold( false, true );     
+                  }
+              }); 
+              fitMenu.add(fitSeriesItem); 
         
-          
+              // Fold and fit binned series
+              JMenuItem fbSeriesItem = 
+                  new JMenuItem("Fit Folded and Binned Data");
+              fbSeriesItem.addActionListener( new ActionListener() {
+                  public void actionPerformed(ActionEvent e) { 
+                      debugManager.print( "Creating Fold Series Dialog...");
+                      doFold( true, true );     
+                  }
+              }); 
+              fitMenu.add(fbSeriesItem);               
+        
+           }
+             
+           public void menuDeselected(MenuEvent e) {
+              fitMenu.removeAll();
+           }
+           
+           public void menuCanceled(MenuEvent e) { 
+              fitMenu.removeAll();
+           }      
+        
+        });
+        opsMenu.add(fitMenu);        
+*/
+   
     }
 
     /**
@@ -767,8 +842,134 @@ public class PlotControlFrame extends JInternalFrame
         seriesManager.getFrog().getDesktop().add(fold);
         fold.show();
         
+     }
+     
+    /**
+     * Fit a time series
+     *
+     * @also FoldSeriesDialog
+     */
+     protected void doFit( ) 
+     {
+        debugManager.print("         doFit()" );
+
+        // create arrays to hold the data
+        double[] fitX;
+        double[] fitY;   
+          
+        // create arrays to hold the fit
+        double[] xData = null;
+        double[] yData = null;            
+        double[] errors = null;            
+            
+        // grab the current TimeSeries
+        TimeSeries currentSeries = timeSeriesComp.getSeries();
         
-     }  
+        // grab data
+        double xRef[] = currentSeries.getXData();
+        double yRef[] = currentSeries.getYData();
+        
+        // grab the error if the exist
+        double errRef[] = null;
+        if( currentSeries.haveYDataErrors() ) {
+           errRef = currentSeries.getYDataErrors();
+        }   
+        
+        // copy the arrays, this sucks as it double the memory requirement
+        // or the application at a stroke, but we currently have only
+        // references to the data held in the currentSeries object.
+        xData = (double[]) xRef.clone();
+        yData = (double[]) yRef.clone();
+
+        if( currentSeries.haveYDataErrors() ) {
+           errors = (double[]) errRef.clone();
+        } else { 
+           for ( int i = 0; i < xData.length; i++ ) {
+              errors[i] = 1.0;
+           }
+        }
+        
+        // create a fitting object
+        LeastSquaresFitSin sinFit = null;
+        if( currentSeries.haveYDataErrors() ) {
+           sinFit = new LeastSquaresFitSin( xData, yData, errors, 1.0 );
+        }
+                                    
+        fitX = new double[ xData.length ];
+        fitY = new double[ yData.length ];   
+                  
+        debugManager.print("            Fitted " + sinFit.getEquation());
+        for ( int i = 0; i < xData.length; i++ ) {
+            
+           // fill arrays
+           fitX[i] = xData[i];
+           fitY[i] = sinFit.getValue( fitX[i] );
+            
+           debugManager.print( "            Yd = " + 
+                     fitX[i] + " Yf = " + sinFit.getValue( fitX[i] ) );
+        }                                   
+         
+        // Build a TimeSeries object for the fit
+        MEMTimeSeriesImpl fitImpl = null;
+        
+        fitImpl = new MEMTimeSeriesImpl( 
+              "sin() + cos() fit to " + currentSeries.getShortName() );
+             
+             
+        // create the Impl
+        fitImpl.setData( fitY, fitX );
+         
+        // build a real TimeSeries object 
+        TimeSeries fittedSeries = null;
+        try {
+           fittedSeries = new TimeSeries( fitImpl );  
+           fittedSeries.setType( TimeSeries.SINCOSFIT );
+           debugManager.print("            setType( TimeSeries.SINCOSFIT)");
+        } catch ( FrogException e ) {
+           debugManager.print(
+                  "          FrogException creating TimeSeries...");
+           e.printStackTrace();
+           return;
+        }
+        
+        // set the plotstyle to polyline and colour to blue
+        fittedSeries.setPlotStyle( TimeSeries.POLYLINE );
+        fittedSeries.setLineColour( Color.blue.getRGB() );
+        fittedSeries.setLineThickness( 1.5 );
+        fittedSeries.setLineStyle( 1.0 );  
+          
+        // toggle the detrended flag if the previous series had been
+        if ( currentSeries.getDetrend() ) {
+              fittedSeries.setDetrend( true );
+        } 
+        
+        // grab the origin
+        String key = seriesManager.getKey( timeSeriesComp );
+        fittedSeries.setOrigin( key );
+        debugManager.print("            setOrigin( " + key + ")");
+
+        // associate a SinFit object
+        SinFit fit = sinFit.getFit();
+        fittedSeries.setSinFit( fit );
+        
+        // add the fit to the current frame 
+        timeSeriesComp.add( fittedSeries );
+        plot.updatePlot();
+        debugManager.print("           Fitted: " + fit.toString() );      
+        rawSeriesItem.setEnabled(false);
+               
+        if ( seriesManager.getAuto()) {
+           // display some meta data
+           MetaDataPopup meta = new MetaDataPopup( this );
+           Frog frame = debugManager.getFrog();
+           JDesktopPane desktop = frame.getDesktop();
+           desktop.add(meta);
+           meta.show();          
+           debugManager.print("             Displaying popup..." );        
+        }
+        
+     }     
+       
 
    /**
      * Spawn a GramCreationDialog popup

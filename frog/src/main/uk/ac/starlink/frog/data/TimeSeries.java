@@ -240,6 +240,13 @@ public class TimeSeries
     */
     protected SinFit sinFit = null;
 
+   /** 
+    * The name of the TimeSeries this TimeSeries was derived from, or 
+    * "File" if none. The TimeSeries can then be found from an instance 
+    * of the TimeSeriesManager using this as a key
+    */
+    protected String origin = "a File";
+    
     /**
      * References to all known views (Plots) of this series. Obviously this
      * information must be lost when restoring the object from a stream.
@@ -960,6 +967,28 @@ public class TimeSeries
 
 
     /**
+     * Get the origin of the series data.
+     *
+     * @return origin the associated original TimeSeries (or "File")
+     */
+    public String getOrigin()
+    {
+        return origin;
+    }
+
+
+    /**
+     * Set the origin of the series data.
+     *
+     * @param origin the associated original TimeSeries (or "from File")
+     */
+    public void setOrigin( String s )
+    {
+        this.origin = s;
+    }
+
+
+    /**
      * Get the type of the series data.
      *
      * @return type either UNCLASSIFIED, TIMESERIES, FOLDED, BINFOLDED,
@@ -969,7 +998,6 @@ public class TimeSeries
     {
         return type;
     }
-
 
     /**
      * Set whether the series should have its errors drawn as error bars, or

@@ -726,18 +726,26 @@ public class FoldSeriesDialog extends JInternalFrame
            if ( currentSeries.getDetrend() ) {
               foldedSeries.setDetrend( true );
            }
+           
+           // grab the origin
+           if( currentSeries.getOrigin().equals( "a File" ) ) {
+              String key = seriesManager.getKey( inital );
+              foldedSeries.setOrigin( key );
+              debugManager.print("            setOrigin( " + key + ")");
+           } else {
+              foldedSeries.setOrigin( currentSeries.getOrigin() );
+           }
               
            // setEphemeris()
            foldedSeries.setEphemeris( ephem );
-    
            
            // setType()
            if( binData ) {
                foldedSeries.setType( TimeSeries.BINFOLDED );
-               debugManager.print("            setType( TimeSeries.BINFOLDED");
+               debugManager.print("            setType( TimeSeries.BINFOLDED)");
            } else {
                foldedSeries.setType( TimeSeries.FOLDED );
-               debugManager.print("            setType( TimeSeries.FOLDED");
+               debugManager.print("            setType( TimeSeries.FOLDED)");
            }  
                       
          } catch ( FrogException e ) {
@@ -940,7 +948,10 @@ public class FoldSeriesDialog extends JInternalFrame
         // toggle the detrended flag if the previous series had been
         if ( foldedSeries.getDetrend() ) {
               fittedSeries.setDetrend( true );
-        } 
+        }
+        
+        // grab the origin of the folded series
+        fittedSeries.setOrigin( foldedSeries.getOrigin() ); 
                 
         // associate a SinFit object
         SinFit fit = sinFit.getFit();

@@ -155,22 +155,27 @@ public class MetaDataPopup extends JInternalFrame
               
        // Add information to textArea
        // ---------------------------
-       String doc = "<html><body>";
+       String ephDoc = "";
+       String fitDoc = "";
+       String doc = "<html>\n<body>\n";
        
        doc = doc + "<h2><u>Time Series</u></h2>\n";
-          
        doc = doc + "<ul>\n";
-       
+    
+       // origin
+       doc = doc + "<li>The dataset was originally derived from <strong>" +
+              popupSeries.getOrigin() + "</strong>\n"; 
+             
        // data errors
        if ( popupSeries.haveYDataErrors() ) {
-          doc = doc + "<li>The data has errors";
+          doc = doc + "<li>The dataset has errors";
           if ( popupSeries.isDrawErrorBars() ) {
              doc = doc + " (drawn)\n";
           } else {
              doc = doc + " (hidden)\n";
           } 
        } else {
-          doc = doc + "<li>The data has no errors";
+          doc = doc + "<li>The dataset has no errors";
        }  
        
        // magnitudes
@@ -182,120 +187,99 @@ public class MetaDataPopup extends JInternalFrame
        
        // detrend
        if ( popupSeries.getDetrend() ) {
-          doc = doc + "<li>The data has been detrended\n";
+          doc = doc + "<li>The dataset has been detrended\n";
        }
        
        // By TYPE
-       // -------
+       // -------       
        if ( popupSeries.getType() ==  TimeSeries.UNCLASSIFIED ) {
-          doc = doc + "<li>The data type is unknown</ul>\n";
-  
+          doc = doc + "<li>The dataset is of an unknown type\n";
+          doc = doc + 
+           "<li><font color=red>Warning: Possible programming error?</font>\n";
+ 
        } else if ( popupSeries.getType() == TimeSeries.TIMESERIES ) { 
-          doc = doc + "<li>The data is a standard time series</ul>\n";
+          doc = doc + "<li>The dataset is a standard time series\n";
 
 
 
        } else if ( popupSeries.getType() == TimeSeries.FOLDED || 
                    popupSeries.getType() == TimeSeries.BINFOLDED) {     
-          doc = doc + "<li>The data has been folded\n";
+          doc = doc + "<li>The dataset has been folded\n";
           if ( popupSeries.getType() == TimeSeries.BINFOLDED) {
-             doc = doc + "<li>The data has been binned\n";
+             doc = doc + "<li>The dataset has been binned\n";
           }
 
           
          debugManager.print("             Appending folding info..." );
          Ephemeris ephem = popupSeries.getEphemeris();
          
-         String doc2 = "<h2><u>Ephemeris</u></h2>\n"; 
-         doc2 = doc2 + "Time = " + ephem.getZeroPoint() +  " + " + 
-                           ephem.getPeriod() + " &times; E\n";
+         ephDoc = "<h2><u>Ephemeris</u></h2>\n"; 
+         ephDoc = ephDoc + "Time = " + 
+                        ephem.getZeroPoint() +  " + " + 
+                        ephem.getPeriod() + " &times; E\n";
           
-          for( int k = 0; k <= (popupComp.count()-1); k++ ) {
-             debugManager.print("             Looking for fits..." );          
-          
-             TimeSeries thisSeries = popupComp.get(k);
-             debugManager.print( "               Series " + k +
-                                 " is of type " + thisSeries.getType() ); 
-          
-             if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
-                SinFit sinFit = thisSeries.getSinFit(); 
-                doc = doc + 
-                  "<li>The series has been fitted with a sin(&nbsp;)" +
-                  " + cos(&nbsp;) function\n";
-                
-                doc2 = doc2 + "<h2><u>Fit sin(&nbsp;) + cos(&nbsp;)</u></h2>\n";
-                doc2 = doc2 + "Fitting to:<br>\n";
-                doc2 = doc2 + "<em><center>" +
-                  "Y = A + B*sin(2pi/period*X) + C*cos(2pi/period*X)<br>" +
-                  "</center></em>\n";
-                                
-                doc2 = doc2 + "Results are:<br>\n";
-                               
-                doc2 = doc2 + "<center><table border=1>\n";
-                doc2 = doc2 + "<tr><th>Parameter</th> <th>Value</th></tr>\n";
-                doc2 = doc2 + 
-                   "<tr><td>A</td><td>" + sinFit.getA() + "</td></tr>\n";
-                doc2 = doc2 + 
-                   "<tr><td>B</td><td>" + sinFit.getB() + "</td></tr>\n";
-                doc2 = doc2 + 
-                   "<tr><td>C</td><td>" + sinFit.getC() + "</td></tr>\n";
-                doc2 = doc2 + "</table></center>\n";
-            }
-          }
-          
-          doc = doc + "</ul>\n" + doc2;
 
        } else if ( popupSeries.getType() == TimeSeries.DETRENDED ) { 
 
+         // do nothing?
 
        } else if ( popupSeries.getType() == TimeSeries.FAKEDATA  ) { 
-          doc = doc + "<li>The data is artificially generated (fake)</ul>\n";
-
-
+          doc = doc + "<li>The dataset is artificially generated (fake)</ul>\n";
 
        }
        
+       // Look for a sin() + cos() fit to the data
+       for( int k = 0; k <= (popupComp.count()-1); k++ ) {
+           debugManager.print("             Looking for fits..." );          
+          
+           TimeSeries thisSeries = popupComp.get(k);
+           debugManager.print( "               Series " + k +
+                               " is of type " + thisSeries.getType() ); 
+          
+           if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
+              SinFit sinFit = thisSeries.getSinFit(); 
+              doc = doc + 
+                "<li>The series has been fitted with a sin(&nbsp;)" +
+                " + cos(&nbsp;) function\n";
+              
+              fitDoc = fitDoc + 
+                "<h2><u>Fit sin(&nbsp;) + cos(&nbsp;)</u></h2>\n";
+              fitDoc = fitDoc + "Fitting to:<br>\n";
+              fitDoc = fitDoc + "<em><center>" +
+                "<font color=red>Y</font> = <font color=blue>A</font>" +
+                " + <font color=blue>B</font>*" +
+                "sin(2pi/period*<font color=red>X</font>) + " +
+                "<font color=blue>C</font>*cos(2pi/period*" +
+                "<font color=red>X</font>)<br>" +
+                "</center></em>\n";
+                              
+              fitDoc = fitDoc + "Results are:<br>\n";
+                             
+              fitDoc = fitDoc + "<center><table border=1>\n";
+              fitDoc = fitDoc + 
+                 "<tr><th>Parameter</th> <th>Value</th></tr>\n";
+              fitDoc = fitDoc + 
+                 "<tr><td align=center><font color=blue>A</font></td>" +
+                 "<td align=center>" + sinFit.getA() + "</td></tr>\n";
+              fitDoc = fitDoc + 
+                 "<tr><td align=center><font color=blue>B</font></td>" +
+                 "<td align=center>" + sinFit.getB() + "</td></tr>\n";
+              fitDoc = fitDoc + 
+                 "<tr><td align=center><font color=blue>C</font></td>" +
+                 "<td align=center>" + sinFit.getC() + "</td></tr>\n";
+              fitDoc = fitDoc + "</table></center>\n";
+           }
+       }       
+       
+       
        // drop document into textArea
-       doc = doc + "</body></html>";
+       doc = doc + "</ul>\n";
+       doc = doc + ephDoc;
+       doc = doc + fitDoc;
+       doc = doc + "</body>\n</html>\n";
        debugManager.print("             Passing HTML Document to textPane...");
        debugManager.print("\n" + doc + "\n");
        textPane.setText( doc );
-
-/*          
-       // General Information    
-     
-       // Frame Name
-       // Time Series  seriesManager.getKey(popupFrame)
- 
-       // Series Name        
-       // Name popupSeries.getFullName()          
-       debugManager.print("             Appending name..." );
-       textArea.append( popupSeries.getFullName() + "\n" );
-          
-       // Folded Information
-       //
-       //   popupSeries.getType() == TimeSeries.FOLDED ||
-       //   popupSeries.getType() == TimeSeries.BINFOLDED 
-       
-       // Ephemeris ephem = popupSeries.getEphemeris();
-       
-       if ( popupSeries.getType() == TimeSeries.FOLDED ||
-            popupSeries.getType() == TimeSeries.BINFOLDED  ) {
-            
-
-       }
-        
-       // Fitting information
-       //
-       //   thisSeries.getType() == TimeSeries.SINCOSFIT
-       
-       // SinFit sinFit = thisSeries.getSinFit();
-       debugManager.print( "             TimeSeriesComp object has " + 
-                           popupComp.count() + " TimeSeries objects" ); 
-       
-*/
-       
-      
         
        // Pack now avoiding problems with the scrollbar?
        pack();
