@@ -8,6 +8,8 @@
 package uk.ac.starlink.splat.data;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.event.EventListenerList;
@@ -29,14 +31,21 @@ import uk.ac.starlink.splat.util.SplatException;
  * several others.
  * <p>
  * This feature is intended, for instance, to allow the display multiple
- * spectra in a single plot and should be used when referencing spectral data.
+ * spectra in a single DivaPlot and should be used when referencing spectral
+ * data.
  * <p>
  * One of the spectra (initially the first) has special status and is known as
  * the current spectrum. This defines the coordinate system that all other
  * spectra should honour. It also is used in constructs such as the compound
  * name.
  * <p>
- * Alignment of coordinates uses astConvert.
+ * There are sophisticated mechanisms in place for aligning the spectral
+ * coordinates and data units of the spectra. By default it is assumed that
+ * all spectra have the same units, but otherwise they can be transformed
+ * into the coordinates and data units of the current spectrum before being
+ * plotted (this uses the AST spectral coordinates frame SpecFrame and the
+ * flux matching FluxFrame, if no FluxFrame is available matching may still be
+ * possible using AST active units for dimensionally similar data units).
  * <p>
  * This class implements the {@link ComboBoxModel} interface so that it can be
  * used in JComboBoxes (and JLists) that want to display its state.
@@ -52,12 +61,6 @@ public class SpecDataComp
      * allow the import of groups of SpecData objects from complete
      * composite plots, but I'm keeping this simple for now and only
      * allowing the import of single spectra at a time.
-     *
-     * The alignment stuff is quite expensive, slow and takes a lot of
-     * memory, especially for large numbers of spectra, so it is
-     * switchable at present. Could look into why and maybe form a
-     * caching system of somekind (or get SpecData's to take an extra
-     * mapping).
      */
 
     /**
@@ -80,9 +83,11 @@ public class SpecDataComp
 
     /**
      * Whether we're matching data units between spectra. This requires
-     * that coordinateMatching is also true.
+     * that coordinateMatching is also true. Note that this value is only used
+     * when the spectra do not have FluxFrames describing their data
+     * coordinates.
      */
-    private boolean dataUnitsMatching = true; // false;
+    private boolean dataUnitsMatching = false;
 
     /**
      * Whether we are to include spacing for error bars in the automatic
@@ -91,11 +96,24 @@ public class SpecDataComp
     private boolean errorbarAutoRanging = false;
 
     /**
-     *  List of references to the spectra. Note that indexing this
-     *  list isn't fixed, i.e. removing SpecData objects reshuffles
-     *  the indices.
+     * List of references to the spectra. Note that indexing this
+     * list isn't fixed, i.e. removing SpecData objects reshuffles
+     * the indices.
      */
     protected ArrayList spectra = new ArrayList();
+
+    /**
+     * List of references to the FrameSets that define the mappings between
+     * the various spectral and data coordinate systems of the spectra. The
+     * indices of these are the SpecData objects.
+     */
+    protected Map mappings = new HashMap();
+
+    /**
+     * Whether to re-generate all the mappings for converting to the
+     * coordinates of the current spectrum.
+     */
+    private boolean regenerateMappings = true;
 
     /**
      *  Create a SpecDataComp instance.
@@ -110,7 +128,13 @@ public class SpecDataComp
      */
     public SpecDataComp( SpecData inspec )
     {
-        add( inspec );
+        try {
+            add( inspec );
+        }
+        catch (SplatException e) {
+            //  Will never occur. First spectrum is not mapped.
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -128,9 +152,16 @@ public class SpecDataComp
      * can be converted to preserve units, systems, etc. Switching
      * this on can be slow.
      */
-    public void setCoordinateMatching( boolean on )
+    public void setCoordinateMatching( boolean coordinateMatching )
     {
-        coordinateMatching = on;
+        //  If coordinate matching state is changed we may need to generate
+        //  the mappings between the current spectrum and all the others.
+        if ( coordinateMatching != this.coordinateMatching ) {
+            if ( coordinateMatching ) {
+                regenerateMappings = true;
+            }
+        }
+        this.coordinateMatching = coordinateMatching;
     }
 
     /**
@@ -144,7 +175,7 @@ public class SpecDataComp
     /**
      * Set whether we're being careful about matching data units between
      * spectra. If so then AST will check if any Frames can be converted to
-     * preserve units. If the frame is a FluxFrame, which may be part of a 
+     * preserve units. If the frame is a FluxFrame, which may be part of a
      * SpecFluxFrame then units matching will be on by default and this value
      * will have no effect (matching will occur whenever coordinate matching
      * is switched on and works).
@@ -190,8 +221,15 @@ public class SpecDataComp
             lastCurrentSpec = currentSpec;
             currentSpec = spectrum;
             if ( ! spectra.contains( spectrum ) ) {
-                add( spectrum );
+                try {
+                    add( spectrum );
+                }
+                catch (SplatException e) {
+                    //  Should never fail as current spectrum is not mapped.
+                    e.printStackTrace();
+                }
             }
+            regenerateMappings  = true;
         }
     }
 
@@ -220,6 +258,26 @@ public class SpecDataComp
         return lastCurrentSpec;
     }
 
+
+    /**
+     * When a spectrum is removed, call this to make sure that it isn't the
+     * current spectrum. If it is the current spectrum resets to the top of
+     * the list or null if the list is empty.
+     */
+    protected void checkCurrentSpectrumRemoved( SpecData inspec )
+    {
+        if ( inspec.equals( currentSpec ) ) {
+            lastCurrentSpec = currentSpec;
+            if ( spectra.size() > 0 ) {
+                currentSpec = (SpecData) spectra.get( 0 );
+            }
+            else {
+                currentSpec = null;
+            }
+            regenerateMappings = true;
+        }
+    }
+
     /**
      *  Add a spectrum to the managed list.
      *
@@ -227,13 +285,57 @@ public class SpecDataComp
      *                added to the composite
      */
     public void add( SpecData inspec )
+        throws SplatException
     {
         if ( currentSpec == null ) {
             // First spectrum is current.
             currentSpec = inspec;
+            regenerateMappings = true;
         }
         spectra.add( inspec );
+        if ( ! regenerateMappings ) {
+            generateMapping( inspec );
+        }
         fireListDataAdded( spectra.indexOf( inspec ) );
+    }
+
+    /**
+     *  Add a list of spectra to the managed list.
+     *
+     *  @param inspec reference to the SpecData objects that are to be
+     *                added to the composite
+     */
+    public void add( SpecData inspec[] )
+        throws SplatException
+    {
+        if ( currentSpec == null ) {
+            // First spectrum is current.
+            currentSpec = inspec[0];
+            regenerateMappings = true;
+        }
+        int lower = 0;
+        int higher = 0;
+        int index = 0;
+        int failed = 0;
+        for ( int i = 0; i < inspec.length; i++ ) {
+            spectra.add( inspec[i] );
+            index = spectra.indexOf( inspec[i] );
+            lower = ( lower < index ) ? lower : index;
+            higher = ( higher > index ) ? higher : index;
+            if ( ! regenerateMappings ) {
+                try {
+                    generateMapping( inspec[i] );
+                }
+                catch (SplatException e) {
+                    failed++;
+                }
+            }
+        }
+        fireListDataAdded( lower, higher );
+        if ( failed != 0 ) {
+            throw new SplatException( "Failed to align the coordinate " +
+                                      "systems of " + failed + " spectra" );
+        }
     }
 
     /**
@@ -245,20 +347,45 @@ public class SpecDataComp
     {
 	int index = spectra.indexOf( inspec );
         spectra.remove( inspec );
-        if ( inspec.equals( currentSpec ) ) {
-            // Removing the current spectrum. This becomes the first in list
-            // or null.
-            lastCurrentSpec = currentSpec;
-            if ( spectra.size() > 0 ) {
-                currentSpec = (SpecData) spectra.get( 0 );
-            }
-            else {
-                currentSpec = null;
-            }
-        }
+        mappings.remove( inspec );
+        checkCurrentSpectrumRemoved( inspec );
 	if ( index != -1 ) {
 	    fireListDataRemoved( index );
 	}
+    }
+
+    /**
+     *  Remove a list of spectra.
+     *
+     *  @param inspec references to the spectra to remove.
+     */
+    public void remove( SpecData inspec[] )
+    {
+        int indices[] = new int[inspec.length];
+
+        for ( int i = 0; i < inspec.length; i++ ) {
+            indices[i] = spectra.indexOf( inspec[i] );
+            spectra.remove( inspec[i] );
+            mappings.remove( inspec[i] );
+            checkCurrentSpectrumRemoved( inspec[i] );
+        }
+        int lower = 0;
+        int upper = 0;
+        for ( int i = 0; i < inspec.length; i++ ) {
+            if ( indices[i] != -1 ) {
+                lower = ( lower < indices[i] ) ? lower : indices[i];
+                upper = ( upper > indices[i] ) ? upper : indices[i];
+            }
+        }
+        if ( lower != -1 && upper != -1 ) {
+            fireListDataChanged( lower, upper );
+        }
+        else if ( lower != -1 && upper == -1 ) {
+	    fireListDataRemoved( lower );
+        }
+        else if ( lower == -1 && upper != -1 ) {
+	    fireListDataRemoved( upper );
+        }
     }
 
     /**
@@ -384,34 +511,23 @@ public class SpecDataComp
         }
         double[] range = (double[]) currentSpec.getRange().clone();
 
+        regenerateMappings();
+
         int count = spectra.size();
         SpecData spectrum = null;
-        int failed  = 0;
-        SplatException lastException = null;
         double[] newrange;
+        FrameSet mapping = null;
+
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
                 newrange = spectrum.getRange();
                 if ( coordinateMatching ) {
-                    //  Need to convert between these coordinates and those of
-                    //  the reference spectrum.
-                    try {
-                        newrange = transformRange( currentSpec, spectrum,
-                                                   newrange,
-                                                   dataUnitsMatching );
-                    }
-                    catch (SplatException e) {
-                        failed++;
-                        lastException = e;
-                    }
+                    mapping = (FrameSet) mappings.get( spectrum );
+                    newrange = transformRange( mapping, newrange );
                 }
                 checkRangeLimits( newrange, range );
             }
-        }
-        if ( lastException != null ) {
-            throw new SplatException( "Failed to align coordinate systems",
-                                      lastException );
         }
         return range;
     }
@@ -471,34 +587,23 @@ public class SpecDataComp
         }
         double[] range = (double[]) getSpectrumRange( currentSpec ).clone();
 
+        regenerateMappings();
+
         int count = spectra.size();
         SpecData spectrum = null;
-        int failed = 0;
-        SplatException lastException = null;
         double[] newrange;
+        FrameSet mapping = null;
+
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData) spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
                 newrange = getSpectrumRange( spectrum );
                 if ( coordinateMatching ) {
-                    //  Need to convert between these coordinates and those of
-                    //  the reference spectrum.
-                    try {
-                        newrange = transformRange( currentSpec, spectrum,
-                                                   newrange,
-                                                   dataUnitsMatching );
-                    }
-                    catch (SplatException e) {
-                        failed++;
-                        lastException = e;
-                    }
+                    mapping = (FrameSet) mappings.get( spectrum );
+                    newrange = transformRange( mapping, newrange );
                 }
                 checkRangeLimits( newrange, range );
             }
-        }
-        if ( lastException != null ) {
-            throw new SplatException( "Failed to align coordinate systems",
-                                      lastException );
         }
         return range;
     }
@@ -523,134 +628,81 @@ public class SpecDataComp
         }
         double[] range = (double[]) getSpectrumRange( currentSpec ).clone();
 
+        regenerateMappings();
+
         int count = spectra.size();
-        int used = 1;
         double newrange[];
         SpecData spectrum = null;
-        int failed = 0;
-        SplatException lastException = null;
+        FrameSet mapping;
+
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData)spectra.get( i );
             if ( ! spectrum.equals( currentSpec ) ) {
                 if ( spectrum.isUseInAutoRanging() ) {
                     newrange = getSpectrumRange( spectrum );
                     if ( coordinateMatching ) {
-                        //  Need to convert between these coordinates and
-                        //  those of the reference spectrum.
-                        try {
-                            newrange = transformRange( currentSpec, spectrum,
-                                                       newrange,
-                                                       dataUnitsMatching );
-                        }
-                        catch (SplatException e) {
-                            failed++;
-                            lastException = e;
-                        }
+                        mapping = (FrameSet) mappings.get( spectrum );
+                        newrange = transformRange( mapping, newrange );
                     }
                     checkRangeLimits( newrange, range );
-                    used++;
                 }
             }
-        }
-        if ( lastException != null ) {
-            throw new SplatException( "Failed to align coordinate systems",
-                                      lastException );
         }
         return range;
     }
 
     /**
-     * Transform range-like position-pairs between the plot coordinates
-     * of two spectra. The coordinate systems are aligned using astConvert
-     * if possible, if not a {@link SplatExceotion} is thrown.
+     * Transform a range of position from the coordinates of a given spectrum
+     * to those of the current spectrum. The spectrum must be a member of this
+     * object.
+     */
+    public double[] transformRange( SpecData referenceSpec, double[] range )
+    {
+        return transformRange( (FrameSet) mappings.get( referenceSpec ),
+                               range );
+    }
+
+
+    /**
+     * Transform range-like position-pairs using a given mapping.
      *
      * The input and output coordinates are [x1,x2,y1,y2,...].
      */
-    public double[] transformRange( SpecData target, SpecData source,
-                                    double[] range, boolean matchDataUnits )
-        throws SplatException
+    protected double[] transformRange( FrameSet mapping, double[] range )
     {
         if ( range == null ) return null;
 
         double[] result = range;
-        try {
-            //  Try to align the plotting FrameSets of the SpecData. Only need
-            //  to do this between DATAPLOT domains. If requested set the
-            //  active units for the whole frame to get the data units aligned
-            //  actively too (SpecFrames are always on, so we just need to get
-            //  the data axis working, if this isn't a FluxFrame, those are
-            //  also always on, so this could become redundant in time).
-            FrameSet to = target.getAst().getRef();
-            FrameSet fr = source.getAst().getRef();
-            if ( matchDataUnits ) {
-                to.setActiveUnit( true );
-            }
-            String stdofrest = null;
-            FrameSet aligned = fr.convert( to, "DATAPLOT" );
-            if ( matchDataUnits ) {
-                to.setActiveUnit( false );
-            }
-            if ( aligned == null ) {
-                if ( matchDataUnits ) {
-                    throw new SplatException( "Failed to align spectral " +
-                                              "coordinates or data units" );
-                }
-                throw new SplatException
-                    ( "Failed to align spectral coordinates" );
-            }
 
-            //  2D coords, so need separate X,Y coords.
-            double xin[] = new double[range.length/2];
-            double yin[] = new double[xin.length];
-            for ( int i = 0; i < xin.length; i++ ) {
-                xin[i] = range[i];
-                yin[i] = range[i+xin.length];
-            }
-            double[][] tmp = aligned.tran2( xin.length, xin, yin, true );
-
-            // Put back to vectorized array.
-            result = new double[range.length];
-            for ( int i = 0; i < xin.length; i++ ) {
-                result[i] = tmp[0][i];
-                result[i+xin.length] = tmp[1][i];
-            }
+        //  2D coords, so need separate X,Y coords.
+        double xin[] = new double[range.length/2];
+        double yin[] = new double[xin.length];
+        for ( int i = 0; i < xin.length; i++ ) {
+            xin[i] = range[i];
+            yin[i] = range[i+xin.length];
         }
-        catch (Exception e) {
-            // All Exceptions are recast to SplatExceptions.
-            throw new SplatException( e );
+        double[][] tmp = mapping.tran2( xin.length, xin, yin, false );
+
+        // Put back to vectorized array.
+        result = new double[range.length];
+        for ( int i = 0; i < xin.length; i++ ) {
+            result[i] = tmp[0][i];
+            result[i+xin.length] = tmp[1][i];
         }
         return result;
     }
 
     /**
-     * Transform position-pairs (usually limits) between the
-     * coordinates of a Plot to those of a spectrum. The coordinate
-     * systems are aligned using astConvert if possible, otherwise the
-     * input coordinates are returned.
+     * Transform position-pairs (usually limits) using a given mapping.
      *
      * The input and output coordinates are [x1,y1,x2,y2,...].
      */
-    public double[] transformLimits( Plot plot, SpecData target,
-                                     double[] limits, boolean matchDataUnits )
+    public double[] transformLimits( FrameSet mapping, double[] limits )
         throws SplatException
     {
         if ( limits == null ) return null;
 
         double[] result = limits;
-        Frame to = plot.getFrame( FrameSet.AST__CURRENT );
-        Frame fr =
-            target.getAst().getRef().getFrame( FrameSet.AST__CURRENT );
-        if ( matchDataUnits ) {
-            fr.setActiveUnit( true );
-        }
-        FrameSet aligned = to.convert( fr, "DATAPLOT" );
-        if ( matchDataUnits ) {
-            fr.setActiveUnit( false );
-        }
-        if ( aligned == null ) {
-            throw new SplatException( "Failed to align coordinates " +
-                                      "while transforming limits" );
-        }
 
         //  2D coords, so need separate X,Y coords.
         double xin[] = new double[limits.length/2];
@@ -659,7 +711,7 @@ public class SpecDataComp
             xin[i] = limits[j];
             yin[i] = limits[j+1];
         }
-        double[][] tmp = aligned.tran2( xin.length, xin, yin, true );
+        double[][] tmp = mapping.tran2( xin.length, xin, yin, true );
 
         // Put back to vectorized array.
         result = new double[limits.length];
@@ -682,16 +734,19 @@ public class SpecDataComp
         Plot localPlot = plot;
         double[] localLimits = limits;
         SpecData spectrum = null;
+        FrameSet mapping = null;
+
+        regenerateMappings();
+
         for ( int i = 0; i < spectra.size(); i++ ) {
             spectrum = (SpecData)spectra.get( i );
             if ( coordinateMatching ) {
                 if ( ! spectrum.equals( currentSpec ) ) {
                     //  The coordinates systems and, optionally, data units of
                     //  the spectra need to be matched.
-                    localPlot = alignPlots( plot, spectrum, 
-                                            dataUnitsMatching );
-                    localLimits = transformLimits( plot, spectrum, limits,
-                                                   dataUnitsMatching );
+                    mapping = (FrameSet) mappings.get( spectrum );
+                    localPlot = alignPlots( plot, mapping );
+                    localLimits = transformLimits( mapping, limits );
                 }
                 else {
                     localPlot = plot;
@@ -703,51 +758,87 @@ public class SpecDataComp
     }
 
     /**
-     * Modify a plot so that it uses a different set of current
-     * coordinates. The coordinate systems are aligned using astConvert if
-     * possible, otherwise the original plot is returned.
+     * When necessary re-generate the Mappings that match from the current
+     * spectrum to all the other spectra.
      */
-    public Plot alignPlots( Plot plot, SpecData source, 
-                            boolean matchDataUnits )
+    protected void regenerateMappings()
         throws SplatException
     {
+        if ( coordinateMatching && regenerateMappings && ( spectra.size() > 1 ) ) {
+            SpecData spectrum = null;
+            for ( int i = 0; i < spectra.size(); i++ ) {
+                spectrum = (SpecData)spectra.get( i );
+                generateMapping( spectrum );
+            }
+            regenerateMappings = false;
+        }
+    }
+
+    protected void generateMapping( SpecData spectrum )
+        throws SplatException
+    {
+        if ( coordinateMatching && ( ! spectrum.equals( currentSpec ) ) ) {
+
+            //  Get the current frames of the current spectrum and the target
+            //  one. Could probably use the FrameSets, but we need to check if
+            //  the current spectrum has a SpecFrame anyway.
+            Frame to = currentSpec.getAst().getRef()
+                           .getFrame( FrameSet.AST__CURRENT );
+            Frame from = spectrum.getAst().getRef()
+                            .getFrame( FrameSet.AST__CURRENT );
+
+            //  Determine if the current spectrum has a SpecFrame (could do
+            //  this once?). This will be the first axis for any DATAPLOT.
+            int iaxes[] = { 1 };
+            Frame picked = to.pickAxes( 1, iaxes, null );
+            boolean haveSpecFrame = ( picked instanceof SpecFrame );
+
+            // If spectrum is a LineID then we should attempt to transform it
+            // into the system of main spectrum (this aligns if a source
+            // velocity is set).
+            FrameSet mapping = null;
+            if ( spectrum instanceof LineIDSpecData && haveSpecFrame ) {
+
+                // Cannot match data units as line identifiers do not have
+                // these (unless the data axis is a FluxFrame, in which case
+                // this should still work).
+                String stdofrest = to.getC( "StdOfRest" );
+                to.set( "StdOfRest=Source" );
+                mapping = from.convert( to, "DATAPLOT" );
+                to.set( "StdOfRest=" + stdofrest );
+            }
+            else {
+                if ( dataUnitsMatching ) {
+                    from.setActiveUnit( true );
+                }
+                mapping = to.convert( from, "DATAPLOT" );
+                if ( dataUnitsMatching ) {
+                    from.setActiveUnit( false );
+                }
+            }
+            if ( mapping == null ) {
+                throw new SplatException( "Failed to align coordinates of " +
+                                          currentSpec.getShortName() +
+                                          " and " +
+                                          spectrum.getShortName() );
+            }
+
+            //  Associate mapping with the spectrum.
+            mappings.put( spectrum, mapping );
+        }
+    }
+
+
+    /**
+     * Modify a plot so that it uses a different set of current
+     * coordinates as current. The coordinate systems are aligned using the
+     * given mapping which should map from the coordinates of one spectrum to
+     * those of another.
+     */
+    public Plot alignPlots( Plot plot, FrameSet mapping )
+    {
         Plot result = (Plot) plot.copy();
-
-        //  Try to align the plot FrameSet and the SpecData. Only
-        //  need to do this between DATAPLOT domains.
-        Frame to = result.getFrame( FrameSet.AST__CURRENT );
-        Frame from = source.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
-
-        // If spectrum is a LineID then we should attempt to transform it into
-        // the system of main spectrum (this aligns if a source velocity is
-        // set).
-        int iaxes[] = { 1 };
-        Frame picked = to.pickAxes( 1, iaxes, null );
-        FrameSet aligned = null;
-        if (source instanceof LineIDSpecData && picked instanceof SpecFrame) {
-            // Cannot match data units as line identifiers do not have these
-            // (unless the data axis is a FluxFrame, in which case this should
-            // still work).
-            String stdofrest = to.getC( "StdOfRest" );
-            to.set( "StdOfRest=Source" );
-            aligned = from.convert( to, "DATAPLOT" );
-            to.set( "StdOfRest=" + stdofrest );
-        }
-        else {
-            if ( matchDataUnits ) {
-                from.setActiveUnit( true );
-            }
-            aligned = to.convert( from, "DATAPLOT" );
-            if ( matchDataUnits ) {
-                from.setActiveUnit( false );
-            }
-        }
-        if ( aligned == null ) {
-            throw new SplatException( "Failed to align coordinates" +
-                                      " while transforming between plots");
-        }
-
-        result.addFrame( FrameSet.AST__CURRENT, aligned, from );
+        result.addFrame( FrameSet.AST__CURRENT, mapping, mapping );
         return result;
     }
 
@@ -900,6 +991,14 @@ public class SpecDataComp
      */
     protected void fireListDataAdded( int index )
     {
+        fireListDataAdded( index, index );
+    }
+
+    /**
+     * Called when a list of spectra are added.
+     */
+    protected void fireListDataAdded( int index1, int index2 )
+    {
         Object[] listeners = listenerList.getListenerList();
         ListDataEvent e = null;
         for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
@@ -907,7 +1006,7 @@ public class SpecDataComp
                 if (e == null) {
                     e = new ListDataEvent( this,
                                            ListDataEvent.INTERVAL_ADDED,
-                                           index, index );
+                                           index1, index2 );
                 }
                 ((ListDataListener)listeners[i+1]).intervalAdded( e );
             }
@@ -929,6 +1028,26 @@ public class SpecDataComp
                                            index, index );
                 }
                 ((ListDataListener)listeners[i+1]).intervalRemoved( e );
+            }
+        }
+    }
+
+    /**
+     * Called when more than one spectrum is changed. This this case the
+     * indices bracket the change.
+     */
+    protected void fireListDataChanged( int index1, int index2 )
+    {
+        Object[] listeners = listenerList.getListenerList();
+        ListDataEvent e = null;
+        for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
+            if ( listeners[i] == ListDataListener.class ) {
+                if (e == null) {
+                    e = new ListDataEvent( this,
+                                           ListDataEvent.CONTENTS_CHANGED,
+                                           index1, index2 );
+                }
+                ((ListDataListener)listeners[i+1]).contentsChanged( e );
             }
         }
     }
