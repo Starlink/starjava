@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -23,6 +25,8 @@ public class LabelledComponentStack extends JPanel {
     private Font inputFont = new JTextField().getFont();
     private GridBagLayout layer = new GridBagLayout();
     private GridBagConstraints cons = new GridBagConstraints();
+    private List labels = new ArrayList();
+    private List fields = new ArrayList();
 
     /**
      * Constructs a new stack of input fields.
@@ -68,6 +72,10 @@ public class LabelledComponentStack extends JPanel {
         
         /* Bump line index. */
         cons.gridy++;
+
+        /* Record the components placed. */
+        labels.add( nameComp );
+        fields.add( comp );
     }
    
     /**
@@ -95,6 +103,27 @@ public class LabelledComponentStack extends JPanel {
      */
     public Font getInputFont() {
         return inputFont;
+    }
+
+    /**
+     * Returns an array of labels which have been added.  Each corresponds
+     * to the <tt>name</tt> argument of an <tt>addLine</tt> call.
+     *
+     * @return  an array of JLabels, one for each line
+     */
+    public JLabel[] getLabels() {
+        return (JLabel[]) labels.toArray( new JLabel[ 0 ] );
+    }
+
+    /**
+     * Returns an array of the components which have been added.
+     * Each corresponds to the <tt>comp</tt> argument of an <tt>addLine</tt>
+     * call.
+     *
+     * @return   an array of field components, one for each line
+     */
+    public Component[] getFields() {
+        return (Component[]) fields.toArray( new Component[ 0 ] );
     }
 
 }
