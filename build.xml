@@ -194,6 +194,9 @@
     <echo message="Executing VO target: ${what}"/>
     <ant dir="./vo" target="${what}"/>
 
+    <echo message="Excecuting SRB target: ${what}"/>
+    <ant dir="./srb" target="${what}"/>
+
     <echo message="Executing AstroGrid target: ${what}"/>
     <ant dir="./astrogrid" target="${what}"/>
 
@@ -436,6 +439,10 @@
 
       <packageset dir="vo/build/java" defaultexcludes="yes">
          <exclude name="net/ivoa/www/**"/>
+      </packageset>
+
+      <packageset dir="srb/build/java" defaultexcludes="yes">
+         <include name="**"/>
       </packageset>
 
       <packageset dir="astrogrid/build/java" defaultexcludes="yes">
