@@ -5,13 +5,20 @@
  !  VOTable written by uk.ac.starlink.votable.VOTableWriter
  !-->
 <RESOURCE>
+<PARAM name="Author" value="Mark Taylor" ID="author-id"/>
 <TABLE name="main-animals" ID="t1">
 <FIELD datatype="int" name="index"/>
 <FIELD arraysize="8" datatype="char" name="Species"/>
 <FIELD arraysize="6" datatype="char" name="Name"/>
-<FIELD datatype="int" name="Legs"/>
-<FIELD datatype="double" name="Height"/>
+<FIELD datatype="int" name="Legs" ID="legs-id"/>
+<FIELD datatype="double" name="Height" ID="height-id"/>
 <FIELD datatype="boolean" name="Mammal"/>
+<GROUP ID="group1-id" name="Morphology">
+  <FIELDref ref="legs-id"/>
+  <FIELDref ref="height-id"/>
+  <PARAMref ref="author-id"/>
+  <PARAM name="Planet" value="Earth"/>
+</GROUP>
 <DATA>
 <TABLEDATA>
   <TR>

@@ -1,9 +1,12 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.TestCase;
@@ -19,16 +22,28 @@ public class DOMTest extends TestCase {
     }
 
     public void setUp() throws Exception {
-        Document baseDoc = 
-            DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                                  .newDocument();
-        Element baseEl = baseDoc.createElement( "VOTABLE" );
-        baseDoc.appendChild( baseEl );
-        votEl_ = new VOElementFactory( StoragePolicy.PREFER_MEMORY )
-                .makeVOElement( baseEl, null );
-        voDoc_ = votEl_.getOwnerDocument();
+        voDoc_ = new VODocument();
+        votEl_ = (VOElement) 
+                 voDoc_.appendChild( voDoc_.createElement( "VOTABLE" ) );
         tabEl_ = (TableElement) 
-                 votEl_.appendChild( voDoc_.createElement( "TABLE" ) );
+                 votEl_.appendChild( voDoc_.createElement( "RESOURCE" ) )
+                       .appendChild( voDoc_.createElement( "TABLE" ) );
+    }
+
+    public void testLink() throws IOException {
+        LinkElement linkEl = (LinkElement) 
+                             tabEl_.getParent()
+                            .appendChild( voDoc_.createElement( "LINK" ) );
+        URL url = new URL( "http://www.starlink.ac.uk/stil/" );
+        linkEl.setAttribute( "title", "STIL" );
+        linkEl.setAttribute( "href", url.toString() );
+
+        assertEquals( url, linkEl.getHref() );
+
+        StarTable st = new VOStarTable( tabEl_ );
+        DescribedValue dval = st.getParameterByName( "STIL" );
+        assertEquals( URL.class, dval.getInfo().getContentClass() );
+        assertEquals( url, dval.getValue() );
     }
 
     public void testParse() throws IOException {

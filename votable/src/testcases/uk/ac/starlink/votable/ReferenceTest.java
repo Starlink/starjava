@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.io.IOException;
 import java.net.URL;
+import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
@@ -28,6 +29,19 @@ public class ReferenceTest extends TestCase {
         assertArrayEquals( t1.getFields(), t2.getFields() );
         assertEquals( 6, t1.getData().getRowCount() );
         assertEquals( 1, t2.getData().getRowCount() );
+
+        Document doc = top.getOwnerDocument();
+        GroupElement grp = (GroupElement) doc.getElementById( "group1-id" );
+        assertEquals( "Morphology", grp.getName() );
+        assertEquals( "Morphology", grp.getHandle() );
+        FieldElement[] grpFields = grp.getFields();
+        assertEquals( 2, grpFields.length );
+        assertEquals( t1.getFields()[ 3 ], grpFields[ 0 ] );
+        assertEquals( t1.getFields()[ 4 ], grpFields[ 1 ] );
+        assertEquals( 3, grpFields[ 0 ].getIndexInTable( t1 ) );
+        assertEquals( 4, grpFields[ 1 ].getIndexInTable( t2 ) );
+        TableElement dummyTable = (TableElement) doc.createElement( "TABLE" );
+        assertEquals( -1, grpFields[ 0 ].getIndexInTable( dummyTable ) );
     }
 
     public void testStream() throws IOException, SAXException {
