@@ -12,9 +12,23 @@ import javax.swing.JToggleButton;
  * @since    9 Mar 2004
  */
 public class UpDownButton extends JRadioButton {
+
+    /**
+     * Constructs an UpDownButton with a default model.
+     */
     UpDownButton() {
         setIcon( ResourceIcon.DOWN_TRIM );
         setSelectedIcon( ResourceIcon.UP_TRIM );
         setSelected( true );
+    }
+
+    /**
+     * Constructs an UpDownButton with a given model.
+     *
+     * @param   model  toggle button model
+     */
+    UpDownButton( JToggleButton.ToggleButtonModel model ) {
+        this();
+        setModel( model );
     }
 }
