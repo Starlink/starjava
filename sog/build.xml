@@ -960,11 +960,15 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
   <target name="fullui"
           depends="compile-tests">
 
-    <!-- Run up SOG from the local build -->
+    <!-- Run up SOG from the local build, setup to be debugged from socket -->
     <java classname="uk.ac.starlink.sog.SOG" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7001"/>
       <arg line="-port 8082"/>
       <arg value="src/etc/data/cobe.xml"/>
     </java>
@@ -977,6 +981,10 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
     <java classname="uk.ac.starlink.sog.photom.AperturePhotometryFrame" 
           fork="true">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7002"/>
     </java>
 
   </target>
@@ -1002,24 +1010,6 @@ value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar
    !-->
   <target name="dtd">
      <antstructure output="project.dtd"/>
-  </target>
-
-
-  <!-- 
-   ! Run up JSwat. Only works at Durham as pdraper...
-   !-->
-  <target name="jswat"
-          depends="compile-tests">
-
-    <path id="jswat-classpath">
-       <path refid="tests-classpath"/>
-       <pathelement 
-           location="/loc/pwdb/pdraper/java/jswat/jswat-2.10/jswat.jar"/>
-       <pathelement location="/stardev/java/jdk-1.4.0_01/lib/tools.jar"/>
-    </path> 
-    <java classname="com.bluemarsh.jswat.Main" fork="true">
-      <classpath refid="jswat-classpath"/>
-    </java>
   </target>
 
 </project>
