@@ -217,7 +217,11 @@ public class FitsStarTable extends RandomStarTable {
     public Object getCell( long lrow, int icol ) throws IOException {
         int irow = checkedLongToInt( lrow );
         try {
-            return packageValue( thdu.getElement( irow, icol ), icol );
+            Object val;
+            synchronized ( this ) {
+                val = thdu.getElement( irow, icol );
+            }
+            return packageValue( val, icol );
         }
         catch ( FitsException e ) {
             throw (IOException) new IOException().initCause( e );
@@ -228,7 +232,9 @@ public class FitsStarTable extends RandomStarTable {
         int irow = checkedLongToInt( lrow );
         Object[] row;
         try {
-            row = thdu.getRow( irow );
+            synchronized ( this ) {
+                row = thdu.getRow( irow );
+            }
         }
         catch ( FitsException e ) {
             throw (IOException) new IOException().initCause( e );
