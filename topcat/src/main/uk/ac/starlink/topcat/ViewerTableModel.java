@@ -18,7 +18,7 @@ import uk.ac.starlink.table.StarTable;
 public class ViewerTableModel extends AbstractTableModel {
 
     private PlasticStarTable startable;
-    private RowSubset rset;
+    private RowSubset rset = RowSubset.ALL;
     private int[] order;
     private int[] rowMap;
 
@@ -81,13 +81,11 @@ public class ViewerTableModel extends AbstractTableModel {
 
     /**
      * Returns the RowSubset currently used by the viewer model.
-     * If the subset is actually <tt>null</tt> the return value will
-     * be <tt>RowSubset.ALL</tt>, which has equivalent behaviour.
      *
      * @return the row subset
      */
     public RowSubset getSubset() {
-        return ( rset == null ) ? RowSubset.ALL : rset;
+        return rset;
     }
 
     /**
@@ -105,17 +103,23 @@ public class ViewerTableModel extends AbstractTableModel {
      * a subset.
      *
      * @param   order  ordering map (may be null to indicate natural order)
-     * @param   rset   row subset (may be null to indicate full inclusion)
+     * @param   rset   row subset
      * @param   nrow   the number of rows in the base table
      * @return  map from rows in this model to rows int the base table
      *          (may be null to indicate a unit mapping)
      */
     private static int[] getRowMap( int[] order, RowSubset rset, int nrow ) {
 
+        /* In the case of a trivial subset (all rows included) the row map
+         * is just the same as the sort order (possibly null). */
+        if ( rset == RowSubset.ALL ) {
+            return order;
+        }
+
         /* In the case of a non-trivial subset we need to assemble a list
          * of all the row indices which are actually used, possibly modulated
          * by a sort order. */
-        if ( rset != null && rset != RowSubset.ALL ) {
+        else {
             int[] rmap = new int[ nrow ];
             int j = 0;
             if ( order != null ) {
@@ -136,12 +140,6 @@ public class ViewerTableModel extends AbstractTableModel {
             int[] rmap2 = new int[ j ];
             System.arraycopy( rmap, 0, rmap2, 0, j );
             return rmap2;
-        }
-
-        /* In the case of a trivial subset (all rows included) the row map
-         * is just the same as the sort order (possibly null). */
-        else {
-            return order;
         }
     }
 
