@@ -2145,9 +2145,8 @@ with the following RDBMSs and corresponding JDBC drivers:
     </p></dd>
 
 <dt><webref url="http://www.postgresql.org/">PostgreSQL</webref></dt>
-<dd><p>PostgreSQL 7.4.1 apparently works with the driver it comes with.
-    Thanks to Jonathan Irwin for writing a patch to fix a problem with
-    this driver.
+<dd><p>PostgreSQL 7.4.1 apparently works with 
+    <webref url="http://jdbc.postgresql.org/">its own driver</webref>.
     </p></dd>
 </dl>
 Other RDBMSs and drivers may or may not work - please let us know the
