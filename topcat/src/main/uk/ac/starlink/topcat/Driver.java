@@ -54,10 +54,10 @@ public class Driver {
     private static String[] KNOWN_DIALOGS = new String[] {
         "uk.ac.starlink.datanode.tree.TreeTableLoadDialog",
         SQLReadDialog.class.getName(),
-        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
         "uk.ac.starlink.vo.ConeSearchDialog",
-        "uk.ac.starlink.vo.SiapTableLoadDialog",
         "uk.ac.starlink.vo.RegistryTableLoadDialog",
+        // "uk.ac.starlink.vo.SiapTableLoadDialog",
+        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
     };
 
     /**
@@ -181,27 +181,6 @@ public class Driver {
             + pad + " [-tree] [-sql] [-myspace] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
-        /* Prepare usage message which also describes known formats. */ 
-        StringBuffer ufbuf = new StringBuffer( usage );
-        ufbuf.append( "\n    Auto-Detected formats: " );
-        for ( Iterator it = tabfact.getDefaultBuilders().iterator();
-              it.hasNext(); ) {
-            ufbuf.append( ((TableBuilder) it.next()).getFormatName()
-                                                   .toLowerCase() );
-            if ( it.hasNext() ) {
-               ufbuf.append( ", " );
-            }
-        }
-        ufbuf.append( "\n    All known formats:     " );
-        for ( Iterator it = tabfact.getKnownFormats().iterator();
-              it.hasNext(); ) {
-            ufbuf.append( ((String) it.next()).toLowerCase() );
-            if ( it.hasNext() ) {
-                ufbuf.append( ", " );
-            }
-        }
-        String usageWithFormats = ufbuf.toString();
-
         /* Standalone execution (e.g. System.exit() may be called). */
         setStandalone( true );
 
@@ -212,7 +191,7 @@ public class Driver {
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-h" ) ) {
-                System.out.println( usageWithFormats );
+                System.out.println( getHelp( cmdname ) );
                 return;
             }
             else if ( arg.equals( "-demo" ) ) {
@@ -492,5 +471,91 @@ public class Driver {
             }
         }
         return demoTables;
+    }
+
+    /**
+     * Returns a full help message.
+     *
+     * @param  cmdname  command name for this application
+     * @return help
+     */
+    private static String getHelp( String cmdname ) {
+        StringBuffer buf = new StringBuffer();
+        String p1 = "\n\n    ";
+        String p2 = "\n        ";
+
+        /* Basic usage. */
+        buf.append( "Usage: " )
+           .append( cmdname )
+           .append( " <flags> [[-f <format>] <table> ...]" );
+
+        /* Auto-detected formats. */
+        buf.append( p1 + "Auto-detected formats: " )
+           .append( p2 );
+        for ( Iterator it = tabfact.getDefaultBuilders().iterator();
+              it.hasNext(); ) {
+            buf.append( ((TableBuilder) it.next()).getFormatName()
+                                                  .toLowerCase() );
+            if ( it.hasNext() ) {
+                buf.append( ", " );
+            }
+        }
+
+        /* All known formats. */
+        buf.append( p1 + "All known formats:" )
+           .append( p2 );
+        for ( Iterator it = tabfact.getKnownFormats().iterator();
+              it.hasNext(); ) {
+            buf.append( ((String) it.next()).toLowerCase() );
+            if ( it.hasNext() ) {
+                buf.append( ", " );
+            }
+        }
+
+        /* General flags. */
+        buf.append( p1 + "General flags:" )
+           .append( p2 + "-help      print this message" )
+           .append( p2 + "-demo      start with demo data" )
+           .append( p2 + "-disk      use disk backing store for large tables" );
+
+        /* Load dialogues. */
+        buf.append( p1 + "Optional load dialogues" )
+           .append( p2 + "-tree      hierarchy browser" )
+           .append( p2 + "-sql       SQL query on relational database" )
+           .append( p2 + "-cone      cone search dialogue" )
+           .append( p2 + "-myspace   MySpace browser" )
+           .append( p2 + "-registry  VO registry query" )
+           .append( p2 + "-siap      Simple Image Access Protocol queries" );
+
+        /* System properties. */
+        buf.append( p1 + "Useful system properties " 
+                       + "(-Dname=value - lists are colon-separated)" )
+           .append( p2 )
+           .append( "java.io.tmpdir          temporary filespace directory" )
+           .append( p2 )
+           .append( "jdbc.drivers            JDBC driver classes" )
+           .append( p2 )
+           .append( "jel.classes             " +
+                    "custom algebraic function classes" )
+           .append( p2 )
+           .append( "jel.classes.activation  custom action function classes" )
+           .append( p2 )
+           .append( "startable.load.dialogs  custom load dialogue classes" )
+           .append( p2 )
+           .append( "startable.readers       custom table input handlers" )
+           .append( p2 )
+           .append( "startable.writers       custom table output handlers" )
+           .append( p2 )
+           .append( "startable.storage       default storage policy" );
+
+        /* Java flags. */
+        buf.append( p1 + "Useful Java flags" )
+           .append( p2 )
+           .append( "-classpath jar1:jar2..  specify additional classes" )
+           .append( p2 )
+           .append( "-XmxnnnM                use nnn megabytes of memory" );
+
+        /* Return. */
+        return "\n" + buf.toString() + "\n";
     }
 }
