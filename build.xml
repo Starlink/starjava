@@ -152,6 +152,9 @@
     
     <echo message="Executing SOG target: ${what}"/> 
     <ant dir="./sog" target="${what}"/> 
+
+    <echo message="Executing SPLAT target: ${what}"/>
+    <ant dir="./splat" target="${what}"/>
     
   </target>
   
