@@ -3,6 +3,7 @@ package uk.ac.starlink.util.gui;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 
@@ -14,7 +15,7 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -30,10 +31,14 @@ import javax.swing.event.ListSelectionListener;
 import uk.ac.starlink.util.images.ImageHolder;
 
 /**
- * SelectCharacters provides a frame that displays all the characters
- * in a given font. A series of characters may be selected and sent to
+ * SelectCharacters provides a dialog that displays all the characters
+ * in a given font.
+ * <p>
+ * A series of characters may be selected and either sent to
  * registered listener objects that implement the
- * SelectCharactersListener interface and register themselves.
+ * SelectCharactersListener interface and register themselves, or
+ * returned as a result when the a modal form of the dialog that
+ * returns the selected characters maye be used.
  *
  * @since $Date$
  * @since 03-NOV-2000
@@ -43,7 +48,7 @@ import uk.ac.starlink.util.images.ImageHolder;
  * @see InsertCharacters, SelectCharactersModel
  */
 public class SelectCharacters 
-    extends JFrame
+    extends JDialog
 {
     /**
      * The font to display.
@@ -90,10 +95,23 @@ public class SelectCharacters
 
     /**
      * Create an instance of this class. Accepts the font that is to
-     * be displayed.
+     * be displayed. This version is not modal so you should probably
+     * use the SelectCharactersListener interface to receive the results.
      */
     public SelectCharacters( Font displayFont )
     {
+        this( null, "Select Characters", false, displayFont );
+    }
+
+    /**
+     * Create an instance of this class. Accepts the font that is to
+     * be displayed, a parent frame and whether the dialog is modal or
+     * not.
+     */
+    public SelectCharacters( Frame owner, String title, boolean modal,
+                             Font displayFont )
+    {
+        super( owner, title, modal );
         try {
             initUI();
             setDisplayFont( displayFont );
@@ -101,20 +119,7 @@ public class SelectCharacters
         catch( Exception e ) {
             e.printStackTrace();
         }
-        setup( "Select Special Characters" );
-    }
-
-    /**
-     *  Make the frame visible and set the default action for when we
-     *  are closed.
-     */
-    protected void setup( String title )
-    {
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
-        //setTitle( Utilities.getTitle( title ) );
-        setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        pack();
-        setVisible( true );
     }
 
     /**
@@ -143,11 +148,11 @@ public class SelectCharacters
             ImageHolder.class.getResource( "help.gif" ) );
 
         //  Get the content Pane and give it a BorderLayout
-        contentPane = (JPanel) this.getContentPane();
+        contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new BorderLayout() );
 
         //  Set the size of the full window.
-        this.setSize(new Dimension(400, 300));
+        setSize( new Dimension( 400, 300 ) );
 
         //  Set the table properties. This has no header and is set to
         //  select only single cells.
