@@ -20,7 +20,7 @@
 #     Shell script.
 
 #  Copyright:
-#     Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+#     Copyright (C) 2001-2004 Central Laboratory of the Research Councils
 
 #  Authors:
 #     AA: Alasdair Allan (Starlink, University of Exeter)
@@ -28,6 +28,8 @@
 #     {enter_new_authors_here}
 
 #  History:
+#     15-DEC-2004 (PWD):
+#        Switch to using the standard starjava script.
 #     07-FEB-2004 (AA):
 #        Added CLASSPATH to FROG Help JAR file
 #     26-NOV-2002 (AA):
@@ -55,17 +57,8 @@ if test -z "$frog_MAXMEM"; then
    frog_MAXMEM=128m
 fi
 
-# Make sure that we get the installed shareable library.
-if test -z "$LD_LIBRARY_PATH"; then
-   LD_LIBRARY_PATH=${FROG_DIR}/../../lib
-else
-   LD_LIBRARY_PATH=${FROG_DIR}/../../lib:${LD_LIBRARY_PATH}
-fi
-export LD_LIBRARY_PATH
-
 #  Locate the application jar file. This is relative to this script or
 #  FROG_DIR.
-
 appjar="$FROG_DIR/../../lib/frog/frog.jar"
 if test ! -f "$appjar"; then
    echo "Failed to locate the frog application. Please define FROG_DIR"
@@ -88,10 +81,15 @@ case "`uname`" in
    ;;
 esac
 
+#  Locate the "starjava" command. This should be in ".." or on the PATH.
+if test -f "$FROG_DIR/../starjava"; then
+   starjava="$FROG_DIR/../starjava"
+else
+   starjava="starjava"
+fi
 
-# Run up the main application. Uses the JVM located by the starjava
-# script
-$FROG_DIR/starjava -mx$frog_MAXMEM $defines \
-                    -jar $appjar \
-                     ${1+"$@"}
+# Run up the main application. Uses the JVM located by the starjava script.
+$starjava -mx$frog_MAXMEM $defines \
+          -jar $appjar \
+          ${1+"$@"}
 exit
