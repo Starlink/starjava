@@ -923,7 +923,7 @@ public class StaticTreeViewer extends JFrame {
                         newdn.setCreator( creator );
                     }
                     catch ( NoSuchDataException e ) {
-                        newdn = new DefaultDataNode( e );
+                        newdn = new ErrorDataNode( e );
                     }
                     DefaultMutableTreeNode newtn = 
                         new DefaultMutableTreeNode( newdn );

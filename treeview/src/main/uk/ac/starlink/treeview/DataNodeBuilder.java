@@ -90,14 +90,14 @@ public abstract class DataNodeBuilder {
                             /* Some other kind of exception was thrown by 
                              * the constructor.  Re-throw it. */
                            else {
-                               return new DefaultDataNode( target );
+                               return new ErrorDataNode( target );
                            }
                         }
                         catch ( InstantiationException e ) {
-                            return new DefaultDataNode( e );
+                            return new ErrorDataNode( e );
                         }
                         catch ( IllegalAccessException e ) {
-                            return new DefaultDataNode( e );
+                            return new ErrorDataNode( e );
                         }
                     }
                 };

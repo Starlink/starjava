@@ -80,4 +80,14 @@ class TextViewer extends JTextArea {
         }
     }
 
+    /**
+     * Returns a Writer object; any thing you write into it will appera
+     * in the TextViewer.
+     *
+     * @return  a writer that writes into this viewer
+     */
+    public Writer getAppender() {
+        return appender;
+    }
+
 }

@@ -180,7 +180,7 @@ public class HDSDataNode extends DefaultDataNode {
                 nChildren = hobj.datNcomp();
             }
             catch ( HDSException e ) {
-                return new DataNode[] { new DefaultDataNode( e ) };
+                return new DataNode[] { new ErrorDataNode( e ) };
             }
             children = new DataNode[ nChildren ];
             for ( int i = 0; i < nChildren; i++ ) {
@@ -190,10 +190,10 @@ public class HDSDataNode extends DefaultDataNode {
                        .makeDataNode( hobj.datIndex( i + 1 ) );
                 }
                 catch ( HDSException e ) {
-                    children[ i ] = new DefaultDataNode( e );
+                    children[ i ] = new ErrorDataNode( e );
                 }
                 catch ( NoSuchDataException e ) {
-                    children[ i ] = new DefaultDataNode( e );
+                    children[ i ] = new ErrorDataNode( e );
                 }
             }
         }
@@ -210,10 +210,10 @@ public class HDSDataNode extends DefaultDataNode {
                                         .makeDataNode( hobj.datCell( pos ) );
                 }
                 catch ( HDSException e ) {
-                    children[ ichild ] = new DefaultDataNode( e );
+                    children[ ichild ] = new ErrorDataNode( e );
                 }
                 catch ( NoSuchDataException e ) {
-                    children[ ichild ] = new DefaultDataNode( e );
+                    children[ ichild ] = new ErrorDataNode( e );
                 }
                 children[ ichild ].setLabel( children[ ichild ].getName() 
                                            + NDShape.toString( pos ) );

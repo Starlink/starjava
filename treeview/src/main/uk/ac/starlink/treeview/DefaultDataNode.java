@@ -48,19 +48,6 @@ public class DefaultDataNode implements DataNode {
         setLabel( ( name == null ) ? "null" : name );
     }
 
-    /**
-     * Constructs a <code>DefaultDataNode</code> from a Throwable.
-     *
-     * @param  th  the throwable
-     */
-    public DefaultDataNode( Throwable th ) {
-        this( th.getMessage() );
-        th.printStackTrace();
-        nodetype = "Error message";
-        this.name = "Error";
-        setLabel( name );
-    }
-   
     public boolean allowsChildren() {
         return false;
     }

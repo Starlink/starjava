@@ -55,6 +55,8 @@ public class IconFactory {
     public static final short XML_STRING = 126;
     public static final short NDX = 130;
     public static final short HDX_CONTAINER = 131;
+    public static final short VOTABLE = 140;
+    public static final short VOCOMPONENT = 141;
     public static final short SPLAT = 200;
     public static final short SOG = 201;
    
@@ -112,6 +114,8 @@ public class IconFactory {
             case XML_STRING:     iname = "xml_txt.gif";              break;
             case NDX:            iname = "jsky2.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
+            case VOTABLE:        iname = "telescope2.gif";           break;
+            case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPLAT:          iname = "multidisplay.gif";         break;
             case SOG:            iname = "sogimage.gif";             break;
             default:

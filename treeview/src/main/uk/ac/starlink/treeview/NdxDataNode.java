@@ -159,7 +159,7 @@ public class NdxDataNode extends DefaultDataNode {
             im = childMaker.makeDataNode( ndx.getImage() );
         }
         catch ( NoSuchDataException e ) {
-            im = new DefaultDataNode( e );
+            im = new ErrorDataNode( e );
         }
         im.setLabel( "image" );
         children.add( im );
@@ -170,7 +170,7 @@ public class NdxDataNode extends DefaultDataNode {
                 var = childMaker.makeDataNode( ndx.getVariance() );
             }
             catch ( NoSuchDataException e ) {
-                var = new DefaultDataNode( e );
+                var = new ErrorDataNode( e );
             }
             var.setLabel( "variance" );
             children.add( var );
@@ -182,7 +182,7 @@ public class NdxDataNode extends DefaultDataNode {
                 qual = childMaker.makeDataNode( ndx.getQuality() );
             }
             catch ( NoSuchDataException e ) {
-                qual = new DefaultDataNode( e );
+                qual = new ErrorDataNode( e );
             }
             qual.setLabel( "quality" );
             children.add( qual );
@@ -202,7 +202,7 @@ public class NdxDataNode extends DefaultDataNode {
                 wnode = childMaker.makeDataNode( ndx.getAst() );
             }
             catch ( NoSuchDataException e ) {
-                wnode = new DefaultDataNode( e );
+                wnode = new ErrorDataNode( e );
             }
             children.add( wnode );
         }
@@ -213,7 +213,7 @@ public class NdxDataNode extends DefaultDataNode {
                 etcNode = childMaker.makeDataNode( ndx.getEtc() );
             }
             catch ( NoSuchDataException e ) {
-                etcNode = new DefaultDataNode( e );
+                etcNode = new ErrorDataNode( e );
             }
             children.add( etcNode );
         }

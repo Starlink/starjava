@@ -172,7 +172,7 @@ public class XMLDataNode extends DefaultDataNode {
                     return childMaker.makeDataNode( xsrc );
                 }
                 catch ( Exception e ) {
-                    return new DefaultDataNode( e );
+                    return new ErrorDataNode( e );
                 }
             }
             public void remove() {
@@ -275,6 +275,9 @@ public class XMLDataNode extends DefaultDataNode {
         StringBuffer summ = new StringBuffer();
         summ.append( pre );
         String content = data.trim();
+        if ( content.length() == 0 ) {
+            return "";
+        }
         if ( content.length() <= 30 ) {
             summ.append( content );
             summ.append( post );
@@ -331,7 +334,7 @@ public class XMLDataNode extends DefaultDataNode {
      * Also, adjacent text nodes will be concatenated.  Unlike
      * Node.normalize(), this takes care of CDATA nodes too.
      */
-    private static Node firstUsefulSibling( Node sib ) {
+    static Node firstUsefulSibling( Node sib ) {
         if ( sib == null ) {
             return null;
         }

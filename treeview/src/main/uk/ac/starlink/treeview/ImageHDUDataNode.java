@@ -173,7 +173,7 @@ public class ImageHDUDataNode extends HDUDataNode {
                 wcschild = new WCSDataNode( wcs );
             }
             catch ( NoSuchDataException e ) {
-                wcschild = new DefaultDataNode( e );
+                wcschild = new ErrorDataNode( e );
             }
             return new DataNode[] { wcschild };
         }

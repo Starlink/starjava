@@ -55,6 +55,7 @@ public class Driver {
         nodeTypeFlags.put( "-xml", XMLDataNode.class );
         // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
+        nodeTypeFlags.put( "-vot", VOTableDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
 
         /* Construct the usage message. */

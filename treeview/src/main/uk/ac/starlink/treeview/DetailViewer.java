@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.io.PrintWriter;
 import java.io.Writer;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -93,8 +94,15 @@ public class DetailViewer {
                         comp = new JScrollPane( maker.getComponent() );
                     }
                     catch ( Exception e ) {
-                        comp = new JTextArea( e.toString() );
-                        e.printStackTrace();
+                        StyledTextArea sta = new StyledTextArea();
+                        sta.addTitle( "Error" );
+                        sta.addKeyedItem( "Exception class",
+                                          e.getClass().getName() );
+                        sta.addKeyedItem( "Message", e.getMessage() );
+                        sta.addSubHead( "Stack trace" );
+                        PrintWriter pw = new PrintWriter( sta.lineAppender() );
+                        e.printStackTrace( pw );
+                        comp = sta;
                     }
                     box.add( comp );
                 }

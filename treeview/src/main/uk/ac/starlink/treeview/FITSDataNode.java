@@ -83,7 +83,7 @@ public class FITSDataNode extends DefaultDataNode {
         }
         catch ( IOException e ) {
             return Collections
-                  .singletonList( new DefaultDataNode( e ) )
+                  .singletonList( new ErrorDataNode( e ) )
                   .iterator();
         }
       
@@ -136,7 +136,7 @@ public class FITSDataNode extends DefaultDataNode {
                         return node;
                     }
                     catch ( Exception e ) {
-                        return new DefaultDataNode( e );
+                        return new ErrorDataNode( e );
                     }
                 }
                 else {

@@ -87,10 +87,10 @@ public class HistoryDataNode extends DefaultDataNode {
                 children[ i ].setLabel( "RECORD( " + ( i + 1 ) + " )" );
             }
             catch ( HDSException e ) {
-                children[ i ] = new DefaultDataNode( e );
+                children[ i ] = new ErrorDataNode( e );
             }
             catch ( NoSuchDataException e ) {
-                children[ i ] = new DefaultDataNode( e );
+                children[ i ] = new ErrorDataNode( e );
             }
         }
         return children;

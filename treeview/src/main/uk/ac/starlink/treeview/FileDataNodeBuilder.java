@@ -133,6 +133,8 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* XML file? */
             if ( XMLDataNode.isMagic( magic ) ) {
+
+                /* NDX? */
                 DOMSource xsrc = makeDomSource( file );
                 try {
                     DataNode dn = new NdxDataNode( xsrc );
@@ -140,9 +142,24 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
+                }
+
+                /* VOTable? */
+                try {
+                    DataNode dn = new VOTableDataNode( xsrc );
+                    dn.setLabel( file.getName() );
+                    return dn;
+                }
+                catch ( NoSuchDataException e ) {
+                }
+
+                /* Normal XML file? */
+                try {
                     DataNode dn = new XMLDataNode( xsrc );
                     dn.setLabel( file.getName() );
                     return dn;
+                }
+                catch ( NoSuchDataException e ) {
                 }
             }
 

@@ -19,11 +19,12 @@ import java.text.*;
  * <li> {@link HistoryDataNode}
  * <li> {@link HDSDataNode}
  * <li> {@link FITSDataNode}
+ * <li> {@link NdxDataNode}
+ * <li> {@link VOTableDataNode}
  * <li> {@link XMLDataNode}
  * <li> {@link ZipFileDataNode}
- * <li> {@link FileDataNode}
- * <li> {@link NdxDataNode}
  * <li> {@link NDArrayDataNode}
+ * <li> {@link FileDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
  * the object it is given for construction, the constructors available
@@ -148,6 +149,17 @@ public class DataNodeFactory implements Cloneable {
         List clist = classList;
         clist.add( 0, pref );
         setNodeClassList( clist );
+    }
+
+    /**
+     * Sets the builder object to be used in preference to all others
+     * for generating DataNode objects.  This is inserted at the head of
+     * the list of builders.
+     *
+     * @param  builder  the builder to put at the head of the list
+     */
+    public void setPreferredBuilder( DataNodeBuilder builder ) {
+        builders.add( 0, builder );
     }
 
     /**
@@ -318,6 +330,7 @@ public class DataNodeFactory implements Cloneable {
                 HDSDataNode.class,
                 FITSDataNode.class,
                 NdxDataNode.class,
+                VOTableDataNode.class,
                 XMLDataNode.class,
                 ZipFileDataNode.class,
                 NDArrayDataNode.class,

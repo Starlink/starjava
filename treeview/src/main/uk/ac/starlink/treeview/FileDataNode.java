@@ -65,7 +65,7 @@ public class FileDataNode extends DefaultDataNode {
                     child = getChildMaker().makeDataNode( subFiles[ index ] );
                 }
                 catch ( NoSuchDataException e ) {
-                    child = new DefaultDataNode( e );
+                    child = new ErrorDataNode( e );
                 }
                 index++;
                 return child;

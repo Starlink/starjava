@@ -235,7 +235,7 @@ public class NDFDataNode extends HDSDataNode {
             nChild = ndfobj.datNcomp();
         }
         catch ( HDSException e ) {
-            return new DataNode[] { new DefaultDataNode( e ) };
+            return new DataNode[] { new ErrorDataNode( e ) };
         }
         List clist = new ArrayList( nChild );
         Set used = new HashSet( nChild );
@@ -304,10 +304,10 @@ public class NDFDataNode extends HDSDataNode {
             }
         }
         catch ( HDSException e ) {
-            clist.add( new DefaultDataNode( e ) );
+            clist.add( new ErrorDataNode( e ) );
         }
         catch ( NoSuchDataException e ) {
-            clist.add( new DefaultDataNode( e ) );
+            clist.add( new ErrorDataNode( e ) );
         }
         return (DataNode[]) clist.toArray( new DataNode[ 0 ] );
     }
