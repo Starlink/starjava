@@ -1077,6 +1077,8 @@
       <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="uk.ac.starlink.treeview.test.args"
+                   value="${treeview.args}"/>
 
       <formatter type="brief" usefile="false"/>
 
@@ -1104,6 +1106,8 @@
       <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="uk.ac.starlink.treeview.test.args"
+                   value="${treeview.args}"/>
       <classpath refid="tests-classpath"/>
       <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
