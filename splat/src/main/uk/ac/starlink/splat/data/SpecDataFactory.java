@@ -19,6 +19,7 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -127,6 +128,12 @@ public class SpecDataFactory
         "TABLE",
         "ARY2"
     };
+
+    /**
+     * Policy used for table backing store.
+     */
+    private static final StoragePolicy storagePolicy = 
+        StoragePolicy.getDefaultPolicy();
 
     /**
      *  Create the single class instance.
@@ -320,7 +327,8 @@ public class SpecDataFactory
             try {
                 DataSource datsrc = new FileDataSource( specspec );
                 StarTable starTable =
-                    new FitsTableBuilder().makeStarTable( datsrc, true );
+                    new FitsTableBuilder().makeStarTable( datsrc, true, 
+                                                          storagePolicy );
                 impl = new TableSpecDataImpl( starTable, specspec,
                                               datsrc.getURL().toString() );
             }
@@ -354,7 +362,8 @@ public class SpecDataFactory
         try {
             DataSource datsrc = new FileDataSource( specspec );
             StarTable starTable =
-                new VOTableBuilder().makeStarTable( datsrc, true );
+                new VOTableBuilder().makeStarTable( datsrc, true, 
+                                                    storagePolicy );
             if ( starTable != null ) {
                 return new TableSpecDataImpl( starTable );
             }
