@@ -64,7 +64,7 @@ public class Utilities
      */
     public static String getReleaseVersion()
     {
-        return "0.2a";
+        return "0.3a";
     }
 
     /**

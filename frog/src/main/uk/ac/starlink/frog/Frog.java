@@ -21,6 +21,7 @@ import uk.ac.starlink.frog.iface.CombineSeriesDialog;
 import uk.ac.starlink.frog.iface.ArithmeticDialog;
 import uk.ac.starlink.frog.iface.TrigArithmeticDialog;
 import uk.ac.starlink.frog.iface.FakeDataCreationDialog;
+import uk.ac.starlink.frog.iface.DebugConsole;
 
 // Utilities Classes
 import uk.ac.starlink.frog.util.Utilities;
@@ -171,6 +172,21 @@ public class Frog extends JFrame
      */
     public Frog( String[] timeseries )
     {    
+        
+        // Committ a reference to this object to the TimeSeries,
+        // Gram Manager and DebugManager classes. We need to get
+        // rid of all the getFrog() calls to seriesManager and
+        // gramManager(), as this should now be handled in 
+        // debugManager() only (I think). Perhaps move this into
+        // util.Utilities class instead?
+        //
+        // Either way, I think this is a bit of a hack, bad design
+        // on my part. Oh well...
+        seriesManager.setFrog( this );
+        gramManager.setFrog( this );
+        debugManager.setFrog( this );
+
+
         debugManager.print( "\n" + Utilities.getReleaseName() + " V" +
                                Utilities.getReleaseVersion() );
 
@@ -184,12 +200,6 @@ public class Frog extends JFrame
             error.printStackTrace();
             return;
         }
-        
-        // committ a reference to this object to the TimeSeries and
-        // Gram Manager classes. This is an unGodly hack and I should 
-        // be shot...
-        seriesManager.setFrog( this );
-        gramManager.setFrog( this );
         
         // load any files passed on the command line
         if ( timeseries != null ) {
@@ -369,12 +379,26 @@ public class Frog extends JFrame
                  
                  // hide the debug menu
                  debugMenu.setVisible( false );
+                 
+                 // hide the debugging console if its around
+                 DebugConsole consoleInstance = DebugConsole.getReference();
+                 if ( consoleInstance.isVisible() ) {
+                    consoleInstance.setVisible(false); 
+                 } 
+              
               } else {
-                 debugManager.print( "Debugging on...");
                  debugManager.setDebugFlag(true);
+                 debugManager.print( "Debugging on...");
                  
                  // show the debug menu
-                 debugMenu.setVisible( true );
+                 debugMenu.setVisible( true ); 
+                 
+                 // show the debugging console if its needed
+                 if ( !debugManager.getConsoleFlag() ) {
+                    DebugConsole consoleInstance = DebugConsole.getReference();
+                    consoleInstance.setVisible(true);           
+                    consoleInstance.moveToFront();          
+                 } 
               }
            } 
         });
@@ -502,6 +526,23 @@ public class Frog extends JFrame
         if( debugManager.getDebugFlag() ) {
            debugMenu.setVisible( true );
         }   
+        
+        // Toggle the Debug Flag     
+        JCheckBoxMenuItem consoleCheck = 
+         new JCheckBoxMenuItem("Debug to Console",
+                               debugManager.getConsoleFlag() );
+                               
+        consoleCheck.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+              DebugConsole consoleInstance = DebugConsole.getReference();
+              if ( debugManager.getConsoleFlag() ) {
+                 consoleInstance.openDebug();           
+              } else {
+                 consoleInstance.closeDebug();           
+              }
+           } 
+        });
+        debugMenu.add(consoleCheck);            
                
         // TimeSeriesManager
         JMenuItem seriesManagerItem = new JMenuItem("Dump TimeSeriesManager");

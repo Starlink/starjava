@@ -1,5 +1,8 @@
 package uk.ac.starlink.frog.util;
 
+import uk.ac.starlink.frog.Frog;
+import uk.ac.starlink.frog.iface.DebugConsole;
+
 /**
  * Wrapper for the package wide debugging information. The class holds the
  * debugging flag, which is by default turned on. WIth the flag set to true
@@ -24,6 +27,17 @@ public class FrogDebug
      */
     protected boolean debug;
 
+
+    /**
+     * Is the debugging console visible
+     */
+    protected boolean debugConsole;
+       
+    /**
+     * Reference to the main Frog object
+     */ 
+    protected Frog frogMain = null;
+
     /**
      * Default constructor, by default debugging is on.
      */
@@ -40,9 +54,25 @@ public class FrogDebug
      */
     public FrogDebug( boolean b)
     {
-        debug = b;   
+        debug = b; 
+        debugConsole = false;  // by default debugging is to the debug pane
     }
-
+    
+    /**
+     * Constructor specifing the value of the debug flag
+     *   
+     *   @param debug If true debugging is on, otherwise debug message
+     *                are not printed.
+     *   @param debugConsole If true debugging messages are sent to the
+     *                       console, otherwise messages are sent to the
+     *                       debugging widget if it exists.
+     */
+    public FrogDebug( boolean b, boolean c)
+    {
+        debug = b;  
+        debugConsole = c; 
+    }
+    
     /**
      *  Return reference to the only allowed instance of this class.
      *
@@ -62,7 +92,25 @@ public class FrogDebug
     {
         return debug;
     }
+        
+    /**
+     * Get the value of the package wide console flag
+     *
+     * @return debug Return the whether messages are sent to the console.
+     */
+    public boolean getConsoleFlag()
+    {
+        return debugConsole;
+    }    
     
+    /**
+     * Get a reference to the instance of the main Frog class.
+     */
+     public Frog getFrog() 
+     {
+         return frogMain;
+     }  
+          
     /**
      * Print a debugging message
      *
@@ -71,7 +119,25 @@ public class FrogDebug
      public void print( String s )
      {
          if( debug ) {
-            System.out.println( s );
+           
+            if( debugConsole ) {
+                System.out.println( s );
+            } else {
+            
+                // get a refernce to the widget to which we need to send 
+                // debugging information. This is a single instance class.
+                DebugConsole consoleInstance = DebugConsole.getReference();           
+                
+                if( !consoleInstance.isVisible() ) {
+                    consoleInstance.setVisible( true );
+                }
+                
+                // send the message
+                consoleInstance.write( s + "\n" );
+            
+            
+            }    
+                
          }   
      }
     
@@ -85,20 +151,39 @@ public class FrogDebug
         debug = b;
     }
     
+    /**
+     * Set a value for the package wide console flag
+     *
+     * @param flag Set the package wide console flag.
+     */
+    public void setConsoleFlag( boolean c)
+    {
+        debugConsole = c;
+        
+    }  
+  
+    /**
+     * Set a reference to the instance of the main Frog class.
+     */
+     public void setFrog( Frog f) 
+     {
+         frogMain = f;
+     }      
+          
    /**  
      * Do garbage collection and output memory statistics.
      *
      * @param flag Report the amount of freed memory
      * @see RunTime
      */
-    public static void printMemoryStatistics( boolean report )
+    public void printMemoryStatistics( boolean report )
     {
         Runtime rt = Runtime.getRuntime();
         long isFree = rt.freeMemory();
         long origFree = isFree;
         long wasFree = 0;
         
-        System.out.println("\nReporting memory statistics..." );
+        this.print("\nReporting memory statistics..." );
         do {
             wasFree = isFree;
             rt.gc();
@@ -106,9 +191,9 @@ public class FrogDebug
         } while ( isFree > wasFree );
         rt.runFinalization();
         if ( report ) {
-            System.out.println( "\nGarbage Collection" );
-            System.out.println( "------------------" );
-            System.out.println( "  Freed memory = " + ( isFree - origFree ) );
+            this.print( "\nGarbage Collection" );
+            this.print( "------------------" );
+            this.print( "  Freed memory = " + ( isFree - origFree ) );
             memStats();
         }
     }
@@ -116,15 +201,15 @@ public class FrogDebug
     /**
      * Show current memory statistics.
      */
-    public static void memStats()
+    public void memStats()
     {
         Runtime rt = Runtime.getRuntime();
-        System.out.println( "\nMemory Statistics" );
-        System.out.println( "-----------------" );
-        System.out.println( "  Free memory = " + rt.freeMemory() );
-        System.out.println( "  Used memory = " + ( rt.totalMemory() -
-                                                 rt.freeMemory() ) );
-        System.out.println( "  Total memory = " + rt.totalMemory() );
+        this.print( "\nMemory Statistics" );
+        this.print( "-----------------" );
+        this.print( "  Free memory = " + rt.freeMemory() );
+        this.print( "  Used memory = " + ( rt.totalMemory() -
+                                  rt.freeMemory() ) );
+        this.print( "  Total memory = " + rt.totalMemory() );
     }
     
 
