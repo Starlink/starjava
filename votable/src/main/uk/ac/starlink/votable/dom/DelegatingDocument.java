@@ -2,6 +2,8 @@ package uk.ac.starlink.votable.dom;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.CharacterData;
@@ -50,6 +52,17 @@ public class DelegatingDocument extends DelegatingNode implements Document {
             throw new NullPointerException();
         }
         base_ = base;
+    }
+
+    /**
+     * Constructs a new empty document based on a new empty document
+     * got from the default DOM implementation.
+     * This can theoretically result in a ParserConfigurationException, 
+     * but shouldn't do for any sensibly set up JVM -
+     * any such condition is rethrown as a RuntimeException.
+     */
+    public DelegatingDocument() {
+        this( makeEmptyDocument() );
     }
 
     /**
@@ -415,5 +428,24 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 
     public Element getElementById( String elementId ) {
         return (Element) getDelegator( base_.getElementById( elementId ) );
+    }
+
+    /**
+     * Constructs a new empty document from JAXP's default DOM implementation.
+     *
+     * @return  new Document
+     */
+    private static Document makeEmptyDocument() {
+        try {
+            return DocumentBuilderFactory
+                  .newInstance()
+                  .newDocumentBuilder()
+                  .newDocument();
+        }
+        catch ( ParserConfigurationException e ) {
+            throw (RuntimeException) 
+                  new IllegalStateException( "Can't create a new Document" )
+                 .initCause( e );
+        }
     }
 }
