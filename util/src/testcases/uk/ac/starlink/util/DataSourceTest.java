@@ -25,6 +25,7 @@ public class DataSourceTest extends TestCase {
     private DataSource pSrc;
     private DataSource gSrc;
     private DataSource bSrc;
+    private DataSource rSrc;
     private DataSource[] allSources;
 
     public DataSourceTest( String name ) {
@@ -35,10 +36,13 @@ public class DataSourceTest extends TestCase {
         pSrc = new PlainDataSource( DataSource.DEFAULT_INTRO_LIMIT );
         gSrc = new GzipDataSource( DataSource.DEFAULT_INTRO_LIMIT );
         bSrc = new Bzip2DataSource( DataSource.DEFAULT_INTRO_LIMIT );
+        rSrc = new ResourceDataSource( RESOURCE_NAME.substring( 1 ) );
+        ((ResourceDataSource) rSrc).setClassLoader( ClassLoader
+                                                   .getSystemClassLoader() );
         int lo = 15;
         int hi = 1024 * 1024;
         allSources = new DataSource[] { 
-            pSrc, bSrc, gSrc,
+            pSrc, bSrc, gSrc, rSrc,
             new PlainDataSource( lo ),
             new PlainDataSource( hi ),
             new GzipDataSource( lo ),
@@ -59,12 +63,15 @@ public class DataSourceTest extends TestCase {
         assertEquals( Compression.NONE, pSrc.getCompression() );
         assertEquals( Compression.GZIP, gSrc.getCompression() );
         assertEquals( Compression.BZIP2, bSrc.getCompression() );
+        assertEquals( Compression.NONE, rSrc.getCompression() );
 
         byte[] pIntro = pSrc.getIntro();
         byte[] gIntro = gSrc.getIntro();
         byte[] bIntro = bSrc.getIntro();
+        byte[] rIntro = rSrc.getIntro();
         assertArrayEquals( pIntro, gIntro );
         assertArrayEquals( pIntro, bIntro );
+        assertArrayEquals( pIntro, rIntro );
     }
 
     public void testIntro() throws IOException {
@@ -111,6 +118,12 @@ public class DataSourceTest extends TestCase {
         testStream();
         testStream();
         testHybridStream();
+    }
+
+    public void testResourceStream() {
+        assertEquals( "Object.class", rSrc.getName() );
+        assertTrue( rSrc.getURL().toString()
+                        .endsWith( "!/java/lang/Object.class" ) );
     }
 
     private static byte[] fillBuffer1( InputStream istrm ) throws IOException {
