@@ -246,6 +246,15 @@ public class FileDataNode extends DefaultDataNode {
         }
     }
 
+    public boolean equals( Object o ) {
+        return this.getClass().equals( o.getClass() )
+            && ((FileDataNode) o).file.equals( this.file );
+    }
+
+    public int hashCode() {
+        return file.hashCode();
+    }
+
     /**
      * Gets the container file in which a given HDSObject is the 
      * top level item.
