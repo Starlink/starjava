@@ -4571,18 +4571,20 @@ these windows.
 
 <p>Although the printing buttons work, if you want to print out the
 whole of this document rather than just a few sections you may be better off
-locating the version which is formatted as a single HTML file, and
-printing it through a web browser.
-The most recent version of the single HTML file should be available
+printing the PDF version, 
+or printing the single-page HTML version through a web browser.
+The most recent version of these should be available
 on the web at
-<webref url="http://www.starlink.ac.uk/topcat/sun253/sun253.html"/>;
-you can also find the it in the topcat jar file at
+<webref url="http://www.starlink.ac.uk/topcat/sun253/sun253.html"/> and
+<webref url="http://www.starlink.ac.uk/topcat/sun253.pdf"/>;
+you can also find the HTML version in the topcat jar file at
 <code>uk/ac/starlink/topcat/help/sun253.html</code>
 or, if you have a full TOPCAT installation, in 
-<code>docs/topcat/sun253/sun253.html</code>
+<code>docs/topcat/sun253/sun253.html</code> and
+<code>docs/topcat/sun253.pdf</code>
 (<webref url="sun253.html"
-         hypertext="here"
-         plaintext="available directly from the HTML file"/>).
+         hypertext="HTML here"
+         plaintext="HTML available directly from the HTML file"/>).
 </p>
 
 <p>The help browser is an HTML browser and some of the hyperlinks in
