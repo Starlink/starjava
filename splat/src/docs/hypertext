@@ -8,6 +8,7 @@ setenv HTX_EMAIL '<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A>'
 #  Help system docs, these need to be in a jar file so we can 
 #  access them from javahelp? Figures?
 star2html -no_navigation sun243.tex
+./makeSearchDatabase
 jar cf splat_help.jar sun243.htx HelpSet.hs TOC.xml Map.jhm JavaHelpSearch
 \mv splat_help.jar ../lib
 
