@@ -6,6 +6,7 @@ import java.awt.Cursor;
 import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -36,7 +37,7 @@ import uk.ac.starlink.table.StarTable;
  *
  * @author   Mark Taylor (Starlink)
  */
-class AuxWindow extends JFrame {
+public class AuxWindow extends JFrame {
 
     private JMenu fileMenu;
     private JToolBar toolBar;
@@ -285,6 +286,13 @@ class AuxWindow extends JFrame {
 
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
+    }
+
+    /**
+     * It beeps.
+     */
+    public static void beep() {
+        Toolkit.getDefaultToolkit().beep();
     }
 
     /**
