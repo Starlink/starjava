@@ -1,23 +1,25 @@
+/*
+ * Copyright (C) 2000-2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     27-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
-
-import org.jdom.Element;
-
-import uk.ac.starlink.splat.util.AbstractStorableConfig;
+import org.w3c.dom.Element;
+import uk.ac.starlink.ast.gui.AbstractPlotControlsModel;
 
 /**
  * DataLimits defines the limits of a Plot. These can be explicit
  * values two for each axis, or indications to autoscale both or
  * either of these axes.
  *
- * @since $Date$
- * @since 27-OCT-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  * @see SpecDataComp
  */
-public class DataLimits extends AbstractStorableConfig
+public class DataLimits extends AbstractPlotControlsModel
 {
     /**
      * Whether to fit Plot to match the data X data range into it's
@@ -230,6 +232,14 @@ public class DataLimits extends AbstractStorableConfig
 //
 // Encode and decode this object to/from XML representation.
 //
+    /**
+     * The name of our enclosing tag.
+     */
+    public String getTagName()
+    {
+        return "datalimits";
+    }
+
     public void encode( Element rootElement )
     {
         addChildElement( rootElement, "xAutoscaled", xAutoscaled );

@@ -1,17 +1,19 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    16-SEP-1999 (Peter W. Draper):
-//       Original version.
-//    06-JUN-2002 (Peter W. Draper):
-//       Renamed Plot class to DivaPlot. Plot is name of class in
-//       JNIAST.
-
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ * History:
+ *    16-SEP-1999 (Peter W. Draper):
+ *       Original version.
+ *    06-JUN-2002 (Peter W. Draper):
+ *       Renamed Plot class to DivaPlot. Plot is name of class in
+ *       JNIAST.
+ */
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.event.LayerEvent;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -26,9 +28,14 @@ import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.text.DecimalFormat;
 import java.util.Vector;
 
+import javax.print.StreamPrintService;
+import javax.print.StreamPrintServiceFactory;
 import javax.print.PrintService;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -48,7 +55,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 
-import uk.ac.starlink.splat.ast.AstDouble;
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.ast.gui.GraphicsEdges;
+import uk.ac.starlink.ast.gui.GraphicsHints;
+import uk.ac.starlink.ast.gui.PlotConfiguration;
+import uk.ac.starlink.ast.gui.PlotController;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -56,7 +68,6 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.DecimalComboBoxEditor;
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.LineRenderer;
-import uk.ac.starlink.splat.iface.PlotConfig;
 import uk.ac.starlink.splat.iface.SimpleDataLimitControls;
 import uk.ac.starlink.splat.iface.SpecChangedEvent;
 import uk.ac.starlink.splat.iface.SpecListener;
@@ -103,8 +114,8 @@ import uk.ac.starlink.splat.util.Utilities;
  */
 public class PlotControl
     extends JPanel
-    implements MouseMotionTracker, SpecListener, FigureListener,
-               PlotScaledListener, ActionListener 
+    implements PlotController, MouseMotionTracker, SpecListener, 
+               FigureListener, PlotScaledListener, ActionListener 
 {
     /**
      * DivaPlot object for displaying the spectra.
@@ -184,7 +195,22 @@ public class PlotControl
     /**
      * Quick selection of data limits.
      */
-    protected SimpleDataLimitControls dataLimits = null;
+    protected SimpleDataLimitControls simpleDataLimits = null;
+
+    /**
+     * Full data limits control configuration.
+     */
+    protected DataLimits dataLimits = new DataLimits();
+
+    /**
+     * Graphics edges configuration.
+     */
+    protected GraphicsEdges graphicsEdges = new GraphicsEdges();
+
+    /**
+     * Graphics rendering hints configuration.
+     */
+    protected GraphicsHints graphicsHints = new GraphicsHints();
 
     /**
      * Page selection for printing.
@@ -250,27 +276,13 @@ public class PlotControl
         super.finalize();
     }
 
-    /**
-     * Set the Graphics configuration object.
-     *
-     * @param config the graphics configuration object.
-     */
-    public void setConfig( PlotConfig config )
-    {
-        plot.setConfig( config );
-        if ( config != null ) {
-            dataLimits.setDataLimits( config.getDataLimits() );
-        }
-    }
 
     /**
-     * Get the Graphics configuration object.
-     *
-     * @return reference to the current graphics configuration object.
+     * Get the PlotConfiguration being used by the DivaPlot.
      */
-    public PlotConfig getConfig()
+    public PlotConfiguration getPlotConfiguration()
     {
-        return plot.getConfig();
+        return plot.getPlotConfiguration();
     }
 
     /**
@@ -321,14 +333,14 @@ public class PlotControl
 
         //  Add the SimpleDataLimitControls to quickly choose a cut on the Y
         //  range.
-        dataLimits = new SimpleDataLimitControls( new DataLimits(), this );
+        simpleDataLimits = new SimpleDataLimitControls( dataLimits, this );
         gbc.anchor = GridBagConstraints.EAST;
         gbc.gridx = 5;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.gridheight = 1;
         gbc.weightx = 0.0;
-        controlPanel.add( dataLimits, gbc );
+        controlPanel.add( simpleDataLimits, gbc );
 
         //  Add the coordinate display labels to the controlPanel.
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -814,12 +826,43 @@ public class PlotControl
     }
 
     /**
+     * Look for postscript printing services (in the absence of any
+     * proper services).
+     */
+    protected PrintService[] getPostscriptPrintServices()
+    {       
+        FileOutputStream outstream;
+        StreamPrintService psPrinter;
+        String psMimeType = "application/postscript";
+
+        StreamPrintServiceFactory[] factories =
+            PrinterJob.lookupStreamPrintServices( psMimeType );
+        if ( factories.length > 0 ) {
+            try {
+                outstream = new FileOutputStream( new File( "out.ps" ));
+                PrintService[] services = new PrintService[1];
+                services[0] =  factories[0].getPrintService( outstream );
+                return services;
+            }
+            catch (FileNotFoundException e) {
+                //  No postscript either.
+            }
+        }
+        return new PrintService[0];
+    }
+
+    /**
      * Make a printable copy of the Plot content.
      */
     public void print()
     {
         PrinterJob pj = PrinterJob.getPrinterJob();
         PrintService[] services = PrinterJob.lookupPrintServices(); 
+        if ( services.length == 0 ) {
+            // No print services are available (i.e. no valid local
+            // printers), can we still print to a postscript file?
+            services = getPostscriptPrintServices();
+        }
         if ( services.length > 0 ) {
 
             //  Create the default PrintRequestAttributeSet if not done
@@ -1235,14 +1278,11 @@ public class PlotControl
 
         // Check if the X or Y data limits are supposed to match the
         // viewable surface or not.
-        DataLimits dataLimits = getConfig().getDataLimits();
-        if ( dataLimits != null ) {
-            if ( dataLimits.isXFit() ) {
-                fitToWidth();
-            }
-            if ( dataLimits.isYFit() ) {
-                fitToHeight();
-            }
+        if ( dataLimits.isXFit() ) {
+            fitToWidth();
+        }
+        if ( dataLimits.isYFit() ) {
+            fitToHeight();
         }
     }
 
@@ -1370,5 +1410,23 @@ public class PlotControl
             // Do nothing
         }
     }
+
+//
+// Implement PlotController interface. Note that the updatePlot()
+// method is part of this
+//
+    public void setPlotColour( Color color )
+    {
+        plot.setBackground( color );
+    }
+    
+    public Frame getPlotCurrentFrame()
+    {
+        // Use the FrameSet of the current spectrum.
+        return (Frame) plot.getSpecDataComp().getAst().getRef();
+    }
+    
 }
+
+
 

@@ -33,15 +33,19 @@ import javax.swing.event.EventListenerList;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.grf.DefaultGrf;
+import uk.ac.starlink.ast.gui.ColourStore;
+import uk.ac.starlink.ast.gui.GraphicsEdges;
+import uk.ac.starlink.ast.gui.GraphicsHints;
+import uk.ac.starlink.ast.gui.PlotConfiguration;
+import uk.ac.starlink.ast.gui.AstTicks;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.iface.PlotConfig;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.ast.grf.DefaultGrf;
 
 /**
  * Plots an astronomical spectra using a Swing component with Diva graphics
@@ -152,9 +156,34 @@ public class DivaPlot
      * Object that contains a description of the non-spectral AST properties
      * of the plot (i.e. labels etc.).
      */
-    protected PlotConfig config = null;
+    protected PlotConfiguration config = new PlotConfiguration();
 
     /**
+     * Object that contains a description of the data limits to be
+     * applied.
+     */
+    protected DataLimits dataLimits = new DataLimits();
+
+     /**
+     * Object that contains a description of how much of the edge
+     * regions are to be retained.
+     */
+    protected GraphicsEdges graphicsEdges = new GraphicsEdges();
+
+    /**
+     * Object that contains a description of what hints should be used
+     * when drawing the graphics.
+     */
+    protected GraphicsHints graphicsHints = new GraphicsHints();
+
+    /**
+     * Object that contains the colour used for the component
+     * background.
+     */
+    protected ColourStore backgroundColourStore = 
+        new ColourStore( "background" );
+
+     /**
      * Special pane for displaying interactive graphics.
      */
     protected DivaPlotGraphicsPane graphicsPane = null;
@@ -175,6 +204,7 @@ public class DivaPlot
         throws SplatException
     {
         super();
+        initConfig();
         initSpec( spectra );
     }
 
@@ -189,12 +219,29 @@ public class DivaPlot
         throws SplatException
     {
         super();
+        initConfig();
         SpecDataFactory factory = SpecDataFactory.getReference();
         SpecDataComp spectrum;
         SpecData specData;
         specData = factory.get( file );
         spectrum = new SpecDataComp( specData );
         initSpec( spectrum );
+    }
+
+    /**
+     * Initialize the PlotConfiguration object to one that provides
+     * all the facilities that can be used to configure this.
+     * <p>
+     * This adds a GraphicsEdges, GraphicsHints and ColourStore
+     * objects. The ColourStore is setup to control the Plot
+     * background.
+     */
+    protected void initConfig()
+    {
+        config.add( graphicsHints );
+        config.add( graphicsEdges );
+        config.add( backgroundColourStore );
+        config.add( dataLimits );
     }
 
     /**
@@ -347,23 +394,54 @@ public class DivaPlot
     }
 
     /**
-     * Set the AST graphics configuration object.
+     * Get the AST graphics configuration object.
      *
-     * @param config The new config value
+     * @return The PlotConfiguration reference.
      */
-    public void setConfig( PlotConfig config )
+    public PlotConfiguration getPlotConfiguration()
     {
-        this.config = config;
+        return config;
     }
 
     /**
-     * Get the AST graphics configuration object.
+     * Get the DataLimits configuration object.
      *
-     * @return The PlotConfig reference.
+     * @return The DataLimits reference.
      */
-    public PlotConfig getConfig()
+    public DataLimits getDataLimits()
     {
-        return config;
+        return dataLimits;
+    }
+
+    /**
+     * Get the GraphicsEdges configuration object.
+     *
+     * @return The GraphicsEdges reference.
+     */
+    public GraphicsEdges getGraphicsEdges()
+    {
+        return graphicsEdges;
+    }
+
+    /**
+     * Get the GraphicsHints configuration object.
+     *
+     * @return The GraphicsHints reference.
+     */
+    public GraphicsHints getGraphicsHints()
+    {
+        return graphicsHints;
+    }
+
+    /**
+     * Get the ColourStore that can be used to control the
+     * background.
+     *
+     * @return The background ColourStore.
+     */
+    public ColourStore getBackgroundColourStore()
+    {
+        return backgroundColourStore;
     }
 
     /**
@@ -413,17 +491,16 @@ public class DivaPlot
     }
 
     /**
-     * Set the range of any plotted axes. These can be overridden by values in
-     * the DataLimits object supplied by the config object, or set to the
-     * minimum/maximum of the data values.
+     * Set the range of any plotted axes. These can be overridden by
+     * values in the DataLimits object, or set to the minimum/maximum
+     * of the data values.
      */
     public void setDataLimits()
     {
-        if ( config == null ) {
+        if ( dataLimits == null ) {
             setAutoLimits();
         }
         else {
-            DataLimits dataLimits = config.getDataLimits();
             if ( dataLimits.isYAutoscaled() || dataLimits.isXAutoscaled() ) {
                 setAutoLimits();
             }
@@ -482,7 +559,7 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed width. Follow this with a 
+     * Fit spectrum to the displayed width. Follow this with a
      * setScale( 1, x ), to update the display.
      */
     public void fitToWidth()
@@ -605,8 +682,8 @@ public class DivaPlot
     protected void drawSpectra()
     {
         double[] limits = null;
-        if ( config != null ) {
-            if ( config.getGraphicsEdges().isClipped() ) {
+        if ( graphicsEdges != null ) {
+            if ( graphicsEdges.isClipped() ) {
                 limits = new double[4];
                 limits[0] = xMin;
                 limits[1] = yMin;
@@ -669,11 +746,17 @@ public class DivaPlot
             String current = astref.getC( "Current" );
             String base = astref.getC( "Base" );
             astref.set( "Base=" + current );
+
             if ( config != null ) {
-                astJ.astPlot( this, baseBox,
-                    config.getGraphicsEdges().getXFrac(),
-                    config.getGraphicsEdges().getYFrac(),
-                    config.getAst() );
+                if ( graphicsEdges != null ) {
+                    astJ.astPlot( this, baseBox,
+                                  graphicsEdges.getXFrac(),
+                                  graphicsEdges.getYFrac(),
+                                  config.getAst() );
+                }
+                else {
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, config.getAst() );
+                }
             }
             else {
                 astJ.astPlot( this, baseBox, 0.05, 0.0, "" );
@@ -690,7 +773,9 @@ public class DivaPlot
             //  labels when zoomed.
             double xGap = 0.0;
             if ( config != null ) {
-                config.getAstTicks().getXGap();
+                AstTicks astTicks = 
+                    (AstTicks) config.getControlsModel( AstTicks.class );
+                xGap = astTicks.getXGap();
             }
             if ( xGap == 0.0 || xGap == DefaultGrf.BAD ) {
 
@@ -725,8 +810,8 @@ public class DivaPlot
 
         //  Use antialiasing for either the text, lines and text, or
         //  nothing.
-        if ( config != null ) {
-            config.applyRenderingHints( (Graphics2D) g );
+        if ( graphicsHints != null ) {
+            graphicsHints.applyRenderingHints( (Graphics2D) g );
         }
 
         //  Repaint all graphics.

@@ -29,7 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import uk.ac.starlink.splat.iface.DecimalField;
+import uk.ac.starlink.ast.gui.DecimalField;
 
 /**
  * This class provides any JPEG utilities used in SPLAT. At present
