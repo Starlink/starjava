@@ -1,0 +1,341 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "../project.dtd">
+
+<!--
+ !  NDArray build file (temporary)
+ !
+ !   This file describes how to install the local NDArray package from its
+ !   released state. It requires Apache ANT and a Java Development Kit.
+ !
+ !   The main targets are:
+ !
+ !      build            -> does nothing
+ !      clean            -> does nothing
+ !      deinstall        -> undo the install target
+ !      dist             -> does nothing (this package is already in
+ !                          the dist state).
+ !      export           -> creates the full distribution archives
+ !      export-runonly   -> same as export
+ !      export-source    -> same as export
+ !      install          -> install distribution into Starlink tree
+ !      install-runonly  -> same as install
+ !      jars             -> does nothing
+ !      javadocs         -> does nothing
+ !
+ !   The targets that do nothing are provided for compatibility with
+ !   the normal build system.
+ !!
+ !! test targets yet to be done.
+ !!
+ !   Authors:
+ !      Peter W. Draper (9-JUL-2002)
+ !
+ !   Version:
+ !      $Id$
+ !
+ !-->
+
+<project name="Build file for NDArray" default="build" basedir=".">
+
+  <!-- If this file exists then any properties contained within it
+   !   will override those defined here -->
+  <property file=".properties"/>
+
+  <!-- Properties will also be set for all environment variables
+   !   (PATH becomes "env.PATH"), generally not a good
+   !   idea as names are OS dependent -->
+  <property environment="env"/>
+
+  <!--
+   !  =================
+   !  Global Properties
+   !  =================
+   !-->
+
+  <!-- Directory for the Starlink installation (usually /star/java)-->
+  <property name="star.dir" value="${basedir}/../../"/>
+
+  <!-- Directory to install into (install target, usually /star/java)-->
+  <property name="star.install" value="${star.dir}"/>
+
+  <!-- Directory that contains the Starlink jar tree -->
+  <property name="star.jar.dir" value="${star.dir}/lib"/>
+
+  <!-- Directory that contains the locally built sources (usually
+   !   /star/java/source for full distribution) -->
+  <property name="star.build.dir" value="${basedir}/../"/>
+
+  <!--
+   !  ================
+   !  Local Properties
+   !  ================
+   !-->
+
+  <!-- Define the package name and current versions -->
+  <property name="Name" value="NDArray"/>
+  <property name="name" value="ndarray"/>
+  <property name="version" value="0.1"/>
+
+  <!-- Extra task options, if any -->
+  <property name="chmod.fail" value="false"/>
+
+  <!-- Distribution directories, these are the actual state of this
+   !   package at all times -->
+  <property name="dist.dir" value="${basedir}"/>
+
+  <property name="dist.bin" value="${dist.dir}/bin"/>
+  <property name="dist.lib" value="${dist.dir}/lib"/>
+  <property name="dist.docs" value="${dist.dir}/docs"/>
+
+  <property name="dist.bin.pkg" value="${dist.dir}/bin/${name}"/>
+  <property name="dist.lib.pkg" value="${dist.dir}/lib/${name}"/>
+  <property name="dist.docs.pkg" value="${dist.dir}/docs/${name}"/>
+  
+  <!-- Version for zipped/tarred export files. -->
+  <property name="dist.version" value="${name}-${version}"/>
+
+  <!-- File for logging the files that are copied by the install target -->
+  <property name="install.log" value=".${name}.install"/>
+  <property name="install.overwrite" value="true"/>
+
+  <!--
+   !   =================
+   !   Prepare the build
+   !   =================
+   !
+   !  Do any jobs that are required before any other target can proceed.
+   !-->
+  <target name="prepare">
+
+    <tstamp>
+      <format property="year" pattern="yyyy"/>
+    </tstamp>
+
+  </target>
+
+  <!--
+   !   ==============
+   !   Build the code
+   !   ==============
+   !
+   !  Nothing to do.
+   !-->
+  <target name="build"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ===================
+   !   Create the jar file
+   !   ===================
+   !
+   !  Nothing to do.
+   !-->
+  <target name="jars"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   =============================
+   !   Create the local distribution
+   !   =============================
+   !
+   !  Nothing to do, this package is permanently in this condition.
+   !-->
+  <target name="dist"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ========================
+   !   Create the full releases
+   !   ========================
+   !
+   !  Creates the full "zip", "tar" and "bzip" archives of the
+   !  package.
+   !
+   !  The archive names are ${dist.version}.<ext>.
+   !-->
+  <target name="export"
+          description="-> creates the full distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ==========================
+   !   Create the source releases
+   !   ==========================
+   !
+   !  Creates the source only "zip", "tar" and "bzip" archives.
+   !  Same as export, except for the name.
+   !
+   !  The archive names are ${dist.version}-src.<ext>.
+   !-->
+  <target name="export-source"
+          description="-> creates the source distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}-src"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   !   ===========================
+   !   Create the runonly releases
+   !   ===========================
+   !
+   !  Creates the runonly "zip", "tar" and "bzip" archives of the
+   !  products of the "dist" target. Same as export, except for the
+   !  name.
+   !
+   !  The archive names are ${dist.version}-bin.<ext>.
+   !-->
+  <target name="export-runonly"
+          description="-> creates the runonly distribution archives">
+
+    <antcall target="create_archives">
+      <param name="archive.name" value="${dist.version}-bin"/>
+    </antcall>
+
+  </target>
+
+  <!--
+   ! Create release archives of the various types required.
+   ! For this package these are all the same just set the property
+   ! "archive.name" to define what name to use for the outfile files.
+   !-->
+  <target name="create_archives"
+          depends="dist">
+
+    <zip destfile="${archive.name}.zip">
+
+      <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <zipfileset dir="${dist.dir}" includes="build.xml" prefix="${name}"/>
+      <zipfileset dir="${dist.lib}" prefix="${name}/lib"/>
+
+    </zip>
+
+    <tar longfile="gnu" destfile="${archive.name}.tar">
+
+      <tarfileset dir="${dist.docs}" prefix="${name}/docs"/>
+      <tarfileset dir="${dist.dir}" prefix="${name}">
+        <include name="build.xml"/>
+      </tarfileset>
+      <tarfileset dir="${dist.lib}" prefix="${name}/lib"/>
+
+    </tar>
+
+    <gzip zipfile="${archive.name}.tar.gz" src="${archive.name}.tar"/>
+    <bzip2 zipfile="${archive.name}.tar.bz2" src="${archive.name}.tar"/>
+    <delete file="${archive.name}.tar"/>
+  </target>
+
+  <!--
+   !   ============================================
+   !   Cleans up build and distribution directories
+   !   ============================================
+   ! Does nothing.
+   !-->
+  <target name="clean"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   !   ================================
+   !   Install into the "Starlink" tree
+   !   ================================
+   !
+   ! Installs the package into another set of directories.
+   !
+   ! An installed system is potentially "undoable" as the copied names
+   ! are logged to "${install.log}".
+   !-->
+  <target name="install"
+          description="-> install distribution into Starlink tree">
+
+    <!-- Installation based directories (based on "star.install")-->
+    <property name="star.lib" value="${star.install}/lib"/>
+    <property name="star.docs" value="${star.install}/docs"/>
+
+    <mkdir dir="${star.install}"/>
+    <mkdir dir="${star.lib}"/>
+    <mkdir dir="${star.docs}"/>
+
+    <loggedcopy todir="${star.lib}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="false">
+      <fileset dir="${dist.lib}"/>
+    </loggedcopy>
+
+    <loggedcopy todir="${star.docs}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.docs}"/>
+    </loggedcopy>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Install runonly into the "Starlink" tree
+   !   =========================================
+   !
+   ! Same as install.
+   !-->
+  <target name="install-runonly"
+          description="-> install distribution into Starlink tree">
+
+     <antcall target="install"/>
+
+  </target>
+
+  <!--
+   !   ===================================
+   !   De-install from the "Starlink" tree
+   !   ===================================
+   !
+   ! Uses the content of the "${install.log}" to remove the files
+   ! that were copied into place by the install target.
+   !-->
+  <target name="deinstall"
+          description="-> undo the install target">
+
+    <loadfile property="files" srcFile="${install.log}"/>
+    <listdelete>
+      <filelist dir="/" files="${files}"/>
+    </listdelete>
+  </target>
+
+  <!--
+   !   =============================
+   !   Creates the API documentation
+   !   =============================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadocs"
+          description="-> does nothing">
+  </target>
+
+  <!--
+   ! Get a DTD for this build file. Documentation suggests may be incomplete!
+   !
+   ! Use:
+   !
+   !    <!DOCTYPE project PUBLIC "-//ANT//DTD project//EN" "./project.dtd">
+   !
+   ! at head of document to include.
+   !-->
+  <target name="dtd">
+     <antstructure output="project.dtd"/>
+  </target>
+
+</project>
