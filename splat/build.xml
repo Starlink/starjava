@@ -105,6 +105,9 @@
   <!-- Directory containing the java source (top of the namespace)-->
   <property name="java.dir" value="${src.dir}/main"/>
 
+  <!-- Directory containing miscellaneous docs -->
+  <property name="src.docs" value="${src.dir}/docs"/>
+
   <!-- Directory containing any script required to execute or setup package-->
   <property name="script.dir" value="${src.dir}/script"/>
 
@@ -183,9 +186,6 @@
 
     <!-- HDX -->
     <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
-
-    <!-- JSky -->
-    <pathelement location="${star.jar.dir}/jsky/jsky.jar"/>
 
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
@@ -396,7 +396,7 @@
 
     <!-- Build any shareable libraries needed to support this package.
      !   This goes straight into the distribution directory to save on
-     !   space, and to make it immediately available to locally build
+     !   space, and to make it immediately available to locally built
      !   packages  -->
     <antcall target="execute_mk_script">
       <param name="mk.action" value="build"/>
@@ -408,6 +408,7 @@
    !  ===================================
    !  Execute shareable library MK script
    !  ===================================
+   !
    !  Execute the "mk" script that creates the package shareable
    !  library. The action performed is controlled by the "mk.action"
    !  property that should be defined before an antcall to this
@@ -527,7 +528,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
-    <copy todir="${dist.docs}">
+    <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
 
@@ -732,6 +733,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
     <property name="star.lib.pkg" value="${star.lib}/${name}"/>
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
+
     <mkdir dir="${star.install}"/>
     <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
@@ -850,12 +852,16 @@ value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-             classpath="classpath">
+             classpathref="classpath">
 
       <!-- Exclude broken and test files etc. from the document -->
-      <fileset dir="src/main" defaultexcludes="yes">
-          <exclude name="**/images/**"/>
-          <exclude name="**/deploy.wsdd"/>
+      <fileset dir="${java.dir}" defaultexcludes="yes">
+        <include name="**/*.java"/>
+        <exclude name="**/retired_code/*"/>
+        <exclude name="**/*Test*"/>
+        <exclude name="**/ExtractNDFWCS2XML.java"/>
+        <exclude name="**/FITS.java"/>
+        <exclude name="**/*Holder.java"/>
       </fileset>
 
       <group title="${Name} API" packages="${package.name}*"/>
