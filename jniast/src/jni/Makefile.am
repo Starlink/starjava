@@ -19,48 +19,49 @@ libjniast_la_DEPENDENCIES =
 ## Extra includes defined by the caller (build.xml file).
 INCLUDES = $(INCADD)
 
-## We want to dlopen this library, so use -module. It's difficult to deal 
-## with versioning from Java, so don't have any -avoid-version (gets the 
-## file libjniast.so under UNIX). 
+## We want to dlopen this library, so use -module. It's difficult to deal
+## with versioning from Java, so don't have any -avoid-version (gets the
+## file libjniast.so under UNIX).
 libjniast_la_LDFLAGS = -module -avoid-version
 
 PRIVATE_INCLUDES = err_jniast.h  jniast.h
 
 C_ROUTINES = \
-   jniast.c \
-   err_jniast.c \
-   AstException.c \
-   AstObject.c \
-   Channel.c \
-   CmpFrame.c \
-   CmpMap.c \
-   FitsChan.c \
-   Frame.c \
-   FrameSet.c \
-   GrismMap.c \
-   IntraMap.c \
-   LutMap.c \
-   Mapping.c \
-   MathMap.c \
-   MatrixMap.c \
-   PcdMap.c \
-   PermMap.c \
-   Plot.c \
-   PolyMap.c \
-   SkyFrame.c \
-   SlaMap.c \
-   ShiftMap.c \
-   SpecFrame.c \
-   SpecMap.c \
-   SphMap.c \
-   TranMap.c \
-   UnitMap.c \
-   WcsMap.c \
-   WinMap.c \
-   ZoomMap.c \
-   GrfEscape.c
+ AstException.c \
+ AstObject.c \
+ Channel.c \
+ CmpFrame.c \
+ CmpMap.c \
+ DSBSpecFrame.c \
+ err_jniast.c \
+ FitsChan.c \
+ Frame.c \
+ FrameSet.c \
+ GrfEscape.c \
+ GrismMap.c \
+ IntraMap.c \
+ jniast.c \
+ LutMap.c \
+ Mapping.c \
+ MathMap.c \
+ MatrixMap.c \
+ PcdMap.c \
+ PermMap.c \
+ Plot.c \
+ PolyMap.c \
+ ShiftMap.c \
+ SkyFrame.c \
+ SlaMap.c \
+ SpecFrame.c \
+ SpecMap.c \
+ SphMap.c \
+ TranMap.c \
+ UnitMap.c \
+ WcsMap.c \
+ WinMap.c \
+ ZoomMap.c
 
-## If we switched to versioning the shareable library then the actual name 
+## If we switched to versioning the shareable library then the actual name
 ## could be determined by the following code. Would need a method to get this
 ## out to Java.
 ##getdlname = grep 'dlname=' libjniast.la | sed -e 's:dlname=::' -e s:\'::g
