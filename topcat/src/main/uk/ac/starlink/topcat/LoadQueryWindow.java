@@ -22,11 +22,11 @@ import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * Dialogue for user to enter a new table location for loading.
- * The dialogue can be invoked using the {@link #getAnyStarTable}
- * or {@link #getRandomStarTable} methods.
+ * The dialogue can be invoked using the {@link #loadAnyStarTable}
+ * or {@link #loadRandomStarTable} methods.
  * This dialogue is not modal; if and when the user specifies a valid
  * table location, that table will be instantiated and the 
- * {@link #loadTable} method will be called on it at that time.
+ * {@link #performLoading} method will be called on it at that time.
  * <p>
  * If one of the <tt>get*StarTable</tt> methods is called, before another
  * one is completed (before the user has specified a table), the other
