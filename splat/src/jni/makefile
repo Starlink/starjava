@@ -48,10 +48,9 @@ JAVA_SYSTEM = unknown
 #  Home for the Java development system needed to compile any JNI
 #  code. Note this rule assumes this is installed in the Starlink
 #  tree, this is unlikely as JDKs may not be distributed and this
-#  place normally only contains a JRE. The name of the installation
-#  directory is stored as line in the file.
+#  place normally only contains a JRE. 
 
-JAVA_HOME = `cat $(STARLINK)/java/jdkhome`
+JAVA_HOME = $(STARLINK)/java/jdk
 
 #  Include directories for the Java development system. Notes from
 #  above also apply here (i.e. these directories will not exist on
