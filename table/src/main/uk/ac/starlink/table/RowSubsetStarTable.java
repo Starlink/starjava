@@ -74,7 +74,10 @@ public class RowSubsetStarTable extends WrapperStarTable {
         return new RowSequence() {
             RowSequence baseSeq = baseTable.getRowSequence();
             int iBase = -1;
-            int iSubset = -1;
+
+            public boolean hasNext() {
+                return mask.nextSetBit( iBase + 1 ) >= 0;
+            }
 
             public void next() throws IOException {
                 int nextBase = mask.nextSetBit( iBase + 1 );
@@ -84,28 +87,10 @@ public class RowSubsetStarTable extends WrapperStarTable {
                 }
                 int nskip = nextBase - iBase;
                 assert nskip > 0;
-                baseSeq.advance( nskip );
-                iBase += nskip;
-                iSubset++;
-            }
-
-            public boolean hasNext() {
-                return mask.nextSetBit( iBase + 1 ) >= 0;
-            }
-
-            public void advance( long nrows ) throws IOException {
-                int nrow = checkedLongToInt( nrows );
-                int pos = iBase;
-                for ( int i = 0; i < nrow; i++ ) {
-                    pos = mask.nextSetBit( pos + 1 );
-                    if ( pos < 0 ) {
-                        throw new IOException( "Table too short" );
-                    }
+                while ( nskip-- > 0 ) {
+                    baseSeq.next();
+                    iBase++;
                 }
-                int baseSkip = pos - iBase;
-                baseSeq.advance( baseSkip );
-                iBase += baseSkip;
-                iSubset += nrow;
             }
 
             public Object getCell( int icol ) throws IOException {
@@ -114,10 +99,6 @@ public class RowSubsetStarTable extends WrapperStarTable {
 
             public Object[] getRow() throws IOException {
                 return baseSeq.getRow();
-            }
-
-            public long getRowIndex() {
-                return iSubset;
             }
 
             public void close() throws IOException {

@@ -35,20 +35,12 @@ public class WrapperRowSequence implements RowSequence {
         return baseSeq.hasNext();
     }
 
-    public void advance( long nrows ) throws IOException {
-        baseSeq.advance( nrows );
-    }
-
     public Object getCell( int icol ) throws IOException {
         return baseSeq.getCell( icol );
     }
 
     public Object[] getRow() throws IOException {
         return baseSeq.getRow();
-    }
-
-    public long getRowIndex() {
-        return baseSeq.getRowIndex();
     }
 
     public void close() throws IOException {

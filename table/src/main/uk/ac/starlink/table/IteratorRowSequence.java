@@ -15,7 +15,6 @@ public class IteratorRowSequence implements RowSequence {
 
     private Iterator rowIt;
     private Object[] currentRow;
-    private long irow = -1L;
 
     /**
      * Constructs a new RowSequence from an Iterator.
@@ -36,38 +35,11 @@ public class IteratorRowSequence implements RowSequence {
     }
 
     public void next() throws IOException {
-        if ( hasNext() ) {
-            try {
-                currentRow = (Object[]) rowIt.next();
-                irow++;
-            }
-            catch ( PackagedIOException e ) {
-                throw (IOException) e.getCause();
-            }
-        }
-        else {
-            throw new IllegalStateException( "No next row" );
-        }
-    }
-
-    public void advance( long nrows ) throws IOException {
-        if ( nrows < 0 ) {
-            throw new IllegalArgumentException( "nrows < 0" );
-        }
-        else {
-            while ( nrows > 0 ) {
-                if ( hasNext() ) {
-                    next();
-                }
-                else {
-                    throw new IOException( "Beyond last row" );
-                }
-            }
-        }
+        currentRow = (Object[]) rowIt.next();
     }
 
     public Object[] getRow() {
-        if ( irow == -1 ) {
+        if ( currentRow == null ) {
             throw new IllegalStateException( "No current row" );
         }
         else {
@@ -77,10 +49,6 @@ public class IteratorRowSequence implements RowSequence {
 
     public Object getCell( int icol ) {
         return getRow()[ icol ];
-    }
-
-    public long getRowIndex() {
-        return irow;
     }
 
     public void close() {

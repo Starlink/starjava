@@ -378,8 +378,6 @@ public class FormatsTest extends TestCase {
             assertTrue( rseq2.hasNext() );
             rseq1.next();
             rseq2.next();
-            long lrow = rseq1.getRowIndex();
-            assertEquals( lrow, rseq2.getRowIndex() );
             Object[] row1 = rseq1.getRow();
             Object[] row2 = rseq2.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
@@ -553,14 +551,14 @@ public class FormatsTest extends TestCase {
                 nels[ icol ] = nel;
             }
         }
+        long lrow = 0;
         for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
             rseq.next();
             for ( int icol = 0; icol < ncol; icol++ ) {
                 Object[] row = rseq.getRow();
                 Object cell = row[ icol ];
                 if ( isRandom ) {
-                    assertScalarOrArrayEquals( cell, 
-                                  st.getCell( rseq.getRowIndex(), icol ) );
+                    assertScalarOrArrayEquals( cell, st.getCell( lrow, icol ) );
                 }
                 assertScalarOrArrayEquals( cell, rseq.getCell( icol ) );
                 if ( cell != null && cell.getClass().isArray() ) {
@@ -579,6 +577,7 @@ public class FormatsTest extends TestCase {
                                 c1.isAssignableFrom( c2 ) );
                 }
             }
+            lrow++;
         }
     }
 

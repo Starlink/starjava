@@ -69,7 +69,8 @@ public class TextTableWriter implements StarTableWriter {
         boolean allRowsSampled = false;
         RowSequence srseq = startab.getRowSequence();
         try {
-            while ( srseq.hasNext() && srseq.getRowIndex() < sampledRows ) {
+            for ( long lrow = 0; srseq.hasNext() && lrow < sampledRows; 
+                  lrow++ ) {
                 srseq.next();
                 Object[] row = srseq.getRow();
                 for ( int i = 0; i < ncol; i++ ) {

@@ -219,7 +219,6 @@ public class JoinStarTable extends AbstractStarTable {
 
         RowSequence[] rseqs;
         RowSequence[] rseqsByColumn;
-        long index = -1L;
 
         JoinRowSequence() throws IOException {
             rseqs = new RowSequence[ nTab ];
@@ -240,7 +239,6 @@ public class JoinStarTable extends AbstractStarTable {
             for ( int itab = 0; itab < nTab; itab++ ) {
                 rseqs[ itab ].next();
             }
-            index++;
         }
 
         public boolean hasNext() {
@@ -250,13 +248,6 @@ public class JoinStarTable extends AbstractStarTable {
                 }
             }
             return true;
-        }
-
-        public void advance( long nrows ) throws IOException {
-            for ( int itab = 0; itab < nTab; itab++ ) {
-                rseqs[ itab ].advance( nrows );
-            }
-            index += nrows;
         }
 
         public Object getCell( int icol ) throws IOException {
@@ -273,10 +264,6 @@ public class JoinStarTable extends AbstractStarTable {
             }
             assert icol == nCol;
             return row;
-        }
-
-        public long getRowIndex() {
-            return index;
         }
 
         public void close() throws IOException {

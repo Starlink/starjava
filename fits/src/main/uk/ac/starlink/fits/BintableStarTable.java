@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nom.tam.fits.FitsException;
@@ -157,30 +158,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
                             lrow++;
                         }
                         else {
-                            throw new IllegalStateException( 
-                                          "No more rows" );
+                            throw new NoSuchElementException();
                         }
-                    }
-                    public void advance( long inc ) throws IOException {
-                        if ( inc < 0 ) {
-                            throw new IllegalArgumentException(
-                                          "Negative advance not allowed" );
-                        }
-                        else if ( inc + lrow >= nrow ) {
-                            throw new IOException( "Attempt to advance " +
-                                                   "off end of table" );
-                        }
-                        if ( row == null ) {
-                            IOUtils.skipBytes( stream, (long) rowLength );
-                        }
-                        else {
-                            row = null;
-                        }
-                        if ( inc > 1 ) {
-                            IOUtils.skipBytes( stream, 
-                                               ( inc - 1 ) * rowLength );
-                        }
-                        lrow += inc;
                     }
                     public Object getCell( int icol ) throws IOException {
                         return getRow()[ icol ];
@@ -194,9 +173,6 @@ public abstract class BintableStarTable extends AbstractStarTable {
                             row = readRow( stream );
                         }
                         return row;
-                    }
-                    public long getRowIndex() {
-                        return lrow;
                     }
                     public void close() throws IOException {
                         stream.close();

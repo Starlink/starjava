@@ -35,16 +35,6 @@ public class RowSubsetTest extends TestCase {
         for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
             rseq.next();
             count++;
-            assertEquals( count, (int) rseq.getRowIndex() + 1 );
-        }
-        assertEquals( nrows, count );
-
-        count = 0;
-        for ( RowSequence rseq = st.getRowSequence(); rseq.hasNext(); ) {
-            int nskip = Math.min( 15, nrows - count );
-            count += nskip;
-            rseq.advance( nskip );
-            assertEquals( count, (int) rseq.getRowIndex() + 1 );
         }
         assertEquals( nrows, count );
     }

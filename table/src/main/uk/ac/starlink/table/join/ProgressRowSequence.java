@@ -18,6 +18,7 @@ public class ProgressRowSequence extends WrapperRowSequence {
     private final double nrow_;
     private final ProgressIndicator indicator_;
     private boolean closed;
+    private long lrow_;
 
     /**
      * Constructs a new ProgressRowSequence.
@@ -39,7 +40,12 @@ public class ProgressRowSequence extends WrapperRowSequence {
      */
     public void nextProgress() throws IOException, InterruptedException {
         next();
-        indicator_.setLevel( getRowIndex() / nrow_ );
+        indicator_.setLevel( lrow_ / nrow_ );
+    }
+
+    public void next() throws IOException {
+        super.next();
+        lrow_++;
     }
 
     /**

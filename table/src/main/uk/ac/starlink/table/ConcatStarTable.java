@@ -97,7 +97,6 @@ public class ConcatStarTable extends WrapperStarTable {
     private class ConcatRowSequence implements RowSequence {
         final Iterator tabIt_ = Arrays.asList( tables_ ).iterator();
         RowSequence rseq_ = EMPTY_SEQUENCE;
-        long extraRows_;
         boolean finished_;
 
         public void next() throws IOException {
@@ -116,7 +115,6 @@ public class ConcatStarTable extends WrapperStarTable {
             }
             else {
                 while ( ! rseq_.hasNext() ) {
-                    extraRows_ += rseq_.getRowIndex() + 1;
                     try {
                         rseq_.close();
                     }
@@ -146,17 +144,6 @@ public class ConcatStarTable extends WrapperStarTable {
             rseq_.close();
         }
 
-        public void advance( long nrow ) throws IOException {
-            while ( nrow-- > 0 ) {
-                if ( hasNext() ) {
-                    next();
-                }
-                else {
-                    throw new IOException( "Off end of table" );
-                }
-            }
-        }
-
         public Object getCell( int icol ) throws IOException {
             return rseq_.getCell( icol );
         }
@@ -164,22 +151,15 @@ public class ConcatStarTable extends WrapperStarTable {
         public Object[] getRow() throws IOException {
             return rseq_.getRow();
         }
-
-        public long getRowIndex() {
-            return rseq_.getRowIndex() + extraRows_;
-        }
     }
 
     /**
-     * RowSequence throws an IOException whenever possible.
+     * RowSequence that throws an IOException whenever possible.
      */
     private static class ErrorRowSequence implements RowSequence {
         final IOException ex_;
         ErrorRowSequence( IOException ex ) {
             ex_ = ex;
-        }
-        public void advance( long nrows ) throws IOException {
-            throw ex_;
         }
         public Object getCell( int icol ) throws IOException {
             throw ex_;
@@ -189,9 +169,6 @@ public class ConcatStarTable extends WrapperStarTable {
         }
         public void next() throws IOException {
             throw ex_;
-        }
-        public long getRowIndex() {
-            return 0L;
         }
         public boolean hasNext() {
             return true;  // otherwise the exception will never get seen

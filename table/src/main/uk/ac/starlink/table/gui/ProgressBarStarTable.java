@@ -39,12 +39,14 @@ public class ProgressBarStarTable extends WrapperStarTable {
         final long every = nrow > 0 ? nrow / 200L : 256; 
         return new WrapperRowSequence( baseTable.getRowSequence() ) {
             long counter;
+            int irow;
             Runnable updater = new Runnable() {
                 public void run() {
-                    progBar.setValue( (int) getRowIndex() );
+                    progBar.setValue( irow );
                 }
             };
             public void next() throws IOException {
+                irow++;
                 if ( --counter < 0 ) {
                     SwingUtilities.invokeLater( updater );
                     counter = every;

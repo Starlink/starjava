@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
@@ -270,38 +271,6 @@ public class JDBCStarTable extends AbstractStarTable {
                 }
             }        
 
-            public void advance( long nrow ) throws IOException {
-                if ( nrow >= 0 ) {
-
-                    /* Can't use relative on a non-random ResultSet. */
-                    try {
-                        while ( nrow-- > 0 ) {
-                            boolean valid = rset.next();
-                            if ( ! valid ) {
-                                throw new IOException( "Reached end of table" );
-                            }
-                        }
-                    }
-                    catch ( SQLException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
-                    }
-                }
-                else {
-                    throw new IllegalArgumentException( "nrow < 0" );
-                }
-            }
-
-            public long getRowIndex() {
-                try {
-                    return (long) rset.getRow() - 1;
-                }
-                catch ( SQLException e ) {
-                    logger.warning( "Error getting row index: " + e );
-                    return 0L;
-                }
-            }
-
             public boolean hasNext() {
                 try {
                     return ! rset.isLast();
@@ -315,7 +284,7 @@ public class JDBCStarTable extends AbstractStarTable {
             public Object getCell( int icol ) throws IOException {
                 try {
                     if ( rset.isBeforeFirst() ) {
-                        throw new IllegalStateException( "No current row" );
+                        throw new NoSuchElementException( "No current row" );
                     }
                     else {
                         return getPackagedCell( rset, icol );
@@ -330,7 +299,7 @@ public class JDBCStarTable extends AbstractStarTable {
             public Object[] getRow() throws IOException {
                 try {
                     if ( rset.isBeforeFirst() ) {
-                        throw new IllegalStateException( "No current row" );
+                        throw new NoSuchElementException( "No current row" );
                     }
                     else {
                         Object[] row = new Object[ ncol ];

@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * An implementation of <tt>RowSequence</tt> which obtains its data
@@ -37,28 +38,11 @@ public class RandomRowSequence implements RowSequence {
         return irow < getRowCount() - 1;
     }
 
-    public void next() throws IOException {
+    public void next() {
         if ( ! hasNext() ) {
-            throw new IllegalStateException( "No next row" );
+            throw new NoSuchElementException();
         }
         irow++;
-    }
-
-    public void advance( long nrows ) throws IOException {
-        if ( nrows < 0 ) {
-            throw new IllegalArgumentException( "Negative argument " + nrows );
-        }
-        if ( nrows + irow >= getRowCount() ) {
-            irow = nrows - 1;
-            throw new IOException( "Beyond last row" );
-        }
-        else {
-            irow += nrows;
-        }
-    }
-
-    public long getRowIndex() {
-        return irow;
     }
 
     public Object[] getRow() throws IOException {

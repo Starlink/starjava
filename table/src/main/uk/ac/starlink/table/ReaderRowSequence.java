@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Partial implementation of <tt>RowSequence</tt> suitable for subclassing
@@ -16,18 +17,16 @@ public abstract class ReaderRowSequence implements RowSequence {
     private Object[] nextRow;
     private Object[] row;
     private IOException pendingException;
-    long lrow;
 
     public ReaderRowSequence() throws IOException {
         nextRow = readRow();
-        lrow = -1L;
     }
 
     /**
      * Acquires the next row of objects from the input stream.
      * When there are no more rows to read this method must return
      * <tt>null</tt>; note it should <em>not</em> throw an
-     * <tt>EOFException</tt>.
+     * exception to indicate this fact.
      * Otherwise it must return an array of objects representing 
      * the row content for the next row.
      *
@@ -38,29 +37,14 @@ public abstract class ReaderRowSequence implements RowSequence {
 
     public void next() throws IOException {
         if ( ! hasNext() ) {
-            throw new IllegalStateException( "No more rows" );
+            throw new NoSuchElementException();
         }
         row = nextRow;
         nextRow = readRow();
-        lrow++;
     }
 
     public boolean hasNext() {
         return nextRow != null;
-    }
-
-    public void advance( long nrows ) throws IOException {
-        if ( nrows >= 0 ) {
-            for ( long irow = 0; irow < nrows; irow++ ) {
-                row = nextRow;
-                nextRow = readRow();
-                lrow++;
-                if ( row == null ) {
-                    throw new IOException( 
-                        "Attempt to read beyond the last row" );
-                }
-            }
-        }
     }
 
     public Object getCell( int icol ) {
@@ -75,10 +59,6 @@ public abstract class ReaderRowSequence implements RowSequence {
             throw new IllegalStateException( "No current row" );
         }
         return row;
-    }
-
-    public long getRowIndex() {
-        return lrow;
     }
 
     /**

@@ -187,7 +187,6 @@ public class Tables {
         long lrow = 0L;
         while ( rseq.hasNext() ) {
             rseq.next();
-            assertTrue( lrow == rseq.getRowIndex() );
             Object[] row = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
 
