@@ -79,10 +79,11 @@ public class SuperCosmos {
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians
+     * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String sssCutoutBlue( double ra, double dec ) {
-        return sssCutout( ra, dec, 128, BLUE );
+    public static String sssCutoutBlue( double ra, double dec, int pixels ) {
+        return sssCutout( ra, dec, pixels, BLUE );
     }
 
     /**
@@ -91,10 +92,11 @@ public class SuperCosmos {
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians
+     * @param  pixels  dimension of the displayed image
      * @return  short log message
      */
-    public static String sssCutoutRed( double ra, double dec ) {
-        return sssCutout( ra, dec, 128, RED );
+    public static String sssCutoutRed( double ra, double dec, int pixels ) {
+        return sssCutout( ra, dec, pixels, RED );
     }
 
     /**
