@@ -22,6 +22,7 @@ import javax.swing.AbstractButton;
 import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
+import jsky.coords.WorldCoordinateConverter;
 import jsky.navigator.NavigatorImageDisplay;
 import jsky.util.gui.DialogUtil;
 import jsky.image.ImageProcessor;
@@ -40,10 +41,10 @@ import uk.ac.starlink.hdx.Ndx;
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 
-public class SOGNavigatorImageDisplay 
-    extends NavigatorImageDisplay 
+public class SOGNavigatorImageDisplay
+    extends NavigatorImageDisplay
 {
     /**
      * Reference to the HDXImage displaying the NDX, if any.
@@ -67,14 +68,14 @@ public class SOGNavigatorImageDisplay
     private boolean ndxLoading = false;
 
     //  Repeat all constructors.
-    public SOGNavigatorImageDisplay( Component parent ) 
+    public SOGNavigatorImageDisplay( Component parent )
     {
         super( parent );
     }
 
     /**
      * Accept an DOM element that contains an NDX for display. NDX
-     * equivalent of setFilename. 
+     * equivalent of setFilename.
      */
     public void setNDX( Element element )
     {
@@ -88,7 +89,7 @@ public class SOGNavigatorImageDisplay
         //  Create and load the PlanarImage that wraps the HDXImage,
         //  that accepts the DOM NDX!
         try {
-            PlanarImage im = 
+            PlanarImage im =
                 PlanarImage.wrapRenderedImage( new HDXImage( element, 0 ) );
             ndxLoading = true;
             setImage(im);
@@ -110,7 +111,7 @@ public class SOGNavigatorImageDisplay
     /**
      * Update the enabled states of some menu/toolbar actions.
      */
-    protected void updateEnabledStates() 
+    protected void updateEnabledStates()
     {
         super.updateEnabledStates();
         if ( ndxLoading ) {
@@ -123,14 +124,14 @@ public class SOGNavigatorImageDisplay
     }
 
 
-    /** 
+    /**
      * This method is called before and after a new image is loaded,
-     * each time with a different argument. 
+     * each time with a different argument.
      *
      * @param before set to true before the image is loaded and false
-     *               afterwards 
+     *               afterwards
      */
-    protected void newImage( boolean before ) 
+    protected void newImage( boolean before )
     {
         if ( before ) {
             if ( hdxImage != null ) {
@@ -142,7 +143,7 @@ public class SOGNavigatorImageDisplay
         else if ( getFitsImage() == null ) {
 
             // Check if it is a HDX, and if so, get the HDXImage
-            // object which is needed to initialize WCS.             
+            // object which is needed to initialize WCS.
             PlanarImage im = getImage();
             if ( im != null ) {
                 Object o = im.getProperty("#ndx_image");
@@ -160,9 +161,9 @@ public class SOGNavigatorImageDisplay
 
     /**
      * Initialize the world coordinate system, if the image properties
-     * (keywords) support it 
+     * (keywords) support it
      */
-    protected void initWCS() 
+    protected void initWCS()
     {
         if ( getFitsImage() != null ) {
             super.initWCS();
@@ -203,10 +204,10 @@ public class SOGNavigatorImageDisplay
     /**
      * Add an action to draw or remove a grid overlay.
      */
-    private AbstractAction gridAction = 
-        new AbstractAction( "Grid" ) 
+    private AbstractAction gridAction =
+        new AbstractAction( "Grid" )
         {
-            public void actionPerformed( ActionEvent evt ) 
+            public void actionPerformed( ActionEvent evt )
             {
                 AbstractButton b = (AbstractButton) evt.getSource();
                 if ( b.isSelected() ) {
@@ -217,7 +218,7 @@ public class SOGNavigatorImageDisplay
                 }
             }
         };
-    public AbstractAction getGridAction() 
+    public AbstractAction getGridAction()
     {
         return gridAction;
     }
@@ -250,33 +251,40 @@ public class SOGNavigatorImageDisplay
      */
     public void doPlot()
     {
-        if ( getWCS() == null || ! getWCS().isWCS() ) {
+        // Check we have a transform and it understands AST (codecs
+        // for non-NDX types will in general not).
+        WorldCoordinateConverter transform = getWCS();
+        if ( transform == null ||
+             ! getWCS().isWCS() ||
+             ! ( transform instanceof AstTransform ) ) {
+            System.out.println( "Not an AstTransform" );
+            astPlot = null;
             return;
         }
-
+        System.out.println( "Is an AstTransform" );
         CoordinateConverter cc = getCoordinateConverter();
-        FrameSet frameSet = ((AstTransform)getWCS()).getFrameSet();
-        
+        FrameSet frameSet = ((AstTransform)transform).getFrameSet();
+
         //  Use the limits of the image to determine the graphics position.
         double[] canvasbox = new double[4];
         Point2D.Double p = new Point2D.Double();
-        
+
         p.setLocation( 1.0, 1.0 );
         cc.imageToScreenCoords( p, false );
         canvasbox[0] = p.x;
         canvasbox[1] = p.y;
-        
+
         p.setLocation( getImageWidth(), getImageHeight() );
         cc.imageToScreenCoords( p, false );
         canvasbox[2] = p.x;
         canvasbox[3] = p.y;
-        
+
         int xo = (int) Math.min( canvasbox[0], canvasbox[2] );
         int yo = (int) Math.min( canvasbox[1], canvasbox[3] );
         int dw = (int) Math.max( canvasbox[0], canvasbox[2] ) - xo;
         int dh = (int) Math.max( canvasbox[1], canvasbox[3] ) - yo;
         Rectangle graphRect = new Rectangle( xo, yo, dw, dh );
-        
+
         //  Transform these positions back into image
         //  coordinates. These are suitably "untransformed" from the
         //  graphics position and should be the bottom-left and
@@ -308,14 +316,16 @@ public class SOGNavigatorImageDisplay
     }
 
     //  Called when image needs repainting...
-    public synchronized void paintLayer(Graphics2D g2D, Rectangle2D region) 
+    public synchronized void paintLayer(Graphics2D g2D, Rectangle2D region)
     {
         super.paintLayer( g2D, region );
 
         //  Redraw a grid if required.
         if ( drawGrid ) {
             doPlot();
-            astPlot.paint( g2D );
+            if ( astPlot != null ) {
+                astPlot.paint( g2D );
+            }
         }
     }
 
@@ -323,7 +333,6 @@ public class SOGNavigatorImageDisplay
     //  application when being tested.
     public void exit()
     {
-        boolean doExit = false;
         if ( doExit ) {
             super.exit();
         }
