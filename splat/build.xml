@@ -824,6 +824,15 @@ jsci_core.jar jsci_wavelet.jar ../astgui/astgui.jar ../ndx/ndx.jar
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
 
+    <loggedcopy todir="${star.etc}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.etc}"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.etc.pkg}
+</echo>
+
   </target>
 
   <!--
