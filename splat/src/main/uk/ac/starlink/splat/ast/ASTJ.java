@@ -262,19 +262,6 @@ public class ASTJ implements Serializable
     }
 
     /**
-     *  Create an AST lutmap.
-     *
-     *  @param lut    = the lut values
-     *  @param start  = input coordinate value that corresponds to
-     *                  first lut entry
-     *  @param incr   = lut spacing
-     */
-    public LutMap astLutMap( double[] lut, double start, double incr )
-    {
-        return new LutMap( lut, start, incr );
-    }
-
-    /**
      *  Create an AstPlot reference to fit a given component.
      *
      *  @param comp    component that the plot will fit inside.
@@ -735,6 +722,7 @@ public class ASTJ implements Serializable
      */
     static public FrameSet get1DFrameSet( FrameSet frameset )
     {
+        // TODO: remove makeSpectral signature.
         return extract1DFrameSet( frameset, 1 );
     }
 
@@ -752,8 +740,8 @@ public class ASTJ implements Serializable
      *
      *  @return the new frameset for displaying a spectrum
      */
-    public FrameSet makeSpectral( int axis, int start, int end,
-                                  String label, String units, boolean dist )
+    public FrameSet makeSpectral( int axis, int start, int end, String label,
+                                  String units, boolean dist )
     {
         if ( astRef == null ) {
             return null;
@@ -762,18 +750,12 @@ public class ASTJ implements Serializable
         try {
 
             // Create a mapping that has the coordinate measure for one
-            // axis and a unitmap to plot the data values. Use a LutMap
-            // for the coordinate measurement along the GRID positions as
-            // we want to avoid the case when just using a PermMap to lose
-            // a second axis makes the mapping not invertable (i.e. for
-            // sky coordinates not providing RA and DEC inputs will always
-            // give AST__BAD).
+            // axis and a unitmap to plot the data values.
 
             // Get a simplified mapping from the base to current frames
             Mapping map = astRef.getMapping( FrameSet.AST__BASE,
                                              FrameSet.AST__CURRENT );
             Mapping smap = map.simplify();
-            map.annul();
 
             // Save a pointer to the current frame
             Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
@@ -783,41 +765,59 @@ public class ASTJ implements Serializable
 
             // And how input coordinates the base frame needs (ideally 1)
             int nin = astRef.getI( "Nin" );
+            Mapping xmap = null;
+            if ( nax != 1 || nin != 1 ) {
 
-            // Get memory for transformed GRID positions.
-            int dim = end - start;
-            double[] grid = new double[ dim * nin ];
+                // Multidimensional input/output. Use a LutMap for the
+                // coordinate measurement along the GRID positions as
+                // we want to avoid the case when just using a PermMap
+                // to lose a second axis makes the mapping not
+                // invertable (i.e. for sky coordinates not providing
+                // RA and DEC inputs will always give AST__BAD).
 
-            // Generate dim positions stepped along the GRID axis pixels
-            for ( int i = 0; i < dim; i++ ) {
-                for ( int j = 0; j < nin; j++ ) {
-                    grid[dim*j+i] = i + 1;
+                // Get memory for transformed GRID positions.
+                int dim = end - start;
+                double[] grid = new double[ dim * nin ];
+
+                // Generate dim positions stepped along the GRID axis pixels
+                for ( int i = 0; i < dim; i++ ) {
+                    for ( int j = 0; j < nin; j++ ) {
+                        grid[dim*j+i] = i + 1;
+                    }
                 }
-            }
 
-            // Transform these GRID positions into the current frame.
-            double[] coords = smap.tranN( dim, nin, grid, true, nax );
+                // Transform these GRID positions into the current frame.
+                double[] coords = smap.tranN( dim, nin, grid, true, nax );
 
-            double[] lutcoords = new double[ dim ];
-            if ( dist ) {
-                // Get the distance from the first GRID position to each
-                // of the others (remember the projected positions could
-                // be multidimensional and we need to "remove" this by
-                // converting to a distance along the projected GRID line)
-                coord2Dist( cfrm, dim, nax, coords, lutcoords );
+                double[] lutcoords = new double[ dim ];
+                if ( dist ) {
+                    // Get the distance from the first GRID position to each
+                    // of the others (remember the projected positions could
+                    // be multidimensional and we need to "remove" this by
+                    // converting to a distance along the projected GRID line)
+                    coord2Dist( cfrm, dim, nax, coords, lutcoords );
+                }
+                else {
+
+                    // Want coordinate, not distance so again transform from
+                    // coords to this measure (for same reason as above).
+                    coord2Oned( cfrm, axis - 1, dim, nax, coords, lutcoords );
+                }
+
+                // Create the LutMap for axis 1
+                xmap = new LutMap( lutcoords, 1.0, 1.0 );
+                smap.annul();
             }
             else {
 
-                // Want coordinate, not distance so again transform from
-                // coords to this measure (for same reason as above).
-                coord2Oned( cfrm, axis - 1, dim, nax, coords, lutcoords );
+                // The simplified mapping should do.
+                xmap = smap;
             }
 
-            // Create the LutMap for axis 1
-            Mapping xmap = new LutMap( lutcoords, 1.0, 1.0 );
-
             // Create a CmpMap using a unit mapping for the second axis.
-            map = new CmpMap( xmap, new UnitMap( 1 ), false );
+            map.annul();
+            UnitMap unitMap = new UnitMap( 1 );
+            map = new CmpMap( xmap, unitMap, false );
 
             // Frame representing input coordinates, uses GRID axis of
             // base frame and a default axis
@@ -846,7 +846,7 @@ public class ASTJ implements Serializable
             frame1.clear( "Title" );
 
             // Coordinate or distance-v-data frame, uses selected axis from
-            // the current frame and a default axis */
+            // the current frame and a default axis.
             iaxes[0] = axis;
             iaxes[1] = 0;
             Frame frame2 = cfrm.pickAxes( iaxes.length, iaxes, null );
@@ -889,6 +889,17 @@ public class ASTJ implements Serializable
             // and frame1 as base.
             result = new FrameSet( frame1 );
             result.addFrame( FrameSet.AST__BASE, map, frame2 );
+
+            //  Release various objects we've collected.
+            map.annul();
+            cfrm.annul();
+            if ( xmap != smap ) {
+                xmap.annul();
+            }
+            smap.annul();
+            unitMap.annul();
+            frame1.annul();
+            frame2.annul();
         }
         catch (Exception e) {
             // Just let it pass;

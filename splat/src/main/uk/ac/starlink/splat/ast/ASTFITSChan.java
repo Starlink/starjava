@@ -29,7 +29,7 @@ public class ASTFITSChan
      */
     public ASTFITSChan()
     {
-        fitsChan = new FitsChan();
+        this( null );
     }
 
     /**
@@ -40,8 +40,10 @@ public class ASTFITSChan
      */
     public ASTFITSChan( String encoding )
     {
-        super();
-        fitsChan.setEncoding( encoding );
+        fitsChan = new FitsChan();
+        if ( encoding != null ) {
+            fitsChan.setEncoding( encoding );
+        }
     }
 
     //  ===================
