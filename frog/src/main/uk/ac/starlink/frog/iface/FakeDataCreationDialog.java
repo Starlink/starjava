@@ -105,12 +105,7 @@ public class FakeDataCreationDialog extends JInternalFrame
      * TextEntryField for the period vlaue
      */   
      JTextField periodEntry = new JTextField();
-
-    /**
-     * TextEntryField for the error bar vlaue
-     */   
-     JTextField errorEntry = new JTextField(); 
-                          
+         
     /**
      * Period value
      */
@@ -120,27 +115,47 @@ public class FakeDataCreationDialog extends JInternalFrame
      * TextEntryField for the zero point vlaue
      */   
      JTextField zeroPointEntry = new JTextField();
-    
-    /**
-     * Noise checkbox, if ture noise will be generated and added to the data
-     */
-     JCheckBox noiseCheck = new JCheckBox(); 
-    
-    /**
-     * Create some fake error bars
-     */
-     JCheckBox errorCheck = new JCheckBox();  
-                              
-    /**
+                     
+   /**
      * Zero Point value
      */
      double zeroPoint;        
-                             
+
+    /**
+     * TextEntryField for the error bar vlaue
+     */   
+     JTextField errorEntry = new JTextField(); 
+                                              
     /**
      * Error bar value
      */
      double errorBar; 
-                        
+
+    /**
+     * TextEntryField for the scatter value
+     */   
+     JTextField scatterEntry = new JTextField(); 
+
+    /**
+     * JLabel for the scatter value
+     */   
+     JLabel scatterLabel = new JLabel();  
+                                                 
+    /**
+     * scatter value
+     */
+     double scatter;  
+        
+    /**
+     * Noise checkbox, if ture noise will be generated and added to the data
+     */
+     JCheckBox noiseCheck = new JCheckBox(); 
+   
+    /**
+     * Create some scatter in the points
+     */
+     JCheckBox scatterCheck = new JCheckBox();  
+                                 
     /**
      * Frog object that this is being created from...
      */
@@ -150,12 +165,6 @@ public class FakeDataCreationDialog extends JInternalFrame
      * Newly constructed  TimeSeries object
      */
      TimeSeries newSeries = null;
-    
-    /**
-     * Create an instance of the dialog and proceed to do arithmetic
-     *
-     * @param f The PlotControlFrame holding the TimeSeries of interest
-     */
          
     /** 
      * Boolean to say whether we're going to add noise to the fake data
@@ -166,7 +175,18 @@ public class FakeDataCreationDialog extends JInternalFrame
      * Boolean to say whether we're going to create fake errors
      */
      boolean addError;
+                  
+    /** 
+     * Boolean to say whether we're going to add scatter to the X values
+     */
+     boolean addScatter;
      
+    
+    /**
+     * Create an instance of the dialog and proceed to do arithmetic
+     *
+     * @param f The PlotControlFrame holding the TimeSeries of interest
+     */
     public FakeDataCreationDialog( )
     {
         super( "Fake Data", false, true, false, false );
@@ -238,11 +258,14 @@ public class FakeDataCreationDialog extends JInternalFrame
        
        JLabel errorLabel = new JLabel("<html>&nbsp;Y Error Bar&nbsp;<html>");
        errorLabel.setBorder( BorderFactory.createEtchedBorder() );
-       errorEntry.setColumns(15);            
+       errorEntry.setColumns(14);            
 
        // create the check panel
        // ----------------------
-       noiseCheck.setText("Add Box-Muller noise");
+       
+       // Y - Data noise
+       // --------------
+       noiseCheck.setText("Add Box-Muller noise to Y data");
        noiseCheck.addItemListener( new ItemListener() {
          public void itemStateChanged(ItemEvent e) {
             if( e.getStateChange() == ItemEvent.SELECTED ) {
@@ -252,27 +275,32 @@ public class FakeDataCreationDialog extends JInternalFrame
             }
          }
        });
-       JPanel noiseCheckPanel = new JPanel( new BorderLayout() );      
-       noiseCheckPanel.add( noiseCheck, BorderLayout.EAST );  
+ 
+       // X-Data scatter
+       // -------------- 
        
-       //errorCheck.setText("Add errror bars");
-       //errorCheck.addItemListener( new ItemListener() {
-       //  public void itemStateChanged(ItemEvent e) {
-       //     if( e.getStateChange() == ItemEvent.SELECTED ) {
-       //          addError = true;
-       //     } else {
-       //          addError = false;
-       //     }
-       //  }
-       //});       
-       //JPanel errorCheckPanel = new JPanel( new BorderLayout() );      
-       //errorCheckPanel.add( errorCheck, BorderLayout.EAST );
-                
-       JPanel checkPanel = new JPanel( new BorderLayout() );      
-       checkPanel.add( noiseCheckPanel, BorderLayout.NORTH );            
-       //checkPanel.add( errorCheckPanel, BorderLayout.SOUTH );            
+       // scatter check box
+       scatterCheck.setText("Add scatter to X data");
+       scatterCheck.addItemListener( new ItemListener() {
+         public void itemStateChanged(ItemEvent e) {
+            if( e.getStateChange() == ItemEvent.SELECTED ) {
+                 addScatter = true;
+                 scatterLabel.setVisible(true);
+                 scatterEntry.setVisible(true);
+            } else {
+                 addScatter = false;
+                 scatterLabel.setVisible(false);
+                 scatterEntry.setVisible(false);                 
+            }
+         }
+       });       
+     
 
-
+       // label and entry widgets
+       scatterLabel = new JLabel("<html>&nbsp;X Data Scatter&nbsp;<html>");
+       scatterLabel.setBorder( BorderFactory.createEtchedBorder() );
+       scatterEntry.setColumns(14);
+       
        // Stuff them into the main panel
        // ------------------------------
 
@@ -354,8 +382,28 @@ public class FakeDataCreationDialog extends JInternalFrame
              
        constraints.gridx = 1;  
        constraints.gridy = 8;        
-       mainPanel.add( errorEntry, constraints );          
-                                    
+       mainPanel.add( errorEntry, constraints );
+       
+       constraints.gridx = 0;  
+       constraints.gridy = 9;        
+       constraints.gridwidth = 2;       
+       mainPanel.add( noiseCheck, constraints );                 
+       constraints.gridwidth = 1;       
+       
+       constraints.gridx = 0;  
+       constraints.gridy = 10;        
+       constraints.gridwidth = 2;       
+       mainPanel.add( scatterCheck, constraints );  
+       constraints.gridwidth = 1;       
+         
+       constraints.gridx = 0;  
+       constraints.gridy = 11;        
+       mainPanel.add( scatterLabel, constraints ); 
+             
+       constraints.gridx = 1;  
+       constraints.gridy = 11;        
+       mainPanel.add( scatterEntry, constraints );       
+       
        // create the button panels
        JPanel buttonPanel = new JPanel( new BorderLayout() );
        JPanel buttons = new JPanel( new BorderLayout() );
@@ -409,11 +457,11 @@ public class FakeDataCreationDialog extends JInternalFrame
        contentPane.setLayout( new BorderLayout() );
        
        contentPane.add(mainPanel, BorderLayout.NORTH );
-       contentPane.add(checkPanel, BorderLayout.CENTER );
        contentPane.add(buttonPanel, BorderLayout.SOUTH );
        
        pack();
-
+       scatterLabel.setVisible(false);
+       scatterEntry.setVisible(false);    
     }
 
     /**
@@ -434,6 +482,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          String periodString = periodEntry.getText();
          String zeroPointString = zeroPointEntry.getText();
          String errorString = errorEntry.getText();
+         String scatterString = scatterEntry.getText();
         
          // define floating or Java will have a cow
          num = 0; // int!
@@ -444,6 +493,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          period = 0.0;
          zeroPoint = 0.0;
          errorBar = 0.0;
+         scatter = 0.0;
         
          // convert primitive types
          try {
@@ -555,7 +605,24 @@ public class FakeDataCreationDialog extends JInternalFrame
              errorBar = 0.0;
              addError = false;
          } 
-                          
+         
+         if( addScatter ) {
+            try {
+                // if we get a valid value, create errors
+                scatter = (new Double(scatterString)).doubleValue();
+            } catch ( Exception e ) {
+                debugManager.print( "      Invalid X-Data Scatter..." );
+                dispose();      
+                JOptionPane message = new JOptionPane();
+                message.setLocation( this.getLocation() );
+                message.showMessageDialog( this,
+                                           "Invalid entry: " + e.getMessage(),
+                                           "Invalid X-Data scatter entered",
+                                           JOptionPane.ERROR_MESSAGE);
+                return false;
+            }  
+         }
+                                  
          // We have valid entries, at least in theory
          debugManager.print( "      Number     " + numString );
          debugManager.print( "      Start      " + lowString );
@@ -565,6 +632,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          debugManager.print( "      Period     " + periodString ); 
          debugManager.print( "      Zero Point " + zeroPointString );
          debugManager.print( "      Error Bar  " + errorString );
+         debugManager.print( "      Scatter    " + scatterString );
          
          // Hide the dialog, we'll dispose of it later...
          hide();
@@ -635,6 +703,13 @@ public class FakeDataCreationDialog extends JInternalFrame
              
              // fill the xData array
              xData[k] = low + ((double)k*step);
+             
+             // add scatter
+             if( addScatter ) {
+                double harvest = Math.random();
+                harvest = 2.0*(harvest - 0.5 ); // random number -1 to 1
+                xData[k] = xData[k] + harvest*scatter;
+             }   
              
              // calculate the sin() at x position
              yData[k] = 
