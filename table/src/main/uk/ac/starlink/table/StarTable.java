@@ -10,7 +10,7 @@ import java.util.List;
  * which has one entry for each column.
  * The entry in each column is of the same type (or at least a subtype
  * of a given type) for each row; this type can be determined using
- * the {@link ColumnHeader} objects returned by {@link #getHeader}.
+ * the {@link ColumnInfo} objects returned by {@link #getColumnInfo}.
  * The first row and the first column are numbered 0.
  * <p>
  * A <tt>StarTable</tt> has a current row, which is used for certain
@@ -53,36 +53,25 @@ public interface StarTable {
     long getRowCount();
 
     /**
-     * Returns the metadata object associated with this table.
-     * The metadata is a map of key-value pairs, in which each key 
-     * is a String object.
-     *
-     * @return  a map containing metadata items
-     */
-    Map getMetadata();
-
-    /**
-     * Sets the metadata object associated with this table.
-     * The metadata is a map of key-value pairs, in which each key 
-     * is a String object.
-     *
-     * @param  metadata a map containing metadata items
-     */
-    void setMetadata( Map metadata );
-
-    /**
-     * Returns an ordered list of the strings which may crop up as keys in the
-     * metadata maps returned by the <tt>metadata</tt> method of all the
-     * <tt>ColumnHeader</tt> objects associated with this table.
+     * Returns an ordered list of {@link ValueInfo} objects representing 
+     * the auxiliary metadata returned by 
+     * <tt>getColumnInfo(int).getAuxData()</tt> calls.
+     * The idea is that the resulting list can be used to find out 
+     * the kind of per-column metadata which can be expected to be found 
+     * in some or all columns of this table.  Each item in the returned
+     * list should have a unique name, and other characteristics which are
+     * applicable to auxData items which may be returned from any of
+     * the columns in this table.
+     * <p>
      * The order of the list may indicate some sort of natural ordering
      * of these keys.  The returned list is not guaranteed to be complete;
-     * it is legal to return an empty set if nothing is known about
-     * metadata.  The list ought not to contain duplicate elements.
+     * it is legal to return an empty list if nothing is known about
+     * auxiliary metadata.  The list ought not to contain duplicate elements.
      *
      * @return  an unmodifiable ordered set of known metadata keys
-     * @see  ColumnHeader#getMetadata
+     * @see  ColumnInfo#getAuxData
      */
-    List getColumnMetadataKeys();
+    List getColumnAuxDataInfos();
 
     /**
      * Indicates whether random access is provided by this table.
@@ -96,12 +85,33 @@ public interface StarTable {
     boolean isRandom();
 
     /**
-     * Returns the header object describing the data in a given column.
+     * Returns the object describing the data in a given column.
      *
      * @param   icol  the column for which header information is required
-     * @return  a header object for column <tt>icol</tt>
+     * @return  a ValueInfo object for column <tt>icol</tt>
      */
-    ColumnHeader getHeader( int icol );
+    ColumnInfo getColumnInfo( int icol );
+
+    /**
+     * Returns a list of table parameters, that is items which pertain to
+     * the entire table.  Each element of this list must be a 
+     * {@link DescribedValue} object.
+     *
+     * @return  a <tt>List</tt> of <tt>DescribedValue</tt> objects 
+     *          constituting table-wide metadata not covered elsewhere 
+     *          in this interface
+     */
+    List getParameters();
+
+    /**
+     * Returns a parameter (table-wide metadata item) of this table located
+     * by its name.  If more than one parameter with the given name
+     * exists, an arbitrary one will be returned.  If no parameter with
+     * the given name exists, <tt>null</tt> will be returned.
+     *
+     * @param   parname  the name of the table parameter required
+     */
+    DescribedValue getParameterByName( String parname );
 
     /**
      * Advances the current row by 1.  
@@ -161,8 +171,8 @@ public interface StarTable {
     /**
      * Returns the contents of a cell in the current row.
      * The class of the returned object should be the same as, 
-     * or a subclass of, the class returned by the corresponding 
-     * {@link ColumnHeader#getContentClass} call.
+     * or a subclass of, the class returned by 
+     * <tt>getColumnInfo(icol).getContentClass()</tt>.
      *
      * @return  the contents of cell <tt>icol</tt> in the current row
      * @throws IOException  if there is an error reading the data
@@ -174,8 +184,8 @@ public interface StarTable {
     /**
      * Returns the contents of a given table cell.  
      * The class of the returned object should be the same as, 
-     * or a subclass of, the class returned by the corresponding 
-     * {@link ColumnHeader#getContentClass} call.
+     * or a subclass of, the class returned by
+     * <tt>getColumnInfo(icol).getContentClass()</tt>.
      * The current row is reset to <tt>irow</tt>.
      *
      * @param  irow  the index of the cell's row

@@ -29,72 +29,22 @@ public class Tables {
 
         /* Otherwise, we need to construct a table based on the sequential
          * table that acts random. */
-        return new ScratchStarTable( startab );
+        return new RowScratchTable( startab );
     }
 
-    private static class ScratchStarTable extends RandomStarTable {
-
-        private StarTable basetab;
-        private int ncol;
-        private long nrow;
-        private List rows = new ArrayList();
-
-        public ScratchStarTable( StarTable basetab ) throws IOException {
-            this.basetab = basetab;
-            ncol = basetab.getColumnCount();
-
-            /* Check we don't have an unfeasible number of rows. */
-            nrow = basetab.getRowCount();
-            if ( nrow > Integer.MAX_VALUE ) {
-                throw new IllegalArgumentException( 
-                    "Table " + basetab + " has too many rows (" + 
-                    nrow + " > Integer.MAX_VALUE)" );
-            }
-
-            /* If we don't know the number of rows, we have to load all the
-             * data in now so we do. */
-            else if ( nrow < 0 ) {
-                long irow;
-                for ( irow = 0; basetab.hasNext(); irow++ ) {
-                    basetab.next();
-                    rows.add( basetab.getRow() );
-                    if ( irow > Integer.MAX_VALUE ) {
-                        throw new IllegalArgumentException( 
-                            "Table " + basetab + " has too many rows (" + 
-                            " > Integer.MAX_VALUE)" );
-                    }
-                }
-                nrow = irow;
-            }
+    /**
+     * Convenience method to return an array of all the column headers
+     * in a given table.  Modifying this array will not affect the table.
+     *
+     * @param  startab  the table being enquired about
+     * @return an array of all the column headers
+     */
+    public static ColumnInfo[] getColumnInfos( StarTable startab ) {
+        int ncol = startab.getColumnCount();
+        ColumnInfo[] infos = new ColumnInfo[ ncol ];
+        for ( int i = 0; i < ncol; i++ ) {
+            infos[ i ] = startab.getColumnInfo( i );
         }
-
-        public int getColumnCount() {
-            return ncol;
-        }
-
-        public ColumnHeader getHeader( int icol ) {
-            return basetab.getHeader( icol );
-        }
-
-        public long getRowCount() {
-            return nrow;
-        }
-
-        protected Object[] doGetRow( long lrow ) throws IOException {
-            assert (int) nrow == nrow;
-            int irow = (int) lrow;
-
-            /* If we haven't got this far in the base table yet, read rows
-             * from it until we have. */
-            for ( long toRead = irow - rows.size(); toRead >= 0; toRead-- ) {
-                basetab.next();
-                rows.add( basetab.getRow() );
-            }
-
-            /* Return the row that we have now definitely read from our
-             * interal row store. */
-            assert irow < rows.size();
-            return (Object[]) rows.get( irow );
-        }
+        return infos;
     }
 }

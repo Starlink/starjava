@@ -30,6 +30,8 @@ import java.util.regex.Pattern;
  * all UCDs</a>.
  *
  * @author   Mark Taylor (Starlink)
+ * @see   <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
+ *        Content Descriptors</a>
  */
 public class UCD {
 

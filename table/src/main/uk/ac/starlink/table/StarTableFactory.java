@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLDataSource;
 
@@ -17,6 +18,7 @@ import uk.ac.starlink.util.URLDataSource;
  * {@link TableBuilder} objects; the generic input is passed to each one
  * in turn until one can make a <tt>StarTable</tt> from it, which object
  * is returned to the caller.
+ * JDBC is also used to create tables under appropriate circumstances.
  * <p>
  * By default, if the corresponding classes are present, the following
  * TableBuilders are installed:
@@ -30,6 +32,7 @@ import uk.ac.starlink.util.URLDataSource;
 public class StarTableFactory {
 
     private List builders;
+    private JDBCHandler jdbcHandler;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.fits.FitsTableBuilder",
@@ -41,7 +44,7 @@ public class StarTableFactory {
     public StarTableFactory() {
         builders = new ArrayList( 2 );
 
-        /* Attempt to add a FitsTableBuilder if the class is available. */
+        /* Attempt to add default handlers if they are available. */
         for ( int i = 0; i < defaultBuilderClasses.length; i++ ) {
             String className = defaultBuilderClasses[ i ];
             try {
@@ -125,17 +128,23 @@ public class StarTableFactory {
 
     /**
      * Constructs a readable <tt>StarTable</tt> from a location string,
-     * which can represent a filename or URL.
+     * which can represent a filename or URL, including a <tt>jdbc:</tt>
+     * protocol URL if an appropriate JDBC driver is installed.
      *
      * @param  location  the name of the table resource
      * @return a new StarTable view of the resource at <tt>location</tt>
      * @throws UnknownTableFormatException if no handler capable of turning
-     *        <tt>datsrc</tt> into a table is available
+     *        <tt>location</tt> into a table is available
      * @throws IOException  if one of the handlers encounters an error
      *         constructing a table
      */
     public StarTable makeStarTable( String location ) throws IOException {
-        return makeStarTable( DataSource.makeDataSource( location ) );
+        if ( location.startsWith( "jdbc:" ) ) {
+            return getJdbcHandler().makeStarTable( location );
+        }
+        else {
+            return makeStarTable( DataSource.makeDataSource( location ) );
+        }
     }
 
     /**
@@ -150,6 +159,13 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( URL url ) throws IOException {
         return makeStarTable( new URLDataSource( url ) );
+    }
+
+    private JDBCHandler getJdbcHandler() {
+        if ( jdbcHandler == null ) {
+            jdbcHandler = new JDBCHandler();
+        }
+        return jdbcHandler;
     }
   
 }
