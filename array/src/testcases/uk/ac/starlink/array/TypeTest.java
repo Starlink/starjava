@@ -103,4 +103,12 @@ public class TypeTest extends TestCase {
         assertEquals( double.class, Type.DOUBLE.javaClass() );
     }
 
+    public void testMinMax() {
+        for ( Iterator it = Type.allTypes().iterator(); it.hasNext(); ) {
+            Type type = (Type) it.next();
+            assertTrue( type.minimumValue() < type.maximumValue() );
+            assertTrue( ! ( type.minimumValue() > type.maximumValue() ) );
+        }
+    }
+
 }
