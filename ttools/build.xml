@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   TTOOLS build file
  !
- !   This file describes how to build and install {Package}
- !   from a source and binary release. {Package} is an application
+ !   This file describes how to build and install TTOOLS
+ !   from a source and binary release. TTOOLS is an application
  !   package, i.e. provides user-level commands and interfaces, as
  !   well as an optional programming API.
  !
@@ -32,7 +32,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for TTOOLS" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -78,12 +78,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="TTOOLS"/>
+  <property name="name" value="ttools"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.ttools"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -146,7 +146,7 @@
   <property name="dist.docs" value="${dist.dir}/docs"/>
   <property name="dist.etc" value="${dist.dir}/etc"/>
 
-  <property name="dist.bin.pkg" value="${dist.bin}/${name}"/>
+  <property name="dist.bin.pkg" value="${dist.bin}"/>
   <property name="dist.lib.pkg" value="${dist.lib}/${name}"/>
   <property name="dist.docs.pkg" value="${dist.docs}/${name}"/>
   <property name="dist.etc.pkg" value="${dist.etc}/${name}"/>
@@ -195,11 +195,12 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
+    <!-- UTIL -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
 
-    <!-- {More packages} -->
+    <!-- TABLE -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -209,12 +210,8 @@
    !-->
   <extclasspath id="built.jarpath">
 
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
-
-    <!-- {More packages} -->
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -333,7 +330,7 @@
    !    tasks should be moved into the ANT package if used outside of this
    !    package.
    !-->
-  <taskdef resource="extra-tasks.properties" classpathref="classpath"/>
+  <!-- <taskdef resource="extra-tasks.properties" classpathref="classpath"/> -->
 
   <!--
    !    =========================================
@@ -347,21 +344,17 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
+    <!-- UTIL -->
+    <available property="util.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+               classname="uk.ac.starlink.util.DataSource"/>
+    <fail message="No UTIL available" unless="util.present"/>
 
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
+    <!-- TABLE -->
+    <available property="table.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No TABLE available" unless="table.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -423,10 +416,8 @@
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
+      <exclude name="**/RandomJELRowReader.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
@@ -471,7 +462,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Main-Class" value="{package.main.class}"/>
+        <attribute name="Main-Class" value="uk.ac.starlink.ttools.TableTool"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
@@ -501,61 +492,18 @@
   <target name="webstart"
           description="-> create webstart descriptor files">
 
-    <!-- Create a webstart JNLP file for this application.
-     !   Note this goes into "dist.lib", not the package dependent lib.
-     !-->
-    <mkdir dir="${dist.lib}"/>
-    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
-          codebase="${webstart.codebase}">
-
-      <information>
-         <title>{Package} - {description}</title>
-         <vendor>Starlink UK</vendor>
-         <homepage href="${home.page}"/>
-         <icon href="${webstart.starlink_logo}"/>
-         <description>Starlink {Package} - Webstart edition</description>
-         <offline_allowed/>
-       </information>
-
-       <security>
-          <all_permissions/>
-       </security>
-
-       <resources>
-         <j2se version="1.4+"/>
-
-         <!-- The application main jar file -->
-         <jar href="${name}/${name}.jar"/>
-
-         <!-- All other components and dependencies of this application.
-          !   Keep these in the component extension so this information is in
-          !   one place and so this application is usable by other 
-          !   applications). --> 
-         <extension name="{PACKAGE}-PARTS" href="${name}-parts.jnlp"/>
-
-         <!-- Other applications that this application uses. Note these
-          !   should not normally be named in the "parts" component to avoid
-          !   the possibility of circular dependencies. -->
-         <extension name="{App1}-PARTS" href="{app1}-parts.jnlp"/>
-         <extension name="{App2}-PARTS" href="{app2}-parts.jnlp"/>
-       </resources>
-
-       <!-- This an an application JNLP file. -->
-       <application_desc main_class="{main-class}"/>
-     </jnlp>
-
     <!-- Create a webstart JNLP file for this application as a component, 
      !   so that may be used by other applications. This goes into "dist.lib".
      !-->
-     <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
+     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>TTOOLS - auxiliary table manipulation utilities</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>Starlink {Package} - Webstart edition</description>
+         <description>Starlink TTOOLS - Webstart edition</description>
          <offline_allowed/>
        </information>
 
@@ -571,8 +519,11 @@
 
          <!-- Components that this component depends on (non applications
           !   named in the application jar file class-path). -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
+         <extension name="TAMFITS" href="tamfits.jnlp"/>
+         <extension name="FITS" href="fits.jnlp"/>
+         <extension name="MIRAGE" href="mirage.jnlp"/>
+         <extension name="VOTABLE" href="votable.jnlp"/>
        </resources>
 
        <!-- This is a component -->
@@ -615,9 +566,11 @@
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+  <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+  -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
