@@ -8,6 +8,9 @@
  *        Added table handling changes.
  *     26-AUG-2004 (Peter W. Draper):
  *        Added support for URLs.
+ *     08-OCT-2004 (Peter W. Draper):
+ *        Added support for collapsing and extracting spectra from
+ *        2 and 3D data.
  */
 package uk.ac.starlink.splat.data;
 

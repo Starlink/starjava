@@ -34,7 +34,9 @@ public class ExtractedSpecDataImpl
     extends MEMSpecDataImpl
 {
     /**
-     * Constructor for 2D data.
+     * Extract a line from a 2D image. The line lies along the dispersion axis
+     * (defined by the SpecDims object) and is selected by an index along the
+     * non-dispersion axis.
      *
      * @param parent the SpecData to extract a line from.
      * @param index the index of the line to extract.

@@ -13,6 +13,7 @@ import java.util.Arrays;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.OrderedNDShape;
@@ -68,7 +69,6 @@ public class CollapsedSpecDataImpl
         throws SplatException
     {
         super( parent.getFullName() );
-        this.shortName = "Collapsed (" + index + "): " + shortName;
         this.parentImpl = parent.getSpecDataImpl();
         collapseSection( parent, specDims, index );
         initMetaData( parent );
@@ -223,7 +223,33 @@ public class CollapsedSpecDataImpl
         }
 
         //  Create the FrameSet for this data. Note +1 for AST axes.
-        astref = ASTJ.extract1DFrameSet( parent.getFrameSet(), dispax + 1 );
+        FrameSet frameSet = parent.getFrameSet();
+        astref = ASTJ.extract1DFrameSet( frameSet, dispax + 1 );
+
+        //  Create a shortname that shows the original line position in world
+        //  coordinates. Assumes index is base coordinate and we have the same
+        //  number of input and output coordinates and their relationship is
+        //  "obvious" (i.e. watch out for PermMaps).
+        int ncoord_in = frameSet.getNaxes();
+        int selectaxis = specDims.getSelectAxis( false );
+        double[] in = new double[ncoord_in];
+        for ( int i = 0; i < ncoord_in; i++ ) {
+            if ( i == dispax ) {
+                in[i] = dims[specDims.realToSigAxis( i )] / 2;
+            }
+            else if ( i == selectaxis ) {
+                in[i] = (double) index;
+            }
+            else {
+                in[i] = 1.0;
+            }
+        }
+        double xyt[] = frameSet.tranN( 1, ncoord_in, in, true, ncoord_in );
+        frameSet.norm( xyt );
+
+        double coord = xyt[selectaxis];
+        String fcoord = frameSet.format( selectaxis + 1, coord );
+        this.shortName = "Collapsed (" + fcoord + "):" + shortName;
     }
 
     /**
