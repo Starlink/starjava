@@ -986,7 +986,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                         for ( int i = 0; i < count * 8; i++ ) {
                             stream.readByte();
                         }
-                        return "?? Unsupported P-type TFORM";
+                        return "(Variable-length arrays not supported)";
                     }
                 };
 
