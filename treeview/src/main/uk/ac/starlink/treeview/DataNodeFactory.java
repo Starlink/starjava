@@ -34,6 +34,33 @@ import java.text.*;
  * from the known implementing objects (the above list), and optionally
  * a list of preferences which may be examined and modified using 
  * supplied methods.
+ * <p>
+ * The factory has a list of DataNodeBuilder objects which it uses
+ * to try to construct nodes from any given object, be it a filename,
+ * string, XML source, or whatever.  the {@link #makeDataNode} method 
+ * passes the object to each suitable builder to see if it can turn 
+ * it into a DataNode, and returns the first successful result.
+ * Thus the list of DataNodeBuilders and its order determines what kind
+ * of DataNode you will get.
+ * <p>
+ * There are two types of builder in the list.  The first is generated
+ * by reflection on a number of DataNode-implementing classes as listed
+ * above.  These are made out of suitable (one-argument) constructors
+ * supplied by those classes.  The second type is a special one of
+ * type {@link FileDataNodeBuilder}.  This is smart and fast and 
+ * can make clever decisions about what kind of data node a given file
+ * should be turned into.
+ * <p>
+ * Initially a newly constructed DataNodeFactory has a 
+ * <tt>FileDataNodeBuilder</tt> at the head of the list, followed by
+ * ones got from constructors of the known DataNode implementations.
+ * This means that a file or string will get tackled first by 
+ * the clever class, but if that fails it will trawl through all the
+ * other possibilities.  Modifying the list of preferred classes
+ * using {@link #setNodeClassList} or {@link #setPreferredClass}
+ * will normally demote the <tt>FileDataNodeBuilder</tt> so that
+ * all node construction is done by brute force in strict order
+ * of classes in the class list.
  *
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
@@ -69,6 +96,7 @@ public class DataNodeFactory implements Cloneable {
      */
     public DataNodeFactory() {
         setNodeClassList( Arrays.asList( initialClasses ) );
+        builders.addAll( 0, getSpecialBuilders() );
     }
 
     /**
@@ -142,6 +170,16 @@ public class DataNodeFactory implements Cloneable {
         setNodeClassList( clist );
     }
 
+    /**
+     * Returns the list of builder objects actually used in sequence to
+     * try creating datanodes.
+     *
+     * @return  the list of builders in order
+     */
+    public List getBuilders() {
+        return builders;
+    }
+
     /** 
      * Generates a new DataNode from a given object.
      * This looks for constructors in the preferred classes list
@@ -202,7 +240,7 @@ public class DataNodeFactory implements Cloneable {
      */
     public String toString() {
         StringBuffer buf = 
-            new StringBuffer( "DataNodeFactory with builders: " );
+            new StringBuffer( "DataNodeFactory with builders:\n" );
         for ( Iterator bit = builders.iterator(); bit.hasNext(); ) {
             buf.append( "    " )
                .append( bit.next().toString() )
@@ -248,4 +286,43 @@ public class DataNodeFactory implements Cloneable {
             throw new AssertionError();
         }
     }
+
+    /**
+     * Returns a list of builders which, for a default DataNodeFactory,
+     * are invoked before any of the constructor-based ones.  
+     * These allow cleverer decisions to be made about what kind of
+     * node is generated from what object: if a given object 
+     * could make either a FooDataNode or a BarDataNode but would be
+     * better off as a BarDataNode, this can be done even if FooDataNode
+     * was higher in the class preference list for this factory.
+     * For the default configuration, this list should come first in
+     * the list of builders, if the user reconfigures the preferred
+     * class list it may slip lower down or disappear from the hierarchy.
+     */
+    public static List getSpecialBuilders() {
+
+        final DataNodeBuilder fileBuilder = FileDataNodeBuilder.getInstance();
+
+        DataNodeBuilder stringBuilder = new DataNodeBuilder() {
+            public boolean suitable( Class objClass ) {
+                return objClass.equals( String.class );
+            }
+            public DataNode buildNode( Object obj ) {
+                if ( ! ( obj instanceof String ) ) {
+                    return null;
+                }
+                return fileBuilder.buildNode( new File( (String) obj ) );
+            }
+            public String toString() {
+                return "special DataNodeBuilder (java.lang.String)";
+            }
+        };
+
+        List specials = new ArrayList();
+        specials.add( fileBuilder );
+        specials.add( stringBuilder );
+        return specials;
+    }
+
+
 }

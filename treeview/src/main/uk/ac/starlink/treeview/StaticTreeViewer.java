@@ -891,7 +891,7 @@ public class StaticTreeViewer extends JFrame {
      * actually of exactly the same sort, except that the reload one
      * happens to be of the same DataNode class as that of the 
      * existing node.  The reload one is done on demand, the alteregos
-     * are done preemptively (since otherwise we don't know which ones
+     * are created preemptively (since otherwise we don't know which ones
      * to offer).  
      *
      * In both cases they work by retrieving the original creation
@@ -902,10 +902,10 @@ public class StaticTreeViewer extends JFrame {
      */
     private JPopupMenu alterEgoPopup( final TreePath tpath ) {
         final DataNode dn = getDataNodeFromTreePath( tpath );
-        CreationState creator = dn.getCreator();
+        final CreationState creator = dn.getCreator();
         JPopupMenu popper = new JPopupMenu(); 
         if ( creator != null ) {
-            final DataNodeBuilder builder = creator.getBuilder();
+            final DataNodeBuilder origbuilder = creator.getBuilder();
             final Object cobj = creator.getObject();
 
             /* Add the reload menu item. */
@@ -914,12 +914,13 @@ public class StaticTreeViewer extends JFrame {
                 public void actionPerformed( ActionEvent evt ) {
                     DataNode newdn;
                     try {
-                        newdn = builder.buildNode( cobj );
+                        newdn = origbuilder.buildNode( cobj );
                         if ( newdn == null ) {
                             throw new NoSuchDataException( 
                                 "Data no longer available" );
                         }
                         newdn.setLabel( dn.getLabel() );
+                        newdn.setCreator( creator );
                     }
                     catch ( NoSuchDataException e ) {
                         newdn = new DefaultDataNode( e );
@@ -934,35 +935,52 @@ public class StaticTreeViewer extends JFrame {
 
             /* Add the alterego menu items, if any. */
             DataNodeFactory cfact = new DataNodeFactory();
-            List dnclasses = cfact.getNodeClassList();
+            List builders = cfact.getBuilders();
             List alteregos = new ArrayList();
-            for ( Iterator cit = dnclasses.iterator(); cit.hasNext(); ) {
-                Class dnclass = (Class) cit.next();
-                if ( dnclass != dn.getClass() ) {
-                    try {
-                        cfact.setNodeClassList( Collections
-                                               .singletonList( dnclass ) );
-                        final DataNode newdn = cfact.makeDataNode( cobj );
+            Set nodetypes = new HashSet();
+            nodetypes.add( dn.getClass() );
+ 
+            /* Go through the builders available when the DataNode was first
+             * created, trying to build a new DataNode with each one.
+             * Assemble a list of possible alteregos in this way. 
+             * If any of the datanodes created has the same class as one
+             * we've already got, don't bother putting it on the menu.
+             * Note this creates a lot of datanodes which probably will
+             * not be required, so you wouldn't really want to do it
+             * for every node ever made - OK for a popup menu but expensive
+             * to have it done preemptively. */
+            /* Should really do some node disposal here. */
+            for ( Iterator bit = builders.iterator(); bit.hasNext(); ) {
+                DataNodeBuilder builder = (DataNodeBuilder) bit.next();
+                if ( builder.suitable( cobj.getClass() ) ) {
+                    final DataNode newdn = builder.buildNode( cobj );
+                    if ( newdn == null || 
+                         nodetypes.contains( newdn.getClass() ) ) {
+                        // no new node, or we've already got one
+                    }
+                    else {
                         newdn.setLabel( dn.getLabel() );
-                        String text = newdn.getNodeTLA() + ": " 
+                        CreationState creat = 
+                            new CreationState( cfact, builder, cobj );
+                        newdn.setCreator( creat );
+                        String text = newdn.getNodeTLA() + ": "
                                     + newdn.toString();
                         Icon icon = newdn.getIcon();
                         Action act = new AbstractAction( text, icon ) {
                             public void actionPerformed( ActionEvent evt ) {
-                                DefaultMutableTreeNode newtn = 
+                                DefaultMutableTreeNode newtn =
                                     new DefaultMutableTreeNode( newdn );
-                                newtn.setAllowsChildren( newdn
-                                                        .allowsChildren() );
+                                newtn.setAllowsChildren( 
+                                    newdn.allowsChildren() );
                                 replaceNode( tpath, newtn );
                             }
                         };
                         alteregos.add( act );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        // creation failed - no action
+                        nodetypes.add( newdn.getClass() );
                     }
                 }
             }
+
             if ( alteregos.size() > 0 ) {
                 popper.addSeparator();
                 for ( Iterator it = alteregos.iterator(); it.hasNext(); ) {
