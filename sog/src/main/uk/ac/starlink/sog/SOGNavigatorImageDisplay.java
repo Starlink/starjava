@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    13-JUN-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     13-JUN-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.sog;
 
 import java.awt.Color;
@@ -33,6 +34,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
 //import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.jaiutil.HDXImage;
+import uk.ac.starlink.jaiutil.HDXImageProcessor;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 
@@ -71,7 +73,8 @@ public class SOGNavigatorImageDisplay
     //  Repeat all constructors.
     public SOGNavigatorImageDisplay( Component parent )
     {
-        super( parent );
+        //  Use an ImageProcessor with HDX support.
+        super( parent, new HDXImageProcessor() );
     }
 
     /**
