@@ -1305,11 +1305,12 @@ whether the column is displayed or not.
 </subsect>
 
 <subsect>
-<subhead><title>Window Types</title></subhead>
+<subhead><title>Global Windows</title></subhead>
 
-<p>This section provides a tour of all the windows that form part of TOPCAT.
-The main window is the <ref id="ControlWindow">Control Window</ref> and the
-others can in general be popped up from there.
+<p>This section provides a tour of all the windows which are not tied
+to a particular table.
+The main window is the <ref id="ControlWindow">Control Window</ref>;
+other windows can in general be popped up from there.
 </p>
 
 <subsubsect id="ControlWindow">
@@ -1346,6 +1347,11 @@ from TOPCAT:
 <dt>&IMG.LOAD; <ref id="load">Load Table</ref></dt>
 <dd><p>Pops up a dialogue from which a new table can be loaded 
     into the Table List panel.
+    </p></dd>
+
+<dt>&IMG.MATCH; <ref id="MatchWindow">Match window</ref></dt>
+<dd><p>Pops up a window which allows you to specify and execute various
+    row matching operations.
     </p></dd>
 
 <dt>&IMG.SAVE; <ref id="save">Save Table</ref></dt>
@@ -1489,6 +1495,358 @@ Here is what the individual items mean:
 </p>
 
 </subsubsect>
+
+<subsubsect id="MatchWindow">
+<subhead><title>Match Window</title></subhead>
+
+<p>The Match Window allows you to search tables for rows which
+"match" in some way. 
+In a typical scenario you might have two tables each representing 
+a catalogue of astronomical objects, and you want a
+third table with one row for each object which has an entry in both 
+of the original tables.  An object is defined as being the same one
+in both tables if the co-ordinates in both rows are "similar",
+for instance if the 
+difference between the positions indicated by RA and Dec columns
+differ by no more than a specified angle on the sky.
+There are a number of variations on this however - your match criteria
+might involve Cartesian coordinates instead of sky ones (or not be
+physical coordinates at all), you might want to match more than two
+tables, you might want to identify groups of matching objects in 
+a single table, you might want the output to include rows which 
+don't match as well...
+</p>
+
+<p>Matching is performed on the <ref id="apparent">Apparent Table</ref>, 
+so the currently selected subset(s) of the participating table(s) 
+will affect the result.
+</p>
+
+<p>Under certain circumstances, matching can be somewhat memory intensive,
+and you may receive a popup informing you of an OutOfMemoryError.
+To get round this you can try running TOPCAT with more memory
+(see <ref id="jvmOpt"/>) or perhaps tweak the details of the match
+(do it on a subset of the table rows, modify the match error - 
+match errors which are too large or too small can both cause heavy 
+memory usage).
+</p>
+
+<p>The Match Window provides a set of controls which allow you
+to choose how the match is done and what the results will look like.
+It consists of for main parts:
+<dl>
+
+<dt>Match Criteria box</dt>
+<dd><p>Allows you to define what counts as a match between two rows
+    </p></dd>
+
+<dt>Match Action selector</dt>
+<dd><p>Selects whether you want an <strong>Internal</strong>
+    (between rows of a single table) or a <strong>Multi-table</strong> match.
+    The controls provided below this selector differ according to the
+    selection you make.
+    </p></dd>
+
+<dt>Log window</dt>
+<dd><p>Displays progress as the match is taking place.  The scrollbar 
+    at the bottom of the window also provides an indication of how 
+    far through each stage processing has got.
+    </p></dd>
+
+<dt>Control buttons</dt>
+<dd><p>The <strong>Go</strong> button starts the search when you are
+    happy with the selections that you have made, and the
+    <strong>Stop</strong> button interrupts it midway if you decide
+    you no longer want the results (closing the Match Window also 
+    interrupts the calculation).
+    </p></dd>
+
+</dl>
+The following sections describe some of the above components in 
+more detail.
+</p>
+
+<subsubsubsect id="matchCriteria">
+<subhead><title>Match Criteria</title></subhead>
+
+<p>The match criteria box allows you to specify what counts as a match
+between two rows.  The selection you make in this box will determine
+which columns you have to fill in for the table(s) being matched 
+in the rest of the window.  In most cases what you are selecting here
+is the coordinate space in which rows will be compared against each other, 
+and a numerical value to determine how close two rows have to be 
+in terms of a metric on that space to count as a match.
+</p>
+
+<p>The following options are offered:
+<dl>
+
+<dt>Sky</dt>
+<dd><p>Comparison of positions on the celestial sphere.
+    In this case you will need to specify columns giving
+    Right Ascension and Declination (in radians)
+    for each table participating in the match.
+    The Error value you must fill in is the maximum separation of matched
+    points in radians around a great circle.
+    </p></dd>
+
+<dt>Spherical Polar</dt>
+<dd><p>Comparison of positions in the sky taking account of radial distance.
+    In this case you will need to specify columns giving 
+    Right Ascension and Declination (in radians) and radial distance 
+    (in arbitrary units) 
+    for each table participating in the match.
+    The Error value is a maximum spatial separation of matched points 
+    in the same units as the radial distance.
+    </p></dd>
+
+<dt>Exact Value</dt>
+<dd><p>Requires exact matching of values.
+    In this case you will need to specify the column containing the match key
+    for each table participating in the match;
+    this might typically be an object name or index number.
+    Two rows count as matching if they have exactly the same entry in 
+    the specified field, except rows with a null value in that column,
+    which don't match any other row.
+    </p></dd>
+
+<dt>N-dimensional Cartesian</dt>
+<dd><p>Comparison of positions in an N-dimensional Cartesian space.
+    In this case you will need to specify N columns giving Cartesian
+    coordinates
+    for each table participating in the match.
+    The Error value is the maximum spatial separation of matched points.
+    Currently the highest dimensionality you can select is 4-d - 
+    does anyone want a higher number?
+    </p></dd>
+
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Internal Matches</title></subhead>
+
+<p>An internal match is one which takes place on the rows of a single table.
+You will see the Internal match panel if you choose the 
+<strong>Internal</strong> option from the Match Action selector.
+</p>
+
+<p>In this panel you must specify the table
+on which the match is to be done, and columns from that table which 
+correspond to the values needed by the 
+<ref id="matchCriteria">match criteria</ref> you have chosen.
+In some cases these column selectors may have a value filled in 
+automatically (if the program thinks it can guess appropriate ones)
+but you should ensure that it has guessed correctly in this case.
+Only suitable columns are available for choosing from these column
+selectors; in most cases this means numeric ones.
+</p>
+
+<p>You are offered a number of options to determine how
+the results will be presented.  In each case a new table will be 
+created as a result of the match.  The options for what it will look like
+are these:
+<dl>
+
+<dt>Mark Groups of Rows</dt>
+<dd><p>The result is a table the same as the input table but with two 
+    additional columns: <strong>MatchID</strong> and 
+    <strong>MatchCount</strong>.
+    Each group of rows which matched is assigned a unique integer,
+    recorded in the MatchId column, and the size of each group is 
+    recorded in the MatchCount column.  
+    Rows which don't match any others (singles) have null values in
+    both these columns.
+    So for example by sorting the resulting table
+    on MatchID you can group rows that match next to each other;
+    or by sorting on MatchCount you can see all the pairs, followed by
+    all the triples, ...
+    </p>
+    <p>You can use this information in other ways, for instance if you
+    create a new <ref id="subsets">Row Subset</ref> using the expression
+    "<code>MatchID == 5</code>" you could select only those 
+    rows which form part of 5-object clusters.
+    </p></dd>
+
+<dt>Eliminate All Grouped Rows</dt>
+<dd><p>The result is a new table containing only "single" rows, that is
+    ones which don't match any other rows in the table according to the
+    match criteria.  Any rows which match are thrown out.
+    </p></dd>
+
+<dt>Eliminate All But First of Each Group</dt>
+<dd><p>The result is a new table in which only one row (the first in the
+    input table order) from each group of matching ones is retained.
+    A subsequent internal match with the same criteria would therefore
+    show no matches.
+    </p></dd>
+
+<dt>New Table With Groups of Size N</dt>
+<dd><p>The result is a new "wide" table consisting of matched rows in 
+    the input table stacked up next to each other.  
+    Only groups of exactly N rows in the input table are used to 
+    form the output table; each row of the output table consists of
+    the columns of the first group member, followed by the columns of
+    the second group member and so on.  The output table therefore has
+    N times as many columns as the input table.
+    The column names in the new table have "_1", "_2", ...
+    appended to them to avoid duplication.
+    </p></dd>
+ 
+</dl>
+</p>
+
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Multi-table Matches</title></subhead>
+</subsubsubsect>
+
+<subsubsubsect>
+<subhead><title>Notes on Matching</title></subhead>
+
+<p>This section outlines how the matching program works for those who
+are interested. 
+</p>
+
+<p>A <em>pair</em> of matched rows is defined according to the selected
+<ref id="matchCriteria">match criteria</ref>.
+Whether there is one table or multiple ones, the program first 
+scans all the rows to find all such pairs.
+The matching algorithm should correctly identify all and only those
+row pairs which are related in this way.
+Following this step, all the pairs are agglomerated into <em>groups</em>,
+where a group is a maximal connected graph composed of nodes 
+representing rows and edges representing pairs.
+</p>
+
+</subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="HelpWindow">
+<subhead><title>Help Window</title></subhead>
+
+<p>The help window is a browser for displaying help information on TOPCAT.
+It views the text contained in this document.
+The panel on the left hand side gives a hierarchical
+view of the available help topics, and the panel on the right hand
+side displays the help text itself.  The bar in between the two
+can be dragged with the mouse to affect the relative sizes of
+these windows.
+</p>
+
+<p>The toolbar contains these extra buttons:
+<dl>
+<dt>&IMG.BACKWARD; Back</dt>
+<dd><p>Moves backward through the list of topics in the order you have
+    looked at them.
+    </p></dd>
+
+<dt>&IMG.FORWARD; Forward</dt>
+<dd><p>Moves forward through the list of topics in the order you have
+    looked at them.
+    </p></dd>
+
+<dt>&IMG.PRINT; Print</dt>
+<dd><p>Pops up a dialogue to permit printing of the current page to a
+    file or printer.
+    </p></dd>
+
+<dt>&IMG.PAGE_SETUP; Page Setup</dt>
+<dd><p>Pops up a dialogue to do printer setup.
+    </p></dd>
+</dl>
+</p>
+
+<p>The help browser is an HTML browser and some of the hyperlinks in
+the help document reference documents outside of the help document
+itself.  Selecting these links will go to the external documents.
+When the viewer is displaying an external document, its URL will
+be displayed in a line at the bottom of the window.  You can cut
+and paste from this using your platform's usual mechanisms for this.
+</p>
+
+</subsubsect>
+
+<subsubsect id="MethodWindow">
+<subhead><title>Available Functions Window</title></subhead>
+
+<p>This window displays all the functions (Java methods) which are
+available for use when writing <ref id="jel">algebraic expressions</ref>.
+They are grouped by the class which defines them, and displayed
+in a tree-like structure.
+</p>
+
+<p>When initially displayed, the window shows just the names of
+the classes which provide methods.
+By double-clicking on these names (or equivalently
+by clicking on their 'handle': &IMG.COLLAPSED;)
+you can open them up to see the methods they contain.
+The listing here doesn't describe what these methods do, but the
+name and list of arguments may give you a clue.
+</p>
+
+<p>Each method has a listing something like this:
+<verbatim>
+   float average( int, int )
+</verbatim>
+which means that there is a function called "average" which takes two
+arguments of type <code>int</code> (= integer), and returns a value of
+type <code>float</code> (= floating point).
+</p>
+
+<p>Using the Add button (&IMG.ADD;)
+you can specify the name of a class to add to those available.
+You should enter the fully-qualified class name (i.e. including the
+dot-separated package path).  The class that you specify must be
+on the class path which was current when TOPCAT was started.
+It is also possible to specify classes which should appear here
+by supplying their names as the values of the system property:
+<verbatim>
+   gnu.jel.static.classes
+</verbatim>
+More than one class can be specified; their names should be separated
+by colons.  See <ref id="jvmOpt"/> for how to specify property values.
+</p>
+
+<p>Any public static methods declared in the classes specified in any
+of these ways will be available for use in the expressions you use
+to define <ref id="synthetic">synthetic columns</ref> 
+or algebraically-defined <ref id="subsets">row subsets</ref>.
+</p>
+
+
+</subsubsect>
+
+</subsect>
+
+<subsect>
+<subhead><title>Table View Windows</title></subhead>
+
+<p>Many of the windows you will see within TOPCAT display information
+about a single table.
+There are several of these, each displaying a different aspect of
+the table data - statistics, column metadata, plotted values etc.
+There is one of each type for each of the tables currently loaded, 
+though they won't necessarily all be displayed at once.
+The title bar of these windows will say something like
+<strong>TOPCAT(3): Table Columns</strong>,
+which indicates that it is displaying information about the column 
+metadata for the table labelled "3:" in the 
+<ref id="ControlWindow">Control Window</ref>.
+</p>
+
+<p>To open any of these windows, select the table of interest in
+the Control Window and click the appropriate toolbar button.
+This will either open up a new window of the sort you have requested,
+or if you have already viewed it, will make sure it's visible.
+</p>
+
+<p>The following sections describe each of these table view windows in turn.
+</p>
 
 <subsubsect id="TableViewerWindow">
 <subhead><title>Data Window</title></subhead>
@@ -2008,101 +2366,6 @@ If you start a new plot (by changing the plot characteristics or pressing
 the Replot button &IMG.REDO;) or close the window while a plot is being done,
 the superceded plot will be stopped.
 </p>
-
-</subsubsect>
-
-<subsubsect id="HelpWindow">
-<subhead><title>Help Window</title></subhead>
-
-<p>The help window is a browser for displaying help information on TOPCAT.
-It views the text contained in this document.
-The panel on the left hand side gives a hierarchical
-view of the available help topics, and the panel on the right hand
-side displays the help text itself.  The bar in between the two
-can be dragged with the mouse to affect the relative sizes of
-these windows.
-</p>
-
-<p>The toolbar contains these extra buttons:
-<dl>
-<dt>&IMG.BACKWARD; Back</dt>
-<dd><p>Moves backward through the list of topics in the order you have
-    looked at them.
-    </p></dd>
-
-<dt>&IMG.FORWARD; Forward</dt>
-<dd><p>Moves forward through the list of topics in the order you have
-    looked at them.
-    </p></dd>
-
-<dt>&IMG.PRINT; Print</dt>
-<dd><p>Pops up a dialogue to permit printing of the current page to a
-    file or printer.
-    </p></dd>
-
-<dt>&IMG.PAGE_SETUP; Page Setup</dt>
-<dd><p>Pops up a dialogue to do printer setup.
-    </p></dd>
-</dl>
-</p>
-
-<p>The help browser is an HTML browser and some of the hyperlinks in
-the help document reference documents outside of the help document
-itself.  Selecting these links will go to the external documents.
-When the viewer is displaying an external document, its URL will
-be displayed in a line at the bottom of the window.  You can cut
-and paste from this using your platform's usual mechanisms for this.
-</p>
-
-</subsubsect>
-
-<subsubsect id="MethodWindow">
-<subhead><title>Available Functions Window</title></subhead>
-
-<p>This window displays all the functions (Java methods) which are
-available for use when writing <ref id="jel">algebraic expressions</ref>.
-They are grouped by the class which defines them, and displayed
-in a tree-like structure.
-</p>
-
-<p>When initially displayed, the window shows just the names of
-the classes which provide methods.
-By double-clicking on these names (or equivalently
-by clicking on their 'handle': &IMG.COLLAPSED;)
-you can open them up to see the methods they contain.
-The listing here doesn't describe what these methods do, but the
-name and list of arguments may give you a clue.
-</p>
-
-<p>Each method has a listing something like this:
-<verbatim>
-   float average( int, int )
-</verbatim>
-which means that there is a function called "average" which takes two
-arguments of type <code>int</code> (= integer), and returns a value of
-type <code>float</code> (= floating point).
-</p>
-
-<p>Using the Add button (&IMG.ADD;)
-you can specify the name of a class to add to those available.
-You should enter the fully-qualified class name (i.e. including the
-dot-separated package path).  The class that you specify must be
-on the class path which was current when TOPCAT was started.
-It is also possible to specify classes which should appear here
-by supplying their names as the values of the system property:
-<verbatim>
-   gnu.jel.static.classes
-</verbatim>
-More than one class can be specified; their names should be separated
-by colons.  See <ref id="jvmOpt"/> for how to specify property values.
-</p>
-
-<p>Any public static methods declared in the classes specified in any
-of these ways will be available for use in the expressions you use
-to define <ref id="synthetic">synthetic columns</ref> 
-or algebraically-defined <ref id="subsets">row subsets</ref>.
-</p>
-
 
 </subsubsect>
 
