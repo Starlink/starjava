@@ -3,6 +3,7 @@ package uk.ac.starlink.table.formats;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -22,7 +23,7 @@ public class AsciiTableWriter extends TextTableWriter {
     protected String formatValue( Object val, ValueInfo vinfo, int width ) {
 
         /* If it's null, return a null value representation. */
-        if ( val == null ) {
+        if ( Tables.isBlank( val ) ) {
             return "\"\"";
         }
 

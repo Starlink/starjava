@@ -391,7 +391,7 @@ public class DefaultValueInfo implements ValueInfo {
         }
 
         /* If it's a null value, return the empty string. */
-        if ( value == null ) {
+        if ( Tables.isBlank( value ) ) {
             return "";
         }
     
