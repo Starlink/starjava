@@ -15,6 +15,7 @@ import uk.ac.starlink.topcat.func.Coords;
 import uk.ac.starlink.topcat.func.Display;
 import uk.ac.starlink.topcat.func.Maths;
 import uk.ac.starlink.topcat.func.Output;
+import uk.ac.starlink.topcat.func.Strings;
 
 /**
  * This class provides some utility methods for use with the JEL
@@ -70,6 +71,7 @@ public class JELUtils {
                 Conversions.class,
                 Coords.class,
                 Maths.class, 
+                Strings.class,
             } ) );
             try {
 
@@ -79,12 +81,11 @@ public class JELUtils {
                     String[] cs = auxClasses.split( ":" );
                     for ( int i = 0; i < cs.length; i++ ) {
                         String className = cs[ i ].trim();
-                        try {
-                            classList.add( Class.forName( className,
-                                                          true,
-                            Thread.currentThread().getContextClassLoader()));
+                        Class clazz = classForName( className );
+                        if ( clazz != null ) {
+                            classList.add( clazz );
                         }
-                        catch ( ClassNotFoundException e ) {
+                        else {
                             logger.warning( "Class not found: " + className );
                         }
                     }
@@ -99,6 +100,35 @@ public class JELUtils {
             generalStaticClasses = classList;
         }
         return generalStaticClasses;
+    }
+
+    /**
+     * Returns the class with the given name, or null if it's not on the
+     * path.  If the name is unqualified and can't be found, it will try
+     * in the package uk.ac.starlink.topcat.func as well.
+     *
+     * @param   cname  class name
+     * @return  class or null
+     */
+    public static Class classForName( String cname ) {
+
+        // Hmm - not sure now why I wanted to make sure I got this classloader.
+        // I wonder if there is a good reason??
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try {
+            return Class.forName( cname, true, loader );
+        }
+        catch ( ClassNotFoundException e ) {
+            if ( cname.indexOf( "." ) < 0 ) {
+                try {
+                     cname = "uk.ac.starlink.topcat.func." + cname;
+                     return Class.forName( cname, true, loader );
+                }
+                catch ( ClassNotFoundException e2 ) {
+                }
+            }
+        }
+        return null;
     }
 
     /**
