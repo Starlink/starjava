@@ -51,7 +51,7 @@ public class MyspaceSelector extends JPanel {
     private final JLabel ivornLabel_;
     private final JLabel locLabel_;
     private final TreeModel emptyTreeModel_;
-    private LoginDialog loginDialog_;
+    private AGConnector connector_;
     private TreeClient treeClient_;
     private boolean allowContainerSelection_;
 
@@ -202,26 +202,29 @@ public class MyspaceSelector extends JPanel {
     private void logIn() {
 
         /* Try to get a ready-to-use TreeClient. */
-        LoginDialog dialog = getLoginDialog();
-        TreeClient tc = dialog.openTreeClientDialog( this );
-        if ( tc != null ) {
+        AGConnector conn = getConnector();
+        TreeClient tc = null;
+        try {
+            tc = conn.getConnection();
+            if ( tc != null ) {
 
-            /* Get textual information about the session. */
-            String user = dialog.getUser();
-            Container rootContainer;
-            String ivorn;
-            try {
-                ivorn = dialog.getIvorn().toString();
-            }
-            catch ( CommunityException e ) {
-                // it's unlikely that this will happen, since it must have 
-                // used the Ivorn to make the connection, but if it does
-                // just carry on without it.
-                ivorn = "???";
-            }
+                /* Get textual information about the session. */
+                String community = conn.getCommunity();
+                String user = conn.getUser();
+                Container rootContainer;
+                String ivorn;
+                try {
+                    ivorn = UserAGConnector.getIvorn( community, user )
+                                           .toString();
+                }
+                catch ( CommunityException e ) {
+                    // it's unlikely that this will happen, since it must have 
+                    // used the Ivorn to make the connection, but if it does
+                    // just carry on without it.
+                    ivorn = "???";
+                }
 
-            /* Try to get the root node from the tree. */
-            try {
+                /* Try to get the root node from the tree. */
                 rootContainer = tc.getRoot();
                 treeClient_ = tc;
 
@@ -233,20 +236,20 @@ public class MyspaceSelector extends JPanel {
                     new MyspaceTreeNode( null, rootContainer );
                 jtree_.setModel( new DefaultTreeModel( rootTreeNode ) );
             }
+        }
 
-            /* Failed to get a root node.  Clear up and consider ourselves
-             * logged out. */
-            catch ( TreeClientException e ) {
-                JOptionPane.showMessageDialog( this, e.getMessage(),
-                                               "Login Error",
-                                               JOptionPane.ERROR_MESSAGE );
-                if ( tc != null ) {
-                    try {
-                        tc.logout();
-                    }
-                    catch ( TreeClientException e2 ) {
-                        // no action
-                    }
+        /* Failed to get a root node.  Clear up and consider ourselves
+         * logged out. */
+        catch ( TreeClientException e ) {
+            JOptionPane.showMessageDialog( this, e.getMessage(),
+                                           "AstroGrid Login Error",
+                                           JOptionPane.ERROR_MESSAGE );
+            if ( tc != null ) {
+                try {
+                    tc.logout();
+                }
+                catch ( TreeClientException e2 ) {
+                    // no action
                 }
             }
         }
@@ -290,13 +293,13 @@ public class MyspaceSelector extends JPanel {
      *
      * @return  dialogue
      */
-    private LoginDialog getLoginDialog() {
+    private AGConnector getConnector() {
 
         /* Lazily construct a dialogue component. */
-        if ( loginDialog_ == null ) {
-            loginDialog_ = new LoginDialog();
+        if ( connector_ == null ) {
+            connector_ = AGConnectorFactory.getInstance().getConnector( this );
         }
-        return loginDialog_;
+        return connector_;
     }
 
     /**
