@@ -20,7 +20,7 @@ public class DelegatingNode implements Node {
 
     protected DelegatingNode( Node base, DelegatingDocument doc ) {
         base_ = base;
-        doc_ = doc;
+        setDocument( doc );
     }
 
     DelegatingNode( Node base ) {
@@ -28,6 +28,17 @@ public class DelegatingNode implements Node {
     }
 
     void setDocument( DelegatingDocument doc ) {
+
+        /* Make sure that the document this node belongs to (the delegating
+         * document) is not the same as the owner document of the base node.
+         * While you might possibly be able to come up with a scenario in
+         * which that was useful, it almost certainly is a result of 
+         * getting your nodes in a twist (confusing delegate with delegator). */
+        if ( base_ instanceof DelegatingNode && 
+             ((DelegatingNode) base_).doc_ == this ) {
+            throw new IllegalArgumentException( 
+                "Attempt to use delegating node as delegate in same document" );
+        }
         doc_ = doc;
     }
 
