@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+  <head>
+    <!-- $Id$ -->
+  </head>
+  <body>
+    <p>Provides a toolkit for creating and interacting with simple Figures
+      and also a methodology for connecting to the life cycle of those
+      Figures. I.e. getting notification of their creation, modification
+      and destruction.
+    </p>
+
+    <h2>Using the Figure toolkit</h2>
+
+    <p>The only general access method is to use the {@link DrawGraphicsMenu}
+      class to add a menu to a JMenuBar that provides actions to
+      create and configure Figures.
+    </p>
+
+    <p>An simple example using this can be found in the
+      TestDrawActions class displayed here:
+    </p>
+  <pre>
+import diva.canvas.{@link diva.canvas.JCanvas};
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+
+public class TestDrawActions
+    extends {@link diva.canvas.JCanvas}
+    implements {@link uk.ac.starlink.diva.Draw}
+{
+    protected {@link uk.ac.starlink.diva.DrawGraphicsPane} graphicsPane = null;
+
+    public TestDrawActions()
+    {
+        //  Add a DrawGraphicsPane to use for displaying
+        //  interactive graphics elements.
+        graphicsPane = new {@link uk.ac.starlink.diva.DrawGraphicsPane}( {@link uk.ac.starlink.diva.DrawActions#getTypedDecorator} );
+        setCanvasPane( graphicsPane );
+    }
+
+    public {@link uk.ac.starlink.diva.DrawGraphicsPane} getGraphicsPane()
+    {
+        return graphicsPane;
+    }
+    
+    public Component getComponent()
+    {
+        return this;
+    }
+
+    public static void main( String[] args )
+    {
+        TestDrawActions canvas = new TestDrawActions();
+        {@link uk.ac.starlink.diva.DrawActions} drawActions = new {@link uk.ac.starlink.diva.DrawActions}( canvas );
+        JFrame frame = new JFrame( "TestDrawActions" );
+        frame.setSize( new Dimension( 200, 200 ) );
+        frame.getContentPane().setLayout( new BorderLayout() );
+        frame.getContentPane().add( canvas, BorderLayout.CENTER );
+        JMenuBar menuBar = new JMenuBar();
+        frame.setJMenuBar( menuBar );
+        menuBar.add( new {@link uk.ac.starlink.diva.DrawGraphicsMenu}( drawActions ) );
+        frame.setVisible( true );
+    }
+}
+</pre>
+    <p>
+      The important points are that you should use the toolkit to draw on an
+      JCanvas that implements {@link uk.ac.starlink.diva.Draw} and
+      that has its CanvasPane set to an instance of 
+      {@link uk.ac.starlink.diva.DrawGraphicsPane}.
+    </p>
+    <p>
+      The toolkit itself is made available by adding an instance of
+      {@link uk.ac.starlink.diva.DrawActions} to an instance of 
+      {@link uk.ac.starlink.diva.DrawGraphicsMenu}. 
+      DrawGraphicsMenu is a JMenu so can be added to JMenuBar as shown.
+    </p>
+
+<!-- Other stuff, which figures are available, how to create them
+ without using menus, how to extend all this to add own Figures.
+ How the FigureListener and FigureChangedEvent stuff works...
+-->
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+  <head>
+    <!-- $Id$ -->
+  </head>
+  <body>
+    <p>Provides a set of classes for creating objects that interpolate
+      between a list of positions in various (useful) ways.
+    </p>
+    
+    <h2>Interpolators</h2>
+    <p>All interpolators are concrete sub-classes of 
+      {@link uk.ac.starlink.diva.interp.Interpolator}. To use these
+      either supply arrays of positions and values to the appropriate
+      constructor, or use the 
+      {@link uk.ac.starlink.diva.interp.Interpolator#setCoords} method.
+      The interpolated values can then be queried using the 
+      {@link uk.ac.starlink.diva.interp.Interpolator#interpolate} method,
+      supplying the position the value is required for.
+    </p>
+    <p>
+      Interpolators can be used together with the 
+      {@link uk.ac.starlink.diva.geom.InterpolatedCurve2D} class to
+      display themselves as Java2D graphics objects.
+    <p>
+</body>
+</html>
