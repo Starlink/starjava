@@ -19,25 +19,32 @@ public class KernelFactory
     private KernelFactory() {}
 
     /**
+     *  Filter widths are always odd number, greater than 1.
+     */
+    private static int getSetWidth( int width )
+    {
+        width = ( width / 2 ) * 2 + 1;
+        if ( width == 1 ) width = 3;
+        return width;
+    }
+
+    /**
      * Create gaussian kernel.
      */
     public static double[] gaussianKernel( int width, double fwhm )
     {
-        //  Width is always odd number.
-        width = ( width / 2 ) * 2 + 1;
-        if ( width == 1 ) width= 3;
-
+        width = getSetWidth( width );
         double[] kernel = new double[width];
 
-        // Center of kernel.
-        int center = width / 2;
+        // Centre of kernel.
+        int centre = width / 2;
 
         //  Convert fwhm to sigma (/2*sqrt(2*ln(2)).
         double sigma = fwhm / 2.35482;
 
         // Generator for positions.
         GaussianGenerator generator =
-            new GaussianGenerator( 1.0, center, sigma );
+            new GaussianGenerator( 1.0, centre, sigma );
 
         for ( int j = 0; j < width; j++ ) {
             kernel[j] = generator.evalYData( (double) j );
@@ -51,18 +58,15 @@ public class KernelFactory
      */
     public static double[] lorentzKernel( int width, double lwidth )
     {
-        //  Width is always odd number.
-        width = ( width / 2 ) * 2 + 1;
-        if ( width == 1 ) width= 3;
-
+        width = getSetWidth( width );
         double[] kernel = new double[width];
 
-        // Center of kernel.
-        int center = width / 2;
+        // Centre of kernel.
+        int centre = width / 2;
 
         // Generator for positions.
         LorentzGenerator generator =
-            new LorentzGenerator( 1.0, center, lwidth );
+            new LorentzGenerator( 1.0, centre, lwidth );
 
         for ( int j = 0; j < width; j++ ) {
             kernel[j] = generator.evalYData( (double) j );
@@ -74,26 +78,57 @@ public class KernelFactory
     /**
      * Create voigt kernel.
      */
-    public static double[] voigtKernel( int width, double gwidth, 
+    public static double[] voigtKernel( int width, double gwidth,
                                         double lwidth )
     {
-        //  Width is always odd number.
-        width = ( width / 2 ) * 2 + 1;
-        if ( width == 1 ) width= 3;
-
+        width = getSetWidth( width );
         double[] kernel = new double[width];
 
-        // Center of kernel.
-        int center = width / 2;
+        // Centre of kernel.
+        int centre = width / 2;
 
         // Generator for positions.
         VoigtGenerator generator =
-            new VoigtGenerator( 1.0, center, gwidth, lwidth );
+            new VoigtGenerator( 1.0, centre, gwidth, lwidth );
 
         for ( int j = 0; j < width; j++ ) {
             kernel[j] = generator.evalYData( (double) j );
         }
 
+        return kernel;
+    }
+
+    /**
+     * Create Hanning kernel.
+     */
+    public static double[] hanningKernel( int width )
+    {
+        width = getSetWidth( width );
+        double[] kernel = new double[width];
+        
+        int centre = width / 2;
+
+        //  Create the first positions up the centre. Keep sum as we need to
+        //  normalize the result to 1.
+        double sum = 0.0;
+        for ( int j = 0; j <= centre; j++ ) {
+            kernel[j] = 0.5 - 0.5 * Math.cos( Math.PI * 2.0 * (double) j /
+                                              (double) width );
+            sum += kernel[j];
+        }
+
+        //  Real sum calculated from symmetry.
+        sum = sum * 2.0 - kernel[centre];
+
+        //  Normalise first half.
+        for ( int j = 0; j <= centre; j++ ) {
+            kernel[j] /= sum;
+        }
+
+        //  Copy first half into symmetric positions.
+        for ( int j = centre + 1, k = centre - 1; j < width; j++, k-- ) {
+            kernel[j] = kernel[k];
+        }
         return kernel;
     }
 }

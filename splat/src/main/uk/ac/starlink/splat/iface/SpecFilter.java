@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2003-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     1-JAN-2003 (Peter W. Draper):
@@ -164,6 +164,27 @@ public class SpecFilter
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
         double[] kernel = KernelFactory.voigtKernel( width, gwidth, lwidth );
         return kernelFilter( localSpec, kernel, "Voigt" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a hanning
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width of the filter.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData hanningFilter( SpecData spectrum, int width,
+                                   double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.hanningKernel( width );
+        return kernelFilter( localSpec, kernel, "Hanning" );
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2003-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     1-JAN-2003 (Peter W. Draper):
@@ -331,6 +331,7 @@ public class SpecFilterFrame
     protected JCheckBox gaussProfile = null;
     protected JCheckBox lorentzProfile = null;
     protected JCheckBox voigtProfile = null;
+    protected JCheckBox hanningProfile = null;
     protected DecimalField profileWidth = null;
     protected DecimalField gWidth = null;
     protected DecimalField lWidth = null;
@@ -346,7 +347,8 @@ public class SpecFilterFrame
         GridBagLayouter gbl = new GridBagLayouter( panel );
 
         //  Need a profile type and some parameters. Gaussian needs a
-        //  width as does Lorentz. Voigt needs two widths.
+        //  width as does Lorentz. Voigt needs two widths. Hanning needs
+        //  neither.
 
         JLabel typeLabel = new JLabel( "Type of profile:" );
         gaussProfile = new JCheckBox( "Gaussian" );
@@ -356,15 +358,20 @@ public class SpecFilterFrame
         voigtProfile = new JCheckBox( "Voigt" );
         voigtProfile.setToolTipText( "Smooth using a Voigt profile" );
 
+        hanningProfile = new JCheckBox( "Hanning" );
+        hanningProfile.setToolTipText( "Smooth using a Hanning filter" );
+
         gbl.add( typeLabel, false );
         gbl.add( gaussProfile, false );
         gbl.add( lorentzProfile, false );
         gbl.add( voigtProfile, true );
+        gbl.add( hanningProfile, true );
 
         ButtonGroup useGroup = new ButtonGroup();
         useGroup.add( gaussProfile );
         useGroup.add( lorentzProfile );
         useGroup.add( voigtProfile );
+        useGroup.add( hanningProfile );
         gaussProfile.setSelected( true );
 
         // Arrange to toggle entry fields.
@@ -379,6 +386,12 @@ public class SpecFilterFrame
                 }
             });
         voigtProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+
+        hanningProfile.addChangeListener( new ChangeListener() {
                 public void stateChanged( ChangeEvent e ) {
                     toggleProfileWidths();
                 }
@@ -591,11 +604,16 @@ public class SpecFilterFrame
                                          lWidth.getDoubleValue(),
                                          ranges, include );
         }
-        return filter.voigtFilter( currentSpectrum,
-                                   profileWidth.getIntValue(),
-                                   gWidth.getDoubleValue(),
-                                   lWidth.getDoubleValue(),
-                                   ranges, include );
+        if ( voigtProfile.isSelected() ) {
+            return filter.voigtFilter( currentSpectrum,
+                                       profileWidth.getIntValue(),
+                                       gWidth.getDoubleValue(),
+                                       lWidth.getDoubleValue(),
+                                       ranges, include );
+        }
+        return filter.hanningFilter( currentSpectrum,
+                                     profileWidth.getIntValue(),
+                                     ranges, include );
     }
 
     /**
@@ -632,16 +650,24 @@ public class SpecFilterFrame
             lWidthLabel.setEnabled( false );
         }
         else {
-            lWidth.setEnabled( true );
-            lWidthLabel.setEnabled( true );
-            gWidthLabel.setText( "Gaussian width:    " );
-            if ( lorentzProfile.isSelected() ) {
+            if ( hanningProfile.isSelected() ) {
                 gWidth.setEnabled( false );
                 gWidthLabel.setEnabled( false );
+                lWidth.setEnabled( false );
+                lWidthLabel.setEnabled( false );
             }
             else {
-                gWidth.setEnabled( true );
-                gWidthLabel.setEnabled( true );
+                lWidth.setEnabled( true );
+                lWidthLabel.setEnabled( true );
+                gWidthLabel.setText( "Gaussian width:    " );
+                if ( lorentzProfile.isSelected() ) {
+                    gWidth.setEnabled( false );
+                    gWidthLabel.setEnabled( false );
+                }
+                else {
+                    gWidth.setEnabled( true );
+                    gWidthLabel.setEnabled( true );
+                }
             }
         }
     }
