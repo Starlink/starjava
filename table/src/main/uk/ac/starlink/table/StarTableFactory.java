@@ -34,7 +34,7 @@ import uk.ac.starlink.util.URLDataSource;
  * the following:
  * <ul>
  * <li>The format name - this is a short mnemonic string like "fits"
- *     (it is returned by the TableBuilder's <tt>getFormatName</tt> method - 
+ *     which is returned by the TableBuilder's <tt>getFormatName</tt> method - 
  *     it is matched case insensitively.  This must be one of the 
  *     builders known to the factory.
  * <li>The classname of a suitable TableBuilder (the class must 
@@ -71,7 +71,9 @@ import uk.ac.starlink.util.URLDataSource;
  * (not used by default but available by specifying the format name):
  * <ul>
  * <li> {@link uk.ac.starlink.table.formats.CsvTableBuilder}
+ *      (format name="csv")
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
+ *      (format name="wdc")
  * </ul>
  * <p>
  * The factory has a flag <tt>wantRandom</tt> which determines 
