@@ -35,7 +35,8 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
 /**
  * SpecData defines an interface for general access to spectral datasets of
- * differing fundamental data types and is the main data model used in SPLAT.
+ * differing fundamental data types and represents the main data model used in
+ * SPLAT. 
  * <p>
  *
  * It uses a derived class of SpecDataImpl to a supported data format (i.e.
@@ -63,10 +64,11 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  * interpolated spectrum is an analytic one, such as a polynomial). <p>
  *
  * Each object records a series of properties that define how the spectrum
- * should be rendered (i.e. line colour, thickness, style, plotting style,
- * whether to show any errors as bars etc.). These are stored in any serialized
- * versions of this class. Rendering using the Grf object primitives is
- * performed by this class for spectra and error bars. <p>
+ * should be rendered (i.e. line colour, thickness, style, plotting style, or
+ * marker type and size, plus whether to show any errors as bars etc.). These
+ * are stored in any serialized versions of this class. Rendering using the
+ * Grf object primitives is performed by this class for spectra and error
+ * bars. <p> 
  *
  * Facilities to store the association between this spectrum and the various
  * plots that it is currently associated with are also provided (but see the
@@ -235,24 +237,29 @@ public class SpecData
     public final static int POINT_TYPE = 4;
 
     /**
+     * Set or query the marker size.
+     */
+    public final static int POINT_SIZE = 5;
+
+    /**
      * Set or query alpha composite value.
      */
-    public final static int LINE_ALPHA_COMPOSITE = 5;
+    public final static int LINE_ALPHA_COMPOSITE = 6;
 
     /**
      * Set or query error bar colour.
      */
-    public final static int ERROR_COLOUR = 6;
+    public final static int ERROR_COLOUR = 7;
 
     /**
      * Set or query the number of sigma error bars are drawn at.
      */
-    public final static int ERROR_NSIGMA = 7;
+    public final static int ERROR_NSIGMA = 8;
 
     /**
      * Set or query the frequency error bars are drawn at.
      */
-    public final static int ERROR_FREQUENCY = 8;
+    public final static int ERROR_FREQUENCY = 9;
 
     //
     //  Symbolic contants defining the possible plotting styles.
@@ -460,6 +467,11 @@ public class SpecData
      * The type of point that is drawn.
      */
     protected int pointType = DefaultGrfMarker.DOT;
+
+    /**
+     * The size of any points.
+     */
+    protected double pointSize = 5.0;
 
     //  ==============
     //  Public methods
@@ -1066,10 +1078,32 @@ public class SpecData
     }
 
     /**
+     * Set the size used when drawing using a point type.
+     *
+     * @param pointSize the size of a point.g
+     */
+    public void setPointSize( double pointSize )
+    {
+        this.pointSize = pointSize;
+    }
+
+
+    /**
+     * Get the size used when drawing using a point type.
+     *
+     * @return the size of points
+     */
+    public double getPointSize()
+    {
+        return pointSize;
+    }
+
+
+    /**
      * Set a known numeric spectral property.
      *
      * @param what either LINE_THICKNESS, LINE_STYLE, LINE_COLOUR, PLOT_STYLE,
-     *      POINT_TYPE, LINE_ALPHA_COMPOSITE or ERROR_COLOUR.
+     *      POINT_TYPE, POINT_SIZE, LINE_ALPHA_COMPOSITE or ERROR_COLOUR.
      * @param value container for numeric value. These depend on property
      *      being set.
      */
@@ -1101,6 +1135,11 @@ public class SpecData
                 setPointType( value.intValue() );
                 break;
             }
+            case POINT_SIZE:
+            {
+                setPointSize( value.doubleValue() );
+                break;
+            }
             case LINE_ALPHA_COMPOSITE:
             {
                 setAlphaComposite( value.doubleValue() );
@@ -1114,10 +1153,12 @@ public class SpecData
             case ERROR_NSIGMA:
             {
                 setErrorNSigma( value.intValue() );
+                break;
             }
             case ERROR_FREQUENCY:
             {
                 setErrorFrequency( value.intValue() );
+                break;
             }
         }
     }
@@ -1506,7 +1547,13 @@ public class SpecData
             renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
         }
 
+        //  Set line characteristics for error bars. Need to do this as they
+        //  will not be set when drawing markers.
         defaultGrf.attribute( Grf.GRF__COLOUR, errorColour, Grf.GRF__LINE );
+        defaultGrf.attribute( Grf.GRF__WIDTH, lineThickness, Grf.GRF__LINE );
+        defaultGrf.attribute( Grf.GRF__STYLE, lineStyle, Grf.GRF__LINE );
+        defaultGrf.attribute( defaultGrf.GRF__ALPHA, alphaComposite, 
+                              Grf.GRF__LINE );
         renderErrorBars( defaultGrf, plot );
 
         defaultGrf.setClipRegion( null );
@@ -1636,7 +1683,7 @@ public class SpecData
                                               Grf.GRF__MARK ) );
 
             //  Set new one from object members.
-            grf.attribute( Grf.GRF__SIZE, lineThickness, Grf.GRF__MARK );
+            grf.attribute( Grf.GRF__SIZE, pointSize, Grf.GRF__MARK );
             grf.attribute( Grf.GRF__COLOUR, lineColour, Grf.GRF__MARK );
             grf.attribute( grf.GRF__ALPHA, alphaComposite, Grf.GRF__MARK );
 
