@@ -22,7 +22,7 @@ public class AstPackage {
      * Indicates whether the JNIAST package is available or not.
      * This will return <tt>true</tt> if the JNIAST classes can be
      * used, but <tt>false</tt> if the requisite native code is not
-     * available (the shared library is not on the <tt>java.lang.path</tt>).
+     * available (the shared library is not on the <tt>java.library.path</tt>).
      * If the classes are not available, then the first time it is
      * invoked it will write a warning to that effect via the 
      * logger.
@@ -37,8 +37,9 @@ public class AstPackage {
             }
             catch ( LinkageError e ) {
                 loaded = Boolean.FALSE;
-                logger.warning( "JNIAST native library not on java.lang.path "
-                              + "- no WCS processing" );
+                logger.warning( 
+                    "JNIAST native library not on java.library.path " +
+                    "- no WCS processing" );
 
             }
         }
