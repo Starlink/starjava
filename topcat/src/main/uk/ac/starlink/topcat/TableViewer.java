@@ -75,6 +75,7 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.gui.DragListener;
 
 /**
  * Class defining the table viewer application.  Multiple viewers can
