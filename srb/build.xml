@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   SRB build file
  !
- !   This file describes how to build and install {Package} from
- !   source and binary releases. {Package} is a class library
+ !   This file describes how to build and install SRB from
+ !   source and binary releases. SRB is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for SRB" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,9 +77,9 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="SRB"/>
+  <property name="name" value="srb"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="{package.path}"/>
@@ -198,11 +198,12 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
+    <!-- UTIL -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
 
-    <!-- {More packages} -->
+    <!-- CONNECT -->
+    <pathelement location="${star.jar.dir}/connect/connect.jar"/>
+
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -213,11 +214,10 @@
   <extclasspath id="built.jarpath">
 
     <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
+       location="${star.build.dir}/util/lib/utuil/util.jar"/>
     <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
+       location="${star.build.dir}/connect/lib/connect/{package2.jar}"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -350,21 +350,17 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
+    <!-- UTIL -->
+    <available property="util.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+               classname="uk.ac.starlink.util.DataSource"/>
+    <fail message="No UTIL available" unless="util.present"/>
 
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
+    <!-- CONNECT -->
+    <available property="connect.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
+               classname="uk.ac.starlink.connect.Connector"/>
+    <fail message="No CONNECT available" unless="connect.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -424,20 +420,14 @@
 
       <classpath refid="classpath"/>
 
-      <!-- Exclude any files in the source tree that should not be
-       !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
-        <include name="**/{package.support.files}"/>
-        <include name="**/{more.package.support.files}"/>
+        <include name="**/*.gif"/>
       </fileset>
     </copy>
 
@@ -501,11 +491,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>SRB - Classes for access to Storage Resource Broker filespace</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink SRB - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -520,8 +510,8 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+         <extension name="UTIL" href="util.jnlp"/>
+         <extension name="CONNECT" href="connect.jnlp"/>
        </resources>
 
        <!-- This is a component -->
@@ -553,15 +543,17 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
-    <mkdir dir="${dist.lib.pkg}"/>
+    <!-- <mkdir dir="${dist.bin.pkg}"/> -->
+    <mkdir dir="${dist.lib.pkg}"/> 
     <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+    <!-- <mkdir dir="${dist.etc.pkg}"/> -->
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+  -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
@@ -574,9 +566,11 @@
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+ <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+ -->
 
   </target>
 
@@ -768,15 +762,16 @@
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
+    <!-- <mkdir dir="${star.bin.pkg}"/> -->
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
+    <!-- <mkdir dir="${star.etc.pkg}"/> -->
     <mkdir dir="${star.docs.pkg}"/>
 
     <!-- Note: if you uncomment any of the following (reasonable since
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
+ <!--
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -789,11 +784,12 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
+ -->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
@@ -838,16 +834,16 @@
   <target name="install-runonly"
           description="-> install a runonly distribution into Starlink tree">
 
-     <!-- Make sure that the expected file structure exists, some
-          of these files can be missing if originally empty -->
-     <mkdir dir="${dist.dir}"/>
-     <mkdir dir="${dist.bin.pkg}"/>
-     <mkdir dir="${dist.lib.pkg}"/>
-     <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+    <!-- Make sure that the expected file structure exists, some
+         of these files can be missing if originally empty -->
+    <mkdir dir="${dist.dir}"/>
+    <!-- <mkdir dir="${dist.bin.pkg}"/> -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.docs.pkg}"/>
+    <!-- <mkdir dir="${dist.etc.pkg}"/> -->
 
-     <!-- Do normal install, but with many targets switched off-->
-     <antcall target="install">
+    <!-- Do normal install, but with many targets switched off-->
+    <antcall target="install">
       <param name="runonly.install" value="true"/>
       <param name="javadoc.notrequired" value="true"/>
     </antcall>
@@ -971,7 +967,7 @@
      !   the full Starlink API javadocs-->
     <copy todir="${build.java}">
       <fileset dir="${java.dir}" defaultexcludes="yes">
-          <exclude name="**/README"/>
+        <exclude name="**/README"/>
       </fileset>
     </copy>
 
@@ -985,6 +981,7 @@
   <target name="compile-tests"
           depends="build"
           if="junit.present">
+<!--
 
     <mkdir dir="${build.tests}"/>
 
@@ -997,6 +994,7 @@
       <classpath refid="tests-classpath"/>
 
     </javac>
+-->
 
   </target>
 
@@ -1013,6 +1011,7 @@
           depends="compile-tests"
           if="junit.present">
 
+<!--
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
@@ -1036,6 +1035,7 @@
       </batchtest>
 
     </junit>
+-->
 
   </target>
 
