@@ -200,12 +200,12 @@ public class SerializerTest extends TestCase {
             exerciseVOTableDocument( (VOElement) it.next() );
         }
 
-        /* Test the copyStarTable method; get each table in turn. */
+        /* Test the streamStarTable method; get each table in turn. */
         for ( int itable = 0; itable < 5; itable++ ) {
             RowStore rstore = new RowStore();
             InputSource saxsrc = 
                 new InputSource( new ByteArrayInputStream( xmltext ) );
-            TableCopier.copyStarTable( saxsrc, rstore, itable );
+            TableStreamer.streamStarTable( saxsrc, rstore, itable );
 
             RowStepper rstep = rstore.getRowStepper();
             RowSequence rseq = table0.getRowSequence();
@@ -218,7 +218,7 @@ public class SerializerTest extends TestCase {
         }
 
         try {
-            TableCopier.copyStarTable(
+            TableStreamer.streamStarTable(
                        new InputSource( new ByteArrayInputStream( xmltext ) ),
                        new RowStore(), 5 );
             fail();

@@ -259,8 +259,8 @@ public abstract class BintableStarTable extends AbstractStarTable {
      *          data part of the BINTABLE extension
      * @param   sink   destination for the table
      */
-    public static void copyStarTable( Header hdr, DataInput stream, 
-                                      TableSink sink )
+    public static void streamStarTable( Header hdr, DataInput stream, 
+                                        TableSink sink )
             throws FitsException, IOException {
         BintableStarTable meta = new BintableStarTable( hdr ) {
             public RowSequence getRowSequence() {

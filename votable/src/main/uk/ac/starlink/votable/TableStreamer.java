@@ -45,7 +45,7 @@ import uk.ac.starlink.util.URLUtils;
  *
  * @author   Mark Taylor
  */
-class TableCopier extends CustomDOMBuilder {
+class TableStreamer extends CustomDOMBuilder {
 
     private TableSink sink;
     private int skipTables;
@@ -56,12 +56,12 @@ class TableCopier extends CustomDOMBuilder {
         Logger.getLogger( "uk.ac.starlink.ac.votable" );
 
     /**
-     * Constructs a new copy handler.
+     * Constructs a new table streaming handler.
      *
      * @param   sink  the sink to which a table will be written when it's found
      * @param   itable  index of the TABLE element to write (0-based)
      */
-    public TableCopier( TableSink sink, int itable ) {
+    public TableStreamer( TableSink sink, int itable ) {
         this.sink = sink;
         this.skipTables = itable;
         basicHandler = new BasicContentHandler();
@@ -78,8 +78,8 @@ class TableCopier extends CustomDOMBuilder {
      * @param  itable index of the table in the document to be read 
      *                (0-based)
      */
-    public static void copyStarTable( InputSource saxsrc, TableSink sink, 
-                                      int itable )
+    public static void streamStarTable( InputSource saxsrc, TableSink sink, 
+                                        int itable )
             throws IOException, SAXException {
 
         /* Get a SAX parser. */
@@ -112,7 +112,7 @@ class TableCopier extends CustomDOMBuilder {
 
         /* Install a content handler which can pull out data from one table
          * as required. */
-        parser.setContentHandler( new TableCopier( sink, itable ) );
+        parser.setContentHandler( new TableStreamer( sink, itable ) );
 
         /* Do the parse.  We expect to be signalled by the handler with a
          * SuccessfulCompletionException if the table gets copied.
@@ -298,7 +298,8 @@ class TableCopier extends CustomDOMBuilder {
                         else {
                             assert parentName.equals( "FITS" );
                             new FitsTableBuilder()
-                               .copyStarTable( url.openStream(), sink, extnum );
+                               .streamStarTable( url.openStream(), 
+                                                 sink, extnum );
                         }
                     }
                     catch ( IOException e ) {
@@ -346,7 +347,7 @@ class TableCopier extends CustomDOMBuilder {
                                         new BufferedInputStream(
                                             new Base64InputStream( datain ) );
                                     new FitsTableBuilder()
-                                       .copyStarTable( in, sink, extnum );
+                                       .streamStarTable( in, sink, extnum );
                                 }
                             };
                         }

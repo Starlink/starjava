@@ -153,11 +153,12 @@ public class VOTableBuilder implements TableBuilder {
      *                the table in the document to be read - "0" means the
      *                first one encountered, "1" means the second, etc
      */
-    public void copyStarTable( InputStream istrm, TableSink sink, 
-                               String index ) throws IOException {
+    public void streamStarTable( InputStream istrm, TableSink sink, 
+                                 String index ) throws IOException {
         int itable = index.matches( "[0-9]+" ) ? Integer.parseInt( index ) : 0;
         try {
-            TableCopier.copyStarTable( new InputSource( istrm ), sink, itable );
+            TableStreamer.streamStarTable( new InputSource( istrm ),
+                                           sink, itable );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )

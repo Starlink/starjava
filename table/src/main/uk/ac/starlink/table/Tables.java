@@ -99,7 +99,7 @@ public class Tables {
      * @param   source  table to be copied
      * @param   sink    table destination
      */
-    public static void copyStarTable( StarTable source, TableSink sink ) 
+    public static void streamStarTable( StarTable source, TableSink sink ) 
             throws IOException {
         sink.acceptMetadata( source );
         for ( RowSequence rseq = source.getRowSequence(); rseq.hasNext(); ) {

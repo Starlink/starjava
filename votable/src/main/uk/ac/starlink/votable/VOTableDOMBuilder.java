@@ -424,7 +424,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                     InputStream in = new Base64InputStream(
                                          new BufferedInputStream( datain ) );
                     TableSink sink = InlineFITSStreamHandler.this;
-                    new FitsTableBuilder().copyStarTable( in, sink, ihdu );
+                    new FitsTableBuilder().streamStarTable( in, sink, ihdu );
                 }
             };
             reader.start();

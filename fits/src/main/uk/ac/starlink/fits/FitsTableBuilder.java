@@ -130,15 +130,15 @@ public class FitsTableBuilder implements TableBuilder {
      *         number in which the required table is found (otherwise the
      *         first table HDU will be used)
      */
-    public void copyStarTable( InputStream istrm, TableSink sink,
-                               String extnum ) throws IOException {
+    public void streamStarTable( InputStream istrm, TableSink sink,
+                                 String extnum ) throws IOException {
         ArrayDataInput in = new BufferedDataInputStream( istrm );
         
         try {
             if ( extnum != null && extnum.matches( "[1-9][0-9]*" ) ) {
                 int ihdu = Integer.parseInt( extnum );
                 FitsConstants.skipHDUs( in, ihdu );
-                if ( ! attemptCopyStarTable( in, sink, false ) ) {
+                if ( ! attemptStreamStarTable( in, sink, false ) ) {
                     throw new IOException( "No table HDU at extension " 
                                          + ihdu );
                 }
@@ -146,7 +146,7 @@ public class FitsTableBuilder implements TableBuilder {
             else {
                 boolean done = false;
                 while ( ! done ) {
-                    done = attemptCopyStarTable( in, sink, true );
+                    done = attemptStreamStarTable( in, sink, true );
                 }
                 if ( ! done ) {
                     throw new IOException( "No table extensions found" );
@@ -170,14 +170,14 @@ public class FitsTableBuilder implements TableBuilder {
      *         even if it does not contain a table
      * @return  <tt>true</tt> if the table was successfully copied
      */
-    private boolean attemptCopyStarTable( ArrayDataInput in, TableSink sink,
-                                          boolean readAnyway )
+    private boolean attemptStreamStarTable( ArrayDataInput in, TableSink sink,
+                                            boolean readAnyway )
             throws IOException, FitsException {
         Header hdr = new Header();
         FitsConstants.readHeader( hdr, in );
         String xtension = hdr.getStringValue( "XTENSION" );
         if ( "BINTABLE".equals( xtension ) ) {
-            BintableStarTable.copyStarTable( hdr, in, sink );
+            BintableStarTable.streamStarTable( hdr, in, sink );
             return true;
         }
         else if ( "TABLE".equals( xtension ) ) {
@@ -185,7 +185,7 @@ public class FitsTableBuilder implements TableBuilder {
             tdata.read( in );
             tdata.getData();
             TableHDU thdu = new AsciiTableHDU( hdr, (Data) tdata );
-            Tables.copyStarTable( new FitsStarTable( thdu ), sink );
+            Tables.streamStarTable( new FitsStarTable( thdu ), sink );
             return true;
         }
         else {
