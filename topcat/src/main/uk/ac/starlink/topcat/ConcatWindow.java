@@ -22,6 +22,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnData;
@@ -37,7 +41,8 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  * @author   Mark Taylor (Starlink)
  * @since    25 Mar 2004
  */
-public class ConcatWindow extends AuxWindow implements ItemListener {
+public class ConcatWindow extends AuxWindow
+                          implements ItemListener, TableColumnModelListener {
 
     private final JComboBox t1selector;
     private final JComboBox t2selector;
@@ -187,12 +192,27 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
         ColumnStarTable t2 = ColumnStarTable
                             .makeTableWithRows( t2base.getRowCount() );
         for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnData cdata;
             TableColumn tcol = (TableColumn)
                                colSelectors[ icol ].getSelectedItem();
-            ColumnData cdata;
-            if ( tcol instanceof StarTableColumn ) {
-                final int icol2 = ((StarTableColumn) tcol).getModelIndex();
-                cdata = new ColumnData( t2base.getColumnInfo( icol2 ) ) {
+            if ( tcol instanceof StarTableColumn &&
+                 tcol != ColumnComboBoxModel.NO_COLUMN ) {
+
+                /* Work out what column in the added apparent table 
+                 * corresponds to the one which has been selected in the
+                 * combo box. */
+                int ic2 = -1;
+                ColumnInfo cinfo = ((StarTableColumn) tcol).getColumnInfo();
+                for ( int jcol = 0; jcol < t2base.getColumnCount(); jcol++ ) {
+                    if ( t2base.getColumnInfo( jcol ) == cinfo ) {
+                        ic2 = jcol;
+                    }
+                }
+                final int icol2 = ic2;
+                assert icol2 >= 0;
+
+                /* And create column data for it. */
+                cdata = new ColumnData( cinfo ) {
                     public Object readValue( long irow ) throws IOException {
                         return t2base.getCell( irow, icol2 );
                     }
@@ -214,11 +234,54 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
      * Update the display of columns if the selected tables change.
      */
     public void itemStateChanged( ItemEvent evt ) {
+
+        /* Arrange for this window to listen to column model changes in 
+         * either of the selected tables.  In this way the list of 
+         * columns shown in this window can be kept up to date with the
+         * current state of the tables. */
+        Object source = evt.getSource();
+        if ( source == t1selector || source == t2selector ) {
+            TopcatModel item = (TopcatModel) evt.getItem();
+            if ( item != null ) {
+                if ( evt.getStateChange() == evt.DESELECTED ) {
+                    item.getColumnModel().removeColumnModelListener( this );
+                }
+                else if ( evt.getStateChange() == evt.SELECTED ) {
+                    item.getColumnModel().addColumnModelListener( this );
+                }
+            }
+        }
+
+        /* In any case, update the display based on whatever GUI change 
+         * has just happened. */
         updateDisplay();
     }
 
+    /*
+     * Implement TableColumnModelListener.
+     * These could be somewhat slicker - but for now, just invalidate the
+     * current setup if any change occurs in either of the table column 
+     * models which would mean this window did not correctly reflect them.
+     */
+    public void columnAdded( TableColumnModelEvent evt ) {
+        t2selector.setSelectedItem( null );
+        updateDisplay();
+    }
+    public void columnMoved( TableColumnModelEvent evt ) {
+        t2selector.setSelectedItem( null );
+        updateDisplay();
+    }
+    public void columnRemoved( TableColumnModelEvent evt ) {
+        t2selector.setSelectedItem( null );
+        updateDisplay();
+    }
+    public void columnMarginChanged( ChangeEvent evt ) {
+    }
+    public void columnSelectionChanged( ListSelectionEvent evt ) {
+    }
+
     /**
-     * Sets the initial selection on a column comboox model to match 
+     * Sets the initial selection on a column combo model to match 
      * a given column info.  It matches names and UCDs and so on to try
      * to find some that look like they go together.  Could probably be
      * improved.
