@@ -418,7 +418,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../junit/junit.jar ../util/util.jar"/>
+                   value="../junit/junit.jar ../util/util.jar ../hds/hds.jar ../fits/fits.jar"/>
       </manifest>
     </jar>
 
