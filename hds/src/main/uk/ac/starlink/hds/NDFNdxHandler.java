@@ -98,6 +98,9 @@ public class NDFNdxHandler implements NdxHandler {
      * Constructs an Ndx based on an existing HDS object.
      *
      * @param  hobj  the HDS object to be viewed as an Ndx
+     * @param  persistentURL  the URL at which this NDX persists.
+     *         Use <tt>null</tt> if <tt>hobj</tt> resides in a temporary file
+     *         or is otherwise transient.
      * @param  mode  the read/write/update mode for the Ndx array data
      * @return  the new Ndx based on <tt>hobj</tt>, or <tt>null</tt> 
      *          if it doesn't look like an NDF
@@ -105,9 +108,10 @@ public class NDFNdxHandler implements NdxHandler {
      * @throws  IllegalArgumentException  if <tt>hobj</tt> doesn't look like
      *          and NDF structure
      */
-    public Ndx makeNdx( HDSObject hobj, AccessMode mode ) throws HDSException {
+    public Ndx makeNdx( HDSObject hobj, URL persistentURL, AccessMode mode )
+            throws HDSException {
         try {
-            return new BridgeNdx( new NDFNdxImpl( hobj, null, mode ) );
+            return new BridgeNdx( new NDFNdxImpl( hobj, persistentURL, mode ) );
         }
         catch ( IllegalArgumentException e ) {
             return null;
