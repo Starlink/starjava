@@ -66,11 +66,6 @@ public abstract class ColumnGenerator
     protected ColumnGeneratorListener listener = null;
 
     /**
-     * Number of template fields.
-     */
-    protected int templateCount = 0;
-
-    /**
      * Known expression templates. These should be defined by a
      * concrete implementation. Each element of the array is a list of
      * strings that define the main expression and any required
@@ -125,7 +120,6 @@ public abstract class ColumnGenerator
     protected void setTemplates( String[][] templates )
     {
         this.templates = templates;
-        templateCount = templates.length;
     }
 
     /**
@@ -171,6 +165,7 @@ public abstract class ColumnGenerator
     protected JTextField[] itemValues = null;
     protected JLabel mainName = null;
     protected JTextField mainValue = null;
+    protected static int NAMECOUNT = 10;
 
     /**
      * Create a page of controls for getting the main function, plus
@@ -182,11 +177,11 @@ public abstract class ColumnGenerator
         add( panel, BorderLayout.CENTER );
 
         // Configuration
-        itemNames = new JTextField[templateCount];
-        itemValues = new JTextField[templateCount];
+        itemNames = new JTextField[NAMECOUNT];
+        itemValues = new JTextField[NAMECOUNT];
         mainName = new JLabel( "y" );
         mainValue = new JTextField();
-        for ( int i = 0; i < templateCount; i++ ) {
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
             itemNames[i] = new JTextField();
             itemValues[i]= new JTextField();
         }
@@ -208,7 +203,7 @@ public abstract class ColumnGenerator
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         panel.add( mainValue, gbc );
 
-        for ( int i = 0; i < templateCount; i++ ) {
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
             gbc.anchor = GridBagConstraints.EAST;
             gbc.fill = GridBagConstraints.HORIZONTAL;
             gbc.weightx = 0.15;
@@ -270,7 +265,7 @@ public abstract class ColumnGenerator
     protected void clearValues()
     {
         mainValue.setText( "" );
-        for ( int i = 0; i < templateCount; i++ ) {
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
             itemValues[i].setText( "" );
         }
     }
@@ -280,7 +275,7 @@ public abstract class ColumnGenerator
      */
     protected void clearNames()
     {
-        for ( int i = 0; i < templateCount; i++ ) {
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
             itemNames[i].setText( "" );
         }
     }
@@ -338,7 +333,7 @@ public abstract class ColumnGenerator
         else {
             // Count any sub-expressions.
             int count = 0;
-            for ( int i = 0; i < templateCount; i++ ) {
+            for ( int i = 0; i < NAMECOUNT; i++ ) {
                 if ( ! "".equals( itemNames[i].getText() ) ) {
                     count++;
                 }

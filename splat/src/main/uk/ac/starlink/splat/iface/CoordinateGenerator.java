@@ -11,22 +11,29 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.text.DecimalFormat;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
-import java.text.DecimalFormat;
+import javax.swing.JTextField;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.SplatException;
 
 
 /**
@@ -35,12 +42,13 @@ import uk.ac.starlink.splat.util.Utilities;
  * transformation (offset and scale) and general one (based on
  * MathMap).
  * <p>
- * A general transformation may or may not be invertable. If it isn't
- * then the current AST mappings will be replaced by a look-up-table.
+ * A general transformation are assumed not invertable and
+ * mean that their AST mappings will be replaced by a look-up-table.
+ * If this choice is popular this decision may be re-visited.
  *
  * @author Peter W. Draper
  * @version $Id$
- */      
+ */
 public class CoordinateGenerator
     extends JPanel
 {
@@ -77,13 +85,13 @@ public class CoordinateGenerator
     {
         initUI();
         setListener( listener );
-        
+
         //  Set the EditableSpecData we're taking values from. Note this must
         //  happen after the interface is generated.
         setEditableSpecData( specData );
         setVisible( true );
     }
-    
+
     /**
      * Initialise the user interface.
      */
@@ -111,7 +119,7 @@ public class CoordinateGenerator
     {
         this.listener = listener;
     }
-    
+
     protected JRadioButton useCoords = null;
     protected JRadioButton useIndices = null;
 
@@ -185,15 +193,71 @@ public class CoordinateGenerator
 
         pane.add( "Linear", panel );
     }
-    
+
+    protected JTextField[] itemNames = null;
+    protected JTextField[] itemValues = null;
+    protected JLabel mainName = null;
+    protected JTextField mainValue = null;
+    protected static int NAMECOUNT = 10;
+
     /**
      * Add a page of controls for the general transformation option.
      */
     protected void addGeneral( JTabbedPane pane )
     {
-        
+        JPanel panel = new JPanel();
+        add( panel, BorderLayout.CENTER );
+
+        // Configuration
+        itemNames = new JTextField[NAMECOUNT];
+        itemValues = new JTextField[NAMECOUNT];
+        mainName = new JLabel( "y" );
+        mainValue = new JTextField();
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
+            itemNames[i] = new JTextField();
+            itemValues[i]= new JTextField();
+        }
+
+        //  Layout
+        panel.setLayout( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.15;
+        gbc.gridwidth = 1;
+        panel.add( mainName, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0.0;
+        panel.add( new JLabel( " = " ), gbc );
+        gbc.weightx = 0.85;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        panel.add( mainValue, gbc );
+
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
+            gbc.anchor = GridBagConstraints.EAST;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.weightx = 0.15;
+            gbc.gridwidth = 1;
+            panel.add( itemNames[i], gbc );
+            gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 0.0;
+            panel.add( new JLabel( " = " ), gbc );
+            gbc.weightx = 0.85;
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            panel.add( itemValues[i], gbc );
+        }
+
+        //  Eat remaining space to keep packed at top.
+        eatSpare( panel, gbc );
+
+        panel.setBorder( BorderFactory.createTitledBorder
+                         ( "Symbolic transformation:" ) );
+
+        pane.add( "General", panel );
     }
-    
+
     /**
      * Eat to end of current line using GridBagLayout.
      */
@@ -204,7 +268,7 @@ public class CoordinateGenerator
         gbc.weightx = 1.0;
         panel.add( Box.createHorizontalGlue(), gbc );
     }
-    
+
     /**
      * East spare space at bottom of panel using GridBagLayout.
      */
@@ -262,16 +326,16 @@ public class CoordinateGenerator
         FrameSet frameSet = specData.getFrameSet();
 
         //  Get a copy of the current Frame (to keep units etc.).
-        Frame frame = (Frame) 
+        Frame frame = (Frame)
             frameSet.getFrame( FrameSet.AST__CURRENT ).copy();
 
         if ( useCoords.isSelected() ) {
-            
+
             // Transformation of existing coordinates.
             frameSet.addFrame( FrameSet.AST__CURRENT, winMap, frame );
         }
         else {
-            
+
             // New coordinates. Use mapping to base coordinates.
             frameSet.addFrame( FrameSet.AST__BASE, winMap, frame );
         }
@@ -288,8 +352,91 @@ public class CoordinateGenerator
         }
     }
 
+
+    /**
+     * Modify the coordinates using a general transformation of either
+     * the indices or existing coordinates. Must use a look-up-table
+     * as we don't know if the transformation is invertable.
+     */
     protected void generateGeneral()
     {
-        //  ... XXX todo.
+        if ( "".equals( mainValue.getText() ) ) {
+            JOptionPane.showMessageDialog( this,
+                                           "No main expression is defined",
+                                           "No expressions",
+                                           JOptionPane.WARNING_MESSAGE );
+            return;
+        }
+
+        // Count any sub-expressions.
+        int count = 0;
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
+            if ( ! "".equals( itemNames[i].getText() ) ) {
+                count++;
+            }
+        }
+        String[] fwd = new String[count+1];
+        int j = 0;
+        for ( int i = count; i >= 0; i-- ) {
+            if ( ! "".equals( itemNames[i].getText() ) ) {
+                fwd[j++] = itemNames[i].getText() + " = " +
+                    itemValues[i].getText();
+            }
+        }
+        fwd[j++] = "y = " + mainValue.getText();
+        double[] newcoords = doAstMathMap( fwd );
+
+        //  Set these as the new coordinates.
+        if ( newcoords != null ) {
+            try {
+                specData.setDataQuick( specData.getYData(), newcoords,
+                                       specData.getYDataErrors() );
+                listener.generatedCoordinates();
+            }
+            catch (SplatException e) {
+                new ExceptionDialog( this, e );
+            }
+        }
+    }
+
+    /**
+     * Apply a general transformation to either the current
+     * coordinates or indices.
+     */
+    protected double[] doAstMathMap( String[] fwd )
+    {
+        double[] coords = specData.getXData();
+        double[] indices = new double[coords.length];
+        for ( int i = 0; i< coords.length; i++ ) {
+            indices[i] = (double) i;
+        }
+
+        //  Available data to transform. XXX could cache index vector
+        //  and/or check if it or the coords are needed by looking for
+        //  tokens in the expression strings.
+        String inv[] = new String[2];
+        inv[0] = "coord";
+        inv[1] = "index";
+
+        //  Create the MathMap with coord and index mapping to
+        //  newvalue.
+        try {
+            MathMap map = new MathMap( inv.length, 1, fwd, inv );
+
+            //  Do the transform.
+            double[][] in = new double[inv.length][];
+            in[0] = coords;
+            in[1] = indices;
+            double[][] result = map.tranP( coords.length, inv.length,
+                                           in, true, 1 );
+            return result[0];
+        }
+        catch (AstException e) {
+            new ExceptionDialog( this, e );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
