@@ -100,7 +100,7 @@ public class XMLDataNode extends DefaultDataNode {
                 Node nod = next;
                 next = firstUsefulSibling( next.getNextSibling() );
                 try {
-                    return childMaker.makeDataNode( nod );
+                    return childMaker.makeDataNode( new DOMSource( nod ) );
                 }
                 catch ( Exception e ) {
                     return new DefaultDataNode( e );

@@ -117,6 +117,9 @@ public class NdxDataNode extends DefaultDataNode {
         catch ( IOException e ) {
             throw new NoSuchDataException( e );
         }
+        catch ( IllegalArgumentException e ) {
+            throw new NoSuchDataException( e );
+        }
         if ( ndx == null ) {
             throw new NoSuchDataException( "Not an NDX" );
         }

@@ -136,7 +136,9 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
-                    return new XMLDocumentDataNode( xsrc );
+                    DataNode dn = new XMLDocumentDataNode( xsrc );
+                    dn.setLabel( file.getName() );
+                    return dn;
                 }
             }
 
