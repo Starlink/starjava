@@ -9,7 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -317,13 +319,24 @@ public class VOTableWriter implements StarTableWriter {
             || filename.endsWith( ".votable" );
     }
 
-    /**
-     * Returns the string "votable";
-     *
-     * @return  name of the format written by this writer
-     */
     public String getFormatName() {
-        return "votable";
+        StringBuffer fname = new StringBuffer( "votable" );
+        if ( dataFormat == DataFormat.TABLEDATA ) {
+            fname.append( "-tabledata" );
+            return fname.toString();
+        }
+
+        if ( dataFormat == DataFormat.FITS ) {
+            fname.append( "-fits" );
+        }
+        else if ( dataFormat == DataFormat.BINARY ) {
+            fname.append( "-binary" );
+        }
+        else {
+            assert false;
+        }
+        fname.append( inline ? "-inline" : "-href" );
+        return fname.toString();
     }
 
     /**
@@ -404,6 +417,23 @@ public class VOTableWriter implements StarTableWriter {
      */
     public String getDoctypeDeclaration() {
         return doctypeDeclaration;
+    }
+
+    /**
+     * Returns a list of votables with variant values of attributes.
+     * Currently it returns a list of all the ones you get by using 
+     * non-default values for the constructor parameters, that is
+     * BINARY and FITS each in inline and href variants (a list of 4).
+     *
+     * @return   non-standard VOTableWriters.
+     */
+    public static List getVariantHandlers() {
+        List variants = new ArrayList();
+        variants.add( new VOTableWriter( DataFormat.BINARY, true ) );
+        variants.add( new VOTableWriter( DataFormat.BINARY, false ) );
+        variants.add( new VOTableWriter( DataFormat.FITS, true ) );
+        variants.add( new VOTableWriter( DataFormat.FITS, false ) );
+        return variants;
     }
 
     /**
