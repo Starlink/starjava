@@ -63,6 +63,7 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.PasteLoader;
+import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
@@ -105,6 +106,7 @@ public class ControlWindow extends AuxWindow
     private final ComboBoxModel dummyComboBoxModel = new DefaultComboBoxModel();
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
     private StarTableFactory tabfact = new StarTableFactory( true );
+    private StarTableChooser loadChooser;
     private LoadQueryWindow loadWindow;
     private StarTableSaver saver;
     private ConcatWindow concatWindow;
@@ -434,7 +436,8 @@ public class ControlWindow extends AuxWindow
      */
     public LoadQueryWindow getLoader() {
         if ( loadWindow == null ) {
-            loadWindow = new LoadQueryWindow( tabfact, this ) {
+            loadWindow = new LoadQueryWindow( tabfact, getLoadChooser(),
+                                              this ) {
                 protected void performLoading( StarTable st, String loc ) {
                     addTable( st, loc, true );
                 }
@@ -492,6 +495,27 @@ public class ControlWindow extends AuxWindow
      */
     public void setTableFactory( StarTableFactory tabfact ) {
         this.tabfact = tabfact;
+    }
+
+    /**
+     * Returns the dialogue used for loading tables used by this application.
+     *
+     * @return  load chooser dialogue
+     */
+    public StarTableChooser getLoadChooser() {
+        if ( loadChooser == null ) {
+            loadChooser = new StarTableChooser( getTableFactory() );
+        }
+        return loadChooser;
+    }
+
+    /**
+     * Sets the dialogue used for loading tables used by this application.
+     *
+     * @param  chooser  load chooser dialogue
+     */
+    public void setLoadChooser( StarTableChooser chooser ) {
+        this.loadChooser = chooser;
     }
 
     /**

@@ -19,6 +19,8 @@ import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.WrapperStarTable;
+import uk.ac.starlink.table.gui.StarTableChooser;
+import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -42,6 +44,7 @@ public class Driver {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
     private static StarTableFactory tabfact = new StarTableFactory( true );
     private static ControlWindow control;
+    private static String[] extraLoaders;
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -155,15 +158,17 @@ public class Driver {
 
         /* Prepare basic usage message. */
         if ( cmdname == null ) {
-            cmdname = Driver.class.getName();
+            cmdname = "topcat";
         }
-        String usage = "Usage: " 
-                     + cmdname
-                     + " [-help] [-demo] [-disk] [[-f <format>] table ...]";
+        String pre = "Usage: " + cmdname;
+        String usage = pre
+                     + " [-help] [-demo] [-disk] [-myspace] [-cone]\n"
+                     + pre.replaceAll( ".", " " )
+                     + " [[-f <format>] table ...]";
 
         /* Prepare usage message which also describes known formats. */ 
         StringBuffer ufbuf = new StringBuffer( usage );
-        ufbuf.append( "\n           Auto-Detected formats: " );
+        ufbuf.append( "\n    Auto-Detected formats: " );
         for ( Iterator it = tabfact.getDefaultBuilders().iterator();
               it.hasNext(); ) {
             ufbuf.append( ((TableBuilder) it.next()).getFormatName()
@@ -172,7 +177,7 @@ public class Driver {
                ufbuf.append( ", " );
             }
         }
-        ufbuf.append( "\n           All known formats:     " );
+        ufbuf.append( "\n    All known formats:     " );
         for ( Iterator it = tabfact.getKnownFormats().iterator();
               it.hasNext(); ) {
             ufbuf.append( ((String) it.next()).toLowerCase() );
@@ -187,6 +192,7 @@ public class Driver {
 
         /* Process flags. */
         List argList = new ArrayList( Arrays.asList( args ) );
+        List loaderList = new ArrayList();
         boolean demo = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -205,11 +211,21 @@ public class Driver {
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
             }
+            else if ( arg.equals( "-myspace" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.astrogrid." +
+                                "MyspaceTableLoadDialog" );
+            }
+            else if ( arg.equals( "-cone" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.voserv.ConeSearchDialog" );
+            }
             else if ( arg.startsWith( "-" ) ) {
                 System.err.println( usage );
                 System.exit( 1 );
             }
         }
+        extraLoaders = (String[]) loaderList.toArray( new String[ 0 ] );
 
         /* Assemble pairs of (tables name, handler name) to be loaded. */
         List names = new ArrayList();
@@ -312,8 +328,10 @@ public class Driver {
      */
     private static ControlWindow getControlWindow() {
         if ( control == null ) {
+            StarTableChooser chooser = makeLoadChooser();
             control = ControlWindow.getInstance();
             control.setTableFactory( tabfact );
+            control.setLoadChooser( chooser );
         }
         return control;
     }
@@ -333,6 +351,48 @@ public class Driver {
                 getControlWindow().addTable( table, location, false );
             }
         } );
+    }
+
+    /**
+     * Creates a StarTableChooser suitable for use by the application.
+     *
+     * @return  new chooser
+     */
+    private static StarTableChooser makeLoadChooser() {
+
+        /* If we have been requested to use any extra load dialogues,
+         * install them into the chooser here.  It would be more
+         * straightforward to do this using the system property mechanism
+         * designed for this (set StarTableChooser.LOAD_DIALOGS_PROPERTY),
+         * but this would fail with a SecurityException under some 
+         * circumstances (unsigned WebStart). */
+        List dList = new ArrayList();
+        dList.addAll( Arrays.asList( StarTableChooser
+                                    .makeDefaultLoadDialogs() ) );
+        List nameList = new ArrayList();
+        for ( Iterator it = dList.iterator(); it.hasNext(); ) {
+            nameList.add( it.next().getClass().getName() );
+        }
+        for ( int i = 0; i < extraLoaders.length; i++ ) {
+            String cname = extraLoaders[ i ];
+            if ( ! nameList.contains( cname ) ) {
+                try {
+                    TableLoadDialog tld =
+                        (TableLoadDialog) 
+                        Driver.class.forName( extraLoaders[ i ] ).newInstance();
+                    dList.add( tld );
+                }
+                catch ( Throwable th ) {
+                    System.err.println( "Class loading error for optional " +
+                                        "loader:" );
+                    System.err.println( "   " + th );
+                    System.exit( 1 );
+                }
+            }
+        }
+        TableLoadDialog[] dialogs = (TableLoadDialog[]) 
+                                    dList.toArray( new TableLoadDialog[ 0 ] );
+        return new StarTableChooser( tabfact, dialogs );
     }
 
     /**

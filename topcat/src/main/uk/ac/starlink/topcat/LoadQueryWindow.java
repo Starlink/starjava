@@ -49,9 +49,11 @@ public abstract class LoadQueryWindow extends QueryWindow {
      * @param  factory   table factory
      * @param  parent   parent component
      */
-    public LoadQueryWindow( StarTableFactory factory, Component parent ) {
+    public LoadQueryWindow( StarTableFactory factory, StarTableChooser chooser,
+                            Component parent ) {
         super( "Load New Table", parent, false, true );
         tableFactory_ = factory;
+        chooser_ = chooser;
         SwingAuthenticator auth = new SwingAuthenticator();
         auth.setParentComponent( this );
         tableFactory_.getJDBCHandler().setAuthenticator( auth );
@@ -60,7 +62,6 @@ public abstract class LoadQueryWindow extends QueryWindow {
         progBar_ = placeProgressBar();
 
         /* Add the main chooser widget. */
-        chooser_ = new StarTableChooser( factory );
         getAuxControlPanel().add( chooser_ );
 
         /* Demo actions. */
