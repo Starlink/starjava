@@ -92,7 +92,7 @@
 
   <!-- JUnit test options -->
   <property name="junit.fork" value="true"/>
-  <property name="junit.filtertrace" value="off"/>
+  <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
 
   <!-- Directory containing the package source -->
@@ -171,7 +171,7 @@
   <property name="perl" value="/stardev/Perl/bin/perl"/>
   <property name="ast.archive" value="${src.ast}/ast_source.tar"/>
   <property name="ast.fac.err" value="${build.ast}/fac_1521_err"/>
-  <property name="shared.object" value="libjniast.so"/>
+  <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>
 
 
@@ -279,7 +279,7 @@
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
-               classpathref="classpath"
+               classpathref="tests-classpath"
                classname="junit.framework.TestCase"/>
 
   </target>
@@ -724,6 +724,10 @@
       </fileset>
     </copy>
 
+    <copy todir="${dist.lib}">
+      <fileset dir="${build.lib}" includes="**/*.so"/>
+    </copy>
+
     <copy todir="${dist.javadocs}">
       <fileset dir="${build.javadocs}" excludes="${unfiltered.files}"/>
       <filterchain refid="filters"/>
@@ -755,7 +759,7 @@
    !  may need special handling of the extension path). This version
    !  can also be used to rebuild the package from source.
    !
-   !  The archive names are ${dist.version}.<ext>.
+   !  The archive names are ${dist.version}-${os.name}.<ext>.
    !-->
   <target name="export"
           description="-> creates the full distribution archives">
@@ -800,7 +804,7 @@
    !  used as a local distribution, or installed into a Starlink tree
    !  (installation requires the Starlink modified version of ANT).
    !
-   !  The archive names are ${dist.version}-bin.<ext>.
+   !  The archive names are ${dist.version}-bin-${os.name}.<ext>.
    !-->
   <target name="export-runonly"
           description="-> creates the runonly distribution archives">
@@ -821,6 +825,10 @@
    ! If the property "binary.required" is set then the files needed
    ! for a run-only release are included and if "source.required" is
    ! defined the source code is also included.
+   !
+   ! For binary archives which contain platform-dependent code (e.g.
+   ! shareable libraries) the operating system name is appended to
+   | the archive name.
    !-->
   <target name="create_archives"
           depends="dist">
@@ -921,9 +929,7 @@
     <property name="star.etc.pkg" value="${star.etc}/${name}"/>
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
     <mkdir dir="${star.docs.pkg}"/>
 
     <loggedcopy todir="${star.bin}"
@@ -940,7 +946,7 @@
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
-        <include name="*.so"/>
+        <include name="**/*.so"/>
       </fileset>
     </loggedcopy>
 
@@ -972,16 +978,14 @@
   <target name="install-runonly"
           description="-> install a runonly distribution into Starlink tree">
 
-     <!-- Make sure that the expected file structure exists, some
-          of these files can be missing if originally empty -->
-     <mkdir dir="${dist.dir}"/>
-     <mkdir dir="${dist.bin.pkg}"/>
-     <mkdir dir="${dist.lib.pkg}"/>
-     <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+    <!-- Make sure that the expected file structure exists, some
+         of these files can be missing if originally empty -->
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.lib.pkg}"/>
+    <mkdir dir="${dist.docs.pkg}"/>
 
-     <!-- Do normal install, but with many targets switched off-->
-     <antcall target="install">
+    <!-- Do normal install, but with many targets switched off-->
+    <antcall target="install">
       <param name="runonly.install" value="true"/>
       <param name="javadoc.notrequired" value="true"/>
     </antcall>
@@ -1093,6 +1097,7 @@
            fork="${junit.fork}">
       <classpath refid="tests-classpath"/>
 
+      <sysproperty key="java.library.path" value="${dist.lib}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
@@ -1118,6 +1123,7 @@
           haltonfailure="yes"
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
+      <sysproperty key="java.library.path" value="${dist.lib}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
