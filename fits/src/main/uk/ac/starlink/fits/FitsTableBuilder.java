@@ -60,7 +60,7 @@ public class FitsTableBuilder implements TableBuilder {
         try {
 
             /* Get a FITS data stream. */
-            strm = FitsConstants.getInputStream( datsrc );
+            strm = FitsConstants.getInputStreamStart( datsrc );
 
             /* Keep track of the position in the stream. */
             long[] pos = new long[] { 0L };
@@ -68,6 +68,8 @@ public class FitsTableBuilder implements TableBuilder {
             /* If an HDU was specified explicitly, try to pick up that one
              * as a table. */
             if ( datsrc.getPosition() != null ) {
+                pos[ 0 ] += FitsConstants
+                           .positionStream( strm, datsrc.getPosition() );
                 try {
                     table = attemptReadTable( strm, wantRandom, datsrc, pos );
                 }
@@ -222,7 +224,9 @@ public class FitsTableBuilder implements TableBuilder {
         /* Read the header. */
         Header hdr = new Header();
         int headsize = FitsConstants.readHeader( hdr, strm );
-        pos[ 0 ] += headsize;
+        long datasize = FitsConstants.getDataSize( hdr );
+        long datpos = pos[ 0 ] + headsize;
+        pos[ 0 ] += headsize + datasize;
         String xtension = hdr.getStringValue( "XTENSION" );
           
         /* If it's a BINTABLE HDU, make a BintableStarTable out of it. */ 
@@ -237,7 +241,7 @@ public class FitsTableBuilder implements TableBuilder {
             }
             else {
                 return BintableStarTable
-                      .makeSequentialStarTable( hdr, datsrc, pos[ 0 ] );
+                      .makeSequentialStarTable( hdr, datsrc, datpos );
             }
 
             // BinaryTable tdata = new BinaryTable( hdr );
@@ -257,9 +261,7 @@ public class FitsTableBuilder implements TableBuilder {
 
         /* It's not a table HDU - just skip over it and return null. */
         else {
-            long datasize = FitsConstants.getDataSize( hdr );
             IOUtils.skipBytes( strm, datasize );
-            pos[ 0 ] += datasize;
             return null;
         }
     }

@@ -110,14 +110,21 @@ public class FitsConstants {
      *
      * @param  stream  the stream to skip through
      * @param  nskip  the number of HDUs to skip
+     * @return  the number of bytes the stream was advanced
      */
-    public static void skipHDUs( ArrayDataInput stream, int nskip )
+    public static long skipHDUs( ArrayDataInput stream, int nskip )
             throws IOException {
         try {
+            long advance = 0L;
             while ( nskip-- > 0 ) {
-                Header hdr = new Header( stream );
-                IOUtils.skipBytes( stream, getDataSize( hdr ) );
+                Header hdr = new Header();
+                int headsize = readHeader( hdr, stream );
+                advance += headsize;
+                long datasize = getDataSize( hdr );
+                IOUtils.skipBytes( stream, datasize );
+                advance += datasize;
             }
+            return advance;
         }
         catch ( TruncatedFileException e ) {
             throw (IOException) new IOException( "FITS file too short: "
@@ -151,31 +158,41 @@ public class FitsConstants {
 
     /**
      * Returns an input stream which can be used with the various FITS
-     * classes based on a given DataSource object.  If the DataSource
-     * has a position attribute, it will be interpreted as the zero-based
-     * index of the HDU to start the stream at.  Otherwise, the stream
-     * will start at the primary HDU (as if position="0").
-     * 
+     * classes based on a given DataSource object, positioned at the
+     * start of the stream.
+     *
      * @param  datsrc  the DataSource pointing to the file/HDU required
      * @return  an ArrayDataInput acquired from <tt>datsrc</tt>,
-     *          and positioned according to its position
      */
-    public static ArrayDataInput getInputStream( DataSource datsrc ) 
+    public static ArrayDataInput getInputStreamStart( DataSource datsrc )
             throws IOException {
-        ArrayDataInput strm;
-
-        /* Get a stream for the whole file. */
         if ( datsrc instanceof FileDataSource && 
              datsrc.getCompression() == Compression.NONE ) {
-            strm = new MappedFile( ((FileDataSource) datsrc)
+            return new MappedFile( ((FileDataSource) datsrc)
                                   .getFile().toString() );
         }
         else {
-            strm = new BufferedDataInputStream( datsrc.getInputStream() );
+            return new BufferedDataInputStream( datsrc.getInputStream() );
         }
+    }
+
+    /**
+     * Advances the position of an input stream according to a position 
+     * string.
+     * The string may contain a non-negative integer giving the number of
+     * HDUs to advance by.
+     * If it's "0" or <tt>null</tt> no advance will be made.
+     * The <tt>pos</tt> string will typically be the position attribute
+     * of a {@link uk.ac.starlink.util.DataSource}.
+     *
+     * @param  strm  the stream to advance
+     * @param  pos   number of HDUs to advance by (as a string)
+     * @return  number of bytes the stream has been advanced
+     */
+    public static long positionStream( ArrayDataInput strm, String pos )
+            throws IOException {
 
         /* If we have a position, try to position the stream accordingly. */
-        String pos = datsrc.getPosition();
         if ( pos != null ) {
 
             /* Get a non-negative HDU index. */
@@ -194,10 +211,28 @@ public class FitsConstants {
             }
 
             /* Skip forward the right number of HDUs. */
-            skipHDUs( strm, ihdu );
+            return skipHDUs( strm, ihdu );
         }
+        else {
+            return 0L;
+        }
+    }
 
-        /* Return the stream. */
+    /**
+     * Returns an input stream which can be used with the various FITS
+     * classes based on a given DataSource object.  If the DataSource
+     * has a position attribute, it will be interpreted as the zero-based
+     * index of the HDU to start the stream at.  Otherwise, the stream
+     * will start at the primary HDU (as if position="0").
+     * 
+     * @param  datsrc  the DataSource pointing to the file/HDU required
+     * @return  an ArrayDataInput acquired from <tt>datsrc</tt>,
+     *          and positioned according to its position
+     */
+    public static ArrayDataInput getInputStream( DataSource datsrc ) 
+            throws IOException {
+        ArrayDataInput strm = getInputStreamStart( datsrc );
+        positionStream( strm, datsrc.getPosition() );
         return strm;
     }
 
