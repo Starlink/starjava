@@ -63,13 +63,16 @@ public class HdxTest
     
     public void testURIResolution()
             throws Exception {
+
+
         File cwdFile = new File(System.getProperty("user.dir"));
         File parentFile = cwdFile.getParentFile();
+
         String cwd = null;
         String parent = null;
         try {
-            cwd = "file:" + cwdFile.getCanonicalPath() + "/";
-            parent = "file:" + parentFile.getCanonicalPath() + "/";
+            cwd = cwdFile.toURI().toURL().toString();
+            parent = parentFile.toURI().toURL().toString();
         } catch (java.io.IOException ex) {
             fail("could not getCanonicalPath!");
         }
@@ -85,7 +88,16 @@ public class HdxTest
                      resolveURI("../oops/HdxTest.java"));
         assertEquals("file:/etc/passwd", resolveURI("/etc/passwd"));
         File fileHdxTest = new File("HdxTest.java");
-        String absfileHdxTest = fileHdxTest.getAbsolutePath();
+
+        String absfileHdxTest = null;
+        try {
+	    absfileHdxTest = 
+		fileHdxTest.getAbsoluteFile().toURI().toURL().toString();
+	}
+	catch (java.io.IOException ex) {
+	    fail("could not generate absolute file name");
+	}
+
         assertEquals(cwd+"HdxTest.java",
                      resolveURI(absfileHdxTest));
         assertEquals(parent+"MasterFactory.java",
@@ -417,7 +429,7 @@ public class HdxTest
         // test to fail spuriously on Xalan <2.5 (?).  There is a fix
         // on the USSC219 branch.  Revisit this when that is merged.
         String xmlstring = "<ndx><title>Title</title><image uri='file:test1.fits' url='file:nothing.fits'/></ndx>";
-
+   
         HdxFactory docfact = HdxFactory.getInstance();
         Document stringdoc = (Document)srcrdr.getDOM
                 (new StreamSource(new StringReader(xmlstring)));
@@ -811,8 +823,8 @@ public class HdxTest
     private String resolveURI(String uriString) {
         try {
             URI uri = new URI(uriString);
-            URL url = HdxFactory.getInstance().fullyResolveURI(uri,null);
-            //URL url = HdxFactory.getInstance().fullyResolveURI(uri);
+            URL url = HdxFactory.getInstance().fullyResolveURI(uri,null); 
+           //URL url = HdxFactory.getInstance().fullyResolveURI(uri);
             return url.toString();
         } catch (HdxException ex) {
             return "(HdxException: " + ex + ")";
