@@ -918,6 +918,18 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
     </uptodate>
   </target>
 
+  <!--
+   !   ==========================================
+   !   Creates the API documentation java sources
+   !   ==========================================
+   !
+   !  Does nothing.
+   !-->
+  <target name="javadoc-sources"
+          description="-> does nothing">
+  </target>
+
+
   <!-- Pattern for javadoc-sources when enabled -->
   <!-- Exclude broken and test files etc. from the document -->
   <!--<fileset dir="${java.dir}" defaultexcludes="yes">
