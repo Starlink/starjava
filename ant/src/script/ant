@@ -12,8 +12,8 @@ else
    #  Fall-back Java is on current PATH.
    java="java"
 
-   #  If $STARLINK is defined then try that. Look for JDK as ANT 
-   #  needs that really.
+   #  If $STARLINK is defined then try that. Look for JDK first as ANT 
+   #  needs that really. JRE is only useful for post build installations.
    if test "$STARLINK" != ""; then
       if test -r "$STARLINK/java/jdkhome"; then
          java="`cat $STARLINK/java/jdkhome`/bin/java"

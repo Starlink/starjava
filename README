@@ -5,14 +5,21 @@
    Prerequisites
    -------------
 
-Make sure you have a J2SE SDK available on your PATH. Downloads are
-available from:
+Make sure you have a J2SE SDK available. Downloads are available from:
 
    http://java.sun.com/
 
 This should probably match the version of the JRE distributed by
 Starlink (see the /star/java directory or equivalent). We cannot
 distribute the SDK for licensing reasons.
+
+Now define STAR_JAVA to point at the "java" command of this:
+
+   setenv STAR_JAVA /some/where/j2sdk1.x.x/bin/java
+
+Alternatively install the SDK into /star/java and create a file
+"jdkhome" in this directory that contains the full name of the host
+directory (in the same fashion as the jrehome file found there).
 
    Build ANT
    ---------
