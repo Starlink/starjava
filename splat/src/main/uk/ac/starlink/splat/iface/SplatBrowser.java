@@ -27,6 +27,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.prefs.Preferences;
 
@@ -70,11 +71,10 @@ import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.splat.util.TreeviewAccess;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
-
-//import uk.ac.starlink.treeview.TreeNodeChooser;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -116,6 +116,11 @@ public class SplatBrowser
      *  The global list of spectra and plots.
      */
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
+
+    /**
+     *  Factory methods for creating SpecData instances.
+     */
+    protected SpecDataFactory specDataFactory = SpecDataFactory.getInstance();
 
     /**
      * UI preferences.
@@ -182,11 +187,6 @@ public class SplatBrowser
      *  Open or save file chooser.
      */
     protected BasicFileChooser fileChooser = null;
-
-    /**
-     *  Open table chooser.
-     */
-    //protected StarTableNodeChooser tableChooser = null;
 
     /**
      *  Names of files that are passed to other threads for loading.
@@ -888,8 +888,8 @@ public class SplatBrowser
 
             //  If the user requested that opened spectra are also
             //  displayed, then respect this.
-            displayNewFiles = displayCheckBox.isSelected();
-            usertypeIndex = usertypeBox.getSelectedIndex();
+            displayNewFiles = openDisplayCheckBox.isSelected();
+            openUsertypeIndex = openUsertypeBox.getSelectedIndex();
             threadLoadChosenSpectra();
         }
     }
@@ -914,7 +914,10 @@ public class SplatBrowser
         if ( result == fileChooser.APPROVE_OPTION ) {
             File destFile = fileChooser.getSelectedFile();
             if ( destFile != null ) {
-               threadSaveSpectrum( indices[0], destFile.getPath() );
+                //  Record any choice of file and table types.
+                saveUsertypeIndex = saveUsertypeBox.getSelectedIndex();
+                saveTabletypeIndex = saveTabletypeBox.getSelectedIndex();
+                threadSaveSpectrum( indices[0], destFile.getPath() );
             }
             else {
                 JOptionPane.showMessageDialog( this,
@@ -922,6 +925,28 @@ public class SplatBrowser
                                                "No write",
                                                JOptionPane.WARNING_MESSAGE );
             }
+        }
+    }
+
+    /**
+     * Show window for browsing a tree of data files and, importantly"
+     * the components of the files too. This allows interactive
+     * selection of any displayable components.
+     */
+    public void showSplatNodeChooser()
+    {
+        SpecData specData = null;
+        try {
+            specData = TreeviewAccess.getInstance().splatNodeChooser
+                ( this, "Open", "Select spectrum" );
+        }
+        catch (SplatException e) {
+            new ExceptionDialog( this, e );
+            return;
+        }
+        if ( specData != null ) {
+            addSpectrum( specData );
+            displaySpectrum( specData );
         }
     }
 
@@ -959,16 +984,19 @@ public class SplatBrowser
             fileChooser.setMultiSelectionEnabled( true );
         }
         else {
-            fileChooser.setAccessory( null );
+            if ( saveAccessory == null ) {
+                initSaveAccessory();
+            }
+            fileChooser.setAccessory( saveAccessory );
             fileChooser.setMultiSelectionEnabled( false );
         }
     }
 
-    // OpenAccessory components. The usertypeIndex is most important.
-    protected int usertypeIndex = 0;
+    // OpenAccessory components.
+    protected int openUsertypeIndex = 0;
     protected JPanel openAccessory = null;
-    protected JCheckBox displayCheckBox = null;
-    protected JComboBox usertypeBox = null;
+    protected JCheckBox openDisplayCheckBox = null;
+    protected JComboBox openUsertypeBox = null;
 
     /**
      * Initialise the accessory components for opening
@@ -980,23 +1008,87 @@ public class SplatBrowser
         openAccessory = new JPanel();
         GridBagLayouter layouter = new GridBagLayouter( openAccessory );
 
-        displayCheckBox = new JCheckBox();
-        displayCheckBox.setToolTipText( "Display opened spectra in new plot" );
-        displayCheckBox.setSelected( true );
-        JLabel displayLabel = new JLabel( "Display: " );
+        openDisplayCheckBox = new JCheckBox();
+        openDisplayCheckBox.setToolTipText
+            ( "Display opened spectra in new plot" );
+        openDisplayCheckBox.setSelected( true );
 
-        layouter.add( displayLabel, false );
-        layouter.add( displayCheckBox, true );
+        layouter.add( "Display:", false );
+        layouter.add( openDisplayCheckBox, true );
 
         // User may override builtin file extensions by providing an
         // explicit type.
-        usertypeBox = new JComboBox( SpecDataFactory.shortNames );
-        usertypeBox.setToolTipText
+        openUsertypeBox = new JComboBox( SpecDataFactory.shortNames );
+        openUsertypeBox.setToolTipText
             ( "Choose a type for the selected files" );
-        JLabel usertypeLabel = new JLabel( "Format: " );
 
-        layouter.add( usertypeLabel, false );
-        layouter.add( usertypeBox, true );
+        layouter.add( "Format:", false );
+        layouter.add( openUsertypeBox, true );
+        layouter.eatSpare();
+    }
+
+    // StackAccessory components.
+    protected JPanel stackOpenAccessory = null;
+    protected JCheckBox stackOpenDisplayCheckBox = null;
+
+    /**
+     * Initialise the accessory components for opening a stack of spectra. 
+     * Currently this provides the ability to choose whether to display 
+     * any opened spectra.
+     */
+    protected void initStackOpenAccessory()
+    {
+        stackOpenAccessory = new JPanel();
+        GridBagLayouter layouter = new GridBagLayouter( stackOpenAccessory );
+
+        stackOpenDisplayCheckBox = new JCheckBox();
+        stackOpenDisplayCheckBox.setToolTipText
+            ( "Display opened spectra in new plot" );
+        stackOpenDisplayCheckBox.setSelected( true );
+
+        layouter.add( "Display:", false );
+        layouter.add( stackOpenDisplayCheckBox, true );
+        layouter.eatSpare();
+    }
+
+    // SaveAccessory components.
+    protected int saveUsertypeIndex = 0;
+    protected JPanel saveAccessory = null;
+    protected JComboBox saveUsertypeBox = null;
+    protected int saveTabletypeIndex = 0;
+    protected JComboBox saveTabletypeBox = null;
+
+    /**
+     * Initialise the accessory components for saving spectra. 
+     * Currently these provide the ability to choose whether
+     * to display any opened spectra.
+     */
+    protected void initSaveAccessory()
+    {
+        saveAccessory = new JPanel();
+        GridBagLayouter layouter = 
+            new GridBagLayouter( saveAccessory, GridBagLayouter.SCHEME5 );
+        layouter.setInsets( new Insets( 0, 3, 3, 0 ) );
+
+        // User may override builtin file extensions by providing an
+        // explicit type.
+        saveUsertypeBox = new JComboBox( SpecDataFactory.shortNames );
+        saveUsertypeBox.setToolTipText
+            ( "Choose a type for the file when saved" );
+
+        layouter.add( "Format", true );
+        layouter.add( saveUsertypeBox, true );
+
+        // List of tables types available.
+        List list = specDataFactory.getKnownTableFormats();
+        list.add( 0, "default" );
+        list.remove( "jdbc" );
+        saveTabletypeBox = new JComboBox( list.toArray() );
+        saveTabletypeBox.setPrototypeDisplayValue( "votable-binary-inl" );
+        saveTabletypeBox.setToolTipText( "Type of table to write" );
+
+        layouter.add( "Table type", true );
+        layouter.add( saveTabletypeBox, true );
         layouter.eatSpare();
     }
 
@@ -1007,7 +1099,7 @@ public class SplatBrowser
     {
         // Saving the stack performed by the SpecList global
         // object. Just give it a file name to use.
-        initStackChooser( true );
+        initStackChooser( false );
         int result = stackChooser.showSaveDialog( this );
         if ( result == stackChooser.APPROVE_OPTION ) {
             File file = stackChooser.getSelectedFile();
@@ -1039,7 +1131,7 @@ public class SplatBrowser
                 int nread = globalSpecList.readStack( file.getPath() );
 
                 //  If requested honour the display option.
-                if ( ( nread > 0 ) && displayCheckBox.isSelected() ) {
+                if ( ( nread > 0 ) && stackOpenDisplayCheckBox.isSelected() ) {
                     int[] currentSelection = getSelectedSpectra();
                     int count = globalList.specCount();
                     specList.setSelectionInterval( count - nread, count - 1 );
@@ -1076,10 +1168,10 @@ public class SplatBrowser
                 ( stackChooser.getAcceptAllFileFilter() );
         }
         if ( openDialog ) {
-            if ( openAccessory == null ) {
-                initOpenAccessory();
+            if ( stackOpenAccessory == null ) {
+                initStackOpenAccessory();
             }
-            stackChooser.setAccessory( openAccessory );
+            stackChooser.setAccessory( stackOpenAccessory );
         }
         else {
             stackChooser.setAccessory( null );
@@ -1224,7 +1316,7 @@ public class SplatBrowser
         filesDone = 0;
         int validFiles = 0;
         for ( int i = 0; i < newFiles.length; i++ ) {
-            if ( addSpectrum( newFiles[i].getPath(), usertypeIndex ) ) {
+            if ( addSpectrum( newFiles[i].getPath(), openUsertypeIndex ) ) {
                 validFiles++;
             }
             filesDone++;
@@ -1261,8 +1353,7 @@ public class SplatBrowser
     public boolean addSpectrum( String name, int usertype )
     {
         try {
-            SpecDataFactory factory = SpecDataFactory.getInstance();
-            SpecData spectrum = factory.get( name, usertype );
+            SpecData spectrum = specDataFactory.get( name, usertype );
             addSpectrum( spectrum );
             return true;
         }
@@ -1284,8 +1375,7 @@ public class SplatBrowser
     public boolean addSpectrum( String name )
     {
         try {
-            SpecDataFactory factory = SpecDataFactory.getInstance();
-            SpecData spectrum = factory.get( name );
+            SpecData spectrum = specDataFactory.get( name );
             addSpectrum( spectrum );
             return true;
         }
@@ -1734,8 +1824,7 @@ public class SplatBrowser
                 spec = globalList.getSpectrum( indices[i] );
                 name = "Copy of: " + spec.getShortName();
                 try {
-                    newSpec = SpecDataFactory.getInstance().
-                        createEditable( name, spec, sort );
+                    newSpec = specDataFactory.createEditable(name, spec, sort);
                     globalList.add( newSpec );
                 }
                 catch (Exception e) {
@@ -1852,9 +1941,10 @@ public class SplatBrowser
     public void saveSpectrum( int globalIndex, String spectrum )
     {
         SpecData source = globalList.getSpectrum( globalIndex );
-        SpecDataFactory factory = SpecDataFactory.getInstance();
         try {
-            SpecData target = factory.getClone( source, spectrum );
+            SpecData target = 
+                specDataFactory.getClone( source, spectrum, saveUsertypeIndex, 
+                   (String) saveTabletypeBox.getItemAt( saveTabletypeIndex ) );
             target.save();
             globalList.add( globalIndex, target );
         }
@@ -1941,8 +2031,7 @@ public class SplatBrowser
                 EditableSpecData newSpec = null;
                 String name = "Blank spectrum";
                 try {
-                    newSpec = SpecDataFactory.getInstance()
-                        .createEditable( name );
+                    newSpec = specDataFactory.createEditable( name );
 
                     //  Add the coords and data.
                     double[] coords = new double[nrows];
@@ -2060,7 +2149,7 @@ public class SplatBrowser
                }
                break;
                case BROWSE: {
-                   //showBrowseChooser();
+                   showSplatNodeChooser();
                }
                break;
                case SINGLE_DISPLAY: {
