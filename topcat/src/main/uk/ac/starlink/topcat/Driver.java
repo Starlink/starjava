@@ -1,11 +1,18 @@
 package uk.ac.starlink.topcat;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Main class for invoking the TOPCAT application from scratch.
@@ -21,6 +28,8 @@ public class Driver {
     private static boolean securityChecked;
     private static Boolean canRead;
     private static Boolean canWrite;
+    private static StarTable[] demoTables;
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -136,16 +145,22 @@ public class Driver {
         }
         String usage = new StringBuffer()
               .append( "Usage:\n" )
-              .append( "   " + cmdname + " [table ...]\n" )
+              .append( "   " + cmdname + "[-demo] [table ...]\n" )
               .toString();
         setStandalone( true );
 
-        /* If all we need to do is print a usage message and exit, do it 
+        /* Process flags.
+         * If all we need to do is print a usage message and exit, do it 
          * directly without any GUI action. */
+        boolean demo = false;
         for ( int i = 0; i < args.length; i++ ) {
             if ( args[ i ].startsWith( "-h" ) ) {
                 System.out.println( usage );
                 System.exit( 0 );
+            }
+            else if ( args[ i ].equals( "-demo" ) ) {
+                demo = true;
+                args[ i ] = null;
             }
             else if ( args[ i ].startsWith( "-" ) ) {
                 System.err.println( usage );
@@ -153,37 +168,140 @@ public class Driver {
             }
         }
 
-        /* Start up the main control window. */
-        final ControlWindow control = ControlWindow.getInstance();
+        /* Start up with demo data if requested. */
+        if ( demo ) {
+            StarTable[] demoTables = getDemoTables();
+            for ( int i = 0; i < demoTables.length; i++ ) {
+                StarTable table = demoTables[ i ];
+                if ( table != null ) {
+                    addTableLater( table, "[Demo]:" + table.getName() );
+                }
+            }
+        }
 
         /* Try to interpret each command line argument as a table
          * specification. */
         for ( int i = 0; i < args.length; i++ ) {
             final String arg = args[ i ];
-            try {
-                StarTable startab = control.getTableFactory()
-                                           .makeStarTable( arg );
-                if ( startab == null ) {
-                    System.err.println( "No table \"" + arg + "\"" );
+            if ( arg != null ) {
+                try {
+                    StarTable startab = getControlWindow().getTableFactory()
+                                                          .makeStarTable( arg );
+                    if ( startab == null ) {
+                        System.err.println( "No table \"" + arg + "\"" );
+                    }
+                    else {
+                        addTableLater( Tables.randomTable( startab ), arg );
+                    }
                 }
-                else {
-                    final StarTable rtab = Tables.randomTable( startab );
+                catch ( final Exception e ) {
+                    final String msg = "Can't open table \"" + arg + "\"";
+                    System.err.println( msg );
                     SwingUtilities.invokeLater( new Runnable() {
                         public void run() {
-                            control.addTable( rtab, arg, false );
+                            ErrorDialog.showError( e, msg, getControlWindow() );
                         }
                     } );
                 }
             }
-            catch ( final Exception e ) {
-                final String msg = "Can't open table \"" + arg + "\"";
-                System.err.println( msg );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        ErrorDialog.showError( e, msg, control );
+        }
+
+        /* If the GUI hasn't started up yet (no command-line arguments),
+         * make sure it starts up now. */
+        getControlWindow();
+    }
+
+    /**
+     * Returns the ControlWindow used by this application.  It is
+     * constructed lazily, which means if it's never needed (say if 
+     * we're just printing a usage message), the GUI
+     * never has to start up.
+     *
+     * @return  control window
+     */
+    private static ControlWindow getControlWindow() {
+        return ControlWindow.getInstance();
+    }
+
+    /**
+     * Schedules a table for posting to the Control Window in the event
+     * dispatch thread.  
+     *
+     * @param  table  the table to add
+     * @param  location  location string indicating the provenance of
+     *         <tt>table</tt> - preferably a URL or filename or something
+     */
+    private static void addTableLater( final StarTable table,
+                                       final String location ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                getControlWindow().addTable( table, location, false );
+            }
+        } );
+    }
+
+    /**
+     * Returns a set of example StarTables suitable for demonstration
+     * purposes.  They will all have random access.
+     * If one of the demo tables can't be created for some
+     * reason (e.g. the required resource is missing) the corresponding
+     * element in the returned array will be <tt>null</tt>.
+     *
+     * @return  array of demo tables
+     */
+    static StarTable[] getDemoTables() {
+        StarTableFactory tabfact = new StarTableFactory( true );
+        String base = LoadQueryWindow.DEMO_LOCATION + '/';
+        String[] demoNames = new String[] {
+            "863sub.fits",
+            "vizier.xml.gz#6",
+            "cover.xml",
+            "tables.fit.gz#2",
+        };
+        int ntab = demoNames.length;
+        if ( demoTables == null ) {
+            demoTables = new StarTable[ ntab ];
+            for ( int i = 0; i < ntab; i++ ) {
+                final String demoName = demoNames[ i ];
+                try {
+                    int fragIndex = demoName.indexOf( '#' );
+                    String name; 
+                    String frag;
+                    if ( fragIndex > 0 ) {
+                        name = demoName.substring( 0, fragIndex );
+                        frag = demoName.substring( fragIndex + 1 );
                     }
-                } );
+                    else {
+                        name = demoName;
+                        frag = null;
+                    }
+                    URL url = Driver.class.getClassLoader()
+                                    .getResource( base + name );
+                    if ( url != null ) {
+                        DataSource datsrc = 
+                            DataSource.makeDataSource( url.toString() );
+                        if ( frag != null ) {
+                            datsrc.setPosition( frag );
+                        }
+                        StarTable table = tabfact.makeStarTable( datsrc );
+                        table = new WrapperStarTable( table ) {
+                            public String getName() {
+                                return demoName;
+                            }
+                        };
+                        demoTables[ i ] = Tables.randomTable( table );
+                    }
+                    else {
+                        logger.warning( "Demo table resource not located: " +
+                                        base + demoName );
+                    }
+                }
+                catch ( IOException e ) {
+                    logger.warning( "Demo table " + demoName + " not loaded: "
+                                  + e.toString() );
+                }
             }
         }
+        return demoTables;
     }
 }
