@@ -644,7 +644,7 @@
          <extension name="TABLE" href="table.jnlp"/>
          <extension name="TTOOLS" href="ttools.jnlp"/>
          <extension name="VO" href="vo.jnlp"/>
-         <extension name="PAL" href="pal.html"/>
+         <extension name="PAL" href="pal.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
        </resources>
        <component_desc/>
