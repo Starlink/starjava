@@ -54,15 +54,15 @@ The polynomial fitting window allows you to fit a polynomial of
 selected degree to various selected ranges of the current
 spectrum. You can select to use errors as weights for the fit and can
 save the fits on the global list as spectra in their own
-right. Fitting a polynomial is a pre-requisite to fitting spectral
-lines.
+right. Fitting a polynomial is generally a pre-requisite to fitting
+spectral lines.
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
  WIDTH="357" HEIGHT="328" ALIGN="BOTTOM" BORDER="0"
  SRC="polynomialfitwindow.gif"
- ALT="1567">
+ ALT="1569">
  
 </DIV>
 
@@ -78,11 +78,20 @@ the spectrum being fitted has data errors.
 
 <P>
 The <B>Subtract fit from spectrum</B> series of radio buttons
-allow you to ask for the creation of a spectrum that is the difference
+allows you to ask for the creation of a spectrum that is the difference
 between the spectrum and the polynomial fit. Use the <B>As a
 ceiling</B> option for absorption lines, and <B>As base line</B> for
 emission lines. These subtracted spectra appear on the global list and
 are added to the plot for display.
+
+<P>
+The <B>Divide spectrum by fit</B> checkbox allows you to ask for
+the creation of a new spectrum that is the result of dividing the
+spectrum by the polynomial fit. You will probably want to do this
+before attempting to fit absorption lines so that the continuum is
+normalized. The new spectrum appears on the global list (with the 
+name <TT>Ratio: &lt;spectrum name&gt; by &lt;polynomial name&gt;</TT> and can
+plotted in a new window before fitting the lines.
 
 <P>
 <B><FONT SIZE="+1">Coordinate ranges</FONT></B>
@@ -159,7 +168,7 @@ To clear any fits created by this window press the <B>Delete
 
 
 <IMG
- WIDTH="431" HEIGHT="79" BORDER="0"
+ WIDTH="179" HEIGHT="79" BORDER="0"
  SRC="img2.gif"
  ALT="\begin{displaymath}
 \displaystyle\sqrt{

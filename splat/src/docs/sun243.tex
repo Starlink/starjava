@@ -972,14 +972,15 @@ the display area.\\
 
   \item[\inline{fitback}] Show the toolbox for fitting a polynomial to
   defined regions of the current spectrum. This is used to define
-  backgrounds prior to line fitting, or for subtracting backgrounds
-  from spectra.
+  backgrounds prior to line fitting, or for subtracting and dividing
+  backgrounds from spectra.
 
   \item[\inline{fitline}] Show the toolbox for fitting emission and
   absorption lines. This measures the line position and equivalent
   width as well as fitting Gaussian, Lorentzian and Voigt profiles to
   selected wavelength ranges of the current spectrum. Remember to
-  define a polynomial background before using this tool.
+  define a polynomial background before using this tool or have
+  your data processed for fitting.
 
   \item[\inline{filter}] Show the toolbox for filtering the current
   spectrum. The filters offered are simple ones like the average and
@@ -1621,8 +1622,8 @@ The polynomial fitting window allows you to fit a polynomial of
 selected degree to various selected ranges of the current
 spectrum. You can select to use errors as weights for the fit and can
 save the fits on the global list as spectra in their own
-right. Fitting a polynomial is a pre-requisite to fitting spectral
-lines.
+right. Fitting a polynomial is generally a pre-requisite to fitting
+spectral lines.
 
 \mainfigure{polynomialfitwindow}
 
@@ -1635,11 +1636,19 @@ The \labelitem{Use errors as weights} checkbox is only effective if
 the spectrum being fitted has data errors.
 
 The \labelitem{Subtract fit from spectrum} series of radio buttons
-allow you to ask for the creation of a spectrum that is the difference
+allows you to ask for the creation of a spectrum that is the difference
 between the spectrum and the polynomial fit. Use the \labelitem{As a
 ceiling} option for absorption lines, and \labelitem{As base line} for
 emission lines. These subtracted spectra appear on the global list and
 are added to the plot for display.
+
+The \labelitem{Divide spectrum by fit} checkbox allows you to ask for
+the creation of a new spectrum that is the result of dividing the
+spectrum by the polynomial fit. You will probably want to do this
+before attempting to fit absorption lines so that the continuum is
+normalized. The new spectrum appears on the global list (with the 
+name \hitext{Ratio: <spectrum name> by <polynomial name>} and can
+plotted in a new window before fitting the lines.
 
 \subheading{Coordinate ranges}
 \begin{quote}
@@ -1716,14 +1725,25 @@ well as a model independent intensity analysis measure.
 
 \mainfigure{linefitwindow}
 
-\labelitem{Background fit}: To measure a line you must first define a
-background spectrum (say using the polynomial fitting tool) or have
-spectra that are already background subtracted.
+\labelitem{Background type:} Choose a type of background estimate to
+be subtracted from the spectrum before fitting. The choices are
+\labelitem{Constant} and \labelitem{Polynomial}. If you have already
+subtracted the background from the spectrum, or have applied a
+normalisation (so that the background is flat, usually with a value of
+1) then you need to choose \labelitem{Constant} and provide a suitable
+value. Otherwise choose \labelitem{Polynomial} and select a spectrum
+from the list in \labelitem{Background fit}.
 
-Use this drop-down list to select the appropriate spectrum from the
-global list. If you don't want to use a background self-select the
-spectrum you're measuring. The default background should be set to the
-first polynomial found on the global list.
+\labelitem{Background fit}: For emission lines you would normally
+define a background spectrum using the polynomial fitting tool. In
+this case select the \labelitem{Polynomial} option and choose the
+background spectrum you have created. Note that you can actually use
+any spectrum from the global list as the background (so you are not
+restricted to what \SPLAT, provides) but if you choose the same
+spectrum as is being measured then a background of $0$ is assumed.
+
+The default background should be set to the first polynomial found on
+the global list.
 
 \labelitem{Use error as weights}: If your spectrum has associated
 error measurements then you can select this checkbox to use the errors
@@ -1786,7 +1806,7 @@ hash (\#) and are ignored.
    \item \hitext{Width}, width of the line. For a gaussian this would
          be $\pm 1$ standard deviations wide.
    \item \hitext{Equiv}, the equivalent width of the line. This will be
-         $0$ if no background fit is given.
+         $0$ if a zero background is given or assumed.
    \item \hitext{Asym}, an asymmetry value for the line. This is a
          measure of the relative displacement of the centre of the
          line from the centre as measured by the upper and lower
@@ -1799,7 +1819,7 @@ hash (\#) and are ignored.
  \]
  where $A$ is the scale height, $r$ is the distance from the centre,
  $c$ is the centre, $x$ the distance from the origin and $\sigma$ is
-the Gaussian sigma. The $y$ values  are background subtracted.
+ the Gaussian sigma. The $y$ values are background subtracted.
 
  The values measured for this line shape are:
  \begin{itemize}
