@@ -84,7 +84,7 @@ public class DescribedValue {
      *          string
      */
     public String getValueAsString( int maxLength ) {
-        return vinfo.formatValue( value, maxLength );
+        return vinfo.formatValue( getValue(), maxLength );
     }
 
     /**
