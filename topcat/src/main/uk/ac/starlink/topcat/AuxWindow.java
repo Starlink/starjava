@@ -292,8 +292,8 @@ public class AuxWindow extends JFrame {
      */
     public boolean confirm( String message, String title ) {
         return JOptionPane.showConfirmDialog( this, message, title,
-                                              JOptionPane.YES_NO_OPTION )
-            == JOptionPane.YES_OPTION;
+                                              JOptionPane.OK_CANCEL_OPTION )
+            == JOptionPane.OK_OPTION;
     }
 
     public Image getIconImage() {
