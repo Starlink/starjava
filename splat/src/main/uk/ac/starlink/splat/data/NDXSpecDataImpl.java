@@ -78,7 +78,7 @@ public class NDXSpecDataImpl
     public NDXSpecDataImpl( URL url  )
         throws SplatException
     {
-        super( "Sourced NDX" );
+        super( "Network NDX" );
         open( url );
     }
 
@@ -98,7 +98,7 @@ public class NDXSpecDataImpl
     public NDXSpecDataImpl( Ndx ndx  )
         throws SplatException
     {
-        super( "Sourced NDX" );
+        super( "Native NDX" );
         open( ndx );
     }
 
