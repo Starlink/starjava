@@ -3051,6 +3051,12 @@ introduced since the last version:
         and is much smaller (3 Mbyte).
         </p></dd>
 
+    <dt>Explode Array Column action</dt>
+    <dd><p>There is now a new button &IMG.EXPLODE; in the 
+        <ref id="ColumnInfoWindow">Columns Window</ref> which replaces an
+        array-valued column with a scalar column for each of its elements.
+        </p></dd>
+
     </dl></p></dd>
 
 </dl>
@@ -4007,6 +4013,16 @@ so can be changed by dragging the column headers around in the
     the current <ref id="columns">Column Set</ref>.
     This has the same effect as selecting all the checkboxes corresponding
     to these columns in the <label>Visible</label> column.
+    </p></dd>
+
+<dt>&IMG.EXPLODE; Explode Array Column</dt>
+<dd><p>If a column is selected which has an array type, clicking this button
+    will replace it with scalar-valued columns containing each of its elements.
+    For instance if a column PMAG contains a 5-element vector of type
+    <code>float[]</code> representing magnitudes in 5 different bands,
+    then selecting it and hitting this button will hide PMAG and
+    insert 5 new <code>Float</code>-type columns PMAG_1...PMAG_5 
+    in its place each containing one of the magnitudes.
     </p></dd>
 
 <dt>&IMG.UP; Sort Selected Up</dt>
