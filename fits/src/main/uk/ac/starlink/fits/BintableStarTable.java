@@ -904,7 +904,7 @@ public abstract class BintableStarTable extends AbstractStarTable {
                         throws IOException {
                     double[] value = new double[ count ];
                     for ( int i = 0; i < count; i++ ) {
-                        value[ i ] = stream.readValue();
+                        value[ i ] = stream.readDouble();
                     }
                     return value;
                 }
