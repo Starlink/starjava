@@ -18,6 +18,9 @@ import uk.ac.starlink.util.DataSource;
  * It examines the file and may invoke a constructor of a DataNode 
  * subclass if it knows of one which is likely to be suitable.
  * It will only try constructors which might have a chance.
+ * <p>
+ * Part of its duties involve constructing a DOM from a DataSource which
+ * looks like XML and offering it to known XML consumers.
  */
 public class SourceDataNodeBuilder extends DataNodeBuilder {
 
@@ -93,6 +96,17 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
             /* NDX? */
             try {
                 return configureNode( new NdxDataNode( xsrc ), datsrc );
+            }
+            catch ( NoSuchDataException e ) {
+                if ( verbose ) {
+                    verbStream.print( "    " );
+                    e.printStackTrace( verbStream );
+                }
+            }
+
+            /* HDX? */
+            try {
+                return configureNode( new HDXDataNode( xsrc ), datsrc );
             }
             catch ( NoSuchDataException e ) {
                 if ( verbose ) {

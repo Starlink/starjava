@@ -272,14 +272,14 @@ public class NdxDataNode extends DefaultDataNode {
                 dv.addKeyedItem( "Title", ndx.getTitle() );
             }
 
-            dv.addPane( "HDX representation", new ComponentMaker() {
+            dv.addPane( "HDX view", new ComponentMaker() {
                 public JComponent getComponent()
                         throws TransformerException, HdxException {
                     URI uri = URLUtils.urlToUri( url );
                     Source src = HdxFactory
                                 .getInstance()
                                 .newHdxContainer( ndx.getHdxFacade() )
-                                .getSource( null );
+                                .getSource( uri );
                     return new TextViewer( src );
                 }
             } );

@@ -7,7 +7,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Logger;
 import uk.ac.starlink.ast.AstPackage;
+import uk.ac.starlink.fits.FitsNdxHandler;
 import uk.ac.starlink.hds.HDSPackage;
+import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.util.Loader;
 
 public class Driver {
@@ -70,7 +72,7 @@ public class Driver {
         nodeTypeFlags.put( "-tar", TarStreamDataNode.class );
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
         nodeTypeFlags.put( "-xml", XMLDataNode.class );
-        // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
+        nodeTypeFlags.put( "-hdx", HDXDataNode.class );
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-vot", VOTableDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
@@ -85,6 +87,14 @@ public class Driver {
             usageMsg += " [" + flagIt.next().toString() + "]";
         }
         usageMsg +=       "\n         [item ...]\n";
+
+        /* Ensure that we will load the right HDX factories. */
+        System.setProperty( "HdxDocumentFactory.load." + 
+                            FitsNdxHandler.class.getName(), "true" );
+        if ( hasHDS ) {
+            System.setProperty( "HdxDocumentFactory.load." +
+                                NDFNdxHandler.class.getName(), "true" );
+        }
 
         /* Construct the factory which will build the requested DataNodes. */
         DataNodeFactory nodeFactory = new DataNodeFactory();

@@ -26,13 +26,14 @@ import uk.ac.starlink.util.DataSource;
  * <li> {@link FITSFileDataNode}
  * <li> {@link NdxDataNode}
  * <li> {@link VOTableDataNode}
- * <li> {@link XMLDataNode}
  * <li> {@link ZipFileDataNode}
  * <li> {@link TarStreamDataNode}
  * <li> {@link NDArrayDataNode}
  * <li> {@link FITSStreamDataNode}
  * <li> {@link JDBCDataNode}
  * <li> {@link StarTableDataNode}
+ * <li> {@link HDXDataNode}
+ * <li> {@link XMLDataNode}
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
  * <li> {@link PlainDataNode}
@@ -363,7 +364,6 @@ public class DataNodeFactory implements Cloneable {
                 FITSFileDataNode.class,
                 NdxDataNode.class,
                 VOTableDataNode.class,
-                XMLDataNode.class,
                 VOTableTableDataNode.class,
                 VOComponentDataNode.class,
                 ZipFileDataNode.class,
@@ -372,6 +372,8 @@ public class DataNodeFactory implements Cloneable {
                 FITSStreamDataNode.class,
                 JDBCDataNode.class,
                 StarTableDataNode.class,
+                HDXDataNode.class,
+                XMLDataNode.class,
                 CompressedDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,
