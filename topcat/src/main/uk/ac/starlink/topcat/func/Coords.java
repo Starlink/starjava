@@ -61,6 +61,9 @@ public class Coords {
      * @return  HMS-format string representing <code>rad</code>
      */
     public static String radiansToDms( double rad, int secFig ) {
+        if ( Double.isNaN( rad ) ) {
+            return null;
+        }
         double degrees = radiansToDegrees( rad );
         int sign = degrees >= 0 ? +1 : -1;
         double round = 0.5 / 60.0 / 60.0 * sign;
@@ -96,6 +99,9 @@ public class Coords {
      * @return  HMS-format string representing <code>rad</code>
      */
     public static String radiansToHms( double rad, int secFig ) {
+        if ( Double.isNaN( rad ) ) {
+            return null;
+        }
         double degrees = radiansToDegrees( rad );
         int sign = degrees >= 0 ? +1 : -1;
         double hours = degrees / 15.0;
@@ -526,6 +532,9 @@ public class Coords {
         double sr2 = Math.sin( 0.5 * ( ra2 - ra1 ) );
         double a = sd2 * sd2 +
                    sr2 * sr2 * Math.cos( dec1 ) * Math.cos( dec2 );
+        if ( Double.isNaN( a ) ) {
+            return Double.NaN;
+        }
         return a < 1.0 ? 2.0 * Math.asin( Math.sqrt( a ) )
                        : Math.PI;
     }
@@ -576,6 +585,9 @@ public class Coords {
         public String format( boolean positive, int f1, int f2, double f3 ) {
             if ( f1 < 0 || f2 < 0 || f3 < 0 ) {
                 throw new IllegalArgumentException( "Can't be negative" );
+            }
+            if ( Double.isNaN( f3 ) ) {
+                return null;
             }
             int f3i = (int) f3;
             int pos = 0;
