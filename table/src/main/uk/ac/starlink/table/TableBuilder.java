@@ -2,6 +2,7 @@ package uk.ac.starlink.table;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
+import java.io.InputStream;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -42,20 +43,43 @@ public interface TableBuilder {
             throws IOException;
 
     /**
+     * Reads a table from an input stream and writes it a row at a time 
+     * to a sink.  Not all implementations will be able to do this;
+     * for instance, extracting the table from the data may be a two-pass
+     * process.  Implementations which are unable to perform this 
+     * function should throw a {@link TableFormatException}.
+     *
+     * <p>The input stream should be prepared for use prior to calling
+     * this method, so implementations should not in general attempt to
+     * decompress or buffer <tt>istrm</tt>.
+     *
+     * @param  istrm   input stream containing table data
+     * @param  sink    destination of the table
+     * @param  pos     position identifier describing the location of the
+     *                 table within the stream;
+     *                 see {@link uk.ac.starlink.util.DataSource#getPosition}
+     *                 (may be null)
+     * @throws  TableFormatException  if the table can't be streamed or
+     *          the data is malformed
+     * @throws  IOException  if some other error occurs
+     */
+    void streamStarTable( InputStream istrm, TableSink sink, String pos )
+            throws IOException;
+
+    /**
      * Indicates whether this builder is able to turn a resource of
      * media type indicated by <tt>flavor</tt> into a table.
      * It should return <tt>true</tt> if it thinks that its 
-     * {@link #makeStarTable} method stands a reasonable chance of 
+     * {@link #streamStarTable} method stands a reasonable chance of 
      * successfully constructing a <tt>StarTable</tt> from a 
      * <tt>DataSource</tt> whose input stream is described by the
      * {@link java.awt.datatransfer.DataFlavor} <tt>flavor</tt>.
      * It will typically make this determination based on the flavor's
      * MIME type.  
      * <p>
-     * For reasons of efficiency it is probably not a 
-     * good idea to return <tt>true</tt> unless the flavor looks like
+     * This method should only return <tt>true</tt> if the flavor looks like
      * it is targeted at this builder; for instance a builder which 
-     * uses a text-based format should probably return false for a 
+     * uses a text-based format should return false for a 
      * flavor which indicates a MIME type of <tt>text/plain</tt>.
      * <p>
      * This method is used in supporting drag and drop functionality

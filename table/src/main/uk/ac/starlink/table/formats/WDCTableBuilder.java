@@ -8,6 +8,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -56,6 +57,15 @@ public class WDCTableBuilder implements TableBuilder {
      */
     public boolean canImport( DataFlavor flavor ) {
         return false;
+    }
+
+    /**
+     * Throws an exception; streaming of WDC tables is not implemented.
+     * It probably could be if necessary.
+     */
+    public void streamStarTable( InputStream in, TableSink sink, String pos )
+            throws TableFormatException {
+        throw new TableFormatException( "WDC streaming not implemented" );
     }
 
     public static String readLine( BufferedInputStream strm ) 
