@@ -143,19 +143,21 @@ public class NDXSpecDataImpl
     }
 
     /**
-     * Return the NDX shape, always the number of pixels as the
-     * underlying data is vectorized. If this fails the size is
-     * returned as 0.
+     * Return the NDX shape.
      */
     public int[] getDims()
     {
-        int[] dims = new int[1];
+        int[] dims = null;
         try {
-            long npix = ndx.getImage().getShape().getNumPixels();
-            dims[0] = (int) npix;
+            long[] ldims =  ndx.getImage().getShape().getDims();
+            dims = new int[ldims.length];
+            for ( int i = 0; i < dims.length; i++ ) {
+                dims[i] = (int) ldims[i];
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
+            dims = new int[0];
             dims[0] = 0;
         }
         return dims;
@@ -206,6 +208,29 @@ public class NDXSpecDataImpl
         throws SplatException
     {
         throw new SplatException( "Saving NDX spectra is not implemented" );
+    }
+
+    /**
+     * Return a keyed value from the NDF character components or FITS headers.
+     * Returns "" if not found.
+     */
+    public String getProperty( String key )
+    {
+        //  NDX offers title. 
+        if ( key.equalsIgnoreCase( "title" ) ) {
+            return ndx.getTitle();
+        }
+
+        //Should offer label and units sometime.
+        /*
+        if ( key.equalsIgnoreCase( "label" ) ) {
+            return ndx.getTitle();
+        }
+        if ( key.equalsIgnoreCase( "unit" ) ) {
+            return ndx.getTitle();
+        }
+        */
+        return "";
     }
 
 //
