@@ -259,9 +259,10 @@ public abstract class DataSource {
              * and reset to the start. */
             strm.mark( nReq );
             nGot = strm.read( buffer, 0, nReq );
+            if ( nGot == -1 ) {
+                nGot = 0;
+            }
             strm.reset();
-
-if ( nGot < 0 ) System.out.println( strm.getClass() );
 
             /* Record whether the file is empty or not. */
             if ( nGot == 0 ) {
