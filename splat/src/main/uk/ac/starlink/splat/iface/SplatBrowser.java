@@ -276,6 +276,10 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec, boolean embedded )
     {
+        //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
+        //  Don't know where to put this though.
+        Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
         setEmbedded( embedded );
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
