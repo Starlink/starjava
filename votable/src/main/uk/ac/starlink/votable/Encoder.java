@@ -90,7 +90,7 @@ abstract class Encoder {
             desc = desc.trim();
             if ( desc.length() > 0 ) { 
                 content.append( "<DESCRIPTION>" )
-                       .append( VOTableWriter.formatText( desc ) )
+                       .append( VOSerializer.formatText( desc ) )
                        .append( "</DESCRIPTION>" );
             }
         }
