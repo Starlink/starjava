@@ -253,15 +253,15 @@ public class MetaDataPopup extends JInternalFrame
               fitDoc = fitDoc + "Chi-Squared: <strong>" + sinFit.getChiSq() +
                                 "</strong><br>\n";
               fitDoc = fitDoc + "Fitting to: ";
-              fitDoc = fitDoc + "<em><center>" +
+              fitDoc = fitDoc + "<em>" +
                 "<font color=red>Y</font> = <font color=blue>A</font>" +
                 " + <font color=blue>B</font>*" +
                 "sin(2pi/period*<font color=red>X</font>) + " +
                 "<font color=blue>C</font>*cos(2pi/period*" +
-                "<font color=red>X</font>)<br>" +
-                "</center></em>\n";
+                "<font color=red>X</font>)" +
+                "</em><br>\n";
                               
-              fitDoc = fitDoc + "Results are:<br>\n";
+              fitDoc = fitDoc + "Results are:\n";
                              
               fitDoc = fitDoc + "<center><table border=1>\n";
               fitDoc = fitDoc + 
