@@ -193,7 +193,7 @@ class NDFNdxImpl implements NdxImpl {
     }
 
     /**
-     * Constructs the array objects serving an a given NDF.
+     * Constructs the array objects serving a given NDF.
      *
      * @param   ndf  the HDSObject where the NDF lives
      * @param   persistentUrl  the URL pointing to the NDF; if it resides
@@ -238,12 +238,12 @@ class NDFNdxImpl implements NdxImpl {
 
         String iname = "DATA_ARRAY";
         if ( ndf.datThere( iname ) ) {
-            HDSReference iref = (HDSReference) baseRef.clone();
-            iref.push( iname );
             HDSObject iobj = ndf.datFind( iname );
             ArrayStructure iary = new ArrayStructure( iobj );
             URL iurl = null;
             if ( baseRef != null ) {
+                HDSReference iref = (HDSReference) baseRef.clone();
+                iref.push( iname );
                 try {
                     iurl = new URL( context, iref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
                 }
@@ -260,12 +260,12 @@ class NDFNdxImpl implements NdxImpl {
 
         String vname = "VARIANCE";
         if ( ndf.datThere( vname ) ) {
-            HDSReference vref = (HDSReference) baseRef.clone();
-            vref.push( vname );
             HDSObject vobj = ndf.datFind( vname );
             ArrayStructure vary = new ArrayStructure( vobj );
             URL vurl = null;
             if ( baseRef != null ) {
+                HDSReference vref = (HDSReference) baseRef.clone();
+                vref.push( vname );
                 try {
                     vurl = new URL( context, vref.getURL().toString().replaceFirst( "file://localhost", "" ) );
                 }
@@ -278,17 +278,13 @@ class NDFNdxImpl implements NdxImpl {
 
         String qname = "QUALITY";
         if ( ndf.datThere( qname ) ) {
-            HDSReference qref = (HDSReference) baseRef.clone();
-            qref.push( qname );
             HDSObject qobj = ndf.datFind( qname );
-            if ( qobj.datType().equals( "QUALITY" ) ) {
-                String qsubname = "QUALITY";
-                qref.push( qsubname );
-                qobj = qobj.datFind( qsubname );
-            }
-            ArrayStructure qary = new ArrayStructure( qobj );
+
             URL qurl = null;
+            HDSReference qref = null;
             if ( baseRef != null ) {
+                qref = (HDSReference) baseRef.clone();
+                qref.push( qname );
                 try {
                     qurl = new URL( context, qref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
                 }
@@ -296,6 +292,16 @@ class NDFNdxImpl implements NdxImpl {
                     throw new RuntimeException( e.getMessage(), e );
                 }
             }
+
+            if ( qobj.datType().equals( "QUALITY" ) ) {
+                String qsubname = "QUALITY";
+                if ( qref != null ) {
+                    qref.push( qsubname );
+                }
+                qobj = qobj.datFind( qsubname );
+            }
+            ArrayStructure qary = new ArrayStructure( qobj );
+
             qnda = new BridgeNDArray( new HDSArrayImpl( qary, mode ), qurl );
         }
 
