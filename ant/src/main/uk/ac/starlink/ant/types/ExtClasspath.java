@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 import java.util.StringTokenizer;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -43,6 +44,11 @@ public class ExtClasspath extends Path
     protected Path resultPath;
     protected Reference ref;
 
+    // List of download jar files. Need to avoid referencing same more
+    // than once as this will lead to infitnite recursion (may fail
+    // later as this is a circular dependency).
+    private Vector jarsDone = new Vector();
+
     public ExtClasspath( Project p )
     {
         super( p );
@@ -78,29 +84,52 @@ public class ExtClasspath extends Path
 
     /**
      * Add the downloads from a jar file to the path. The downloads
-     * are also checked for and downloads they reference.
+     * are also checked for any downloads they reference.
      */
     protected void addDownloads( File jarFile )
     {
+        log( "[extclasspath] adding extension jar files from " + jarFile, 
+             Project.MSG_VERBOSE );
+
         File jarBase = jarFile.getParentFile();
         File newJarFile = null;
         String s[] = getDownloads( jarFile );
         if ( s != null && s.length > 0 ) {
             for ( int j = 0; j < s.length; j++ ) {
                 newJarFile = new File( jarBase, s[j] );
-
                 if ( newJarFile.exists() ) {
                     if ( "jar".equals( getExtension( newJarFile ) ) ) {
-                        setLocation( newJarFile );
-                        addDownloads( newJarFile );
+                        if ( jarsDone.indexOf( newJarFile ) == -1 ) {
+                            setLocation( newJarFile );
+                            jarsDone.add( newJarFile );
+                            addDownloads( newJarFile );
+                            log( "[extclasspath] adding " + newJarFile + 
+                                 " to extension jar files",
+                                 Project.MSG_VERBOSE );
+                        } 
+                        else {
+                            log( "[extclasspath] dropping " + newJarFile + 
+                                 " from extension jar files as already done",
+                                 Project.MSG_VERBOSE ) ;
+                        }
+                    }
+                    else {
+                        log( "[extclasspath] dropping " + newJarFile + 
+                             " from extension jar files as not jar file",
+                             Project.MSG_VERBOSE ) ;
                     }
                 }
+                else {
+                    log( "[extclasspath] dropping " + newJarFile + 
+                         " from extension jar files as does not exist",
+                         Project.MSG_VERBOSE ) ;
+                }                
             }
         }
     }
 
     /**
-     * Extract any bundled optional packages from a jar fils's
+     * Extract any bundled optional packages from a jar file's
      * manifest and return them as an array of Strings.
      */
     protected String[] getDownloads( File jarFile )
