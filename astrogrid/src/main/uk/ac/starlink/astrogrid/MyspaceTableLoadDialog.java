@@ -21,7 +21,7 @@ public class MyspaceTableLoadDialog extends RemoteTreeTableLoadDialog {
      * Constructor.
      */
     public MyspaceTableLoadDialog() {
-        super( "Browse MySpace", "Load table from files in MySpace",
+        super( "MySpace Browser", "Load table from files in MySpace",
                new MyspaceTreeBrowser() );
     }
 

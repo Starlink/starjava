@@ -68,7 +68,7 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
     }
 
     public String getName() {
-        return "Browse Files";
+        return "File Browser";
     }
 
     public String getDescription() {

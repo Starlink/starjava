@@ -26,7 +26,7 @@ public class TreeTableLoadDialog extends TableNodeChooser
     }
 
     public String getName() {
-        return "Browse Hierarchy";
+        return "Hierarchy Browser";
     }
 
     public String getDescription() {
