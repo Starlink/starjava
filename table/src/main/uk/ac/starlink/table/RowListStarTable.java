@@ -20,8 +20,8 @@ import java.util.List;
  */
 public class RowListStarTable extends RandomStarTable {
 
-    private List rows;
-    private ColumnInfo[] colInfos;
+    private final List rows;
+    private final ColumnInfo[] colInfos;
 
     /**
      * Constructs a new RowListStarTable specifying the columns that it
@@ -31,7 +31,20 @@ public class RowListStarTable extends RandomStarTable {
      */
     public RowListStarTable( ColumnInfo[] colInfos ) {
         this.rows = new ArrayList();
-        this.colInfos = colInfos;
+        this.colInfos = (ColumnInfo[]) colInfos.clone();
+    }
+
+    /**
+     * Constructs a new RowListStarTable with its column and table metadata
+     * copied from an existing table.  The data of the <tt>template</tt>
+     * is ignored.
+     *
+     * @param  template  template table supplying column and table metadata
+     */
+    public RowListStarTable( StarTable template ) {
+        this( Tables.getColumnInfos( template ) );
+        setName( template.getName() );
+        setParameters( new ArrayList( template.getParameters() ) );
     }
 
     public long getRowCount() {
