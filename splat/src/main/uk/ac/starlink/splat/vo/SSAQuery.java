@@ -89,7 +89,7 @@ public class SSAQuery
     {
         HMS hms = new HMS( queryRA );
         DMS dms = new DMS( queryDec );
-        setPosition( hms.getVal(), dms.getVal() );
+        setPosition( hms.getVal() * 15.0, dms.getVal() );
     }
 
     /**

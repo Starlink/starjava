@@ -66,6 +66,22 @@ public class SSAServerList
     }
 
     /**
+     * Retrieve a server description. Returns null if not found.
+     */
+    public SSAServer matchDescription( String description )
+    {
+        Iterator i = getIterator();
+        SSAServer server = null;
+        while ( i.hasNext() ) {
+            server = (SSAServer) i.next();
+            if ( description.equals( server.getDescription() )) {
+                return server;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Initialise the known servers as we don't have Registry access yet.
      */
     protected void addStaticServers()
@@ -74,8 +90,8 @@ public class SSAServerList
 
         //  Slightly challenging as doesn't end with ?
         try {
-            addServer( "Infrared Space Observatory Archive Interoperability",
-                       "http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap?" +
+            addServer( "Infrared Space Observatory Archive",
+                       "http://pma.iso.vilspa.esa.es:8080/aio/jsp/siap.jsp?" +
                        "imageType=spectrum" );
         }
         catch (MalformedURLException e) {

@@ -24,6 +24,9 @@ public class SSAServer
     /** The base URL of the service */
     private URL baseURL = null;
 
+    /** Whether the server is considered active */
+    private boolean isActive = true;
+
     /**
      * Create an instance and set the characteristics of this server.
      *
@@ -39,6 +42,7 @@ public class SSAServer
     {
         this.description = description;
         this.baseURL = new URL( baseURL );
+        this.isActive = true;
     }
 
     /**
@@ -55,5 +59,21 @@ public class SSAServer
     public URL getBaseURL()
     {
         return baseURL;
+    }
+
+    /**
+     * Set if this server is active, i.e. should be queried.
+     */
+    public void setActive( boolean isActive )
+    {
+        this.isActive = isActive;
+    }
+
+    /**
+     * Get if this server is active, i.e. should be queried.
+     */
+    public boolean isActive()
+    {
+        return isActive;
     }
 }

@@ -17,12 +17,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
+
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -32,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.border.TitledBorder;
 
 import jsky.catalog.BasicQueryArgs;
@@ -43,8 +47,8 @@ import jsky.catalog.skycat.SkycatConfigEntry;
 import jsky.coords.Coordinates;
 import jsky.coords.WorldCoords;
 import jsky.util.ConnectionUtil;
-import jsky.util.gui.ProgressPanel;
 import jsky.util.SwingWorker;
+import jsky.util.gui.ProgressPanel;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.HelpFrame;
@@ -52,17 +56,17 @@ import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
+import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
-
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.TableBuilder;
-import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.votable.VOTableBuilder;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.RowSequence;
 
 /**
  * Display a page of controls for querying an SSA server and display the
@@ -74,6 +78,7 @@ import uk.ac.starlink.table.RowSequence;
  */
 public class SSAQueryBrowser
     extends JFrame
+    implements ActionListener
 {
     /**
      * The object holding the list of servers that we should use for SSA
@@ -86,6 +91,12 @@ public class SSAQueryBrowser
      * into an interface.
      */
     private SplatBrowser browser = null;
+
+    /** ProgressPanel used when downloading query responses */
+    private ProgressPanel progressPanel = null;
+
+    /** Worker thread used with ProgressPanel */
+    private SwingWorker worker = null;
 
     /** Content pane of frame */
     protected JPanel contentPane = null;
@@ -102,6 +113,24 @@ public class SSAQueryBrowser
     /** Object name */
     protected JTextField nameField = null;
 
+    /** Resolve object name button */
+    protected JButton nameLookup = null;
+
+    /** Download and display selected spectra */
+    protected JButton displaySelectedButton = null;
+
+    /** Download and display all spectra */
+    protected JButton displayAllButton = null;
+
+    /** Make the query to all known servers */
+    protected JButton goButton = null;
+
+    /** Server list menu */
+    protected JMenu serverMenu = null;
+
+    /** Name resolver menu */
+    protected JMenu resolverMenu = null;
+
     /** Central RA */
     protected JTextField raField = null;
 
@@ -117,11 +146,14 @@ public class SSAQueryBrowser
     /** The list of StarJTables in use */
     protected ArrayList starJTables = null;
 
-    /** NED nameserver catalogue */
+    /** NED name resolver catalogue */
     protected SkycatCatalog nedCatalogue = null;
 
-    /** SIMBAD nameserver catalogue */
+    /** SIMBAD name resolver catalogue */
     protected SkycatCatalog simbadCatalogue = null;
+
+    /** The current name resolver */
+    protected SkycatCatalog resolverCatalogue = null;
 
     static {
         ProxySetup.getInstance().restore();
@@ -178,11 +210,45 @@ public class SSAQueryBrowser
         actionBarContainer.add( closeButton );
         closeButton.setToolTipText( "Close window" );
 
+        //  Create a menu containing all the known SSA servers.
+        serverMenu = new JMenu( "Servers" );
+        menuBar.add( serverMenu );
+
+        //  Populate this with the servers as a list of selectable menu
+        //  items.
+        Iterator i = serverList.getIterator();
+        JCheckBoxMenuItem jcmi = null;
+        while ( i.hasNext() ) {
+            SSAServer server = (SSAServer) i.next();
+            jcmi = new JCheckBoxMenuItem();
+            serverMenu.add( jcmi );
+            jcmi.setState( true );
+            jcmi.setAction( new ServerAction( server.getDescription(),
+                                              server ) );
+        }
+
+        //  Create a menu containing all the name resolvers.
+        resolverMenu = new JMenu( "Resolver" );
+        menuBar.add( resolverMenu );
+
+        ButtonGroup bg = new ButtonGroup();
+
+        JRadioButtonMenuItem jrbmi = new JRadioButtonMenuItem();
+        resolverMenu.add( jrbmi );
+        jrbmi.setSelected( true );
+        bg.add( jrbmi );
+        jrbmi.setAction( new ResolverAction( "SIMBAD", simbadCatalogue ) );
+
+        jrbmi = new JRadioButtonMenuItem();
+        resolverMenu.add( jrbmi );
+        bg.add( jrbmi );
+        jrbmi.setAction( new ResolverAction( "NED", nedCatalogue ) );
+        resolverCatalogue = simbadCatalogue;
+
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "ssa-window", "Help on window",
                                   menuBar, null );
     }
-
 
     /**
      * Create and display the UI components.
@@ -211,30 +277,20 @@ public class SSAQueryBrowser
             new GridBagLayouter( queryPanel, GridBagLayouter.SCHEME3 );
         contentPane.add( queryPanel, BorderLayout.NORTH );
 
-        //  Object name.
+        //  Object name. Arrange for a resolver to look up the coordinates of
+        //  the object name, when return or the lookup button are pressed.
         JLabel nameLabel = new JLabel( "Object:" );
         nameField = new JTextField( 15 );
         nameField.setToolTipText( "Enter the name of an object " +
                                   "and press return to get coordinates" );
+        nameField.addActionListener( this );
         layouter.add( nameLabel, false );
         layouter.add( nameField, false );
 
-        JButton nameLookup = new JButton( "Lookup" );
+        nameLookup = new JButton( "Lookup" );
+        nameLookup.addActionListener( this );
         layouter.add( nameLookup, true );
 
-        nameLookup.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    resolveName();
-                }
-            });
-
-        //  Also need to arrange for a resolver to look up the coordinates of
-        //  the object name, when return is pressed.
-        nameField.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    resolveName();
-                }
-            });
 
         //  RA and Dec fields. We're free-formatting on these (decimal degrees
         //  not required).
@@ -259,20 +315,17 @@ public class SSAQueryBrowser
         layouter.add( radiusField, true );
         radiusField.setToolTipText( "Enter radius of field to search" +
                                     " from given centre, arcminutes" );
+        radiusField.addActionListener( this );
 
         //  Do the search.
-        JButton goButton = new JButton( "Go" );
+        goButton = new JButton( "Go" );
+        goButton.addActionListener( this );
         JPanel buttonPanel = new JPanel();
         buttonPanel.add( goButton );
 
         layouter.add( buttonPanel, true );
         layouter.eatSpare();
 
-        goButton.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    doQuery();
-                }
-            });
     }
 
     /**
@@ -290,25 +343,17 @@ public class SSAQueryBrowser
         resultsPanel.add( resultsPane, BorderLayout.CENTER );
 
         JPanel controlPanel = new JPanel();
-        JButton displaySelectedButton = new JButton( "Display selected" );
+        displaySelectedButton = new JButton( "Display selected" );
         controlPanel.add( displaySelectedButton );
 
         //  Add action to display all currently selected spectra.
-        displaySelectedButton.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    displaySpectra( true );
-                }
-            });
+        displaySelectedButton.addActionListener( this );
 
-        JButton displayAllButton = new JButton( "Display all" );
+        displayAllButton = new JButton( "Display all" );
         controlPanel.add( displayAllButton );
 
         //  Add action to display all spectra.
-        displayAllButton.addActionListener( new ActionListener() {
-                public void actionPerformed( ActionEvent e ) {
-                    displaySpectra( false );
-                }
-            });
+        displayAllButton.addActionListener( this );
 
         resultsPanel.add( controlPanel, BorderLayout.SOUTH );
         contentPane.add( resultsPanel, BorderLayout.CENTER );
@@ -323,14 +368,13 @@ public class SSAQueryBrowser
         String objectName = nameField.getText();
         if ( objectName != null && objectName.length() > 0 ) {
 
-            //  Should offer choice between NED and SIMBAD.
-            final QueryArgs queryArgs = new BasicQueryArgs( simbadCatalogue );
+            final QueryArgs queryArgs = new BasicQueryArgs(resolverCatalogue);
             queryArgs.setId( objectName );
 
             Thread thread = new Thread( "Name server" ) {
                public void run() {
                   try {
-                      QueryResult r = simbadCatalogue.query( queryArgs );
+                      QueryResult r = resolverCatalogue.query( queryArgs );
                       if ( r instanceof TableQueryResult ) {
                           Coordinates coords =
                               ((TableQueryResult) r).getCoordinates(0);
@@ -392,9 +436,10 @@ public class SSAQueryBrowser
         String dec = decField.getText();
         if ( ra == null || ra.length() == 0 ||
              dec == null || dec.length() == 0 ) {
+
             JOptionPane.showMessageDialog( this,
-                  "You have not supplied a search centre",
-                  "No RA or Dec", JOptionPane.ERROR_MESSAGE );
+               "You have not supplied a search centre",
+               "No RA or Dec", JOptionPane.ERROR_MESSAGE );
             return;
         }
 
@@ -416,19 +461,27 @@ public class SSAQueryBrowser
         Iterator i = serverList.getIterator();
         SSAServer server = null;
         while( i.hasNext() ) {
-            SSAQuery ssaQuery = new SSAQuery( (SSAServer) i.next() );
-            ssaQuery.setPosition( ra, dec );
-            ssaQuery.setRadius( radius );
-            queryList.add( ssaQuery );
+            server = (SSAServer) i.next();
+            if ( server.isActive() ) {
+                SSAQuery ssaQuery = new SSAQuery( server );
+                ssaQuery.setPosition( ra, dec );
+                ssaQuery.setRadius( radius );
+                queryList.add( ssaQuery );
+            }
         }
 
         // Now actually do the queries, these are performed in a separate
         // Thread so we avoid locking the interface.
-        processQueryList( queryList );
-    }
+        if ( queryList.size() > 0 ) {
+            processQueryList( queryList );
+        }
+        else {
+            JOptionPane.showMessageDialog( this,
+               "There are no SSA servers currently selected",
+               "No SSA servers", JOptionPane.ERROR_MESSAGE );
 
-    private ProgressPanel progressPanel = null;
-    private SwingWorker worker = null;
+        }
+    }
 
     /**
      * If it does not already exist, make the panel used to display
@@ -480,7 +533,6 @@ public class SSAQueryBrowser
 
             public void finished()
             {
-                System.out.println( "SwingWorker finished: " + interrupted );
                 progressPanel.stop();
                 worker = null;
                 queryThread = null;
@@ -510,7 +562,7 @@ public class SSAQueryBrowser
 
         StarTable starTable = null;
         Iterator i = queryList.iterator();
-        //int j = 0;
+        int j = 0;
         while( i.hasNext() ) {
             try {
                 SSAQuery ssaQuery = (SSAQuery) i.next();
@@ -521,11 +573,16 @@ public class SSAQueryBrowser
                 ssaQuery.setStarTable( starTable );
                 progressPanel.logMessage( "Done" );
 
-                //uk.ac.starlink.table.StarTableOutput sto =
-                //    new uk.ac.starlink.table.StarTableOutput();
-                //sto.writeStarTable( starTable,
-                //                    "votable" + j + ".xml", null);
-                //j++;
+                //  Dump query results as VOTables.
+                uk.ac.starlink.table.StarTableOutput sto =
+                    new uk.ac.starlink.table.StarTableOutput();
+                sto.writeStarTable( starTable,
+                                    "votable" + j + ".xml", null);
+                j++;
+            }
+            catch (TableFormatException te) {
+                progressPanel.logMessage( te.getMessage() );
+                te.printStackTrace();
             }
             catch (IOException ie) {
                 progressPanel.logMessage( ie.getMessage() );
@@ -547,7 +604,7 @@ public class SSAQueryBrowser
             starJTables = new ArrayList();
         }
 
-        //  Remove existing tables (XXX reuse for efficiency).
+        //  Remove existing tables.
         resultsPane.removeAll();
         starJTables.clear();
 
@@ -598,7 +655,7 @@ public class SSAQueryBrowser
             else {
                 mess = "No spectra available";
             }
-            JOptionPane.showMessageDialog( this, mess, "No spectra", 
+            JOptionPane.showMessageDialog( this, mess, "No spectra",
                                            JOptionPane.ERROR_MESSAGE );
             return;
         }
@@ -618,6 +675,7 @@ public class SSAQueryBrowser
 
         //  And load and display...
         browser.threadLoadSpectra( spectra, types );
+        browser.toFront();
     }
 
     /**
@@ -654,7 +712,7 @@ public class SSAQueryBrowser
                     typecol = k;
                 }
             }
-            
+
             //  If we have a DATA_LINK column, gather the URLs it contains
             //  that are appropriate.
             if ( linkcol != -1 ) {
@@ -751,7 +809,7 @@ public class SSAQueryBrowser
         }
         return types;
     }
-        
+
     /**
      *  Close the window.
      */
@@ -781,4 +839,66 @@ public class SSAQueryBrowser
         b.pack();
         b.setVisible( true );
     }
+
+    //
+    // ActionListener interface.
+    //
+    public void actionPerformed( ActionEvent e )
+    {
+        Object source = e.getSource();
+        if ( source.equals( nameLookup ) || source.equals( nameField ) ) {
+            resolveName();
+            return;
+        }
+
+        if ( source.equals( radiusField ) || source .equals( goButton ) ) {
+            doQuery();
+            return;
+        }
+
+        if ( source.equals( displaySelectedButton ) ) {
+            displaySpectra( true );
+            return;
+        }
+        if ( source.equals( displayAllButton ) ) {
+            displaySpectra( false );
+            return;
+        }
+
+    }
+
+    //  Action for switching servers active state on and off.
+    class ServerAction
+        extends AbstractAction
+    {
+        SSAServer server = null;
+        public ServerAction( String name, SSAServer server)
+        {
+            super( name );
+            this.server = server;
+        }
+
+        public void actionPerformed( ActionEvent e )
+        {
+            JCheckBoxMenuItem cb = (JCheckBoxMenuItem) e.getSource();
+            server.setActive( cb.getState() );
+        }
+    }
+
+    //  Action for switching name resolvers.
+    class ResolverAction
+        extends AbstractAction
+    {
+        SkycatCatalog resolver = null;
+        public ResolverAction( String name, SkycatCatalog resolver )
+        {
+            super( name );
+            this.resolver = resolver;
+        }
+        public void actionPerformed( ActionEvent e )
+        {
+            resolverCatalogue = resolver;
+        }
+    }
 }
+
