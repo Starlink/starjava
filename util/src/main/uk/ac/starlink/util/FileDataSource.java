@@ -55,6 +55,16 @@ public class FileDataSource extends DataSource {
         this( file, null );
     }
 
+    /**
+     * Creates a new FileDataSource from a filename.
+     *
+     * @param  filename  filename
+     * @throws  IOException  if <tt>filename</tt> does not name a readable file
+     */
+    public FileDataSource( String filename ) throws IOException {
+        this( new File( filename ) );
+    }
+
     protected InputStream getRawInputStream() throws IOException {
         return new FileInputStream( file );
     }
