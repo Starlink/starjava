@@ -72,6 +72,9 @@ public class HDXDataNode extends DefaultDataNode {
         catch ( HdxException e ) {
             throw new NoSuchDataException( e );
         }
+        catch ( AssertionError e ) {  // temporary workaround for HDX bug
+            throw new NoSuchDataException( e );
+        }
         if ( hdx == null ) {
             throw new NoSuchDataException( "No unique HDX in source" );
         }
@@ -180,6 +183,19 @@ public class HDXDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /**
+     * Provide a custom DataNodeFactory for making children.  An HDX
+     * should never be found inside an HDX, although the HDX library is
+     * capable of interpreting structures in this way when used in the
+     * way that Treeview uses it.  Here we remove the possibility that
+     * an HDXDataNode can have an HDXDataNode as a child node.
+     */
+    public DataNodeFactory getChildMaker() {
+        DataNodeFactory dfact = new DataNodeFactory();
+        dfact.removeNodeClass( HDXDataNode.class );
+        return dfact;
     }
 
     public JComponent getFullView() {

@@ -56,20 +56,22 @@ import uk.ac.starlink.util.DataSource;
  * by reflection on a number of DataNode-implementing classes as listed
  * above.  These are made out of suitable (one-argument) constructors
  * supplied by those classes.  The second type is a special one of
- * type {@link FileDataNodeBuilder}.  This is smart and fast and 
+ * type {@link DataNodeBuilder}.  This is smart and fast and 
  * can make clever decisions about what kind of data node a given file
  * should be turned into.
  * <p>
  * Initially a newly constructed DataNodeFactory has a 
- * <tt>FileDataNodeBuilder</tt> and <tt>SourceDataNodeBuilder</tt> 
+ * <tt>FileDataNodeBuilder</tt>,
+ * <tt>StringDataNodeBuilder</tt>,
+ * <tt>SourceDataNodeBuilder</tt> and
+ * <tt>XMLDataNodeBuilder</tt>
  * at the head of the list, followed by
  * ones got from constructors of the known DataNode implementations.
  * This means that a file or string will get tackled first by 
  * the clever classes, but if that fails it will trawl through all the
  * other possibilities.  Modifying the list of preferred classes
  * using {@link #setNodeClassList} or {@link #setPreferredClass}
- * will normally demote the <tt>FileDataNodeBuilder</tt> &amp; 
- * <tt>SourceDataNodeBuilder</tt> so that
+ * will normally demote the special <tt>DataNodeBuilder</tt>s so that
  * all node construction is done by brute force in strict order
  * of classes in the class list.
  *
@@ -342,10 +344,11 @@ public class DataNodeFactory implements Cloneable {
      * class list it may slip lower down or disappear from the hierarchy.
      */
     public static List getSpecialBuilders() {
-        List specials = new ArrayList( 3 );
+        List specials = new ArrayList( 4 );
         specials.add( FileDataNodeBuilder.getInstance() );
         specials.add( StringDataNodeBuilder.getInstance() );
         specials.add( SourceDataNodeBuilder.getInstance() );
+        specials.add( XMLDataNodeBuilder.getInstance() );
         return specials;
     }
 

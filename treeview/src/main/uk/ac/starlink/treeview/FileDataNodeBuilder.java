@@ -40,6 +40,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
     private static FileDataNodeBuilder instance = new FileDataNodeBuilder();
 
     private DataNodeBuilder sourceBuilder = SourceDataNodeBuilder.getInstance();
+    private DataNodeBuilder xmlBuilder = XMLDataNodeBuilder.getInstance();
 
     /**
      * Obtains the singleton instance of this class.
@@ -145,26 +146,10 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                 return configureNode( new TarStreamDataNode( datsrc ), file );
             }
 
-            /* XML file? */
+            /* If it's an XML file delegate it to the XML builder. */
             if ( XMLDataNode.isMagic( magic ) ) {
                 DOMSource xsrc = makeDOMSource( file );
-
-                /* NDX? */
-                try {
-                    return configureNode( new NdxDataNode( xsrc ), file );
-                }
-                catch ( NoSuchDataException e ) {
-                }
-
-                /* VOTable? */
-                try {
-                    return configureNode( new VOTableDataNode( xsrc ), file );
-                }
-                catch ( NoSuchDataException e ) {
-                }
-
-                /* Normal XML file? */
-                return configureNode( new XMLDataNode( xsrc ), file );
+                return configureNode( xmlBuilder.buildNode( xsrc ), file );
             }
 
             /* We don't know what it is. */

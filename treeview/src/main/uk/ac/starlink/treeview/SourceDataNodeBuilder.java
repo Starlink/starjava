@@ -41,6 +41,9 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         }
     };
 
+    private static XMLDataNodeBuilder xmlBuilder = 
+        XMLDataNodeBuilder.getInstance();
+
     /**
      * Obtains the singleton instance of this class.
      */
@@ -73,60 +76,25 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
             throw new NoSuchDataException( e );
         }
 
-
-        /* Zip file? */
+        /* Zip stream? */
         if ( ZipArchiveDataNode.isMagic( magic ) ) {
             return configureNode( new ZipStreamDataNode( datsrc ), datsrc );
         }
 
-        /* FITS file? */
+        /* FITS stream? */
         if ( FITSDataNode.isMagic( magic ) ) {
             return configureNode( new FITSStreamDataNode( datsrc ), datsrc );
         }
 
-        /* Tar file? */
+        /* Tar stream? */
         if ( TarStreamDataNode.isMagic( magic ) ) {
             return configureNode( new TarStreamDataNode( datsrc ), datsrc );
         }
 
-        /* XML file? */
-        else if ( XMLDataNode.isMagic( magic ) ) {
+        /* If it's an XML stream delegate to the XMLbuilder. */
+        if ( XMLDataNode.isMagic( magic ) ) {
             DOMSource xsrc = makeDOMSource( datsrc );
-
-            /* NDX? */
-            try {
-                return configureNode( new NdxDataNode( xsrc ), datsrc );
-            }
-            catch ( NoSuchDataException e ) {
-                if ( verbose ) {
-                    verbStream.print( "    " );
-                    e.printStackTrace( verbStream );
-                }
-            }
-
-            /* HDX? */
-            try {
-                return configureNode( new HDXDataNode( xsrc ), datsrc );
-            }
-            catch ( NoSuchDataException e ) {
-                if ( verbose ) {
-                    verbStream.print( "    " );
-                    e.printStackTrace( verbStream );
-                }
-            }
-
-            /* VOTable? */
-            try {
-                return configureNode( new VOTableDataNode( xsrc ), datsrc );
-            }
-            catch ( NoSuchDataException e ) {
-                if ( verbose ) {
-                    e.printStackTrace( verbStream );
-                }
-            }
-
-            /* Normal XML file? */
-            return configureNode( new XMLDataNode( xsrc ), datsrc );
+            return configureNode( xmlBuilder.buildNode( xsrc ), datsrc );
         }
 
         /* Don't know what it is. */
