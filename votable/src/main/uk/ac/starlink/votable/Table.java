@@ -1,5 +1,6 @@
 package uk.ac.starlink.votable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -62,9 +63,14 @@ public class Table extends VOElement {
 
     /**
      * Constructs a Table object from an XML source representing the
-     * TABLE element of a VOTable.
+     * TABLE element of a VOTable.  The object returned may 
+     * implement the {@link RandomTable} interface if random access
+     * is provided for by the underlying implementation (for instance,
+     * FITS tables may well provide this, while streamed ones may 
+     * not).
      *
      * @param   xsrc  an XML source representing a TABLE node
+     * @return  an object containing the data of this table
      */
     public static Table makeTable( Source xsrc ) {
         try {
@@ -151,8 +157,9 @@ public class Table extends VOElement {
      * @return  an array of Objects representing the next row to be accesssed.
      * @throws  NoSuchElementException  if {@link #hasNextRow} would return 
      *          <tt>false</tt>
+     * @throws  IOException  if there is some read error
      */
-    public Object[] nextRow() {
+    public Object[] nextRow() throws IOException {
         throw new NoSuchElementException();
     }
 

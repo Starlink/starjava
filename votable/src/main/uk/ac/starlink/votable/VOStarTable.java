@@ -1,13 +1,19 @@
 package uk.ac.starlink.votable;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import javax.xml.transform.dom.DOMSource;
+import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.SequentialStarTable;
+import uk.ac.starlink.table.IteratorRowSequence;
+import uk.ac.starlink.table.RandomRowSequence;
+import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -15,11 +21,13 @@ import uk.ac.starlink.table.ValueInfo;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class VOStarTable extends SequentialStarTable {
+public class VOStarTable extends AbstractStarTable {
 
     private Table votable;
     private VOStarValueAdapter[] adapters;
     private List params;
+    private DOMSource tabsrc;
+    private int ncol;
 
     /* Auxiliary metadata. */
     private final static ValueInfo idInfo = new DefaultValueInfo(
@@ -39,35 +47,35 @@ public class VOStarTable extends SequentialStarTable {
     /**
      * Construct a VOStarTable from a VOTable <tt>Table</tt> object.
      *
-     * @param  votable  the table object
+     * @param  tabsrc  an XML Source containing the TABLE element
      */
-    public VOStarTable( Table votable ) {
-        this.votable = votable;
-        adapters = new VOStarValueAdapter[ votable.getColumnCount() ];
-        for ( int i = 0; i < adapters.length; i++ ) {
+    public VOStarTable( DOMSource tabsrc ) {
+        this.tabsrc = tabsrc;
+
+        /* Make a table object.  This will be used for the metadata.
+         * If it implements the RandomTable interface it will also be
+         * used for random access methods, otherwise the data content
+         * will never be read (getRowSequence will create new Table
+         * objects). */
+        votable = Table.makeTable( tabsrc );
+        ncol = votable.getColumnCount();
+        adapters = new VOStarValueAdapter[ ncol ];
+        for ( int i = 0; i < ncol; i++ ) {
             adapters[ i ] = VOStarValueAdapter
                            .makeAdapter( votable.getField( i ) );
         }
     }
 
     public int getColumnCount() {
-        return votable.getColumnCount();
+        return ncol;
     }
 
     public long getRowCount() {
-        return (long) votable.getRowCount();
+        return votable.getRowCount();
     }
 
-    protected Object[] getNextRow() {
-        Object[] row = votable.nextRow();
-        for ( int i = 0; i < row.length; i++ ) {
-            row[ i ] = adapters[ i ].adapt( row[ i ] );
-        }
-        return row;
-    }
-
-    protected boolean hasNextRow() {
-        return votable.hasNextRow();
+    public boolean isRandom() {
+        return votable instanceof RandomTable;
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
@@ -148,6 +156,59 @@ public class VOStarTable extends SequentialStarTable {
     public List getColumnAuxDataInfos() {
         return auxDataInfos;
     }
+
+    public RowSequence getRowSequence() {
+        if ( isRandom() ) {
+            return new RandomRowSequence( this );
+        }
+        else {
+            final Table vtab = Table.makeTable( tabsrc );
+            return new IteratorRowSequence(
+                new Iterator() {
+                    public boolean hasNext() {
+                        return vtab.hasNextRow();
+                    }
+                    public Object next() {
+                        try {
+                            Object[] row = vtab.nextRow();
+                            for ( int i = 0; i < row.length; i++ ) {
+                                row[ i ] = adapters[ i ].adapt( row[ i ] );
+                            }
+                            return row;
+                        }
+                        catch ( IOException e ) {
+                            throw new IteratorRowSequence
+                                     .PackagedIOException( e );
+                        }
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                }
+            );
+        }
+    }
+
+    public Object[] getRow( long lrow ) throws IOException {
+        if ( isRandom() ) {
+            return ((RandomTable) votable)
+                  .getRow( checkedLongToInt( lrow ) );
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public Object getCell( long lrow, int icol ) throws IOException {
+        if ( isRandom() ) {
+            return ((RandomTable) votable)
+                  .getCell( checkedLongToInt( lrow ), icol );
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+    }
+    
 
     /**
      * Returns a ValueInfo object suitable for holding the values in a

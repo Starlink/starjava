@@ -16,7 +16,7 @@ import uk.ac.starlink.util.DOMUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-class FitsTable extends Table {
+class FitsTable extends Table implements RandomTable {
 
     private int nrows;
     private int ncols;
@@ -81,23 +81,45 @@ class FitsTable extends Table {
         return nrows;
     }
 
-    public Object[] nextRow() {
+    public Object[] getRow( int irow ) throws IOException {
         if ( irow >= nrows ) {
             throw new NoSuchElementException();
         }
-        Object[] rowContents = new Object[ ncols ];
-        try {
-            for ( int icol = 0; icol < ncols; icol++ ) {
-                Object cell = tabhdu.getElement( irow, icol );
-                rowContents[ icol ] = getField( icol ).getDecoder()
-                                     .decodeArrayOfArrays( cell );
+        else {
+            try {
+                Object[] row = tabhdu.getRow( irow );
+                for ( int icol = 0; icol < ncols; icol++ ) {
+                    row[ icol ] = getField( icol ).getDecoder()
+                                 .decodeArrayOfArrays( row[ icol ] );
+                }
+                return row;
+            }
+            catch ( FitsException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
             }
         }
-        catch ( FitsException e ) {
-            throw new AssertionError( "Wrong number of columns or rows??" );
+    }
+
+    public Object getCell( int irow, int icol ) throws IOException {
+        if ( irow >= nrows ) {
+            throw new NoSuchElementException();
         }
-        irow++;
-        return rowContents;
+        else {
+            try {
+                Object cell = tabhdu.getElement( irow, icol );
+                return getField( icol ).getDecoder()
+                      .decodeArrayOfArrays( cell );
+            }
+            catch ( FitsException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
+        }
+    }
+
+    public Object[] nextRow() throws IOException {
+        return getRow( irow++ );
     }
 
     public boolean hasNextRow() {
