@@ -110,7 +110,7 @@ public class NdxTest extends TestCase {
         return vndx;
     }
 
-    public void testNdx() throws IOException, TransformerException {
+    public void testNdx() throws Exception {
 
         /* Get an Ndx. */
         Ndx vndx = virtualNdx();
