@@ -57,6 +57,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     private final static Map tableDataMap = new WeakHashMap();
     private String systemId;
     private Element tableEl;
+    private Element fieldEl;
     private List fieldList;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
@@ -167,8 +168,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 fieldList = new ArrayList();
             }
             else if ( fieldList != null && "FIELD".equals( tagName ) ) {
-                fieldList.add( new FieldElement( (Element) getNewestNode(),
-                                                 systemId, factory ) );
+                fieldEl = (Element) getNewestNode();
             }
             else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler() );
@@ -217,6 +217,10 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             if ( "TABLE".equals( tagName ) ) {
                 tableEl = null;
                 fieldList = null;
+            }
+            else if ( "FIELD".equals( tagName ) ) {
+                fieldList.add( new FieldElement( fieldEl, systemId, factory ) );
+                fieldEl = null;
             }
         }
     }
