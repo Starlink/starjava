@@ -18,7 +18,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
@@ -633,22 +632,8 @@ public class PlotWindow extends TopcatViewWindow
             OutputStream ostrm = null;
             try {
 
-                /* Construct a stream for the EPS to be written to.
-                 * We shove an extra 'showpage' at the end, since the jibble
-                 * class doesn't do this, and it's more useful with. */
-                File file = chooser.getSelectedFile();
-                ostrm = new FilterOutputStream( new FileOutputStream( file ) ) {
-                    public void close() throws IOException {
-                        String tailString = "\nshowpage\n";
-                        int nTail = tailString.length();
-                        byte[] tailBytes = new byte[ nTail ];
-                        for ( int i = 0; i < nTail; i++ ) {
-                            tailBytes[ i ] = (byte) tailString.charAt( i );
-                        }
-                        write( tailBytes );
-                        super.close();
-                    }
-                };
+                /* Construct a stream for the EPS to be written to. */
+                ostrm = new FileOutputStream( chooser.getSelectedFile() );
 
                 /* Construct a graphics object which will write postscript
                  * down this stream. */
