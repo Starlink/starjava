@@ -182,6 +182,7 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
                 }
             }
         };
+        addAction.setEnabled( TopcatUtils.canJel() );
 
         /* Open up the top level. */
         TreePath rootPath = new TreePath( root );

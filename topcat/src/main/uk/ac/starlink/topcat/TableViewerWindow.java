@@ -291,6 +291,7 @@ public class TableViewerWindow extends TopcatViewWindow
                        .replaceColumnDialog( tcModel, tcol, parent );
                 }
             };
+        replacecolAct.setEnabled( TopcatUtils.canJel() );
         popper.add( replacecolAct );
 
         /* Action to append a new column here. */
@@ -301,6 +302,7 @@ public class TableViewerWindow extends TopcatViewWindow
                     new SyntheticColumnQueryWindow( tcModel, jcol + 1, parent );
                 }
             };
+        addcolAct.setEnabled( TopcatUtils.canJel() );
         popper.add( addcolAct );
 
         /* Actions to sort on current column. */

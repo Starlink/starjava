@@ -94,6 +94,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         addAct = new SubsetAction( "New subset", ResourceIcon.ADD,
                                    "Define a new subset using " +
                                    "algebraic expression" );
+        addAct.setEnabled( TopcatUtils.canJel() );
 
         /* Action for turning a subset into a column. */
         tocolAct = new SubsetAction( "To column", ResourceIcon.TO_COLUMN,

@@ -355,6 +355,8 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                                               + "with N scalar columns" );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
+        addcolAct.setEnabled( TopcatUtils.canJel() );
+        replacecolAct.setEnabled( TopcatUtils.canJel() );
 
         /* Construct a new menu for column operations. */
         JMenu colMenu = new JMenu( "Columns" );
@@ -395,7 +397,8 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 explodecolAct.setEnabled( hasArraySelection );
                 sortupAct.setEnabled( hasUniqueSelection );
                 sortdownAct.setEnabled( hasUniqueSelection );
-                replacecolAct.setEnabled( hasUniqueSelection );
+                replacecolAct.setEnabled( hasUniqueSelection && 
+                                          TopcatUtils.canJel() );
             }
         };
         ListSelectionModel selectionModel = jtab.getSelectionModel();

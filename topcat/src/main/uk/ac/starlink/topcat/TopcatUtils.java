@@ -22,6 +22,7 @@ public class TopcatUtils {
     private static Boolean canSog_;
     private static Boolean canSplat_;
     private static Boolean canExec_;
+    private static Boolean canJel_;
     private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
@@ -279,6 +280,8 @@ public class TopcatUtils {
                         sman.checkExec( null );
                     }
                     catch ( SecurityException e ) {
+                        logger_.warning( "Security manager forbids " +
+                                         "system execution" );
                         canExec_ = Boolean.FALSE;
                     }
                 }
@@ -286,6 +289,37 @@ public class TopcatUtils {
             }
         }
         return canExec_.booleanValue();
+    }
+
+    /**
+     * Indicates if it's possible to use JEL to compile algebraic expressions.
+     * If the security manager does not permit creation of private
+     * class loaders, it will fail.
+     *
+     * @return   true iff JEL epxression compilation will work
+     */
+    public static boolean canJel() {
+        if ( canJel_ == null ) {
+            boolean can;
+            synchronized ( TopcatUtils.class ) {
+                SecurityManager sman = System.getSecurityManager();
+                if ( sman != null ) {
+                    try {
+                        sman.checkCreateClassLoader();
+                        can = true;
+                    }
+                    catch ( SecurityException e ) {
+                        logger_.warning( "Security manager forbids JEL use" );
+                        can = false;
+                    }
+                }
+                else {
+                    can = true;
+                }
+            }
+            canJel_ = Boolean.valueOf( can );
+        }
+        return canJel_.booleanValue();
     }
 
 }
