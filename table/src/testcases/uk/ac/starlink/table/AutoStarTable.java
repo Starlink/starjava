@@ -71,7 +71,11 @@ public class AutoStarTable extends ColumnStarTable {
                     return Boolean.valueOf( icol + irow % 2 == 0 );
                 }
                 else if ( clazz == Byte.class ) {
-                    return new Byte( (byte) irow );
+                    byte val = (byte) irow;
+                    if ( val == -128 || val == 127 ) {
+                        val = 0;
+                    }
+                    return new Byte( val );
                 }
                 else if ( clazz == Short.class ) {
                     return new Short( (short) irow );
