@@ -74,6 +74,15 @@ public class UCDSelector extends JPanel implements ItemListener {
         }
     }
 
+    /**
+     * Sets the UCD ID currently entered in the selector to a given string.
+     *
+     * @param   id  UCD identifier
+     */
+    public void setID( String id ) {
+        comboBox.setSelectedItem( id );
+    }
+
     public void itemStateChanged( ItemEvent evt ) {
 
         /* Deal with selection events from this selector's comboBox - 
