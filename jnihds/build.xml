@@ -365,15 +365,29 @@
   </target>
 
 
-  <!-- Pulls the architecture-specific shared library out of the source
-   !   jar file in which it lives.  This jar file is in the CVS repository,
-   !   it is not built as part of the normal build target. 
-   !   It can be built using the "build-native" target, but this requires
-   !   more than the basic CVS files to work (e.g. it needs the stardev
-   !   classic libraries) -->
+  <!-- Pulls the architecture-specific shared libraries out of the source
+   !   jar file in which they live.  These jar files are in the CVS 
+   !   repository, they are not built as part of the normal build target. 
+   !   The one specific to the build-time architecture can be built 
+   !   using the "build-native" target, but this requires more than the
+   !   basic CVS files to work (e.g. it needs the stardev classic libraries).
+   !-->
   <target name="unpack_jni">
-    <unjar src="${src.lib.arch}/${name}_libs.jar"
-           dest="${dist.lib.arch}">
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="i386"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="sparc"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="x86"/>
+    </antcall>
+  </target>
+
+  <!-- Architecture-specific JNI jar file unpacker -->
+  <target name="unpack_jni_arch">
+    <unjar src="${src.jars.dir}/${unpack.arch}/${name}_libs.jar"
+           dest="${dist.lib}/${unpack.arch}">
       <patternset excludes="META-INF*/*"/>
     </unjar>
   </target>
@@ -535,8 +549,6 @@
       </manifest>
     </jar>
 
-    <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${java.dir}"/>
-
     <!-- Architecture dependent jar files (shareable libraries for
      !   webstart) -->
     <copy todir="${dist.lib}">
@@ -545,7 +557,6 @@
 
     <!-- Sign all jar files -->
     <signjar alias="${webstart.alias}"
-
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
              storepass="${webstart.storepass}">
@@ -835,6 +846,7 @@
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
         <include name="**/*.so"/>
+        <include name="**/*.dll"/>
       </fileset>
     </loggedcopy>
 
