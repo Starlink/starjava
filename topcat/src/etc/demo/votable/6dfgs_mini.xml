@@ -41,7 +41,6 @@
 </FIELD>
 <FIELD datatype="short" name="SGFLAG">
 <DESCRIPTION>SuperCOS Star/Galaxy flag: 1=galaxy,2=star,3=unclass,4=noise</DESCRIPTION>
-<VALUES null='-32768'/>
 </FIELD>
 <FIELD datatype="boolean" name="galaxy">
 <DESCRIPTION>Flag indicating a galaxy (sgflag==1)</DESCRIPTION>
@@ -51,11 +50,9 @@
 </FIELD>
 <FIELD datatype="int" name="VEL" unit="km/s">
 <DESCRIPTION>Velocity/redshift - some from literature ZCAT</DESCRIPTION>
-<VALUES null='-2147483648'/>
 </FIELD>
 <FIELD datatype="short" name="VEL_ERR" unit="km/s">
 <DESCRIPTION>Velocity/redshift error - often nominal</DESCRIPTION>
-<VALUES null='-32768'/>
 </FIELD>
 <FIELD datatype="float" name="GAL_LONG" unit="degrees">
 <DESCRIPTION>Galactic Longitude</DESCRIPTION>
