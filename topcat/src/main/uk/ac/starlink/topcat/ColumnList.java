@@ -106,6 +106,17 @@ public class ColumnList implements TableColumnModelListener {
     }
 
     /**
+     * Returns the position in this list at which the given table column
+     * can be found.
+     *
+     * @param  tcol  sought column
+     * @return  index of <tt>tcol</tt> in this list, or -1 if it's not there
+     */
+    public int indexOf( TableColumn tcol ) {
+        return columnList.indexOf( tcol );
+    }
+
+    /**
      * Returns the index in the table column model of a column at a given
      * index in this list.
      *
