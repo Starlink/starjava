@@ -21,6 +21,7 @@ import jsky.image.fits.codec.FITSImage;
  *
  * @version $Revision: 1.5 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public abstract interface GraphicsImageDisplay extends BasicImageDisplay {
 
@@ -56,15 +57,17 @@ public abstract interface GraphicsImageDisplay extends BasicImageDisplay {
     /**
      * Return the value of the pixel in the given band at the given user coordinates
      */
-    public float getPixelValue(Point2D.Double p, int band);
+    public double getPixelValue(Point2D.Double p, int band);
+    // PWD: made return double
 
     /**
      * Return an array containing the values of the pixels in the given band in the given
-     * user coordinates region. The pixel values are converted to float. Any pixels outside
+     * user coordinates region. The pixel values are converted to double. Any pixels outside
      * the image bounds are set to the mean image value, if known, otherwise 0.
      *
      * @param region describes the region of the image to get in user coordinates
      * @param band the band of the image to get
      */
-    public float[] getPixelValues(Rectangle region, int band);
+    public double[] getPixelValues(Rectangle region, int band);
+    // PWD: made return double[]
 }

@@ -71,6 +71,7 @@ import diva.canvas.JCanvas;
  *
  * @version $Revision: 1.39 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDisplay {
 
@@ -855,7 +856,7 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
      * @param p the user coordinates of the point to get
      * @param band the bad of the image (0 for FITS files)
      */
-    public float getPixelValue(Point2D.Double p, int band) {
+    public double getPixelValue(Point2D.Double p, int band) {
         // get the "rescaled" image, so the values displayed are after applying
         // BSCALE and BZERO, if applicable
         PlanarImage im = _imageProcessor.getRescaledSourceImage();
@@ -864,8 +865,9 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
 				  im.getWidth(), im.getHeight(),
 				  band);
 	}
-        return 0.0F;
+        return 0.0;
     }
+    // PWD: made return double
 
 
     /**
@@ -878,7 +880,7 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
      * @param h  the height of the image in user coordinat pixels
      * @param band the bad of the image (0 for FITS files)
      */
-    private float _getPixelValue(PlanarImage im, int ix, int iy, int w, int h, int band) {
+    private double _getPixelValue(PlanarImage im, int ix, int iy, int w, int h, int band) {
 	// Handle FITS I/O optimizations
 	int subsample = 1;
 	if (_fitsImage != null) {
@@ -889,7 +891,7 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
             iy = h - 1 - iy;
 
         if (ix < 0 || ix >= w || iy < 0 || iy >= h) {
-            return 0.0F;
+            return 0.0;
         }
 
         // XXX don't use XtoTileX(ix) here, since XtoTileX refers to the display image,
@@ -898,20 +900,20 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
         int x = (int) ((double) ix / _tileWidth);
         int y = (int) ((double) iy / _tileHeight);
         if (x < 0 || y < 0) {
-            return 0.0F;
+            return 0.0;
         }
 	
         Raster tile = im.getTile(x, y);
 	if (tile != null) {
 	    try {
-		return tile.getSampleFloat(ix/subsample, iy/subsample, band);
+		return tile.getSampleDouble(ix/subsample, iy/subsample, band);
 	    }
 	    catch(Exception e) {
 	    }
 	}
-	return 0.0F;
+	return 0.0;
     }
-
+    // PWD: made return double
 
     /**
      * Return an array containing the values of the pixels in the given band in the given
@@ -921,12 +923,12 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
      * @param region describes the region of the image to get in user coordinates
      * @param band the band of the image to get
      */
-    public float[] getPixelValues(Rectangle region, int band) {
+    public double[] getPixelValues(Rectangle region, int band) {
         // get the "rescaled" image, so the values displayed are after applying
         // BSCALE and BZERO, if applicable
         PlanarImage im = _imageProcessor.getRescaledSourceImage();
         if (im != null) {
-            float[] ar = new float[region.width * region.height];
+            double[] ar = new double[region.width * region.height];
             int w = im.getWidth(), h = im.getHeight();
             int n = 0;
             int minX = region.x,
@@ -943,6 +945,7 @@ public class DivaGraphicsImageDisplay extends JCanvas implements GraphicsImageDi
         }
         return null;
     }
+    // PWD: made return double[]
 
     /**
      * Set to true if the image being displayed has been prescaled (such as

@@ -32,6 +32,7 @@ import jsky.image.ImageProcessor;
  *
  * @version $Revision: 1.8 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public abstract interface BasicImageDisplay extends BasicImageReadableProcessor {
 
@@ -138,7 +139,8 @@ public abstract interface BasicImageDisplay extends BasicImageReadableProcessor 
     /**
      * Return the value of the pixel in the given band at the given user coordinates
      */
-    public float getPixelValue(Point2D.Double p, int band);
+    public double getPixelValue(Point2D.Double p, int band);
+    // PWD: made return double
 
     /**
      * Return a rectangle describing the visible area of the image

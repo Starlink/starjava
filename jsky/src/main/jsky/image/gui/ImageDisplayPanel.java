@@ -6,6 +6,7 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/10/02  Made return from getPixelValue double precision
  */
 
 package jsky.image.gui;
@@ -651,7 +652,7 @@ public class ImageDisplayPanel extends JPanel implements MouseMotionListener {
             // try to extract the pixel value under the mouse and display it
             p = new Point2D.Double(e.getX(), e.getY());
             imageDisplay.getCoordinateConverter().screenToUserCoords(p, false);
-            float pixel = imageDisplay.getPixelValue(p, 0);
+            double pixel = imageDisplay.getPixelValue(p, 0);//PWD: made double
 
             PlanarImage im = imageProcessor.getRescaledSourceImage();
             if (im != null) {

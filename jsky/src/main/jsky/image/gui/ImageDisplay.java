@@ -6,6 +6,7 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/10/02  Made getPixelValue return double precision
  */
 
 package jsky.image.gui;
@@ -638,20 +639,20 @@ public class ImageDisplay extends JComponent
     /**
      * Return the value of the pixel in the given band at the given user coordinates
      */
-    public float getPixelValue(Point2D.Double p, int band) {
+    public double getPixelValue(Point2D.Double p, int band) {
         PlanarImage im = _imageProcessor.getRescaledSourceImage();
         if (im != null) {
             int ix = (int) p.getX(), iy = (int) p.getY();
             if (ix < 0 || ix > im.getWidth() || iy < 0 || iy > im.getHeight())
-                return 0.0F;
+                return 0.0;
             int x = _XtoTileX(ix);
             int y = _YtoTileY(iy);
             if (x < 0 || y < 0)
-                return 0.0F;
+                return 0.0;
             Raster tile = im.getTile(x, y);
-            return tile.getSampleFloat(ix, iy, band);
+            return tile.getSampleDouble(ix, iy, band); // PWD: made double
         }
-        return 0;
+        return 0.0;
     }
 
     /**

@@ -40,6 +40,7 @@ import jsky.util.Resources;
  *
  * @version $Revision: 1.16 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public class ImageDisplayStatusPanel extends JPanel implements MouseMotionListener {
 
@@ -319,7 +320,7 @@ public class ImageDisplayStatusPanel extends JPanel implements MouseMotionListen
             // try to extract the pixel value under the mouse and display it
             p = new Point2D.Double(e.getX(), e.getY());
             imageDisplay.getCoordinateConverter().screenToUserCoords(p, false);
-            float pixel = imageDisplay.getPixelValue(p, 0);
+            double pixel = imageDisplay.getPixelValue(p, 0); //PWD:made double
 
             ImageProcessor imageProcessor = imageDisplay.getImageProcessor();
             if (pixel == imageProcessor.getBlank()) {
