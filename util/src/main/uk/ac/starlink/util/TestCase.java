@@ -18,6 +18,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import junit.framework.AssertionFailedError;
 import org.w3c.dom.*;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -897,11 +899,13 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Asserts that the contents of a stream are valid XML.
      * The stream is passed through a validating XML parser.
-     * Badly-formed XML, or failure to conform to any DTD or schema
-     * referenced in the 
-     * document's declaration will result in a SAXParseException.
+     * Badly-formed XML, or failure to conform to any DTD or schema referenced 
+     * in the document's declaration will result in a SAXParseException.
      * The stream will be closed following the (successful or unsuccessful)
      * parsing and validation.
+     * <p>
+     * Entity resolution is done using an instance of 
+     * {@link StarEntityResolver}.
      *
      * @param  message  message associated with assertion failure
      * @param  strm  input stream containing an XML document
@@ -925,6 +929,10 @@ public class TestCase extends junit.framework.TestCase {
                                         "validating SAX parser", e );
         }
         assertTrue( "Check parser is validating", parser.isValidating() );   
+
+        /* Prepare to use the custom entity resolver which knows about some
+         * useful entities. */
+        final EntityResolver resolver = StarEntityResolver.getInstance();
 
         /* Set up a handler which rethrows parse errors as 
          * AssertionFailedErrors.  If a custom handler along these lines
@@ -950,6 +958,16 @@ public class TestCase extends junit.framework.TestCase {
                 sbuf.append( " at line " + e.getLineNumber() );
                 sbuf.append( " column " + e.getColumnNumber() );
                 throw new SAXException( sbuf.toString(), e );
+            }
+
+            public InputSource resolveEntity( String publicId, String systemId )
+                    throws SAXException {
+                try {
+                    return resolver.resolveEntity( publicId, systemId );
+                }
+                catch ( IOException e ) {
+                    throw new SAXException( e.getMessage(), e );
+                }
             }
         };
 
