@@ -3,6 +3,7 @@ package uk.ac.starlink.util;
 import java.lang.Comparable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,6 +59,15 @@ public class MapGroup {
     }
 
     /**
+     * Returns the number of maps in this group.
+     *
+     * @return  map count
+     */
+    public int size() {
+       return maps.size();
+    }
+
+    /**
      * Mandates an ordering to be imposed on the map keys.
      * The effect of this call is to influence the order of the list
      * returned by subsequent calls of {@link #getKnownKeys}.
@@ -107,6 +117,41 @@ public class MapGroup {
      */
     public List getKeyOrder() {
         return ordering;
+    }
+
+    /**
+     * Removes all entries which have a key in a given collection for 
+     * every map in this group.
+     *
+     * @param  keys  the set of key values whose entries must be removed
+     */
+    public void removeKeys( Collection keys ) {
+        for ( Iterator it = keys.iterator(); it.hasNext(); ) {
+            removeKey( it.next() );
+        }
+    }
+
+    /**
+     * Removes all entries with a given key for every map in this group.
+     *
+     * @param  key  the key whose entries must be removed
+     */
+    public void removeKey( Object key ) {
+        for ( Iterator it = maps.iterator(); it.hasNext(); ) {
+            ((Map) it.next()).remove( key );
+        }
+    }
+
+    /**
+     * Removes all entries except those with keys in a given collection for
+     * every map in this group.
+     *
+     * @param  keys  the keys whose entries must be retained
+     */
+    public void retainKeys( Collection keys ) {
+        for ( Iterator it = maps.iterator(); it.hasNext(); ) {
+            ((Map) it.next()).keySet().retainAll( keys );
+        }
     }
 
     /**
