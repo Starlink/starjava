@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.regex.Pattern;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -9,8 +10,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 
@@ -133,6 +137,32 @@ public class VOTableBuilder implements TableBuilder {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Acquires the data from a single TABLE element in a VOTable document,
+     * writing the result to a sink.  This can be used if only one-shot
+     * access to the data is required.  
+     * Invocation of this method should be cheap on memory even
+     * for large XML documents and/or tables.
+     *
+     * @param  istrm  stream from which the VOTable document will be supplied
+     * @param  sink   callback interface into which the table metadata and
+     *                data will be dumped
+     * @param  index  if present, a string representation of the index of
+     *                the table in the document to be read - "0" means the
+     *                first one encountered, "1" means the second, etc
+     */
+    public void copyStarTable( InputStream istrm, TableSink sink, 
+                               String index ) throws IOException {
+        int itable = index.matches( "[0-9]+" ) ? Integer.parseInt( index ) : 0;
+        try {
+            TableCopier.copyStarTable( new InputSource( istrm ), sink, itable );
+        }
+        catch ( SAXException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
     }
 
     /**
