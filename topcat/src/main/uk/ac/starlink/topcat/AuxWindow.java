@@ -16,7 +16,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.logging.Logger;
+import javax.help.BadIDException;
+import javax.help.HelpSet;
+import javax.help.HelpSetException;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -63,6 +67,7 @@ public class AuxWindow extends JFrame {
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
     public static final String VERSION_RESOURCE = "version-string";
+    private static HelpSet hset;
 
     /**
      * Constructs an AuxWindow.
@@ -141,7 +146,13 @@ public class AuxWindow extends JFrame {
         menuBar.add( helpMenu );
 
         /* Get action to activate the help browser. */
-        helpAct = new HelpAction( helpID );
+        if ( helpIdExists( helpID ) ) {
+            helpAct = new HelpAction( helpID );
+        }
+        else {
+            helpAct = new HelpAction( null );
+            logger.warning( "Unknown help ID " + helpID );
+        }
 
         /* Add it to the tool bar. */
         toolBar.add( helpAct );
@@ -385,6 +396,33 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Tests whether a given helpID is available.
+     *
+     * @param  helpID  the help ID to test
+     * @return  true  iff <tt>helpID</tt> is a known ID in this application's
+     *          HelpSet
+     */
+    public static boolean helpIdExists( String helpID ) {
+        if ( hset == null ) {
+            URL hsResource = HelpWindow.class.getResource( HelpWindow
+                                                          .HELPSET_LOCATION );
+            try {
+                hset = new HelpSet( null, hsResource );
+            }
+            catch ( HelpSetException e ) {
+                logger.warning( "Can't locate helpset at " + hsResource );
+            }
+        }
+        try {
+            javax.help.Map.ID.create( helpID, hset );
+            return true;
+        }
+        catch ( BadIDException e ) {
+            return false;
+        }
+    }
+
+    /**
      * Recursively calls {@link java.awt.Component#setEnabled} on a component
      * and (if it is a container) any of the components it contains.
      *
@@ -461,9 +499,7 @@ public class AuxWindow extends JFrame {
             if ( helpWin == null ) {
                 helpWin = HelpWindow.getInstance( AuxWindow.this );
             }
-            else {
-                helpWin.makeVisible();
-            }
+            helpWin.makeVisible();
             helpWin.setID( helpID );
         }
     }
