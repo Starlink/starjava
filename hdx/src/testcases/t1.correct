@@ -1,0 +1,30 @@
+===
+File t1-test1.xml (URL file:t1-test1.xml)
+--- NDX 0
+  Data [file:test1.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>
+===
+File t1-test2.xml (URL file:t1-test2.xml)
+--- NDX 0
+  Data [file:test1.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>
+--- NDX 1
+  Data: <null>
+  Variance: <null>
+  Quality: <null>
+--- NDX 2
+  Data [file:test3.fits]: NDArray r byte(1+1,1+1)
+  Variance: <null>
+  Quality [file:test5.fits]: NDArray r byte(1+1,1+1)
+===
+File t1-test3.xml (URL file:t1-test3.xml)
+--- NDX 0
+  Data [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test3.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>
+--- NDX 1
+  Data [file:test5.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test6.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>

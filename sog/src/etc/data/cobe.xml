@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <ndx>
+    <image>
+    file:/home2/pdraper/java/cvs/java/source/sog/src/etc/data/cobe.fit
+    </image>
+    <wcs>
+
+<FrameSet>
+  <_attribute name="Nframe" value="4"/>
+  <_attribute name="Currnt" value="4"/>
+  <_attribute name="Nnode" value="5"/>
+  <_attribute name="Nod1" value="3"/>
+  <_attribute name="Nod2" value="4"/>
+  <_attribute name="Nod3" value="5"/>
+  <_attribute name="Nod4" value="2"/>
+  <_attribute name="Lnk2" value="1"/>
+  <_attribute name="Lnk3" value="1"/>
+  <_attribute name="Lnk4" value="1"/>
+  <_attribute name="Lnk5" value="1"/>
+  <Frame label="Frm1">
+    <_attribute name="Title" value="&quot;Data grid indices; first pixel at (1,1)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;GRID&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;Data grid index 1&quot;"/>
+      <_attribute name="Symbol" value="&quot;g1&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;Data grid index 2&quot;"/>
+      <_attribute name="Symbol" value="&quot;g2&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+  </Frame>
+  <Frame label="Frm2">
+    <_attribute name="Title" value="&quot;Pixel coordinates; first pixel at (0.5,0.5)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;PIXEL&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;Pixel coordinate 1&quot;"/>
+      <_attribute name="Symbol" value="&quot;p1&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;Pixel coordinate 2&quot;"/>
+      <_attribute name="Symbol" value="&quot;p2&quot;"/>
+      <_attribute name="Unit" value="&quot;pixel&quot;"/>
+      <_attribute name="Format" value="&quot;%3.1f&quot;"/>
+    </Axis>
+  </Frame>
+  <Frame label="Frm3">
+    <_attribute name="Title" value="&quot;Axis coordinates; first pixel at (29.83134,-199.1582)&quot;"/>
+    <_attribute name="Naxes" value="2"/>
+    <_attribute name="Domain" value="&quot;AXIS&quot;"/>
+    <Axis label="Ax1">
+      <_attribute name="Label" value="&quot;GLON-ZEA&quot;"/>
+      <_attribute name="Symbol" value="&quot;a1&quot;"/>
+    </Axis>
+    <Axis label="Ax2">
+      <_attribute name="Label" value="&quot;GLAT-ZEA&quot;"/>
+      <_attribute name="Symbol" value="&quot;a2&quot;"/>
+    </Axis>
+  </Frame>
+  <SkyFrame label="Frm4">
+    <_attribute name="Naxes" value="2"/>
+    <SkyAxis label="Ax1"/>
+    <SkyAxis label="Ax2"/>
+    <_isa class="Frame"/>
+    <_attribute name="System" value="&quot;GALACTIC&quot;"/>
+    <_attribute name="Proj" value="&quot;zenithal equal area&quot;"/>
+    <_attribute name="Epoch" value="1950"/>
+    <_attribute name="Eqnox" value="1950"/>
+  </SkyFrame>
+  <CmpMap label="Map2">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <WinMap label="MapA">
+      <_attribute name="Nin" value="2"/>
+      <_attribute name="Invert" value="0"/>
+      <_isa class="Mapping"/>
+      <_attribute name="Sft1" value="-150.5"/>
+      <_attribute name="Sft2" value="-150.5"/>
+    </WinMap>
+    <CmpMap label="MapB">
+      <_attribute name="Nin" value="2"/>
+      <_isa class="Mapping"/>
+      <MatrixMap label="MapA">
+        <_attribute name="Nin" value="2"/>
+        <_attribute name="Invert" value="0"/>
+        <_isa class="Mapping"/>
+        <_attribute name="M0" value="-0.020943951023932"/>
+        <_attribute name="M1" value="0.020943951023932"/>
+        <_attribute name="Form" value="&quot;Diagonal&quot;"/>
+      </MatrixMap>
+      <CmpMap label="MapB">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="InvA" value="1"/>
+        <WcsMap label="MapA">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="1"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Type" value="&quot;ZEA&quot;"/>
+        </WcsMap>
+        <CmpMap label="MapB">
+          <_attribute name="Nin" value="2"/>
+          <_isa class="Mapping"/>
+          <_attribute name="InvA" value="1"/>
+          <SphMap label="MapA">
+            <_attribute name="Nin" value="3"/>
+            <_attribute name="Nout" value="2"/>
+            <_attribute name="Invert" value="0"/>
+            <_isa class="Mapping"/>
+            <_attribute name="UntRd" value="1"/>
+          </SphMap>
+          <CmpMap label="MapB">
+            <_attribute name="Nin" value="3"/>
+            <_attribute name="Nout" value="2"/>
+            <_isa class="Mapping"/>
+            <MatrixMap label="MapA">
+              <_attribute name="Nin" value="3"/>
+              <_attribute name="Invert" value="0"/>
+              <_isa class="Mapping"/>
+              <_attribute name="M0" value="0.291480364581799"/>
+              <_attribute name="M1" value="0.506505471460186"/>
+              <_attribute name="M2" value="-0.811474832908671"/>
+              <_attribute name="M3" value="0.171224898552328"/>
+              <_attribute name="M4" value="-0.862236746712233"/>
+              <_attribute name="M5" value="-0.476686298035564"/>
+              <_attribute name="M6" value="-0.941127638091139"/>
+              <_attribute name="M7" value="0"/>
+              <_attribute name="M8" value="-0.338051429254475"/>
+              <_attribute name="Form" value="&quot;Full&quot;"/>
+            </MatrixMap>
+            <SphMap label="MapB">
+              <_attribute name="Nin" value="3"/>
+              <_attribute name="Nout" value="2"/>
+              <_attribute name="Invert" value="0"/>
+              <_isa class="Mapping"/>
+              <_attribute name="UntRd" value="1"/>
+            </SphMap>
+          </CmpMap>
+        </CmpMap>
+      </CmpMap>
+    </CmpMap>
+  </CmpMap>
+  <UnitMap label="Map3">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+  </UnitMap>
+  <WinMap label="Map4">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <_attribute name="Sft1" value="-0.5"/>
+    <_attribute name="Sft2" value="-0.5"/>
+  </WinMap>
+  <CmpMap label="Map5">
+    <_attribute name="Nin" value="2"/>
+    <_isa class="Mapping"/>
+    <_attribute name="Series" value="0"/>
+    <LutMap label="MapA">
+      <_attribute name="Nin" value="1"/>
+      <_isa class="Mapping"/>
+      <_attribute name="Nlut" value="300"/>
+      <_attribute name="Start" value="1"/>
+      <_attribute name="L1" value="29.8313407897949"/>
+      <_attribute name="L2" value="28.6313400268555"/>
+      <_attribute name="L3" value="27.431339263916"/>
+      <_attribute name="L4" value="26.2313404083252"/>
+      <_attribute name="L5" value="25.0313396453857"/>
+      <_attribute name="L6" value="23.8313407897949"/>
+      <_attribute name="L7" value="22.6313400268555"/>
+      <_attribute name="L8" value="21.431339263916"/>
+      <_attribute name="L9" value="20.2313404083252"/>
+      <_attribute name="L10" value="19.0313396453857"/>
+      <_attribute name="L11" value="17.8313407897949"/>
+      <_attribute name="L12" value="16.6313400268555"/>
+      <_attribute name="L13" value="15.4313402175903"/>
+      <_attribute name="L14" value="14.2313404083252"/>
+      <_attribute name="L15" value="13.0313396453857"/>
+      <_attribute name="L16" value="11.8313398361206"/>
+      <_attribute name="L17" value="10.6313400268555"/>
+      <_attribute name="L18" value="9.43134021759033"/>
+      <_attribute name="L19" value="8.2313404083252"/>
+      <_attribute name="L20" value="7.0313401222229"/>
+      <_attribute name="L21" value="5.83133983612061"/>
+      <_attribute name="L22" value="4.63134002685547"/>
+      <_attribute name="L23" value="3.43133997917175"/>
+      <_attribute name="L24" value="2.23133993148804"/>
+      <_attribute name="L25" value="1.03134000301361"/>
+      <_attribute name="L26" value="-0.168659999966621"/>
+      <_attribute name="L27" value="-1.36865997314453"/>
+      <_attribute name="L28" value="-2.56866002082825"/>
+      <_attribute name="L29" value="-3.76866006851196"/>
+      <_attribute name="L30" value="-4.9686598777771"/>
+      <_attribute name="L31" value="-6.16866016387939"/>
+      <_attribute name="L32" value="-7.36865997314453"/>
+      <_attribute name="L33" value="-8.56865978240967"/>
+      <_attribute name="L34" value="-9.7686595916748"/>
+      <_attribute name="L35" value="-10.9686603546143"/>
+      <_attribute name="L36" value="-12.1686601638794"/>
+      <_attribute name="L37" value="-13.3686599731445"/>
+      <_attribute name="L38" value="-14.5686597824097"/>
+      <_attribute name="L39" value="-15.7686595916748"/>
+      <_attribute name="L40" value="-16.9686603546143"/>
+      <_attribute name="L41" value="-18.1686592102051"/>
+      <_attribute name="L42" value="-19.3686599731445"/>
+      <_attribute name="L43" value="-20.568660736084"/>
+      <_attribute name="L44" value="-21.7686595916748"/>
+      <_attribute name="L45" value="-22.9686603546143"/>
+      <_attribute name="L46" value="-24.1686592102051"/>
+      <_attribute name="L47" value="-25.3686599731445"/>
+      <_attribute name="L48" value="-26.568660736084"/>
+      <_attribute name="L49" value="-27.7686595916748"/>
+      <_attribute name="L50" value="-28.9686603546143"/>
+      <_attribute name="L51" value="-30.1686592102051"/>
+      <_attribute name="L52" value="-31.3686599731445"/>
+      <_attribute name="L53" value="-32.568660736084"/>
+      <_attribute name="L54" value="-33.7686614990234"/>
+      <_attribute name="L55" value="-34.9686584472656"/>
+      <_attribute name="L56" value="-36.1686592102051"/>
+      <_attribute name="L57" value="-37.3686599731445"/>
+      <_attribute name="L58" value="-38.568660736084"/>
+      <_attribute name="L59" value="-39.7686614990234"/>
+      <_attribute name="L60" value="-40.9686584472656"/>
+      <_attribute name="L61" value="-42.1686592102051"/>
+      <_attribute name="L62" value="-43.3686599731445"/>
+      <_attribute name="L63" value="-44.568660736084"/>
+      <_attribute name="L64" value="-45.7686614990234"/>
+      <_attribute name="L65" value="-46.9686584472656"/>
+      <_attribute name="L66" value="-48.1686592102051"/>
+      <_attribute name="L67" value="-49.3686599731445"/>
+      <_attribute name="L68" value="-50.568660736084"/>
+      <_attribute name="L69" value="-51.7686614990234"/>
+      <_attribute name="L70" value="-52.9686584472656"/>
+      <_attribute name="L71" value="-54.1686592102051"/>
+      <_attribute name="L72" value="-55.3686599731445"/>
+      <_attribute name="L73" value="-56.568660736084"/>
+      <_attribute name="L74" value="-57.7686614990234"/>
+      <_attribute name="L75" value="-58.9686584472656"/>
+      <_attribute name="L76" value="-60.1686592102051"/>
+      <_attribute name="L77" value="-61.3686599731445"/>
+      <_attribute name="L78" value="-62.568660736084"/>
+      <_attribute name="L79" value="-63.7686614990234"/>
+      <_attribute name="L80" value="-64.9686584472656"/>
+      <_attribute name="L81" value="-66.1686630249023"/>
+      <_attribute name="L82" value="-67.3686599731445"/>
+      <_attribute name="L83" value="-68.5686569213867"/>
+      <_attribute name="L84" value="-69.7686614990234"/>
+      <_attribute name="L85" value="-70.9686584472656"/>
+      <_attribute name="L86" value="-72.1686630249023"/>
+      <_attribute name="L87" value="-73.3686599731445"/>
+      <_attribute name="L88" value="-74.5686569213867"/>
+      <_attribute name="L89" value="-75.7686614990234"/>
+      <_attribute name="L90" value="-76.9686584472656"/>
+      <_attribute name="L91" value="-78.1686630249023"/>
+      <_attribute name="L92" value="-79.3686599731445"/>
+      <_attribute name="L93" value="-80.5686569213867"/>
+      <_attribute name="L94" value="-81.7686614990234"/>
+      <_attribute name="L95" value="-82.9686584472656"/>
+      <_attribute name="L96" value="-84.1686630249023"/>
+      <_attribute name="L97" value="-85.3686599731445"/>
+      <_attribute name="L98" value="-86.5686569213867"/>
+      <_attribute name="L99" value="-87.7686614990234"/>
+      <_attribute name="L100" value="-88.9686584472656"/>
+      <_attribute name="L101" value="-90.1686630249023"/>
+      <_attribute name="L102" value="-91.3686599731445"/>
+      <_attribute name="L103" value="-92.5686569213867"/>
+      <_attribute name="L104" value="-93.7686614990234"/>
+      <_attribute name="L105" value="-94.9686584472656"/>
+      <_attribute name="L106" value="-96.1686630249023"/>
+      <_attribute name="L107" value="-97.3686599731445"/>
+      <_attribute name="L108" value="-98.5686569213867"/>
+      <_attribute name="L109" value="-99.7686614990234"/>
+      <_attribute name="L110" value="-100.968658447266"/>
+      <_attribute name="L111" value="-102.168663024902"/>
+      <_attribute name="L112" value="-103.368659973145"/>
+      <_attribute name="L113" value="-104.568656921387"/>
+      <_attribute name="L114" value="-105.768661499023"/>
+      <_attribute name="L115" value="-106.968658447266"/>
+      <_attribute name="L116" value="-108.168663024902"/>
+      <_attribute name="L117" value="-109.368659973145"/>
+      <_attribute name="L118" value="-110.568656921387"/>
+      <_attribute name="L119" value="-111.768661499023"/>
+      <_attribute name="L120" value="-112.968658447266"/>
+      <_attribute name="L121" value="-114.168663024902"/>
+      <_attribute name="L122" value="-115.368659973145"/>
+      <_attribute name="L123" value="-116.568656921387"/>
+      <_attribute name="L124" value="-117.768661499023"/>
+      <_attribute name="L125" value="-118.968658447266"/>
+      <_attribute name="L126" value="-120.168663024902"/>
+      <_attribute name="L127" value="-121.368659973145"/>
+      <_attribute name="L128" value="-122.568656921387"/>
+      <_attribute name="L129" value="-123.768661499023"/>
+      <_attribute name="L130" value="-124.968658447266"/>
+      <_attribute name="L131" value="-126.168663024902"/>
+      <_attribute name="L132" value="-127.368659973145"/>
+      <_attribute name="L133" value="-128.568664550781"/>
+      <_attribute name="L134" value="-129.768661499023"/>
+      <_attribute name="L135" value="-130.968658447266"/>
+      <_attribute name="L136" value="-132.168655395508"/>
+      <_attribute name="L137" value="-133.368667602539"/>
+      <_attribute name="L138" value="-134.568664550781"/>
+      <_attribute name="L139" value="-135.768661499023"/>
+      <_attribute name="L140" value="-136.968658447266"/>
+      <_attribute name="L141" value="-138.168655395508"/>
+      <_attribute name="L142" value="-139.368667602539"/>
+      <_attribute name="L143" value="-140.568664550781"/>
+      <_attribute name="L144" value="-141.768661499023"/>
+      <_attribute name="L145" value="-142.968658447266"/>
+      <_attribute name="L146" value="-144.168655395508"/>
+      <_attribute name="L147" value="-145.368667602539"/>
+      <_attribute name="L148" value="-146.568664550781"/>
+      <_attribute name="L149" value="-147.768661499023"/>
+      <_attribute name="L150" value="-148.968658447266"/>
+      <_attribute name="L151" value="-150.168655395508"/>
+      <_attribute name="L152" value="-151.368667602539"/>
+      <_attribute name="L153" value="-152.568664550781"/>
+      <_attribute name="L154" value="-153.768661499023"/>
+      <_attribute name="L155" value="-154.968658447266"/>
+      <_attribute name="L156" value="-156.168655395508"/>
+      <_attribute name="L157" value="-157.368667602539"/>
+      <_attribute name="L158" value="-158.568664550781"/>
+      <_attribute name="L159" value="-159.768661499023"/>
+      <_attribute name="L160" value="-160.968658447266"/>
+      <_attribute name="L161" value="-162.168655395508"/>
+      <_attribute name="L162" value="-163.368667602539"/>
+      <_attribute name="L163" value="-164.568664550781"/>
+      <_attribute name="L164" value="-165.768661499023"/>
+      <_attribute name="L165" value="-166.968658447266"/>
+      <_attribute name="L166" value="-168.168655395508"/>
+      <_attribute name="L167" value="-169.368667602539"/>
+      <_attribute name="L168" value="-170.568664550781"/>
+      <_attribute name="L169" value="-171.768661499023"/>
+      <_attribute name="L170" value="-172.968658447266"/>
+      <_attribute name="L171" value="-174.168655395508"/>
+      <_attribute name="L172" value="-175.368667602539"/>
+      <_attribute name="L173" value="-176.568664550781"/>
+      <_attribute name="L174" value="-177.768661499023"/>
+      <_attribute name="L175" value="-178.968658447266"/>
+      <_attribute name="L176" value="-180.168655395508"/>
+      <_attribute name="L177" value="-181.368667602539"/>
+      <_attribute name="L178" value="-182.568664550781"/>
+      <_attribute name="L179" value="-183.768661499023"/>
+      <_attribute name="L180" value="-184.968658447266"/>
+      <_attribute name="L181" value="-186.168655395508"/>
+      <_attribute name="L182" value="-187.368667602539"/>
+      <_attribute name="L183" value="-188.568664550781"/>
+      <_attribute name="L184" value="-189.768661499023"/>
+      <_attribute name="L185" value="-190.968658447266"/>
+      <_attribute name="L186" value="-192.168655395508"/>
+      <_attribute name="L187" value="-193.368667602539"/>
+      <_attribute name="L188" value="-194.568664550781"/>
+      <_attribute name="L189" value="-195.768661499023"/>
+      <_attribute name="L190" value="-196.968658447266"/>
+      <_attribute name="L191" value="-198.168655395508"/>
+      <_attribute name="L192" value="-199.368667602539"/>
+      <_attribute name="L193" value="-200.568664550781"/>
+      <_attribute name="L194" value="-201.768661499023"/>
+      <_attribute name="L195" value="-202.968658447266"/>
+      <_attribute name="L196" value="-204.168655395508"/>
+      <_attribute name="L197" value="-205.368667602539"/>
+      <_attribute name="L198" value="-206.568664550781"/>
+      <_attribute name="L199" value="-207.768661499023"/>
+      <_attribute name="L200" value="-208.968658447266"/>
+      <_attribute name="L201" value="-210.168655395508"/>
+      <_attribute name="L202" value="-211.368667602539"/>
+      <_attribute name="L203" value="-212.568664550781"/>
+      <_attribute name="L204" value="-213.768661499023"/>
+      <_attribute name="L205" value="-214.968658447266"/>
+      <_attribute name="L206" value="-216.168655395508"/>
+      <_attribute name="L207" value="-217.368667602539"/>
+      <_attribute name="L208" value="-218.568664550781"/>
+      <_attribute name="L209" value="-219.768661499023"/>
+      <_attribute name="L210" value="-220.968658447266"/>
+      <_attribute name="L211" value="-222.168655395508"/>
+      <_attribute name="L212" value="-223.368667602539"/>
+      <_attribute name="L213" value="-224.568664550781"/>
+      <_attribute name="L214" value="-225.768661499023"/>
+      <_attribute name="L215" value="-226.968658447266"/>
+      <_attribute name="L216" value="-228.168655395508"/>
+      <_attribute name="L217" value="-229.368667602539"/>
+      <_attribute name="L218" value="-230.568664550781"/>
+      <_attribute name="L219" value="-231.768661499023"/>
+      <_attribute name="L220" value="-232.968658447266"/>
+      <_attribute name="L221" value="-234.168655395508"/>
+      <_attribute name="L222" value="-235.368667602539"/>
+      <_attribute name="L223" value="-236.568664550781"/>
+      <_attribute name="L224" value="-237.768661499023"/>
+      <_attribute name="L225" value="-238.968658447266"/>
+      <_attribute name="L226" value="-240.168655395508"/>
+      <_attribute name="L227" value="-241.368667602539"/>
+      <_attribute name="L228" value="-242.568664550781"/>
+      <_attribute name="L229" value="-243.768661499023"/>
+      <_attribute name="L230" value="-244.968658447266"/>
+      <_attribute name="L231" value="-246.168655395508"/>
+      <_attribute name="L232" value="-247.368667602539"/>
+      <_attribute name="L233" value="-248.568664550781"/>
+      <_attribute name="L234" value="-249.768661499023"/>
+      <_attribute name="L235" value="-250.968658447266"/>
+      <_attribute name="L236" value="-252.168655395508"/>
+      <_attribute name="L237" value="-253.368667602539"/>
+      <_attribute name="L238" value="-254.568664550781"/>
+      <_attribute name="L239" value="-255.768661499023"/>
+      <_attribute name="L240" value="-256.968658447266"/>
+      <_attribute name="L241" value="-258.168670654297"/>
+      <_attribute name="L242" value="-259.36865234375"/>
+      <_attribute name="L243" value="-260.568664550781"/>
+      <_attribute name="L244" value="-261.768646240234"/>
+      <_attribute name="L245" value="-262.968658447266"/>
+      <_attribute name="L246" value="-264.168670654297"/>
+      <_attribute name="L247" value="-265.36865234375"/>
+      <_attribute name="L248" value="-266.568664550781"/>
+      <_attribute name="L249" value="-267.768646240234"/>
+      <_attribute name="L250" value="-268.968658447266"/>
+      <_attribute name="L251" value="-270.168670654297"/>
+      <_attribute name="L252" value="-271.36865234375"/>
+      <_attribute name="L253" value="-272.568664550781"/>
+      <_attribute name="L254" value="-273.768646240234"/>
+      <_attribute name="L255" value="-274.968658447266"/>
+      <_attribute name="L256" value="-276.168670654297"/>
+      <_attribute name="L257" value="-277.36865234375"/>
+      <_attribute name="L258" value="-278.568664550781"/>
+      <_attribute name="L259" value="-279.768646240234"/>
+      <_attribute name="L260" value="-280.968658447266"/>
+      <_attribute name="L261" value="-282.168670654297"/>
+      <_attribute name="L262" value="-283.36865234375"/>
+      <_attribute name="L263" value="-284.568664550781"/>
+      <_attribute name="L264" value="-285.768646240234"/>
+      <_attribute name="L265" value="-286.968658447266"/>
+      <_attribute name="L266" value="-288.168670654297"/>
+      <_attribute name="L267" value="-289.36865234375"/>
+      <_attribute name="L268" value="-290.568664550781"/>
+      <_attribute name="L269" value="-291.768646240234"/>
+      <_attribute name="L270" value="-292.968658447266"/>
+      <_attribute name="L271" value="-294.168670654297"/>
+      <_attribute name="L272" value="-295.36865234375"/>
+      <_attribute name="L273" value="-296.568664550781"/>
+      <_attribute name="L274" value="-297.768646240234"/>
+      <_attribute name="L275" value="-298.968658447266"/>
+      <_attribute name="L276" value="-300.168670654297"/>
+      <_attribute name="L277" value="-301.36865234375"/>
+      <_attribute name="L278" value="-302.568664550781"/>
+      <_attribute name="L279" value="-303.768646240234"/>
+      <_attribute name="L280" value="-304.968658447266"/>
+      <_attribute name="L281" value="-306.168670654297"/>
+      <_attribute name="L282" value="-307.36865234375"/>
+      <_attribute name="L283" value="-308.568664550781"/>
+      <_attribute name="L284" value="-309.768646240234"/>
+      <_attribute name="L285" value="-310.968658447266"/>
+      <_attribute name="L286" value="-312.168670654297"/>
+      <_attribute name="L287" value="-313.36865234375"/>
+      <_attribute name="L288" value="-314.568664550781"/>
+      <_attribute name="L289" value="-315.768646240234"/>
+      <_attribute name="L290" value="-316.968658447266"/>
+      <_attribute name="L291" value="-318.168670654297"/>
+      <_attribute name="L292" value="-319.36865234375"/>
+      <_attribute name="L293" value="-320.568664550781"/>
+      <_attribute name="L294" value="-321.768646240234"/>
+      <_attribute name="L295" value="-322.968658447266"/>
+      <_attribute name="L296" value="-324.168670654297"/>
+      <_attribute name="L297" value="-325.36865234375"/>
+      <_attribute name="L298" value="-326.568664550781"/>
+      <_attribute name="L299" value="-327.768646240234"/>
+      <_attribute name="L300" value="-328.968658447266"/>
+    </LutMap>
+    <LutMap label="MapB">
+      <_attribute name="Nin" value="1"/>
+      <_isa class="Mapping"/>
+      <_attribute name="Nlut" value="300"/>
+      <_attribute name="Start" value="1"/>
+      <_attribute name="L1" value="-199.158203125"/>
+      <_attribute name="L2" value="-197.958206176758"/>
+      <_attribute name="L3" value="-196.758193969727"/>
+      <_attribute name="L4" value="-195.558197021484"/>
+      <_attribute name="L5" value="-194.358200073242"/>
+      <_attribute name="L6" value="-193.158203125"/>
+      <_attribute name="L7" value="-191.958206176758"/>
+      <_attribute name="L8" value="-190.758193969727"/>
+      <_attribute name="L9" value="-189.558197021484"/>
+      <_attribute name="L10" value="-188.358200073242"/>
+      <_attribute name="L11" value="-187.158203125"/>
+      <_attribute name="L12" value="-185.958206176758"/>
+      <_attribute name="L13" value="-184.758193969727"/>
+      <_attribute name="L14" value="-183.558197021484"/>
+      <_attribute name="L15" value="-182.358200073242"/>
+      <_attribute name="L16" value="-181.158203125"/>
+      <_attribute name="L17" value="-179.958206176758"/>
+      <_attribute name="L18" value="-178.758193969727"/>
+      <_attribute name="L19" value="-177.558197021484"/>
+      <_attribute name="L20" value="-176.358200073242"/>
+      <_attribute name="L21" value="-175.158203125"/>
+      <_attribute name="L22" value="-173.958206176758"/>
+      <_attribute name="L23" value="-172.758193969727"/>
+      <_attribute name="L24" value="-171.558197021484"/>
+      <_attribute name="L25" value="-170.358200073242"/>
+      <_attribute name="L26" value="-169.158203125"/>
+      <_attribute name="L27" value="-167.958206176758"/>
+      <_attribute name="L28" value="-166.758193969727"/>
+      <_attribute name="L29" value="-165.558197021484"/>
+      <_attribute name="L30" value="-164.358200073242"/>
+      <_attribute name="L31" value="-163.158203125"/>
+      <_attribute name="L32" value="-161.958206176758"/>
+      <_attribute name="L33" value="-160.758193969727"/>
+      <_attribute name="L34" value="-159.558197021484"/>
+      <_attribute name="L35" value="-158.358200073242"/>
+      <_attribute name="L36" value="-157.158203125"/>
+      <_attribute name="L37" value="-155.958206176758"/>
+      <_attribute name="L38" value="-154.758193969727"/>
+      <_attribute name="L39" value="-153.558197021484"/>
+      <_attribute name="L40" value="-152.358200073242"/>
+      <_attribute name="L41" value="-151.158203125"/>
+      <_attribute name="L42" value="-149.958206176758"/>
+      <_attribute name="L43" value="-148.758193969727"/>
+      <_attribute name="L44" value="-147.558197021484"/>
+      <_attribute name="L45" value="-146.358200073242"/>
+      <_attribute name="L46" value="-145.158203125"/>
+      <_attribute name="L47" value="-143.958206176758"/>
+      <_attribute name="L48" value="-142.758193969727"/>
+      <_attribute name="L49" value="-141.558197021484"/>
+      <_attribute name="L50" value="-140.358200073242"/>
+      <_attribute name="L51" value="-139.158203125"/>
+      <_attribute name="L52" value="-137.958206176758"/>
+      <_attribute name="L53" value="-136.758193969727"/>
+      <_attribute name="L54" value="-135.558197021484"/>
+      <_attribute name="L55" value="-134.358200073242"/>
+      <_attribute name="L56" value="-133.158203125"/>
+      <_attribute name="L57" value="-131.958206176758"/>
+      <_attribute name="L58" value="-130.758193969727"/>
+      <_attribute name="L59" value="-129.558197021484"/>
+      <_attribute name="L60" value="-128.358200073242"/>
+      <_attribute name="L61" value="-127.158203125"/>
+      <_attribute name="L62" value="-125.958198547363"/>
+      <_attribute name="L63" value="-124.758201599121"/>
+      <_attribute name="L64" value="-123.558204650879"/>
+      <_attribute name="L65" value="-122.358200073242"/>
+      <_attribute name="L66" value="-121.158203125"/>
+      <_attribute name="L67" value="-119.958198547363"/>
+      <_attribute name="L68" value="-118.758201599121"/>
+      <_attribute name="L69" value="-117.558204650879"/>
+      <_attribute name="L70" value="-116.358200073242"/>
+      <_attribute name="L71" value="-115.158203125"/>
+      <_attribute name="L72" value="-113.958198547363"/>
+      <_attribute name="L73" value="-112.758201599121"/>
+      <_attribute name="L74" value="-111.558204650879"/>
+      <_attribute name="L75" value="-110.358200073242"/>
+      <_attribute name="L76" value="-109.158203125"/>
+      <_attribute name="L77" value="-107.958198547363"/>
+      <_attribute name="L78" value="-106.758201599121"/>
+      <_attribute name="L79" value="-105.558204650879"/>
+      <_attribute name="L80" value="-104.358200073242"/>
+      <_attribute name="L81" value="-103.158203125"/>
+      <_attribute name="L82" value="-101.958198547363"/>
+      <_attribute name="L83" value="-100.758201599121"/>
+      <_attribute name="L84" value="-99.5582046508789"/>
+      <_attribute name="L85" value="-98.3582000732422"/>
+      <_attribute name="L86" value="-97.158203125"/>
+      <_attribute name="L87" value="-95.9581985473633"/>
+      <_attribute name="L88" value="-94.7582015991211"/>
+      <_attribute name="L89" value="-93.5582046508789"/>
+      <_attribute name="L90" value="-92.3582000732422"/>
+      <_attribute name="L91" value="-91.158203125"/>
+      <_attribute name="L92" value="-89.9581985473633"/>
+      <_attribute name="L93" value="-88.7582015991211"/>
+      <_attribute name="L94" value="-87.5582046508789"/>
+      <_attribute name="L95" value="-86.3582000732422"/>
+      <_attribute name="L96" value="-85.158203125"/>
+      <_attribute name="L97" value="-83.9581985473633"/>
+      <_attribute name="L98" value="-82.7582015991211"/>
+      <_attribute name="L99" value="-81.5582046508789"/>
+      <_attribute name="L100" value="-80.3582000732422"/>
+      <_attribute name="L101" value="-79.158203125"/>
+      <_attribute name="L102" value="-77.9581985473633"/>
+      <_attribute name="L103" value="-76.7582015991211"/>
+      <_attribute name="L104" value="-75.5582046508789"/>
+      <_attribute name="L105" value="-74.3582000732422"/>
+      <_attribute name="L106" value="-73.158203125"/>
+      <_attribute name="L107" value="-71.9581985473633"/>
+      <_attribute name="L108" value="-70.7582015991211"/>
+      <_attribute name="L109" value="-69.5582046508789"/>
+      <_attribute name="L110" value="-68.3582000732422"/>
+      <_attribute name="L111" value="-67.158203125"/>
+      <_attribute name="L112" value="-65.9581985473633"/>
+      <_attribute name="L113" value="-64.7582015991211"/>
+      <_attribute name="L114" value="-63.5582008361816"/>
+      <_attribute name="L115" value="-62.3582000732422"/>
+      <_attribute name="L116" value="-61.1581993103027"/>
+      <_attribute name="L117" value="-59.9582023620605"/>
+      <_attribute name="L118" value="-58.7582015991211"/>
+      <_attribute name="L119" value="-57.5582008361816"/>
+      <_attribute name="L120" value="-56.3582000732422"/>
+      <_attribute name="L121" value="-55.1581993103027"/>
+      <_attribute name="L122" value="-53.9582023620605"/>
+      <_attribute name="L123" value="-52.7582015991211"/>
+      <_attribute name="L124" value="-51.5582008361816"/>
+      <_attribute name="L125" value="-50.3582000732422"/>
+      <_attribute name="L126" value="-49.1581993103027"/>
+      <_attribute name="L127" value="-47.9582023620605"/>
+      <_attribute name="L128" value="-46.7582015991211"/>
+      <_attribute name="L129" value="-45.5582008361816"/>
+      <_attribute name="L130" value="-44.3582000732422"/>
+      <_attribute name="L131" value="-43.1581993103027"/>
+      <_attribute name="L132" value="-41.9582023620605"/>
+      <_attribute name="L133" value="-40.7582015991211"/>
+      <_attribute name="L134" value="-39.5582008361816"/>
+      <_attribute name="L135" value="-38.3582000732422"/>
+      <_attribute name="L136" value="-37.1581993103027"/>
+      <_attribute name="L137" value="-35.9582023620605"/>
+      <_attribute name="L138" value="-34.7582015991211"/>
+      <_attribute name="L139" value="-33.5582008361816"/>
+      <_attribute name="L140" value="-32.3582000732422"/>
+      <_attribute name="L141" value="-31.1582012176514"/>
+      <_attribute name="L142" value="-29.9582004547119"/>
+      <_attribute name="L143" value="-28.7582015991211"/>
+      <_attribute name="L144" value="-27.5582008361816"/>
+      <_attribute name="L145" value="-26.3582000732422"/>
+      <_attribute name="L146" value="-25.1582012176514"/>
+      <_attribute name="L147" value="-23.9582004547119"/>
+      <_attribute name="L148" value="-22.7582015991211"/>
+      <_attribute name="L149" value="-21.5582008361816"/>
+      <_attribute name="L150" value="-20.3582000732422"/>
+      <_attribute name="L151" value="-19.1582012176514"/>
+      <_attribute name="L152" value="-17.9582004547119"/>
+      <_attribute name="L153" value="-16.7582015991211"/>
+      <_attribute name="L154" value="-15.5582008361816"/>
+      <_attribute name="L155" value="-14.3582010269165"/>
+      <_attribute name="L156" value="-13.1582012176514"/>
+      <_attribute name="L157" value="-11.9582014083862"/>
+      <_attribute name="L158" value="-10.7582006454468"/>
+      <_attribute name="L159" value="-9.55820083618164"/>
+      <_attribute name="L160" value="-8.3582010269165"/>
+      <_attribute name="L161" value="-7.15820121765137"/>
+      <_attribute name="L162" value="-5.95820093154907"/>
+      <_attribute name="L163" value="-4.75820112228394"/>
+      <_attribute name="L164" value="-3.55820107460022"/>
+      <_attribute name="L165" value="-2.3582010269165"/>
+      <_attribute name="L166" value="-1.15820097923279"/>
+      <_attribute name="L167" value="0.0417990013957024"/>
+      <_attribute name="L168" value="1.24179899692535"/>
+      <_attribute name="L169" value="2.44179892539978"/>
+      <_attribute name="L170" value="3.6417989730835"/>
+      <_attribute name="L171" value="4.84179878234863"/>
+      <_attribute name="L172" value="6.04179906845093"/>
+      <_attribute name="L173" value="7.24179887771606"/>
+      <_attribute name="L174" value="8.44179916381836"/>
+      <_attribute name="L175" value="9.6417989730835"/>
+      <_attribute name="L176" value="10.8417987823486"/>
+      <_attribute name="L177" value="12.0417985916138"/>
+      <_attribute name="L178" value="13.2417993545532"/>
+      <_attribute name="L179" value="14.4417991638184"/>
+      <_attribute name="L180" value="15.6417989730835"/>
+      <_attribute name="L181" value="16.8417987823486"/>
+      <_attribute name="L182" value="18.0417995452881"/>
+      <_attribute name="L183" value="19.2417984008789"/>
+      <_attribute name="L184" value="20.4417991638184"/>
+      <_attribute name="L185" value="21.6417999267578"/>
+      <_attribute name="L186" value="22.8417987823486"/>
+      <_attribute name="L187" value="24.0417995452881"/>
+      <_attribute name="L188" value="25.2417984008789"/>
+      <_attribute name="L189" value="26.4417991638184"/>
+      <_attribute name="L190" value="27.6417999267578"/>
+      <_attribute name="L191" value="28.8417987823486"/>
+      <_attribute name="L192" value="30.0417995452881"/>
+      <_attribute name="L193" value="31.2417984008789"/>
+      <_attribute name="L194" value="32.4417991638184"/>
+      <_attribute name="L195" value="33.6417999267578"/>
+      <_attribute name="L196" value="34.8418006896973"/>
+      <_attribute name="L197" value="36.0417976379395"/>
+      <_attribute name="L198" value="37.2417984008789"/>
+      <_attribute name="L199" value="38.4417991638184"/>
+      <_attribute name="L200" value="39.6417999267578"/>
+      <_attribute name="L201" value="40.8418006896973"/>
+      <_attribute name="L202" value="42.0417976379395"/>
+      <_attribute name="L203" value="43.2417984008789"/>
+      <_attribute name="L204" value="44.4417991638184"/>
+      <_attribute name="L205" value="45.6417999267578"/>
+      <_attribute name="L206" value="46.8418006896973"/>
+      <_attribute name="L207" value="48.0417976379395"/>
+      <_attribute name="L208" value="49.2417984008789"/>
+      <_attribute name="L209" value="50.4417991638184"/>
+      <_attribute name="L210" value="51.6417999267578"/>
+      <_attribute name="L211" value="52.8418006896973"/>
+      <_attribute name="L212" value="54.0417976379395"/>
+      <_attribute name="L213" value="55.2417984008789"/>
+      <_attribute name="L214" value="56.4417991638184"/>
+      <_attribute name="L215" value="57.6417999267578"/>
+      <_attribute name="L216" value="58.8418006896973"/>
+      <_attribute name="L217" value="60.0417976379395"/>
+      <_attribute name="L218" value="61.2417984008789"/>
+      <_attribute name="L219" value="62.4417991638184"/>
+      <_attribute name="L220" value="63.6417999267578"/>
+      <_attribute name="L221" value="64.841796875"/>
+      <_attribute name="L222" value="66.0418014526367"/>
+      <_attribute name="L223" value="67.2417984008789"/>
+      <_attribute name="L224" value="68.4417953491211"/>
+      <_attribute name="L225" value="69.6417999267578"/>
+      <_attribute name="L226" value="70.841796875"/>
+      <_attribute name="L227" value="72.0418014526367"/>
+      <_attribute name="L228" value="73.2417984008789"/>
+      <_attribute name="L229" value="74.4417953491211"/>
+      <_attribute name="L230" value="75.6417999267578"/>
+      <_attribute name="L231" value="76.841796875"/>
+      <_attribute name="L232" value="78.0418014526367"/>
+      <_attribute name="L233" value="79.2417984008789"/>
+      <_attribute name="L234" value="80.4417953491211"/>
+      <_attribute name="L235" value="81.6417999267578"/>
+      <_attribute name="L236" value="82.841796875"/>
+      <_attribute name="L237" value="84.0418014526367"/>
+      <_attribute name="L238" value="85.2417984008789"/>
+      <_attribute name="L239" value="86.4417953491211"/>
+      <_attribute name="L240" value="87.6417999267578"/>
+      <_attribute name="L241" value="88.841796875"/>
+      <_attribute name="L242" value="90.0418014526367"/>
+      <_attribute name="L243" value="91.2417984008789"/>
+      <_attribute name="L244" value="92.4417953491211"/>
+      <_attribute name="L245" value="93.6417999267578"/>
+      <_attribute name="L246" value="94.841796875"/>
+      <_attribute name="L247" value="96.0418014526367"/>
+      <_attribute name="L248" value="97.2417984008789"/>
+      <_attribute name="L249" value="98.4417953491211"/>
+      <_attribute name="L250" value="99.6417999267578"/>
+      <_attribute name="L251" value="100.841796875"/>
+      <_attribute name="L252" value="102.041801452637"/>
+      <_attribute name="L253" value="103.241798400879"/>
+      <_attribute name="L254" value="104.441795349121"/>
+      <_attribute name="L255" value="105.641799926758"/>
+      <_attribute name="L256" value="106.841796875"/>
+      <_attribute name="L257" value="108.041801452637"/>
+      <_attribute name="L258" value="109.241798400879"/>
+      <_attribute name="L259" value="110.441795349121"/>
+      <_attribute name="L260" value="111.641799926758"/>
+      <_attribute name="L261" value="112.841796875"/>
+      <_attribute name="L262" value="114.041801452637"/>
+      <_attribute name="L263" value="115.241798400879"/>
+      <_attribute name="L264" value="116.441795349121"/>
+      <_attribute name="L265" value="117.641799926758"/>
+      <_attribute name="L266" value="118.841796875"/>
+      <_attribute name="L267" value="120.041801452637"/>
+      <_attribute name="L268" value="121.241798400879"/>
+      <_attribute name="L269" value="122.441795349121"/>
+      <_attribute name="L270" value="123.641799926758"/>
+      <_attribute name="L271" value="124.841796875"/>
+      <_attribute name="L272" value="126.041801452637"/>
+      <_attribute name="L273" value="127.241798400879"/>
+      <_attribute name="L274" value="128.441802978516"/>
+      <_attribute name="L275" value="129.641799926758"/>
+      <_attribute name="L276" value="130.841796875"/>
+      <_attribute name="L277" value="132.041793823242"/>
+      <_attribute name="L278" value="133.241806030273"/>
+      <_attribute name="L279" value="134.441802978516"/>
+      <_attribute name="L280" value="135.641799926758"/>
+      <_attribute name="L281" value="136.841796875"/>
+      <_attribute name="L282" value="138.041793823242"/>
+      <_attribute name="L283" value="139.241806030273"/>
+      <_attribute name="L284" value="140.441802978516"/>
+      <_attribute name="L285" value="141.641799926758"/>
+      <_attribute name="L286" value="142.841796875"/>
+      <_attribute name="L287" value="144.041793823242"/>
+      <_attribute name="L288" value="145.241806030273"/>
+      <_attribute name="L289" value="146.441802978516"/>
+      <_attribute name="L290" value="147.641799926758"/>
+      <_attribute name="L291" value="148.841796875"/>
+      <_attribute name="L292" value="150.041793823242"/>
+      <_attribute name="L293" value="151.241806030273"/>
+      <_attribute name="L294" value="152.441802978516"/>
+      <_attribute name="L295" value="153.641799926758"/>
+      <_attribute name="L296" value="154.841796875"/>
+      <_attribute name="L297" value="156.041793823242"/>
+      <_attribute name="L298" value="157.241806030273"/>
+      <_attribute name="L299" value="158.441802978516"/>
+      <_attribute name="L300" value="159.641799926758"/>
+    </LutMap>
+  </CmpMap>
+</FrameSet>
+
+   </wcs>
+  </ndx>

@@ -142,14 +142,24 @@ public class Delete extends MatchingTask {
         }
     }
 
+    /** Return quiet setting */
+    public boolean isQuiet() {
+        return quiet;
+    }
+
     /**
      * If false, note errors but continue.
      *
      * @param failonerror true or false
      */
-     public void setFailOnError(boolean failonerror) {
-         this.failonerror = failonerror;
-     }
+    public void setFailOnError(boolean failonerror) {
+        this.failonerror = failonerror;
+    }
+
+    /** Return failonerror setting */
+    public boolean isFailOnError() {
+        return failonerror;
+    }
 
 
     /**

@@ -1,0 +1,61 @@
+
+
+body { 
+  margin: 10;
+  line-height: 1.1;
+  background: white;
+  color: #black; 
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, dir, menu, div, 
+dt, dd, address, blockquote, pre, br, hr, form, dl { 
+  display: block }
+
+p { margin-top: 10 }
+
+pre { margin-top: 4; margin-bottom: 4 }
+
+b, strong, i, em, cite, var, tt, code, kbd, samp, 
+img, span { display: inline }
+
+li { display: list-item }
+
+h1, h2, h3 { margin-top: 0; margin-bottom: 0 }
+h4, h5, h6 { margin-top: 10 }
+h1 { text-align: center }
+h1, h2, h4, h6 { font-weight: bold }
+h3, h5 { font-style: italic }
+
+h1 { font-size: xx-large }
+h2 { font-size: x-large }
+h3 { font-size: large }
+
+b, strong { font-weight: bolder } 
+i, cite, em, var, address, blockquote { font-style: italic }
+pre, tt, code, kbd, samp { font-family: monospace }
+
+pre { white-space: pre }
+
+address { margin-left: 30 }
+blockquote { margin-left: 30; margin-right: 30 }
+
+ul, dir { list-style: disc; margin-left: 20; margin-top: 5; margin-bottom: 5 }
+ol { list-style: decimal }
+menu { margin: 0 }
+li { margin-left: 10 }
+
+dt { margin-bottom: 0 }
+dd { margin-top: 0; margin-left: 30 }
+
+hr { border-top: solid }
+
+a { color: blue }
+
+a:link { color: blue } 
+a:visited { color: red }
+a:active { color: lime }
+
+
+a:link IMG { border: 2px solid blue }
+a:visited IMG { border: 2px solid red }
+a:active IMG { border: 2px solid lime }

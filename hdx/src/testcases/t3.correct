@@ -1,0 +1,15 @@
+===
+File t3-test1.xml (URL file:t3-test1.xml)
+  Data [file:test1.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>
+===
+File t3-test2.xml (URL file:t3-test2.xml)
+  Data [file:test1.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>
+===
+File t3-test3.xml (URL file:t3-test3.xml)
+  Data [file:test2.fits]: NDArray r byte(1+1,1+1)
+  Variance [file:test3.fits]: NDArray r byte(1+1,1+1)
+  Quality: <null>

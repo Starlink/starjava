@@ -1,0 +1,682 @@
+<?xml version="1.0"?>
+
+<DataDictionary archive="IRSA" dd="pt_src_cat_dd">
+
+   <column index="0">
+      <cntr>2</cntr>
+      <colname>ra</colname>
+      <desc>right ascension (J2000 decimal deg)</desc>
+      <units>deg</units>
+      <dbtype>decimal(9,6)</dbtype>
+      <format>10.6f</format>
+      <nulls>n</nulls>
+      <indx>1</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="1">
+      <cntr>3</cntr>
+      <colname>dec</colname>
+      <desc>declination (J2000 decimal deg)</desc>
+      <units>deg</units>
+      <dbtype>decimal(8,6)</dbtype>
+      <format>10.6f</format>
+      <nulls>n</nulls>
+      <indx>1</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="2">
+      <cntr>4</cntr>
+      <colname>err_maj</colname>
+      <desc>major axis of position error ellipse</desc>
+      <units>arcsec</units>
+      <dbtype>decimal(3,2)</dbtype>
+      <format>4.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="3">
+      <cntr>5</cntr>
+      <colname>err_min</colname>
+      <desc>minor axis of position error ellipse</desc>
+      <units>arcsec</units>
+      <dbtype>decimal(3,2)</dbtype>
+      <format>4.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="4">
+      <cntr>6</cntr>
+      <colname>err_ang</colname>
+      <desc>position angle of error ellipse major axis (E of N)</desc>
+      <units>deg</units>
+      <dbtype>smallint</dbtype>
+      <format>3hd</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="5">
+      <cntr>7</cntr>
+      <colname>designation</colname>
+      <desc>source designation formed from sexigesimal coordinates</desc>
+      <units></units>
+      <dbtype>char(14)</dbtype>
+      <format>15s</format>
+      <nulls>n</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="6">
+      <cntr>8</cntr>
+      <colname>j_m</colname>
+      <desc>J selected &quot;default&quot; magnitude or 95% confidence upper limit</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="7">
+      <cntr>9</cntr>
+      <colname>j_msig</colname>
+      <desc>J &quot;default&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="8">
+      <cntr>10</cntr>
+      <colname>j_msigcom</colname>
+      <desc>J &quot;total&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="9">
+      <cntr>12</cntr>
+      <colname>h_m</colname>
+      <desc>H selected &quot;default&quot; magnitude or 95% confidence upper limit</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="10">
+      <cntr>13</cntr>
+      <colname>h_msig</colname>
+      <desc>H &quot;default&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="11">
+      <cntr>14</cntr>
+      <colname>h_msigcom</colname>
+      <desc>H &quot;total&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="12">
+      <cntr>16</cntr>
+      <colname>k_m</colname>
+      <desc>K selected &quot;default&quot; magnitude or 95% confidence upper limit</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="13">
+      <cntr>17</cntr>
+      <colname>k_msig</colname>
+      <desc>K &quot;default&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="14">
+      <cntr>18</cntr>
+      <colname>k_msigcom</colname>
+      <desc>K &quot;total&quot; mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="15">
+      <cntr>20</cntr>
+      <colname>rd_flg</colname>
+      <desc>source of JHK &quot;default&quot; mags (AKA &quot;read flag&quot;)</desc>
+      <units></units>
+      <dbtype>char(3)</dbtype>
+      <format>3s</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="16">
+      <cntr>21</cntr>
+      <colname>bl_flg</colname>
+      <desc>indicates # JHK components fit to source (each digit=0|1|2)</desc>
+      <units></units>
+      <dbtype>char(3)</dbtype>
+      <format>3s</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="17">
+      <cntr>22</cntr>
+      <colname>cc_flg</colname>
+      <desc>indicates artifact contamination and/or confusion</desc>
+      <units></units>
+      <dbtype>char(3)</dbtype>
+      <format>3s</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="18">
+      <cntr>23</cntr>
+      <colname>extd_flg</colname>
+      <desc>indicates src associated with or contaminated by an ext. src</desc>
+      <units></units>
+      <dbtype>smallint</dbtype>
+      <format>1hd</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="19">
+      <cntr>24</cntr>
+      <colname>mp_flg</colname>
+      <desc>src is positionally associated with an asteroid, comet, etc</desc>
+      <units></units>
+      <dbtype>smallint</dbtype>
+      <format>1hd</format>
+      <nulls>n</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="20">
+      <cntr>25</cntr>
+      <colname>id_opt</colname>
+      <desc>associated optical source catalog ID (closest match)</desc>
+      <units></units>
+      <dbtype>char(1)</dbtype>
+      <format>1s</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="21">
+      <cntr>26</cntr>
+      <colname>b_m_opt</colname>
+      <desc>catalog blue mag of associated optical source</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,2)</dbtype>
+      <format>5.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="22">
+      <cntr>27</cntr>
+      <colname>r_m_opt</colname>
+      <desc>catalog red mag of associated optical source</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,2)</dbtype>
+      <format>5.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>y</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="23">
+      <cntr>28</cntr>
+      <colname>dist_opt</colname>
+      <desc>distance in arcsec relative to associated optical source</desc>
+      <units>arcsec</units>
+      <dbtype>decimal(4,2)</dbtype>
+      <format>5.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="24">
+      <cntr>29</cntr>
+      <colname>phi_opt</colname>
+      <desc>position angle relative to optical source (E of N)</desc>
+      <units>deg</units>
+      <dbtype>smallint</dbtype>
+      <format>3hd</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="25">
+      <cntr>30</cntr>
+      <colname>nopt_mchs</colname>
+      <desc>number of optical sources within 5 arcsec of 2MASS src</desc>
+      <units></units>
+      <dbtype>smallint</dbtype>
+      <format>2hd</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>y</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="26">
+      <cntr>31</cntr>
+      <colname>date</colname>
+      <desc>observation date</desc>
+      <units></units>
+      <dbtype>date</dbtype>
+      <format>yymmdd</format>
+      <nulls>y</nulls>
+      <indx>121</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="27">
+      <cntr>32</cntr>
+      <colname>hemis</colname>
+      <desc>hemisphere (N/S) of observation</desc>
+      <units></units>
+      <dbtype>char(1)</dbtype>
+      <format>1s</format>
+      <nulls>y</nulls>
+      <indx>23</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>n</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="28">
+      <cntr>33</cntr>
+      <colname>scan</colname>
+      <desc>scan number (unique within date)</desc>
+      <units></units>
+      <dbtype>smallint</dbtype>
+      <format>3hd</format>
+      <nulls>y</nulls>
+      <indx>22</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>n</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="29">
+      <cntr>34</cntr>
+      <colname>id</colname>
+      <desc>source ID number (unique within scan)</desc>
+      <units></units>
+      <dbtype>integer</dbtype>
+      <format>6d</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>n</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="30">
+      <cntr>35</cntr>
+      <colname>glon</colname>
+      <desc>galactic longitude (decimal deg)</desc>
+      <units>deg</units>
+      <dbtype>decimal(9,6)</dbtype>
+      <format>10.6f</format>
+      <nulls>n</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="31">
+      <cntr>36</cntr>
+      <colname>glat</colname>
+      <desc>galactic latitude (decimal deg)</desc>
+      <units>deg</units>
+      <dbtype>decimal(9,6)</dbtype>
+      <format>10.6f</format>
+      <nulls>n</nulls>
+      <indx>1</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="32">
+      <cntr>37</cntr>
+      <colname>j_psfchi</colname>
+      <desc>J band reduced chi-squared value of fit</desc>
+      <units></units>
+      <dbtype>decimal(5,2)</dbtype>
+      <format>6.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="33">
+      <cntr>38</cntr>
+      <colname>h_psfchi</colname>
+      <desc>H band reduced chi-squared value of fit</desc>
+      <units></units>
+      <dbtype>decimal(5,2)</dbtype>
+      <format>6.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="34">
+      <cntr>39</cntr>
+      <colname>k_psfchi</colname>
+      <desc>K band reduced chi-squared value of fit</desc>
+      <units></units>
+      <dbtype>decimal(5,2)</dbtype>
+      <format>6.2f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="35">
+      <cntr>40</cntr>
+      <colname>j_m_stdap</colname>
+      <desc>J standard aperture magnitude or BF aperture-photometry mag</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="36">
+      <cntr>41</cntr>
+      <colname>j_msig_stdap</colname>
+      <desc>J standard ap. mag/BF ap.-photometry mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="37">
+      <cntr>42</cntr>
+      <colname>h_m_stdap</colname>
+      <desc>H standard aperture magnitude or BF aperture-photometry mag</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="38">
+      <cntr>43</cntr>
+      <colname>h_msig_stdap</colname>
+      <desc>H standard ap. mag/BF ap.-photometry mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="39">
+      <cntr>44</cntr>
+      <colname>k_m_stdap</colname>
+      <desc>K standard aperture magnitude or BF aperture-photometry mag</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>6.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="40">
+      <cntr>45</cntr>
+      <colname>k_msig_stdap</colname>
+      <desc>K standard ap. mag/BF ap.-photometry mag uncertainty</desc>
+      <units>mag</units>
+      <dbtype>decimal(4,3)</dbtype>
+      <format>5.3f</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="41">
+      <cntr>46</cntr>
+      <colname>ndet_flg</colname>
+      <desc>number of &gt;3-sig. ap. mag measurements, # possible (jjhhkk)</desc>
+      <units></units>
+      <dbtype>char(6)</dbtype>
+      <format>6s</format>
+      <nulls>y</nulls>
+      <indx>0</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="42">
+      <cntr>47</cntr>
+      <colname>j_h</colname>
+      <desc>default J-H mag color</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>7.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="43">
+      <cntr>48</cntr>
+      <colname>h_k</colname>
+      <desc>default H-K mag color</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>7.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <column index="44">
+      <cntr>49</cntr>
+      <colname>j_k</colname>
+      <desc>default J-K mag color</desc>
+      <units>mag</units>
+      <dbtype>decimal(5,3)</dbtype>
+      <format>7.3f</format>
+      <nulls>y</nulls>
+      <indx>1</indx>
+      <mini>n</mini>
+      <short>n</short>
+      <std>y</std>
+      <nnulls>0</nnulls>
+   </column>
+
+   <count>45</count>
+
+</DataDictionary>

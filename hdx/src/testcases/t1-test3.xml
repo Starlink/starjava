@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!-- testing:constantly redefining namespaces -->
+
+<rubbish>
+  <ns1:ndx xmlns:ns1='http://www.starlink.ac.uk/HDX'>
+    <ns2:data xmlns:ns2='http://www.starlink.ac.uk/HDX'>
+      file:test2.fits
+    </ns2:data>
+    <ns3:variance
+      ns3:uri='file:test3.fits'
+      xmlns:ns3='http://www.starlink.ac.uk/HDX' />
+  </ns1:ndx>
+
+  <something>
+    <stuff
+      ns4:name='ndx'
+      xmlns:ns4='http://www.starlink.ac.uk/HDX'>
+      <cheesy
+	ns5:name='data'
+	ns5:uri='file:test5.fits'
+	xmlns:ns5='http://www.starlink.ac.uk/HDX'>
+	chewing-gum
+      </cheesy>
+      <wotsit xmlns:ns6='http://www.starlink.ac.uk/HDX'>
+	<thingy ns6:name='variance'>
+	  file:test6.fits
+	</thingy>
+      </wotsit>
+    </stuff>
+  </something>
+</rubbish>

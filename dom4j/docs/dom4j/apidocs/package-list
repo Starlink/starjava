@@ -1,0 +1,6 @@
+org.dom4j
+org.dom4j.datatype
+org.dom4j.dtd
+org.dom4j.io
+org.dom4j.rule
+org.dom4j.util

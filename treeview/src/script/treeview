@@ -1,0 +1,85 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     treeview
+
+#  Purpose:
+#     Invokes the Treeview application on Unix
+
+#  Description:
+#     This shell script invokes the Treeview application.
+#     It locates a JVM and invokes 'java -jar' on the treeview.jar jar file,
+#     also setting some properties which Treeview uses to work out the
+#     positions of auxiliary files and so on.
+#
+#     However, the Treeview application itself will do its best to guess
+#     values for these properties if they have not been defined when it 
+#     wakes up.  Therefore it is usually possible to bypass this script
+#     if desired (for instance on non-Unix operating systems) by 
+#     simply invoking 'java -jar treeview.jar'.
+#
+#     The script normally finds various components relative to where it 
+#     is located itself on the assumption that the starlink java 
+#     installation is set up in a standard way.  If it has been invoked
+#     from somewhere unusual (for instance because it of filesystem
+#     links) the TREEVIEW_DIR directory should be set to the actual
+#     location of this script, but TREEVIEW_DIR is not necessary for
+#     normal operation.
+
+#  Authors:
+#     MBT: Mark Taylor (Starlink)
+#-
+
+#  Find where this script is located.  We normally find this out by 
+#  looking at where we were invoked from, but this can be overridden
+#  by setting TREEVIEW_DIR (necessary if invocation is from another
+#  directory because of filesystem links).
+if test -z "$TREEVIEW_DIR"
+then
+    bindir="`dirname $0`"
+else
+    bindir="$TREEVIEW_DIR"
+fi
+
+#  Locate referenced server dirs.
+
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR="$bindir/splat"
+   export SPLAT_DIR
+fi
+if test -z "$SOG_DIR"; then
+   SOG_DIR="$bindir/sog"
+   export SOG_DIR
+fi
+
+#  Locate the application jar file.  This is relative to this script.
+
+appjar="$bindir/../lib/treeview/treeview.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate $appjar."
+   exit 1
+fi
+
+#  Locate the java startup script.
+
+starjava="$bindir/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate '$bindir/starjava'."
+   exit 1
+fi
+
+#  Locate demo data.
+
+demodir="$bindir/../etc/treeview/demo"
+
+#  Run Treeview.
+
+$starjava \
+   -Duk.ac.starlink.treeview.cmdname="treeview" \
+   -Duk.ac.starlink.treeview.demodir="$demodir" \
+   -Duk.ac.starlink.treeview.sogdir="$SOG_DIR" \
+   -Duk.ac.starlink.treeview.splatdir="$SPLAT_DIR" \
+   -enableassertions \
+   -jar $appjar $*
+  

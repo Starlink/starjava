@@ -1,0 +1,46 @@
+--- t2-test1.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hdx>
+
+</hdx>
+--- t2-test2.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hdx>
+  
+  
+
+  <ndx>
+    <data>
+      file:test1.fits
+    </data>
+    <variance>file:test2.fits</variance>
+  </ndx>
+
+  <ndx>
+    
+  </ndx>
+
+  <ndx>
+      <data>file:test3.fits</data>
+      <quality>
+	file:test5.fits
+      </quality>
+    </ndx>
+</hdx>
+--- t2-test3.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hdx>
+  <ndx>
+    <data>
+      file:test2.fits
+    </data>
+    <variance>file:test3.fits</variance>
+  </ndx>
+
+  <ndx>
+      <data>file:test5.fits</data>
+      <variance>
+	  file:test6.fits
+	</variance>
+    </ndx>
+</hdx>

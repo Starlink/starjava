@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>UI Components for AST</title>
+</head>
+
+<!-- Javadoc only copies body contents -->
+<body>
+    This package is intended as a repository for components that are
+    useful when developing UIs that control the {@link uk.ac.starlink.ast} 
+    class library. 
+    <p>
+    The main contents are currently a generic interface for
+    configuring AST Plots {@link PlotConfigurator} and a number of
+    models of the contents of various related plot options. These
+    are unified by the {@link PlotConfiguration} class. Together with
+    the {@link StoreConfigurator} and {@link ConfigurationStore}
+    configurations can be applied to Plots and stored/restored from
+    XML (see {@link XMLEncodeAndDecode}).
+    <p>
+    In addition to the standard Plot configuration options, extra
+    pages of controls can be added to the {@link PlotConfigurator}, 
+    these can then be used to configure related features. The classes 
+    {@link GraphicsHints}, {@link GraphicsEdges} and {@link ColourStore}, 
+    together with their related controls exemplify this (also see the 
+    TestPlotConfigFrame.java example file in the source release).
+    <p>
+    The presentation of AST axis related values can be made to work in
+    a native fashion using the {@link AstDouble} class, and the
+    various components that make use of it: 
+    {@link AstDoubleField}, {@link AstCellEditor} and 
+    {@link AstDoubleDocument}. For completeness there's also a similar
+    {@link DecimalField} for simple numbers.
+    <p>
+    Finally a set of classes for displaying all the fonts in a Font
+    and choosing any characters for export are available (see 
+    {@link SelectCharacters} and supporting classes).
+
+<h2><a name="related">Related documentation</a></h2>
+      <ul>
+        <li>{@link uk.ac.starlink.ast}</li>
+        <li>{@link uk.ac.starlink.ast.Plot}</li>
+        <li><a href='http://www.starlink.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_'>Starlink User Note 211</a>
+      </ul>
+  </body>
+</html>
