@@ -3,6 +3,7 @@ package uk.ac.starlink.treeview;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
@@ -23,6 +24,10 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 
+/**
+ * Displays a graph plot of a one-dimensional data set.
+ * This uses classes from SPLAT.
+ */
 public class GraphViewer extends DivaPlot {
 
     public GraphViewer( Ndx ndx ) throws SplatException, IOException {
@@ -32,23 +37,26 @@ public class GraphViewer extends DivaPlot {
         if ( ndx.hasVariance() ) {
             sd.setDrawErrorBars( true );
         }
-        fitToWidth();
-        fitToHeight();
-        addAncestorListener( new AncestorListener() {
-            public void ancestorAdded( AncestorEvent evt ) { configure(); }
-            public void ancestorMoved( AncestorEvent evt ) { configure(); }
-            public void ancestorRemoved( AncestorEvent evt ) {}
-        } );
     }
 
-    private void configure() {
+    public void paintComponent( Graphics g ) {
         Component parent = getParent();
-        int width = parent.getWidth();
-        int height = parent.getHeight();
-        fitToWidth();
+        if ( parent != null ) {
+            Dimension size = parent.getSize();
+            if ( size.width < 250 ) {
+                size.width = 250;
+            }
+            if ( size.height < 150 ) {
+                size.height = 250;
+            }
+            setPreferredSize( size );
+        }
         fitToHeight();
-        setScale( 1, 1 );
-        setPreferredSize( parent.getSize() );
+        fitToWidth();
+        xScale = 1.0F;
+        yScale = 1.0F;
+        xyScaled = true;
+        super.paintComponent( g );
     }
 
 
@@ -76,7 +84,6 @@ public class GraphViewer extends DivaPlot {
     //  }
 
     
-
     private static class NdxSpecDataImpl extends SpecDataImpl {
 
         private Ndx ndx;
@@ -139,7 +146,6 @@ public class GraphViewer extends DivaPlot {
             throw new SplatException( "Not built to save" );
         }
     }
-
 
 
 }

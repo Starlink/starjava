@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ComponentAdapter;
@@ -12,6 +13,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
@@ -80,6 +82,10 @@ public class DetailViewer {
         tabbed.addTab( title, comp );
     }
 
+    /**
+     * Add a new pane which will draw itself at a fixed size and should
+     * be contained within scrollbars if necessary.
+     */
     public void addPane( String title, final ComponentMaker maker ) {
         final Container box = new Box( BoxLayout.X_AXIS );
         addPane( title, box );
@@ -104,6 +110,41 @@ public class DetailViewer {
                         PrintWriter pw = new PrintWriter( sta.lineAppender() );
                         e.printStackTrace( pw );
                         comp = sta;
+                    }
+                    box.add( comp );
+                }
+            }
+        } );
+    }
+
+    /**
+     * Add a new pane which will draw itself at a size appropriate to the
+     * size of its container.
+     */
+    public void addScalingPane( String title, final ComponentMaker maker ) {
+        final Container box = new Box( BoxLayout.X_AXIS );
+        addPane( title, box );
+        tabbed.addChangeListener( new ChangeListener() {
+            private boolean done = false;
+            synchronized public void stateChanged( ChangeEvent evt ) {
+                if ( tabbed.getSelectedComponent() == box && ! done ) {
+                    done = true;
+                    tabbed.removeChangeListener( this );
+                    JComponent comp;
+                    try {
+                        comp = maker.getComponent();
+                    }
+                    catch ( Exception e ) {
+                        StyledTextArea sta = new StyledTextArea();
+                        sta.addTitle( "Error" );
+                        sta.setWrap( false );
+                        sta.addKeyedItem( "Exception class",
+                                          e.getClass().getName() );
+                        sta.addKeyedItem( "Message", e.getMessage() );
+                        sta.addSubHead( "Stack trace" );
+                        PrintWriter pw = new PrintWriter( sta.lineAppender() );
+                        e.printStackTrace( pw );
+                        comp = new JScrollPane( sta );
                     }
                     box.add( comp );
                 }

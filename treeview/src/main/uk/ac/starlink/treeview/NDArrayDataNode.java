@@ -161,7 +161,7 @@ public class NDArrayDataNode extends DefaultDataNode {
             }
         } );
         if ( endim == 1 && Driver.hasAST ) {
-            dv.addPane( "Graph view", new ComponentMaker() {
+            dv.addScalingPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent() 
                         throws IOException, SplatException {
                     Ndx ndx;
