@@ -169,19 +169,23 @@ public class TopcatModel {
         /* If there are any activation strings stored in the table, 
          * pull them out and store them. */
         activators = new OptionsListModel();
-        DescribedValue actVal = 
-            startab.getParameterByName( TopcatUtils.ACTIVATORS_INFO.getName() );
-        if ( actVal != null ) {
-            Object av = actVal.getValue();
-            if ( av instanceof String ) {
-                activators.add( av );
-            }
-            else if ( av instanceof String[] ) {
-                for ( int i = 0; i < ((String[]) av).length; i++ ) {
-                    activators.add( ((String[]) av)[ i ] );
-                }
-            }
-        }
+
+        // Don't do this for now - the string version doesn't isn't always 
+        // in a suitable format.
+        // DescribedValue actVal = 
+        //     startab.getParameterByName( TopcatUtils.ACTIVATORS_INFO
+        //                                            .getName() );
+        // if ( actVal != null ) {
+        //     Object av = actVal.getValue();
+        //     if ( av instanceof String ) {
+        //         activators.add( av );
+        //     }
+        //     else if ( av instanceof String[] ) {
+        //         for ( int i = 0; i < ((String[]) av).length; i++ ) {
+        //             activators.add( ((String[]) av)[ i ] );
+        //         }
+        //     }
+        // }
 
         /* Create and configure window actions. */
         viewerAct = new TopcatWindowAction( 
