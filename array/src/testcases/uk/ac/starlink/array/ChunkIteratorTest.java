@@ -1,5 +1,7 @@
 package uk.ac.starlink.array;
 
+import java.lang.reflect.Array;
+import java.util.Iterator;
 import junit.framework.TestCase;
 
 public class ChunkIteratorTest extends TestCase {
@@ -51,6 +53,29 @@ public class ChunkIteratorTest extends TestCase {
         assertTrue( ! cIt.hasNext() );
         assertEquals( nChunks, i );
         assertEquals( length, nel );
-    }
 
+        /* Test BufferIterator too. */
+        for ( Iterator tit = Type.allTypes().iterator(); tit.hasNext(); ) {
+            Type type = (Type) tit.next();
+            BufferIterator bIt = new BufferIterator( length, type, chunkSize );
+            try {
+                bIt.getBase();
+                fail();
+            }
+            catch ( IllegalStateException e ) {
+                // good
+            }
+
+            long jnel = 0L;
+            while ( bIt.hasNext() ) {
+                Object buf = bIt.next();
+                assertEquals( buf.getClass().getComponentType(), 
+                              type.javaClass() );
+                assertEquals( bIt.getBase(), jnel );
+                jnel += Array.getLength( buf );
+            }
+            assertTrue( ! bIt.hasNext() );
+            assertEquals( jnel, length );
+        }
+    }
 }

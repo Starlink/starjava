@@ -1,6 +1,5 @@
 package uk.ac.starlink.array;
 
-import java.io.IOException;
 import java.util.NoSuchElementException;
 
 /**
@@ -41,8 +40,11 @@ import java.util.NoSuchElementException;
  *         doStuff( buffer );
  *     }
  * </pre>
+ * The {@link BufferIterator} class provides very similar functionality
+ * in a way which may be slightly more convenient to use.
  * 
  * @author   Mark Taylor
+ * @see      BufferIterator
  * @version  $Id$
  */
 public class ChunkIterator {
@@ -88,7 +90,7 @@ public class ChunkIterator {
     /**
      * See if iteration has finished.
      *
-     * @return   true if there are no more chunks
+     * @return   true iff there are more chunks
      */
     public boolean hasNext() {
         return chunkBase < length;

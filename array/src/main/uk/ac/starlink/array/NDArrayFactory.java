@@ -21,6 +21,15 @@ import java.util.logging.Logger;
  * ArrayBuilder objects; the URL is passed to each one in turn 
  * until one can make an NDArray object from it, which object 
  * is returned to the caller.
+ * <p>
+ * By default, if the corresponding classes are present, the following
+ * ArrayBuilders are installed:
+ * <ul>
+ * <li> {@link uk.ac.starlink.hds.HDSArrayBuilder}
+ * <li> {@link uk.ac.starlink.fits.FitsArrayBuilder}
+ * </ul>
+ * Consult the documentation of these classes to find out about the format
+ * of URLs understood by each.
  *
  * @author   Mark Taylor (Starlink)
  */
