@@ -295,6 +295,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         if ( activeCounter != null ) {
             activeCounter.interrupt();
             activeCounter = null;
+            setBusy( false );
             progBar.setValue( 0 );
         }
     }
@@ -326,7 +327,22 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         }
 
         public void run() {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( activeCounter == SubsetCounter.this ) {
+                        setBusy( true );
+                    }
+                }
+            } );
             count();
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    if ( activeCounter == SubsetCounter.this ) {
+                        activeCounter = null;
+                        setBusy( false );
+                    }
+                }
+            } );
         }
    
         /**
@@ -385,7 +401,6 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
                         /* Deactivate the progress bar. */
                         if ( activeCounter == SubsetCounter.this ) {
-                            activeCounter = null;
                             progBar.setValue( 0 );
                         }
                     }

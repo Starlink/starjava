@@ -244,6 +244,7 @@ public class StatsWindow extends AuxWindow {
         if ( activeCalculator != null ) {
             activeCalculator.interrupt();
             activeCalculator = null;
+            setBusy( false );
         }
     }
 
