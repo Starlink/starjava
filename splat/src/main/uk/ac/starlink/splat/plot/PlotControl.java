@@ -73,6 +73,7 @@ import uk.ac.starlink.splat.iface.SpecListener;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.iface.SpecTransferHandler;
 
 /**
  * A PlotControl object consists of a Plot inside a scrolled pane and various
@@ -124,7 +125,7 @@ public class PlotControl
     /**
      * SpecDataComp object for retaining all spectra references.
      */
-    protected SpecDataComp spectra = new SpecDataComp();
+    protected SpecDataComp spectra = null;
 
     /**
      * The global list of spectra and plots.
@@ -217,6 +218,7 @@ public class PlotControl
     public PlotControl()
     {
         try {
+            spectra = new SpecDataComp();            
             initUI();
         }
         catch ( Exception e ) {
@@ -266,10 +268,27 @@ public class PlotControl
     public void finalize()
         throws Throwable
     {
-        GlobalSpecPlotList.getReference().removeSpecListener( this );
+        release();
         super.finalize();
     }
 
+    /**
+     * Called when this widget is no longer required. Releases any
+     * local resources and re-registers from global lists.
+     */
+    public void release()
+    {
+        try {
+            globalList.removeSpecListener( this );
+            nameList.removeActionListener( this );
+            plot.getGraphicsPane().removeZoomDraggerListener( this );
+            plot.removePlotScaledListener( this );
+        }
+        catch (Exception e) {
+            // Ignored, not essential.
+        }
+        
+    }
 
     /**
      * Get the PlotConfiguration being used by the DivaPlot.
@@ -290,6 +309,9 @@ public class PlotControl
         //  Initialisations.
         setLayout( new BorderLayout() );
         setDoubleBuffered( true );
+
+        //  Target for SpecData drops.
+        setTransferHandler( new SpecTransferHandler() );
 
         //  Generate our name.
         name = "<plot" + plotCounter + ">";
@@ -430,7 +452,7 @@ public class PlotControl
         //  Register ourselves with the global list of plots and
         //  spectra so we can see if any of our displayed spectra are
         //  changed (or removed).
-        GlobalSpecPlotList.getReference().addSpecListener( this );
+        globalList.addSpecListener( this );
 
         //  A region dragged out with mouse button 2 should zoom to
         //  that region. Need to listen for events that trigger this.
@@ -643,7 +665,7 @@ public class PlotControl
             return;
         }
         double[] currentGraphics = getCentre();
-        graphics[0][1] = currentGraphics[1];
+        graphics[1][0] = currentGraphics[1];
         zoomAbout( 0, 0, graphics[0][0], graphics[1][0] );
         try {
             plot.update();
@@ -1421,11 +1443,8 @@ public class PlotControl
     
     public Frame getPlotCurrentFrame()
     {
-        // Use the FrameSet of the current spectrum.
+        // Return current Frame of the graphics FrameSet.
         return (Frame) plot.getSpecDataComp().getAst().getRef();
     }
     
 }
-
-
-

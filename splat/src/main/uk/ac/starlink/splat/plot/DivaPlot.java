@@ -771,9 +771,9 @@ public class DivaPlot
                 //  physical is linear). We also add any AST plotting
                 //  configuration options. TODO: stop using ASTJ class.
                 FrameSet astref = astJ.getRef();
-                String current = astref.getC( "Current" );
-                String base = astref.getC( "Base" );
-                astref.set( "Base=" + current );
+                int current = astref.getCurrent();
+                int base = astref.getBase();
+                astref.setBase( current );
                 
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
@@ -795,7 +795,7 @@ public class DivaPlot
                 astJ.getPlot().setGrf( javaGrf );
 
                 //  Restore the base plot as promised.
-                astref.set( "Base=" + base );
+                astref.setBase( base );
 
                 //  If requested (i.e. the default gap is chosen) then
                 //  decrease the gap between X major ticks so we see more
@@ -824,7 +824,6 @@ public class DivaPlot
                 //  Resize overlay graphics.
                 if ( oldAstPlot != null ) {
                     redrawOverlay( oldAstPlot );
-                    oldAstPlot.annul();
                 }
 
                 //  Inform any listeners that the Plot has been scaled.
