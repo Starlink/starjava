@@ -15,8 +15,8 @@ public interface TableBuilder {
     /**
      * Constructs a {@link StarTable} based on a given <tt>DataSource</tt>.
      * If the source is not recognised or this builder does not know
-     * how to construct a table from it, then <tt>null</tt> should be
-     * returned.
+     * how to construct a table from it, then a 
+     * {@link TableFormatException} should be thrown.
      * If this builder thinks it should be able to handle the source
      * but an error occurs during processing, an <tt>IOException</tt>
      * can be thrown.
@@ -32,8 +32,10 @@ public interface TableBuilder {
      *         should be returned
      * @param  storagePolicy  a StoragePolicy object which may be used to
      *         supply scratch storage if the builder needs it
-     * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
-     *          if this handler can't handle it
+     * @return  a StarTable made out of <tt>datsrc</tt>
+     * @throws TableFormatException  if the table is not of a kind that
+     *         can be handled by this handler
+     * @throws IOException  if an unexpected I/O error occurs during processing
      */
     StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                              StoragePolicy storagePolicy ) 
@@ -67,4 +69,13 @@ public interface TableBuilder {
      *         <tt>StarTable</tt>
      */
     boolean canImport( DataFlavor flavor );
+
+    /**
+     * Returns the name of the format which can be read by this handler.
+     * Matching against this string may be used by callers to identify
+     * or select this handler from a list.
+     *
+     * @return  one-word description of this handler's format
+     */
+    String getFormatName();
 }

@@ -17,13 +17,17 @@ import uk.ac.starlink.util.DataSource;
  */
 public class TextTableBuilder implements TableBuilder {
 
+    public String getFormatName() {
+        return "text";
+    }
+
     public boolean canImport( DataFlavor flavor ) {
         return false;
     }
 
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
-            throws IOException {
+            throws TableFormatException, IOException {
         return new TextStarTable( datsrc );
     }
 }

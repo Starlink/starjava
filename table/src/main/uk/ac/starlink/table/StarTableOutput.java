@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.formats.AsciiTableWriter;
+import uk.ac.starlink.table.formats.CsvTableWriter;
 import uk.ac.starlink.table.formats.HTMLTableWriter;
 import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.formats.TextTableWriter;
@@ -32,6 +33,7 @@ import uk.ac.starlink.table.formats.TextTableWriter;
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
+ * <li> {@link uk.ac.starlink.table.formats.CsvTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.HTMLTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
@@ -50,6 +52,7 @@ public class StarTableOutput {
         "uk.ac.starlink.votable.VOTableWriter",
         TextTableWriter.class.getName(),
         AsciiTableWriter.class.getName(),
+        CsvTableWriter.class.getName(),
         HTMLTableWriter.class.getName(),
         LatexTableWriter.class.getName(),
         "uk.ac.starlink.mirage.MirageTableWriter",
@@ -166,11 +169,11 @@ public class StarTableOutput {
      *         or <tt>null</tt> to indicate that a handler should be 
      *         selected based on the value of <tt>location</tt>.
      *         Ignored for <tt>jdbc:</tt>-protocol locations
-     * @throws UnknownTableFormatException  if no suitable handler is known
+     * @throws TableFormatException  if no suitable handler is known
      */
     public void writeStarTable( StarTable startab, String location,
                                 String format )
-            throws UnknownTableFormatException, IOException {
+            throws TableFormatException, IOException {
 
         /* Handle the JDBC case. */
         if ( location.startsWith( "jdbc:" ) ) {
@@ -192,10 +195,10 @@ public class StarTableOutput {
                 handler.writeStarTable( startab, location );
             }
 
-            /* If not, throw an UnknownTableFormatException. */
+            /* If not, throw an TableFormatException. */
             else {
                 if ( format != null ) {
-                    throw new UnknownTableFormatException(
+                    throw new TableFormatException(
                         "No handler for table format " + format );
                 }
                 else {
@@ -209,7 +212,7 @@ public class StarTableOutput {
                             msg.append( ", " );
                         }
                     }
-                    throw new UnknownTableFormatException( msg.toString() );
+                    throw new TableFormatException( msg.toString() );
                 }
             }
         }

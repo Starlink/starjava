@@ -7,6 +7,7 @@ import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -20,6 +21,10 @@ import uk.ac.starlink.util.DataSource;
  */
 public class WDCTableBuilder implements TableBuilder {
 
+    public String getFormatName() {
+        return "WDC";
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
@@ -28,7 +33,8 @@ public class WDCTableBuilder implements TableBuilder {
          * out straight away. */
         String start = new String( datsrc.getIntro() );
         if ( ! start.startsWith( "Column formats and units" ) ) {
-            return null;
+            throw new TableFormatException( "Doesn't start \"" +
+                                            "Column formats and units\"" );
         }
 
         /* Looks OK, make a serious attempt to read it. */

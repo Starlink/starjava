@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.TableFormatException;
 
 /**
  * Class which reads the header of a WDC text file and is then capable
@@ -32,11 +33,13 @@ class WDCReader {
         /* Bail out if the static parts of the header look unfamiliar. */
         String l1 = WDCTableBuilder.readLine( strm );
         if ( l1 == null && ! l1.startsWith( "Column formats and units" ) ) {
-            throw new IOException( "Doesn't look quite like a WDC file" );
+            throw new TableFormatException( "Doesn't look quite " +
+                                            "like a WDC file" );
         }
         String l2 = WDCTableBuilder.readLine( strm );
         if ( l2 == null && ! l2.startsWith( "---" ) ) {
-            throw new IOException( "Doesn't look quite like a WDC file" );
+            throw new TableFormatException( "Doesn't look quite " +
+                                            "like a WDC file" );
         }
 
         /* Loop over header lines. */
@@ -47,7 +50,7 @@ class WDCReader {
 
             /* Check for end of file. */
             if ( line == null ) {
-                throw new IOException( "End of file in WDC headers" );
+                throw new TableFormatException( "End of file in WDC headers" );
             }
 
             /* Parse the line. */
@@ -145,8 +148,8 @@ class WDCReader {
                         };
                         break;
                     default:
-                        throw new IOException( "Unknown data format + '" 
-                                             + fmt + "'" );
+                        throw new TableFormatException( "Unknown data format '" 
+                                                      + fmt + "'" );
                 }
                 colinfoList.add( new ColumnInfo( colname, clazz, null ) );
                 eaterList.add( eater );
