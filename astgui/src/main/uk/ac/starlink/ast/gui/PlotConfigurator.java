@@ -62,7 +62,7 @@ import uk.ac.starlink.ast.Plot;                   // For documentation
  */
 public class PlotConfigurator
     extends JFrame
-    implements ChangeListener
+    implements Configurator, ChangeListener
 {
     /**
      * Content pane of frame.
@@ -138,7 +138,7 @@ public class PlotConfigurator
     /**
      * List of PlotControls that have been added.
      */
-    protected ArrayList controlsList = new ArrayList( 10 ); 
+    protected ArrayList controlsList = new ArrayList( 10 );
 
     /**
      * Create an instance. This has the default title and does not
@@ -172,7 +172,7 @@ public class PlotConfigurator
      * default names used for the backing store.
      */
     public PlotConfigurator( String title, PlotController controller,
-                             PlotConfiguration config, 
+                             PlotConfiguration config,
                              String applicationName, String storeName )
     {
         if ( title == null ) {
@@ -339,7 +339,7 @@ public class PlotConfigurator
         addText();
     }
 
-    public void addTitle() 
+    public void addTitle()
     {
         TitleControls titlePanel = new TitleControls
             ( config.getControlsModel
@@ -387,7 +387,7 @@ public class PlotConfigurator
               ( TickControls.getControlsModelClass() ), controller );
         addControls( ticksPanel, true );
     }
-    public void addText() 
+    public void addText()
     {
         StringsControls stringsPanel = new StringsControls
             ( config.getControlsModel
@@ -411,7 +411,7 @@ public class PlotConfigurator
     /**
      * Add a "page" of controls to the tabbed pane.
      */
-    protected void addControls( PlotControls controls, boolean append ) 
+    protected void addControls( PlotControls controls, boolean append )
     {
         JComponent controlsUI = controls.getControlsComponent();
         controlsUI.setBorder( new TitledBorder(controls.getControlsTitle()) );
@@ -423,15 +423,6 @@ public class PlotConfigurator
         }
         controls.getControlsModel().addChangeListener( this );
         controlsList.add( controls );
-    }
-
-    /**
-     * Force a send of the current configuration to the associated
-     * plot, thus hopefully getting it to re-draw itself.
-     */
-    public void drawConfiguration()
-    {
-        controller.updatePlot();
     }
 
     /**
@@ -448,6 +439,15 @@ public class PlotConfigurator
     }
 
     /**
+     * Force a send of the current configuration to the associated
+     * plot, thus hopefully getting it to re-draw itself.
+     */
+    public void update()
+    {
+        controller.updatePlot();
+    }
+
+    /**
      * Reset everything to the default values.
      */
     public void reset()
@@ -460,15 +460,34 @@ public class PlotConfigurator
         }
     }
 
-    /**
-     * Set the default configuration. This an Element that contains a
-     * complete description of the state of all models stored by the
-     * controls and the PlotConfiguration object. It is normally
-     * created by {@link ConfigurationStore}.
-     */
-    public void setDefaultState( Element defaultConfig )
+    //
+    // Configurator interface.
+    //
+
+    public void saveState( Element rootElement )
     {
-        this.defaultConfig = defaultConfig;
+        config.encode( rootElement );
+    }
+
+    public void restoreState( Element rootElement )
+    {
+        defaultConfig = rootElement;
+        config.decode( rootElement );
+    }
+
+    public String getApplicationName()
+    {
+        return applicationName;
+    }
+
+    public String getStoreName()
+    {
+        return storeName;
+    }
+
+    public String getTagName()
+    {
+        return config.getTagName();
     }
 
     /**
@@ -481,7 +500,7 @@ public class PlotConfigurator
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            drawConfiguration();
+            update();
         }
     }
 
@@ -565,30 +584,14 @@ public class PlotConfigurator
         }
     }
 
-    /**
-     * Return a name for this application.
-     */
-    public String getApplicationName()
-    {
-        return applicationName;
-    }
-
-    /**
-     * Return the local name for the configuration store.
-     */
-    public String getStoreName()
-    {
-        return storeName;
-    }
-
-//
-// Implement the ChangeListener interface. Used to auto-draw any
-// changes to the plot.
-//
+    //
+    // Implement the ChangeListener interface. Used to auto-draw any
+    // changes to the plot.
+    //
     public void stateChanged( ChangeEvent e )
     {
         if ( autoDrawOptionsMenu.isSelected() ) {
-            drawConfiguration();
+            update();
         }
     }
 }
