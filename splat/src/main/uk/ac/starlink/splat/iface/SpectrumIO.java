@@ -156,7 +156,7 @@ public class SpectrumIO
     {
         if ( ! queue.isEmpty() ) {
             initProgressMonitor( queue.size(), "Loading spectra..." );
-            waitTimer = new Timer ( 250, new ActionListener()
+            waitTimer = new Timer ( 2000, new ActionListener()
                 {
                     private int soFar = 0;
                     public void actionPerformed( ActionEvent e )
@@ -265,7 +265,7 @@ public class SpectrumIO
         //  Monitor progress by checking the filesDone variable.
         initProgressMonitor( 1, "Saving spectrum..." );
         progressMonitor.setNote( "as " + localTarget );
-        waitTimer = new Timer ( 250, new ActionListener()
+        waitTimer = new Timer ( 2000, new ActionListener()
             {
                 int soFar = 0;
                 public void actionPerformed( ActionEvent e )
@@ -316,8 +316,8 @@ public class SpectrumIO
         progressMaximum = intervals * USTEP;
         progressMonitor = new ProgressMonitor( browser, title, "", 0,
                                                progressMaximum );
-        progressMonitor.setMillisToDecideToPopup( 500 );
-        progressMonitor.setMillisToPopup( 250 );
+        progressMonitor.setMillisToDecideToPopup( 2000 );
+        progressMonitor.setMillisToPopup( 2000 );
     }
 
     /**
