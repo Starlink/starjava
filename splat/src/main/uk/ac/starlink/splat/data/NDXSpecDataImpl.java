@@ -103,6 +103,18 @@ public class NDXSpecDataImpl
     }
 
     /**
+     * Constructor - an NDX with a given short and full names.
+     */
+    public NDXSpecDataImpl( Ndx ndx, String shortName, String fullName  )
+        throws SplatException
+    {
+        super( "Native NDX" );
+        open( ndx );
+        this.shortName = shortName;
+        this.fullName = fullName;
+    }
+
+    /**
      * Constructor. Initialise this spectrum by cloning the content of
      * another spectrum (usual starting point for saving).
      */
@@ -326,7 +338,7 @@ public class NDXSpecDataImpl
     }
 
     /**
-     * Use an exiting NDX.
+     * Use an existing NDX.
      *
      * @param ndx the NDX.
      */
