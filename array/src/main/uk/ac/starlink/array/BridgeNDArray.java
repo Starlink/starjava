@@ -2,7 +2,8 @@ package uk.ac.starlink.array;
 
 import java.io.IOException;
 import java.net.URL;
-import uk.ac.starlink.hdx.DOMFacade;
+import java.net.URI;
+import uk.ac.starlink.hdx.HdxFacade;
 import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.hdx.HdxResourceType;
 import org.w3c.dom.Document;
@@ -158,12 +159,20 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         return buf.toString();
     }
 
-    public DOMFacade getDOMFacade(HdxResourceType hdxType) {
-        return new BridgeNDArrayDOMFacade(hdxType);
+    /**
+     * Obtains a {@link uk.ac.starlink.hdx.HdxFacade} which can
+     * represent this object.
+     *
+     * @param hdxType the registered type which indicates which Hdx
+     * type this facade is representing as a DOM element.  This may
+     * not be <code>null</code> nor {@link HdxResourceType#NONE}.
+     */
+    public HdxFacade getHdxFacade( HdxResourceType hdxType ) {
+        return new BridgeNDArrayHdxFacade( hdxType );
     }
     
-    protected class BridgeNDArrayDOMFacade
-            extends uk.ac.starlink.hdx.AbstractDOMFacade {
+    protected class BridgeNDArrayHdxFacade
+            extends uk.ac.starlink.hdx.AbstractHdxFacade {
         /*
          * Implement the DOMFacade by creating a DOM using
          * HdxElements, and caching it.
@@ -175,68 +184,54 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
          * instance variables of the BridgeNDArray?
          */
         private HdxResourceType type;
-        private Document cachedDoc;
+        //private Document cachedDoc;
 
-        public BridgeNDArrayDOMFacade(HdxResourceType type) {
+        public BridgeNDArrayHdxFacade( HdxResourceType type ) {
+            if ( type == null
+                || type == HdxResourceType.NONE )
+                throw new IllegalArgumentException
+                        ( "BridgeNDArrayDOMFacade: type is null or NONE" );
             this.type = type;
         }
         
-        public Element getDOM(URL base) {
-            if (cachedDoc == null) {
-                cachedDoc = uk.ac.starlink.hdx.HdxDOMImplementation
-                        .getInstance()
-                        .createDocument(null, "array", null);
-                Element el = cachedDoc.createElement(type.xmlName());
-                cachedDoc.appendChild(el);
-            }
-            assert cachedDoc != null;
-            Element ret = cachedDoc.getDocumentElement();
-            assert ret.getTagName().equals(type.xmlName());
-            return ret;
-        }
-        
-        public Object getObject(Element el) 
+        public Object synchronizeElement( Element el, Object memento ) 
                 throws HdxException {
-            if (type != HdxResourceType.match(el))
+            /*
+             * ignore memento -- this Array can't be changed
+             * (interface NDArray has no mutator methods), so if the
+             * given element has children then it can only be because
+             * we've been here before.
+             */
+            if ( el.hasAttributes() )
+                return null;
+            
+            if ( ! el.getTagName().equals( type.xmlName() ) )
+                // The world has gone mad -- this shouldn't happen
                 throw new HdxException
-                        ("getObject asked to realise bad type "
-                         + el.getTagName());
+                        ( "synchronizeElement given element <"
+                          + el.getTagName()
+                          + ">, not <"
+                          + type.xmlName()
+                          + "> as expected" );
+
+            el.setAttribute( "uri", url.toString() );
+
+            return null;
+        }
+
+        public Object getObject( Element el ) 
+                throws HdxException {
+            if ( type != HdxResourceType.match( el ) )
+                throw new HdxException
+                        ( "getObject asked to realise bad type "
+                         + el.getTagName() );
+            System.err.println( "BridgeNDArrayHdxFacade returning this="
+                               + toString() );
             return BridgeNDArray.this;
         }
 
-        /** 
-         * Sets an attribute on the element this object is the facade
-         * for.  If an attribute is `set' to a null value, it is removed.
-         *
-         * @param el the element which is to have the attribute set
-         *
-         * @param name the attribute which is to be set
-         *
-         * @param value the new value of the attribute.  If the value is
-         * null, the attribute is removed.  Setting the value to the empty
-         * string is allowed, and is not the same as setting it to null.
-         *
-         * @return true if the operation succeeded, or false if there
-         * was some problem with the arguments
-         */
-        public boolean setAttribute(Element el, String name, String value) {
-            if (el == null || name == null) {
-                System.err.println("BridgeNDArrayDOMFacade: null el or name");
-                return false;
-            }
-            Element myDocEl = getDOM(null);
-            if (! myDocEl.getTagName().equals(el.getTagName())) {
-                System.err.println
-                       ("BridgeNDArrayDOMFacade: inconsitent arguments: given "
-                        + el.getTagName() + ", but managing "
-                        + myDocEl.getTagName());
-                return false;
-            }
-            if (value == null)
-                myDocEl.removeAttribute(name);
-            else
-                myDocEl.setAttribute(name, value);
-            return true;
+        public HdxResourceType getHdxResourceType() {
+            return type;
         }
     }
 }

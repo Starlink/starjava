@@ -201,6 +201,6 @@ public interface NDArray extends ArrayDescription {
      * @param hdxType the type of the element which this array is
      * to represent
      */
-    uk.ac.starlink.hdx.DOMFacade getDOMFacade
+    uk.ac.starlink.hdx.HdxFacade getHdxFacade
             (uk.ac.starlink.hdx.HdxResourceType hdxType);
 }
