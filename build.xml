@@ -16,7 +16,7 @@
  !      clean          -> cleans up the build
  !      export         -> create full export distributions of packages
  !      export-full    -> exports all monolithic archives
- !      export-full-source -> exports monolithic source archive
+ !      export-full-source -> exports full source archives
  !      export-full-built  -> exports monolithic runtime distributions
  !      export-full-docs   -> exports monolithic javadocs archive
  !
@@ -448,14 +448,17 @@
   </target>
 
   <!--
-   !   ==========================
-   !   Export full source archive
-   !   ==========================
+   !   ===========================
+   !   Export full source archives
+   !   ===========================
    !-->
   <target name="export-full-source"
           depends="deinstall,clean"
           description="--> exports monolithic source archive">
-    <zip destfile="${star.archive.dir}/${archive.name}_src.zip">
+
+    <!-- Export an archive of the whole source tree including all the 
+     !   package structure and build machinery -->
+    <zip destfile="${star.archive.dir}/${archive.name}-sources.zip">
       <zipfileset dir="${star.dir}" prefix="${archive.top}">
         <exclude name="docs/**"/>
       </zipfileset>
@@ -463,6 +466,37 @@
         <include name="${licence.file}"/>
       </zipfileset>
     </zip>
+
+    <!-- Also export a tree consisting of all and only the java source files
+     !   in the namespace uk.ac.starlink.*, in a single zip file of the
+     !   corresponding structure.  For casual browsing or building,
+     !   this is more digestible than the full tree of packages and build
+     !   machinery.  -->
+
+    <!-- Ensure that all the source code is available. -->
+    <antcall target="call_package_ant">
+      <param name="what" value="javadoc-sources"/>
+    </antcall>
+
+    <!-- Copy all the files in the starlink namespace to a scratch directory -->
+    <property name="source.tree.dir" value="${star.build.dir}/build/java"/>
+    <mkdir dir="${source.tree.dir}"/>
+    <copy todir="${source.tree.dir}">
+      <fileset dir="${star.build.dir}"
+               includes="*/src/main/uk/ac/starlink/**/*.java"/>
+      <fileset dir="${star.build.dir}" 
+               includes="*/build/java/uk/ac/starlink/**"/>
+      <mapper type="regexp" from="(uk/ac/starlink/.*)" to="\1"/>
+    </copy>
+    <copy todir="${source.tree.dir}" file="${support.etc}/${licence.file}"/>
+
+    <!-- Construct a zip file from the scratch directory. -->
+    <zip destfile="${star.archive.dir}/${archive.name}-src.zip" 
+         basedir="${source.tree.dir}"/>
+
+    <!-- Tidy up by deleting the scratch directory -->
+    <delete dir="${source.tree.dir}"/>
+
   </target>
 
   <!--

@@ -17,10 +17,16 @@ and applications set.  The files are as follows:
           starlink java libraries plus some of the third party ones 
           used by the Starlink classes.
 
-    starjava-src.zip
+    starjava-sources.zip
         - A zip of the source files used to compile the starjava
           set.  It includes some third party source files and class 
           libraries.
+
+    starjava-src.zip
+        - A zip of just the java source files from the uk.ac.starlink 
+          namespace.  While this may not be sufficient to build the
+          starjava set correctly it is easier for browsing and may 
+          be enough for building some of the packages.
 
     starjava-i386.tar.gz
     starjava-sparc.tar.gz
