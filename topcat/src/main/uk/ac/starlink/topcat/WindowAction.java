@@ -21,6 +21,8 @@ import javax.swing.JToggleButton;
  * whether the associated window is currently showing or not.
  * Setting the <tt>VISIBLE</tt> property true/false has the same effect as 
  * invoking the action with the <tt>SHOW</tt>/<tt>HIDE</tt> command string.
+ * <p>
+ * This class is currently a bit messy and overspecified for what it does.
  *
  * @author   Mark Taylor (Starlink)
  * @since    2 Mar 2004
@@ -45,6 +47,8 @@ public abstract class WindowAction extends BasicAction {
      */
     public static final String VISIBLE = "VISIBLE";
 
+    private ActionEvent currentEvent;
+
     /**
      * Constructs a new WindowAction.
      *
@@ -59,7 +63,9 @@ public abstract class WindowAction extends BasicAction {
     public void actionPerformed( ActionEvent evt ) {
         String cmd = evt.getActionCommand();
         boolean show = ! HIDE.equals( cmd );
+        currentEvent = evt;
         putValue( VISIBLE, Boolean.valueOf( show ) );
+        currentEvent = null;
     }
 
     public Object getValue( String key ) {
@@ -77,7 +83,7 @@ public abstract class WindowAction extends BasicAction {
             boolean show = ((Boolean) newValue).booleanValue();
             if ( show ) {
                 boolean windowCreated = ! hasWindow();
-                Window win = getWindow( getEventWindow( null ) );
+                Window win = getWindow( getEventWindow( currentEvent ) );
                 boolean wasVisible = ( ! windowCreated ) && win.isVisible();
                 win.show();
                 if ( ! wasVisible ) {
