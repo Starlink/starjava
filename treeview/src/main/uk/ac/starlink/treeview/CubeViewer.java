@@ -59,7 +59,7 @@ class CubeViewer implements ComponentMaker2 {
         long[] depthDims = shape.getDims();
         int ndim = shape.getNumDims();
         int ndummy = 2;
-        for ( int i = ndim - 1; i >= 0; i-- ) {
+        for ( int i = 0; i < ndim; i++ ) {
             if ( depthDims[ i ] > 1 && ndummy > 0 ) {
                 depthOrigin[ i ] = -Long.MIN_VALUE;
                 depthDims[ i ] = 1;
