@@ -96,7 +96,17 @@ public class ExtClasspath extends Path
         if ( s != null && s.length > 0 ) {
             for ( int j = 0; j < s.length; j++ ) {
                 newJarFile = new File( jarBase, s[j] );
-                newJarFile = newJarFile.getAbsoluteFile();
+                try {
+                    //  May be expensive, but needed for cyclical
+                    //  dependencies that may be spoofed by relative
+                    //  names.
+                    newJarFile = newJarFile.getCanonicalFile();
+                }
+                catch (IOException e) {
+                    // Cannot resolve name so just use non-canonical
+                    // form.
+                    e.printStackTrace();
+                }
 
                 //  Add this Jar file if it exists on disk and hasn't
                 //  been seen already. Visit its extension jar files
@@ -104,8 +114,8 @@ public class ExtClasspath extends Path
                 if ( newJarFile.exists() ) {
                     if ( "jar".equals( getExtension( newJarFile ) ) ) {
 
-                        //  Note this compares absolute name against those
-                        //  visited already.
+                        //  Note this should compare canonical name
+                        //  against those visited already.
                         if ( jarsDone.indexOf( newJarFile ) == -1 ) {
                             setLocation( newJarFile );
 
