@@ -1,6 +1,7 @@
 package uk.ac.starlink.util.gui;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.FlowLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -77,7 +78,7 @@ public class ErrorDialog extends JDialog {
 
         /* Place an error icon. */
         Container main = getContentPane();
-        holder_ = new JPanel( new FlowLayout() );
+        holder_ = new JPanel( new CardLayout() );
         JLabel iconLabel = 
             new JLabel( UIManager.getIcon( "OptionPane.errorIcon" ) );
         JComponent iconPanel = new JPanel( new BorderLayout() );
@@ -168,6 +169,7 @@ public class ErrorDialog extends JDialog {
 
         DetailAction() {
             setShowDetail( false );
+            pack();
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -175,7 +177,6 @@ public class ErrorDialog extends JDialog {
             Rectangle oldBounds = getBounds();
             int cx = oldBounds.x + oldBounds.width / 2;
             int cy = oldBounds.y + oldBounds.height / 2;
-            pack();
             Rectangle newBounds = getBounds();
             setLocation( new Point( cx - newBounds.width / 2,
                                     cy - newBounds.height / 2 ) );
@@ -183,15 +184,23 @@ public class ErrorDialog extends JDialog {
         }
 
         void setShowDetail( boolean detail ) {
-            holder_.removeAll();
             if ( detail ) {
-                holder_.setLayout( new BorderLayout() );
-                holder_.add( getDetailPanel() );
+                if ( detailPanel_ == null ) {
+                    holder_.add( getDetailPanel(), "DETAIL" );
+                    Dimension size = holder_.getPreferredSize();
+                    size.height = Math.min( size.height, 300 );
+                    size.width = Math.min( size.width, 500 );
+                    holder_.setPreferredSize( size );
+                    pack();
+                }
+                ((CardLayout) holder_.getLayout()).show( holder_, "DETAIL" );
                 putValue( NAME, "Hide Details" );
             }
             else {
-                holder_.setLayout( new FlowLayout() );
-                holder_.add( getSummaryPanel() );
+                if ( summaryPanel_ == null ) {
+                    holder_.add( getSummaryPanel(), "SUMMARY" );
+                }
+                ((CardLayout) holder_.getLayout()).show( holder_, "SUMMARY" );
                 putValue( NAME, "Show Details" );
             }
             detail_ = detail;
