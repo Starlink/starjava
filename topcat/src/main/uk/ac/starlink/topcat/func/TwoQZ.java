@@ -8,7 +8,7 @@ package uk.ac.starlink.topcat.func;
 /**
  * Specialist functions for use with data from the the 2QZ survey.
  * Spectral data are taken directly from the 2QZ web site at
- * <code>http://www.2dfquasar.org/"</code>.
+ * <a href="http://www.2dfquasar.org/">http://www.2dfquasar.org/</a>.
  *
  * @author   Mark Taylor (Starlink)
  * @since    3 Sep 2004
@@ -61,7 +61,7 @@ public class TwoQZ {
 
     /**
      * Displays the postage stamp FITS image for a 2QZ object in an
-     * external viewer (SoG).
+     * image viewer.
      *
      * @param  name  object name (NAME column)
      * @return  short log message
@@ -69,7 +69,7 @@ public class TwoQZ {
     public static String image2QZ( String name ) {
         String loc = FITS_IMAGE_BASE + getSubdir( name ) + name +
                      FITS_IMAGE_TAIL;
-        return Sog.sog( loc );
+        return Image.displayImage( loc );
     }
 
     /**
