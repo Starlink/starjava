@@ -1,5 +1,10 @@
 package uk.ac.starlink.topcat.func;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import uk.ac.starlink.topcat.JELUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class FuncTest extends TestCase {
@@ -244,5 +249,37 @@ public class FuncTest extends TestCase {
         assertEquals( ra1950, Coords.raFK5toFK4( ra2000, de2000 ), 1e-9 );
         assertEquals( de1950, Coords.decFK5toFK4( ra2000, de2000 ), 1e-9 );
 
+    }
+
+    public void testJELClasses() {
+        checkClassesLookOK( (Class[]) JELUtils.getGeneralStaticClasses()
+                                              .toArray( new Class[ 0 ] ) );
+        checkClassesLookOK( (Class[]) JELUtils.getActivationStaticClasses()
+                                              .toArray( new Class[ 0 ] ) );
+    }
+
+    public void checkClassesLookOK( Class[] classes ) {
+        for ( int i = 0; i < classes.length; i++ ) {
+            Class clazz = classes[ i ];
+
+            /* Check there's one private no-arg constructor to prevent
+             * instantiation (not really essential, but good practice). */
+            Constructor[] constructors = clazz.getDeclaredConstructors();
+            assertEquals( 1, constructors.length );
+            Constructor pcons = constructors[ 0 ];
+            assertEquals( 0, pcons.getParameterTypes().length );
+            assertTrue( Modifier.isPrivate( pcons.getModifiers() ) );
+
+            /* Check there are no non-static members (would probably indicate
+             * missing the 'static' modifier by accident). */
+            Field[] fields = clazz.getDeclaredFields();
+            for ( int j = 0; j < fields.length; j++ ) {
+                assertTrue( Modifier.isStatic( fields[ j ].getModifiers() ) );
+            }
+            Method[] methods = clazz.getDeclaredMethods();
+            for ( int j = 0; j < methods.length; j++ ) {
+                assertTrue( Modifier.isStatic( methods[ j ].getModifiers() ) );
+            }
+        }
     }
 }
