@@ -42,6 +42,7 @@ public class TablePipe extends TableTask {
     private final static String[] FILTER_NAMES = new String[] {
         SelectFilter.class.getName(),
         EveryFilter.class.getName(),
+        HeadFilter.class.getName(),
         AddColumnFilter.class.getName(),
         KeepColumnFilter.class.getName(),
         DeleteColumnFilter.class.getName(),
@@ -254,7 +255,7 @@ public class TablePipe extends TableTask {
     public String[] getSpecificOptions() {
         List opts = new ArrayList();
         opts.add( "[-ifmt <in-format> [-stream]]" );
-        opts.add( "[<in-table>]" );
+        opts.add( "<in-table>" );
         opts.add( "<mode-flags>" );
         opts.add( "[<filter-flags>]" );
         return (String[]) opts.toArray( new String[ 0 ] );
