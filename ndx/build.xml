@@ -237,11 +237,16 @@
   
   </path>
 
-  <!-- CLASSPATH defined in the external environment -->
-  <path id="local.classpath" path="${java.class.path}"/>
+  <!-- Extra user-defined classpath. This is set by the property 
+   !   "extra.class.path" (which can be defined locally using say 
+   !   -Dextra.class.path=$CLASSPATH on the command line or by setting
+   !   the property in either of the properties files.-->
+  <property name="extra.class.path" value=""/>
+  <path id="local.classpath" path="${extra.class.path}"/>
 
   <!-- Unification of all classpaths using local, built, installed order-->
   <path id="classpath">
+     <path refid="local.classpath"/>
      <path refid="built.classpath"/>
      <path refid="installed.classpath"/>
   </path>
