@@ -9,6 +9,7 @@
       <DESCRIPTION>This parameter is designed to store the observer's name
       </DESCRIPTION> 
     </PARAM>
+    <INFO name="Editor" value="Mark Taylor"/>
     <TABLE name="Stars">
       <DESCRIPTION>Some bright stars</DESCRIPTION>
       <FIELD name="Star-Name" ucd="ID_MAIN" datatype="char" arraysize="10"/>

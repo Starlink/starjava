@@ -155,7 +155,9 @@ public class VOTableBuilder implements TableBuilder {
      */
     public void streamStarTable( InputStream istrm, TableSink sink, 
                                  String index ) throws IOException {
-        int itable = index.matches( "[0-9]+" ) ? Integer.parseInt( index ) : 0;
+        int itable = index != null && index.matches( "[0-9]+" ) 
+                   ? Integer.parseInt( index ) 
+                   : 0;
         try {
             TableStreamer.streamStarTable( new InputSource( istrm ),
                                            sink, itable );
