@@ -13,6 +13,8 @@ dt, dd, address, blockquote, pre, br, hr, form, dl {
 
 p { margin-top: 10 }
 
+pre { margin-top: 4; margin-bottom: 4 }
+
 b, strong, i, em, cite, var, tt, code, kbd, samp, 
 img, span { display: inline }
 
