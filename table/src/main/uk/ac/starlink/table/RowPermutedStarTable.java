@@ -96,7 +96,9 @@ public class RowPermutedStarTable extends WrapperStarTable {
     }
 
     public Object getCell( long irow, int icol ) throws IOException {
-        return baseTable.getCell( rowMap[ checkedLongToInt( irow ) ], icol );
+        long baseRow = rowMap[ checkedLongToInt( irow ) ];
+        return baseRow >= 0 ? baseTable.getCell( baseRow, icol )
+                            : null;
     }
 
     public Object[] getRow( long irow ) throws IOException {
