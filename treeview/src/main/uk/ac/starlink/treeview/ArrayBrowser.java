@@ -1,91 +1,70 @@
 package uk.ac.starlink.treeview;
 
-import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.JTable;
-import javax.swing.UIManager;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.hds.ArrayStructure;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableCellRenderer;
 
+/**
+ * Displays an array of primitives in a JTable.
+ * 
+ * @author   Mark Taylor (Starlink)
+ */
 class ArrayBrowser extends JTable {
 
-    public static Object BAD_CELL = null;
+    private static TableCellRenderer bodyRenderer;
+    private static TableCellRenderer borderRenderer;
+    private static final Object BAD_CELL = null;
 
-    private TableCellRenderer cellRend;
-    private TableCellRenderer headRend;
-    private TableModel model;
     private int ndim;
-    private static float colfact = (float) 1.0;
+    private TableModel model;
 
+    /**
+     * Constructs an ArrayBrowser from an NDArray.
+     *
+     * @param   nda  the NDArray to browse
+     * @throws  IOException if there is some trouble doing random access
+     *          reads on <tt>nda</tt>
+     */
     public ArrayBrowser( NDArray nda ) throws IOException {
-        if ( ! nda.isRandom() ) {
-            throw new IllegalArgumentException( 
-                "NDArray " + nda + " does not have random access" );
-        }
-        final BadHandler bh = nda.getBadHandler();
-        final Object buf = nda.getType().newArray( 1 );
-        final ArrayAccess acc = nda.getAccess();
-        final CellGetter cg = new CellGetter() {
-            public Object getValueAt( int index ) {
-                try {
-                    acc.setOffset( (long) index );
-                    acc.read( buf, 0, 1 );
-                    Number val = bh.makeNumber( buf, 0 );
-                    return ( val == null ) ? BAD_CELL : val;
-                }
-                catch ( IOException e ) {
-                    e.printStackTrace();
-                    return BAD_CELL;
-                }
-            }
-        };
+        this( makeCellGetter( nda ), nda.getShape() );
+    }
 
-        final OrderedNDShape shape = nda.getShape();
+    /**
+     * Constructs an ArrayBrowser from an ArrayStructure.
+     *
+     * @param   ary  the ArrayStructure to browse
+     * @throws  HDSException if there is some trouble reading <tt>ary</tt>
+     */
+    public ArrayBrowser( ArrayStructure ary ) throws HDSException {
+        this( makeCellGetter( ary ), ary.getShape() );
+    }
+
+    /**
+     * Makes an ArrayBrowser from a CellGetter object and an associated
+     * pixel sequence (ordered shape).
+     */
+    private ArrayBrowser( final CellGetter cg, final OrderedNDShape shape ) {
         ndim = shape.getNumDims();
-
-        /* Construct the component to be displayed for all bad cells. */
-        Color goodColor = UIManager.getColor( "Table.foreground" );
-        Color badColor = new Color( goodColor.getRed(), 
-                                    goodColor.getGreen(), 
-                                    goodColor.getBlue(), 
-                                    goodColor.getAlpha() / 3 );
-        DefaultTableCellRenderer badRend = new DefaultTableCellRenderer();
-        badRend.setForeground( badColor );
-        final Component badcell = 
-            badRend.getTableCellRendererComponent( this, "BAD", false, false,
-                                                   0, 0 );
-
-        /* Construct the normal renderer for cells in the table body. */
-        cellRend = new DefaultTableCellRenderer() {
-            public Component getTableCellRendererComponent( JTable table,
-                                                            Object value,
-                                                            boolean isSelected,
-                                                            boolean hasFocus,
-                                                            int row,
-                                                            int column ) {
-                return ( value == BAD_CELL ) 
-                    ? badcell 
-                    : super.getTableCellRendererComponent( table, value, 
-                                                           isSelected, hasFocus,
-                                                           row, column );
-            }
-        };
-
-        /* Construct the renderer for cells in the table headings. */
-        headRend = new DefaultTableCellRenderer();
-        ((DefaultTableCellRenderer) headRend)
-       .setBackground( UIManager.getColor( "TableHeader.background" ) );
-        ((DefaultTableCellRenderer) headRend)
-       .setForeground( UIManager.getColor( "TableHeader.foreground" ) );
+        borderRenderer = new StarTableCellRenderer( true );
+        bodyRenderer = new StarTableCellRenderer();
+        ((StarTableCellRenderer) bodyRenderer).setBadValue( BAD_CELL );
 
         /* Construct a model. */
         if ( ndim == 2 ) {
@@ -102,7 +81,7 @@ class ArrayBrowser extends JTable {
                 }
                 public Object getValueAt( int row, int col ) {
                     int r = row - 1;
-                    int c = col - 1;
+                    int c = col - 1; 
                     if ( r >= 0 && r < rows && c >= 0 && c < cols ) {
                         long p0 = o0 + ( (long) c );
                         long p1 = o1 + ( (long) rows - 1 - r );
@@ -147,7 +126,7 @@ class ArrayBrowser extends JTable {
                         return cg.getValueAt( index );
                     }
                     else {
-                        return NDShape.toString( 
+                        return NDShape.toString(
                                  shape.offsetToPosition( (long) index ) );
                     }
                 }
@@ -158,18 +137,30 @@ class ArrayBrowser extends JTable {
         setModel( model );
 
         /* Sort out column widths. */
+        TableColumnModel tcm = getColumnModel();
         if ( ndim == 2 ) {
-            setAutoResizeMode( AUTO_RESIZE_OFF );
-            if ( colfact != 1.0 ) {
-                int colwidth = (int) ( colfact * getColumnModel().getColumn( 0 )
-                                                                 .getWidth() );
-                int ncols = (int) shape.getDims()[ 1 ];
-                for ( int i = 0; i < ncols; i++ ) {
-                    TableColumn tcol = getColumnModel().getColumn( 1 + i );
-                    tcol.setPreferredWidth( colwidth );
-                    tcol.setMaxWidth( colwidth );
-                    tcol.setMinWidth( colwidth );
-                }
+            int ncol = model.getColumnCount();
+
+            /* Get width of first and last columns. */
+            long lastpix = shape.getDims()[ 1 ] - 1;
+            Object borderObj = Long.toString( lastpix ); 
+            Component borderCell = 
+                borderRenderer
+               .getTableCellRendererComponent( this, borderObj, false, false,
+                                               (int) lastpix, 0 );
+            int borderColwidth = borderCell.getPreferredSize().width + 10;
+            tcm.getColumn( 0 ).setPreferredWidth( borderColwidth );
+            tcm.getColumn( ncol - 1 ).setPreferredWidth( borderColwidth );
+
+            /* Get width of body columns. */
+            Object bodyObj = new Double( Math.PI * 1e-99 );
+            Component bodyCell =
+                bodyRenderer
+               .getTableCellRendererComponent( this, bodyObj, false, false, 
+                                               1, 1 );
+            int bodyColwidth = bodyCell.getPreferredSize().width + 10;
+            for ( int i = 1; i < ncol - 1; i++ ) {
+                tcm.getColumn( i ).setPreferredWidth( bodyColwidth + 10 );
             }
         }
         else {
@@ -177,7 +168,6 @@ class ArrayBrowser extends JTable {
             String rep = NDShape.toString( shape.offsetToPosition( lastpix ) );
             int colwidth = getFont().getSize() * rep.length();
             TableColumn tcol = getColumnModel().getColumn( 0 );
-            // tcol.setPreferredWidth( colwidth );
             tcol.setMaxWidth( colwidth );
             tcol.setMinWidth( colwidth );
         }
@@ -188,22 +178,73 @@ class ArrayBrowser extends JTable {
         setDragEnabled( false );
         setRowSelectionAllowed( false );
         setTableHeader( null );
-        setPreferredScrollableViewportSize( new java.awt.Dimension( 1, 1 ) );
     }
-
 
     public TableCellRenderer getCellRenderer( int row, int col ) {
-        boolean isHead = 
-           ( ndim == 2 ) ? ( row == 0 || row == model.getRowCount() - 1 ||
-                             col == 0 || col == model.getColumnCount() - 1 )
-                         : ( col == 0 );
-        return isHead ? headRend : cellRend;
+        boolean isBorder =
+            ( ndim == 2 ) ? ( row == 0 || row == model.getRowCount() - 1 ||
+                              col == 0 || col == model.getColumnCount() - 1 )
+                          : ( col == 0 );
+        return isBorder ? borderRenderer : bodyRenderer;
     }
 
-
+    /**
+     * Interface which defines how to get the contents of a cell at a given
+     * offset into an array.  Mapping the offset to an array position is
+     * defined by the OrderedNDShape implicitly associated with this
+     * CellGetter.
+     */
     private static interface CellGetter {
-        Object getValueAt( int index );
+
+        /**
+         * Returns the object at the cell indicated by a given offset.
+         */
+        Object getValueAt( int offset );
     }
 
+    private static CellGetter makeCellGetter( NDArray nda ) throws IOException {
+        if ( ! nda.isRandom() ) {
+            throw new IOException( "NDArray " + nda + 
+                                   " does not have random access" );
+        }
+        final BadHandler bh = nda.getBadHandler();
+        final Object buf = nda.getType().newArray( 1 );
+        final ArrayAccess acc = nda.getAccess();
+        CellGetter cg = new CellGetter() {
+            public Object getValueAt( int index ) {
+                try {
+                    acc.setOffset( (long) index );
+                    acc.read( buf, 0, 1 );
+                    Number val = bh.makeNumber( buf, 0 );
+                    return ( val == null ) ? BAD_CELL : val;
+                }
+                catch ( IOException e ) {
+                    e.printStackTrace();
+                    return BAD_CELL;
+                }
+            }
+        };
+        return cg;
+    }
 
+    private static CellGetter makeCellGetter( ArrayStructure ary )
+            throws HDSException {
+        final HDSObject datobj = ary.getData();
+        final OrderedNDShape dshape = 
+            new OrderedNDShape( datobj.datShape(), Order.COLUMN_MAJOR );
+        CellGetter cg = new CellGetter() {
+            public Object getValueAt( int index ) {
+                try {
+                    long[] pos = dshape.offsetToPosition( (long) index );
+                    HDSObject cellobj = datobj.datCell( pos );
+                    return cellobj.datGet0c();
+                }
+                catch ( HDSException e ) {
+                    e.printStackTrace();
+                    return BAD_CELL;
+                }
+            }
+        };
+        return cg;
+    }
 }
