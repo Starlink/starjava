@@ -20,11 +20,12 @@ import java.text.*;
  * <li> {@link HistoryDataNode}
  * <li> {@link HDSDataNode}
  * <li> {@link FITSDataNode}
- * <li> {@link NDArrayDataNode}
  * <li> {@link XMLDocumentDataNode}
  * <li> {@link XMLElementDataNode}
  * <li> {@link ZipFileDataNode}
  * <li> {@link FileDataNode}
+ * <li> {@link NdxDataNode}
+ * <li> {@link NDArrayDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
  * the object it is given for construction, the constructors available
@@ -49,10 +50,11 @@ public class DataNodeFactory implements Cloneable {
         HistoryDataNode.class,
         HDSDataNode.class,
         FITSDataNode.class,
-        NDArrayDataNode.class,
         // XMLDocumentDataNode.class,
         // XMLElementDataNode.class,
         ZipFileDataNode.class,
+        NdxDataNode.class,
+        NDArrayDataNode.class,
         FileDataNode.class
     };
 

@@ -1,11 +1,17 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
-import java.nio.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import uk.ac.starlink.hds.*;
+import java.io.IOException;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Type;
+import uk.ac.starlink.hds.ArrayStructure;
+import uk.ac.starlink.hds.HDSArrayBuilder;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSType;
 
 /**
  * A {@link uk.ac.starlink.treeview.DataNode} representing an 
@@ -23,80 +29,37 @@ public class ARYDataNode extends HDSDataNode {
     private static IconFactory iconMaker = IconFactory.getInstance();
     private static DataNodeFactory defaultChildMaker;
 
-    private static final short PRIMITIVE = 1;
-    private static final short SIMPLE = 2;
-    public static int MAX_TABLE_CELLS = Integer.MAX_VALUE;
-
-    private HDSObject hobj;
-    private String type;
-    private short variant;
-    private Cartesian shape;
-    private Cartesian origin;
-    private HDSObject data;
-    private int nComp;
+    private ArrayStructure aryobj;
     private JComponent fullView;
     private DataNodeFactory childMaker;
+    private NDShape shape;
 
     /**
-     * Constructs an ARYDataNode from a Hierarchical.
+     * Constructs an ARYDataNode from an HDSObject.
      */
     public ARYDataNode( HDSObject hobj ) throws NoSuchDataException {
         super( hobj );
-        this.hobj = hobj;
-        boolean broken = false;
         try {
-
-            /* See if it looks like a Simple type array. */
-            if ( hobj.datStruc() && hobj.datShape().length == 0 ) {
-                variant = SIMPLE;
-                data = hobj.datFind( "DATA" );
-                shape = new Cartesian( data.datShape() );
-                int ndim = shape.getNdim();
-                if ( ndim == 0 ) {
-                   throw new NoSuchDataException( "Not an ARY" );
-                }
-                nComp = hobj.datNcomp();
-
-                /* Find and read an Origin component, or set a null one. */
-                if ( hobj.datThere( "ORIGIN" ) ) {
-                    HDSObject oObj = hobj.datFind( "ORIGIN" );
-                    Cartesian oShape = new Cartesian( oObj.datShape() );
-                    if ( oShape.getNdim() == 1 && oShape.numCells() == ndim ) {
-                        int[] oels = oObj.datGetvi();
-                        origin = new Cartesian( ndim );
-                        for ( int i = 0; i < ndim; i++ ) {
-                            origin.setCoord( i, (long) oels[ i ] );
-                        }
-                    }
-                    else {
-                        broken = true;
-                    }
-                }
-            } 
-
-            /* It looks like a Primitive type array. */
-            else if ( ! hobj.datStruc() && 
-                      hobj.datShape().length > 0 ) {
-                variant = PRIMITIVE;
-                data = hobj;
-                shape = new Cartesian( data.datShape() );
-                origin = null;
-                nComp = 0;
+            if ( HDSType.fromName( hobj.datType() ) == null ) {
+                throw new NoSuchDataException( "Not a numeric type" );
             }
-
-            /* This is not an array. */
-            else {
-                throw new NoSuchDataException( "Object is not an ARY array" );
-            }
-            if ( broken ) {
-                throw new NoSuchDataException( "Object is not an ARY array" );
-            }
-            type = data.datType();
+            this.aryobj = new ArrayStructure( hobj );
         }
-        catch ( HDSException e ) { 
-            throw new NoSuchDataException( e.getMessage() );
+        catch ( HDSException e ) {
+            throw new NoSuchDataException( "Not an ARY structure", e );
         }
+        this.shape = aryobj.getShape();
     }
+
+    /**
+     * Constructs and ARYDataNode from an ArrayStrucutre.
+     */
+    public ARYDataNode( ArrayStructure aryobj ) throws NoSuchDataException {
+        super( aryobj.getHDSObject() );
+        this.aryobj = aryobj;
+        this.shape = aryobj.getShape();
+    }
+
 
     /**
      * Constructs an ARYDataNode from an HDS path.
@@ -105,13 +68,13 @@ public class ARYDataNode extends HDSDataNode {
         this( getHDSFromPath( path ) );
     }
 
-
     public String getDescription() {
-        return shape.shapeDescriptionWithOrigin( origin ) + "  <" + type + ">";
+        return NDShape.toString( shape )
+             + "  <" + aryobj.getType() + ">";
     }
 
     public Icon getIcon() {
-        return iconMaker.getArrayIcon( shape.getNdim() );
+        return iconMaker.getArrayIcon( shape.getNumDims() );
     }
 
     /**
@@ -127,27 +90,6 @@ public class ARYDataNode extends HDSDataNode {
         return "HDS array structure";
     }
     
-
-    public DataNode[] getChildren() {
-        int nChildren = nComp;
-        DataNode[] children = new DataNode[ nChildren ];
-        for ( int i = 0; i < nChildren; i++ ) {
-            try {
-                children[ i ] = 
-                    getChildMaker()
-                   .makeDataNode( hobj.datIndex( i + 1 ) );
-
-            }
-            catch ( HDSException e ) {
-                children[ i ] = new DefaultDataNode( e );
-            }
-            catch ( NoSuchDataException e ) {
-                children[ i ] = new DefaultDataNode( e );
-            }
-        }
-        return children;
-    }
-
     public void setChildMaker( DataNodeFactory factory ) {
         childMaker = factory;
     }
@@ -171,61 +113,31 @@ public class ARYDataNode extends HDSDataNode {
         if ( fullView == null ) {
             DetailViewer dv = new DetailViewer( this );
             fullView = dv.getComponent();
-            int ndim = shape.getNdim();
             dv.addSeparator();
-            dv.addKeyedItem( "Dimensions", Integer.toString( ndim ) );
-            String dims = "";
-            for ( int i = 0; i < ndim; i++ ) {
-                dims += shape.getCoord( i )
-                      + ( ( i + 1 < ndim ) ? " x " : "" );
+            dv.addKeyedItem( "Dimensionality", "" + shape.getNumDims() );
+            dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
+            dv.addKeyedItem( "Dimensions", 
+                             NDShape.toString( shape.getDims() ) );
+            dv.addKeyedItem( "Pixel bounds", 
+                             NDArrayDataNode.boundsString( shape ) );
+            dv.addSeparator();
+            dv.addKeyedItem( "Type", aryobj.getType().toString() );
+            dv.addSeparator();
+            dv.addKeyedItem( "Storage variant", aryobj.getStorage() );
+
+            try {
+                NDArray nda = HDSArrayBuilder.getInstance()
+                             .makeNDArray( aryobj, AccessMode.READ );
+                NDArrayDataNode.addDataViews( dv, nda, null );
             }
-            dv.addKeyedItem( "Shape", dims );
-            dv.addKeyedItem( "Pixel bounds",
-                             shape.shapeDescriptionWithOrigin( origin ) );
-            dv.addSeparator();
-            dv.addKeyedItem( "Type", getType() );
-            dv.addKeyedItem( "Variant", getVariant() );
-            addDataViews( dv, data, origin );
+            catch ( HDSException e ) {
+                dv.logError( e );
+            }
+            catch ( IOException e ) {
+                dv.logError( e );
+            }
         }
         return fullView;
-    }
-
-    public HDSObject getData() {
-        return data;
-    }
-    public String getType() {
-        return type;
-    }
-    public String getVariant() {
-        switch ( variant ) {
-            case PRIMITIVE:
-                return "PRIMITIVE";
-            case SIMPLE:
-                return "SIMPLE";
-            default:
-                return "<UNKNOWN>";
-        }
-    }
-    public Cartesian getShape() {
-        return shape;
-    }
-    public Cartesian getOrigin() {
-        Cartesian result;
-        if ( origin == null ) {
-            /*
-             * Hmmm... I don't know if I should return a vector of zeros 
-             * instead of a vector of ones for a null origin...
-             */
-            long[] o = new long[ shape.getNdim() ];
-            for ( int i = 0; i < o.length; i++ ) {
-                o[ i ] = 1;
-            }
-            result = new Cartesian( o );
-        }
-        else {
-            result = origin;
-        }
-        return result;
     }
 
 }

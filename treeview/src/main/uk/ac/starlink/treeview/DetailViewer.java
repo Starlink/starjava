@@ -87,6 +87,12 @@ public class DetailViewer {
         Style headStyle = over.addStyle( "heading", normalStyle );
         StyleConstants.setUnderline( headStyle, true );
 
+        Style errorBodyStyle = over.addStyle( "errorbody", normalStyle );
+        StyleConstants.setItalic( errorBodyStyle, true );
+
+        Style errorHeadStyle = over.addStyle( "errorhead", errorBodyStyle );
+        StyleConstants.setBold( errorHeadStyle, true );
+
         /* Add the overview to the tabbed pane. */
         addPane( "Overview", over );
     }
@@ -212,6 +218,14 @@ public class DetailViewer {
     public void addKeyedItem( String name, String value ) {
         append( "itemname", name + ":  " );
         append( "itemvalue", value + "\n" );
+    }
+
+    public void logError( Throwable th ) {
+        append( "normal", "\n" );
+        append( "errorhead", "Error:  " );
+        append( "errorbody", th.getMessage() );
+        append( "normal", "\n" );
+        th.printStackTrace();
     }
 
     public void addSeparator() {

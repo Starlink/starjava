@@ -12,8 +12,16 @@ import javax.media.jai.DataBufferDouble;    //   !
 import java.awt.Point;
 import com.sun.media.jai.codec.ImageCodec;
 import javax.media.jai.RasterFactory; 
-import uk.ac.starlink.hdx.array.*;
-import uk.ac.starlink.hdx.jai.*;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.ArrayAccess;
+import uk.ac.starlink.array.BadHandler;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDArrays;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Requirements;
+import uk.ac.starlink.array.Type;
+import uk.ac.starlink.jaiutil.MyTileCache;
+import uk.ac.starlink.jaiutil.SimpleRenderedImage;
 
 /* The implementation of this class is largely pinched from HDXImage in
  * uk.ac.starlink.hdx.jai.  However it doesn't do any of the XML
@@ -22,13 +30,14 @@ import uk.ac.starlink.hdx.jai.*;
 
 public class NDArrayImage extends SimpleRenderedImage {
 
-    private NDArray nda;
+    private ArrayAccess acc;
     private int defaultTileWidth = 100;
     private int defaultTileHeight = 100;
     private static final int MAX_TILE_BYTES = 32*1024*1024;
     private MyTileCache tileCache;
+    private long[] origin;
 
-    public NDArrayImage( NDArray nda ) {
+    public NDArrayImage( NDArray nda ) throws IOException {
 
         /* Check we are planar. */
         NDShape shape = nda.getShape();
@@ -44,25 +53,33 @@ public class NDArrayImage extends SimpleRenderedImage {
          * representing bad values.  This means we can't use the basic
          * NDArray and have to wrap it in a type converter - inefficient.
          * Should maybe find a way round. */
-        if ( nda.getBadHandler().getBadValue() != null ) {
+        Type type = nda.getType();
+        Number badval = nda.getBadHandler().getBadValue();
+        boolean usable = 
+            ( badval == null ) ||
+            ( type == Type.FLOAT && Float.isNaN( badval.floatValue() ) );
+        usable = usable && ( type != Type.DOUBLE );
+        if ( ! usable ) {
             Requirements req = 
-                new Requirements( Requirements.Mode.READ )
+                new Requirements( AccessMode.READ )
                .setType( Type.FLOAT )
-               .setBadHandler( Type.FLOAT.defaultBadHandler() );
+               .setBadHandler( Type.FLOAT.defaultBadHandler() )
+               .setRandom( true );
             try {
-                nda = NDArrayFactory.toRequiredNDArray( nda, req );
+                nda = NDArrays.toRequiredArray( nda, req );
             }
             catch ( IOException e ) {
                 // oh well - better an NDArray with incorrect bad values
                 // than no NDArray at all.  Proceed with the old one.
             }
         }
-        this.nda = nda;
+        acc = nda.getAccess();
 
         /* Store NDArray geometry. */
-        long[] axes = shape.getDims();
-        width = (int) axes[ 0 ];
-        height = (int) axes[ 1 ];
+        this.origin = shape.getOrigin();
+        long[] dims = shape.getDims();
+        width = (int) dims[ 0 ];
+        height = (int) dims[ 1 ];
 
         /* Get a reasonable tile size. */
         tileWidth = defaultTileWidth;
@@ -99,13 +116,13 @@ public class NDArrayImage extends SimpleRenderedImage {
     }
 
     private void fillTile( Raster tile ) {
-        long[] tOrigin = new long[] { (long) tile.getMinX(), 
-                                      (long) tile.getMinY() };
+        long[] tOrigin = new long[] { (long) tile.getMinX() + origin[ 0 ], 
+                                      (long) tile.getMinY() + origin[ 1 ] };
         int[] tDims = new int[] { tile.getWidth(), tile.getHeight() };
         NDShape tileShape = new NDShape( tOrigin, tDims );
         Object destArray = getArrayData( tile.getDataBuffer() );
         try {
-            nda.readTile( destArray, tileShape );
+            acc.readTile( destArray, tileShape );
         }
         catch ( IOException e ) {
             e.printStackTrace();
@@ -128,7 +145,7 @@ public class NDArrayImage extends SimpleRenderedImage {
     }
 
     private Object getArrayData( DataBuffer dbuf ) {
-        Type type = nda.getType();
+        Type type = acc.getType();
         if ( type == Type.BYTE ) {
             return ((DataBufferByte) dbuf).getData();
         }

@@ -1,10 +1,23 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.Buffer;
-import javax.swing.*;
-import uk.ac.starlink.hds.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.array.Order;
+import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.hds.ArrayStructure;
+import uk.ac.starlink.hds.HDSArrayBuilder;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.hds.HDSType;
+import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -19,7 +32,7 @@ public class HDSDataNode extends DefaultDataNode {
     private static IconFactory iconMaker = IconFactory.getInstance();
 
     private HDSObject hobj;
-    private Cartesian shape;
+    private OrderedNDShape shape;   // null for scalar
     private String type;
     private boolean isStruct;
     private JComponent fullView;
@@ -34,21 +47,6 @@ public class HDSDataNode extends DefaultDataNode {
      */
     public static final int MAX_CHILDREN_PER_ARRAY = 50;
 
-    /**
-     * The maximum number of cells allowed in an array for browsing in
-     * an ArrayBrowser (JTable).  Not sure if high numbers will cause 
-     * trouble?  JTable may be smart enough that they don't.
-     */
-    public static final int MAX_TABLE_CELLS = Integer.MAX_VALUE;
-
-    /**
-     * The maximum number of cells of an array of primitives to be 
-     * displayed in the detail viewer - more could be unwieldy.
-     * Actually this doesn't need to be either static or final, it just
-     * feels like a constant.
-     */
-    public static final int MAX_ELEMENTS_PER_ARRAY = 10;
-
 
     /**
      * Constructs an HDSDataNode from an HDSObject.
@@ -57,9 +55,19 @@ public class HDSDataNode extends DefaultDataNode {
         try {
             this.hobj = hobj;
             this.type = hobj.datType();
-            this.shape = new Cartesian( hobj.datShape() );
             this.name = hobj.datName();
             this.isStruct = hobj.datStruc();
+            long[] dims = hobj.datShape();
+            int ndim = dims.length;
+            if ( ndim > 0 ) {
+                long[] origin = new long[ ndim ];
+                Arrays.fill( origin, 1L );
+                this.shape = 
+                    new OrderedNDShape( origin, dims, Order.COLUMN_MAJOR );
+            }
+            else {
+                this.shape = null;
+            }
         }
         catch ( HDSException e ) {
             throw new NoSuchDataException( e.getMessage() );
@@ -144,8 +152,8 @@ public class HDSDataNode extends DefaultDataNode {
         catch ( HDSException e ) {
             throw new RuntimeException( "Unexpected HDS error" );
         }
-        return ( isStruct && shape.getNdim() == 0 )
-            || ( isStruct && shape.numCells() < MAX_CHILDREN_PER_ARRAY );
+        return ( isStruct && shape == null )
+            || ( isStruct && shape.getNumPixels() < MAX_CHILDREN_PER_ARRAY );
     }
 
     /**
@@ -160,7 +168,7 @@ public class HDSDataNode extends DefaultDataNode {
         DataNode[] children;
 
         /* If it's a scalar structure, its children are its components. */
-        if ( isStruct && shape.getNdim() == 0 ) {
+        if ( isStruct && shape == null ) {
             int nChildren;
             try {
                 nChildren = hobj.datNcomp();
@@ -184,25 +192,26 @@ public class HDSDataNode extends DefaultDataNode {
             }
         }
 
-        /* If it's a vector structure, its children are its elements. */
-        else if ( isStruct && shape.numCells() < MAX_CHILDREN_PER_ARRAY ) {
-            int nChildren = (int) shape.numCells();
+        /* If it's an array structure, its children are its elements. */
+        else if ( isStruct && shape.getNumPixels() < MAX_CHILDREN_PER_ARRAY ) {
+            int nChildren = (int) shape.getNumPixels();
             children = new DataNode[ nChildren ];
-            Iterator cellIt = shape.cellIterator();
-            for ( int i = 0; cellIt.hasNext(); i++ ) {
-                Cartesian pos = (Cartesian) cellIt.next();
+            int ichild = 0;
+            for ( Iterator pit = shape.pixelIterator(); pit.hasNext(); ) {
+                long[] pos = (long[]) pit.next();
                 try {
-                    children[ i ] = 
-                        getChildMaker()
-                       .makeDataNode( hobj.datCell( pos.getCoords() ) );
+                    children[ ichild ] = getChildMaker()
+                                        .makeDataNode( hobj.datCell( pos ) );
                 }
                 catch ( HDSException e ) {
-                    children[ i ] = new DefaultDataNode( e );
+                    children[ ichild ] = new DefaultDataNode( e );
                 }
                 catch ( NoSuchDataException e ) {
-                    children[ i ] = new DefaultDataNode( e );
+                    children[ ichild ] = new DefaultDataNode( e );
                 }
-                children[ i ].setLabel( children[ i ].getName() + pos );
+                children[ ichild ].setLabel( children[ ichild ].getName() 
+                                           + NDShape.toString( pos ) );
+                ichild++;
             }
         }
         else {
@@ -213,28 +222,38 @@ public class HDSDataNode extends DefaultDataNode {
     }
 
     public String getDescription() {
-        String descrip;
-        descrip = shape.toString() + "  <" + type + ">";
-        if ( ! isStruct && shape.getNdim() == 0 ) {
+        StringBuffer descrip = new StringBuffer();
+        if ( shape != null ) {
+            descrip.append( NDShape.toString( shape.getDims() ) );
+        }
+
+        descrip.append( "  <" )
+               .append( type ) 
+               .append( ">" );
+        
+        if ( ! isStruct && shape == null ) {
             try {
                 if ( type.startsWith( "_CHAR" ) ) {
-                    descrip += "  \"" + hobj.datGet0c() + "\"";
+                    descrip.append( '"' )
+                           .append( hobj.datGet0c() )
+                           .append( '"' );
                 }
                 else {
-                    descrip += "  " + hobj.datGet0c();
+                    descrip.append( "  " )
+                           .append( hobj.datGet0c() );
                 }
             }
             catch ( HDSException e ) {
-                descrip += "  ???";
+                descrip.append( "  ???" );
             }
         }
-        return descrip;
+        return descrip.toString();
     }
 
     public Icon getIcon() {
         return allowsChildren() 
             ? iconMaker.getIcon( IconFactory.STRUCTURE )
-            : iconMaker.getArrayIcon( shape.getNdim() );
+            : iconMaker.getArrayIcon( shape != null ? shape.getNumDims() : 0 );
     }
 
     public String getName() {
@@ -269,17 +288,23 @@ public class HDSDataNode extends DefaultDataNode {
             else {
                 dv.addKeyedItem( "Data type", type );
             }
-            int ndim = shape.getNdim();
-            dv.addKeyedItem( "Dimensions", Integer.toString( ndim ) );
-            if ( ndim > 0 ) {
-                String dims = "";
-                for ( int i = 0; i < shape.getNdim(); i++ ) {
-                   dims += shape.getCoord( i )
-                         + ( ( i + 1 < shape.getNdim() ) ? " x " : "" );
+
+            /* It's an array of some kind. */
+            if ( shape != null ) {
+                long[] dims = shape.getDims();
+                dv.addKeyedItem( "Dimensions", "" + dims.length );
+                StringBuffer sdims = new StringBuffer();
+                for ( int i = 0; i < dims.length; i++ ) {
+                    if ( i > 0 ) {
+                        sdims.append( " x " );
+                    }
+                    sdims.append( dims[ i ] );
                 }
-                dv.addKeyedItem( "Shape", dims );
+                dv.addKeyedItem( "Shape", sdims.toString() );
             }
-            if ( ndim == 0 && ! isStruct ) {
+
+            /* It's a scalar. */
+            if ( shape == null && ! isStruct ) {
                 dv.addSeparator();
                 String value;
                 try {
@@ -290,123 +315,27 @@ public class HDSDataNode extends DefaultDataNode {
                 }
                 dv.addKeyedItem( "Value", value );
             }
-            if ( ndim > 0 && ! isStruct ) {
-                addDataViews( dv, hobj, null );
+
+            /* If it's a numeric primitive array, turn it into an NDArray and
+             * let NDArrayDataNode do the work. */
+            try {
+                if ( shape != null && ! isStruct 
+                     && HDSType.fromName( type ) != null ) {
+                    NDArray nda = HDSArrayBuilder.getInstance()
+                                 .makeNDArray( new ArrayStructure( hobj ),
+                                               AccessMode.READ );
+                    NDArrayDataNode.addDataViews( dv, nda, null );
+                }
+            }
+            catch ( HDSException e ) {
+                dv.logError( e );
+            }
+            catch ( IOException e ) {
+                dv.logError( e );
             }
         }
         return fullView;
     }
 
-    public Cartesian getShape() {
-        return shape;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    protected Buffer getNioBuf( HDSObject obj ) throws HDSException {
-        if ( niobuf == null ) {
-            String maptype = obj.datType();
-            if ( maptype.equals( "_UBYTE" ) ) {
-                maptype = "_WORD";
-            }
-            else if ( maptype.equals( "_UWORD" ) ) {
-                maptype = "_INTEGER";
-            }
-            niobuf = obj.datMapv( maptype, "READ" );
-        }
-        return niobuf;
-    }
-
-    private Number getBadValue( HDSObject obj ) throws HDSException {
-        String htype = obj.datType();
-        if ( htype.equals( "_BYTE" ) ) {
-            return new Byte( (byte) 0x80 );
-        }
-        else if ( htype.equals( "_UBYTE" ) ) {
-            return new Short( (short) (byte) 0xff );
-        }
-        else if ( htype.equals( "_WORD" ) ) {
-            return new Short( (short) 0x8000 );
-        }
-        else if ( htype.equals( "_UWORD" ) ) {
-            return new Integer( (int) (short) 0xffff );
-        }
-        else if ( htype.equals( "_INTEGER" ) ) {
-            return new Integer( 0x80000000 );
-        }
-        else if ( htype.equals( "_REAL" ) ) {
-            return new Float( Float.intBitsToFloat( 0xff7fffff ) );
-        }
-        else if ( htype.equals( "_DOUBLE" ) ) {
-            return new Double( Double.longBitsToDouble( 0xffefffffffffffffL ) );
-        }
-        else {
-            // assert false;
-            return null;
-        }
-    }
-
-    protected void addDataViews( DetailViewer dv, final HDSObject dataobj, 
-                                 final Cartesian origin ) {
-        final Cartesian dataShape = getShape();
-        String dataType = getType();
-        int ndim = dataShape.getNdim();
-        if ( dataShape.numCells() > MAX_ELEMENTS_PER_ARRAY &&
-             dataShape.numCells() < MAX_TABLE_CELLS &&
-             ( dataType.equals( "_UBYTE" ) ||
-               dataType.equals( "_BYTE" ) ||
-               dataType.equals( "_UWORD" ) ||
-               dataType.equals( "_WORD" ) ||
-               dataType.equals( "_INTEGER" ) ||
-               dataType.equals( "_REAL" ) ||
-               dataType.equals( "_DOUBLE" ) ) ) {
-            dv.addPane( "Array data", new ComponentMaker() {
-                public JComponent getComponent() throws HDSException {
-                    return new ArrayBrowser( getNioBuf( dataobj ),
-                                             getBadValue( dataobj ),
-                                             origin, dataShape );
-                }
-            } );
-            if ( ndim == 1 ) {
-                dv.addPane( "Graph view", new ComponentMaker() {
-                    public JComponent getComponent() throws HDSException,
-                                                            SplatException {
-                        long start = ( origin == null ) ? 1 
-                                                        : origin.getCoord( 0 );
-                        return new SpectrumViewer( dataobj, start, getName() );
-                    }
-                } );
-            }
-            if ( ndim == 2 ) {
-                dv.addPane( "Image view", new ComponentMaker() {
-                    public JComponent getComponent() throws HDSException {
-                        return new ImageViewer( getNioBuf( dataobj ), 
-                                                dataShape );
-                    }
-                } );
-            }
-        }
-        else {
-            dv.addSubHead( "Values" );
-            Iterator elit = dataShape.cellIterator();
-            int nel = 0;
-            while ( elit.hasNext() && nel++ < MAX_ELEMENTS_PER_ARRAY ) {
-                Cartesian pos = (Cartesian) elit.next();
-                String val;
-                try {
-                    val = dataobj.datCell( pos.getCoords() ).datGet0c();
-                }
-                catch ( HDSException e ) {
-                    val = e.toString();
-                }
-                dv.addText( pos.toString() + ":  " + val );
-            }
-            if ( elit.hasNext() ) {
-                dv.addText( "             . . . " );
-            }
-        }
-    }
 }
 

@@ -1,17 +1,17 @@
 package uk.ac.starlink.treeview;
 
-import java.nio.*;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.*;
+import java.io.IOException;
 import javax.swing.*;
 import javax.media.jai.PlanarImage;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.hdx.array.NDArray;
+import uk.ac.starlink.array.NDArray;
 import jsky.image.ImageProcessor;
 import jsky.image.gui.ImageDisplay;
 
@@ -24,60 +24,14 @@ import jsky.image.gui.ImageDisplay;
 class ImageViewer extends JPanel {
 
     /**
-     * Construct an image view from an NIO buffer without coordinate grids.
-     *
-     * @param  niobuf  a buffer containing the data
-     * @param  shape   the shape of the data to be displayed - must be 2-d
-     */
-    public ImageViewer( Buffer niobuf, Cartesian shape ) {
-        this( niobuf, shape, null, null );
-    }
-  
-    /**
-     * Construct an image view which may have a non-zero origin and optionally
-     * displays coordinate grids.
-     *
-     * @param  niobuf  a buffer containing the array data
-     * @param  shape   the shape of the data to be displayed - must be 2-d
-     * @param  origin  a 2-element array giving the pixel coords of the 
-     *                 data origin
-     * @param  wcs     an AST frameset containing coordinate information.
-     *                 May be null
-     */
-    public ImageViewer( Buffer niobuf, Cartesian shape, long[] origin,
-                        FrameSet wcs ) {
-        this( niobuf, shape, origin, wcs, 0, niobuf.limit() );
-    }
-
-    /**
-     * Construct an image view from part of an nio buffer; it may have
-     * a non-zero origin and optionall displays coordinate grids.
-     *
-     * @param  niobuf  a buffer containing the array data
-     * @param  shape   the shape of the data to be displayed - must be 2-d
-     * @param  origin  a 2-element array giving the pixel coords of the 
-     *                 data origin
-     * @param  wcs     an AST frameset containing coordinate information.
-     *                 May be null
-     * @param  start   the first element of the buffer to use
-     * @param  size    the number of elements of the buffer to use
-     */
-    public ImageViewer( Buffer niobuf, Cartesian shape, long[] origin, 
-                        FrameSet wcs, int start, int size ) {
-        this( new NioImage( niobuf, new int[] { (int) shape.getCoord( 0 ),
-                                                (int) shape.getCoord( 1 ) },
-                            start, size ),
-              origin, wcs );
-    }
-
-    /**
      * Construct an image view from an NDArray.
      *
      * @param  nda   a 2-dimensional readable NDArray with random access.
      * @param  wcs     an AST frameset containing coordinate information.
      *                 May be null
+     * @throws  IOException  if there is an error in data access
      */
-    public ImageViewer( NDArray nda, FrameSet wcs ) {
+    public ImageViewer( NDArray nda, FrameSet wcs ) throws IOException {
         this( new NDArrayImage( nda ), nda.getShape().getOrigin(), wcs );
     }
 
@@ -174,18 +128,11 @@ class ImageViewer extends JPanel {
         for ( int ix = 0; ix < pim.getWidth() / tx && ! done; ix++ ) {
             for ( int iy = 0; iy < pim.getHeight() / ty && ! done; iy++ ) {
                 Rectangle2D.Double samp = 
-                    new Rectangle2D.Double( (double) ix * tx,
-                                            (double) iy * tx, tx, ty );
-                try {
-                    ip.autoSetCutLevels( 95.0, samp );
-                    if ( ip.getLowCut() < ip.getHighCut() ) {
-                        done = true;
-                    }
-                }
-                catch ( ArrayIndexOutOfBoundsException e ) {
-                    // this happens when there are no good pixels
-                    // - I think.  Ignore it and progress to the
-                    // next tile
+                    new Rectangle2D.Double( (double) ix * tx, (double) iy * ty,
+                                            tx, ty );
+                ip.autoSetCutLevels( 98.0, samp );
+                if ( ip.getLowCut() < ip.getHighCut() ) {
+                    done = true;
                 }
             }
         }

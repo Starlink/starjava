@@ -1,11 +1,24 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
-import java.nio.Buffer;
-import javax.swing.*;
-import uk.ac.starlink.ast.*;
-import uk.ac.starlink.hds.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.ast.CmpMap;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.WinMap;
+import uk.ac.starlink.hds.ArrayStructure;
+import uk.ac.starlink.hds.HDSException;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.ndx.Ndx;
 
 /**
  * A {@link DataNode} representing an
@@ -25,8 +38,7 @@ public class NDFDataNode extends HDSDataNode {
     private static DataNodeFactory axisChildMaker;
 
     private HDSObject ndfobj;
-    private Cartesian shape;
-    private Cartesian origin;
+    private NDShape shape;
     private FrameSet wcs;
     private JComponent fullView;
     private DataNodeFactory childMaker;
@@ -40,9 +52,9 @@ public class NDFDataNode extends HDSDataNode {
     private String title;
     private String label;
     private String units;
-    private ARYDataNode dataArray;
-    private ARYDataNode varianceArray;
-    private ARYDataNode qualityArray;
+    private ArrayStructure dataArray;
+    private ArrayStructure varianceArray;
+    private ArrayStructure qualityArray;
     private byte qualityBadbits;
     private WCSDataNode wcsComponent;
     private HistoryDataNode historyComponent;
@@ -67,14 +79,12 @@ public class NDFDataNode extends HDSDataNode {
             name = ndfobj.datName();
             setLabel( name );
             shape = dataArray.getShape();
-            origin = dataArray.getOrigin();
 
             /* Get the other known array components, checking shapes
              * as we go. */
             varianceArray = getArrayComponent( "VARIANCE" );
             if ( varianceArray != null && 
-               ( ! varianceArray.getShape().equals( shape ) ||
-                 ! varianceArray.getOrigin().equals( origin ) ) ) {
+                 ! varianceArray.getShape().equals( shape ) ) {
                 throw new NoSuchDataException( 
                     "DATA and VARIANCE components have different shapes" );
             }
@@ -82,7 +92,8 @@ public class NDFDataNode extends HDSDataNode {
             if ( ndfobj.datThere( "QUALITY" ) ) {
                 try {
                     HDSObject qobj = ndfobj.datFind( "QUALITY" );
-                    qualityArray = new ARYDataNode( qobj.datFind( "QUALITY" ) );
+                    qualityArray =
+                        new ArrayStructure( qobj.datFind( "QUALITY" ) );
                     if ( qobj.datThere( "BADBITS" ) ) {
                         HDSObject qbb = qobj.datFind( "BADBITS" );
                         qualityBadbits = (byte) qbb.datGet0i();
@@ -92,8 +103,7 @@ public class NDFDataNode extends HDSDataNode {
                 }
             }
             if ( qualityArray != null &&
-                 ( ! qualityArray.getShape().equals( shape ) ||
-                   ! qualityArray.getOrigin().equals( origin ) ) ) {
+                 ! qualityArray.getShape().equals( shape ) ) {
                 throw new NoSuchDataException(
                     "DATA and QUALITY components have different shapes" );
             }
@@ -129,16 +139,17 @@ public class NDFDataNode extends HDSDataNode {
 
                     /* Remap a PIXEL Frame correctly using the GRID Frame 
                      * and the origin offset. */
-                    int ndim = shape.getNdim();
+                    int ndim = shape.getNumDims();
                     double[] ina = new double[ ndim ];
                     double[] inb = new double[ ndim ];
                     double[] outa = new double[ ndim ];
                     double[] outb = new double[ ndim ];
+                    long[] origin = shape.getOrigin();
                     for ( int i = 0; i < ndim; i++ ) {
                         ina[ i ] = 0.0;
                         inb[ i ] = 1.0;
-                        outa[ i ] = ina[ i ] + origin.getCoord( i ) - 1.5;
-                        outb[ i ] = inb[ i ] + origin.getCoord( i ) - 1.5;
+                        outa[ i ] = ina[ i ] + origin[ i ] - 1.5;
+                        outb[ i ] = inb[ i ] + origin[ i ] - 1.5;
                     }
                     Mapping pmap = 
                         new CmpMap( wcs.getMapping( PIXEL_FRAME, GRID_FRAME ),
@@ -245,15 +256,15 @@ public class NDFDataNode extends HDSDataNode {
                 used.add( "UNITS" );
             }
             if ( dataArray != null ) {
-                clist.add( dataArray );
+                clist.add( getChildMaker().makeDataNode( dataArray ) );
                 used.add( "DATA_ARRAY" );
             }
             if ( varianceArray != null ) {
-                clist.add( varianceArray );
+                clist.add( getChildMaker().makeDataNode( varianceArray ) );
                 used.add( "VARIANCE" );
             }
             if ( qualityArray != null ) {
-                clist.add( qualityArray );
+                clist.add( getChildMaker().makeDataNode( qualityArray ) );
                 used.add( "QUALITY" );
             }
             if ( wcsComponent != null ) {
@@ -301,7 +312,7 @@ public class NDFDataNode extends HDSDataNode {
 
 
     public String getDescription() {
-        return shape.shapeDescriptionWithOrigin( origin );
+        return NDShape.toString( shape );
     }
 
     public Icon getIcon() {
@@ -336,7 +347,7 @@ public class NDFDataNode extends HDSDataNode {
         if ( fullView == null ) {
             DetailViewer dv = new DetailViewer( this );
             dv.addSeparator();
-            int ndim = shape.getNdim();
+            int ndim = shape.getNumDims();
             if ( title != null ) {
                 dv.addKeyedItem( "Title", title );
             }
@@ -346,16 +357,15 @@ public class NDFDataNode extends HDSDataNode {
             if ( units != null ) {
                 dv.addKeyedItem( "Units", units );
             }
-            dv.addKeyedItem( "Dimensions", 
-                             Integer.toString( ndim ) );
-            String dims = "";
-            for ( int i = 0; i < ndim; i++ ) {
-                dims += new Long( shape.getCoord( i ) ).toString()
-                      + ( ( i + 1 < ndim ) ? " x " : "" );
-            }
-            dv.addKeyedItem( "Shape", dims );
+
+            dv.addSeparator();
+            dv.addKeyedItem( "Dimensionality", "" + ndim );
+            dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
+            dv.addKeyedItem( "Dimensions",
+                             NDShape.toString( shape.getDims() ) );
             dv.addKeyedItem( "Pixel bounds",
-                             shape.shapeDescriptionWithOrigin( origin ) );
+                             NDArrayDataNode.boundsString( shape ) );
+
             describeArrayInDetailViewer( dv, "Data component", 
                                              dataArray );
             describeArrayInDetailViewer( dv, "Variance component", 
@@ -390,27 +400,19 @@ public class NDFDataNode extends HDSDataNode {
                     dv.addText( e.toString() );
                 }
             }
-            if ( wcsComponent != null && ndim == 2 ) {
-                dv.addPane( "WCS grids",
-                            new ComponentMaker() {
-                                public JComponent getComponent() {
-                                    return 
-                                        new GridPlotter( 200,
-                                                         shape.getCoords(),
-                                                         wcs );
-                                }
-                            } );
+
+            try {
+                Ndx ndx = NDFNdxHandler.getInstance()
+                         .makeNdx( ndfobj, AccessMode.READ );
+                NdxDataNode.addDataViews( dv, ndx );
             }
-            if ( ndim == 2 ) {
-                dv.addPane( "Image view", new ComponentMaker() {
-                    public JComponent getComponent() throws HDSException {
-                        Buffer niobuf = dataArray
-                                       .getNioBuf( dataArray.getData() );
-                        return new ImageViewer( niobuf, shape, 
-                                                origin.getCoords(), wcs );
-                    }
-                } );
+            catch ( HDSException e ) {
+                dv.logError( e );
             }
+            catch ( IOException e ) {
+                dv.logError( e );
+            }
+
             fullView = dv.getComponent();
         }
         return fullView;
@@ -444,11 +446,11 @@ public class NDFDataNode extends HDSDataNode {
     }
 
     private void describeArrayInDetailViewer( DetailViewer dv, String name,
-                                              ARYDataNode aryNode ) {
-        if ( aryNode != null ) {
+                                              ArrayStructure ary ) {
+        if ( ary != null ) {
             dv.addSubHead( name );
-            dv.addKeyedItem( "Type", aryNode.getType() );
-            dv.addKeyedItem( "Variant", aryNode.getVariant() );
+            dv.addKeyedItem( "Type", ary.getType().toString() );
+            dv.addKeyedItem( "Variant", ary.getStorage() );
         }
     }
 
@@ -473,14 +475,13 @@ public class NDFDataNode extends HDSDataNode {
     }
 
     /*
-     * Returns null if no array component by this name exists or if any
-     * error results in looking for it.
+     * Returns null if no array component by this name exists.
      */
-    private ARYDataNode getArrayComponent( String name ) 
+    private ArrayStructure getArrayComponent( String name ) 
             throws NoSuchDataException {
         try {
             if ( ndfobj.datThere( name ) ) {
-                return new ARYDataNode( ndfobj.datFind( name ) );
+                return new ArrayStructure( ndfobj.datFind( name ) );
             }
             else {
                 return null;

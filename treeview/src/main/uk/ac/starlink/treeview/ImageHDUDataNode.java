@@ -1,20 +1,27 @@
 package uk.ac.starlink.treeview;
 
 import java.io.IOException;
-import java.util.*;
-import javax.swing.*;
-import nom.tam.fits.*;
-import nom.tam.util.*;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Iterator;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import nom.tam.fits.BasicHDU;
+import nom.tam.fits.FitsException;
+import nom.tam.fits.Header;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.BridgeNDArray;
+import uk.ac.starlink.array.MouldArrayImpl;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.Mapping;
-import uk.ac.starlink.ast.PermMap;
 import uk.ac.starlink.ast.SkyFrame;
+import uk.ac.starlink.fits.FitsArrayBuilder;
+import uk.ac.starlink.fits.MappedFile;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -31,17 +38,12 @@ public class ImageHDUDataNode extends HDUDataNode {
     private String hduType;
     private JComponent fullview;
     private Header header;
-    private Cartesian shape;
-    private Cartesian effectiveShape;
+    private NDShape shape;
     private final String dataType;
     private String blank;
     private BufferMaker bufmaker;
     private Number badval;
     private FrameSet wcs;
-    private FrameSet wcs2;
-    private FrameSet wcsSlice;
-    private double[] lower2;
-    private double[] upper2;
     private String wcsEncoding;
 
     /**
@@ -51,11 +53,12 @@ public class ImageHDUDataNode extends HDUDataNode {
      * @param   hdr  a FITS header object
      *               from which the node is to be created.
      * @param   bufmaker  an object capable of constructing the NIO buffer
-     *          containing the data on demand
+     *          containing the header+data on demand
      */
     public ImageHDUDataNode( Header hdr, BufferMaker bufmaker )
             throws NoSuchDataException {
         super( hdr );
+
         this.header = hdr;
         this.bufmaker = bufmaker;
         hduType = getHduType();
@@ -64,9 +67,9 @@ public class ImageHDUDataNode extends HDUDataNode {
         }
 
         long[] axes = getDimsFromHeader( hdr );
-        if ( axes != null && axes.length > 0 ) {
-            shape = new Cartesian( axes );
-            effectiveShape = effectiveShape( shape );
+        int ndim = axes.length;
+        if ( axes != null && ndim > 0 ) {
+            shape = new NDShape( new long[ ndim ], axes );
         }
 
         boolean hasBlank = hdr.containsKey( "BLANK" );
@@ -97,14 +100,6 @@ public class ImageHDUDataNode extends HDUDataNode {
                     badval = new Integer( val );
                 }
                 break;
-            case BasicHDU.BITPIX_LONG:
-                dataType = "long";
-                if ( hasBlank ) {
-                    long val = hdr.getLongValue( "BLANK" );
-                    blank = "" + val;
-                    badval = new Long( val );
-                }
-                break;
             case BasicHDU.BITPIX_FLOAT:
                 dataType = "float";
                 blank = null;
@@ -113,6 +108,9 @@ public class ImageHDUDataNode extends HDUDataNode {
                 dataType = "double";
                 blank = null;
                 break;
+            case BasicHDU.BITPIX_LONG:
+                throw new NoSuchDataException(
+                    "64-bit integers not supported by FITS" );
             default:
                 dataType = null;
         }
@@ -133,65 +131,17 @@ public class ImageHDUDataNode extends HDUDataNode {
             FitsChan chan = new FitsChan( lineIt );
             wcsEncoding = chan.getEncoding();
             AstObject aobj = chan.read();
-            wcs2 = null;
             if ( aobj != null && aobj instanceof FrameSet ) {
                 wcs = (FrameSet) aobj;
-
-                /* See if there are any degenerate dimensions we can strip
-                 * out to get a 2-d frame for display. */
-                int ndim = shape.getNdim();
-                if ( ndim > 2 ) {
-                    try {
-                        int baseNdim = wcs.getFrame( FrameSet.AST__BASE )
-                                          .getNaxes();
-                        double[] baseLo = new double[ baseNdim ];
-                        double[] baseHi = new double[ baseNdim ];
-                        for ( int i = 0; i < ndim; i++ ) {
-                            baseLo[ i ] = 0.5;
-                            baseHi[ i ] = shape.getCoords()[ i ] - 0.5;
-                        }
-                        wcs2 = significantAxes( wcs, baseLo, baseHi ); 
-                        if ( wcs2.getFrame( FrameSet.AST__CURRENT )
-                                 .getNaxes() == 2 ) {
-                            lower2 = new double[] { baseLo[ 0 ], baseLo[ 1 ] };
-                            upper2 = new double[] { baseHi[ 0 ], baseHi[ 1 ] };
-                        }
-                        else {
-                            wcs2 = null;
-                        }
-                    }
-                    catch ( AstException e ) {
-                        wcs2 = null;
-                    }
-                    try {
-                        wcsSlice = (FrameSet) wcs.copy();
-                        int[] picker = new int[] { 1, 2 };
-                        Mapping[] bmap = new Mapping[ 1 ];
-                        Mapping[] cmap = new Mapping[ 1 ];
-                        Frame bfrm = wcsSlice.getFrame( FrameSet.AST__BASE )
-                                             .pickAxes( 2, picker, bmap );
-                        Frame cfrm = wcsSlice.getFrame( FrameSet.AST__CURRENT )
-                                             .pickAxes( 2, picker, cmap );
-                        int icur = wcsSlice.getCurrent();
-                        wcsSlice.addFrame( FrameSet.AST__BASE, 
-                                           bmap[ 0 ], bfrm );
-                        wcsSlice.setBase( FrameSet.AST__CURRENT );
-                        wcsSlice.addFrame( icur, cmap[ 0 ], cfrm );
-                    }
-                    catch ( AstException e ) {
-                        wcsSlice = null;
-                    }
-                }
             }
             else {
                 wcsEncoding = null;
                 wcs = null;
-                wcs2 = null;
             }
         }
         catch ( AstException e ) {
+            wcsEncoding = null;
             wcs = null;
-            wcs2 = null;
         }
 
         description = "(" + hduType
@@ -227,7 +177,7 @@ public class ImageHDUDataNode extends HDUDataNode {
         if ( icon == null ) {
             if ( shape != null ) {
                 icon = IconFactory.getInstance()
-                                  .getArrayIcon( shape.getNdim() );
+                                  .getArrayIcon( shape.getNumDims() );
             }
             else {
                 icon = IconFactory.getInstance()
@@ -278,75 +228,19 @@ public class ImageHDUDataNode extends HDUDataNode {
                 }
             } );
             if ( shape != null && bufmaker != null ) {
-                final int ndim = shape.getNdim();
-                final int endim = effectiveShape.getNdim();
-                dv.addPane( "Array data", new ComponentMaker() {
-                    public JComponent getComponent() throws IOException {
-                        Buffer niobuf = typedBuffer( bufmaker.makeBuffer() );
-                        Cartesian origin = new Cartesian( endim );
-                        return new ArrayBrowser( niobuf, badval, 
-                                                 origin, effectiveShape );
+                try {
+                    ByteBuffer bbuf = bufmaker.makeBuffer();
+                    MappedFile mf = new MappedFile( bbuf );
+                    NDArray nda = FitsArrayBuilder.getInstance()
+                                 .makeNDArray( mf, AccessMode.READ );
+                    if ( ! nda.getShape().equals( shape ) ) {
+                        nda = new BridgeNDArray( 
+                            new MouldArrayImpl( nda, shape ) );
                     }
-                } );
-                if ( endim == 1 ) {
-                    dv.addPane( "Graph view", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException,
-                                                                SplatException {
-                            Buffer niobuf = 
-                                typedBuffer( bufmaker.makeBuffer() );
-                            return new SpectrumViewer( niobuf, 0L, name );
-                        }
-                    } );
+                    NDArrayDataNode.addDataViews( dv, nda, wcs );
                 }
-                if ( ndim == 2 && wcs != null ) {
-                    dv.addPane( "WCS grid", new ComponentMaker() {
-                        public JComponent getComponent() {
-                            return new GridPlotter( 200, shape.getCoords(),
-                                                    wcs );
-                        }
-                    } );
-                }
-                else if ( wcs2 != null ) {
-                    dv.addPane( "WCS grid", new ComponentMaker() {
-                        public JComponent getComponent() {
-                            return new GridPlotter( 200, lower2, upper2, wcs2 );
-                        }
-                    } );
-                }
-                if ( ndim == 2 ) {
-                    dv.addPane( "Image view", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            Buffer niobuf = 
-                                    typedBuffer( bufmaker.makeBuffer() );
-                            return new ImageViewer( niobuf, shape, 
-                                                    new long[] { 0L, 0L },
-                                                    wcs );
-                        }
-                    } );
-                }
-                else if ( endim == 2 ) {
-                    dv.addPane( "Image view", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            Buffer niobuf = 
-                                typedBuffer( bufmaker.makeBuffer() );
-                            return new ImageViewer( niobuf, effectiveShape,
-                                                    new long[] { 0L, 0L },
-                                                    wcs2 );
-                        }
-                    } );
-                }
-                else if ( ndim > 2 ) {
-                    dv.addPane( "Slice view", new ComponentMaker2() {
-                        public JComponent[] getComponents() throws Exception {
-                            Buffer niobuf =
-                                typedBuffer( bufmaker.makeBuffer() );
-                            long[] origin = new long[ shape.getNdim() ];
-                            ComponentMaker2 cv = 
-                                new CubeViewer( niobuf, shape, origin, 
-                                                wcsSlice );
-                            return cv.getComponents();
-                        }
-                    } );
+                catch ( IOException e ) {
+                    dv.logError( e );
                 }
             }
         }
@@ -384,166 +278,5 @@ public class ImageHDUDataNode extends HDUDataNode {
             return null;
         }
     }
-
-    private Buffer typedBuffer( ByteBuffer buf ) {
-        if ( dataType == "byte" ) {
-            return buf;
-        }
-        else if ( dataType == "short" ) {
-            return buf.asShortBuffer();
-        }
-        else if ( dataType == "int" ) {
-            return buf.asIntBuffer();
-        }
-        else if ( dataType == "long" ) {
-            return buf.asLongBuffer();
-        }
-        else if ( dataType == "float" ) {
-            return buf.asFloatBuffer();
-        }
-        else if ( dataType == "double" ) {
-            return buf.asDoubleBuffer();
-        }
-        else {
-            // assert false;
-            return null; 
-        }
-    }
-
-    /**
-     * Gets the effective shape of this FITS array - one in which any
-     * degenerate axes are ignored. 
-     */
-    private static Cartesian effectiveShape( Cartesian shape ) {
-        int isig = 0;
-        long[] coords = shape.getCoords();
-        long[] coords1 = new long[ coords.length ];
-        for ( int i = 0; i < coords.length; i++ ) {
-            if ( coords[ i ] > 1 ) {
-                coords1[ isig++ ] = coords[ i ];
-            }
-        }
-        long[] coords2 = new long[ isig ];
-        System.arraycopy( coords1, 0, coords2, 0, isig );
-        return new Cartesian( coords2 );
-    }
-
-    /**
-     * Returns a new FrameSet based on an old one in which any significant
-     * (non-degenerate) axes are removed.  A degenerate axis is one 
-     * which corresponds to no width.
-     * The base frame and current frame are both doctored in a similar 
-     * fashion.
-     * <p>
-     * Most of the algorithm is nicked from the KAPLIBS routine KPG1_ASSIG.
-     *
-     * @param   fset    the basic frameset
-     * @param   baseLo  the lower bounds of the base frame of fset.
-     *                  On exit, the significant lower bounds will form the
-     *                  first nsig few elements of the array, if there are 
-     *                  nsig non-degenerate axes in the returned frameset
-     *                  base frame
-     * @param   baseHi  the upper bounds of the base frame of fset
-     *                  On exit, the significant upper bounds will form the
-     *                  first nsig few elements of the array, if there are 
-     *                  nsig non-degenerate axes in the returned frameset
-     *                  base frame
-     * @return    a new FrameSet same as fset but containing only 
-     *            the significant axes in the current and base frames.
-     */
-    private static FrameSet significantAxes( FrameSet fset,
-                                             double[] baseLo, double[] baseHi ){
-
-        /* Find the significant axes in the base frame. */
-        int baseNdim = fset.getFrame( FrameSet.AST__BASE ).getNaxes();
-        int baseNsig = 0;
-        int baseNinsig = 0;
-        int[] baseInprm = new int[ baseNdim ];
-        int[] baseOutprm = new int[ baseNdim ];
-        double[] baseAxval = new double[ baseNdim ];
-        for ( int i = 0; i < baseNdim; i++ ) {
-            if ( areSame( baseLo[ i ], baseHi[ i ] ) ) {
-                baseNinsig++;
-                baseInprm[ i ] = -baseNinsig;
-                baseAxval[ baseNinsig - 1 ] = 0.5 * ( baseLo[ i ] 
-                                                    + baseHi[ i ] );
-            }
-            else {
-                baseNsig++;
-                baseInprm[ i ] = baseNsig;
-                baseOutprm[ baseNsig - 1 ] = i + 1;
-            }
-        }
-        
-        /* Find the significant axes in the current frame. */
-        int currNdim = fset.getFrame( FrameSet.AST__CURRENT ).getNaxes();
-        Mapping map = fset.getMapping( FrameSet.AST__BASE, 
-                                       FrameSet.AST__CURRENT )
-                          .simplify();
-        int currNinsig = 0;
-        int currNsig = 0;
-        int[] currInprm = new int[ currNdim ];
-        int[] currOutprm = new int[ currNdim ];
-        double[] currAxval = new double[ currNdim ];
-        for ( int i = 0; i < currNdim; i++ ) {
-            double[] bounds = map.mapBox( baseLo, baseHi, true, i + 1, 
-                                          null, null );
-            double lo = bounds[ 0 ];
-            double hi = bounds[ 1 ];
-            if ( areSame( lo, hi ) ) {
-                currNinsig++;
-                currInprm[ i ] = -currNinsig;
-                currAxval[ currNinsig - 1 ] = 0.5 * ( hi + lo );
-            }
-            else {
-                currNsig++;
-                currInprm[ i ] = currNsig;
-                currOutprm[ currNsig - 1 ] = i + 1;
-            }
-        }
-
-
-        FrameSet fset2 = (FrameSet) fset.copy();
-        if ( baseNinsig > 0 && baseNinsig == currNinsig ) {
-
-            /* Add a new base frame */
-            Mapping basePmap = new PermMap( baseNdim, baseInprm, baseNsig,
-                                            baseOutprm, baseAxval );
-            uk.ac.starlink.ast.Frame basePfrm =
-                fset2.getFrame( FrameSet.AST__BASE )
-                     .pickAxes( baseNsig, baseOutprm, null );
-            int ifcurr = fset2.getCurrent();
-            fset2.addFrame( FrameSet.AST__BASE, basePmap, basePfrm );
-            fset2.setBase( FrameSet.AST__CURRENT );
-            fset2.setCurrent( ifcurr );
-
-            /* Add a new current frame. */
-            Mapping currPmap = new PermMap( currNdim, currInprm, currNsig, 
-                                            currOutprm, currAxval );
-            uk.ac.starlink.ast.Frame currPfrm = 
-                fset2.getFrame( FrameSet.AST__CURRENT )
-                     .pickAxes( currNsig, currOutprm, null );
-            fset2.addFrame( FrameSet.AST__CURRENT, currPmap, currPfrm );
-
-            /* Set the output base frame bounds. */
-            double[] oldLo = (double[]) baseLo.clone();
-            double[] oldHi = (double[]) baseHi.clone();
-            for ( int i = 0; i < baseNsig; i++ ) {
-                baseLo[ i ] = oldLo[ baseOutprm[ i ] - 1 ];
-                baseHi[ i ] = oldHi[ baseOutprm[ i ] - 1 ];
-            }
-        }
-
-        return fset2;
-    }
-
-    private static final double EPS = 100.0 * Double.MIN_VALUE;
-
-    private static boolean areSame( double a, double b ) {
-        return Math.abs( a - b ) 
-             < EPS * Math.max( Math.abs( a ), Math.abs( b ) );
-    }
-
-  
 
 }

@@ -56,7 +56,12 @@ public class HDUDataNode extends DefaultDataNode {
         }   
         if ( hduType == null ) {
             if ( ImageHDU.isHeader( hdr ) ) {
-                hduType = "Image";
+                if ( hdr.findKey( "NAXIS" ) != null ) {
+                    hduType = "Image";
+                }
+                else {
+                    hduType = "primary";
+                }
             }
         }       
         if ( hduType == null ) {

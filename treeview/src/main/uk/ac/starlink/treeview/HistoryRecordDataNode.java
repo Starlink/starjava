@@ -1,8 +1,11 @@
 package uk.ac.starlink.treeview;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import uk.ac.starlink.array.Order;
+import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSException;
 
@@ -50,12 +53,20 @@ public class HistoryRecordDataNode extends DefaultDataNode {
                     dataset = ch.datGet0c();
                 }
                 else if ( cname.equals( "TEXT" ) ) {
-                    Cartesian shape = new Cartesian( ch.datShape() );
-                    text = new String[ (int) shape.numCells() ];
+
+                    /* Iterate over elements getting text strings. 
+                     * This will work regardless of text array shape 
+                     * (which is possibly overkill). */
+                    long[] dims = ch.datShape();
+                    long[] origin = new long[ dims.length ];
+                    Arrays.fill( origin, 1L );
+                    OrderedNDShape oshape = 
+                        new OrderedNDShape( origin, dims, Order.COLUMN_MAJOR );
+                    text = new String[ (int) oshape.getNumPixels() ];
                     int j = 0;
-                    for ( Iterator it = shape.cellIterator(); it.hasNext(); ) {
-                        text[ j++ ] = ch.datCell( ((Cartesian) it.next())
-                                                 .getCoords() )
+                    for ( Iterator it = oshape.pixelIterator(); 
+                          it.hasNext(); ) {
+                        text[ j++ ] = ch.datCell( (long[]) it.next() )
                                         .datGet0c();
                     }
                 }

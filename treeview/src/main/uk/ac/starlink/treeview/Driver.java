@@ -60,7 +60,7 @@ public class Driver {
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
         // nodeTypeFlags.put( "-xml", XMLDocumentDataNode.class );
         // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
-        // nodeTypeFlags.put( "-ndx", NDXDataNode.class );
+        nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
 
         /* Construct the usage message. */

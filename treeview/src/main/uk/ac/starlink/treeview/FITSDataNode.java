@@ -95,6 +95,7 @@ public class FITSDataNode extends DefaultDataNode {
             private int nchild = 0;
             public Object next() {
                 if ( hasNext() ) {
+                    long prepos = istrm.getFilePointer();
                     try {
                         Header hdr = new Header( istrm );
                         DataNode node = null;
@@ -117,10 +118,11 @@ public class FITSDataNode extends DefaultDataNode {
                             if ( ImageHDU.isHeader( hdr ) ) {
                                 BufferMaker bufmkr;
                                 if ( chan != null ) {
-                                    bufmkr = 
-                                        new BufferMaker( chan,
-                                                         istrm.getFilePointer(),
-                                                         getRawSize( hdr ) );
+                                    long postpos = istrm.getFilePointer();
+                                    int bufsiz = (int) ( getRawSize( hdr ) 
+                                                       + postpos - prepos );
+                                    bufmkr = new BufferMaker( chan, prepos,
+                                                              bufsiz );
                                 }
                                 else {
                                     bufmkr = null;

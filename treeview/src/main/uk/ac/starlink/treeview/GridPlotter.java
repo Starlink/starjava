@@ -1,9 +1,19 @@
 package uk.ac.starlink.treeview;
 
-import uk.ac.starlink.ast.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.Plot;
 
 /**
  * A Component which displays a coordinate grid and frame selection panel
@@ -20,17 +30,22 @@ public class GridPlotter extends JPanel {
      * @param  size  maximum linear dimension (larger of width and height) 
      *               of the plotting surface.  The Component itself will
      *               be larger because it will contain axis annotations
-     * @param  dims  a two-element array giving the shape of the base
-     *               frame of the supplied FrameSet
-     * @param  wcs   a FrameSet from which the Plot will be constructed.
+     * @param  shape  the shape of the base frame of the supplied FrameSet
+     * @param  wcs    a FrameSet from which the Plot will be constructed
      */
-    GridPlotter( int size, long[] dims, FrameSet wcs ) {
-        this( size, new double[] { 0.5, 0.5 }, 
-                    new double[] { dims[ 0 ] + 0.5, dims[ 1 ] + 0.5 }, wcs );
-    }
-
-    GridPlotter( int size, double[] lower, double[] upper, FrameSet wcs ) {
+    GridPlotter( int size, NDShape baseShape, FrameSet wcs ) {
         super( new BorderLayout() );
+
+        /* Get upper and lower limits on the actual plotting surface. */
+        int ndim = baseShape.getNumDims();
+        long[] lbnds = baseShape.getOrigin();
+        long[] ubnds = baseShape.getUpperBounds();
+        double[] lower = new double[ ndim ];
+        double[] upper = new double[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            lower[ i ] = (double) lbnds[ i ] - 0.5;
+            upper[ i ] = (double) ubnds[ i ] + 0.5;
+        }
 
         /* Check that this frameset is suitable to plot in 2 dimensions. */
         if ( lower.length == 2 && upper.length == 2 &&
