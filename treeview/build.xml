@@ -83,7 +83,7 @@
   <property name="version" value="2.0"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.treeview"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -237,11 +237,30 @@
   <extclasspath id="built.jarpath">
 
     <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
+       location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
+       location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
+    <pathelement
+       location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
+    <pathelement
+       location="${star.build.dir}/fits/lib/fits/fits.jar"/>
+    <pathelement
+       location="${star.build.dir}/jnihds/lib/jnihds/jnihds.jar"/>
+    <pathelement
+       location="${star.build.dir}/hds/lib/hds/hds.jar"/>
+    <pathelement
+       location="${star.build.dir}/ndx/lib/ndx/ndx.jar"/>
+    <pathelement
+       location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement
+       location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
+    <pathelement
+       location="${star.build.dir}/jaiutil/lib/jaiutil/jaiutil.jar"/>
+    <pathelement
+       location="${star.build.dir}/splat/lib/splat/splat.jar"/>
+    <pathelement
+       location="${star.build.dir}/axis/lib/axis/axis.jar"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- "Local" third party jars. Normally these will be kept in their
@@ -511,8 +530,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Main-Class" 
-                   value="uk.ac.starlink.treeview.Driver"/>
+        <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
            value="../array/array.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar"/>
       </manifest>
