@@ -247,9 +247,9 @@ public class SplatBrowser
     protected ArrayList specViewerFrames = null;
 
     /**
-     * X axis coordinate type viewer frame.
+     * Spectral coordinates viewer frame.
      */
-    protected SpecXCoordTypeFrame xCoordTypeFrame = null;
+    protected SpecCoordinatesFrame coordinatesFrame = null;
 
     /**
      * Whether the application is embedded. In this case application
@@ -782,15 +782,15 @@ public class SplatBrowser
         toolBar.add( viewerAction );
 
         //  Add an action to set the units of the X axis.
-        ImageIcon xCoordTypeImage =
+        ImageIcon specCoordsImage =
             new ImageIcon(ImageHolder.class.getResource("xunits.gif"));
-        LocalAction xCoordTypeAction =
-            new LocalAction( LocalAction.XCOORDTYPE_VIEWER,
-                             "View/modify X axis coordinate type",
-                             xCoordTypeImage, "View/modify the X axis" +
-                             " coordinate type of selected spectra");
-        viewMenu.add( xCoordTypeAction );
-        toolBar.add( xCoordTypeAction );
+        LocalAction specCoordsAction =
+            new LocalAction( LocalAction.SPECCOORDS_VIEWER,
+                             "View/modify spectral coordinates",
+                             specCoordsImage, "View/modify the spectral" +
+                             " coordinates of the selected spectra");
+        viewMenu.add( specCoordsAction );
+        toolBar.add( specCoordsAction );
 
         //  Add an action to cascade all the plot windows.
         JMenuItem cascade = new JMenuItem( "Cascade all plots" );
@@ -1949,33 +1949,33 @@ public class SplatBrowser
      * Display a window for viewing and possibly modifying the
      * coordinate type of the X axis.
      */
-    public void viewXCoordType()
+    public void viewSpecCoordinates()
     {
-        if ( xCoordTypeFrame == null ) {
-            xCoordTypeFrame = new SpecXCoordTypeFrame( specList );
+        if ( coordinatesFrame == null ) {
+            coordinatesFrame = new SpecCoordinatesFrame( specList );
 
             //  We'd like to know if the window is closed.
-            xCoordTypeFrame.addWindowListener( new WindowAdapter()
+            coordinatesFrame.addWindowListener( new WindowAdapter()
             {
                 public void windowClosed( WindowEvent evt )
                 {
-                    xCoordTypeClosed();
+                    specCoordinatesClosed();
                 }
             });
         }
         else {
-            Utilities.raiseFrame( xCoordTypeFrame );
-            xCoordTypeFrame.setSelectionFrom( specList );
+            Utilities.raiseFrame( coordinatesFrame );
+            coordinatesFrame.setSelectionFrom( specList );
         }
     }
 
     /**
-     * Animator window is closed.
+     * Window for viewing and modifying the spectral coordinates is closed.
      */
-    protected void xCoordTypeClosed()
+    protected void specCoordinatesClosed()
     {
         // Nullify if method for closing switches to dispose.
-        // xCoordTypeFrame = null;
+        // coordinatesFrame = null;
     }
 
     /**
@@ -2411,7 +2411,7 @@ public class SplatBrowser
         public static final int MULTI_DISPLAY = 7;
         public static final int ANIMATE_DISPLAY = 8;
         public static final int SPEC_VIEWER = 9;
-        public static final int XCOORDTYPE_VIEWER = 10;
+        public static final int SPECCOORDS_VIEWER = 10;
         public static final int SAVE_STACK = 11;
         public static final int READ_STACK = 12;
         public static final int REMOVE_SPECTRA = 13;
@@ -2499,8 +2499,8 @@ public class SplatBrowser
                }
                break;
 
-               case XCOORDTYPE_VIEWER: {
-                   viewXCoordType();
+               case SPECCOORDS_VIEWER: {
+                   viewSpecCoordinates();
                }
                break;
 

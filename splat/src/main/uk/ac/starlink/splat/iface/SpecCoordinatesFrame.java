@@ -61,7 +61,7 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class SpecXCoordTypeFrame
+public class SpecCoordinatesFrame
     extends JFrame
     implements ActionListener
 {
@@ -74,7 +74,7 @@ public class SpecXCoordTypeFrame
      * UI preferences.
      */
     private static Preferences prefs =
-        Preferences.userNodeForPackage( SpecXCoordTypeFrame.class );
+        Preferences.userNodeForPackage( SpecCoordinatesFrame.class );
 
     /**
      * A related JList that is displaying the global list of spectra.
@@ -348,7 +348,7 @@ public class SpecXCoordTypeFrame
      *                        JList those selection is to be copied to
      *                        our JList.
      */
-    public SpecXCoordTypeFrame( JList selectionSource )
+    public SpecCoordinatesFrame( JList selectionSource )
     {
         contentPane = (JPanel) getContentPane();
         initUI();
@@ -469,7 +469,7 @@ public class SpecXCoordTypeFrame
     {
         setTitle( Utilities.getTitle( "Coordinate system attributes" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        Utilities.setFrameLocation( this, null, prefs, "SpecXCoordTypeFrame" );
+        Utilities.setFrameLocation( this, null, prefs, "SpecCoordinatesFrame" );
         pack();
         setVisible( true );
     }
@@ -1035,7 +1035,7 @@ public class SpecXCoordTypeFrame
      */
     protected void closeWindowEvent()
     {
-        Utilities.saveFrameLocation( this, prefs, "SpecXCoordTypeFrame" );
+        Utilities.saveFrameLocation( this, prefs, "SpecCoordinatesFrame" );
         dispose();
     }
 
