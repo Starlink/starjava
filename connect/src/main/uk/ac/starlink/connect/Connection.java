@@ -3,6 +3,7 @@ package uk.ac.starlink.connect;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Represents a connection to a remote resource.
@@ -19,27 +20,51 @@ import java.util.Map;
 public abstract class Connection {
 
     private final Map keys_;
+    private final Connector connector_;
+    private boolean tidy_;
+    private LogoutThread shutdownHook_;
+    private static Logger logger_ = 
+        Logger.getLogger( "uk.ac.starlink.connect" );
 
     /**
-     * Constructor.
-     * The <tt>keys</tt> argument gives the set of authorization values
-     * which was used when opening this connection.
-     *
-     * @param   keys   AuthKey -> value map
+     * Constructs a connection with no information.
      */
-    protected Connection( Map keys ) {
+    protected Connection() {
+        this( null, new HashMap() );
+    }
+
+    /**
+     * Constructs a connection recording the circumstances under which
+     * it was created.
+     *
+     * @param   connector   Connector which generated this connection
+     * @param   keys   {@link AuthKey} -> value map giving the set of
+     *          authorization values used when opening this connection
+     */
+    protected Connection( Connector connector, Map keys ) {
+        connector_ = connector;
         keys_ = new HashMap( keys );
     }
 
     /**
      * Returns the value for a given authorization key used when opening
-     * this connection.
+     * this connection, if known
      *
      * @param  key  authorization key
-     * @return   value for <tt>key</tt> (of type <tt>key.getValueType()</tt>)
+     * @return   value for <tt>key</tt> (of type <tt>key.getValueType()</tt>),
+     *           or null
      */
     public Object getAuthValue( AuthKey key ) {
         return (String) keys_.get( key );
+    }
+
+    /**
+     * Returns the connector which generated this connection, if known.
+     *
+     * @return   connector, or null
+     */
+    public Connector getConnector() {
+        return connector_;
     }
 
     /**
@@ -65,4 +90,50 @@ public abstract class Connection {
      */
     public abstract Branch getRoot();
     
+    /**
+     * Controls whether an attempt is made to shut down this connection
+     * when the JVM exits if it has not been done within the program.
+     * If set true, at system exit if {@link #isConnected} returns true
+     * an attempt is made to call {@link #logOut}.  Note this might
+     * cause JVM shutdown to be prolonged.  This is set false by
+     * default.
+     *
+     * @param  tidy  true if you want this connection to be shut down on exit
+     */
+    public synchronized void setLogoutOnExit( boolean tidy ) {
+        if ( tidy && shutdownHook_ == null ) {
+            shutdownHook_ = new LogoutThread();
+            Runtime.getRuntime().addShutdownHook( shutdownHook_ );
+        }
+        else if ( ! tidy && shutdownHook_ != null ) {
+            Runtime.getRuntime().removeShutdownHook( shutdownHook_ );
+            shutdownHook_ = null;
+        }
+    }
+
+    public String toString() {
+        return connector_ == null ? super.toString()
+                                  : connector_.getName() + " connection";
+    }
+
+    /**
+     * Class which performs logging out on system shutdown.
+     */
+    private class LogoutThread extends Thread {
+        LogoutThread() {
+            super( "Logout from " + Connection.this.toString() );
+        }
+        public void run() {
+            if ( isConnected() ) {
+                logger_.info( "Logging out from " + 
+                              Connection.this.toString() );
+                try {
+                    logOut();
+                }
+                catch ( IOException e ) {
+                    logger_.warning( "Logout error: " + e.getMessage() );
+                }
+            }
+        }
+    }
 }
