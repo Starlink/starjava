@@ -1,0 +1,16 @@
+
+# Import the AXIS docs and webapps directories. May want to track
+# these as third party changes.
+
+#  The documents.
+cd docs
+#cvs import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1RC1
+cvs import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1_1
+
+#  And the real stuff, webapps. Note these are then copied/modified before
+#  inclusion in the "src/lib" directory.
+cd ..
+cd webapps
+#cvs import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1RC1
+cvs import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1_1
+
