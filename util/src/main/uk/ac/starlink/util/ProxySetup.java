@@ -4,6 +4,8 @@
  *  History:
  *     13-JUN-2003 (Peter W. Draper):
  *       Original version.
+ *     18-JUL-2003 (Peter W. Draper):
+ *       Added nonProxyHosts.
  */
 package uk.ac.starlink.util;
 
@@ -13,8 +15,8 @@ import java.util.prefs.Preferences;
  * A singleton class for controlling the configuration of the web
  * proxy system properties. The values are stored as Preferences
  * associated with this class and can be restored to the related
- * System properties "http.proxySet", "http.proxyHost" and
- * "http.proxyPort" and saved back again.
+ * System properties "http.proxySet", "http.proxyHost",
+ * "http.proxyPort" and nonProxyHosts and saved back again.
  * <p>
  * To enable any stored proxy setup just do:
  * <pre>
@@ -44,6 +46,7 @@ public class ProxySetup
     private final static String PROXYSET = "http.proxySet";
     private final static String PROXYHOST = "http.proxyHost";
     private final static String PROXYPORT = "http.proxyPort";
+    private final static String NONPROXYHOSTS = "http.nonProxyHosts";
 
     /**
      * Get a reference to the only instance of this class.
@@ -121,6 +124,25 @@ public class ProxySetup
     }
 
     /**
+     * Get the hosts that should not be proxied.
+     */
+    public String getNonProxyHosts()
+    {
+        return System.getProperty( NONPROXYHOSTS );
+    }
+
+    /**
+     * Set the hosts that shouldn't use the proxy. Note this is a list
+     * of names, separated by |, and possibly including a wildcard,
+     * e.g. "*.dur.ac.uk|localhost".
+     */
+    public void setNonProxyHosts( String nohosts )
+    {
+        prefs.put( NONPROXYHOSTS, nohosts );
+        System.setProperty( NONPROXYHOSTS, nohosts );
+    }
+
+    /**
      * Restore from backing store, updating the system properties.
      */
     public void restore()
@@ -136,6 +158,10 @@ public class ProxySetup
         String proxyPort = prefs.get( PROXYPORT, null );
         if ( proxyPort != null ) {
             System.setProperty( PROXYPORT, proxyPort );
+        }
+        String nonProxyHosts = prefs.get( NONPROXYHOSTS, null );
+        if ( nonProxyHosts != null ) {
+            System.setProperty( NONPROXYHOSTS, nonProxyHosts );
         }
     }
 
@@ -156,6 +182,11 @@ public class ProxySetup
         if ( proxyPort != null ) {
             prefs.put( PROXYPORT, proxyPort );
         }
+        String nonProxyHosts = getNonProxyHosts();
+        if ( nonProxyHosts != null ) {
+            prefs.put( NONPROXYHOSTS, nonProxyHosts );
+        }
+
         try {
             prefs.flush();
         }

@@ -9,6 +9,8 @@
  *       file "~/.splat/ProxyConfig.xml".
  *     17-JUN-2003 (Peter W. Draper):
  *       Refactored out of SPLAT and into UTIL.
+ *     18-JUL-2003 (Peter W. Draper):
+ *       Added nonProxyHosts.
  */
 package uk.ac.starlink.util.gui;
 
@@ -47,6 +49,8 @@ import uk.ac.starlink.util.ProxySetup;
  *       whether to use the proxy.</li>
  *   <li><tt>http.proxyHost</tt> The proxy server name.</li>
  *   <li><tt>http.proxyPort</tt> The proxy server port.</li>
+ *   <li><tt>http.nonProxyHosts</tt> A list of names that do not
+ *       require the proxy server (e.g. *.dur.ac.uk|localhost)</li>
  * </ul>
  * A typical invocation would follow the sequence:
  * <pre>
@@ -78,6 +82,7 @@ public class ProxySetupFrame
     protected JCheckBox needProxy = new JCheckBox();
     protected JTextField hostName = new JTextField( 15 );
     protected JTextField portNumber = new JTextField( 15 );
+    protected JTextField nonHostNames = new JTextField( 15 );
     protected JButton acceptButton = new JButton();
     protected JButton cancelButton = new JButton();
 
@@ -140,6 +145,13 @@ public class ProxySetupFrame
         layouter.add( portNumber, true );
 
         portNumber.setToolTipText( "Port number of proxy server, e.g. 8080" );
+
+        JLabel nonHostsLabel = new JLabel( "Do not proxy:" );
+        layouter.add( nonHostsLabel, false );
+        layouter.add( nonHostNames, true );
+
+        nonHostNames.setToolTipText
+            ( "List of names to not proxy, e.g, *.mydomain|*.other.domain|localhost" );
 
         //  Configure and place the Accept and Cancel buttons.
         JPanel buttonPanel = new JPanel();
@@ -214,6 +226,10 @@ public class ProxySetupFrame
         if ( proxyPort != null ) {
             portNumber.setText( proxyPort );
         }
+        String nonProxyHosts = proxySetup.getNonProxyHosts();
+        if ( nonProxyHosts != null ) {
+            nonHostNames.setText( nonProxyHosts );
+        }
         checkEntryStates();
     }
 
@@ -225,6 +241,7 @@ public class ProxySetupFrame
         proxySetup.setProxySet( needProxy.isSelected() );
         proxySetup.setProxyHost( hostName.getText() );
         proxySetup.setProxyPort( portNumber.getText() );
+        proxySetup.setNonProxyHosts( nonHostNames.getText() );
         checkEntryStates();
     }
 
@@ -236,6 +253,7 @@ public class ProxySetupFrame
     protected void checkEntryStates()
     {
         hostName.setEnabled( needProxy.isSelected() );
+        nonHostNames.setEnabled( needProxy.isSelected() );
         portNumber.setEnabled( needProxy.isSelected() );
     }
 
