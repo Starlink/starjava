@@ -478,10 +478,53 @@ public class FitsTableWriter implements StarTableWriter {
                     trans = new ArrayValueTranslator( new double[ nel ],
                                               new double[] { Double.NaN } );
                 }
+
+                /* Longs are slightly different - you can't write them to
+                 * FITS directly so we write them as Integers. */
+                else if ( clazz == Long.class ) {
+                    logger.warning( "Truncating type of column " + icol +
+                                    " from Long to Integer" );
+                    fchar = 'J';
+                    nbyte = 4;
+                    trans = new ValueTranslator() {
+                        int[] cell = new int[ 1 ];
+                        int[] blank = new int[] { 0 };
+                        public Object translate( Object base ) {
+                            if ( base == null ) {
+                                return blank;
+                            }
+                            cell[ 0 ] = ((Long) base).intValue();
+                            return cell;
+                        }
+                    };
+                }
+                else if ( clazz == long[].class ) {
+                    logger.warning( "Truncating type of column " + icol +
+                                    " from long[] to int[]" );
+                    fchar = 'J';
+                    nbyte = 4;
+                    final int fnel = nel;
+                    trans = new ValueTranslator() {
+                        private long[] fill = new long[ fnel ];
+                        private long[] cell = new long[ fnel ];
+                        public Object translate( Object base ) {
+                            if ( base == null ) {
+                                return fill;
+                            }
+                            long[] lbase = (long[]) base;
+                            for ( int i = 0; i < fnel; i++ ) {
+                                cell[ i ] = i < lbase.length ? (int) lbase[ i ]
+                                                             : 0;
+                            }
+                            return cell;
+                        }
+                    };
+                }
        
                 else {
                     useCols[ icol ] = false;
-                    logger.warning( "Can't write column of type " + clazz );
+                    logger.warning( "Can't write column " + icol + " of type "
+                                  + clazz );
                     fchar = '*';
                     nbyte = 0;
                     trans = null;
