@@ -118,6 +118,24 @@ public class NdxIO {
 
         /* Set the handler list for this object from the default list. */
         handlers = new ArrayList( defaultHandlers );
+
+        /* Find the file .stardev.properties in the user's home
+         * directory, if it exists, and read System properties from
+         * that.  Specifically, we might need to set
+         * http.proxyHost and http.proxyPort.  XXX Is this the best
+         * way/place/filename to use here??? */
+        try {
+            java.util.Properties sysprops = System.getProperties();
+            sysprops.load(new java.io.FileInputStream
+                          (sysprops.getProperty("user.home")
+                           + sysprops.getProperty("file.separator")
+                           + ".stardev.properties"));
+            logger.info("NdxIO: loaded properties from .stardev.properties");
+        } catch (FileNotFoundException e) {
+            // Do nothing -- no file is OK
+        } catch (IOException e) {
+            logger.warning("NdxIO: properties file .stardev.properties exists, but couldn't be read");
+        }
     }
 
     /**
