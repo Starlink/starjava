@@ -1273,8 +1273,8 @@ of match being performed.
 <p>The matching algorithm is therefore basically an <m>O(N)</m> process, 
 where <m>N</m> is the total number of rows in all the tables participating
 in a match.  This can break down however if the matching
-tolerance is such that the number of rows associated with some or most
-gets large, in which case an <m>O(M<sup>2</sup>)</m> compenent can come to
+tolerance is such that the number of rows associated with some or most bins
+gets large, in which case an <m>O(M<sup>2</sup>)</m> component can come to
 dominate, where <m>M</m> is the number of rows per bin.
 The average number of rows per bin is reported in the logging while a
 match is proceeding, so you can keep an eye on this.
