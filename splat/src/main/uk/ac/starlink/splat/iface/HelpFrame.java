@@ -332,8 +332,9 @@ public class HelpFrame
         }
 
         //  Add an action to the top of the help system.
-        Action topAction = HelpFrame.getAction( "On SPLAT",
-                                                "splat-help" );
+        Action topAction = 
+            HelpFrame.getAction( "On " + Utilities.getReleaseName(), 
+                                 "splat-help" );
         helpMenu.add( topAction );
 
         return helpMenu;
