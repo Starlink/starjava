@@ -2,7 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,7 +24,8 @@ import java.util.List;
  */
 public class PointRegistry {
 
-    private ArrayList pointList_ = new ArrayList();
+    private ArrayList pointList_ = new ArrayList(); // only available pre-ready
+    private IdentifiedPoint[] points_;              // only avaialble post-ready
     private boolean ready_;
     
     /**
@@ -45,8 +46,10 @@ public class PointRegistry {
      * call; any call to {@link #getPoints} must be done <em>after</em> it.
      */
     public void ready() {
-        pointList_.trimToSize();
-        Collections.sort( pointList_, BY_X );
+        points_ = (IdentifiedPoint[]) 
+                  pointList_.toArray( new IdentifiedPoint[ 0 ] );
+        pointList_ = null;
+        Arrays.sort( points_, BY_X );
         ready_ = true;
     }
     
@@ -135,7 +138,7 @@ public class PointRegistry {
          * X coordinate equal to the lower bound of acceptable values. */
         Point loPoint = new Point( loX, py );
         IdentifiedPoint dummyPoint = new IdentifiedPoint( -1, loPoint );
-        int loIndex = Collections.binarySearch( pointList_, dummyPoint, BY_X );
+        int loIndex = Arrays.binarySearch( points_, dummyPoint, BY_X );
 
         /* If there is no known point at exactly the lower bound X coordinate,
          * start looking at the next one in the increasing X direction. */
@@ -147,18 +150,17 @@ public class PointRegistry {
          * make sure we're looking at the first of any such points;
          * binarySearch does not guarantee to find the first one. */
         else {
-            while ( loIndex > 0 &&
-                 ((IdentifiedPoint) pointList_.get( loIndex - 1 )).x_ >= loX ) {
+            while ( loIndex > 0 && points_[ loIndex - 1 ].x_ >= loX ) {
                 loIndex--;
             }
         }
 
         /* Loop through all the plotted points in the right range of
          * X coordinate. */
-        int np = pointList_.size();
+        int np = points_.length;
         List foundPoints = new ArrayList( 100 );
         for ( int i = loIndex; i < np; i++ ) {
-            IdentifiedPoint point = (IdentifiedPoint) pointList_.get( i );
+            IdentifiedPoint point = points_[ i ];
             int x = point.x_;
             if ( x > hiX ) {
                 break;
