@@ -51,18 +51,29 @@ The purpose of using an XML <tt>Source</tt> here is twofold:
 it provides neutrality between the DOM and SAX views (and in principle others),
 and it encourages the use of a System ID associated with the 
 XML itself.  A System ID may well be required as a base for 
-resolving relative URLs, for instance within 
-{@link uk.ac.starlink.votable.Link} or (especially)
-{@link uk.ac.starlink.votable.Stream} elements.
-The implementation is currently in terms of a DOM, but if
-it becomes necessary to reimplement it in terms of a SAX-like model
-in the future for reasons of efficiency it will be possible to 
-do this without any change in software using this package.
+resolving relative URLs, for instance those within 
+LINK or (especially) STREAM elements.
+
+<p>A hybrid SAX/DOM parsing scheme is used, so that if a parse is done by 
+this library (when using one of the non-DOM constructors of VOElement
+or one of its subclasses) bulk data is not represented in the resulting
+DOM.  In the case of TABLEDATA encoding, this means that the 
+(potentially large) number of TR and TD nodes are parsed directly
+using SAX and never introduced into the DOM.  In the case of FITS or
+BINARY encoding in which the data is base64-encoded inline in the STREAM
+element, this element is read and converted into table data during
+the parse, and the screed of base64 text is not included in the DOM.
+The user doesn't have to worry about all this of course, but it has
+the effect that the parsing is fast and as memory-efficient as possible.
+If the parsing has already been done (a DOMSource constructor is used
+to construct a the VOElement instances) the library will use the 
+text data in DOM nodes which exist in the presented DOM (it will not
+excise them from the given DOM).
 
 <h2>Implementation Status</h2>
 These classes currently provide read-only access to VOTables
 according to the VOTable DTD version 1.0.
 All three defined data implementations (TABLEDATA, FITS and BINARY)
-are supported.
+are fully supported for input and output.
 
 </body>

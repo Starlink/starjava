@@ -6,10 +6,19 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
@@ -17,33 +26,107 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.PrimitiveArrayColumn;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
 
 public class SerializerTest extends TestCase {
+
+    StarTable table0;
 
     public SerializerTest( String name ) {
         super( name );
     }
 
-    public void testSerializers() throws IOException, SAXException {
-        URL votloc = getClass().getResource( "docexample.xml" );
-
+    public void setUp() {
         int nrow = 23;
         int[] cd1 = new int[ nrow ];
         float[] cd2 = new float[ nrow ];
         String[] cd3 = new String[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
-            cd1[ i ] = i;
-            cd2[ i ] = (float) i;
-            cd3[ i ] = "row " + i;
+            int j = i + 1;
+            cd1[ i ] = j;
+            cd2[ i ] = (float) j;
+            cd3[ i ] = "row " + j;
         }
         ColumnInfo ci1 = new ColumnInfo( "ints", Integer.class, null );
         ColumnInfo ci2 = new ColumnInfo( "floats", Float.class, null );
         ColumnInfo ci3 = new ColumnInfo( "strings", String.class, null );
-        ColumnStarTable table0 = ColumnStarTable.makeTableWithRows( nrow );
-        table0.addColumn( ArrayColumn.makeColumn( ci1, cd1 ) );
-        table0.addColumn( ArrayColumn.makeColumn( ci2, cd2 ) );
-        table0.addColumn( ArrayColumn.makeColumn( ci3, cd3 ) );
+        ColumnStarTable t0 = ColumnStarTable.makeTableWithRows( nrow );
+        t0.addColumn( ArrayColumn.makeColumn( ci1, cd1 ) );
+        t0.addColumn( ArrayColumn.makeColumn( ci2, cd2 ) );
+        t0.addColumn( ArrayColumn.makeColumn( ci3, cd3 ) );
+        table0 = t0;
+    }
+        
+    public void testURLs() 
+            throws IOException, TransformerException, SAXException {
+        exerciseStreamSerializer( VOSerializer
+                                 .makeSerializer( DataFormat.BINARY, table0 ) );
+        exerciseStreamSerializer( VOSerializer
+                                 .makeSerializer( DataFormat.FITS, table0 ) );
+    }
+
+    private void exerciseStreamSerializer( VOSerializer ser ) 
+            throws IOException, TransformerException, SAXException {
+
+        ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
+        BufferedWriter writer = 
+            new BufferedWriter( new OutputStreamWriter( bytestream ) );
+
+        File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
+        File tmpFile = File.createTempFile( "stest", ".dat", tmpDir );
+
+        DataOutputStream out = 
+            new DataOutputStream( new FileOutputStream( tmpFile ) );
+
+        /* Write an XML document with out-of-line streamed tabular data,
+         * using a relative href, so it will only work if the system ID
+         * is set right. */
+        writer.write( "<RESOURCE><TABLE>" );
+        ser.writeFields( writer );
+        ser.writeHrefDataElement( writer, tmpFile.getName(), out );
+        out.close();
+        writer.write( "</TABLE></RESOURCE>" );
+        tmpFile.deleteOnExit();
+        writer.close();
+        byte[] xmltext = bytestream.toByteArray();
+
+        String systemId = new File( tmpDir, "unfile.xml" ).toURI().toString();
+        checkOKSource( 
+            new StreamSource( new ByteArrayInputStream( xmltext ), systemId ) );
+        checkBadSource(
+            new StreamSource( new ByteArrayInputStream( xmltext ) ) );
+        Document doc = (Document) new SourceReader()
+           .getDOM( new StreamSource( new ByteArrayInputStream( xmltext ) ) );
+        checkOKSource( new DOMSource( doc, systemId ) );
+        checkBadSource( new DOMSource( doc, null ) );
+    }
+
+    private void checkOKSource( Source xsrc )
+            throws TransformerException, IOException {
+        VOElement res = new VOElement( xsrc );
+        Table table = (Table) res.getChildByName( "TABLE" );
+        checkTableValues( table );
+    }
+
+    private void checkBadSource( Source xsrc )
+            throws TransformerException, IOException {
+        try {
+            VOElement res = new VOElement( xsrc );
+            Table table = (Table) res.getChildByName( "TABLE" );
+            RowStepper rstep = table.getData().getRowStepper();
+            assertNull( "If the table can be constructed, " +
+                        "it should have no rows", rstep.nextRow() );
+        }
+        catch ( FileNotFoundException e ) {
+        }
+        catch ( TransformerException e ) {
+        }
+    }
+
+    public void testSerializers()
+            throws IOException, SAXException, TransformerException {
+
         int ncol = table0.getColumnCount();
 
         VOSerializer tSer = VOSerializer
@@ -68,8 +151,11 @@ public class SerializerTest extends TestCase {
         writeTableInline( tSer, writer );
         writeTableInline( bSer, writer );
         writeTableInline( fSer, writer );
-        writeTableHref( bSer, writer, File.createTempFile( "stest", ".bin" ) );
-        writeTableHref( fSer, writer, File.createTempFile( "stest", ".fits" ) );
+        File tmpDir = new File( System.getProperty( "java.io.tmpdir" ) );
+        File bTempFile = File.createTempFile( "stest", ".bin", tmpDir );
+        File fTempFile = File.createTempFile( "stest", ".fits", tmpDir );
+        writeTableHref( bSer, writer, bTempFile );
+        writeTableHref( fSer, writer, fTempFile );
 
         /* Can't write TABLEDATA as a stream. */
         try {
@@ -88,8 +174,28 @@ public class SerializerTest extends TestCase {
 
         assertValidXML( new ByteArrayInputStream( xmltext ) );
 
-        VOTable vodoc =
-            new VOTable( new ByteArrayInputStream( xmltext ), true );
+        /* Test all constructors, validating and not.  There are significantly
+         * different paths through the code for each one, in particular 
+         * depending on whether the parse to DOM is done inside or outside
+         * the VOTable package. */
+        List vodocs = new ArrayList();
+        Document docnode =
+            (Document)
+            new SourceReader()
+           .getDOM( new StreamSource( new ByteArrayInputStream( xmltext ) ) );
+        Source xsrc = new DOMSource( docnode, null );
+        vodocs.add( new VOTable( new ByteArrayInputStream( xmltext ), false ) );
+        vodocs.add( new VOTable( new ByteArrayInputStream( xmltext ), true ) );
+        vodocs.add( new VOTable( docnode ) );
+        vodocs.add( new VOTable( (Source) xsrc ) );
+        vodocs.add( new VOTable( (DOMSource) xsrc ) );
+        for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
+            exerciseVOTableDocument( (VOTable) it.next() );
+        }
+    }
+
+    private void exerciseVOTableDocument( VOTable vodoc ) throws IOException {
+        int ncol = table0.getColumnCount();
 
         VOElement res = vodoc.getChildByName( "RESOURCE" );
         VOElement[] tables = res.getChildren();
@@ -97,15 +203,7 @@ public class SerializerTest extends TestCase {
         assertEquals( 5, tables.length );
 
         for ( int itab = 0; itab < tables.length; itab++ ) {
-            Table votab = (Table) tables[ itab ];
-            RowSequence rseq = table0.getRowSequence();
-            assertEquals( ncol, votab.getColumnCount() );
-            for ( int irow = 0; votab.hasNextRow(); irow++ ) {
-                rseq.next();
-                assertArrayEquals( rseq.getRow(), votab.nextRow() );
-            }
-            assertTrue( ! rseq.hasNext() );
-            assertTrue( ! votab.hasNextRow() );
+            checkTableValues( (Table) tables[ itab ] );
         }
 
         Table tTabIn = (Table) tables[ 0 ];
@@ -140,6 +238,25 @@ public class SerializerTest extends TestCase {
                     null == fStrEx.getAttribute( "encoding" ) );
     }
 
+    private void checkTableValues( Table votab ) throws IOException {
+            
+        RowSequence rseq = table0.getRowSequence();
+        int ncol = table0.getColumnCount();
+        assertEquals( ncol, votab.getColumnCount() );
+        RowStepper rstep = votab.getData().getRowStepper();
+
+        Object[] row;
+        int irow = 0;
+        for ( Object[] rowCells; ( rowCells = rstep.nextRow() ) != null; ) {
+            rseq.next();
+            assertArrayEquals( rseq.getRow(), rowCells );
+            irow++;
+        }
+        assertEquals( table0.getRowCount(), irow );
+        assertTrue( ! rseq.hasNext() );
+        assertNull( rstep.nextRow() );
+    }
+
     private void writeTableInline( VOSerializer ser, BufferedWriter writer ) 
             throws IOException {
         writer.write( "<TABLE>" );
@@ -159,7 +276,7 @@ public class SerializerTest extends TestCase {
             new DataOutputStream(
                 new BufferedOutputStream(
                     new FileOutputStream( file ) ) );
-        ser.writeHrefDataElement( writer, file.toURI().toString(), out );
+        ser.writeHrefDataElement( writer, file.toString(), out );
         out.close();
         writer.write( "</TABLE>" );
         file.deleteOnExit();

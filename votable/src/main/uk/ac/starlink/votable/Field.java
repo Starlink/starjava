@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.lang.reflect.Array;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.NodeList;
 
 /**
@@ -25,12 +27,16 @@ public class Field extends VOElement {
 
     static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
-    public Field( Source xsrc ) {
-        this( xsrc, "FIELD" );
+    public Field( Source xsrc ) throws TransformerException {
+        this( transformToDOM( xsrc ) );
     }
 
-    Field( Source xsrc, String tagname ) {
-        super( xsrc, tagname );
+    public Field( DOMSource dsrc ) {
+        this( dsrc, "FIELD" );
+    }
+
+    Field( DOMSource dsrc, String tagname ) {
+        super( dsrc, tagname );
 
         /* Get datatype. */
         datatype = getAttribute( "datatype" );

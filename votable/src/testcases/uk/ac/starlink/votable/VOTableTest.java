@@ -5,8 +5,8 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.ArrayList;
 import java.net.URL;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
-import org.xml.sax.SAXException;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
@@ -18,7 +18,7 @@ public class VOTableTest extends TestCase {
         super( name );
     }
 
-    public void testTable() throws IOException, SAXException {
+    public void testTable() throws TransformerException, IOException {
         URL votloc = getClass().getResource( "docexample.xml" );
         VOTable vot = new VOTable( votloc, true );
 
@@ -38,20 +38,21 @@ public class VOTableTest extends TestCase {
  
         Table tab = (Table) res.getChildrenByName( "TABLE" )[ 0 ];
         int ncol = tab.getColumnCount();
-        int nrow = tab.getRowCount();
-        assertEquals( 3, nrow );
+        long nrow = tab.getRowCount();
+        assertEquals( 3L, nrow );
         assertEquals( 4, ncol );
 
-        VOStarTable stab = new VOStarTable( (DOMSource) tab.getSource() );
+        VOStarTable stab = new VOStarTable( tab );
         assertEquals( tab.getRowCount(), stab.getRowCount() );
         assertEquals( tab.getColumnCount(), stab.getColumnCount() );
         RowSequence rseq = stab.getRowSequence();
+        RowStepper rstep = tab.getData().getRowStepper();
         List rows = new ArrayList();
         for ( int ir = 0; ir < nrow; ir++ ) {
-            assertTrue( tab.hasNextRow() );
             assertTrue( rseq.hasNext() );
             rseq.next();
-            Object[] row = tab.nextRow();
+            Object[] row = rstep.nextRow();
+            assertNotNull( row );
             assertEquals( ncol, row.length );
             for ( int ic = 0; ic < ncol; ic++ ) {
                 if ( row[ ic ] == null ||
@@ -65,7 +66,7 @@ public class VOTableTest extends TestCase {
             }
             rows.add( row );
         }
-        assertTrue( ! tab.hasNextRow() );
+        assertNull( rstep.nextRow() );
         assertTrue( ! rseq.hasNext() );
 
         assertEquals( "Procyon",

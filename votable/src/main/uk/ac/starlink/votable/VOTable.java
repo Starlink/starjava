@@ -5,18 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import org.w3c.dom.Document;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.StarEntityResolver;
 
 /**
  * Class representing the top-level VOTABLE element of a VOTable document.
@@ -27,7 +22,7 @@ import uk.ac.starlink.util.StarEntityResolver;
  * <p>The constructors which cause parsing of XML text or SAX events
  * take a <tt>validate</tt> parameter which determines whether 
  * the document is validated against the VOTable DTD.  If set true,
- * then at any validation error a SAXException will be thrown and
+ * then at any validation error a TransformerException will be thrown and
  * parsing will cease.  If false, then validation errors will be ignored.
  * For more fine control over validation behaviour (e.g. to log all 
  * validation errors) you can parse the document yourself and use
@@ -43,9 +38,22 @@ public class VOTable extends VOElement {
      * Constructs a VOTable from an XML Source.
      *
      * @param  xsrc  the Source
+     * @throws  TransformerException  if <tt>xsrc</tt> is not a 
+     *          <tt>DOMSource</tt> and there is an error transforming 
+     *          it to a DOM
+     * 
      */
-    public VOTable( Source xsrc ) {
+    public VOTable( Source xsrc ) throws TransformerException {
         super( xsrc, "VOTABLE" );
+    }
+
+    /**
+     * Constructs a VOTable from a DOM source.
+     *
+     * @param  dsrc  the Source
+     */
+    public VOTable( DOMSource dsrc ) {
+        super( dsrc, "VOTABLE" );
     }
 
     /**
@@ -62,13 +70,13 @@ public class VOTable extends VOElement {
      *
      * @param  uri  the location of the content to be parsed
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( String uri, boolean validate ) 
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate ).parse( uri ), uri ) );
+            throws TransformerException {
+        this( new SAXSource( makeParser( validate ), new InputSource( uri ) ) );
     }
 
     /**
@@ -76,12 +84,12 @@ public class VOTable extends VOElement {
      *
      * @param  url  the location of the content to be parsed
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( URL url, boolean validate )
-            throws IOException, SAXException {
+            throws TransformerException {
         this( url.toExternalForm(), validate );
     }
 
@@ -90,13 +98,14 @@ public class VOTable extends VOElement {
      *
      * @param  strm  the input stream supplying the XML
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( InputStream strm, boolean validate ) 
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate ).parse( strm ) ) );
+            throws TransformerException {
+        this( new SAXSource( makeParser( validate ),
+                             new InputSource( strm ) ) );
     }
 
     /**
@@ -105,29 +114,15 @@ public class VOTable extends VOElement {
      * @param  strm  the input stream supplying the XML
      * @param  systemId  a base for resolving relative URIs
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( InputStream strm, String systemId, boolean validate )
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate ).parse( strm, systemId ),
-                             systemId ) );
-    }
-
-    /**
-     * Constructs a VOTable from an InputSource object.
-     *
-     * @param  isrc  the input source
-     * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
-     */
-    public VOTable( InputSource isrc, boolean validate )
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate ).parse( isrc ),
-                             isrc.getSystemId() ) );
+            throws TransformerException {
+        this( new SAXSource( makeParser( validate ),
+                             identifySource( new InputSource( strm ),
+                                             systemId ) ) );
     }
 
     /**
@@ -135,14 +130,13 @@ public class VOTable extends VOElement {
      *
      * @param  the file containing the XML document
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( File file, boolean validate ) 
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate ).parse( file ),
-                             file.toString() ) );
+            throws TransformerException {
+        this( file.toURI().toString(), validate );
     }
 
     /**
@@ -150,68 +144,48 @@ public class VOTable extends VOElement {
      *
      * @param  the datasource pointing to the XML document
      * @param  validate  whether to do a validating parse
-     * @throws IOException if there is an I/O error
-     * @throws SAXException if there is an error in XML parsing, including
-     *         a validation error in the case that <tt>validate</tt> is true
+     * @throws TransformerException if there is an error in XML parsing, 
+     *         including a validation error in the case that 
+     *         <tt>validate</tt> is true
      */
     public VOTable( DataSource datsrc, boolean validate )
-            throws IOException, SAXException {
-        this( new DOMSource( getParser( validate )
-                            .parse( datsrc.getHybridInputStream() ),
-                             datsrc.getSystemId() ) );
+            throws TransformerException {
+        this( getInputStream( datsrc ), datsrc.getSystemId(), validate );
     }
 
     /**
-     * Obtains a parser which can parse a VOTable document using a local
-     * version of the VOTable DTD.
+     * Convenience method to decorate an InputSource with a SystemID and
+     * return the same object.  Used in constructors.
      *
-     * @param  validate  whether the parser should be validating or not
-     * @return  a document parser
+     * @param  source  XML input source
+     * @param  systemId  system ID string
+     * @return  <tt>source</tt> with a new system ID
      */
-    private static DocumentBuilder getParser( final boolean validate ) {
-
-        /* Get a DocumentBuilder. */
-        DocumentBuilderFactory dbfact = DocumentBuilderFactory.newInstance();
-        dbfact.setValidating( validate );
-        DocumentBuilder parser;
-        try {
-            parser = dbfact.newDocumentBuilder();
-        }
-        catch ( ParserConfigurationException e ) {
-            logger.config( "Parser configuration failed first time: " + e );
-
-            /* Failed for some reason - try it with nothing fancy then. */
-            try {
-                parser = DocumentBuilderFactory.newInstance()
-                                               .newDocumentBuilder();
-            }
-            catch ( ParserConfigurationException e2 ) {
-                throw new RuntimeException( e2 );  // shouldn't happen?
-            }
-        }
-        parser.setEntityResolver( StarEntityResolver.getInstance() );
-
-        /* Configure the error handler according to whether we are validating
-         * or not. */
-        parser.setErrorHandler( new ErrorHandler() {
-            public void error( SAXParseException e ) 
-                    throws SAXException {
-                if ( validate ) {
-                    throw e;
-                }
-            }
-            public void fatalError( SAXParseException e )
-                     throws SAXException {
-                throw e;
-            }
-            public void warning( SAXParseException e )
-                     throws SAXException {
-                // no action
-            }
-        } );
-
-        /* Return the parser. */
-        return parser;
+    private static InputSource identifySource( InputSource source, 
+                                               String systemId ) {
+        source.setSystemId( systemId );
+        return source;
     }
 
+    /**
+     * Gets a suitable stream from a data source to use for parsing.
+     * This method does two things: first it converts IOExceptions to
+     * TransformerExceptions for convenience, and second it gets an
+     * input stream in a sensible way - for performance reasons this
+     * is currently implemented using DataSource's hybrid stream.
+     *
+     * @param  datsrc  data source
+     * @return  stream suitable for parsing
+     */
+    private static InputStream getInputStream( DataSource datsrc )
+            throws TransformerException {
+        try {
+            return datsrc.getHybridInputStream();
+        }
+        catch ( IOException e ) {
+            throw (TransformerException) 
+                  new TransformerException( e.getMessage() )
+                 .initCause( e );
+        }
+    }
 }

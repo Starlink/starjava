@@ -1,68 +1,67 @@
 package uk.ac.starlink.votable;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
+import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.DOMUtils;
-import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.URLDataSource;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * An object representing the TABLE element of a VOTable.
  * This contains fields, links and rows; the actual data from the table
- * body may be obtained by iterating over rows using the
- * {@link #hasNextRow} and {@link #nextRow} methods.
- * <p>
- * This class itself implements a table with no body (no rows); 
- * the static <tt>makeTable</tt> methods should be used to obtain 
- * a table object, this will return an instance of one of the 
- * data-bearing subclasses of Table according to the data described
- * by the XML.
- * <p>
- * The objects obtained from the table cells 
- * (using the <tt>nextRow</tt> method) are of course determined by 
- * the Field corresponding to the column in question, in particular its
- * <tt>arraysize</tt> and <tt>datatype</tt> attributes.  What object is
- * returned is given by the following rules:
- * <ul>
- * <li>If the element is a scalar or (fixed-dimension) 1-element array,
- *     a primitive wrapper object (<tt>Integer</tt>, <tt>Float</tt> etc)
- *     will be normally be returned
- * <li>If the element is an array, a java array of primitives 
- *     (<tt>int[]</tt>, <tt>float[]</tt> etc) will normally be returned.
- *     This is stored in column-major order, where that makes a
- *     difference (for arrays with more than one diemension).
- * <li>Complex types types are treated by adding an extra dimension to the 
- *     shape of the data, the most rapidly varying, of size 2.
- * <li>Character (<tt>char</tt> and <tt>unicodeChar</tt>) arrays are
- *     automatically turned into Strings or String arrays, with
- *     dimensionality one less than that suggested by the <tt>arraysize</tt>
- *     attribute
- * <li>The element may be <tt>null</tt>
- * </ul>
+ * body may be obtained using the {@link #getData} method.
+ * Note that depending on exactly how this element was obtained,
+ * the nodes bearing the bulk data (e.g. text content of a &lt;STREAM&gt;
+ * element or the &lt;TR&gt; children of a &lt;TABLEDATA&gt; element)
+ * may not actually be available from this node - for efficiency
+ * the VOTable parser may convert them into a {@link TabularData} object
+ * and discard the content of the original (STREAM or TABLEDATA) nodes 
+ * which contained the data from the DOM.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class Table extends VOElement {
 
-    private List fields = new ArrayList();
-    private List links = new ArrayList();
-    private final int ncols;
+    private final Field[] fields;
+    private final Link[] links;
+    private final TabularData tdata;
+
+    private final static Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.votable" );
+
+    public Table( Source xsrc ) throws TransformerException {
+        this( transformToDOM( xsrc ) );
+    }
 
     /**
-     * Protected constructor which constructs a bare Table object, 
-     * containing no table rows, from a TABLE element.
+     * Constructs a Table object from a TABLE element.
      *
-     * @param   xsrc  the TABLE element node in a VOTable DOM.
+     * @param   dsrc  DOM Source containing a TABLE element
      */
-    protected Table( Source xsrc ) {
-        super( xsrc, "TABLE" );
+    public Table( DOMSource dsrc ) {
+        super( dsrc, "TABLE" );
+
+        /* Deal with known metadata children. */
         Element tableEl = getElement();
+        List fieldList = new ArrayList();
+        List linkList = new ArrayList();
         for ( Node nd = tableEl.getFirstChild(); nd != null;
               nd = nd.getNextSibling() ) {
             if ( nd instanceof Element ) {
@@ -71,66 +70,33 @@ public class Table extends VOElement {
                 if ( elname.equals( "FIELD" ) ) {
                     Field field = 
                         new Field( new DOMSource( el, getSystemId() ) );
-                    fields.add( field );
+                    fieldList.add( field );
                 }
                 if ( elname.equals( "LINK" ) ) {
                     Link link =
                         new Link( new DOMSource( el, getSystemId() ) );
-                    links.add( link );
+                    linkList.add( link );
                 }
             }
         }
-        ncols = fields.size();
-    }
+        fields = (Field[]) fieldList.toArray( new Field[ 0 ] );
+        links = (Link[]) linkList.toArray( new Link[ 0 ] );
 
-    /**
-     * Constructs a Table object from an XML source representing the
-     * TABLE element of a VOTable.  The object returned may 
-     * implement the {@link RandomTable} interface if random access
-     * is provided for by the underlying implementation (for instance,
-     * FITS tables may well provide this, while streamed ones may 
-     * not).
-     *
-     * @param   xsrc  an XML source representing a TABLE node
-     * @return  an object containing the data of this table
-     */
-    public static Table makeTable( Source xsrc ) {
+        /* Obtain and store the data access object. */ 
+        TabularData td;
         try {
-            Element tab = new SourceReader().getElement( xsrc );
-            String systemId = xsrc.getSystemId();
-            return makeTable( tab, systemId );
+            td = getTabularData( tableEl, fields, getSystemId() );
         }
-        catch ( TransformerException e  ){
-            throw new RuntimeException( "Unsuitable source", e );
+        catch ( IOException e ) {
+            int ncol = fields.length;
+            Class[] classes = new Class[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                classes[ icol ] = fields[ icol ].getDecoder().getContentClass();
+            }
+            logger.warning( "Error reading table data: " + e );
+            td = new TableBodies.EmptyTabularData( classes );
         }
-    }
-
-    /**
-     * Constructs a Table object from a DOM element representing the TABLE
-     * element of a VOTable.
-     *
-     * @param   tablEl  the TABLE element
-     * @param   systemId  the system ID of the document, which may be
-     *          used to resolve relative URIs
-     */
-    static Table makeTable( Element tableEl, String systemId ) {
-        Element dataEl = DOMUtils.getChildElementByName( tableEl, "DATA" );
-        if ( dataEl == null ) {
-            return new Table( new DOMSource( tableEl, systemId ) );
-        }
-        Element tdEl = DOMUtils.getChildElementByName( dataEl, "TABLEDATA" );
-        if ( tdEl != null ) {
-            return new TabledataTable( tableEl, tdEl );
-        }
-        Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
-        if ( fitsEl != null ) {
-            return FitsTable.makeFitsTable( tableEl, fitsEl, systemId );
-        }
-        Element binEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
-        if ( binEl != null ) {
-            return new BinaryTable( tableEl, binEl, systemId );
-        }
-        return new Table( new DOMSource( tableEl, systemId ) );
+        tdata = td;
     }
 
     /**
@@ -139,7 +105,7 @@ public class Table extends VOElement {
      * @return  the number of columns
      */
     public int getColumnCount() {
-        return ncols;
+        return tdata.getColumnCount();
     }
 
     /**
@@ -149,8 +115,18 @@ public class Table extends VOElement {
      *
      * @return  the number of rows, or -1 if unknown
      */
-    public int getRowCount() {
-        return 0;
+    public long getRowCount() {
+        return tdata.getRowCount();
+    }
+
+    /**
+     * Returns an object which can be used to access the actual cell
+     * data in the body of this table.
+     *
+     * @return   bulk data access object
+     */
+    public TabularData getData() {
+        return tdata;
     }
 
     /**
@@ -161,29 +137,192 @@ public class Table extends VOElement {
      * @throws  IndexOutOfBoundsException unless 0&lt;=index&lt;numColumns
      */
     public Field getField( int index ) {
-        return (Field) fields.get( index );
+        return fields[ index ];
     }
 
     /**
-     * Returns the next row of elements in the table.
-     * The returned row is an array of Objects, with numColumns elements.
+     * Obtains the data access object for a given TABLE element.
+     * In the case this table has no body, a TabularData with 0 rows
+     * will be returned.
      *
-     * @return  an array of Objects representing the next row to be accesssed.
-     * @throws  NoSuchElementException  if {@link #hasNextRow} would return 
-     *          <tt>false</tt>
-     * @throws  IOException  if there is some read error
+     * @param  tableEl  DOM TABLE element
+     * @param  fields   array of the fields in the table
+     * @param  systemId  sytem identifier of the document
+     * @return  data access object for the table in <tt>tableEl</tt>
      */
-    public Object[] nextRow() throws IOException {
-        throw new NoSuchElementException();
+    private static TabularData getTabularData( Element tableEl, Field[] fields,
+                                               String systemId )
+            throws IOException {
+        int ncol = fields.length;
+        final Decoder[] decoders = new Decoder[ ncol ];
+        final Class[] classes = new Class[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            decoders[ icol ] = fields[ icol ].getDecoder();
+            classes[ icol ] = decoders[ icol ].getContentClass();
+        }
+
+        /* See if it has been stashed away by the custom VOTable parser. */
+        TabularData storedData = VOTableDOMBuilder.getData( tableEl );
+        if ( storedData != null ) {
+            return storedData;
+        }
+
+        /* Otherwise we will have to find it in the DOM and decode it here.
+         * Any relevant nodes will be inside the DATA element. */
+        Element dataEl = DOMUtils.getChildElementByName( tableEl, "DATA" );
+
+        /* If there's no DATA child, there's no data. */
+        if ( dataEl == null ) {
+            return new TableBodies.EmptyTabularData( classes );
+        }
+
+        /* Try TABLEDATA format. */
+        Element tdEl = DOMUtils.getChildElementByName( dataEl, "TABLEDATA" );
+        if ( tdEl != null ) {
+            return new TableBodies.TabledataTabularData( decoders, tdEl );
+        }
+
+        /* Try BINARY format. */
+        Element binaryEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
+        if ( binaryEl != null ) {
+            final Element streamEl = 
+                DOMUtils.getChildElementByName( binaryEl, "STREAM" );
+            String href = streamEl.getAttribute( "href" );
+            if ( href != null && href.length() > 0 ) {
+                URL url = URLUtils.makeURL( systemId, href );
+                String encoding = streamEl.getAttribute( "encoding" );
+                return new TableBodies
+                          .HrefBinaryTabularData( decoders, url, encoding );
+            }
+            else {
+                return new TableBodies.SequentialTabularData( classes ) {
+                    public RowStepper getRowStepper() throws IOException {
+                        InputStream istrm = getTextChildrenStream( streamEl );
+                        return new BinaryRowStepper( decoders, istrm,
+                                                     "base64" );
+                    }
+                };
+            }
+        }
+
+        /* Try FITS format. */
+        Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
+        if ( fitsEl != null ) {
+            String extnum = fitsEl.getAttribute( "extnum" );
+            if ( extnum != null && extnum.trim().length() == 0 ) {
+                extnum = null;
+            }
+            final Element streamEl =
+                DOMUtils.getChildElementByName( fitsEl, "STREAM" );
+            String href = streamEl.getAttribute( "href" );
+
+            /* Construct a DataSource which knows how to retrieve the
+             * input stream corresponding to the FITS data.  Ignore the
+             * stated encoding here, since DataSource can work out 
+             * compression formats on its own. */
+            DataSource datsrc;
+            if ( href != null && href.length() > 0 ) {
+                URL url = URLUtils.makeURL( systemId, href );
+                datsrc = new URLDataSource( url );
+            }
+            else {
+                datsrc = new DataSource() {
+                    protected InputStream getRawInputStream() {
+                        return new BufferedInputStream( 
+                                   new Base64InputStream(
+                                       getTextChildrenStream( streamEl ) ) );
+                    }
+                };
+                datsrc.setName( "STREAM" );
+            }
+            datsrc.setPosition( extnum );
+            StarTable startab = new FitsTableBuilder()
+                               .makeStarTable( datsrc, false );
+            if ( startab == null ) {
+                throw new VOTableFormatException( 
+                    "STREAM element does not contain a FITS table" );
+            }
+            return new TableBodies.StarTableTabularData( startab );
+        }
+
+        /* We don't seem to have any data. */
+        return new TableBodies.EmptyTabularData( classes );
     }
 
     /**
-     * Indicates whether there are more rows to be obtained using the
-     * {@link #nextRow} method.
+     * Returns the concatenated content of all the text-type children of
+     * a given node as an input stream.
      *
-     * @return  <tt>true</tt> iff <tt>nextRow</tt> can be called
+     * @param   node  node whose children we are interested in
+     * @return  concatenation of textual data as a stream
      */
-    public boolean hasNextRow() {
-        return false;
+    private static InputStream getTextChildrenStream( Node node ) {
+        List tchildren = new ArrayList();
+        for ( Node child = node.getFirstChild(); child != null; 
+              child = child.getNextSibling() ) {
+            if ( child instanceof Text ) {
+                tchildren.add( child );
+            }
+        }
+        final Iterator it = tchildren.iterator();
+        return new SequenceInputStream( new Enumeration() {
+            public boolean hasMoreElements() {
+                return it.hasNext();
+            }
+            public Object nextElement() {
+                Text textNode = (Text) it.next();
+                String text = textNode.getData();
+                InputStream tstrm = new StringInputStream( text );
+                return tstrm;
+            }
+        } );
+    }
+
+    /**
+     * Utility class which reads a String as an InputStream.  
+     * Normally this isn't a respectable thing to do because of encodings,
+     * but this is used for base64-encoded strings, so we know that a 
+     * simple cast of char to byte is the right way to do the conversion.
+     */
+    static class StringInputStream extends InputStream {
+        private final String text;
+        private final int leng;
+        private int pos = 0;
+        private int marked = 0;
+        public StringInputStream( String text ) {
+            this.text = text;
+            this.leng = text.length();
+        }
+        public int available() {
+            return leng - pos;
+        }
+        public int read() {
+            return pos < leng ? (int) text.charAt( pos++ )
+                              : -1;
+        }
+        public int read( byte[] b, int off, int size ) {
+            int i = 0;
+            for ( ; i < size && pos < leng; i++ ) {
+                b[ off++ ] = (byte) text.charAt( pos++ );
+            }
+            return i;    
+        }
+        public int read( byte[] b ) {
+            return read( b, 0, b.length );
+        }
+        public long skip( long n ) {
+            long i = Math.min( n, (long) ( leng - pos ) );
+            pos += (int) i;
+            return i;
+        }
+        public void mark( int limit ) {
+            marked = pos;
+        }
+        public void reset() {
+            pos = marked;
+        }
+        public boolean markSupported() {
+            return true;
+        }
     }
 }

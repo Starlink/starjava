@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 
 /**
  * Object representing a LINK element in a VOTable.
@@ -11,8 +13,12 @@ import javax.xml.transform.Source;
  */
 public class Link extends VOElement {
 
-    public Link( Source xsrc ) {
-        super( xsrc, "LINK" );
+    public Link( Source xsrc ) throws TransformerException {
+        this( transformToDOM( xsrc ) );
+    }
+    
+    public Link( DOMSource dsrc ) {
+        super( dsrc, "LINK" );
     }
 
     /**

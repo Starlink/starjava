@@ -3,16 +3,13 @@ package uk.ac.starlink.votable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import javax.xml.transform.Source;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.IteratorRowSequence;
-import uk.ac.starlink.table.RandomRowSequence;
+import uk.ac.starlink.table.ReaderRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
 
@@ -24,9 +21,9 @@ import uk.ac.starlink.table.ValueInfo;
 public class VOStarTable extends AbstractStarTable {
 
     private Table votable;
+    private TabularData tdata;
     private List params;
-    private Source tabsrc;
-    private int ncol;
+    private ColumnInfo[] colinfos;
 
     /* Auxiliary metadata. */
     private final static ValueInfo idInfo = new DefaultValueInfo(
@@ -46,81 +43,83 @@ public class VOStarTable extends AbstractStarTable {
     /**
      * Construct a VOStarTable from a VOTable <tt>Table</tt> object.
      *
-     * @param  tabsrc  an XML Source containing the TABLE element
+     * @param  votable  Table VOElement
      */
-    public VOStarTable( Source tabsrc ) {
-        this.tabsrc = tabsrc;
-
-        /* Make a table object.  This will be used for the metadata.
-         * If it implements the RandomTable interface it will also be
-         * used for random access methods, otherwise the data content
-         * will never be read (getRowSequence will create new Table
-         * objects). */
-        votable = Table.makeTable( tabsrc );
-        ncol = votable.getColumnCount();
+    public VOStarTable( Table votable ) {
+        this.votable = votable;
+        this.tdata = votable.getData();
+        int ncol = tdata.getColumnCount();
+        colinfos = new ColumnInfo[ ncol ];
     }
 
     public int getColumnCount() {
-        return ncol;
+        return tdata.getColumnCount();
     }
 
     public long getRowCount() {
-        return votable.getRowCount();
+        return tdata.getRowCount();
     }
 
     public boolean isRandom() {
-        return votable instanceof RandomTable;
+        return tdata.isRandom();
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        Field field = votable.getField( icol );
-        ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
 
-        /* Set up auxiliary metadata for this column according to the
-         * attributes that the FIELD element has. */
-        List auxdata = cinfo.getAuxData();
+        /* Lazily construct the columninfo object. */
+        if ( colinfos[ icol ] == null ) {
+            Field field = votable.getField( icol );
+            ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
 
-        String id = field.getAttribute( "ID" );
-        if ( id != null ) {
-            auxdata.add( new DescribedValue( idInfo, id ) );
-        }
+            /* Set up auxiliary metadata for this column according to the
+             * attributes that the FIELD element has. */
+            List auxdata = cinfo.getAuxData();
 
-        String datatype = field.getAttribute( "datatype" );
-        if ( datatype != null ) {
-            auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
-        }
-
-        String width = field.getAttribute( "width" );
-        if ( width != null ) {
-            try {
-                int widthval = Integer.parseInt( width );
-                auxdata.add( new DescribedValue( widthInfo,
-                                                 new Integer( widthval ) ) );
+            String id = field.getAttribute( "ID" );
+            if ( id != null ) {
+                auxdata.add( new DescribedValue( idInfo, id ) );
             }
-            catch ( NumberFormatException e ) {
-            }
-        }
 
-        String precision = field.getAttribute( "precision" );
-        if ( precision != null ) {
-            try {
-                double precval = Double.parseDouble( precision );
-                auxdata.add( new DescribedValue( precisionInfo,
-                                                 new Double( precval ) ) );
+            String datatype = field.getAttribute( "datatype" );
+            if ( datatype != null ) {
+                auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
             }
-            catch ( NumberFormatException e ) {
+
+            String width = field.getAttribute( "width" );
+            if ( width != null ) {
+                try {
+                    int wval = Integer.parseInt( width );
+                    auxdata.add( new DescribedValue( widthInfo,
+                                                     new Integer( wval ) ) );
+                }
+                catch ( NumberFormatException e ) {
+                }
             }
-        }
 
-        String type = field.getAttribute( "type" );
-        if ( type != null ) {
-            auxdata.add( new DescribedValue( typeInfo, type ) );
-        }
+            String precision = field.getAttribute( "precision" );
+            if ( precision != null ) {
+                try {
+                    double precval = Double.parseDouble( precision );
+                    auxdata.add( new DescribedValue( precisionInfo,
+                                                     new Double( precval ) ) );
+                }
+                catch ( NumberFormatException e ) {
+                }
+            }
 
-        return cinfo;
+            String type = field.getAttribute( "type" );
+            if ( type != null ) {
+                auxdata.add( new DescribedValue( typeInfo, type ) );
+            }
+
+            colinfos[ icol ] = cinfo;
+        }
+        return colinfos[ icol ];
     }
 
     public List getParameters() {
+
+        /* Lazily construct parameter list. */
         if ( params == null ) {
             params = new ArrayList();
             String description = votable.getDescription();
@@ -154,37 +153,18 @@ public class VOStarTable extends AbstractStarTable {
         return auxDataInfos;
     }
 
-    public RowSequence getRowSequence() {
-        if ( isRandom() ) {
-            return new RandomRowSequence( this );
-        }
-        else {
-            final Table vtab = Table.makeTable( tabsrc );
-            return new IteratorRowSequence(
-                new Iterator() {
-                    public boolean hasNext() {
-                        return vtab.hasNextRow();
-                    }
-                    public Object next() {
-                        try {
-                            return vtab.nextRow();
-                        }
-                        catch ( IOException e ) {
-                            throw new IteratorRowSequence
-                                     .PackagedIOException( e );
-                        }
-                    }
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                }
-            );
-        }
+    public RowSequence getRowSequence() throws IOException {
+        final RowStepper rstep = tdata.getRowStepper();
+        return new ReaderRowSequence() {
+            protected Object[] readRow() throws IOException {
+                return rstep.nextRow();
+            }
+        };
     }
 
     public Object[] getRow( long lrow ) throws IOException {
         if ( isRandom() ) {
-            return ((RandomTable) votable).getRow( checkedLongToInt( lrow ) );
+            return tdata.getRow( lrow );
         }
         else {
             throw new UnsupportedOperationException();
@@ -193,8 +173,7 @@ public class VOStarTable extends AbstractStarTable {
 
     public Object getCell( long lrow, int icol ) throws IOException {
         if ( isRandom() ) {
-            return ((RandomTable) votable)
-                  .getCell( checkedLongToInt( lrow ), icol );
+            return tdata.getCell( lrow, icol );
         }
         else {
             throw new UnsupportedOperationException();

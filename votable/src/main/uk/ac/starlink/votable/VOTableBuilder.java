@@ -3,12 +3,12 @@ package uk.ac.starlink.votable;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.util.DataSource;
@@ -57,9 +57,10 @@ public class VOTableBuilder implements TableBuilder {
             votable = new VOTable( datsrc, false );
         }
 
-        /* If we have got a SAXException it's probably because it wasn't XML.  
-         * Return null to indicate it wasn't our kind of input. */
-        catch ( SAXException e ) {
+        /* If we have got a TransformerException it's probably because 
+         * it wasn't XML.  Return null to indicate it wasn't our kind
+         * of input. */
+        catch ( TransformerException e ) {
             return null;
         }
 
@@ -112,7 +113,7 @@ public class VOTableBuilder implements TableBuilder {
         }
 
         /* Adapt the TABLE element to a StarTable. */
-        return new VOStarTable( tableSrc );
+        return new VOStarTable( new Table( tableSrc ) );
     }
 
     /**

@@ -3,6 +3,8 @@ package uk.ac.starlink.votable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 
 /**
  * Field or Param value restriction set represented by a VALUES element
@@ -19,14 +21,19 @@ public class Values extends VOElement {
     private String type;
     private boolean isInvalid;
 
+   
+    public Values( Source xsrc ) throws TransformerException {
+        this( transformToDOM( xsrc ) );
+    }
+
     /**
      * Constructs a Values object from an XML Source containing a VALUES
      * element.
      *
-     * @param  xsrc  an XML Source containing a VALUES element
+     * @param  dsrc  a DOM Source containing a VALUES element
      */
-    public Values( Source xsrc ) {
-        super( xsrc, "VALUES" );
+    public Values( DOMSource dsrc ) {
+        super( dsrc, "VALUES" );
         blank = getAttribute( "null" );
         type = getAttribute( "type" );
         isInvalid = getAttribute( "invalid" ) == "yes";
