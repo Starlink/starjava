@@ -1,6 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>AXIS Test Rearchitecture</TITLE>
+<link href="axis.css" rel=stylesheet type=text/css>
 </HEAD>
 <BODY>
 <H1><CENTER>AXIS Test Rearchitecture</H1></CENTER>
@@ -13,18 +14,14 @@
 <HR>
 <a name="quickstart"><H2>Quick Start</H2></a>
 <P>
-To see a full running of this, as the different component would be replaced by the new system, do the following:
-<PRE>ant clean compile
-ant -buildfile buildPreTestTaskdefs.xml
-ant -buildfile buildSamples.xml compile
-ant -buildfile buildTest.xml compile
-ant -buildfile buildTest.xml functional-tests
-</PRE>
+To run the full build system, as the old was run, do the following:
+<PRE>ant clean functional-tests</PRE>
 To see how the componentized build structure is affected, as well as cross-dependancies, do the following:
 <PRE>ant clean compile
-ant -buildfile buildTest.xml encoding
+cd test/encoding
+ant clean compile run
 </PRE>
-(The encoding test has a dependancy on the echo sample.)
+(The encoding test has a dependancy on the echo sample)
 </P>
 <a href="#top">Back to the Top</a><BR>
 <HR>
@@ -44,8 +41,8 @@ There were 6 design goals that were laid out for me before undertaking this proj
 To this end, the general theory was applied to everything:<BR>
 <UL>
 <LI>Remove the neccessary steps that are in build.xml into build<I><B>thing</B></I>.xml (where <I><B>thing</B></I> is either "Samples" or "Test")
-<LI>Create a buildComponent.xml file in each samples/** and test/** directory
-<LI>Stub each buildComponent.xml with the following:
+<LI>Create a build.xml file in each samples/** and test/** directory
+<LI>Stub each build.xml with the following:
 <PRE>&lt?xml version="1.0" ?&gt
 
 &lt!-- =========================================================================================== --&gt
@@ -104,15 +101,15 @@ To this end, the general theory was applied to everything:<BR>
 </PRE>
 <LI>If you want to instantiate this component directly, then add the following type stub into buildSamples.xml or buildTest.xml as appropriate:
 <PRE>&lt target name="echo"&gt
-    &lt ant inheritAll="true" antfile="samples/echo/buildComponent.xml"/&gt
+    &lt ant inheritAll="true" antfile="samples/echo/build.xml"/&gt
 &lt/target&gt</PRE>
 This should be done if this sample/test is to be a dependancy of another sample or test.
-<LI>If you don't want to instantiate it directly, the "compile" target looping in the buildSamples.xml or buildTest.xml file will pick up any buildComponent.xml files in the appropriate path.
-<LI>In order to reference a dependancy in a buildComponent.xml file, do the following (taken from test/soap/buildComponent.xml):
+<LI>If you don't want to instantiate it directly, the "compile" target looping in the buildSamples.xml or buildTest.xml file will pick up any build.xml files in the appropriate path.
+<LI>In order to reference a dependancy in a component build.xml file, do the following (taken from test/soap/build.xml):
 <PRE>
 &lt target name="copy"&gt
-  &lt ant inheritAll="true" antfile="buildTest.xml" target="utils"/&gt
-  &lt ant inheritAll="true" antfile="buildTest.xml" target="RFCDispatch"/&gt
+  &lt ant inheritAll="true" antfile="build.xml" target="utils"/&gt
+  &lt ant inheritAll="true" antfile="build.xml" target="RFCDispatch"/&gt
 &lt/target&gt</PRE>
 </UL>
 </P>
@@ -136,7 +133,7 @@ The old $(TOP)/build.xml had a target called "samples" which did a very simple f
 In order to alleviate this risk, and to better define the actual samples compilation and use, the samples building has been moved to a new xml file <B>buildSamples.xml</B> but the original target is still stubbed into build.xml for backwards compatibility and use does not change.
 </P>
 <P>
-Then, I extracted the actual compilation logic for each sample, and componentized it into a buildComponent.xml file, located in the actual sample sub-directory.  For example, for the echo sample is now run by the file samples/echo/buildComponent.xml.  It can be singularly instantiated by invoking:
+Then, I extracted the actual compilation logic for each sample, and componentized it into a build.xml file, located in the actual sample sub-directory.  For example, for the echo sample is now run by the file samples/echo/build.xml.  It can be singularly instantiated by invoking:
 <CENTER><PRE>ant -buildfile buildSamples.xml echo</PRE></CENTER>
 or as part of the batch (as the old function) by invoking:
 <CENTER><PRE>ant samples</PRE></CENTER>
@@ -152,7 +149,7 @@ The old $(TOP)/build.xml had a target called "buildTest" which did a very simple
 In order to alleviate this risk, and to better define the actual test compilation and use, the test building has been moved to a new xml file <B>buildTest.xml</B> but the original target is still stubbed into build.xml for backwards compatibility and use does not change.
 </P>
 <P>
-Then, I extracted the actual compilation logic for each test, and componentized it into a buildComponent.xml file, located in the actual test sub-directory.  For example, for the session test is now compiled by the file test/session/buildComponent.xml.  It can be singularly instantiated by invoking:
+Then, I extracted the actual compilation logic for each test, and componentized it into a build.xml file, located in the actual test sub-directory.  For example, for the session test is now compiled by the file test/session/build.xml.  It can be singularly instantiated by invoking:
 <CENTER><PRE>ant -buildfile buildTest.xml session</PRE></CENTER>
 or as part of the batch (as the old function) by invoking:
 <CENTER><PRE>ant functional-tests</PRE></CENTER>

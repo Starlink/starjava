@@ -3,29 +3,20 @@
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <title>Axis Architecture Guide</title>
-<style type="text/css">
-<!--
-.example { background:#ccccff }
-.xml { background:#eeeeee }
-body {  font-family: Verdana, Arial, Helvetica, sans-serif; margin-left: 40px}
-h2 {  text-decoration: underline; background-color: #DCE1FF; background-position: left; margin-left: -30px}
-h3 {  margin-left: -10px}
-h1 {  margin-left: -30px}
--->
-</style>
+<link href="axis.css" rel=stylesheet type=text/css>
 </head>
-<body text="#000000" bgcolor="#FFFFFF">
+<body>
 
 <center>
 <h1>
-<img SRC="axis.jpg" height=96 width=176></h1></center>
+<img SRC="images/axis.jpg" height=96 width=176></h1></center>
 
 <h1>
 Axis Architecture Guide</h1>
 <font face="Lucida Sans"><font color="#CC0000"><font size=+3>Under construction
 ....</font></font></font>
-<br><i>1.0 Version</i>
-<br><i>Feedback: <a href="mailto:axis-dev@xml.apache.org">axis-dev@xml.apache.org</a></i>
+<br><i>1.1 Version</i>
+<br><i>Feedback: <a href="mailto:axis-dev@ws.apache.org">axis-dev@ws.apache.org</a></i>
 <h3>
 Contents</h3>
 <a href="#Introduction">Introduction</a>
@@ -86,7 +77,7 @@ The server side message path is shown in the following diagram. The small
 cylinders represent Handlers and the larger, enclosing cylinders represent
 <b>Chains</b> (ordered collections of Handlers which will be described
 shortly).
-<br><img SRC="ServerMessagePath.jpg" VSPACE=30 height=282 width=602>
+<br><img SRC="images/ServerMessagePath.jpg" VSPACE=30 height=282 width=602>
 <br>A message arrives (in some protocol-specific manner) at a Transport
 Listener. In this case, let's assume the Listener is a HTTP servlet. It's
 the Listener's job to package the protocol-specific data into a <b>Message</b>
@@ -128,7 +119,7 @@ arguments match the types of the required parameters of the resulting method.
 The Message Path on the Client</h3>
 The Message Path on the client side is similar to that on the server side,
 except the order of scoping is reversed, as shown below.
-<br><img SRC="ClientMessagePath.jpg" VSPACE=30 height=281 width=592>
+<br><img SRC="images/ClientMessagePath.jpg" VSPACE=30 height=281 width=592>
 <br>The <b>service</b> Handler, if any, is called first - on the client
 side, there is no "provider" since the service is being provided by a remote
 node, but there is still the possibility of request and response Chains.
@@ -152,16 +143,17 @@ use the whole of it (or hack the code).
 <p>The following diagram shows the layering of subsystems. The lower layers
 are independent of the higher layers. The 'stacked' boxes represent mutually
 independent, although not necessary mutually exclusive, alternatives. For
-example, the HTTP and SMTP transports are independent of each other but
+example, the HTTP, SMTP, and JMS transports are independent of each other but
 may be used together.
-<p><img SRC="subsystems.jpg">
+<p><img SRC="images/subsystems.jpg">
 <p>
 In fact, the Axis source code is not as cleanly separated into subsystems
 as the above diagram might imply. Some subsystems are spread over
 several packages and some packages overlap more than one subsystem.
 Proposals to improve the code structure and make it
 conform more accurately to the notional Axis subsystems will be considered
-after v1.0 of Axis is complete.
+when we get a chance. 
+
 <h2>
 <a NAME="Message Flow"></a>Message Flow Subsystem</h2>
 
@@ -177,7 +169,7 @@ kinds are combined together into Chains. So the overall sequence of Handlers
 comprises three Chains: transport, global, and service. The following diagram
 shows two sequences of handlers: the client-side sequence on the left and
 the server-side sequence on the right.
-<br><img SRC="pivots.jpg" height=240 width=403>
+<br><img SRC="images/pivots.jpg" height=240 width=403>
 <p>A web service does not necessarily send a response message to each request
 message, although many do. However, response Handlers are still useful
 in the message path even when there isn't a response message, e.g. to stop
@@ -185,7 +177,7 @@ timers, clean up resources, etc.
 <p>A Chain is a composite Handler, i.e. it aggregates a collection of Handlers
 as well as implementing the Handler interface as shown in the following
 UML diagram:
-<br><img SRC="chainclasses.jpg">
+<br><img SRC="images/chainclasses.jpg">
 <p>A Chain also has similarities to the Chain of Responsibility design pattern
 in which a request flows along a sequence of Handlers until it is processed.
 Although an Axis Chain may process a request in stages over a succession of
@@ -218,7 +210,7 @@ all of: a request Handler, a pivot Handler, and a response Handler. The
 following class diagram shows how Targeted Chains relate to Chains. Note
 that a Targeted Chain is an aggregation of Handlers by virtue of extending
 the Chain interface which is an aggregation of Handlers.
-<p><img SRC="targetedchainclasses.jpg">
+<p><img SRC="images/targetedchainclasses.jpg">
 <p>A service is a special kind of Targeted Chain in which the pivot Handler
 is known as a "provider".
 <h4>
@@ -236,7 +228,7 @@ The current structure of a MessageContext is shown below. Each message
 context may be associated with a request Message and/or a response Message.
 Each Message has a SOAPPart and an Attachments object, both of which implement
 the Part interface.
-<br><img SRC="messagecontext.jpg">
+<br><img SRC="images/messagecontext.jpg">
 <br>The typing of Message Contexts needs to be carefully considered in
 relation to the Axis architecture. Since a Message Context appears on the
 Handler interface, it should not be tied to or biassed in favour of&nbsp;
@@ -249,7 +241,7 @@ Axis has an abstract AxisEngine class with two concrete subclasses: AxisClient
 drives the client side handler chains and AxisServer drives the server
 side handler chains. The relationships between these classes is fairly
 simple:
-<br><img SRC="engineclasses.jpg">
+<br><img SRC="images/engineclasses.jpg">
 <h4>Engine Configuration</h3>
 The EngineConfiguration interface is the means of configuring the Handler
 factories and global options of an engine instance. An instance of a
@@ -274,7 +266,7 @@ an engine to be configured statically from a file containing a
 deployment descriptor which is understood by the WSDDDeployment class.
 SimpleProvider, on the other hand, enables an engine to be configured
 dynamically.
-<br><img SRC="engineconfig.jpg">
+<br><img SRC="images/engineconfig.jpg">
 <h3>
 WSDD-Based Administration</h3>
 WSDD is an XML grammer for deployment descriptors which are used to
@@ -288,7 +280,7 @@ The structure of the WSDD grammar is mirrored by a class hierarchy of factories
 for runtime artefacts.
 The following diagram shows the classes and the types of runtime
 artefacts they produce (a dotted arrow means "instantiates").
-<br><img SRC="wsddclasses.jpg">
+<br><img SRC="images/wsddclasses.jpg">
 <h2><a NAME="Message Model Subsystem"></a>Message Model Subsystem</h2>
 <h3><a name="SOAP message model"></a>SOAP Message Model</h3>
 The XML syntax of a SOAP message is fairly simple.
@@ -316,18 +308,18 @@ entry.</li>
 </ul>
 <p>
 So the SOAP message model looks like this:
-<br><img SRC="soapmessagemodel.jpg">
+<br><img SRC="images/soapmessagemodel.jpg">
 
 <h3><a name="Message elements"></a>Message Elements</h3>
 The classes which represent SOAP messages form a class hierarchy based on
 the MessageElement class which takes care of namespaces and encodings.
 The SOAPHeaderElement class looks after the actor and mustUnderstand
 attributes.
-<br><img SRC="messagemodelclasses.jpg">
+<br><img SRC="images/messagemodelclasses.jpg">
 
 During deserialization, a parse tree is constructed consisting of instances
 of the above classes in parent-child relationships as shown below.
-<br><img SRC="messagetree.jpg">
+<br><img SRC="images/messagetree.jpg">
 <h3><a name="D13n"></a>Deserialization</h3>
 The class mainly responsible for XML parsing, i.e. deserialization, is
 DeserializationContextImpl ('DCI') which inherits most of its methods from the
@@ -345,9 +337,9 @@ see <a href="#Encoding Subsystem">Encoding Subsystem</a>).
 MessageElements all have an output() method which lets them write out their
 contents.
 <p>The SAX handlers form a class hierarchy:
-<br><img SRC="SAXHandlerClasses.jpg">
+<br><img SRC="images/SAXHandlerClasses.jpg">
 <p>and stack up as shown in the following diagram:
-<br><img SRC="SAXhandlers.jpg">
+<br><img SRC="images/SAXhandlers.jpg">
 <p>Initially, the SAX handler stack just contains an instance of
 EnvelopeHandler which represents the fact that parsing of the SOAP envelope
 has not yet started.
@@ -379,7 +371,7 @@ encoding (or 'serializing') Java objects and primitives into XML
 and decoding (or 'deserializing') XML into Java objects and primitives.
 The basic classes that implement these steps are <i>serializers</i>
 and <i>deserializers</i>.
-<br><img SRC="serclasses.jpg">
+<br><img SRC="images/serclasses.jpg">
 <p>
 Particular serializers and deserializers are written to support
 a specific XML processing mechanism such as DOM or SAX.
@@ -387,7 +379,7 @@ So <i>serializer factories</i> and <i>deserializer factories</i>
 are introduced to construct serializers and deserializers
 for a XML processing mechanism which is specified
 as a parameter.
-<br><img SRC="serfactoryclasses.jpg">
+<br><img SRC="images/serfactoryclasses.jpg">
 <p>
 As is apparent from the above class diagrams, each pair of Java
 type and XML data type which needs encoding
@@ -400,7 +392,7 @@ Such a mapping is known as a <i>type mapping</i>.
 The type mapping class hierarchy is shown below. Notice how
 the default type mapping instantiates the various serializer and
 deserialiser factories.
-<br><img SRC="typemappingclasses.jpg">
+<br><img SRC="images/typemappingclasses.jpg">
 <p>
 There is one final level of indirection. How do we know
 which type mapping to use for a particular message?
@@ -408,7 +400,7 @@ This is determined by the encoding which is specified in
 the message. A <i>type mapping registry</i> maintains
 a map from encoding name (URI) to type mapping.
 Note that the XML data type QNames are defined by the encoding.
-<br><img SRC="typemappingclasses.jpg">
+<br><img SRC="images/typemappingclasses.jpg">
 <p>
 So, in summary, to encode a Java object or primitive data value
 to a XML datatype or to decode the latter to the former,
@@ -451,7 +443,7 @@ tbd.
 The client side Axis processing constructs a Call object with associated
 Service, MessageContext, and request Message as shown below before invoking
 the AxisClient engine.
-<p><img SRC="clientobjects.jpg" height=120 width=349>
+<p><img SRC="images/clientobjects.jpg" height=120 width=349>
 <br>An instance of&nbsp; Service and its related AxisClient instance are
 created before the Call object. The Call object is then created by invoking
 the Service.createCall <i>factory method</i>. Call.setOperation creates
@@ -460,7 +452,7 @@ the Call instance. Then Call.invoke creates a MessageContext and associated
 request Message, drives AxisClient.invoke, and processes the resultant
 MessageContext. This significant method calls in this sequence are shown
 in the following interaction diagram.
-<br><img SRC="clientinteraction.jpg" height=503 width=731>
+<br><img SRC="images/clientinteraction.jpg" height=503 width=731>
 
 <h2>
 <a NAME="Pluggable-Component Discovery"></a>Pluggable-Component Discovery</h2>
@@ -513,7 +505,7 @@ itself a Targeted Chain with global request and response Handlers and a
 service pivot Handler (which is itself a Targeted Chain as we have just
 described). Such an Axis Engine architecture is shown in the diagram below.</li>
 
-<br><img SRC="stcengine.jpg" height=312 width=667>
+<br><img SRC="images/stcengine.jpg" height=312 width=667>
 <li>
 WSDDService.faultFlows is initialised to an empty Vector and there is no
 way of adding a fault flow to it. Is this dead code or is something else
@@ -538,7 +530,7 @@ of its effects on message contexts? The following diagram shows a client-side
 Handler sequence invoking a server-side Handler sequence. We need to consider
 how the semantics of this combined sequence compares with the sequence
 formed by omitting the transport-related Handlers.
-<br><img SRC="pivots2.jpg" height=413 width=658>
+<br><img SRC="images/pivots2.jpg" height=413 width=658>
 </ol>
 
 </body>
