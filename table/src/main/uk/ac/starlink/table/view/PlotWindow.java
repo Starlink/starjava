@@ -7,25 +7,39 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
+import javax.swing.DefaultButtonModel;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -54,9 +68,13 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private JCheckBox yLogBox;
     private ListSelectionModel subSelModel;
     private JPanel plotPanel;
+    private JFileChooser printSaver;
     private PlotState lastState;
+    private PlotBox lastPlot;
     private BitSet plottedRows = new BitSet();
     private PlotBox plot;
+    private boolean showGrid = true;
+    private String markStyle = "dots";
 
     private static final double MILLISECONDS_PER_YEAR 
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -153,6 +171,44 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
 
+        /* Add a menu for printing the graph. */
+        Action printAct = new BasicAction( "Print as EPS", 
+                                           "Print the graph to an EPS file" ) {
+            public void actionPerformed( ActionEvent evt ) {
+
+                /* Ask the user where to output the postscript. */
+                Component parent = PlotWindow.this;
+                JFileChooser chooser = getPrintSaver();
+                if ( chooser.showSaveDialog( parent ) 
+                     == JFileChooser.APPROVE_OPTION ) {
+                    try {
+                        File file = chooser.getSelectedFile();
+                        OutputStream ostrm = new FileOutputStream( file );
+
+                        /* Only one mark style makes much sense for the 
+                         * EPSGraphics class used here, so change the plot 
+                         * to that for the duration of the write, then
+                         * back again. */
+                        setMarkStyle( lastPlot, "various" );
+                        try {
+                            lastPlot.export( ostrm );
+                        }
+                        finally {
+                            setMarkStyle( lastPlot, markStyle );
+                            ostrm.close();
+                        }
+                    }
+                    catch ( IOException e ) {
+                        JOptionPane
+                       .showMessageDialog( parent, e.toString(),
+                                           "Error writing EPS",
+                                           JOptionPane.ERROR_MESSAGE );
+                    }
+                }
+            }
+        };
+        fileMenu.add( new JMenuItem( printAct ), 0 );
+
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
         subSelModel = subMenu.getSelectionModel();
@@ -162,16 +218,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 PlotWindow.this.actionPerformed( null );
             }
         } );
-
-  //    /* Construct a component for a row subset selectors. */
-  //    JPanel sConfig = new JPanel();
-  //    sConfig.setBorder( BorderFactory
-  //                      .createTitledBorder( lineBorder, "Row subsets" ) );
-  //    subMenu.setPreferredSize(
-  //        new Dimension( 110, subMenu.getPreferredSize().height ) );
-  //    sConfig.add( subMenu );
-  //    configPanel.add( sConfig );
-
 
   //  The plot is not currently live - this would require a listener
   //  on the startable itself.  It may not really be desirable.
@@ -202,6 +248,55 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         cp.add( plotPanel, BorderLayout.CENTER );
         cp.add( configPanel, BorderLayout.SOUTH );
 
+        /* Set up actions for showing the grid. */
+        final ButtonModel gridModel = new DefaultButtonModel();
+        gridModel.setSelected( showGrid );
+        gridModel.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                if ( gridModel.isSelected() != showGrid ) {
+                    showGrid = ! showGrid;
+                    lastPlot.setGrid( showGrid );
+                }
+                lastPlot.repaint();
+            }
+        } );
+        Action gridAction = new BasicAction( "Show grid",
+                                "Select whether grid lines are displayed" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                gridModel.setSelected( ! gridModel.isSelected() );
+            }
+        };
+
+        /* Construct a new menu for general plot operations. */
+        JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.add( new BasicAction( "Fit to points",
+                                         "Resize plot to show all points" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                lastPlot.fillPlot();
+            }
+        } );
+        JMenu markMenu = new JMenu( "Marker type" );
+        String[] markStyles = 
+            new String[] { "points", "dots", "various", "pixels" };
+        ButtonGroup bgroup = new ButtonGroup();
+        for ( int i = 0; i < markStyles.length; i++ ) {
+            String style = markStyles[ i ];
+            Action act = new MarkerAction( style );
+            JMenuItem item = new JRadioButtonMenuItem( act );
+            if ( style.equals( this.markStyle ) ) {
+                item.setSelected( true );
+            }
+            markMenu.add( item );
+            bgroup.add( item );
+        }
+        plotMenu.add( markMenu );
+
+        JMenuItem gridItem = new JCheckBoxMenuItem( gridAction );
+        gridItem.setModel( gridModel );
+        plotMenu.add( gridItem );
+
+        getJMenuBar().add( plotMenu );
+
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         subsetMenu.add( subMenu );
@@ -211,7 +306,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             public void actionPerformed( ActionEvent evt ) {
                 String name = TableViewer.enquireSubsetName( PlotWindow.this );
                 if ( name != null ) {
+                    int inew = subsets.size();
                     subsets.add( new BitsRowSubset( name, calcVisibleRows() ) );
+                    subSelModel.addSelectionInterval( inew, inew );
                 }
             }
         } );
@@ -247,14 +344,15 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         PlotBox plotbox;
         if ( state.type.equals( "Scatter" ) ) {
             Plot plot = new Plot();
+            plot.setGrid( showGrid );
             plotbox = plot;
             for ( int i = 0; i < nrsets; i++ ) {
-                plot.setMarksStyle( "dots", i );
                 RowSubset rset = rsets[ i ];
                 if ( rset != null ) {
-                    plot.addLegend( i, rset.toString() );
+                    plot.addLegend( setFor( i ), rset.toString() );
                 }
             }
+            setMarkStyle( plot, markStyle );
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
             long nrow = stable.getRowCount();
@@ -281,9 +379,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                                 // can't take log of negative value
                             }
                             else {
-                                for ( int i = 0; i < nrsets; i++ ) {
+                                for ( int i = nrsets - 1; i >= 0; i-- ) {
                                     if ( inclusions[ i ] ) {
-                                        plot.addPoint( i, x, y,
+                                        plot.addPoint( setFor( i ), x, y,
                                                        state.plotline );
                                     }
                                 }
@@ -321,11 +419,24 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         plotbox.setXLabel( xLabel );
         plotbox.setYLabel( yLabel );
 
-        /* Set the visible range to the range of the data. */
-        plotbox.fillPlot();
-
         /* Return. */
         return plotbox;
+    }
+
+    /**
+     * Maps a subset index to the index of a dataset to use in the
+     * plot.
+     *
+     * @param   rsetIndex  index of the RowSubset
+     * @return  corresponding dataset index
+     */
+    private int setFor( int rsetIndex ) {
+        if ( rsetIndex <= 9 ) {
+            return 9 - rsetIndex;
+        }
+        else {
+            return rsetIndex;
+        }
     }
 
     /**
@@ -394,13 +505,34 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * @param  evt  ignored
      */
     public void actionPerformed( ActionEvent evt ) {
+
+        /* Action is only required if the requested state of the plot has
+         * changed since last time we plotted it. */
         PlotState state = getPlotState();
         if ( ! state.equals( lastState ) ) {
-            lastState = state;
-            plotPanel.removeAll();
+
+            /* Construct a new Plot object for the requested PlotState. */
             plot = makePlot( state );
+
+            /* Configure the visible range of the plot.  If the axes are the
+             * same as for the last plot, we will retain the last plot's range;
+             * otherwise, fit to include all the data points. */
+            if ( state.sameAxes( lastState ) ) {
+                double[] xr = lastPlot.getXRange();
+                double[] yr = lastPlot.getYRange();
+                plot.setXRange( xr[ 0 ], xr[ 1 ] );
+                plot.setYRange( yr[ 0 ], yr[ 1 ] );
+            }
+            else {
+                plot.fillPlot();
+            }
+
+            /* Replace the old plot by the new one. */
+            plotPanel.removeAll();
             plotPanel.add( plot, BorderLayout.CENTER );
             plotPanel.revalidate();
+            lastPlot = plot;
+            lastState = state;
         }
     }
 
@@ -440,6 +572,76 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             return info.getName();
         }
     }
+
+    /**
+     * Action implementation for changing the markers used in plotting.
+     */
+    private class MarkerAction extends BasicAction {
+        private String style;
+        MarkerAction( String style ) {
+            super( style, "Change point markers to style " + style );
+            this.style = style;
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            markStyle = style;
+            setMarkStyle( lastPlot, style );
+            lastPlot.repaint();
+        }
+    }
+
+    /**
+     * Sets the style of all the markers in a given plot to a given type.
+     * This will only have an affect if the plot in question is a Plot 
+     * object; a Histogram for instance has no markers to affect.
+     *
+     * @param  plotbox  the plot to affect
+     * @param  style  the name of the style, as per the 
+     *         {@link ptolemy.plot.Plot#setMarksStyle} method
+     */
+    private void setMarkStyle( PlotBox plotbox, String style ) {
+        if ( plotbox instanceof Plot ) {
+            Plot plot = (Plot) plotbox;
+            int nset = plot.getNumDataSets();
+            for ( int i = 0; i < nset; i++ ) {
+                plot.setMarksStyle( style, i );
+            }
+        }
+    }
+
+    /**
+     * Returns a file chooser widget with which the user can select a 
+     * file to output postscript of the currently plotted graph to.
+     *
+     * @return   a file chooser
+     */
+    private JFileChooser getPrintSaver() {
+        if ( printSaver == null ) {
+            printSaver = new JFileChooser( "." );
+            printSaver.setAcceptAllFileFilterUsed( true );
+            FileFilter psFilter = new FileFilter() {
+                public String getDescription() {
+                    return ".ps, .eps";
+                }
+                public boolean accept( File file ) {
+                    if ( file.isDirectory() ) {
+                        return true;
+                    }
+                    String name = file.getName();
+                    int dotpos = name.indexOf( '.' );
+                    if ( dotpos > 0 ) {
+                        String ext = name.substring( dotpos + 1 ).toLowerCase();
+                        return ext.equals( "ps" ) 
+                            || ext.equals( "eps" );
+                    }
+                    return false;
+                }
+            };
+            printSaver.addChoosableFileFilter( psFilter );
+            printSaver.setFileFilter( psFilter );
+        }
+        return printSaver;
+    }
+
 
     /**
      * Returns the current PlotState of this window.
@@ -492,6 +694,14 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             else {
                 return false;
             }
+        }
+
+        public boolean sameAxes( PlotState other ) {
+            return other != null
+                && xCol.equals( other.xCol )
+                && yCol.equals( other.yCol )
+                && xLog == other.xLog
+                && yLog == other.yLog;
         }
 
         public String toString() {
