@@ -489,7 +489,7 @@ jobject jniastCheckNotNull( JNIEnv *env, jobject jObject ) {
 }
 
 
-char *jniastEscapePercents( JNIEnv *env, char *buf ) {
+char *jniastEscapePercents( JNIEnv *env, const char *buf ) {
 /*
 *+
 *  Name:
