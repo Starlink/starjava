@@ -192,6 +192,9 @@
     <echo message="Executing RV target: ${what}"/>
     <ant dir="./rv" target="${what}"/>
     
+    <echo message="Executing FROG target: ${what}"/>
+    <ant dir="./frog" target="${what}"/>    
+    
   </target>
   
   <!--
