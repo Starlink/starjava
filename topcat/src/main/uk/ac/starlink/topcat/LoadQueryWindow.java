@@ -223,7 +223,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
         try {
             st = tableFactory.makeStarTable( loc );
         }
-        catch ( Exception e ) {
+        catch ( Throwable e ) {
             ErrorDialog.showError( e, "Can't make table " + loc, this );
             return false;
         }
@@ -457,6 +457,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
 
              /* Try to obtain a StarTable from the Transferable. */
              StarTable table; 
+             Component parent = LoadQueryWindow.this;
              try {
                  table = tableFactory.makeStarTable( trans );
                  if ( table == null ) {
@@ -464,7 +465,13 @@ public abstract class LoadQueryWindow extends QueryWindow {
                  }
              }
              catch ( IOException e ) {
-                 e.printStackTrace();
+                 ErrorDialog.showError( e, "Error trying to accept " +
+                                        "dropped table", parent );
+                 return false;
+             }
+             catch ( OutOfMemoryError e ) {
+                 ErrorDialog.showError( e, "Out of memory trying to accept " +
+                                        "dropped table", parent );
                  return false;
              }
 
