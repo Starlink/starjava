@@ -426,8 +426,10 @@ public class LoadQueryWindow extends QueryWindow {
                 }
             };
 
-        /* Disable it if we never found the nodes. */
-        act.setEnabled( demoNode != null );
+        /* Disable it if anything went wrong. */
+        act.setEnabled( demoNode != null &&
+                        demoList != null &&
+                        StarTableNodeChooser.isAvailable() );
 
         /* Return the completed action. */
         return act;
