@@ -16,6 +16,13 @@ package uk.ac.starlink.ast;
  * is ICRS) qualified, as necessary, by a mean Equinox value and/or
  * an Epoch.
  * <p>
+ * For each of the supported celestial coordinate systems, a SkyFrame
+ * can apply an optional shift of origin to create a coordinate system 
+ * representing offsets within the celestial coordinate system from some 
+ * specified reference point. This offset coordinate system can also be 
+ * rotated to define new longitude and latitude axes. See attributes 
+ * SkyRef, SkyRefIs, SkyRefP and AlignOffset.
+ * <p>
  * All the coordinate values used by a SkyFrame are in
  * radians. These may be formatted in more conventional ways for
  * display by using astFormat.
@@ -341,6 +348,632 @@ public class SkyFrame extends Frame {
      */
     public void setProjection( String projection ) {
        setC( "Projection", projection );
+    }
+
+    /**
+     * Get 
+     * align SkyFrames using the offset coordinate system.  
+     * This attribute is a boolean value which controls how a SkyFrame
+     * behaves when it is used (by
+     * astFindFrame or astConvert) as a template to match another (target)
+     * SkyFrame. It determines the coordinate system in which the two 
+     * SkyFrames are aligned if a match occurs.
+     * <p>
+     * A non-zero value results in alignment occuring in the offset
+     * coordinate system defined by attributes SkyRef, SkyRefP and SkyRefIs. 
+     * The default value of zero results in alignment occurring within the 
+     * coordinate system specified by the AlignSystem attribute.
+     * 
+     *
+     * @return  alignOffset  this object's AlignOffset attribute
+     */
+    public boolean getAlignOffset() {
+        return getB( "AlignOffset" );
+    }
+
+    /**
+     * Set 
+     * align SkyFrames using the offset coordinate system.  
+     * This attribute is a boolean value which controls how a SkyFrame
+     * behaves when it is used (by
+     * astFindFrame or astConvert) as a template to match another (target)
+     * SkyFrame. It determines the coordinate system in which the two 
+     * SkyFrames are aligned if a match occurs.
+     * <p>
+     * A non-zero value results in alignment occuring in the offset
+     * coordinate system defined by attributes SkyRef, SkyRefP and SkyRefIs. 
+     * The default value of zero results in alignment occurring within the 
+     * coordinate system specified by the AlignSystem attribute.
+     * 
+     *
+     * @param  alignOffset   the AlignOffset attribute of this object
+     */
+    public void setAlignOffset( boolean alignOffset ) {
+       setB( "AlignOffset", alignOffset );
+    }
+
+    /**
+     * Get 
+     * selects the nature of the offset coordinate system.  
+     * This attribute controls how the values supplied for the SkyRef and
+     * SkyRefP attributes are used. These three attributes together allow
+     * a SkyFrame to represent offsets relative to some specified origin
+     * or pole within the coordinate system specified by the System attribute, 
+     * rather than absolute axis values. SkyRefIs can take either of the 
+     * case-insensitive values "Origin" or "Pole". 
+     * <p>
+     * If SkyRefIs is set to "Origin" (the default), then the coordinate system
+     * represented by the SkyFrame is modified to put the origin of longitude
+     * and latitude at the position specified by the SkyRef attribute.
+     * <p>
+     * If SkyRefIs is set to "Pole", then the coordinate system represented 
+     * by the SkyFrame is modified to put the north pole at the position 
+     * specified by the SkyRef attribute. 
+     * 
+     *
+     * @return  skyRefIs  this object's SkyRefIs attribute
+     */
+    public String getSkyRefIs() {
+        return getC( "SkyRefIs" );
+    }
+
+    /**
+     * Set 
+     * selects the nature of the offset coordinate system.  
+     * This attribute controls how the values supplied for the SkyRef and
+     * SkyRefP attributes are used. These three attributes together allow
+     * a SkyFrame to represent offsets relative to some specified origin
+     * or pole within the coordinate system specified by the System attribute, 
+     * rather than absolute axis values. SkyRefIs can take either of the 
+     * case-insensitive values "Origin" or "Pole". 
+     * <p>
+     * If SkyRefIs is set to "Origin" (the default), then the coordinate system
+     * represented by the SkyFrame is modified to put the origin of longitude
+     * and latitude at the position specified by the SkyRef attribute.
+     * <p>
+     * If SkyRefIs is set to "Pole", then the coordinate system represented 
+     * by the SkyFrame is modified to put the north pole at the position 
+     * specified by the SkyRef attribute. 
+     * 
+     *
+     * @param  skyRefIs   the SkyRefIs attribute of this object
+     */
+    public void setSkyRefIs( String skyRefIs ) {
+       setC( "SkyRefIs", skyRefIs );
+    }
+
+    /**
+     * Get 
+     * position defining the offset coordinate system by axis.  
+     * This attribute allows a SkyFrame to represent offsets, rather than 
+     * absolute axis values, within the coordinate system specified by the 
+     * System attribute. If supplied, SkyRef should be set to hold the
+     * longitude and latitude of a point within the coordinate system 
+     * specified by the System attribute. The coordinate system represented
+     * by the SkyFrame will then be rotated in order to put the specified
+     * position at either the pole or the origin of the new coordinate system
+     * (as indicated by the SkyRefIs attribute). The orientation of the
+     * modified coordinate system is then controlled using the SkyRefP 
+     * attribute. 
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRef(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRef") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <p>
+     * The default values for SkyRef are zero longitude and zero latitude,
+     * but no rotation of the SkyFrame coordinate system will occur
+     * until a value is set explicitly for at least one axis.
+     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * The offset coordinate system within a SkyFrame should normally be 
+     * considered as a superficial "re-badging" of the axes of the coordinate 
+     * system specified by the System attribute - it merely provides an 
+     * alternative numerical "label" for each position in the System coordinate 
+     * system. The SkyFrame retains full knowledge of the celestial coordinate 
+     * system on which the offset coordinate system is based (given by the 
+     * System attribute). For instance, the SkyFrame retains knowledge of the 
+     * way that one celestial coordinate system may "drift" with respect to 
+     * another over time. Normally, if you attempt to align two SkyFrames (e.g. 
+     * using the astConvert or astFindFrame routine),
+     * the effect of any offset coordinate system defined in either SkyFrame 
+     * will be removed, resulting in alignment being performed in the
+     * celestial coordinate system given by the AlignSystem attribute.
+     * However, by setting the AlignOffset attribute ot a non-zero value, it 
+     * is possible to change this behaviour so that the effect of the offset 
+     * coordinate system is not removed when aligning two SkyFrames.
+     * <h4>Notes</h4>
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRef is transformed into the new System.
+     * <br> - If a value has been assigned to SkyRef attribute, then 
+     * the default values for certain attributes are changed as follows:
+     * the default axis Labels for the SkyFrame are modified by appending 
+     * " offset" to the end, the default axis Symbols for the SkyFrame are 
+     * modified by prepending the character "D" to the start, and the
+     * default title is modified by replacing the projection information by the
+     * origin information.
+     * 
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the SkyRef attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public double getSkyRef( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getD( "SkyRef" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * position defining the offset coordinate system by axis.  
+     * This attribute allows a SkyFrame to represent offsets, rather than 
+     * absolute axis values, within the coordinate system specified by the 
+     * System attribute. If supplied, SkyRef should be set to hold the
+     * longitude and latitude of a point within the coordinate system 
+     * specified by the System attribute. The coordinate system represented
+     * by the SkyFrame will then be rotated in order to put the specified
+     * position at either the pole or the origin of the new coordinate system
+     * (as indicated by the SkyRefIs attribute). The orientation of the
+     * modified coordinate system is then controlled using the SkyRefP 
+     * attribute. 
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRef(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRef") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <p>
+     * The default values for SkyRef are zero longitude and zero latitude,
+     * but no rotation of the SkyFrame coordinate system will occur
+     * until a value is set explicitly for at least one axis.
+     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * The offset coordinate system within a SkyFrame should normally be 
+     * considered as a superficial "re-badging" of the axes of the coordinate 
+     * system specified by the System attribute - it merely provides an 
+     * alternative numerical "label" for each position in the System coordinate 
+     * system. The SkyFrame retains full knowledge of the celestial coordinate 
+     * system on which the offset coordinate system is based (given by the 
+     * System attribute). For instance, the SkyFrame retains knowledge of the 
+     * way that one celestial coordinate system may "drift" with respect to 
+     * another over time. Normally, if you attempt to align two SkyFrames (e.g. 
+     * using the astConvert or astFindFrame routine),
+     * the effect of any offset coordinate system defined in either SkyFrame 
+     * will be removed, resulting in alignment being performed in the
+     * celestial coordinate system given by the AlignSystem attribute.
+     * However, by setting the AlignOffset attribute ot a non-zero value, it 
+     * is possible to change this behaviour so that the effect of the offset 
+     * coordinate system is not removed when aligning two SkyFrames.
+     * <h4>Notes</h4>
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRef is transformed into the new System.
+     * <br> - If a value has been assigned to SkyRef attribute, then 
+     * the default values for certain attributes are changed as follows:
+     * the default axis Labels for the SkyFrame are modified by appending 
+     * " offset" to the end, the default axis Symbols for the SkyFrame are 
+     * modified by prepending the character "D" to the start, and the
+     * default title is modified by replacing the projection information by the
+     * origin information.
+     * 
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  skyRef  the SkyRef attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setSkyRef( int axis, double skyRef ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setD( "SkyRef" + "(" + axis + ")", skyRef );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Get 
+     * position defining the offset coordinate system.  
+     * This attribute allows a SkyFrame to represent offsets, rather than 
+     * absolute axis values, within the coordinate system specified by the 
+     * System attribute. If supplied, SkyRef should be set to hold the
+     * longitude and latitude of a point within the coordinate system 
+     * specified by the System attribute. The coordinate system represented
+     * by the SkyFrame will then be rotated in order to put the specified
+     * position at either the pole or the origin of the new coordinate system
+     * (as indicated by the SkyRefIs attribute). The orientation of the
+     * modified coordinate system is then controlled using the SkyRefP 
+     * attribute. 
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRef(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRef") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <p>
+     * The default values for SkyRef are zero longitude and zero latitude,
+     * but no rotation of the SkyFrame coordinate system will occur
+     * until a value is set explicitly for at least one axis.
+     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * The offset coordinate system within a SkyFrame should normally be 
+     * considered as a superficial "re-badging" of the axes of the coordinate 
+     * system specified by the System attribute - it merely provides an 
+     * alternative numerical "label" for each position in the System coordinate 
+     * system. The SkyFrame retains full knowledge of the celestial coordinate 
+     * system on which the offset coordinate system is based (given by the 
+     * System attribute). For instance, the SkyFrame retains knowledge of the 
+     * way that one celestial coordinate system may "drift" with respect to 
+     * another over time. Normally, if you attempt to align two SkyFrames (e.g. 
+     * using the astConvert or astFindFrame routine),
+     * the effect of any offset coordinate system defined in either SkyFrame 
+     * will be removed, resulting in alignment being performed in the
+     * celestial coordinate system given by the AlignSystem attribute.
+     * However, by setting the AlignOffset attribute ot a non-zero value, it 
+     * is possible to change this behaviour so that the effect of the offset 
+     * coordinate system is not removed when aligning two SkyFrames.
+     * <h4>Notes</h4>
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRef is transformed into the new System.
+     * <br> - If a value has been assigned to SkyRef attribute, then 
+     * the default values for certain attributes are changed as follows:
+     * the default axis Labels for the SkyFrame are modified by appending 
+     * " offset" to the end, the default axis Symbols for the SkyFrame are 
+     * modified by prepending the character "D" to the start, and the
+     * default title is modified by replacing the projection information by the
+     * origin information.
+     * 
+     *
+     * @return  skyRef  this object's SkyRef attribute
+     */
+    public String getSkyRef() {
+        return getC( "SkyRef" );
+    }
+
+    /**
+     * Set 
+     * position defining the offset coordinate system.  
+     * This attribute allows a SkyFrame to represent offsets, rather than 
+     * absolute axis values, within the coordinate system specified by the 
+     * System attribute. If supplied, SkyRef should be set to hold the
+     * longitude and latitude of a point within the coordinate system 
+     * specified by the System attribute. The coordinate system represented
+     * by the SkyFrame will then be rotated in order to put the specified
+     * position at either the pole or the origin of the new coordinate system
+     * (as indicated by the SkyRefIs attribute). The orientation of the
+     * modified coordinate system is then controlled using the SkyRefP 
+     * attribute. 
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRef(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRef") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <p>
+     * The default values for SkyRef are zero longitude and zero latitude,
+     * but no rotation of the SkyFrame coordinate system will occur
+     * until a value is set explicitly for at least one axis.
+     * <h4>Aligning SkyFrames with Offset Coordinate Systems</h4>
+     * The offset coordinate system within a SkyFrame should normally be 
+     * considered as a superficial "re-badging" of the axes of the coordinate 
+     * system specified by the System attribute - it merely provides an 
+     * alternative numerical "label" for each position in the System coordinate 
+     * system. The SkyFrame retains full knowledge of the celestial coordinate 
+     * system on which the offset coordinate system is based (given by the 
+     * System attribute). For instance, the SkyFrame retains knowledge of the 
+     * way that one celestial coordinate system may "drift" with respect to 
+     * another over time. Normally, if you attempt to align two SkyFrames (e.g. 
+     * using the astConvert or astFindFrame routine),
+     * the effect of any offset coordinate system defined in either SkyFrame 
+     * will be removed, resulting in alignment being performed in the
+     * celestial coordinate system given by the AlignSystem attribute.
+     * However, by setting the AlignOffset attribute ot a non-zero value, it 
+     * is possible to change this behaviour so that the effect of the offset 
+     * coordinate system is not removed when aligning two SkyFrames.
+     * <h4>Notes</h4>
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRef is transformed into the new System.
+     * <br> - If a value has been assigned to SkyRef attribute, then 
+     * the default values for certain attributes are changed as follows:
+     * the default axis Labels for the SkyFrame are modified by appending 
+     * " offset" to the end, the default axis Symbols for the SkyFrame are 
+     * modified by prepending the character "D" to the start, and the
+     * default title is modified by replacing the projection information by the
+     * origin information.
+     * 
+     *
+     * @param  skyRef   the SkyRef attribute of this object
+     */
+    public void setSkyRef( String skyRef ) {
+       setC( "SkyRef", skyRef );
+    }
+
+    /**
+     * Get 
+     * position on primary meridian of offset coordinate system by axis.  
+     * This attribute is used to control the orientation of the offset
+     * coordinate system defined by attributes SkyRef and SkyRefIs. If used, 
+     * it should be set to hold the longitude and latitude of a point within 
+     * the coordinate system specified by the System attribute. The offset 
+     * coordinate system represented by the SkyFrame will then be rotated in 
+     * order to put the position supplied for SkyRefP on the zero longitude 
+     * meridian. This rotation is about an axis from the centre of the 
+     * celestial sphere to the point specified by the SkyRef attribute. 
+     * The default value for SkyRefP is usually the north pole (that is, a 
+     * latitude of +90 degrees in the coordinate system specified by the System 
+     * attribute). The exception to this is if the SkyRef attribute is
+     * itself set to either the north or south pole. In these cases the
+     * default for SkyRefP is the origin (that is, a (0,0) in the coordinate 
+     * system specified by the System attribute).
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRefP(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRefP") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <h4>Notes</h4>
+     * <br> - If the position given by the SkyRef attribute defines the origin
+     * of the offset coordinate system (that is, if the SkyRefIs attribute 
+     * is set to "origin"), then there will in general be two orientations 
+     * which will put the supplied SkyRefP position on the zero longitude
+     * meridian. The orientation which is actually used is the one which
+     * gives the SkyRefP position a positive latitude in the offset coordinate 
+     * system (the other possible orientation would give the SkyRefP position 
+     * a negative latitude).
+     * <br> - An error will be reported if an attempt is made to use a 
+     * SkyRefP value which is co-incident with SkyRef or with the point
+     * diametrically opposite to SkyRef on the celestial sphere. The
+     * reporting of this error is deferred until the SkyRef and SkyRefP 
+     * attribute values are used within a calculation. 
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRefP is transformed into the new System.
+     * 
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the SkyRefP attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public double getSkyRefP( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getD( "SkyRefP" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * position on primary meridian of offset coordinate system by axis.  
+     * This attribute is used to control the orientation of the offset
+     * coordinate system defined by attributes SkyRef and SkyRefIs. If used, 
+     * it should be set to hold the longitude and latitude of a point within 
+     * the coordinate system specified by the System attribute. The offset 
+     * coordinate system represented by the SkyFrame will then be rotated in 
+     * order to put the position supplied for SkyRefP on the zero longitude 
+     * meridian. This rotation is about an axis from the centre of the 
+     * celestial sphere to the point specified by the SkyRef attribute. 
+     * The default value for SkyRefP is usually the north pole (that is, a 
+     * latitude of +90 degrees in the coordinate system specified by the System 
+     * attribute). The exception to this is if the SkyRef attribute is
+     * itself set to either the north or south pole. In these cases the
+     * default for SkyRefP is the origin (that is, a (0,0) in the coordinate 
+     * system specified by the System attribute).
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRefP(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRefP") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <h4>Notes</h4>
+     * <br> - If the position given by the SkyRef attribute defines the origin
+     * of the offset coordinate system (that is, if the SkyRefIs attribute 
+     * is set to "origin"), then there will in general be two orientations 
+     * which will put the supplied SkyRefP position on the zero longitude
+     * meridian. The orientation which is actually used is the one which
+     * gives the SkyRefP position a positive latitude in the offset coordinate 
+     * system (the other possible orientation would give the SkyRefP position 
+     * a negative latitude).
+     * <br> - An error will be reported if an attempt is made to use a 
+     * SkyRefP value which is co-incident with SkyRef or with the point
+     * diametrically opposite to SkyRef on the celestial sphere. The
+     * reporting of this error is deferred until the SkyRef and SkyRefP 
+     * attribute values are used within a calculation. 
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRefP is transformed into the new System.
+     * 
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  skyRefP  the SkyRefP attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setSkyRefP( int axis, double skyRefP ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setD( "SkyRefP" + "(" + axis + ")", skyRefP );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Get 
+     * position on primary meridian of offset coordinate system.  
+     * This attribute is used to control the orientation of the offset
+     * coordinate system defined by attributes SkyRef and SkyRefIs. If used, 
+     * it should be set to hold the longitude and latitude of a point within 
+     * the coordinate system specified by the System attribute. The offset 
+     * coordinate system represented by the SkyFrame will then be rotated in 
+     * order to put the position supplied for SkyRefP on the zero longitude 
+     * meridian. This rotation is about an axis from the centre of the 
+     * celestial sphere to the point specified by the SkyRef attribute. 
+     * The default value for SkyRefP is usually the north pole (that is, a 
+     * latitude of +90 degrees in the coordinate system specified by the System 
+     * attribute). The exception to this is if the SkyRef attribute is
+     * itself set to either the north or south pole. In these cases the
+     * default for SkyRefP is the origin (that is, a (0,0) in the coordinate 
+     * system specified by the System attribute).
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRefP(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRefP") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <h4>Notes</h4>
+     * <br> - If the position given by the SkyRef attribute defines the origin
+     * of the offset coordinate system (that is, if the SkyRefIs attribute 
+     * is set to "origin"), then there will in general be two orientations 
+     * which will put the supplied SkyRefP position on the zero longitude
+     * meridian. The orientation which is actually used is the one which
+     * gives the SkyRefP position a positive latitude in the offset coordinate 
+     * system (the other possible orientation would give the SkyRefP position 
+     * a negative latitude).
+     * <br> - An error will be reported if an attempt is made to use a 
+     * SkyRefP value which is co-incident with SkyRef or with the point
+     * diametrically opposite to SkyRef on the celestial sphere. The
+     * reporting of this error is deferred until the SkyRef and SkyRefP 
+     * attribute values are used within a calculation. 
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRefP is transformed into the new System.
+     * 
+     *
+     * @return  skyRefP  this object's SkyRefP attribute
+     */
+    public String getSkyRefP() {
+        return getC( "SkyRefP" );
+    }
+
+    /**
+     * Set 
+     * position on primary meridian of offset coordinate system.  
+     * This attribute is used to control the orientation of the offset
+     * coordinate system defined by attributes SkyRef and SkyRefIs. If used, 
+     * it should be set to hold the longitude and latitude of a point within 
+     * the coordinate system specified by the System attribute. The offset 
+     * coordinate system represented by the SkyFrame will then be rotated in 
+     * order to put the position supplied for SkyRefP on the zero longitude 
+     * meridian. This rotation is about an axis from the centre of the 
+     * celestial sphere to the point specified by the SkyRef attribute. 
+     * The default value for SkyRefP is usually the north pole (that is, a 
+     * latitude of +90 degrees in the coordinate system specified by the System 
+     * attribute). The exception to this is if the SkyRef attribute is
+     * itself set to either the north or south pole. In these cases the
+     * default for SkyRefP is the origin (that is, a (0,0) in the coordinate 
+     * system specified by the System attribute).
+     * <p>
+     * If an integer axis index is included in the attribute name (e.g.
+     * "SkyRefP(1)") then the attribute value should be supplied as a single 
+     * floating point axis value, in radians, when setting a value for the
+     * attribute, and will be returned in the same form when getting the value 
+     * of the attribute. In this case the integer axis index should be "1"
+     * or "2" (the values to use for longitude and latitue axes are
+     * given by the LonAxis and LatAxis attributes).
+     * <p>
+     * If no axis index is included in the attribute name (e.g. "SkyRefP") then 
+     * the attribute value should be supplied as a character string
+     * containing two formatted axis values (an axis 1 value followed by a
+     * comma, followed by an axis 2 value). The same form
+     * will be used when getting the value of the attribute. 
+     * <h4>Notes</h4>
+     * <br> - If the position given by the SkyRef attribute defines the origin
+     * of the offset coordinate system (that is, if the SkyRefIs attribute 
+     * is set to "origin"), then there will in general be two orientations 
+     * which will put the supplied SkyRefP position on the zero longitude
+     * meridian. The orientation which is actually used is the one which
+     * gives the SkyRefP position a positive latitude in the offset coordinate 
+     * system (the other possible orientation would give the SkyRefP position 
+     * a negative latitude).
+     * <br> - An error will be reported if an attempt is made to use a 
+     * SkyRefP value which is co-incident with SkyRef or with the point
+     * diametrically opposite to SkyRef on the celestial sphere. The
+     * reporting of this error is deferred until the SkyRef and SkyRefP 
+     * attribute values are used within a calculation. 
+     * <br> - If the System attribute of the SkyFrame is changed, any position
+     * given for SkyRefP is transformed into the new System.
+     * 
+     *
+     * @param  skyRefP   the SkyRefP attribute of this object
+     */
+    public void setSkyRefP( String skyRefP ) {
+       setC( "SkyRefP", skyRefP );
     }
 
 }

@@ -1009,9 +1009,10 @@ public class Frame extends Mapping {
      * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
-     * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
-     * coordinate system specified by the AlignSystem attribute as an
-     * intermediate coordinate system. The total returned Mapping will first
+     * The Mapping returned by 
+     * astFindFrame or astConvert
+     * will use the coordinate system specified by the AlignSystem attribute as 
+     * an intermediate coordinate system. The total returned Mapping will first
      * map positions from the first Frame into this intermediate coordinate
      * system, using the attributes of the first Frame. It will then map
      * these positions from the intermediate coordinate system into the
@@ -1057,9 +1058,10 @@ public class Frame extends Mapping {
      * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
-     * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
-     * coordinate system specified by the AlignSystem attribute as an
-     * intermediate coordinate system. The total returned Mapping will first
+     * The Mapping returned by 
+     * astFindFrame or astConvert
+     * will use the coordinate system specified by the AlignSystem attribute as 
+     * an intermediate coordinate system. The total returned Mapping will first
      * map positions from the first Frame into this intermediate coordinate
      * system, using the attributes of the first Frame. It will then map
      * these positions from the intermediate coordinate system into the

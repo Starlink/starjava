@@ -1123,4 +1123,13 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__ZERAX" );
        }
    }
+   /** Status constant for error "Invalid parameters for offset sky coordinate system" */
+   public static final int AST__BADOC;
+   static {
+       try { AST__BADOC = getErrConst( "AST__BADOC" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__BADOC" );
+       }
+   }
 }

@@ -82,5 +82,58 @@ makeSetAttrib( @args );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
 
+@args = (
+   name => ( $aName = "alignOffset" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "skyRefIs" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "skyRef" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+@args = (
+   name => ( $aName = "skyRef" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "skyRefP" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+@args = (
+   name => ( $aName = "skyRefP" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+
 print "}\n";
 

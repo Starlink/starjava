@@ -776,6 +776,11 @@ public class FitsChan extends Channel {
      * CROTAi keuwords to desribe the scale and rotation of each axis.
      * These conventions have been superceded but are still widely used.
      * <p>
+     * <br> - "FITS-AIPS++": Encodes coordinate system information in FITS
+     * header cards using the conventions used by the AIPS++ project.
+     * This is an extension of FITS-AIPS which includes some of the
+     * features of FITS-IRAF and FITS-PC.
+     * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
      * the general FITS standard) and which uses FITS keywords that
@@ -795,6 +800,12 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
+     * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
+     * represents a spectral axis using the conventions of the AIPS and
+     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
+     * FITS-AIPS++ encoding is used. FITS-AIPS++ is used if any of the
+     * keywords CDi_j, PROJP, LONPOLE or LATPOLE are
+     * found in the FitsChan. Otherwise FITS-AIPS is used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
      * "PCiiijjj", where "i" and "j" are single digits, then
      * FITS-PC encoding is used,
@@ -1025,6 +1036,11 @@ public class FitsChan extends Channel {
      * CROTAi keuwords to desribe the scale and rotation of each axis.
      * These conventions have been superceded but are still widely used.
      * <p>
+     * <br> - "FITS-AIPS++": Encodes coordinate system information in FITS
+     * header cards using the conventions used by the AIPS++ project.
+     * This is an extension of FITS-AIPS which includes some of the
+     * features of FITS-IRAF and FITS-PC.
+     * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
      * the general FITS standard) and which uses FITS keywords that
@@ -1044,6 +1060,12 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
+     * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
+     * represents a spectral axis using the conventions of the AIPS and
+     * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
+     * FITS-AIPS++ encoding is used. FITS-AIPS++ is used if any of the
+     * keywords CDi_j, PROJP, LONPOLE or LATPOLE are
+     * found in the FitsChan. Otherwise FITS-AIPS is used.
      * <br> - Otherwise, if the FitsChan contains a keyword of the form
      * "PCiiijjj", where "i" and "j" are single digits, then
      * FITS-PC encoding is used,
@@ -1270,7 +1292,7 @@ public class FitsChan extends Channel {
      * space separated list of condition names (see the AllWarnings
      * attribute for a list of the currently defined names). Each name 
      * indicates a condition which should be reported. The default 
-     * value for Warnings is the string "Tnx Zpx BadCel BadMat".
+     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
      * form of one or more new header cards with keyword ASTWARN. If
@@ -1296,7 +1318,7 @@ public class FitsChan extends Channel {
      * space separated list of condition names (see the AllWarnings
      * attribute for a list of the currently defined names). Each name 
      * indicates a condition which should be reported. The default 
-     * value for Warnings is the string "Tnx Zpx BadCel BadMat".
+     * value for Warnings is the string "Tnx Zpx BadCel BadMat BadCTYPE".
      * <p>
      * The text of any warning will be stored within the FitsChan in the
      * form of one or more new header cards with keyword ASTWARN. If
@@ -1326,6 +1348,11 @@ public class FitsChan extends Channel {
      * <br> - "BadCel": This condition arises when reading a FrameSet from a
      * non-Native encoded FitsChan if an unknown celestial co-ordinate 
      * system is specified by the CTYPE keywords.
+     * <p>
+     * <br> - "BadCTYPE": This condition arises when reading a FrameSet from a
+     * non-Native encoded FitsChan if an illegal algorithm code is specified 
+     * by a CTYPE keyword, and the illegal code can be converted to an
+     * equivalent legal code.
      * <p>
      * <br> - "BadLat": This condition arises when reading a FrameSet from a
      * non-Native encoded FitsChan if the latitude of the reference point
@@ -1397,6 +1424,62 @@ public class FitsChan extends Channel {
      */
     public String getAllWarnings() {
         return getC( "AllWarnings" );
+    }
+
+    /**
+     * Get 
+     * include a Frame representing FITS-WCS intermediate world coordinates.  
+     * This attribute is a boolean value which is used when a FrameSet is
+     * read from a FitsChan with a foreign FITS encoding (e.g. FITS-WCS) using
+     * astRead.
+     * If it has a non-zero value then the returned FrameSet will include
+     * Frames representing "intermediate world coordinates" (IWC). These
+     * Frames will have Domain name "IWC" for primary axis descriptions, and
+     * "IWCa" for secondary axis descriptions, where "a" is replaced by
+     * the single alternate axis description character, as used in the
+     * FITS-WCS header. The default value for "Iwc" is zero.
+     * <p>
+     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one 
+     * axis for each WCS axis, and is the coordinate system produced by the
+     * rotation matrix (represented by FITS keyword PCi_j, CDi_j, etc).
+     * For instance, for a 2-D FITS-WCS header describing projected
+     * celestial longitude and latitude, the intermediate world
+     * coordinates represent offsets in degrees from the reference point
+     * within the plane of projection.
+     * 
+     *
+     * @return  iwc  this object's Iwc attribute
+     */
+    public boolean getIwc() {
+        return getB( "Iwc" );
+    }
+
+    /**
+     * Set 
+     * include a Frame representing FITS-WCS intermediate world coordinates.  
+     * This attribute is a boolean value which is used when a FrameSet is
+     * read from a FitsChan with a foreign FITS encoding (e.g. FITS-WCS) using
+     * astRead.
+     * If it has a non-zero value then the returned FrameSet will include
+     * Frames representing "intermediate world coordinates" (IWC). These
+     * Frames will have Domain name "IWC" for primary axis descriptions, and
+     * "IWCa" for secondary axis descriptions, where "a" is replaced by
+     * the single alternate axis description character, as used in the
+     * FITS-WCS header. The default value for "Iwc" is zero.
+     * <p>
+     * FITS-WCS paper 1 defines IWC as a Cartesian coordinate system with one 
+     * axis for each WCS axis, and is the coordinate system produced by the
+     * rotation matrix (represented by FITS keyword PCi_j, CDi_j, etc).
+     * For instance, for a 2-D FITS-WCS header describing projected
+     * celestial longitude and latitude, the intermediate world
+     * coordinates represent offsets in degrees from the reference point
+     * within the plane of projection.
+     * 
+     *
+     * @param  iwc   the Iwc attribute of this object
+     */
+    public void setIwc( boolean iwc ) {
+       setB( "Iwc", iwc );
     }
 
 }

@@ -339,5 +339,14 @@ my( @allwarningsArgs ) = (
 );
 makeGetAttrib( @allwarningsArgs );
 
+my( @iwcArgs ) = (
+   name => ( $aName = "iwc" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @iwcArgs );
+makeSetAttrib( @iwcArgs );
+
 print "}\n";
 
