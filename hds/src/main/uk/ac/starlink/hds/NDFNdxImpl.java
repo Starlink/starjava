@@ -18,6 +18,7 @@ import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Channel;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ndx.NdxImpl;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * Implementation of the NdxImpl interface based on an NDF.
@@ -254,12 +255,7 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 HDSReference iref = (HDSReference) baseRef.clone();
                 iref.push( iname );
-                try {
-                    iurl = new URL( context, iref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
-                }
-                catch ( MalformedURLException e ) {
-                    throw new RuntimeException( e.getMessage(), e );
-                }
+                iurl = URLUtils.makeURL( context.toString(), iref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
             }
             inda = new BridgeNDArray( new HDSArrayImpl( iary, mode ), iurl );
         }
@@ -276,12 +272,7 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 HDSReference vref = (HDSReference) baseRef.clone();
                 vref.push( vname );
-                try {
-                    vurl = new URL( context, vref.getURL().toString().replaceFirst( "file://localhost", "" ) );
-                }
-                catch ( MalformedURLException e ) {
-                    throw new RuntimeException( e.getMessage(), e );
-                }
+                vurl = URLUtils.makeURL( context.toString(), vref.getURL().toString().replaceFirst( "file://localhost", "" ) );
             }
             vnda = new BridgeNDArray( new HDSArrayImpl( vary, mode ), vurl );
         }
@@ -295,12 +286,7 @@ class NDFNdxImpl implements NdxImpl {
             if ( baseRef != null ) {
                 qref = (HDSReference) baseRef.clone();
                 qref.push( qname );
-                try {
-                    qurl = new URL( context, qref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
-                }
-                catch ( MalformedURLException e ) {
-                    throw new RuntimeException( e.getMessage(), e );
-                }
+                qurl = URLUtils.makeURL( context.toString(), qref.getURL().toString().replaceFirst( "^file://localhost", "" ) );
             }
 
             if ( qobj.datType().equals( "QUALITY" ) ) {
