@@ -245,6 +245,16 @@ public class StarTableChooser extends JPanel {
         return result[ 0 ];
     }
 
+    
+    /**
+     * Synonym for {@link showTableDialog(java.awt.Component)}.
+     *
+     * @deprecated  use <tt>showTableDialog</tt> instead
+     */
+    public StarTable getTable( Component parent ) {
+        return showTableDialog( parent );
+    }
+
     /**
      * Sets the object which does something with tables that the user
      * selects to load.
