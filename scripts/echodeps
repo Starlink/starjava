@@ -1,0 +1,77 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     echodeps
+
+#  Purpose:
+#     Report the packages that a package directly depends on, given
+#     the package ".properties" file.
+
+#  Description:
+#     Extracts the packages that a package depends on by looking in
+#     a given ".properties" file for a jar.class.path property.
+#     This property contains a list of the jar files that a package
+#     depends on and consequently is also an enumeration of the
+#     packages that a package depends on. 
+#
+#     The format of property files means a jar.class.path will
+#     probably look something like:
+#
+#     jar.class.path="bsh-1.2b7.jar splat_colt.jar jdom.jar jhall.jar \
+#     splat_help.jar jsci_core.jar jsci_wavelet.jar \
+#     ../astgui/astgui.jar ../ndx/ndx.jar ../hdx/hdx.jar ../array/array.jar \
+#     ../tamfits/tamfits.jar ../jniast/jniast.jar \
+#     ../soapserver/soapserver.jar ../fits/fits.jar ../hds/hds.jar \
+#     ../treeview/treeview.jar ../pal/pal.jar ../diva/diva.jar"
+#
+#     So this script does the job of joining the continuation parts,
+#     extracting the jar.class.path property and then reporting the 
+#     package part of each jar file (the xxx part of ../xxx/some.jar).
+#
+#     Note this must be run from the "source" directory.
+
+#  Type of Module:
+#     Shell script.
+
+#  Copyright:
+#     Copyright (C) 2003 Central Laboratory of the Research Councils
+
+#  Authors:
+#     PWD: P.W. Draper (Starlink, Durham University)
+#     {enter_new_authors_here}
+
+#  History:
+#     30-SEP-2003 (PWD):
+#        Original version.
+#     {enter_further_changes_here}
+
+#  Bugs:
+#     {note_any_bugs_here}
+
+#-
+
+if test "$1" == ""; then 
+   echo "Usage: ./scripts/echodeps <.properties file>"
+   exit
+fi
+
+#  Get sed to join continuation lines (ending in a \) and then extract
+#  the line starting "jar.class.path=". Strip off the quotes and any
+#  .jar extensions (needed for ant which is ../ant.jar).  Spaces in
+#  that line are then replaced by a newline so that each word becomes
+#  a line. All lines containing "../" are then resolved by grep (lines
+#  that do not start with "../" are local jar files). Finally awk uses
+#  '/' to separate the lines into words of which the second should be
+#  the package name!
+
+cat $1 | \
+sed -n \
+   -e :a \
+      -e '/\\$/N; s/\\\n//; ta' \
+   -e "/jar\.class\.path=/ s/jar\.class\.path=//gp" | \
+sed -e 's/"//g' | \
+sed -e 's/\.jar//g' | \
+tr " " "\n" | \
+grep '\.\./' | \
+awk -F '/' '{print $2}'

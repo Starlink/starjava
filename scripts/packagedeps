@@ -1,0 +1,105 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     packagedeps
+
+#  Purpose:
+#     Report all the packages that a package depends on, given the
+#     package name.
+
+#  Description:
+#     Uses the "echodeps" command to obtain a list of all the packages
+#     that the named package depends on, it then goes on to get the
+#     packages that these packages depend on and so on until all
+#     dependent packages have been identified. These are then listed. 
+#     If no packages are required then a message:
+#
+#        "Package $package has no known dependencies"
+#     
+#     is reported. Note this must be run from the "source" directory.
+#     The results of the dependency check are also returned in the
+#     file: "$1".depends.
+
+#  Type of Module:
+#     Shell script.
+
+#  Copyright:
+#     Copyright (C) 2003 Central Laboratory of the Research Councils
+
+#  Authors:
+#     PWD: P.W. Draper (Starlink, Durham University)
+#     {enter_new_authors_here}
+
+#  History:
+#     30-SEP-2003 (PWD):
+#        Original version.
+#     {enter_further_changes_here}
+
+#  Bugs:
+#     {note_any_bugs_here}
+
+#-
+
+if test "$1" == ""; then 
+   echo "Usage: ./scripts/packagedeps package"
+   exit
+fi
+
+#  See if a properties file exists for this package, and if it also
+#  contains a "jar.class.path" property.
+
+package=$1
+properties=${package}/.properties
+
+if test ! -f $properties; then
+   echo "Package $package has no known dependencies"
+   exit
+fi
+
+jarpath=`grep 'jar\.class\.path=' $properties`
+
+if test -z "$jarpath"; then
+   echo "Package $package has no known dependencies"
+   exit
+fi
+
+#  Dodgy algorithm as we don't have hashed arrays so uniqueness
+#  is hard to establish. Keep two files -- one has the list of
+#  dependencies from last time and one is appended to by all the
+#  dependencies of the currently known packages. Keep doing this until
+#  both these files have the same content (when passed through uniq).
+
+dependsfile=${package}.depends
+lastdependsfile=${package}.last
+
+#  Get dependencies of the primary package.
+./scripts/echodeps $properties > $dependsfile
+
+#  The dependencies last time list is initially empty.
+if test -f $lastdependsfile; then
+   rm $lastdependsfile
+fi
+touch $lastdependsfile
+
+#  Compare the two dependency files until they are the same.
+until cmp -s $lastdependsfile $dependsfile; do
+
+   cp $dependsfile $lastdependsfile
+
+   #  Look over the current packages getting their dependencies.
+   for f in `cat $lastdependsfile`; do
+      if test -f $f/.properties; then
+         ./scripts/echodeps $f/.properties >> $dependsfile
+      fi
+   done
+  
+   # Make all dependencies unique.
+   cat $dependsfile | sort | uniq > tmp.depends
+   mv tmp.depends $dependsfile
+done
+
+#  Echo the dependencies 
+cat $dependsfile
+rm $lastdependsfile
+exit
