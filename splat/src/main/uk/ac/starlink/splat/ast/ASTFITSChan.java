@@ -1,6 +1,8 @@
 package uk.ac.starlink.splat.ast;
 
-import uk.ac.starlink.ast.*;
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.FitsChan;
+import uk.ac.starlink.ast.FrameSet;
 
 /**
  *  Class to create and manipulate AST FITS channels. Uses of this are
@@ -62,7 +64,13 @@ public class ASTFITSChan
      */
     public void add( String card )
     {
-        fitsChan.putFits( card, false );
+        try {
+            fitsChan.putFits( card, false );
+        }
+        catch (AstException e) {
+            // Usually badly-formatted card, so let someone know.
+            System.err.println( e.getMessage() );
+        }
     }
 
     /**
