@@ -28,13 +28,12 @@ import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
-import javax.swing.KeyStroke;
-import javax.swing.ListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -42,6 +41,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
@@ -122,7 +123,6 @@ public class ControlWindow extends AuxWindow
     private final Action statsAct;
     private final Action subsetAct;
     private final Action plotAct;
-    private final Action hideAct;
     private final Action readAct;
     private final Action writeAct;
     private final Action dupAct;
@@ -130,6 +130,7 @@ public class ControlWindow extends AuxWindow
     private final Action removeAct;
     private final Action matchAct;
     private final Action concatAct;
+    private final ShowAction[] showActions;
 
     /**
      * Constructs a new window.
@@ -202,8 +203,6 @@ public class ControlWindow extends AuxWindow
                                "Launch Mirage to display the current table" );
         mirageAct.setEnabled( MirageHandler.isMirageAvailable() );
 
-        hideAct = new ModelAction( "Hide Windows", ResourceIcon.HIDE,
-                                   "Hide viewer windows" );
         viewerAct = new ModelAction( "Table Browser", ResourceIcon.VIEWER,
                                      "Display table cell data" );
         paramAct = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
@@ -244,7 +243,6 @@ public class ControlWindow extends AuxWindow
         /* Add export buttons to the toolbar. */
         configureExportSource( toolBar.add( writeAct ) );
         configureExportSource( toolBar.add( dupAct ) );
-        configureExportSource( toolBar.add( removeAct ) );
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
@@ -255,8 +253,46 @@ public class ControlWindow extends AuxWindow
         toolBar.add( statsAct );
         toolBar.add( plotAct );
         toolBar.addSeparator();
-        toolBar.add( hideAct );
-        toolBar.addSeparator();
+
+        /* Add actions to the file menu. */
+        JMenu fileMenu = getFileMenu();
+        int fileMenuPos = 0;
+        fileMenu.insert( readAct, fileMenuPos++ );
+        fileMenu.insert( removeAct, fileMenuPos++ );
+        fileMenu.insertSeparator( fileMenuPos++ );
+        fileMenu.insert( writeAct, fileMenuPos++ );
+        fileMenu.insert( dupAct, fileMenuPos++ );
+        if ( MirageHandler.isMirageAvailable() ) {
+            fileMenu.insert( mirageAct, fileMenuPos++ );
+        }
+        fileMenu.insertSeparator( fileMenuPos++ );
+
+        /* Add a menu for the table views. */
+        JMenu viewMenu = new JMenu( "Table Views" );
+        viewMenu.setMnemonic( KeyEvent.VK_V );
+        viewMenu.add( viewerAct );
+        viewMenu.add( paramAct );
+        viewMenu.add( colinfoAct );
+        viewMenu.add( subsetAct );
+        viewMenu.add( statsAct );
+        viewMenu.add( plotAct );
+        getJMenuBar().add( viewMenu );
+
+        /* Add a menu for table joining. */
+        JMenu joinMenu = new JMenu( "Joins" );
+        joinMenu.setMnemonic( KeyEvent.VK_J );
+        joinMenu.add( matchAct );
+        joinMenu.add( concatAct );
+        getJMenuBar().add( joinMenu );
+
+        /* Add a menu for window management. */
+        JMenu winMenu = new JMenu( "Windows" );
+        winMenu.setMnemonic( KeyEvent.VK_W );
+        showActions = makeShowActions();
+        for ( int i = 0; i < showActions.length; i++ ) {
+            winMenu.add( showActions[ i ] );
+        }
+        getJMenuBar().add( winMenu );
 
         /* Add help information. */
         addHelp( "ControlWindow" );
@@ -512,7 +548,12 @@ public class ControlWindow extends AuxWindow
         statsAct.setEnabled( hasModel );
         subsetAct.setEnabled( hasModel );
         plotAct.setEnabled( hasModel );
-        hideAct.setEnabled( hasModel );
+        for ( int i = 0; i < showActions.length; i++ ) {
+            ShowAction sact = showActions[ i ];
+            if ( sact.selEffect != WindowEffect.NOOP ) {
+                sact.setEnabled( hasModel );
+            }
+        }
         idField.setEnabled( hasModel );
         idField.setEditable( hasModel );
     }
@@ -675,14 +716,94 @@ public class ControlWindow extends AuxWindow
             else if ( this == plotAct ) {
                 act = tcModel.getPlotAction();
             }
-            else if ( this == hideAct ) {
-                act = tcModel.getHideAction();
-            }
             else {
                 throw new AssertionError();
             }
             act.actionPerformed( evt );
         }
+    }
+
+    /**
+     * Implementation of actions relating to hiding/revealing view windows
+     * associated with some or all of the tables.
+     */
+    private class ShowAction extends BasicAction {
+
+        final WindowEffect selEffect;
+        final WindowEffect otherEffect;
+
+        /**
+         * Constructs a new action with particular effects for the selected
+         * table and the others.
+         *
+         * @param  name  action name
+         * @param  shortdesc  action short description
+         * @param  selEffect  effect of action on the selected table
+         *         (one of HIDE, REVEAL, NOOP)
+         * @param  otherEffect  effect of action on the unselected tables
+         *         (one of HIDE, REVEAL, NOOP)
+         */
+        ShowAction( String name, String shortdesc, WindowEffect selEffect, 
+                    WindowEffect otherEffect ) {
+            super( name, null, shortdesc );
+            this.selEffect = selEffect;
+            this.otherEffect = otherEffect;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            int ntab = tablesModel.getSize();
+            for ( int i = 0; i < ntab; i++ ) {
+                boolean isSelected = tablesList.isSelectedIndex( i );
+                TopcatModel tcModel = 
+                    (TopcatModel) tablesModel.getElementAt( i );
+                Object effect = isSelected ? selEffect : otherEffect;
+                if ( effect == WindowEffect.HIDE ) {
+                    tcModel.hideWindows();
+                }
+                else if ( effect == WindowEffect.REVEAL ) {
+                    tcModel.revealWindows();
+                }
+            }
+        }
+    }
+
+    /**
+     * Enumeration for use with ShowAction class.
+     */
+    private static class WindowEffect {
+        final static WindowEffect HIDE = new WindowEffect();
+        final static WindowEffect REVEAL = new WindowEffect();
+        final static WindowEffect NOOP = null;
+        private WindowEffect() {
+        }
+    }
+
+    /**
+     * Returns an array of actions concerned with hiding or revealing 
+     * various table view windows.
+     */
+    private ShowAction[] makeShowActions() {
+        return new ShowAction[] {
+            new ShowAction( "Show Selected Views Only",
+                            "Show viewer windows for selected table only",
+                            WindowEffect.REVEAL, WindowEffect.HIDE ),
+            new ShowAction( "Show Selected Views",
+                            "Show viewer windows for selected table",
+                            WindowEffect.REVEAL, WindowEffect.NOOP ),
+            new ShowAction( "Show All Views",
+                            "Show viewer windows of all tables",
+                            WindowEffect.REVEAL, WindowEffect.REVEAL ),
+            new ShowAction( "Hide Unselected Views",
+                            "Hide viewer windows for tables except " +
+                            "selected one",
+                            WindowEffect.NOOP, WindowEffect.HIDE ),
+            new ShowAction( "Hide Selected Views",
+                            "Hide viewer windows for selected table",
+                            WindowEffect.HIDE, WindowEffect.NOOP ),
+            new ShowAction( "Hide All Views",
+                            "Hide viewer windows for all tables",
+                            WindowEffect.HIDE, WindowEffect.HIDE ),
+        };
     }
 
     /**

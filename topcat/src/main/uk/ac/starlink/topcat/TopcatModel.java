@@ -72,14 +72,13 @@ public class TopcatModel {
 
     private Action newsubsetAct;
     private Action unsortAct;
-    private Action hideAct;
-    private WindowAction viewerAct;
-    private WindowAction paramAct;
-    private WindowAction colinfoAct;
-    private WindowAction statsAct;
-    private WindowAction subsetAct;
-    private WindowAction plotAct;
-    private WindowAction[] windowActions;
+    private TopcatWindowAction viewerAct;
+    private TopcatWindowAction paramAct;
+    private TopcatWindowAction colinfoAct;
+    private TopcatWindowAction statsAct;
+    private TopcatWindowAction subsetAct;
+    private TopcatWindowAction plotAct;
+    private TopcatWindowAction[] windowActions;
 
     private static int instanceCount = 0;
 
@@ -170,7 +169,7 @@ public class TopcatModel {
         plotAct = new TopcatWindowAction(
                            "Plot", ResourceIcon.PLOT,
                            "Plot columns from this table" );
-        windowActions = new WindowAction[] {
+        windowActions = new TopcatWindowAction[] {
             viewerAct, paramAct, colinfoAct, statsAct, subsetAct, plotAct,
         };
 
@@ -179,8 +178,6 @@ public class TopcatModel {
                                         "Define a new row subset" );
         unsortAct = new ModelAction( "Unsort", null,
                                      "Use unsorted order" );
-        hideAct = new ModelAction( "Hide", ResourceIcon.HIDE,
-                                   "Hide table view windows" );
 
         /* Set up the listeners. */
         listeners = new ArrayList();
@@ -471,16 +468,6 @@ public class TopcatModel {
     }
 
     /**
-     * Gets an action which will hide all the windows associated specifically
-     * with this model.
-     *
-     * @return  hide action
-     */
-    public Action getHideAction() {
-        return hideAct;
-    }
-
-    /**
      * Returns an action which sorts the table on the contents of a given
      * column.  The sort is effected by creating a mapping between model
      * rows and (sorted) view rows, and installing this into this 
@@ -529,6 +516,19 @@ public class TopcatModel {
         for ( int i = 0; i < windowActions.length; i++ ) {
             WindowAction act = windowActions[ i ];
             act.putValue( "VISIBLE", Boolean.FALSE );
+        }
+    }
+
+    /**
+     * Reveals any view windows associated with this window which have
+     * been instantiated but may not currently be visible.
+     */
+    public void revealWindows() {
+        for ( int i = 0; i < windowActions.length; i++ ) {
+            TopcatWindowAction act = windowActions[ i ];
+            if ( act.hasWindow() ) {
+                act.putValue( WindowAction.VISIBLE, Boolean.TRUE );
+            }
         }
     }
 
@@ -740,8 +740,8 @@ public class TopcatModel {
             else if ( this == unsortAct ) {
                 sortBy( SortOrder.NONE, false );
             }
-            else if ( this == hideAct ) {
-                hideWindows();
+            else {
+                assert false;
             }
         }
     }
