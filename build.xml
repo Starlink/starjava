@@ -164,6 +164,9 @@
     <echo message="Executing Table target: ${what}"/>
     <ant dir="./table" target="${what}"/>
 
+    <echo message="Executing Mirage target: ${what}"/>
+    <ant dir="./mirage" target="${what}"/>
+
     <echo message="Executing NDTools target: ${what}"/>
     <ant dir="./ndtools" target="${what}"/>
 
@@ -181,6 +184,9 @@
 
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
+
+    <echo message="Executing TTOOLS target: ${what}"/>
+    <ant dir="./ttools" target="${what}"/>
 
     <echo message="Executing VO target: ${what}"/>
     <ant dir="./vo" target="${what}"/>
@@ -211,9 +217,6 @@
 
     <echo message="Executing SPLAT target: ${what}"/>
     <ant dir="./splat" target="${what}"/>
-
-    <echo message="Executing Mirage target: ${what}"/>
-    <ant dir="./mirage" target="${what}"/>
 
     <echo message="Executing TOPCAT target: ${what}"/>
     <ant dir="./topcat" target="${what}"/>
@@ -417,6 +420,10 @@
       </packageset>
 
       <packageset dir="votable/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="ttools/build/java" defaultexcludes"yes">
          <include name="**"/>
       </packageset>
 
