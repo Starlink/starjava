@@ -17,6 +17,7 @@ public class ConnectorManager {
 
     /** List of classnames of known {@link Connector} implementations. */
     private static final String[] KNOWN_CONNECTORS = new String[] {
+        "uk.ac.starlink.srb.SRBConnector",
         "uk.ac.starlink.astrogrid.TreeClientConnector",
     };
             
