@@ -11,11 +11,17 @@ import java.net.URL;
  */
 public class URLDataSource extends DataSource {
 
-    private URL url;
+    private URL url; 
 
+    /**
+     * Constructs a DataSource from a URL.
+     * If the URL has a ref part (the bit after the '#') it will be 
+     * treated as the position attribute of this DataSource.
+     */
     public URLDataSource( URL url ) {
         this.url = url;
         setName( url.toString() );
+        setPosition( url.getRef() );
     }
 
     protected InputStream getRawInputStream() throws IOException {

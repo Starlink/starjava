@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
@@ -18,13 +20,15 @@ public class FileDataSource extends DataSource {
     private File file;
 
     /**
-     * Creates a new FileDataSource from a File object.
+     * Creates a new FileDataSource from a File object and a position string.
      *
      * @param  file  the file
+     * @param  position  the source's position attribute 
+     *         (indicates the relevant part of the file)
      * @throws  IOException  if <tt>file</tt> does not exist, cannot be read,
      *          or is a directory
      */
-    public FileDataSource( File file ) throws IOException {
+    public FileDataSource( File file, String position ) throws IOException {
         if ( ! file.exists() ) {
             throw new FileNotFoundException( "No such file " + file );
         }
@@ -35,7 +39,20 @@ public class FileDataSource extends DataSource {
             throw new IOException( file + " is a directory" );
         }
         this.file = file;
-        setName( file.toString() );
+        setName( file.toString() 
+               + ( ( position != null ) ? ( '#' + position ) : "" ) );
+        setPosition( position );
+    }
+
+    /**
+     * Creates a new FileDataSource from a File object.
+     *
+     * @param  file  the file
+     * @throws  IOException  if <tt>file</tt> does not exist, cannot be read,
+     *          or is a directory
+     */
+    public FileDataSource( File file ) throws IOException {
+        this( file, null );
     }
 
     protected InputStream getRawInputStream() throws IOException {
@@ -61,12 +78,25 @@ public class FileDataSource extends DataSource {
     }
 
     public URL getURL() {
+        URI baseURI = file.toURI();
+        URI withfrag;
         try {
-            return file.toURI().toURL();
+            withfrag = new URI( baseURI.getScheme(),
+                                baseURI.getSchemeSpecificPart(),
+                                getPosition() );
+        }
+        catch ( URISyntaxException e ) {
+            throw new AssertionError( "What's wrong with URI " +
+                                      baseURI.getScheme() + ':' +
+                                      baseURI.getSchemeSpecificPart() + '#' +
+                                      getPosition() + " ?" );
+        }
+        try {
+            return withfrag.toURL();
         }
         catch ( MalformedURLException e ) {
-            throw new AssertionError( "What's wrong with URL " 
-                                    + file.toURI() + "??" );
+            throw new AssertionError( "What's wrong with URL " + 
+                                      withfrag + " ?" );
         }
     }
 }

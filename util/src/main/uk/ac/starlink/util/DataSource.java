@@ -16,6 +16,13 @@ import java.util.zip.InflaterInputStream;
  * from a stream.  The idea is that the stream should return the same
  * sequence of bytes each time.
  * <p>
+ * As well as the ability to return a stream, a <tt>DataSource</tt> may
+ * also have a <tt>position</tt>, which corresponds to the 'ref' or 'frag'
+ * part of a URL (the bit after the #).  This is an indication
+ * of a location in the stream; it is a string, and its interpretation
+ * is entirely up to the application (though may be specified by
+ * the documentation of specific <tt>DataSource</tt> subclasses).
+ * <p>
  * As well as providing the facility for several different objects to
  * get their own copy of the underlying input stream, this class also
  * handles decompression of the stream and provides a method for
@@ -40,6 +47,7 @@ public abstract class DataSource {
     private Boolean isEmpty;
     private Boolean isHTML;
     private String name;
+    private String position;
 
     /* Initialise member variables. */
     { clearState(); }
@@ -67,7 +75,11 @@ public abstract class DataSource {
      * returned by this method should provide a stream with the
      * same content as the {@link #getRawInputStream} method of this
      * data source.  If no such URL exists or is known, then <tt>null</tt>
-     * should be returned.
+     * should be returned.  
+     * <p>
+     * If this source has a non-null position value, it will be appended
+     * to the main part of the URL after a '#' character (as the URL's
+     * ref part).
      *
      * @return  a URL corresponding to this source, or <tt>null</tt>
      */
@@ -126,6 +138,8 @@ public abstract class DataSource {
      * pathname or simple filename, rather than its absolute pathname.
      * To identify the source absolutely, the {@link #getURL} method
      * (or some suitable class-specific method) should be used.
+     * If this source has a position, it should probably form part of
+     * this name.
      *
      * @return  a name
      */
@@ -144,10 +158,33 @@ public abstract class DataSource {
     }
 
     /**
+     * Returns the position associated with this source.
+     * It is a string giving an indication of the part of the stream 
+     * which is of interest.  Its interpretation is up to the application.
+     *
+     * @return  the position string, or <tt>null</tt>
+     */
+    public String getPosition() {
+        return position;
+    }
+
+    /**
+     * Sets the position associated with this source.
+     * It is a strin giving an indication of the part of the stream
+     * which is of interest.  Its interpretation is up to the application.
+     *
+     * @param  the new posisition (may be <tt>null</tt>)
+     */
+    public void setPosition( String position ) {
+        this.position = position;
+    }
+
+    /**
      * Returns a System ID for this DataSource; this is a string 
      * representation of a file name or URL, as used by 
      * {@link javax.xml.transform.Source} and friends.
      * The return value may be <tt>null</tt> if none is known.
+     * This does not contain any reference to the position.
      *
      * @return  the System ID string for this source, or <tt>null</tt>
      */
@@ -558,24 +595,41 @@ public abstract class DataSource {
      * If an <em>existing</em> file or valid URL exists with the given
      * <tt>name</tt>, a DataSource based on it will be returned.
      * Otherwise an IOException will be thrown.
+     * <p>
+     * If a '#' character exists in the string, text after it will be
+     * interpreted as a position value.  Otherwise, the position is
+     * considered to be <tt>null</tt>.
      *
-     * @param  name  the location of the data
+     * @param  loc  the location of the data, with optional position
      * @return  a DataSource based on the data at <tt>name</tt>
      * @throws  IOException  if <tt>name</tt> does not name
      *          an existing readable file or valid URL
      */
-    public static DataSource makeDataSource( String name )
+    public static DataSource makeDataSource( String loc )
             throws IOException {
+
+        /* Extract any position part. */
+        String position;
+        String name;
+        int hashpos = loc.indexOf( '#' );
+        if ( hashpos > 0 ) {
+            position = loc.substring( hashpos + 1 );
+            name = loc.substring( 0, hashpos );
+        }
+        else {
+            position = null;
+            name = loc;
+        }
 
         /* If there is a file by this name, return a source based on that. */
         File file = new File( name );
         if ( file.exists() ) {
-            return new FileDataSource( file );
+            return new FileDataSource( file, position );
         }
  
         /* Otherwise, see if we can make sense of it as a URL. */
         try {
-            URL url = new URL( name );
+            URL url = new URL( loc );
             return new URLDataSource( url );
         }
         catch ( MalformedURLException e ) {
