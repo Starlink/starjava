@@ -20,6 +20,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RandomRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -247,6 +248,37 @@ public abstract class BintableStarTable extends AbstractStarTable {
                 };
             }
         };
+    }
+
+    /**
+     * Reads a BINTABLE extension from a stream and writes the result to
+     * a table sink.
+     *
+     * @param   hdr  FITS header object describing the BINTABLE extension
+     * @param   stream  input stream positioned at the start of the 
+     *          data part of the BINTABLE extension
+     * @param   sink   destination for the table
+     */
+    public static void copyStarTable( Header hdr, DataInput stream, 
+                                      TableSink sink )
+            throws FitsException, IOException {
+        BintableStarTable meta = new BintableStarTable( hdr ) {
+            public RowSequence getRowSequence() {
+                throw new UnsupportedOperationException( "Metadata only" );
+            }
+        };
+        sink.acceptMetadata( meta );
+        long nrow = meta.getRowCount();
+        for ( long i = 0; i < nrow; i++ ) {
+            Object[] row = meta.readRow( stream );
+            sink.acceptRow( row );
+        }
+        sink.endRows();
+        long datasize = nrow * meta.getRowLength();
+        int over = (int) ( datasize % (long) 2880 );
+        if ( over > 0 ) {
+            IOUtils.skipBytes( stream, (long) ( 2880 - over ) );
+        }
     }
 
     /**
