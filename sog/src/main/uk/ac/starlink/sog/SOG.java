@@ -49,7 +49,7 @@ import jsky.util.gui.DialogUtil;
 import jsky.util.gui.ExampleFileFilter;
 import jsky.util.gui.LookAndFeelMenu;
 
-import uk.ac.starlink.hdx.jai.HDXCodec;
+import uk.ac.starlink.jaiutil.HDXCodec;
 
 /**
  * Main class for the SOG application.
