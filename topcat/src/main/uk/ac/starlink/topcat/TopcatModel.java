@@ -29,6 +29,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.topcat.plot.PlotWindow;
@@ -175,10 +176,10 @@ public class TopcatModel {
         };
 
         /* Create and configure some other actions. */
-        newsubsetAct = new ModelAction( "New subset expression", null,
+        newsubsetAct = new ModelAction( "New Subset Expression", null,
                                         "Define a new row subset" );
         unsortAct = new ModelAction( "Unsort", null,
-                                     "Use unsorted order" );
+                                     "Use Unsorted Order" );
 
         /* Set up the listeners. */
         listeners = new ArrayList();
@@ -231,10 +232,7 @@ public class TopcatModel {
             this.label = label;
 
             /* Notify listeners. */
-            for ( Iterator it = listeners.iterator(); it.hasNext(); ) {
-                ((TopcatListener) it.next())
-               .modelChanged( this, TopcatListener.LABEL );
-            }
+            fireModelChanged( TopcatListener.LABEL );
         }
     }
 
@@ -386,6 +384,19 @@ public class TopcatModel {
      */
     public void removeTopcatListener( TopcatListener listener ) {
         listeners.remove( listener );
+    }
+
+    /**
+     * Notifies all registered listeners that this model has changed.
+     *
+     * @param  code  item code indicating the type of change that has
+     *               occurred (one of the static final constants in 
+     *               {@link TopcatListener})
+     */
+    public void fireModelChanged( int code ) {
+        for ( Iterator it = listeners.iterator(); it.hasNext(); ) {
+            ((TopcatListener) it.next()).modelChanged( this, code );
+        }
     }
 
     /**
@@ -626,12 +637,39 @@ public class TopcatModel {
     }
 
     /**
-     * Adds a new row subset to the list which this viewer knows about.
+     * Adds a new row subset to the list which this model knows about.
      *
      * @param  rset  the new row subset
      */
     public void addSubset( RowSubset rset ) {
         subsets.add( rset );
+    }
+
+    /**
+     * Adds a new table parameter to the table.
+     *
+     * @param   param new parameter to add to the table
+     */
+    public void addParameter( DescribedValue param ) {
+        dataModel.getParameters().add( param );
+        fireModelChanged( TopcatListener.PARAMETERS );
+    }
+
+    /**
+     * Removes a table parameter from the table.
+     *
+     * @param   param  parameter object to remove
+     * @return  true if <tt>param</tt> was removed, false if it wasn't
+     *          one of the table parameters in the first place
+     */
+    public boolean removeParameter( DescribedValue param ) {
+        if ( dataModel.getParameters().remove( param ) ) {
+            fireModelChanged( TopcatListener.PARAMETERS );
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -666,12 +704,12 @@ public class TopcatModel {
      */
     private int[] getSortOrder( int icol, final boolean ascending )
             throws IOException { 
+        final int sense = ascending ? 1 : -1;
          
         /* Define a little class for objects being sorted. */
         class Item implements Comparable { 
             int rank;
             Comparable value;
-            int sense = ascending ? 1 : -1;
             public int compareTo( Object o ) {
                 Comparable oval = ((Item) o).value;
                 if ( value != null && oval != null ) {
