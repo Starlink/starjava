@@ -6,6 +6,9 @@
  !   This file describes how to install the local NDArray package from its
  !   released state. It requires Apache ANT and a Java Development Kit.
  !
+ !   Note this package is now totally deprecated. Use the new "array"
+ !   package.
+ !
  !   The main targets are:
  !
  !      build            -> does nothing
