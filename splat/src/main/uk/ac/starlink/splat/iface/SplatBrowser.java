@@ -179,9 +179,18 @@ public class SplatBrowser
         BorderFactory.createTitledBorder( "Properties of current spectra:" );
 
     /**
-     * Whither orientation of split
+     * Orientation of split
      */
     protected JCheckBoxMenuItem splitOrientation = null;
+
+    /**
+     * Whether to automatically choose a colour for each spectrum as loaded.
+     */
+    protected JCheckBoxMenuItem colourAsLoadedItem = null;
+    protected boolean colourAsLoaded = true;
+
+    //  Number of colours available to sample.
+    protected static final float COLOUR_SAMPLE = 1024.0F;
 
     /**
      *  Open or save file chooser.
@@ -296,11 +305,10 @@ public class SplatBrowser
             return;
         }
 
-        //  Now add any command-line spectra. Do this after the
-        //  interface is visible and in a separate thread from
-        //  the GUI and event queue. Note this may cause the GUI to be
-        //  realized, so any additional work must be done on the event
-        //  queue.
+        //  Now add any command-line spectra. Do this after the interface is
+        //  visible and in a separate thread from the GUI and event
+        //  queue. Note this may cause the GUI to be realized, so any
+        //  additional work must be done on the event queue.
         if ( inspec != null ) {
             newFiles = new File[inspec.length];
             for ( int i = 0; i < inspec.length; i++ ) {
@@ -706,11 +714,22 @@ public class SplatBrowser
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
 
+        //  Add option to choose a different colour for each spectrum as they
+        //  are loaded.
+        colourAsLoadedItem = new JCheckBoxMenuItem( "Auto-colour" );
+        optionsMenu.add( colourAsLoadedItem );
+        ImageIcon rainbowImage = 
+            new ImageIcon( ImageHolder.class.getResource( "rainbow.gif" ) );
+        colourAsLoadedItem.setIcon( rainbowImage );
+        optionsMenu.add( colourAsLoadedItem );
+        colourAsLoadedItem.setToolTipText
+            ( "Automatically choose a colour for each spectrum as loaded" );
+        colourAsLoadedItem.addItemListener( this );
+        setColourAsLoaded( true );
+
         //  Add facility to colourise all spectra.
-        ImageIcon rainbowImage = new ImageIcon(
-            ImageHolder.class.getResource( "rainbow.gif" ) );
         LocalAction colourizeAction  =
-            new LocalAction( LocalAction.COLOURIZE, "Auto-colour spectra",
+            new LocalAction( LocalAction.COLOURIZE, "Re-auto-colour all",
                              rainbowImage,
                              "Automatically choose a colour for all spectra" );
         optionsMenu.add( colourizeAction );
@@ -719,6 +738,7 @@ public class SplatBrowser
         //  Arrange the JSplitPane vertically or horizontally.
         splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
         optionsMenu.add( splitOrientation );
+        splitOrientation.setToolTipText( "How to split the browser window" );
         splitOrientation.addItemListener( this );
     }
 
@@ -748,6 +768,21 @@ public class SplatBrowser
         }
         contentPane.revalidate();
         prefs.putBoolean( "SplatBrowser_vsplit", selected );
+    }
+
+    /**
+     * Set whether each spectrum should be assigned an automatic colour as
+     * loaded.
+     */
+    protected void setColourAsLoaded( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = prefs.getBoolean("SplatBrowser_colourize", true);
+            colourAsLoadedItem.setSelected( state );
+        }
+        colourAsLoaded = colourAsLoadedItem.isSelected();
+        prefs.putBoolean( "SplatBrowser_colourize", colourAsLoaded );
     }
 
     /**
@@ -853,14 +888,15 @@ public class SplatBrowser
     }
 
     /**
-     *  Colourize, i.e.&nbsp;automatically set the colour of all spectra.
+     *  Colourize, that is automatically set the colour of all spectra.  
      *  The colours applied depend on the number of spectra shown.
      */
     protected void colourizeSpectra()
     {
         int size = globalList.specCount();
+        int rgb;
         for ( int i = 0; i < size; i++ ) {
-            int rgb = Utilities.getRandomRGB( (float) size );
+            rgb = Utilities.getRandomRGB( (float) size );
             globalList.setKnownNumberProperty(
                              (SpecData) globalList.getSpectrum( i ),
                              SpecData.LINE_COLOUR,
@@ -1398,6 +1434,9 @@ public class SplatBrowser
      */
     public void addSpectrum( SpecData spectrum )
     {
+        if ( colourAsLoaded ) {
+            spectrum.setLineColour( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+        }
         globalList.add( spectrum );
 
         //  Latest list entry becomes selected.
@@ -2026,8 +2065,8 @@ public class SplatBrowser
     }
 
     /**
-     * Create a new spectrum with a number of elements (greater than
-     * 2) obtained interactively.
+     * Create a new spectrum with a number of elements (greater than 2)
+     * obtained interactively.
      */
     public void createSpectrum()
     {
@@ -2052,7 +2091,7 @@ public class SplatBrowser
                     for ( int i = 0; i < nrows; i++ ) {
                         coords[i] = (double) i + 1;
                     }
-                    newSpec.setDataQuick( coords, data );
+                    newSpec.setSimpleDataQuick( coords, data );
                     globalList.add( newSpec );
                }
                 catch (Exception e) {
@@ -2253,8 +2292,13 @@ public class SplatBrowser
     //
     public void itemStateChanged( ItemEvent e )
     {
-        //  Only used for split window request.
-        setSplitOrientation( false );
+        Object source = e.getSource();
+        if ( source.equals( splitOrientation ) ) {
+            setSplitOrientation( false );
+        }
+        else if ( source.equals( colourAsLoadedItem ) ) {
+            setColourAsLoaded( false );
+        }
     }
 
     //
