@@ -1,0 +1,2525 @@
+% ? Document specific \newcommand or \newenvironment commands.
+
+% LaTeX doclet defintions.
+
+%begin{latexonly}
+\newcommand{\entityintro}[3]{
+  \textbf{#1}
+  \dotfill\pageref{#2}
+  \begin{quote}
+  #3
+  \end{quote}
+}
+
+\newcommand{\refdefined}[1]{}
+
+\newcommand{\startsection}[4]{
+   \subsubsection{\label{#3}{#2}}
+   #4
+}
+
+\newcommand{\startsubsubsection}[1]{
+   \subsubsection{#1}
+   \hrule
+}
+
+\newcommand{\method}[1]{\texttt{#1}}
+
+\newenvironment{desc}{\begin{quote}}{\end{quote}}
+
+\newcommand{\constructors}{
+   \subsubsection*{Constructors}
+   \hrule
+}
+
+\newcommand{\methods}{
+   \subsubsection*{Methods}
+   \hrule
+}
+
+\newcommand{\inherited}[1]{
+   \subsubsection*{Methods inherited from class #1}
+   \hrule
+}
+
+\newcommand{\fields}[1]{
+   \subsubsection*{#1}
+   \hrule
+}
+
+\newcommand{\field}[2]{
+   \texttt{#1} 
+   \begin{quote}
+   #2
+   \end{quote}
+}
+%end{latexonly}
+\begin{htmlonly}
+
+\newcommand{\entityintro}[3]{
+  \htmlref{\textbf{\Large{#1}}}{#2}
+  \begin{quote}
+  #3
+  \end{quote}
+}
+
+\newcommand{\refdefined}[1]{}
+
+\newcommand{\startsection}[4]{
+   \subsubsection{\label{#3}{#2}}
+   #4
+}
+
+\newcommand{\startsubsubsection}[1]{
+   \begin{quote}
+   \textbf{\large{#1}}
+   \end{quote}
+}
+
+\newcommand{\method}[1]{\texttt{#1}}
+
+\newenvironment{desc}{\begin{quote}}{\end{quote}}
+
+\newcommand{\constructors}{
+   \par\textbf{\large{Constructors}}\\
+   \hrule
+}
+
+\newcommand{\methods}{
+   \par\textbf{\large{Methods}}\\
+   \hrule
+}
+
+\newcommand{\inherited}[1]{
+   \par\textbf{\large{Methods inherited from class #1}}\\
+   \hrule
+}
+
+\newcommand{\fields}[1]{
+   \par\textbf{\large{#1}}\\
+   \hrule
+}
+
+\newcommand{\field}[2]{
+   \par\texttt{#1}
+   \begin{itemize}
+   \item #2
+   \end{itemize}
+}
+\end{htmlonly}
+
+% ? End of document specific commands
+% -----------------------------------------------------------------------------
+%  Title Page.
+%  ===========
+\renewcommand{\thepage}{\roman{page}}
+\begin{document}
+\thispagestyle{empty}
+
+%  Latex document header.
+%  ======================
+\begin{latexonly}
+   CCLRC / \textsc{Rutherford Appleton Laboratory} \hfill \textbf{\stardocname}\\
+   {\large Particle Physics \& Astronomy Research Council}\\
+   {\large Starlink Project\\}
+   {\large \stardoccategory\ \stardocnumber}
+   \begin{flushright}
+   \stardocauthors\\
+   \stardocdate
+   \end{flushright}
+   \vspace{-4mm}
+   \rule{\textwidth}{0.5mm}
+   \vspace{5mm}
+   \begin{center}
+   {\Huge\textbf{\stardoctitle \\ [2.5ex]}}
+   {\LARGE\textbf{\stardocversion \\ [4ex]}}
+   {\Huge\textbf{\stardocmanual}}
+   \end{center}
+   \vspace{5mm}
+
+% ? Add picture here if required for the LaTeX version.
+%   e.g. \includegraphics[scale=0.3]{filename.ps}
+% ? End of picture
+
+% ? Heading for abstract if used.
+   \vspace{10mm}
+   \begin{center}
+      {\Large\textbf{Abstract}}
+   \end{center}
+% ? End of heading for abstract.
+\end{latexonly}
+
+%  HTML documentation header.
+%  ==========================
+\begin{htmlonly}
+   \xlabel{}
+   \begin{rawhtml} <H1> \end{rawhtml}
+      \stardoctitle\\
+      \stardocversion\\
+      \stardocmanual
+   \begin{rawhtml} </H1> <HR> \end{rawhtml}
+
+% ? Add picture here if required for the hypertext version.
+%   e.g. \includegraphics[scale=0.7]{filename.ps}
+% ? End of picture
+
+   \begin{rawhtml} <P> <I> \end{rawhtml}
+   \stardoccategory\ \stardocnumber \\
+   \stardocauthors \\
+   \stardocdate
+   \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
+      \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
+                        {http://www.cclrc.ac.uk} \\
+      \htmladdnormallink{Particle Physics \& Astronomy Research Council}
+                        {http://www.pparc.ac.uk} \\
+   \begin{rawhtml} </H3> <H2> \end{rawhtml}
+      \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
+   \begin{rawhtml} </H2> \end{rawhtml}
+   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
+      {http://www.starlink.rl.ac.uk/cgi-bin/hcserver?\stardocsource}\\
+
+%  HTML document table of contents.
+%  ================================
+%  Add table of contents header and a navigation button to return to this
+%  point in the document (this should always go before the abstract \section).
+  \label{stardoccontents}
+  \begin{rawhtml}
+    <HR>
+    <H2>Contents</H2>
+  \end{rawhtml}
+  \htmladdtonavigation{\htmlref{\htmladdimg{contents_motif.gif}}
+        {stardoccontents}}
+
+% ? New section for abstract if used.
+  \section{\xlabel{abstract}Abstract}
+% ? End of new section for abstract
+\end{htmlonly}
+
+% -----------------------------------------------------------------------------
+% ? Document Abstract. (if used)
+%  ==================
+\stardocabstract
+% ? End of document abstract
+
+% -----------------------------------------------------------------------------
+% ? Latex Copyright Statement
+%  =========================
+\begin{latexonly}
+\newpage
+\vspace*{\fill}
+\stardoccopyright
+\end{latexonly}
+% ? End of Latex copyright statement
+
+% -----------------------------------------------------------------------------
+% ? Latex document Table of Contents (if used).
+%  ===========================================
+  \newpage
+  \begin{latexonly}
+    \setlength{\parskip}{0mm}
+    \tableofcontents
+    \setlength{\parskip}{\medskipamount}
+    \markboth{\stardocname}{\stardocname}
+  \end{latexonly}
+% ? End of Latex document table of contents
+% -----------------------------------------------------------------------------
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{page}{1}
+
+\section{Package uk.ac.starlink.splat.data}
+
+\vspace{.13in}
+\hbox{\textbf{Classes}}
+\vspace{.13in}
+\entityintro{MEMSpecDataImpl}{l0}{This class provides an implementation of SpecDataImpl to access
+ spectra stored in existing memory.}
+\entityintro{SpecData}{l1}{SpecData defines an interface for general access to spectral
+ datasets of differing fundamental data types and is the main data
+ model used in SPLAT.}
+\entityintro{SpecDataFactory}{l2}{This class creates and clones instances of SpecData that are
+ appropriate to the data format of the given spectrum specification.}
+\clearpage
+\subsection{Classes}
+\startsection{Class}{MEMSpecDataImpl}{l0}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class MEMSpecDataImpl extends uk.ac.starlink.splat.data.SpecDataImpl}
+}} % end fbox
+
+
+
+%\vspace{.09in}
+
+
+{This class provides an implementation of SpecDataImpl to access
+ spectra stored in existing memory. All values are copied into
+ arrays stored in memory.
+ 
+ The main use of this class is for temporary, generated and copied
+ spectra.}
+\constructors
+\method{public \textbf{MEMSpecDataImpl}(\texttt{java.lang.String} \textbf{name})\label{l3}\label{l4}}
+\begin{desc}Constructor - just take a symbolic name for the spectrum, no
+ other significance.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{name}]{a symbolic name for the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public \textbf{MEMSpecDataImpl}(\texttt{java.lang.String} \textbf{name}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l5}\label{l6}}
+\begin{desc}Constructor, clone from another spectrum.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{name}]{a symbolic name for the spectrum.}
+   \item[\textbf{spectrum}]{a SpecData object to copy.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\methods
+\method{public long \textbf{getAst}()\label{l7}\label{l8}}
+\begin{desc}Return reference to AST frameset that defines the coordinate
+ relations used by this spectrum.
+\begin{itemize}
+\item{Returns reference to a raw AST frameset. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getData}()\label{l9}\label{l10}}
+\begin{desc}Return a copy of the spectrum data values.
+\begin{itemize}
+\item{Returns reference to the spectrum data values. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getDataErrors}()\label{l11}\label{l12}}
+\begin{desc}Return a copy of the spectrum data errors.
+\begin{itemize}
+\item{Returns reference to the spectrum data values. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getDataFormat}()\label{l13}\label{l14}}
+\begin{desc}Return the data format.
+\begin{itemize}
+\item{Returns the String "MEMORY". }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getDims}()\label{l15}\label{l16}}
+\begin{desc}Return the data array dimensionality (always length of
+ spectrum).
+\begin{itemize}
+\item{Returns integer array of size 1 returning the number of data
+                 values available. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getFullName}()\label{l17}\label{l18}}
+\begin{desc}Return the full name of spectrum. For memory spectra this has
+ no real meaning (i.e. no disk file or URL) so always returns a
+ string reminding users that they need to save it.
+\begin{itemize}
+\item{Returns the String "Memory spectrum". }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getShortName}()\label{l19}\label{l20}}
+\begin{desc}Return a symbolic name.
+\begin{itemize}
+\item{Returns a symbolic name for the spectrum. Based on the filename. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{save}()\label{l21}\label{l22}}
+\begin{desc}Save is just a copy for this class.
+\begin{itemize}
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{uk.ac.starlink.splat.util.SplatException} - never thrown for this implementation.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setData}(\texttt{double[]} \textbf{data}, \texttt{double[]} \textbf{coords})\label{l23}\label{l24}}
+\begin{desc}Set the spectrum data. No errors.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{data}]{the spectrum data values.}
+   \item[\textbf{coords}]{the spectrum coordinates, one per data value.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setData}(\texttt{double[]} \textbf{data}, \texttt{double[]} \textbf{coords}, \texttt{double[]} \textbf{errors})\label{l25}\label{l26}}
+\begin{desc}Set the spectrum data. With errors.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{data}]{the spectrum data values.}
+   \item[\textbf{coords}]{the spectrum coordinates, one per data value.}
+   \item[\textbf{errors}]{the errors of the spectrum data values.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\startsection{Class}{SpecData}{l1}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class SpecData implements SpecDataAccess, AnalyticSpectrum, java.io.Serializable}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{SpecData defines an interface for general access to spectral
+ datasets of differing fundamental data types and is the main data
+ model used in SPLAT.
+ 
+ It uses a derived class of SpecDataImpl to a supported data format
+ (i.e. FITS, NDF and text files) to give generalised access to:
+ \begin{itemize}
+
+   \item{ the spectrum data
+   }
+\item{ the associated data errors
+   }
+\item{ the coordinate of any data point
+   }
+\item{ the spectrum properties (i.e. related values)
+ }
+\end{itemize}
+
+ 
+ It should always be used when dealing with spectral data to avoid
+ any specialised knowledge of the data format.
+ 
+ Missing data, or gaps in the spectrum, are indicated using the
+ special value SpecData.BAD. Generally useful code should always
+ test for this in the data values (otherwise you'll see numeric
+ problems as BAD is the lowest possible double value).
+ 
+ Matching of data values between this spectrum and anothers
+ coordinates can currently be done using the evalYData and
+ evalYDataArray method of the AnalyticSpectrum interface (but note
+ that at present this uses a simple interpolation scheme, so
+ shouldn't be used for analysis, except when the interpolated
+ spectrum is an analytic one, such as a polynomial).
+ 
+ Each object records a series of properties that define how the
+ spectrum should be rendered (i.e. line colour, thickness, style,
+ plotting style, whether to show an errors as bars etc.). These are
+ stored in any serialized versions of this class. Rendering using
+ the Grf object primitives is performed by this class for spectra
+ and error bars.
+ 
+ Facilities to store the association between this spectrum and the
+ various plots that it is currently associated with are also provided
+ (but see the SpecList or GlobalSpecPlotList classes for ways to
+ structure the control of many spectra, or many spectra and many
+ plots).
+ 
+ General utilities for converting coordinates and looking up values
+ are provided, as are methods for specialised functions like
+ formatting and unformatting values. This allows you to avoid
+ understanding what is returned as a value from a user
+ interaction as formatting and unformatting match the units of the
+ spectral axes (which can therefore be in esoteric units, like RA
+ or Dec).}
+\fields{Fields}
+\field{public static final double \textbf{BAD}}{Value of BAD (missing) data.}
+\field{public static final int \textbf{LINE\_THICKNESS}}{Set or query line thickness.}
+\field{public static final int \textbf{LINE\_STYLE}}{Set or query line drawing style.}
+\field{public static final int \textbf{LINE\_COLOUR}}{Set or query line colour.}
+\field{public static final int \textbf{PLOT\_STYLE}}{Set or query line drawing style.}
+\field{public static final int \textbf{LINE\_ALPHA\_BLEND}}{Set or query alpha blending fraction.}
+\field{public static final int \textbf{ERROR\_COLOUR}}{Set or query error bar colour.}
+\field{public static final int \textbf{POLYLINE}}{Use polyline plotting style.}
+\field{public static final int \textbf{HISTOGRAM}}{Use histogram plotting style.}
+\field{public static final int \textbf{UNCLASSIFIED}}{Spectrum is unclassified.}
+\field{public static final int \textbf{TARGET}}{Spectrum is a target (observation).}
+\field{public static final int \textbf{ARC}}{Spectrum is an arc.}
+\field{public static final int \textbf{SKY}}{Spectrum is a twilight sky exposure.}
+\field{public static final int \textbf{POLYNOMIAL}}{Spectrum is a polynomial.}
+\field{public static final int \textbf{LINEFIT}}{Spectrum is a line fit.}
+\field{public static final int \textbf{USERTYPE}}{Spectrum is a user defined type.}
+
+\constructors
+\method{public \textbf{SpecData}(\texttt{uk.ac.starlink.splat.data.SpecDataImpl} \textbf{impl})\label{l27}\label{l28}}
+\begin{desc}Create an instance using the data in a given SpecDataImpl
+ object.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{impl}]{an concrete implementation of a SpecDataImpl
+             class that is accessing spectral data in of 
+             some format.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\methods
+\method{public void \textbf{addPlot}(\texttt{uk.ac.starlink.splat.plot.Plot} \textbf{plot})\label{l29}\label{l30}}
+\begin{desc}Add a Plot reference to the list of known views of this
+ spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{reference to a Plot}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{bound}(\texttt{double} \textbf{xcoord})\label{l31}\label{l32}}
+\begin{desc}Locate the indices of the two coordinates that lie closest to a
+ given coordinate. In the case of an exact match then both
+ indices are returned as the same value.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{xcoord}]{the coordinate value to bound.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns array of two integers, the lower and upper indices. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{drawSpec}(\texttt{uk.ac.starlink.splat.plot.Grf} \textbf{grf}, \texttt{long} \textbf{plot}, \texttt{double[]} \textbf{limits})\label{l33}\label{l34}}
+\begin{desc}Draw the spectrum onto the given widget using a suitable AST
+ GRF object.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{grf}]{Grf object that can be drawn into using AST
+            primitives.}
+   \item[\textbf{plot}]{reference to AstPlot defining transformation from
+             physical coordinates into graphics coordinates.}
+   \item[\textbf{limits}]{limits of the region to draw in physical
+               coordinates (e.g. user defined ranges), used to
+               clip graphics.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{evalYData}(\texttt{double} \textbf{x})\label{l35}\label{l36}}
+\begin{desc}Return the value of the spectrum at an arbitrary X position.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{x}]{the coordiante at which to evaluate this spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns data value of this spectrum at the given coordinate. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{evalYDataArray}(\texttt{double[]} \textbf{x})\label{l37}\label{l38}}
+\begin{desc}Return the value of the spectrum evaluated at series of
+ arbitrary X positions.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{x}]{the coordiantes at which to evaluate this spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns data values of this spectrum at the given coordinates. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{format}(\texttt{int} \textbf{axis}, \texttt{long} \textbf{plot}, \texttt{double} \textbf{value})\label{l39}\label{l40}}
+\begin{desc}Convert a coordinate value into a formatted String suitable for
+ a given axis (could be celestial coordinates for example).
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{axis}]{the axis to use for formatting rules.}
+   \item[\textbf{value}]{the value.}
+   \item[\textbf{plot}]{AST plot that defines the coordinate formats.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the formatted value. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{formatInterpolatedLookup}(\texttt{int} \textbf{xg}, \texttt{long} \textbf{plot})\label{l41}\label{l42}}
+\begin{desc}Return interpolated physical values (i.e. wavelength and data
+ value) that correspond to a graphics X coordinate.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xg}]{X graphics coordinate}
+   \item[\textbf{plot}]{AST plot needed to transform graphics position
+            into physical coordinates}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the physical coordinate and value. These are
+ linearly interpolated. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{formatLookup}(\texttt{int} \textbf{xg}, \texttt{long} \textbf{plot})\label{l43}\label{l44}}
+\begin{desc}Lookup the physical values (i.e. wavelength and data value)
+ that correspond to a graphics X coordinate. Value is returned
+ as formatted strings for the selected axis (could be sky
+ coordinates for instance).
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xg}]{X graphics coordinate}
+   \item[\textbf{plot}]{AST plot needed to transform graphics position
+             into physical coordinates}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns array of two Strings, the formatted wavelength and
+         data values }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getAlphaBlend}()\label{l45}\label{l46}}
+\begin{desc}Get the alpha blending fraction.
+\begin{itemize}
+\item{Returns the current alpha blending fraction. }
+\end{itemize}
+\end{desc}
+
+\method{public ASTJ \textbf{getAst}()\label{l47}\label{l48}}
+\begin{desc}Get reference to ASTJ object set up to specify coordinate
+ transformations.
+\begin{itemize}
+\item{Returns ASTJ object describing axis transformations. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getDataFormat}()\label{l49}\label{l50}}
+\begin{desc}Return the data format as a suitable name.
+\begin{itemize}
+\item{Returns the data format as a simple string (FITS, NDF, etc.). }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getErrorColour}()\label{l51}\label{l52}}
+\begin{desc}Get the colour used when drawing error bars.
+\begin{itemize}
+\item{Returns the error bar colour (an RGB integer). }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getFullName}()\label{l53}\label{l54}}
+\begin{desc}Get the full name for spectrum (cannot edit, this is usually
+ the filename).
+\begin{itemize}
+\item{Returns the full name. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getFullRange}()\label{l55}\label{l56}}
+\begin{desc}Get the data ranges in the X and Y axes with standard
+ deviation.
+\begin{itemize}
+\item{Returns reference to array of 4 values, xlow, xhigh, ylow, yhigh. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getLineColour}()\label{l57}\label{l58}}
+\begin{desc}Get the colour of the line to be used when plotting the
+ spectrum.
+\begin{itemize}
+\item{Returns the line colour (an RGB integer). }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getLineStyle}()\label{l59}\label{l60}}
+\begin{desc}Get the line type to be used when plotting the spectrum.
+ The meaning of this value is not defined.
+\begin{itemize}
+\item{Returns the line style in use. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getLineThickness}()\label{l61}\label{l62}}
+\begin{desc}Get the width of the line to be used when plotting the
+ spectrum. The meaning of this value isn't defined.
+\begin{itemize}
+\item{Returns the line thickness. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getPlotStyle}()\label{l63}\label{l64}}
+\begin{desc}Get the value of plotStyle.
+\begin{itemize}
+\item{Returns the current plotting type (SpecData.POLYLINE or
+            SpecData.HISTOGRAM). }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getRange}()\label{l65}\label{l66}}
+\begin{desc}Get the data ranges in the X and Y axes. Does not include data
+ errors.
+\begin{itemize}
+\item{Returns reference to array of 4 values, xlow, xhigh, ylow, yhigh. }
+\end{itemize}
+\end{desc}
+
+\method{public SpecData \textbf{getSect}(\texttt{java.lang.String} \textbf{name}, \texttt{double[]} \textbf{ranges})\label{l67}\label{l68}}
+\begin{desc}Create a new spectrum by extracting sections of this spectrum.
+ The section extents are defined in physical coordinates.
+ Each section will not contain any values that lie outside of
+ its physical coordinate range.
+ 
+ The spectrum created here is not added to any lists or created
+ with any configuration other than the default values (i.e. you
+ must do this part yourself) and is only keep in memory.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{name}]{short name for the spectrum.}
+   \item[\textbf{ranges}]{an array of pairs of physical coordinates. These
+               define the extents of the ranges to extract.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns a spectrum that contains data only from the given
+         ranges. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getShortName}()\label{l69}\label{l70}}
+\begin{desc}Get a symbolic name for spectrum.
+\begin{itemize}
+\item{Returns the short name. }
+\end{itemize}
+\end{desc}
+
+\method{public SpecDataImpl \textbf{getSpecDataImpl}()\label{l71}\label{l72}}
+\begin{desc}Return the SpecDataImpl object so that it can expose very data
+ specific methods (if needed, you really shouldn't use this).
+\begin{itemize}
+\item{Returns SpecDataImpl object defining the data access used by
+         this instance. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getType}()\label{l73}\label{l74}}
+\begin{desc}Get the type of the spectral data.
+\begin{itemize}
+\item{Returns type either UNCLASSIFIED, TARGET, ARC, SKY, POLYNOMIAL or
+                     LINEFIT or USERTYPE. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getXData}()\label{l75}\label{l76}}
+\begin{desc}Get references to spectrum X data (i.e. the coordinates).
+\begin{itemize}
+\item{Returns reference to spectrum X data. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getYData}()\label{l77}\label{l78}}
+\begin{desc}Get references to spectrum Y data (i.e. the data values).
+\begin{itemize}
+\item{Returns reference to spectrum Y data. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getYDataErrors}()\label{l79}\label{l80}}
+\begin{desc}Get references to spectrum Y data errors (i.e. the data
+ errors).
+\begin{itemize}
+\item{Returns reference to spectrum Y data errors. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{haveYDataErrors}()\label{l81}\label{l82}}
+\begin{desc}Return if data errors are available.
+\begin{itemize}
+\item{Returns true if Y data has errors. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{isDrawErrorBars}()\label{l83}\label{l84}}
+\begin{desc}Find out if we're drawing error bars.
+\begin{itemize}
+\item{Returns true if we're drawing error bars. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{isUseInAutoRanging}()\label{l85}\label{l86}}
+\begin{desc}Find out if we should be used when determining an auto-range.
+\begin{itemize}
+\item{Returns whether this spectrum is used when auto-ranging. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{lookup}(\texttt{int} \textbf{xg}, \texttt{long} \textbf{plot})\label{l87}\label{l88}}
+\begin{desc}Lookup the physical values (i.e. wavelength and data value)
+ that correspond to a graphics X coordinate.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xg}]{X graphics coordinate}
+   \item[\textbf{plot}]{AST plot needed to transform graphics position
+             into physical coordinates}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns array of two doubles. The wavelength and data values. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{plotCount}()\label{l89}\label{l90}}
+\begin{desc}Get the number of plots currently using this spectrum.
+\begin{itemize}
+\item{Returns number of plot currently using this spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removePlot}(\texttt{int} \textbf{index})\label{l91}\label{l92}}
+\begin{desc}Remove a Plot reference.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{of the Plot}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removePlot}(\texttt{uk.ac.starlink.splat.plot.Plot} \textbf{plot})\label{l93}\label{l94}}
+\begin{desc}Remove a Plot reference.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{reference to a Plot}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{save}()\label{l95}\label{l96}}
+\begin{desc}Save the spectrum to disk (if supported). Uses the current
+ state of the spectrum (i.e. any file names etc.) to decide how
+ to do this.
+\begin{itemize}
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{uk.ac.starlink.splat.util.SplatException} - thown if an error occurs during save.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setAlphaBlend}(\texttt{double} \textbf{alphaBlend})\label{l97}\label{l98}}
+\begin{desc}Set the alpha blending fraction of the line used plot the spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{alphaBlend}]{the alpha belanding fraction (0.0 to 1.0).}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setDrawErrorBars}(\texttt{boolean} \textbf{state})\label{l99}\label{l100}}
+\begin{desc}Set whether the spectrum should have its errors drawn as error
+ bars, or not. If no errors are available then this is always
+ false.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{state}]{true to draw error bars, if possible.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setErrorColour}(\texttt{int} \textbf{errorColour})\label{l101}\label{l102}}
+\begin{desc}Set the colour index to be used when drawing error bars.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{errorColour}]{the colour as an RGB integer.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setKnownNumberProperty}(\texttt{int} \textbf{what}, \texttt{java.lang.Number} \textbf{value})\label{l103}\label{l104}}
+\begin{desc}Set a known numeric spectral property.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{what}]{either LINE\_THICKNESS, LINE\_STYLE, LINE\_COLOUR,
+             PLOT\_STYLE, LINE\_ALPHA\_BLEND or ERROR\_COLOUR.}
+   \item[\textbf{value}]{container for numeric value. These depend on
+              property being set.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setLineColour}(\texttt{int} \textbf{lineColour})\label{l105}\label{l106}}
+\begin{desc}Set the colour index to be used when plotting the spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{lineColour}]{the colour as an RGB integer.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setLineStyle}(\texttt{double} \textbf{lineStyle})\label{l107}\label{l108}}
+\begin{desc}Set the style of the line used to plot the spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{lineStyle}]{the line style to be used when plotting.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setLineThickness}(\texttt{double} \textbf{lineThickness})\label{l109}\label{l110}}
+\begin{desc}Set the thickness of the line used to plot the spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{lineThickness}]{the line width to be used when plotting.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setPlotStyle}(\texttt{int} \textbf{style})\label{l111}\label{l112}}
+\begin{desc}Set the type of spectral lines that are drawn (these can be
+ polylines or histogram-like, simple markers are a possibility
+ for a future implementation). The value should be one of the
+ symbolic constants "POLYLINE" and "HISTOGRAM".
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{style}]{one of the symbolic contants SpecData.POLYLINE or
+             SpecData.HISTOGRAM.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setShortName}(\texttt{java.lang.String} \textbf{shortName})\label{l113}\label{l114}}
+\begin{desc}Change the symbolic name of a spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{shortName}]{new short name for the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setType}(\texttt{int} \textbf{type})\label{l115}\label{l116}}
+\begin{desc}Set the type of the spectral data.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{type}]{either UNCLASSIFIED, TARGET, ARC, SKY, POLYNOMIAL or
+                    LINEFIT or USERTYPE.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setUseInAutoRanging}(\texttt{boolean} \textbf{state})\label{l117}\label{l118}}
+\begin{desc}Set whether the spectrum should be used when deriving
+ auto-ranged values.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{state}]{if true then this spectrum should be used when
+             determining data limits (artificial spectra could
+             have unreasonable ranges when extrapolated).}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{size}()\label{l119}\label{l120}}
+\begin{desc}Get the size of the spectrum.
+\begin{itemize}
+\item{Returns number of coordinate positions in spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{unFormat}(\texttt{int} \textbf{axis}, \texttt{long} \textbf{plot}, \texttt{java.lang.String} \textbf{value})\label{l121}\label{l122}}
+\begin{desc}Convert a formatted coordinate string into a double precision
+ value (could be celestial coordinates for example).
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{axis}]{the axis to use for formatting rules.}
+   \item[\textbf{plot}]{AST plot that defines the coordinate formats.}
+   \item[\textbf{value}]{the formatted value.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the unformatted value. }
+\end{itemize}
+\end{desc}
+
+\startsection{Class}{SpecDataFactory}{l2}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class SpecDataFactory}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{This class creates and clones instances of SpecData that are
+ appropriate to the data format of the given spectrum specification.
+ 
+ The specification is usual the file name plus extension and any
+ qualifiers (such as HDS object path, or FITS extension
+ number). This is parsed and identified by the InputNameParser
+ class.}
+\methods
+\method{public SpecData \textbf{get}(\texttt{java.lang.String} \textbf{specspec})\label{l123}\label{l124}}
+\begin{desc}Check the format of the incoming specification and create an
+  instance of SpecData for it.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{specspec}]{the specification of the spectrum to be
+                  opened (i.e. file.fits, file.sdf,
+                  file.fits[2], file.more.ext\_1 etc.).}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the SpecData object created from the given
+          specification. }
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{uk.ac.starlink.splat.util.SplatException} - thrown if specification does not
+             specify a spectrum.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public SpecData \textbf{getClone}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{source}, \texttt{java.lang.String} \textbf{specspec})\label{l125}\label{l126}}
+\begin{desc}Create an clone of an existing spectrum by transforming it into
+ another implementation format. The destination format is
+ decided using the usual rules on specification string.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{source}]{SpecData object to be cloned.}
+   \item[\textbf{specspec}]{name of the resultant clone (defines
+                 implementation type).}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the cloned SpecData object. }
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{uk.ac.starlink.splat.util.SplatException} - maybe thrown if there are problems
+            creating the new SpecData object or the implementation.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public static SpecDataFactory \textbf{getReference}()\label{l127}\label{l128}}
+\begin{desc}Return reference to the only allowed instance of this class.
+\begin{itemize}
+\item{Returns reference to only instance of this class. }
+\end{itemize}
+\end{desc}
+
+\clearpage
+
+
+\section{Package uk.ac.starlink.splat.plot}
+
+\vspace{.13in}
+\hbox{\textbf{Classes}}
+\vspace{.13in}
+\entityintro{PlotControl}{l129}{A PlotControl object consists of a Plot inside a scrolled pane and
+ various controls in a panel.}
+\clearpage
+\subsection{Classes}
+\startsection{Class}{PlotControl}{l129}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class PlotControl extends javax.swing.JPanel implements MouseMotionTracker, uk.ac.starlink.splat.iface.SpecListener, FigureListener, PlotScaledListener, java.awt.event.ActionListener}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{A PlotControl object consists of a Plot inside a scrolled pane and
+ various controls in a panel. The Plot allows you to display many
+ spectra. Plots wrapped by this object are given a name that is
+ unique within an application (\textless plotn\textgreater ) and are assigned an
+ identifying number (0 upwards).
+ 
+ The controls in the panel allow you to:
+ \begin{itemize}
+ \item{ apply independent scales in X and Y, thus zooming and
+        scrolling the Plot,\textless $/$li\textgreater 
+ }
+   \item{  get a continuous readout of the cursor position,
+   }
+\item{  display a vertical hair,\textless $/$li\textgreater 
+   }
+\item{  select the current spectrum and see a list of those
+        displayed,\textless $/$li\textgreater 
+   }
+\item{  apply percentile cuts to the data limits.\textless $/$li\textgreater 
+ }
+\end{itemize}
+
+ Methods are provided for scaling about the current centre, zooming
+ in to a given region as well as just setting the X and Y scale
+ factors.
+ 
+ You can also scroll to centre on a given X coordinate (or the one
+ shown in the X coordinate readout field) and make the Plot fit
+ itself to the current viewable height and$/$or width.
+ 
+ A not-very exhaustive set of methods for querying the contents of
+ the Plot (e.g. getting access to the plotted spectra) and adding
+ and removing spectra from the Plot are provided.
+ 
+ Finally this object can make the Plot produce a postscript and JPEG
+ output copy of itself.
+ 
+ See the Plot object for a description of the facilities it
+ provides.}
+
+\constructors
+\method{public \textbf{PlotControl}()\label{l130}\label{l131}}
+\begin{desc}Create a Plot, adding spectra later.
+\end{desc}
+
+\method{public \textbf{PlotControl}(\texttt{uk.ac.starlink.splat.data.SpecDataComp} \textbf{spectra})\label{l132}\label{l133}}
+\begin{desc}Plot a list of spectra referenced in a SpecDataComp object.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectra}]{reference to SpecDataComp object that is
+                wrapping the spectra to display.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public \textbf{PlotControl}(\texttt{java.lang.String} \textbf{file})\label{l134}\label{l135}}
+\begin{desc}Plot a spectrum using its filename specification. Standalone
+ constructor.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{file}]{name of file containing spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\methods
+\method{public void \textbf{actionPerformed}(\texttt{java.awt.event.ActionEvent} \textbf{e})\label{l136}\label{l137}}
+\begin{desc}Respond to selection of a new spectrum as the current one. This
+ makes the selected spectrum current in the global list.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpectrum}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spec})\label{l138}\label{l139}}
+\begin{desc}Add a SpecData reference to the list of displayed spectra.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spec}]{reference to a spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{centreOnXCoordinate}()\label{l140}\label{l141}}
+\begin{desc}Centre on the value shown in the xValue field, if possible.
+\end{desc}
+
+\method{public void \textbf{centreOnXCoordinate}(\texttt{java.lang.String} \textbf{coord})\label{l142}\label{l143}}
+\begin{desc}Centre on a given coordinate. The coordinate is a formatted
+ value.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{coord}]{coordinate to centre on.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{figureChanged}(\texttt{uk.ac.starlink.splat.plot.FigureChangedEvent} \textbf{e})\label{l144}\label{l145}}
+\begin{desc}Send when the zoom figure is changed. Do nothing.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{figureCreated}(\texttt{uk.ac.starlink.splat.plot.FigureChangedEvent} \textbf{e})\label{l146}\label{l147}}
+\begin{desc}Sent when the zoom figure is created. Do nothing.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{figureRemoved}(\texttt{uk.ac.starlink.splat.plot.FigureChangedEvent} \textbf{e})\label{l148}\label{l149}}
+\begin{desc}Sent when a zoom interaction is complete. Events by mouse
+ button 3 are assumed to mean unzoom.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{finalize}()\label{l150}\label{l151}}
+\begin{desc}Release any locally allocated resources and references.
+\begin{itemize}
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{java.lang.Throwable} - if finalize fails.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{fitToHeight}()\label{l152}\label{l153}}
+\begin{desc}Fit spectrum to the displayed height.
+\end{desc}
+
+\method{public void \textbf{fitToWidth}()\label{l154}\label{l155}}
+\begin{desc}Fit spectrum to the displayed width.
+\end{desc}
+
+\method{public void \textbf{fitToWidthAndHeight}()\label{l156}\label{l157}}
+\begin{desc}Fit spectrum to the displayed width and height at same time.
+\end{desc}
+
+\method{public double \textbf{getCentre}()\label{l158}\label{l159}}
+\begin{desc}Get the centre of the current view.
+\begin{itemize}
+\item{Returns array of two doubles, the X and Y coordinates of the
+ centre of the current view (view coordinates). }
+\end{itemize}
+\end{desc}
+
+\method{public PlotConfig \textbf{getConfig}()\label{l160}\label{l161}}
+\begin{desc}Get the Graphics configuration object.
+\begin{itemize}
+\item{Returns reference to the current graphics configuration object. }
+\end{itemize}
+\end{desc}
+
+\method{public SpecData \textbf{getCurrentSpectrum}()\label{l162}\label{l163}}
+\begin{desc}Return the current spectrum (top of the combobox of names).
+ This method is for use in picking a spectrum from all those
+ displayed by any associated toolboxes that can only work with
+ one spectrum.
+\begin{itemize}
+\item{Returns the current spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getDisplayCoordinates}()\label{l164}\label{l165}}
+\begin{desc}Get the physical coordinate limits of the complete Plot
+ (i.e. the whole plot, including zoomed regions that you cannot
+ see).
+\begin{itemize}
+\item{Returns array of four doubles, the lower X, lower Y, upper X
+         and upper Y coordinates. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getIdentifier}()\label{l166}\label{l167}}
+\begin{desc}Return the integer identifier of this plot (unique among plots).
+\begin{itemize}
+\item{Returns integer identifier. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getName}()\label{l168}\label{l169}}
+\begin{desc}Return the name of this plot (unique among plots).
+\begin{itemize}
+\item{Returns name of the Plot. }
+\end{itemize}
+\end{desc}
+
+\method{public Plot \textbf{getPlot}()\label{l170}\label{l171}}
+\begin{desc}Return the Plot reference.
+\begin{itemize}
+\item{Returns reference to the Plot. }
+\end{itemize}
+\end{desc}
+
+\method{public SpecDataComp \textbf{getSpecDataComp}()\label{l172}\label{l173}}
+\begin{desc}Return reference to SpecDataComp.
+\begin{itemize}
+\item{Returns the SpecDataComp object used to wrapp all spectra
+         displayed in the Plot. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getViewCoordinates}()\label{l174}\label{l175}}
+\begin{desc}Get the physical coordinates limits of the current view of the
+ Plot (i.e. what you can see).
+\begin{itemize}
+\item{Returns array of four doubles, the lower X, lower Y, upper X
+         and upper Y coordinates. }
+\end{itemize}
+\end{desc}
+
+\method{public JViewport \textbf{getViewport}()\label{l176}\label{l177}}
+\begin{desc}Get reference to the JViewport being used to display the
+ spectra.
+\begin{itemize}
+\item{Returns reference to the JViewport. }
+\end{itemize}
+\end{desc}
+
+\method{public double \textbf{getViewRange}()\label{l178}\label{l179}}
+\begin{desc}Get the coordinate range displayed in the current view.
+\begin{itemize}
+\item{Returns array of two doubles, the lower and upper limits of the
+        Plot in X coordinates. }
+\end{itemize}
+\end{desc}
+
+\method{public float \textbf{getXScale}()\label{l180}\label{l181}}
+\begin{desc}Get the current X scale factor.
+\begin{itemize}
+\item{Returns the current X scale factor. }
+\end{itemize}
+\end{desc}
+
+\method{public float \textbf{getYScale}()\label{l182}\label{l183}}
+\begin{desc}Get the current Y scale factor.
+\begin{itemize}
+\item{Returns the current Y scale factor. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{isDisplayed}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spec})\label{l184}\label{l185}}
+\begin{desc}Say if a spectrum is being plotted.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spec}]{the spectrum tio check.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if the SpecData object is being displayed. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{maybeScaleAboutCentre}()\label{l186}\label{l187}}
+\begin{desc}Set the display scale factor to that shown, keeping the current
+ centre of field, unless a centre operation is already pending.
+\end{desc}
+
+\method{public void \textbf{plotScaleChanged}(\texttt{uk.ac.starlink.splat.plot.PlotScaleChangedEvent} \textbf{e})\label{l188}\label{l189}}
+\begin{desc}Make any adjustments needed to respond to a change in scale by
+ the Plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{print}()\label{l190}\label{l191}}
+\begin{desc}Make a printable copy of the Plot content.
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{int} \textbf{index})\label{l192}\label{l193}}
+\begin{desc}Remove a spectrum from the Plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{of the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spec})\label{l194}\label{l195}}
+\begin{desc}Remove a spectrum from the Plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spec}]{reference to a spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{resetScales}()\label{l196}\label{l197}}
+\begin{desc}Reset the apparent scales of the Plot. This means that
+ whatever the current size of the Plot its scale becomes 1x1.
+\end{desc}
+
+\method{public void \textbf{scaleScale}(\texttt{float} \textbf{xs}, \texttt{float} \textbf{ys})\label{l198}\label{l199}}
+\begin{desc}Scale the scale factors.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xs}]{value to scale the X scale factor by.}
+   \item[\textbf{ys}]{value to scale the Y scale factor by.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setCentre}(\texttt{double} \textbf{x}, \texttt{double} \textbf{y})\label{l200}\label{l201}}
+\begin{desc}Set the viewport to show a given position as the centre.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{x}]{the X coordinate of new centre (view coordinates).}
+   \item[\textbf{y}]{the Y coordinate of new centre (view coordinates).}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setConfig}(\texttt{uk.ac.starlink.splat.iface.PlotConfig} \textbf{config})\label{l202}\label{l203}}
+\begin{desc}Set the Graphics configuration object.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{config}]{the graphics configuration object.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setScale}()\label{l204}\label{l205}}
+\begin{desc}Set the display scale factor to that shown.
+\end{desc}
+
+\method{public void \textbf{setScale}(\texttt{float} \textbf{xs}, \texttt{float} \textbf{ys})\label{l206}\label{l207}}
+\begin{desc}Set the display scale factors. Also scales the plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xs}]{X scale factor.}
+   \item[\textbf{ys}]{Y scale factor.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setSpecDataComp}(\texttt{uk.ac.starlink.splat.data.SpecDataComp} \textbf{spectra})\label{l208}\label{l209}}
+\begin{desc}Set the SpecDataComp component used.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectra}]{new SpecDataComp object to use for wrapping any
+                spectra displayed in the Plot.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{uk.ac.starlink.splat.util.SplatException} - thrown if problems reading spectral
+            data.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setXScale}(\texttt{float} \textbf{xs})\label{l210}\label{l211}}
+\begin{desc}Set the X scale factor.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{xs}]{the new X scale factor.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setYScale}(\texttt{float} \textbf{ys})\label{l212}\label{l213}}
+\begin{desc}Set the Y scale factor.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{ys}]{the new Y scale factor.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{specCount}()\label{l214}\label{l215}}
+\begin{desc}Get the number of spectrum currently plotted.
+\begin{itemize}
+\item{Returns number of spectra being displayed. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{spectrumAdded}(\texttt{uk.ac.starlink.splat.iface.SpecChangedEvent} \textbf{e})\label{l216}\label{l217}}
+\begin{desc}A new spectrum is added. Do nothing, until it is added to this
+ plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{spectrumChanged}(\texttt{uk.ac.starlink.splat.iface.SpecChangedEvent} \textbf{e})\label{l218}\label{l219}}
+\begin{desc}React to a spectrum property change, if one of ours.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{spectrumCurrent}(\texttt{uk.ac.starlink.splat.iface.SpecChangedEvent} \textbf{e})\label{l220}\label{l221}}
+\begin{desc}React to a change in the global current spectrum. Do nothing.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{spectrumRemoved}(\texttt{uk.ac.starlink.splat.iface.SpecChangedEvent} \textbf{e})\label{l222}\label{l223}}
+\begin{desc}React to a spectrum being removed, if one of ours.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{e}]{object describing the event.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{toString}()\label{l224}\label{l225}}
+\begin{desc}Override toString to return the name of this plot (unique
+ among plots).
+\begin{itemize}
+\item{Returns name of this plot. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{updateCoords}(\texttt{java.lang.String} \textbf{x}, \texttt{java.lang.String} \textbf{y})\label{l226}\label{l227}}
+\begin{desc}Update the displayed coordinates (implementation from PlotMouseMotion).
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{x}]{the X coordinate value to show.}
+   \item[\textbf{y}]{the Y coordinate value to show.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{updatePlot}()\label{l228}\label{l229}}
+\begin{desc}Update the plot. Should be called when events that require the
+ Plot to redraw itself occur (i.e. when spectra are added or
+ removed and when the Plot configuration is changed).
+\end{desc}
+
+\method{public void \textbf{zoomAbout}(\texttt{int} \textbf{xIncrement}, \texttt{int} \textbf{yIncrement}, \texttt{double} \textbf{x}, \texttt{double} \textbf{y})\label{l230}\label{l231}}
+\begin{desc}Increment scales in both dimensions about a centre.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xIncrement}]{increment for X scale factor.}
+   \item[\textbf{yIncrement}]{increment for Y scale factor.}
+   \item[\textbf{x}]{X coordinate to zoom about.}
+   \item[\textbf{y}]{Y coordinate to zoom about.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{zoomAboutTheCentre}(\texttt{int} \textbf{xIncrement}, \texttt{int} \textbf{yIncrement})\label{l232}\label{l233}}
+\begin{desc}Zoom plot about the current center by the given increments in
+ the X and Y scale factors.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{xIncrement}]{value to add to current X scale factor.}
+   \item[\textbf{yIncrement}]{value to add to current Y scale factor.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{zoomToRectangularRegion}(\texttt{java.awt.geom.Rectangle2D} \textbf{region})\label{l234}\label{l235}}
+\begin{desc}Zoom$/$scroll the Plot to display a given rectangular region.
+ 
+ If the region has zero width or height then the zoom is merely
+ incremented by 1 in both dimensions. Also if the scale factors
+ are increased by more than a factor of 20, then they are
+ clipped to this value (the most likely action here is a user
+ accidently returning a very small region).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{region}]{the region to zoom into.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\clearpage
+
+
+\section{Package uk.ac.starlink.splat.util}
+
+\vspace{.13in}
+\hbox{\textbf{Classes}}
+\vspace{.13in}
+\entityintro{RemoteUtilities}{l236}{This class provides utility methods for remote control based
+ access to SPLAT.}
+\entityintro{SpectralFileFilter}{l237}{A convenience implementation of java.io.FileFilter that filters out
+ all files except for those type extensions that it knows about.}
+\clearpage
+\subsection{Classes}
+\startsection{Class}{RemoteUtilities}{l236}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class RemoteUtilities}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{This class provides utility methods for remote control based
+ access to SPLAT.}
+\methods
+\method{public static boolean \textbf{isListening}(\texttt{java.lang.Object[]} \textbf{contactDetails})\label{l238}\label{l239}}
+\begin{desc}Find out if SPLAT is listening on the given hostname and port
+ and recognises the given cookie.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{contactDetails}]{return from readContactFile.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if an instance of SPLAT was successfully contacted. }
+\end{itemize}
+\end{desc}
+
+\method{public static Object \textbf{readContactFile}()\label{l240}\label{l241}}
+\begin{desc}Parse the contact file returning its contents as an Object array.
+\begin{itemize}
+\item{Returns array of three Objects. These are really the hostname
+         String, an Integer with the port number and a String
+         containing the validation cookie. Returns null if not
+         available. }
+\end{itemize}
+\end{desc}
+
+\method{public static String \textbf{sendRemoteCommand}(\texttt{java.lang.Object[]} \textbf{contactDetails}, \texttt{java.lang.String} \textbf{command})\label{l242}\label{l243}}
+\begin{desc}Send a single beanshell command to a remote SPLAT beanshell
+ interpreter. Needs the hostname, port and cookie from the
+ contact file.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{contactDetails}]{return from readContactFile.}
+   \item[\textbf{command}]{the beanshell command to execute.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the string that returns from the command, null for an error. }
+\item{{Exceptions}
+  \begin{itemize}
+   \item{\vspace{-.6ex}\texttt{java.lang.Exception} - exception resulting from any network problems.}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\startsection{Class}{SpectralFileFilter}{l237}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class SpectralFileFilter implements java.io.FileFilter}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{A convenience implementation of java.io.FileFilter that filters out
+ all files except for those type extensions that it knows about.
+ 
+ Extensions are of the type ".foo", which is typically found on
+ Windows and Unix boxes, but not on Macinthosh. Case is ignored.
+ 
+ Example - create a new filter that filters out all files
+ but gif and jpg image files:
+ \texttt{
+\mbox{}\newline
+    SpectralFileFilter filter = new SpectralFileFilter(\mbox{}\newline
+                   new String$\{$"gif", "jpg"$\}$, "JPEG \& GIF Images")\mbox{}\newline
+ }
+}
+\constructors
+\method{public \textbf{SpectralFileFilter}()\label{l244}\label{l245}}
+\begin{desc}Creates a file filter. If no filters are added, then all
+ files are accepted.
+\begin{itemize}
+\item{{See also}
+  \begin{itemize}
+   \item{\texttt{uk.ac.starlink.splat.util.SpectralFileFilter.addExtension} {
+\refdefined{l246}}
+}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public \textbf{SpectralFileFilter}(\texttt{java.lang.String} \textbf{extension})\label{l247}\label{l248}}
+\begin{desc}Creates a file filter that accepts files with the given extension.
+ Example: new SpectralFileFilter("jpg");
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{extension}]{file extension.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{{See also}
+  \begin{itemize}
+   \item{\texttt{uk.ac.starlink.splat.util.SpectralFileFilter.addExtension} {
+\refdefined{l246}}
+}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public \textbf{SpectralFileFilter}(\texttt{java.lang.String[]} \textbf{filters})\label{l249}\label{l250}}
+\begin{desc}Creates a file filter from the given string array.
+ Example: new SpectralFileFilter( String $\{$"gif", "jpg"$\}$ );
+ 
+ Note that the "." before the extension is not needed and will
+ be ignored.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{filters}]{array of file extensions to use a filters.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{{See also}
+  \begin{itemize}
+   \item{\texttt{uk.ac.starlink.splat.util.SpectralFileFilter.addExtension} {
+\refdefined{l246}}
+}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\methods
+\method{public boolean \textbf{accept}(\texttt{java.io.File} \textbf{pathname})\label{l251}\label{l252}}
+\begin{desc}Tests whether or not the specified abstract pathname should be
+ included in a pathname list.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{pathname}]{The abstract pathname to be tested}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if and only if pathname should be included. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addExtension}(\texttt{java.lang.String} \textbf{extension})\label{l253}\label{l254}}
+\begin{desc}Adds a filetype "dot" extension to filter against.
+
+ For example: the following code will create a filter that filters
+ out all files except those that end in ".jpg" and ".tif":
+ \texttt{
+\mbox{}\newline
+   SpectralFileFilter filter = new SpectralFileFilter();\mbox{}\newline
+   filter.addExtension("jpg");\mbox{}\newline
+   filter.addExtension("tif");\mbox{}\newline
+ }
+
+ Note that the "." before the extension is not needed and will
+ be ignored.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{extension}]{a file extension to add.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getExtension}(\texttt{java.io.File} \textbf{f})\label{l255}\label{l256}}
+\begin{desc}Return the extension portion of the file's name.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{f}]{a File object.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the file extension. }
+\item{{See also}
+  \begin{itemize}
+   \item{\texttt{uk.ac.starlink.splat.util.SpectralFileFilter.getExtension} {
+\refdefined{l257}}
+}
+   \item{\texttt{java.io.FileFilter.accept} {
+\refdefined{l258}}
+}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\clearpage
+
+
+\section{Package uk.ac.starlink.splat.iface}
+
+\vspace{.13in}
+\hbox{\textbf{Classes}}
+\vspace{.13in}
+\entityintro{GlobalSpecPlotList}{l259}{GlobalSpecPlotList is an aggregate singleton class that provides access
+ to the SpecList and PlotControlList objects.}
+\entityintro{SplatBrowser}{l260}{This is the main class for the SPLAT program.}
+\clearpage
+\subsection{Classes}
+\startsection{Class}{GlobalSpecPlotList}{l259}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class GlobalSpecPlotList}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{GlobalSpecPlotList is an aggregate singleton class that provides access
+ to the SpecList and PlotControlList objects. It provides integrated
+ control interfaces to both these objects and provides listeners for
+ objects (i.e. views) that want to be updated about changes in the
+ lists of spectra or plots.}
+\methods
+\method{public int \textbf{add}(\texttt{int} \textbf{index}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l261}\label{l262}}
+\begin{desc}Replace or add a spectrum. Informs any listeners of change.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{index}]{index of the spectrum to replace. Appended to end
+               if index not used.}
+   \item[\textbf{spectrum}]{reference to a SpecData object.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the spectrum in global list, or -1. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{add}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot})\label{l263}\label{l264}}
+\begin{desc}Add a plot (immediately after creation).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{reference to a PlotControl object.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns global index of the plot. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{add}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l265}\label{l266}}
+\begin{desc}Add a spectrum to the global list. Informs any listeners.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectrum}]{reference to a SpecData object.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the spectrum in global list. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addPlotListener}(\texttt{uk.ac.starlink.splat.iface.PlotListener} \textbf{l})\label{l267}\label{l268}}
+\begin{desc}Registers a listener for to be informed when plots are
+  created, changed or removed.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{l}]{the PlotListener}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpecListener}(\texttt{uk.ac.starlink.splat.iface.SpecListener} \textbf{l})\label{l269}\label{l270}}
+\begin{desc}Registers a listener for to be informed when spectra are added
+  or removed from the global list.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{l}]{the SpecListener}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpectrum}(\texttt{int} \textbf{plotIndex}, \texttt{int} \textbf{specIndex})\label{l271}\label{l272}}
+\begin{desc}Add a known spectrum to a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{global index of the plot to add the spectrum to.}
+   \item[\textbf{specIndex}]{global index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpectrum}(\texttt{int} \textbf{plotIndex}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l273}\label{l274}}
+\begin{desc}Add a known spectrum to a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{index of the plot to add spectrum to.}
+   \item[\textbf{spectrum}]{the spectrum to add.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpectrum}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot}, \texttt{int} \textbf{specIndex})\label{l275}\label{l276}}
+\begin{desc}Add a known spectrum to a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plot}]{the plot to add the spectrum to.}
+   \item[\textbf{specIndex}]{global index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{addSpectrum}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l277}\label{l278}}
+\begin{desc}Add a known spectrum to a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plot}]{the plot to add spectrum to.}
+   \item[\textbf{spectrum}]{the spectrum to add.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getFullName}(\texttt{int} \textbf{index})\label{l279}\label{l280}}
+\begin{desc}Return the full (usually diskfile) name of a spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns full name of the spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public PlotControl \textbf{getPlot}(\texttt{int} \textbf{index})\label{l281}\label{l282}}
+\begin{desc}Get a plot reference by index.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of required plot.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns reference to PlotControl object. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getPlotIndex}(\texttt{int} \textbf{identifier})\label{l283}\label{l284}}
+\begin{desc}See if a plot with the given identifier exists, and if so
+ return its index. Note identifiers are a unique integer among
+ all plots and are not the plot index (which varies as plots are
+ removed).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{identifier}]{the identifier of the plot whose existence is
+                   to be checked.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the plot index, or -1 if not located. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getPlotIndex}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot})\label{l285}\label{l286}}
+\begin{desc}Get an index for a plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{PlotControl object to look up.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns global index of object, if found. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getPlotName}(\texttt{int} \textbf{index})\label{l287}\label{l288}}
+\begin{desc}Return the name of a plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns name of the plot. }
+\end{itemize}
+\end{desc}
+
+\method{public static GlobalSpecPlotList \textbf{getReference}()\label{l289}\label{l290}}
+\begin{desc}Return reference to the only allowed instance of this class.
+\begin{itemize}
+\item{Returns reference to the only instance of this class. }
+\end{itemize}
+\end{desc}
+
+\method{public String \textbf{getShortName}(\texttt{int} \textbf{index})\label{l291}\label{l292}}
+\begin{desc}Return the symbolic name of a spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of th spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns short name of te spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public SpecData \textbf{getSpectrum}(\texttt{int} \textbf{index})\label{l293}\label{l294}}
+\begin{desc}Get a spectrum reference by index.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of spectrum to retrieve.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the SpecData object or null. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getSpectrumIndex}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l295}\label{l296}}
+\begin{desc}Get an index for a spectrum.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectrum}]{SpecData object whose index is needed.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the spectrum or -1. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getSpectrumIndex}(\texttt{java.lang.String} \textbf{shortName})\label{l297}\label{l298}}
+\begin{desc}Get an index for a spectrum using its short name.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{shortName}]{spectrum short name.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of spectrum if found, -1 otherwise. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{isDisplaying}(\texttt{int} \textbf{plotIndex}, \texttt{int} \textbf{specIndex})\label{l299}\label{l300}}
+\begin{desc}Return if a plot is displaying a given spectrum.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{global index of the plot to check.}
+   \item[\textbf{specIndex}]{global index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true of the plot is displaying the spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{isDisplaying}(\texttt{int} \textbf{plotIndex}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l301}\label{l302}}
+\begin{desc}Return if a plot is displaying a given spectrum.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{global index of the plot to check.}
+   \item[\textbf{spectrum}]{the spectrum to check.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if the plot is displaying the spectrum. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{plotCount}()\label{l303}\label{l304}}
+\begin{desc}Return the number of plots in the global list.
+\begin{itemize}
+\item{Returns number of current plots. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{remove}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot})\label{l305}\label{l306}}
+\begin{desc}Remove a plot (immediately after destruction).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{reference to the plot that has been deleted.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the removed plot. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removePlotListener}(\texttt{uk.ac.starlink.splat.iface.PlotListener} \textbf{l})\label{l307}\label{l308}}
+\begin{desc}Remove a listener for plot changes.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{l}]{the PlotListener}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpecListener}(\texttt{uk.ac.starlink.splat.iface.SpecListener} \textbf{l})\label{l309}\label{l310}}
+\begin{desc}Remove a listener for changes in the global list of spectra.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{l}]{the SpecListener}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{removeSpectrum}(\texttt{int} \textbf{index})\label{l311}\label{l312}}
+\begin{desc}Remove a spectrum. Note listeners are informed immediately
+  before the spectrum is removed (so the lists remain current).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of the spectrum to remove.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the spectrum that was removed. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{int} \textbf{plotIndex}, \texttt{int} \textbf{specIndex})\label{l313}\label{l314}}
+\begin{desc}Remove a known spectrum from a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{global index of the plot to remove the
+                   spectrum from.}
+   \item[\textbf{specIndex}]{global index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{int} \textbf{plotIndex}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l315}\label{l316}}
+\begin{desc}Remove a known spectrum from a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plotIndex}]{global index of the plot.}
+   \item[\textbf{spectrum}]{the spectrum to remove.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot}, \texttt{int} \textbf{specIndex})\label{l317}\label{l318}}
+\begin{desc}Remove a known spectrum from a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plot}]{the plot to remove the spectrum from.}
+   \item[\textbf{specIndex}]{global index of the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSpectrum}(\texttt{uk.ac.starlink.splat.plot.PlotControl} \textbf{plot}, \texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l319}\label{l320}}
+\begin{desc}Remove a known spectrum from a plot.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{plot}]{the plot to remove the spectrum from.}
+   \item[\textbf{spectrum}]{the spectrum to remove.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{removeSpectrum}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l321}\label{l322}}
+\begin{desc}Remove a spectrum. Note listeners are informed immediately
+  before the spectrum is removed (so the lists remain current).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectrum}]{reference to the spectrum to remove.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns index of the spectrum that was removed. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setCurrentSpectrum}(\texttt{int} \textbf{index})\label{l323}\label{l324}}
+\begin{desc}Set the index of the current spectrum. Changes to this are
+ sent to any SpecListeners.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{index}]{index of the current spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setDrawErrorBars}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum}, \texttt{boolean} \textbf{show})\label{l325}\label{l326}}
+\begin{desc}Set if a spectrum should be displaying it's error bars or
+  not.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{spectrum}]{the spectrum to modify.}
+   \item[\textbf{show}]{whether to show errorbars.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setKnownNumberProperty}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum}, \texttt{int} \textbf{what}, \texttt{java.lang.Number} \textbf{value})\label{l327}\label{l328}}
+\begin{desc}Set a known Number property of a spectrum.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{spectrum}]{SpecData object to change.}
+   \item[\textbf{what}]{the property to change, see
+               SpecData.setKnownNumberProperty.}
+   \item[\textbf{value}]{Object containing the new value.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{{See also}
+  \begin{itemize}
+   \item{\texttt{uk.ac.starlink.splat.iface.GlobalSpecPlotList.SpecData.setKnownNumberProperty()} {
+\refdefined{l329}}
+}
+  \end{itemize}
+}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{setShortName}(\texttt{int} \textbf{index}, \texttt{java.lang.String} \textbf{name})\label{l330}\label{l331}}
+\begin{desc}Set the symbolic name of a spectrum.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{index}]{index of the spectrum to modify.}
+   \item[\textbf{name}]{the new short name for the spectrum.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{specCount}()\label{l332}\label{l333}}
+\begin{desc}Return the number of spectra in the global list.
+\begin{itemize}
+\item{Returns the number of spectra in the global list. }
+\end{itemize}
+\end{desc}
+
+\method{public boolean \textbf{specKnown}(\texttt{java.lang.String} \textbf{name})\label{l334}\label{l335}}
+\begin{desc}See if a spectrum is already known by a specification (i.e. filename).
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{name}]{name to check.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if the name is known. }
+\end{itemize}
+\end{desc}
+
+\startsection{Class}{SplatBrowser}{l260}
+
+\fbox{\parbox{\textwidth}{
+\texttt{public
+ class SplatBrowser extends javax.swing.JFrame}
+}} % end fbox
+
+
+
+\vspace{.09in}
+
+
+{This is the main class for the SPLAT program. It creates the
+ browser interface that displays and controls the global lists of
+ the currently available spectra and plots.
+ 
+ Using the menus and controls of this interface, spectra can be
+ opened, removed and copied into the global list. Plots can created,
+ have spectra added and be closed.
+ 
+ Groups of selected spectra can have their display inspected and
+ changed using the controls of the related \#SplatSelectedProperties
+ object.
+ 
+ There are also a series of global, rather than spectra, specific
+ tools that are made available via a toolbar. These include an
+ animator tool and tools for performing simple spectral arithmetic,
+ plus more trivial options, like choosing the look and feel.
+ 
+ The actual display and interactive analysis of spectra takes place
+ in the plots (see \#PlotControlFrame, \#PlotControl and \#Plot).}
+\fields{Serializable Fields}
+\field{private Timer \textbf{waitTimer}}{Timer for used for event queue actions.}
+\field{private int \textbf{filesDone}}{Number of spectra currently loaded by the addChosenSpectra method.}
+\field{private int \textbf{plotProgress}}{}
+
+\constructors
+\method{public \textbf{SplatBrowser}()\label{l336}\label{l337}}
+\begin{desc}Create a browser with no existing spectra.
+\end{desc}
+
+\method{public \textbf{SplatBrowser}(\texttt{java.lang.String[]} \textbf{inspec})\label{l338}\label{l339}}
+\begin{desc}Constructor, with list of spectra to initialise. All spectra
+ given this way are displayed in a single plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{inspec}]{list of spectra to add. If null then none are
+                added.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\methods
+\method{public boolean \textbf{addSpectrum}(\texttt{java.lang.String} \textbf{name})\label{l340}\label{l341}}
+\begin{desc}Add a new spectrum to the global list.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{name}]{the name (i.e. file specification) of the spectrum
+              to add.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns true if spectrum is added, false otherwise. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{animateSelectedSpectra}()\label{l342}\label{l343}}
+\begin{desc}Display a tool for selecting from the global list of spectra
+ and then repeatable displaying the selected sequence. This is
+ meant to allow the browsing of a series of spectra, or simulate
+ blink comparison sequence.
+\end{desc}
+
+\method{public void \textbf{copySelectedSpectra}()\label{l344}\label{l345}}
+\begin{desc}Make copies of all the selected spectra. These are memory
+ copies.
+\end{desc}
+
+\method{public void \textbf{deSelectAllPlots}()\label{l346}\label{l347}}
+\begin{desc}Deselect all the plots.
+\end{desc}
+
+\method{public void \textbf{deSelectAllSpectra}()\label{l348}\label{l349}}
+\begin{desc}Deselect all the spectra.
+\end{desc}
+
+\method{public void \textbf{displaySelectedSpectra}()\label{l350}\label{l351}}
+\begin{desc}Display all the spectra that are selected in the global list
+ view. Each spectrum is displayed in a new plot.
+\end{desc}
+
+\method{public int \textbf{displaySpectra}(\texttt{int} \textbf{id}, \texttt{java.lang.String} \textbf{list})\label{l352}\label{l353}}
+\begin{desc}Display a list of spectra given by their file names, in a plot
+ specified by its identifier. The file names are assumed to be
+ in a space separated list stored in a single String. If the
+ plot doesn't exist then it is created and the identifier of
+ that plot is returned (which will be different from the one
+ requested).
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{id}]{the plot identifier number.}
+   \item[\textbf{list}]{the list of spectra file names (or disk
+             specifications).}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the id of the plot that the spectra are displayed
+         in, -1 if it fails. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{displaySpectra}(\texttt{java.lang.String} \textbf{list})\label{l354}\label{l355}}
+\begin{desc}Display a list of spectra given by their file names. The file
+ names are assumed to be in a space separated list stored in a
+ single String.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{list}]{the list of spectra file names (or disk
+             specifications).}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the identifier of the plot that the spectra are
+         displayed in, -1 if it fails. }
+\end{itemize}
+\end{desc}
+
+\method{public PlotControlFrame \textbf{displaySpectrum}(\texttt{uk.ac.starlink.splat.data.SpecData} \textbf{spectrum})\label{l356}\label{l357}}
+\begin{desc}Display a spectrum in a new plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectrum}]{The spectrum to display.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the plot that the spectrum is displayed in. }
+\end{itemize}
+\end{desc}
+
+\method{public PlotControlFrame \textbf{displaySpectrum}(\texttt{java.lang.String} \textbf{spectrum})\label{l358}\label{l359}}
+\begin{desc}Add and display a new spectrum in a new plot.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{spectrum}]{the name (i.e. file specification) of the spectrum
+                 to add and display.}
+  \end{description}}
+\end{itemize}
+\begin{itemize}
+\item{Returns the plot that the spectrum is displayed in. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getSelectedPlots}()\label{l360}\label{l361}}
+\begin{desc}Get a list of all plots current selected in the plot table.
+\begin{itemize}
+\item{Returns list of indices of selected plot, otherwise null. }
+\end{itemize}
+\end{desc}
+
+\method{public int \textbf{getSelectedSpectra}()\label{l362}\label{l363}}
+\begin{desc}Get a list of all spectra current selected in the global list.
+\begin{itemize}
+\item{Returns list of indices of selected spectra, otherwise null. }
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{multiDisplaySelectedSpectra}(\texttt{boolean} \textbf{fit})\label{l364}\label{l365}}
+\begin{desc}Display all the currently selected spectra in the currently
+ selected plot, or create a new plot for them.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{fit}]{whether to make all spectra fit the width and height
+            of the plot}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removePlot}(\texttt{uk.ac.starlink.splat.iface.PlotControlFrame} \textbf{plot})\label{l366}\label{l367}}
+\begin{desc}Remove a plot from the global list.
+\begin{itemize}
+\item{Parameter
+  \begin{description}
+   \item[\textbf{plot}]{reference to the frame (i.e. window) containing the
+             plot (these have a one to one relationship).}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{removeSelectedPlots}()\label{l368}\label{l369}}
+\begin{desc}Remove the currently selected plots from the global list and
+ this interface.
+\end{desc}
+
+\method{public void \textbf{removeSelectedSpectra}()\label{l370}\label{l371}}
+\begin{desc}Remove the currently selected spectra from the global list and
+ this interface.
+\end{desc}
+
+\method{public void \textbf{saveSpectrum}(\texttt{int} \textbf{globalIndex}, \texttt{java.lang.String} \textbf{spectrum})\label{l372}\label{l373}}
+\begin{desc}Save a spectrum to disk file.
+\begin{itemize}
+\item{Parameters
+  \begin{description}
+   \item[\textbf{globalIndex}]{the index on the global list of the spectrum
+                    to save.}
+   \item[\textbf{spectrum}]{the file to write the spectrum into.}
+  \end{description}}
+\end{itemize}
+\end{desc}
+
+\method{public void \textbf{selectAllPlots}()\label{l374}\label{l375}}
+\begin{desc}Select all the plots.
+\end{desc}
+
+\method{public void \textbf{selectAllSpectra}()\label{l376}\label{l377}}
+\begin{desc}Select all the spectra.
+\end{desc}
+
+\method{public void \textbf{showBinaryMathsWindow}()\label{l378}\label{l379}}
+\begin{desc}Show window for performing simple binary mathematical
+ operations between spectra.
+\end{desc}
+
+\method{public void \textbf{showUnaryMathsWindow}()\label{l380}\label{l381}}
+\begin{desc}Show window for performing simple unary mathematical
+ operations on a spectrum.
+\end{desc}
+
+\end{document}

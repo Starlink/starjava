@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<!DOCTYPE toc
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN"
+         "http://java.sun.com/products/javahelp/toc_1_0.dtd">
+
+<toc version="1.0">
+   <tocitem target="splat-help" text="SPLAT help system"/>
+   <tocitem target="abstract" text="Abstract"/>
+   <tocitem target="introduction" text="Introduction"/>
+   <tocitem target="getting-started" text="Getting started"/>
+   <tocitem target="displaying-a-spectrum" text="Displaying a spectrum"/>
+   <tocitem target="displaying-many-spectra" text="Displaying many spectra"/>
+   <tocitem target="plot-control" text="Basic plot control"/>
+   <tocitem target="window-level-help" text="Individual window help"/>
+   <tocitem target="browser-window" text="Browser window"/>
+   <tocitem target="plot-window" text="Plot window"/>
+   <tocitem target="animation-window" text="Animation window"/>
+   <tocitem target="viewer" text="View/modify values window"/>
+   <tocitem target="specxcoord-window" text="Coordinate system attributes window"/>
+   <tocitem target="binary-maths" text="Binary maths window" />
+   <tocitem target="unary-maths" text="Constant maths window" />
+   <tocitem target="panner-window" text="Panner window" />
+   <tocitem target="config-window" text="Plot configuration window">
+      <tocitem target="config-window-limits" text="Data Limits" />
+      <tocitem target="config-window-title" text="Title" />
+      <tocitem target="config-window-axis-labels" text="Axis labels"/>
+
+      <tocitem target="config-window-axis-numbers" text="Axis numbers" />
+      <tocitem target="config-window-grid" text="Grid lines" />
+      <tocitem target="config-window-border" text="Border lines" />
+      <tocitem target="config-window-ticks" text="Ticks" />
+      <tocitem target="config-window-render" text="Graphics rendering" />
+      <tocitem target="config-window-edge" text="Edges" />
+      <tocitem target="config-window-background" text="Background" />
+   </tocitem>
+   <tocitem target="cutter-window" text="Region extraction window" />
+   <tocitem target="polynomial-fit-window" text="Fit polynomial to regions window" />
+   <tocitem target="line-fit-window" text="Measure spectral lines window">
+      <tocitem target="line-fit-saving-window" text="Save spectral line measurements"/>
+   </tocitem>        
+   <tocitem target="filter-window" text="Filter spectrum window" />
+   <tocitem target="data-formats" text="Supported data formats"/>
+
+   <tocitem target="acknowledgements" text="Acknowledgements"/>
+
+</toc>

@@ -1,0 +1,70 @@
+% +
+%  Name:
+%     apidocs_formatted.tex
+%     sun.tex
+%
+%  Purpose:
+%     Defines LaTeX (and Star2HTML) commands for laying out Java
+%     documentation from my version of the docletLatex doclet. Just
+%     replace the standard headers with this version.
+%
+%  Authors:
+%     PWD: Peter W. Draper (Starlink, Durham University)
+%
+%  History:
+%     05-DEC-2001 (PWD):
+%        Original version.
+%     {Add further history here}
+%
+% -
+\newcommand{\entityintro}[3]{
+  \htmlref{\textbf{\Large{#1}}}{#2}
+  \dotfill\pageref{#2}
+  \begin{quote}
+  #3
+  \end{quote}
+}
+
+\newcommand{\refdefined}[1]{}
+
+\newcommand{\startsection}[4]{
+   \subsubsection{\label{#3}{#2}}
+   #4
+}
+
+\newcommand{\startsubsubsection}[1]{
+   \begin{quote}
+   \textbf{\large{#1}}
+   \end{quote}
+}
+
+\newcommand{\method}[1]{\texttt{#1}}
+
+\newenvironment{desc}{\begin{quote}}{\end{quote}}
+
+\newcommand{\constructors}{
+   \par\textbf{\large{Constructors}}\\
+   \hrule
+}
+
+\newcommand{\methods}{
+   \par\textbf{\large{Methods}}\\
+   \hrule
+}
+
+\newcommand{\inherited}[1]{
+   \par\textbf{\large{Methods inherited from class #1}}\\
+   \hrule
+}
+
+\newcommand{\fields}[1]{
+   \par\textbf{\large{#1}}\\
+   \hrule
+}
+
+\newcommand{\field}[2]{
+   \par\texttt{#1}
+   \begin{itemize}
+   \item #2
+   \end{itemize}
+}

@@ -1,0 +1,1441 @@
+\documentclass[twoside,11pt]{article}
+
+% ? Specify used packages
+% \usepackage{graphicx}        %  Use this one for final production.
+% \usepackage[draft]{graphicx} %  Use this one for drafting.
+% ? End of specify used packages
+
+% Nice fonts -- during development.
+\usepackage{fancyheadings}
+\usepackage[latin1]{inputenc}
+\usepackage{ae}
+\usepackage{cmbright}
+
+\pagestyle{myheadings}
+\raggedbottom
+
+% -----------------------------------------------------------------------------
+% ? Document identification
+% Fixed part
+\newcommand{\stardoccategory}  {Starlink User Note}
+\newcommand{\stardocinitials}  {SUN}
+\newcommand{\stardocsource}    {sun\stardocnumber}
+\newcommand{\stardoccopyright} 
+{Copyright \copyright\ 2000 Council for the Central Laboratory of the Research Councils}
+
+% Variable part - replace [xxx] as appropriate.
+\newcommand{\stardocnumber}    {[number].[version]}
+\newcommand{\stardocauthors}   {[author]}
+\newcommand{\stardocdate}      {[date]}
+\newcommand{\stardoctitle}     {[title]}
+\newcommand{\stardocversion}   {[software-version]}
+\newcommand{\stardocmanual}    {[manual-type]}
+\newcommand{\stardocabstract}  {[Text of abstract]}
+% ? End of document identification
+% -----------------------------------------------------------------------------
+
+% +
+%  Name:
+%     sun.tex
+%
+%  Purpose:
+%     Template for Starlink User Note (SUN) documents.
+%     Refer to SUN/199
+%
+%  Authors:
+%     AJC: A.J.Chipperfield (Starlink, RAL)
+%     BLY: M.J.Bly (Starlink, RAL)
+%     PWD: Peter W. Draper (Starlink, Durham University)
+%
+%  History:
+%     17-JAN-1996 (AJC):
+%        Original with hypertext macros, based on MDL plain originals.
+%     16-JUN-1997 (BLY):
+%        Adapted for LaTeX2e.
+%        Added picture commands.
+%     13-AUG-1998 (PWD):
+%        Converted for use with LaTeX2HTML version 98.2 and
+%        Star2HTML version 1.3.
+%      1-FEB-2000 (AJC):
+%        Add Copyright statement in LaTeX
+%     {Add further history here}
+%
+% -
+
+\newcommand{\stardocname}{\stardocinitials /\stardocnumber}
+\markboth{\stardocname}{\stardocname}
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{230mm}
+\setlength{\topmargin}{-2mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{\medskipamount}
+\setlength{\unitlength}{1mm}
+
+% -----------------------------------------------------------------------------
+%  Hypertext definitions.
+%  ======================
+%  These are used by the LaTeX2HTML translator in conjunction with star2html.
+
+%  Comment.sty: version 2.0, 19 June 1992
+%  Selectively in/exclude pieces of text.
+%
+%  Author
+%    Victor Eijkhout                                      <eijkhout@cs.utk.edu>
+%    Department of Computer Science
+%    University Tennessee at Knoxville
+%    104 Ayres Hall
+%    Knoxville, TN 37996
+%    USA
+
+%  Do not remove the %begin{latexonly} and %end{latexonly} lines (used by 
+%  LaTeX2HTML to signify text it shouldn't process).
+%begin{latexonly}
+\makeatletter
+\def\makeinnocent#1{\catcode`#1=12 }
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+
+\def\ThrowAwayComment#1{\begingroup
+    \def\CurrentComment{#1}%
+    \let\do\makeinnocent \dospecials
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xComment}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xComment#1^^M{\def\test{#1}
+      \csarg\ifx{PlainEnd\CurrentComment Test}\test
+          \let\html@next\endgroup
+      \else \csarg\ifx{LaLaEnd\CurrentComment Test}\test
+            \edef\html@next{\endgroup\noexpand\end{\CurrentComment}}
+      \else \let\html@next\xComment
+      \fi \fi \html@next}
+}
+\makeatother
+
+\def\includecomment
+ #1{\expandafter\def\csname#1\endcsname{}%
+    \expandafter\def\csname end#1\endcsname{}}
+\def\excludecomment
+ #1{\expandafter\def\csname#1\endcsname{\ThrowAwayComment{#1}}%
+    {\escapechar=-1\relax
+     \csarg\xdef{PlainEnd#1Test}{\string\\end#1}%
+     \csarg\xdef{LaLaEnd#1Test}{\string\\end\string\{#1\string\}}%
+    }}
+
+%  Define environments that ignore their contents.
+\excludecomment{comment}
+\excludecomment{rawhtml}
+\excludecomment{htmlonly}
+
+%  Hypertext commands etc. This is a condensed version of the html.sty
+%  file supplied with LaTeX2HTML by: Nikos Drakos <nikos@cbl.leeds.ac.uk> &
+%  Jelle van Zeijl <jvzeijl@isou17.estec.esa.nl>. The LaTeX2HTML documentation
+%  should be consulted about all commands (and the environments defined above)
+%  except \xref and \xlabel which are Starlink specific.
+
+\newcommand{\htmladdnormallinkfoot}[2]{#1\footnote{#2}}
+\newcommand{\htmladdnormallink}[2]{#1}
+\newcommand{\htmladdimg}[1]{}
+\newcommand{\hyperref}[4]{#2\ref{#4}#3}
+\newcommand{\htmlref}[2]{#1}
+\newcommand{\htmlimage}[1]{}
+\newcommand{\htmladdtonavigation}[1]{}
+
+\newenvironment{latexonly}{}{}
+\newcommand{\latex}[1]{#1}
+\newcommand{\html}[1]{}
+\newcommand{\latexhtml}[2]{#1}
+\newcommand{\HTMLcode}[2][]{}
+
+%  Starlink cross-references and labels.
+\newcommand{\xref}[3]{#1}
+\newcommand{\xlabel}[1]{}
+
+%  LaTeX2HTML symbol.
+\newcommand{\latextohtml}{\LaTeX2\texttt{HTML}}
+
+%  Define command to re-centre underscore for Latex and leave as normal
+%  for HTML (severe problems with \_ in tabbing environments and \_\_
+%  generally otherwise).
+\renewcommand{\_}{\texttt{\symbol{95}}}
+
+% -----------------------------------------------------------------------------
+%  Debugging.
+%  =========
+%  Remove % on the following to debug links in the HTML version using Latex.
+
+% \newcommand{\hotlink}[2]{\fbox{\begin{tabular}[t]{@{}c@{}}#1\\\hline{\footnotesize #2}\end{tabular}}}
+% \renewcommand{\htmladdnormallinkfoot}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\htmladdnormallink}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\hyperref}[4]{\hotlink{#1}{\S\ref{#4}}}
+% \renewcommand{\htmlref}[2]{\hotlink{#1}{\S\ref{#2}}}
+% \renewcommand{\xref}[3]{\hotlink{#1}{#2 -- #3}}
+%end{latexonly}
+% -----------------------------------------------------------------------------
+% ? Document specific \newcommand or \newenvironment commands.
+
+% SPLAT.
+\newcommand{\SPLAT}{\textsf{SPLAT}}
+
+% Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
+% \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
+\newcommand{\mainfigure}[1]
+{\begin{center}
+ \latexhtml{\includegraphics[scale=0.5]{#1.eps}}{\htmladdimg{#1.gif}}
+ \end{center}
+}
+
+\newcommand{\clippedmainfigure}[1]
+{\begin{quote}
+ \latexhtml{\includegraphics[scale=0.5,clip=true]{#1.eps}}{\htmladdimg{#1.gif}}
+ \end{quote}
+}
+
+% Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
+\newcommand{\inline}[1]
+        {\latexhtml{\includegraphics[scale=0.5]{#1.eps}}
+        {\htmladdimg[align=center]{#1.gif}}}
+
+% UI elements.
+\newcommand{\menuitem}[1]{\textbf{#1}}
+\newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1=>#2}}}
+\newcommand{\labelitem}[1]{\textbf{#1}}
+
+% typed text.
+\newcommand{\hitext}[1]{\texttt{#1}}
+
+% i.e.
+\newcommand{\ie}{\textit{i.e.}}
+
+% e.g.
+\newcommand{\eg}{\textit{e.g.}}
+
+% etc.
+\newcommand{\etc}{\textit{etc.}}
+
+% Heading for a paragraph section.
+\newcommand{\subheading}[1]{\textbf{\large{#1}}}
+
+% Heading for example code.
+\newcommand{\exampleheading}[1]
+{\begin{center}
+  \fbox{#1}
+ \end{center}
+}
+
+% +
+%  Name:
+%     apidocs_formatted.tex
+%     sun.tex
+%
+%  Purpose:
+%     Defines LaTeX (and Star2HTML) commands for laying out Java
+%     documentation from my version of the docletLatex doclet.
+%
+%  Authors:
+%     PWD: Peter W. Draper (Starlink, Durham University)
+%
+%  History:
+%     05-DEC-2001 (PWD):
+%        Original version.
+%     {Add further history here}
+%
+% -
+\newcommand{\entityintro}[3]{
+  \htmlref{\textbf{\Large{#1}}}{#2}
+  \dotfill\pageref{#2}
+  \begin{quote}
+  #3
+  \end{quote}
+}
+
+\newcommand{\refdefined}[1]{}
+
+\newcommand{\startsection}[4]{
+   \subsubsection{\label{#3}{#2}}
+   #4
+}
+
+\newcommand{\startsubsubsection}[1]{
+   \begin{quote}
+   \textbf{\large{#1}}
+   \end{quote}
+}
+
+\newcommand{\method}[1]{\texttt{#1}}
+
+\newenvironment{desc}{\begin{quote}}{\end{quote}}
+
+\newcommand{\constructors}{
+   \par\textbf{\large{Constructors}}\\
+   \hrule
+}
+
+\newcommand{\methods}{
+   \par\textbf{\large{Methods}}\\
+   \hrule
+}
+
+\newcommand{\inherited}[1]{
+   \par\textbf{\large{Methods inherited from class #1}}\\
+   \hrule
+}
+
+\newcommand{\fields}[1]{
+   \par\textbf{\large{#1}}\\
+   \hrule
+}
+
+\newcommand{\field}[2]{
+   \par\texttt{#1}
+   \begin{itemize}
+   \item #2
+   \end{itemize}
+}
+
+% ? End of document specific commands
+% -----------------------------------------------------------------------------
+%  Title Page.
+%  ===========
+\renewcommand{\thepage}{\roman{page}}
+\begin{document}
+\thispagestyle{empty}
+
+%  Latex document header.
+%  ======================
+\begin{latexonly}
+   CCLRC / \textsc{Rutherford Appleton Laboratory} \hfill \textbf{\stardocname}\\
+   {\large Particle Physics \& Astronomy Research Council}\\
+   {\large Starlink Project\\}
+   {\large \stardoccategory\ \stardocnumber}
+   \begin{flushright}
+   \stardocauthors\\
+   \stardocdate
+   \end{flushright}
+   \vspace{-4mm}
+   \rule{\textwidth}{0.5mm}
+   \vspace{5mm}
+   \begin{center}
+   {\Huge\textbf{\stardoctitle \\ [2.5ex]}}
+   {\LARGE\textbf{\stardocversion \\ [4ex]}}
+   {\Huge\textbf{\stardocmanual}}
+   \end{center}
+   \vspace{5mm}
+
+% ? Add picture here if required for the LaTeX version.
+%   e.g. \includegraphics[scale=0.3]{filename.ps}
+% ? End of picture
+
+% ? Heading for abstract if used.
+   \vspace{10mm}
+   \begin{center}
+      {\Large\textbf{Abstract}}
+   \end{center}
+% ? End of heading for abstract.
+\end{latexonly}
+
+%  HTML documentation header.
+%  ==========================
+\begin{htmlonly}
+   \xlabel{}
+   \begin{rawhtml} <H1> \end{rawhtml}
+      \stardoctitle\\
+      \stardocversion\\
+      \stardocmanual
+   \begin{rawhtml} </H1> <HR> \end{rawhtml}
+
+% ? Add picture here if required for the hypertext version.
+%   e.g. \includegraphics[scale=0.7]{filename.ps}
+% ? End of picture
+
+   \begin{rawhtml} <P> <I> \end{rawhtml}
+   \stardoccategory\ \stardocnumber \\
+   \stardocauthors \\
+   \stardocdate
+   \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
+      \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
+                        {http://www.cclrc.ac.uk} \\
+      \htmladdnormallink{Particle Physics \& Astronomy Research Council}
+                        {http://www.pparc.ac.uk} \\
+   \begin{rawhtml} </H3> <H2> \end{rawhtml}
+      \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
+   \begin{rawhtml} </H2> \end{rawhtml}
+   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
+      {http://www.starlink.rl.ac.uk/cgi-bin/hcserver?\stardocsource}\\
+
+%  HTML document table of contents. 
+%  ================================
+%  Add table of contents header and a navigation button to return to this 
+%  point in the document (this should always go before the abstract \section). 
+  \label{stardoccontents}
+  \begin{rawhtml} 
+    <HR>
+    <H2>Contents</H2>
+  \end{rawhtml}
+  \htmladdtonavigation{\htmlref{\htmladdimg{contents_motif.gif}}
+        {stardoccontents}}
+
+% ? New section for abstract if used.
+  \section{\xlabel{abstract}Abstract}
+% ? End of new section for abstract
+\end{htmlonly}
+
+% -----------------------------------------------------------------------------
+% ? Document Abstract. (if used)
+%  ==================
+\stardocabstract
+% ? End of document abstract
+
+% -----------------------------------------------------------------------------
+% ? Latex Copyright Statement
+%  =========================
+\begin{latexonly}
+\newpage
+\vspace*{\fill}
+\stardoccopyright
+\end{latexonly}
+% ? End of Latex copyright statement
+
+% -----------------------------------------------------------------------------
+% ? Latex document Table of Contents (if used).
+%  ===========================================
+  \newpage
+  \begin{latexonly}
+    \setlength{\parskip}{0mm}
+    \tableofcontents
+    \setlength{\parskip}{\medskipamount}
+    \markboth{\stardocname}{\stardocname}
+  \end{latexonly}
+% ? End of Latex document table of contents
+% -----------------------------------------------------------------------------
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{page}{1}
+
+\section{BeanShell User's Manual}
+
+The following sections are extracted from the BeanShell 
+\htmladdnormallinkfoot{web site}{http://www.beanshell.org} and
+refer to the version of BeanShell used in \SPLAT. Some of the material
+isn't of great use when writing plugins and doing remote control, but
+is included for completeness anyway.
+
+BeanShell is written and maintained by Pat Niemeyer 
+\htmladdnormallink{\texttt{pat@pat.net}}{mailto:pat@pat.net} and is
+released under the LGPL (Lesser Gnu Public License). Pat has written a
+book that includes the BeanShell: \textit{Exploring Java, O'Reilly \&
+Associates, 2nd edition}.
+
+
+\subsection{Java Statements and Expressions}
+
+At the BeanShell prompt you can type standard Java statements and
+expressions.  Statements and expressions are all of the normal things
+that you'd say inside a Java method: \eg\ variable declarations and
+assignments, method calls, loops, conditionals, \etc
+
+You can use these exactly as they would appear in Java, however in
+BeanShell you have the option of working with `loosely typed'
+variables.  That is, you can simply be lazy and not declare the types
+of variables that you use (both primitives and objects).  BeanShell
+will still give you an error if you attempt to misuse the actual type
+of the variable.
+
+Here are some examples:
+\begin{quote}
+\begin{verbatim}
+    foo = "Foo";
+    four = (2 + 2)*2/2;
+    print( foo + " = " + four );   // print() is a bsh command
+
+    // Do a loop
+    for (i=0; i<5; i++)
+        print(i);
+
+    // Pop up a frame with a button in it
+    b = new JButton("My Button");
+    f = new JFrame("My Frame");
+    f.getContentPane().add(b, "Center");
+    f.pack();
+    f.show();
+\end{verbatim}
+\end{quote}
+
+\subsection{Useful BeanShell Commands}
+
+In the previous example we used a convenient `built-in' BeanShell
+command called print(), to display values.  print() does pretty much
+the same thing as System.out.println() except that it insures that the
+output always goes to the command line.  print() also displays some
+types of objects (such as arrays) more verbosely than Java would.
+
+Another very useful command is show(), which toggles on and off
+automatic print()ing of the result of every line you type.
+
+Here are a few other examples of BeanShell commands:
+\begin{itemize}
+ \item source(), run() - read a bsh script into this interpreter, or
+       run it in a new interpreter
+ \item frame() - display the AWT/JFC component in a Frame
+ \item load(), save() - load or save serializable objects
+ \item cd(), cat(), dir(), pwd(), \etc\  - Unix-like shell commands
+ \item exec() - run a native application
+\end{itemize}
+
+BeanShell commands are simply methods which are implemented by bsh scripts
+supplied in the bsh jar file.  You can, of course, define your own methods
+in bsh and also add your own scripts to the classpath to extend the basic
+command set.
+
+\subsection{Scripted Methods}
+
+You can declare and use methods in bsh just as you would in a Java class.
+\begin{quote}
+\begin{verbatim}
+    int addTwoNumbers( int a, int b ) {
+        return a + b;
+    }
+
+    sum = addTwoNumbers( 5, 7 );  // 12
+\end{verbatim}
+\end{quote}
+Bsh methods may also have dynamic (loose) argument and return types.
+\begin{quote}
+\begin{verbatim}
+    add( a, b ) {
+        return a + b;
+    }
+
+    foo = add(1, 2);            // 3
+    foo = add("Oh", " baby");   // "Oh baby"
+\end{verbatim}
+\end{quote}
+
+\subsection{Scripted Objects}
+
+In BeanShell, as in JavaScript and Perl, method `closures' allow you
+to create scripted objects.  You can turn the results of a method call
+into an object reference by having the method return the special value
+\texttt{this}.  You can then use that reference to refer to
+any variables set in the method call.  To make useful objects you need
+instance methods of course so in BeanShell methods may also contain
+methods at any level.
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        print("foo");
+        x=5;
+
+        bar() {
+            print("bar");
+        }
+
+        return this;
+    }
+
+    myfoo = foo();    // prints "foo"
+    print( myfoo.x ); // prints "5"
+    myfoo.bar();      // prints "bar"
+\end{verbatim}
+\end{quote}
+
+You may also cast your scripted objects (\eg\ myfoo above) to any Java
+interface type and supply the necessary methods in the script.
+
+\subsubsection{Inner Class Style}
+
+You may also use the Java anonymous inner class style syntax to implement an
+interface type with a script.
+\begin{quote}
+\begin{verbatim}
+    ActionListener scriptedListener = new ActionListener() {
+        actionPerformed( event ) { ... }
+    }
+\end{verbatim}
+\end{quote}
+Normally, if you leave out methods required by the interface the calling code
+will throw an exception.  However if you wish to override this behavior
+you can implement the special method invoke(name, args) in your scripted
+object to handle undefined method invocations:
+\begin{quote}
+\begin{verbatim}
+    ml = new MouseListener() {
+        mousePressed( event ) { ... }
+        // handle the rest
+        invoke( name, args ) { print("Method: "+name+" invoked!");
+    }
+\end{verbatim}
+\end{quote}
+
+\subsection{BeanShell Commands}
+
+BeanShell comes with a bunch of commands to make your life easier.
+These are, for the most part, just very short bsh scripts, supplied in the
+bsh.jar file.
+
+\begin{tabular}{|l|l|}
+\hline
+Command       & Usage \\
+\hline
+addClassPath  & void addClassPath( string $|$ URL )\\
+bg            & Thread bg( String script )\\
+browseClass   & browseClass( String $|$ Object $|$ Class )\\
+cat           & void cat( String filename )\\
+cd            & void cd( String dirname )\\
+classBrowser  & void classBrowser()\\
+debug         & void debug()\\
+dir           & void dir( String dirname )\\
+error         & void error( string )\\
+eval          & Object eval( String expression )\\
+exec          & exec( String process )\\
+exit          & void exit()\\
+extend        & This extend( This object )\\
+frame         & JFrame $|$ JInternalFrame frame( Component component )\\
+getClass      & Class getClass( String )\\
+getClassPath  & URL $[]$ getClassPath()\\
+getResource   & URL getResource( String path )\\
+javap         & void javap( String $|$ Object $|$ Class )\\
+load          & Object load( String filename )\\
+object        & This object()\\
+pathToFile    & File pathToFile( String filename )\\
+print         & void print( arg )\\
+pwd           & void pwd()\\
+reloadClasses & void reloadClasses( [ package name ] )\\
+rm            & void rm( String pathname )\\
+run           & This run( String script )\\
+save          & void save( Component component, String filename )\\
+server        & void server( int port )\\
+setClassPath  & void setClassPath( URL $[]$ )\\
+setFont       & Font setFont( Component comp, int ptsize )\\
+show          & void show()\\
+source        & void source( String filename )\\
+super         & This super( String scopename )\\
+unset         & void unset(String name)\\
+\hline
+\end{tabular}
+
+\subsubsection*{print()}
+Print the string value of the argument, which may be of any type.
+If BeanShell is running interactively, the output will always go to the
+command line, otherwise it will go to System.out.
+
+Most often the printed value of an object will simply be the Java
+toString() of the object.  However if the argument is an array the contents
+of the array will be (recursively) listed in a verbose way.
+
+Note that you are always free to use System.out.println() instead of print().
+
+\subsubsection*{show()}
+Toggle on or off displaying the results of expressions (off by default).
+When show mode is on bsh will print() the value returned by each expression
+you type on the command line.
+
+\subsubsection*{Frame $|$ JFrame $|$ JInternalFrame frame( Component component )}
+Display the component, centered and packed, in a Frame, JFrame, or
+JInternalFrame.  Returns the frame.  If the GUI desktop is running then a
+JInternalFrame will be used and automatically added to the desktop.  Otherwise
+if Swing is available a top level JFrame will be created.  Otherwise a plain
+AWT Frame will be created.
+
+\subsubsection*{Object load( String filename )}
+Load a serialized Java object from filename.  Returns the object.
+
+\subsubsection*{void save( Component component, String filename )}
+Save a serializable Java object to filename.
+
+\subsubsection*{void cat( String filename )}
+Print the contents of filename (like Unix cat)
+
+\subsubsection*{exec( String process )}
+Get the Java Runtime and start the external process, display any
+output. \textbf{Note:} process handling will get more sophisticated in the
+future.
+
+\subsubsection*{void pwd()}
+Print the bsh working directory.  This is the cwd obeyed by all the unix
+like bsh commands.
+
+\subsubsection*{void rm( String pathname )}
+Remove the file (like Unix rm)
+
+\subsubsection*{void unset(String name)}
+"undefine" the variable specified by `name' (So that it tests == void).
+
+\textbf{Note:} there will be a better way to do this in the future.  This is
+currently equivalent to doing namespace.setVariable(name, null);
+
+\subsubsection*{void cd( String dirname )}
+Change working directory for the dir() command (like Unix cd)
+
+\subsubsection*{void dir( String dirname )}
+Display the contents of directory dirname. The format is similar to
+the Unix ls -l command.
+
+\subsubsection*{File pathToFile( String filename )}
+Create a File object corresponding to the specified file path name, taking
+into account the bsh current working directory (bsh.cwd)
+
+\subsubsection*{void source( String filename )}
+Read filename into the interpreter and evaluate it in the current
+namespace.  Like Bourne Shell `.' command.
+
+\subsubsection*{Object eval( String expression )}
+Evaluate the string in the current interpreter (see source() above).
+Returns the result of the evaluation or null.
+
+\subsubsection*{void server( int port )}
+Create a Server Mode server attached to the current interpreter,
+listening on the specified port.
+
+\subsubsection*{void debug()}
+Toggle on and off debug mode... Note: debug output is verbose and gross.
+
+\subsubsection*{void exit()}
+Call System.exit(0);
+
+\subsubsection*{URL getResource( String path )}
+The equivalent of calling getResource() on the interpreter class in
+the bsh package.  Use absolute paths to get stuff in the classpath.
+
+\subsubsection*{Font setFont( Component comp, int ptsize )}
+Change the point size of the font on the specified component, to ptsize.
+
+\subsubsection*{This run( String script )}
+run() is like source() except that it runs the command in a new,
+subordinate and prune()'d namespace.  So it's like `running' a command
+instead of `sourcing' it.  Returns the object context in which the command
+was run.
+
+\subsubsection*{Thread bg( String script )}
+This is like run() except that it runs the command in its own thread.
+Returns the thread object (for stop()ing, join()ing, \etc).
+
+\subsubsection*{This object()}
+object() Returns a new bsh object which you can use to hold data
+items. \eg:
+\begin{quote}
+\begin{verbatim}
+    myStuff = object();
+    myStuff.foo = 42;
+    myStuff.bar = "blah";
+\end{verbatim}
+\end{quote}
+
+\subsubsection*{This extend( This object )}
+extend() is like the object() command, which
+creates a new bsh scripted object, except that the namespace of
+the new object is a child of the parent object.
+
+For example:
+\begin{quote}
+\begin{verbatim}
+    foo=object();
+    bar=extend(foo);
+\end{verbatim}
+\end{quote}
+is equivalent to:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        bar() {
+            return this;
+        }
+    }
+
+    foo=foo();
+    bar=foo.bar();
+\end{verbatim}
+\end{quote}
+and also:
+\begin{quote}
+\begin{verbatim}
+    foo=object();
+    bar=object();
+    bar.namespace.bind( foo.namespace );
+\end{verbatim}
+\end{quote}
+
+The last example above is exactly what the extend() command does.
+In each case the bar object inherits variables from foo in the usual way.
+
+\subsubsection*{This super( String scopename )}
+super( name ) returns a bsh This reference to the enclosing scope
+(method scope) of the specified name. \eg:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        x=1;
+        bar() {
+            x=2;
+            gee() {
+                x=3;
+                print( x ); // 3
+                print( super.x ); // 2
+                print( super("foo").x ); // 1
+            }
+        }
+    }
+\end{verbatim}
+\end{quote}
+
+\subsubsection*{void addClassPath( string $|$ URL )}
+Add the specified directory or JAR file to the class path. \eg:
+\begin{quote}
+\begin{verbatim}
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+\end{verbatim}
+\end{quote}
+See Class Path Management.
+
+\subsubsection*{void setClassPath( URL $[]$ )}
+Change the classpath to the specified array of directories and/or archives.
+
+See Class Path Management.
+
+\subsubsection*{void reloadClasses( [ package name ] )}
+Reload the specified class, package name, or all classes if no name is
+given. \eg:
+\begin{quote}
+\begin{verbatim}
+    reloadClasses();
+    reloadClasses("mypackage.*");
+    reloadClasses(".*")  // reload unpackaged classes
+    reloadClasses("mypackage.MyClass")
+\end{verbatim}
+\end{quote}
+
+See Class Path Management.
+
+\subsubsection*{void browseClass( String $|$ Object $|$ Class )}
+Open the class browser to view the specified class.
+
+If the argument is a string it is considered to be a class name.  
+If the argument is an object, the class of the object is used.  
+If the arg is a class, the class is used.
+
+\subsubsection*{void classBrowser()}
+Open the class browser.
+
+\subsubsection*{void error( string )}
+Print the item as an error.  If in the GUI console the text will show up in
+red, else it will be printed to stderr.
+
+\subsubsection*{URL $[]$ getClassPath()}
+Get the current classpath including all user path, extended path, and the
+bootstrap JAR file if possible.
+
+\subsubsection*{void javap( String $|$ Object $|$ Class )}
+Print the public fields and methods of the specified class (output similar
+to the JDK javap command).
+
+If the argument is a string it is considered to be a class name.  
+If the argument is an object, the class of the object is used.  
+If the arg is a class, the class is used.
+
+\subsubsection*{Class getClass( String )}
+This is equivalent to the standard Class.forName() method for class loading,
+however it takes advantage of the BeanShell class manager so that added
+classpath will be taken into account.  You can also use Class.forName(),
+however if you have modified the classpath or reloaded classes from within your
+script the modifications will only appear if you use the getClass() command.
+
+
+\subsection{BeanShell Syntax}
+
+BeanShell is primarily a Java interpreter, so you probably already know
+most of what you need to start using and scripting in bsh.  This section
+will describe specifically what portion of the Java language bsh interprets
+and how bsh extends it - loosens it up - to be more scripting language like.
+
+\subsubsection{Standard Java Syntax}
+
+At the prompt you can type normal Java statements and expressions and
+display the results.
+Statements and expressions are the kinds of things you normally find
+inside of a Java method - variable assignments, method calls, math
+expressions, for-loops, \etc, \etc
+
+Here are some examples:
+\begin{quote}
+\begin{verbatim}
+    // Use a hashtable
+    Hashtable h = new Hashtable();
+    Date d = new Date();
+    h.put("today", d);
+
+    // Print the current clock value
+    print( System.currentTimeMillis() );
+
+    // Loop
+    for (int i=0; i<5; i++)
+        print(i);
+
+    // Pop up an AWT frame with a button in it
+    JButton b = new JButton("My Button");
+    JFrame f = new JFrame("My Frame");
+    f.getContentPane()add(b, "Center");
+    f.pack();
+    f.show();
+\end{verbatim}
+\end{quote}
+
+\subsubsection{Loose Java Syntax}
+
+In the examples above, all of our variables have declared types - 
+\eg\ `JButton b'.  Beanshell will enforce these types, as you will see if
+you later try to assign something other than a JButton to the variable
+`b' (you will get an error message).  However bsh also supports
+dynamically typed variables - that is, you can refer to variables
+without declaring them first and without specifying any type.  In this
+case bsh will do type checking where appropriate at `runtime'.  So,
+for example, we could have left off the types in the above example and
+simply said something like:
+\begin{quote}
+\begin{verbatim}
+    foo = new JButton("Another Button");
+\end{verbatim}
+\end{quote}
+
+We are then free to assign `foo' to another type of Java object later.
+Untyped bsh variables can also freely hold Java primitive values like int
+and boolean.  Don't worry, bsh always knows the real types and only lets you
+use the values where appropriate.  For primitive types this includes doing the
+correct numeric promotion that the real Java language would do when you use
+them in an expression.
+
+\subsubsection{Convenience Syntax}
+In bsh you may access JavaBean properties as if they were fields:
+\begin{quote}
+\begin{verbatim}
+    b = new java.awt.Button();
+    b.label = "my button";  // Equivalent to: b.setLabel("my button");
+\end{verbatim}
+\end{quote}
+
+Of course if there is a field of the same name (\eg\ label in the above
+example) then it would take precedence.
+
+If you wish to avoid ambiguity Bsh provides an additional, uniform
+syntax for accessing Java Bean properties and Hashtable entries.  You
+may use the `\{\}' curly brace construct with a String identifier as a
+qualifier on any variable of the appropriate type:
+\begin{quote}
+\begin{verbatim}
+    b = new java.awt.Button();
+    b{"label"} = "my button";  // Equivalent to: b.setLabel("my button");
+
+    h = new Hashtable();
+    h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
+\end{verbatim}
+\end{quote}
+
+\subsubsection{Importing classes and packages}
+
+In BeanShell as in Java, you can either refer to classes by their fully
+qualified names, or you can \textbf{import} one or more classes
+from a Java package.
+\begin{quote}
+\begin{verbatim}
+    import mypackage.MyClass;
+\end{verbatim}
+\end{quote}
+or
+\begin{quote}
+\begin{verbatim}
+    import mypackage.*;
+\end{verbatim}
+\end{quote}
+You may also automatically import the entire classpath using:
+\begin{quote}
+\begin{verbatim}
+    import *;
+\end{verbatim}
+\end{quote}
+See Class Path Management for details.
+
+By default, several Java core and extension packages are imported for
+you.  They are:
+\begin{itemize}
+\item java.lang
+\item java.awt
+\item java.awt.event
+\item javax.swing
+\item javax.swing.event
+\item java.util
+\item java.io
+\item java.net
+\end{itemize}
+
+\subsection{Methods}
+
+You can define define methods in bsh, just as they would appear in Java:
+\begin{quote}
+\begin{verbatim}
+    int addTwoNumbers( int a, int b ) {
+        return a + b;
+    }
+\end{verbatim}
+\end{quote}
+and use them immediately as you would any bsh command:
+\begin{quote}
+\begin{verbatim}
+    sum = addTwoNumbers( 5, 7 );
+\end{verbatim}
+\end{quote}
+Just as bsh variables may be dynamically typed, bsh methods may have
+dynamic argument and return types.  We could, for example, have declared
+our method like so:
+\begin{quote}
+\begin{verbatim}
+    add( a, b ) {
+        return a + b;
+    }
+\end{verbatim}
+\end{quote}
+In this case, bsh would dynamically determine the types when the method is
+called and ``do the right thing'':
+\begin{quote}
+\begin{verbatim}
+    foo = add(1, 2);
+    print( foo ); // 3
+
+    foo = add("Oh", " baby");
+    print( foo ); // Oh baby
+\end{verbatim}
+\end{quote}
+In the first case Java performed arithmetic addition on the integers 1 and 2.
+By the way, if we had passed in numbers of other types bsh would have performed
+the appropriate numeric promotion and returned the right type.  In the second
+case bsh performed the usual string concatenation for String types and
+returned a String object.
+
+Methods with unspecified return types may return any type of object (as in
+the previous example).
+Alternatively they may also simply issue a `return;' without a value, in
+which case the effective type of the method is `void' (no type).  In
+either case, the return statement is optional.  If the method does not
+perform an explicit `return' statement, the value of the last statement or
+expression in the method body becomes the return value (and must adhere
+to any declared return typing).
+
+\textbf{Note:}
+The namespaces for methods and variables are separate, so
+it is ok to have a method named `foo()' and variable named `foo' within
+the same scope.
+
+\subsubsection{Scope modifiers: this, super, global}
+Within a method, it is possible to explicitly qualify a variable or
+method reference with the values `this', `super', and `global' to
+refer to, respectively, the current scope, the calling method's scope,
+or the global scope.
+\begin{quote}
+\begin{verbatim}
+    a = 42;
+    foo() {
+        a = 97;
+        print( a );
+        print( this.a );
+        print( super.a );
+    }
+
+    foo();  // prints 97, 97, 42
+\end{verbatim}
+\end{quote}
+In the case above, `global' and `super' both refer to the top level scope.
+
+We'll refer to instances of the special `this', `super', and `global'
+references as `This' type references.
+
+\subsection{Scripted Objects}
+
+In bsh you can script objects as `method closures', similar to
+those in Perl5 and JavaScript.
+
+As in most languages, executing bsh methods have their own `local' scope
+that holds argument variables and locally declared variables.  For example,
+any variables that we might have declared within our add() method above would
+normally only be visible within the scope of and for the lifetime of a
+particular method invocation:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        bar = 42;
+        print( bar );
+    }
+
+    foo();  // prints 42
+    print( bar ); // Error, var is undefined here
+\end{verbatim}
+\end{quote}
+However, in BeanShell you can `hang on' to this scope after exiting
+the method by returning the special value: `this'.  As in Java, `this'
+refers to the current object context.  By saving the `this' reference,
+you can continue to refer to variables defined within the method,
+using the standard Java `.' notation:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        bar = 42;
+        return this;
+    }
+
+    obj = foo();
+    print( obj.bar ); // 42
+\end{verbatim}
+\end{quote}
+
+In the above, the value returned by the foo() method is effectively an
+instance of a `foo' object.  In this case foo is really just acting
+like a structure, but bsh methods are also allowed to contain their
+own methods:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        bar() {
+            ...
+        }
+    }
+\end{verbatim}
+\end{quote}
+Method may define any number of local methods in this way, to an arbitrary
+depth.
+
+Statements and expressions within a Bsh method can call their own
+`local' methods just like any other method.  (Locally declared methods
+shadow outer-more methods like local variables shadow outer
+variables.)  And we can invoke local methods of objects through an
+appropriate `this' reference for that object:
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        int a = 42;
+        bar() {
+            print("The bar is open!");
+        }
+
+        bar();
+        return this;
+    }
+
+    obj = foo();     // prints "the bar is open!"
+    print ( obj.a )  // 42
+    obj.bar();       // prints "the bar is open!"
+\end{verbatim}
+\end{quote}
+
+Within a nested method, locally declared variables at each level of
+scope shadow methods of the same name in outer-more scopes.
+Otherwise, variables are visible to an arbitrary depth of scope.
+
+\subsection{Scripted Event Handling}
+
+One of the most powerful features of Bsh is the ability to script
+event handlers and other interface types.  To do this simply define
+the appropriate methods in your script or scripted object and use the
+corresponding `this' reference.
+
+For example, we could could script an event handler for a button like so:
+\begin{quote}
+\begin{verbatim}
+    button = new java.awt.Button("foo!");
+
+    actionPerformed( event ) {
+        print( event );
+    }
+
+    button.addActionListener( this );
+    frame( button );  // show it
+\end{verbatim}
+\end{quote}
+Now when ActionEvents are fired by the button, your actionPerformed()
+method will be invoked.  The bsh `this' reference implements
+the interface and directs them to the appropriately named method, if it exists.
+
+But you don't have to define all of your interface methods globally.
+You can get callbacks in any bsh object scope.  For example, the following
+method creates a button that displays a message when pushed:
+\begin{quote}
+\begin{verbatim}
+    messageButton( message ) {
+        b = new Button("Press Me");
+        b.addActionListener( this );
+        frame(b);
+
+        actionPerformed( e ) {
+            print( message );
+        }
+    }
+
+    messageButton("Hey you!");
+    messageButton("Another message...");
+\end{verbatim}
+\end{quote}
+The above will create two buttons and each will display its own message
+when pushed.  Each has a separate instance of the event handler object.
+Note too that we could return a `this' reference from the handler method and
+use it in other contexts to register listeners...
+
+\subsubsection{Anonymous inner class style}
+More generally you can use the Java anonymous inner class style syntax
+to construct a scripted object implementing an interface:
+\begin{quote}
+\begin{verbatim}
+    buttonHandler = new ActionListener() {
+        actionPerformed( event ) {
+            print(event);
+        }
+    };
+\end{verbatim}
+\end{quote}
+
+\subsubsection{Details}
+\textit{What happens if I don't implement all of the methods of an
+interface?}
+
+You can implement the special method \textit{invoke()} which will be
+called when a method of the interface is not found. \eg:
+\begin{quote}
+\begin{verbatim}
+    mouseHandler = new MouseListener() {
+        mousePressed( event ) {
+            print("mouse button pressed");
+        }
+
+        invoke( method, args ) {
+            print("Undefined method of MouseListener interface invoked:"
+                + name +", with args: "+args
+            );
+        }
+    };
+\end{verbatim}
+\end{quote}
+
+\textit{What kind of events can bsh handle in this way?}
+
+BeanShell can handle any kind of event (and thus serve as any kind of
+event listener) because bsh scripts are capable of implementing
+arbitrary Java interfaces.
+
+\subsection{Scripting Threads}
+
+BeanShell `This' type references also implement the standard
+java.lang.Runnable interface, so you can declare a `run()' method in
+your bsh objects and make it the target of a Thread.
+\begin{quote}
+\begin{verbatim}
+    foo() {
+        run() {
+            // do work...
+        }
+        return this;
+    }
+
+    foo = foo();
+    new Thread( foo ).start();
+\end{verbatim}
+\end{quote}
+You can also use the bg() command to run an external script in a separate
+thread.
+
+\subsection{Special Variables and Values}
+
+See also this, super, and global.
+
+\textbf{Special variables}
+\begin{itemize}
+ \item \$\_  - the value of the last expression evaluated.
+ \item String bsh.cwd - used by the cd() and dir() commands.
+ \item boolean bsh.show - used by the show() command.
+ \item boolean bsh.interactive - is this interpreter running in an
+ interactive mode or sourcing a file?
+ \item boolean bsh.evalOnly - Does this interpreter have an input
+ stream or is it only serving as a bag  for eval() operations.
+ \item String $[]$ bsh.args - any command-line arguments.
+\end{itemize}
+
+\subsubsection{Undefined variables}
+You can test to see if a variable is `undefined' with the value `void', \eg:
+\begin{quote}
+\begin{verbatim}
+    if ( foobar == void )
+        // undefined
+\end{verbatim}
+\end{quote}
+You can return a defined variable to the undefined state using the unset()
+command:
+\begin{quote}
+\begin{verbatim}
+    a == void;  // true
+    a=5;
+    unset("a"); // note the quotes
+    a == void;  // true
+\end{verbatim}
+\end{quote}
+
+\subsubsection{Special features of `This' type references}
+`This' type references have four special `magic' members:
+\begin{itemize}
+\item `.interpreter' is always a reference to the currently executing Bsh
+      Interpreter object.
+\item `.namespace' is always a reference to the Bsh NameSpace object  of the
+      current context.
+\item `.variables' is a String $[]$ listing the variables defined in this
+      namespace.
+\item `.methods' is a String $[]$ listing the methods defined in this
+      namespace.
+\end{itemize}
+
+These are mainly for internal use by bsh commands.  Note that there
+are certain special situations in which the `.interpreter' reference
+may not be available, such as in AWT event handlers (see the next
+section).
+
+\subsection{Class Path Management}
+
+BeanShell is capable of some very fine grained and sophisticated class
+reloading and modifications to the class path.  BeanShell can even map
+the entire class path to allow for automatic importing of classes.
+
+\subsubsection{Changing the Class Path}
+
+\textbf{addClassPath( URL $|$ path )}
+
+Add the specified directory or archive to the classpath.  Archives may
+be located by URL, allowing them to be loaded over the network.
+
+Examples:
+\begin{quote}
+\begin{verbatim}
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+\end{verbatim}
+\end{quote}
+
+Note that if you add class path that overlaps with the existing Java
+user classpath then the new path will effectively reload the classes
+in that area.
+
+\textbf{setClassPath( URL $[]$ )}
+
+Change the entire classpath to the specified array of directories
+and/or archives.
+
+This command has some important side effects.  It effectively causes
+all classes to be reloaded (including any in the Java user class path
+at startup).  Please see `Class Reloading' below for further details.
+
+\textbf{Note:} setClassPath() cannot currently be used to make the classpath
+smaller than the Java user path at startup.
+
+\subsubsection{Auto-Importing from the Classpath}
+
+As an alternative to explicitly importing class names you may use the
+following statement to trigger automatic importing:
+\begin{quote}
+\begin{verbatim}
+    import *;
+\end{verbatim}
+\end{quote}
+
+There may be a significant delay while the class path is mapped.  This
+is why auto-importing is not turned on by default.  When run
+interactively, Bsh will report the areas that it is mapping.
+
+It is only necessary to issue the auto-import command once.
+Thereafter changes in the classpath via the addClassPath() and
+setClassPath() commands will remap as necessary.
+
+\subsubsection{Reloading Classes}
+
+BeanShell provides an easy to use mechanism for reloading classes from
+the classpath.  It is possible in BeanShell to reload arbitrary
+subsets of classes down to a single class file.  However, there are
+subtle issues to be understood with respect to what it means to reload
+a class in the Java environment.  Please see the discussion of class
+loading detail below.  But in a nutshell, it is important that classes
+which work together be reloaded together at the same time, unless you
+know what you are doing.
+
+\textbf{reloadClasses( [ package name ] )}
+
+The most course level of class reloading is accomplished by issuing
+the reloadClasses() command with no arguments.
+\begin{quote}
+\begin{verbatim}
+    reloadClasses();
+\end{verbatim}
+\end{quote}
+
+This will effectively reload all classes in the current classpath
+(including any changes you have made through addClassPath()).
+
+\textbf{Note:} that reloading the full path is actually a light weight operation that
+simply replaces the class loader - normal style class loading is done
+as classes are subsequently referenced.
+
+Be aware that any object instances which you have previously created
+may not function with new objects created by the new class loader.
+Please see the discussion of class loading details below.
+
+You can also reload all of the classes in a specified package:
+\begin{quote}
+\begin{verbatim}
+    reloadClasses("mypackage.*");
+\end{verbatim}
+\end{quote}
+
+This will reload only the classes in the specified package.  The
+classes will be reloaded even if they are located in different places
+in the classpath (\eg\  if you have some of the package in one
+directory and some in another).
+
+As a special case for reloading unpackaged classes the following
+commands are equivalent:
+\begin{quote}
+\begin{verbatim}
+    reloadClasses(".*")
+    reloadClasses("<unpackaged>")
+\end{verbatim}
+\end{quote}
+
+You can also reload just an individual class file:
+\begin{quote}
+\begin{verbatim}
+    reloadClasses("mypackage.MyClass")
+\end{verbatim}
+\end{quote}
+
+Unlike the reloadClasses() command which reloads the entire class path,
+when you issue a command to reload a package or individual class name
+BeanShell must map some portions of the classpath to find the location
+of those class files.  This operation can be time consuming, but it is
+only done once.  If running in interactive mode feedback will be given
+on the progress of the mapping.
+
+\subsubsection{Class Loading in Java}
+
+A fundamental Java security proposition is that classes may only be
+loaded through a class loader once and that classes loaded through
+different class loaders live in different name spaces.  By different
+name spaces I mean that they are not considered to be of the same
+type, even if they came from the very same class file.  
+
+You can think of this in the following way: When you load classes
+through a new class loader imagine that every class name is prefixed
+with the identifier `FromClassLoaderXXX' and that all internal
+references to other classes loaded through that class loader are
+similarly rewritten.  Now if you attempt to pass a reference to a
+class instance loaded through another class loader to one of your
+newly loaded objects, it will not recognize it as the same type of
+class.
+
+BeanShell works with objects dynamically through the reflection API,
+so your scripts will not have a problem recognizing reloaded class
+objects.  However any objects which have you already created might not
+like them.
+
+\end{document}

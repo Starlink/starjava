@@ -1,0 +1,12 @@
+#!/bin/csh
+
+#  Update the JavaHelpSearch directory to match the hypertext help.
+#  Assumes the correct version is in sun243.htx/.
+
+#  Not sure why, but this crashes.
+if ( -e sun243.htx/icons.html ) then
+  \rm sun243.htx/icons.html
+endif
+
+$HOME/splat/javahelp/javahelp/javahelp/bin/jhindexer sun243.htx
+
