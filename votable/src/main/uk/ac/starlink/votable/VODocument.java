@@ -46,6 +46,31 @@ public class VODocument extends DelegatingDocument {
         strict_ = strict;
     }
 
+
+    /**
+     * Constructs a new VODocument with a specified System ID.
+     *
+     * @param  systemId  system ID for the VOTable document represented by
+     *         this DOM (sometimes used for resolving URLs) - may be null
+     * @param  strict  whether to enforce the VOTable standard strictly
+     *         or in some cases do what is probably meant 
+     *         ({@see VOElementFactory#setStrict})
+     */
+    public VODocument( String systemId, boolean strict ) {
+        super( systemId );
+        systemId_ = systemId;
+        strict_ = strict;
+    }
+
+    /**
+     * Constructs a new VODocument.
+     * No system ID is registered, so that all URLs in the document will
+     * be considered as absolute ones.  A default level of strictness is used.
+     */
+    public VODocument() {
+        this( (String) null, VOElementFactory.isStrictByDefault() );
+    }
+
     /**
      * Returns the system ID associated with this document.
      *
