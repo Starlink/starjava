@@ -15,6 +15,10 @@
  !      install        -> deinstalls the system
  !      clean          -> cleans up the build
  !      export         -> create full export distributions of packages
+ !      export-full    -> exports all monolithic archives
+ !      export-full-source -> exports monolithic source archive
+ !      export-full-built  -> exports monolithic runtime distributions
+ !      export-full-docs   -> exports monolithic javadocs archive
  !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
@@ -86,6 +90,7 @@
   <!-- Local directory for support files -->
   <property name="support.dir" value="${basedir}/src"/>
   <property name="support.docs" value="${support.dir}/docs"/>
+  <property name="support.etc" value="${support.dir}/etc"/>
 
   <!-- 
    !  ======================================
@@ -402,6 +407,111 @@
      </antcall>
 
   </target>
+
+  <!-- Properties used for building full export archives. -->
+  <property name="archive.name" value="starjava"/>
+  <property name="archive.jni.name" value="${archive.name}-${os.arch}"/>
+  <property name="archive.top" value="starjava/"/>
+  <property name="tar.user" value="${user.name}"/>
+  <property name="tar.group" value="star"/>
+  <property name="licence.file" value="LICENCE.txt"/>
+  <property name="export.readme" value="README"/>
+
+  <!--
+   !   ========================================
+   !   Export source, docs and runtime archives
+   !   ========================================
+   !-->
+  <target name="export-full"
+          depends="export-full-source,export-full-built,export-full-docs"
+          description="--> exports all monolithic archives">
+    <copy todir="${star.archive.dir}">
+      <fileset dir="${support.etc}">
+        <include name="${licence.file}"/>
+        <include name="${export.readme}"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!--
+   !   ==========================
+   !   Export full source archive
+   !   ==========================
+   !-->
+  <target name="export-full-source"
+          depends="deinstall,clean"
+          description="--> exports monolithic source archive">
+    <zip destfile="${star.archive.dir}/${archive.name}_src.zip">
+      <zipfileset dir="${star.dir}" prefix="${archive.top}">
+        <exclude name="docs/**"/>
+      </zipfileset>
+      <zipfileset dir="${support.etc}" prefix="${archive.top}">
+        <include name="${licence.file}"/>
+      </zipfileset>
+    </zip>
+  </target>
+
+  <!--
+   !   ==========================
+   !   Export full built archives
+   !   ==========================
+   !-->
+  <target name="export-full-built"
+          depends="install"
+          description="--> exports monolithic runtime distributions">
+
+    <tar destfile="${star.archive.dir}/${archive.name}.tar.gz" 
+         longfile="gnu" compression="gzip">
+      <tarfileset dir="${support.etc}" includes="${licence.file}"
+                                            prefix="${archive.top}"
+                                            username="${tar.user}"
+                                            group="${tar.group}"/>
+      <tarfileset dir="${star.install}/bin" prefix="${archive.top}bin"
+                                            username="${tar.user}"
+                                            group="${tar.group}"
+                                            mode="755"/>
+      <tarfileset dir="${star.install}/etc" prefix="${archive.top}etc"
+                                            username="${tar.user}"
+                                            group="${tar.group}"/>
+      <tarfileset dir="${star.install}/lib" prefix="${archive.top}lib"
+                                            username="${tar.user}"
+                                            group="${tar.group}"
+                                            excludes="${os.arch}/**"/>
+    </tar>
+
+    <zip destfile="${star.archive.dir}/${archive.name}.zip">
+      <zipfileset dir="${support.etc}" includes="${licence.file}" 
+                                            prefix="${archive.top}"/>
+      <zipfileset dir="${star.install}/bin" prefix="${archive.top}bin"/>
+      <zipfileset dir="${star.install}/etc" prefix="${archive.top}etc"/>
+      <zipfileset dir="${star.install}/lib" prefix="${archive.top}lib" 
+                  excludes="${os.arch}/**"/>
+    </zip>
+
+    <tar destfile="${star.archive.dir}/${archive.jni.name}.tar.gz" 
+         compression="gzip" longfile="gnu">
+      <tarfileset dir="${star.install}/lib/${os.arch}" 
+                  username="${tar.user}"
+                  group="${tar.group}"
+                  prefix="${archive.top}lib/${os.arch}"/>
+    </tar>
+  </target>
+
+  <!--
+   !   =================================
+   !   Export full documentation archive
+   !   =================================
+   !-->
+  <target name="export-full-docs"
+          depends="javadocs-full"
+          description="--> exports monolithic javadocs archive">
+    <zip destfile="${star.archive.dir}/${archive.name}-docs.zip">
+      <zipfileset dir="${support.etc}" includes="${licence.file}" 
+                                             prefix="${archive.top}"/>
+      <zipfileset dir="${docs.dir}/javadocs" prefix="${archive.top}javadocs"/>
+    </zip>
+  </target>
+
 
   <!--
    !   =================
