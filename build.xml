@@ -403,6 +403,10 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="mirage/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="soapserver/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>

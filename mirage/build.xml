@@ -897,7 +897,6 @@
    !  adding such code to proper class libraries (such as util).
    !-->
   <target name="javadoc-sources"
-          if="value.false"
           description="-> make source files for release API documention">
 
     <mkdir dir="${build.java}"/>
