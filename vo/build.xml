@@ -1097,8 +1097,18 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
+          depends="compile-tests, run-net-tests"
+          if="junit.present"/>
+
+  <!--
+   !  Runs network-based testcases; currently a no-op unless 
+   !  the tests.withnet system property is set.  This is so that the standard
+   !  test target can be invoked without error in the absence of network
+   !  connections.
+   !-->
+  <target name="run-net-tests"
           depends="compile-tests"
-          if="junit.present">
+          if="tests.withnet">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
