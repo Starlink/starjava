@@ -29,7 +29,8 @@ public class MethodDocTest extends TestCase {
             assertTrue( chob instanceof DefaultMutableTreeNode );
             DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) chob;
             Object userObj = childNode.getUserObject();
-            assertTrue( DocNames.docURL( userObj ) != null );
+            assertTrue( userObj.toString(), 
+                        DocNames.docURL( userObj ) != null );
             assertTrue( methodWindow.textFor( userObj ) != null );
             checkNodeChildren( childNode );
         }
