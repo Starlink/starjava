@@ -169,7 +169,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
     /**
      * Makes a readable NDArray from a data input stream. 
      * It will have no URL.  Update access may be possible, but only
-     * if <tt>stream</tt> implements {@link nom.tam.fits.ArrayDataOutput}.
+     * if <tt>stream</tt> implements {@link nom.tam.util.ArrayDataOutput}.
      *
      * @param  stream the input stream supplying the HDU at which the
      *                FITS array data can be found
