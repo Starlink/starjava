@@ -681,7 +681,7 @@ public class SSAQueryBrowser
             //  Visit all the tabbed StarJTables.
             Iterator i = starJTables.iterator();
             while ( i.hasNext() ) {
-                extractSpectraFromTable( (StarJTable) i.next(), specList, 
+                extractSpectraFromTable( (StarJTable) i.next(), specList,
                                          selected, -1 );
             }
         }
@@ -780,7 +780,7 @@ public class SSAQueryBrowser
             if ( linkcol != -1 ) {
                 RowSequence rseq = null;
                 SpectrumIO.Props props;
-                String shortname;
+                String value;
                 String[] axes;
                 String[] units;
                 try {
@@ -789,23 +789,32 @@ public class SSAQueryBrowser
                         rseq = starTable.getRowSequence();
                         while ( rseq.hasNext() ) {
                             rseq.next();
-                            props = new SpectrumIO.Props((String)rseq.getCell(linkcol));
+                            value = ((String)rseq.getCell( linkcol )).trim();
+                            props = new SpectrumIO.Props( value );
                             if ( typecol != -1 ) {
-                                props.setType
-                                    (mimeToSPLATType((String)rseq.getCell(typecol)));
+                                value = ((String)rseq.getCell(typecol)).trim();
+                                props.setType( mimeToSPLATType( value ) );
                             }
                             if ( namecol != -1 ) {
-                                props.setShortName((String)rseq.getCell( namecol ) );
+                                value = ((String)rseq.getCell(namecol)).trim();
+                                props.setShortName( value );
                             }
                             if ( axescol != -1 ) {
-                                axes = ((String)rseq.getCell( axescol )).split("\\s");
+                                value = ((String)rseq.getCell(axescol)).trim();
+                                axes = value.split("\\s");
                                 props.setCoordColumn( axes[0] );
                                 props.setDataColumn( axes[1] );
+                                if ( axes.length == 3 ) {
+                                    props.setErrorColumn( axes[2] );
+                                }
                             }
                             if ( unitscol != -1 ) {
-                                units = ((String)rseq.getCell( unitscol )).split("\\s");
+                                value =
+                                    ((String)rseq.getCell( unitscol )).trim();
+                                units = value.split("\\s");
                                 props.setCoordUnits( units[0] );
                                 props.setDataUnits( units[1] );
+                                //  Error must have same units as data.
                             }
                             specList.add( props );
                         }
@@ -823,21 +832,29 @@ public class SSAQueryBrowser
                             if ( k == selection[l] ) {
 
                                 // Store this one as matches selection.
-                                props = new SpectrumIO.Props((String)rseq.getCell(linkcol));
+                                value = ((String)rseq.getCell(linkcol)).trim();
+                                props = new SpectrumIO.Props( value );
                                 if ( typecol != -1 ) {
-                                    props.setType
-                                        (mimeToSPLATType((String)rseq.getCell(typecol)));
+                                    value =
+                                        ((String)rseq.getCell(typecol)).trim();
+                                    props.setType( mimeToSPLATType( value ) );
                                 }
                                 if ( namecol != -1 ) {
-                                    props.setShortName((String)rseq.getCell( namecol ) );
+                                    value =
+                                        ((String)rseq.getCell(namecol)).trim();
+                                    props.setShortName( value );
                                 }
                                 if ( axescol != -1 ) {
-                                    axes = ((String)rseq.getCell( axescol )).split("\\s");
+                                    value =
+                                        ((String)rseq.getCell(axescol)).trim();
+                                    axes = value.split("\\s");
                                     props.setCoordColumn( axes[0] );
                                     props.setDataColumn( axes[1] );
                                 }
                                 if ( unitscol != -1 ) {
-                                    units = ((String)rseq.getCell( unitscol )).split("\\s");
+                                    value =
+                                        ((String)rseq.getCell(unitscol)).trim();
+                                    units = value.split("\\s");
                                     props.setCoordUnits( units[0] );
                                     props.setDataUnits( units[1] );
                                 }
