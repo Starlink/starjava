@@ -60,7 +60,7 @@ public class DescribedValue {
             throw new IllegalArgumentException(
                 "ValueInfo " + vinfo + " has no contentClass set" );
         }
-        else if ( ! cclass.isInstance( value ) ) {
+        else if ( value != null && ! cclass.isInstance( value ) ) {
             throw new IllegalArgumentException( 
                 "Value " + value + " is not a " + cclass.getName() );
         }

@@ -180,9 +180,12 @@ public class StyledTextArea extends JTextPane {
     public Writer limitedLineAppender( final int maxLines ) {
         return new Writer() {
             private int nline = 0;
+            private boolean truncate = false;
             public void write( char[] cbuf, int off, int len ) {
+                if ( truncate ) {
+                    return;
+                }
                 String buf = new String( cbuf, off, len );
-                boolean truncate = false;
                 int pos = 0;
                 if ( maxLines > 0 ) {
                     while ( ( pos = buf.indexOf( '\n', pos ) + 1 ) > 0 ) {
@@ -190,6 +193,7 @@ public class StyledTextArea extends JTextPane {
                         if ( nline >= maxLines && pos < buf.length() ) {
                             buf = buf.substring( 0, pos );
                             truncate = true;
+                            break;
                         }
                     }
                 }
