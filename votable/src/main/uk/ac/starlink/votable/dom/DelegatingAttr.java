@@ -76,7 +76,7 @@ public class DelegatingAttr extends DelegatingNode implements Attr {
 //DOM3     }
 //DOM3 
 //DOM3     public boolean isId() {
-//DOM3         return isId == null ? base_.isId()
-//DOM3                             : isId_.booleanValue();
+//DOM3         return isId_ == null ? base_.isId()
+//DOM3                              : isId_.booleanValue();
 //DOM3     }
 }
