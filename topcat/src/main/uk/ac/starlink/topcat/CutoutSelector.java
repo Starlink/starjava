@@ -116,6 +116,11 @@ public class CutoutSelector extends JPanel implements ItemListener {
         npixLine.add( npixSelector_ );
         npixLine.add( pixsizeLabel_ );
         box.add( npixLine );
+
+        /* Trigger events to put this component into a normal state. */
+        CutoutService serv = (CutoutService) serviceSelector_.getSelectedItem();
+        serviceSelector_.setSelectedItem( null );
+        serviceSelector_.setSelectedItem( serv );
     }
 
     /**
