@@ -266,18 +266,27 @@ public class AstUtilities implements Serializable
      *  @param basebox array of 4 floating point number indicating the
      *                 corners of the region to be drawn (in the
      *                 coordinate system of the base frame).
-     *  @param xfrac   Fraction of component display surface to be
-     *                 reserved for X axes labels etc (can be zero, in
+     *  @param xleft   Fraction of component display surface to be
+     *                 reserved on left for axes labels etc (can be zero, in
      *                 which case use control of the Insets to provide
      *                 required space).
-     *  @param yfrac   Fraction of component display surface to be
-     *                 reserved for Y axes labels etc (can be zero, in
+     *  @param xright  Fraction of component display surface to be
+     *                 reserved on right for axes labels etc (can be zero, in
      *                 which case use control of the Insets to provide
+     *                 required space).
+     *  @param ytop    Fraction of component display surface to be
+     *                 reserved on top for axes labels etc (can be zero, in
+     *                 which case use control of the Insets to provide
+     *                 required space).
+     *  @param ybottom Fraction of component display surface to be
+     *                 reserved on bottom for axes labels etc (can be zero, 
+     *                 in which case use control of the Insets to provide
      *                 required space).
      *  @param options a string of AST options to use when creating plot.
      */
     public void astPlot( JComponent comp, double basebox[],
-                         double xfrac, double yfrac, String options )
+                         double xleft, double xright, 
+                         double ytop, double ybottom, String options )
     {
         //  Do nothing if no AST frameset available.
         if ( astRef == null || grfRef == null ) {
@@ -293,8 +302,10 @@ public class AstUtilities implements Serializable
         Insets inset = comp.getInsets();
 
         //  Fraction of space reserved at left/right and top/bottom.
-        float linset = (float) ( size.width * yfrac );
-        float tinset = (float) ( size.height * xfrac );
+        float tinset = (float) ( size.width * ytop );
+        float binset = (float) ( size.width * ybottom );
+        float linset = (float) ( size.height * xleft );
+        float rinset = (float) ( size.height * xright );
 
         //  Bottom left-hand corner. Corrected for border insets.
         graphbox[0] = inset.left + linset;
@@ -309,8 +320,8 @@ public class AstUtilities implements Serializable
         //  Now create the astPlot.
         astPlot = new Plot( astRef, graphRect, basebox,
                             (int) (inset.left + linset),
-                            (int) (inset.right + linset),
-                            (int) (inset.bottom + tinset),
+                            (int) (inset.right + rinset),
+                            (int) (inset.bottom + binset),
                             (int) (inset.top + tinset) );
         if ( options != null ) {
             astPlot.set( options );
