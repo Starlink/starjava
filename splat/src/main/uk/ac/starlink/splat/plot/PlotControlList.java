@@ -61,14 +61,6 @@ public class PlotControlList
     }
 
     /**
-     *  Get the number of plots a spectrum is displayed in.
-     */
-    public int plotCount( SpecData spectrum )
-    {
-        return spectrum.plotCount();
-    }
-
-    /**
      *  Get the number of spectra a plot is displaying.
      */
     public int specCount( int index )
