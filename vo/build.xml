@@ -428,6 +428,11 @@
           unless="runonly.install"
           description="-> compiles the source code">
 
+    <!-- Compile java classes.  This includes both the main java source
+     !   files and the ones built automatically from the WSDL.
+     !   Note we are careful to avoid picking up any of the main ones
+     !   which have found their way into the build directory (this can
+     !   happen during javadoc building). -->
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}:${build.java}"
            destdir="${build.classes}"
@@ -435,13 +440,9 @@
            deprecation="${deprecation}"
            source="${source.version}"
            optimize="${optimize}">
-
       <classpath refid="classpath"/>
-
-      <!-- Exclude any files in the source tree that should not be
-       !   compiled -->
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
+      <exclude name="**/uk/ac/starlink/**"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
