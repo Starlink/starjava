@@ -11,15 +11,15 @@ import org.w3c.dom.Element;
 import uk.ac.starlink.ast.gui.AbstractPlotControlsModel;
 
 /**
- * DataLimits defines the limits of a Plot. These can be explicit
- * values two for each axis, or indications to autoscale both or
- * either of these axes.
+ * DataLimits defines the limits of a Plot. These can be explicit values two
+ * for each axis, or indications to autoscale both or either of these axes.
  *
  * @author Peter W. Draper
  * @version $Id$
  * @see SpecDataComp
  */
-public class DataLimits extends AbstractPlotControlsModel
+public class DataLimits 
+    extends AbstractPlotControlsModel
 {
     /**
      * Whether to fit Plot to match the data X data range into it's
@@ -178,6 +178,15 @@ public class DataLimits extends AbstractPlotControlsModel
     }
 
     /**
+     * Set the lower limit of the X axis, without an firing an change event. 
+     * When used a eventually call that causes an update must be made.
+     */
+    public void setXLowerValue( double xLower )
+    {
+        this.xLower = xLower;
+    }
+
+    /**
      * Get the lower limit of the X axis.
      */
     public double getXLower()
@@ -192,6 +201,15 @@ public class DataLimits extends AbstractPlotControlsModel
     {
         this.xUpper = xUpper;
         fireChanged();
+    }
+
+    /**
+     * Set the upper limit of the X axis, without an firing an change event. 
+     * When used a eventually call that causes an update must be made.
+     */
+    public void setXUpperValue( double xUpper )
+    {
+        this.xUpper = xUpper;
     }
 
     /**
@@ -212,6 +230,15 @@ public class DataLimits extends AbstractPlotControlsModel
     }
 
     /**
+     * Set the lower limit of the Y axis, without an firing an change event. 
+     * When used a eventually call that causes an update must be made.
+     */
+    public void setYLowerValue( double yLower )
+    {
+        this.yLower = yLower;
+    }
+
+    /**
      * Get the lower limit of the Y axis.
      */
     public double getYLower()
@@ -226,6 +253,15 @@ public class DataLimits extends AbstractPlotControlsModel
     {
         this.yUpper = yUpper;
         fireChanged();
+    }
+
+    /**
+     * Set the upper limit of the Y axis, without an firing an change event. 
+     * When used a eventually call that causes an update must be made.
+     */
+    public void setYUpperValue( double yUpper )
+    {
+        this.yUpper = yUpper;
     }
 
     /**
