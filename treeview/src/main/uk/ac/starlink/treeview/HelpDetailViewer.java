@@ -62,12 +62,8 @@ class HelpDetailViewer extends DetailViewer {
         /* Add information about node types. */
         addPane( "Node types", new NodeTypePane( "Node types" ) );
 
-        /* Tweak detail viewer: we want the "About" pane to be the last one
-         * and the first (remaining) one to be selected by default. */
-        tabbed.remove( over );
-        tabbed.add( "About", over );
-        tabbed.setSelectedIndex( 1 );
-        tabbed.setSelectedIndex( 0 );
+        /* Set the pane which is viewed by default to be the "Basic use" one. */
+        setSelectedIndex( 1 );
     }
 
     private class NodeTypePane implements ComponentMaker {

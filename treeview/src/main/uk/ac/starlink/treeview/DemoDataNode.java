@@ -51,11 +51,9 @@ public class DemoDataNode extends FileDataNode {
             dv.addPane( "Information", 
                         new HTMLDocComponentMaker( "demo.html" ) );
 
-            /* Questionable use of protected field here to subvert normal
-             * behaviour of a DetailViewer; we want the info panel to
-             * be displayed immediately since the idea is to make it
+            /* Display the info panel not the overview immediately to make it
              * very clear to users what is going on. */
-            dv.tabbed.setSelectedIndex( 1 );
+            dv.setSelectedIndex( 1 );
         }
         return fullView;
     }

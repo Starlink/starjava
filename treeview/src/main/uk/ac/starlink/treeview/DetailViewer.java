@@ -28,7 +28,7 @@ import javax.swing.event.ChangeListener;
  */
 public class DetailViewer {
 
-    protected final JTabbedPane tabbed;
+    private final JTabbedPane tabbed;
     protected StyledTextArea over;
 
     public DetailViewer( String overName ) {
@@ -133,6 +133,17 @@ public class DetailViewer {
                 }
             }
         } );
+    }
+
+    /**
+     * Selects the numbered pane for display as if the user had selected
+     * the tab; number 0 is the initial
+     * overview pane, and the others are in the order they were added.
+     *
+     * @param  index  the index of the pane to select
+     */
+    public void setSelectedIndex( int index ) {
+        tabbed.setSelectedIndex( index );
     }
 
     /**
