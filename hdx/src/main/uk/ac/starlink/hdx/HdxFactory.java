@@ -1,11 +1,15 @@
 package uk.ac.starlink.hdx;
 
+import uk.ac.starlink.util.DOMUtils;
+import uk.ac.starlink.util.URLUtils;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.io.File;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -40,6 +44,13 @@ import org.w3c.dom.*;
  * validators for the individual types, {@link
  * HdxResourceType#isValid(Element)}.</p>
  *
+ * <p>Instances of this class also provide the facilities to resolve
+ * URIs into URLs, supplying whatever context is required in the form
+ * of base URIs.  They do this using the {@link #fullyResolveURI}
+ * method.  Since the context required will typically depend on the
+ * DOM context, you should find an appropriate factory using {@link
+ * #findFactory}.</p>
+ *
  * <p>To add an extension class, which handles a new file type, you
  * must do two things:
  * <ol>
@@ -65,29 +76,47 @@ import org.w3c.dom.*;
 public class HdxFactory {
 
     /** Singleton instance of this class */
-    private static HdxFactory instance = null;
+    private static HdxFactory defaultInstance = null;
 
     /** List of HdxDocumentFactory instances, tried in turn. */
     private static java.util.List hdxFactoryList = new java.util.ArrayList(3);
 
     private static Logger logger = Logger.getLogger("uk.ac.starlink.hdx");
-   
 
-    /** XSLT transform engine. */
-    private static javax.xml.transform.Transformer transformer;
+    /**
+     * Maps Node instances (usually Elements) to a factory which can
+     * look after the trees beneath them, and resolve URIs with the
+     * correct context.  This is a {@link WeakHashMap} so that the
+     * presence of a Node as a key in this map doesn't prevent that
+     * Node from being garbage-collected.
+     *
+     * <p>This isn't ideal, because this map is keyed on object
+     * identity (that is, <code>==</code> rather than
+     * <code>.equals()</code>), so it loses if we clone the element in
+     * question.
+     */
+    private static java.util.Map factoryMap = new java.util.WeakHashMap();
 
-    private HdxFactory()
-            throws HdxException {
-        // Add default HdxDocumentFactory instances
-        HdxProperties.setProperty
-           ("HdxDocumentFactory.load.uk.ac.starlink.hdx.XmlHdxDocumentFactory",
-            "true");
-        
-        //registerHdxDocumentFactory(HdsHdxDocumentFactory.getInstance());
-
-        // Work through any list of properties HdxDocumentFactory.load.*...
+    /**
+     * The base URI which this factory uses to resolve URIs.
+     */
+    private static URI factoryBaseURI;
+    
+    static {
+        // Any exceptions are converted to (unchecked) PluginException
         String classname = "...eh?";// obligatory initialisation
         try {
+            // Add default HdxDocumentFactory instances.  Note that we
+            // force this property to be true, so that there's no way of
+            // avoiding this DocumentFactory from being loaded.  This is
+            // probably a good idea, but if we decided this should
+            // preserve any preexisting value, there's nothing that would
+            // break simply because of that.
+            HdxProperties.setProperty
+          ("HdxDocumentFactory.load.uk.ac.starlink.hdx.XmlHdxDocumentFactory",
+           "true");
+        
+            // Work through any list of properties HdxDocumentFactory.load.*...
             String prefix = "HdxDocumentFactory.load.";
             for (java.util.Enumeration e
                          = HdxProperties.getProperties().propertyNames();
@@ -97,9 +126,10 @@ public class HdxFactory {
                     classname = propname.substring(prefix.length());
                     Boolean loadflag = Boolean.valueOf
                             (HdxProperties.getProperty(propname));
-                    logger.info
-                            ("HdxDocumentFactory class " + classname + ":"
-                             + (loadflag.booleanValue() ? "LOAD" : "NOLOAD"));
+                    if (logger.isLoggable(Level.INFO))
+                        logger.info
+                                ("HdxDocumentFactory class " + classname + ":"
+                                 + (loadflag.booleanValue()?"LOAD":"NOLOAD"));
                     if (loadflag.booleanValue()) {
                         // Get the Class object corresponding to the class
                         // named in this property.  If the class has not
@@ -124,6 +154,9 @@ public class HdxFactory {
                     }
                 }
             }
+        } catch (HdxException ex) {
+            throw new PluginException("Static initialiser threw HdxException: "
+                                      + ex);
         } catch (java.util.NoSuchElementException ex) {
             throw new PluginException("Ooops, runaway Enumeration!:" + ex);
         } catch (ExceptionInInitializerError ex) {
@@ -138,14 +171,35 @@ public class HdxFactory {
         }
     }
 
+    private HdxFactory(URI base) {
+        factoryBaseURI = base;
+    }
+
     /**
      * Obtains an instance of the <code>HdxFactory</code>.
      */
-    public static HdxFactory getInstance()
-            throws HdxException {
-        if (instance == null)
-            instance = new HdxFactory();
-        return instance;
+    public static HdxFactory getInstance() {
+        if (defaultInstance == null)
+            defaultInstance = new HdxFactory(null);
+        return defaultInstance;
+    }
+
+    /**
+     * Obtains the factory instance which should handle a particular
+     * element.
+     *
+     * @param el indicates the DOM context which the returned factory
+     * is to service
+     *
+     * @return a HdxFactory instance which can resolve URIs appropriately
+     */
+    public static HdxFactory findFactory(Node el) {
+        for (Node n = el; n != null; n = n.getParentNode()) {
+            if (factoryMap.containsKey(el)) {
+                return (HdxFactory)factoryMap.get(el);
+            }
+        }
+        return getInstance();
     }
 
     /**
@@ -158,15 +212,16 @@ public class HdxFactory {
      */
     public static void registerHdxDocumentFactory(HdxDocumentFactory factory) {
         hdxFactoryList.add(0, factory);
-        System.err.println("Registered HdxDocumentFactory "
-                           + factory.getClass().getName());
+        if (logger.isLoggable(Level.INFO))
+            logger.info("Registered HdxDocumentFactory "
+                        + factory.getClass().getName());
     }
 
 
     /**
      * Constructs a new {@link HdxContainer} from the supplied URI.
      * The resulting <code>HdxContainer</code> is normalised as
-     * described in {@link #newHdxContainer(Element)}.
+     * described in {@link #newHdxContainer(Element,URI)}.
      *
      * @param uri a <code>URI</code> pointing to the resource
      * @return a new <code>HdxContainer</code>, or null if there
@@ -178,13 +233,13 @@ public class HdxFactory {
      */
     public HdxContainer newHdxContainer(URI uri)
             throws HdxException {
-        return newHdxContainer(fullyResolveURI(uri));
+        return newHdxContainer(fullyResolveURI(uri, null));
     }
 
     /**
      * Constructs a new {@link HdxContainer} from the supplied URL.
      * The resulting <code>HdxContainer</code> is normalised as
-     * described in {@link #newHdxContainer(Element)}.
+     * described in {@link #newHdxContainer(Element,URI)}.
      *
      * @param url a <code>URL</code> pointing to the resource
      * @return a new <code>HdxContainer</code>, or null if there
@@ -197,11 +252,18 @@ public class HdxFactory {
     public HdxContainer newHdxContainer(URL url)
             throws HdxException {
         Document hdxdom = null;
+        // In case url is relative, resolve it
+        url = fullyResolveURI(URLUtils.urlToUri(url), null);
+        
         for (Iterator fi = hdxFactoryList.iterator();
              hdxdom == null && fi.hasNext();
              ) {
             HdxDocumentFactory factory = (HdxDocumentFactory)fi.next();
             hdxdom = factory.makeHdxDocument(url);
+            if (hdxdom != null && logger.isLoggable(Level.FINE))
+                logger.fine("newHdxDocumentFactory(url=" + url
+                            + "): success from HdxDocumentFactory "
+                            + factory.getClass().getName());
         }
 
         if (hdxdom == null)
@@ -209,16 +271,35 @@ public class HdxFactory {
             return null;
 
         Element docelem = hdxdom.getDocumentElement();
-        System.err.println("  docelem="
-                           + (docelem==null ? "null" : docelem.getTagName()));
+        if (logger.isLoggable(Level.FINE))
+            logger.fine("newHdxContainer(" + url + ")  docelem="
+                        + (docelem==null ? "null" : docelem.getTagName()));
         
         if (docelem == null)
             // It's XML Jim, but not as we know it
             return null;
 
-        return newHdxContainer(docelem);
+        return newHdxContainer(docelem, URLUtils.urlToUri(url));
     }
 
+    /**
+     * Constructs a new {@link HdxContainer} from the supplied DOM.
+     *
+     * <p>Equivalent to <code>newHdxContainer(el, null)</code>
+     *
+     * @param el an element in or beneath which there is the XML which
+     * represents a single HDX object
+     *
+     * @return an <code>HdxContainer</code>, or null if there is not exactly one
+     * HDX element in the DOM
+     *
+     * @see #newHdxContainer(Element,URI)
+     */
+    public HdxContainer newHdxContainer(Element el)
+            throws HdxException {
+        return newHdxContainer(el, null);
+    }
+    
     /**
      * Constructs a new {@link HdxContainer} from the supplied DOM.
      * Searches through the tree beneath the given element to find an
@@ -260,14 +341,16 @@ public class HdxFactory {
      *
      * @param el an element in or beneath which there is the XML which
      * represents a single HDX object
+     * @param systemId the system identifier for this element, or null
+     * if none is defined
      *
-     * @return an HdxContainer, or null if there is not exactly one
+     * @return an <code>HdxContainer</code>, or null if there is not exactly one
      * HDX element in the DOM
      *
      * @throws HdxException if there is an unexpected problem
      * normalizing the DOM
      */
-    public HdxContainer newHdxContainer(Element el)
+    public HdxContainer newHdxContainer(Element el, URI systemId)
             throws HdxException {
         // NB!!! The behaviour documented above is actually
         // implemented by the HdxElement.constructHdxElementTree
@@ -275,37 +358,98 @@ public class HdxFactory {
         // method needs to normalize the tree.  That method must match
         // this documentation.
         Element hdx = validateHdxDOM(el);
+
         if (hdx == null)
             return null;
         else
         {
             if (hdx.getNextSibling() != null) {
-                System.err.println
-                    ("Warning: element given to newHdxContainer included more than one HDX");
+                if (logger.isLoggable(Level.WARNING))
+                    logger.warning
+                            ("Warning: element given to newHdxContainer included more than one HDX");
                 return null;
+            }
+            if (systemId != null) {
+                // This factory, with its baseURI context, should look
+                // after resolution/creation of the tree under this element
+                HdxFactory newfactory = new HdxFactory(systemId);
+                factoryMap.put(el, newfactory);
             }
             return new DomHdxContainer(hdx);
         }
     }
 
-    // Redundant method, since no deregistration is needed (yes?).
-    // Just use HdxResourceType.registerHdxResourceFactory instead.
-//     /**
-//      * Registers a handler for {@link HdxResourceType}.  Handlers
-//      * should be installed this way rather than directly with the
-//      * corresponding object in <code>HdxResourceType</code>, so that
-//      * we can manage <em>de</em>registering them later.
-//      *
-//      * @param res the HdxResourceType which this handler will deal with
-//      *
-//      * @param factory the factory which will be invoked when this
-//      * handler is needed
-//      */
-//     public static void registerHdxResourceFactory
-//             (HdxResourceType res,
-//              HdxResourceFactory factory) {
-//         res.registerHdxResourceFactory(factory);
-//     }
+    /**
+     * Constructs a new <code>HdxContainer</code> which wraps a
+     * <code>HdxFacade</code>.
+     *
+     * <p>Unlike the other <code>newHdxContainer</code> methods, this
+     * does not guarantee to normalise the (implied) input DOM
+     * immediately, and this may be postponed until the (implied)
+     * resulting Hdx DOM is produced at a later stage.  It is only
+     * whenever this normalisation is finally done that any errors in
+     * the input DOM will materialise.  However, since the
+     * <code>DOMFacade</code> is a synthetic view of an underlying
+     * structure, under control of the same code which is ultimately
+     * responsible for validating the input DOM, one can presume that
+     * any normalisation errors are bugs in that code.  Thus this
+     * method either succeeds or thows an exception, and does not
+     * return null on any error.
+     *
+     * <p>This method is part of the preferred route for generating
+     * XML from a Java object which is part of the HDX world.  Given
+     * that the object, <code>obj</code> has such a method, the route
+     * is:
+     * <pre>
+     * Element el = HdxFactory
+     *     .getInstance()  // or some suitable .findFactory(...)
+     *     .newHdxContainer(obj.getHdxFacade())
+     *     .getDOM(null) ; // or a suitable base URI
+     * </pre>
+     * Although this seems roundabout, (a) this method is written to
+     * be efficient with this route in mind, and (b) this ensures that
+     * the DOM or Source produced by the <code>HdxFacade</code> is
+     * processed for output in a way consistent with other XML
+     * generated by this package.
+     *
+     * @param facade a <code>DOMFacade</code> which represents an
+     * underlying object
+     *
+     * @return an <code>HdxContainer</code>
+     *
+     * @throws HdxException if there is some problem constructing the DOM
+     */
+    public HdxContainer newHdxContainer(HdxFacade facade)
+            throws HdxException {
+        if (facade == null)
+            throw new IllegalArgumentException
+                    ("null facade given to newHdxContainer");
+        HdxDocument hdxdoc = (HdxDocument)HdxDOMImplementation
+                .getInstance()
+                .createDocument(null, "hdx", null);
+        Element hdx = hdxdoc.createElement("hdx");
+        hdxdoc.appendChild(hdx);
+        Element kid = hdxdoc.createElement(facade);
+        hdx.appendChild(kid);
+
+        // We could return this directly, by calling
+        // DomHdxContainer(hdx), and we should do this eventually, but
+        // for now, pass it through newHdxContainer(Element), as that
+        // also passes the result through validateHdxDOM.  This is
+        // inefficient, as it results in the DOM which the facade
+        // represents being constructed.  We probably don't have to
+        // validate it in fact, since one supposes that the facade
+        // represents a valid DOM.
+        //
+        // The inefficiency might be significant if the implied DOM is
+        // large.  It will not be hard to postpone this, so that if
+        // the HdxContainer is asked for a Source, say, then we can
+        // immediately extract a Source from the facade.  The
+        // disavowal of any normalisation guarantee in the method docs
+        // gives us this freedom.
+
+        return new DomHdxContainer(hdx);
+    }
 
     /**
      * Recovers the Java object which corresponds to the given
@@ -351,7 +495,7 @@ public class HdxFactory {
             // might still work
             try {
                 URI uri = new URI(el.getAttribute("uri"));
-                URL url = fullyResolveURI(uri);
+                URL url = fullyResolveURI(uri, el);
                 if (url != null)
                     if (el instanceof HdxElement)
                         // we are able to call the
@@ -362,9 +506,11 @@ public class HdxFactory {
                     else
                         el.setAttribute("url", url.toString());
             } catch (HdxException ex) {
-                System.err.println("Failed to resolve URI: " + ex);
+                if (logger.isLoggable(Level.WARNING))
+                    logger.warning("Failed to resolve URI: " + ex);
             } catch (URISyntaxException ex) {
-                System.err.println("Invalid URI: " + ex);
+                if (logger.isLoggable(Level.WARNING))
+                    logger.warning("Invalid URI: " + ex);
             }
         }
         Object ret = null;
@@ -382,57 +528,98 @@ public class HdxFactory {
 
     /**
      * Completely resolves a URI into a URL.  This performs both
-     * relative to absolute URI resolution, and URI to URL resolution,
+     * relative to absolute URI resolution (if required), and URI to URL conversion,
      * in both cases supplying all required context.  The result is an
      * absolute URL.
      *
-     * <p>The natural-looking URI "file:something.xml" is formally
-     * parsed as a <code>file</code> URI with a non-hierarchical
-     * scheme-specific part.  As a special case, we interpret this
-     * here as being relative to the current directory, and we allow
-     * the <code>file</code> to be mixed-case.
+     * <p>The relative-to-absolute resolution is performed using the
+     * base URI corresponding to the given context node, as specified
+     * by <a href='http://www.w3.org/TR/xmlbase/#resolution' >XML Base
+     * Recommendation, section 4</a>.
      *
-     * <p>XXX This will almost certainly need adjustment when we come
-     * to deal with URIs which don't have absolute URLs definable
-     * (such as the famous URI-in-a-jar case)
+     * <p>If no base URI can be determined, then the method uses a
+     * last-ditch base URI consisting of the <code>file:</code> URI
+     * corresponding to the current directory (as obtained from the
+     * System property <code>user.dir</code>).
      *
-     * <p>XXX Do we want to make this private?  Probably, when we add
-     * the URI-to-URL resolution and have a bit of a rethink then.
+     * <p>Note that the natural-looking URI
+     * <code>file:filename.xml</code> is an <em>absolute</em> URI,
+     * according to <a href='http://www.ietf.org/rfc/rfc2396.txt' >RFC
+     * 2396</a>, <em>Uniform Resource Identifiers (URI): Generic
+     * Syntax</em> (since it has a non-null <code>scheme</code> part).
+     * Such URIs should be avoided, but since they are common, and
+     * intended to be relative URIs, we special-case this, in a
+     * <strong>deviation from RFC 2396</strong> by removing the
+     * <code>scheme</code> part (this conforms with the remarks on
+     * backward compatibility in RFC 2396, section 5.2, step 3,
+     * although, as blessed in that section) we do not extend this
+     * latitude to other schemes).  We allow the <code>file</code>
+     * scheme-specifier to be mixed-case.
      *
-     * @param uri the URI which is to be resolved
+     * @param uri the URI which is to be resolved.  If this is
+     * absolute already, it is merely converted to a URL.
+     * @param context a DOM Node providing the context for any
+     * resolution required; this may be null
      *
      * @return a URL corresponding to an absolute URI, or null if the
      * URI cannot be resolved for some reason.
      *
      * @throws HdxException if any of the URI or URL exceptions are
      * thrown, which should happen only if there is some syntactic
-     * problem with the input URI.
+     * problem with the input URI.  Also thrown if the input URI was
+     * relative, and it is impossible to determine a base URI to
+     * resolve it against.
      */
-    public URL fullyResolveURI (URI uri)
+    public URL fullyResolveURI (URI uri, Node context)
             throws HdxException {
+        // This will need adjustment when we come to deal with URIs
+        // which don't have absolute base URIs definable (such as the
+        // famous URI-in-a-jar case).  Instead of adjusting this,
+        // however, it might make more sense to enhance getBaseURI so
+        // that it guarantees that it returns an absolute URI, if
+        // necessary with some odd scheme to deal with the
+        // URI-in-a-jar case.
         try {
-            // Basic resolution of the URI into an absolute one
+            URI baseURI;
             String scheme = uri.getScheme();
-            URI absuri;
-            if (scheme == null || scheme.toLowerCase().equals("file")) {
-                URI dirbase;
+
+            if (scheme != null && scheme.toLowerCase().equals("file")) {
+                // special case
+                // replace uri with a new one, which doesn't have the scheme
                 String ssp = uri.getSchemeSpecificPart();
                 String frag = uri.getFragment();
+                uri = new URI(null, ssp, frag);
+            }
+
+            if (uri.isAbsolute()) {
+                return uri.toURL();
+            }
+            
+            baseURI = getBaseURI(context);
+
+            if (baseURI == null) {
+                // last-ditch default: file URI referring to current directory
                 String currdir = new java.io.File("").getAbsolutePath();
-                dirbase = new URI("file:" + currdir + '/');
-                absuri = dirbase.resolve(frag==null
-                                         ? ssp
-                                         : ssp+'#'+frag);
-            } else
-                absuri = uri;
+                baseURI = new URI("file", null, currdir+"/", null);
+            }
 
-            assert absuri.isAbsolute();
+            if (! baseURI.isAbsolute()) {
+                // Not supported at present
+                throw new HdxException("Can't find any base URI");
+            }
 
-            // Here we would resolve the URI to a URL
+            URI resolvedURI = baseURI.resolve(uri);
+            if (logger.isLoggable(Level.FINE))
+                logger.fine("fullyResolveURI: uri<" + uri
+                            + "> + base<" + baseURI
+                            + "> = <" + resolvedURI + ">");
 
-            return absuri.toURL();
+            return resolvedURI.toURL();
+            //return baseURI.resolve(uri).toURL();
+
         } catch (java.net.MalformedURLException ex) {
-            throw new HdxException("Malformed URL: " + ex);
+            throw new HdxException("Malformed URL constructed from URI!: "
+                                   + ex);
         } catch (java.net.URISyntaxException ex) {
             throw new HdxException ("URI syntax: " + ex);
         }
@@ -445,6 +632,8 @@ public class HdxFactory {
      * context.  The result is an absolute URL.
      *
      * @param uri a String holding the URI
+     * @param context a DOM Node providing the context for any
+     * resolution required; this may be null
      *
      * @return a URL corresponding to an absolute URI, or null if the
      * URI cannot be resolved for some reason.
@@ -453,15 +642,224 @@ public class HdxFactory {
      * thrown, which should happen only if there is some syntactic
      * problem with the input URI.
      *
-     * @see #fullyResolveURI(URI)
+     * @see #fullyResolveURI(URI,Node)
      */
-    public URL fullyResolveURI (String uri)
+    public URL fullyResolveURI(String uri, Node context)
             throws HdxException {
         try {
-            return fullyResolveURI(new URI(uri));
+            return fullyResolveURI(new URI(uri), context);
         } catch (java.net.URISyntaxException ex) {
             throw new HdxException ("URI syntax: " + ex);
         }
+    }
+
+    /**
+     * Determines the base URI for a Node.  This is established using
+     * the procedure defined in <a
+     * href='http://www.ietf.org/rfc/rfc2396.txt' >RFC 2396</a>,
+     * <em>Uniform Resource Identifiers (URI): Generic Syntax</em>,
+     * section 5.1, summarised in the <a
+     * href='http://www.w3.org/TR/xmlbase/#resolution' >XML Base
+     * Recommendation, section 4</a>.
+     *
+     * <p>Somewhat unexpectedly, the definition of
+     * relative-to-absolute resolution in RFC 2396 implies that if a
+     * URI such as <code>file.xml</code>, starting with a relative path, is
+     * resolved against a base URI with no path, such as
+     * <code>http://x.org</code>, then the relative URI is simply
+     * appended to the base URI's authority component, producing
+     * <code>http://x.orgfile.xml</code>.  We avoid the inevitable
+     * resulting problems by ensuring, here, that the returned base
+     * URI does have a path component, by inserting <code>/</code> if
+     * necessary.
+     *
+     * <p>This method is defined in this factory rather than in, say,
+     * <code>HdxElement</code> because (a) it is applicable to any DOM
+     * node, not just Hdx ones, and (b) it is this factory which
+     * formally establishes the `context of the application' in
+     * resolution step 4.
+     *
+     * @param the node whose base URI is to be established.  If null,
+     * the method returns null without error
+     * @return a base URI for the node.  This will typically be an
+     * absolute URI, but will not necessarily be so.  If no base URI
+     * can be determined, this will be null
+     * @throws HdxException if there is some reason why the base URI
+     * cannot be defined, or if one of the <code>xml:base</code>
+     * attributes specifies a syntactically invalid URI
+     */
+    URI getBaseURI(Node n)
+            throws HdxException {
+
+        if (n == null)
+            return null;
+
+        URI base = null;
+        Element referenceElement;
+        
+        // XML Base, 4.2: ``Relative URIs appearing in an XML document
+        // are always resolved relative to either an element, a
+        // document entity, or an external entity.'' Determine the
+        // referenceElement, or leave this null to use the
+        // document's base URI.
+        switch (n.getNodeType()) {
+          case Node.ELEMENT_NODE:
+            referenceElement = (Element)n;
+            break;
+
+          case Node.ATTRIBUTE_NODE:
+            if (n.getNodeName().equals("xml:base")) {
+                // XML Base, 4.3: The base URI for a URI reference
+                // appearing in an xml:base attribute is the base URI
+                // of the parent element of the element bearing the
+                // xml:base attribute, if one exists within the
+                // document entity or external entity, otherwise the
+                // base URI of the document entity or external entity
+                // containing the element.
+                Node owner = ((Attr)n).getOwnerElement();
+                assert owner != null;
+                referenceElement = (Element)owner.getParentNode();
+                // may be null, if this attribute was on the document element
+            } else {
+                // XML Base, 4.3: The base URI for a URI reference
+                // appearing in any other attribute value, including
+                // default attribute values, is the base URI of the
+                // element bearing the attribute.
+                referenceElement = ((Attr)n).getOwnerElement();
+                assert referenceElement != null;
+            }
+            break;
+
+          case Node.CDATA_SECTION_NODE:
+          case Node.TEXT_NODE:
+              {
+                  // XML Base, 4.3: The base URI for a URI reference
+                  // appearing in text content is the base URI of the
+                  // element containing the text.
+
+                  Node parent = n.getParentNode();
+                  assert parent != null;
+                  assert parent.getNodeType() == Node.ELEMENT_NODE;
+                  referenceElement = (Element)parent;
+                  // It's possible referenceElement is null after
+                  // this, if this text was freestanding within the
+                  // `XML' file.  Something bad is quite likely to
+                  // happen to someone soon, but it's not our fault,
+                  // and not our problem....
+                  break;
+              }
+
+          case Node.PROCESSING_INSTRUCTION_NODE:
+              {
+                  // XML Base, 4.3: The base URI for a URI reference
+                  // appearing in the content of a processing
+                  // instruction is the base URI of the parent element
+                  // of the processing instruction, if one exists
+                  // within the document entity or external entity,
+                  // otherwise the base URI of the document entity or
+                  // external entity containing the processing
+                  // instruction.
+
+                  Node parent = n.getParentNode();
+                  if (parent == null) {
+                      referenceElement = null;
+                  } else {
+                      assert parent.getNodeType() == Node.ELEMENT_NODE;
+                      referenceElement = (Element)parent;
+                  }
+                  break;
+              }
+
+          case Node.DOCUMENT_NODE:
+            referenceElement = null;
+            break;
+
+          case Node.ENTITY_NODE:
+            // This is definable, but not at present supported
+            return null;        // JUMP OUT
+            
+            // Odd or unsupported cases
+          case Node.COMMENT_NODE:
+          case Node.DOCUMENT_FRAGMENT_NODE:
+          case Node.DOCUMENT_TYPE_NODE:
+          case Node.ENTITY_REFERENCE_NODE:
+          case Node.NOTATION_NODE:
+            throw new HdxException
+                    ("HdxFactory.getBaseURI: there is no base URI defined for nodes of type "
+                     + DOMUtils.mapNodeType(n.getNodeType()));
+            
+          default:
+            throw new HdxException("Impossible node type "
+                                   + n.getNodeType() + '='
+                                   + DOMUtils.mapNodeType(n.getNodeType()));
+        }
+
+        try {
+            // Work up the tree, until we either run out of tree, or
+            // find an absolute base URI
+            while (referenceElement != null) {
+                String baseAtt = referenceElement.getAttribute("xml:base");
+                if (baseAtt.length() != 0) {
+                    // base is either null (we haven't been here
+                    // before) or it is a relative URI
+                    if (base == null)
+                        base = new URI(baseAtt);
+                    else {
+                        // resolve base against this new URI
+                        URI newbase = new URI(baseAtt);
+                        base = newbase.resolve(base);
+                    }
+                    if (base.isAbsolute()) {
+                        // found it!
+                        break; // JUMP OUT
+                    }
+                }
+                
+                Node parent = referenceElement.getParentNode();
+                if (parent.getNodeType() == Node.ELEMENT_NODE) {
+                    // normal case
+                    referenceElement = (Element)parent;
+                } else {
+                    // This might be a Document or possibly a
+                    // DocumentFragment.  That's fine -- it means
+                    // we've got to the top of this particular tree.
+                    // Simply stop the search here. 
+                    referenceElement = null;
+                }
+            }
+        } catch (java.net.URISyntaxException ex) {
+            throw new HdxException("Syntactically invalid URI in xml:base: "
+                                   + ex);
+        }
+            
+        if ((base == null || !base.isAbsolute()) && factoryBaseURI != null) {
+            if (base == null)
+                base = factoryBaseURI;
+            else
+                base = factoryBaseURI.resolve(base);
+        }
+        
+        if (base == null)
+            throw new HdxException
+                    ("Can't determine base URI for document node");
+
+        String basepath = base.getPath();
+        if (basepath == null || basepath.length() == 0) {
+            try {
+                // Make sure that the base URI does have a path component
+                base = new URI(base.getScheme(),
+                               base.getAuthority(),
+                               "/",
+                               base.getQuery(),
+                               base.getFragment());
+            } catch (java.net.URISyntaxException ex) {
+                throw new HdxException
+                        ("Error inserting path to URI (shouldn't happen)"
+                         + ex);
+            }
+        }
+
+        return base;
     }
 
     /** 
@@ -509,176 +907,27 @@ public class HdxFactory {
             // HDX namespace.
             return null;
 
-        System.err.println("validateHdxDOM: DocumentFragment contents:");
-        for (Node kid = df.getFirstChild();
-             kid != null;
-             kid = kid.getNextSibling()) {
-            System.err.println("--->  " + serializeDOM(kid));
+        if (logger.isLoggable(Level.FINE)) {
+            StringBuffer sb = new StringBuffer
+                    ("validateHdxDOM: DocumentFragment contents:");
+            for (Node kid = df.getFirstChild();
+                 kid != null;
+                 kid = kid.getNextSibling()) {
+                sb.append("   ");
+                sb.append(HdxDocument.NodeUtil.serializeNode(kid));
+            }
+            logger.fine(sb.toString());
         }
-        System.err.println("...validateHdxDOM done");
 
-        assert HdxResourceType.HDX.isValid((Element)df.getFirstChild());
+        HdxElement ret = (HdxElement)df.getFirstChild();
+        assert HdxResourceType.HDX.isValid(ret);
 
-        return (Element)df.getFirstChild();
-    }
+        // We return this element still with its link to its parent.
+        // This means (a) the DocumentFragment cannot yet be garbage
+        // collected, but more importantly (b) if we are ever walking
+        // up the tree below this, we will find ourselves in the
+        // DocumentFragment, rather than in a Document.
 
-
-    /**
-     * Serialize a DOM to a String.  Debugging method. 
-     *
-     * @return String, or an empty string on error.
-     */
-    public static String serializeDOM (Node n) {
-        String ret;
-        try {
-            // Create a new transformer, rather than reusing the
-            // global one, which is initialised to work with the
-            // normalizing XSLT script.
-            Transformer trans
-                = TransformerFactory
-                .newInstance()
-                .newTransformer();
-            java.io.StringWriter sw = new java.io.StringWriter();
-            trans.transform(new DOMSource(n), new StreamResult(sw));
-            ret = sw.toString();
-        } catch (TransformerConfigurationException ex) {
-            System.err.println("Can't transform DOM: " + ex);
-            ret = "";
-        } catch (TransformerException ex) {
-            System.err.println("Can't transform DOM: " + ex);
-            ret = "";
-        }
         return ret;
     }
-
-//     /**
-//      * Normalises the DOM tree, exposing only elements in the NDX
-//      * namespace.
-//      *
-//      * <p>This process results in a valid HDX DOM.
-//      *
-//      * <p>The transformation is done using XSLT.  The XSLT script is
-//      * specified in the property <code>ndx.normalizer</code>, and
-//      * should point to the file
-//      * <code>.../support/normalise-ndx.xslt</code> relative to the
-//      * distribution (at present).  This file can be specified in a
-//      * property file called <code>ndx.prop</code> in the current
-//      * directory, or specified as a system property on the java
-//      * command line.
-//      * 
-//      * <p>This method, along with its companions {@link
-//      * #initialiseTransformer} and {@link #transformNdx}, is not
-//      * necessarily a final resolution to the problem of navigating
-//      * the DOM tree in the presence of namespaces and the `virtual'
-//      * elements represented by <code>ndx:name</code> and friends.  Its big
-//      * advantage is that it's clear what's happening -- the document
-//      * is being normalised to a view where only the ndx namespace
-//      * elements are present, which means that navigating through it
-//      * afterwards is programmatically and conceptually simple -- but
-//      * the disadvantages are (a) it's rather slow to create the
-//      * transformer; (b) we abandon the parts of the input document
-//      * which aren't in the namespace, so we can't round-trip
-//      * documents through this process; (c) there are a couple of
-//      * surprises to do with default namespaces -- specifically, note
-//      * that default namespaces do <em>not</em> apply to attributes:
-//      * <pre>
-//      * &lt;x xmlns="http://example.org/NS">
-//      * &lt;foo bar="hello">
-//      * &lt;/x>
-//      * </pre>
-//      * Element <code>foo</code> is in the given namespace, but
-//      * attribute <code>bar</code> isn't.
-//      * 
-//      * <p>None of these are killing problems.  (a) we can cope with,
-//      * and since the transformer is a static object, the start up
-//      * cost could be amortized quite effectively; (b) isn't a problem 
-//      * since this is only intended to be used for reading XML
-//      * specifications, so we don't need to round-trip documents
-//      * carrying other elements unknown to this system.  (c) is an
-//      * unavoidable consequence of the XML Namespace definition, which 
-//      * we simply have to be slightly careful of, and warn folk not to
-//      * start being too clever.
-//      * 
-//      * <p>The alternative is to deal with the namespace trickery
-//      * up-front, by making the methods which root around the tree very much
-//      * cleverer.  The problem with that is that I believe we'd have
-//      * to add similar cleverness in a variety of places, which is
-//      * errorprone and potentially confusing.
-//      * 
-//      * @throws HdxException if there is a problem locating or using
-//      * the XSLT transformation script.
-//      *
-//      * @return the normalised DOM tree.
-//      */
-//     private Document normalizeHdx (Document dom)
-//             throws HdxException {
-//         // The location of the XSLT script which the transformer uses.
-//         URL normalizeHdxXslt = 
-//             getClass().getResource("support/normalize-hdx.xslt");
-
-//         if (normalizeHdxXslt == null)
-//             throw new HdxException("No value for property hdx.normalizer");
-
-//         Document newdom;
-//         try {
-
-//             if (transformer == null)
-//                 initializeTransformer(new File(normalizeHdxXslt.getFile()));
-
-//             System.err.println("HdxFactory.normalizeHdx: from DOM:"
-//                                + serializeDOM(dom));
-
-//             newdom = transformNdx (dom);
-
-//             System.err.println("  ... to DOM: "+ serializeDOM(newdom));
-
-//         } catch (javax.xml.transform.TransformerException e) {
-//             throw new HdxException("XSLT error: " + e);
-//         }
-
-//         if (! HdxResourceType.isValidHdx(newdom))
-//             throw new HdxException("Normalization failed");
-
-//         return newdom;
-//     }
-
-//     /** Creates a new XSLT transformer.  
-//      *
-//      * <p>Constructs the transformer lazily.  Idempotent.
-//      * @throws HdxException if there is a problem initialising the
-//      * transformer.
-//      */
-//     private static void initializeTransformer (File stylesheet)
-//             throws HdxException {
-
-//         if (transformer != null)
-//             return;             // let us be called repeatedly
-
-//         try {
-
-//             StreamSource xsltScript = new StreamSource(stylesheet);
-//             transformer = TransformerFactory
-//                 .newInstance()
-//                 .newTransformer(xsltScript);
-
-//         } catch (javax.xml.transform.TransformerConfigurationException e) {
-//             throw new HdxException ("Error initialising Transformer: " + e);
-//         }
-//     }
-
-//     /** Performs the XSLT transformation on the given DOM tree.
-//      * @return a new transformed DOM tree.
-//      * @throws javax.xml.transform.TransformerException if the
-//      * transformer fails.
-//      * @see javax.xml.transform.Transformer
-//      */
-//     private static Document transformNdx (Document doc)
-//             throws TransformerException  {
-
-//         DOMSource source = new DOMSource(doc);
-//         DOMResult result = new DOMResult();
-
-//         transformer.transform(source, result);
-//         return (Document)result.getNode();
-//     }
 }
