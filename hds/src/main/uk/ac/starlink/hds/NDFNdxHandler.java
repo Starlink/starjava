@@ -6,7 +6,7 @@ import java.net.URL;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.ndx.NdxBuilder;
+import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
 
 /**
@@ -33,22 +33,22 @@ import uk.ac.starlink.ndx.NdxImpl;
  * @author    Mark Taylor (Starlink)
  * @see  HDSReference
  */
-public class NDFNdxBuilder implements NdxBuilder {
+public class NDFNdxHandler implements NdxHandler {
 
     /** Sole instance of the class. */
-    private static NDFNdxBuilder instance = new NDFNdxBuilder();
+    private static NDFNdxHandler instance = new NDFNdxHandler();
 
     /**
      * Private sole constructor.
      */
-    private NDFNdxBuilder() {}
+    private NDFNdxHandler() {}
 
     /**
-     * Returns an NDFNdxBuilder.
+     * Returns an NDFNdxHandler.
      *
      * @return   the sole instance of this class
      */
-    public static NDFNdxBuilder getInstance() {
+    public static NDFNdxHandler getInstance() {
         return instance;
     }
 
@@ -90,7 +90,7 @@ public class NDFNdxBuilder implements NdxBuilder {
         }
     }
 
-    public boolean createNewNdx( URL url, Ndx orig ) throws IOException {
+    public boolean outputNdx( URL url, Ndx orig ) throws IOException {
         try {
             LocalHDS lobj = LocalHDS.getNewHDS( url, "NDF" );
             if ( lobj == null ) {

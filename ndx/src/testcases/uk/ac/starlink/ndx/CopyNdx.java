@@ -11,7 +11,7 @@ import uk.ac.starlink.util.SourceReader;
 
 public class CopyNdx {
 
-    private NdxFactory nfact = new NdxFactory();
+    private NdxIO ndxio = new NdxIO();
     private SourceReader sr = new SourceReader().setIndent( 2 );
 
     public static void main( String[] args ) 
@@ -29,15 +29,15 @@ public class CopyNdx {
     }
 
     public void makeCopy( URL inURL, URL outURL ) throws IOException {
-        Ndx indx = nfact.makeNdx( inURL, AccessMode.READ );
+        Ndx indx = ndxio.makeNdx( inURL, AccessMode.READ );
         if ( indx == null ) {
             throw new IOException( "Failed to resolve URL " + inURL );
         }
-        nfact.createNewNdx( outURL, indx );
+        ndxio.outputNdx( outURL, indx );
     }
 
     public void writeXML( URL inURL, OutputStream ostrm ) throws IOException {
-        Ndx indx = nfact.makeNdx( inURL, AccessMode.READ );
+        Ndx indx = ndxio.makeNdx( inURL, AccessMode.READ );
         try {
             sr.writeSource( indx.toXML(), ostrm );
         }

@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Logger;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -24,6 +25,7 @@ import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrayFactory;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.xml.XAstReader;
 import uk.ac.starlink.util.SourceReader;
 
 /**
@@ -31,24 +33,25 @@ import uk.ac.starlink.util.SourceReader;
  * This is a quick and dirty implementation, and won't cope with 
  * weirdy XML files.
  */
-public class XMLNdxBuilder implements NdxBuilder {
+public class XMLNdxHandler implements NdxHandler {
 
     /** Sole instance of the class. */
-    private static XMLNdxBuilder instance = new XMLNdxBuilder();
+    private static XMLNdxHandler instance = new XMLNdxHandler();
 
     private static NDArrayFactory arrayfact = new NDArrayFactory();
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
     /**
      * Private sole constructor.
      */
-    private XMLNdxBuilder() {}
+    private XMLNdxHandler() {}
 
     /**
-     * Returns an XMLNdxBuilder.
+     * Returns an XMLNdxHandler.
      *
      * @return  the sole instance of this class
      */
-    public static XMLNdxBuilder getInstance() {
+    public static XMLNdxHandler getInstance() {
         return instance;
     }
 
@@ -114,6 +117,29 @@ public class XMLNdxBuilder implements NdxBuilder {
                 }
                 else if ( tagname.equals( "badbits" ) ) {
                     badbits = Byte.parseByte( getTextContent( cel ) );
+                }
+                else if ( tagname.equals( "wcs" ) ) {
+                    Source wcssrc = null;
+                    for ( Node ch = cel.getFirstChild(); ch != null; 
+                          ch = ch.getNextSibling() ) {
+                        if ( ch instanceof Element ) {
+                            String chname = ((Element) ch).getTagName();
+                            if ( chname.equals( "FrameSet" ) ) {
+                                wcssrc = new DOMSource( ch );
+                                break;
+                            }
+                        }
+                    }
+                    try {
+                        wcs = (FrameSet) new XAstReader()
+                                        .makeAst( wcssrc, null );
+                    }
+                    catch ( IOException e ) {
+                        wcs = null;
+                    }
+                    if ( wcs == null ) {
+                        logger.warning( "Broken WCS element" );
+                    }
                 }
                 else if ( tagname.equals( "etc" ) ) {
                     etc = doc.createElement( "etc" );
@@ -193,7 +219,7 @@ public class XMLNdxBuilder implements NdxBuilder {
     }
     
 
-    public boolean createNewNdx( URL url, Ndx original ) throws IOException {
+    public boolean outputNdx( URL url, Ndx original ) throws IOException {
         if ( ! isXmlUrl( url ) ) {
             return false;
         }

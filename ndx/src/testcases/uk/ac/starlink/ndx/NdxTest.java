@@ -23,7 +23,7 @@ import uk.ac.starlink.util.TestCase;
 
 public class NdxTest extends TestCase {
 
-    private NdxFactory factory;
+    private NdxIO ndxio;
     private boolean hdsPresent = false;
     private boolean fitsPresent = false;
     private String ndxname;
@@ -35,7 +35,7 @@ public class NdxTest extends TestCase {
     }
 
     public void setUp() throws MalformedURLException {
-        factory = new NdxFactory();
+        ndxio = new NdxIO();
         ndxname = System.getProperty( "java.io.tmpdir" )
                 + File.separatorChar
                 + "vndx";
@@ -45,13 +45,13 @@ public class NdxTest extends TestCase {
               + File.separatorChar
               + "m31-from-network";
         try {
-            Class.forName( "uk.ac.starlink.hds.NDFNdxBuilder" );
+            Class.forName( "uk.ac.starlink.hds.NDFNdxHandler" );
             hdsPresent = true;
         }
         catch ( ClassNotFoundException e ) {
         }
         try {
-            Class.forName( "uk.ac.starlink.fits.FitsNdxBuilder" );
+            Class.forName( "uk.ac.starlink.fits.FitsNdxHandler" );
             fitsPresent = true;
         }
         catch ( ClassNotFoundException e ) {
@@ -105,25 +105,25 @@ public class NdxTest extends TestCase {
         Ndx vndx = new BridgeNdx( vimpl );
 
         /* Write it to various output types. */
-        factory.createNewNdx( ndxname + ".xml", vndx );
+        ndxio.outputNdx( ndxname + ".xml", vndx );
 
         if ( fitsPresent ) {
             String fname = ndxname + ".fits";
-            factory.createNewNdx( fname, vndx );
-            Ndx fndx = factory.makeNdx( fname, AccessMode.READ );
-            factory.createNewNdx( ndxname + "-fits.xml", fndx );
+            ndxio.outputNdx( fname, vndx );
+            Ndx fndx = ndxio.makeNdx( fname, AccessMode.READ );
+            ndxio.outputNdx( ndxname + "-fits.xml", fndx );
         }
 
         if ( hdsPresent ) {
             String hname = ndxname + ".sdf";
-            factory.createNewNdx( hname, vndx );
-            Ndx hndx = factory.makeNdx( hname, AccessMode.READ );
-            factory.createNewNdx( ndxname + "-hds.xml", hndx );
+            ndxio.outputNdx( hname, vndx );
+            Ndx hndx = ndxio.makeNdx( hname, AccessMode.READ );
+            ndxio.outputNdx( ndxname + "-hds.xml", hndx );
         }
 
         /* Have a go at data across the network. */
-        Ndx rndx = factory.makeNdx( remoteNDX, AccessMode.UPDATE );
-        factory.createNewNdx( rname + ".sdf", rndx );
+        Ndx rndx = ndxio.makeNdx( remoteNDX, AccessMode.UPDATE );
+        ndxio.outputNdx( rname + ".sdf", rndx );
  
     }
 }

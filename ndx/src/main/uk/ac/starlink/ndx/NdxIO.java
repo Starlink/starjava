@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,45 +18,46 @@ import uk.ac.starlink.array.AccessMode;
  * pointing to an existing resource, or to construct a new Ndx located 
  * at a given URL and populate it from the content of an existing Ndx.
  * <p>
- * This factory delegates the actual Ndx creation to external
- * NdxBuilder objects; the URL is passed to each one in turn until
- * one can make an Ndx out of it, which object is returned to the caller.
+ * This factory delegates the actual Ndx I/O to external
+ * NdxHandler objects; the URL is passed to each one in turn until
+ * one recognises the URL as one it can deal with, at which point the
+ * rest of the work is handed off to that object.
  * <p>
  * By default, if the corresponding classes are present, the following
- * NdxBuilders are installed:
+ * NdxHandlers are installed:
  * <ul>
- * <li>{@link uk.ac.starlink.hds.NDFNdxBuilder}
- * <li>{@link uk.ac.starlink.fits.FitsNdxBuilder}
- * <li>{@link XMLNdxBuilder}
+ * <li>{@link uk.ac.starlink.hds.NDFNdxHandler}
+ * <li>{@link uk.ac.starlink.fits.FitsNdxHandler}
+ * <li>{@link uk.ac.starlink.ndx.XMLNdxHandler}
  * </ul>
  * Consult the documentation of these classes to find out about the format 
  * of URLs understood by each.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class NdxFactory {
+public class NdxIO {
 
-    private static List defaultBuilders;
-    private final List builders;
+    private static List defaultHandlers;
+    private List handlers;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
     /**
-     * Constructs an NdxFactory with a default list of builders.
+     * Constructs an NdxIO with a default list of handlers.
      */
-    public NdxFactory() {
-        if ( defaultBuilders == null ) {
-            defaultBuilders = new ArrayList( 3 );
+    public NdxIO() {
+        if ( defaultHandlers == null ) {
+            defaultHandlers = new ArrayList( 3 );
             Class[] noParams = new Class[ 0 ];
             Object[] noArgs = new Object[ 0 ];
             String className;
 
-            /* Attempt to add an NDFNdxBuilder if the class is available. */
-            className = "uk.ac.starlink.hds.NDFNdxBuilder";
+            /* Attempt to add an NDFNdxHandler if the class is available. */
+            className = "uk.ac.starlink.hds.NDFNdxHandler";
             try {
                 Class clazz = Class.forName( className );
                 Method meth = clazz.getMethod( "getInstance", noParams );
-                NdxBuilder builder = (NdxBuilder) meth.invoke( null, noArgs );
-                defaultBuilders.add( builder );
+                NdxHandler handler = (NdxHandler) meth.invoke( null, noArgs );
+                defaultHandlers.add( handler );
                 // logger.info( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
@@ -67,13 +69,13 @@ public class NdxFactory {
                                 ": - " + e );
             }
 
-            /* Attempt to add a FitsNdxBuilder if the class is available. */
-            className = "uk.ac.starlink.fits.FitsNdxBuilder";
+            /* Attempt to add a FitsNdxHandler if the class is available. */
+            className = "uk.ac.starlink.fits.FitsNdxHandler";
             try {
                 Class clazz = Class.forName( className );
                 Method meth = clazz.getMethod( "getInstance", noParams );
-                NdxBuilder builder = (NdxBuilder) meth.invoke( null, noArgs );
-                defaultBuilders.add( builder );
+                NdxHandler handler = (NdxHandler) meth.invoke( null, noArgs );
+                defaultHandlers.add( handler );
                 // logger.info( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
@@ -85,32 +87,44 @@ public class NdxFactory {
                                 ": - " + e );
             }
 
-            /* Add the XMLNdxBuilder. */
-            defaultBuilders.add( XMLNdxBuilder.getInstance() );
+            /* Add the XMLNdxHandler. */
+            defaultHandlers.add( XMLNdxHandler.getInstance() );
         }
-        builders = new ArrayList( defaultBuilders );
+        handlers = new ArrayList( defaultHandlers );
     }
 
     /**
-     * Gets the list of builders which actually do the URL->Ndx
-     * construction.  Builders earlier in the list are given a
-     * chance to make an Ndx before ones later in the list.
-     * This list may be modified to change the behaviour of the
-     * NdxFactory.
+     * Gets the list of handlers which actually do the URL->Ndx
+     * construction.  Handlers earlier in the list are given a
+     * chance to handle a URL before ones later in the list.
+     * This list is mutable and may be modified to change the behaviour 
+     * of the <tt>NdxIO</tt>.
      *
-     * @return   a mutable List of {@link NdxBuilder} objects used
+     * @return   a List of {@link NdxHandler} objects used
      *           for turning URLs into Ndxs
      */
-    public List getBuilders() {
-        return builders;
+    public List getHandlers() {
+        return handlers;
+    }
+
+    /**
+     * Sets the list of handlers which actually do the URL->Ndx
+     * construction.  Handlers earlier in the list are given a 
+     * chance to handle a URL before ones later in the list.
+     *
+     * @param  handlers  an array of NdxHandler objects used for
+     *                   turning URLs into Ndxs
+     */
+    public void setHandlers( NdxHandler[] handlers ) {
+        this.handlers = new ArrayList( Arrays.asList( handlers ) );
     }
 
     /**
      * Constructs a readable Ndx from a URL representing an exisiting
      * resource.
-     * A null result will be returned if none of the available builders
+     * A null result will be returned if none of the available handlers
      * understands the URL; an IOException will result if one of the
-     * builders is willing to handle the URL but fails to find an
+     * handlers is willing to handle the URL but fails to find an
      * Ndx resource at it.
      *
      * @param   url  a URL pointing to a resource representing an Ndx
@@ -121,9 +135,9 @@ public class NdxFactory {
      */
     public Ndx makeNdx( URL url, AccessMode mode )
             throws IOException {
-        for ( Iterator it = builders.iterator(); it.hasNext(); ) {
-            NdxBuilder builder = (NdxBuilder) it.next();
-            Ndx nda = builder.makeNdx( url, mode );
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            NdxHandler handler = (NdxHandler) it.next();
+            Ndx nda = handler.makeNdx( url, mode );
             if ( nda != null ) {
                 return nda;
             }
@@ -135,9 +149,9 @@ public class NdxFactory {
      * Writes a new resource at a given URL containing an Ndx with data
      * copied from an existing Ndx.
      * An UnsupportedOperationException will result if none  
-     * of the available builders understands the URL; 
+     * of the available handlers understands the URL; 
      * an IOException will result if one of the
-     * builders is willing to handle the URL but fails to make an Ndx
+     * handlers is willing to handle the URL but fails to make an Ndx
      * out of it or some error is encountered during the copy.
      *
      * @param   url  a URL pointing to a writable resource.  This may be
@@ -149,11 +163,11 @@ public class NdxFactory {
      * @throws IOException  if an I/O error occurs
      * @throws UnsupportedOperationException  no handler exists for this URL
      */
-    public void createNewNdx( URL url, Ndx original )
+    public void outputNdx( URL url, Ndx original )
             throws IOException {
-        for ( Iterator it = builders.iterator(); it.hasNext(); ) {
-            NdxBuilder builder = (NdxBuilder) it.next();
-            if ( builder.createNewNdx( url, original ) ) {
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            NdxHandler handler = (NdxHandler) it.next();
+            if ( handler.outputNdx( url, original ) ) {
                 return;
             }
         }
@@ -184,7 +198,7 @@ public class NdxFactory {
      * Writes a new resource at a given location containing an Ndx with
      * data copied from an existing Ndx.
      * This convenience method just turns
-     * the location into a URL and calls {@link #createNewNdx(URL,Ndx)}.
+     * the location into a URL and calls {@link #outputNdx(URL,Ndx)}.
      *
      * @param  location  the location of the resource.  If it cannot be
      *                   parsed as a URL it will be treated as a filename
@@ -193,9 +207,9 @@ public class NdxFactory {
      * @throws FileNotFoundException  if the location doesn't look like a 
      *                     file or URL
      */
-    public void createNewNdx( String location, Ndx original )
+    public void outputNdx( String location, Ndx original )
             throws IOException{
-        createNewNdx( getUrl( location ), original );
+        outputNdx( getUrl( location ), original );
     }
 
     private static URL getUrl( String location ) throws FileNotFoundException {

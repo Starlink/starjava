@@ -9,12 +9,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.ndx.Ndx;
-import uk.ac.starlink.ndx.NdxBuilder;
-import uk.ac.starlink.util.SourceReader;
+import uk.ac.starlink.ndx.NdxHandler;
+import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.util.TestCase;
 
 public class NDFNdxTest extends TestCase {
@@ -23,10 +26,11 @@ public class NDFNdxTest extends TestCase {
     public static String containerName;
     public static File containerFile;
     public static URL ndfURL;
+    public static String tmpdir;
 
     public void setUp() throws MalformedURLException, IOException {
         if ( containerFile == null ) {
-            String tmpdir = System.getProperty( "java.io.tmpdir" );
+            tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";
             containerFile = new File( containerName + ".sdf" );
             ndfURL = new URL( "file:" + containerFile );
@@ -35,7 +39,6 @@ public class NDFNdxTest extends TestCase {
                                .getResourceAsStream( NDF_FILE );
             assertNotNull( "Failed to open " + NDF_FILE, istrm );
             OutputStream ostrm = new FileOutputStream( containerFile );
-            containerFile.deleteOnExit();
 
             istrm = new BufferedInputStream( istrm );
             ostrm = new BufferedOutputStream( ostrm );
@@ -53,12 +56,62 @@ public class NDFNdxTest extends TestCase {
         super( name );
     }
 
-    public void testBuilder() throws IOException, TransformerException {
+    public void testHandler() throws IOException, TransformerException {
 
-        NdxBuilder builder = NDFNdxBuilder.getInstance();
+        NdxHandler handler = NDFNdxHandler.getInstance();
 
-        Ndx ndx = builder.makeNdx( ndfURL, AccessMode.READ );
-        Source xndx = ndx.toXML();
-        // new SourceReader().setIndent( 2 ).writeSource( xndx, System.out );
+        /* Read the NDF as an NDX. */
+        Ndx ndx = handler.makeNdx( ndfURL, AccessMode.READ );
+
+        /* Get an NdxIO and check we are installed there. */
+        NdxIO ndxio = new NdxIO();
+        List handlers = ndxio.getHandlers();
+        boolean hasNDFHandler = false;
+        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+            if ( it.next() instanceof NDFNdxHandler ) {
+                hasNDFHandler = true;
+            }
+        }
+        assertTrue( hasNDFHandler );
+
+        /* Write the NDX out as XML. */
+        String xloc = tmpdir + "/" + "copy.xml";
+        ndxio.outputNdx( xloc, ndx );
+        Ndx xndx = ndxio.makeNdx( xloc, AccessMode.READ );
+        assertNdxEqual( ndx, xndx );
+
+        /* Write the NDX out as an NDF. */
+        ndxio.setHandlers( new NdxHandler[] { NDFNdxHandler.getInstance() } );
+        String hloc = tmpdir + "/" + "copy.sdf";
+        ndxio.outputNdx( hloc, ndx );
+        Ndx hndx = ndxio.makeNdx( hloc, AccessMode.READ );
+        assertNdxEqual( ndx, hndx );
+        
+    }
+
+    private void assertNdxEqual( Ndx ndx1, Ndx ndx2 ) throws IOException {
+        assertTrue( NDArrays.equals( ndx1.getImage(), ndx2.getImage() ) );
+        assertTrue( ndx1.hasVariance() == ndx2.hasVariance() );
+        assertTrue( ndx1.hasQuality() == ndx2.hasQuality() );
+        assertTrue( ndx1.hasTitle() == ndx2.hasTitle() );
+        assertTrue( "WCS status", ndx1.hasWCS() == ndx2.hasWCS() );
+
+        // etc not implemented yet for NDFs
+        // assertTrue( "Etc status", ndx1.hasEtc() == ndx2.hasEtc() );
+
+        if ( ndx1.hasVariance() ) {
+            assertTrue( NDArrays.equals( ndx1.getVariance(), 
+                                         ndx2.getVariance() ) );
+        }
+        if ( ndx1.hasQuality() ) {
+            assertTrue( NDArrays.equals( ndx1.getQuality(),
+                                         ndx2.getQuality() ) );
+        }
+        if ( ndx1.hasTitle() ) {
+            assertEquals( ndx1.getTitle(), ndx2.getTitle() );
+        }
+        if ( ndx1.hasWCS() ) {
+            assertEquals( ndx1.getWCS(), ndx2.getWCS() );
+        }
     }
 }

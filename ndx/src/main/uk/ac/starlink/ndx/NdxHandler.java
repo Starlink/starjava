@@ -7,16 +7,16 @@ import uk.ac.starlink.array.AccessMode;
 /**
  * Interface for objects which can construct an Ndx from a URL.
  * {@link #makeNdx} constructs an Ndx from an existing resource
- * and {@link #createNewNdx} constructs a new resource containing a copy
+ * and {@link #outputNdx} constructs a new resource containing a copy
  * of an existing Ndx.
- * If the URL fed to <tt>createNewNdx</tt> is subsequently fed to
+ * If the URL fed to <tt>outputNdx</tt> is subsequently fed to
  * <tt>makeNdx</tt> the factory should understand it to reference the
  * resource which was created by the earlier call (given that it still
  * exists).
  *
  * @author   Mark Taylor (Starlink)
  */
-public interface NdxBuilder {
+public interface NdxHandler {
 
     /**
      * Constructs an Ndx based on the existing resource at a given URL.
@@ -57,11 +57,11 @@ public interface NdxBuilder {
      *                to be written
      * @param  original  an Ndx whose data is to be copied to the resource
      *                   given by <tt>url</tt>
-     * @return  true if the copy can be made, false if this builder does 
+     * @return  true if the copy can be made, false if this handler does 
      *               not feel qualified to create a resource with the given
      *               URL.
      * @throws  IOException  if an error occurred during the resource 
      *                       creation or data copying
      */
-    boolean createNewNdx( URL url, Ndx original ) throws IOException;
+    boolean outputNdx( URL url, Ndx original ) throws IOException;
 }
