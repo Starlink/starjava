@@ -268,6 +268,7 @@ public class ScatterPlot extends JComponent implements Printable {
             setOpaque( false );
         }
         protected void paintComponent( Graphics g ) {
+            super.paintComponent( g );
             drawPoints( g, surface_ );
         }
     }

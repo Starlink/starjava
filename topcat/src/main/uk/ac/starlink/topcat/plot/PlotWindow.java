@@ -88,6 +88,7 @@ public class PlotWindow extends TopcatViewWindow
     private final Action fromvisibleAction_;
     private JFileChooser printSaver_;
     private BitSet visibleRows_;
+    private MarkStyleProfile markers_ = MarkStyleProfile.spots( 4 );
 
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
@@ -504,7 +505,7 @@ public class PlotWindow extends TopcatViewWindow
         for ( int isel = 0; isel < nrsets; isel++ ) {
             int isub = selection[ isel ];
             usedSubsets[ isel ] = (RowSubset) subsets_.get( isub );
-            styles[ isel ] = MarkStyle.defaultStyle( isub );
+            styles[ isel ] = markers_.getStyle( isub );
         }
         state.setSubsets( usedSubsets, styles );
         return state;

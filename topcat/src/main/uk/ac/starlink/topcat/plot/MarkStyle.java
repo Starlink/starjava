@@ -19,12 +19,6 @@ public abstract class MarkStyle {
 
     private Color color_;
 
-    private static Color[] COLORS = new Color[] {
-        Color.red, Color.blue, Color.green,
-        Color.cyan, Color.magenta,
-        Color.orange, Color.pink,
-    };
-
     /**
      * Constructs a marker with a default colour.
      */
@@ -42,14 +36,12 @@ public abstract class MarkStyle {
     }
 
     /**
-     * Draws this marker's shape at a given point in a graphics context.
+     * Draws this marker's shape at the origin in a graphics context.
      * Implementing classes don't need to worry about the colour.
      *
      * @param  g  graphics context
-     * @param  x  x position
-     * @param  y  y position
      */
-    protected abstract void drawShape( Graphics g, int x, int y );
+    protected abstract void drawShape( Graphics g );
 
     /**
      * Returns the maximum radius of a marker drawn by this class.
@@ -72,8 +64,11 @@ public abstract class MarkStyle {
     public void drawMarker( Graphics g, int x, int y ) {
          Color col = g.getColor();
          g.setColor( color_ );
-         drawShape( g, x, y );
+         g.translate( x, y );
+         drawShape( g );
+         g.translate( -x, -y );
          g.setColor( col );
+        
     }
 
     /**
@@ -116,28 +111,6 @@ public abstract class MarkStyle {
     }
 
     /**
-     * Provides some kind of sensible marker.  The same marker will always
-     * be returned for a given value of <tt>type</tt>.
-     *
-     * @param  type  distinguisher for marker types
-     */
-    public static MarkStyle defaultStyle( int type ) {
-        Color color = COLORS[ Math.abs( type % COLORS.length ) ];
-        switch ( Math.abs( type ) % 4 ) {
-            case 0:
-               return filledCircleStyle( color, 2 );
-            case 1:
-               return filledSquareStyle( color, 2 );
-            case 2:
-               return filledDiamondStyle( color, 2 );
-            case 3:
-               return crossStyle( color, 2 );
-            default:
-               throw new AssertionError();
-        }
-    }
-
-    /**
      * Works out an upper bound for the radius associated with a given shape.
      *
      * @param   shape  shape to assess
@@ -149,7 +122,7 @@ public abstract class MarkStyle {
                                    rect.y, rect.y + rect.height };
         int maxr = 1;
         for ( int i = 0; i < bounds.length; i++ ) {
-            maxr = Math.max( maxr, Math.max( bounds[ i ], - bounds[ i ] ) );
+            maxr = Math.max( maxr, Math.abs( bounds[ i ] ) );
         }
         return maxr;
     }
@@ -194,11 +167,11 @@ public abstract class MarkStyle {
      * @return  marker style
      */
     public static MarkStyle openCircleStyle( Color color, final int size ) {
-        final int off = size;
+        final int off = -size;
         final int diam = size * 2;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                g.drawOval( x - off, y - off, diam, diam );
+            protected void drawShape( Graphics g ) {
+                g.drawOval( off, off, diam, diam );
             }
         };
     }
@@ -211,17 +184,15 @@ public abstract class MarkStyle {
      * @return  marker style
      */
     public static MarkStyle filledCircleStyle( Color color, final int size ) {
-        final int off = size;
+        final int off = -size;
         final int diam = size * 2;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                int xo = x - off;
-                int yo = y - off;
-                g.fillOval( xo, yo, diam, diam );
+            protected void drawShape( Graphics g ) {
+                g.fillOval( off, off, diam, diam );
 
                 /* In pixel-type graphics contexts, the filled circle is
                  * ugly (asymmetric) if the outline is not painted too. */
-                g.drawOval( xo, yo, diam, diam );
+                g.drawOval( off, off, diam, diam );
             }
         };
     }
@@ -234,11 +205,11 @@ public abstract class MarkStyle {
      * @return  marker style
      */
     public static MarkStyle openSquareStyle( Color color, final int size ) {
-        final int off = size;
+        final int off = -size;
         final int height = size * 2;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                g.drawRect( x - off, y - off, height, height );
+            protected void drawShape( Graphics g ) {
+                g.drawRect( off, off, height, height );
             }
         };
     }
@@ -251,11 +222,11 @@ public abstract class MarkStyle {
      * @return  marker style
      */
     public static MarkStyle filledSquareStyle( Color color, final int size ) {
-        final int off = size;
+        final int off = -size;
         final int height = size * 2 + 1;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-           protected void drawShape( Graphics g, int x, int y ) {
-                g.fillRect( x - off, y - off, height, height );
+           protected void drawShape( Graphics g ) {
+                g.fillRect( off, off, height, height );
             }
         };
     }
@@ -270,9 +241,9 @@ public abstract class MarkStyle {
     public static MarkStyle crossStyle( Color color, final int size ) {
         final int off = size;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                g.drawLine( x - off, y, x + off, y );
-                g.drawLine( x, y - off, x, y + off );
+            protected void drawShape( Graphics g ) {
+                g.drawLine( -off, 0, off, 0 );
+                g.drawLine( 0, -off, 0, off );
             }
         };
     }
@@ -287,9 +258,9 @@ public abstract class MarkStyle {
     public static MarkStyle xStyle( Color color, final int size ) {
         final int off = size;
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                g.drawLine( x - off, y - off, x + off, y + off );
-                g.drawLine( x + off, y - off, x - off, y + off );
+            protected void drawShape( Graphics g ) {
+                g.drawLine( -off, -off, off, off );
+                g.drawLine( off, -off, -off, off );
             }
         };
     }
@@ -302,10 +273,7 @@ public abstract class MarkStyle {
      * @return   marker style
      */
     public static MarkStyle openDiamondStyle( Color color, final int size ) {
-        int off = size;
-        Shape di = new Polygon( new int[] { -off, 0, off, 0 },
-                                new int[] { 0, -off, 0, off }, 4 );
-        return openShapeStyle( color, di );
+        return openShapeStyle( color, diamond( size ) );
     }
 
     /**
@@ -316,26 +284,49 @@ public abstract class MarkStyle {
      * @return  marker style
      */
     public static MarkStyle filledDiamondStyle( Color color, final int size ) {
-        int off = size;
-        final Shape di = new Polygon( new int[] { -off, 0, off, 0 },
-                                      new int[] { 0, -off, 0, off }, 4 );
+        final int off = size;
+        final Shape di = diamond( size );
         return new ConvenienceMarkStyle( color, new Integer( size ), off + 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
+            protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
-                    g2.translate( x, y );
 
                     /* In pixel-like graphics contexts, the diamond is ugly
                      * if you just fill it. */
                     g2.fill( di );
                     g2.draw( di );
-                    g2.translate( -x, -y );
                 }
                 else {
-                    g.drawRect( x, y, 3, 3 );
+                    g.drawRect( -off, -off, size * 2, size * 2 );
                 }
             }
         };
+    }
+
+    /**
+     * Returns an open triangle style.
+     *
+     * @param  color  colour
+     * @param  size   approximate triangle radius
+     * @param  up     true for pointing upwards, false for pointing down
+     * @return  marker style
+     */
+    public static MarkStyle openTriangleStyle( Color color, int size, 
+                                               boolean up ) {
+        return openShapeStyle( color, triangle( size, up ) );
+    }
+
+    /**
+     * Returns a filled triangle style.
+     *
+     * @param  color  colour
+     * @param  size   approximate triangl radius
+     * @param  up     true for pointing upwards, false for pointing down
+     * @return  marker style
+     */
+    public static MarkStyle filledTriangleStyle( Color color, int size,
+                                                 boolean up ) {
+        return filledShapeStyle( color, triangle( size, up ) );
     }
 
     /**
@@ -348,15 +339,13 @@ public abstract class MarkStyle {
     public static MarkStyle openShapeStyle( Color color, final Shape shape ) {
         return new ConvenienceMarkStyle( color, shape,
                                          getMaxRadius( shape ) ) {
-            protected void drawShape( Graphics g, int x, int y ) {
+            protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
-                    g2.translate( x, y );
                     g2.draw( shape );
-                    g2.translate( -x, -y );
                 }
                 else {
-                    g.drawRect( x, y, 3, 3 );
+                    g.drawRect( -1, -1, 2, 2 );
                 }
             }
         };
@@ -373,18 +362,15 @@ public abstract class MarkStyle {
                                               final Shape shape ) {
         return new ConvenienceMarkStyle( color, shape,
                                          getMaxRadius( shape ) ) {
-            protected void drawShape( Graphics g, int x, int y ) {
+            protected void drawShape( Graphics g ) {
                 if ( g instanceof Graphics2D ) {
                     Graphics2D g2 = (Graphics2D) g;
-                    g2.translate( x, y );
                     g2.fill( shape );
-                    g2.translate( -x, -y );
                 }
                 else {
-                    g.fillRect( x, y, 3, 3 );
+                    g.fillRect( -1, -1, 2, 2 );
                 }
             }
- 
         };
     }
 
@@ -396,9 +382,38 @@ public abstract class MarkStyle {
      */
     public static MarkStyle pointStyle( Color color ) {
         return new ConvenienceMarkStyle( color, new Integer( 23 ), 1 ) {
-            protected void drawShape( Graphics g, int x, int y ) {
-                g.drawLine( x, y, x, y );
+            protected void drawShape( Graphics g ) {
+                g.drawLine( 0, 0, 0, 0 );
             }
         };
+    }
+
+    /**
+     * Returns a diamond shape.
+     *
+     * @param  size  approximate diamond radius
+     * @return diamond shape
+     */
+    private static Shape diamond( int size ) {
+        return new Polygon( new int[] { -size, 0, size, 0 },
+                            new int[] { 0, -size, 0, size }, 4 );
+    }
+
+    /**
+     * Returns a triangle shape.
+     *
+     * @param  size  approximate triangle radius
+     * @param  up    true for pointing upwards, false for pointing down
+     * @return  triangle shape
+     */
+    private static Shape triangle( int size, boolean up ) {
+        double scale = size * 1.5;
+        int c = (int) Math.round( scale * Math.sqrt( 3 ) / 2.0 ); // s.cos(30)
+        int s = (int) Math.round( scale * 0.5 );                  // s.sin(30)
+        int r = (int) Math.round( scale );
+        return up ? new Polygon( new int[] { -c, 0, c },
+                                 new int[] { -s, r, -s }, 3 )
+                  : new Polygon( new int[] { -c, 0, c },
+                                 new int[] { s, -r, s }, 3 );
     }
 }
