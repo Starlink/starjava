@@ -113,7 +113,7 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         if ( ! closed ) {
             impl.close();
             mappedArray = null;
-            if ( soleAccessImpl != null ) {
+            if ( soleAccessImpl != null && impl.isRandom() ) {
                 soleAccessImpl.close();
             }
             closed = true;

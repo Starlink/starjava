@@ -45,6 +45,134 @@ public class NDArrays {
         copy( src.getAccess(), dest.getAccess() );
     }
 
+    /**
+     * Tests two NDArrays for equivalence.
+     * Returns true only if the data of both are equivalent; this means
+     * that the type and shape must be the same, but not necessarily
+     * the pixel ordering scheme, URL, writability etc.  A bad value in
+     * one array is considered equivalent to a bad value in the other,
+     * even if the two do not have the same magic bad value.
+     *
+     * @param  nda1  first NDArray
+     * @param  nda2  second NDArray
+     * @return  true if and only if the data and shape of 
+     *               <tt>nda1</tt> and <tt>nda2</tt> are equivalent
+     */
+    public static boolean equals( NDArray nda1, NDArray nda2 ) 
+            throws IOException {
+        Type type = nda1.getType();
+        if ( nda2.getType() != type ) {
+            return false;
+        }
+        OrderedNDShape oshape1 = nda1.getShape();
+        OrderedNDShape oshape2 = nda2.getShape();
+        if ( ! oshape1.sameShape( oshape2 ) ) {
+            return false;
+        }
+        long npix = oshape1.getNumPixels();
+
+        /* Get accessors for both arrays.  They must have the same ordering
+         * scheme. */
+        ArrayAccess acc1;
+        ArrayAccess acc2;
+        Order order1 = oshape1.getOrder();
+        Order order2 = oshape2.getOrder();
+        NDArray ndatmp = null;
+        if ( order1 == order2 ) {
+            acc1 = nda1.getAccess();
+            acc2 = nda2.getAccess();
+        }
+        else {
+            if ( nda1.isRandom() ) {
+                Requirements req = new Requirements().setOrder( order2 );
+                ndatmp = toRequiredArray( nda1, req );
+                acc1 = ndatmp.getAccess();
+                acc2 = nda2.getAccess();
+            }
+            else {
+                Requirements req = new Requirements().setOrder( order1 );
+                ndatmp = toRequiredArray( nda2, req );
+                acc1 = nda1.getAccess();
+                acc2 = ndatmp.getAccess();
+            }
+        }
+    
+        /* Check whether the data matches element by element. */
+        ChunkIterator cit = new ChunkIterator( npix );
+        int size = cit.getSize();
+        Object buf1 = type.newArray( size );
+        Object buf2 = type.newArray( size );
+        BadHandler bh1 = nda1.getBadHandler();
+        BadHandler bh2 = nda2.getBadHandler();
+        boolean match = true;
+        for ( ; cit.hasNext() && match; cit.next() ) {
+            size = cit.getSize();
+            acc1.read( buf1, 0, size );
+            acc2.read( buf2, 0, size );
+            if ( type == Type.BYTE ) {
+                byte[] b1 = (byte[]) buf1;
+                byte[] b2 = (byte[]) buf2;
+                for ( int i = 0; i < size; i++ ) {
+                    boolean bad1 = bh1.isBad( b1, i );
+                    boolean bad2 = bh2.isBad( b2, i );
+                    match = match &&
+                            ( ( ! bad1 && ! bad2 && b1[ i ] == b2[ i ] ) ||
+                              ( bad1 && bad2 ) );
+                }
+            }
+            else if ( type == Type.SHORT ) {
+                short[] b1 = (short[]) buf1;
+                short[] b2 = (short[]) buf2;
+                for ( int i = 0; i < size; i++ ) {
+                    boolean bad1 = bh1.isBad( b1, i );
+                    boolean bad2 = bh2.isBad( b2, i );
+                    match = match &&
+                            ( ( ! bad1 && ! bad2 && b1[ i ] == b2[ i ] ) ||
+                              ( bad1 && bad2 ) );
+                }
+            }
+            else if ( type == Type.INT ) {
+                int[] b1 = (int[]) buf1;
+                int[] b2 = (int[]) buf2;
+                for ( int i = 0; i < size; i++ ) {
+                    boolean bad1 = bh1.isBad( b1, i );
+                    boolean bad2 = bh2.isBad( b2, i );
+                    match = match &&
+                            ( ( ! bad1 && ! bad2 && b1[ i ] == b2[ i ] ) ||
+                              ( bad1 && bad2 ) );
+                }
+            }
+            else if ( type == Type.FLOAT ) {
+                float[] b1 = (float[]) buf1;
+                float[] b2 = (float[]) buf2;
+                for ( int i = 0; i < size; i++ ) {
+                    boolean bad1 = bh1.isBad( b1, i );
+                    boolean bad2 = bh2.isBad( b2, i );
+                    match = match &&
+                            ( ( ! bad1 && ! bad2 && b1[ i ] == b2[ i ] ) ||
+                              ( bad1 && bad2 ) );
+                }
+            }
+            else if ( type == Type.DOUBLE ) {
+                double[] b1 = (double[]) buf1;
+                double[] b2 = (double[]) buf2;
+                for ( int i = 0; i < size; i++ ) {
+                    boolean bad1 = bh1.isBad( b1, i );
+                    boolean bad2 = bh2.isBad( b2, i );
+                    match = match &&
+                            ( ( ! bad1 && ! bad2 && b1[ i ] == b2[ i ] ) ||
+                              ( bad1 && bad2 ) );
+                }
+            }
+            else {
+                // assert false;
+            } 
+        }
+        acc1.close();
+        acc2.close();
+        return match;
+    }
+
 
     /**
      * Does the work of the copy method.  Copies all the pixels from a 

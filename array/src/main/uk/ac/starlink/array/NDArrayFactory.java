@@ -3,6 +3,7 @@ package uk.ac.starlink.array;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.logging.Logger;
  */
 public class NDArrayFactory {
 
-    private final List builders;
+    private List builders;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.array" );
 
     /**
@@ -75,7 +76,7 @@ public class NDArrayFactory {
     /**
      * Gets the list of builders which actually do the URL->NDArray
      * construction.  Builders earlier in the list are given a 
-     * chance to make an NDArray before ones later in the list.
+     * chance to handle a URL before ones later in the list.
      * This list may be modified to change the behaviour of the 
      * NDArrayFactory.
      *
@@ -84,6 +85,18 @@ public class NDArrayFactory {
      */
     public List getBuilders() {
         return builders;
+    }
+
+    /**
+     * Sets the list of builders which actually do the URL->NDArray
+     * construction  Builders earlier in the list are given a chance
+     * to handle a URL before ones later in the list.
+     *
+     * @param  builders  an array of ArrayBuilder objects used for 
+     *                   turning URLs into NDArrays
+     */
+    public void setBuilders( ArrayBuilder[] builders ) {
+        this.builders = new ArrayList( Arrays.asList( builders ) );
     }
 
     /**

@@ -282,6 +282,51 @@ public class NDArrayTest extends TestCase {
         }
     }
 
+    public void testNDArrays() throws IOException {
+        for ( Iterator it = ndaIterator(); it.hasNext(); ) {
+            NDArray nda1 = (NDArray) it.next();
+            OrderedNDShape oshape1 = nda1.getShape();
+            OrderedNDShape oshape2 = new OrderedNDShape( oshape1, 
+                                                         Order.ROW_MAJOR );
+            Type type = nda1.getType();
+            BadHandler bh1 = nda1.getBadHandler();
+            BadHandler bh2;
+            if ( type == Type.FLOAT ) {
+                bh2 = BadHandler.getHandler( Type.FLOAT, new Float( 19e19 ) );
+            }
+            else {
+                bh2 = bh1;
+            }
+            NDArray nda2 = new ScratchNDArray( oshape2, type, bh2 );
+            NDArrays.copy( nda1, nda2 );
+            assertTrue( NDArrays.equals( nda1, nda2 ) );
+
+            ArrayAccess acc1 = nda1.getAccess();
+            int pos = 15; // if this accidentally hits a bad one, change it
+            Object orig = type.newArray( 1 );
+            acc1.setOffset( pos );
+            acc1.read( orig, 0, 1 );
+
+            Object changed = type.newArray( 1 );
+            acc1.setOffset( pos );
+            acc1.write( changed, 0, 1 );
+            assertTrue( ! NDArrays.equals( nda1, nda2 ) );
+
+            bh1.putBad( changed, 0 );
+            acc1.setOffset( pos );
+            acc1.write( changed, 0, 1 );
+            assertTrue( ! NDArrays.equals( nda1, nda2 ) );
+            
+            acc1.setOffset( pos );
+            acc1.write( orig, 0, 1 );
+            assertTrue( NDArrays.equals( nda1, nda2 ) );
+
+            acc1.close();
+            nda1.close();
+            nda2.close();
+        }
+    }
+
 
     /** 
      * Iterates over a set of test NDArrays.  They have various shapes,
