@@ -38,9 +38,9 @@ public class Driver {
 
 
         /* Treat the special case in which no command-line arguments are
-         * specified and give a very simple usage message. */
+         * specified; do current directory. */
         if ( args.length == 0 ) {
-            exitWithError( "Usage: " + cmdName + "[flags] item ..." );
+            args = new String[] { "." };
         }
      
         /* Set up a HashMap mapping flags to expected Node type of argument. */
@@ -103,6 +103,7 @@ public class Driver {
                 }
                 else if ( arg.equals( "-debug" ) ) {
                     nodeFactory.setVerbose( true );
+                    DataNodeBuilder.verbose = true;
                 }
                 else if ( nodeTypeFlags.containsKey( arg ) ) {
                     Class prefClass = (Class) nodeTypeFlags.get( arg );
