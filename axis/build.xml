@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
- !  Axis build file
+ !   Axis build file
  !
  !   This file describes how to install the local Axis package from its
  !   released state. It requires Apache ANT and a Java Development Kit.
