@@ -55,7 +55,7 @@ public class TableViewerWindow extends TopcatViewWindow
     private Action excludeAct;
 
     private static int MAX_COLUMN_WIDTH = 300; 
-    private static int MAX_SAMPLE_ROWS = 20;
+    private static int MAX_SAMPLE_ROWS = 2000;
 
     /**
      * Constructs a new TableViewer to view a given table.
