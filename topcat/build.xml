@@ -199,6 +199,9 @@
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
+    <!-- Help -->
+    <pathelement location="${star.jar.dir}/help/jhall.jar"/>
+
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
@@ -223,6 +226,7 @@
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.jar}/util/lib/util/util.jar"/>
     <pathelement location="${star.build.jar}/table/lib/table/table.jar"/>
+    <pathelement location="${star.build.jar}/help/lib/help/jhall.jar"/>
   </extclasspath>
 
   <!-- "Local" third party jars. Normally these will be kept in their
@@ -324,6 +328,12 @@
                classpathref="classpath"
                classname="uk.ac.starlink.table.StarTable"/>
     <fail message="No TABLE available" unless="table.present"/>
+
+    <!-- HELP -->
+    <available property="help.present"
+               classpathref="classpath"
+               classname="javax.help.JHelp"/>
+    <fail message="No HELP available" unless="help.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
