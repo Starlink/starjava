@@ -1,15 +1,19 @@
 package uk.ac.starlink.treeview;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JEditorPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
@@ -48,6 +52,10 @@ public class HTMLViewer extends JEditorPane {
         this( getResourceURL( resourceName ) );
     }
 
+    public HTMLViewer( File file ) throws IOException {
+        this( new URL( "file:" + file ) );
+    }
+
     /**
      * Constructs a viewer which views HTML found at a given URL.
      *
@@ -65,7 +73,7 @@ public class HTMLViewer extends JEditorPane {
         }
 
         /* Configure the EditorPane to read and display HTML. */
-        HTMLEditorKit htmlkit = new HTMLEditorKit();
+        final HTMLEditorKit htmlkit = new HTMLEditorKit();
         try {
             StyleSheet css = new StyleSheet();
             InputStream cssstrm = loader.getResourceAsStream( CSS_RESOURCE );
@@ -74,14 +82,34 @@ public class HTMLViewer extends JEditorPane {
         }
         catch ( Exception e ) {
         }
-        setEditorKit( htmlkit );
 
-        /* Load in the HTML document. */
+        /* Make it squeal if a hyperlink is activated. */
+        addHyperlinkListener( new HyperlinkListener() {
+            public void hyperlinkUpdate( HyperlinkEvent ev ) {
+                if ( ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED ) {
+                    DefaultDataNode.beep();
+                }
+            }
+        } );
+
         StyleSheet css = htmlkit.getStyleSheet();
         HTMLDocument hdoc = new HTMLDocument( css );
-        docstrm = new HTMLDoctorStream( docstrm );
-        read( docstrm, hdoc );
+        Reader docrdr = 
+            new InputStreamReader( new HTMLDoctorStream( docstrm ) );
         hdoc.setBase( docURL );
+        setEditorKit( htmlkit );
+
+        /* Load the HTML into the document.  This should be done
+         * asynchronously since it may be slow, but I'm having trouble
+         * making it work. */
+        setDocument( hdoc );
+        try {
+            htmlkit.read( docrdr, hdoc, 0 );
+        }
+        catch( Exception e ) {
+            e.printStackTrace();
+        }
+        
     }
 
     private static URL getResourceURL( String resourceName )
@@ -139,7 +167,7 @@ public class HTMLViewer extends JEditorPane {
             int end = 0;
             while ( mat.find() ) {
                 subst.append( mat.group( 1 ) );
-                subst.append( getGifName( mat.group( 2 ) ) );
+                subst.append( getIconURL( mat.group( 2 ) ) );
                 end = mat.end();
             }
             subst.append( sb.substring( end ) );
@@ -153,12 +181,12 @@ public class HTMLViewer extends JEditorPane {
             return new ByteArrayInputStream( bytes );
         }
 
-        private String getGifName( String symbol ) {
+        private String getIconURL( String symbol ) {
             try {
                 Field field = IconFactory.class.getField( symbol );
                 short id = field.getShort( null );
-                return ( "../images/" + 
-                         IconFactory.getInstance().getGifName( id ) );
+                URL imageURL = IconFactory.getInstance().getIconURL( id );
+                return ( imageURL == null ) ? "unknown" : imageURL.toString();
             }
             catch ( Exception e ) {
                 e.printStackTrace();
