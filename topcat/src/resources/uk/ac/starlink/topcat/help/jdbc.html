@@ -1,0 +1,70 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h3>JDBC Configuration</h3>
+
+<p>With appropriate configuration, TOPCAT can be used to access
+SQL-compatible releational databases such as MySQL.
+This requires the installation of an appropriate JDBC driver
+specific to that database, as well as, of course, access to such
+a database.
+
+<p>To use TOPCAT in this way you must:
+<ul>
+<li>Have access to an SQL-compatible database locally or over the network
+<li>Have a JDBC driver appropriate for that database
+<li>Install this driver for use with TOPCAT
+<li>Know the format the driver uses for URLs to access database tables
+<li>Have appropriate privileges on the database to perform the 
+    desired operations
+</ul>
+
+<p>To install the driver you can do the following.
+First, add an entry giving the name of the Driver class itself
+to the "jdbc.drivers" property.  One way of doing this is by ensuring 
+there is a suitable
+line in a file called ".starjava.properties" in your home directory.
+For the Connector/J driver for MySQL this would look like:
+<pre>
+   jdbc.drivers=com.mysql.jdbc.Driver
+</pre>
+Secondly, make sure that the named class is on your classpath when
+TOPCAT is run.  On Unix, do this by ensuring that the jar file containing
+the driver class is one of the colon-separated entries in your
+CLASSPATH environment variable.  Note that this will not work if
+you are invoking TOPCAT directly using Java's '-jar' flag, or
+equivalently doing something like clicking on a jar file -
+see the section on <a href="direct.html">Invoking TOPCAT directly</a>
+for more discussion of this.
+
+<h4>Known drivers</h4>
+
+<p>To the author's knowledge,
+TOPCAT has so far only been used with the following RDBMSs and drivers:
+<dl>
+
+<dt><a href="http://www.mysql.org/">MySQL</a>
+<dd>MySQL 3.23.55 on Linux has been tested with the
+    <a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a>
+    driver version 3.0.8 and seems to work, though tables with very
+    many columns cannot be written owing to SQL statement length restrictions.
+    Note there is known to be a column metadata bug in version 3.0.6 of the
+    driver which can cause a ClassCastException error when tables are written.
+
+<dt><a href="http://www.postgresql.org/">PostgreSQL</a>
+<dd>PostgreSQL 7.3.3 has been used, and its JDBC driver has a bug
+    which prevents correct operation.  Jonathan Irwin has kindly
+    submitted a
+    <a href="http://www.ast.cam.ac.uk/~jmi/postgresql/">fix for this</a>.
+
+</dl>
+
+<p>Other RDBMSs and drivers may or may not work - please let us know the
+results of any experiments you carry out.
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h3>Loading tables</h3>
+
+<p>You can read tables into TOPCAT by
+<ul>
+<li>Giving the table location on the command line at startup
+<li>Using the "Open Table" dialogue, which is activated by:
+  <ul>
+  <li>The <kbd>Open</kbd> button
+      (<img src="../images/Open24.gif">) on the toolbar
+  <li>The <kbd>Open</kbd> item in the <kbd>File</kbd> menu
+  <li>Starting TOPCAT without a command line argument
+  </ul>
+<li>Dragging a table type node from the separate application
+    <a href="http://www.starlink.ac.uk/treeview/">Treeview</a>
+    and dropping it on the "Open Table" dialog or 
+    the <kbd>Open</kbd> button on the toolbar
+</ul>
+
+<p>The "Open Table" dialog allows you to specify a new table to open in the
+following ways:
+<ul>
+<li><a href="load-text.html">Type in</a> the location directly in the
+    <kbd>Location</kbd> field
+<li>Use the <kbd>Browse Files</kbd> button to get a 
+    <a href="load-file.html">standard file browser</a>
+<li>Use the <kbd>Browse Hierarchy</kbd> button to get a
+    more sophisticated <a href="load-node.html">hierarchical table browser</a>
+<li>Use the <kbd>SQL Database</kbd> button to get the 
+    <a href="load-jdbc.html">SQL query dialog box</a>
+</ul>
+
+<p>In most cases TOPCAT can happily read files or resources which are
+compressed (using gzip, bzip2 or Unix compress).
+You do not need to indicate what table format you are referring to,
+TOPCAT will detect the format and any compression 
+based on the location given.
+These facilities are available because the I/O facilities are taken
+care of by the Starlink generic table access library.
+
+<p>If you successfully specify the location of a table in any of 
+these ways, a new table browser window containing that table will
+be opened (in addition to any existing windows you may have open).
+If you choose a location which can't be turned into a table,
+a window will pop up containing an error message describing
+what went wrong.
+
+<p>If you receive an <strong>OutOfMemoryError</strong> while loading
+a table, you will have to run TOPCAT with an increased 
+memory heap size as described in the
+section on <a href="invoke.html">Invoking TOPCAT</a>.
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h4>Hierarchy Browser</h4>
+
+<p>By clicking the <kbd>Browse Hierarchy</kbd> button in the "Open Table"
+dialogue box, you can obtain a browser which presents a table-aware 
+hierarchical view of the file system.
+
+<p>This browser resembles the <a href="load-file.html">File Browser</a>
+in some ways, but with important differences:
+<ul>
+<li>It shows the file system in a 'tree-like' fashion, so that multiple
+    levels of the hierarchy are displayed at once
+<li>It understands which items in the hierarchy represent tables and
+    which represent other kinds of object (for instance plain files)
+<li>It can look inside hierarchical files, so for instance it can
+    investigate a Tar or Zip archive which may contain table entries,
+    or display multiple tabular HDUs in a FITS file, or multiple 
+    TABLE elements at different levels in a VOTable document.
+</ul>
+
+<p>The main part of the window shows a 'tree' representation of the
+hierarchy, initially rooted at the current directory.
+Each line displayed represents a 'node' which may be a file or 
+some other type of item (for instance an HDU in a FITS file or an
+entry in a tar archive).  The line contains a little icon
+which indicates what kind of node it is and a short text string which
+gives its name and maybe some description.
+For nodes which have some internal structure there is also a 
+'handle' which indicates whether they are 
+collapsed (<img src="../images/treeview/handle-closed.gif">) or 
+expanded (<img src="../images/treeview/handle-open.gif">).
+
+<p>If you select a node by clicking on it, it will be highlighted 
+and some additional description will appear in the panel below the
+hierarchy display.  The text is in <b>bold</b> if the node in 
+question can be opened as a table, and non-bold if it is some 
+non-table item.
+
+<h5>Navigation</h5>
+
+<p>Navigation is a bit different from navigation in the File Browser window.
+To expand a node and see its contents, click on its handle
+(clicking on the handle when it is expanded will collapse it again).
+When you have identified the table you want to open, highlight it
+by clicking on it, and then click the <kbd>Open Table</kbd> button
+at the bottom.
+
+<p>To move to a different directory, i.e. to change the root of the tree 
+which is displayed, use one of the buttons above the tree display:
+<dl>
+<dt>Selector box
+<dd>Allows you to move straight to any directory higher up than the 
+    current one
+
+<dt>Up button <img src="../images/treeview/Up.gif">
+<dd>Moves to the parent of the current directory
+
+<dt>Down button <img src="../images/treeview/Down.gif">
+<dd>Moves to the currently selected (highlighted) node
+
+<dt>Home button <img src="../images/treeview/Home24.gif">
+<dd>Moves to the user's home directory.
+</dl>
+Alternatively, you can type in a new directory
+in the <kbd>Go to</kbd> field at the bottom of the window.
+
+<p>(In fact the above navigation options are not restricted to changing
+the root to a new directory, they can move to any node in the
+tree, for instance a level in a Tar archive.)
+
+<h5>Table searches</h5>
+
+<p>There are two more buttons in the browser, <kbd>Search Selected</kbd>
+and <kbd>Search Tree</kbd>.  These do a recursive search for tables in all
+the nodes starting at the currently selected one or the current
+root respectively.
+What this means is that the program will investigate the whole
+hierarchy looking for any items which can be used as tables. 
+If it finds any it will open up the tree so that they are visible
+(note that this doesn't mean that the only nodes revealed will
+be tables, ancestors and siblings will be revealed too).
+This can be useful if you believe there are a few tables buried
+somewhere in a deep directory structure or Tar archive, but you're
+not sure where.  Note that this may be time-consuming - a busy
+cursor is displayed while the search is going on.
+Changing the root of the tree will interrupt the search.
+
+</body>
+</html>

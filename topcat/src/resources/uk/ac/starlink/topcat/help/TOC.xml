@@ -15,14 +15,28 @@
   <tocitem target="TableCopy" text="Table conversion"/>
 
   <tocitem target="IO" text="I/O">
+
     <tocitem target="Read" text="Loading tables" image="LOAD">
+      <tocitem target="LoadName" text="Enter location"/>
+      <tocitem target="JFileChooser" text="File browser"/>
+      <tocitem target="TableNodeChooser" text="Hierarchy browser"/>
+      <tocitem target="SQLReadDialog" text="SQL dialog"/>
+    </tocitem>
+
+    <tocitem target="Write" text="Saving tables" image="SAVE">
+      <tocitem target="SaveName" text="Enter location"/>
+      <tocitem target="JFileSaver" text="File browser"/>
+      <tocitem target="SQLWriteDialog" text="SQL dialog"/>
+    </tocitem>
+   
+    <tocitem target="TableBuilder" text="Input Formats">
       <tocitem target="FITSRead" text="FITS"/>
       <tocitem target="VOTableRead" text="VOTable"/>
       <tocitem target="JDBCRead" text="SQL"/>
       <tocitem target="WDCRead" text="WDC"/>
     </tocitem>
 
-    <tocitem target="Write" text="Saving tables" image="SAVE">
+    <tocitem target="StarTableWriter" text="Output Formats">
       <tocitem target="FITSWrite" text="FITS"/>
       <tocitem target="VOTableWrite" text="VOTable"/>
       <tocitem target="JDBCWrite" text="SQL"/>
@@ -30,6 +44,9 @@
       <tocitem target="LatexWrite" text="LaTeX"/>
       <tocitem target="MirageWrite" text="Mirage"/>
     </tocitem>
+
+    <tocitem target="JDBC" text="JDBC configuration"/>
+
   </tocitem>
 
   <tocitem target="Windows" text="Window Features">

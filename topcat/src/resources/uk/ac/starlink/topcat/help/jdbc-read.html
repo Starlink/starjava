@@ -9,34 +9,6 @@
 
 <p>With appropriate configuration, TOPCAT can be used to examine the
 results of queries on a relational database such as MySQL.
-This requires the installation of an appropriate JDBC driver
-specific to that database, as well as, of course, access to such
-a database locally or over a network.
-
-<p>To use TOPCAT in this way you must:
-<ul>
-<li>Have access to an SQL-compatible database locally or over the network
-<li>Have a JDBC driver appropriate for that database available
-<li>Install this driver for use with TOPCAT
-<li>Know the format the driver uses for URLs to access database tables
-</ul>
-
-<p>To install the driver you can do the following.
-First, add an entry giving the name of the Driver class itself
-to the "jdbc.drivers" property by ensuring there is a suitable
-line in a file called ".starjava.properties" in your home directory.
-For the Connector/J driver for MySQL this would look like:
-<pre>
-   jdbc.drivers=com.mysql.jdbc.Driver
-</pre>
-Secondly, make sure that the named class is on your classpath when
-TOPCAT is run.  On Unix, do this by ensuring that the jar file containing
-the driver class is one of the colon-separated entries in your
-CLASSPATH environment variable.  Note that this will not work if
-you are invoking TOPCAT directly using Java's '-jar' flag, or 
-equivalently doing something like clicking on a jar file - 
-see the section on <a href="direct.html">Invoking TOPCAT directly</a>
-for more discussion of this.
 
 <p>Database queries have the form
 <pre>
@@ -53,45 +25,16 @@ constructed from certain rows from the table "swaa" in the database
 "astro1" on the local host, using the access privileges of user mbt.
 
 <p>Fortunately you do not have to construct this by hand, there is
-a dialogue box to assist in putting it together.
-You can use this by pressing the "SQL Database" button in the
-"Open Table" dialogue (this button will be greyed out if no JDBC
-drivers are installed).  This dialogue includes optional username and password
-inputs for establishing the connection with the database.  
-If you do not specify them
-and the database server rejects the connection you will be prompted
-for these separately.
+an <a href="load-jdbc.html">SQL dialogue box</a> to assist 
+in putting it together.
 
 <p>Note that TOPCAT does not view a table in the database directly,
 but the result of an SQL query on that table.  If you want to view
 the whole table you may use the query "SELECT * FROM table-name",
 but be aware that such a query may be expensive on a large table.
 
-
-<h5>Known drivers</h5>
-
-<p>To the author's knowledge, 
-TOPCAT has so far only been used with the following RDBMSs and drivers:
-<dl>
-
-<dt><a href="http://www.mysql.org/">MySQL</a>
-<dd>MySQL 3.23.55 on Linux has been tested with the  
-    <a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a>
-    driver version 3.0.8 and seems to work, though tables with very
-    many columns cannot be written owing to SQL statement length restrictions.
-    Note there is known to be a column metadata bug in version 3.0.6 of the
-    driver which can cause a ClassCastException error when tables are written.
-
-<dt><a href="http://www.postgresql.org/">PostgreSQL</a>
-<dd>PostgreSQL 7.3.3 has been used, and its JDBC driver has a bug 
-    which prevents correct operation.  Jonathan Irwin has kindly
-    submitted a 
-    <a href="http://www.ast.cam.ac.uk/~jmi/postgresql/">fix for this</a>.
-
-</dl>
-
-Other RDBMSs and drivers may or may not work - please let us know the
-results of any experiments you carry out.
+<p>Use of SQL queries requires some additional configuration of TOPCAT;
+see the section on <a href="jdbc.html">JDBC configuration</a>.
 
 </body>
 </html>

@@ -22,8 +22,20 @@
   <mapID target="TableCopy" url="tablecopy.html"/>
 
   <mapID target="IO" url="io.html"/>
-  <mapID target="Read" url="io.html#read"/>
-  <mapID target="Write" url="io.html#write"/>
+
+  <mapID target="Read" url="read.html"/>
+  <mapID target="Write" url="write.html"/>
+  <mapID target="TableBuilder" url="load-formats.html"/>
+  <mapID target="StarTableWriter" url="save-formats.html"/>
+
+  <mapID target="LoadName" url="load-text.html"/>
+  <mapID target="JFileChooser" url="load-file.html"/>
+  <mapID target="TableNodeChooser" url="load-node.html"/>
+  <mapID target="SQLReadDialog" url="load-jdbc.html"/>
+
+  <mapID target="SaveName" url="save-text.html"/>
+  <mapID target="JFileSaver" url="save-file.html"/>
+  <mapID target="SQLWriteDialog" url="save-jdbc.html"/>
 
   <mapID target="FITSRead" url="fits-read.html"/>
   <mapID target="VOTableRead" url="votable-read.html"/>
@@ -36,6 +48,8 @@
   <mapID target="LatexWrite" url="latex-write.html"/>
   <mapID target="JDBCWrite" url="jdbc-write.html"/>
   <mapID target="MirageWrite" url="mirage.html"/>
+
+  <mapID target="JDBC" url="jdbc.html"/>
 
   <mapID target="Windows" url="windows.html"/>
   <mapID target="Tools" url="windows.html#tools"/>

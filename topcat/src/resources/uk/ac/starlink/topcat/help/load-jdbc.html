@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h4>SQL Query Dialogue</h4>
+
+<p>If you want to <a href="jdbc-read.html">open a table from an 
+SQL database</a>, you can 
+use a specialised dialogue to specify the SQL query by clicking 
+the <kbd>SQL Database</kbd> button in the "Open Table" dialogue box.
+
+<p>This provides you with a list of fields to fill in which make
+up the query, as follows:
+<dl>
+<dt>Protocol
+<dd>The name of the appropriate JDBC sub-protocol.
+    This is defined by the JDBC driver that you are using, and is
+    for instance "mysql" for MySQL's Connector/J driver or "postgresql"
+    for PostgreSQL's JDBC driver.
+
+<dt>Host
+<dd>The hostname of the machine on which the database resides 
+    (may be "localhost" if the database is local)
+
+<dt>Database name
+<dd>The name of the database
+
+<dt>SQL Query
+<dd>The text of the query which will define the resulting table.
+    If you want to look at a table called XXX as it exists in the database, 
+    you can write something like "SELECT * from XXX".
+    In principle any SQL query on the database can be used here,
+    but the details of what SQL syntax is permitted will be defined 
+    by the JDBC driver you are using.
+
+<dt>User name
+<dd>The username under which you wish to access the database.
+    This is not strictly necessary if there is no access control for 
+    the database in question.
+
+<dt>Password
+<dd>The password for the given username.  Again, whether this is
+    necessary depends on the access policy of the database.
+</dl>
+
+<p>There are a number of criteria which must be satisfied for SQL 
+access to work within TOPCAT (installation of appropriate drivers
+and so on) - see the section on <a href="jdbc.html">JDBC configuration</a>.
+
+</body>
+</html>

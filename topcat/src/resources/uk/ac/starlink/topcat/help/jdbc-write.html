@@ -5,14 +5,10 @@
 </head>
 <body>
 
-
 <h4>Writing to SQL Databases</h4>
 
 <p>With appropriate configuration, TOPCAT can write out tables as
 new tables in an SQL-compatible relational database.
-For this to work, you must have write access to a suitable database
-and the drivers must be installed as described in the 
-section about <a href="jdbc-read.html">reading from SQL databases</a>.
 
 <p>For writing, the location is specified as the following URL:
 <pre>
@@ -27,17 +23,11 @@ called "newtab" in the database "astro1" on the local host with the
 access privileges of user mbt.
 
 <p>Fortunately you do not have to construct this URL by hand, there is
-a dialogue to assist in putting it together.  You can use this by
-pressing the "SQL Database" button in the "Save Table" dialogue
-(this button will be greyed out if no JDBC drivers are installed).
-This includes optional username and password inputs for establishing
-the connection with the database.
-If you do not specify them and the database server rejects the 
-connection you will be prompted for these separately.
+an <a href="save-jdbc.html">SQL output dialogue box</a>
+to assist in putting it together.
 
-<p>TOPCAT has so far only been tested with the 
-<a href="http://www.mysql.org/">MySQL</a> database and its
-<a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a> JDBC driver.  Other databases and drivers may or may not work.
+<p>Use of SQL queries requires some additional configuration of TOPCAT;
+see the section on <a href="jdbc.html">JDBC configuration</a>.
 
 </body>
 </html>
