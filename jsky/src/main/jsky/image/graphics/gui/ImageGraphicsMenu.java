@@ -102,8 +102,13 @@ public class ImageGraphicsMenu extends JMenu {
 
             public void stateChanged(ChangeEvent e) {
                 int drawingMode = canvasDraw.getDrawingMode();
-                if (!drawingModeMenuItems[drawingMode].isSelected())
-                    drawingModeMenuItems[drawingMode].setSelected(true);
+                try {
+                   if (!drawingModeMenuItems[drawingMode].isSelected()) {
+                       drawingModeMenuItems[drawingMode].setSelected(true);
+                   }
+                }
+                catch (Exception ee) { // Do nothing ... for now 
+                }
             }
         });
 
