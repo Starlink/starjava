@@ -196,7 +196,7 @@ public class AuxWindow extends JFrame {
      */
     public void makeVisible() {
         setState( Frame.NORMAL );
-        show();
+        setVisible( true );
     }
 
     /**

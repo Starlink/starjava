@@ -795,8 +795,7 @@ public class TableViewer extends AuxWindow
                                                        parent );
                 }
                 else {
-                    paramWindow.setState( Frame.NORMAL );
-                    paramWindow.show();
+                    paramWindow.makeVisible();
                 }
             }
 
