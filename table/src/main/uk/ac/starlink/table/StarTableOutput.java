@@ -69,7 +69,6 @@ public class StarTableOutput {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
 
     private StarTableWriter voWriter;
-    private Method voWriteMethod;
 
     /**
      * Special output handler name indicating automatic format selection.
@@ -457,7 +456,7 @@ public class StarTableOutput {
      * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
      */
     public Transferable transferStarTable( final StarTable startab ) {
-        if ( voWriteMethod != null ) {
+        if ( voWriter != null ) {
             return new StarTableTransferable( this, startab );
         }
         else {
@@ -476,40 +475,16 @@ public class StarTableOutput {
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             StarTableWriter handler = (StarTableWriter) it.next();
             if ( handler.getFormatName().equals( "votable-binary-inline" ) ) {
-                try {
-                    Class[] args = new Class[] { StarTable.class,
-                                                 OutputStream.class };
-                    voWriteMethod = handler.getClass()
-                                   .getMethod( "writeStarTable", args );
-                    voWriter = handler;
-                }
-                catch ( NoSuchMethodException e ) {
-                    voWriter = null;
-                }
+                voWriter = handler;
             }
         }
-        if ( voWriteMethod == null ) {
+        if ( voWriter == null ) {
             logger.warning( "No transferable serializer found" );
         }
     }
 
     void transferTable( StarTable table, OutputStream ostrm ) 
             throws IOException {
-        try {
-            voWriteMethod.invoke( voWriter, new Object[] { table, ostrm } );
-        }
-        catch ( InvocationTargetException e ) {
-            Throwable target = e.getTargetException();
-            if ( target instanceof IOException ) {
-                throw (IOException) target;
-            }
-            else {
-                System.err.println( "Reflection trouble!" );
-                target.printStackTrace( System.err );
-            }
-        }
-        catch ( Exception e ) {
-            e.printStackTrace( System.err );
-        }
+        voWriter.writeStarTable( table, ostrm );
     }
 }
