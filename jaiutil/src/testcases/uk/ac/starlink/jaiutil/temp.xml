@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hdx>
   <ndx>
-    <data>
+    <image>
       file:/home2/pdraper/java/cvs/java/source/jaiutil/src/testcases/uk/ac/starlink/jaiutil/temp.fits
-    </data>
+    </image>
     <wcs>
     <FrameSet>
       <_attribute name="Nframe" value="3"/>
@@ -64,4 +63,3 @@
     </FrameSet>
     </wcs>
   </ndx>
-</hdx>

@@ -38,10 +38,9 @@ import jsky.image.gui.ImageGraphicsHandler;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.hdx.array.NDArray;
 import uk.ac.starlink.jaiutil.HDXCodec;
 import uk.ac.starlink.jaiutil.HDXImage;
-import uk.ac.starlink.hdx.Ndx;
+import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.sog.AstTransform;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 

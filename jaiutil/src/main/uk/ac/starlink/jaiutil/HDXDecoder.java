@@ -18,7 +18,7 @@ import com.sun.media.jai.codec.SeekableStream;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 
-import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.ndx.NdxException;
 
 /**
  * An ImageDecoder for the HDX file format.
@@ -39,7 +39,7 @@ public class HDXDecoder extends ImageDecoderImpl
      * Constructor
      */
     public HDXDecoder( SeekableStream input, ImageDecodeParam param )
-        throws IOException, HdxException
+        throws IOException, NdxException
     {
         super( input, param );
         hdxImage = new HDXImage( input, (HDXDecodeParam) param, 0 );
@@ -68,7 +68,7 @@ public class HDXDecoder extends ImageDecoderImpl
         try {
             hdxImage.setNDX( page );
         }
-        catch( HdxException e ) {
+        catch( NdxException e ) {
             throw new IOException( e.toString() );
         }
         return hdxImage;

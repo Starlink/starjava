@@ -8,17 +8,22 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import javax.xml.transform.dom.DOMSource;
+
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.hdx.HdxContainer;
-import uk.ac.starlink.hdx.HdxContainerFactory;
-import uk.ac.starlink.hdx.Ndx;
-import uk.ac.starlink.hdx.array.BadHandler;
-import uk.ac.starlink.hdx.array.ChunkIterator;
-import uk.ac.starlink.hdx.array.Function;
-import uk.ac.starlink.hdx.array.NDArray;
-import uk.ac.starlink.hdx.array.NDArrayFactory;
-import uk.ac.starlink.hdx.array.Requirements;
-import uk.ac.starlink.hdx.array.Type;
+////import uk.ac.starlink.hdx.HdxContainer;
+////import uk.ac.starlink.hdx.HdxContainerFactory;
+////import uk.ac.starlink.hdx.Ndx;
+
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.Requirements;
+import uk.ac.starlink.array.BadHandler;
+import uk.ac.starlink.array.Type;
+import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.NdxAccess;
+import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.ndx.XMLNdxHandler;
+
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -122,13 +127,11 @@ public class NDXSpecDataImpl extends SpecDataImpl
      */
     public FrameSet getAst()
     {
-        if ( ndx.hasWCS() ) {
-            try {
-                return ndx.getWCS();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            return ndx.getWCS();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -156,6 +159,11 @@ public class NDXSpecDataImpl extends SpecDataImpl
      * Reference to NDX object.
      */
     protected Ndx ndx = null;
+
+    /**
+     * Reference to NDX Access object.
+     */
+    protected NdxAccess ndxAccess = null;
 
     /**
      * Original HDX specification that pointed to the NDX.
@@ -192,26 +200,23 @@ public class NDXSpecDataImpl extends SpecDataImpl
     protected void open( String hdxName )
     {
         // Read the complete document that we've been given.
-        List ndxs = null;
-        HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
-        HdxContainer hdx;
+        ////List ndxs = null;
+        ////HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
+        ////HdxContainer hdx;
         try {
+            NdxIO ndxIO = new NdxIO();
             URL url = new URL( new URL( "file:." ), hdxName );
-            hdx = hdxf.readHdx( url );
-            ndxs = hdx.getNdxList();
+            ndx = ndxIO.makeNdx( url, AccessMode.READ );
         }
         catch (Exception e) {
             e.printStackTrace();
             return;
         }
-        if ( ndxs != null && ndxs.size() == 0 ) {
+        if ( ndx == null ) {
             throw new RuntimeException( "Document contains no NDXs" );
         }
         fullName = hdxName;
         shortName = hdxName;
-
-        //  This is always the NDX we require.
-        ndx = (Ndx) ndxs.get( 0 );
 
         //  Read in the data.
         readData();
@@ -224,24 +229,23 @@ public class NDXSpecDataImpl extends SpecDataImpl
      */
     protected void open( Element ndxElement )
     {
-        List ndxs = null;
-        HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
-        HdxContainer hdx;
+        ////List ndxs = null;
+        ////HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
+        ////HdxContainer hdx;
+        DOMSource ndxSource = new DOMSource( ndxElement );
         try {
             // Get a HDX container with the NDX inside.
-            hdx = hdxf.readHdx( ndxElement );
-            ndxs = hdx.getNdxList();
+            ndx = XMLNdxHandler.getInstance().makeNdx( ndxSource,
+                                                       AccessMode.READ );
         }
         catch (Exception e) {
             e.printStackTrace();
             return;
         }
-        if ( ndxs != null && ndxs.size() == 0 ) {
+        if ( ndx == null ) {
             throw new RuntimeException( "Document contains no NDXs" );
         }
 
-        //  This is always the NDX we require.
-        ndx = (Ndx) ndxs.get( 0 );
         String title = ndx.getTitle();
         if ( title == null || title.equals( "" ) ) {
             title = "Wired NDX (" + (counter++) + ")";
@@ -259,102 +263,73 @@ public class NDXSpecDataImpl extends SpecDataImpl
      */
     protected void readData()
     {
-        NDArray image = null;
+        // Use an NdxAccess object to make sure that data is all the
+        // same shape. We also require that the data be returned in
+        // double precision and using our BAD data value.
+        ndxAccess = null;
+        Requirements req = new Requirements();
+        req.setType( Type.DOUBLE );
+        BadHandler badHandler = 
+            BadHandler.getHandler( Type.DOUBLE, new Double(SpecData.BAD) );
+        req.setBadHandler( badHandler );
         try {
-            image = ndx.getImage();
+            ndxAccess = ndx.getAccess( req, true, true, false );
         }
         catch (Exception e) {
             e.printStackTrace();
             data = null;
             return;
         }
-        data = unwrapNDArray( image, null );
 
-        //  Read any variance. Note that these are transformed into
-        //  errors.
-        if ( ndx.hasVariance() ) {
-            NDArray variance = null;
-            try {
-                variance = ndx.getVariance();
-                if ( variance != null ) {
-                    Function sqrtFunc = new Function() {
-                            public double forward( double x ) {
-                                return Math.sqrt( x );
-                            }
-                            public double inverse( double y ) {
-                                return ( y * y );
-                            }
-                        };
-                    errors = unwrapNDArray( variance, sqrtFunc );
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-                errors = null;
+        //  No spectra longer than (int)?
+        int size = (int) ndxAccess.getShape().getNumPixels();
+        errors = null;
+        if ( ndxAccess.isMapped() ) {
+            data = (double[]) ndxAccess.getMappedImage();
+            if ( ndxAccess.hasVariance() ) {
+                errors = (double []) ndxAccess.getMappedVariance();
             }
         }
         else {
-            errors = null;
+            // Need to allocate data.
+            Type type = ndxAccess.getType();
+            data = (double []) type.newArray( size );
+            if ( ndxAccess.hasVariance() ) {
+                errors = (double []) type.newArray( size );
+            }
+            try {
+                ndxAccess.read( data, errors, null, 0, size );
+            }
+            catch (IOException ie) {
+                ie.printStackTrace();
+                data = errors = null;
+                return;
+            }
+        }
+
+        //  Transform variances into errors.
+        if ( errors != null ) {
+            for ( int i = 0; i < errors.length; i++ ) {
+                if ( errors[i] > 0.0 ) {
+                    errors[i] = Math.sqrt( errors[i] );
+                }
+                else {
+                    errors[i] = SpecData.BAD;
+                }
+            }
         }
         return;
     }
 
     /**
-     * "Unwrap" an NDArray by copying it into a double precision
-     * array, converting the type as needed and applying a function to
-     * the values (e.g. to convert from variance to errors).
+     * Finalise object. Free any resources associated with member
+     * variables.
      */
-    protected double[] unwrapNDArray( NDArray nda, Function func )
+    protected void finalize() throws Throwable
     {
-        int size = 0;
-        try {
-            size = (int) nda.getShape().getNumPixels();
+        if ( ndxAccess != null ) {
+            ndxAccess.close();
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-        double result[] = null;
-
-        //  Wrap the NDArray so that it will be converted to double
-        //  precision use our BAD value and have the function applied.
-        if ( func != null ) {
-            nda = NDArrayFactory.toFunctionNDArray( nda, func, Type.DOUBLE );
-        }
-        Requirements req = new Requirements( Requirements.Mode.READ );
-        req.setType( Type.DOUBLE );
-        req.setBadHandler( BadHandler.getHandler( Type.DOUBLE,
-                                                  new Double(SpecData.BAD) ) );
-        try {
-            nda = NDArrayFactory.toRequiredNDArray( nda, req );
-        }
-        catch ( IOException e ) {
-            e.printStackTrace();
-            return null;
-        }
-
-        // Array is mapped - read pixels directly.
-        if ( nda.isMapped() ) {
-            result = (double[]) nda.getMapped();
-        }
-        else {
-            result = new double[size];
-            try {
-                // Array is not mapped - work through it in chunks.
-                ChunkIterator cIt = new ChunkIterator( size );
-                int chunk = cIt.getSize();
-                int count = 0;
-                while ( cIt.hasNext() ) {
-                    int thisSize = cIt.getSize();
-                    nda.read( result, count, thisSize );
-                    cIt.next();
-                    count += thisSize;
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return result;
+        super.finalize();
     }
 }

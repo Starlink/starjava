@@ -183,7 +183,7 @@
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
     <!-- NDArray-->
-    <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
+    <pathelement location="${star.jar.dir}/array/array.jar"/>
 
     <!-- HDX -->
     <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
@@ -216,7 +216,9 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-    <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
+    <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
+    <pathelement location="${star.build.dir}/fits/lib/fits/fits.jar"/>
+    <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/jsky/lib/jsky/jsky.jar"/>
   </extclasspath>
@@ -310,12 +312,12 @@
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 
-    <!--  Need HDX -->
-    <available property="hdx.present"
+    <!--  Need NDX -->
+    <available property="ndx.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hdx.HdxContainer"/>
+               classname="uk.ac.starlink.ndx.Ndx"/>
 
-    <fail message="No HDX available" unless="hdx.present"/>
+    <fail message="No NDX available" unless="ndx.present"/>
 
     <!--  Need JAIUtil -->
     <available property="jaiutil.present"
@@ -443,7 +445,8 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.sog.SOG"/>
         <attribute name="Class-Path"
-                   value="../jsky/jsky.jar ../oldarray/array.jar hdx.jar ../jaiutil/jaiutil.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
+value="../jsky/jsky.jar ../array/array.jar ../ndx/ndx.jar ../jaiutil/jaiutil.jar 
+../fits/fits.jar ../hds/hds.jar ../jniast/jniast.jar ../soapserver/soapserver.jar"/>
       </manifest>
     </jar>
   </target>

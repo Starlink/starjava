@@ -11,11 +11,16 @@ import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.encoding.XMLType;
 
-import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
-import uk.ac.starlink.hdx.HdxContainer;
-import uk.ac.starlink.hdx.HdxContainerFactory;
-import uk.ac.starlink.hdx.Ndx;
+////import uk.ac.starlink.hdx.HdxContainer;
+////import uk.ac.starlink.hdx.HdxContainerFactory;
+////import uk.ac.starlink.hdx.Ndx;
+import javax.xml.transform.Source;
+import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.util.SourceReader;
 
 /**
  * Test client for builtin SOAP services.
@@ -35,23 +40,21 @@ public class RemoteClientNDX
         throws Exception 
     {
         //  Get the NDX.
-        List ndxs = null;
-        HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
-        HdxContainer hdx;
+        NdxIO ndxIO = new NdxIO();
+        Ndx ndx = null;
         try {
             URL url = new URL( new URL( "file:." ), args[0] );
-            hdx = hdxf.readHdx( url );
-            ndxs = hdx.getNdxList();
+            System.out.println( url );
+            ndx = ndxIO.makeNdx( url, AccessMode.READ );
         }
         catch (Exception e) {
             e.printStackTrace();
             return;
         }
-        if ( ndxs != null && ndxs.size() == 0 ) {
+        if ( ndx == null ) {
             throw new RuntimeException( "Document contains no NDXs" );
         }
-        Ndx ndx = (Ndx) ndxs.get( 0 );
-        
+
         //  Transmit it to SOG.
         transmitNDX( ndx, endpoint, "showNDX" );
     }
@@ -59,7 +62,15 @@ public class RemoteClientNDX
     public static void transmitNDX( Ndx ndx, String endpoint, String method ) 
     {
         //  Transform NDX to DOM (should check persistence?).
-        Element ndxElement = ndx.toDOM();
+        Source ndxSource = ndx.toXML( null );
+        Node ndxElement = null;
+        try {
+            ndxElement = new SourceReader().getDOM( ndxSource );
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
         Object[] elements = new Object[1];
         elements[0] = ndxElement;
         

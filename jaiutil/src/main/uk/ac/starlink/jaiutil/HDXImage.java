@@ -9,6 +9,8 @@
  * Allan Brighton  1999/05/03  Created
  * Peter W. Draper 2002/05/10  Converted for HDX
  *                 2002/06/18  Converted for HDX mark II
+ *                 2002/09/24  Converted for NDX only (HDX mark III in
+ *                             preparation).
  */
 package uk.ac.starlink.jaiutil;
 
@@ -29,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.ArrayList;
 
 import javax.media.jai.RasterFactory;
 import javax.media.jai.TiledImage;
@@ -36,16 +39,27 @@ import javax.media.jai.TiledImage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import uk.ac.starlink.hdx.array.NDArray;
-import uk.ac.starlink.hdx.array.Type;
-import uk.ac.starlink.hdx.Ndx;
-import uk.ac.starlink.hdx.HdxException;
-import uk.ac.starlink.hdx.HdxContainer;
-import uk.ac.starlink.hdx.HdxContainerFactory;
+////import uk.ac.starlink.hdx.array.NDArray;
+////import uk.ac.starlink.hdx.array.Type;
+////import uk.ac.starlink.hdx.Ndx;
+////import uk.ac.starlink.hdx.HdxException;
+////import uk.ac.starlink.hdx.HdxContainer;
+////import uk.ac.starlink.hdx.HdxContainerFactory;
+
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.dom.DOMSource;
+
+import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.Type;
+//import uk.ac.starlink.ndx.NdxException;
+import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.ndx.NdxIO;
+import uk.ac.starlink.ndx.XMLNdxHandler;
 
 /**
- * This is the core class for JAI HDX support. It handles the
- * conversion between the HDX NDX NDArrays and the display data.
+ * This is the core class for JAI HDX/NDX support. It handles the
+ * conversion between the HDX->NDX->NDArrays and the display data.
  * The data array is displayed by default.
  * <p>
  * This class defines a number of properties that can be accessed by
@@ -55,7 +69,7 @@ import uk.ac.starlink.hdx.HdxContainerFactory;
  * managing the image data.
  * <p>
  * The value of the property "#num_pages" returns an Integer with the
- * number of NDXs in the HDX structure.
+ * number of NDXs in the HDX structure (always 1 at present).
  * <p>
  * The "#preview_image" property returns a preshrunk preview image
  * suitable for use in a pan window. The size of the preview image may
@@ -71,12 +85,12 @@ public class HDXImage
     /**
      * HdxContainer managing the HDX structure
      */
-    protected HdxContainer hdxContainer = null;
+    ////protected HdxContainer hdxContainer = null;
 
     /**
-     * List of the NDXs.
+     * List of the NDXs (current one).
      */
-    protected List ndxs = null;
+    protected List ndxs = new ArrayList();
 
     /**
      * Current NDArray, this is either the data, variance or quality
@@ -92,7 +106,7 @@ public class HDXImage
     /**
      * Index of the current NDX.
      */
-    protected int ndxIndex;
+    protected int ndxIndex = 0;
 
     /**
      * Current metadata.
@@ -150,12 +164,18 @@ public class HDXImage
      */
     public HDXImage( SeekableStream input, HDXDecodeParam param,
                      int page )
-        throws IOException, HdxException
+        throws IOException
     {
         this.param = param;
-        HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        hdxContainer = hdxFactory.readHdx( new InputStreamReader(input) );
-        ndxs = hdxContainer.getNdxList();
+        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
+        ////hdxContainer = hdxFactory.readHdx( new InputStreamReader(input) );
+        ////ndxs = hdxContainer.getNdxList();
+
+        //  Pure NDX methods for now.
+        XMLNdxHandler xmlHandler = XMLNdxHandler.getInstance();
+        StreamSource xmlSource = new StreamSource( input );
+        Ndx ndx = xmlHandler.makeNdx( xmlSource, AccessMode.READ );
+        ndxs.add( ndx );
         setNDX( page );
     }
 
@@ -165,11 +185,14 @@ public class HDXImage
      * @param fileOrURL the file name or URL
      */
     public HDXImage( String fileOrUrl )
-        throws IOException, HdxException
+        throws IOException
     {
-        HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        hdxContainer = hdxFactory.readHdx( getURL( fileOrUrl ) );
-        ndxs = hdxContainer.getNdxList();
+        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
+        ////hdxContainer = hdxFactory.readHdx( getURL( fileOrUrl ) );
+        ////ndxs = hdxContainer.getNdxList();
+        NdxIO ndxIO = new NdxIO();
+        Ndx ndx = ndxIO.makeNdx( fileOrUrl, AccessMode.READ );
+        ndxs.add( ndx );
         setNDX( 0 );
     }
 
@@ -182,7 +205,7 @@ public class HDXImage
      */
     public HDXImage( Document document, HDXDecodeParam param,
                      int page )
-        throws IOException, HdxException
+        throws IOException
     {
         this( document.getDocumentElement(), page );
         this.param = param;
@@ -195,11 +218,16 @@ public class HDXImage
      * @param page specifies the desired NDX (default: 0)
      */
     public HDXImage( Element element, int page )
-        throws IOException, HdxException
+        throws IOException
     {
-        HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
-        hdxContainer = hdxFactory.readHdx( element );
-        ndxs = hdxContainer.getNdxList();
+        ////HdxContainerFactory hdxFactory = HdxContainerFactory.getInstance();
+        ////hdxContainer = hdxFactory.readHdx( element );
+        ////ndxs = hdxContainer.getNdxList();
+
+        XMLNdxHandler xmlHandler = XMLNdxHandler.getInstance();
+        DOMSource xmlSource = new DOMSource( element );
+        Ndx ndx = xmlHandler.makeNdx( xmlSource, AccessMode.READ );
+        ndxs.add( ndx );
         setNDX( page );
     }
 
@@ -258,10 +286,10 @@ public class HDXImage
     /**
      * Return the HdxContainer
      */
-    public HdxContainer getHdxContainer()
-    {
-        return hdxContainer;
-    }
+    ////public HdxContainer getHdxContainer()
+    ////{
+    ////    return hdxContainer;
+    ////}
 
     /**
      * Set the current NDX from those available.
@@ -269,11 +297,11 @@ public class HDXImage
      * @param num The NDX number (starts at 0).
      */
     public void setNDX( int num )
-        throws IOException, HdxException
+        throws IOException
     {
         System.out.println( "num = " + num );
         if ( ndxs == null || num >= ndxs.size() ) {
-            throw new HdxException( "Cannot select NDX (" + num + ")" );
+            throw new IOException( "Cannot select NDX (" + num + ")" );
         }
         System.out.println( "size = " + ndxs.size() );
 
@@ -288,7 +316,7 @@ public class HDXImage
         if ( axes.length <= 1 ) {
             width = 0;
             height = 0;
-            throw new HdxException( "Dimensionality of NDX should be 2" );
+            throw new IOException( "Dimensionality of NDX should be 2" );
         }
         width = (int) axes[axes.length-2];
         height = (int) axes[axes.length-1];

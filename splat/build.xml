@@ -189,7 +189,7 @@
     <pathelement location="${star.jar.dir}/oldarray/array.jar"/>
 
     <!-- HDX -->
-    <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
+    <!--<pathelement location="${star.jar.dir}/hdx/hdx.jar"/>-->
 
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
@@ -215,7 +215,7 @@
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.dir}/oldarray/lib/oldarray/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
-    <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
+    <!--<pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>-->
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
   </extclasspath>
 
@@ -308,12 +308,12 @@
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 
-    <!--  Need HDX -->
-    <available property="hdx.present"
+    <!--  Need NDX -->
+    <available property="ndx.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.hdx.HdxContainer"/>
+               classname="uk.ac.starlink.ndx.Ndx"/>
 
-    <fail message="No HDX available" unless="hdx.present"/>
+    <fail message="No NDX available" unless="ndx.present"/>
 
     <!-- Need SOAPSERVER -->
     <available property="soapserver.present"
@@ -504,8 +504,8 @@
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
 value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar
-../tamfits/tamfits.jar ../hdx/hdx.jar ../jniast/jniast.jar 
-../soapserver/soapserver.jar"/>
+../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar ../jniast/jniast.jar 
+../soapserver/soapserver.jar ../fits/fits.jar ../hds/hds.jar"/>
       </manifest>
     </jar>
   </target>

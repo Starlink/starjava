@@ -31,9 +31,9 @@ import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
-import uk.ac.starlink.hdx.HdxException;
+//import uk.ac.starlink.hdx.HdxException;
 import uk.ac.starlink.jaiutil.HDXImage;
-import uk.ac.starlink.hdx.Ndx;
+import uk.ac.starlink.ndx.Ndx;
 
 /**
  * Extends NavigatorImageDisplay (and DivaMainImageDisplay) to add
@@ -191,7 +191,7 @@ public class SOGNavigatorImageDisplay
                                           getImageHeight() ) );
             }
         }
-        catch( HdxException e ) {
+        catch( Exception e ) {
             e.printStackTrace();
             setWCS( null );
             return;

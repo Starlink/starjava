@@ -7,8 +7,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.io.IOException;
 
-import uk.ac.starlink.hdx.array.NDArray;
-import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.array.NDArray;
 
 /**
  * Used for short NDArray data.
@@ -21,12 +20,14 @@ public class NDArrayDataByte extends NDArrayData
 {
     /** constructor */
     public NDArrayDataByte( NDArray tiler ) 
+        throws IOException
     {
 	super( tiler );
     }
 
-   /** constructor */
+    /** constructor */
     public NDArrayDataByte ( NDArray tiler, int[] axes ) 
+        throws IOException
     {
         super( tiler, axes );
     }
@@ -35,7 +36,7 @@ public class NDArrayDataByte extends NDArrayData
      * Fill in the given tile with the appropriate image data.
      */
     public Raster getTile( Raster tile ) 
-        throws IOException, HdxException
+        throws IOException
     {
         //System.out.println( "NDArrayDataByte: getTile = " + tile );
 	DataBufferByte dataBuffer = (DataBufferByte) tile.getDataBuffer();

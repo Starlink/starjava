@@ -6,9 +6,9 @@ package uk.ac.starlink.jaiutil;
 import java.awt.image.Raster;
 import java.io.IOException;
 
-import uk.ac.starlink.hdx.array.NDArray;
-import uk.ac.starlink.hdx.array.NDShape;
-import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.ArrayAccess;
+import uk.ac.starlink.array.NDShape;
 
 /**
  * An abstract base class for performing data type specific operations
@@ -24,7 +24,7 @@ public abstract class NDArrayData
     /**
      * Object used to access the image tiles
      */
-    protected NDArray tiler;
+    protected ArrayAccess tiler;
 
     /**
      * Width in pixels of the image data
@@ -46,12 +46,13 @@ public abstract class NDArrayData
      *
      * @param tiler the NDArray
      */
-    public NDArrayData( NDArray tiler )
+    public NDArrayData( NDArray nda )
+        throws IOException
     {
-	this.tiler = tiler;
+        this.tiler = nda.getAccess();
         long[] axes = null;
         try {
-            axes = tiler.getShape().getDims();
+            axes = nda.getShape().getDims();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -67,9 +68,10 @@ public abstract class NDArrayData
      * @param tiler the NDArray
      * @param axes an array containing the dimensions of the image
      */
-    public NDArrayData( NDArray tiler, int[] axes ) 
+    public NDArrayData( NDArray nda, int[] axes ) 
+        throws IOException
     {
-	this.tiler = tiler;
+	this.tiler = nda.getAccess();
 	naxis = axes.length;
 	this.width = axes[naxis-2];
 	this.height = axes[naxis-1];
@@ -86,7 +88,7 @@ public abstract class NDArrayData
      * @param h the height of the data to get
      */
     protected void fillTile( Object destArray, int x, int y, int w, int h )
-        throws IOException, HdxException
+        throws IOException
     {
 	long[] corners;
         int[] lengths;
@@ -124,7 +126,7 @@ public abstract class NDArrayData
      * Fill the given tile with the appropriate image data 
      */
     public abstract Raster getTile( Raster tile ) 
-        throws IOException, HdxException;
+        throws IOException;
 
     /** 
      * Return a prescaled preview image at "1/factor" of the normal

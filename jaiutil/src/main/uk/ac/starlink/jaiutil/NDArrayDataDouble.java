@@ -8,8 +8,7 @@ import java.io.IOException;
 
 import javax.media.jai.DataBufferDouble;
 
-import uk.ac.starlink.hdx.array.NDArray;
-import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.array.NDArray;
 
 /**
  * Used for double precision NDArray data.
@@ -22,12 +21,14 @@ public class NDArrayDataDouble extends NDArrayData
 {
     /** constructor */
     public NDArrayDataDouble( NDArray tiler ) 
+        throws IOException
     {
 	super( tiler );
     }
 
-   /** constructor */
+    /** constructor */
     public NDArrayDataDouble ( NDArray tiler, int[] axes ) 
+        throws IOException
     {
         super( tiler, axes );
     }
@@ -36,7 +37,7 @@ public class NDArrayDataDouble extends NDArrayData
      * Fill in the given tile with the appropriate image data.
      */
     public Raster getTile( Raster tile ) 
-        throws IOException, HdxException
+        throws IOException
     {
         //System.out.println( "NDArrayDataDouble: getTile = " + tile );
 	DataBufferDouble dataBuffer = (DataBufferDouble) tile.getDataBuffer();
