@@ -4,6 +4,14 @@
          "http://java.sun.com/products/javahelp/toc_1_0.dtd">
 
 <toc version="1.0">
-   <tocitem target="Frog.SplashPage" text="FROG help system"/>
+   <tocitem target="Frog.SplashPage"        text="FROG help system"/>
+   <tocitem target="Frog.Abstract"          text="Abstract"/>
+   <tocitem target="Frog.Overview"          text="Overview"/>             
+   <tocitem target="Frog.gettingStarted"    text="Getting started"/>        
+   <tocitem target="Frog.DisplayTimeSeries" text="Displaying a time series"/> 
+   <tocitem target="Frog.Acknowledgments"   text="Acknowledgments"/>       
+   <tocitem target="Frog.Changes"           text="Changes"/>          
+   <tocitem target="Frog.ThisRelease"       text="This Release"/>          
+   <tocitem target="Frog.AboutThisDocument" text="About this document"/>    
   
 </toc>

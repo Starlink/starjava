@@ -1,0 +1,433 @@
+\documentclass[twoside,11pt]{article}
+
+% ? Specify used packages
+\usepackage{graphicx}        %  Use this one for final production.
+% \usepackage[draft]{graphicx} %  Use this one for drafting.
+% ? End of specify used packages
+
+% Nice fonts -- during development.
+\usepackage{fancyheadings}
+\usepackage[latin1]{inputenc}
+\usepackage{ae}
+\usepackage{cmbright}
+
+\pagestyle{myheadings}
+\raggedbottom
+
+% -----------------------------------------------------------------------------
+% ? Document identification
+% Fixed part
+\newcommand{\stardoccategory}  {Starlink User Note}
+\newcommand{\stardocinitials}  {SUN}
+\newcommand{\stardocsource}    {sun\stardocnumber}
+\newcommand{\stardoccopyright}
+{Copyright \copyright\ 2001-2003 Council for the Central Laboratory of the
+Research Councils}
+
+% Variable part - replace [xxx] as appropriate.
+\newcommand{\stardocnumber}    {254.0}
+\newcommand{\stardocauthors}   {Alasdair Allan}
+\newcommand{\stardocdate}      {21 Apr 2004}
+\newcommand{\stardoctitle}     {FROG - A Time Series Analysis Package}
+\newcommand{\stardocversion}   {1.0}
+\newcommand{\stardocmanual}    {User's Manual}
+\newcommand{\stardocabstract}  {
+\textsf{FROG} is an extensible analysis and display tool for time series.
+}
+% ? End of document identification
+% -----------------------------------------------------------------------------
+
+% +
+%  Name:
+%     sun.tex
+%
+%  Purpose:
+%     Template for Starlink User Note (SUN) documents.
+%     Refer to SUN/199
+%
+%  Authors:
+%     AJC: A.J.Chipperfield (Starlink, RAL)
+%     BLY: M.J.Bly (Starlink, RAL)
+%     PWD: Peter W. Draper (Starlink, Durham University)
+%
+%  History:
+%     17-JAN-1996 (AJC):
+%        Original with hypertext macros, based on MDL plain originals.
+%     16-JUN-1997 (BLY):
+%        Adapted for LaTeX2e.
+%        Added picture commands.
+%     13-AUG-1998 (PWD):
+%        Converted for use with LaTeX2HTML version 98.2 and
+%        Star2HTML version 1.3.
+%      1-FEB-2000 (AJC):
+%        Add Copyright statement in LaTeX
+%     {Add further history here}
+%
+% -
+
+\newcommand{\stardocname}{\stardocinitials /\stardocnumber}
+\markboth{\stardocname}{\stardocname}
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{230mm}
+\setlength{\topmargin}{-2mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{\medskipamount}
+\setlength{\unitlength}{1mm}
+
+% -----------------------------------------------------------------------------
+%  Hypertext definitions.
+%  ======================
+%  These are used by the LaTeX2HTML translator in conjunction with star2html.
+
+%  Comment.sty: version 2.0, 19 June 1992
+%  Selectively in/exclude pieces of text.
+%
+%  Author
+%    Victor Eijkhout                                      <eijkhout@cs.utk.edu>
+%    Department of Computer Science
+%    University Tennessee at Knoxville
+%    104 Ayres Hall
+%    Knoxville, TN 37996
+%    USA
+
+%  Do not remove the %begin{latexonly} and %end{latexonly} lines (used by
+%  LaTeX2HTML to signify text it shouldn't process).
+%begin{latexonly}
+\makeatletter
+\def\makeinnocent#1{\catcode`#1=12 }
+\def\csarg#1#2{\expandafter#1\csname#2\endcsname}
+
+\def\ThrowAwayComment#1{\begingroup
+    \def\CurrentComment{#1}%
+    \let\do\makeinnocent \dospecials
+    \makeinnocent\^^L% and whatever other special cases
+    \endlinechar`\^^M \catcode`\^^M=12 \xComment}
+{\catcode`\^^M=12 \endlinechar=-1 %
+ \gdef\xComment#1^^M{\def\test{#1}
+      \csarg\ifx{PlainEnd\CurrentComment Test}\test
+          \let\html@next\endgroup
+      \else \csarg\ifx{LaLaEnd\CurrentComment Test}\test
+            \edef\html@next{\endgroup\noexpand\end{\CurrentComment}}
+      \else \let\html@next\xComment
+      \fi \fi \html@next}
+}
+\makeatother
+
+\def\includecomment
+ #1{\expandafter\def\csname#1\endcsname{}%
+    \expandafter\def\csname end#1\endcsname{}}
+\def\excludecomment
+ #1{\expandafter\def\csname#1\endcsname{\ThrowAwayComment{#1}}%
+    {\escapechar=-1\relax
+     \csarg\xdef{PlainEnd#1Test}{\string\\end#1}%
+     \csarg\xdef{LaLaEnd#1Test}{\string\\end\string\{#1\string\}}%
+    }}
+
+%  Define environments that ignore their contents.
+\excludecomment{comment}
+\excludecomment{rawhtml}
+\excludecomment{htmlonly}
+
+%  Hypertext commands etc. This is a condensed version of the html.sty
+%  file supplied with LaTeX2HTML by: Nikos Drakos <nikos@cbl.leeds.ac.uk> &
+%  Jelle van Zeijl <jvzeijl@isou17.estec.esa.nl>. The LaTeX2HTML documentation
+%  should be consulted about all commands (and the environments defined above)
+%  except \xref and \xlabel which are Starlink specific.
+
+\newcommand{\htmladdnormallinkfoot}[2]{#1\footnote{#2}}
+\newcommand{\htmladdnormallink}[2]{#1}
+\newcommand{\htmladdimg}[1]{}
+\newcommand{\hyperref}[4]{#2\ref{#4}#3}
+\newcommand{\htmlref}[2]{#1}
+\newcommand{\htmlimage}[1]{}
+\newcommand{\htmladdtonavigation}[1]{}
+
+\newenvironment{latexonly}{}{}
+\newcommand{\latex}[1]{#1}
+\newcommand{\html}[1]{}
+\newcommand{\latexhtml}[2]{#1}
+\newcommand{\HTMLcode}[2][]{}
+
+%  Starlink cross-references and labels.
+\newcommand{\xref}[3]{#1}
+\newcommand{\xlabel}[1]{}
+
+%  LaTeX2HTML symbol.
+\newcommand{\latextohtml}{\LaTeX2\texttt{HTML}}
+
+%  Define command to re-centre underscore for Latex and leave as normal
+%  for HTML (severe problems with \_ in tabbing environments and \_\_
+%  generally otherwise).
+\renewcommand{\_}{\texttt{\symbol{95}}}
+
+% -----------------------------------------------------------------------------
+%  Debugging.
+%  =========
+%  Remove % on the following to debug links in the HTML version using Latex.
+
+% \newcommand{\hotlink}[2]{\fbox{\begin{tabular}[t]{@{}c@{}}#1\\\hline{\footnotesize #2}\end{tabular}}}
+% \renewcommand{\htmladdnormallinkfoot}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\htmladdnormallink}[2]{\hotlink{#1}{#2}}
+% \renewcommand{\hyperref}[4]{\hotlink{#1}{\S\ref{#4}}}
+% \renewcommand{\htmlref}[2]{\hotlink{#1}{\S\ref{#2}}}
+% \renewcommand{\xref}[3]{\hotlink{#1}{#2 -- #3}}
+%end{latexonly}
+% -----------------------------------------------------------------------------
+% ? Document specific \newcommand or \newenvironment commands.
+
+% FROG.
+\newcommand{\FROG}{\textsf{FROG}}
+
+% Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
+% \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
+\newcommand{\mainfigure}[1]
+{\begin{center}
+ \latexhtml{\includegraphics[scale=0.5]{sun254.fig/#1.eps}}{\htmladdimg{../sun254.fig/#1.gif}}
+ \end{center}
+}
+
+\newcommand{\clippedmainfigure}[1]
+{\begin{quote}
+ \latexhtml{\includegraphics[scale=0.5,clip=true]{sun254.fig/#1.eps}}{\htmladdimg{../sun254.fig/#1.gif}}
+ \end{quote}
+}
+
+% Inline a graphic (like an icon). Needs ".gif" and ".eps" forms.
+\newcommand{\inline}[1]
+        {\latexhtml{\includegraphics[scale=0.5]{sun254.fig/#1.eps}}
+        {\htmladdimg[align=center]{../sun254.fig/#1.gif}}}
+
+% UI elements.
+\newcommand{\menuitem}[1]{\textbf{#1}}
+\newcommand{\submenuitem}[2]{\latexhtml{\textbf{#1$\rightarrow$#2}}{\textbf{#1=>#2}}}
+\newcommand{\labelitem}[1]{\textbf{#1}}
+
+% typed text.
+\newcommand{\hitext}[1]{\texttt{#1}}
+
+% i.e.
+\newcommand{\ie}{\textit{i.e.}}
+
+% e.g..
+\newcommand{\eg}{\textit{e.g.}}
+
+% etc.
+\newcommand{\etc}{\textit{etc.}}
+
+% Heading for a paragraph section.
+\newcommand{\subheading}[1]{\textbf{\large{#1}}}
+
+% ? End of document specific commands
+% -----------------------------------------------------------------------------
+%  Title Page.
+%  ===========
+\renewcommand{\thepage}{\roman{page}}
+\begin{document}
+\thispagestyle{empty}
+
+%  Latex document header.
+%  ======================
+\begin{latexonly}
+   CCLRC / Rutherford Appleton Laboratory \hfill \textbf{\stardocname}\\
+   {\large Particle Physics \& Astronomy Research Council}\\
+   {\large Starlink Project\\}
+   {\large \stardoccategory\ \stardocnumber}
+   \begin{flushright}
+   \stardocauthors\\
+   \stardocdate
+   \end{flushright}
+   \vspace{-4mm}
+   \rule{\textwidth}{0.5mm}
+   \vspace{5mm}
+   \begin{center}
+      {\LARGE\textbf{\stardoctitle \\ [2.5ex]}}
+   \end{center}
+   \vspace{5mm}
+
+% ? Add picture here if required for the LaTeX version.
+\begin{center}
+\includegraphics[scale=0.6]{sun254.fig/splash.eps}
+\end{center}
+% ? End of picture
+
+% ? Heading for abstract if used.
+   %\vspace{10mm}
+   \begin{center}
+      {\Large\textbf{Abstract}}
+   \end{center}
+% ? End of heading for abstract.
+\end{latexonly}
+
+%  HTML documentation header.
+%  ==========================
+\begin{htmlonly}
+   \xlabel{}
+   \begin{rawhtml} <H1 ALIGN=CENTER> <FONT COLOR="#000099">\end{rawhtml}
+      \stardoctitle
+   \begin{rawhtml} </FONT></H1> \end{rawhtml}
+
+% ? Add picture here if required for the hypertext version.
+   \begin{center}
+      \htmladdimg{../sun254.fig/splash.gif}
+   \end{center}
+% ? End of picture
+
+   \begin{rawhtml} <P> <I> \end{rawhtml}
+   \stardoccategory\ \stardocnumber \\
+   \stardocauthors \\
+   \stardocdate
+   \begin{rawhtml} </I> </P> <H3> \end{rawhtml}
+      \htmladdnormallink{CCLRC / Rutherford Appleton Laboratory}
+                        {http://www.cclrc.ac.uk} \\
+      \htmladdnormallink{Particle Physics \& Astronomy Research Council}
+                        {http://www.pparc.ac.uk} \\
+   \begin{rawhtml} </H3> <H2> \end{rawhtml}
+      \htmladdnormallink{Starlink Project}{http://www.starlink.rl.ac.uk/}
+   \begin{rawhtml} </H2> \end{rawhtml}
+   \htmladdnormallink{\htmladdimg{source.gif} Retrieve hardcopy}
+      {http://www.starlink.rl.ac.uk/cgi-bin/hcserver?\stardocsource}\\
+
+%  HTML document table of contents.
+%  ================================
+%  Add table of contents header and a navigation button to return to this
+%  point in the document (this should always go before the abstract \section).
+  \label{stardoccontents}
+  \begin{rawhtml}
+    <HR>
+    <H2>Contents</H2>
+  \end{rawhtml}
+  \htmladdtonavigation{\htmlref{\htmladdimg{contents_motif.gif}}
+        {stardoccontents}}
+
+% ? New section for abstract if used.
+  \section{\xlabel{abstract}Abstract}
+% ? End of new section for abstract
+\end{htmlonly}
+
+% -----------------------------------------------------------------------------
+% ? Document Abstract. (if used)
+%  ==================
+\begin{center}
+\stardocabstract
+\end{center}
+% ? End of document abstract
+
+% -----------------------------------------------------------------------------
+% ? Latex Copyright Statement
+%  =========================
+\begin{latexonly}
+\newpage
+\vspace*{\fill}
+\stardoccopyright
+\end{latexonly}
+% ? End of Latex copyright statement
+
+% -----------------------------------------------------------------------------
+% ? Latex document Table of Contents (if used).
+%  ===========================================
+\newpage
+\begin{latexonly}
+  \setlength{\parskip}{0mm}
+  \tableofcontents
+  \setlength{\parskip}{\medskipamount}
+  \markboth{\stardocname}{\stardocname}
+\end{latexonly}
+% ? End of Latex document table of contents
+% -----------------------------------------------------------------------------
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{page}{1}
+
+% ? Main text
+
+
+\section{Overview\xlabel{overview}}
+
+
+\FROG\ is a graphical tool for displaying, comparing, modifying and
+analysing time series stored in FITS and TEXT file
+
+If you have any problems with or comments to make about \FROG\, then send
+these to:
+\begin{quote}
+\begin{verbatim}
+   frog@starlink.ac.uk
+\end{verbatim}
+\end{quote}
+
+\section{Getting started\xlabel{getting_started}}
+
+The next two sections describe how to display a time series. If you're new to \FROG\ then do take the time to read these through and try out the example commands.
+
+\newpage
+\subsection{Displaying a time series}
+
+To start \FROG\ you should just need to type the command:
+\begin{quote}
+\begin{verbatim}
+  % frog &
+\end{verbatim}
+\end{quote}
+This assumes that you have \FROG\ installed on your system as part of a
+standard Starlink installation. If not then you'll need follow any
+installation and pre-startup instructions that you have before using
+this command.
+
+When \FROG\ appears it should look something like:
+
+\mainfigure{main_window}
+
+This is the main \hitext{browser} window.
+
+To open your first time series select the \menuitem{Open Time Series} item in the
+\menuitem{File} menu. This will create a familiar open file dialog
+window. Just navigate to your spectrum, select it, and press
+\menuitem{Open} to proceed.
+
+Alternatively you could have supplied the spectrum you want to use on
+the command-line:
+\begin{quote}
+\begin{verbatim}
+  % frog <time series> &
+\end{verbatim}
+\end{quote}
+Which will read the time series stored in the named file. \FROG\ will read
+spectra stored in a FITS or a TEXT files.
+
+
+\section{Acknowledgments}
+
+\FROG\ is written in
+\htmladdnormallinkfoot{Java}{http://java.sun.com} by
+\htmladdnormallinkfoot{SUN Microsystems Inc.}{http://www.sun.com/} and
+contains software from:
+\begin{itemize}
+\item The JDOM Project (\htmladdnormallink{http://www.jdom.org/}
+                        {http://www.jdom.org/}).
+\item The Apache Software Foundation
+      (\htmladdnormallink{http://www.apache.org/}{http://www.apache.org/} ).
+\item The DIVA project
+      (\htmladdnormallink{http://www.gigascale.org/diva/}
+                         {http://www.gigascale.org/diva/}).
+\item The COLT distribution
+      (\htmladdnormallink{http://http://hoschek.home.cern.ch/hoschek/colt/}
+                         {http://http://hoschek.home.cern.ch/hoschek/colt/}).
+\end{itemize}
+
+\section{Changes}
+\subsection{This release, 0.7}
+In this release \FROG\ has become part of the Starlink Java
+Collection and is now released under the GPL. 
+
+The most significant changes are:
+\begin{itemize}
+
+   \item It sometimes does what it says on the tin.
+   
+  
+\end{itemize}
+
+\end{document}

@@ -7,7 +7,14 @@
 
 <map version="1.0">
 
-  <mapID target="Frog.SplashPage"         url="frogdocs/index.html"/>
-  
+  <mapID target="Frog.SplashPage"            url="sun254.htx/sun254.html"/>
+  <mapID target="Frog.Abstract"              url="sun254.htx/node1.html"/>
+  <mapID target="Frog.Overview"              url="sun254.htx/node2.html"/>
+  <mapID target="Frog.gettingStarted"        url="sun254.htx/node3.html"/>
+  <mapID target="Frog.DisplayTimeSeries"     url="sun254.htx/node4.html"/>
+  <mapID target="Frog.Acknowledgments"       url="sun254.htx/node5.html"/>
+  <mapID target="Frog.Changes"               url="sun254.htx/node6.html"/>
+  <mapID target="Frog.ThisRelease"           url="sun254.htx/node7.html"/>
+  <mapID target="Frog.AboutThisDocument"     url="sun254.htx/node8.html"/>
 
 </map>
