@@ -30,6 +30,7 @@ public class StarTableColumn extends TableColumn {
      */
     public StarTableColumn( ColumnInfo colinfo, int modelIndex ) {
         super( modelIndex );
+        this.colinfo = colinfo;
         TableCellRenderer rend = colinfo.getCellRenderer();
         setCellRenderer( rend != null ? rend
                                       : new ValueInfoCellRenderer( colinfo ) );

@@ -151,7 +151,7 @@ public class StarJTable extends JTable {
                                               int nrows ) {
         table.setAutoResizeMode( AUTO_RESIZE_OFF );
         TableColumnModel tcm = table.getColumnModel();
-        int ncol = table.getColumnCount();
+        int ncol = tcm.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
 
             /* See how wide the cells want to be, and set the graphical
@@ -161,6 +161,27 @@ public class StarJTable extends JTable {
                                   maxpix );
             tc.setPreferredWidth( width );
         }
+    }
+
+    /**
+     * Sets the width of one column to match the width of its contents.
+     * A heuristic * method is used; the widths of the headers and of 
+     * the first few rows is got, and the width set to this value.
+     * This method uses the cell renderers and table contents currently
+     * in force, so should be called after internal configuration.
+     *
+     * @param   table  the JTable whose widths are to be set
+     * @param   maxpix the maximum column width allowed (pixels)
+     * @param  nrows    the number of rows of the tables to survey
+     *                  for working out column widths.  If a number greater
+     *                  than the number of rows in the table is given,
+     *                  all rows will be surveyed
+     * @param  icol   the index of the column to be configured
+     */
+    public static void configureColumnWidth( JTable table, int maxpix,
+                                             int nrows, int icol ) {
+        int width = Math.min( getColumnWidth( table, icol, nrows ), maxpix );
+        table.getColumnModel().getColumn( icol ).setPreferredWidth( width );
     }
 
     /**

@@ -16,10 +16,8 @@ import javax.swing.table.TableModel;
  * Provides a component suitable for use as a rowHeader component in
  * the same <tt>JScrollPane</tt> as is being used to house a 
  * <tt>JTable</tt>.  It displays the row indices starting at 1 and increasing.
- * If you want some other number to be displayed, give this object a 
- * new model using {@link javax.swing.JTable#setModel}.  Supplying a 
- * model with more than one column, or which does not supply a 
- * number-like value, is not guaranteed to work properly.
+ * If you want some other number to be displayed, override the
+ * {@link #rowNumber} method.
  * <p>
  * You would normally use this class as follows:
  * <pre>
@@ -36,7 +34,7 @@ public class TableRowHeader extends JTable {
     private JTable table;
 
     /**
-     * Construct a new 
+     * Construct a new TableRowHeader.
      */
     public TableRowHeader( JTable tabl ) {
         this.table = tabl;
@@ -50,7 +48,7 @@ public class TableRowHeader extends JTable {
                 return 1;
             }
             public Object getValueAt( int irow, int icol ) {
-                return new Integer( irow + 1 ) + "  ";
+                return new Integer( rowNumber( irow ) ) + "  ";
             }
         } );
 
@@ -73,11 +71,15 @@ public class TableRowHeader extends JTable {
         TableColumn col = new TableColumn( 0, 64, rend, null ) {
             public int getPreferredWidth() {
                 JTable tab = TableRowHeader.this;
-                return 8 + 
-                    Math.max( StarJTable
-                             .getCellWidth( tab, table.getRowCount() - 1, 0 ),
-                              StarJTable
-                             .getCellWidth( tab, 0, 0 ) );
+                int nrow = table.getRowCount();
+                int first = StarJTable.getCellWidth( tab, 0, 0 );
+                int last = StarJTable.getCellWidth( tab, nrow - 1, 0);
+                int guess = tab.getCellRenderer( 0, 0 )
+                               .getTableCellRendererComponent( tab, 
+                                    new Integer( nrow + 1 ) + "  ",
+                                    false, false, 0, 0 )
+                               .getPreferredSize().width;
+                return 8 + Math.max( Math.max( first, last ), guess );
             }
         };
 
@@ -89,6 +91,20 @@ public class TableRowHeader extends JTable {
 
     public Dimension getPreferredScrollableViewportSize() {
         return getPreferredSize();
+    }
+
+    /**
+     * Determines the numeric index to be displayed for a given row 
+     * number into the table.  The default implementation returns
+     * <tt>irow+1</tt> so that the first row is labelled 1, the second
+     * one 2 etc, but this method may be overridden for more specialised
+     * behaviour.
+     * 
+     * @param  irow  the row index of the displayed row (starts at zero)
+     * @return  the number of the row it should be labelled
+     */
+    public int rowNumber( int irow ) {
+        return irow + 1;
     }
 
 }
