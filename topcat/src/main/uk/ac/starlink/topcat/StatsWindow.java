@@ -213,6 +213,7 @@ public class StatsWindow extends AuxWindow {
 
         private final RowSubset rset;
 
+        int ncol;
         long ngoodrow;
         Object[] mins;
         Object[] maxs;
@@ -284,7 +285,7 @@ public class StatsWindow extends AuxWindow {
          * @throws  IOException if calculation is not complete
          */
         private void calculate() throws IOException {
-            int ncol = dataModel.getColumnCount();
+            ncol = dataModel.getColumnCount();
 
             /* Allocate result objects. */
             mins = new Object[ ncol ];
@@ -500,6 +501,9 @@ public class StatsWindow extends AuxWindow {
             }
             else if ( calc == null ) {
                 return null;
+            }
+            else if ( jcol >= calc.ncol ) {  // newly added column
+                return " ? ";
             }
             switch ( icol ) {
                 case NGOOD_COL:   return new Long( calc.ngoods[ jcol ] );
