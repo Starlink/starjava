@@ -19,18 +19,11 @@ public abstract class FileNode implements Node {
      * @param  file  file
      */
     protected FileNode( File file ) {
-        File f;
-        try {
-            f = file.getCanonicalFile();
-        }
-        catch ( IOException e ) {
-            f = file.getAbsoluteFile();
-        }
-        file_ = f;
+        file_ = file.getAbsoluteFile();
     }
 
     public String getName() {
-        return file_.getParentFile() == null ? File.separator
+        return file_.getParentFile() == null ? file_.toString()
                                              : file_.getName();
     }
 
