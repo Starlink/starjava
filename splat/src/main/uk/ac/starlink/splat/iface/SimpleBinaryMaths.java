@@ -384,7 +384,7 @@ public class SimpleBinaryMaths extends JFrame
             //  Create a memory spectrum to contain the fit.
             EditableSpecData newSpec = SpecDataFactory.getReference().
                 createEditable( name );
-            newSpec.setData( data, coords );
+            newSpec.setData( coords, data );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

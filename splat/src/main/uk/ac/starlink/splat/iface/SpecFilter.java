@@ -72,7 +72,7 @@ public class SpecFilter
             EditableSpecData newSpec = SpecDataFactory.getReference().
                 createEditable( makeName( spectrum ) );
 
-            newSpec.setData( newdata, spectrum.getXData() );
+            newSpec.setData( spectrum.getXData(), newdata );
 
             globalList.add( newSpec );
             return newSpec;

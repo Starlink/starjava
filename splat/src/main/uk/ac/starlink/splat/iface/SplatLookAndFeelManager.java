@@ -102,7 +102,7 @@ public class SplatLookAndFeelManager implements ActionListener
     protected void addLookAndFeels()
     {
         ButtonGroup lfGroup = new ButtonGroup();
-        JMenu selectLookMenu = new JMenu( "Look and Feel" );
+        JMenu selectLookMenu = new JMenu( "Look and feel" );
 
         final UIManager.LookAndFeelInfo[] lfInfo =
             UIManager.getInstalledLookAndFeels();
@@ -167,7 +167,7 @@ public class SplatLookAndFeelManager implements ActionListener
     protected void addThemes()
     {
         //  Add colour theme support.
-        themeMenu = new JMenu( "Colour Theme" );
+        themeMenu = new JMenu( "Colour theme" );
         targetMenu.add( themeMenu );
         JMenuItem item;
         for ( int i = 0; i < themeMapping.length; i++ ) {

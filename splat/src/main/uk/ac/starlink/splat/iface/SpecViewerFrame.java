@@ -24,13 +24,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
+import javax.swing.undo.UndoManager;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.text.DecimalFormat;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.gui.AstCellEditor;
 import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -42,10 +45,17 @@ import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * Displays a table of the values in a selected spectrum. Also allows
- * the values to be editted, if the spectrum is memory resident
- * (non-memory spectra need to have a copy created first). Edits are
- * direct and no undo facilities are provided (yet).
+ * Displays a table of the values in a selected spectrum and allows
+ * their modification (readonly spectra can be changed to modifiedable
+ * ones trivially by making a memory copy).
+ * <p>
+ * There are two basic ways of modifying the data, either values may
+ * be changed individually, or columns of data may be changed as a
+ * whole. In this latter case tools are provided to generate the new
+ * values from functions of the existing values.
+ * <p>
+ * The error column can be created or deleted and rows of data can be
+ * added or removed.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -107,6 +117,10 @@ public class SpecViewerFrame
      */
     protected SplatName splatName = null;
 
+    //  Undo and redo actions.
+    protected UndoAction undoAction = null;
+    protected RedoAction redoAction = null;
+
     /**
      * Create an instance.
      */
@@ -140,7 +154,7 @@ public class SpecViewerFrame
         table.setDefaultRenderer( AstDouble.class, new NumberCellRenderer() );
         table.setDefaultEditor( AstDouble.class, new AstCellEditor() );
 
-        TitledBorder tableViewTitle = 
+        TitledBorder tableViewTitle =
             BorderFactory.createTitledBorder( "Values:" );
         tableScroller.setBorder( tableViewTitle );
 
@@ -148,7 +162,7 @@ public class SpecViewerFrame
         //  for the spectrum.
         JPanel topPanel = new JPanel( new BorderLayout() );
         splatName = new SplatName();
-        TitledBorder splatTitle = 
+        TitledBorder splatTitle =
             BorderFactory.createTitledBorder( "Spectrum:" );
         splatName.setBorder( splatTitle );
         topPanel.add( splatName, BorderLayout.NORTH );
@@ -203,19 +217,32 @@ public class SpecViewerFrame
      */
     protected void createEditMenu()
     {
-        // XXX TODO. Need undo support throughout...
         editMenu.setText( "Edit" );
         menuBar.add( editMenu );
 
+        // Undo the last change...
+        undoAction = new UndoAction( "Undo", "Undo the last change" );
+        editMenu.add( undoAction );
+
+        // Redo the last undo...
+        redoAction = new RedoAction( "Redo", "Undo the last undo" );
+        editMenu.add( redoAction );
+
+        //  Insert new rows
+        InsertRowsAction insertRowsAction =
+            new InsertRowsAction( "Insert new rows",
+                                  "Insert new rows at the selected position" );
+        editMenu.add( insertRowsAction );
+
         //  Delete selected rows
-        DeleteSelectedRowsAction deleteSelectedRowsAction = 
-            new DeleteSelectedRowsAction( "Delete Selected Rows",
+        DeleteSelectedRowsAction deleteSelectedRowsAction =
+            new DeleteSelectedRowsAction( "Delete selected rows",
                                           "Delete the selected rows" );
         editMenu.add( deleteSelectedRowsAction );
 
         //  Delete the error column.
-        DeleteErrorColumnAction deleteErrorColumnAction = 
-            new DeleteErrorColumnAction( "Delete Error Column",
+        DeleteErrorColumnAction deleteErrorColumnAction =
+            new DeleteErrorColumnAction( "Delete error column",
                                          "Delete the error column" );
         editMenu.add( deleteErrorColumnAction );
     }
@@ -229,20 +256,20 @@ public class SpecViewerFrame
         menuBar.add( opsMenu );
 
         //  Modify the coordinates
-        CreateCoordinatesAction createCoordinatesAction = 
-            new CreateCoordinatesAction( "Modify Coordinates",
+        CreateCoordinatesAction createCoordinatesAction =
+            new CreateCoordinatesAction( "Modify coordinates",
                                          "Modify or create new coordinates" );
         opsMenu.add( createCoordinatesAction );
 
         //  Modify the data column.
-        CreateDataColumnAction createDataColumnAction = 
-            new CreateDataColumnAction( "Modify Data Column",
+        CreateDataColumnAction createDataColumnAction =
+            new CreateDataColumnAction( "Modify data column",
                                         "Modify the data column" );
         opsMenu.add( createDataColumnAction );
 
-        //  Create an error column.
-        CreateErrorColumnAction createErrorColumnAction = 
-            new CreateErrorColumnAction( "Create Error Column",
+        //  Create or modify the error column.
+        CreateErrorColumnAction createErrorColumnAction =
+            new CreateErrorColumnAction( "Modify error column",
                                          "Create or modify the error column" );
         opsMenu.add( createErrorColumnAction );
     }
@@ -252,10 +279,24 @@ public class SpecViewerFrame
      */
     public void setSpecData( SpecData specData )
     {
-        this.specData = specData;
-        model.setSpecData( specData );
-        splatName.setSpecData( specData );
-        readOnly.setSelected( model.isReadOnly() );
+        if ( specData != this.specData ) {
+            this.specData = specData;
+            model.setSpecData( specData );
+            splatName.setSpecData( specData );
+            readOnly.setSelected( model.isReadOnly() );
+            
+            //  Get an undo manager for this EditableSpecData.
+            if ( specData instanceof EditableSpecData ) {
+                undoManager = ((EditableSpecData) specData).getUndoManager();
+                specDataChanged();
+            }
+            else {
+                
+                //  No UndoManager means no undos.
+                undoManager = null;
+                refreshUndoRedo();
+            }
+        }
     }
 
     /**
@@ -275,6 +316,21 @@ public class SpecViewerFrame
     {
         model.update( true );
         globalList.notifySpecListeners( specData );
+
+        //  Inform any local windows.
+        if ( dataColumnGenerator != null ) {
+            dataColumnGenerator
+                .setEditableSpecData( (EditableSpecData) specData );
+        }
+        if ( errorColumnGenerator != null ) {
+            errorColumnGenerator
+                .setEditableSpecData( (EditableSpecData) specData );
+        }
+        if ( coordinateGenerator != null ) {
+            coordinateGenerator
+                .setEditableSpecData( (EditableSpecData) specData );
+        }
+        //refreshUndoRedo();
     }
 
     protected CoordinateGeneratorFrame coordinateGeneratorWindow = null;
@@ -287,10 +343,10 @@ public class SpecViewerFrame
     {
         if ( ! model.isReadOnly() ) {
             if ( coordinateGeneratorWindow == null ) {
-                coordinateGenerator = 
-                    new CoordinateGenerator( (EditableSpecData) specData, 
+                coordinateGenerator =
+                    new CoordinateGenerator( (EditableSpecData) specData,
                                              this );
-                coordinateGeneratorWindow = 
+                coordinateGeneratorWindow =
                     new CoordinateGeneratorFrame( coordinateGenerator );
             }
             coordinateGeneratorWindow.setVisible( true );
@@ -300,7 +356,7 @@ public class SpecViewerFrame
         else {
             JOptionPane.showMessageDialog
                 ( this, "Cannot create or modify the coordinates " +
-                  "of a readonly spectrum", "Readonly", 
+                  "of a readonly spectrum", "Readonly",
                   JOptionPane.ERROR_MESSAGE );
         }
     }
@@ -317,10 +373,10 @@ public class SpecViewerFrame
     {
         if ( ! model.isReadOnly() ) {
             if ( errorColumnWindow == null ) {
-                errorColumnGenerator = 
-                    new ErrorColumnGenerator( (EditableSpecData) specData, 
+                errorColumnGenerator =
+                    new ErrorColumnGenerator( (EditableSpecData) specData,
                                               this );
-                errorColumnWindow = 
+                errorColumnWindow =
                     new ColumnGeneratorFrame( errorColumnGenerator );
             }
             errorColumnWindow.setVisible( true );
@@ -330,7 +386,7 @@ public class SpecViewerFrame
         else {
             JOptionPane.showMessageDialog
                 ( this, "Cannot create or modify the error column " +
-                  "for a readonly spectrum", "Readonly", 
+                  "for a readonly spectrum", "Readonly",
                   JOptionPane.ERROR_MESSAGE );
         }
     }
@@ -346,10 +402,10 @@ public class SpecViewerFrame
     {
         if ( ! model.isReadOnly() ) {
             if ( dataColumnWindow == null ) {
-                dataColumnGenerator = 
-                    new DataColumnGenerator( (EditableSpecData) specData, 
+                dataColumnGenerator =
+                    new DataColumnGenerator( (EditableSpecData) specData,
                                              this );
-                dataColumnWindow = 
+                dataColumnWindow =
                     new ColumnGeneratorFrame( dataColumnGenerator );
             }
             dataColumnWindow.setVisible( true );
@@ -359,7 +415,7 @@ public class SpecViewerFrame
         else {
             JOptionPane.showMessageDialog
                 ( this, "Cannot re-create or modify the data column " +
-                  "of a readonly spectrum", "Readonly", 
+                  "of a readonly spectrum", "Readonly",
                   JOptionPane.ERROR_MESSAGE );
         }
     }
@@ -369,12 +425,34 @@ public class SpecViewerFrame
     //
 
     /**
-     * Respond to coordinate modification events.
+     * Accept a change of coordinate column.
      */
-    public void generatedCoordinates()
+    public void acceptGeneratedCoords( double[] coords )
     {
-        specDataChanged();
-        coordinateGenerator.setEditableSpecData( (EditableSpecData) specData );
+        try {
+            ((EditableSpecData) specData)
+                .setDataQuick( coords, specData.getYData(),
+                               specData.getYDataErrors() );
+            specDataChanged();
+        }
+        catch (SplatException e) {
+            new ExceptionDialog( this, e );
+        }
+    }
+
+    /**
+     * Change the spectrum FrameSet. This modifies the coordinates
+     * according to some new mapping.
+     */
+    public void changeFrameSet( FrameSet frameSet )
+    {
+        try {
+            ((EditableSpecData)specData).setFrameSet( frameSet );
+            specDataChanged();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //
@@ -392,25 +470,152 @@ public class SpecViewerFrame
                     // Data column.
                     double[] coords = specData.getXData();
                     double[] errors = specData.getYDataErrors();
-                    ((EditableSpecData)specData).setDataQuick( column,
-                                                               coords, 
+                    ((EditableSpecData)specData).setDataQuick( coords,
+                                                               column,
                                                                errors );
                 }
                 else {
                     // Error column.
                     double[] coords = specData.getXData();
                     double[] values = specData.getYData();
-                    ((EditableSpecData)specData).setDataQuick( values,
-                                                               coords, 
+                    ((EditableSpecData)specData).setDataQuick( coords,
+                                                               values,
                                                                column );
                 }
                 specDataChanged();
-                dataColumnGenerator.setEditableSpecData
-                    ( (EditableSpecData)specData );
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
             }
+        }
+    }
+
+    /** Number of rows added by default */
+    protected Integer defaultRows = new Integer( 1 );
+
+    /** DecimalFormat used to parse numbers */
+    protected DecimalFormat defaultDecimalFormat = new DecimalFormat();
+
+    /**
+     * Insert a number of new rows into the spectrum.
+     */
+    protected void insertNewRows()
+    {
+        if ( ! model.isReadOnly() ) {
+            //  Need to find out how many.
+            Number number =
+                DecimalDialog.showDialog( this, "Add new rows",
+                                          "Number of rows to create",
+                                          defaultDecimalFormat,
+                                          defaultRows );
+            if ( number != null ) {
+                int nrows = number.intValue();
+
+                // Generate the required data and insert it.
+                generateAndInsertRows( nrows );
+
+                // Dialog shows same value next time.
+                defaultRows = new Integer( nrows );
+            }
+        }
+        else {
+            JOptionPane.showMessageDialog
+                ( this,
+                  "Cannot modify a read-only spectrum",
+                  "Readonly", JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+    /**
+     * Generate a sequence of new rows and insert these into the
+     * currently selected position in the table.
+     */
+    protected void generateAndInsertRows( int nrows )
+    {
+        double[] coords = specData.getXData();
+
+        // The main problem here is that coordinates must increase or
+        // decrease, so need to interpolate or extrapolate in some
+        // sense.
+        int index = table.getSelectedRow();
+        if ( index == - 1 ) {
+            index = coords.length - 1;
+        }
+
+        //  Get nearest values.
+        double lower = coords[index];
+        double upper = lower;
+        if ( index < coords.length - 1 ) {
+            upper = coords[index + 1];
+        }
+        double incr = 1.0;
+        if ( upper > lower ) {
+            incr = ( upper - lower ) / (double) ( nrows + 1 );
+        }
+
+        //  Insert after the selected position.
+        index++;
+
+        //  Create new arrays for spectrum.
+        double[] values = specData.getYData();
+        double[] errors = specData.getYDataErrors();
+
+        int length = coords.length + nrows;
+        double[] newCoords = new double[length];
+        double[] newValues = new double[length];
+        double[] newErrors = null;
+        if ( errors != null ) {
+            newErrors = new double[length];
+        }
+
+        //  Copy the first part, i.e. up to the selected row into new arrays.
+        int start = 0;
+        int end = index;
+        System.arraycopy( coords, start, newCoords, start, index );
+        System.arraycopy( values, start, newValues, start, index );
+        if ( errors != null ) {
+            System.arraycopy( errors, start, newErrors, start, index );
+        }
+        start = index + nrows;
+
+        //  Generate the new rows. Coordinates increment by incr each
+        //  row and all values are <bad>, making them break the spectrum.
+        lower += incr;
+        if ( errors == null ) {
+            for ( int i = index; i < start; i++ ) {
+                newCoords[i] = lower;
+                lower += incr;
+                newValues[i] = SpecData.BAD;
+            }
+        }
+        else {
+            for ( int i = index; i < start; i++ ) {
+                newCoords[i] = lower;
+                lower += incr;
+                newValues[i] = SpecData.BAD;
+                newErrors[i] = SpecData.BAD;
+            }
+        }
+
+        //  Copy any remaining data from the original arrays.
+        if ( start < length - 1 ) {
+            length = length - start;
+            System.arraycopy( coords, index, newCoords, start, length );
+            System.arraycopy( values, index, newValues, start, length );
+            if ( errors != null ) {
+                System.arraycopy( errors, index, newErrors, start, length );
+            }
+        }
+
+        //  Update spectrum.
+        try {
+            ( (EditableSpecData) specData ).setDataQuick( newCoords, 
+                                                          newValues,
+                                                          newErrors );
+            specDataChanged();
+        }
+        catch (SplatException e) {
+            new ExceptionDialog( this, e );
         }
     }
 
@@ -420,11 +625,12 @@ public class SpecViewerFrame
     protected void deleteErrorColumn()
     {
         if ( ! model.isReadOnly() && specData.haveYDataErrors() ) {
+
             double[] coords = specData.getXData();
             double[] values = specData.getYData();
             double[] errors = null;
             try {
-                ((EditableSpecData)specData).setData( values, coords, errors );
+                ((EditableSpecData)specData).setData( coords, values, errors );
                 specDataChanged();
             }
             catch (SplatException e) {
@@ -455,6 +661,7 @@ public class SpecViewerFrame
             //  Get the selected rows.
             int[] indices = table.getSelectedRows();
             if ( indices.length > 0 ) {
+
                 double[] coords = specData.getXData();
                 double[] values = specData.getYData();
                 double[] errors = null;
@@ -507,9 +714,9 @@ public class SpecViewerFrame
                 }
 
                 try {
-                    ((EditableSpecData)specData).setData( newValues,
-                                                          newCoords, 
-                                                          newErrors ); 
+                    ((EditableSpecData)specData).setData( newCoords,
+                                                          newValues,
+                                                          newErrors );
                     specDataChanged();
                 }
                 catch (SplatException e) {
@@ -613,6 +820,26 @@ public class SpecViewerFrame
     }
 
     /**
+     * Inner class defining Action for inserting new rows.
+     */
+    protected class InsertRowsAction extends AbstractAction
+    {
+        public InsertRowsAction( String name, String shortHelp )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            insertNewRows();
+        }
+    }
+
+    /**
      * Inner class defining Action for deleting the error column.
      */
     protected class DeleteErrorColumnAction extends AbstractAction
@@ -665,7 +892,7 @@ public class SpecViewerFrame
         if ( specData != null ) {
             boolean needReadOnly = readOnly.isSelected();
             if ( model.isReadOnly() != needReadOnly ) {
-            
+
                 // Check actual status of spectrum, not current readonly
                 // status.
                 if ( ! ( specData instanceof EditableSpecData ) ) {
@@ -705,7 +932,7 @@ public class SpecViewerFrame
         if ( specData != null ) {
             // Could be this spectrum.
             int index = globalList.getSpectrumIndex( specData );
-            if ( index == e.getIndex() ) {
+             if ( index == e.getIndex() ) {
                 setSpecData( null );
             }
 
@@ -724,6 +951,9 @@ public class SpecViewerFrame
             if ( index == e.getIndex() ) {
                 //  Re-draw table, assume coordinates have new AST backing.
                 model.update( true );
+
+                //  This is an edit we can undo.
+                refreshUndoRedo();
             }
         }
     }
@@ -734,5 +964,89 @@ public class SpecViewerFrame
     public void spectrumCurrent( SpecChangedEvent e )
     {
         // Do nothing.
+    }
+
+    //
+    // Undo support.
+    //
+
+    // UndoManager of the EditableSpecData instance.
+    protected UndoManager undoManager = null;
+
+    /**
+     * Inner class defining Action for undo the last change.
+     */
+    protected class UndoAction extends AbstractAction
+    {
+        public UndoAction( String name, String shortHelp )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            undo();
+        }
+    }
+
+    /**
+     * Inner class defining Action for undoing the last undo
+     */
+    protected class RedoAction extends AbstractAction
+    {
+        public RedoAction( String name, String shortHelp )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            redo();
+        }
+    }
+
+    /**
+     * Set the states of the Undo and Redo actions.
+     */
+    public void refreshUndoRedo() 
+    {
+        if ( undoManager != null ) {
+            undoAction.setEnabled( undoManager.canUndo() );
+            redoAction.setEnabled( undoManager.canRedo() );
+        }
+        else {
+            undoAction.setEnabled( false );
+            redoAction.setEnabled( false );
+        }
+    } 
+
+    /**
+     * Undo the last change.
+     */
+    protected void undo()
+    {
+        if ( undoManager.canUndo() ) {
+            undoManager.undo();
+            specDataChanged();
+        }
+    }
+
+    /**
+     * Undo the last undo.
+     */
+    protected void redo()
+    {
+        if ( undoManager.canRedo() ) {
+            undoManager.redo();
+            specDataChanged();
+        }
     }
 }

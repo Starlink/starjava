@@ -505,7 +505,7 @@ public class PolyFitFrame extends JFrame
         try {
             EditableSpecData polySpec = SpecDataFactory.getReference().
                 createEditable( name );
-            polySpec.setData( data, coords );
+            polySpec.setData( coords, data );
             polySpec.setType( SpecData.POLYNOMIAL );
             polySpec.setUseInAutoRanging( false );
             globalList.add( polySpec );
@@ -555,10 +555,10 @@ public class PolyFitFrame extends JFrame
             EditableSpecData subtractSpec = SpecDataFactory.getReference().
                 createEditable( name );
             if ( errors != null ) {
-                subtractSpec.setData( newData, coords, errors );
+                subtractSpec.setData( coords, newData, errors );
             }
             else {
-                subtractSpec.setData( newData, coords );
+                subtractSpec.setData( coords, newData );
             }
             globalList.add( subtractSpec );
             globalList.addSpectrum( plot.getPlot(), subtractSpec );

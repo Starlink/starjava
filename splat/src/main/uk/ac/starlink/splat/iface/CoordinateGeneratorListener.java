@@ -10,6 +10,8 @@ package uk.ac.starlink.splat.iface;
 
 import java.util.EventListener;
 
+import uk.ac.starlink.ast.FrameSet;
+
 /**
  * Defines an interface to be used when listening for new coordinates
  * are created for a spectrum.
@@ -17,12 +19,17 @@ import java.util.EventListener;
  * @author Peter W. Draper
  * @version $Id$
  */
-public interface CoordinateGeneratorListener 
-    extends EventListener 
+public interface CoordinateGeneratorListener
+    extends EventListener
 {
     /**
-     * Update anything that is required for displaying the new
-     * coordinates.
+     * Accept a new column of coordinates and apply to the spectrum.
      */
-    public void generatedCoordinates();
+    public void acceptGeneratedCoords( double[] coords );
+
+    /**
+     * The listener should arrange for the spectrum FrameSet to be
+     * modified.
+     */
+    public void changeFrameSet( FrameSet frameSet );
 }

@@ -357,10 +357,10 @@ public class SimpleUnaryMaths extends JFrame
                 createEditable( name );
         
             if ( errors != null ) {
-                newSpec.setData( data, coords, errors );
+                newSpec.setData( coords, data, errors );
             }
             else {
-                newSpec.setData( data, coords );
+                newSpec.setData( coords, data );
             }
             globalList.add( newSpec );
 

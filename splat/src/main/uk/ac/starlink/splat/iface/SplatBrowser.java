@@ -1007,13 +1007,16 @@ public class SplatBrowser extends JFrame
     {
         // Add all spectra.
         filesDone = 0;
+        int validFiles = 0;
         for ( int i = 0; i < newFiles.length; i++ ) {
-            addSpectrum( newFiles[i].getPath() );
+            if ( addSpectrum( newFiles[i].getPath() ) ) {
+                validFiles++;
+            }
             filesDone++;
         }
 
         //  And now display them if required.
-        if ( displayNewFiles ) {
+        if ( displayNewFiles && validFiles > 0 ) {
             int[] currentSelection = getSelectedSpectra();
             int count = globalList.specCount();
             if ( count - newFiles.length <= count - 1 ) {

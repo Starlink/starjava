@@ -29,7 +29,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
+import javax.swing.SwingConstants;
 
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -129,6 +131,11 @@ public abstract class ColumnGenerator
     {
         setLayout( new BorderLayout() );
         addGeneral();
+        JLabel helpText = 
+            new JLabel( "Pre-defined variables: data, coords, error, index" );
+        helpText.setBorder( BorderFactory.createLoweredBevelBorder() );
+        helpText.setHorizontalAlignment( SwingConstants.CENTER );
+        add( helpText, BorderLayout.NORTH );
     }
 
     /**
@@ -353,6 +360,12 @@ public abstract class ColumnGenerator
     }
 
     /**
+     * Cached index vector. Only updated when spectrum needs more
+     * indices 
+     */
+    private double[] indexVector = null;
+
+    /**
      * Apply a general transformation to any of the possible data
      * sources.
      */
@@ -362,20 +375,51 @@ public abstract class ColumnGenerator
         double[] value = specData.getYData();
         double[] error = specData.getYDataErrors();
 
-        //  Possible input coordinates... (XXX index).
+        //  See if we probably need an index vector.
+        boolean needIndex = false;
+        for ( int i = 0; i < fwd.length; i++ ) {
+            if ( fwd[i].indexOf( "index" ) != -1 ) {
+                needIndex = true;
+                break;
+            }
+        }
+
+        //  Possible input coordinates.
         String inv[] = null;
-        if ( error == null ) {
+        if ( error == null && ! needIndex ) {
             inv = new String[2];
         }
-        else {
+        else if ( error == null && needIndex ) {
+            inv = new String[3];
+            inv[2] = "index";
+        }
+        else if ( error != null && ! needIndex ) {
             inv = new String[3];
             inv[2] = "error";
         }
+        else if ( error != null && needIndex ) {
+            inv = new String[4];
+            inv[2] = "error";
+            inv[3] = "index";
+        }
         inv[0] = "coord";
         inv[1] = "data";
+        
+        //  Generate index vector (if needed).
+        if ( needIndex ) {
+            if ( indexVector != null ) {
+                if ( indexVector.length < coord.length ) {
+                    indexVector = null;
+                }
+            }
+            if ( indexVector == null ) {
+                indexVector = new double[coord.length];
+                for ( int i = 0; i < coord.length; i++ ) {
+                    indexVector[i] = (double) i;
+                }
+            }
+        }
 
-        //  Generate index vector if needed (cached, look for index token?).
-        //  ....
 
         //  Create the MathMap with coord, value and error mapping to
         //  newvalue.
@@ -388,6 +432,12 @@ public abstract class ColumnGenerator
             in[1] = value;
             if ( error != null ) {
                 in[2] = error;
+            }
+            if ( needIndex && error == null ) {
+                in[2] = indexVector;
+            }
+            else if ( needIndex && error != null ) {
+                in[3] = indexVector;
             }
 
             double[][] result = map.tranP( value.length, inv.length,

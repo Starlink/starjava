@@ -5,7 +5,6 @@
  *     3-MAR-2003 (Peter W. Draper):
  *       Original version.
  */
-
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
@@ -301,7 +300,6 @@ public class CoordinateGenerator
             }
             break;
         }
-        listener.generatedCoordinates();
     }
 
     /**
@@ -322,8 +320,9 @@ public class CoordinateGenerator
         outb[0] = inb[0] * dscale + doffset;
         WinMap winMap = new WinMap( 1, ina, inb, outa, outb );
 
-        //  Get the current FrameSet.
-        FrameSet frameSet = specData.getFrameSet();
+        //  Get a copy of the current FrameSet (want to modify
+        //  independently to existing one).
+        FrameSet frameSet = (FrameSet) specData.getFrameSet().copy();
 
         //  Get a copy of the current Frame (to keep units etc.).
         Frame frame = (Frame)
@@ -343,15 +342,8 @@ public class CoordinateGenerator
         winMap.annul();
 
         //  Reset spectrum to use these coordinates.
-        try {
-            specData.setFrameSet( frameSet );
-            listener.generatedCoordinates();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        listener.changeFrameSet( frameSet );
     }
-
 
     /**
      * Modify the coordinates using a general transformation of either
@@ -388,14 +380,7 @@ public class CoordinateGenerator
 
         //  Set these as the new coordinates.
         if ( newcoords != null ) {
-            try {
-                specData.setDataQuick( specData.getYData(), newcoords,
-                                       specData.getYDataErrors() );
-                listener.generatedCoordinates();
-            }
-            catch (SplatException e) {
-                new ExceptionDialog( this, e );
-            }
+            listener.acceptGeneratedCoords( newcoords );
         }
     }
 

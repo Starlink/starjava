@@ -44,7 +44,7 @@ public class SpecTableModel
     /**
      * Names for the table columns.
      */
-    protected String[] columnNames = { "Coordinate", "Value", "Error" };
+    protected String[] columnNames = { "coords", "data", "error" };
 
     /**
      * Values of the spectrum

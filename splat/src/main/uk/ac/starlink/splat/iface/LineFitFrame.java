@@ -989,7 +989,7 @@ public class LineFitFrame extends JFrame implements PlotListener
         try {
             EditableSpecData lineSpec = SpecDataFactory.getReference().
                 createEditable( name );
-            lineSpec.setData( data, coords );
+            lineSpec.setData( coords, data );
             lineSpec.setType( SpecData.LINEFIT );
             lineSpec.setUseInAutoRanging( false );
             globalList.add( lineSpec );
