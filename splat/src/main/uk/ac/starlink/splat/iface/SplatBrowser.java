@@ -74,7 +74,7 @@ import uk.ac.starlink.util.gui.GridBagLayouter;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 
-import uk.ac.starlink.treeview.TreeNodeChooser;
+//import uk.ac.starlink.treeview.TreeNodeChooser;
 
 /**
  * This is the main class for the SPLAT program. It creates the
