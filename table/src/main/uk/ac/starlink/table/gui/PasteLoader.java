@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
