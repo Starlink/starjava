@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -303,18 +302,13 @@ public class Driver {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         if ( e instanceof TableFormatException ) {
-                            JOptionPane
-                           .showMessageDialog( getControlWindow(),
-                                               e.getMessage(),
-                                               "Open Error",
-                                               JOptionPane.ERROR_MESSAGE );
+                           ErrorDialog.showError( getControlWindow(),
+                                                  "Load Error", e );
                         }
                         else if ( e instanceof FileNotFoundException ) {
-                            JOptionPane
-                           .showMessageDialog( getControlWindow(),
-                                               "No such file: " + name, 
-                                               "Open Error",
-                                               JOptionPane.ERROR_MESSAGE );
+                           ErrorDialog.showError( getControlWindow(),
+                                                  "Load Error", e,
+                                                  "No such file: " + name );
                         }
                         else {
                             ErrorDialog.showError( getControlWindow(),
