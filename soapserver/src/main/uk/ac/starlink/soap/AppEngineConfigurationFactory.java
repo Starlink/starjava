@@ -58,4 +58,9 @@ public class AppEngineConfigurationFactory
     {
         return new AppFileProvider( serverConfigFile );
     }
+
+    public static EngineConfigurationFactory newFactory( Object param )
+    {
+        return null;
+    }
 }
