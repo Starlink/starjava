@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#  Script to start the JSkycat application when built as part of the
+#  Starlink Java Collection. If not set the position of this script is
+#  taken to be in the JSKY part of the standard Starlink 
+#  Java "bin" directory and will be used to locate the application
+#  jar file.
+
+echo "Starting JSkycat"
+
+#  Find where this script is located, this is JSKY_DIR, unless JSKY_DIR
+#  is already set. 
+if test -z "$JSKY_DIR"; then
+   JSKY_DIR=`dirname $0`
+fi
+
+#  Locate the application jar file. This is relative to this script or
+#  JSKY_DIR.
+appjar="$JSKY_DIR/../../lib/jsky/jsky.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the JSkycat application. Please define JSKY_DIR"
+   exit
+fi
+
+#  Locate the "starjava" command. This should be in ".." or on the 
+#  PATH.
+if test -f "$JSKY_DIR/../starjava"; then
+   starjava="$JSKY_DIR/../starjava"
+else
+   starjava="starjava"
+fi
+
+#  Run up SOG.
+$starjava $defines -jar $appjar $*

@@ -1,0 +1,189 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    linepositions
+ *
+ * Purpose:
+ *    Measure the accurate positions of spectral lines.
+ *
+ * Usage:
+ *    linepositions positions_file width results_file_extension \
+ *                  spectrum1 [spectrum2 ... spectrumN]
+ *
+ * Description:
+ *    This script accepts a list of spectra and expected positions of
+ *    any spectral lines and produces a series of results files that
+ *    record accurate positions for each spectral line.
+ *
+ * Arguments
+ *    positions_file
+ *       A simple text file that contains the expected wavelengths of
+ *       the lines. Each wavelength should be on a separate line.
+ *    width
+ *       A width over which the data for each line can be considered
+ *       to extend. This is centered on the wavelength in the
+ *       positions table. 
+ *    results_file_extension
+ *       A file extension to use for the various results files. This
+ *       is appended to the name of the associated spectrum. Note this
+ *       shouldn't include the period.
+ *    spectrum1 spectrum2 ...
+ *       The spectra containing lines to accurately located.
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 26-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils */
+
+// Import any classes we're using from SPLAT.
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.util.QuickLineFitter;
+
+// Method to print the usage message and exit.
+usage()
+{
+    print( "Usage: linepositions positions_file width " + 
+           "results_file_extension spectrum1 [spectrum2 ... spectrumN]" );
+    exit();
+}
+
+// Basic check of input args.
+if ( bsh.args.length < 4 ) {
+    usage();
+}
+
+// Gather args, doing some simple type checking.
+
+// Positions file. Must exist already.
+positionsFile = pathToFile( bsh.args[0] );
+if ( ! positionsFile.exists() || ! positionsFile.canRead() ) {
+    print( "!! Cannot read positions file: " + bsh.args[0] );
+    usage();
+}
+
+// Check width is a floating point value.
+try {
+    fitWidth = Double.parseDouble( bsh.args[1] );
+}
+catch (Exception badNumber) {
+    print( badNumber.printStackTrace() );
+    usage();
+}
+
+// Open the input file. This is wrapped so we read it a line at a time.
+try {
+    inputStream = new BufferedReader( new FileReader( positionsFile ) );
+}
+catch (Exception fileNotOpened) {
+    print( fileNotOpened.printStackTrace() );
+    print( "!! Failed to open input file" );
+    exit();
+}
+
+// Read the input file into a local array. Each estimated wavelength
+// should be a floating point value on its own line.
+estimates = new ArrayList();
+while ( ( line = inputStream.readLine() ) != null ) {
+    try {
+        guess = new Double( line );
+    }
+    catch (Exception numberConversion) {
+        print( numberConversion.printStackTrace() );
+        continue;
+    }
+    estimates.add( guess );
+}
+
+// Method to open a results file, based on the results file extension
+// and the current spectrum file name.
+openResultsFile( spectrum ) {
+    name = spectrum.getFullName() + "." + bsh.args[2];
+    resultsFile = pathToFile( name );
+
+    try {
+        outputStream = new PrintStream( new FileOutputStream( resultsFile ) );
+    }
+    catch (Exception fileNotOpened) {
+        print( fileNotOpened.printStackTrace() );
+        print( "!! Failed to open results file: " + name );
+        exit();
+    }
+    return outputStream;
+}
+
+// Method to print a line to standard output and the current results file.
+record ( outputStream, line ) {
+    print( line );
+    outputStream.println( line );
+}
+
+//  MAIN LOOP. Loop over all spectra.
+for ( i = 3; i < bsh.args.length; i++ ) {
+    print( "-- Scanning '" + bsh.args[i] + "' for accurate line positions" );
+    nFound = 0;
+
+    // Access the spectrum. This is opened by the SpecDataFactory
+    // class, which understands the various specifications and data
+    // types (i.e. you can use any specification that SPLAT
+    // understands).
+    try {
+        spectrum = SpecDataFactory.getReference().get( bsh.args[i] );
+    }
+    catch (Exception badSpecification) {
+        print( badSpecification.printStackTrace() );
+        print( "!! Failed to access spectrum: " + bsh.args[i] );
+        continue;
+    }
+
+    // Open the results file.
+    outputStream = openResultsFile( spectrum );
+
+    // INNER LOOP. Loop over all estimated line positions.
+    for ( j = 0; j < estimates.size(); j++ ) {
+
+        wavelength = ((Double)estimates.get( j )).doubleValue();
+
+        //  Get a sub-spectrum that just encompasses the line data
+        //  within the width.
+        range = new double[2];
+        range[0] = wavelength - fitWidth;
+        range[1] = wavelength + fitWidth;
+        subSpectrum = spectrum.getSect( "Line: " + wavelength, range );
+
+        // No data, then complain and pass on.
+        if ( subSpectrum == null ) {
+            print( "" );
+            print( "!! Failed to find any data for line: " + wavelength );
+            print( "!! in spectrum : " + bsh.args[i] );
+            print( "" );
+            continue;
+        }
+
+        //  Get the new position using the QuickLineFitter. Note no
+        //  background so most values not useful.
+        quickFitter = new QuickLineFitter( subSpectrum.getXData(), 
+                                           subSpectrum.getYData(), null );
+
+        //  Record the results.
+        record( outputStream, wavelength + ", " + quickFitter.getCentre() );
+        nFound++;
+    }
+    print( "Number of lines found: " + nFound + 
+           " (out of " + estimates.size() + ")" );
+    outputStream.close();
+    print( "++" );
+}
+
+// Exit, closing all files.
+inputStream.close();
+exit();

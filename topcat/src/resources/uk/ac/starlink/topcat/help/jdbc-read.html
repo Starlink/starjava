@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h4>Reading from SQL Databases</h4>
+
+<p>With appropriate configuration, TOPCAT can be used to examine the
+results of queries on a relational database such as MySQL.
+This requires the installation of an appropriate JDBC driver
+specific to that database, as well as, of course, access to such
+a database locally or over a network.
+
+<p>To use TOPCAT in this way you must:
+<ul>
+<li>Have access to an SQL-compatible database locally or over the network
+<li>Have a JDBC driver appropriate for that database available
+<li>Install this driver for use with TOPCAT
+<li>Know the format the driver uses for URLs to access database tables
+</ul>
+
+<p>To install the driver you can do the following.
+First, add an entry giving the name of the Driver class itself
+to the "jdbc.drivers" property by ensuring there is a suitable
+line in a file called ".starjava.properties" in your home directory.
+For the Connector/J driver for MySQL this would look like:
+<pre>
+   jdbc.drivers=com.mysql.jdbc.Driver
+</pre>
+Secondly, make sure that the named class is on your classpath when
+TOPCAT is run.  On Unix, do this by ensuring that the jar file containing
+the driver class is one of the colon-separated entries in your
+CLASSPATH environment variable.
+
+<p>Database queries have the form
+<pre>
+   jdbc:&lt;driver-specific-url&gt;#&lt;sql-query&gt;
+</pre>
+The exact form is dependent on the driver.
+Here is an example for MySQL:
+<pre>
+   jdbc:mysql://localhost/astro1?user=mbt
+       #SELECT ra, dec FROM swaa WHERE vmag&lt;18
+</pre>
+which would get a two-column table (the columns being "ra" and "dec"),
+constructed from certain rows from the table "swaa" in the database
+"astro1" on the local host, using the access privileges of user mbt.
+
+<p>Fortunately you do not have to construct this by hand, there is
+a dialogue box to assist in putting it together.
+You can use this by pressing the "SQL Database" button in the
+"Open Table" dialogue.  This box includes optional username and password
+inputs for establishing the connection with the database.  
+If you do not specify them
+and the database server rejects the connection you will be prompted
+for these separately.
+
+<p>Note that TOPCAT does not view a table in the database directly,
+but the result of an SQL query on that table.  If you want to view
+the whole table you may use the query "SELECT * FROM table-name",
+but be aware that such a query may be expensive on a large table.
+
+<p>TOPCAT has so far only been tested with the 
+<a href="http://www.mysql.org/">MySQL</a> database and its
+<a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a>
+JDBC driver.  Other databases and drivers may or may not work.
+
+</body>
+</html>

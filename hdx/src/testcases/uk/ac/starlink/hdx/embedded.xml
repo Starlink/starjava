@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+
+<!-- Assorted shenannigans with namespaces -->
+
+<rubbish xmlns:hdx="http://www.starlink.ac.uk/HDX"
+	xmlns:b="http://www.astro.gla.ac.uk/norman">
+  <b:el1 here="is an attribute" />
+  <el2 ></el2>
+
+  <!-- Fairly straightforward case -->
+  <hdx:ndx>
+    <!-- content of <image> element is hoisted to be uri attribute -->
+    <hdx:image>
+      file:test1.fits
+    </hdx:image>
+    <hdx:variance
+      hdx:uri="file:test2.fits"
+      >junk</hdx:variance>
+
+    <!-- no-namespace attribute is scooped up and included when it's
+         on an HDX-namespace element (best practice) -->
+    <hdx:quality uri="file:test7.fits"/>
+  </hdx:ndx>
+
+  <!-- ...and an empty one -->
+  <hdx:ndx>
+    <nothing>here</nothing>
+  </hdx:ndx>
+
+  <!-- The hdx: prefix is redefined so that it does NOT refer to the 
+       Hdx namespace, so this should NOT be included in the result DOM -->
+  <hdx:ndx xmlns:hdx="http://www.example.com/not-hdx-namespace">
+    <hdx:image hdx:uri="This is not in the Hdx DOM"/>
+  </hdx:ndx>
+
+  <!-- Hdx element smuggled in as attributes in the Hdx namespace -->
+  <other>
+    <stuff hdx:hdxname="ndx">
+      <wotsit
+	hdx:hdxname="image"
+	hdx:uri="file:test3.fits">
+	Miscellaneous content
+      </wotsit>
+      <blarfle
+	hdx:hdxname="variance"
+	b:uri="file:test4.fits">
+	file:test5.fits
+      </blarfle>
+      <!-- no-namespace attributes are _not_ scooped up when used with
+           the architectural attribute -->
+      <grunt
+        hdx:hdxname="quality"
+        uri="file:test8.fits">
+        file:test9.fits
+      </grunt>
+    </stuff>
+  </other>
+</rubbish>

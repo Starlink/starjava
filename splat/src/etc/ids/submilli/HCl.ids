@@ -1,0 +1,9 @@
+#BEGIN
+# name  HCl_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+625918.756 1_3_-_0_2

@@ -1,0 +1,248 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    setproperty
+ *
+ * Purpose:
+ *    Set a display property used by a spectrum
+ *
+ * Usage:
+ *    setproperty short_name property value
+ *
+ * Description:
+ *    This command contacts SPLAT and asks it to set a display
+ *    property of one of spectra that it is displaying.
+ *
+ *    The properties that can be set are:
+ *       - colour
+ *       - thickness
+ *       - type
+ *       - style
+ *       - errorbars
+ *
+ *    The value that these properties can take depends on the type.
+ *
+ *    Colours should be values that can be used with the awt Color
+ *    class. These are the strings black, blue, cyan, darkGray,
+ *    gray, green, lightGray, magenta, orange, pink, red, white and
+ *    yellow. You can also give an hexidecimal or octal 24 bit value
+ *    (c.f. #RRGGBB in hex).
+ *
+ *    Thickness should be a integer greater than 0.
+ *
+ *    The line type should be line, dash, dot, shortdash,
+ *    longdash, dotdash.
+ *
+ *    The line style should be polyline or histogram.
+ *
+ *    Errorbars can only be switched on or off with the value true or
+ *    false.
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 26-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: setproperty short_name property value" );
+    exit();
+}
+
+//  Import any classes that we need from SPLAT.
+import uk.ac.starlink.splat.util.RemoteUtilities;
+
+/**
+ * Open up the connection to SPLAT, this does not return if fails.
+ */
+openConnection()
+{
+    //  Read the contact details for the current SPLAT instance. These are
+    //  the machine name, the server port and the authentication cookie.
+    Object[] contactDetails = RemoteUtilities.readContactFile();
+
+    //  See if SPLAT is around and listening.
+    if ( contactDetails == null ||
+         ! RemoteUtilities.isListening( contactDetails ) ) {
+        print( "Failed to connect to SPLAT" );
+        exit();
+    }
+    return contactDetails;
+}
+
+/**
+ * Send a command to SPLAT.
+ */
+sendCommand( command )
+{
+    try {
+        result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
+    }
+    catch ( Exception e ) {
+        print( "Failed to send command to SPLAT");
+        print( e.getMessage() );
+    }
+    return result;
+}
+
+/**
+ * Convert the spectrum short name into a reference to the SpecData
+ * object. This is assigned to the variable "spectrum" in the remote
+ * interpreter.
+ */
+getSpectrum( shortName )
+{
+    result = sendCommand
+        ( "specIndex = globallist.getSpectrumIndex(\"" + shortName + "\");" );
+
+    //  If we get back a "-1" then the spectrum doesn't exist.
+    if ( "-1".equals( result ) ) {
+        print( "Failed to find spectrum: " + shortName );
+        exit();
+    }
+    result = sendCommand
+        ( "spectrum = globallist.getSpectrum( specIndex );" );
+}
+
+/**
+ * Set the spectrum colour. Must be a Color.<name> static method
+ * or an RGB integer.
+ */
+setColour( colour )
+{
+    try {
+        newColour = eval( "Color." + colour );
+    }
+    catch (Exception e) {
+        //  Failed try an integer.
+        try {
+            newColour = Color.decode( colour );
+        }
+        catch (Exception ee) {
+            print( "Failed to interpret '" + colour + "' as a colour");
+            exit();
+        }
+    }
+    iColour = newColour.getRGB();
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.LINE_COLOUR, new Integer(" + iColour + ") )" );
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+/**
+ * Set the thickness. Should be an integer greater than 0.
+ */
+setThickness( thickness )
+{
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.LINE_THICKNESS, new Integer(" + thickness + ") )" );
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+/**
+ * Set the line type. Should be plain, dash, dot, shortdash, longdash
+ * or dotdash. 
+ */
+setType( type )
+{
+    if ( "line".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.PLAIN;
+    }
+    else if ( "dash".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.DASH;
+    }
+    else if ( "dot".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.DOT;
+    }
+    else if ( "shortdash".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.SHORTDASH;
+    }
+    else if ( "longdash".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.LONGDASH;
+    }
+    else if ( "dotdash".equals( type ) ) {
+        itype = uk.ac.starlink.splat.plot.Grf.DOTDASH;
+    }
+    else {
+        print( "Unknown line type '" + type + "'" );
+        exit();
+    }
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.LINE_STYLE, new Integer(" + itype + ") )" );
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+/**
+ * Set plotting style. This can only be polyline and histogram.
+ */
+setStyle( style )
+{
+    if ( "polyline".equals( style ) ) {
+        istyle = uk.ac.starlink.splat.data.SpecData.POLYLINE;
+    }
+    else if ( "histogram".equals( style ) ) {
+        istyle = uk.ac.starlink.splat.data.SpecData.HISTOGRAM;
+    }
+    else {
+        print( "Unknown line plotting style '" + style + "'" );
+        exit();
+    }
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.PLOT_STYLE, new Integer(" + istyle + ") )" );
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+/**
+ * Set whether to display any possible error bars. Only two values
+ * true or false.
+ */
+setErrorbars( show )
+{
+    sendCommand( "globallist.setDrawErrorBars( spectrum," + show + ")" );
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+//  Check number of command-line arguments match our expectation.
+if ( bsh.args.length != 3 ) {
+   usage();
+}
+
+//  Contact SPLAT. If successful the contact details are returned.
+Object[] contactDetails = openConnection();
+
+//  Make sure our spectrum exists and make a reference to it.
+getSpectrum( bsh.args[0] );
+
+//  Find out the kind of property we're changing and do it.
+if ( "colour".equals( bsh.args[1] ) ) {
+    setColour( bsh.args[2] );
+}
+else if ( "thickness".equals( bsh.args[1] ) ) {
+    setThickness( bsh.args[2] );
+}
+else if ( "type".equals( bsh.args[1] ) ) {
+    setType( bsh.args[2] );
+}
+else if ( "style".equals( bsh.args[1] ) ) {
+    setStyle( bsh.args[2] );
+}
+else if ( "errorbars".equals( bsh.args[1] ) ) {
+    setErrorbars( bsh.args[2] );
+}
+else {
+    print( "Unknown property: " + bsh.args[1] );
+}
+exit();

@@ -1,0 +1,5 @@
+print( "This is plugin example number 3" );
+value = Runtime.getRuntime().exec( "printenv GAIA_DIR" );
+reader = new BufferedReader( new InputStreamReader( value.getInputStream()));
+print( "GAIA_DIR = " + reader.readLine() );
+

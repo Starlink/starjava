@@ -1,0 +1,42 @@
+                Starlink Software Licencing for SPLAT
+                =====================================
+
+
+PREAMBLE
+
+The purpose of this document is to state the terms and conditions
+under which Starlink software and documentation ("the Software") may
+be used.
+
+APPLICABILITY
+
+All the material in this distribution of SPLAT, except the code found
+in the following files:
+
+  bsh-1.2b7.jar, diva.jar, jdom.jar, jhall.jar, jsci_core.jar,
+  jsci_wavelet.jar, splat_colt.jar, splat_help.jar
+
+is covered by these terms and conditions. The code in these other jars
+files have their own terms and conditions which can be found with them
+(in _license files).
+
+NOTICE TO USER:
+
+BY USING THE SOFTWARE YOU ACCEPT THE FOLLOWING TERMS AND CONDITIONS
+WHICH APPLY TO ITS USE.
+
+1. The Software is owned by the Council for the Central Laboratory of the
+Research Councils ("CCLRC").
+
+2. This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of the
+License, or (at your option) any later version.
+
+The GNU General Public License text is included in the file COPYING
+which should be found in the same directory as this file.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.

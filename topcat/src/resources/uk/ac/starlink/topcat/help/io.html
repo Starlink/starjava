@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+
+<h2>Input and Output</h2>
+
+<p>TOPCAT can be used just as a table viewer, or as an editor too.
+Having loaded a table into the application you can edit its data
+and metadata and subsequently write the modified table out again,
+either in the same format as it was originally read in, or in a
+completely different format.  TOPCAT's view of the table while it
+is running is format-neutral, so viewing and editing proceeds in
+the same way regardless of the original format of the data, but it
+can nevertheless preserve much of the the data and metadata detail
+when writing tables out.  Editing of table data and metadata do
+not (currently) modify the stored table itself; such changes
+will only be preserved if the table is subsequently saved.
+
+<p>Loading and saving tables are not done by the same components,
+so in some cases a table can be read in a given format but not 
+written out in the same format, or vice versa.  The rest of this
+section describes the I/O capabilities in detail.
+
+<h3><a name="read"></a>Loading tables</h3>
+
+<p>You can read tables into TOPCAT by
+<ul>
+<li>Giving the table location on the command line at startup
+<li>Using the "Open Table" dialogue, which is activated by:
+  <ul>
+  <li>The <kbd>Open</kbd> button 
+      (<img src="../images/Open24.gif">) on the toolbar
+  <li>The <kbd>Open</kbd> item in the <kbd>File</kbd> menu
+  <li>Starting TOPCAT without a command line argument
+  </ul>
+</ul>
+The dialog allows you to enter a location directly, or to browse the
+filesystem to locate files, or to use a special form for entering
+SQL queries.
+In each case, successfully opening a table 
+will open a new table browser window (in addition to
+any existing windows you may have open).
+
+<p>In the simplest case the location is the name of a file holding the
+table in one of the formats that TOPCAT understands.  
+However it may be a URL for remote data, and in some cases
+may have an additional "fragment identifier" appended to the filename
+after a "#" character.
+It may also be a location which does not 
+correspond to a file at all, such as the specification of an SQL
+query on a relational database.
+In most cases TOPCAT can happily read 
+files or resources which are compressed (using the gzip or bzip2 
+compression formats).
+You do not need to indicate what table format you are referring to,
+TOPCAT will detect the format based on the location given.
+These facilities are available because the I/O facilities are taken
+care of by the Starlink generic tables access library.
+
+<p>If you receive an <strong>OutOfMemoryError</strong> while loading
+a table, increase the available heap memory as described in the
+section on <a href="invoke.html">Invoking TOPCAT</a>.
+
+<p>The available input formats are described on the following pages:
+<ul>
+<li><a href="fits-read.html">FITS</a>
+<li><a href="votable-read.html">VOTable</a>
+<li><a href="jdbc-read.html">SQL Database</a>
+<li><a href="wdc-read.html">WDC</a>
+</ul>
+
+<h3><a name="write"></a>Saving tables</h3>
+
+<p>A table in the viewer can be written out any time using the "Save Table"
+dialogue.  This is activated by:
+<ul>
+<li>The <kbd>Save</kbd> button (<img src="../images/Save24.gif">) on the toolbar
+<li>The <kbd>Save</kbd> item in the <kbd>File</kbd> menu
+</ul>
+Any changes which have been made to the table will be reflected in the
+table which is written out.  The table which will be saved is the one which
+can be seen in the main browser window.  Changes which may have been
+made and will be reflected are:
+<ul>
+<li>Changes made to cell data by editing cells in the browser window
+<li>Changes made to column metadata by editing cells in the column window
+<li>New columns added
+<li>Existing columns deleted
+<li>Columns moved around
+<li>Row order changed by sorting
+<li>Rows hidden by applying a <a href="subsets.html">Row Subset</a>
+</ul>
+Row Subsets which have been defined on the table in the current session
+will not be saved themselves, but new columns may be added containing
+their information, and these columns can be saved.
+
+<p>The Save Table dialogue invites you to input a location for the
+saved table, which will normally be a filename.  There is no option
+to compress files on output (though you can of course compress them
+yourself once they have been written).   You can also select the 
+format in which the table will be saved from one of the supported ones.
+There is no default format, but if you do not select one it
+will try to guess the format based on the filename given;
+for instance if you specify the name "out.fits", a FITS binary table 
+extension will be written.  The dialogue allows you to browse the
+filesystem or use a special form for writing to an SQL database.
+
+<p>If the table is large, a progress bar indicating how near the
+save is to completion will appear in a popup window.  
+It is not advisable to edit the table during a save operation.
+
+<p>In some cases, when saving a table to a format other than the one
+from which it was loaded, or if some new kinds of metadata have been
+added, it may not be possible to express all
+the data and metadata from the table in the new format.
+For instance a WDC table can contain data which represents epoch (date), 
+and this cannot be stored in a FITS table.  In this case the table
+may be written with such columns missing.  Some message to this effect
+should be output in this case.
+
+<p>The available output formats are described on the following pages:
+<ul>
+<li><a href="fits-write.html">FITS</a>
+<li><a href="votable-write.html">VOTable</a>
+<li><a href="text-write.html">Text</a>
+<li><a href="jdbc-write.html">SQL Database</a>
+<li><a href="mirage.html">Mirage</a>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,249 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    fitgauss
+ *
+ * Purpose:
+ *    Measure a series of spectral-lines by fitting gaussians.
+ *
+ * Usage:
+ *    fitgauss positions_file width results_file spectrum background
+ *
+ * Description:
+ *    This script demonstrates how to use some of the internal classes
+ *    of SPLAT in non-interactive BeanShell scripts.
+ *
+ *    The particular example chosen here shows how to use the Gaussian
+ *    line fitting code to measure accurate line widths and positions
+ *    for a list of lines in a spectrum with a known background.
+ *
+ * Arguments
+ *    positions_file
+ *       A simple text file that contains the expected wavelengths of
+ *       the lines. Each wavelength should be on a separate line.
+ *    width
+ *       A width over which each line should fitted. This is
+ *       centered on the wavelength in the positions table.
+ *    results_file
+ *       A file for the results of fitting each line.
+ *    spectrum
+ *       The spectrum containing the data to be fitted.
+ *    background
+ *       A spectrum that defines the background (usually evaluated at
+ *       the same coordinates as the spectrum, but this isn't
+ *       necessary).
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 26-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ */
+
+// Import any classes we're using from SPLAT.
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.util.GaussianFitter;
+import uk.ac.starlink.splat.util.QuickLineFitter;
+
+// Method to print the usage message and exit.
+usage()
+{
+    print( "Usage: fitgauss positions_file width results_file " +
+           "spectrum background" );
+    exit();
+}
+
+// Basic check of input args.
+if ( bsh.args.length != 5 ) {
+    usage();
+}
+
+// Gather args, doing some simple type checking.
+
+// Positions file. Must exist already.
+positionsFile = pathToFile( bsh.args[0] );
+if ( ! positionsFile.exists() || ! positionsFile.canRead() ) {
+    print( "!! Cannot read positions file: " + bsh.args[0] );
+    usage();
+}
+
+// Check width is a floating point value.
+try {
+    fitWidth = Double.parseDouble( bsh.args[1] );
+}
+catch (Exception badNumber) {
+    print( badNumber.printStackTrace() );
+    usage();
+}
+
+// Results file.
+resultsFile = pathToFile( bsh.args[2] );
+
+// Access the spectra. These are opened by the SpecDataFactory
+// class, which understands the various specifications and data
+// types.
+try {
+    spectrum = SpecDataFactory.getReference().get( bsh.args[3] );
+}
+catch (Exception badSpecification) {
+    print( badSpecification.printStackTrace() );
+    print( "!! Failed to access spectrum: " + bsh.args[3] );
+    usage();
+}
+try {
+    background = SpecDataFactory.getReference().get( bsh.args[4] );
+}
+catch (Exception badSpecification) {
+    print( badSpecification.printStackTrace() );
+    print( "!! Failed to access spectrum: " + bsh.args[4] );
+    usage();
+}
+
+// Open the input and results files. These are wrapped so we can write
+// and read them a line at a time.
+try {
+    inReader = new FileReader( positionsFile );
+}
+catch (Exception fileNotOpened) {
+    print( fileNotOpened.printStackTrace() );
+    print( "!! Failed to open input file" );
+    exit();
+}
+bufReader = new BufferedReader( inReader );
+
+try {
+    outStream = new FileOutputStream( resultsFile );
+}
+catch (Exception fileNotOpened) {
+    print( fileNotOpened.printStackTrace() );
+    print( "!! Failed to open output file" );
+    exit();
+}
+printStream = new PrintStream( outStream );
+
+// Method to print a line to standard output and file.
+record ( line ) {
+    print( line );
+    printStream.println( line );
+}
+
+//  Write one lines worth of results to the terminal and the results
+//  file. ** Modify this if you want a different format. **
+recordLine( quickFitter, gaussFitter, gaussRms ) {
+
+    record( "# Results for line: " + line );
+
+    record( "# Quick fit results:" );
+    record( "# Peak, Centre, Width, Equivalent width, Asymmetry, Absorption");
+    record( quickFitter.getPeak() + ", " +
+            quickFitter.getCentre() + ", " +
+            0.5 * quickFitter.getWidth() + ", " +
+            quickFitter.getEquivalentWidth() + ", " +
+            quickFitter.getAsymmetry() +", " +
+            quickFitter.isAbsorption() );
+
+    record( "# Gaussian fit results:" );
+    record( "# Peak, Centre, Sigma, Flux, Rms" );
+    record( gaussFitter.getScale() + ", " +
+            gaussFitter.getCentre() + ", " +
+            gaussFitter.getSigma() + ", " +
+            gaussFitter.getFlux() + ", " +
+            gaussRms );
+    record( "" );
+}
+
+// Now read the input file a line at a time.
+nLines = 0;
+nFit = 0;
+while ( ( line = bufReader.readLine() ) != null ) {
+    nLines++;
+
+    // Should be a double precision number. If fails complain and pass
+    // on to the next.
+    try {
+        guess = Double.parseDouble( line );
+    }
+    catch (Exception numberConversion) {
+        print( numberConversion.printStackTrace() );
+        continue;
+    }
+
+    //  Get a spectrum that just encompasses the line data.
+    range = new double[2];
+    range[0] = guess - fitWidth;
+    range[1] = guess + fitWidth;
+    subSpectrum = spectrum.getSect( "Line: " + line, range );
+
+    //  No data, then complain and pass on.
+    if ( subSpectrum == null ) {
+        print( "" );
+        print( "!! Failed to find any data for line: " + line );
+        print( "" );
+        continue;
+    }
+
+    //  Get the background that this matches.
+    backData = background.evalYDataArray( subSpectrum.getXData() );
+
+    //  Subtract the background.
+    specCoords = subSpectrum.getXData();
+    specData = subSpectrum.getYData();
+    specDataErrors = subSpectrum.getYDataErrors();
+
+    fitData = new double[specData.length];
+    for ( int i = 0; i < specData.length; i++ ) {
+        if ( specData[i] != SpecData.BAD && backData[i] != SpecData.BAD ) {
+            fitData[i] = specData[i] - backData[i];
+        }
+        else {
+            fitData[i] = SpecData.BAD;
+        }
+    }
+
+    //  Fit the line! First by the QuickFitter to get the equivalent
+    //  width and accurate position.
+    quickFitter = new QuickLineFitter( specCoords, fitData, backData );
+    if ( quickFitter.isAbsorption() ) {
+        quickPeak = -quickFitter.getPeak();
+    }
+    else {
+        quickPeak = quickFitter.getPeak();
+    }
+
+    //  Finally by the Gaussian.
+    if ( specDataErrors == null ) {
+        gaussFitter = new GaussianFitter( specCoords, fitData,
+                                          quickPeak,
+                                          quickFitter.getCentre(),
+                                          0.5 * quickFitter.getWidth() );
+
+    }
+    else {
+        gaussFitter = new GaussianFitter( specCoords, fitData,
+                                          specDataErrors,
+                                          quickPeak,
+                                          quickFitter.getCentre(),
+                                          0.5 * quickFitter.getWidth() );
+    }
+
+    //  Record the results.
+    recordLine( quickFitter, gaussFitter,
+                gaussFitter.calcRms( specCoords, fitData ) );
+    nFit++;
+}
+
+print( "Number of lines fitted: " + nFit + " (out of " + nLines + ")" );
+
+// Exit, closing all files.
+inReader.close();
+outStream.close();
+exit();

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h2>Windows</h2>
+
+<p>When running TOPCAT can display a number of windows on the screen,
+giving different views of the table data and metadata.
+The principle one is the main browser window which is shown as 
+soon as a table is loaded, but others can be popped up by using
+the items in the <kbd>Windows</kbd> menu or the corresponding buttons in the
+toolbar.
+
+<h3></a>Common Features</h3>
+
+<p>Some features are shared by many of the windows:
+
+<h4><a name="tools"></a>Toolbar Buttons</h4>
+
+<p>The windows have a toolbar at the top containing various buttons 
+representing actions that the window can carry out.
+All toolbars have the following buttons:
+
+<dl>
+<dt><img src="../images/multiply4.gif">Close
+<dd>The <kbd>Close</kbd> button on the toolbar or the <kbd>Close</kbd> 
+    item in the 
+    <kbd>File</kbd> menu will close the window.
+    When the last window is closed the application should exit.
+
+<dt><img src="../images/Help3.gif">Help
+<dd>The <kbd>Help</kbd> button on the toolbar or the <kbd>Help For Window</kbd> 
+    item in the <kbd>Help</kbd>
+    menu will bring up the help browser (this window).
+    If context-sensitive help is available from this point
+    (e.g. help about the window in which the button was pressed) then
+    the browser will come up displaying the relevant page.
+</dl>
+
+<h4><a name="menus"></a>Menu Items</h4>
+
+<p>The windows have a menu at the top containing various options 
+representing actions that the window can carry out.  In most cases,
+actions which can be carried out using the toolbars or in other ways
+can be done from a menu too.  All windows have the following menu
+items:
+
+<dl>
+
+<dt>Exit
+<dd>The <kbd>Exit</kbd> item in the <kbd>File</kbd> menu
+    will exit TOPCAT straight away regardless of what windows are open.
+
+<dt>Help
+<dd>The <kbd>Help</kbd> item in the <kbd>Help</kbd> menu will display the
+    help browser without changing its content to anything appropriate
+    for this window.
+
+<dt>About
+<dd>The <kbd>About</kbd> item in the <kbd>Help</kbd> menu
+    will pop up a short message about the TOPCAT application.
+</dl>
+
+
+<h4><a name="jtable"></a>JTable</h4>
+
+<p>Many of the windows, including the main table browser window, display
+their data in a Java widget called a <strong>JTable</strong>.
+This displays a grid of values, with headings for each column, in 
+a window which you can scroll around.  Although JTables are used for
+a number of different things (for instance, showing the table data itself
+and showing the column metadata), the fact that the same widget is
+used provides a common look and feel.
+
+<p>Here are some of the things you can do with a JTable:
+<dl>
+<dt>Scroll around
+<dd>Using the scrollbars which may appear to the right and below the
+    table you can scroll around it to see parts which are not initially
+    visible.
+
+<dt>Move columns
+<dd>By clicking on the header (grey title bit at the top) of a column 
+    and dragging it left or right, you can change the order of columns
+    as displayed.  In some cases (the main browser display window)
+    this actually has the effect of changing the order of the columns
+    in the table; in other cases it is just cosmetic.
+
+<dt>Resize columns
+<dd>By dragging on the line between row headers you can change the width
+    of the columns in the table.
+
+<dt>Edit cells
+<dd>In some cases, cells are editable.  If they are, then double-clicking
+    in the cell will begin an edit session for that cell, and pressing
+    return will confirm that the edit has been made.
+
+<dt>Select rows
+<dd>Sometimes rows can be highlighted; you can select one row by clicking
+    on it, several by clicking and dragging over a range of rows, 
+    and select an extra set without deselecting an existing selection
+    by keeping the 'control' key pressed down while you do it.
+</dl>
+
+
+</body>
+</html>

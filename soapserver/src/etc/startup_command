@@ -1,0 +1,4 @@
+# Command needed to start up server. Should look into way of making
+# this the default configuration.
+
+> java -Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory -Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory uk.ac.starlink.soap.AppHttpSOAPServer

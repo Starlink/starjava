@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>SpectralFileFilter</TITLE>
+<META NAME="description" CONTENT="SpectralFileFilter">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="previous" HREF="node14.html">
+<LINK REL="up" HREF="node13.html">
+<LINK REL="next" HREF="node16.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html257"
+ HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html255"
+ HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html251"
+ HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html258"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html256"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html252"
+ HREF="node14.html">RemoteUtilities</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00043200000000000000"></A><A NAME="l237"></A>
+<BR>
+SpectralFileFilter
+</H3>
+   
+<P>
+
+<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img9.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class SpectralFileFilter implements java.io.FileFilter}
+}}">
+
+<P>
+A convenience implementation of java.io.FileFilter that filters out
+ all files except for those type extensions that it knows about.
+
+<P>
+Extensions are of the type ".foo", which is typically found on
+ Windows and Unix boxes, but not on Macinthosh. Case is ignored.
+
+<P>
+Example - create a new filter that filters out all files
+ but gif and jpg image files:
+ <TT>
+<BR>
+SpectralFileFilter filter = new SpectralFileFilter(
+<BR>
+new String{"gif", "jpg"}, "JPEG &amp; GIF Images")
+<BR>
+ </TT>
+
+
+<P>
+<B><FONT SIZE="+1">Constructors</FONT></B>
+<BR>
+   <HR>
+<TT>public <B>SpectralFileFilter</B>()<A NAME="l244"></A><A NAME="l245"></A></TT>
+<BLOCKQUOTE>Creates a file filter. If no filters are added, then all
+ files are accepted.
+
+<UL><LI>See also
+
+<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+
+
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public <B>SpectralFileFilter</B>(<TT>String</TT> <B>extension</B>)<A NAME="l247"></A><A NAME="l248"></A></TT>
+<BLOCKQUOTE>Creates a file filter that accepts files with the given extension.
+ Example: new SpectralFileFilter("jpg");
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>extension</B></STRONG>
+<DD>file extension.
+  </DL>
+
+</UL>
+
+<UL><LI>See also
+
+<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+
+
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public <B>SpectralFileFilter</B>(<TT>String[]</TT> <B>filters</B>)<A NAME="l249"></A><A NAME="l250"></A></TT>
+<BLOCKQUOTE>Creates a file filter from the given string array.
+ Example: new SpectralFileFilter( String {"gif", "jpg"} );
+
+<P>
+Note that the "." before the extension is not needed and will
+ be ignored.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>filters</B></STRONG>
+<DD>array of file extensions to use a filters.
+  </DL>
+
+</UL>
+
+<UL><LI>See also
+
+<UL><LI><TT>SpectralFileFilter.addExtension</TT> 
+
+
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+
+<P>
+<B><FONT SIZE="+1">Methods</FONT></B>
+<BR>
+   <HR>
+<TT>public boolean <B>accept</B>(<TT>java.io.File</TT> <B>pathname</B>)<A NAME="l251"></A><A NAME="l252"></A></TT>
+<BLOCKQUOTE>Tests whether or not the specified abstract pathname should be
+ included in a pathname list.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>pathname</B></STRONG>
+<DD>The abstract pathname to be tested
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true if and only if pathname should be included. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addExtension</B>(<TT>String</TT> <B>extension</B>)<A NAME="l253"></A><A NAME="l254"></A></TT>
+<BLOCKQUOTE>Adds a filetype "dot" extension to filter against.
+
+<P>
+For example: the following code will create a filter that filters
+ out all files except those that end in ".jpg" and ".tif":
+ <TT>
+<BR>
+SpectralFileFilter filter = new SpectralFileFilter();
+<BR>
+filter.addExtension("jpg");
+<BR>
+filter.addExtension("tif");
+<BR>
+ </TT>
+
+<P>
+Note that the "." before the extension is not needed and will
+ be ignored.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>extension</B></STRONG>
+<DD>a file extension to add.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getExtension</B>(<TT>java.io.File</TT> <B>f</B>)<A NAME="l255"></A><A NAME="l256"></A></TT>
+<BLOCKQUOTE>Return the extension portion of the file's name.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>f</B></STRONG>
+<DD>a File object.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the file extension. 
+
+<LI>See also
+
+<UL><LI><TT>SpectralFileFilter.getExtension</TT> 
+
+
+
+<LI><TT>java.io.FileFilter.accept</TT> 
+
+
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+
+<P>
+<BR> <HR>
+<A NAME="tex2html257"
+ HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html255"
+ HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html251"
+ HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html258"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html256"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html252"
+ HREF="node14.html">RemoteUtilities</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

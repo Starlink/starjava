@@ -1,0 +1,16 @@
+#
+# Test prop file to show that Logger is working.
+# See the log4j docs for a description of what is legal.
+# $Id: logtest.prop,v 1.2 2001/01/25 23:02:16 brighton Exp $
+#
+
+# Set root category priority to DEBUG set its appender to A1
+log4j.rootCategory=DEBUG, A1
+
+# A1 is set to FileAppender which is set to system out
+log4j.appender.A1=org.apache.log4j.FileAppender
+log4j.appender.A1.File=System.out
+
+# A1 uses PatternLayout
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r[%t] %-5p %c %x - %m%n

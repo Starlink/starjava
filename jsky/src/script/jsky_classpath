@@ -1,0 +1,31 @@
+#!/bin/sh
+# 
+# $Id$ 
+#
+# This script just prints the class path needed to run a JSky application.
+# It is used by application scripts to get the correct classpath.
+# You may need to edit this file for your site.
+
+# determine the location of this script and use that to determine the
+# top level directory 
+if [ -f "$0" ]; then
+    file=$0
+else
+    for i in `echo $PATH | tr ':' ' '`
+    do
+	if [ -f $i/$0 ] ; then
+	    file=$i/$0
+	    break
+	fi
+	done
+fi
+dir=`dirname $file`
+
+# Top level directory in JSky tree
+TOP=`(cd $dir/..; pwd)`
+
+. $TOP/conf/config.sh
+
+# Output the class path (the sed part is needed under windows/cygwin)
+echo $CLASSPATH | sed -e 's/\/cygdrive\/\(.\)/\1:/g'
+

@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+
+<h4>Reading FITS tables</h4>
+
+<p>FITS BINARY and ASCII tables can be read.
+Unless told otherwise, TOPCAT will display the first TABLE or BINTABLE
+extension in a FITS file that it is given.
+If a later extension is required, this is specified by giving the
+extension number after a '#' at the end of the table location.
+The first extension (first HDU after the primary HDU) is numbered 1.
+Thus in a compressed FITS table called "spec23.fits.gz"
+with one primary HDU and two BINTABLE extensions,
+you would view the first one using the name "spec23.fits.gz"
+or "spec23.fits.gz#1" and the second one using the name.
+"spec23.fits.gz#2".  The suffix "#0" is never used for a legal
+FITS file, since the primary HDU cannot contain a table.
+
+<p>Compressed FITS files, or ones referred to as URLs, may be used.
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+
+<h2>Invoking TOPCAT</h2>
+
+<h3>The <tt>topcat</tt> script</h3>
+
+<p>If you are using TOPCAT in a standard Starlink java distribution
+on Unix, you can invoke the TOPCAT application using a script in 
+the Starlink java <tt>bin</tt> directory just called
+<pre>
+   topcat
+</pre>
+Invoked with no arguments, this will pop up the 
+"<a href="io.html#read">Open Table</a>" dialogue window.
+
+<p>Alternatively, you can supply command-line arguments giving the
+name(s) of one or more tables to load - 
+filenames or URLs with optional fragment IDs following a '#' character, 
+or JDBC table specifiers, for example
+<pre>
+   topcat dsscat.xml
+</pre>
+or 
+<pre>
+   topcat cat1.fits#1 cat1.fits#2 \
+          http://astro.org/data/m31.xml
+</pre>
+
+<p>In addition, any arguments which start "-X" are passed as flags
+to the Java runtime.
+The main use of this is to modify the size of memory available to the
+application.  By default it is 64 megabytes, but for large tables
+in memory this may not be enough.  If running TOPCAT gives you
+an <tt>OutOfMemoryError</tt> then you can try increasing this 
+value with the "-Xmx" flag.  For instance the following:
+<pre>
+   topcat -Xmx512M whopper.fits
+</pre>
+would open the table "whopper.fits" in TOPCAT with 512 Megabytes to play with.
+
+<p>Most of the other -X flags are only of interest for performance 
+tuning and debugging; a full list can be seen by doing
+<pre>
+   topcat -X
+</pre>
+
+<p>Finally, invoking TOPCAT with the <code>-guihelp</code> flag:
+<pre>
+   topcat -guihelp
+</pre>
+causes the help browser to be displayed, but the rest of the program 
+will not run.
+
+
+<h3>Invoking directly</h3>
+
+<p>As long as a J2SE1.4 Java Runtime Environment is present, 
+TOPCAT should run in environments other than Unix, though the supplied
+startup script is unlikely to work.  In this case you can probably
+invoke the Jar file <tt>lib/topcat/tocpat.jar</tt> file directly,
+for instance by clicking on it or typing something like 
+<pre>
+   java -jar topcat.jar [args]
+</pre>
+In this case however, since your normal class path (e.g. your CLASSPATH
+environment variable) is ignored, it will be impossible to use JDBC
+drivers, so <a href="jdbc-read.html">SQL-type databases</a> and the 
+<a href="mirage.html#launch">Mirage launch</a> options will not be
+available.
+
+<p>For more control over the classpath it can be invoked as
+<pre>
+   java -classpath lib/topcat/topcat.jar \
+        uk.ac.starlink.topcat.TableViewer
+</pre>
+See the <tt>bin/topcat</tt> script mentioned above for more information.
+
+</body>
+</html>

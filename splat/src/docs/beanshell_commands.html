@@ -1,0 +1,2085 @@
+<html>
+<head><title>BeanShell User's Manual</title></head>
+<body bgcolor=#ffffff>
+
+<h1>BeanShell User's Manual</title></h1>
+
+<h1>Table of Contents</h1>
+<font size=+1>
+<ul>
+<li><a href="quickstart.html">Quick Start</a>
+<li><a href="bshcommands.html">BeanShell Commands</a>
+<li><a href="syntax.html">BeanShell Syntax</a>
+<ul><li><a href="syntax.html#Standard_Java_Syntax">Standard Java Syntax</a></ul>
+<ul><li><a href="syntax.html#Loose_Java_Syntax">Loose Java Syntax</a></ul>
+<ul><li><a href="syntax.html#Convenience_Syntax">Convenience Syntax</a></ul>
+<ul><li><a href="syntax.html#Importing_classes_and_packages">Importing classes and packages</a></ul>
+<li><a href="methods.html">Methods</a>
+<ul><li><a href="methods.html#Scope_modifiers:_this,_super,_global">Scope modifiers: this, super, global</a></ul>
+<li><a href="objects.html">Scripted Objects</a>
+<li><a href="events.html">Scripted Event Handling</a>
+<ul><li><a href="events.html#Anonymous_inner_class_style">Anonymous inner class style</a></ul>
+<ul><li><a href="events.html#Details">Details</a></ul>
+<li><a href="threads.html">Scripting Threads</a>
+<li><a href="specialvarsvalues.html">Special Variables and Values</a>
+<ul><li><a href="specialvarsvalues.html#Undefined_variables">Undefined variables</a></ul>
+<ul><li><a href="specialvarsvalues.html#Special_features_of_'This'_type_references">Special features of 'This' type references</a></ul>
+<li><a href="classpath.html">Class Path Management</a>
+<ul><li><a href="classpath.html#Changing_the_Class_Path">Changing the Class Path</a></ul>
+<ul><li><a href="classpath.html#Auto-Importing_from_the_Classpath">Auto-Importing from the Classpath</a></ul>
+<ul><li><a href="classpath.html#Reloading_Classes">Reloading Classes</a></ul>
+<ul><li><a href="classpath.html#Class_Loading_in_Java">Class Loading in Java</a></ul>
+<ul><li><a href="classpath.html#Class_Loading_in_BeanShell">Class Loading in BeanShell</a></ul>
+<li><a href="desktop.html">BeanShell Desktop</a>
+<li><a href="embedding.html">Using BeanShell in Your Application</a>
+<li><a href="servermode.html">Server Mode</a>
+<li><a href="execscripts.html">Executable scripts under Unix</a>
+<li><a href="bshpackage.html">The bsh Package</a>
+<ul><li><a href="bshpackage.html#Adding_Commands_to_BeanShell">Adding Commands to BeanShell</a></ul>
+<li><a href="more.html">Learning More...</a>
+<li><a href="credit.html">Credit and Acknowledgments</a>
+</ul></font><hr>
+
+<h1>Quick Start</h1>
+
+This is just the crash course to get you going.  I'm leaving out some 
+important options and details.  Please see the user's guide (which is not 
+very long in its entirety) for all of the details.
+<p>
+
+<h4>
+Download and Run BeanShell
+</h4>
+
+Download the <a href="../download.html">latest jar file</a>
+and start up BeanShell either in the graphical desktop mode or on 
+the command line.
+<p>
+
+If you just want to start playing around you may be able to to launch the 
+BeanShell desktop by simply double clicking on the bsh JAR file.  More 
+generally however you'll want to add the jar to your classpath so that you 
+can work with your own classes and applications easily.
+<p>
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+
+<em>unix:</em>     export CLASSPATH=$CLASSPATH:bsh-xx.jar
+<em>windows:</em>  set classpath %classpath%;bsh-xx.jar
+
+    java bsh.Console       // run the graphical desktop
+or
+    java bsh.Interpreter   // run as text-only on the command line
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+<em>Note: If you are running under JDK 1.1 and want to use the GUI you'll 
+also have to add the swing JAR file to your classpath.</em>
+<p>
+
+Once BeanShell is running you can also add to the classpath using the 
+addClassPath() command.
+<p>
+
+The above examples show how to run bsh interactively.  It's also possible to 
+run bsh in a <a href="../manual/servermode.html">server mode</a> and to <a href="../manual/embedding.html">embed bsh</a> for non-interactive use in your 
+applications.  You can even make <a href="../manual/execscripts.html">executable bsh scripts</a> under Unix using the 
+standard "#!" syntax.  See the <a href="../manual/contents.html">user's manual</a> for more information on those 
+topics.
+<p>
+
+<h4>
+The BeanShell Desktop and Console Windows
+</h4>
+
+Upon starting BeanShell one console window will open.  By right clicking on 
+the <a href="desktop.html">desktop</a> background can also open additional 
+console windows or other tools
+such as the BeanShell class browser.  
+<p>
+
+Each console window effectively runs a separate bsh interpreter.
+Within the graphical console you have basic command history, line editing,
+and cut and paste.  From any console window you can open a simple editor 
+window for that console.  In it you can write scripts and hit the 'eval' 
+button to evaluate them in the attached workspace. 
+<p>
+
+
+<h4>
+Java Statements and Expressions
+</h4>
+
+At the prompt you can type standard Java statements and expressions.  
+Statements and expressions are all of the normal things that you'd say
+inside a Java method: e.g. variable declarations and assignments, 
+method calls, loops, conditionals, etc.  
+<p>
+
+You can use these exactly as they would appear in Java,
+however in BeanShell you have the option of working with "loosely typed"
+variables.  That is, you can simply be lazy and not declare the types of
+variables that you use (both primitives and objects).  BeanShell will still
+give you an error if you attempt to misuse the actual type of the variable.
+<p>
+
+Here are some examples:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo = "Foo";    
+    four = (2 + 2)*2/2;
+    print( foo + " = " + four );   // print() is a bsh command
+    
+    // Do a loop
+    for (i=0; i&lt;5; i++)
+        print(i);   
+
+    // Pop up a frame with a button in it
+    b = new JButton("My Button");
+    f = new JFrame("My Frame");
+    f.getContentPane().add(b, "Center");
+    f.pack();
+    f.show();
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+<h4>
+Useful BeanShell Commands
+</h4>
+
+In the previous example we used a convenient "built-in" <a href="../manual/bshcommands.html">BeanShell command</a> 
+called <a href="../manual/bshcommands.html#print">print()</a>, to display values.  <a href="../manual/bshcommands.html#print">print()</a> does pretty
+much the same thing as System.out.println() except that it insures that the
+ouput always goes to the command line.  <a href="../manual/bshcommands.html#print">print()</a> also displays some types
+of objects (such as arrays) more verbosely than Java would.  
+
+Another very useful command is <a href="../manual/bshcommands.html#show">show()</a>, which toggles on and off automatic 
+<a href="../manual/bshcommands.html#print">print()</a>ing of the result of every line you type.
+<p>
+
+Here are a few other examples of <a href="../manual/bshcommands.html">BeanShell commands</a>:
+
+<ul>
+<li> <a href="../manual/bshcommands.html#source">source()</a>, <a href="../manual/bshcommands.html#run">run()</a>  - read a bsh script into this interpreter, or run it
+in a new interpreter
+<li> <a href="../manual/bshcommands.html#frame">frame()</a>  - display the AWT/JFC component in a Frame
+<li> <a href="../manual/bshcommands.html#load">load()</a>,  <a href="../manual/bshcommands.html#save">save()</a> - load or save serializable objects
+<li> <a href="../manual/bshcommands.html#cd">cd()</a>, <a href="../manual/bshcommands.html#cat">cat()</a>, <a href="../manual/bshcommands.html#dir">dir()</a>, pwd(), etc.  - Unix-like shell commands
+<li> <a href="../manual/bshcommands.html#exec">exec()</a> - run a native application 
+</ul>
+
+<p>
+See the complete list of <a href="../manual/bshcommands.html">BeanShell commands</a> for more information.
+<p>
+
+<a href="../manual/bshcommands.html">BeanShell commands</a> are simply methods which are implemented by bsh scripts
+supplied in the bsh jar file.  You can, of course, define your own methods
+in bsh and also add your own scripts to the classpath to extend the basic 
+command set.
+<p>
+
+
+<h4>
+Scripted Methods
+</h4>
+
+You can declare and use methods in bsh just as you would in a Java class.
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    int addTwoNumbers( int a, int b ) {
+        return a + b;
+    }
+
+    sum = addTwoNumbers( 5, 7 );  // 12
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+
+Bsh methods may also have dynamic (loose) argument and return types.  
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    add( a, b ) {
+        return a + b;
+    }
+
+    foo = add(1, 2);            // 3
+    foo = add("Oh", " baby");   // "Oh baby"
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+<h4>
+Scripted Objects
+</h4>
+
+In BeanShell, as in JavaScript and Perl, method "closures" allow you to create
+scripted objects.  You can turn the results of a method call into an object
+reference by having the method return the special value <strong>this</strong>.
+You can then use that reference to refer to any variables set in the method 
+call.  To make useful objects you need instance methods of course so in 
+BeanShell methods may also contain methods at any level.
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        print("foo");
+        x=5;
+
+        bar() {
+            print("bar");
+        }
+
+        return this;
+    }
+
+    myfoo = foo();    // prints "foo"
+    print( myfoo.x ); // prints "5"
+    myfoo.bar();      // prints "bar"
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+If this seems strange to you please see the <a href="../manual/contents.html">user's manual</a> for more details.
+<p>
+
+You may also cast your scripted objects (e.g. myFoo above) to any Java 
+interface type and supply the necessary methods in the script.
+<p>
+
+<em>Note: implementing interface types requires BeanShell be running under a 
+Java 1.3 environment or higher</em>
+
+<h5>Inner Class Style</h5>
+<p>
+
+You may also use the Java anonymous inner class style syntax to implement an
+interface type with a script.
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    ActionListener scriptedListener = new ActionListener() {
+        actionPerformed( event ) { ... }
+    }
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+Normally, if you leave out methods required by the interface the calling code
+will throw an exception.  However if you wish to override this behavior 
+you can implement the special method invoke(name, args) in your scripted 
+object to handle undefined method invocations:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+        ml = new MouseListener() {
+            mousePressed( event ) { ... }
+            // handle the rest
+            invoke( name, args ) { print("Method: "+name+" invoked!");
+        }
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+
+<!-- GENERATED - DON'T EDIT THIS FILE -->
+<h1>BeanShell Commands</h1>
+
+BeanShell comes with a bunch of commands to make your life easier.
+These are, for the most part, just very short bsh scripts, supplied in the 
+bsh.jar file.  
+See <b>Adding <a href="../manual/bshcommands.html">bsh commands</a></b> for more details on adding
+to the "built-in" <a href="../manual/bshcommands.html">bsh command</a> set.
+<p>
+
+<p><table cellpadding=2 border=1 width=100%>
+<tr><td width=20%><strong><a href="#addClassPath">addClassPath</a></strong></td><td>void addClassPath( string | URL )</td></tr>
+<tr><td width=20%><strong><a href="#bg">bg</a></strong></td><td>Thread bg( String script )</td></tr>
+<tr><td width=20%><strong><a href="#browseClass">browseClass</a></strong></td><td>void browseClass( String | Object | Class )</td></tr>
+<tr><td width=20%><strong><a href="#cat">cat</a></strong></td><td>void cat( String filename )</td></tr>
+<tr><td width=20%><strong><a href="#cd">cd</a></strong></td><td>void cd( String dirname )</td></tr>
+<tr><td width=20%><strong><a href="#classBrowser">classBrowser</a></strong></td><td>void classBrowser()</td></tr>
+<tr><td width=20%><strong><a href="#debug">debug</a></strong></td><td>void debug()</td></tr>
+<tr><td width=20%><strong><a href="#desktop">desktop</a></strong></td><td>void desktop()</td></tr>
+<tr><td width=20%><strong><a href="#dir">dir</a></strong></td><td>void dir( String dirname )</td></tr>
+<tr><td width=20%><strong><a href="#error">error</a></strong></td><td>void error( string )</td></tr>
+<tr><td width=20%><strong><a href="#eval">eval</a></strong></td><td>Object eval( String expression )</td></tr>
+<tr><td width=20%><strong><a href="#exec">exec</a></strong></td><td>exec( String process )</td></tr>
+<tr><td width=20%><strong><a href="#exit">exit</a></strong></td><td>void exit()</td></tr>
+<tr><td width=20%><strong><a href="#extend">extend</a></strong></td><td>This extend( This object )</td></tr>
+<tr><td width=20%><strong><a href="#frame">frame</a></strong></td><td>Frame | JFrame | JInternalFrame frame( Component component )</td></tr>
+<tr><td width=20%><strong><a href="#getClass">getClass</a></strong></td><td>Class getClass( String )</td></tr>
+<tr><td width=20%><strong><a href="#getClassPath">getClassPath</a></strong></td><td>URL [] getClassPath()</td></tr>
+<tr><td width=20%><strong><a href="#getResource">getResource</a></strong></td><td>URL getResource( String path )</td></tr>
+<tr><td width=20%><strong><a href="#javap">javap</a></strong></td><td>void javap( String | Object | Class )</td></tr>
+<tr><td width=20%><strong><a href="#load">load</a></strong></td><td>Object load( String filename )</td></tr>
+<tr><td width=20%><strong><a href="#object">object</a></strong></td><td>This object()</td></tr>
+<tr><td width=20%><strong><a href="#pathToFile">pathToFile</a></strong></td><td>File pathToFile( String filename )</td></tr>
+<tr><td width=20%><strong><a href="#print">print</a></strong></td><td>void print( arg )</td></tr>
+<tr><td width=20%><strong><a href="#pwd">pwd</a></strong></td><td>void pwd()</td></tr>
+<tr><td width=20%><strong><a href="#reloadClasses">reloadClasses</a></strong></td><td>void reloadClasses( [ package name ] )</td></tr>
+<tr><td width=20%><strong><a href="#rm">rm</a></strong></td><td>void rm( String pathname )</td></tr>
+<tr><td width=20%><strong><a href="#run">run</a></strong></td><td>This run( String script )</td></tr>
+<tr><td width=20%><strong><a href="#save">save</a></strong></td><td>void save( Component component, String filename )</td></tr>
+<tr><td width=20%><strong><a href="#server">server</a></strong></td><td>void server( int port )</td></tr>
+<tr><td width=20%><strong><a href="#setClassPath">setClassPath</a></strong></td><td>void setClassPath( URL [] )</td></tr>
+<tr><td width=20%><strong><a href="#setFont">setFont</a></strong></td><td>Font setFont( Component comp, int ptsize )</td></tr>
+<tr><td width=20%><strong><a href="#setNameCompletion">setNameCompletion</a></strong></td><td>void setNameCompletion( boolean )</td></tr>
+<tr><td width=20%><strong><a href="#show">show</a></strong></td><td>void <a href="../manual/bshcommands.html#show">show()</a></td></tr>
+<tr><td width=20%><strong><a href="#source">source</a></strong></td><td>void source( String filename )</td></tr>
+<tr><td width=20%><strong><a href="#super">super</a></strong></td><td>This super( String scopename )</td></tr>
+<tr><td width=20%><strong><a href="#unset">unset</a></strong></td><td>void unset(String name)</td></tr>
+</table><p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="print">
+<strong><font size=+2>print</font></strong></a><br>
+<font size=+1>void print( arg )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Print the string value of the argument, which may be of any type.
+If beanshell is running interactively, the output will always go to the 
+command line, otherwise it will go to System.out.
+<p>
+
+Most often the printed value of an object will simply be the Java 
+toString() of the object.  However if the argument is an array the contents 
+of the array will be (recursively) listed in a verbose way.
+<p>
+
+Note that you are always free to use System.out.println() instead of <a href="../manual/bshcommands.html#print">print()</a>.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="show">
+<strong><font size=+2>show</font></strong></a><br>
+<font size=+1>void <a href="../manual/bshcommands.html#show">show()</a></font>
+</td>
+</tr>
+<tr>
+<td> 
+Toggle on or off displaying the results of expressions (off by default).
+When show mode is on bsh will <a href="../manual/bshcommands.html#print">print()</a> the value returned by each expression 
+you type on the command line.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="frame">
+<strong><font size=+2>frame</font></strong></a><br>
+<font size=+1>Frame | JFrame | JInternalFrame frame( Component component )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Display the component, centered and packed, in a Frame, JFrame, or 
+JInternalFrame.  Returns the frame.  If the GUI desktop is running then a 
+JInternaFrame will be used and automatically added to the desktop.  Otherwise
+if Swing is available a top level JFrame will be created.  Otherwise a plain
+AWT Frame will be created.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="load">
+<strong><font size=+2>load</font></strong></a><br>
+<font size=+1>Object load( String filename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Load a serialized Java object from filename.  Returns the object.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="save">
+<strong><font size=+2>save</font></strong></a><br>
+<font size=+1>void save( Component component, String filename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Save a serializable Java object to filename. 
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="cat">
+<strong><font size=+2>cat</font></strong></a><br>
+<font size=+1>void cat( String filename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Print the contents of filename (like Unix cat)
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="exec">
+<strong><font size=+2>exec</font></strong></a><br>
+<font size=+1>exec( String process )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Get the Java Runtime and start the external process, display any
+output. <em>Note: process handling will get more sophisticated in the
+future</em>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="pwd">
+<strong><font size=+2>pwd</font></strong></a><br>
+<font size=+1>void pwd()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Print the bsh working directory.  This is the cwd obeyed by all the unix
+like bsh comands.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="rm">
+<strong><font size=+2>rm</font></strong></a><br>
+<font size=+1>void rm( String pathname )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Remove the file (like Unix rm)
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="unset">
+<strong><font size=+2>unset</font></strong></a><br>
+<font size=+1>void unset(String name)</font>
+</td>
+</tr>
+<tr>
+<td> 
+"undefine" the variable specifed by 'name' (So that it tests == void).
+<p>
+<em>Note: there will be a better way to do this in the future.  This is 
+currently equivalent to doing namespace.setVariable(name, null);</em>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="cd">
+<strong><font size=+2>cd</font></strong></a><br>
+<font size=+1>void cd( String dirname )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Change working directory for the <a href="../manual/bshcommands.html#dir">dir()</a> command (like Unix cd)
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="dir">
+<strong><font size=+2>dir</font></strong></a><br>
+<font size=+1>void dir( String dirname )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Display the contets of directory dirname.  The format is similar to the Unix ls -l command.
+dir
+void <a href="../manual/bshcommands.html#dir">dir()</a>
+Display the contents of the current working directory.  
+The format is similar to the Unix ls -l
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="pathToFile">
+<strong><font size=+2>pathToFile</font></strong></a><br>
+<font size=+1>File pathToFile( String filename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Create a File object corresponding to the specified file path name, taking
+into account the bsh current working directory (bsh.cwd)
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="source">
+<strong><font size=+2>source</font></strong></a><br>
+<font size=+1>void source( String filename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Read filename into the interpreter and evaluate it in the current
+namespace.  Like Bourne Shell "." command.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="eval">
+<strong><font size=+2>eval</font></strong></a><br>
+<font size=+1>Object eval( String expression )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Evaluate the string in the current interpreter (see <a href="../manual/bshcommands.html#source">source()</a> above).
+Returns the result of the evaluation or null.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="server">
+<strong><font size=+2>server</font></strong></a><br>
+<font size=+1>void server( int port )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Create a <a href="guide.html#server">Server Mode</a> server attached to 
+the current interpreter, listening on the specified port.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="debug">
+<strong><font size=+2>debug</font></strong></a><br>
+<font size=+1>void debug()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Toggle on and off debug mode... Note: debug output is verbose and gross.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="exit">
+<strong><font size=+2>exit</font></strong></a><br>
+<font size=+1>void exit()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Call System.exit(0);
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="getResource">
+<strong><font size=+2>getResource</font></strong></a><br>
+<font size=+1>URL getResource( String path )</font>
+</td>
+</tr>
+<tr>
+<td> 
+The equivalent of calling getRe<a href="../manual/bshcommands.html#source">source()</a> on the interpreter class in
+the bsh package.  Use absolute paths to get stuff in the classpath.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="setFont">
+<strong><font size=+2>setFont</font></strong></a><br>
+<font size=+1>Font setFont( Component comp, int ptsize )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Change the point size of the font on the specified component, to ptsize.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="run">
+<strong><font size=+2>run</font></strong></a><br>
+<font size=+1>This run( String script )</font>
+</td>
+</tr>
+<tr>
+<td> 
+ <a href="../manual/bshcommands.html#run">run()</a> is like <a href="../manual/bshcommands.html#source">source()</a> except that it runs the command in a new, 
+subordinate and prune()'d namespace.  So it's like "running" a command 
+instead of "sourcing" it.  Returns the object context in which the command
+was run.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="bg">
+<strong><font size=+2>bg</font></strong></a><br>
+<font size=+1>Thread bg( String script )</font>
+</td>
+</tr>
+<tr>
+<td> 
+This is like <a href="../manual/bshcommands.html#run">run()</a> except that it runs the command in its own thread.  
+Returns the thread object (for stop()ing, join()ing, etc.)
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="object">
+<strong><font size=+2>object</font></strong></a><br>
+<font size=+1>This object()</font>
+</td>
+</tr>
+<tr>
+<td> 
+object() Returns a new bsh object which you can use to hold data items.  
+e.g. 
+<p>
+<pre>
+  myStuff = object();
+  myStuff.foo = 42;
+  myStuff.bar = "blah";
+</pre>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="extend">
+<strong><font size=+2>extend</font></strong></a><br>
+<font size=+1>This extend( This object )</font>
+</td>
+</tr>
+<tr>
+<td> 
+<strong>
+Note: this command will likely change along with a better inheritance mechanism
+for bsh in the next release.</strong>
+<p>
+
+extend() is like the object() command, which
+creates a new bsh scripted object, except that the namespace of
+the new object is a child of the parent object. 
+<p>
+
+<pre>
+For example:
+
+    foo=object();
+    bar=extend(foo);
+
+is equivalent to:
+  
+    foo() { 
+        bar() {
+            return this; 
+        }
+    }
+
+    foo=foo();
+    bar=foo.bar();
+
+and also:
+ 
+   foo=object();
+   bar=object();
+   bar.namespace.bind( foo.namespace );
+</pre>
+<p>
+
+The last example above is exactly what the extend() command does.
+In each case the bar object inherits variables from foo in the usual way.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="super">
+<strong><font size=+2>super</font></strong></a><br>
+<font size=+1>This super( String scopename )</font>
+</td>
+</tr>
+<tr>
+<td> 
+super( name ) Returns a bsh This reference to the enclosing scope 
+(method scope) of the specified name.
+e.g. 
+<p>
+<pre>
+    foo() {
+        x=1;
+        bar() {
+            x=2;
+            gee() {
+                x=3;
+                print( x ); // 3
+                print( super.x ); // 2
+                print( super("foo").x ); // 1
+            }
+        }
+    }
+</pre>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="addClassPath">
+<strong><font size=+2>addClassPath</font></strong></a><br>
+<font size=+1>void addClassPath( string | URL )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Add the specified directory or JAR file to the class path.
+e.g.
+<p>
+<pre>
+     addClassPath( "/home/pat/java/classes" );
+     addClassPath( "/home/pat/java/mystuff.jar" );
+     addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+</pre>
+<p>
+See <a href="classpath.html">Class Path Management</a>
+
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="setClassPath">
+<strong><font size=+2>setClassPath</font></strong></a><br>
+<font size=+1>void setClassPath( URL [] )</font>
+</td>
+</tr>
+<tr>
+<td> 
+<p>
+Change the classpath to the specified array of directories and/or archives.  
+<p>
+See <a href="classpath.html">Class Path Management</a>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="reloadClasses">
+<strong><font size=+2>reloadClasses</font></strong></a><br>
+<font size=+1>void reloadClasses( [ package name ] )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Reload the specified class, package name, or all classes if no name is given.
+e.g.
+<p>
+
+<pre>
+        reloadClasses();
+        reloadClasses("mypackage.*");
+        reloadClasses(".*")  // reload unpackaged classes
+        reloadClasses("mypackage.MyClass") 
+</pre>
+<p>
+See <a href="classpath.html">Class Path Management</a>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="browseClass">
+<strong><font size=+2>browseClass</font></strong></a><br>
+<font size=+1>void browseClass( String | Object | Class )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Open the class browser to view the specified class.  
+<p>
+If the argument is a
+string it is considered to be a class name.  If the argument is an object,
+the class of the object is used.  If the arg is a class, the class is used.
+<p>
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="classBrowser">
+<strong><font size=+2>classBrowser</font></strong></a><br>
+<font size=+1>void classBrowser()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Open the class browser.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="desktop">
+<strong><font size=+2>desktop</font></strong></a><br>
+<font size=+1>void desktop()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Start the BeanShell GUI desktop.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="error">
+<strong><font size=+2>error</font></strong></a><br>
+<font size=+1>void error( string )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Print the item as an error.  If in the GUI console the text will show up in
+red, else it will be printed to stderr
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="getClassPath">
+<strong><font size=+2>getClassPath</font></strong></a><br>
+<font size=+1>URL [] getClassPath()</font>
+</td>
+</tr>
+<tr>
+<td> 
+Get the current classpath including all user path, extended path, and the
+boostrap JAR file if possible.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="javap">
+<strong><font size=+2>javap</font></strong></a><br>
+<font size=+1>void javap( String | Object | Class )</font>
+</td>
+</tr>
+<tr>
+<td> 
+print the public fields and methods of the specified class (output similar 
+to the JDK javap command).
+<p>
+If the argument is a
+string it is considered to be a class name.  If the argument is an object,
+the class of the object is used.  If the arg is a class, the class is used.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="setNameCompletion">
+<strong><font size=+2>setNameCompletion</font></strong></a><br>
+<font size=+1>void setNameCompletion( boolean )</font>
+</td>
+</tr>
+<tr>
+<td> 
+Turn name completion in the GUI console on or off.
+Name competion is on by default.  Explicitly setting it to true however can
+be used to prompt bsh to read the classpath and provide immediate feedback.
+(Otherwise this may happen behind the scenes the first time name completion
+is attempted).  Setting it to false will disable name completion.
+</td></tr>
+</table>
+<p>
+<table cellpadding=5 border=0 width="100%">
+<tr>
+<td bgcolor="#cccccc">
+<a name="getClass">
+<strong><font size=+2>getClass</font></strong></a><br>
+<font size=+1>Class getClass( String )</font>
+</td>
+</tr>
+<tr>
+<td> 
+This is equivalent to the standard Class.forName() method for class loading,
+however it takes advantage of the BeanShell class manager so that added 
+classpath will be taken into account.  You can also use Class.forName(), 
+however if you have modified the classpath or reloaded classes from within your
+script the modifications will only appear if you use the getClass() command.
+</td></tr>
+</table>
+<p>
+<p><hr>
+<h1>BeanShell Syntax</h1>
+
+BeanShell is primarily a Java interpreter, so you probably already know 
+most of what you need to start using and scripting in bsh.  This section
+will describe specifically what portion of the Java langauge bsh interprets
+and how bsh extends it - loosens it up - to be more scripting language like.
+<p>
+
+<!-- heading --><a name="Standard_Java_Syntax"><h2>Standard Java Syntax</h2></a>
+
+At the prompt you can type normal Java statements and expressions and 
+display the results.  
+Statements and expressions are the kinds of things you normally find 
+inside of a Java method - variable assignments, method calls, math 
+expressions, for-loops, etc., etc.  
+<p>
+
+Here are some examples:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    // Use a hashtable
+    Hashtable h = new Hashtable();
+    Date d = new Date();
+    h.put("today", d);
+
+    // Print the current clock value
+    print( System.currentTimeMillis() );
+
+    // Loop
+    for (int i=0; i&lt;5; i++)
+        print(i);
+
+    // Pop up an AWT frame with a button in it
+    JButton b = new JButton("My Button");
+    JFrame f = new JFrame("My Frame");
+    f.getContentPane()add(b, "Center");
+    f.pack();
+    f.show();
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+<!-- heading --><a name="Loose_Java_Syntax"><h2>Loose Java Syntax</h2></a>
+
+In the examples above, all of our variables have declared types - e.g. 
+'JButton b'.  Beanshell will enforce these types, as you will see if you 
+later try to 
+assign something other than a JButton to the variable 'b' (you will get
+an error message).
+However bsh also supports dynamically typed variables - that is, you can 
+refer to 
+variables without declaring them first and without specifying any type.
+In this case bsh will do type checking where appropriate at "runtime".  So, 
+for example, we could have left off the types in the above example and 
+simply said something like:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo = new JButton("Another Button");
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+We are then free to assign 'foo' to another type of Java object later.
+Untyped bsh variables can also freely hold Java primitive values like int 
+and boolean.  Don't worry, bsh always knows the real types and only lets you
+use the values where appropriate.  For primitive types this includes doing the
+correct numeric promotion that the real Java language would do when you use
+them in an expression.
+<p>
+<p>
+
+<!-- heading --><a name="Convenience_Syntax"><h2>Convenience Syntax</h2></a>
+<p>
+
+In bsh you may access JavaBean properties as if they were fields:
+
+<pre>
+    b = new java.awt.Button();
+    b.label = "my button";  // Equivalent to: b.setLabel("my button");
+</pre>
+
+Of course if there is a field of the same name (e.g. label in the above
+example) then it would take precedence.
+<p>
+
+If you wish to avoid ambiguity Bsh provides an additional, uniform syntax for 
+accessing Java Bean properties and Hashtable entries.  
+You may use the "{}" curly brace construct with a 
+String identifier as a qualifier on any variable of the appropriate type:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    b = new java.awt.Button();
+    b{"label"} = "my button";  // Equivalent to: b.setLabel("my button");
+
+    h = new Hashtable();
+    h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+
+<p>
+
+<!-- heading --><a name="Importing_classes_and_packages"><h2>Importing classes and packages</h2></a>
+
+In BeanShell as in Java, you can either refer to classes by their fully
+qualified names, or you can <strong>import</strong> one or more classes 
+from a Java package.
+<p>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    import mypackage.MyClass;
+or
+    import mypackage.*;
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+You may also automatically import the entire classpath using:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    import *;
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+See <a href="classpath.html">Class Path Management</a> for details.
+<p>
+
+By default, several Java core and extension packages are imported for 
+you.  They are:
+
+<ul>
+<li>java.lang
+<li>java.awt
+<li>java.awt.event
+<li>javax.swing
+<li>javax.swing.event
+<li>java.util
+<li>java.io
+<li>java.net
+</ul>
+<p>
+
+
+<hr>
+<h1>Methods</h1>
+
+You can define define methods in bsh, just as they would appear in Java:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    int addTwoNumbers( int a, int b ) {
+        return a + b;
+    }
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+and use them immediately as you would any <a href="../manual/bshcommands.html">bsh command</a>:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    sum = addTwoNumbers( 5, 7 );
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+Just as bsh variables may be dynamically typed, bsh methods may have 
+dynamic argument and return types.  We could, for example, have declared
+our method like so:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    add( a, b ) {
+        return a + b;
+    }
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+In this case, bsh would dynamically determine the types when the method is
+called and "do the right thing":
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo = add(1, 2);
+    print( foo ); // 3
+
+    foo = add("Oh", " baby");
+    print( foo ); // Oh baby
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+In the first case Java performed arithmetic addition on the integers 1 and 2.
+By the way, if we had passed in numbers of other types bsh would have performed
+the appropriate numeric promotion and returned the right type.  In the second
+case bsh performed the usual string concatenation for String types and
+returned a String object.
+<p>
+
+Methods with unspecified return types may return any type of object (as in
+the previous example).
+Alternatively they may also simply issue a "return;" without a value, in
+which case the effective type of the method is "void" (no type).  In 
+either case, the return statement is optional.  If the method does not 
+perform an explicit "return" statement, the value of the last statement or 
+expression in the method body becomes the return value (and must adhere
+to any declared return typing).
+<p>
+
+<p>
+<center>
+<table width=70% border=1 cellpadding=5>
+<tr><td bgcolor="#eeeebb">
+<strong>Note:</strong>
+<br><br>
+The namespaces for methods and variables are separate, so
+it is ok to have a method named "foo()" and variable named "foo" within
+the same scope.
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+<!-- heading --><a name="Scope_modifiers:_this,_super,_global"><h2>Scope modifiers: this, super, global</h2></a>
+<p>
+
+Within a method, it is possible to explicitly qualify a variable or 
+method reference
+with the values 'this', 'super', and 'global' to refer to, respectively,
+the current scope, the calling method's scope, or the global scope.
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    a = 42;
+    foo() {
+        a = 97;
+        print( a );
+        print( this.a );
+        print( super.a );
+    }
+
+    foo();  // prints 97, 97, 42
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+In the case above, 'global' and 'super' both refer to the top level scope.
+<p>
+We'll refer to instances of the special 'this', 'super', and 'global' 
+references as "This" type references.  
+<p>
+
+
+
+<hr>
+<h1>Scripted Objects</h1>
+
+In bsh you can script objects as "method closures", similar to 
+those in Perl5.0 and JavaScript.
+<p>
+
+As in most languages, executing bsh methods have their own "local" scope 
+that holds argument variables and locally declared variables.  For example,
+any variables that we might have declared within our add() method above would 
+normally only be visible within the scope of and for the lifetime of a 
+particular method invocation:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        bar = 42;
+        print( bar );
+    }   
+
+    foo();  // prints 42
+    print( bar ); // Error, var is undefined here 
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+However, in BeanShell you can "hang on" to this scope after
+exiting the method by returning the special value: "this".  As in Java,
+"this" refers to the current object context.  By saving the "this" reference,
+you can continue to refer to variables defined within the method, using
+the standard Java "." notation:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        bar = 42;
+        return this;
+    }
+
+    obj = foo();
+    print( obj.bar ); // 42
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+In the above, the value returned by the foo() method is effectively
+an instance of a "foo" object. 
+In this case foo is really just acting like a structure,  but bsh methods
+are also allowed to contain their own methods:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        bar() {
+            ...
+        }
+    }
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+Method may define any number of local methods in this way, to an arbitrary 
+depth.
+<p>
+
+Statements and expressions within a Bsh method can call their own 
+"local" methods just like any other method.  (Locally declared methods shadow
+outer-more methods like local variables shadow outer variables.)
+And we can invoke local methods of objects through an appropriate 'this' 
+reference for that object:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        int a = 42;
+        bar() {
+            print("The bar is open!");
+        }
+        
+        bar();
+        return this;
+    }
+
+    obj = foo();     // prints "the bar is open!"
+    print ( obj.a )  // 42
+    obj.bar();       // prints "the bar is open!"
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+
+Within a nested method, locally declared variables at each level of scope
+shadow methods of the same name in outer-more scopes.  Otherwise, variables
+are visible to an arbitrary depth of scope.
+<p>
+
+<hr>
+<h1>Scripted Event Handling</h1>
+
+One of the most powerful features of Bsh is the ability to script event 
+handlers and other interface types.
+To do this simply define the appropriate methods in your script or scripted
+object and use the corresponding 'this' reference.
+
+For example, we could could script an event handler for a button like so:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    button = new java.awt.Button("foo!");
+
+    actionPerformed( event ) {
+        print( event );
+    }
+
+    button.addActionListener( this );
+    frame( button );  // show it
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+Now when ActionEvents are fired by the button, your actionPerformed()
+method will be invoked.  The bsh 'this' reference implements 
+the interface and directs them to the appropriately named method, if it exists.
+<p>
+
+But you don't have to define all of your interface methods globally.
+You can get callbacks in any bsh object scope.  For example, the following
+method creates a button that displays a message when pushed:
+<p>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    messageButton( message ) {
+        b = new Button("Press Me");
+        b.addActionListener( this );
+        frame(b);
+     
+        actionPerformed( e ) {
+            print( message );
+        }
+    }
+
+    messageButton("Hey you!");
+    messageButton("Another message...");
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+The above will create two buttons and each will display its own message
+when pushed.  Each has a separate instance of the event handler object.
+Note too that we could return a 'this' reference from the handler method and
+use it in other contexts to register listeners...  
+<p>
+
+<!-- heading --><a name="Anonymous_inner_class_style"><h2>Anonymous inner class style</h2></a>
+
+More generally you can use the Java anonymous inner class style syntax
+to construct a scripted object implementing an interface:
+<p>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    buttonHandler = new ActionListener() {
+        actionPerformed( event ) { 
+            print(event);
+        }
+    };
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+
+See also <a href="examples/dragtext.html">the dragText example</a>.
+<p>
+
+<!-- heading --><a name="Details"><h2>Details</h2></a>
+
+<em>What happens if I don't implement all of the methods of an interface?</em>
+<p>
+You can implement the special method <em>invoke()</em> which will be called
+when a method of the interface is not found. e.g.
+<p>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    mouseHandler = new MouseListener() {
+        mousePressed( event ) { 
+            print("mouse button pressed");  
+        }
+
+        invoke( method, args ) { 
+            print("Undefined method of MouseListener interface invoked:"
+                + name +", with args: "+args
+            );
+        }
+    };
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+<em>What kind of events can bsh handle in this way?</em>
+<p>
+
+When running under JDK1.3 or greater BeanShell can handle any kind of event
+(serve as any kind of event listener) because bsh scripts are capable of
+implementing arbitrary Java interfaces.  However when running under JDK1.2
+(or JDK1.1 + Swing) only the core AWT and Swing interfaces are available.
+In the pre-JDK1.3 case the bsh.This object implements these interfaces
+(along with Runnable, etc.) directly.
+<p>
+
+<h1>Scripting Threads</h1>
+
+BeanShell 'This' type references also implement the standard 
+java.lang.Runnable interface, so you can declare a "<a href="../manual/bshcommands.html#run">run()</a>" method in your bsh
+objects and make it the target of a Thread.
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    foo() {
+        run() {
+            // do work...
+        }
+        return this;
+    }
+    
+    foo = foo();
+    new Thread( foo ).start();
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+
+You can also use the bg() command to run an external script in a separate
+thread. example...
+FINISH
+<p>
+
+<hr>
+<h1>Special Variables and Values</h1>
+
+See also <a href="#this">BOGUSLINKthis, super, and global</a>.
+<p>
+
+<em>Special variables</em>
+<p>
+<ul>
+<li><strong><any> $_</strong> - the value of the last expression evaluated.
+<li><strong>bsh.Console bsh.console</strong> - The primary console, if one exists.
+<li><strong>java.awt.AppletContext bsh.appletcontext</strong> - the applet context, if one exists.
+<li><strong>String bsh.cwd</strong> - used by the <a href="../manual/bshcommands.html#cd">cd()</a> and <a href="../manual/bshcommands.html#dir">dir()</a> commands.
+<li><strong>boolean bsh.show</strong> - used by the <a href="../manual/bshcommands.html#show">show()</a> command.
+<li><strong>boolean bsh.interactive</strong> - is this interpreter running in an interactive mode or sourceing a file?
+<li><strong>boolean bsh.evalOnly</strong> - Does this interpreter have an input stream or is it only serving as a bag for eval() operations.
+</ul>
+<p>
+
+<!-- heading --><a name="Undefined_variables"><h2>Undefined variables</h2></a>
+<p>
+You can test to see if a variable is "undefined" with the value "void", e.g.:
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    if ( foobar == void )
+        // undefined
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+<p>
+You can return a defined variable to the undefined state using the unset()
+command:
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    a == void;  // true
+    a=5;
+    unset("a"); // note the quotes
+    a == void;  // true
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+<p>
+
+<!-- heading --><a name="Special_features_of_'This'_type_references"><h2>Special features of 'This' type references</h2></a>
+<p>
+'This' type references have four special "magic" members:  
+<ul>
+<li>".interpreter" is always a reference to the currently executing Bsh 
+Interpreter object.  
+<li>".namespace" is always a reference to the Bsh NameSpace object  of the
+current context. 
+<li>".variables" is a String [] listing the variables defined in this
+namespace.
+<li>".methods" is a String [] listing the methods defined in this
+namespace.
+</ul>
+<p>
+
+These are mainly for internal
+use by <a href="../manual/bshcommands.html">bsh commands</a>.  Note that there are certain special situations in which 
+the ".interpreter" reference may not be available, such as in AWT 
+event handlers (see the next section).
+<p>
+
+<hr>
+<h1>Class Path Management</h1>
+
+BeanShell is capable of some very fine grained and sophisticated class 
+reloading and modifications to the class path.  BeanShell can even map
+the entire class path to allow for automatic importing of classes.
+
+
+<!-- heading --><a name="Changing_the_Class_Path"><h2>Changing the Class Path</h2></a>
+
+<strong>addClassPath( URL | path )</strong>
+<p>
+Add the specified directory or archive to the classpath.  Archives may be
+located by URL, allowing them to be loaded over the network.
+<p>
+Examples:
+<p>
+<pre>
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+</pre>
+
+Note that if you add class path that overlaps with the existing Java user 
+classpath then the new path will effectively reload the classes in that
+area.
+<p>
+
+<strong>setClassPath( URL [] )</strong>
+<p>
+Change the entire classpath to the specified array of directories and/or 
+archives.  
+<p>
+
+This command has some important side effects.  It effectively causes all
+classes to be reloaded (including any in the Java user class path at startup).
+Please see "Class Reloading" below for further details.
+<p>
+
+Note: setClassPath() cannot currently be used to make the classpath smaller 
+than the Java user path at startup.
+<p>
+
+
+<!-- heading --><a name="Auto-Importing_from_the_Classpath"><h2>Auto-Importing from the Classpath</h2></a>
+
+As an alternative to explicitly importing class names you may use the
+following statement to trigger automatic importing:
+
+<pre>
+    <strong>import *;</strong>
+</pre>
+
+There may be a significant delay while the class path is mapped.  This is why
+auto-importing is not turned on by default.  When run interactively, Bsh will 
+report the areas that it is mapping.
+<p>
+
+It is only necessary to issue the auto-import command once.  Thereafter changes
+in the classpath via the addClassPath() and setClassPath() commands will
+remap as necessary.
+<p>
+
+<em>
+Note: As of BeanShell 1.1alpha new class files added to the classpath 
+(from outside of BeanShell) after mapping will not be seen in imports.
+</em>
+
+
+<!-- heading --><a name="Reloading_Classes"><h2>Reloading Classes</h2></a>
+
+BeanShell provides an easy to use mechanism for reloading classes from the 
+classpath.  It is possible in BeanShell to reload arbitary subsets of classes 
+down to a single class file.  However There are subtle issues to be understood 
+with respect to what it means to reload a class in the Java environment. 
+Please see the discussion of class loading detail below.  But in a nutshell,
+it is important that classes which work together be reloaded together at
+the same time, unless you know what you are doing.
+<p>
+
+<strong>reloadClasses( [ package name ] )</strong>
+<p>
+The most course level of class reloading is accomplished by issuing the 
+reloadClasses() command with no arguments.  
+
+<pre>
+    reloadClasses();
+</pre>
+
+This will effectively reload all
+classes in the current classpath (including any changes you have made through
+addClassPath()).
+<p>
+
+<em>
+Note: that reloading the full path is actually a light weight operation that 
+simply replaces the class loader - normal style class loading is done as
+classes are subsequently referenced.
+</em>
+<p>
+
+Be aware that any object instances which you have previously created may not 
+function with new objects created by the new class loader.  Please see the
+discussion of class loading details below.
+<p>
+
+You can also reload all of the classes in a specified package:
+
+<pre>
+    reloadClasses("mypackage.*");
+</pre>
+
+This will reload only the classes in the specified package.  The classes will
+be reloaded even if they are located in different places in the claspath (e.g.
+if you have some of the package in one directory and some in another).
+<p>
+
+As a special case for reloading unpackaged classes the following commands
+are equivalent:
+<pre>
+    reloadClasses(".*") 
+    reloadClasses("<unpackaged>")
+</pre>
+<p>
+
+You can also reload just an individual class file:
+<pre>
+    reloadClasses("mypackage.MyClass") 
+</pre>
+
+<em>Note: As of alpha1.1 classes contained in archives (jar files) cannot be
+reloaded. i.e. jar files cannot be swapped.</em>
+<p>
+
+<h4>Mapping the path</h4>
+
+Unlike the reloadClases() command which reloads the entire class path,
+when you issue a command to reload a package or individual class name
+BeanShell must map some portions of the classpath to find the location of 
+those class files.  This operation can be time consuming, but it is only
+done once.  If running in interactive mode feedback will be given on the
+progress of the mapping.
+<p>
+
+
+<!-- heading --><a name="Class_Loading_in_Java"><h2>Class Loading in Java</h2></a>
+
+A fundamental Java security proposition is that classes may only be loaded 
+through a class loader once and that classes loaded through different class
+loaders live in different name spaces.  By different name spaces I mean that
+they are not considered to be of the same type, even if they came from the
+very same class file.
+<p>
+You can think of this in the following way:  When you load classes through
+a new class loader imagine that every class name is prefixed with the 
+identifier "FromClassLoaderXXX" and that all internal references to other
+classes loaded through that class loader are similarly rewritten.  Now if
+you attempt to pass a reference to a class instance loaded through another
+class loader to one of your newly loaded objects, it will not recognize it
+as the same type of class.
+<p>
+
+BeanShell works with objects dynamically through the reflection API, so
+your scripts will not have a problem recognizing reloaded class objects.
+However any objects which have you already created might not like them.
+
+<em>More, etc...</em>
+
+
+<!-- heading --><a name="Class_Loading_in_BeanShell"><h2>Class Loading in BeanShell</h2></a>
+
+The following is a discussion of the BeanShell class loader architecture,
+which allows both course class path extension and fine grained individual
+class reloading...
+<p>
+
+<strong>Thriftiness</strong> - Abiding by the BeanShell thriftiness 
+proposition: no class loading code is exercised unless directed by a
+command.  BeanShell begins with no class loader and only adds class loading
+in layers as necessay to achieve desired effects.
+<p>
+
+The following diagram illustrates the two layer class loading scheme:
+<p>
+<center>
+<img src="../images/bshclassloading.gif">
+</center>
+<p>
+
+A "base" class loader is used to handle course changes to the classpath 
+including added path.  Unless directed by setClassPath() the base loader will
+only add path and will not cover existing Java user class path.  This prevents
+unecessary class space changes for the existing classes.
+<p>
+
+Packages of classes and individual classes are mapped in sets by class 
+loaders capable of handling discrete files.  A mapping of reloaded classes
+is maintained.  The discrete file class loaders will also use this mapping
+to resolve names outside there space, so when any individual class is reloaded
+it will see all previously reloaded classes as well.
+<p>
+
+The BshClassManager knows about all class loader changes and broadcasts
+notification of changes to registered listeners.  BeanShell namespaces use
+this mechanism to dereference cached type information, however they do not
+remove existing object instances.
+<p>
+
+Type caching is extremely important to BeanShell performance.  So changing
+the classloader, which necessitates clearing all type caches, should be 
+considered an expensive operation. 
+<p>
+
+<hr>
+<h1>BeanShell Desktop</h1>
+
+
+<img src="../images/splash1.jpg">
+<p>
+
+The BeanShell Desktop is a simple GUI environment that provides multiple
+bsh shell windows (MDI), a simple text editor, and a simple class browser.
+The desktop is mostly implemented by bsh scripts.
+<p>
+
+<h3>Shell Windows</h3>
+
+<img src="../images/colorconsole.jpg">
+<p>
+
+The <a href="../manual/console.html">bsh console window</a>s provide simple command line editing, history,
+cut & paste, and variable and class name completion. 
+<p>
+
+<h3>Editor Windows</h3>
+
+<img src="../images/editorwindow.gif">
+<p>
+
+<h3>The Class Browser</h3>
+
+<img src="../images/bshclassbrowser.gif">
+<p>
+
+<h1>Using BeanShell in Your Application</h1>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+    import bsh.Interpreter;
+    ...
+
+    Interpreter i = new Interpreter();
+    i.set("foo", 5);
+    i.eval("bar = foo*10");
+    System.out.println("bar = "+i.get("bar") );
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+Note: The trailing ";" semi-colon in the string containing the bsh statement 
+to be evaluated is optional in this mode (bsh simply always adds one).
+<p>
+
+<em>Embedding in Server Mode is the same, coming...</em><br>
+<em>More coming...</em>
+<p>
+
+<h1>Server Mode</h1>
+
+<h3></em>Note: this document is out of date.  Check back soon for an 
+update with 1.0beta</em></h3>
+<p>
+
+Server mode lets you access a bsh session inside of a remote VM.
+You can literally telnet into the application and type commands at the
+bsh shell prompt. Or even better you can use your a web browser to bring up a 
+remote console. 
+<p>
+
+After starting the bsh server you can connect your web browser to the 
+specified port.  
+Bsh will act as an httpd and send over a remote console applet.  
+You will get a bsh session that looks like the regular console applet, but 
+it will be running remotely in the originating VM.  You can open as many
+sessions into that VM as you like in this way...
+<p>
+
+Special Notes: 
+In <a href="../manual/servermode.html">server mode</a> bsh actually runs *two* services: a (minimal) httpd at 
+the port you specify and a session server at your port + 1.  You can
+actually connect to the session server with telnet, if you want to try it
+out...(you have to type ";"s  manually at the end of every line).
+<p>
+
+<em>More coming...</em>
+<p>
+
+<hr>
+<h1>Executable scripts under Unix</h1>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+#!/usr/java/bin/java bsh.Interpreter 
+
+print("foo");
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+<p>
+<center>
+<table width=100% cellpadding=5 border=1>
+<tr><td bgcolor="#cfcfcc">
+<pre>
+#!/bin/sh
+#! The following hack allows java to reside anywhere in the PATH.
+//bin/sh -c "exec java bsh.Interpreter $0 $*"; exit
+
+print("foo");
+</pre>
+</td></tr>
+</table>
+</center>
+<p>
+
+<h1>The bsh Package</h1>
+
+<!-- heading --><a name="Adding_Commands_to_BeanShell"><h2>Adding Commands to BeanShell</h2></a>
+<p>
+
+Adding to the set of "prefab" commands supplied with bsh can be about as easy as
+writing any other bsh methods.  You simply have to place your bsh scripts
+in a bsh/commands/ directory in the classpath (or inside the JAR file).
+<p.
+You can also implement <a href="../manual/bshcommands.html">bsh commands</a> directly in Java as .class files which 
+are dynamically loaded when needed.    The <a href="../manual/bshcommands.html#dir">dir()</a> commands are an example
+of a <a href="../manual/bshcommands.html">bsh command</a> that is implemented in Java.  (I did this originaly for 
+speed).
+<p>
+<em>More info coming</em>
+<p>
+
+
+<hr>
+<h1>Learning More...</h1>
+<hr>
+
+<a name="more"><h4>Learning More...</h4></a>
+
+Almost all of the built-in <a href="../manual/bshcommands.html">bsh commands</a> are simply bsh scripts
+stored in the bsh jar file.  A good way to familiarize yourself with bsh
+is to take a look at those commands -  simply unpack bsh/commands/*.bsh
+from the JAR file.
+<p>
+
+<hr>
+<h1>Credit and Acknowledgments</h1>
+
+Many people have contributed substantially to BeanShell, including many
+who have contributed ideas, which can be just as important as code.
+<p>
+I will try to start listing as many as possible here, but I will forget, 
+so please feel free to remind me (don't be modest, everyone who contributes 
+deserves to be mentioned).
+<p>
+
+<h4>New Code and Utilities</h4>
+
+<h4>Bug Fixes</h4>
+
+<h4>Me</h4>
+
+Finally, I will put in a plug for myself.
+<p>
+
+<a href="../mailto:pat@pat.net">Pat Niemeyer</a> (pat@pat.net)
+<p>
+
+<img align=left src="../images/ej.gif">
+If you like BeanShell check out my book:
+<a href="http://www.ora.com/catalog/expjava2/">
+Exploring Java, O'Reilly & Associates, 2nd edition</a>.
+Third edition coming soon!
+<br clear=left>
+<p>
+
+</body>
+</html>

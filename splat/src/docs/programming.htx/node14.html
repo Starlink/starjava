@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>RemoteUtilities</TITLE>
+<META NAME="description" CONTENT="RemoteUtilities">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="next" HREF="node15.html">
+<LINK REL="previous" HREF="node13.html">
+<LINK REL="up" HREF="node13.html">
+<LINK REL="next" HREF="node15.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html249"
+ HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html247"
+ HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html241"
+ HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html250"
+ HREF="node15.html">SpectralFileFilter</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html248"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html242"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00043100000000000000"></A><A NAME="l236"></A>
+<BR>
+RemoteUtilities
+</H3>
+   
+<P>
+
+<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class RemoteUtilities}
+}}">
+
+<P>
+This class provides utility methods for remote control based
+ access to SPLAT.
+
+<P>
+<B><FONT SIZE="+1">Methods</FONT></B>
+<BR>
+   <HR>
+<TT>public static boolean <B>isListening</B>(<TT>Object[]</TT> <B>contactDetails</B>)<A NAME="l238"></A><A NAME="l239"></A></TT>
+<BLOCKQUOTE>Find out if SPLAT is listening on the given hostname and port
+ and recognises the given cookie.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>contactDetails</B></STRONG>
+<DD>return from readContactFile.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true if an instance of SPLAT was successfully contacted. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public static Object <B>readContactFile</B>()<A NAME="l240"></A><A NAME="l241"></A></TT>
+<BLOCKQUOTE>Parse the contact file returning its contents as an Object array.
+
+<UL><LI>Returns array of three Objects. These are really the hostname
+         String, an Integer with the port number and a String
+         containing the validation cookie. Returns null if not
+         available. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public static String <B>sendRemoteCommand</B>(<TT>Object[]</TT> <B>contactDetails</B>, <TT>String</TT> <B>command</B>)<A NAME="l242"></A><A NAME="l243"></A></TT>
+<BLOCKQUOTE>Send a single beanshell command to a remote SPLAT beanshell
+ interpreter. Needs the hostname, port and cookie from the
+ contact file.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>contactDetails</B></STRONG>
+<DD>return from readContactFile.
+   <DT><STRONG><B>command</B></STRONG>
+<DD>the beanshell command to execute.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the string that returns from the command, null for an error. 
+
+<LI>Exceptions
+
+<UL><LI>
+<BR><TT>Exception</TT> - exception resulting from any network problems.
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<BR> <HR>
+<A NAME="tex2html249"
+ HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html247"
+ HREF="node13.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html241"
+ HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html250"
+ HREF="node15.html">SpectralFileFilter</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html248"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html242"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+
+<h3>Plot Window</h3>
+
+<p>The plot window allows you to plot the values in two table 
+columns against each other.  The window is composed of several parts.
+
+<h4>Plotting Surface</h4>
+
+<p>On the plotting surface a marker is plotted for each item in the
+selected <a href="subsets.html">Row Subset</a>s at a position determined by the 
+values in the table columns selected to provide the X and Y values.
+A marker will only be plotted if both the X and Y values are not blank.
+If more than one subset is being plotted, they will be drawn using
+different markers.  A key on the right hand side indicates the marker
+being used for each subset.  The marker types can be changed using the
+<kbd>Marker Type</kbd> item in the <kbd>Plot</kbd> menu.
+
+<p>You can zoom in and out of the plot by dragging with the left mouse
+button down and right (zoom in) or up and left (zoom out) - this takes
+a little practice but is easy to use after a couple of goes.
+If you get lost you can push the 
+Rescale button (<img src="../images/4way3.gif">) to return the 
+scaling to normal.
+
+<h4>Axis selectors</h4>
+
+Below the plot there are two sets of controls for selecting the 
+table column which will provide the X and Y axis values.
+Each one consists of two parts:
+<dl>
+<dt>Column selector
+<dd>A selection box from which column names in the main table can be
+   selected.  Only columns which can be plotted from (i.e. scalar numeric
+   ones) will be displayed in this selector.
+
+<dt>Log checkbox
+<dd>This checkbox can be clicked to toggle whether the axis in question
+    is to be plotted logarithmically or not.  If it is logarithmic,
+    any negative values are simply ignored (not plotted).
+</dl>
+
+<h4>Row Subset Selection</h4>
+
+<p>Below the plot there is a set of checkboxes headed 
+<a href="subsets.html">Row Subsets</a>.
+Click on these to select or deselect which subsets should be plotted in
+this graph.
+Different subsets are plotted
+using different markers, so you can see where different groups of results
+lie in relation to each other.
+
+<p>You can also use the <kbd>Subsets To Plot</kbd> item on the 
+<kbd>Subsets</kbd> menu.
+
+
+<h4>Toolbar</h4>
+
+<dl>
+<dt><image src="../images/Print24.gif">Print
+<dd>Pops up a dialogue which will print the current plot as an EPS file
+    The plot is currently not really of publication quality.
+
+<dt><image src="../images/Redo24.gif">Replot
+<dd>Redraws the current plot from scratch.  
+    This may be useful if the data in the
+    table has been changed.
+
+<dt><image src="../images/4way3.gif">Rescale
+<dd>Rescales the axes of the current plot so that it contains all 
+    the data points in the currently selected subsets.
+    By default the plot will be scaled like this, but it it may have changed
+    because of changes in the subset selection or from zooming in or out.
+
+<dt><image src="../images/gridon.gif">Grid
+<dd>Toggles whether a grid is drawn over the plotting surface or not.
+
+<dt><image src="../images/spoints5.gif">Subset from visible
+<dd>Defines a new Row Subset consisting of only the points which 
+    are currently visible on the plotting surface.
+    A dialogue will be popped up to ask for a name for the new subset.
+    In this way points in a given region of the parameter space can 
+    be grouped together.
+
+</dl>
+
+<h4>Progress Bar</h4>
+
+<p>For a large table and/or many subsets the plotting may take a little while.
+While it is being done you can see the points appearing in the plot
+as they are done, and a progress bar is shown at the bottom of the window.
+If you start a new plot (by changing the plot characteristics or pressing
+the Replot button) or close the window while a plot is being done,
+the superceded plot will be stopped.
+
+</body>
+</html>

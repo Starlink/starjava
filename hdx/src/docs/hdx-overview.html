@@ -1,0 +1,408 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "xhtml1-strict.dtd">
+
+<html>
+  <head>
+    <title>HDX Overview</title>
+    <link href="http://www.astro.gla.ac.uk/users/norman/" rev="author"/>
+    <link type="text/css" rel="stylesheet" href="/users/norman/star/style.css"/>
+  </head>
+
+  <body>
+
+    <h1>HDX Overview</h1>
+
+    <div class="abstract">
+      <p>Starlink has developed the HDX data model and implemented it
+      in a Java data access library.  The model is XML-based, layered
+      <em>on top of</em> FITS and other data storage formats, and it
+      is thus a straightforward and elegant solution to the problem of
+      associating disparate data sets in network-usable structures.
+      Starlink has ten years of experience with the precursor of this
+      model, in terms of the tradeoff between flexibility and
+      usability; this tradeoff is surprisingly close to the simple
+      extreme, and we believe this to be a winning move for VO
+      developments.</p>
+    
+      <p>The data model and its XML representation are not data
+        <em>transport</em> formats, but instead complement these by
+        adding arbitrary structure to external storage (such as FITS
+        files), by using URIs in a principled, flexible and REST-ful
+        way, which is therefore compatible with future developments in
+        repository/replica technology, as well as being naturally
+        compatible with SOAP-based grid services.</p>
+    
+      <p>We have implemented this model in an extensible, pluggable
+        Java library, which incorporates VOTables.  We are basing our
+        current software developments on this structure.</p>
+
+      <p>$Revision$</p>
+    </div>
+
+    <p>HDX is two things:</p>
+    <ul>
+
+      <li>a flexible, extensible, <a href="#hdxdm" ><em>data
+            model</em></a> for astronomical <a href="#ndx"
+          >images</a>, <a href="#tables" >tables</a> and other metadata;
+        and</li>
+
+      <li>a <a href="#hdxdal" ><em>data access layer</em></a>,
+        consisting of Java packages
+        which handle the XML and URIs involved, and cast a variety of
+        local or network resources into the HDX data model.</li>
+    </ul>
+
+    <p>HDX does not attempt to <a href="#nonprobs" >solve all
+        problems</a>.  There are <a href="#examples" >examples of
+        use</a>.</p>
+
+    <h2 id="hdxdm">HDX as a data model</h2>
+
+    <p>HDX is...</p>
+    <dl>
+      <dt>...metadata</dt>
+
+      <dd>That is, it is data about data.  The broad issue here is
+        well known, and needs little rehearsing, but the highlights
+        which HDX addresses are identification (`what is this data?') 
+        and structuring (`how are datasets grouped together?', `where is
+        the variance component of this data?').  This means that we
+        don't have to solve the transport problems, so...</dd>
+
+      <dt>...not primarily a data transport format</dt>
+
+      <dd>It is not intended for bulk carriage of bits.  Instead, it
+        is designed to allow one to overlay meaning on bit buckets,
+        either stored separately (for example as part of the response
+        from a query, pointing to the separate location of the image
+        data) or alongside it (for example it is straightforward to
+        include a fragment of HDX in one of the extensions of a FITS
+        multi-extension file, perfectly portably, describing the
+        meanings and interrelationships of the various extensions).
+        That means that HDX is naturally...</dd>
+
+      <dt>...stand-off metadata</dt>
+
+      <dd>That is, it points to the data, rather than necessarily
+        enclosing it (though as noted above, it can `point to' the data
+        from within it!).  This means that it is agnostic about how the
+        data is actually stored, so it can refer to FITS files, HDF
+        files, or any other type of data format, with equal ease.  Also,
+        its approach of adding meaning to distinct resources (expressed
+        as URIs) means that it fits in with the architectural principles
+        which underly the Web and which will underly the Grid.  Because
+        the structuring which HDX supplies is conceptually separate from
+        the data itself, a particular bit-bucket (such as a calibration
+        frame) can be virtually part of many data sets.
+      </dd>
+
+      <dt>...not exclusive</dt>
+
+      <dd>Because it is stand-off, and because it sits within its own
+        namespace, HDX can work alongside other metadata systems, or even
+        within them, if they are expressed in XML.  Thus an elaborate
+        XML description of a resource can have added to it attributes
+        in the HDX namespace, which immediately make it natively
+        processable by HDX software.</dd>
+
+      <dt>...simple</dt>
+
+      <dd>HDX does not try to take over the world.  From Starlink's
+        long experience of astronomical applications we know that the
+        right balance between sophistication and usability can be hard
+        to find: basic structuring (data plus errors plus quality plus
+        history) is essential, but add much more than this and it can
+        become burdensome and errorprone for developers to understand,
+        manage and update the structure correctly.  An error component,
+        for example, becomes worse than useless if it is not updated
+        correctly after some operations on an image.  The designed
+        simplicity and orthogonality of HDX mean that there is a
+        <em>low buy-in cost</em> for using it.  Of course, the
+        simplicity of HDX means that there is a need for it to be...
+      </dd>
+
+      <dt>...extensible/evolvable</dt>
+
+      <dd>HDX is naturally extensible because it is designed around
+        XML.  But more than this, the data access package can have new
+        HDX types added to it dynamically.</dd>
+
+      <dt>...not just XML</dt>
+
+      <dd>Although HDX is described here using XML, it is in fact more
+        general than this, and has been designed so that a future
+        expression of it in RDF, for example, would be
+        straightforward.  The resource/properties approach underlying
+        RDF has in fact been influential on the HDX design.</dd>
+
+    </dl>
+
+    <p>HDX functions as a coordination layer, tying together otherwise
+    distinct metadata.  We can visualise a hierarchy of metadata as follows:</p>
+
+    <p class="figure"><img src="metadata.png" alt="Layers of HDX
+        metadata: data, then per-bitbucket metadata, then coordination
+        metadata"/></p>
+
+    <p>In the bottom layer are the bitbuckets containing the data, and
+    above that are various structures <em>describing</em> that data.
+    We can detach that metadata from the data it describes (conceptually,
+    if not literally), with the result that (a) it becomes natural to
+    associate a particular piece of metadata with several different
+    bitbuckets by the same mechanism through which we associate the
+    image and corresponding variance, say, and (b) the different types
+    of metadata then become naturally independent of each other, and can
+    be specified and evolved at different rates.  Since in this scheme
+    each chunk of metadata conceptualy refers to a single bitbucket
+    (for example, WCS information specifies how a single pixel grid maps
+    to the sky, even if that WCS information is separately associated
+    with two distinct bitbuckets), the metadata standards are relieved
+    of the need to express and maintain coordination information.
+    That information is
+    supplied by the higher layer in the diagram, HDX, which associates
+    data objects with each other and with the metadata which describes
+    them.  Factoring out the coordination information in this way makes
+    the metadata simpler, and leaves the coordination metadata having
+    to solve a rather simple problem; as a result, the HDX model and
+    syntax are not complicated.</p>
+
+    <p>Although HDX as such is only a framework for tying together
+      data descriptions, with code support for creating new types,
+      there are some structures which are already defined as part of
+      it.  We describe two such in the sections below.</p>
+
+    <h3 id="ndx">NDX</h3>
+
+    <p>The most developed substructure presently defined within HDX is
+      <em>NDX</em>, describing images.  This builds directly on a data
+      model, NDF, that Starlink has used heavily over the last decade,
+      finding it to be very close to the optimum trade-off between
+      sophistication and usability.  That this model is in some
+      respects simpler than one might expect, is simpler than NDF's
+      prototype versions, and is simpler than some current
+      proposals for metadata structures, we believe vindicates the
+      drive for simplicity that has informed the HDX design.</p>
+
+    <p>An NDX looks like the following:</p>
+
+<pre>
+    &lt;hdx>
+      &lt;ndx>
+        &lt;image uri="file:/tmp/mydata.fits"/>
+        &lt;variance uri="file:/tmp/mydata-var.fits"/>
+        &lt;quality uri="http://telescope.edu/instrument/bad-pixels.fits"/>
+      &lt;/ndx>
+      &lt;wcs tbd="true"/>
+      &lt;etc>[...]&lt;/etc>
+    &lt;/hdx>
+</pre>
+    <p>It contains an <code>&lt;image&gt;</code>, plus optionally
+      <code>&lt;variance&gt;</code> and <code>&lt;quality&gt;</code>
+      (representing data errors and bad data respectively), plus
+      optional <code>&lt;history&gt;</code>, plus other structures
+      present in the NDF design, not yet fully translated into XML
+      terms.  Each of these refers to the actual data through a
+      <code>uri</code> attribute pointing to, most typically, a FITS
+      file.
+    </p>
+
+    <p>There is <a href="#hdxdal" >Java library support</a> for
+      sophisticated operations on the data thus expressed.</p>
+
+
+    <h3 id="tables">Tables</h3>
+
+    <p>The table module within HDX is under active development, but,
+      consistent with the rest of HDX, it is likely to remain rather
+      simple.  This work will integrate with VOTables as much as
+      possible, and one of the functions of the VOTable support within
+      the Tables module is to present VOTables, among others, in this
+      simpler model.</p>
+
+    <h3>Validity</h3>
+
+    <p>There is no DTD or Schema definition of HDX, or its component
+      modules.  If there were a DTD definition of HDX, it would be</p>
+    <pre>
+&lt;!ELEMENT hdx ANY&gt;
+    </pre>
+    <p>...so there doesn't seem a great deal of point.  The point of HDX
+      does not lie in its intricacy, but in the power of the
+      approaches the mere existence of the bag makes possible.</p>
+
+    <p>There are no predefined schemas for the modules of HDX such as
+      NDX and Tables.  When code registers new types with the HDX
+      system (such as NDX), it also registers validators, and it is
+      this validating code which is responsible for deciding whether a
+      given XML structure is valid or not.  As part of that module's
+      documentation, it may publish a specification of what it will
+      accept as valid, but this is not required.</p>
+
+    <p>There is little point in demanding strict XML
+      validity, since it is not necessarily the case that a particular
+      HDX structure will ever see an XML parser.  Although the
+      description here is expressed in terms of XML, a data set could 
+      be instantiated from a <code>.sdf</code> file, manipulated using
+      a DOM, serialised as a Java object, and written to a structured
+      FITS file, without ever seeing an angle-bracket once.</p>
+
+    <h2 id="hdxdal">HDX as a data access layer</h2>
+
+    <p>See the current <a href="http://www.starlink.ac.uk/starjavadocs/"
+      >javadocs</a> for the project as a whole.</p>
+
+    <p>The ideas of `HDX-as-a-data-model' described above is spartan,
+      but provides the set of concepts on which we build the HDX Data
+      Access Layer.  Although the notional HDX DTD, above, is trivial, the Java
+      packages which support it can naturally provide a good deal of
+      infrastructure.</p>
+
+    <p>Data is structured using XML concepts, and can be generally
+      manipulated as XML when this is appropriate (for example within
+      a generic data editor, or in archiving contexts), but for
+      processing, this would be horrendously inefficient, and so the
+      data access classes present alternative Java interfaces to the
+      objects they manage, which are designed for computational efficiency.</p>
+
+    <p>The HDX package (<code>uk.ac.starlink.hdx</code>) at present
+      provides:</p>
+    <ul>
+      <li>handling of FITS, XML and NDF for input and output, as part
+        of a pluggable structure for input handlers;</li>
+      <li>registration and optional validation of new types, and the
+      code which associates the XML element types and corresonding
+      Java classes;</li>
+      <li>namespace processing for input XML, allowing HDX structure
+        to be overlaid on `foreign' XML if key attributes are included;</li>
+      <li>URI and <code>xml:base</code> resolution.</li>
+    </ul>
+
+    <p>It has hooks, but not yet code, for:</p>
+    <ul>
+      <li>general URI or URN to URL resolution (registry operations);</li>
+      <li>resource discovery (replica management).</li>
+    </ul>
+
+    <p>The NDX and NDArray packages (<code>uk.ac.starlink.ndx</code>
+      and <code>uk.ac.starlink.array</code>)
+      provide classes for manipulating N-dimensional arrays in an
+      efficient and general fashion.  They provide a consistent interface
+      which can cope with large arrays, pixel errors, simple or
+      sophisticated pixel quality marking, world coordinate systems,
+      varying pixel ordering schemes, processing history and extensible
+      metadata storage.  At the applications level, code does not need to
+      be aware of the format (FITS, HDS, ...)  in which the data is
+      stored.</p>
+
+    <p>The project has so far concentrated on expressing its work robustly in
+      code, and is building a solid foundation, upon which it can elaborate
+      its ideas in carefully enhanced metadata expressing various
+      roles for included data structures.</p>
+
+    <h2 id="nonprobs">Problems HDX does not attempt to solve</h2>
+
+    <p>A few words are in order about the simplicity aspect of HDX: it
+      is simple because it identifies a particular problem, and solves
+      it cleanly; and it does not attempt to address problems where an
+      adequate solution already exists.</p>
+
+    <p>HDX does not attempt to be a data transport or data description
+      system, since formats like FITS manage that perfectly well.
+      Where FITS struggles is in trying to describe interrelationships
+      between data, or in attempting to describe highly structured
+      metadata: the length of time it is taking to standardise FITS
+      WCS information indicates that FITS headers <em>may</em> not be the ideal
+      language to describe the solution.</p>
+
+    <p>The WCS problem also illustrates that certain aspects of
+      particular files' metadata are highly structured, and that that
+      structure is highly specific to the particular metadata in
+      question -- `where are these particular pixels pointing?', `what
+      application processed this last?'.  This
+      suggests that a `one spec fits all' approach is doomed to
+      protracted birth pangs, since any spec comprehensive enough to
+      be useful, is complicated enough to be contentious.  That is,
+      one-size-fits-all will never be finalised: if different parts of a spec
+      address different problems, the fact that they are artificially
+      yoked together means that it could be dificult to evolve those
+      parts at different rates.</p>
+
+    <p>Instead, we suggest a componentised approach, with standards
+      for metadata addressing WCS and provenance information, say,
+      developed largely separately, and tied together in any particular
+      instance by the larger-scale coordination of HDX.  There is
+      ongoing work on expressing WCS information in XML (including work
+      from Starlink describing our very successful AST system), and
+      there are groups developing provenance descriptions.  Neither of
+      these examples need be built into HDX directly.  HDX is able to
+      be simple, because it deals, cleanly and straightforwardly, with
+      a particular layer of the architectural problem.</p>
+    
+    <h2 id="examples">Examples</h2>
+
+    <p>An example of a basic HDX object, expressed as XML, is:</p>
+<pre>
+    &lt;hdx>
+      &lt;ndx>
+        &lt;image uri="file:/tmp/mydata.fits"/>
+        &lt;variance uri="file:/tmp/mydata-var.fits"/>
+        &lt;quality uri="http://telescope.edu/instrument/bad-pixels.fits"/>
+      &lt;/ndx>
+    &lt;/hdx>
+</pre>
+    <p>This associates the content of the
+      <code>/tmp/mydata-var.fits</code> file as the variance component
+      of the image in <code>/tmp/mydata.fits</code>.  It is
+      straightforward (and obviously preferable), but not yet
+      standardised, to refer to individual FITS extensions in a URI,
+      and thus to keep the image and variance together in a single
+      FITS file.</p>
+
+    <p>XML Namespacing can be used to include HDX information within
+      `foreign' XML:</p>
+<pre>
+    &lt;foreign xmlns:x="http://www.starlink.ac.uk/HDX">
+      &lt;x:hdx>
+        &lt;x:ndx>
+          &lt;x:image uri="file:/tmp/mydata.fits"/>
+        &lt;/x:ndx>
+      &lt;/x:hdx>
+    &lt;/foreign>
+</pre>
+
+    <p>or even:</p>
+
+<pre>
+    &lt;mystructure>
+      &lt;mypointer x:name="ndx" xmlns:x="http://www.starlink.ac.uk/HDX">
+        mydata.fits
+      &lt;/mypointer>
+    &lt;/mystructure>
+</pre>
+    <p>which the HDX system will read, and present to its caller in
+      the canonical form:</p>
+<pre>
+    &lt;hdx>
+      &lt;ndx>
+        &lt;image uri="mydata.fits"/>
+      &lt;/ndx>
+    &lt;/hdx>
+</pre>
+    <p>Any changes made to this virtual XML structure may optionally be
+      automatically shadowed in the original XML.</p>
+
+    <div class="signature">
+      <a href="/users/norman/" >Norman</a><br/>
+      $Date$
+    </div>
+  </body>
+</html>
+
+
+
+<!-- Local Variables: -->
+<!-- mode: xml -->
+<!-- sgml-indent-step: 2 -->
+<!-- sgml-indent-data: t -->
+<!-- End: -->

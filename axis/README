@@ -1,0 +1,13 @@
+This is an extracted part of Axis RC1. 
+
+The "axis.war" file in the lib directory is just a jar of the contents
+of the webapps/axis directory, minus the "lib" directory. It may need 
+cleaning up for a proper release (there are example servlets that may 
+be inappropriate).
+
+A copy of this has been placed in the axis.jar file in the same
+directory as the AxisEngine class. This means that the war file 
+maybe located:
+
+   URL warFile = AxisEngine.class.getResource( "axis.war" );
+

@@ -1,0 +1,17 @@
+#BEGIN
+# name  DCO+_v=0_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+216112.6045 3_-_2
+288143.911 4_-_3
+360169.881 5_-_4
+432189.033 6_-_5
+504200.2 7_-_6
+576201.9724 8_-_7
+648193.0137 9_-_8
+720171.9825 10_-_9
+792137.5375 11_-_10

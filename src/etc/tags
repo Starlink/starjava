@@ -1,0 +1,46 @@
+Tags File
+=========
+
+This file provides an informal record of each tag applied to the Starlink
+java CVS repository.
+
+r0-1:
+   Date:   20-DEC-2002(?)
+   Tagger: Mark Taylor
+   Info:   Initial tag.
+
+r0-2:
+   Date:   11-FEB-2003
+   Tagger: Mark Taylor
+   Info:   Corresponds to Treeview 2.1.  Certain packages in the repository
+           were not tagged at this point since they have broken build/test
+           targets: the new packages COCO, PAL, RV are omitted because the
+           install targets don't quite work and recent changes related to
+           HDX are omitted because they cause some of the test targets to
+           fail (FITS, HDS).
+
+r0-3:
+   Date:   21-FEB-2003
+   Tagger: Mark Taylor
+   Info:   Added now non-broken copies of COCO, PAL, RV and fixed JNIAST so
+           that you don't now need to copy an external AST source file
+           into the source directory.
+
+r0-4:
+   Date:   14-MAR-2003
+   Tagger: Mark Taylor
+   Info:   JNIAST up to V1.8-13, which means the corresponding version of
+           AST, or later, needs to be available.
+           Treeview test target fails, but treeview once installed works.
+           One directory needs to be created during install for sog.
+
+r0-5:
+   Date:   29-APR-2003
+   Tagger: Mark Taylor
+   Info:   JNIAST uses AST2, FROG introduced, TOPCAT available within
+           Table package and many other things too no doubt.
+           This tag does not include changes in non-HDX packages to match 
+           recent HDX updates; its purpose is to serve as a marker for 
+           the last, known-working, non-HDX versions of NDX, FITS, HDS etc.
+           All tests succeed apart from HDX (and maybe FROG?)
+

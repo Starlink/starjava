@@ -1,0 +1,17 @@
+#BEGIN
+# name  HCS+_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+213360.53 5_-_4
+256027.8 6_-_5
+298690.8925 7_-_6
+341350.826 8_-_7
+384006.6819 9_-_8
+426657.9505 10_-_9
+469304.1221 11_-_10
+511944.687 12_-_11
+554579.1355 13_-_12

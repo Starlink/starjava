@@ -1,0 +1,627 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>GlobalSpecPlotList</TITLE>
+<META NAME="description" CONTENT="GlobalSpecPlotList">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="next" HREF="node18.html">
+<LINK REL="previous" HREF="node16.html">
+<LINK REL="up" HREF="node16.html">
+<LINK REL="next" HREF="node18.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html277"
+ HREF="node18.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html275"
+ HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html269"
+ HREF="node16.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html278"
+ HREF="node18.html">SplatBrowser</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html276"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html270"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00044100000000000000"></A><A NAME="l259"></A>
+<BR>
+GlobalSpecPlotList
+</H3>
+   
+<P>
+
+<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class GlobalSpecPlotList}
+}}">
+
+<P>
+GlobalSpecPlotList is an aggregate singleton class that provides access
+ to the SpecList and PlotControlList objects. It provides integrated
+ control interfaces to both these objects and provides listeners for
+ objects (i.e. views) that want to be updated about changes in the
+ lists of spectra or plots.
+
+<P>
+<B><FONT SIZE="+1">Methods</FONT></B>
+<BR>
+   <HR>
+<TT>public int <B>add</B>(<TT>int</TT> <B>index</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l261"></A><A NAME="l262"></A></TT>
+<BLOCKQUOTE>Replace or add a spectrum. Informs any listeners of change.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of the spectrum to replace. Appended to end
+               if index not used.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>reference to a SpecData object.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the spectrum in global list, or -1. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>add</B>(<TT>PlotControl</TT> <B>plot</B>)<A NAME="l263"></A><A NAME="l264"></A></TT>
+<BLOCKQUOTE>Add a plot (immediately after creation).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>reference to a PlotControl object.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns global index of the plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>add</B>(<TT>SpecData</TT> <B>spectrum</B>)<A NAME="l265"></A><A NAME="l266"></A></TT>
+<BLOCKQUOTE>Add a spectrum to the global list. Informs any listeners.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spectrum</B></STRONG>
+<DD>reference to a SpecData object.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the spectrum in global list. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addPlotListener</B>(<TT>PlotListener</TT> <B>l</B>)<A NAME="l267"></A><A NAME="l268"></A></TT>
+<BLOCKQUOTE>Registers a listener for to be informed when plots are
+  created, changed or removed.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>l</B></STRONG>
+<DD>the PlotListener
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpecListener</B>(<TT>SpecListener</TT> <B>l</B>)<A NAME="l269"></A><A NAME="l270"></A></TT>
+<BLOCKQUOTE>Registers a listener for to be informed when spectra are added
+  or removed from the global list.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>l</B></STRONG>
+<DD>the SpecListener
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpectrum</B>(<TT>int</TT> <B>plotIndex</B>,
+<TT>int</TT> <B>specIndex</B>)<A NAME="l271"></A><A NAME="l272"></A></TT>
+<BLOCKQUOTE>Add a known spectrum to a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>global index of the plot to add the spectrum to.
+   <DT><STRONG><B>specIndex</B></STRONG>
+<DD>global index of the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpectrum</B>(<TT>int</TT> <B>plotIndex</B>,
+<TT>SpecData</TT> <B>spectrum</B>)<A NAME="l273"></A><A NAME="l274"></A></TT>
+<BLOCKQUOTE>Add a known spectrum to a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>index of the plot to add spectrum to.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to add.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpectrum</B>(<TT>PlotControl</TT> <B>plot</B>, <TT>int</TT> <B>specIndex</B>)<A NAME="l275"></A><A NAME="l276"></A></TT>
+<BLOCKQUOTE>Add a known spectrum to a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>the plot to add the spectrum to.
+   <DT><STRONG><B>specIndex</B></STRONG>
+<DD>global index of the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpectrum</B>(<TT>PlotControl</TT> <B>plot</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l277"></A><A NAME="l278"></A></TT>
+<BLOCKQUOTE>Add a known spectrum to a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>the plot to add spectrum to.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to add.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getFullName</B>(<TT>int</TT> <B>index</B>)<A NAME="l279"></A><A NAME="l280"></A></TT>
+<BLOCKQUOTE>Return the full (usually diskfile) name of a spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of the spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns full name of the spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public PlotControl <B>getPlot</B>(<TT>int</TT> <B>index</B>)<A NAME="l281"></A><A NAME="l282"></A></TT>
+<BLOCKQUOTE>Get a plot reference by index.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of required plot.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns reference to PlotControl object. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getPlotIndex</B>(<TT>int</TT> <B>identifier</B>)<A NAME="l283"></A><A NAME="l284"></A></TT>
+<BLOCKQUOTE>See if a plot with the given identifier exists, and if so
+ return its index. Note identifiers are a unique integer among
+ all plots and are not the plot index (which varies as plots are
+ removed).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>identifier</B></STRONG>
+<DD>the identifier of the plot whose existence is
+                   to be checked.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the plot index, or -1 if not located. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getPlotIndex</B>(<TT>PlotControl</TT> <B>plot</B>)<A NAME="l285"></A><A NAME="l286"></A></TT>
+<BLOCKQUOTE>Get an index for a plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>PlotControl object to look up.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns global index of object, if found. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getPlotName</B>(<TT>int</TT> <B>index</B>)<A NAME="l287"></A><A NAME="l288"></A></TT>
+<BLOCKQUOTE>Return the name of a plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns name of the plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public static GlobalSpecPlotList <B>getReference</B>()<A NAME="l289"></A><A NAME="l290"></A></TT>
+<BLOCKQUOTE>Return reference to the only allowed instance of this class.
+
+<UL><LI>Returns reference to the only instance of this class. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getShortName</B>(<TT>int</TT> <B>index</B>)<A NAME="l291"></A><A NAME="l292"></A></TT>
+<BLOCKQUOTE>Return the symbolic name of a spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of th spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns short name of te spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public SpecData <B>getSpectrum</B>(<TT>int</TT> <B>index</B>)<A NAME="l293"></A><A NAME="l294"></A></TT>
+<BLOCKQUOTE>Get a spectrum reference by index.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of spectrum to retrieve.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the SpecData object or null. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getSpectrumIndex</B>(<TT>SpecData</TT> <B>spectrum</B>)<A NAME="l295"></A><A NAME="l296"></A></TT>
+<BLOCKQUOTE>Get an index for a spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spectrum</B></STRONG>
+<DD>SpecData object whose index is needed.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the spectrum or -1. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getSpectrumIndex</B>(<TT>String</TT> <B>shortName</B>)<A NAME="l297"></A><A NAME="l298"></A></TT>
+<BLOCKQUOTE>Get an index for a spectrum using its short name.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>shortName</B></STRONG>
+<DD>spectrum short name.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of spectrum if found, -1 otherwise. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>isDisplaying</B>(<TT>int</TT> <B>plotIndex</B>, <TT>int</TT> <B>specIndex</B>)<A NAME="l299"></A><A NAME="l300"></A></TT>
+<BLOCKQUOTE>Return if a plot is displaying a given spectrum.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>global index of the plot to check.
+   <DT><STRONG><B>specIndex</B></STRONG>
+<DD>global index of the spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true of the plot is displaying the spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>isDisplaying</B>(<TT>int</TT> <B>plotIndex</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l301"></A><A NAME="l302"></A></TT>
+<BLOCKQUOTE>Return if a plot is displaying a given spectrum.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>global index of the plot to check.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to check.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true if the plot is displaying the spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>plotCount</B>()<A NAME="l303"></A><A NAME="l304"></A></TT>
+<BLOCKQUOTE>Return the number of plots in the global list.
+
+<UL><LI>Returns number of current plots. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>remove</B>(<TT>PlotControl</TT> <B>plot</B>)<A NAME="l305"></A><A NAME="l306"></A></TT>
+<BLOCKQUOTE>Remove a plot (immediately after destruction).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>reference to the plot that has been deleted.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the removed plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removePlotListener</B>(<TT>PlotListener</TT> <B>l</B>)<A NAME="l307"></A><A NAME="l308"></A></TT>
+<BLOCKQUOTE>Remove a listener for plot changes.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>l</B></STRONG>
+<DD>the PlotListener
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpecListener</B>(<TT>SpecListener</TT> <B>l</B>)<A NAME="l309"></A><A NAME="l310"></A></TT>
+<BLOCKQUOTE>Remove a listener for changes in the global list of spectra.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>l</B></STRONG>
+<DD>the SpecListener
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>removeSpectrum</B>(<TT>int</TT> <B>index</B>)<A NAME="l311"></A><A NAME="l312"></A></TT>
+<BLOCKQUOTE>Remove a spectrum. Note listeners are informed immediately
+  before the spectrum is removed (so the lists remain current).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of the spectrum to remove.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the spectrum that was removed. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>int</TT> <B>plotIndex</B>, <TT>int</TT> <B>specIndex</B>)<A NAME="l313"></A><A NAME="l314"></A></TT>
+<BLOCKQUOTE>Remove a known spectrum from a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>global index of the plot to remove the
+                   spectrum from.
+   <DT><STRONG><B>specIndex</B></STRONG>
+<DD>global index of the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>int</TT> <B>plotIndex</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l315"></A><A NAME="l316"></A></TT>
+<BLOCKQUOTE>Remove a known spectrum from a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plotIndex</B></STRONG>
+<DD>global index of the plot.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to remove.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>PlotControl</TT> <B>plot</B>, <TT>int</TT> <B>specIndex</B>)<A NAME="l317"></A><A NAME="l318"></A></TT>
+<BLOCKQUOTE>Remove a known spectrum from a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>the plot to remove the spectrum from.
+   <DT><STRONG><B>specIndex</B></STRONG>
+<DD>global index of the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>PlotControl</TT> <B>plot</B>, <TT>SpecData</TT> <B>spectrum</B>)<A NAME="l319"></A><A NAME="l320"></A></TT>
+<BLOCKQUOTE>Remove a known spectrum from a plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>the plot to remove the spectrum from.
+   <DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to remove.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>removeSpectrum</B>(<TT>SpecData</TT> <B>spectrum</B>)<A NAME="l321"></A><A NAME="l322"></A></TT>
+<BLOCKQUOTE>Remove a spectrum. Note listeners are informed immediately
+  before the spectrum is removed (so the lists remain current).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spectrum</B></STRONG>
+<DD>reference to the spectrum to remove.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns index of the spectrum that was removed. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setCurrentSpectrum</B>(<TT>int</TT> <B>index</B>)<A NAME="l323"></A><A NAME="l324"></A></TT>
+<BLOCKQUOTE>Set the index of the current spectrum. Changes to this are
+ sent to any SpecListeners.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of the current spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setDrawErrorBars</B>(<TT>SpecData</TT> <B>spectrum</B>, <TT>boolean</TT> <B>show</B>)<A NAME="l325"></A><A NAME="l326"></A></TT>
+<BLOCKQUOTE>Set if a spectrum should be displaying it's error bars or
+  not.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>spectrum</B></STRONG>
+<DD>the spectrum to modify.
+   <DT><STRONG><B>show</B></STRONG>
+<DD>whether to show errorbars.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setKnownNumberProperty</B>(<TT>SpecData</TT> <B>spectrum</B>, <TT>int</TT> <B>what</B>, <TT>Number</TT> <B>value</B>)<A NAME="l327"></A><A NAME="l328"></A></TT>
+<BLOCKQUOTE>Set a known Number property of a spectrum.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>spectrum</B></STRONG>
+<DD>SpecData object to change.
+   <DT><STRONG><B>what</B></STRONG>
+<DD>the property to change, see
+               SpecData.setKnownNumberProperty.
+   <DT><STRONG><B>value</B></STRONG>
+<DD>Object containing the new value.
+  </DL>
+
+</UL>
+
+<UL><LI>See also
+
+<UL><LI><TT>GlobalSpecPlotList.SpecData.setKnownNumberProperty()</TT> 
+
+
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setShortName</B>(<TT>int</TT> <B>index</B>, <TT>String</TT> <B>name</B>)<A NAME="l330"></A><A NAME="l331"></A></TT>
+<BLOCKQUOTE>Set the symbolic name of a spectrum.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>index of the spectrum to modify.
+   <DT><STRONG><B>name</B></STRONG>
+<DD>the new short name for the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>specCount</B>()<A NAME="l332"></A><A NAME="l333"></A></TT>
+<BLOCKQUOTE>Return the number of spectra in the global list.
+
+<UL><LI>Returns the number of spectra in the global list. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>specKnown</B>(<TT>String</TT> <B>name</B>)<A NAME="l334"></A><A NAME="l335"></A></TT>
+<BLOCKQUOTE>See if a spectrum is already known by a specification (i.e. filename).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>name</B></STRONG>
+<DD>name to check.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true if the name is known. 
+
+</UL></BLOCKQUOTE>
+<P>
+<BR> <HR>
+<A NAME="tex2html277"
+ HREF="node18.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html275"
+ HREF="node16.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html269"
+ HREF="node16.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html278"
+ HREF="node18.html">SplatBrowser</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html276"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html270"
+ HREF="node16.html">Package uk.ac.starlink.splat.iface</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

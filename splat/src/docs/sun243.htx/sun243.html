@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>SPLAT - A Spectral Analysis Tool</TITLE>
+<META NAME="description" CONTENT="SPLAT - A Spectral Analysis Tool">
+<META NAME="keywords" CONTENT="sun243">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="sun243.css">
+<LINK REL="next" HREF="node1.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html13"
+ HREF="node1.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif_gr.gif"> 
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif_gr.gif">   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html14"
+ HREF="node1.html">Abstract</A>
+<BR>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<P>
+<A NAME="xref_"></A>
+    <H1 ALIGN=CENTER> <FONT COLOR="#000099">
+      SPLAT - A Spectral Analysis Tool
+    </FONT></H1>
+
+<P>
+<DIV ALIGN="CENTER">
+      <IMG
+ ALIGN="BOTTOM" BORDER="0" SRC="frontfigure.jpg"
+ ALT="90">
+   
+</DIV>
+
+<P>
+ <P> <I>
+   Starlink User Note 243.2
+<BR>
+Peter W. Draper
+<BR>
+03 June 2003
+    </I> </P> <H3>
+      <A NAME="tex2html1"
+ HREF="http://www.cclrc.ac.uk">CCLRC / Rutherford Appleton Laboratory</A>
+
+<BR>
+      <A NAME="tex2html2"
+ HREF="http://www.pparc.ac.uk">Particle Physics &amp; Astronomy Research Council</A>
+
+<BR>
+    </H3> <H2>
+      <A NAME="tex2html3"
+ HREF="http://www.starlink.rl.ac.uk/">Starlink Project</A>
+ </H2>
+   <A NAME="tex2html4"
+ HREF="http://www.starlink.rl.ac.uk/cgi-bin/hcserver?sun243.2"><IMG
+ WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="source.gif"
+ ALT="98"> Retrieve hardcopy</A>
+<BR>
+
+<P>
+<A NAME="stardoccontents"></A>      <HR>
+    <H2>Contents</H2>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"></A>
+
+<UL>
+<LI><A NAME="tex2html15"
+ HREF="node1.html">Abstract</A>
+<LI><A NAME="tex2html16"
+ HREF="node2.html">Overview</A>
+<LI><A NAME="tex2html17"
+ HREF="node3.html">Getting started</A>
+<UL>
+<LI><A NAME="tex2html18"
+ HREF="node4.html">Displaying a spectrum</A>
+<LI><A NAME="tex2html19"
+ HREF="node5.html">Displaying more than one spectrum</A>
+<LI><A NAME="tex2html20"
+ HREF="node6.html">Basic control of a plot view</A>
+</UL>
+<LI><A NAME="tex2html21"
+ HREF="node7.html">Help for individual windows</A>
+<UL>
+<LI><A NAME="tex2html22"
+ HREF="node8.html">The browser window</A>
+<LI><A NAME="tex2html23"
+ HREF="node9.html">A plot window</A>
+<LI><A NAME="tex2html24"
+ HREF="node10.html">The animation window</A>
+<LI><A NAME="tex2html25"
+ HREF="node11.html">The view and modify spectral values window</A>
+<LI><A NAME="tex2html26"
+ HREF="node12.html">Spectral coordinate system attributes window</A>
+<LI><A NAME="tex2html27"
+ HREF="node13.html">The simple binary maths window</A>
+<LI><A NAME="tex2html28"
+ HREF="node14.html">The simple constant maths window</A>
+<LI><A NAME="tex2html29"
+ HREF="node15.html">The panner window</A>
+<LI><A NAME="tex2html30"
+ HREF="node16.html">Plot configuration window</A>
+<UL>
+<LI><A NAME="tex2html31"
+ HREF="node17.html">Axis Data Limits:</A>
+<LI><A NAME="tex2html32"
+ HREF="node18.html">Title Properties:</A>
+<LI><A NAME="tex2html33"
+ HREF="node19.html">Axis Label Properties:</A>
+<LI><A NAME="tex2html34"
+ HREF="node20.html">Axis Numbers:</A>
+<LI><A NAME="tex2html35"
+ HREF="node21.html">Grid Line Properties:</A>
+<LI><A NAME="tex2html36"
+ HREF="node22.html">Border Line Properties:</A>
+<LI><A NAME="tex2html37"
+ HREF="node23.html">Tick Properties:</A>
+<LI><A NAME="tex2html38"
+ HREF="node24.html">Graphics Rendering Hints:</A>
+<LI><A NAME="tex2html39"
+ HREF="node25.html">Edge Drawing Properties:</A>
+<LI><A NAME="tex2html40"
+ HREF="node26.html">Plot background:</A>
+<LI><A NAME="tex2html41"
+ HREF="node27.html">Save or Restore Plot Configurations</A>
+</UL>
+<LI><A NAME="tex2html42"
+ HREF="node28.html">The cutter window</A>
+<LI><A NAME="tex2html43"
+ HREF="node29.html">Polynomial fitting window</A>
+<LI><A NAME="tex2html44"
+ HREF="node30.html">Spectral line fitting window</A>
+<UL>
+<LI><A NAME="tex2html45"
+ HREF="node31.html">Saving the results</A>
+</UL>
+<LI><A NAME="tex2html46"
+ HREF="node32.html">Filter spectrum window</A>
+</UL>
+<LI><A NAME="tex2html47"
+ HREF="node33.html">Supported data formats</A>
+<LI><A NAME="tex2html48"
+ HREF="node34.html">Command-line control and tools</A>
+<LI><A NAME="tex2html49"
+ HREF="node35.html">Acknowledgments</A>
+<LI><A NAME="tex2html50"
+ HREF="node36.html">Changes</A>
+<UL>
+<LI><A NAME="tex2html51"
+ HREF="node37.html">This release, 2.0</A>
+</UL>
+<LI><A NAME="tex2html52"
+ HREF="node38.html">About this document ...</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR> <HR>
+<A NAME="tex2html13"
+ HREF="node1.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif_gr.gif"> 
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif_gr.gif">   <A HREF="sun243.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="101"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html14"
+ HREF="node1.html">Abstract</A>
+<BR>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>03 June 2003<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2003 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,23 @@
+#BEGIN
+# name Optical_absorption_lines
+# system WAVE
+# unit Angstrom
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+
+* Absorption line list from FIGARO.
+* Current version August 1990
+
+ 3241.9840 TI_II
+ 3302.3690 NA_I  
+ 3302.9790 NA_I  
+ 3383.7610 TI_II
+ 3933.6630 CA_II
+ 3968.4680 CA_II
+ 4226.7280 CA_I 
+ 5889.9500 NA_I  
+ 5895.9240 NA_I  
+ 7664.8990 K_I  
+ 7698.9590 K_I  

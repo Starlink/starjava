@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="topcat.css" title="Style">
+</head>
+<body>
+
+<h2>Synthetic Columns</h2>
+
+<p>As well as the columns that are present in the table as loaded into TOPCAT,
+it is possible to define additional "synthetic" columns, composed
+as a function of the other columns.
+The idea is that the value of the cells in a given row in this column
+will be calculated on demand as a function of the values of cells
+of other columns in that row.  You can think of this as providing
+functionality like that of a very primitive column-oriented spreadsheet.
+
+<p>This is done using the Synthetic Column dialogue, which can be
+activated from the <kbd>Columns</kbd> menu of the Column Metadata window 
+or a popup menu got by right clicking on one of the columns in
+the main browser window.
+
+<p>The Synthetic Column dialogue asks you to enter the following 
+pieces of information for the new column you will create:
+<dl>
+<dt>Column Name
+<dd>The name of the new column.  This should preferably be unique 
+    (different from all the other column names).  It will be easier to
+    use it in other expressions if it also
+    <ul>
+    <li>Different from other columns even apart from upper/lower case 
+        distinctions
+    <li>In the form of a java identifier (starts with a letter, continues
+        with alphanumerics including underscore)
+    <li>Not too long
+    </ul>
+
+<dt>Column Units
+<dd>The units of the column.  If the quantity it represents is dimensionless
+    or you don't know the units, this can be left blank.  It would be
+    a good idea to use a similar format for the units to that used for
+    the existing columns in the table.
+
+<dt>Column Description
+<dd>A short textual description of what the values contained by this 
+    column are.  May be left blank.
+
+<dt>Expression
+<dd>This is the algebraic expression which defines the values that the
+    cells in the new column of the table will have.  It may be any 
+    legal expression which returns a primitive or object.  Broadly
+    speaking you can use mathematical operators to combine values
+    taken from the same row in other columns which are referred to 
+    by the names or $ID identifiers of those columns.
+    The rules are explained in the 
+    <a href="jel.html">Expression Syntax</a> section.
+</dl>
+
+<p>If the expression you enter doesn't make sense you will be shown
+an error trace and asked to re-enter the expression.
+
+<p>If you wish to add more metadata items you can edit the appropriate
+cells in the Column Metadata Window grid (<em>though not all such
+cells are currently editable</em>).
+The expression associated with a synthetic column cannot currently be
+edited once the column has been created.
+
+<p>Once created, a synthetic column behaves just like any other; it can
+be moved, deleted, used in expressions for other synthetic columns
+and so on.  If the table is <a href="io.html#save">saved</a>,
+this column and its contents will be written to the new output
+table.
+
+</body>
+</html>

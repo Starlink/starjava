@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<hdx
+><ndx
+><image uri="file:test1.fits"
+/><variance uri="file:test2.fits"
+/><quality uri="file:test7.fits"
+/></ndx
+><ndx
+/><ndx
+><image uri="file:test3.fits"
+/><variance uri="file:test5.fits"
+/><quality uri="file:test9.fits"
+/></ndx
+></hdx>

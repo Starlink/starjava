@@ -1,0 +1,197 @@
+package star.jspec.plot;
+import java.util.*;
+import java.lang.*;
+import java.awt.*;
+import java.awt.geom.*;
+import javax.swing.*;
+import java.io.*;
+
+/**
+ * Plots an astronomical spectrum, stored in a simple text file.
+ *
+ * @author Peter W. Draper
+ * @history 27-JUL-1999, original version
+ */
+public class SimplePlot extends JComponent {
+
+    /**
+     *  Array of X positions used to plot the spectrum.
+     */
+    protected float[] xPos;
+
+    /**
+     *  Array of Y positions used to plot the spectrum.
+     */
+    protected float[] yPos;
+
+    /**
+     *  Smallest X data value.
+     */
+    protected float xMin;
+
+    /**
+     *  Largest X data value.
+     */
+    protected float xMax;
+
+    /**
+     *  Smallest Y data value.
+     */
+    protected float yMin;
+
+    /**
+     *  Largest Y data value.
+     */
+    protected float yMax;
+
+    /**
+     * Main routine.
+     *
+     * @param args Command-line arguments
+     * @args  1 name of the spectrum file.
+     */
+    public static void main( String args[] ) throws IOException {
+
+	//  Check command-line argument.
+        File f = null;
+	if ( args.length != 1 ) {
+	    //System.out.println( "Usage: SimplePlot spectrum_file" );
+	    //System.exit( 1 );
+	    f = new File( "spectrum.dat" );
+	} else {
+	    //  Check file exists.
+	    f = new File( args[0] );
+	    if ( ! f.exists() ) {
+	        System.out.println( args[0] + " doesn't exist" );
+		System.exit( 1 );
+	    }
+	}
+
+	//  Create a frame to hold graphics.
+	JFrame frame = new JFrame();
+
+	//  Add a SimplePlot object so that it can be called upon to
+	//  do the drawing.
+	frame.getContentPane().add( new SimplePlot( f ) );
+
+	//  Set the frame size.
+	int frameWidth = 300;
+	int frameHeight = 300;
+	frame.setSize( frameWidth, frameHeight );
+
+	//  Make the frame visible.
+	frame.setVisible( true );
+    }
+
+    /**
+     *  Plot a spectrum.
+     *
+     *  @param file  Text file with spectrum coordinates as X Y pairs
+     *               separated by spaces.
+     *
+     */
+    SimplePlot( File file ) throws IOException {
+
+	//  Get a BufferedReader to read the file line-byte-line.
+	//  Avoid StreamTokenizer as this doesn't deal with floating
+	//  point very well.
+	FileInputStream f = new FileInputStream( file );
+	BufferedReader r = new BufferedReader( new InputStreamReader( f ) );
+
+	//  Storage of all values go into two vectors.
+	Vector xVec = new Vector();
+	Vector yVec = new Vector();
+
+	//  Read file input until end of file occurs.
+	String sRaw = null;
+	String sClean = null;
+	Float x;
+	Float y;
+	int nlines = 0;
+	try {
+	    while ( ( sRaw = r.readLine() ) != null ) {
+
+		//  Skip comment lines.
+		if ( sRaw.charAt(0) != '!' ) {
+
+		    // Read two floating numbers from line.
+		    try {
+			sClean = sRaw.trim();
+			int i = sClean.indexOf( ' ' );
+
+			x = new Float( sClean.substring( 0, i ) );
+			y = new Float(  sClean.substring( i ) );
+			xVec.add( x );
+			yVec.add( y );
+			nlines++;
+		    }
+		    catch ( Exception e ) {
+			System.out.println("IOException: " + e);
+		    }
+		}
+	    }
+        } catch (IOException e) {
+	    System.out.println("IOException: " + e);
+        }
+
+	//  Create memory needed to store these coordinates.
+	System.out.println( "Number of lines = " + nlines );
+	xPos = new float[nlines];
+	yPos = new float[nlines];
+
+	//  Now copy vector into arrays and record the data range.
+	xMin = Float.MAX_VALUE;
+	xMax = Float.MIN_VALUE;
+	yMin = Float.MAX_VALUE;
+	yMax = Float.MIN_VALUE;
+	for ( int i = 0; i < nlines; i++ ) {
+	    xPos[i] = ((Float)xVec.get(i)).floatValue();
+	    yPos[i] = ((Float)yVec.get(i)).floatValue();
+	    xMin = Math.min( xMin, xPos[i] );
+	    xMax = Math.max( xMax, xPos[i] );
+	    yMin = Math.min( yMin, yPos[i] );
+	    yMax = Math.max( yMax, yPos[i] );
+	}
+    }
+
+    /**
+     *  Paint method for drawing/redrawing graphics when interface
+     *  requires it.
+     *
+     *  @param   g   Graphics object to draw.
+     *
+     */
+    public void paint(Graphics g) {
+	Graphics2D g2 = (Graphics2D)g;
+
+	//  Scale all graphics to window size. Note Y axes runs
+	//  from top-left.
+	float xzero = xMin;
+	float yzero = yMin;
+	float xscale = getWidth() / ( xMax - xMin );
+	float yscale = getHeight() / ( yMax - yMin );
+
+	// Use antialiasing.
+	// g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+//			    RenderingHints.VALUE_ANTIALIAS_ON);
+
+	//  Draw a simple polyline connecting all positions.
+	GeneralPath path = new GeneralPath();
+
+	float x = ( xPos[0] - xzero ) * xscale;
+	float y = ( yPos[0] - yzero ) * yscale;
+	y = -y + getHeight();
+	path.moveTo( x, y );
+	for ( int i = 1; i < xPos.length; i++ ) {
+	    x = ( xPos[i] - xzero ) * xscale;
+	    y = ( yPos[i] - yzero ) * yscale;
+	    y = -y + getHeight();
+	    path.lineTo( x, y );
+	}
+
+	//  Render the path.
+	g2.setPaint( Color.blue );
+	g2.draw( path );
+
+    }
+}

@@ -1,0 +1,666 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>PlotControl</TITLE>
+<META NAME="description" CONTENT="PlotControl">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="node11.html">
+<LINK REL="next" HREF="node13.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html227"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html225"
+ HREF="node11.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html221"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html228"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html226"
+ HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html222"
+ HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00042100000000000000"></A><A NAME="l129"></A>
+<BR>
+PlotControl
+</H3>
+   
+<P>
+
+<IMG
+ WIDTH="686" HEIGHT="58" ALIGN="MIDDLE" BORDER="0"
+ SRC="img7.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class PlotControl extends javax.swing...
+...cListener, FigureListener, PlotScaledListener, java.awt.event.ActionListener}
+}}">
+
+<P>
+A PlotControl object consists of a Plot inside a scrolled pane and
+ various controls in a panel. The Plot allows you to display many
+ spectra. Plots wrapped by this object are given a name that is
+ unique within an application (plotn) and are assigned an
+ identifying number (0 upwards).
+
+<P>
+The controls in the panel allow you to:
+
+<UL><LI> apply independent scales in X and Y, thus zooming and
+        scrolling the Plot,/li
+ 
+
+<LI>  get a continuous readout of the cursor position,
+   
+
+<LI>  display a vertical hair,/li
+   
+
+<LI>  select the current spectrum and see a list of those
+        displayed,/li
+   
+
+<LI>  apply percentile cuts to the data limits./li
+ 
+
+</UL>
+
+<P>
+Methods are provided for scaling about the current centre, zooming
+ in to a given region as well as just setting the X and Y scale
+ factors.
+
+<P>
+You can also scroll to centre on a given X coordinate (or the one
+ shown in the X coordinate readout field) and make the Plot fit
+ itself to the current viewable height and/or width.
+
+<P>
+A not-very exhaustive set of methods for querying the contents of
+ the Plot (e.g. getting access to the plotted spectra) and adding
+ and removing spectra from the Plot are provided.
+
+<P>
+Finally this object can make the Plot produce a postscript and JPEG
+ output copy of itself.
+
+<P>
+See the Plot object for a description of the facilities it
+ provides.
+
+<P>
+
+<P>
+<B><FONT SIZE="+1">Constructors</FONT></B>
+<BR>
+   <HR>
+<TT>public <B>PlotControl</B>()<A NAME="l130"></A><A NAME="l131"></A></TT>
+<BLOCKQUOTE>Create a Plot, adding spectra later.</BLOCKQUOTE>
+<P>
+<TT>public <B>PlotControl</B>(<TT>SpecDataComp</TT> <B>spectra</B>)<A NAME="l132"></A><A NAME="l133"></A></TT>
+<BLOCKQUOTE>Plot a list of spectra referenced in a SpecDataComp object.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spectra</B></STRONG>
+<DD>reference to SpecDataComp object that is
+                wrapping the spectra to display.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public <B>PlotControl</B>(<TT>String</TT> <B>file</B>)<A NAME="l134"></A><A NAME="l135"></A></TT>
+<BLOCKQUOTE>Plot a spectrum using its filename specification. Standalone
+ constructor.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>file</B></STRONG>
+<DD>name of file containing spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+
+<P>
+<B><FONT SIZE="+1">Methods</FONT></B>
+<BR>
+   <HR>
+<TT>public void <B>actionPerformed</B>(<TT>java.awt.event.ActionEvent</TT> <B>e</B>)<A NAME="l136"></A><A NAME="l137"></A></TT>
+<BLOCKQUOTE>Respond to selection of a new spectrum as the current one. This
+ makes the selected spectrum current in the global list.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>addSpectrum</B>(<TT>SpecData</TT> <B>spec</B>)<A NAME="l138"></A><A NAME="l139"></A></TT>
+<BLOCKQUOTE>Add a SpecData reference to the list of displayed spectra.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spec</B></STRONG>
+<DD>reference to a spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>centreOnXCoordinate</B>()<A NAME="l140"></A><A NAME="l141"></A></TT>
+<BLOCKQUOTE>Centre on the value shown in the xValue field, if possible.</BLOCKQUOTE>
+<P>
+<TT>public void <B>centreOnXCoordinate</B>(<TT>String</TT> <B>coord</B>)<A NAME="l142"></A><A NAME="l143"></A></TT>
+<BLOCKQUOTE>Centre on a given coordinate. The coordinate is a formatted
+ value.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>coord</B></STRONG>
+<DD>coordinate to centre on.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>figureChanged</B>(<TT>FigureChangedEvent</TT> <B>e</B>)<A NAME="l144"></A><A NAME="l145"></A></TT>
+<BLOCKQUOTE>Send when the zoom figure is changed. Do nothing.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>figureCreated</B>(<TT>FigureChangedEvent</TT> <B>e</B>)<A NAME="l146"></A><A NAME="l147"></A></TT>
+<BLOCKQUOTE>Sent when the zoom figure is created. Do nothing.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>figureRemoved</B>(<TT>FigureChangedEvent</TT> <B>e</B>)<A NAME="l148"></A><A NAME="l149"></A></TT>
+<BLOCKQUOTE>Sent when a zoom interaction is complete. Events by mouse
+ button 3 are assumed to mean unzoom.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>finalize</B>()<A NAME="l150"></A><A NAME="l151"></A></TT>
+<BLOCKQUOTE>Release any locally allocated resources and references.
+
+<UL><LI>Exceptions
+
+<UL><LI>
+<BR><TT>Throwable</TT> - if finalize fails.
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>fitToHeight</B>()<A NAME="l152"></A><A NAME="l153"></A></TT>
+<BLOCKQUOTE>Fit spectrum to the displayed height.</BLOCKQUOTE>
+<P>
+<TT>public void <B>fitToWidth</B>()<A NAME="l154"></A><A NAME="l155"></A></TT>
+<BLOCKQUOTE>Fit spectrum to the displayed width.</BLOCKQUOTE>
+<P>
+<TT>public void <B>fitToWidthAndHeight</B>()<A NAME="l156"></A><A NAME="l157"></A></TT>
+<BLOCKQUOTE>Fit spectrum to the displayed width and height at same time.</BLOCKQUOTE>
+<P>
+<TT>public double <B>getCentre</B>()<A NAME="l158"></A><A NAME="l159"></A></TT>
+<BLOCKQUOTE>Get the centre of the current view.
+
+<UL><LI>Returns array of two doubles, the X and Y coordinates of the
+ centre of the current view (view coordinates). 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public PlotConfig <B>getConfig</B>()<A NAME="l160"></A><A NAME="l161"></A></TT>
+<BLOCKQUOTE>Get the Graphics configuration object.
+
+<UL><LI>Returns reference to the current graphics configuration object. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public SpecData <B>getCurrentSpectrum</B>()<A NAME="l162"></A><A NAME="l163"></A></TT>
+<BLOCKQUOTE>Return the current spectrum (top of the combobox of names).
+ This method is for use in picking a spectrum from all those
+ displayed by any associated toolboxes that can only work with
+ one spectrum.
+
+<UL><LI>Returns the current spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getDisplayCoordinates</B>()<A NAME="l164"></A><A NAME="l165"></A></TT>
+<BLOCKQUOTE>Get the physical coordinate limits of the complete Plot
+ (i.e. the whole plot, including zoomed regions that you cannot
+ see).
+
+<UL><LI>Returns array of four doubles, the lower X, lower Y, upper X
+         and upper Y coordinates. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getIdentifier</B>()<A NAME="l166"></A><A NAME="l167"></A></TT>
+<BLOCKQUOTE>Return the integer identifier of this plot (unique among plots).
+
+<UL><LI>Returns integer identifier. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getName</B>()<A NAME="l168"></A><A NAME="l169"></A></TT>
+<BLOCKQUOTE>Return the name of this plot (unique among plots).
+
+<UL><LI>Returns name of the Plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public Plot <B>getPlot</B>()<A NAME="l170"></A><A NAME="l171"></A></TT>
+<BLOCKQUOTE>Return the Plot reference.
+
+<UL><LI>Returns reference to the Plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public SpecDataComp <B>getSpecDataComp</B>()<A NAME="l172"></A><A NAME="l173"></A></TT>
+<BLOCKQUOTE>Return reference to SpecDataComp.
+
+<UL><LI>Returns the SpecDataComp object used to wrapp all spectra
+         displayed in the Plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getViewCoordinates</B>()<A NAME="l174"></A><A NAME="l175"></A></TT>
+<BLOCKQUOTE>Get the physical coordinates limits of the current view of the
+ Plot (i.e. what you can see).
+
+<UL><LI>Returns array of four doubles, the lower X, lower Y, upper X
+         and upper Y coordinates. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public JViewport <B>getViewport</B>()<A NAME="l176"></A><A NAME="l177"></A></TT>
+<BLOCKQUOTE>Get reference to the JViewport being used to display the
+ spectra.
+
+<UL><LI>Returns reference to the JViewport. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getViewRange</B>()<A NAME="l178"></A><A NAME="l179"></A></TT>
+<BLOCKQUOTE>Get the coordinate range displayed in the current view.
+
+<UL><LI>Returns array of two doubles, the lower and upper limits of the
+        Plot in X coordinates. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public float <B>getXScale</B>()<A NAME="l180"></A><A NAME="l181"></A></TT>
+<BLOCKQUOTE>Get the current X scale factor.
+
+<UL><LI>Returns the current X scale factor. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public float <B>getYScale</B>()<A NAME="l182"></A><A NAME="l183"></A></TT>
+<BLOCKQUOTE>Get the current Y scale factor.
+
+<UL><LI>Returns the current Y scale factor. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>isDisplayed</B>(<TT>SpecData</TT> <B>spec</B>)<A NAME="l184"></A><A NAME="l185"></A></TT>
+<BLOCKQUOTE>Say if a spectrum is being plotted.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spec</B></STRONG>
+<DD>the spectrum tio check.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns true if the SpecData object is being displayed. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>maybeScaleAboutCentre</B>()<A NAME="l186"></A><A NAME="l187"></A></TT>
+<BLOCKQUOTE>Set the display scale factor to that shown, keeping the current
+ centre of field, unless a centre operation is already pending.</BLOCKQUOTE>
+<P>
+<TT>public void <B>plotScaleChanged</B>(<TT>PlotScaleChangedEvent</TT> <B>e</B>)<A NAME="l188"></A><A NAME="l189"></A></TT>
+<BLOCKQUOTE>Make any adjustments needed to respond to a change in scale by
+ the Plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>print</B>()<A NAME="l190"></A><A NAME="l191"></A></TT>
+<BLOCKQUOTE>Make a printable copy of the Plot content.</BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>int</TT> <B>index</B>)<A NAME="l192"></A><A NAME="l193"></A></TT>
+<BLOCKQUOTE>Remove a spectrum from the Plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>of the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removeSpectrum</B>(<TT>SpecData</TT> <B>spec</B>)<A NAME="l194"></A><A NAME="l195"></A></TT>
+<BLOCKQUOTE>Remove a spectrum from the Plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spec</B></STRONG>
+<DD>reference to a spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>resetScales</B>()<A NAME="l196"></A><A NAME="l197"></A></TT>
+<BLOCKQUOTE>Reset the apparent scales of the Plot. This means that
+ whatever the current size of the Plot its scale becomes 1x1.</BLOCKQUOTE>
+<P>
+<TT>public void <B>scaleScale</B>(<TT>float</TT> <B>xs</B>, <TT>float</TT> <B>ys</B>)<A NAME="l198"></A><A NAME="l199"></A></TT>
+<BLOCKQUOTE>Scale the scale factors.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xs</B></STRONG>
+<DD>value to scale the X scale factor by.
+   <DT><STRONG><B>ys</B></STRONG>
+<DD>value to scale the Y scale factor by.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setCentre</B>(<TT>double</TT> <B>x</B>, <TT>double</TT> <B>y</B>)<A NAME="l200"></A><A NAME="l201"></A></TT>
+<BLOCKQUOTE>Set the viewport to show a given position as the centre.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>x</B></STRONG>
+<DD>the X coordinate of new centre (view coordinates).
+   <DT><STRONG><B>y</B></STRONG>
+<DD>the Y coordinate of new centre (view coordinates).
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setConfig</B>(<TT>PlotConfig</TT> <B>config</B>)<A NAME="l202"></A><A NAME="l203"></A></TT>
+<BLOCKQUOTE>Set the Graphics configuration object.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>config</B></STRONG>
+<DD>the graphics configuration object.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setScale</B>()<A NAME="l204"></A><A NAME="l205"></A></TT>
+<BLOCKQUOTE>Set the display scale factor to that shown.</BLOCKQUOTE>
+<P>
+<TT>public void <B>setScale</B>(<TT>float</TT> <B>xs</B>, <TT>float</TT> <B>ys</B>)<A NAME="l206"></A><A NAME="l207"></A></TT>
+<BLOCKQUOTE>Set the display scale factors. Also scales the plot.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xs</B></STRONG>
+<DD>X scale factor.
+   <DT><STRONG><B>ys</B></STRONG>
+<DD>Y scale factor.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setSpecDataComp</B>(<TT>SpecDataComp</TT> <B>spectra</B>)<A NAME="l208"></A><A NAME="l209"></A></TT>
+<BLOCKQUOTE>Set the SpecDataComp component used.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>spectra</B></STRONG>
+<DD>new SpecDataComp object to use for wrapping any
+                spectra displayed in the Plot.
+  </DL>
+
+</UL>
+
+<UL><LI>Exceptions
+
+<UL><LI>
+<BR><TT>SplatException</TT> - thrown if problems reading spectral
+            data.
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setXScale</B>(<TT>float</TT> <B>xs</B>)<A NAME="l210"></A><A NAME="l211"></A></TT>
+<BLOCKQUOTE>Set the X scale factor.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>xs</B></STRONG>
+<DD>the new X scale factor.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setYScale</B>(<TT>float</TT> <B>ys</B>)<A NAME="l212"></A><A NAME="l213"></A></TT>
+<BLOCKQUOTE>Set the Y scale factor.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>ys</B></STRONG>
+<DD>the new Y scale factor.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>specCount</B>()<A NAME="l214"></A><A NAME="l215"></A></TT>
+<BLOCKQUOTE>Get the number of spectrum currently plotted.
+
+<UL><LI>Returns number of spectra being displayed. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>spectrumAdded</B>(<TT>SpecChangedEvent</TT> <B>e</B>)<A NAME="l216"></A><A NAME="l217"></A></TT>
+<BLOCKQUOTE>A new spectrum is added. Do nothing, until it is added to this
+ plot.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>spectrumChanged</B>(<TT>SpecChangedEvent</TT> <B>e</B>)<A NAME="l218"></A><A NAME="l219"></A></TT>
+<BLOCKQUOTE>React to a spectrum property change, if one of ours.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>spectrumCurrent</B>(<TT>SpecChangedEvent</TT> <B>e</B>)<A NAME="l220"></A><A NAME="l221"></A></TT>
+<BLOCKQUOTE>React to a change in the global current spectrum. Do nothing.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>spectrumRemoved</B>(<TT>SpecChangedEvent</TT> <B>e</B>)<A NAME="l222"></A><A NAME="l223"></A></TT>
+<BLOCKQUOTE>React to a spectrum being removed, if one of ours.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>e</B></STRONG>
+<DD>object describing the event.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>toString</B>()<A NAME="l224"></A><A NAME="l225"></A></TT>
+<BLOCKQUOTE>Override toString to return the name of this plot (unique
+ among plots).
+
+<UL><LI>Returns name of this plot. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>updateCoords</B>(<TT>String</TT> <B>x</B>, <TT>String</TT> <B>y</B>)<A NAME="l226"></A><A NAME="l227"></A></TT>
+<BLOCKQUOTE>Update the displayed coordinates (implementation from PlotMouseMotion).
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>x</B></STRONG>
+<DD>the X coordinate value to show.
+   <DT><STRONG><B>y</B></STRONG>
+<DD>the Y coordinate value to show.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>updatePlot</B>()<A NAME="l228"></A><A NAME="l229"></A></TT>
+<BLOCKQUOTE>Update the plot. Should be called when events that require the
+ Plot to redraw itself occur (i.e. when spectra are added or
+ removed and when the Plot configuration is changed).</BLOCKQUOTE>
+<P>
+<TT>public void <B>zoomAbout</B>(<TT>int</TT> <B>xIncrement</B>, <TT>int</TT> <B>yIncrement</B>, <TT>double</TT> <B>x</B>, <TT>double</TT> <B>y</B>)<A NAME="l230"></A><A NAME="l231"></A></TT>
+<BLOCKQUOTE>Increment scales in both dimensions about a centre.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xIncrement</B></STRONG>
+<DD>increment for X scale factor.
+   <DT><STRONG><B>yIncrement</B></STRONG>
+<DD>increment for Y scale factor.
+   <DT><STRONG><B>x</B></STRONG>
+<DD>X coordinate to zoom about.
+   <DT><STRONG><B>y</B></STRONG>
+<DD>Y coordinate to zoom about.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>zoomAboutTheCentre</B>(<TT>int</TT> <B>xIncrement</B>, <TT>int</TT> <B>yIncrement</B>)<A NAME="l232"></A><A NAME="l233"></A></TT>
+<BLOCKQUOTE>Zoom plot about the current center by the given increments in
+ the X and Y scale factors.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xIncrement</B></STRONG>
+<DD>value to add to current X scale factor.
+   <DT><STRONG><B>yIncrement</B></STRONG>
+<DD>value to add to current Y scale factor.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>zoomToRectangularRegion</B>(<TT>java.awt.geom.Rectangle2D</TT> <B>region</B>)<A NAME="l234"></A><A NAME="l235"></A></TT>
+<BLOCKQUOTE>Zoom/scroll the Plot to display a given rectangular region.
+
+<P>
+If the region has zero width or height then the zoom is merely
+ incremented by 1 in both dimensions. Also if the scale factors
+ are increased by more than a factor of 20, then they are
+ clipped to this value (the most likely action here is a user
+ accidently returning a very small region).
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>region</B></STRONG>
+<DD>the region to zoom into.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+
+<P>
+<BR> <HR>
+<A NAME="tex2html227"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html225"
+ HREF="node11.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html221"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html228"
+ HREF="node13.html">Package uk.ac.starlink.splat.util</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html226"
+ HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html222"
+ HREF="node11.html">Package uk.ac.starlink.splat.plot</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

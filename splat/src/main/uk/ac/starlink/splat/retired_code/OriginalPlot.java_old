@@ -1,0 +1,608 @@
+package star.jspec.plot;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.*;
+import java.awt.print.*;
+import java.io.*;
+import java.lang.*;
+import java.util.*;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.event.*;
+
+import star.jspec.*;
+import star.jspec.ast.*;
+import star.jspec.data.*;
+import star.jspec.iface.*;
+import star.jspec.imagedata.*;
+import star.jspec.plot.*;
+import star.jspec.util.*;
+
+/**
+ *  Plots astronomical spectra using a Swing component.
+ *
+ *  @author Peter W. Draper
+ *  @version $Id$
+ *  @since 12-SEP-1999, original version.
+ */
+public class Plot extends JPanel implements Printable
+{
+
+    /**
+     *  X scale factor for displaying data.
+     */
+    protected float xScale = 1.0F;
+
+    /**
+     *  Y scale factor for displaying data.
+     */
+    protected float yScale = 1.0F;
+
+    /**
+     *  Have either scales changed? If so need complete redraw.
+     */
+    protected boolean xyScaled = true;
+
+    /**
+     *  X and Y scales used last call to setScale.
+     */
+    protected float lastXScale = 0.0F;
+    protected float lastYScale = 0.0F;
+
+    /**
+     *  X and Y scales that map data ranges into initial graphic
+     *  size.
+     */
+    protected float baseXScale = 1.0F;
+    protected float baseYScale = 1.0F;
+
+    /**
+     *  Number of pixels reserved at edges.
+     */
+    protected int xSaved = 70;
+    protected int ySaved = 30;
+
+    /**
+     *  Smallest X data value.
+     */
+    protected double xMin;
+
+    /**
+     *  Largest X data value.
+     */
+    protected double xMax;
+
+    /**
+     *  Smallest Y data value.
+     */
+    protected double yMin;
+
+    /**
+     *  Largest Y data value.
+     */
+    protected double yMax;
+
+    /**
+     *  Bounding box for creating astPlot from physical coordinates
+     */
+    protected double[] baseBox = new double[4];
+
+    /**
+     *  Object to draw and control positions of any bars that are
+     *  shown.
+     */
+    protected BarManager barManager = new BarManager();
+
+    /**
+     *  Reference to spectra composite object. This plots the actual
+     *  spectra and mediates requests about composite properties.
+     */
+    protected SpecDataComp spectra = null;
+
+    /**
+     *  ASTJ object that mediates AST graphics drawing requests
+     *  and transforms coordinates.
+     */
+    protected ASTJ astJ = null;
+
+    /**
+     *  Grf object that manages all graphics.
+     */
+    protected Grf grfJ = null;
+
+    /**
+     *  Object that contains a description of the non-spectral AST
+     *  properties of the Plot (i.e. labels etc.).
+     */
+    protected PlotConfig config = null;
+
+    /**
+     *  Plot a series of spectra.
+     *
+     *  @param spectra reference to spectra.
+     *
+     */
+    public Plot( SpecDataComp spectra  ) throws JSpecException
+    {
+        initSpec( spectra );
+    }
+
+    /**
+     *  Plot a spectrum stored in a file.
+     *
+     *  @param file name of file containing spectrum.
+     *
+     */
+    public Plot( String file ) throws JSpecException
+    {
+        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecDataComp spectrum;
+        SpecData specData;
+        specData = factory.get( file );
+        spectrum  = new SpecDataComp( specData );
+        initSpec( spectrum );
+    }
+
+    /**
+     *  Initialise spectra information.
+     */
+    protected void initSpec( SpecDataComp spectra ) throws JSpecException
+    {
+        //  Retain reference to spectra data and properties.
+        this.spectra = spectra;
+
+        //  Initialize preferred initial size.
+        setPreferredSize( new Dimension( 804, 320 ) );
+
+        //  Create the required Grf object to draw graphics.
+        grfJ = new Grf( this );
+
+        //  First time initialisation of spectra properties.
+        updateProps();
+    }
+
+    /**
+     * Set the AST graphics configuration object.
+     */
+    public void setConfig( PlotConfig config )
+    {
+        this.config = config;
+    }
+
+    /**
+     *  Update the composite properties of the spectra and setup for
+     *  display.
+     *
+     *  @param spectra SpecDataComp reference.
+     */
+    public void updateProps() throws JSpecException
+    {
+        //  No spectra, so maybe nothing to do.
+        if ( spectra.count() == 0 ) return;
+
+        //  Get the spectra AST frameset, that describes the
+        //  coordinates and set the Grf object is should use to draw
+        //  graphics.
+        astJ = spectra.getAst();
+        astJ.setGraphic( grfJ );
+
+        //  Set the data limits for plotting.
+        setDataLimits();
+
+        //  Define the size of the box used to draw the spectra
+        //  (physical coordinates, i.e. the base of the AST frameset).
+        double[] xyphys = new double[4];
+        xyphys[0] = xMin;
+        xyphys[1] = yMin;
+        xyphys[2] = xMax;
+        xyphys[3] = yMax;
+        double[] xybase = astJ.astTran2( astJ.getRef(), xyphys, false );
+        baseBox[0] = xybase[0];
+        baseBox[1] = xybase[1];
+        baseBox[2] = xybase[2];
+        baseBox[3] = xybase[3];
+
+        //  The base scales are defined to fit the data content into
+        //  the plotting area.
+        setBaseScale();
+
+        //  Set the preferred size of the component -- big enough for
+        //  pixel resolution times the scale factor.
+        setScale( xScale, yScale );
+
+        //  Establish the border for labelling.
+        setBorder( xSaved, ySaved );
+    }
+
+    /**
+     * Set the range of any plotted axes. These can be overridden by
+     * values in the DataLimits object supplied by the config object, or
+     * set to the minimum/maximum of the data values.
+     */
+    public void setDataLimits() 
+    {
+        if ( config == null ) {
+            setAutoLimits();
+        } else {
+            DataLimits dataLimits = config.getDataLimits();
+            if ( dataLimits.isYAutoscaled() || dataLimits.isXAutoscaled() ) {
+                setAutoLimits();
+            }
+            if ( ! dataLimits.isXAutoscaled() ) {
+                xMin = dataLimits.getXLower();
+                xMax = dataLimits.getXUpper();
+            }
+            if ( ! dataLimits.isYAutoscaled() ) {
+                yMin = dataLimits.getYLower();
+                yMax = dataLimits.getYUpper();
+            }
+        }
+    }
+
+    /**
+     * Set the plot limits to those of the data.
+     */
+    protected void setAutoLimits() {
+        double[] range = spectra.getRange();
+        xMin = range[0];
+        xMax = range[1];
+        yMin = range[2];
+        yMax = range[3];
+    }
+
+    /**
+     *  Set the base scale. This matches the plot size to the viewable
+     *  area (not allowing for the scale).
+     */
+    public void setBaseScale()
+    {
+        Dimension size = getPreferredSize();
+        baseXScale = (float)size.width / (float)(xMax-xMin);
+        baseYScale = (float)size.height / (float)(yMax-yMin);
+    }
+
+    /**
+     *  Fit spectrum to the displayed width. Follow this with a
+     *  setScale( 1, x ), to update the display.
+     */
+    public void fitToWidth()
+    {
+        Dimension size = getSize();
+        baseXScale = (float)size.width / (float)(xMax-xMin);
+        lastXScale = 0;
+    }
+
+    /**
+     *  Fit spectrum to the displayed height. Follow this with a
+     *  setScale( x, 1 ), to update the display.
+     */
+    public void fitToHeight()
+    {
+        Dimension size = getSize();
+        baseYScale = (float)size.height / (float)(yMax-yMin);
+        lastYScale = 0;
+    }
+
+    /**
+     *  Reset the preferred size of the whole component to match the
+     *  current scaling configuration.
+     */
+    protected void resetPreferredSize()
+    {
+        //  Set the requested size of the plotting component. This
+        //  needs to be honoured by the user of this class somehow
+        //  (use center of a BorderLayout, probably with a
+        //  JScrollPane, if expecting to resize after creation).
+        setPreferredSize( new Dimension(
+            (int)(baseXScale*xScale*(xMax-xMin)),
+            (int)(baseYScale*yScale*(yMax-yMin)) ) );
+    }
+
+    /**
+     *  Update the plot to reflect any changes in the spectra
+     *  being plotted (i.e. when a new spectrum is added).
+     */
+    public void update() throws JSpecException
+    {
+        updateProps();
+        xyScaled = true;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     *  Update the plot to reflect any changes in the component size
+     *  etc. Do not perform complete reinitialisation.
+     */
+    protected void updateComponent()
+    {
+        resetPreferredSize();
+        xyScaled = true;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     *  Set the display scale factor. This is actually implemented by
+     *  resizing our component size.
+     */
+    public void setScale( float xs, float ys )
+    {
+        if ( xs != lastXScale || ys != lastYScale ) {
+
+            //  Record scales to avoid unnecessary updates.
+            lastXScale = xs;
+            lastYScale = ys;
+
+            //  Positive values are direct scales, negative are inverse.
+            if ( xs == 0.0F ) {
+                xScale = 1.0F;
+            } else if ( xs < 0.0F ) {
+                xScale = Math.abs( 1.0F / xs );
+            } else {
+                xScale = xs;
+            }
+            if ( ys == 0.0F ) {
+                yScale = 1.0F;
+            } else if ( ys < 0.0F ) {
+                yScale = Math.abs( 1.0F / ys );
+            } else {
+                yScale = ys;
+            }
+            updateComponent();
+        }
+    }
+
+    /**
+     *  Set the number of pixels reserved for axis labelling.
+     */
+    public void setBorder( int x, int y )
+    {
+        Insets curBorder = getInsets();
+        EmptyBorder newBorder = new EmptyBorder( y, x, y, x );
+        super.setBorder( newBorder );
+        curBorder = getInsets();
+        xSaved = x;
+        ySaved = y;
+        repaint();
+    }
+
+    /**
+     *  Draw the spectra. This should use the current plotting
+     *  attributes and style.
+     */
+    protected void drawSpectra()
+    {
+        double[] limits = null;
+        if ( config != null ) {
+            if ( config.getGraphicsEdges().isClipped() ) {
+                limits = new double[4];
+                limits[0] = xMin;
+                limits[1] = yMin;
+                limits[2] = xMax;
+                limits[3] = yMax;
+            }
+        }
+        spectra.drawSpec( grfJ, astJ.getPlot(), limits );
+    }
+
+    /**
+     *  PaintComponent method for drawing/redrawing graphics when
+     *  interface requires it.
+     *
+     *  @param g Graphics object
+     *
+     */
+    public void paintComponent( Graphics g )
+    {
+        super.paintComponent( g );
+        if ( spectra.count() == 0 ) return;
+        Graphics2D g2 = (Graphics2D)g;
+        if ( xyScaled ) {
+
+            //  Scale of plot has changed or been set for the first
+            //  time. So we need to redraw everything.
+            xyScaled = false;
+
+            //  Clear all existing AST graphics
+            grfJ.reset();
+
+            //  Create an astPlot for the graphics, this is matched to
+            //  the component size and is how we get an apparent
+            //  rescale of drawing. Note we set the AST plotting
+            //  configuration also.
+            if ( config != null ) {
+                astJ.astPlot( baseBox, 
+                              config.getGraphicsEdges().getXFrac(), 
+                              config.getGraphicsEdges().getYFrac(), 
+                              config.getAst() );
+            } else {
+                astJ.astPlot( baseBox, 0.05, 0.0, "" );
+            }
+
+            //  Draw the coordinate grid/axes.
+            astJ.astGrid();
+
+            //  Draw the spectra.
+            drawSpectra();
+        }
+
+        //  Use antialiasing for either the text, lines and text, or
+        //  nothing.
+        if ( config != null ) {
+            config.applyRenderingHints( g2 );
+        }
+
+        //  Set the AlphaComposite (test only, should be done per-line);
+        //g2.setComposite( 
+        //AlphaComposite.getInstance( AlphaComposite.SRC_OVER, 0.5F ) );
+        
+        //  Repaint all graphics.
+        grfJ.paint( this, g2 );
+    }
+
+    /**
+     *  Register object to receive mouse motion events.
+     *
+     *  @param tracker name of an object whose class implements the
+     *                 MouseMotionTracker interface. This will have
+     *                 its updateCoords method called when a
+     *                 mouseMoved event is trapped.
+     */
+    public void trackMouseMotion( final MouseMotionTracker tracker )
+    {
+        addMouseMotionListener( new MouseMotionListener() {
+            public void mouseMoved( MouseEvent e ) {
+                if ( spectra.count() == 0 ) return;
+                String[] xypos = spectra.formatLookup( e.getX(), astJ.getPlot() );
+                tracker.updateCoords( xypos[0], xypos[1] );
+                drawBar( e.getX() );
+            }
+            public void mouseDragged( MouseEvent e ) {
+                if ( spectra.count() == 0 ) return;
+                System.out.println( "Mouse Dragged" );
+            }
+        });
+    }
+
+    //  Return a label that can be used to identify the units of the
+    //  given axis. Note the AST description will be used if the
+    //  plot hasn't been drawn yet (these are generally the same).
+    public String getLabel( int axis )
+    {
+        if ( spectra.count() == 0 ) return "";
+
+        long plot = astJ.getPlot();
+        if ( plot != 0 ) {
+            return astJ.astGet( plot, "label(" + axis + ")" );
+        }
+
+        //  Try WCS description.
+        long astref = astJ.getRef();
+        if ( astref != 0 ) {
+            return astJ.astGet( astref, "label(" + axis + ")" );
+        }
+        return new String( "Axis" + axis );
+    }
+
+    //  Draw a vertical bar to highlight some position of spectra.
+    //  The coordinates are in graphics coordinates.
+    public void drawBar( int x )
+    {
+        if ( spectra.count() == 0 ) return;
+        double[] xpos = new double[2];
+        double[] ypos = new double[2];
+        xpos[0] = xpos[1] = x;
+        ypos[0] = 0.0;
+        ypos[1] = (double) getHeight();
+
+        // grfJ.polyline( xpos, ypos );
+        // System.out.println( "drawBar" );
+        // repaint();
+    }
+
+    //  Print a copy of the current contents.
+    public int print( Graphics g, PageFormat pf, int pageIndex )
+    {
+        if ( pageIndex > 0 ) {
+            return NO_SUCH_PAGE;
+        }
+
+        //  Set background to white to match paper.
+        Color oldback = getBackground();
+        setBackground( Color.white );
+
+        //  Make graphics shift and scale up/down to fit the page.
+        Graphics2D g2 = (Graphics2D) g;
+        fitToPage( g2, pf );
+
+        //  Print the spectra.
+        print( g2 );
+
+        //  Restore background colour.
+        setBackground( oldback );
+
+        return PAGE_EXISTS;
+    }
+
+    //  Shift and scale the current graphic so that it fits within a
+    //  printed page.
+    protected void fitToPage( Graphics2D g2, PageFormat pf )
+    {
+        //  Get size of viewable page area and derive scale to make
+        //  the content fit.
+        double pageWidth = pf.getImageableWidth() - 2.0 * xSaved;
+        double pageHeight = pf.getImageableHeight() - 2.0 * ySaved;
+        double xinset = pf.getImageableX() + xSaved;
+        double yinset = pf.getImageableY() + ySaved;
+        double compWidth = (double) getWidth();
+        double compHeight = (double) getHeight();
+        double xscale =  pageWidth / compWidth;
+        double yscale = pageHeight / compHeight;
+        if ( xscale < yscale ) {
+            yscale = xscale;
+        } else {
+            xscale = yscale;
+        }
+
+        //  Shift and scale.
+        g2.translate( xinset, yinset );
+        g2.scale( xscale, yscale );
+    }
+
+    /**
+     * Main routine - used only for test purposes.
+     *
+     * @param args Command-line arguments. First value is name of the
+     *             spectrum file.
+     */
+    public static void main( String args[] )
+    {
+        //  Check command-line argument.
+        SpecData source = null;
+        if ( args.length != 1 ) {
+            System.err.println( "Usage: Plot spectrum_file" );
+            System.exit( 1 );
+        } else {
+
+            //  Check spectrum exists.
+            SpecDataFactory factory = SpecDataFactory.getReference();
+            try {
+                source = factory.get( args[0] );
+            } catch ( JSpecException e ) {
+                e.printStackTrace();
+                System.err.println( "Spectrum '" + args[0] + "' cannot be found" );
+                System.exit( 1 );
+            }
+        }
+        SpecDataComp spectrum  = new SpecDataComp( source );
+
+        //  Create a frame to hold graphics.
+        JFrame frame = new JFrame();
+
+        //  Add a Plot object so that it can be called upon to do the drawing.
+        try {
+            frame.getContentPane().add( new Plot( spectrum ) );
+        } catch (JSpecException e) {
+            e.printStackTrace();
+            System.exit( 1 );
+        }
+
+        //  Set the frame size.
+        int frameWidth = 900;
+        int frameHeight = 600;
+        frame.setSize( frameWidth, frameHeight );
+
+        //  Make the frame visible.
+        frame.setVisible( true );
+
+        //  Application exits when this window is closed.
+        frame.addWindowListener( new WindowAdapter() {
+            public void windowClosing( WindowEvent evt ) {
+                System.exit( 1 );
+            }
+        });
+    }
+}

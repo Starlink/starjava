@@ -1,0 +1,9 @@
+<deployment xmlns="http://xml.apache.org/axis/wsdd/"
+            xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+   <service name="SOGRemoteServices" provider="java:RPC">
+      <parameter name="className" 
+                 value="uk.ac.starlink.sog.SOGRemoteServices"/>
+      <parameter name="allowedMethods" value="updateImage showImage wcsCenter showNDX"/>
+   </service>
+</deployment>

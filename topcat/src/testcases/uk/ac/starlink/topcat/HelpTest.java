@@ -1,0 +1,54 @@
+package uk.ac.starlink.topcat;
+
+import java.net.URL;
+import javax.help.HelpSet;
+import javax.help.HelpSetException;
+import junit.framework.TestCase;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
+
+public class HelpTest extends TestCase {
+
+    private URL hsURL = HelpWindow.class
+                       .getResource( HelpWindow.HELPSET_LOCATION );
+    private HelpSet hs;
+
+    public HelpTest( String name ) throws HelpSetException {
+        super( name );
+        hs = new HelpSet( null, hsURL );
+    }
+
+    public void testXML() throws Exception {
+        parseXML( hsURL );
+        parseXML( new URL( hsURL, "Map.xml" ) );
+        parseXML( new URL( hsURL, "TOC.xml" ) );
+    }
+
+    public void parseXML( URL url ) throws Exception {
+        String loc = url.toString();
+        SAXParserFactory fact = SAXParserFactory.newInstance();
+        fact.setValidating( true );
+        DefaultHandler handler = new DefaultHandler() {
+            public void warning( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            public void error( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            public void fatalError( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            private void rethrow( SAXParseException e ) throws SAXException {
+                throw new SAXException( "Parse error in " + e.getSystemId()
+                                      + " at line " + e.getLineNumber() 
+                                      + " column " + e.getColumnNumber(), e );
+            }
+        };
+        SAXParser parser = fact.newSAXParser();
+        parser.parse( url.toString(), handler );
+    }
+    
+}

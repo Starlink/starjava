@@ -1,0 +1,16 @@
+#BEGIN
+# name  C-18-O_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+219560.3568 2_-_1
+329330.5453 3_-_2
+439088.7631 4_-_3
+548830.9775 5_-_4
+658553.2728 6_-_5
+768251.589 7_-_6
+877921.9561 8_-_7
+987560.3837 9_-_8

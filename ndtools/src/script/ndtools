@@ -1,0 +1,30 @@
+#!/bin/sh
+
+#  Find where this script is located
+if test -z "$NDTOOLS_DIR"; then
+   NDTOOLS_DIR=`dirname $0`
+fi
+
+#  Locate the application jar file.  It is relative to this script.
+appjar="$NDTOOLS_DIR/../../lib/ndtools/ndtools.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the NDTOOLS jar file.  Please define NDTOOLS_DIR."
+fi
+
+#  Locate the java startup script.
+starjava="$NDTOOLS_DIR/../../bin/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate the 'starjava' script.  Trying with java on path"
+   starjava="java"
+fi
+
+#  Make sure that we get the installed shareable libraries.
+if test -z "$LD_LIBRARY_PATH"; then
+   LD_LIBRARY_PATH="${NDTOOLS_DIR}/../../lib"
+else
+   LD_LIBRARY_PATH="${NDTOOLS_DIR}/../../lib:${LD_LIBRARY_PATH}"
+fi
+export LD_LIBRARY_PATH
+
+#  Run NDTOOLS.
+$starjava -enableassertions -jar $appjar "$@"

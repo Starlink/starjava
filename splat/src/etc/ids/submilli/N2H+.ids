@@ -1,0 +1,16 @@
+#BEGIN
+# name  N2H+_lines
+# system FREQ
+# unit MHz
+# StdOfRest Source
+# sourcevrf Topocentric
+# sourcevel 0.0
+#END
+186344.771 2_-_1
+279511.701 3_-_2
+372672.509 4_-_3
+465824.947 5_-_4
+558966.6656 6_-_5
+652095.8651 7_-_6
+745210.3361 8_-_7
+838307.9748 9_-_8

@@ -1,0 +1,263 @@
+<?xml version="1.0"?>
+
+<Holdings archive="IRSA">
+
+   <catalog index="0">
+      <desc>2MASS Second Incremental Release Point Source Catalog (PSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>pt_src_cat_01</catname>
+      <ddname>pt_src_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="1">
+      <desc>2MASS Second Incremental Release Extended Source Catalog (XSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>ext_src_cat_01</catname>
+      <ddname>ext_src_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="2">
+      <desc>2MASS Second Incremental Release PSC Joined with XSC Data</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>j_ptext_cat</catname>
+      <ddname>j_ptext_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="3">
+      <desc>2MASS Second Incremental Release Survey Scan Info</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>scan_dat_01</catname>
+      <ddname>scan_dat_dd</ddname>
+   </catalog>
+
+   <catalog index="4">
+      <desc>2MASS Second Incremental Release PSC Joined with Scan Data</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>j_ptsc_cat</catname>
+      <ddname>j_ptsc_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="5">
+      <desc>2MASS Second Incremental Release XSC Joined with Scan Data</desc>
+      <server>@rmt_gravel</server>
+      <database>ntmass</database>
+      <catname>j_extsc_cat</catname>
+      <ddname>j_extsc_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="6">
+      <desc>2MASS First Incremental Release Point Source Catalog (PSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>pt_src_cat1_01</catname>
+      <ddname>pt_src_cat1_dd</ddname>
+   </catalog>
+
+   <catalog index="7">
+      <desc>2MASS First Incremental Release Extended Source Catalog (XSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>ext_src_cat1_01</catname>
+      <ddname>ext_src_cat1_dd</ddname>
+   </catalog>
+
+   <catalog index="8">
+      <desc>2MASS First Incremental Release PSC Joined with XSC</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>j_ptext_cat1</catname>
+      <ddname>j_ptext_cat1_dd</ddname>
+   </catalog>
+
+   <catalog index="9">
+      <desc>2MASS First Incremental Release Survey Scan Info</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>scan_dat_01</catname>
+      <ddname>scan_dat_dd</ddname>
+   </catalog>
+
+   <catalog index="10">
+      <desc>2MASS First Incremental Release PSC Joined with Scan Data</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>j_ptsc_cat1</catname>
+      <ddname>j_ptsc_cat1_dd</ddname>
+   </catalog>
+
+   <catalog index="11">
+      <desc>2MASS First Incremental Release XSC Joined with Scan Data</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>j_extsc_cat1</catname>
+      <ddname>j_extsc_cat1_dd</ddname>
+   </catalog>
+
+   <catalog index="12">
+      <desc>2MASS Sampler Point Source Catalog (PSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>pts_samp_cat_01</catname>
+      <ddname>pts_samp_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="13">
+      <desc>2MASS Sampler Extended Source Catalog (XSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>exts_samp_cat_01</catname>
+      <ddname>exts_samp_cat_dd</ddname>
+   </catalog>
+
+   <catalog index="14">
+      <desc>2MASS Sampler PSC Joined with XSC</desc>
+      <server>@rmt_gravel</server>
+      <database>tmassr</database>
+      <catname>j_ptcat_extcat</catname>
+      <ddname>j_ptcat_extcat_dd</ddname>
+   </catalog>
+
+   <catalog index="15">
+      <desc>IRAS Faint Source Catalog v2.0 (FSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>irasfsc</catname>
+      <ddname>irasfsc_dd</ddname>
+   </catalog>
+
+   <catalog index="16">
+      <desc>IRAS Point Source Catalog v2.1 (PSC)</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>iraspsc</catname>
+      <ddname>iraspsc_dd</ddname>
+   </catalog>
+
+   <catalog index="17">
+      <desc>IRAS Cataloged Galaxies and Quasars</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>irasgal</catname>
+      <ddname>irasgal_dd</ddname>
+   </catalog>
+
+   <catalog index="18">
+      <desc>IRAS Serendipitous Survey Catalog</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>irasssc</catname>
+      <ddname>irasssc_dd</ddname>
+   </catalog>
+
+   <catalog index="19">
+      <desc>IRAS Small Scale Structure Catalog</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>irassss</catname>
+      <ddname>irassss_dd</ddname>
+   </catalog>
+
+   <catalog index="20">
+      <desc>IRAS Additional Observations (AO) Catalog</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>iras_ao</catname>
+      <ddname>iras_ao_dd</ddname>
+   </catalog>
+
+   <catalog index="21">
+      <desc>IRAS Faint Source Catalog Rejects</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>irasfscr</catname>
+      <ddname>irasfscr_dd</ddname>
+   </catalog>
+
+   <catalog index="22">
+      <desc>IRAS Point Source Catalog Rejects</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>iraspscr</catname>
+      <ddname>iraspscr_dd</ddname>
+   </catalog>
+
+   <catalog index="23">
+      <desc>IRAS PSC joined with WSDB</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>iraspscw</catname>
+      <ddname>iraspscw_dd</ddname>
+   </catalog>
+
+   <catalog index="24">
+      <desc>IRAS PSC joined with HCON and WSDB</desc>
+      <server>@rmt_gravel</server>
+      <database>iras</database>
+      <catname>iraspsch</catname>
+      <ddname>iraspsch_dd</ddname>
+   </catalog>
+
+   <catalog index="25">
+      <desc>USNOA-2</desc>
+      <server>@rmt_gravel</server>
+      <database>usno</database>
+      <catname>usnoa2</catname>
+      <ddname>usnoa2_dd</ddname>
+   </catalog>
+
+   <catalog index="26">
+      <desc>NVSS</desc>
+      <server>@rmt_gravel</server>
+      <database>msx</database>
+      <catname>nvsstable</catname>
+      <ddname>nvsstable_dd</ddname>
+   </catalog>
+
+   <catalog index="27">
+      <desc>FIRST</desc>
+      <server>@rmt_gravel</server>
+      <database>msx</database>
+      <catname>firsttable</catname>
+      <ddname>firsttable_dd</ddname>
+   </catalog>
+
+   <catalog index="28">
+      <desc>The Midcourse Space Experiment (MSX)</desc>
+      <server>@rmt_gravel</server>
+      <database>msx</database>
+      <catname>msxtable</catname>
+      <ddname>msxtable_dd</ddname>
+   </catalog>
+
+   <catalog index="29">
+      <desc>The ROSAT All Sky Sources</desc>
+      <server>@rmt_gravel</server>
+      <database>isis</database>
+      <catname>rosatall</catname>
+      <ddname>rosatall_dd</ddname>
+   </catalog>
+
+   <catalog index="30">
+      <desc>The ROSAT Bright Sources</desc>
+      <server>@rmt_gravel</server>
+      <database>isis</database>
+      <catname>rosatbsc</catname>
+      <ddname>rosatbsc_dd</ddname>
+   </catalog>
+
+   <catalog index="31">
+      <desc>The ROSAT Faint Sources</desc>
+      <server>@rmt_gravel</server>
+      <database>isis</database>
+      <catname>rosatfsc</catname>
+      <ddname>rosatfsc_dd</ddname>
+   </catalog>
+
+   <count>32</count>
+
+</Holdings>
