@@ -160,13 +160,6 @@ public class FitsConstants {
         ArrayDataInput strm;
 
         /* Get a stream for the whole file. */
-        // Note the use of a MappedFile here really requires use of a 
-        // modified nom.tam.fits.BinaryTable implementation.  The original 
-        // (v0.96?) version implements getElement on top of getRow for
-        // deferred reads (RandomAccess input streams), which makes 
-        // single-element access exceedingly slow for tables with many
-        // columns.  I made this change in the starlink tam.fits package
-        // at 7-OCT-2003 (MBT).
         if ( datsrc instanceof FileDataSource && 
              datsrc.getCompression() == Compression.NONE ) {
             strm = new MappedFile( ((FileDataSource) datsrc)
