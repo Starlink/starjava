@@ -85,6 +85,18 @@ public class TwoQZ {
         return Image.displayImage( "2QZ", loc );
     }
 
+    /**
+     * Returns the name of the subdirectory (such as "ra03_04") for a 
+     * given 2QZ object name (ID).
+     * 
+     * @param  name  ID of object within the 2QZ catalogue
+     *         (like J120437.7-021003)
+     * @return  subdirectory name
+     */
+    public static String get2qzSubdir( String name ) {
+        return getSubdir( name );
+    }
+
     private static String getSubdir( String name ) {
         int rah = Integer.parseInt( name.substring( 1, 3 ) );
         int rah1 = rah + 1;
