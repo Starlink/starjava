@@ -188,7 +188,6 @@ public class HdxFactory {
      * Obtains an instance of the <code>HdxFactory</code>.
      */
     public static HdxFactory getInstance() {
-        System.out.println( "Request for HdxFactory instance" );
         if (defaultInstance == null)
             defaultInstance = new HdxFactory(null);
         return defaultInstance;
