@@ -456,6 +456,7 @@
       <arg value="-x"/><arg value="jsky.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
       <arg value="-x"/><arg value="axis.jar"/>
+      <arg value="-x"/><arg value="aglib.jar"/>
       <arg value="-x"/><arg value="jaiutil.jar"/>
       <arg value="-x"/><arg value="sog.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
@@ -575,6 +576,14 @@
 
          <!-- Decouple potential circular dependencies -->
          <extension name="TREEVIEW-PARTS" href="treeview-parts.jnlp"/>
+
+         <!-- Get AstroGrid parts direct from source. -->
+         <extension name="ASTROGRID-CDK" 
+                    href="http://software.astrogrid.org/jnlp/astrogrid-cdk-core/astrogrid-cdk-core.jnlp"/>
+
+         <!-- AstroGrid registry for MySpace browser -->
+         <property name="org.astrogrid.registry.query.endpoint"
+                   value="http://twmbarlwm.astrogrid.org:8080/astrogrid-registry-SNAPSHOT/services/RegistryQuery"/>
        </resources>
        <application_desc main_class="uk.ac.starlink.topcat.Driver"/>
      </jnlp>
