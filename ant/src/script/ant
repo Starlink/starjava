@@ -12,24 +12,24 @@ else
    #  Fall-back Java is on current PATH.
    java="java"
 
-   #  If $STARLINK is defined then try that. Look for JDK first as ANT 
-   #  needs that really. JRE is only useful for post build installations.
+   #  If $STARLINK is defined then try that. Only look for the JRE
+   #  version (only need JDK for development).
    if test "$STARLINK" != ""; then
-      if test -r "$STARLINK/java/jdkhome"; then
-         java="`cat $STARLINK/java/jdkhome`/bin/java"
-      fi
       if test -r "$STARLINK/java/jrehome"; then
          java="`cat $STARLINK/java/jrehome`/bin/java"
+      fi
+      if test -r "$STARLINK/java/jdkhome"; then
+         java="`cat $STARLINK/java/jdkhome`/bin/java"
       fi
    fi
 
    #  If still not changed, look for Java in the standard installation.
    if test "$java" = "java"; then
-      if test -r "/star/java/jdkhome"; then
-         java="`cat /star/java/jdkhome`/bin/java"
-      fi
       if test -r "/star/java/jrehome"; then
          java="`cat /star/java/jrehome`/bin/java"
+      fi
+      if test -r "/star/java/jdkhome"; then
+         java="`cat /star/java/jdkhome`/bin/java"
       fi
    fi
 fi
@@ -60,16 +60,16 @@ fi
 #fi
 
 # OS specific support.  $var _must_ be set to either true or false.
-#cygwin=false;
-#darwin=false;
-#case "`uname`" in
-#  CYGWIN*) cygwin=true ;;
-#  Darwin*) darwin=true
-#           if [ -z "$JAVA_HOME" ] ; then
-#             JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home   
-#           fi
-#           ;;
-#esac
+cygwin=false;
+darwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+  Darwin*) darwin=true
+           if [ -z "$JAVA_HOME" ] ; then
+             JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home   
+           fi
+           ;;
+esac
 
 if [ -z "$ANT_HOME" ] ; then
   # try to find ANT
@@ -93,7 +93,7 @@ if [ -z "$ANT_HOME" ] ; then
   while [ -h "$PRG" ] ; do
     ls=`ls -ld "$PRG"`
     link=`expr "$ls" : '.*-> \(.*\)$'`
-    if expr "$link" : '.*/.*' > /dev/null; then
+    if expr "$link" : '/.*' > /dev/null; then
 	PRG="$link"
     else
 	PRG=`dirname "$PRG"`"/$link"
@@ -109,18 +109,18 @@ if [ -z "$ANT_HOME" ] ; then
 fi
 
 # For Cygwin, ensure paths are in UNIX format before anything is touched
-#if $cygwin ; then
-#  [ -n "$ANT_HOME" ] &&
-#    ANT_HOME=`cygpath --unix "$ANT_HOME"`
-#  [ -n "$JAVA_HOME" ] &&
-#    JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
-#  [ -n "$CLASSPATH" ] &&
-#    CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
-#fi
-#
-## set ANT_LIB location
-#ANT_LIB="${ANT_HOME}/lib"
-#
+if $cygwin ; then
+  [ -n "$ANT_HOME" ] &&
+    ANT_HOME=`cygpath --unix "$ANT_HOME"`
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+  [ -n "$CLASSPATH" ] &&
+    CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
+fi
+
+# set ANT_LIB location
+ANT_LIB="${ANT_HOME}/lib"
+
 #if [ -z "$JAVACMD" ] ; then 
 #  if [ -n "$JAVA_HOME"  ] ; then
 #    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then 
@@ -194,9 +194,9 @@ if [ -n "$JAVA_HOME" ] ; then
 
   # OSX hack to make Ant work with jikes
   if $darwin ; then
-    OSXHACK="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Classes"
-    if [ -d ${OSXHACK} ] ; then
-      for i in ${OSXHACK}/*.jar
+    OSXHACK="${JAVA_HOME}/../Classes"
+    if [ -d "${OSXHACK}" ] ; then
+      for i in "${OSXHACK}"/*.jar
       do
         JIKESPATH="$JIKESPATH:$i"
       done
@@ -215,13 +215,13 @@ if $usejikes; then
 fi
 
 # For Cygwin, switch paths to Windows format before running java
-#if $cygwin; then
-#  ANT_HOME=`cygpath --windows "$ANT_HOME"`
-#  JAVA_HOME=`cygpath --windows "$JAVA_HOME"`
-#  CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
-#  LOCALCLASSPATH=`cygpath --path --windows "$LOCALCLASSPATH"`
-#  CYGHOME=`cygpath --windows "$HOME"`
-#fi
+if $cygwin; then
+  ANT_HOME=`cygpath --windows "$ANT_HOME"`
+  JAVA_HOME=`cygpath --windows "$JAVA_HOME"`
+  CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
+  LOCALCLASSPATH=`cygpath --path --windows "$LOCALCLASSPATH"`
+  CYGHOME=`cygpath --windows "$HOME"`
+fi
 
 if [ -n "$CYGHOME" ]; then
   if [ -n "$JIKESPATH" ]; then
