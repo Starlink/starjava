@@ -31,8 +31,6 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     /** The most elements that will be shown in a single cell. */
     public static final int MAX_SHOW_ELEMENTS = 10;
 
-    public static final int FLOAT_DEC_PLACES = 4;
-
     private NumberFormat sciFormatDouble;
     private NumberFormat sciFormatFloat;
     private NumberFormat fixFormatDouble;
