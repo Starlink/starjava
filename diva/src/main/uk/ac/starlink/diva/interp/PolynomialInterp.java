@@ -37,18 +37,10 @@ public class PolynomialInterp
      */
     public PolynomialInterp( double[] x, double[] y )
     {
-        setValues( x, y, true );
+        setCoords( x, y, true );
     }
 
-    /**
-     * Set all the values.
-     *
-     * @param x the X coordinates.
-     * @param y the Y coordinates.
-     * @param check whether to check if X coordinates are increasing
-     *              or decreasing, if no check accepts current state.
-     */
-    public void setValues( double[] x, double[] y, boolean check )
+    public void setCoords( double[] x, double[] y, boolean check )
     {
         this.x = x;
         this.y = y;
@@ -66,12 +58,6 @@ public class PolynomialInterp
         }
     }
 
-    public void setCoords( double[] x, double[] y, boolean check )
-    {
-        setValues( x, y, check );
-    }
-
-    
     public double interpolate( double xp )
     {
         if ( x.length >= 2 ) {
@@ -82,7 +68,7 @@ public class PolynomialInterp
 
 
     /**
-     * Eval a polynomial by Horner's schema
+     * Evaluate a polynomial by Horner's schema
      */
     public double evalPolynomial( double xp ) 
     {
@@ -95,7 +81,8 @@ public class PolynomialInterp
     }
 
     /**
-     *  Compute coefficients of interpolating polynomial.
+     *  Compute coefficients of Langrange interpolating polynomial
+     *  of degree x.length - 1. Algorithm due to G.B. Rybicki.
      */
     protected void evalCoeffs() 
     {
@@ -105,6 +92,7 @@ public class PolynomialInterp
             c[i] = 0.0;
             s[i] = 0.0;
         }
+
         s[n] = -x[0];
         for ( int i = 1; i <= n; i++ ) {
             for ( int j = n-i; j <= n-1; j++ ) {
@@ -112,13 +100,19 @@ public class PolynomialInterp
             }
             s[n] -= x[i];
         }
+
+        double ff = 0.0;
+        double p = 0.0;
+        double b = 0.0;
         for ( int j = 0; j <= n; j++ ) {
-            double p = n + 1;
+            p = n + 1;
             for ( int k = n; k >= 1; k-- ) {
                 p = k * s[k] + x[j] * p;
             }
-            double ff = y[j] / p;
-            double b = 1.0;
+
+            ff = y[j] / p;
+
+            b = 1.0;
             for ( int k = n; k >= 0; k-- ) {
                 c[k] += b * ff;
                 b = s[k] + x[j] * b;

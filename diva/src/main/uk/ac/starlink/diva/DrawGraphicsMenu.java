@@ -29,6 +29,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import uk.ac.starlink.diva.interp.InterpolatorFactory;
 import uk.ac.starlink.util.gui.BasicFontChooser;
 
 /**
@@ -134,6 +135,7 @@ public class DrawGraphicsMenu
             menu.add( menuItem );
             group.add( menuItem );
         }
+        menu.getItem( 0 ).setSelected( true );
         return menu;
     }
 
@@ -246,6 +248,7 @@ public class DrawGraphicsMenu
             menu.add( menuItem );
             group.add( menuItem );
         }
+        menu.getItem( n - 1 ).setSelected( true );
         return menu;
     }
 
@@ -310,13 +313,14 @@ public class DrawGraphicsMenu
         JMenu menu = new JMenu( "Curve type" );
 
         ButtonGroup group = new ButtonGroup();
-        int n = drawActions.NUM_CURVES;
+        int n = InterpolatorFactory.NUM_INTERPOLATORS;
         for ( int i = 0; i < n; i++ ) {
             JRadioButtonMenuItem menuItem =
                 new JRadioButtonMenuItem( drawActions.getCurveAction(i) );
             menu.add( menuItem );
             group.add( menuItem );
         }
+        menu.getItem( 0 ).setSelected( true );
         return menu;
     }
 

@@ -51,20 +51,15 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 
 import uk.ac.starlink.diva.geom.InterpolatedCurve2D;
-import uk.ac.starlink.diva.interp.AkimaSplineInterp;
-import uk.ac.starlink.diva.interp.CubicSplineInterp;
-import uk.ac.starlink.diva.interp.HermiteSplineInterp;
 import uk.ac.starlink.diva.interp.Interpolator;
-import uk.ac.starlink.diva.interp.LinearInterp;
-import uk.ac.starlink.diva.interp.PolynomialInterp;
+import uk.ac.starlink.diva.interp.InterpolatorFactory;
 import uk.ac.starlink.util.gui.SelectStringDialog;
 import uk.ac.starlink.diva.images.ImageHolder;
 
 /**
  * This class defines a set of objects (created as AbstractActions)
- * for drawing on a JCanvas that implements the Draw
- * interface. These can be used for menu items or buttons in the user
- * interface.
+ * for drawing on a JCanvas that implements the Draw interface. These
+ * can be used for menu items or buttons in the user interface.
  *
  * @author Allan Brighton
  * @author Peter W. Draper
@@ -243,7 +238,7 @@ public class DrawActions
     protected ArrayList fontActions = new ArrayList();
 
     /** Default font for text items */
-    protected Font font = new Font( "Serif", Font.BOLD, 14 );
+    protected Font font = (Font) fonts.get( 0 );
 
     /** Figure to be modified during an edit */
     protected DrawLabelFigure editLabelFigure = null;
@@ -261,48 +256,20 @@ public class DrawActions
     protected int lineWidth = 1;
 
     /** Actions to use to set the line width */
-    protected AbstractAction[] lineWidthActions =
-        new AbstractAction[NUM_LINE_WIDTHS];
-
+    protected AbstractAction[] lineWidthActions = new AbstractAction[NUM_LINE_WIDTHS];
 
     // Interpolated curves.
 
-    /** Hermite splines */
-    public static final int HERMITE = 0;
-
-    /** Akima splines */
-    public static final int AKIMA = 1;
-
-    /** Cubic splines */
-    public static final int CUBIC = 2;
-
-    /** Single polynomial though all points. */
-    public static final int POLYNOMIAL = 3;
-
-    /** Straight lines between points (same as polyline) */
-    public static final int LINEAR = 4;
-
-    /** Display names for Curves */
-    public static final String[] CURVE_NAMES =
-        {
-            "Hermite",
-            "Akima",
-            "Cubic",
-            "Polynomial",
-            "Linear",
-        };
-
-    /** The number of curve types for which actions are defined. */
-    public static final int NUM_CURVES = CURVE_NAMES.length;
+    /** The InterpolatorFactory */
+    protected InterpolatorFactory interpolatorFactory = 
+        InterpolatorFactory.getReference();
 
     /** Actions used to create a curve */
-    protected AbstractAction[] curveActions = new AbstractAction[NUM_CURVES];
+    protected AbstractAction[] curveActions = 
+        new AbstractAction[InterpolatorFactory.NUM_INTERPOLATORS];
 
     /** Current curve interpolator. */
-    protected int interpolator = HERMITE;
-
-    /** Guide for maximum polynomial degree */
-    public static final int MAX_POLYDEGREE = 20;
+    protected int interpolator = InterpolatorFactory.HERMITE;
 
     /** The DrawFigureFactory */
     protected DrawFigureFactory figureFactory = 
@@ -396,7 +363,7 @@ public class DrawActions
                                                        COMPOSITES[i] );
         }
 
-        for ( int i = 0; i < NUM_CURVES; i++ ) {
+        for ( int i = 0; i < InterpolatorFactory.NUM_INTERPOLATORS; i++ ) {
             curveActions[i] = new CurveAction( i );
         }
 
@@ -733,25 +700,7 @@ public class DrawActions
      */
     public Interpolator makeInterpolator()
     {
-        switch (interpolator)
-        {
-           case HERMITE: {
-               return new HermiteSplineInterp();
-           }
-           case AKIMA: {
-               return new AkimaSplineInterp();
-           }
-           case CUBIC: {
-               return new CubicSplineInterp();
-           }
-           case POLYNOMIAL: {
-               return new PolynomialInterp();
-           }
-           case LINEAR: {
-               return new LinearInterp();
-           }
-        }
-        return null;
+        return interpolatorFactory.makeInterpolator( interpolator );
     }
 
     /**
@@ -1424,11 +1373,11 @@ public class DrawActions
     class CurveAction
         extends AbstractAction
     {
-        int interpolator = HERMITE;
+        int interpolator = InterpolatorFactory.HERMITE;
 
         public CurveAction( int interpolator )
         {
-            super( CURVE_NAMES[interpolator] );
+            super( InterpolatorFactory.shortNames[interpolator] );
             this.interpolator = interpolator;
         }
 
@@ -1437,4 +1386,26 @@ public class DrawActions
             setCurve( interpolator );
         }
     }
+    
+    /**
+     * Local class used to save the current graphics.
+     */
+    class CurveAction
+        extends AbstractAction
+    {
+        int interpolator = InterpolatorFactory.HERMITE;
+
+        public CurveAction( int interpolator )
+        {
+            super( InterpolatorFactory.shortNames[interpolator] );
+            this.interpolator = interpolator;
+        }
+
+        public void actionPerformed( ActionEvent evt )
+        {
+            setCurve( interpolator );
+        }
+    }
+    
+    
 }

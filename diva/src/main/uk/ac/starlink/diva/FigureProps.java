@@ -11,12 +11,24 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Paint;
 import java.awt.AlphaComposite;
+import java.util.List;
 
-import uk.ac.starlink.diva.interp.Interpolator;;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
+import org.w3c.dom.Element;
+
+import uk.ac.starlink.diva.interp.Interpolator;
+import uk.ac.starlink.util.XMLEncodeAndDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
+import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
+import uk.ac.starlink.diva.interp.InterpolatorFactory;
 
 /**
- * FigureProps is a simple container class for passing configuration
- * properties of Diva Figures around.
+ * A simple container class for storing the configuration properties
+ * of Figures created by {@link DrawFigureFactory}.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -26,6 +38,11 @@ import uk.ac.starlink.diva.interp.Interpolator;;
  */
 public class FigureProps
 {
+    /**
+     * DrawFigureFactory constant for this figure type.
+     */
+    private int type;
+
     /**
      * First X coordinate
      */
@@ -45,6 +62,16 @@ public class FigureProps
      * Second Y coordinate
      */
     private double y2;
+
+    /**
+     * Array of X coordinates.
+     */
+    private double[] xa;
+
+    /**
+     * Array of Y coordinates.
+     */
+    private double[] ya;
 
     /**
      * Width
@@ -77,6 +104,11 @@ public class FigureProps
     private Interpolator interpolator;
 
     /**
+     * The InterpolatorFactory reference.
+     */
+    private InterpolatorFactory interpolatorFactory = InterpolatorFactory.getReference();
+
+    /**
      * A String for a text display.
      */
     private String text = null;
@@ -90,7 +122,7 @@ public class FigureProps
      * AlphaComposite for combining the figure.
      */
     private AlphaComposite composite  = null;
-    private static final AlphaComposite 
+    private static final AlphaComposite
         defaultComposite = AlphaComposite.SrcOver;
 
     /**
@@ -186,10 +218,13 @@ public class FigureProps
      */
     public void reset()
     {
+        setType( -1 );
         setX1( 0.0 );
         setY1( 0.0 );
         setX2( 0.0 );
         setY2( 0.0 );
+        setXArray( null );
+        setYArray( null );
         setWidth( 1.0 );
         setHeight( 1.0 );
         setOutline( Color.black );
@@ -199,6 +234,46 @@ public class FigureProps
         setText( null );
         setFont( null );
         setComposite( null );
+    }
+
+    /**
+     * Get the type of figure.
+     *
+     * @return the type of figure, -1 if not set, otherwise a constant
+     * from {@link DrawFigureFactory}.
+     */
+    public int getType()
+    {
+        return type;
+    }
+
+    /**
+     * Set the type of figure.
+     *
+     * @param type the type of figure, one of the constants from
+     *             {@link DrawFigureFactory}.
+     */
+    public void setType( int type )
+    {
+        this.type = type;
+    }
+
+    /**
+     * Set the type of figure using a symbolic name.
+     *
+     * @param type the type of figure, one of the values from
+     * shortName of {@link DrawFigureFactory}.
+
+     */
+    public void setType( String type )
+    {
+        this.type = -1;
+        for ( int i = 0; i < DrawFigureFactory.NUM_FIGURES; i++ ) {
+            if ( DrawFigureFactory.shortNames[i].equals( type ) ) {
+                this.type = i;
+                return;
+            }
+        }
     }
 
     /**
@@ -276,6 +351,44 @@ public class FigureProps
     public void setY2( double y2 )
     {
         this.y2 = y2;
+    }
+
+    /**
+     * Get the array of X coordinates.
+     *
+     * @return array of X coordinates.
+     */
+    public double[] getXArray()
+    {
+        return xa;
+    }
+
+    /**
+     * Set the array of X coordinates.
+     *
+     */
+    public void setXArray( double[] xa )
+    {
+        this.xa = xa;
+    }
+
+    /**
+     * Get the array of Y coordinates.
+     *
+     * @return array of Y coordinates.
+     */
+    public double[] getYArray()
+    {
+        return ya;
+    }
+
+    /**
+     * Set the array of Y coordinates.
+     *
+     */
+    public void setYArray( double[] ya )
+    {
+        this.ya = ya;
     }
 
     /**
@@ -457,19 +570,293 @@ public class FigureProps
 
     public String toString()
     {
-        return "FigureProps: " + 
-            " x1 = " + x1 + 
+        return "FigureProps: " +
+            " type = " + type +
+            " x1 = " + x1 +
             " y1 = " + y1 +
             " x2 = " + x2 +
             " y2 = " + y2 +
             " width = " + width +
             " height = " + height +
             " outline = " + outline +
-            " fill = " + fill + 
+            " fill = " + fill +
             " thickness = " + thickness +
             " interpolator = " + interpolator +
-            " text = " + text + 
-            " font = " + font + 
+            " text = " + text +
+            " font = " + font +
             " composite = " + composite;
+    }
+
+    public void encode( Element rootElement )
+    {
+        //  Create children nodes for each of the properties that
+        //  have been set.
+
+        //  Type as symbolic name.
+        String shortName = "unknown";
+        if ( type != -1 ) {
+            shortName = DrawFigureFactory.shortNames[type];
+        }
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "type",
+                                                     shortName );
+
+        //  Positions.
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "x1", x1 );
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "y1", y1 );
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "x2", x2 );
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "y2", y2 );
+        if ( xa != null && ya != null ) {
+            PrimitiveXMLEncodeAndDecode
+                .addChildElement( rootElement, "xarray",
+                                  encodeBase64DoubleArray( xa ));
+            PrimitiveXMLEncodeAndDecode
+                .addChildElement( rootElement, "yarray",
+                                  encodeBase64DoubleArray( ya ));
+        }
+
+        //  Lengths.
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
+                                                     "width", width );
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
+                                                     "height", height );
+
+        //  Colors.
+        if ( outline != null ) {
+            AWTXMLEncodeAndDecode.addChildElement( rootElement,
+                                                   "outline", (Color)outline );
+        }
+        if ( fill != null ) {
+            AWTXMLEncodeAndDecode.addChildElement( rootElement, "fill", 
+                                                   (Color) fill );
+        }
+
+        //  Line thickness.
+        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
+                                                     "thickness", thickness );
+
+        //  Curve interpolator.
+        if ( interpolator != null ) {
+            writeInterpolator( PrimitiveXMLEncodeAndDecode
+                               .addChildElement(rootElement,"interpolator") );
+        }
+
+        //  String.
+        if ( text != null ) {
+            PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, "text",
+                                                         text );
+        }
+        if ( font != null ) {
+            AWTXMLEncodeAndDecode.addChildElement( rootElement, "font", font );
+        }
+
+        //  Composite.
+        if ( composite != null ) {
+            AWTXMLEncodeAndDecode.addChildElement( rootElement, "composite", 
+                                                   composite );
+        }
+    }
+
+    public void decode( Element rootElement )
+    {
+        List children =
+            PrimitiveXMLEncodeAndDecode.getChildElements( rootElement );
+        int size = children.size();
+        Element element = null;
+        String name = null;
+        String value = null;
+        for ( int i = 0; i < size; i++ ) {
+            element = (Element) children.get( i );
+            name = PrimitiveXMLEncodeAndDecode.getElementName( element );
+            value = PrimitiveXMLEncodeAndDecode.getElementValue( element );
+            setFromString( name, value, element );
+        }
+    }
+
+    public String getTagName()
+    {
+        //  All figures start <drawfigure>
+        //                    <type>name</type>
+        //                    ...
+        //                    </drawfigure>
+        return "drawfigure";
+    }
+
+    /**
+     * Set the value of a member variable by matching its name to a
+     * known local property string.
+     */
+    public void setFromString( String name, String value, Element element )
+    {
+        if ( name.equals( "type" ) ) {
+            setType( value );
+            return;
+        }
+        if ( name.equals( "x1" ) ) {
+            setX1( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "y1" ) ) {
+            setY1( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "x2" ) ) {
+            setX2( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "y2" ) ) {
+            setY2( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "xarray" ) ) {
+            setXArray( decodeBase64DoubleArray( value ) );
+            return;
+        }
+        if ( name.equals( "yarray" ) ) {
+            setYArray( decodeBase64DoubleArray( value ) );
+            return;
+        }
+        if ( name.equals( "width" ) ) {
+            setWidth( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "height" ) ) {
+            setHeight( PrimitiveXMLEncodeAndDecode.doubleFromString( value ) );
+            return;
+        }
+        if ( name.equals( "outline" ) ) {
+            setOutline( AWTXMLEncodeAndDecode.colorFromString( value ) );
+            return;
+        }
+        if ( name.equals( "fill" ) ) {
+            setFill( AWTXMLEncodeAndDecode.colorFromString( value ) );
+            return;
+        }
+        if ( name.equals( "thickness" ) ) {
+            setThickness(PrimitiveXMLEncodeAndDecode.doubleFromString(value));
+            return;
+        }
+        if ( name.equals( "interpolator" ) ) {
+            readInterpolator( element );
+            return;
+        }
+        if ( name.equals( "text" ) ) {
+            setText( value );
+            return;
+        }
+        if ( name.equals( "font" ) ) {
+            setFont( AWTXMLEncodeAndDecode.fontFromString( value ) );
+            return;
+        }
+        if ( name.equals( "composite" ) ) {
+            setComposite( AWTXMLEncodeAndDecode.compositeFromString( value ) );
+            return;
+        }
+    }
+
+    /**
+     * Read a stored interpolator from the given Element.
+     *
+     * <interpolator class="type">
+     *    <xarray>base64enc</xarray>
+     *    <yarray>base64enc</yarray>
+     * </interpolator>
+     */
+    protected void readInterpolator( Element element )
+    {
+        // Make an interpolator suitable to the stored type.
+        String name = element.getAttribute( "type" );
+        int type = interpolatorFactory.getTypeFromName( name );
+        interpolator = interpolatorFactory.makeInterpolator( type );
+
+        //  X data.
+        List children =
+            PrimitiveXMLEncodeAndDecode.getChildElements( element );
+        Element child = (Element) children.get( 0 );
+        String value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
+        double[] x = decodeBase64DoubleArray( value );
+
+        //  Y data
+        child = (Element) children.get( 1 );
+        value = PrimitiveXMLEncodeAndDecode.getElementValue( child );
+        double[] y = decodeBase64DoubleArray( value );
+
+        //  Activate the Interpolator.
+        interpolator.setCoords( x, y, true );
+    }
+
+    /**
+     * Write description of the interpolator to the given Element.
+     *
+     * <interpolator type="type">
+     *    <xarray>base64enc</xarray>
+     *    <yarray>base64enc</yarray>
+     * </interpolator>
+     */
+    protected void writeInterpolator( Element element )
+    {
+        // Add interpolator type as a string.
+        int type = InterpolatorFactory.getReference().getInterpolatorType(interpolator);
+        String name = InterpolatorFactory.getReference().getShortName( type );
+        element.setAttribute( "type", name );
+
+        //  Add X and Y vertices.
+        PrimitiveXMLEncodeAndDecode
+            .addChildElement(element, "xarray",
+                             encodeBase64DoubleArray(interpolator.getXCoords()));
+        PrimitiveXMLEncodeAndDecode
+            .addChildElement(element, "yarray",
+                             encodeBase64DoubleArray(interpolator.getYCoords()));
+    }
+
+    /**
+     * Decode an array of double stored in a base64 string.
+     */
+    protected double[] decodeBase64DoubleArray( String base64 )
+    {
+        try {
+            ByteArrayInputStream bis =
+                new ByteArrayInputStream( base64.getBytes() );
+            Base64InputStream b64is = new Base64InputStream( bis );
+            DataInputStream dis = new DataInputStream( b64is );
+            int size = base64.length() / 8;
+            double[] array = new double[size];
+            for ( int i = 0; i < size; i++ ) {
+                array[i] = dis.readDouble();
+            }
+            dis.close();
+            b64is.close();
+            bis.close();
+            return array;
+        }
+        catch (Exception e) {
+            // Do nothing...
+        }
+        return null;
+
+    }
+
+    /**
+     * Encode an array of doubles as a base64 string.
+     */
+    protected String encodeBase64DoubleArray( double[] array )
+    {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            Base64OutputStream b64os = new Base64OutputStream( bos );
+            DataOutputStream dos = new DataOutputStream( b64os );
+            int size = array.length;
+            for ( int i = 0; i < size; i++ ) {
+                dos.writeDouble( array[i] );
+            }
+            String result = bos.toString();
+            dos.close();
+            b64os.close();
+            bos.close();
+            return result;
+        }
+        catch (Exception e) {
+            // Do nothing...
+        }
+        return null;
     }
 }
