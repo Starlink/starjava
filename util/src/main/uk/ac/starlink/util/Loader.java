@@ -304,6 +304,29 @@ public class Loader {
         return instances;
     }
 
+    /**
+     * Returns a list of class instances got from a combination of a 
+     * default list of classnames and the name of a property which 
+     * may contain a colon-separated list of other classnames.
+     * The strings in each case must name classes which implement 
+     * <tt>type</tt> and which have no-arg constructors.
+     *
+     * @param  defaultNames  array of string
+     */
+    public static List getClassInstances( String[] defaultNames, 
+                                          String propertyName, Class type ) {
+        Loader.loadProperties();
+        List instances = new ArrayList();
+        for ( int i = 0; i < defaultNames.length; i++ ) {
+            Object instance = getClassInstance( defaultNames[ i ], type );
+            if ( instance != null ) {
+                instances.add( instance );
+            }
+        }
+        instances.addAll( getClassInstances( propertyName, type ) );
+        return instances;
+    }
+
     /** 
      * Unless it's been set already, sets the value of the 
      * <tt>apple.laf.useScreenMenuBar</tt> system property to true.
