@@ -429,7 +429,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.ndtools.NDTools"/>
         <attribute name="Class-Path"
-           value="../ndx/ndx.jar ../array/array.jar ../task/task.jar"/>
+           value="../ndx/ndx.jar ../array/array.jar ../task/task.jar ../fits/fits.jar ../hds/hds.jar"/>
       </manifest>
     </jar>
 
