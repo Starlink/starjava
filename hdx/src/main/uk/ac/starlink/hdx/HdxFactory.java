@@ -260,35 +260,40 @@ public class HdxFactory {
      */
     public HdxContainer newHdxContainer(URL url)
             throws HdxException {
-        Document hdxdom = null;
-        // In case url is relative, resolve it
-        url = fullyResolveURI(URLUtils.urlToUri(url), null);
+        try {
+            Document hdxdom = null;
+            // In case url is relative, resolve it
+            url = fullyResolveURI(URLUtils.urlToUri(url), null);
         
-        for (Iterator fi = hdxFactoryList.iterator();
-             hdxdom == null && fi.hasNext();
-             ) {
-            HdxDocumentFactory factory = (HdxDocumentFactory)fi.next();
-            hdxdom = factory.makeHdxDocument(url);
-            if (hdxdom != null && logger.isLoggable(Level.FINE))
-                logger.fine("newHdxDocumentFactory(url=" + url
-                            + "): success from HdxDocumentFactory "
-                            + factory.getClass().getName());
+            for (Iterator fi = hdxFactoryList.iterator();
+                 hdxdom == null && fi.hasNext();
+                 ) {
+                HdxDocumentFactory factory = (HdxDocumentFactory)fi.next();
+                hdxdom = factory.makeHdxDocument(url);
+                if (hdxdom != null && logger.isLoggable(Level.FINE))
+                    logger.fine("newHdxDocumentFactory(url=" + url
+                                + "): success from HdxDocumentFactory "
+                                + factory.getClass().getName());
+            }
+
+            if (hdxdom == null)
+                // we fell out of the end of the loop -- no good handlers
+                return null;
+
+            Element docelem = hdxdom.getDocumentElement();
+            if (logger.isLoggable(Level.FINE))
+                logger.fine("newHdxContainer(" + url + ")  docelem="
+                            + (docelem==null ? "null" : docelem.getTagName()));
+        
+            if (docelem == null)
+                // It's XML Jim, but not as we know it
+                return null;
+
+            return newHdxContainer(docelem, URLUtils.urlToUri(url));
+        } catch (java.net.MalformedURLException e) {
+            throw new HdxException("URL " + url
+                                   + " is malformed");
         }
-
-        if (hdxdom == null)
-            // we fell out of the end of the loop -- no good handlers
-            return null;
-
-        Element docelem = hdxdom.getDocumentElement();
-        if (logger.isLoggable(Level.FINE))
-            logger.fine("newHdxContainer(" + url + ")  docelem="
-                        + (docelem==null ? "null" : docelem.getTagName()));
-        
-        if (docelem == null)
-            // It's XML Jim, but not as we know it
-            return null;
-
-        return newHdxContainer(docelem, URLUtils.urlToUri(url));
     }
 
     /**
