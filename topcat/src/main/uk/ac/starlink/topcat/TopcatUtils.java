@@ -219,7 +219,16 @@ public class TopcatUtils {
         if ( canSog_ == null ) {
             synchronized ( TopcatUtils.class ) {
                 try {
+
+                    /* Check for SOG classes themselves. */
                     Class.forName( "uk.ac.starlink.sog.SOG" );
+
+                    /* Check for JAI.  Use this class because it's lightweight
+                     * and won't cause a whole cascade of other classes
+                     * to be loaded. */
+                    Class.forName( "javax.media.jai.util.CaselessStringKey" );
+
+                    /* If we've got this far, we're OK. */
                     canSog_ = Boolean.TRUE;
                 }
                 catch ( Throwable th ) {
