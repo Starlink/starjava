@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,8 @@ import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.hdx.HdxFactory;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
@@ -269,9 +272,16 @@ public class NdxDataNode extends DefaultDataNode {
                 dv.addKeyedItem( "Title", ndx.getTitle() );
             }
 
-            dv.addPane( "XML representation", new ComponentMaker() {
-                public JComponent getComponent() throws TransformerException {
-                    return new TextViewer( ndx.toXML( url ) );
+            dv.addPane( "HDX representation", new ComponentMaker() {
+                public JComponent getComponent()
+                        throws TransformerException, HdxException {
+                    URI uri = URLUtils.urlToUri( url );
+                    Source src = HdxFactory
+                                .getInstance()
+                                .newHdxContainer( ndx.getHdxFacade() )
+                                .getSource( null );
+                    return new TextViewer( ndx.getHdxFacade()
+                                              .getSource( uri ) );
                 }
             } );
 
