@@ -39,7 +39,8 @@ use strict;
 #  Constants.
 my( $PackageName ) = "uk.ac.starlink.ast";
 my( $ClassName ) = "AstException";
-my( $MethodName ) = "getErrConst";
+my( $s2i_MethodName ) = "getErrConst";
+my( $i2s_MethodName ) = "getErrName";
 my( $ErrHeader ) = "ast.h";
 
 #  Set usage string.
@@ -66,39 +67,7 @@ print <<__EOT__;
 
 __EOT__
 
-if ( $Typeflag eq "-c" ) {
-   my( $phname ) = $PackageName;
-   $phname =~ s/\./_/g;
-   my( $funcname ) = "Java_${phname}_${ClassName}_${MethodName}";
-   print <<__EOT__;
-#include <stdlib.h>
-#include <string.h>
-#include "jni.h"
-#include "$ErrHeader"
-#include "sae_par.h"
-#include "${phname}_${ClassName}.h"
-
-#define TRY_CONST(Xident) \\
-   if ( strcmp( #Xident, ident ) == 0 ) { \\
-      result = (jint) Xident; \\
-      success = 1; \\
-   }
-
-JNIEXPORT jint JNICALL $funcname(
-   JNIEnv *env,          /* Interface pointer */
-   jclass class,         /* The class */
-   jstring jIdent        /* Name identifying the error constant */
-) {
-   jint result = (jint) SAI__OK;
-   int success = 0;
-   const char *ident = (*env)->GetStringUTFChars( env, jIdent, NULL );
-   if ( ident != NULL ) {
-      TRY_CONST(SAI__OK) 
-      else TRY_CONST(SAI__ERROR)
-__EOT__
-
-}
-else {
+if ( $Typeflag eq "-java" ) {
    print <<__EOT__;
 
 package uk.ac.starlink.ast;
@@ -131,22 +100,34 @@ public class $ClassName extends RuntimeException {
     /**
      * Construct an $ClassName with a given status value.
      *
-     * \@param  message  an explanatory message
+     * \@param  msgText  an explanatory message
      * \@param  status   the numerical status value
      */
-    public AstException( String message, int status ) {
-        super( message );
+    public AstException( String msgText, int status ) {
+        super( msgText + " (" + $i2s_MethodName( status ) + ")" );
         this.status = status;
     }
 
     /**
-     * Get the status value corresponding to the exception.  This ought
-     * to correspond to one of this class's static final member fields.
+     * Get the status value corresponding to this exception.  This ought
+     * to correspond to the value of one of this class's static 
+     * final member fields.
      *
      * \@return  the error status value
      */
     public int getStatus() {
         return status;
+    }
+
+    /**
+     * Get the symbolic name corresponding to this exception's status value.
+     * This ought to correspond to the name of one of this class's 
+     * static final memeber fields.
+     *
+     * \@return  the error status name
+     */
+    public String getStatusName() {
+        return $i2s_MethodName( status );
     }
 
     /**
@@ -156,20 +137,29 @@ public class $ClassName extends RuntimeException {
      * \@return error number
      * \@throws IllegalArgumentException  if no error of that name exists
      */
-    private native static int $MethodName( String ident );
+    private native static int $s2i_MethodName( String ident );
+
+    /**
+     * Returns the name of the string that corresponds to a given
+     * integer status code.  For instance getStatusName(0)=="SAI__OK".
+     *
+     * \@param  code
+     * \@return symbolic name for error status <code>code</code>
+     */
+    private native static String $i2s_MethodName( int code );
 
     /**
      * Status constant for no error.  
      * This value should never be used as the status of an AstException.
      */
-    public static final int SAI__OK = ${MethodName}( "SAI__OK" );
+    public static final int SAI__OK = ${s2i_MethodName}( "SAI__OK" );
 
     /**
      * Status constant for unknown error. 
      * This value may be used as the status of an AstException where no
      * value defined in the underlying library is appropriate.
      */
-    public static final int SAI__ERROR = ${MethodName}( "SAI__ERROR" );
+    public static final int SAI__ERROR = ${s2i_MethodName}( "SAI__ERROR" );
 
 __EOT__
 }
@@ -184,29 +174,67 @@ $line =~ /FACILITY *(\S*)/;
 my( $fac ) = $1;
 
 #  Read the lines corresponding to error codes.
+my( @symbols );
 while ( <MESSGEN> ) {
    chomp;
    my( $num, $label, $text ) = split( /,/, $_ );
-   if ( $Typeflag eq "-c" ) {
-      print( "      else TRY_CONST(${fac}__${label})\n" );
-   }
-   else {
-      my( $varname ) = "${fac}__${label}";
+   my( $symbol ) = "${fac}__${label}";
+   push( @symbols, $symbol );
+   if ( $Typeflag eq "-java" ) {
       print( "   /** Status constant for error \"$text\" */\n" );
-      print( "   public static final int $varname;\n" );
+      print( "   public static final int $symbol;\n" );
       print( "   static {\n" );
-      print( "       try { $varname = ${MethodName}( \"$varname\" ); }\n" );
+      print( "       try { $symbol = ${s2i_MethodName}( \"$symbol\" ); }\n" );
       print( "       catch( IllegalArgumentException e ) {\n" );
       print( "           throw new LinkageError(\n" );
-      print( "                \"Unknown AST error constant $varname\" );\n" );
+      print( "                \"Unknown AST error constant $symbol\" );\n" );
       print( "       }\n" );
       print( "   }\n" );
    }
 }
 
-#  Write footers.
-if ( $Typeflag eq "-c" ) {
-   print <<__EOT__;
+#  Write java footers.
+if ( $Typeflag eq "-java" ) {
+   print( "}\n" );
+   exit( 0 );
+}
+
+#  The rest of this script writes the C code.
+my( $phname ) = $PackageName;
+$phname =~ s/\./_/g;
+my( $s2i_funcname ) = "Java_${phname}_${ClassName}_${s2i_MethodName}";
+my( $i2s_funcname ) = "Java_${phname}_${ClassName}_${i2s_MethodName}";
+print <<__EOT__;
+#include <stdlib.h>
+#include <string.h>
+#include "jni.h"
+#include "$ErrHeader"
+#include "sae_par.h"
+#include "${phname}_${ClassName}.h"
+
+#define TRY_CONST(Xident) \\
+   if ( strcmp( #Xident, ident ) == 0 ) { \\
+      result = (jint) Xident; \\
+      success = 1; \\
+   }
+
+JNIEXPORT jint JNICALL $s2i_funcname(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class,         /* The class */
+   jstring jIdent        /* Name identifying the error constant */
+) {
+   jint result = (jint) SAI__OK;
+   int success = 0;
+   const char *ident = (*env)->GetStringUTFChars( env, jIdent, NULL );
+   if ( ident != NULL ) {
+      TRY_CONST(SAI__OK) 
+      else TRY_CONST(SAI__ERROR)
+__EOT__
+my( $symbol );
+foreach $symbol ( @symbols ) {
+   print( "      else TRY_CONST($symbol)\n" );
+}
+print <<__EOT__;
    }
    if ( ! success ) printf( "no such constant %s\\n", ident );
    (*env)->ReleaseStringUTFChars( env, jIdent, ident );
@@ -215,12 +243,31 @@ if ( $Typeflag eq "-c" ) {
    }
    return result;
 }
+#undef TRY_CONST
+
+
+#define TRY_CONST(Xident) \\
+   case Xident: result = #Xident; break;
+
+JNIEXPORT jstring JNICALL $i2s_funcname(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class,         /* The class */
+   jint jCode            /* Status code */
+) {
+   const char *result = NULL;
+
+   switch ( jCode ) {
+      TRY_CONST(SAI__OK)
+      TRY_CONST(SAI__ERROR)
 __EOT__
-
+foreach $symbol ( @symbols ) {
+   print( "      TRY_CONST($symbol)\n" );
 }
-else {
-   print( "}\n" );
+print <<__EOT__
+   }
+   return result ? (*env)->NewStringUTF( env, result ) : NULL;
 }
-
+#undef TRY_CONST
+__EOT__
 
 # $Id$
