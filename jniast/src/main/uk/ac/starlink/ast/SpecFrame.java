@@ -449,13 +449,18 @@ public class SpecFrame extends Frame {
      * This attribute (together with SourceVRF, RefRA and RefDec) defines the 
      * "Source" standard of rest (see attribute StdOfRest). This is a rest frame
      * which is moving towards the position given by RefRA and RefDec at a 
-     * velocity given by SourceVel (in km/s). When setting a value for
-     * SourceVel, the velocity should be supplied in the rest frame
-     * specified by the SourceVRF attribute. Likewise, when getting the
-     * value of SourceVel, it will be returned in the rest frame specified
-     * by the SourceVRF attribute.
+     * apparent radial ("relativistic") velocity given by SourceVel (in km/s). 
+     * When setting a value for SourceVel, the velocity should be supplied in 
+     * the rest frame specified by the SourceVRF attribute. Likewise, when 
+     * getting the value of SourceVel, it will be returned in the rest frame 
+     * specified by the SourceVRF attribute.
      * <p>
      * The default value is zero.
+     * <h4>Notes</h4>
+     * <br> - It is important to set an appropriate value for SourceVRF before
+     * setting a value for SourceVel. If a new value is later set for
+     * SourceVRF, the value stored for SourceVel will simultaneously be 
+     * changed to the new standard of rest.
      * 
      *
      * @return  this object's SourceVel attribute
@@ -470,13 +475,18 @@ public class SpecFrame extends Frame {
      * This attribute (together with SourceVRF, RefRA and RefDec) defines the 
      * "Source" standard of rest (see attribute StdOfRest). This is a rest frame
      * which is moving towards the position given by RefRA and RefDec at a 
-     * velocity given by SourceVel (in km/s). When setting a value for
-     * SourceVel, the velocity should be supplied in the rest frame
-     * specified by the SourceVRF attribute. Likewise, when getting the
-     * value of SourceVel, it will be returned in the rest frame specified
-     * by the SourceVRF attribute.
+     * apparent radial ("relativistic") velocity given by SourceVel (in km/s). 
+     * When setting a value for SourceVel, the velocity should be supplied in 
+     * the rest frame specified by the SourceVRF attribute. Likewise, when 
+     * getting the value of SourceVel, it will be returned in the rest frame 
+     * specified by the SourceVRF attribute.
      * <p>
      * The default value is zero.
+     * <h4>Notes</h4>
+     * <br> - It is important to set an appropriate value for SourceVRF before
+     * setting a value for SourceVel. If a new value is later set for
+     * SourceVRF, the value stored for SourceVel will simultaneously be 
+     * changed to the new standard of rest.
      * 
      *
      * @param  sourceVel   the SourceVel attribute of this object
@@ -498,7 +508,7 @@ public class SpecFrame extends Frame {
      * If the value of SourceVRF is changed, the value stored for SourceVel 
      * will be converted from the old to the new rest frame.
      * <p>
-     * The values which can be supplied are the same as for the StdOfrest 
+     * The values which can be supplied are the same as for the StdOfRest 
      * attribute (except that SourceVRF cannot be set to "Source"). The 
      * default value is "Helio".
      * 
@@ -522,7 +532,7 @@ public class SpecFrame extends Frame {
      * If the value of SourceVRF is changed, the value stored for SourceVel 
      * will be converted from the old to the new rest frame.
      * <p>
-     * The values which can be supplied are the same as for the StdOfrest 
+     * The values which can be supplied are the same as for the StdOfRest 
      * attribute (except that SourceVRF cannot be set to "Source"). The 
      * default value is "Helio".
      * 

@@ -50,9 +50,11 @@ public class DSBSpecFrame extends SpecFrame {
      * This attribute specifies the central position of interest in a dual 
      * sideband spectrum. Its sole use is to determine the local oscillator 
      * frequency (the frequency which marks the boundary between the lower 
-     * and upper sidebands). See the description of the IF (intermediate
-     * frequency) attribute for details of how the local oscillator frequency 
-     * is calculated.
+     * and upper sidebands). See the description of the IF (intermediate 
+     * frequency) attribute for details of how the local oscillator frequency
+     * is calculated. The sideband containing this central position is
+     * referred to as the "observed" sideband, and the other sideband as 
+     * the "image" sideband. 
      * <p>
      * The value is accessed as a position in the spectral system
      * represented by the SpecFrame attributes inherited by this class, but
@@ -69,6 +71,11 @@ public class DSBSpecFrame extends SpecFrame {
      * this time in units of "km/s", before being returned.
      * <p>
      * The default value for this attribute is 30 GHz.
+     * <h4>Note</h4>
+     * <br> - The attributes which define the transformation to or from topocentric 
+     * frequency should be assigned their correct values before accessing
+     * this attribute. These potentially include System, Unit, StdOfRest, 
+     * GeoLon, GeoLat, Epoch, RefRA, RefDec and RestFreq.
      * 
      *
      * @return  this object's DsbCentre attribute
@@ -83,9 +90,11 @@ public class DSBSpecFrame extends SpecFrame {
      * This attribute specifies the central position of interest in a dual 
      * sideband spectrum. Its sole use is to determine the local oscillator 
      * frequency (the frequency which marks the boundary between the lower 
-     * and upper sidebands). See the description of the IF (intermediate
-     * frequency) attribute for details of how the local oscillator frequency 
-     * is calculated.
+     * and upper sidebands). See the description of the IF (intermediate 
+     * frequency) attribute for details of how the local oscillator frequency
+     * is calculated. The sideband containing this central position is
+     * referred to as the "observed" sideband, and the other sideband as 
+     * the "image" sideband. 
      * <p>
      * The value is accessed as a position in the spectral system
      * represented by the SpecFrame attributes inherited by this class, but
@@ -102,6 +111,11 @@ public class DSBSpecFrame extends SpecFrame {
      * this time in units of "km/s", before being returned.
      * <p>
      * The default value for this attribute is 30 GHz.
+     * <h4>Note</h4>
+     * <br> - The attributes which define the transformation to or from topocentric 
+     * frequency should be assigned their correct values before accessing
+     * this attribute. These potentially include System, Unit, StdOfRest, 
+     * GeoLon, GeoLat, Epoch, RefRA, RefDec and RestFreq.
      * 
      *
      * @param  dsbCentre   the DsbCentre attribute of this object
@@ -123,7 +137,9 @@ public class DSBSpecFrame extends SpecFrame {
      * attribute. The value of the IF attribute may be positive or
      * negative: a positive value results in the LO frequency being above
      * the central frequency, whilst a negative IF value results in the LO
-     * frequency being below the central frequency.
+     * frequency being below the central frequency. The sign of the IF
+     * attribute value determines the default value for the SideBand 
+     * attribute.
      * <p>
      * When setting a new value for this attribute, the units in which the
      * frequency value is supplied may be indicated by appending a suitable 
@@ -155,7 +171,9 @@ public class DSBSpecFrame extends SpecFrame {
      * attribute. The value of the IF attribute may be positive or
      * negative: a positive value results in the LO frequency being above
      * the central frequency, whilst a negative IF value results in the LO
-     * frequency being below the central frequency.
+     * frequency being below the central frequency. The sign of the IF
+     * attribute value determines the default value for the SideBand 
+     * attribute.
      * <p>
      * When setting a new value for this attribute, the units in which the
      * frequency value is supplied may be indicated by appending a suitable 
@@ -178,9 +196,16 @@ public class DSBSpecFrame extends SpecFrame {
      * Get 
      * indicates which sideband a dual sideband spectrum represents.  
      * This attribute indicates whether the DSBSpecFrame currently
-     * represents its lower or upper sideband. It may take one of the
-     * values "lower" or "upper" (case insensitive). The default value is
-     * "upper".
+     * represents its lower or upper sideband. When querying the current 
+     * value, the returned string is always one of "usb" (for upper) or 
+     * "lsb" (for lower). When setting a new value, any of the strings "lsb", 
+     * "usb", "observed" or "image" may be supplied (case insensitive). The 
+     * "observed" sideband is which ever sideband (upper or lower) contains 
+     * the central spectral position given by attribute DSBCentre, and the 
+     * "image" sideband is the other sideband. It is the sign of the IF
+     * attribute which determines if the observed sideband is the upper or 
+     * lower sideband. The default value for SideBand is the observed
+     * sideband.
      * 
      *
      * @return  this object's SideBand attribute
@@ -193,9 +218,16 @@ public class DSBSpecFrame extends SpecFrame {
      * Set 
      * indicates which sideband a dual sideband spectrum represents.  
      * This attribute indicates whether the DSBSpecFrame currently
-     * represents its lower or upper sideband. It may take one of the
-     * values "lower" or "upper" (case insensitive). The default value is
-     * "upper".
+     * represents its lower or upper sideband. When querying the current 
+     * value, the returned string is always one of "usb" (for upper) or 
+     * "lsb" (for lower). When setting a new value, any of the strings "lsb", 
+     * "usb", "observed" or "image" may be supplied (case insensitive). The 
+     * "observed" sideband is which ever sideband (upper or lower) contains 
+     * the central spectral position given by attribute DSBCentre, and the 
+     * "image" sideband is the other sideband. It is the sign of the IF
+     * attribute which determines if the observed sideband is the upper or 
+     * lower sideband. The default value for SideBand is the observed
+     * sideband.
      * 
      *
      * @param  sideBand   the SideBand attribute of this object

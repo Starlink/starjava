@@ -1186,7 +1186,9 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis.
+     * string is set explicitly for an axis. However, if the Format string
+     * includes a precision given by ".*" then the Digits attribute is
+     * used to determine the number of decimal placs to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1197,6 +1199,10 @@ public class Frame extends Mapping {
      *    The Digits attribute of a FrameSet (or one of its axes) is
      *    the same as that of its current Frame (as specified by the
      *    Current attribute).
+     * <dt>Plot</dt><dd>
+     *    The default Digits value used by the Plot class when drawing
+     *    annotated axis labels is the smallest value which results in all 
+     *    adjacent labels being distinct.
      * </dl>
      * 
      *
@@ -1219,7 +1225,9 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis.
+     * string is set explicitly for an axis. However, if the Format string
+     * includes a precision given by ".*" then the Digits attribute is
+     * used to determine the number of decimal placs to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1230,6 +1238,10 @@ public class Frame extends Mapping {
      *    The Digits attribute of a FrameSet (or one of its axes) is
      *    the same as that of its current Frame (as specified by the
      *    Current attribute).
+     * <dt>Plot</dt><dd>
+     *    The default Digits value used by the Plot class when drawing
+     *    annotated axis labels is the smallest value which results in all 
+     *    adjacent labels being distinct.
      * </dl>
      * 
      *
@@ -1252,7 +1264,9 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis.
+     * string is set explicitly for an axis. However, if the Format string
+     * includes a precision given by ".*" then the Digits attribute is
+     * used to determine the number of decimal placs to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1263,6 +1277,10 @@ public class Frame extends Mapping {
      *    The Digits attribute of a FrameSet (or one of its axes) is
      *    the same as that of its current Frame (as specified by the
      *    Current attribute).
+     * <dt>Plot</dt><dd>
+     *    The default Digits value used by the Plot class when drawing
+     *    annotated axis labels is the smallest value which results in all 
+     *    adjacent labels being distinct.
      * </dl>
      * 
      *
@@ -1297,7 +1315,9 @@ public class Frame extends Mapping {
      * <p>
      * Note that the Digits value acts only as a means of determining a
      * default Format string. Its effects are over-ridden if a Format
-     * string is set explicitly for an axis.
+     * string is set explicitly for an axis. However, if the Format string
+     * includes a precision given by ".*" then the Digits attribute is
+     * used to determine the number of decimal placs to produce.
      * 
      * <h4>Class Applicability</h4>
      * <dl>
@@ -1308,6 +1328,10 @@ public class Frame extends Mapping {
      *    The Digits attribute of a FrameSet (or one of its axes) is
      *    the same as that of its current Frame (as specified by the
      *    Current attribute).
+     * <dt>Plot</dt><dd>
+     *    The default Digits value used by the Plot class when drawing
+     *    annotated axis labels is the smallest value which results in all 
+     *    adjacent labels being distinct.
      * </dl>
      * 
      *
@@ -1806,8 +1830,10 @@ public class Frame extends Mapping {
      * <br> - ".": Indicates that decimal places are to be given for the
      * final field in the formatted string (whichever field this
      * is). The "." should be followed immediately by an unsigned
-     * integer which gives the number of decimal places required. By
-     * default, no decimal places are given.
+     * integer which gives the number of decimal places required, or by an
+     * asterisk. If an asterisk is supplied, a default number of decimal
+     * places is used which is based on the value of the Digits 
+     * attribute. 
      * <p>
      * All of the above format specifiers are case-insensitive. If
      * several characters make conflicting requests (e.g. if both "i"
@@ -1929,8 +1955,10 @@ public class Frame extends Mapping {
      * <br> - ".": Indicates that decimal places are to be given for the
      * final field in the formatted string (whichever field this
      * is). The "." should be followed immediately by an unsigned
-     * integer which gives the number of decimal places required. By
-     * default, no decimal places are given.
+     * integer which gives the number of decimal places required, or by an
+     * asterisk. If an asterisk is supplied, a default number of decimal
+     * places is used which is based on the value of the Digits 
+     * attribute. 
      * <p>
      * All of the above format specifiers are case-insensitive. If
      * several characters make conflicting requests (e.g. if both "i"

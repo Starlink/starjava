@@ -780,6 +780,12 @@ public class FitsChan extends Channel {
      * This is an extension of FITS-AIPS which includes some of the
      * features of FITS-IRAF and FITS-PC.
      * <p>
+     * <br> - "FITS-CLASS": Encodes coordinate system information in FITS
+     * header cards using the conventions used by the CLASS project.
+     * CLASS is a software package for reducing single-dish radio and
+     * sub-mm spectroscopic data. See 
+     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/class.html.
+     * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
      * the general FITS standard) and which uses FITS keywords that
@@ -799,6 +805,8 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
+     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains an ORIGIN
+     * keyword with the value 'CLASS-Grenoble'.
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
      * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
@@ -1040,6 +1048,12 @@ public class FitsChan extends Channel {
      * This is an extension of FITS-AIPS which includes some of the
      * features of FITS-IRAF and FITS-PC.
      * <p>
+     * <br> - "FITS-CLASS": Encodes coordinate system information in FITS
+     * header cards using the conventions used by the CLASS project.
+     * CLASS is a software package for reducing single-dish radio and
+     * sub-mm spectroscopic data. See 
+     * http://www.iram.fr/IRAMFR/GILDAS/doc/html/class-html/class.html.
+     * <p>
      * <br> - "NATIVE": Encodes AST Objects in FITS header cards using a
      * convention which is private to the AST library (but adheres to
      * the general FITS standard) and which uses FITS keywords that
@@ -1059,6 +1073,8 @@ public class FitsChan extends Channel {
      * <p>
      * <br> - If the FitsChan contains any keywords beginning with the
      * string "BEGAST", then NATIVE encoding is used,
+     * <br> - Otherwise, FITS-CLASS is used if the FitsChan contains an ORIGIN
+     * keyword with the value 'CLASS-Grenoble'.
      * <br> - Otherwise, if the FitsChan contains a CTYPE keyword which
      * represents a spectral axis using the conventions of the AIPS and
      * AIPS++ projects (e.g. "FELO-LSR", etc), then one of FITS-AIPS or 
