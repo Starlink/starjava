@@ -342,7 +342,7 @@ public class LineFitFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Measure Spectral Lines" ) );
+        setTitle( Utilities.getTitle( "Measure spectral lines" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( actionBar, BorderLayout.SOUTH );
         setSize( new Dimension( 500, 800 ) );
