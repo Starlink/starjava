@@ -83,6 +83,14 @@ public class Utilities
     }
 
     /**
+     * The name of this application (lower case for stores etc.).
+     */
+    public static String getApplicationName()
+    {
+        return "frog";
+    }
+
+    /**
      * The name of this program, plus some other description,
      * formatted as suitable for displaying in window titles
      * (i.e. "PROGRAM: <rest of title>").

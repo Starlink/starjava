@@ -9,6 +9,9 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.gui.AstFigureStore;
+import uk.ac.starlink.ast.gui.AstPlotSource;
 import uk.ac.starlink.ast.gui.PlotConfigurator;
 import uk.ac.starlink.ast.gui.GraphicsHintsControls;
 import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
@@ -42,6 +45,8 @@ import uk.ac.starlink.frog.util.FrogDebug;
 import uk.ac.starlink.frog.util.Utilities;
 import uk.ac.starlink.frog.util.JPEGUtility;
 import uk.ac.starlink.frog.fit.LeastSquaresFitSin;
+
+import uk.ac.starlink.diva.*;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
@@ -177,11 +182,29 @@ public class PlotControlFrame extends JInternalFrame
         
         //  Add the Display menu
         setupDisplayMenu();
-       
+
+        //  Set up the Graphics menu.
+        setupGraphicsMenu();
+               
         // Add the Operations menu 
         setupOperationsMenu();
     }
 
+    /**
+     * Configure the Graphics menu.
+     */
+    protected void setupGraphicsMenu()
+    {
+        DrawActions drawActions = plot.getPlot().getDrawActions();
+        AstFigureStore store = 
+            new AstFigureStore( (AstPlotSource) plot.getPlot(),
+                                Utilities.getApplicationName(),
+                                "FigureStore.xml",
+                                "drawnfigures" );
+        drawActions.setFigureStore( store );
+        menuBar.add( new DrawGraphicsMenu( drawActions ) );
+    }
+    
     /**
      *  Configure the File menu.
      */

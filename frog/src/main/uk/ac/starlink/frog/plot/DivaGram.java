@@ -26,6 +26,7 @@ import javax.swing.event.EventListenerList;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
 import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.gui.AstPlotSource;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.gui.ColourStore;
 import uk.ac.starlink.ast.gui.GraphicsEdges;
@@ -38,6 +39,8 @@ import uk.ac.starlink.frog.data.Gram;
 import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.GramFactory;
 import uk.ac.starlink.frog.util.FrogException;
+
+import uk.ac.starlink.diva.*;
 
 /**
  * Plots an atimes gram using a Swing component with Diva graphics
@@ -55,7 +58,8 @@ import uk.ac.starlink.frog.util.FrogException;
  * @version $Id$
  * @see #Diva,#AstUtilities
  */
-public class DivaGram extends JCanvas implements Printable, MouseListener
+public class DivaGram extends JCanvas 
+   implements AstPlotSource, Draw, Printable, MouseListener
 {
     /**
      * X scale factor for displaying data.
@@ -180,6 +184,11 @@ public class DivaGram extends JCanvas implements Printable, MouseListener
     protected DivaPlotGraphicsPane graphicsPane = null;
 
     /**
+     * The instance of DrawActions to be used.
+     */
+    protected DrawActions drawActions = null;
+    
+    /**
      * Whether we should show the vertical hair.
      */
     protected boolean showVHair = false;
@@ -249,7 +258,8 @@ public class DivaGram extends JCanvas implements Printable, MouseListener
 
         //  Add a DivaPlotGraphicsPane to use for displaying
         //  interactive graphics elements.
-        graphicsPane = new DivaPlotGraphicsPane();
+        graphicsPane = new DivaPlotGraphicsPane(
+                            DrawActions.getTypedDecorator());
         setCanvasPane( graphicsPane );
         getCanvasPane().setAntialiasing( false );
 
@@ -1126,11 +1136,19 @@ public class DivaGram extends JCanvas implements Printable, MouseListener
      * @return The graphicsPane value
      * @see DivaPlotGraphicsPane, Diva, AbstractFigure, GraphicsPane
      */
-    public DivaPlotGraphicsPane getGraphicsPane()
+    public DrawGraphicsPane getGraphicsPane()
     {
         return graphicsPane;
     }
-
+  
+    /**
+     * Reference to the thing thats doing the drawing
+     */
+    public Component getComponent()
+    {
+        return this;
+    }
+    
     /**
      * Return reference to the FrameSet used to transform from
      * graphics to world coordinates. This is really a direct
@@ -1212,6 +1230,28 @@ public class DivaGram extends JCanvas implements Printable, MouseListener
         }
     }
 
+    //
+    // DrawActions. Used when creating interactive figures on this.
+    //
+    /**
+     * Return the instance of {@link DrawActions} to use with this DivaPlot.
+     * Note this is setup to not provide save/restore. A user of this class
+     * should add an implementation of {@link FigureStore} to enable this.
+     */
+    public DrawActions getDrawActions()
+    {
+        if ( drawActions == null ) {
+            drawActions = new DrawActions( this, null );
+        }
+        return drawActions;
+    }
+
+    // Implementation of AstPlotSource interface.
+    public Plot getPlot()
+    {
+        return astJ.getPlot();
+    }    
+    
 //
 //  Implement the MouseListener interface. The purpose of this is to
 //  simply make sure that we receive the keyboard focus when anyone

@@ -46,6 +46,7 @@ import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.Gram;
 
 // JavaHelp
+//import uk.ac.starlink.help.HelpFrame;
 import uk.ac.starlink.frog.help.HelpHolder;
 
 /**
