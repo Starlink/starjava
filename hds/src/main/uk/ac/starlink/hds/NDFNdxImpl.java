@@ -19,8 +19,12 @@ import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Channel;
 import uk.ac.starlink.ast.CmpMap;
+import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.LutMap;
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.ShiftMap;
+import uk.ac.starlink.ast.UnitMap;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ndx.NdxImpl;
 import uk.ac.starlink.util.URLUtils;
@@ -118,77 +122,157 @@ class NDFNdxImpl implements NdxImpl {
     }
 
     public boolean hasWCS() {
-        return AstPackage.isAvailable() && wcsArray() != null;
+        return AstPackage.isAvailable() 
+            && ( wcsArray() != null || axisArray() != null );
     }
 
     public Object getWCS() {
+
+        /* Get the number of dimensions. */
+        NDShape shape = image.getShape();
+        int ndim = shape.getNumDims();
+
+        /* Create and configure the three default frames. */
+        Frame gridFrame = new Frame( ndim );
+        Frame pixelFrame = new Frame( ndim );
+        Frame axisFrame = new Frame( ndim );
+        gridFrame.setDomain( "GRID" );
+        pixelFrame.setDomain( "PIXEL" );
+        axisFrame.setDomain( "AXIS" );
+        for ( int i = 0; i < ndim; i++ ) {
+            int ifrm = i + 1;
+            gridFrame.setLabel( ifrm, "GRID" + ifrm );
+            pixelFrame.setLabel( ifrm, "PIXEL" + ifrm );
+            axisFrame.setLabel( ifrm, "AXIS" + ifrm );
+        }
+
+        /* Work out the mapping between GRID and PIXEL frames. */
+        long[] origin = shape.getOrigin();
+        double[] pixShift = new double[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            pixShift[ i ] = origin[ i ] - 1.5;
+        }
+
+        /* Stick these frames together into a basic FrameSet using the
+         * standard mappings. */
+        FrameSet fset = new FrameSet( gridFrame );
+        int jGridFrm = fset.getNframe();  // 1
+        fset.addFrame( 1, new ShiftMap( pixShift ), pixelFrame );
+        int jPixelFrm = fset.getNframe(); // 2
+        fset.addFrame( 1, new UnitMap( ndim ), axisFrame );
+        int jAxisFrm = fset.getNframe(); // 3
+        FrameSet basicFset = (FrameSet) fset.copy();
+
+        /* If there is an AXIS component, use the information in it to 
+         * doctor and remap the AXIS frame. */
         try {
-
-            /* Get an AST Channel from the WCS component. */
-            Channel chan = new ARYReadChannel( wcsArray() );
-
-            /* Read a FrameSet from it. */
-            FrameSet fset = (FrameSet) chan.read();
-
-            /* This will require some doctoring, since its PIXEL and AXIS 
-             * Frames are not trustworthy (the Fortran NDF library would 
-             * ignore these and regenerate them during a call to NDF_GTWCS).
-             * First check that it looks as expected. */
-            if ( fset.getFrame( GRID_FRAME ).getDomain().equals( "GRID" ) &&
-                 fset.getFrame( PIXEL_FRAME ).getDomain().equals( "PIXEL" ) &&
-                 fset.getFrame( AXIS_FRAME ).getDomain().equals( "AXIS" ) ) {
-
-                /* Get and check the shape of the image grid. */
-                NDShape shape = image.getShape();
-                if ( fset.getFrame( 1 ).getNaxes() != shape.getNumDims() ) {
-                    logger.warning( "Wrong shaped WCS object in NDF" );
-                    return null;
-                }
-
-                /* Remap a PIXEL Frame correctly using the GRID Frame
-                 * and the origin offset. */
-                int ndim = shape.getNumDims();
-                double[] ina = new double[ ndim ];
-                double[] inb = new double[ ndim ];
-                double[] outa = new double[ ndim ];
-                double[] outb = new double[ ndim ];
-                long[] origin = shape.getOrigin();
+            HDSObject axes = axisArray();
+            if ( axes != null ) {
+                Mapping amap = null;
                 for ( int i = 0; i < ndim; i++ ) {
-                    ina[ i ] = 0.0;
-                    inb[ i ] = 1.0;
-                    outa[ i ] = ina[ i ] + origin[ i ] - 1.5;
-                    outb[ i ] = inb[ i ] + origin[ i ] - 1.5;
-                }
-                Mapping pmap =
-                    new CmpMap( fset.getMapping( PIXEL_FRAME, GRID_FRAME ),
-                                new WinMap( ndim, ina, inb, outa, outb ), true )
-                   .simplify();
-                fset.remapFrame( PIXEL_FRAME, pmap );
+                    int ifrm = i + 1;
+                    HDSObject axobj = axes.datCell( new long[] { ifrm } );
+ 
+                    /* Use the AXIS component label and units descriptions if
+                     * present. */
+                    if ( axobj.datThere( "UNITS" ) ) {
+                        axisFrame.setUnit( ifrm, axobj.datFind( "UNITS" )
+                                                      .datGet0c() );
+                    }
+                    if ( axobj.datThere( "LABEL" ) ) {
+                        axisFrame.setLabel( ifrm, axobj.datFind( "LABEL" )
+                                                       .datGet0c() );
+                    }
 
-                /* The AXIS Frame will probably either be identical to the 
-                 * PIXEL Frame or wrong, so just delete it.  
-                 * TODO: Should really write code to construct a correct AXIS
-                 * Frame from any existing AXIS component in the NDF. */
-                fset.removeFrame( AXIS_FRAME );
+                    /* Accumulate LutMaps from the AXIS elements one dimension
+                     * at a time into a map which describes the relationship
+                     * between the GRID and AXIS frame. */
+                    ArrayStructure axary = 
+                        new ArrayStructure( axobj.datFind( "DATA_ARRAY" ) );
+                    HDSObject axdat = axary.getData();
+                    double[] lut = axdat.datGetvd();
+                    Mapping map1 = lut.length > 1 
+                                 ? (Mapping) new LutMap( lut, 1.0, 1.0 )
+                                 : (Mapping) new ShiftMap( lut );
+                    amap = i == 0 ? map1
+                                  : (Mapping) new CmpMap( amap, map1, false );
+                }
+
+                /* Now use the map we have constructed to change the 
+                 * relationship between the GRID and AXIS frames. */
+                assert fset.getFrame( 3 ).getDomain().equals( "AXIS" );
+                fset.remapFrame( 3, amap.simplify() );
             }
 
-            /* Unexpected configuration of frameset read from WCS component. */
-            else {
-                logger.warning( "Unexpected Frame configuration in read WCS" );
+            /* Now if there is a WCS component in the NDF, augment our basic
+             * frameset with any additional frames it contains. */
+            HDSObject wcsa = wcsArray();
+            if ( wcsa != null ) {
+
+                /* Get an AST Channel from the WCS component. */
+                Channel chan = new ARYReadChannel( wcsArray() );
+
+                /* Read a FrameSet from it. */
+                FrameSet wcs = (FrameSet) chan.read();
+
+                /* Only proceed if it looks like what we expect and the read
+                 * frameset contains at least one non-default frame. */
+                if ( wcs != null &&
+                     wcs.getFrame( 1 ).getNaxes() == ndim &&
+                     wcs.getFrame( 1 ).getDomain().equals( "GRID" ) &&
+                     wcs.getFrame( 2 ).getDomain().equals( "PIXEL" ) &&
+                     wcs.getFrame( 3 ).getDomain().equals( "AXIS" ) ) {
+                    if ( wcs.getNframe() > 3 ) {
+
+                        /* Record the position of the current frame. */
+                        int jCurrent = wcs.getCurrent();
+
+                        /* Add a copy of the GRID frame, which we will use
+                         * as the link frame when merging. */
+                        Frame gridCopy = (Frame) wcs.getFrame( 1 ).copy();
+                        gridCopy.setDomain( "DUMMY" );
+                        wcs.addFrame( 1, new UnitMap( ndim ), gridCopy );
+                        int jDummy = wcs.getNframe();
+
+                        /* Remove the default frames from the WCS frameset
+                         * we are about to add, since we already have 
+                         * (more reliable) versions of those. */
+                        wcs.removeFrame( 3 );
+                        wcs.removeFrame( 2 );
+                        wcs.removeFrame( 1 );
+
+                        /* Merge the two framesets, joining them using the 
+                         * GRID frame in the one we've constructed and the
+                         * copy of the GRID frame of the one we read. */
+                        fset.addFrame( 1, new UnitMap( ndim ), wcs );
+
+                        /* Discard the grid copy frame, which we no longer
+                         * need. */
+                        assert fset.getFrame( jDummy ).getDomain()
+                                                      .equals( "DUMMY" );
+                        fset.removeFrame( jDummy );
+
+                        /* Restore the current frame index. */
+                        fset.setCurrent( jCurrent );
+                    }
+                }
+                else {
+                    logger.warning( "Ignoring funny-looking WCS component" );
+                }
             }
 
             /* Return the doctored or undoctored FrameSet. */
             return fset;
         }
 
-        /* Treat errors by logging an error and returning null. */
+        /* Treat errors by logging an error and returning the basic frameset. */
         catch ( HDSException e ) {
             logger.warning( "Trouble reading WCS FrameSet from NDF: " + e );
-            return null;
+            return basicFset;
         }
         catch ( IOException e ) {
             logger.warning( "Trouble reading WCS FrameSet from NDF: " + e );
-            return null;
+            return basicFset;
         }
     }
 
@@ -411,6 +495,36 @@ class NDFNdxImpl implements NdxImpl {
                 }
             }
             return null;
+        }
+        catch ( HDSException e ) {
+            throw new RuntimeException( e );
+        }
+    }
+
+    /**
+     * Returns the AXIS structure array representing axis information in 
+     * the NDF.  If none exists, return null.
+     *
+     * @return  HDSObject which is a 1-d array of structures 
+     *          each representing an NDF axis
+     */
+    private HDSObject axisArray() {
+        try {
+            if ( ndf.datThere( "AXIS" ) ) {
+                HDSObject aobj = ndf.datFind( "AXIS" );
+                long[] ashape = aobj.datShape();
+                if ( aobj.datStruc() && ashape.length == 1 ) {
+                    return aobj;
+                }
+                else {
+                    logger.warning( "Ignoring strangely-formed " 
+                                  + "AXIS component" );
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
         }
         catch ( HDSException e ) {
             throw new RuntimeException( e );
