@@ -58,23 +58,23 @@ public class NDArrayDataNode extends DefaultDataNode {
     public JComponent getFullView() {
         if ( fullView == null ) {
             DetailViewer dv = new DetailViewer( this );
-            dv.addKeyedItem( "URL", "" + nda.getURL() );
+            dv.addKeyedItem( "URL", nda.getURL() );
             fullView = dv.getComponent();
             OrderedNDShape oshape = nda.getShape();
             int ndim = oshape.getNumDims();
             dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", "" + ndim );
+            dv.addKeyedItem( "Dimensionality", ndim );
             dv.addKeyedItem( "Origin",
                              NDShape.toString( oshape.getOrigin() ) );
             dv.addKeyedItem( "Dimensions", 
                              NDShape.toString( oshape.getDims() ) );
             dv.addKeyedItem( "Pixel bounds", boundsString( oshape ) );
-            dv.addKeyedItem( "Ordering", oshape.getOrder().toString() );
+            dv.addKeyedItem( "Ordering", oshape.getOrder() );
             dv.addSeparator();
-            dv.addKeyedItem( "Type", nda.getType().toString() );
+            dv.addKeyedItem( "Type", nda.getType() );
             Number bh = nda.getBadHandler().getBadValue();
             if ( bh != null ) {
-                dv.addKeyedItem( "Bad value", bh.toString() );
+                dv.addKeyedItem( "Bad value", bh );
             }
 
             try {
@@ -150,6 +150,11 @@ public class NDArrayDataNode extends DefaultDataNode {
                 else {
                     return new ArrayBrowser( rnda );
                 }
+            }
+        } );
+        dv.addPane( "Array statistics", new ComponentMaker() {
+            public JComponent getComponent() throws IOException {
+                return new StatsViewer( rnda );
             }
         } );
         if ( endim == 1 ) {

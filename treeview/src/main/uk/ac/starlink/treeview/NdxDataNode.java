@@ -40,6 +40,7 @@ public class NdxDataNode extends DefaultDataNode {
 
     private Ndx ndx;
     private String name;
+    private String desc;
     private Icon icon;
     private JComponent fullView;
     private URL url;
@@ -126,6 +127,13 @@ public class NdxDataNode extends DefaultDataNode {
             name = xsrc.getNode().getNodeName();
         }
         setLabel( name );
+    }
+
+    public String getDescription() {
+        if ( desc == null ) {
+            desc = new NDShape( ndx.getImage().getShape() ).toString();
+        }
+        return desc;
     }
 
     public boolean allowsChildren() {
@@ -307,6 +315,12 @@ public class NdxDataNode extends DefaultDataNode {
                 else {
                     return new ArrayBrowser( image );
                 }
+            }
+        } );
+
+        dv.addPane( "Array statistics", new ComponentMaker() {
+            public JComponent getComponent() throws IOException {
+                return new StatsViewer( image );
             }
         } );
 
