@@ -127,16 +127,8 @@ public class TableHDUDataNode extends HDUDataNode
     public void configureDetail( DetailViewer dv ) {
         super.configureDetail( dv );
 
-        /* Make the table. */
+        /* Do table-specific display. */
         try {
-            /* Show the header cards. */
-            dv.addPane( "Header cards", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TextViewer( header.iterator() );
-                }
-            } );
-
-            /* Do table-specific display. */
             StarTableDataNode.addDataViews( dv, getStarTable() );
         }
         catch ( final IOException e ) {
