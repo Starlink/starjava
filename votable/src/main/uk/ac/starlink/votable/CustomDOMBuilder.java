@@ -1,6 +1,5 @@
 package uk.ac.starlink.votable;
 
-import org.apache.crimson.tree.XmlDocumentBuilder;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -26,21 +25,12 @@ import org.w3c.dom.Node;
  * To use this class, install it as the {@link org.xml.sax.ContentHandler}
  * of a SAX parser ({@link org.xml.sax.XMLReader}), do a <tt>parse</tt>,
  * and get the result of the {@link #getDocument} method.
- * <p>
- * The implementation of this class currently makes use of a class 
- * from Apache Crimson which is present in the
- * J2SE1.4, overriding some of the methods in the <tt>ContentHandler</tt>
- * interface.  It may need to be modified if used in a JRE which does
- * not contain the package in question; presumably such changes in the 
- * JRE would still have some class along similar lines which could
- * be co-opted in a similar way.  Failing that, it probably woudln't
- * be all that difficult to write one just using JAXP classes.
- *
+ * 
  * @author   Mark Taylor (Starlink)
  */
 class CustomDOMBuilder implements ContentHandler {
 
-    private NoseyXmlDocumentBuilder builder = new NoseyXmlDocumentBuilder();
+    private SAXDocumentBuilder builder = new CrimsonSAXDocumentBuilder();
     private ContentHandler customHandler = new DefaultContentHandler();
     private Locator locator;
 
@@ -252,18 +242,6 @@ class CustomDOMBuilder implements ContentHandler {
                 throws SAXException {
         }
         public void skippedEntity( String name ) throws SAXException {
-        }
-    }
-
-    /**
-     * Helper class which peeks into protected members of an XmlDocumentBuilder.
-     */
-    private static class NoseyXmlDocumentBuilder extends XmlDocumentBuilder {
-        Node getNewestNode() {
-            return elementStack[ topOfStack ];
-        }
-        Locator getLocator() {
-            return locator;
         }
     }
 
