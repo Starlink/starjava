@@ -120,7 +120,7 @@ public class JDBCHandler {
             throws IOException, SQLException {
 
         /* Reject if it doesn't look like a JDBC URL. */
-        if ( ! spec.startsWith( "jdbc: " ) ) { 
+        if ( ! spec.startsWith( "jdbc:" ) ) { 
             throw new IllegalArgumentException( "Not a JDBC-protocol URL" );
         }
 
