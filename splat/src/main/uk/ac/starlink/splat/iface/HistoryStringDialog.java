@@ -135,9 +135,11 @@ public class HistoryStringDialog
     protected void acceptValue()
     {
         String newValue = (String) comboBox.getEditor().getItem();
-        if ( newValue != null && newValue.equals( value ) ) {
+        if ( newValue != null ) { 
             value = newValue;
-            comboBox.addItem( value );
+            if ( ! newValue.equals( value ) ) {
+                comboBox.addItem( value );
+            }
         }
     }
 
