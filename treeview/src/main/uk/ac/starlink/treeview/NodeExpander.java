@@ -127,7 +127,9 @@ public class NodeExpander {
     private void repaintNode() {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                treeModel.repaintNode( dataNode );
+                if ( treeModel.containsNode( dataNode ) ) {
+                    treeModel.repaintNode( dataNode );
+                }
             }
         } );
     }
