@@ -72,6 +72,11 @@ public class TestCase extends junit.framework.TestCase {
     public void assertArrayEquals( String message, Object expected, 
                                    Object actual ) {
 
+        /* OK if both are null. */
+        if ( expected == null && actual == null ) {
+            return;
+        }
+
         /* Check both objects have the same class. */
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
@@ -273,7 +278,12 @@ public class TestCase extends junit.framework.TestCase {
      */
     public void assertArrayEquals( String message, Object expected, 
                                    Object actual, double delta ) {
-        
+
+        /* OK if both are null. */
+        if ( expected == null && actual == null ) {
+            return;
+        }
+
         /* Check both objects have the same class. */
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
