@@ -571,10 +571,16 @@ public abstract class DataSource {
             name = loc;
         }
 
-        /* If there is a file by this name, return a source based on that. */
-        File file = new File( name );
-        if ( file.exists() ) {
-            return new FileDataSource( file, position );
+        /* If there is a file by this name, and the security manager doesn't
+         * object, return a source based on that. */
+        try {
+            File file = new File( name );
+            if ( file.exists() ) {
+                return new FileDataSource( file, position );
+            }
+        }
+        catch ( SecurityException e ) {
+            // never mind
         }
 
         /* Otherwise, see if we can make sense of it as a URL. */
