@@ -58,26 +58,38 @@ public class LabelledComponentStack extends JPanel {
 
         /* Add the name. */
         Component nameComp = new JLabel( name + ":  " );
-        cons.gridx = 0;
-        cons.anchor = GridBagConstraints.EAST;
-        layer.setConstraints( nameComp, cons );
+        GridBagConstraints cons1 = (GridBagConstraints) cons.clone();
+        cons1.gridx = 0;
+        cons1.anchor = GridBagConstraints.EAST;
+        layer.setConstraints( nameComp, cons1 );
         add( nameComp );
 
         /* Add the padding string, if there is one. */
         Component padComp = null;
         if ( pad != null ) {
+           GridBagConstraints cons2 = (GridBagConstraints) cons.clone();
            padComp = new JLabel( pad + "  " );
            padComp.setFont( inputFont );
-           cons.gridx = 1;
-           cons.anchor = GridBagConstraints.EAST;
-           layer.setConstraints( padComp, cons );
+           cons2.gridx = 1;
+           cons2.anchor = GridBagConstraints.EAST;
+           layer.setConstraints( padComp, cons2 );
            add( padComp );
         }
 
         /* Add the query component. */
-        cons.gridx = 2;
-        cons.anchor = GridBagConstraints.WEST;
-        layer.setConstraints( comp, cons );
+        GridBagConstraints cons3 = (GridBagConstraints) cons.clone();
+        cons3.gridx = 2;
+        cons3.anchor = GridBagConstraints.WEST;
+        cons3.weightx = 1.0;
+
+        /* JTextFields like a horizontal fill so that they can expand to
+         * the size avaiable.  This isn't appropriate (it's ugly) for
+         * most other components. */
+        cons3.fill = ( comp instanceof JTextField ) 
+                   ? GridBagConstraints.HORIZONTAL
+                   : GridBagConstraints.NONE;
+        cons3.gridwidth = GridBagConstraints.REMAINDER;
+        layer.setConstraints( comp, cons3 );
         add( comp );
         
         /* Bump line index. */
