@@ -157,7 +157,7 @@ public class Loader {
      * @return  a file called {@link #PROPERTIES_FILE} in the directory
      *          given by the System property "<tt>user.home</tt>".
      */
-    public static File getPropertiesFile() {
+    public static File getPropertiesFile() throws SecurityException {
         return new File( System.getProperty( "user.home" ),
                          PROPERTIES_FILE );
     }
@@ -180,8 +180,9 @@ public class Loader {
 
         /* Otherwise try to load them. */
         InputStream pstrm = null;
-        File propfile = getPropertiesFile();
+        File propfile = null;
         try {
+            propfile = getPropertiesFile();
             pstrm = new FileInputStream( propfile );
             Properties starProps = new Properties();
             starProps.load( new FileInputStream( propfile ) );
@@ -194,6 +195,9 @@ public class Loader {
         catch ( IOException e ) {
             logger.warning( "Error reading properties from " + propfile 
                           + " " + e );
+        }
+        catch ( SecurityException e ) {
+            logger.warning( "Can't load properties " + e );
         }
         finally {
             if ( pstrm != null ) {
