@@ -19,6 +19,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -925,7 +926,9 @@ public class PlotWindow extends TopcatViewWindow
                 try {
 
                     /* Construct the output stream. */
-                    ostrm = new FileOutputStream( chooser.getSelectedFile() );
+                    File file = chooser.getSelectedFile();
+                    ostrm = new BufferedOutputStream( 
+                                    new FileOutputStream( file ) );
 
                     /* Write output to it. */
                     if ( format_ == GIF ) {
