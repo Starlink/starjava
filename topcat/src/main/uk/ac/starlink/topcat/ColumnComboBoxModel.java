@@ -96,7 +96,14 @@ public class ColumnComboBoxModel extends AbstractListModel
      *         <tt>TableColumn</tt>
      */
     public void setSelectedItem( Object item ) {
-        selected = (TableColumn) item;
+        if ( selected != item ) {
+            selected = (TableColumn) item;
+
+            /* This bit of magic is copied from the J2SE1.4 
+             * DefaultComboBoxModel implementation - seems to be necessary
+             * to send the right events, but not otherwise documented. */
+            fireContentsChanged( this, -1, -1 );
+        }
     }
 
     /**
