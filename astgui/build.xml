@@ -292,10 +292,10 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
+    <!--  JNIAST, don't use a class that loads the shareable library  -->
     <available property="jniast.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.ast.Frame"/>
+               classname="uk.ac.starlink.ast.Grf"/>
 
     <fail message="No JNIAST available" unless="jniast.present"/>
 
