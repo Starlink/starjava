@@ -1,5 +1,6 @@
 package uk.ac.starlink.votable;
 
+import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
@@ -99,6 +100,24 @@ public class VOTableBuilder implements TableBuilder {
         return new VOStarTable( tableSrc );
     }
 
+    /**
+     * Returns <tt>true</tt> for flavors which have MIME types starting
+     * <ul>
+     * <li>text/xml
+     * <li>application/xml
+     * <li>application/x-votable+xml
+     * </ul>
+     */
+    public boolean canImport( DataFlavor flavor ) {
+        String pri = flavor.getPrimaryType();
+        String sub = flavor.getSubType();
+        if ( pri.equals( "text" ) && sub.equals( "xml" ) ||
+             pri.equals( "application" ) && sub.equals( "xml" ) ||
+             pri.equals( "application" ) && sub.equals( "x-votable+xml" ) ) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Performs a (breadth-first) search to locate any descendents of the
