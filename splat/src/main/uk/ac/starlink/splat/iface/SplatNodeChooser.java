@@ -40,7 +40,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.FileDataSource;
 
 /**
@@ -167,8 +167,8 @@ public class SplatNodeChooser
                 specData = makeSpecData( node );
             }
             catch ( Exception e ) {
-                ErrorDialog.showError( e, "No spectrum loaded from: " + node,
-                                       parent );
+                ErrorDialog.showError( parent, "Bad Spectrum", e,
+                                       "No spectrum loaded from: " + node );
                 specData = null;
             }
         }
