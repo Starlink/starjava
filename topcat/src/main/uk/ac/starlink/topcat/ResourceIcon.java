@@ -60,6 +60,7 @@ public class ResourceIcon implements Icon {
 
         /* Generic actions. */
         CLOSE = makeIcon( "multiply4.gif"),
+        EXIT = makeIcon( "exit.gif" ),
         LOAD = makeIcon( "Open24.gif" ),
         SAVE = makeIcon( "Save24.gif" ),
         PRINT = makeIcon( "Print24.gif" ),
