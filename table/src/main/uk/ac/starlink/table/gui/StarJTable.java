@@ -47,6 +47,9 @@ public class StarJTable extends JTable {
      *
      * @param  startable  the <tt>StarTable</tt> to display
      * @param  rowHeader  whether column 0 should contain row indices
+     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
+     *          returns <tt>false</tt>
+     * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public StarJTable( StarTable startable, boolean rowHeader ) {
         this( rowHeader );
@@ -70,6 +73,9 @@ public class StarJTable extends JTable {
      *
      * @param  startable  the <tt>StarTable</tt> to display
      * @param  rowHeader  whether column 0 should contain row indices
+     * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
+     *          returns <tt>false</tt>
+     * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public void setStarTable( StarTable startable, boolean rowHeader ) {
         setModel( new StarTableModel( startable, rowHeader ) );
