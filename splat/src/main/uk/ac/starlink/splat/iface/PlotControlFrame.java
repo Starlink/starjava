@@ -145,6 +145,7 @@ public class PlotControlFrame
     protected JMenu editMenu = new JMenu();
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem dataUnitsMatching = null;
+    protected JCheckBoxMenuItem showVisibleOnly = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
     protected JCheckBoxMenuItem showShortNames = null;
@@ -522,6 +523,16 @@ public class PlotControlFrame
 
         state = prefs.getBoolean( "PlotControlFrame_dataunitsmatch", false );
         dataUnitsMatching.setSelected( state );
+
+        //  Whether to just draw the grid in the visible region. Can be
+        //  expensive so off by default.
+        showVisibleOnly = 
+            new JCheckBoxMenuItem( "Only display grid axes in visible area" );
+        optionsMenu.add( showVisibleOnly );
+        showVisibleOnly.addItemListener( this );
+
+        state = prefs.getBoolean( "PlotControlFrame_showvisibleonly", false );
+        showVisibleOnly.setSelected( state );
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
@@ -1355,6 +1366,14 @@ public class PlotControlFrame
             }
             return;
         }
+        if ( source.equals( showVisibleOnly ) ) {
+            boolean state = showVisibleOnly.isSelected();
+            plot.getPlot().setVisibleOnly( state );
+            prefs.putBoolean( "PlotControlFrame_showvisibleonly", state );
+            plot.updatePlot();
+            return;
+        }
+
         if ( source.equals( errorbarAutoRanging ) ) {
             boolean state = errorbarAutoRanging.isSelected();
             specDataComp.setErrorbarAutoRanging( state );
