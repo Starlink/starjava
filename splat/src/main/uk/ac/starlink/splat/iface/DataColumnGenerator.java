@@ -142,7 +142,7 @@ public class DataColumnGenerator
                 
                 VoigtGenerator generator = new VoigtGenerator( scale, centre,
                                                                gwidth, lwidth);
-                double[] function = generator.evalArray( coord );
+                double[] function = generator.evalYDataArray( coord );
                 double[] result = function;
 
                 //  If needed either add or subtract result from

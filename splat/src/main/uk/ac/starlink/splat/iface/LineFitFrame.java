@@ -949,7 +949,7 @@ public class LineFitFrame
             fitter = new GaussianFitter( fitCoords, fitData, fitWeights, 
                                          peak, centre, width );
         }
-        double[] fitY = fitter.evalArray( genCoords );
+        double[] fitY = fitter.evalYDataArray( genCoords );
 
         //  Add the background to fit.
         if ( genBackground != null ) {
@@ -1010,7 +1010,7 @@ public class LineFitFrame
             fitter = new LorentzFitter( fitCoords, fitData,
                                         fitWeights, peak, centre, width );
         }
-        double[] fitY = fitter.evalArray( genCoords );
+        double[] fitY = fitter.evalYDataArray( genCoords );
 
         //  Add the background to fit.
         if ( genBackground != null ) {
@@ -1071,7 +1071,7 @@ public class LineFitFrame
             fitter = new VoigtFitter( fitCoords, fitData, fitWeights,
                                       peak, centre, width * 0.25, width *.75 );
         }
-        double[] fitY = fitter.evalArray( genCoords );
+        double[] fitY = fitter.evalYDataArray( genCoords );
 
         //  Add the background to fit.
         if ( genBackground != null ) {
