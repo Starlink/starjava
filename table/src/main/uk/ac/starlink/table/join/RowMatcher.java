@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import uk.ac.starlink.table.AbstractStarTable;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 
@@ -80,6 +80,7 @@ public class RowMatcher {
      *         in each element of the result
      * @param  req2  whether an entry from the second table must be present
      *         in each element of the result
+     * @return  list of {@link RowLink}s describing matched groups
      */
     public List findPairMatches( boolean req1, boolean req2 )
             throws IOException, InterruptedException {
@@ -92,8 +93,15 @@ public class RowMatcher {
         }
         startMatch();
 
+        /* Get the possible candidates for inter-table links. */
+        long nr1 = tables[ 0 ].getRowCount();
+        long nr2 = tables[ 1 ].getRowCount();
+        Set possibleLinks = nr1 < nr2 ? getPossibleInterLinks( 0, 1 )
+                                      : getPossibleInterLinks( 1, 0 );
+
         /* Get all the possible inter-table pairs. */
-        Map pairScores = findInterPairs( getBinContents(), 0, 1 );
+        Map pairScores = findInterPairs( possibleLinks, 0, 1 );
+        possibleLinks = null;
 
         /* Make sure that no row is represented more than once
          * (this isn't necessary for the result to make sense, but it's 
@@ -157,7 +165,7 @@ public class RowMatcher {
         startMatch();
 
         /* Get all the possible pairs. */
-        Set pairs = findPairs( getBinContents() );
+        Set pairs = findPairs( getAllPossibleLinks() );
 
         /* Exclude any pairs which represent links between different rows
          * of the same table. */
@@ -224,7 +232,7 @@ public class RowMatcher {
         startMatch();
 
         /* Locate all the pairs. */
-        Collection links = findPairs( getBinContents() );
+        Collection links = findPairs( getAllPossibleLinks() );
 
         /* Join up pairs into larger groupings. */
         links = agglomerateLinks( links );
@@ -380,90 +388,101 @@ public class RowMatcher {
     }
 
     /**
-     * Returns a set of RowLinks representing bin contents populated 
-     * from each row of each table in a given list.
-     * Each RowLink in the returned set represents a group of rows
-     * which might match according to the MatchEngine's criteria.
-     * The complete set gives all the possible groupings of rows 
-     * which might match (including singletons).
-     * <p>
-     * For each row, an entry is made in any of the bins to which it 
-     * might correspond.  One or more entries may be made for each row.
-     * Finally a set is formed with one entry for each of the encountered
-     * bin contents.  Note it is possible (in fact very likely) that
-     * a RowRef will crop up in an entry on its own as well as in entries 
-     * with any others that it may match.  Note also that inclusion
-     * of two RowRefs in the same entry in the result set does not mean
-     * that those rows do match, only that they might do.
-     * <p>
-     * The returned set has values which are {@link RowLink}s
-     * for sets of rows which can be found in the same bin.
+     * Goes through all tables and gets a preliminary set of all
+     * the groups of rows which are possibly linked by a chain of
+     * matches.  This includes all inter- and intra-table matches.
      *
-     * @return  bin-&gt;rowlist map
+     * @return  set of {@link RowLink} objects which constitute possible
+     *          matches
      */
-    private Set getBinContents() throws IOException, InterruptedException {
-
-        /* For each table, identify which bin each row falls into, and
-         * place it in a map keyed by that bin. */
-        Map rowMap = new HashMap();
-        long nBin = 0;
+    private Set getAllPossibleLinks() throws IOException, InterruptedException {
+        BinContents bins = new BinContents( indicator );
         long totalRows = 0;
+        long nBin = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
-            indicator.startStage( "Binning rows for table " + ( itab + 1 ) );
             StarTable table = tables[ itab ];
-            double nrow = (double) table.getRowCount();
-            long lrow = 0;
-            for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-                rseq.next();
-                Object rref = new RowRef( itab, lrow );
+            ProgressRowSequence rseq = 
+                new ProgressRowSequence( tables[ itab ], indicator,
+                                         "Binning rows for table " + 
+                                         (itab + 1 ) );
+            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
+                rseq.nextProgress();
                 Object[] keys = engine.getBins( rseq.getRow() );
                 int nkey = keys.length;
-                for ( int ikey = 0; ikey < nkey; ikey++ ) {
-                    Object key = keys[ ikey ];
-                    if ( ! rowMap.containsKey( key ) ) {
-                        rowMap.put( key, new LinkedList() );
+                if ( nkey > 0 ) {
+                    RowRef rref = new RowRef( itab, lrow );
+                    for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                        bins.putRowInBin( keys[ ikey ], rref );
                     }
-                    ((Collection) rowMap.get( key )).add( rref );
                 }
-                lrow++;
-                indicator.setLevel( lrow / nrow );
                 nBin += nkey;
                 totalRows++;
             }
-            indicator.endStage();
+            rseq.close();
         }
         indicator.logMessage( "Average bin count per row: " +
                               (float) ( nBin / (double) totalRows ) );
+        return bins.getRowLinks();
+    }
 
-        /* Replace the value at each bin with a RowLink, since they count
-         * as equal if they have the same contents, which means they 
-         * are suitable keys for unique inclusion in a set. */
-        double nl = (double) rowMap.size();
-        indicator.startStage( "Consolidating potential match groups" );
-        long il = 0;
-        for ( Iterator it = rowMap.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            entry.setValue( new RowLink( (Collection) entry.getValue() ) );
-            indicator.setLevel( il++ / nl );
+    /**
+     * Gets a list of all the pairs of rows which constitute possible 
+     * links between two tables.  For reasons of efficiency, it's
+     * probably best if <tt>index1</tt> refers to the shorter of the tables.
+     *
+     * @param   index1   index of the first table
+     * @param   index2   index of the second table
+     * @return  set of {@link RowLink} objects which constitute possible
+     *          matches
+     */
+    private Set getPossibleInterLinks( int index1, int index2 )
+            throws IOException, InterruptedException {
+        BinContents bins = new BinContents( indicator );
+
+        /* Bin all the rows in the first (hopefully shorter) table. */
+        ProgressRowSequence rseq1 = 
+            new ProgressRowSequence( tables[ index1 ], indicator,
+                                     "Binning rows for table " + 
+                                     ( index1 + 1 ) );
+        for ( long lrow1 = 0; rseq1.hasNext(); lrow1++ ) {
+            rseq1.nextProgress();
+            Object[] keys = engine.getBins( rseq1.getRow() );
+            int nkey = keys.length;
+            if ( nkey > 0 ) {
+                RowRef rref = new RowRef( index1, lrow1 );
+                for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                    bins.putRowInBin( keys[ ikey ], rref );
+                }
+            }
         }
+        rseq1.close();
 
-        /* Obtain a set containing an entry for each unique contents of a
-         * bin. */
-        Set binContents = new HashSet( rowMap.values() );
-        indicator.endStage();
-
-        /* Report on bin occupancy. */
-        int nref = 0;
-        int nlink = 0;
-        for ( Iterator it = binContents.iterator(); it.hasNext(); ) {
-            nlink++;
-            nref += ((RowLink) it.next()).size();
+        /* Bin any of the rows in the second table which will go in bins
+         * we've already added from the first one.  There's no point in
+         * doing ones which haven't been filled by the first table, 
+         * since they can't result in inter-table matches. */
+        ProgressRowSequence rseq2 =
+            new ProgressRowSequence( tables[ index2 ], indicator,
+                                     "Binning rows for table " + 
+                                     ( index2 + 1 ) );
+        for ( long lrow2 = 0; rseq2.hasNext(); lrow2++ ) {
+            rseq2.nextProgress();
+            Object[] keys = engine.getBins( rseq2.getRow() );
+            int nkey = keys.length;
+            if ( nkey > 0 ) {
+                RowRef rref = new RowRef( index2, lrow2 );
+                for ( int ikey = 0; ikey < nkey; ikey++ ) {
+                    Object key = keys[ ikey ];
+                    if ( bins.containsKey( key ) ) {
+                        bins.putRowInBin( key, rref );
+                    }
+                }
+            }
         }
-        indicator.logMessage( "Average bin occupancy: " + 
-                              (float) ( nref / (double) nlink ) );
+        rseq2.close();
 
         /* Return the result. */
-        return binContents;
+        return bins.getRowLinks();
     }
 
     /**
@@ -853,6 +872,6 @@ public class RowMatcher {
      * exception if it can't be done.
      */
     private int checkedLongToInt( long lval ) {
-        return AbstractStarTable.checkedLongToInt( lval );
+        return Tables.checkedLongToInt( lval );
     }
 }
