@@ -73,7 +73,15 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         checkInvariants();
     }
 
-    public Point dataToGraphics( double dx, double dy ) {
+//  public double[] getDataRange() {
+//      return new double[] { _xMin, _yMin, _xMax, _yMax };
+//  }
+
+    public Point dataToGraphics( double dx, double dy, boolean insideOnly ) {
+        if ( Double.isNaN( dx ) || Double.isInfinite( dx ) ||
+             Double.isNaN( dy ) || Double.isInfinite( dy ) ) {
+            return null;
+        }
         if ( _xlog ) {
             if ( dx > 0.0 ) {
                 dx = Math.log( dx ) * _LOG10SCALE;
@@ -90,8 +98,8 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
                 return null;
             }
         }
-        if ( dx >= _xMin && dx <= _xMax &&
-             dy >= _yMin && dy <= _yMax ) {
+        if ( ! insideOnly || ( dx >= _xMin && dx <= _xMax &&
+                               dy >= _yMin && dy <= _yMax ) ) {
             int px = _ulx + (int) ( ( dx - _xMin ) * _xscale );
             int py = _lry - (int) ( ( dy - _yMin ) * _yscale );
             return new Point( px, py );

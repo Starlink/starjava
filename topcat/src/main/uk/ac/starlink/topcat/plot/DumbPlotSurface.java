@@ -35,9 +35,13 @@ class DumbPlotSurface extends JComponent implements PlotSurface {
         yhi_ = yhi;
     }
 
-    public Point dataToGraphics( double dx, double dy ) {
-        if ( dx >= xlo_ && dx <= xhi_ &&
-             dy >= ylo_ && dy <= yhi_ ) {
+    public Point dataToGraphics( double dx, double dy, boolean insideOnly ) {
+        if ( Double.isNaN( dx ) || Double.isInfinite( dx ) ||
+             Double.isNaN( dy ) || Double.isInfinite( dy ) ) {
+            return null;
+        }
+        if ( ! insideOnly || ( dx >= xlo_ && dx <= xhi_ &&
+                               dy >= ylo_ && dy <= yhi_ ) ) {
             int px = (int) Math.round( getWidth() * 
                                        ( dx - xlo_ ) / ( xhi_ - xlo_ ) );
             int py = (int) Math.round( getHeight() *

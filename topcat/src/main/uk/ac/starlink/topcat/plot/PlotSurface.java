@@ -25,14 +25,17 @@ public interface PlotSurface {
 
     /**
      * Converts a point in data space to graphics space.
-     * If the point does not lie within the currently visible plotting
-     * area, <tt>null</tt> should be returned.
+     * If the <tt>insideOnly</tt> flag is true, then <tt>null</tt>
+     * will be returned in place of any result which would
+     * give a point lying outside the visible plotting area.
      *
      * @param  x  data space X coordinate
      * @param  y  data space Y coordinate
+     * @param  insideOnly  true to restrict non-null results to those
+     *         within the plotting surface
      * @return  point in graphics space corresponding to (x,y), or <tt>null</tt>
      */
-    Point dataToGraphics( double x, double y );
+    Point dataToGraphics( double x, double y, boolean insideOnly );
 
     /**
      * Returns the clip region in which points may be plotted.
@@ -69,6 +72,20 @@ public interface PlotSurface {
      * @param  yhi  (approximate) upper bound of Y coordinate
      */
     void setDataRange( double xlo, double ylo, double xhi, double yhi );
+
+//  /**
+//   * Returns the current range of values which may be displayed on this
+//   * surface.  This is effectively a bounding rectangle - it's not 
+//   * guaranteed that every point in this range can be plotted on
+//   * the surface.
+//   * Note the result is not necessarily the same as specified in the
+//   * last call to {@link #setDataRange}, since it may have been 
+//   * altered by user interaction.
+//   *
+//   * @return  4-element array giving 
+//   *          X lower bound, Y lower bound, X upper bound, Y upper bound
+//   */
+//  double[] getDataRange();
 
     /**
      * Returns the graphical component on which the plotting surface is
