@@ -3124,7 +3124,7 @@ introduced since the last version:
         </p></dd>
 
     <dt>Explode Array Column action</dt>
-    <dd><p>There is now a new button &IMG.EXPLODE; in the 
+    <dd><p>There is now a new button in the 
         <ref id="ColumnInfoWindow">Columns Window</ref> which replaces an
         array-valued column with a scalar column for each of its elements.
         </p></dd>
