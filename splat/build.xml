@@ -93,6 +93,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.4"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -422,7 +423,9 @@ public class Version {
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
-           optimize="${optimize}">
+           optimize="${optimize}"
+           source="${source.version}">
+
 
       <classpath refid="classpath"/>
 
@@ -1140,9 +1143,11 @@ public class Version {
     <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
     <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="-mx512m"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
       <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
       <jvmarg value="-Dsplat.etc=${src.etc}"/>
       <arg value="src/etc/testdata/ramp.txt"/>
@@ -1155,6 +1160,7 @@ public class Version {
 
     <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
+      <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
       <arg value="src/etc/testdata/ramp.txt"/>
