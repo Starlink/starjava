@@ -14,7 +14,7 @@ package uk.ac.starlink.diva.interp;
  * @version $Id$
  */
 public class LinearInterp
-    extends Interpolator
+    extends AbstractInterpolator
 {
     /**
      * Create an instance with no coordinates. A call to 
