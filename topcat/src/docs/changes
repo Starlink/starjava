@@ -53,3 +53,4 @@ V1.3.
  - Improved column width detection in data window.
  - RA/Dec columns once specified are used elsewhere.
  - Simple (non-JAI,SoG) image display for GIF, JPEG, PNG, FITS files.
+ - ASCII input handler no longer works in auto-detect mode.
