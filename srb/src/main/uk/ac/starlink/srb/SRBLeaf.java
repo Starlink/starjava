@@ -31,10 +31,19 @@ class SRBLeaf extends SRBNode implements Leaf {
 
     public OutputStream getOutputStream() throws IOException {
 
+        /* If the file already exists, delete it.  If you don't do that and
+         * the original file was longer than what you're writing, 
+         * the tail end of it stays after the end of what you're writing
+         * this time. */
+        SRBFile file = getFile();
+        if ( file.exists() ) {
+            file.delete();
+        }
+
         /* Wrap the output stream in a buffered one here - the Jargon
          * streams seem to perform quite badly with the default buffer
          * size (a normal BufferedOutputStream has a 2k buffer). */
-        return new BufferedOutputStream( new SRBFileOutputStream( getFile() ),
+        return new BufferedOutputStream( new SRBFileOutputStream( file ),
                                          32 * 1024 );
     }
 
