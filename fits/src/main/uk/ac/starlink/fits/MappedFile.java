@@ -166,8 +166,9 @@ public class MappedFile
     }
     public short readShort() throws EOFException {
         try {
-            return (short) ( ( niobuf.get() << 8 )
-                           | ( niobuf.get() & 0xff ) );
+            return niobuf.getShort();
+        //  return (short) ( ( niobuf.get() << 8 )
+        //                 | ( niobuf.get() & 0xff ) );
         }
         catch ( BufferUnderflowException e ) {
             throw new EOFException();
@@ -175,8 +176,9 @@ public class MappedFile
     }
     public char readChar() throws EOFException {
         try {
-            return (char) ( ( niobuf.get() << 8 )
-                          | ( niobuf.get() & 0xff ) );
+            return niobuf.getChar();
+        //  return (char) ( ( niobuf.get() << 8 )
+        //                | ( niobuf.get() & 0xff ) );
         }
         catch ( BufferUnderflowException e ) {
             throw new EOFException();
@@ -184,10 +186,11 @@ public class MappedFile
     }
     public int readInt() throws EOFException {
         try {
-            return ( niobuf.get() << 24 )
-                 | ( ( niobuf.get() & 0xff ) << 16 )
-                 | ( ( niobuf.get() & 0xff ) << 8 )
-                 | ( niobuf.get() & 0xff );
+            return niobuf.getInt();
+        //  return ( niobuf.get() << 24 )
+        //       | ( ( niobuf.get() & 0xff ) << 16 )
+        //       | ( ( niobuf.get() & 0xff ) << 8 )
+        //       | ( niobuf.get() & 0xff );
         }
         catch ( BufferUnderflowException e ) {
             throw new EOFException();
@@ -195,18 +198,21 @@ public class MappedFile
     }
     public long readLong() throws EOFException {
         try {
-            return ( ((long) readInt()) << 32 )
-                 | ( ((long) readInt()) & 0x00000000ffffffffL );
+            return niobuf.getLong();
+        //  return ( ((long) readInt()) << 32 )
+        //       | ( ((long) readInt()) & 0x00000000ffffffffL );
         }
         catch ( BufferUnderflowException e ) {
             throw new EOFException();
         }
     }
     public float readFloat() throws EOFException {
-        return Float.intBitsToFloat( readInt() );
+        return niobuf.getFloat();
+    //  return Float.intBitsToFloat( readInt() );
     }
     public double readDouble() throws EOFException {
-        return Double.longBitsToDouble( readLong() );
+        return niobuf.getDouble();
+    //  return Double.longBitsToDouble( readLong() );
     }
     public int readUnsignedByte() throws EOFException {
         return readByte() | 0xff;
@@ -441,8 +447,9 @@ public class MappedFile
     }
     public void writeShort( int val ) throws IOException {
         try {
-            niobuf.put( (byte) ( val >>> 8 ) );
-            niobuf.put( (byte) val );
+            niobuf.putShort( (short) val );
+        //  niobuf.put( (byte) ( val >>> 8 ) );
+        //  niobuf.put( (byte) val );
         }
         catch ( BufferOverflowException e ) {
             throw writeOverflowException();
@@ -450,8 +457,9 @@ public class MappedFile
     }
     public void writeChar( int val ) throws IOException {
         try {
-            niobuf.put( (byte) ( val >>> 8 ) );
-            niobuf.put( (byte) val );
+            niobuf.putChar( (char) val );
+        //  niobuf.put( (byte) ( val >>> 8 ) );
+        //  niobuf.put( (byte) val );
         }
         catch ( BufferOverflowException e ) {
             throw writeOverflowException();
@@ -459,10 +467,11 @@ public class MappedFile
     }
     public void writeInt( int val ) throws IOException {
         try {
-            niobuf.put( (byte) ( val >>> 24 ) );
-            niobuf.put( (byte) ( val >>> 16 ) );
-            niobuf.put( (byte) ( val >>> 8 ) );
-            niobuf.put( (byte) val );
+            niobuf.putInt( val );
+        //  niobuf.put( (byte) ( val >>> 24 ) );
+        //  niobuf.put( (byte) ( val >>> 16 ) );
+        //  niobuf.put( (byte) ( val >>> 8 ) );
+        //  niobuf.put( (byte) val );
         }
         catch ( BufferOverflowException e ) {
             throw writeOverflowException();
@@ -470,24 +479,27 @@ public class MappedFile
     }
     public void writeLong( long val ) throws IOException {
         try {
-            niobuf.put( (byte) ( val >>> 56 ) );
-            niobuf.put( (byte) ( val >>> 48 ) );
-            niobuf.put( (byte) ( val >>> 40 ) );
-            niobuf.put( (byte) ( val >>> 32 ) );
-            niobuf.put( (byte) ( val >>> 24 ) );
-            niobuf.put( (byte) ( val >>> 16 ) );
-            niobuf.put( (byte) ( val >>> 8 ) );
-            niobuf.put( (byte) val );
+            niobuf.putLong( val );
+        //  niobuf.put( (byte) ( val >>> 56 ) );
+        //  niobuf.put( (byte) ( val >>> 48 ) );
+        //  niobuf.put( (byte) ( val >>> 40 ) );
+        //  niobuf.put( (byte) ( val >>> 32 ) );
+        //  niobuf.put( (byte) ( val >>> 24 ) );
+        //  niobuf.put( (byte) ( val >>> 16 ) );
+        //  niobuf.put( (byte) ( val >>> 8 ) );
+        //  niobuf.put( (byte) val );
         }
         catch ( BufferOverflowException e ) {
             throw writeOverflowException();
         }
     }
     public void writeFloat( float val ) throws IOException {
-        writeInt( Float.floatToIntBits( val ) );
+        niobuf.putFloat( val );
+        // writeInt( Float.floatToIntBits( val ) );
     }
     public void writeDouble( double val ) throws IOException {
-        writeLong( Double.doubleToLongBits( val ) );
+        niobuf.putDouble( val );
+        // writeLong( Double.doubleToLongBits( val ) );
     }
 
 
