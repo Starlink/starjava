@@ -11,7 +11,8 @@
 <li><a href="#intro">What is Treeview?</a>
 <li><a href="#features">List of Features</a>
 <li><a href="#obtain">How to obtain it</a>
-<li><a href="#versions">Available versions</a>
+<li><a href="#versions">Available versions</a> 
+    <em>(<a href="changes.html#v2.1">Version 2.1</a> released 10 Feb 2003)</em>
 <li><a href="#next">What's next?</a>
 <li><a href="#further">Further information</a>
 </ul>
@@ -22,6 +23,9 @@
 Treeview is a viewer for hierarchical structures, and knows about
 a number of astronomical file formats 
 (including FITS, HDS/NDF, NDX, VOTable) amongst other things.  
+As well as examining files in a directory tree, in most cases it can
+work just as well on compressed files, data from a URL, and data in 
+(optionally compressed) zip or tar archives.
 Operation is very intuitive.
 
 <p>Briefly: a tree structure is shown in one panel of a window,
@@ -166,11 +170,20 @@ can display them hierarchically:
   <li>WCS information can be displayed in various formats (XML, FITS, AST)
   </ul>
 
-<dt><img src="IconFactory.DIRECTORY" alt="Directory">&nbsp;<b>Directories and plain files:</b>
+<dt><img src="IconFactory.DIRECTORY" alt="Directory">&nbsp;<b>Directories</b>
 <dd>
   <ul>
   <li>Hierarchical view of file systems
-  <li>Content of plain text files can be viewed
+  </ul>
+
+<dt><img src="IconFactory.FILE" alt="File">&nbsp;<b>Plain files</b>
+  <ul>
+  <li>Content can be seen as text or a hexadecimal/character dump
+  </ul>
+
+<dt><img src="IconFactory.COMPRESSED" alt="Compressed">&nbsp;<b>Compressed data</b>
+  <ul>
+  <li>Files compressed in gzip or bzip2 format can be viewed.
   </ul>
 
 </dl>
@@ -223,8 +236,7 @@ so there is an interesting range of versions available.
 <li><b>Version 1.1</b> appeared on the Starlink Spring 2002 CD-ROM.
     This is the most recently published Starlink distribution, 
     and so is the version likely to be installed at Starlink sites.
-<li><b>Version 1.4</b> will apppear on the next Starlink CD-ROM,
-    available near the end of 2002 or start of 2003.
+<li><b>Version 1.4</b> apppeared on the Winter 2002 Starlink CD-ROM.
 <li><b>Version 2.0</b> and subsequent versions are available from 
     this web page (see <a href="install.html">installation guide</a>); 
     the idea is that updates can be made frequently 
@@ -244,16 +256,13 @@ major projects.  Items get added about as fast as
 they get taken off, so ones near the bottom of the list may well 
 never reach the top.
 <ul>
+<li>Better feedback/control while nodes are expanding
 <li>Zoom in/out for image display
-<li>More options for 3-d array viewing display
 <li>GSD (Global Section Datafile) file support (pure java or JNI?)
 <li>Splash screen on startup
 <li>Improve the on-line help
 <li>Specify XML elements on command line using XPath expressions
 <li>Histogram view for arrays
-<li>Better support for viewing non-plain-text files within zip-type archives
-<li>Support for naming nodes by URL on the command line
-<li>Support for compressed files
 <li>HTML file support
 <li>Graphics file support (gif jpeg etc)
 <li>WCS 'grid' panel for 1-d arrays

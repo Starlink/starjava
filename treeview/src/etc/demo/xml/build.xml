@@ -17,6 +17,7 @@
       <exclude name="**/.*"/>
       <exclude name="*.jar"/>
       <exclude name="*.zip"/>
+      <exclude name="build.xml"/>
       <manifest>
         <attribute name="Main-Class" value="uk.ac.starlink.hello.HelloWorld"/>
       </manifest>

@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Treeview"/>
   <property name="name" value="treeview"/>
-  <property name="version" value="2.0-5"/>
+  <property name="version" value="2.1-0"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
@@ -120,8 +120,9 @@
   <property name="src.jni.dir" value="${src.dir}/jni"/>
 
   <!-- Directories for JUnit test cases and related files -->
+  <property name="src.etc" value="${src.dir}/etc"/>
   <property name="tests.dir" value="${src.dir}/testcases"/>
-  <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
+  <property name="tests.etc.dir" value="${src.etc}/testcases"/>
 
   <!-- File types that should not be passed through a filterchain when
    !   copying -->
@@ -130,6 +131,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.etc" value="${build.dir}/etc"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
@@ -492,7 +494,7 @@
    !  copied into place here. 
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, build_demo"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -538,6 +540,29 @@
        <fileset dir="${src.jars.dir}"/>
     </copy>
 -->
+
+  </target>
+
+  <!-- 
+   !   ===================
+   !   Construct demo data
+   !   ===================
+   !-->
+  <target name="build_demo">
+    <property name="build.demo" value="${build.etc}/demo"/>
+    <property name="src.demo" value="${src.etc}/demo"/>
+
+    <copy todir="${build.demo}">
+      <fileset dir="${src.demo}" excludes="**/Origins,votable/vizier.xml,zip/hello.jar"/>
+    </copy>
+    <gzip src="${src.demo}/votable/vizier.xml" 
+          zipfile="${build.demo}/votable/vizier.xml.gz"/>
+
+    <mkdir dir="${build.demo}/tar"/>
+    <tar destfile="${build.demo}/tar/demo.tar.gz"
+         compression="gzip"
+         basedir="${src.etc}"
+         includes="demo/fits/tables.fit,demo/votable/cover.xml,demo/zip/hello.jar"/>
 
   </target>
 
@@ -610,7 +635,7 @@
 
     <!-- Copy auxiliary files. -->
     <copy todir="${dist.etc.pkg}">
-      <fileset dir="${src.dir}/etc"/>
+      <fileset dir="${build.etc}"/>
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->
@@ -872,7 +897,7 @@
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
-      <fileset dir="${dist.etc}" excludes="**/Origins"/>
+      <fileset dir="${dist.etc}"/>
     </loggedcopy>
     <echo file="${install.log}" append="true">${star.etc.pkg}
 </echo>

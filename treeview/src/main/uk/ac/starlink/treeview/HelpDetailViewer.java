@@ -83,11 +83,17 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.ARY1, "1-dimensional array" );
             addKnownIcon( IconFactory.ARY2, "2-dimensional array" );
             addKnownIcon( IconFactory.ARY3, "N-dimensional array (N>2)" );
+
+            ta.addSeparator();
             addKnownIcon( IconFactory.TABLE, "Table structure" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.DIRECTORY, "Directory" );
             addKnownIcon( IconFactory.FILE, "Plain file" );
+
+            ta.addSeparator();
+            addKnownIcon( IconFactory.DATA, "Unknown data source" );
+            addKnownIcon( IconFactory.COMPRESSED, "Compressed data source" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.FITS, "FITS file" );
@@ -122,12 +128,12 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.VOCOMPONENT, "Component within VOTable" );
 
             ta.addSeparator();
-            addKnownIcon( IconFactory.ZIPFILE, "ZIP archive" );
-            addKnownIcon( IconFactory.ZIPBRANCH, "ZIP archive entry" );
+            addKnownIcon( IconFactory.ZIPFILE, "Zip/Jar archive" );
+            addKnownIcon( IconFactory.ZIPBRANCH, "Zip/Jar archive entry" );
 
             ta.addSeparator();
-            addKnownIcon( IconFactory.TARFILE, "TAR archive" );
-            addKnownIcon( IconFactory.TARBRANCH, "TAR archive entry" );
+            addKnownIcon( IconFactory.TARFILE, "Tar archive" );
+            addKnownIcon( IconFactory.TARBRANCH, "Tar archive entry" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ERROR, "An error which has occurred" );

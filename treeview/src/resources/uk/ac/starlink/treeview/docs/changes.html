@@ -24,7 +24,7 @@ Released on the Starlink Spring 2002 CD-rom.
   </ul>
 
 <h4><img src="IconFactory.TREE">&nbsp;Version 1.4</h4>
-Will be released on the Starlink Winter 2002/2003 CD-rom.
+Was released on the Starlink Winter 2002 CD-rom.
   <ul>
   <li>Full content of XML nodes
   <li>Help viewer is slightly broken
@@ -105,13 +105,26 @@ Will be released on the Starlink Winter 2002/2003 CD-rom.
   <li>New toolbar button to get parent of top-level nodes
   </ul>
 
-<h5>Next version</h5>
+<h4><a name="v2.1">Version 2.1-0</a> (10 February 2003)</h4>
+
+Many of the known data nodes were implemented to be able to be used from
+a stream of data rather than a file on disk.  This means that 
+most node types can be viewed directly by naming them with a URL,
+or from compressed files on disk, or within a zip/jar or tar archive.
+Combinations are quite possible, so for instance you could view the
+data in a  compressed FITS file within a zip file within
+a compressed tar file obtained using HTTP without having to do any
+explicit retrieval/unpacking.
+The main exception to this functionality is HDS/NDF files, which 
+need to be on a physical disk to be accessed.
+
+<p>A list of the new features is as follows:
   <ul>
-  <li>Now views tar files
-  <li>Compressed formats supported for many node types 
-      (bzip2 &amp; gzip, but gzip seems buggy)
-  <li>Many node types visible within zip/tar archives (including nested zip/tar)
-  <li>Many node types can be named using URLs
+  <li>Nodes except HDS/NDF can be viewed from streams 
+      (compressed/in zip or tar archive/over the wire).
+  <li>Tar archives now supported.
+  <li>Gzip and bzip2 compression supported.
+  <li>Nodes report their complete paths.
   </ul>
 
 </body>
