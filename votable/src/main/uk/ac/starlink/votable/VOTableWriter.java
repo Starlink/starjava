@@ -165,6 +165,7 @@ public class VOTableWriter implements StarTableWriter {
                  doctypeDeclaration.length() == 0 ) {
                 String votableNamespace = "http://www.ivoa.net/xml/VOTable/v"
                                         + votableVersion;
+                String votableSchemaLocation = votableNamespace;
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
                                   "xmlns:xsi",
@@ -172,8 +173,9 @@ public class VOTableWriter implements StarTableWriter {
                                   + "XMLSchema-instance" ) );
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
-                                  "xsi:noNamespaceSchemaLocation",
-                                  votableNamespace ) );
+                                  "xsi:schemaLocation",
+                                  votableNamespace + " " + 
+                                  votableSchemaLocation ) );
                 writer.newLine();
                 writer.write( serializer.formatAttribute(
                                   "xmlns",
