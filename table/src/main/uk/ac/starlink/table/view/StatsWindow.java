@@ -38,7 +38,7 @@ public class StatsWindow extends AuxWindow {
     private PlasticStarTable dataModel;
     private OptionsListModel subsets;
     private RowSubset rset = null;
-    private StatsCalculator calculator;
+    private StatsCalculator activeCalculator;
     private Map calcMap;
     private JTable jtab;
     private JProgressBar progBar;
@@ -136,8 +136,8 @@ public class StatsWindow extends AuxWindow {
 
         /* Stop any calculations that are in train, since we will not now
          * need their results. */
-        if ( calculator != null ) {
-            calculator.interrupt();
+        if ( activeCalculator != null ) {
+            activeCalculator.interrupt();
         }
 
         /* Ensure consistency with the subset selector. */
@@ -155,8 +155,8 @@ public class StatsWindow extends AuxWindow {
         /* Otherwise, kick off a new thread which will perform the 
          * calculations and display the results in due course. */
         else {
-            calculator = new StatsCalculator( rset );
-            calculator.start();
+            activeCalculator = new StatsCalculator( rset );
+            activeCalculator.start();
         }
     }
 
@@ -184,9 +184,9 @@ public class StatsWindow extends AuxWindow {
      */
     public void dispose() {
         super.dispose();
-        if ( calculator != null ) {
-            calculator.interrupt();
-            calculator = null;
+        if ( activeCalculator != null ) {
+            activeCalculator.interrupt();
+            activeCalculator = null;
         }
     }
 
@@ -224,12 +224,14 @@ public class StatsWindow extends AuxWindow {
          * Initiates calculations of the requested statistics, and 
          * if they complete without interruption arranges for the 
          * results to be displayed in the StatsWindow.
+         * The cursor is also switched between busy and non-busy at the
+         * start and end of calculcations as long as this calculator 
+         * has not been superceded by another in the mean time.
          */
         public void run() {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    if ( StatsWindow.this.calculator == 
-                         StatsCalculator.this ) {
+                    if ( StatsCalculator.this == activeCalculator ) {
                         StatsWindow.this.setBusy( true );
                     }
                 }
@@ -249,9 +251,8 @@ public class StatsWindow extends AuxWindow {
             finally {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        if ( StatsWindow.this.calculator == 
-                             StatsCalculator.this ) {
-                            StatsWindow.this.calculator = null;
+                        if ( StatsCalculator.this == activeCalculator ) {
+                            activeCalculator = null;
                             StatsWindow.this.setBusy( false );
                         }
                     }
