@@ -9,26 +9,138 @@ import uk.ac.starlink.topcat.RowSubset;
  */
 public class PlotState {
 
-    /** Column for X coordinate. */
-    public StarTableColumn xCol_;
+    private StarTableColumn xCol_;
+    private StarTableColumn yCol_;
+    private boolean xLog_;
+    private boolean yLog_;
+    private boolean grid_;
+    private RowSubset[] usedSubsets_;
+    private MarkStyle[] styles_;
 
-    /** Column for Y coordinate. */
-    public StarTableColumn yCol_;
+    /**
+     * Constructs a PlotState giving the columns which it will plot.
+     *
+     * @param  xcol  X coordinate column
+     * @param  ycol  Y coordinate column
+     */
+    public PlotState( StarTableColumn xcol, StarTableColumn ycol ) {
+        xCol_ = xcol;
+        yCol_ = ycol;
+    }
 
-    /** Whether X axis is a log axis. */
-    public boolean xLog_;
+    /**
+     * Returns the table column plotted on the X axis.
+     *
+     * @return   X coordinate column
+     */
+    public StarTableColumn getXColumn() {
+        return xCol_;
+    }
 
-    /** Whether Y axis is a log axis. */
-    public boolean yLog_;
+    /**
+     * Returns the table column plotted on the Y axis.
+     *
+     * @param  Y coordinate column
+     */
+    public StarTableColumn getYColumn() {
+        return yCol_;
+    }
 
-    /** Whether a grid should be plotted over the plotting surface. */
-    public boolean grid_;
+    /**
+     * Sets whether the X axis should be plotted logarithmically.
+     *
+     * @param  xlog  true iff X axis should have a logarithmic scale
+     */
+    public void setXLog( boolean xlog ) {
+        xLog_ = xlog;
+    }
 
-    /** List of RowSubsets for which point sets should be plotted. */
-    public RowSubset[] usedSubsets_;
+    /**
+     * Determines whether the X axis is plotted logarithmically.
+     *
+     * @return  true iff X axis has a logarithmic scale
+     */
+    public boolean isXLog() {
+        return xLog_;
+    }
 
-    /** List of marker styles, corresponding to <tt>usedSubsets_</tt>. */
-    public MarkStyle[] styles_;
+    /**
+     * Sets whether the Y axis should be plotted logarithmically. 
+     *
+     * @param  ylog  true iff Y axis should have a logarithmic scale
+     */
+    public void setYLog( boolean ylog ) {
+        yLog_ = ylog;
+    }
+
+    /**
+     * Determines whether the Y axis is plotted logarithmically.
+     *
+     * @return  true iff the Y axis has a logarithmic scale
+     */
+    public boolean isYLog() {
+        return yLog_;
+    }
+
+    /**
+     * Sets whether an axis grid should be plotted.
+     *
+     * @param  grid  true iff a grid should be plotted
+     */
+    public void setGrid( boolean grid ) {
+        grid_ = grid;
+    }
+
+    /**
+     * Determines whether an axis grid will be plotted.
+     *
+     * @return  true iff an axis grid is required
+     */
+    public boolean hasGrid() {
+        return grid_;
+    }
+
+    /**
+     * Sets the list of row subsets which should be represented in the plot,
+     * along with the marker style for each one.
+     *
+     * @param  subsets  array of row subsets to be plotted
+     * @param  styles   array of marker styles, one for each element of
+     *                  <tt>subsets</tt>
+     * @throws IllegalArgumentException if <tt>subsets</tt> and <tt>styles</tt>
+     *         do not have the same number of elements
+     */
+    public void setSubsets( RowSubset[] subsets, MarkStyle[] styles ) {
+        if ( subsets.length != styles.length ) {
+            throw new IllegalArgumentException( "Subsets and styles arrays " +
+                                                "have different lengths" );
+        }
+        usedSubsets_ = subsets;
+        styles_ = styles;
+    }
+
+    /**
+     * Returns the list of row subsets which should be represented in the plot.
+     * The array itself is returned, not a clone.
+     *
+     * @return  array of row subsets to be plotted 
+     *          (same length as {@link #getStyles})
+     */
+    public RowSubset[] getSubsets() {
+        return usedSubsets_;
+    }
+
+    /**
+     * Returns the list of marker styles corresponding to the subsets to 
+     * be plotted.
+     * The array itself is returned, not a clone.
+     *
+     * @return  array of marker styles
+     *          (same length as {@link #getSubsets}
+     */
+    public MarkStyle[] getStyles() {
+        return styles_;
+    }
 
     public boolean equals( Object otherObject ) {
         if ( otherObject instanceof PlotState ) {

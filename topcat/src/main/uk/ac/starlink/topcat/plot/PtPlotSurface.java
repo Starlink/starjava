@@ -136,7 +136,7 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
     protected void _drawPoint( Graphics g, int dataset,
                                long xpos, long ypos, boolean clip ) {
-        state_.styles_[ dataset ].drawMarker( g, (int) xpos, (int) ypos );
+        state_.getStyles()[ dataset ].drawMarker( g, (int) xpos, (int) ypos );
     }
 
     /**
@@ -148,16 +148,16 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
 
         /* Legend. */
         clearLegends();
-        RowSubset[] rsets = state.usedSubsets_;
-        MarkStyle[] styles = state.styles_;
+        RowSubset[] rsets = state.getSubsets();
+        MarkStyle[] styles = state.getStyles();
         int nrset = rsets.length;
         for ( int iset = 0; iset < nrset; iset++ ) {
             addLegend( iset, rsets[ iset ].getName() );
         }
 
         /* Axes. */
-        ColumnInfo xCol = state.xCol_.getColumnInfo();
-        ColumnInfo yCol = state.yCol_.getColumnInfo();
+        ColumnInfo xCol = state.getXColumn().getColumnInfo();
+        ColumnInfo yCol = state.getYColumn().getColumnInfo();
         String xName = xCol.getName();
         String yName = yCol.getName();
         String xUnit = xCol.getUnitString();
@@ -174,10 +174,10 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
         setYLabel( yLabel );
 
         /* Logarithmic plot flags. */
-        setXLog( state.xLog_ );
-        setYLog( state.yLog_ );
+        setXLog( state.isXLog() );
+        setYLog( state.isYLog() );
 
         /* Grid flag. */
-        setGrid( state.grid_ );
+        setGrid( state.hasGrid() );
     }
 }

@@ -367,7 +367,7 @@ public class PlotWindow extends TopcatViewWindow
         double[] xv = points.getXVector();
         double[] yv = points.getYVector();
         int np = points.getCount();
-        RowSubset[] sets = state.usedSubsets_;
+        RowSubset[] sets = state.getSubsets();
         int nset = sets.length;
         BitSet visible = new BitSet();
         int nVisible = 0;
@@ -488,12 +488,14 @@ public class PlotWindow extends TopcatViewWindow
      * @return  snapshot of the currently-selected plot request
      */
     public PlotState getPlotState() {
-        PlotState state = new PlotState();
-        state.xCol_ = (StarTableColumn) xColBox_.getSelectedItem();
-        state.yCol_ = (StarTableColumn) yColBox_.getSelectedItem();
-        state.xLog_ = xLogBox_.isSelected();
-        state.yLog_ = yLogBox_.isSelected();
-        state.grid_ = gridModel_.isSelected();
+
+        /* Initialise a new PlotState object from gui components. */
+        PlotState state =
+            new PlotState( (StarTableColumn) xColBox_.getSelectedItem(),
+                           (StarTableColumn) yColBox_.getSelectedItem() );
+        state.setXLog( xLogBox_.isSelected() );
+        state.setYLog( yLogBox_.isSelected() );
+        state.setGrid( gridModel_.isSelected() );
 
         /* Construct an array of the subsets that are used. */
         int[] selection = subSelRecorder_.getOrderedSelection();
@@ -505,14 +507,19 @@ public class PlotWindow extends TopcatViewWindow
             usedSubsets[ isel ] = (RowSubset) subsets_.get( isub );
             styles[ isel ] = MarkStyle.defaultStyle( isub );
         }
-        state.usedSubsets_ = usedSubsets;
-        state.styles_ = styles;
+        state.setSubsets( usedSubsets, styles );
         return state;
     }
 
+    /**
+     * Acquires the numeric data required for a given plot state.
+     *
+     * @param  state  plot state
+     * @return points  object containing data values for <tt>state</tt>
+     */
     public Points readPoints( PlotState state ) throws IOException {
-        int xcol = getColumnIndex( state.xCol_ );
-        int ycol = getColumnIndex( state.yCol_ );
+        int xcol = getColumnIndex( state.getXColumn() );
+        int ycol = getColumnIndex( state.getYColumn() );
         StarTable dataModel = tcModel_.getDataModel();
         int nrow = AbstractStarTable
                   .checkedLongToInt( dataModel.getRowCount() );

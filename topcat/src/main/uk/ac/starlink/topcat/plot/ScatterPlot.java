@@ -116,8 +116,8 @@ public class ScatterPlot extends JComponent implements Printable {
      * nicely.
      */
     public void rescale() {
-        boolean xlog = state_.xLog_;
-        boolean ylog = state_.yLog_;
+        boolean xlog = state_.isXLog();
+        boolean ylog = state_.isYLog();
         double xlo = Double.POSITIVE_INFINITY;
         double xhi = xlog ? Double.MIN_VALUE : Double.NEGATIVE_INFINITY;
         double ylo = Double.POSITIVE_INFINITY;
@@ -127,7 +127,7 @@ public class ScatterPlot extends JComponent implements Printable {
         int nok = 0;
         Points points = points_;
         if ( points != null ) {
-            RowSubset[] rsets = getState().usedSubsets_;
+            RowSubset[] rsets = getState().getSubsets();
             int nrset = rsets.length;
             int np = points.getCount();
             double[] xv = points.getXVector();
@@ -195,8 +195,8 @@ public class ScatterPlot extends JComponent implements Printable {
         double[] xv = points.getXVector();
         double[] yv = points.getYVector();
         int np = points.getCount();
-        RowSubset[] sets = state.usedSubsets_;
-        MarkStyle[] styles = state.styles_;
+        RowSubset[] sets = state.getSubsets();
+        MarkStyle[] styles = state.getStyles();
         int nset = sets.length;
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = styles[ is ];
