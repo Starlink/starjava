@@ -20,16 +20,29 @@ public class CheckBoxMenu extends JMenu implements ListSelectionListener {
 
     private ListSelectionModel selModel;
 
+    /**
+     * Constructs a new CheckBoxMenu.
+     */
     public CheckBoxMenu() {
         super();
         setSelectionModel( new DefaultListSelectionModel() );
     }
 
+    /**
+     * Constructs a new CheckBoxMenu with a given name.
+     *
+     * @param  name  the menu name
+     */
     public CheckBoxMenu( String name ) {
         this(); 
         setText( name );
     }
 
+    /**
+     * Returns the number of tickable entries in the menu.
+     *
+     * @return  number of entries
+     */
     public int getEntryCount() {
         return getItemCount();
     }
@@ -42,6 +55,13 @@ public class CheckBoxMenu extends JMenu implements ListSelectionListener {
         selModel.removeListSelectionListener( listener );
     }
 
+    /**
+     * Adds an item to the menu.  The item will be represented as a 
+     * checkbox menu item; ticking/unticking it will cause this object's
+     * selection model to be updated (and vice versa).
+     *
+     * @param  text  the label for the next item on the menu
+     */
     public void addMenuItem( String text ) {
         final int pos = getEntryCount();
         final JCheckBoxMenuItem item = 
@@ -59,15 +79,32 @@ public class CheckBoxMenu extends JMenu implements ListSelectionListener {
         add( item );
     }
 
+    /**
+     * Returns the selection model used to keep track of the ticked/unticked
+     * status of the checkboxes in this menu.
+     *
+     * @return   the selection model
+     */
     public ListSelectionModel getSelectionModel() {
         return selModel;
     }
 
+    /**
+     * Sets the selection model used to keep track of the ticked/unticked
+     * status of the checkboxes in this menu.  You can slot your own
+     * model in here, any previous one is discarded by this object.
+     * 
+     * @param   selModel the new selection model
+     */
     public void setSelectionModel( ListSelectionModel selModel ) {
         if ( this.selModel != null ) {
             this.selModel.removeListSelectionListener( this );
         }
         this.selModel = selModel;
+        for ( int i = 0; i < getItemCount(); i++ ) {
+            ((JCheckBoxMenuItem) getItem( i ))
+           .setState( selModel.isSelectedIndex( i ) );
+        }
         selModel.addListSelectionListener( this );
     }
 
