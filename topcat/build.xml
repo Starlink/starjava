@@ -1049,7 +1049,7 @@
   <target name="docs_check" unless="docs.notrequired">
     <uptodate property="docs.notrequired"
               srcfile="${src.docs}/${user.doc}.xml" 
-              targetfile="${build.docs}/${user.doc}.html"/>
+              targetfile="${build.docs}/${user.doc}/${user.doc}.html"/>
   </target>
 
   <!--
