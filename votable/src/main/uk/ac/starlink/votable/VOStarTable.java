@@ -11,6 +11,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ReaderRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.util.DOMUtils;
 
 /**
  * A {@link uk.ac.starlink.table.StarTable} implementation based on a VOTable.
@@ -136,8 +137,22 @@ public class VOStarTable extends AbstractStarTable {
                     DescribedValue dval = 
                         new DescribedValue( getValueInfo( pel ),
                                             pel.getObject() );
-                    params.add( new DescribedValue( getValueInfo( pel ),
-                                                    pel.getObject() ) );
+                    params.add( dval );
+                }
+                VOElement[] infoels = parent.getChildrenByName( "INFO" );
+                for ( int i = 0; i < infoels.length; i++ ) {
+                    VOElement iel = infoels[ i ];
+                    String content = 
+                        DOMUtils.getTextContent( iel.getElement() );
+                    String descrip =
+                         content != null && content.trim().length() > 0
+                               ? content : null;
+                    ValueInfo info = new DefaultValueInfo( iel.getHandle(), 
+                                                           String.class,
+                                                           description );
+                    DescribedValue dval =
+                        new DescribedValue( info, iel.getAttribute( "value" ) );
+                    params.add( dval );
                 }
             }
         }
