@@ -11,25 +11,25 @@ import uk.ac.starlink.diva.interp.Interpolator;
 import uk.ac.starlink.diva.interp.LinearInterp;
 
 /**
- * Creates {@link Interpolator}s for drawing interactive Lorentzian profiles.
+ * Creates {@link Interpolator}s for drawing interactive Gaussian profiles.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-public class LorentzInterp
+public class GaussianInterp
     extends LinearInterp
 {
     /**
-     * The LorentzGenerator. Does the real work.
+     * The GaussianGenerator. Does the real work.
      */
-    protected LorentzGenerator generator = null;
+    protected GaussianGenerator generator = null;
     protected double base = 0.0;
 
     /**
      * Create an instance with no coordinates. A call to
      * {@link #setValues} must be made before any other methods.
      */
-    public LorentzInterp()
+    public GaussianInterp()
     {
         //  Do nothing.
     }
@@ -48,7 +48,7 @@ public class LorentzInterp
      * @param x the X coordinates.
      * @param y the Y coordinates.
      */
-    public LorentzInterp( double[] x, double[] y )
+    public GaussianInterp( double[] x, double[] y )
     {
         setValues( x, y );
     }
@@ -70,7 +70,7 @@ public class LorentzInterp
     }
 
     /**
-     * Set the coordinates that define the Lorentzian
+     * Set the coordinates that define the Gaussian
      *
      * @param x the X coordinates.
      * @param y the Y coordinates.
@@ -109,17 +109,17 @@ public class LorentzInterp
         this.y = y;
         decr = false;
 
-        //  Complete set of positions, derive the Lorentzian
+        //  Complete set of positions, derive the Gaussian.
         if ( x.length > 3 ) {
 
             //  Width is FWHM. Scale goes +/- according to absorption/emission.
             double scale = 2.0 * ( y[2] - y[1] );
             double width = Math.abs( 2.0 * ( x[1] - x[2] ) /
-                                     LorentzGenerator.FWHMFAC );
+                                     GaussianGenerator.FWHMFAC );
             double centre = x[2];
 
             base = y[2] - scale;
-            generator = new LorentzGenerator( scale, centre, width );
+            generator = new GaussianGenerator( scale, centre, width );
         }
     }
 

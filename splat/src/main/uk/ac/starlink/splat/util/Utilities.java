@@ -20,6 +20,7 @@ import java.util.prefs.Preferences;
  *
  * @author Peter W. Draper
  * @version $Id$
+ * @see Sort
  */
 public class Utilities
 {
@@ -341,4 +342,25 @@ public class Utilities
         prefs.putInt( name + "_width", width );
         prefs.putInt( name + "_height", height );
     }
+
+//
+// General utilities
+//
+    /**
+     * Join two String arrays.
+     */
+    public static String[] joinStringArrays( String[] one, String[] two )
+    {
+        String[] onetwo = new String[one.length + two.length];
+        int j = 0;
+        for ( int i = 0; i < one.length; i++ ) {
+            onetwo[j++] = one[i];
+        }
+        for ( int i = 0; i < two.length; i++ ) {
+            onetwo[j++] = two[i];
+        }
+        return onetwo;
+    }
+
+
 }

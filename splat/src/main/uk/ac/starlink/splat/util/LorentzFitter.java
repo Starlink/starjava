@@ -44,6 +44,9 @@ public class LorentzFitter
     public static final int CENTRE = 1;
     public static final int WIDTH = 2;
 
+    // Useful conversion factor, width to FWHM.
+    public static final double FWHMFAC = 2.0 * Math.sqrt( 2.0 );
+
     /**
      * The chi square of the fit.
      */
@@ -219,8 +222,7 @@ public class LorentzFitter
      */
     public double getFlux()
     {
-        return Math.PI * 0.5 * params[SCALE] * params[WIDTH] *
-               2.0 * Math.sqrt( 2.0 );
+        return Math.PI * 0.5 * params[SCALE] * params[WIDTH] * FWHMFAC;
     }
 
     /**
@@ -280,7 +282,13 @@ public class LorentzFitter
             "]";
     }
 
-
+    /**
+     * Get the width as a FWHM.
+     */
+    public double getFWHM()
+    {
+        return getWidth() * FWHMFAC;
+    }
 
 //
 // Implementation of the LevMarqFunc interface.

@@ -146,6 +146,31 @@ public final class Sort
     }
 
     /**
+     * Return the index of the value that lies most closely to a given
+     * value. The array of values must be increasing or decreasing
+     * monotonically.
+     *
+     * @param array the array of values to be searched
+     * @param value the value to be located
+     */
+    public static int lookup( double[] array, double value )
+    {
+        int bounds[] = binarySearch( array, value );
+        int low = bounds[0];
+        int high = bounds[1];
+
+        //  Find which position is nearest in reality.
+        int index = 0;
+        if ( ( value - array[low] ) < ( array[high] - value ) ) {
+            index = low;
+        }
+        else {
+            index = high;
+        }
+        return index;
+    }
+
+    /**
      * Sort a double precision array, using an insertion sort.
      * This sort is very fast for small numbers of values and gets a
      * boost from pre-sorted arrays. Insertion sort is also stable

@@ -41,6 +41,9 @@ public class GaussianFitter
     public static final int CENTRE = 1;
     public static final int SIGMA = 2;
 
+    /** Conversion factor for sigma to FWHM. */
+    public static final double FWHMFAC = 2.0*Math.sqrt( 2.0*Math.log( 2.0 ) );
+
     /**
      * The chi square of the fit.
      */
