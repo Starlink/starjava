@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2003-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     01-SEP-2003 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     26-FEB-2004 (Peter W. Draper):
+ *        Added column name methods.
  */
 package uk.ac.starlink.splat.data;
 
@@ -145,4 +147,47 @@ public abstract class AbstractSpecDataImpl
     {
         this.parentImpl = parentImpl;
     }
+
+    //
+    // Column name implementations. Default set is immutable.
+    //
+    public String[] getColumnNames()
+    {
+        // Not mutable.
+        return null;
+    }
+
+    public String getCoordinateColumnName()
+    {
+        return "Coordinates";
+    }
+    
+    public void setCoordinateColumnName( String name )
+        throws SplatException
+    {
+        // Do nothing.
+    }
+
+    public String getDataColumnName()
+    {
+        return "Data values";
+    }
+
+    public void setDataColumnName( String name )
+        throws SplatException
+    {
+        // Do nothing.
+    }
+
+    public String getDataErrorColumnName()
+    {
+        return "Errors";
+    }
+
+    public void setDataErrorColumnName( String name )
+        throws SplatException
+    {
+        // Do nothing.
+    }
 }
+

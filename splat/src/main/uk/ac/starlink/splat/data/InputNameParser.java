@@ -24,6 +24,7 @@ import java.io.File;
  *    <li> file.fits -- FITS may also be .fit .fits.gz .fits.Z etc.
  *
  *    <li> file.fits[1] -- first FITS extension.
+ *    <li> file.fits#1  -- alternative way for first FITS extension.
  *
  *    <li> file -- an NDF, which is expanded to file.sdf
  *
@@ -270,21 +271,30 @@ public class InputNameParser
     /**
      *  Get any FITS extension information from the image name. Extract
      *  the extension number as we need to decrement this for FITS files
-     *  that are to be processed by CONVERT & NDF.
+     *  that are to be processed by CONVERT & NDF. There are two supported
+     *  formats for specifying the extension, the usual [n], plus #n, which is
+     *  used by the tables libraries.
      */
     protected void getFitsext() 
     {
         int i1 = specspec.lastIndexOf( "[" );
         int i2 = specspec.lastIndexOf( "]" );
+        if ( i1 == -1 || i2 == -1 ) {
+            i1 = specspec.lastIndexOf( "#" );
+            if ( i1 > -1 ) {
+                i2 = specspec.length() - 1;
+            }
+        }
         if ( i1 > -1 && i2 > -1 ) {
             fitsext_ = specspec.substring( i1, i2 + 1 );
             try {
-                fitshdu_ = Integer.parseInt( 
-                    specspec.substring( i1 + 1, i2 ) );
-            } catch ( Exception e ) {
+                fitshdu_ = Integer.parseInt(specspec.substring( i1 + 1, i2 ));
+            } 
+            catch ( Exception e ) {
                 fitshdu_ = 0;
             }
-        } else {
+        }
+        else {
             fitsext_ = "";
         }
     }

@@ -1,10 +1,12 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
- *     01-SEP-2003 (Peter W. Draper):
- *       Original version.
- */
+ *     01-SEP-2000 (Peter W. Draper):
+ *        Original version.
+ *     26-FEB-2004 (Peter W. Draper):
+ *        Added column selection methods (for table-like support). 
+*/
 package uk.ac.starlink.splat.data;
 
 import java.io.Serializable;
@@ -71,8 +73,8 @@ public interface SpecDataImpl
     public String getProperty( String key );
 
     /**
-     * Whether the class is a FITSHeaderSource, i.e.<!-- --> has FITS headers
-     * associated with it and implements FITSHeaderSource.
+     * Whether the class is a FITSHeaderSource. This means it has FITS
+     * headers associated with it and implements FITSHeaderSource.
      * Implementations that can store FITS headers may want to access
      * these.
      */
@@ -85,7 +87,7 @@ public interface SpecDataImpl
      * SpecData and SpecDataImpl may be able to recover this when
      * saving themselves to disk file (the case in mind is actually the
      * NDF, a new NDF should really be a copy of any NDF that it is
-     * related too, so that information in the MORE extension can be
+     * related to, so that information in the MORE extension can be
      * preserved).
      */
     public SpecDataImpl getParentImpl();
@@ -97,4 +99,58 @@ public interface SpecDataImpl
      * @see #getParentImpl
      */
     public void setParentImpl( SpecDataImpl parentImpl );
+
+    /**
+     * Get a list of the column names. If the implementation doesn't
+     * support this feature (for instance they are immutable), then
+     * this method should return null, but the other column name
+     * methods should return suitable symbolic names.
+     */
+    public String[] getColumnNames();
+
+    /**
+     * Get the current column name for the coordinates.
+     */
+    public String getCoordinateColumnName();
+
+    /**
+     * If possible set the column name for the coordinate and change
+     * the coordinates used in the AST frameset if this is
+     * possible. If the modification is not possible then nothing
+     * should be done in response to this method. The name must match
+     * one of the values returned by
+     * {@link #getColumnNames}.
+     */
+    public void setCoordinateColumnName( String name )
+        throws SplatException;
+
+    /**
+     * Get the current column name for the data values.
+     */
+    public String getDataColumnName();
+
+    /**
+     * If possible set the column name for the data values and change
+     * the data values returned by {@link #getData} if this is
+     * possible. If the modification is not possible then nothing
+     * should be done in response to this method. The name must match
+     * one of the values returned by {@link #getColumnNames}.
+     */
+    public void setDataColumnName( String name )
+        throws SplatException;
+
+    /**
+     * Get the current column name for the data value errors.
+     */
+    public String getDataErrorColumnName();
+
+    /**
+     * If possible set the column name for the data value errors and change
+     * the errors returned by {@link #getDataErrors} if this is
+     * possible. If the modification is not possible then nothing
+     * should be done in response to this method. The name must match
+     * one of the values returned by {@link #getColumnNames}.
+     */
+    public void setDataErrorColumnName( String name )
+        throws SplatException;
 }

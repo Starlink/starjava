@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2002-2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     01-SEP-2002 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     26-FEB-2004 (Peter W. Draper):
+ *        Added column name methods.
  */
 package uk.ac.starlink.splat.data;
 
@@ -1057,6 +1059,7 @@ public class SpecData
         }
         initialiseAst();
     }
+
     public void initialiseAst()
         throws SplatException
     {
@@ -1666,6 +1669,78 @@ public class SpecData
         return views.size();
     }
 
+//
+// Column names and control (optional within the implementation).
+//
+    /**
+     * Return if the implementation supports the modification of
+     * columns.
+     */
+    public boolean isColumnMutable()
+    {
+        return ( getColumnNames() != null );
+    }
+
+    /**
+     * Return the names of all the available columns, if they can be
+     * modified. Returns null otherwise.
+     */
+    public String[] getColumnNames()
+    {
+        return impl.getColumnNames();
+    }
+
+    /**
+     * Return the name of the column associated with the coordinates. 
+     * If modification is not supported then this name is only symbolic.
+     */
+    public String getXDataColumnName()
+    {
+        return impl.getCoordinateColumnName();
+    }
+
+    /**
+     * Set the name of the column associated with the coordinates. If
+     * the underlying implementation supports it this will result in a
+     * modification of the coordinate system and coordinate values.
+     */
+    public void setXDataColumnName( String name )
+        throws SplatException
+    {
+        if ( isColumnMutable() ) {
+            String currentName = getXDataColumnName();
+            if ( ! currentName.equals( name ) ) {
+                impl.setCoordinateColumnName( name );
+                initialiseAst();
+            }
+        }
+    }
+
+    /**
+     * Return the name of the column associated with the data values.
+     * If modification is not supported then this name is only symbolic.
+     */
+    public String getYDataColumnName()
+    {
+        return impl.getDataErrorColumnName();
+    }
+
+    /**
+     * Set the name of the column associated with the data values. If
+     * the underlying implementation supports it this will result in a
+     * modification of values.
+     */
+    public void setYDataColumnName( String name )
+        throws SplatException
+    {
+        if ( isColumnMutable() ) {
+            String currentName = getYDataColumnName();
+            if ( ! currentName.equals( name ) ) {
+                impl.setDataErrorColumnName( name );
+                yErr = impl.getDataErrors();
+            }
+        }
+    }
 
 //
 //  AnalyticSpectrum implementation.

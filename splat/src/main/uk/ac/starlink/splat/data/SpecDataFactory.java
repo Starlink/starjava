@@ -14,12 +14,15 @@ import java.net.MalformedURLException;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.ndx.Ndx;
+
 /**
  * This class creates and clones instances of SpecData and derived
  * classes. The type of the spectrum supplied is determined either by
  * heuristics based on the specification, or by a given, known, type.
  * <p>
- * The known types are identified by public variables and are
+ * The known types are identified by public variables or class type and are
  * described using short and long names.
  * <p>
  * If an untyped specification is given then the usual the file name
@@ -35,7 +38,6 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
  * @see SpecDataImpl
  * @see SpecData
  * @see InputNameParser
- * @see "The Singleton Design Pattern"
  */
 public class SpecDataFactory
 {
@@ -58,29 +60,34 @@ public class SpecDataFactory
     /** The file is an HDX file. */
     public final static int HDX = 4;
 
+    /** The file is a table. */
+    public final static int TABLE = 5;
+
     /** The file is an line identifier file. */
-    public final static int IDS = 5;
+    public final static int IDS = 6;
 
     /**
      * Short descriptions of each type.
      */
     public final static String[] shortNames = {
-        "default", "fits", "hds", "text", "hdx", "line ids"
+        "default", "fits", "hds", "text", "hdx", "table", "line ids"
     };
 
     /**
      * Long descriptions of each type.
      */
     public final static String[] longNames = {
-        "File extension rule", "FITS file", "HDS container file", 
-        "TEXT files", "HDX/NDX XML files", "Line identification files"
+        "File extension rule", "FITS file", "HDS container file",
+        "TEXT files", "HDX/NDX/VOTable XML files", "Table",
+        "Line identification files"
     };
 
     /**
      * File extensions for each type.
      */
     public final static String[][] extensions = {
-        {"*"}, {"fits", "fit"}, {"sdf"}, {"txt", "lis"}, {"xml"}, {"ids"}
+        {"*"}, {"fits", "fit"}, {"sdf"}, {"txt", "lis"}, {"*"},
+        {"xml"}, {"ids"}
     };
 
 
@@ -89,7 +96,7 @@ public class SpecDataFactory
      * to extend this with own (line identifiers clearly not available).
      */
     public final static String[] treeviewIcons = {
-        "FILE", "FITS", "NDF", "DATA", "NDX", "ARY2"
+        "FILE", "FITS", "NDF", "DATA", "NDX", "TABLE", "ARY2"
     };
 
     /**
@@ -115,8 +122,8 @@ public class SpecDataFactory
     /**
      *  Attempt to open a given specification as a known type. If this
      *  fails then a SplatException will be thrown. Note that if the
-     *  type is DEFAULT then this is equivalent to calling 
-     *  {@link #get(String)}. 
+     *  type is DEFAULT then this is equivalent to calling
+     *  {@link #get(String)}.
      *
      *  @param specspec the specification of the spectrum to be opened.
      *  @param type the type of the spectrum (one of types defined in
@@ -134,10 +141,10 @@ public class SpecDataFactory
         }
 
         SpecDataImpl impl = null;
-        switch (type) 
+        switch (type)
         {
             case FITS: {
-                impl = new FITSSpecDataImpl( specspec );
+                impl = makeFITSSpecDataImpl( specspec );
             }
             break;
             case HDS: {
@@ -150,6 +157,10 @@ public class SpecDataFactory
             break;
             case HDX: {
                 impl = new NDXSpecDataImpl( specspec );
+            }
+            break;
+            case TABLE: {
+                impl = makeTableSpecDataImpl( specspec );
             }
             break;
             case IDS: {
@@ -181,7 +192,7 @@ public class SpecDataFactory
      *  @exception SplatException thrown if specification does not
      *             specify a spectrum that can be accessed.
      */
-    public SpecData get( String specspec ) 
+    public SpecData get( String specspec )
         throws SplatException
     {
         SpecDataImpl impl = null;
@@ -194,13 +205,13 @@ public class SpecDataFactory
                 impl = makeNDFSpecDataImpl( namer.ndfname() );
             }
             else if ( type.equals( "FITS" ) ) {
-                impl = new FITSSpecDataImpl( namer.ndfname() );
+                impl = makeFITSSpecDataImpl( namer.ndfname() );
             }
             else if ( type.equals( "TEXT" ) ) {
                 impl = new TXTSpecDataImpl( namer.ndfname() );
             }
             else if ( type.equals( "XML" ) ) {
-                impl = new NDXSpecDataImpl( namer.ndfname() );
+                impl = makeXMLSpecDataImpl( namer.ndfname() );
             }
             else {
                 throw new SplatException( "Spectrum '" + specspec +
@@ -208,15 +219,12 @@ public class SpecDataFactory
             }
         }
         else {
-
-            //  File doesn't exist. Could still be an HDX sent down
-            //  the wire, check the format and try this for all XML
-            //  types.
+            //  File doesn't exist. Could still be an HDX or VOTable sent down
+            //  the wire, check the format and try this for all XML types.
             if ( namer.format().equals( "XML" ) ) {
-                impl = new NDXSpecDataImpl( specspec );
+                impl = makeXMLSpecDataImpl( specspec );
             }
             else {
-
                 //  Or it could be a line identifier file, with type
                 //  ".ids". XXX Note such a file will be misidentified
                 //  as an NDF with path ".ids".
@@ -226,7 +234,7 @@ public class SpecDataFactory
             }
         }
 
-        // Occasionally 
+        // Occasionally
         if ( impl == null ) {
             throwReport( specspec, false );
         }
@@ -255,6 +263,48 @@ public class SpecDataFactory
             throw new SplatException( e );
         }
         return new NDXSpecDataImpl( url );
+    }
+
+    /**
+     * Make an implementation for an FITS file HDU. This could be either a
+     * spectrum or a table, so we need to find out first.
+     */
+    protected SpecDataImpl makeFITSSpecDataImpl( String specspec )
+        throws SplatException
+    {
+        SpecDataImpl impl = new FITSSpecDataImpl( specspec );
+        String exttype = impl.getProperty( "XTENSION" ).trim().toUpperCase();
+
+        if ( exttype.equals( "TABLE" ) || exttype.equals( "BINTABLE" ) ) {
+            throw new SplatException( "no FITS table support yet" );
+        }
+        return impl;
+    }
+
+    /**
+     * Make an implementation that wraps a table.
+     */
+    protected SpecDataImpl makeTableSpecDataImpl( String specspec )
+        throws SplatException
+    {
+        return new TableSpecDataImpl( specspec );
+    }
+
+    /**
+     * Make an implementation for an arbitrary XML file. This could be a
+     * VOTable or an HDX/NDX.
+     */
+    protected SpecDataImpl makeXMLSpecDataImpl( String specspec )
+        throws SplatException
+    {
+        SpecDataImpl impl = null;
+
+        //  Ask table class first, when they exist.
+        //  impl = new TableSpecDataImpl( specspec );
+        //  if ( ! impl.isValid() ) // or whatever...
+
+        impl = new NDXSpecDataImpl( specspec );
+        return impl;
     }
 
     /**
@@ -303,7 +353,7 @@ public class SpecDataFactory
         }
         else {
             //  Just a file that doesn't exist.
-            throw new SplatException( "Spectrum not found: " + specspec ); 
+            throw new SplatException( "Spectrum not found: " + specspec );
         }
     }
 
@@ -332,7 +382,7 @@ public class SpecDataFactory
         SpecDataImpl impl = null;
 
         if ( source instanceof LineIDSpecData ) {
-            impl = new LineIDTXTSpecDataImpl( specspec, 
+            impl = new LineIDTXTSpecDataImpl( specspec,
                                               (LineIDSpecData) source );
         }
         else if ( targetType.equals( "NDF" ) ) {
@@ -376,12 +426,11 @@ public class SpecDataFactory
      *
      * @return an EditableSpecData object.
      */
-    public EditableSpecData createEditable( String shortname, 
+    public EditableSpecData createEditable( String shortname,
                                             SpecData specData )
         throws SplatException
     {
-        // Check the actual type to see if this needs special
-        // handling.
+        // Check the actual type to see if this needs special handling.
         if ( specData instanceof LineIDSpecData ) {
             return new LineIDSpecData
                 ( new LineIDMEMSpecDataImpl( shortname, specData ) );
@@ -390,6 +439,24 @@ public class SpecDataFactory
             return new EditableSpecData
                 ( new MEMSpecDataImpl( shortname, specData ) );
         }
-    } 
+    }
 
+    /**
+     * Create a SpecData for a given {@link StarTable}.
+     */
+    public SpecData get( StarTable table )
+        throws SplatException
+    {
+        throw new SplatException( "tables not supported" );
+    }
+
+    /**
+     * Create a SpecData for a given {@link Ndx}.
+     */
+    public SpecData get( Ndx ndx )
+        throws SplatException
+    {
+        SpecDataImpl impl = new NDXSpecDataImpl( ndx );
+        return new SpecData( impl );
+    }
 }

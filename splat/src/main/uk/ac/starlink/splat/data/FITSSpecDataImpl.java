@@ -76,7 +76,8 @@ public class FITSSpecDataImpl
         } else {
             try {
                 return getDataCopy();
-            } catch ( FitsException e ) {
+            } 
+            catch ( FitsException e ) {
                 return null;
             }
         }
@@ -90,7 +91,8 @@ public class FITSSpecDataImpl
     {
         if ( cloned ) {
             return errors;
-        } else {
+        } 
+        else {
             return null;
         }
     }
@@ -104,7 +106,8 @@ public class FITSSpecDataImpl
             int dummy[] = new int[1];
             dummy[0] = data.length;
             return dummy;
-        } else {
+        } 
+        else {
             return getDataDims();
         }
     }
@@ -136,7 +139,8 @@ public class FITSSpecDataImpl
     {
         if ( cloned || astref != null ) {
             return astref;
-        } else {
+        } 
+        else {
             return createAstSet();
         }
     }
@@ -489,7 +493,8 @@ public class FITSSpecDataImpl
             boolean haveblank = true;
             try {
                 blank = hdurefs[hdunum].getBlankValue();
-            } catch ( FitsException e ) {
+            } 
+            catch ( FitsException e ) {
                 haveblank = false;
             }
 
@@ -507,7 +512,8 @@ public class FITSSpecDataImpl
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } else {
+                   } 
+                   else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
@@ -520,7 +526,8 @@ public class FITSSpecDataImpl
                    for ( int i = 0; i < arr.length; i++ ) {
                        if ( Double.isNaN( arr[i] ) ) {
                            spectrum[i] = SpecData.BAD;
-                       } else {
+                       } 
+                       else {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
                    }
@@ -532,7 +539,8 @@ public class FITSSpecDataImpl
                    for ( int i = 0; i < arr.length; i++ ) {
                        if ( Float.isNaN( arr[i] ) ) {
                            spectrum[i] = SpecData.BAD;
-                       } else {
+                       } 
+                       else {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
                    }
@@ -545,7 +553,8 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } else {
+                           } 
+                           else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
@@ -563,11 +572,13 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } else {
+                           } 
+                           else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } else {
+                   } 
+                   else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
@@ -581,11 +592,13 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } else {
+                           } 
+                           else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } else {
+                   } 
+                   else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
