@@ -229,10 +229,14 @@ public class Loader {
         }
         Class clazz;
         try {
-            clazz = Class.forName( className );
+            clazz = new Object().getClass().forName( className );
         }
         catch ( ClassNotFoundException e ) {
             warn( "Class " + className + " not found" );
+            return null;
+        }
+        catch ( ExceptionInInitializerError e ) {
+            warn( e.getCause() + " loading class " + className );
             return null;
         }
         catch ( LinkageError e ) {
@@ -245,6 +249,10 @@ public class Loader {
         }
         try {
             return clazz.newInstance();
+        }
+        catch ( ExceptionInInitializerError e ) {
+            warn( e.getCause() + " loading class " + className );
+            return null;
         }
         catch ( Throwable th ) {
             warn( th + " instantiating " + clazz.getName() );
