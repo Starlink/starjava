@@ -271,7 +271,7 @@ public class ImageHDUDataNode extends HDUDataNode {
         return "FITS Image HDU";
     }
 
-    private static long[] getDimsFromHeader( Header hdr ) {
+    static long[] getDimsFromHeader( Header hdr ) {
         try {
             int naxis = hdr.getIntValue( "NAXIS" );
             long[] dimensions = new long[ naxis ];

@@ -12,6 +12,7 @@ import javax.swing.*;
 import nom.tam.fits.*;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.RandomAccess;
+import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.util.MappedFile;
 
 /**
@@ -26,6 +27,7 @@ public class FITSDataNode extends DefaultDataNode {
     private boolean isIterating;
     private Icon icon;
     private String name;
+    private String description;
     private List children;
     private BufferMaker bufmake;
     private FileChannel chan;
@@ -40,6 +42,7 @@ public class FITSDataNode extends DefaultDataNode {
         if ( ! checkCouldBeFITS( file ) ) {
             throw new NoSuchDataException( "Wrong magic number for FITS" );
         }
+        MappedFile istrm = null;
         try {
             RandomAccessFile raf = new RandomAccessFile( file.getPath(), "r" );
             chan = raf.getChannel();
@@ -50,17 +53,51 @@ public class FITSDataNode extends DefaultDataNode {
             }
             bufmake = new BufferMaker( chan, 0, raf.length() );
             ByteBuffer niobuf = bufmake.makeBuffer();
-            ArrayDataInput istrm = new MappedFile( niobuf );
+            istrm = new MappedFile( niobuf );
+
+            /* Try to make a header - if this throws an exception it's not
+             * FITS. */
             Header primaryHeader = new Header( istrm );
+
+            /* Characterise the file. */
+            long headerSize = istrm.getFilePointer();
+            long dataSize = getDataSize( primaryHeader );
+            long fileSize = raf.length();
+            if ( fileSize == headerSize + dataSize ) {
+                long[] dims = ImageHDUDataNode
+                             .getDimsFromHeader( primaryHeader );
+                if ( dims.length == 0 ) {
+                    description = "(header only)";
+                }
+                else {
+                    description = NDShape.toString( dims );
+                }
+            }
+            else if ( fileSize - headerSize - dataSize >= 2880 ) {
+                // it's multi-extension
+            }
         }
-        catch ( Exception e ) {
+        catch ( IOException e ) {
+            throw new NoSuchDataException( 
+                "IO trouble while reading FITS header", e );
+        }
+        catch ( TruncatedFileException e ) {
             throw new NoSuchDataException( "File \"" + file 
                                          + "\" is not a FITS file" 
                                          + "(" + e.getMessage() + ")" );
         }
+        finally {
+            if ( istrm != null ) { 
+                istrm.close();
+            }
+        }
+ 
         name = file.getName();
         setLabel( name );
     }
+
+
+
 
     /**
      * Initialises a <code>FITSDataNode</code> from a <code>String</code>
@@ -70,6 +107,10 @@ public class FITSDataNode extends DefaultDataNode {
      */
     public FITSDataNode( String name ) throws NoSuchDataException {
         this( new File( name ) );
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public boolean allowsChildren() {
