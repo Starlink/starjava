@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FrameSet;
@@ -92,6 +93,10 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 public class SpecData
      implements AnalyticSpectrum, Serializable
 {
+    // Logger.
+    private static Logger logger =
+        Logger.getLogger( "uk.ac.starlink.splat.data.SpecData" );
+
     //  =============
     //  Constructors.
     //  =============
@@ -1328,10 +1333,10 @@ public class SpecData
                 Mapping oned = astJ.get1DMapping( 1 );
                 monotonic = ( oned.getI( "TranInverse" ) == 1 );
                 if ( ! monotonic ) {
-                    System.out.println( impl.getFullName() + ": " +
-                                        " warning -- coordinates are not" +
-                                        " monotonic this means some" +
-                                        " operations will fail" );
+                    logger.info( impl.getFullName() + ": " +
+                                 " coordinates are not" +
+                                 " monotonic this means some" +
+                                 " operations will fail" );
                 }
 
                 //  Get the centres of the pixel positions in current
