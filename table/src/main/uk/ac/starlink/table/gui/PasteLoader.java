@@ -50,6 +50,11 @@ public abstract class PasteLoader extends StringPaster {
         }
     }
 
+    protected Toolkit getToolkit() {
+        return parent_ == null ? super.getToolkit()
+                               : parent_.getToolkit();
+    }
+
     /**
      * Invoked if a table specified by pasting a string into a component
      * watched by this listener is loaded successfully.
