@@ -11,6 +11,8 @@ import uk.ac.starlink.hds.HDSArrayBuilder;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSType;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 
 /**
  * A {@link uk.ac.starlink.treeview.DataNode} representing an 
@@ -20,7 +22,8 @@ import uk.ac.starlink.hds.HDSType;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class ARYDataNode extends HDSDataNode {
+public class ARYDataNode extends HDSDataNode
+                         implements NdxNodeChooser.Choosable {
     /*
      * This class is implemented to access data using HDSObject rather
      * than the ARY library.
@@ -28,6 +31,7 @@ public class ARYDataNode extends HDSDataNode {
     private ArrayStructure aryobj;
     private NDShape shape;
     private DataNodeFactory customChildMaker;
+    private Ndx ndx;
 
     /**
      * Constructs an ARYDataNode from an HDSObject.
@@ -128,6 +132,32 @@ public class ARYDataNode extends HDSDataNode {
         catch ( IOException e ) {
             dv.logError( e );
         }
+    }
+
+    /*
+     * Implementatation of NdxNodeChooser.Choosable
+     */
+    public boolean isNdx() {
+        return true;
+    }
+    public NDShape getShape() {
+        return shape;
+    }
+    public synchronized Ndx getNdx() throws IOException {
+        if ( ndx == null ) {
+            try {
+                NDArray image = HDSArrayBuilder.getInstance()
+                               .makeNDArray( aryobj, AccessMode.READ );
+                ndx = new DefaultMutableNdx( image );
+                ((DefaultMutableNdx) ndx).setTitle( aryobj.getHDSObject()
+                                                          .datName() );
+            }
+            catch ( HDSException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
+        }
+        return ndx;
     }
 
 }

@@ -17,10 +17,12 @@ import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 
-public class NDArrayDataNode extends DefaultDataNode {
+public class NDArrayDataNode extends DefaultDataNode 
+                             implements NdxNodeChooser.Choosable {
 
     private NDArray nda;
     private String name;
+    private Ndx ndx;
 
     public NDArrayDataNode( NDArray nda ) {
         this.nda = nda;
@@ -267,6 +269,24 @@ public class NDArrayDataNode extends DefaultDataNode {
 
         NDArray nda2 = new BridgeNDArray( new MouldArrayImpl( nda1, shape2 ) );
         return nda2;
+    }
+
+    public boolean isNdx() {
+        return true;
+    }
+
+    public NDShape getShape() {
+        return nda.getShape();
+    }
+
+    public synchronized Ndx getNdx() {
+        if ( ndx == null ) {
+            ndx = new DefaultMutableNdx( nda );
+            if ( name != null ) {
+                ((DefaultMutableNdx) ndx).setTitle( name );
+            }
+        }
+        return ndx;
     }
 
 }

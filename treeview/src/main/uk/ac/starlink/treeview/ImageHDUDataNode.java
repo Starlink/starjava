@@ -25,6 +25,8 @@ import uk.ac.starlink.ast.SkyFrame;
 import uk.ac.starlink.fits.FitsArrayBuilder;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.MappedFile;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -34,7 +36,8 @@ import uk.ac.starlink.splat.util.SplatException;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class ImageHDUDataNode extends HDUDataNode {
+public class ImageHDUDataNode extends HDUDataNode
+                              implements NdxNodeChooser.Choosable {
     private String name;
     private String description;
     private String hduType;
@@ -46,6 +49,8 @@ public class ImageHDUDataNode extends HDUDataNode {
     private Number badval;
     private FrameSet wcs;
     private String wcsEncoding;
+    private NDArray nda;
+    private Ndx ndx;
 
     /**
      * Initialises an <code>ImageHDUDataNode</code> from a <code>Header</code> 
@@ -217,14 +222,7 @@ public class ImageHDUDataNode extends HDUDataNode {
         }
         if ( shape != null ) {
             try {
-                ArrayDataInput data = hdudata.getArrayData();
-                NDArray nda = FitsArrayBuilder.getInstance()
-                             .makeNDArray( data, AccessMode.READ );
-                if ( ! nda.getShape().equals( shape ) ) {
-                    nda = new BridgeNDArray( 
-                                  new MouldArrayImpl( nda, shape ) );
-                }
-                NDArrayDataNode.addDataViews( dv, nda, wcs );
+                NDArrayDataNode.addDataViews( dv, getNDArray(), wcs );
             }
             catch ( IOException e ) {
                 dv.logError( e );
@@ -264,4 +262,38 @@ public class ImageHDUDataNode extends HDUDataNode {
         }
     }
 
+    private synchronized NDArray getNDArray() throws IOException {
+        if ( nda == null ) {
+            ArrayDataInput data = hdudata.getArrayData();
+            nda = FitsArrayBuilder.getInstance()
+                                  .makeNDArray( data, AccessMode.READ );
+            if ( ! nda.getShape().equals( shape ) ) {
+                nda = new BridgeNDArray( new MouldArrayImpl( nda, shape ) );
+            }
+        }
+        return nda;
+    }
+
+    public boolean isNdx() {
+        return shape != null;
+    }
+
+    public NDShape getShape() {
+        return shape;
+    }
+
+    public Ndx getNdx() throws IOException {
+        if ( ndx == null ) {
+            ndx = new DefaultMutableNdx( getNDArray() );
+            DataNode parent = getCreator().getParent();
+            if ( parent != null ) {
+                String title = parent.getName() + "#" + getHDUIndex();
+                ((DefaultMutableNdx) ndx).setTitle( title );
+            }
+            if ( wcs != null ) {
+                ((DefaultMutableNdx) ndx).setWCS( wcs );
+            }
+        }
+        return ndx;
+    }
 }

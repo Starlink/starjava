@@ -1,14 +1,21 @@
 package uk.ac.starlink.treeview;
 
+import java.io.IOException;
 import java.util.Iterator;
 import javax.swing.Icon;
+import uk.ac.starlink.array.NDShape;
+import uk.ac.starlink.ndx.Ndx;
+import uk.ac.starlink.table.StarTable;
 
 /**
  * DataNode object which acts as a clone of an existing node.
  * It copies its attributes from a given node, but to some extent 
  * maintains its own state.
  */
-public class DuplicateDataNode implements DataNode {
+public class DuplicateDataNode implements DataNode,
+                                          Draggable,
+                                          TableNodeChooser.Choosable,
+                                          NdxNodeChooser.Choosable {
 
     private DataNode base;
 
@@ -95,5 +102,36 @@ public class DuplicateDataNode implements DataNode {
 
     public String toString() {
         return base.toString();
+    }
+
+    public boolean isStarTable() {
+        return ( base instanceof TableNodeChooser.Choosable )
+                    ?  ((TableNodeChooser.Choosable) base).isStarTable()
+                    : false;
+    }
+
+    public StarTable getStarTable() throws IOException {
+        return ((TableNodeChooser.Choosable) base).getStarTable();
+    }
+
+    public boolean isNdx() {
+        return ( base instanceof NdxNodeChooser.Choosable )
+                    ? ((NdxNodeChooser.Choosable) base).isNdx()
+                    : false;
+    }
+
+    public NDShape getShape() {
+        return ((NdxNodeChooser.Choosable) base).getShape();
+    }
+
+    public Ndx getNdx() throws IOException {
+        return ((NdxNodeChooser.Choosable) base).getNdx();
+    }
+
+    public void customiseTransferable( DataNodeTransferable trans ) 
+            throws IOException {
+        if ( base instanceof Draggable ) {
+            ((Draggable) base).customiseTransferable( trans );
+        }
     }
 }

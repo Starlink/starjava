@@ -50,7 +50,8 @@ import uk.ac.starlink.util.URLUtils;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class NdxDataNode extends DefaultDataNode implements Draggable {
+public class NdxDataNode extends DefaultDataNode
+                         implements Draggable, NdxNodeChooser.Choosable {
 
     private Ndx ndx;
     private String name;
@@ -254,6 +255,19 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         catch ( IOException e ) {
             dv.logError( e );
         }
+    }
+
+    /*
+     * NdxNodeChooser.Choosable implementation.
+     */
+    public NDShape getShape() {
+        return ndx.getImage().getShape();
+    }
+    public Ndx getNdx() {
+        return ndx;
+    }
+    public boolean isNdx() {
+        return true;
     }
 
     /**

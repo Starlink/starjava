@@ -34,7 +34,8 @@ import uk.ac.starlink.ndx.Ndx;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class NDFDataNode extends HDSDataNode implements Draggable {
+public class NDFDataNode extends HDSDataNode
+                         implements Draggable, NdxNodeChooser.Choosable {
 
     private HDSObject ndfobj;
     private NDShape shape;
@@ -382,9 +383,6 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
         try {
             NdxDataNode.addDataViews( dv, getNdx() );
         }
-        catch ( HDSException e ) {
-            dv.logError( e );
-        }
         catch ( IOException e ) {
             dv.logError( e );
         }
@@ -397,16 +395,13 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
         catch ( IOException e ) {
             e.printStackTrace();
         }
-        catch ( HDSException e ) {
-            e.printStackTrace();
-        }
     }
 
     public byte getQualityBadbits() {
         return qualityBadbits;
     }
 
-    private Ndx getNdx() throws IOException, HDSException {
+    public Ndx getNdx() throws IOException {
         if ( ndx == null ) {
             URL ndurl;
             try {
@@ -415,12 +410,25 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
             catch ( HDSException e ) {
                 ndurl = null;
             }
-            Ndx baseNdx = NDFNdxHandler.getInstance()
-                         .makeNdx( ndfobj, ndurl, AccessMode.READ );
-            ndx = new DefaultMutableNdx( baseNdx );
-            ((MutableNdx) ndx).setWCS( wcs );
+            try {
+                Ndx baseNdx = NDFNdxHandler.getInstance()
+                             .makeNdx( ndfobj, ndurl, AccessMode.READ );
+                ndx = new DefaultMutableNdx( baseNdx );
+                ((MutableNdx) ndx).setWCS( wcs );
+            }
+            catch ( HDSException e ) {
+                throw (IOException) 
+                      new IOException( e.getMessage() ).initCause( e );
+            }
         }
         return ndx;
+    }
+
+    public boolean isNdx() {
+        return true;
+    }
+    public NDShape getShape() {
+        return shape;
     }
 
     private DataNode makeNDFChild( Object childObj ) {
