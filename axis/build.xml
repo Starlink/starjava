@@ -134,6 +134,7 @@
 
 
     <!-- Add the manifest to the axis.jar file, just an update -->
+    <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/axis.jar" basedir="${dist.dir}"
          update="true" excludes="**">
 
