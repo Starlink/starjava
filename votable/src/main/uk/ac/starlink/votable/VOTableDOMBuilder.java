@@ -17,6 +17,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowListStarTable;
@@ -127,6 +128,13 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             if ( "TABLE".equals( tagName ) ) {
                 tableEl = (TableElement) getNewestNode();
             }
+            else if ( "DATA".equals( tagName ) ) {
+                if ( storagePolicy == StoragePolicy.DISCARD ) {
+                    Node dataNode = getNewestNode();
+                    dataNode.getParentNode().removeChild( dataNode );
+                    setCustomHandler( new IgnoreContentHandler( tagName ) );
+                }
+            }
             else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler() );
             }
@@ -173,6 +181,33 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             String tagName = getTagName( namespaceURI, localName, qName );
             if ( "TABLE".equals( tagName ) ) {
                 tableEl = null;
+            }
+        }
+    }
+
+    /**
+     * Handler which just ignores everything until the end of the current
+     * element.
+     */
+    class IgnoreContentHandler extends NullContentHandler {
+        int level;
+        String tagName;
+        IgnoreContentHandler( String tagName ) {
+            this.tagName = tagName;
+            level = 1;
+        }
+        public void startElement( String namespaceURI, String localName,
+                                  String qName, Attributes atts ) {
+            level++;
+        }
+        public void endElement( String namespaceURI, String localName,
+                                String qName ) 
+                throws SAXException {
+            if ( --level == 0 ) {
+                assert tagName
+                      .equals( getTagName( namespaceURI, localName, qName ) );
+                basicHandler.endElement( namespaceURI, localName, qName );
+                setCustomHandler( basicHandler );
             }
         }
     }
