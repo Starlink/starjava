@@ -1,7 +1,10 @@
 package uk.ac.starlink.table.join;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A matching engine which provides matching facilities by combining the
@@ -29,26 +32,18 @@ public class CombinedMatchEngine implements MatchEngine {
 
     /**
      * Constructs a new MatchEngine based on a sequence of others.
-     * <tt>engines</tt> and <tt>tupleSizes</tt> are arrays with the
-     * same number of elements; each tuple submitted to this engine 
-     * should be <i>x</i> element long, where <i>x</i> is the sum of
-     * the elements of <tt>tupleSizes</tt>; <tt>engine[0]</tt> should
-     * accept tuples formed of the first <tt>tupleSizes[0]</tt> elements
-     * of the tuples submitted to this object and so on.
+     * The tuples accepted by this engine are composed of the tuples
+     * of its constituent engines (as specified by <tt>engines</tt>)
+     * concatenated in sequence.
      *
      * @param   engines  match engine sequence to be combined
-     * @param   tupleSizes  sizes of tuples to be accepted by the corresponding
-     *          element of <tt>engines</tt>
-     * @throws  IllegalArgumentException  
-     *          if <tt>engines.length!=tupleSizes.length</tt>
      */
-    public CombinedMatchEngine( MatchEngine[] engines, int[] tupleSizes ) {
+    public CombinedMatchEngine( MatchEngine[] engines ) {
         this.engines = engines;
-        this.tupleSizes = tupleSizes;
         nPart = engines.length;
-        if ( engines.length != tupleSizes.length ) {
-            throw new IllegalArgumentException(
-                "Mismatched lengths of engines and tuple sizes" );
+        tupleSizes = new int[ nPart ];
+        for ( int i = 0; i < nPart; i++ ) {
+            tupleSizes[ i ] = engines[ i ].getTupleInfos().length;
         }
         tupleStarts = new int[ nPart ];
         int ts = 0;
@@ -129,5 +124,35 @@ public class CombinedMatchEngine implements MatchEngine {
         
         /* Return the array of bins. */
         return bins;
+    }
+
+    public ValueInfo[] getTupleInfos() {
+        int nargs = tupleStarts[ nPart - 1 ] + tupleSizes[ nPart - 1 ];
+        ValueInfo[] infos = new ValueInfo[ nargs ];
+        for ( int i = 0; i < nPart; i++ ) {
+            System.arraycopy( engines[ i ].getTupleInfos(), 0, 
+                              infos, tupleStarts[ i ], tupleSizes[ i ] );
+        }
+        return infos;
+    }
+
+    public DescribedValue[] getMatchParameters() {
+        List params = new ArrayList();
+        for ( int i = 0; i < nPart; i++ ) {
+            params.addAll( Arrays.asList( engines[ i ].getMatchParameters() ) );
+        }
+        return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
+    }
+
+    public String toString() {
+        StringBuffer buf = new StringBuffer( "(" );
+        for ( int i = 0; i < nPart; i++ ) {
+            if ( i > 0 ) {
+                buf.append( ", " );
+            }
+            buf.append( engines[ i ].toString() );
+        }
+        buf.append( ")" );
+        return buf.toString();
     }
 }

@@ -1,7 +1,11 @@
 package uk.ac.starlink.table.join;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A matching engine which can match points in an 
@@ -17,10 +21,11 @@ import java.util.Set;
 public class CartesianMatchEngine implements MatchEngine {
 
     private final int ndim;
-    private final double[] errs;
-    private final double[] err2rs;
-    private final double[] cellScales;
     private final int blockSize;
+    private double[] errs;
+    private double[] err2rs;
+    private double[] cellScales;
+    private DescribedValue errorValue = new ErrorValue();
 
     /**
      * Scaling factor determining the size of a grid cell as a multiple of
@@ -31,53 +36,16 @@ public class CartesianMatchEngine implements MatchEngine {
 
     /**
      * Constructs a matcher which matches points in an
-     * <tt>ndim</tt>-dimensional Cartesian space with an anisotropic
-     * error margin.
+     * <tt>ndim</tt>-dimensional Cartesian space.
+     * An initial isotropic error margin is specified.
      *
      * @param   ndim  dimensionality of the space
-     * @param   errs  <tt>ndim</tt> dimensional array of the principle radii
-     *                of an ellipsoid that defines whether two points match
-     */
-    public CartesianMatchEngine( int ndim, double[] errs ) {
-        this.ndim = ndim;
-        this.errs = (double[]) errs.clone();
-        err2rs = new double[ ndim ];
-        cellScales = new double[ ndim ];
-        assert CELL_SCALE >= 1.0;
-        for ( int i = 0; i < ndim; i++ ) {
-            err2rs[ i ] = 1.0 / ( errs[ i ] * errs[ i ] );
-            cellScales[ i ] = 1.0 / ( CELL_SCALE * errs[ i ] );
-        }
-        blockSize = (int) Math.pow( 3, ndim );
-    }
-
-    /**
-     * Constructs a matcher which matches points in an
-     * <tt>ndim</tt>-dimensional Cartesian space with an isotropic 
-     * error margin.
-     *
-     * @param   ndim dimensionality of the space
-     * @param   err  maximum distance between two matching points
+     * @param   err  initial maximum distance between two matching points
      */
     public CartesianMatchEngine( int ndim, double err ) {
-        this( ndim, makeArray( ndim, err ) );
-    }
-
-    /**
-     * Utility method which returns a new array containing copies of
-     * the same value.
-     *
-     * @param  ndim  number of dimensions
-     * @param  vall  value
-     * @return  <tt>ndim</tt>-element array with all elements equal 
-     *          to <tt>val</tt>
-     */
-    private static double[] makeArray( int ndim, double val ) {
-        double[] arr = new double[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            arr[ i ] = val;
-        }
-        return arr;
+        this.ndim = ndim;
+        blockSize = (int) Math.pow( 3, ndim );
+        setError( err );
     }
 
     /**
@@ -125,6 +93,85 @@ public class CartesianMatchEngine implements MatchEngine {
             coords[ i ] = ((Number) tuple[ i ]).doubleValue();
         }
         return getCellBlock( coords );
+    }
+
+    public ValueInfo[] getTupleInfos() {
+        ValueInfo[] infos = new ValueInfo[ ndim ];
+        for ( int i = 0; i < ndim; i++ ) {
+            DefaultValueInfo info = 
+                new DefaultValueInfo( "Co-ordinate " + ( i + 1 ),
+                                      Number.class,
+                                      "Cartesian co-ordinate #" + ( i + 1 ) );
+            info.setNullable( false );
+            infos[ i ] = info;
+        }
+        if ( ndim == 2 || ndim == 3 ) {
+            ((DefaultValueInfo) infos[ 0 ]).setName( "X" );
+            ((DefaultValueInfo) infos[ 1 ]).setName( "Y" );
+            if ( ndim == 3 ) {
+                ((DefaultValueInfo) infos[ 2 ]).setName( "Z" );
+            }
+        }
+        return infos;
+    }
+
+    public DescribedValue[] getMatchParameters() {
+        return new DescribedValue[] { errorValue };
+    }
+
+    /**
+     * Returns an array containing the principle radii of an ellipsoid
+     * that determines whether two points match. 
+     * The returned array is a clone of the internal data structure; 
+     * use <tt>setErrors</tt> to change the values.
+     *
+     * @return  error array
+     */
+    public double[] getErrors() {
+        return (double[]) errs.clone();
+    }
+
+    /**
+     * Sets the array containing the principle radii of an ellipsoid
+     * that determines whether two points match.
+     * <p>
+     * Note you should not set anisotropic errors (not all elements having
+     * the same value) if you are using the Separation parameter, 
+     * since that is currently defined as a scalar; doing so
+     * this may result in an unwelcome unchecked error.
+     *
+     * @param  errors  error array
+     */
+    public void setErrors( double[] errors ) {
+        if ( errors.length != ndim ) {
+            throw new IllegalArgumentException( 
+                "Errors array wrong length " + errors.length +
+                " (should match dimensionality " + ndim + ")" );
+        }
+        this.errs = (double[]) errors.clone();
+        err2rs = new double[ ndim ];
+        cellScales = new double[ ndim ];
+        assert CELL_SCALE >= 1.0;
+        for ( int i = 0; i < ndim; i++ ) {
+            err2rs[ i ] = 1.0 / ( errs[ i ] * errs[ i ] );
+            cellScales[ i ] = 1.0 / ( CELL_SCALE * errs[ i ] );
+        }
+    }
+
+    /**
+     * Sets the maximum distance between two points that counts as a match.
+     * This is equivalent to setting the value of the Error parameter.
+     *
+     * @param  error  maximum distance for matching
+     */
+    public void setError( double error ) {
+        double[] errs = new double[ ndim ];
+        Arrays.fill( errs, error );
+        setErrors( errs );
+    }
+
+    public String toString() {
+        return ndim + "d Cartesian";
     }
 
     /**
@@ -240,6 +287,28 @@ public class CartesianMatchEngine implements MatchEngine {
             }
             sbuf.append( ")" );
             return sbuf.toString();
+        }
+    }
+
+    /**
+     * Implements the parameter which controls the matching error.
+     */
+    private class ErrorValue extends DescribedValue {
+        ErrorValue() {
+            super( new DefaultValueInfo( "Error", Double.class, 
+                                         "Maximum separation for match" ) );
+        }
+        public Object getValue() {
+            for ( int i = 0; i < ndim; i++ ) {
+                if ( errs[ i ] != errs[ 0 ] ) {
+                    throw new IllegalStateException( 
+                        "Uh oh - can't cope with anistotropic error" );
+                }
+            }
+            return new Double( errs[ 0 ] );
+        }
+        public void setValue( Object value ) {
+            setError( ((Double) value).doubleValue() );
         }
     }
 }

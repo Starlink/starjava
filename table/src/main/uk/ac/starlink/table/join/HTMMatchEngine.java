@@ -9,6 +9,9 @@ import edu.jhu.htm.geometry.Circle;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * Implements the object matching interface for sky coordinates (RA, Dec)
@@ -16,15 +19,36 @@ import java.util.List;
  * The tuples it uses are two-element arrays of {@link java.lang.Number}
  * objects, the first giving Right Ascension in radians, and
  * the second giving Declination in radians.
+ * The <tt>separation</tt> attribute indicates how many radians may 
+ * separate two points on the celestial sphere for them to be considered
+ * matching.
  *
  * @author   Mark Taylor (Starlink)
  * @see      <http://www.sdss.jhu.edu/htm/doc/>
  */
 public class HTMMatchEngine implements MatchEngine {
 
-    private final double separation;
-    private final double arcminSep;
-    private final HTMindex htm;
+    private double separation;
+    private double arcminSep;
+    private HTMindex htm;
+    private DescribedValue sepValue = new SeparationValue();
+
+    private static final DefaultValueInfo RA_INFO = 
+        new DefaultValueInfo( "RA", Number.class, "Right Ascension" );
+    private static final DefaultValueInfo DEC_INFO =
+        new DefaultValueInfo( "Dec", Number.class, "Declination" );
+    private static final DefaultValueInfo SEP_INFO =
+        new DefaultValueInfo( "Error", Double.class, 
+                              "Maximum separation along a great circle" );
+    static {
+        RA_INFO.setUnitString( "radians" );
+        DEC_INFO.setUnitString( "radians" );
+        SEP_INFO.setUnitString( "radians" );
+        RA_INFO.setNullable( false );
+        DEC_INFO.setNullable( false );
+        RA_INFO.setUCD( "POS_EQ_RA" );
+        DEC_INFO.setUCD( "POS_EQ_DEC" );
+    }
 
     /**
      * Scaling factor which determines the size of the mesh cells used
@@ -38,11 +62,22 @@ public class HTMMatchEngine implements MatchEngine {
      * (RA,Dec tuples) to match if they are within a given angular
      * distance on the celestial sphere.
      *
-     * @param   arcminSep   match radius in radians
+     * @param   separation   match radius in radians
      */
     public HTMMatchEngine( double separation ) {
+        setSeparation( separation );
+    }
+
+    /**
+     * Configures this match engine to consider two points 
+     * (RA,Dec tuples) to match if they are within a given angular
+     * distance on the celestial sphere.
+     *
+     * @param   separation   match radius in radians
+     */
+    public void setSeparation( double separation ) {
         this.separation = separation;
-        arcminSep = Math.toDegrees( separation ) * 60.0;
+        this.arcminSep = Math.toDegrees( separation ) * 60.0;
 
         /* Construct an HTM index with mesh elements of a size suitable
          * for the requested resolution. */
@@ -60,8 +95,18 @@ public class HTMMatchEngine implements MatchEngine {
     }
 
     /**
+     * Returns the separation between points within which they will be
+     * considered to match.
+     *
+     * @return   match radius in radians
+     */
+    public double getSeparation() {
+        return separation;
+    }
+
+    /**
      * Matches two tuples representing RA,Dec coordinates if they are
-     * within <tt>arcminSep</tt> arc minutes of each other on the sky.
+     * within <tt>separation</tt> radians of each other on the sky.
      *
      * @param   radec1  2-element array of Number objects giving RA &amp; dec
      *                  of first point
@@ -89,7 +134,7 @@ public class HTMMatchEngine implements MatchEngine {
 
     /**
      * Returns all the HTM cells which fall wholly or partially within 
-     * <tt>arcminSep</tt> arcminutes of a given position.
+     * <tt>separation</tt> radians of a given position.
      * 
      * @param  radec  2-element array of Number objects giving RA &amp; Dec
      *         of the position to test
@@ -112,6 +157,18 @@ public class HTMMatchEngine implements MatchEngine {
         return binList.toArray();
     }
 
+    public ValueInfo[] getTupleInfos() {
+        return new ValueInfo[] { RA_INFO, DEC_INFO };
+    }
+
+    public DescribedValue[] getMatchParameters() {
+        return new DescribedValue[] { sepValue };
+    }
+
+    public String toString() {
+        return "Sky";
+    }
+
     /**
      * Returns the distance along a great circle between two points.
      *
@@ -130,5 +187,20 @@ public class HTMMatchEngine implements MatchEngine {
                         * Math.cos( ra1 - ra2 ) );
 
         // Should probably use 'haversine' formula.  What is it?
+    }
+
+    /**
+     * Implements the parameter which controls the matching error.
+     */
+    private class SeparationValue extends DescribedValue {
+        SeparationValue() {
+            super( SEP_INFO );
+        }
+        public Object getValue() {
+            return new Double( separation );
+        }
+        public void setValue( Object value ) {
+            setSeparation( ((Double) value).doubleValue() );
+        }
     }
 }
