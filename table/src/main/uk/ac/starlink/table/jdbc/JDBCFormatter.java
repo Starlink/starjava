@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,6 +19,7 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Loader;
 
 public class JDBCFormatter {
@@ -26,6 +29,17 @@ public class JDBCFormatter {
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.table.jdbc" );
+
+    /**
+     * List of SQL reserved words; these have to be avoided in column names.
+     * This list is by no means complete.
+     */
+    private static final Collection SQL_RESERVED = 
+        new HashSet( Arrays.asList( new String[] {
+            "INDEX", "CHAR", "VARCHAR", "DATE", "TIME",
+            "SET", "SHOW", "DELETE", "UPDATE", "ALTER", "DROP", 
+            "TABLE", "VIEW", "DATABASE", "DESCRIBE", "USE",
+        } ) );
 
     public JDBCFormatter( Connection conn ) {
         this.conn = conn;
@@ -53,19 +67,57 @@ public class JDBCFormatter {
 
         /* Specify table columns. */
         int ncol = table.getColumnCount();
+        boolean[] charType = new boolean[ ncol ];
+
+        /* Work out column types and see if we need to work out maximum string
+         * lengths. */
         int[] sqlTypes = new int[ ncol ];
+        int[] charSizes = new int[ ncol ];
+        boolean[] needSizes = new boolean[ ncol ];
+        boolean needSomeSizes = false;
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            ColumnInfo colInfo = table.getColumnInfo( icol );
+            sqlTypes[ icol ] = getSqlType( colInfo.getContentClass() );
+            if ( sqlTypes[ icol ] == Types.VARCHAR ) {
+                int leng = colInfo.getElementSize();
+                if ( leng > 0 ) {
+                    charSizes[ icol ] = leng;
+                }
+                else {
+                    needSizes[ icol ] = true;
+                    needSomeSizes = true;
+                }
+            }
+        }
+
+        /* Work out maximum string lengths if necessary. */
+        if ( needSomeSizes ) {
+            RowSequence rseq = table.getRowSequence();
+            try {
+                while ( rseq.next() ) {
+                    for ( int icol = 0; icol < ncol; icol++ ) {
+                        if ( needSizes[ icol ] ) {
+                            Object val = rseq.getCell( icol );
+                            if ( val != null ) {
+                                charSizes[ icol ] = 
+                                    Math.max( charSizes[ icol ],
+                                              val.toString().length() );
+                            }
+                        }
+                    }
+                }
+            }
+            finally {
+                rseq.close();
+            }
+        }
+
+        /* Create a new SQL table with the right columns. */
         boolean first = true;
         Set cnames = new HashSet();
         for ( int icol = 0; icol < ncol; icol++ ) {
             ColumnInfo col = table.getColumnInfo( icol );
-            String colName = col.getName();
-
-            /* Massage the column name to make sure it is in a sensible
-             * format. */
-            colName = colName.replaceAll( "[\\s\\.\\(\\)\\[\\]\\-\\+]+", "_" );
-            if ( colName.length() > 64 ) {
-                colName = colName.substring( 0, 60 );
-            }
+            String colName = fixColumnName( col.getName() );
 
             /* Check that we don't have a duplicate column name. */
             while ( cnames.contains( colName ) ) {
@@ -74,15 +126,14 @@ public class JDBCFormatter {
             cnames.add( colName );
 
             /* Add the column name to the statement string. */
-            Class colClazz = col.getContentClass();
-            sqlTypes[ icol ] = getSqlType( colClazz );
-            String tName = typeName( sqlTypes[ icol ] );
+            int sqlType = sqlTypes[ icol ];
+            String tName = typeName( sqlType );
             if ( tName == null ) {
-                sqlTypes[ icol ] = Types.NULL;
+                sqlType = Types.NULL;
                 logger.warning( "Can't write column " + colName + " type " 
-                              + colClazz );
+                              + col.getClass() );
             }
-            if ( sqlTypes[ icol ] != Types.NULL ) {
+            if ( sqlType != Types.NULL ) {
                 if ( ! first ) {
                     cmd.append( ',' );
                 }
@@ -91,6 +142,11 @@ public class JDBCFormatter {
                .append( colName )
                .append( ' ' )
                .append( tName );
+                if ( sqlType == Types.VARCHAR ) {
+                    cmd.append( '(' )
+                       .append( charSizes[ icol ] )
+                       .append( ')' );
+                }
             }
         }
         cmd.append( " )" );
@@ -128,11 +184,8 @@ public class JDBCFormatter {
                     if ( sqlTypes[ icol ] != Types.NULL ) {
                         pix++;
                         Object val = row[ icol ];
-                        if ( val instanceof Float && 
-                             Float.isNaN( ((Float) val).floatValue() ) ||
-                             val instanceof Double &&
-                             Double.isNaN( ((Double) val).doubleValue() ) ) {
-                            pstmt.setObject( pix, "NULL" );
+                        if ( Tables.isBlank( val ) ) {
+                            pstmt.setObject( pix, null );
                         }
                         else {
                             // pstmt.setObject( pix, row[ icol ],
@@ -248,6 +301,29 @@ public class JDBCFormatter {
              types.containsKey( fallbackKey ) ) {
             types.put( reqKey, types.get( fallbackKey ) );
         }
+    }
+
+    /**
+     * Massages a column name to make it acceptable for SQL.
+     *
+     * @param  name  initial column name
+     * @return   fixed column name (may be the same as <tt>name</tt>)
+     */
+    private static String fixColumnName( String name ) {
+
+        /* Escape special characters, replacing them with an underscore. */
+        name = name.replaceAll( "[\\s\\.\\(\\)\\[\\]\\-\\+]+", "_" );
+
+        /* Trim extra-long column names. */
+        if ( name.length() > 64 ) {
+            name = name.substring( 0, 60 );
+        }
+
+        /* Replace reserved words.  This list is not complete. */
+        if ( SQL_RESERVED.contains( name.toUpperCase() ) ) {
+            name = name + "_";
+        }
+        return name;
     }
 
     public static void main( String[] args ) throws IOException, SQLException {
