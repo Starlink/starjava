@@ -208,7 +208,22 @@
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
   </extclasspath>
 
+  <!-- Local third party jars. Normally these will be kept in their
+   !   own third party package, but may be kept here temporarily, so
+   !   if there are version conflicts that cannot be addressed.
+   !   They are installed with the package jar files and should be
+   !   entered into the main jar file manifest.
+   !-->
+  <path id="package.jars">
+     <fileset dir="${src.jars.dir}">
+        <include name="*.jar"/>
+     </fileset>
+  </path>
+
   <path id="built.classpath">
+
+    <!-- Local third party jars -->
+    <path refid="package.jars"/>
 
     <!-- All locally built classes -->
     <dirset dir="${star.build.dir}">
@@ -347,6 +362,15 @@
       <fileset dir="${src.dir}/resources"/>
     </copy>
 
+    <!-- Local third party jars, if any. Copy straight into
+     !   distribution directories to save on unnecessary copies and to
+     !   make these available for resolution by other locally built
+     !   packages that are using this one -->
+    <mkdir dir="${dist.lib.pkg}"/>
+    <copy todir="${dist.lib.pkg}">
+       <fileset dir="${src.jars.dir}"/>
+    </copy>
+
   </target>
 
   <!--
@@ -369,9 +393,11 @@
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <manifest>
+        <attribute name="Main-Class" 
+                   value="uk.ac.starlink.table.view.TableViewer"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="../util/util.jar ../votable/votable.jar ../fits/fits.jar"/>
+                   value="plot.jar ../util/util.jar ../votable/votable.jar ../fits/fits.jar ../mirage/mirage.jar"/>
       </manifest>
     </jar>
 
