@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="TOPCAT"/>
   <property name="name" value="topcat"/>
-  <property name="version" value="0.5b"/>
+  <property name="version" value="0.5-1"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.topcat"/>
@@ -396,6 +396,10 @@
     <copy todir="${build.classes}">
       <fileset dir="${src.dir}/resources"/>
     </copy>
+
+    <!-- Version string. -->
+    <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
+          message="${version}"/>
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to

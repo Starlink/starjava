@@ -12,6 +12,8 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
@@ -50,9 +52,12 @@ public class AuxWindow extends JFrame {
 
     private Action helpAct;
 
+    private static String[] about;
+    private static String version;
     private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
     private static final Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat" );
+    public static final String VERSION_RESOURCE = "version-string";
 
     /**
      * Constructs an AuxWindow based on a <tt>StarTable</tt>.
@@ -166,15 +171,7 @@ public class AuxWindow extends JFrame {
         /* Add an About action. */
         Action aboutAct = new AbstractAction( "About TOPCAT" ) {
             public void actionPerformed( ActionEvent evt ) {
-                Object[] message = new Object[] {
-                    "TOPCAT",
-                    "Tool for OPerations on Catalogues And Tables",
-                    "Version 0.5b",
-                    "Copyright " + '\u00a9' + 
-                    " Central Laboratory of the Research Councils",
-                    "Authors: Mark Taylor (Starlink)",
-                };
-                JOptionPane.showMessageDialog( AuxWindow.this, message,
+                JOptionPane.showMessageDialog( AuxWindow.this, getAbout(),
                                                "About TOPCAT",
                                                JOptionPane.INFORMATION_MESSAGE,
                                                ResourceIcon.TOPCAT_LOGO );
@@ -265,6 +262,63 @@ public class AuxWindow extends JFrame {
 
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
+    }
+
+    /**
+     * Returns the "About" message.  It's an array of strings, one per line.
+     *
+     * @return  informational message about TOPCAT
+     */
+    private static String[] getAbout() {
+        if ( about == null ) {
+            about = new String[] {
+                "TOPCAT",
+                "Tool for OPerations on Catalogues And Tables",
+                "Version " + getVersion(),
+                "Copyright " + '\u00a9' + 
+                " Central Laboratory of the Research Councils",
+                "Authors: Mark Taylor (Starlink)",
+            };
+        }
+        return about;
+    }
+
+    /**
+     * Returns the version string for this copy of TOPCAT.
+     *
+     * @return  version number only
+     */
+    public static String getVersion() {
+        if ( version == null ) {
+            InputStream strm = null;
+            try {
+                strm = AuxWindow.class.getResourceAsStream( VERSION_RESOURCE );
+                if ( strm != null ) {
+                    StringBuffer sbuf = new StringBuffer();
+                    for ( int b; ( b = strm.read() ) > 0; ) {
+                        sbuf.append( (char) b );
+                    }
+                    version = sbuf.toString().trim();
+                }
+            }
+            catch ( IOException e ) {
+            }
+            finally {
+                if ( strm != null ) {
+                    try {
+                        strm.close();
+                    }
+                    catch ( IOException e ) {
+                    }
+                }
+            }
+            if ( version == null ) {
+                logger.warning( "Couldn't load version string from " 
+                              + VERSION_RESOURCE );
+                version = "?";
+            }
+        }
+        return version;
     }
 
     /**

@@ -12,4 +12,9 @@ public class ResourceTest extends TestCase {
     public void testResourceIcon() throws FileNotFoundException {
         ResourceIcon.checkResourcesPresent();
     }
+
+    public void testVersionString() {
+        String version = AuxWindow.getVersion();
+        assertTrue( version.matches( "^[0-9].*" ) );
+    }
 }
