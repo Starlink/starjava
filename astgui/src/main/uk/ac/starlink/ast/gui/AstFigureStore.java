@@ -25,7 +25,7 @@ import uk.ac.starlink.diva.DrawFigure;
 import uk.ac.starlink.diva.DrawFigureStore;
 import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
 import uk.ac.starlink.util.SourceReader;
- 
+
 /**
  * A subclass of {@link DrawFigureStore} that adds functionality to store and
  * restore the current AST context along with the properties of a set of
@@ -62,7 +62,7 @@ public class AstFigureStore
      * @param tagName the name of the tag (root element) that contains figures
      *                that can be restored by this object.
      */
-    public AstFigureStore( AstPlotSource plotSource, String application, 
+    public AstFigureStore( AstPlotSource plotSource, String application,
                            String storeFile, String tagName )
     {
         super( application, storeFile, tagName );
@@ -91,23 +91,23 @@ public class AstFigureStore
         String name = null;
         AstFigureProps props = null;
         DrawFigure figure = null;
-        Mapping mapping = null;
+        Mapping oldMapping = null;
+        Mapping newMapping = (Mapping) plotSource.getPlot();
 
         for ( int i = 0; i < size; i++ ) {
             props = new AstFigureProps();
             element = (Element) children.get( i );
             name = PrimitiveXMLEncodeDecode.getElementName( element );
             if ( PLOT_TAG.equals( name ) ) {
-                mapping = mapToPlot( restorePlot( element ) );
+                oldMapping = restorePlot( element );
             }
             if ( props.getTagName().equals( name ) ) {
-                props.decode( element, mapping );
+                props.decode( element, oldMapping, newMapping );
                 figure = figureFactory.create( props );
                 drawActions.addDrawFigure( figure );
                 figure.repaint();
             }
         }
-
     }
 
     protected void savePlot( Element rootElement )
@@ -118,7 +118,7 @@ public class AstFigureStore
                 if ( astWriter == null ) {
                     astWriter = new XAstWriter();
                 }
-                Element plotElement = 
+                Element plotElement =
                     PrimitiveXMLEncodeDecode.addChildElement( rootElement,
                                                               PLOT_TAG );
                 plotElement.setAttribute( "encoding", "AST-XML" );
@@ -149,17 +149,6 @@ public class AstFigureStore
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-        return null;
-    }
-
-    protected Mapping mapToPlot( Plot oldPlot )
-    {
-        if ( plotSource != null ) {
-            Plot plot = plotSource.getPlot();
-            if ( plot != null ) {
-                return (Mapping) oldPlot.convert( plot, "" );
-            }
         }
         return null;
     }

@@ -14,6 +14,7 @@ import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.FrameSet;      // For javadocs
 import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.CmpMap;
 import uk.ac.starlink.ast.Plot;          // For javadocs
 import uk.ac.starlink.diva.FigureProps;
 import uk.ac.starlink.diva.interp.Interpolator;
@@ -22,11 +23,11 @@ import uk.ac.starlink.diva.interp.Interpolator;
  * Subclass of {@link FigureProps} that can convert a Figure between
  * coordinates systems using a {@link Mapping} when restoring from
  * an XML serialization.
-
  * <p>
  * This class is intended to be used as a replacement for {@link FigureProps}
  * is intended for use when restoring figures that are stored in some
- * coordinate system that needs modifying to align with the system now in use.
+ * coordinate system that needs modifying to align with the system now in
+ * use.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -50,39 +51,60 @@ public class AstFigureProps
         super( props );
     }
 
-    /** 
-     * Decode using a given mapping to transforming stored coordinates to 
-     * current graphics coordinates. Usually this will be a {@link FrameSet} 
-     * that is produced by combining the existing {@link Plot} with the
-     * {@link Plot} that was used when graphics where initially saved.
+    /**
+     * Decode using the given mappings to transforming stored
+     * coordinates to world coordinates, and world coordinates to
+     * current graphics coordinates.
+     * <p>
+     * Usually the oldMapping will be the {@link Plot} in force
+     * when the figures were encoded and newMapping will be the
+     * current {@link Plot}.
      */
-    public void decode( Element rootElement, Mapping mapping )
+    public void decode( Element rootElement, Mapping oldMapping,
+                        Mapping newMapping )
     {
         super.decode( rootElement );
-        if ( mapping != null ) { 
-            Rectangle2D.Double r = new Rectangle2D.Double( getX1(), getY1(), 
+        if ( oldMapping != null && newMapping != null ) {
+
+            // The existing mapping will go from Graphics to world
+            // coordinates (plot coordinates), we need the inverse.
+            newMapping.setInvert( true );
+
+            // Combine the mappings.
+            Mapping mapping = 
+                new CmpMap( oldMapping, newMapping, true ).simplify();
+
+            //  x1, y1, width and height.
+            Rectangle2D.Double r = new Rectangle2D.Double( getX1(), getY1(),
                                                            getWidth(),
                                                            getHeight() );
             transform( r, mapping );
-            setX1( r.getX() );
-            setY1( r.getY() );
-            setWidth( r.getWidth() );
-            setHeight( r.getHeight() );
+            setX1( r.x );
+            setY1( r.y );
+            setWidth( r.width );
+            setHeight( r.height );
 
-            r.setFrame( getX2(), getY2(), getWidth(), getHeight() );
+            //  x2, y2
+            r.x = getX2();
+            r.y = getY2();
             transform( r, mapping );
-            setX2( r.getX() );
-            setY2( r.getY() );
+            setX2( r.x );
+            setY2( r.y );
 
+            // Interpolator
             Interpolator i = getInterpolator();
             if ( i != null ) {
                 transform( i.getXCoords(), i.getYCoords(), mapping );
                 i.setCoords( i.getXCoords(), i.getYCoords(), true );
             }
 
+            //  xArray & yArray.
             if ( getXArray() != null ) {
                 transform( getXArray(), getYArray(), mapping );
             }
+
+            //  Switch mapping back.
+            newMapping.setInvert( false );
         }
     }
 
