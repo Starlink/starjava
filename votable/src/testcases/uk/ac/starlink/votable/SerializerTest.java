@@ -147,8 +147,6 @@ public class SerializerTest extends TestCase {
             BufferedWriter writer = 
                 new BufferedWriter( new OutputStreamWriter( bytestream ) );
 
-            writer.write( "<VOTABLE version='1.0'>" );
-            writer.newLine();
             writer.write( "<RESOURCE>" );
             writer.newLine();
 
@@ -171,19 +169,20 @@ public class SerializerTest extends TestCase {
 
             writer.write( "</RESOURCE>" );
             writer.newLine();
-            writer.write( "</VOTABLE>" );
             writer.close();
             byte[] xmltext = bytestream.toByteArray();
             // new FileOutputStream( "j" ).write( xmltext );
 
-            assertValidXML( new InputSource(
-                                new ByteArrayInputStream(
-                                    prependDeclaration( xmltext ) ) ) );
+            assertResourceValidDTD( xmltext );
+            assertResourceValidXSD( xmltext );
 
             /* Test all constructors, validating and not.  There are
              * significantly different paths through the code for each one,
              * in particular depending on whether the parse to DOM is
              * done inside or outside the VOTable package. */
+            xmltext = ( "<VOTABLE version='1.1'>\n"
+                      + new String( xmltext )
+                      + "</VOTABLE>" ).getBytes();
             List vodocs = new ArrayList();
             Document docnode1 =
                 (Document) new SourceReader()
@@ -344,6 +343,39 @@ public class SerializerTest extends TestCase {
             ( "<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>\n" +
               new String( votext ) )
            .getBytes();
+    }
+
+    private void assertResourceValidDTD( byte[] xmlbytes ) 
+            throws IOException, SAXException {
+        String doc =
+            "<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>\n" +
+            "<VOTABLE version='1.0'>" +
+            new String( xmlbytes ) +
+            "</VOTABLE>";
+        assertValidXML(
+            new InputSource( new ByteArrayInputStream( doc.getBytes() ) ) );
+    }
+
+    private void assertResourceValidXSD( byte[] xmlbytes ) throws IOException {
+        String doc = 
+            "<VOTABLE version='1.1' " +
+            " xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'" +
+            " xsi:schemaLocation='http://www.ivoa.net/xml/VOTable/v1.1" +
+                                " http://www.ivoa.net/xml/VOTable/v1.1'" +
+            " xmlns='http://www.ivoa.net/xml/VOTable/v1.1'>\n" +
+            new String( xmlbytes ) +
+            "</VOTABLE>";
+
+        try {
+            assertTrue( VOTableSchema.getSchema( "1.1" ).newVerifier()
+                       .verify( new InputSource( 
+                                    new ByteArrayInputStream( 
+                                        doc.getBytes() ) ) ) );
+        }
+        catch ( Exception e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
     }
 
     private static class RowStore implements TableSink {
