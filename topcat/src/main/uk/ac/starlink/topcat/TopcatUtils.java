@@ -48,6 +48,14 @@ public class TopcatUtils {
                               "Algebraic expression for column value" );
 
     /**
+     * Parameter key for storing an activation action for a table.
+     */
+    public final static ValueInfo ACTIVATORS_INFO =
+        new DefaultValueInfo( "topcat-activation", String.class,
+                              "Action which can be performed " +
+                              "on row activation" );
+
+    /**
      * Returns the 'base description' of a column info.  This is the same
      * as the description, except for synthetic columns, where it
      * doesn't contain a respresentation of the algebraic expression.

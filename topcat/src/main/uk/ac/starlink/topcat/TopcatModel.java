@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompilationException;
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -10,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -57,6 +59,7 @@ public class TopcatModel {
     private final ColumnList columnList;
     private final OptionsListModel subsets;
     private final Map subsetCounts;
+    private final OptionsListModel activators;
     private final ComboBoxModel sortSelectionModel;
     private final ComboBoxModel subsetSelectionModel;
     private final ButtonModel sortSenseModel;
@@ -158,6 +161,23 @@ public class TopcatModel {
         /* Set up a dummy row activator. */
         activator = Activator.NOP;
 
+        /* If there are any activation strings stored in the table, 
+         * pull them out and store them. */
+        activators = new OptionsListModel();
+        DescribedValue actVal = 
+            startab.getParameterByName( TopcatUtils.ACTIVATORS_INFO.getName() );
+        if ( actVal != null ) {
+            Object av = actVal.getValue();
+            if ( av instanceof String ) {
+                activators.add( av );
+            }
+            else if ( av instanceof String[] ) {
+                for ( int i = 0; i < ((String[]) av).length; i++ ) {
+                    activators.add( ((String[]) av)[ i ] );
+                }
+            }
+        }
+
         /* Create and configure window actions. */
         viewerAct = new TopcatWindowAction( 
                            "Table browser", ResourceIcon.VIEWER,
@@ -254,6 +274,17 @@ public class TopcatModel {
         if ( ! equalObject( activator, this.activator ) ) {
             this.activator = activator;
 
+            /* Reflect the change in the bound table parameter (so it can
+             * be serialized). */
+            if ( activator != null && activator != Activator.NOP ) {
+                List params = dataModel.getParameters();
+                params.remove( dataModel
+                              .getParameterByName( TopcatUtils.ACTIVATORS_INFO
+                                                  .getName() ) );
+                params.add( new DescribedValue( TopcatUtils.ACTIVATORS_INFO,
+                                                activator.toString() ) );
+            }
+
             /* Notify listeners. */
             fireModelChanged( TopcatListener.ACTIVATOR );
         }
@@ -266,6 +297,38 @@ public class TopcatModel {
      */
     public Activator getActivator() {
         return activator;
+    }
+
+    /**
+     * Returns the list which contains a list of the known activators for
+     * this table.  The elements of the list are strings which can be 
+     * turned into Activator objects using the {@link #makeActivator} method.
+     *
+     * @return  list of activator strings which may come in useful for 
+     *          this table
+     */
+    public OptionsListModel getActivatorList() {
+        return activators;
+    }
+
+    /**
+     * Gets an activator object from a string representation of one.
+     * This usually involves compiling it using JEL, so it can result in a
+     * CompilationException.
+     *
+     * @param  actstr  string representation of the activator
+     * @return  activator object corresponding to <tt>actstr</tt>
+     */
+    public Activator makeActivator( String actstr )
+            throws CompilationException {
+        if ( actstr == null || 
+             actstr.trim().length() == 0 ||
+             actstr.equals( Activator.NOP.toString() ) ) {
+            return Activator.NOP;
+        }
+        else {
+            return new JELActivator( this, actstr );
+        }
     }
 
     /**

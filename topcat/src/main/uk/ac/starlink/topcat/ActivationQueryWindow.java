@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -193,15 +194,17 @@ public class ActivationQueryWindow extends QueryWindow {
     /** 
      * Factory implementation for the user to enter custom JEL code.
      */
-    private class JELActivatorFactory extends ActivatorFactory
-                                      implements ActionListener {
+    private class JELActivatorFactory extends ActivatorFactory {
         JComponent qcomp_;
-        JTextField codeField_;
+        JComboBox codeField_;
 
         JELActivatorFactory() {
             super( "Execute Custom Code: " );
-            codeField_ = new JTextField( 24 );
-            codeField_.addActionListener( this );
+            codeField_ = tcModel_.getActivatorList().makeComboBox();
+            codeField_.setEditable( true );
+            codeField_.validate();
+            codeField_.setMinimumSize( 
+                new Dimension( 200, codeField_.getHeight() ) );
             queryPanel_.add( codeField_ );
         }
 
@@ -210,9 +213,15 @@ public class ActivationQueryWindow extends QueryWindow {
         }
 
         Activator makeActivator() {
-            String expr = codeField_.getText();
+            Object sel = codeField_.getSelectedItem();
+            String expr = sel == null ? null : sel.toString();
             try {
-                return new JELActivator( tcModel_, expr );
+                Activator activ = tcModel_.makeActivator( expr );
+                OptionsListModel actlist = tcModel_.getActivatorList();
+                if ( ! actlist.contains( expr ) ) {
+                    actlist.add( expr );
+                }
+                return activ;
             }
             catch ( CompilationException e ) {
                 Object msg = new String[] {
@@ -224,10 +233,6 @@ public class ActivationQueryWindow extends QueryWindow {
                                                JOptionPane.ERROR_MESSAGE );
                 return null;
             }
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            invokeOK();
         }
     }
 
