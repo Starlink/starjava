@@ -337,7 +337,7 @@ public class SplatBrowser
     /**
      *  Initialise all visual components.
      */
-    protected void initComponents()
+    private void initComponents()
     {
         //  Set up the content pane and window size.
         contentPane = (JPanel) getContentPane();
@@ -406,7 +406,7 @@ public class SplatBrowser
     /**
      *  Setup the menus and toolbar.
      */
-    protected void setupMenusAndToolbar()
+    private void setupMenusAndToolbar()
     {
         //  Add the menuBar.
         this.setJMenuBar( menuBar );
@@ -444,7 +444,7 @@ public class SplatBrowser
     /**
      * Create the File menu and populate it with appropriate actions.
      */
-    protected void createFileMenu()
+    private void createFileMenu()
     {
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
@@ -529,7 +529,7 @@ public class SplatBrowser
     /**
      * Create the Edit menu and populate it with appropriate actions.
      */
-    protected void createEditMenu()
+    private void createEditMenu()
     {
         JMenu editMenu = new JMenu( "Edit" );
         menuBar.add( editMenu );
@@ -610,7 +610,7 @@ public class SplatBrowser
     /**
      * Create the View menu and populate it with appropriate actions.
      */
-    protected void createViewMenu()
+    private void createViewMenu()
     {
         JMenu viewMenu = new JMenu( "View" );
         menuBar.add( viewMenu );
@@ -678,7 +678,7 @@ public class SplatBrowser
     /**
      * Create the Options menu and populate it with appropriate actions.
      */
-    protected void createOptionsMenu()
+    private void createOptionsMenu()
     {
 
         JMenu optionsMenu = new JMenu( "Options" );
@@ -1351,10 +1351,10 @@ public class SplatBrowser
         //  dispersion and collapse axes....
         SpecData[] moreSpectra = null;
         try {
-            //moreSpectra = specDataFactory.reprocessTo1D
-            //    ( spectrum, SpecDataFactory.COLLAPSE, -1, -1 );
             moreSpectra = specDataFactory.reprocessTo1D
-                ( spectrum, SpecDataFactory.EXPAND, -1, -1 );
+                ( spectrum, SpecDataFactory.COLLAPSE, -1, -1 );
+            //moreSpectra = specDataFactory.reprocessTo1D
+            //    ( spectrum, SpecDataFactory.EXPAND, -1, -1 );
         }
         catch (SplatException e) {
             JOptionPane.showMessageDialog
@@ -1741,7 +1741,6 @@ public class SplatBrowser
     {
         int[] indices = getSelectedSpectra();
         if ( indices != null ) {
-            SpecData spec = null;
 
             //  Do in reverse to avoid changes of index.
             for ( int i = indices.length - 1; i >= 0; i-- ) {
@@ -1777,7 +1776,6 @@ public class SplatBrowser
         return null;
     }
 
-    private int plotProgress = 0;
     /**
      * Display a spectrum in a new plot.
      *
