@@ -3,6 +3,7 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -14,7 +15,7 @@ public class XMLDocumentDataNode extends XMLDataNode {
     private String desc;
 
     public XMLDocumentDataNode( File file ) throws NoSuchDataException {
-        super( makeDomNode( file ), 
+        super( getDocumentNode( makeDomSource( file ) ), 
                file.getName(),
                "DOC",
                "XML document",
@@ -40,19 +41,49 @@ public class XMLDocumentDataNode extends XMLDataNode {
                "" );
     }
 
+    public XMLDocumentDataNode( Source xsrc ) throws NoSuchDataException {
+        this( getDocumentNode( xsrc ) );
+    }
+        
+
     public String getDescription() {
         return desc;
     }
 
-    public static Node makeDomNode( File file ) throws NoSuchDataException {
+    public static DOMSource makeDomSource( File file )
+            throws NoSuchDataException {
         SourceReader sr = new SourceReader();
         Source xsrc = new StreamSource( file );
         try {
-            return sr.getDOM( xsrc );
+            Node domnode = sr.getDOM( xsrc );
+            DOMSource dsrc = new DOMSource( domnode );
+            dsrc.setSystemId( file.toString() );
+            return dsrc;
         }
         catch ( TransformerException e ) {
             throw new NoSuchDataException( "Couldn't get Node from file "
                                          + file, e );
         }
+    }
+
+    public static Document getDocumentNode( Source xsrc ) 
+            throws NoSuchDataException {
+        SourceReader sr = new SourceReader();
+        try {
+            Node domnode = sr.getDOM( xsrc );
+            if ( domnode instanceof Document ) {
+                return (Document) domnode;
+            }
+            else {
+                throw new NoSuchDataException( "Not a document node" );
+            }
+        }
+        catch ( TransformerException e ) {
+            throw new NoSuchDataException( e );
+        }
+    }
+
+    public static boolean isMagic( byte[] magic ) {
+        return new String( magic ).startsWith( "<?xml" );
     }
 }
