@@ -28,6 +28,7 @@ import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -645,10 +646,6 @@ public class ControlWindow extends AuxWindow
                     }
                 }
                 break;
-
-            /* Unknown model event?? */
-            default:
-                assert false;
         }
     }
 
