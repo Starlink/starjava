@@ -28,10 +28,13 @@ To build ANT with the new targets you need to do:
 
 (either add "-Dstar.dir=..." to the command-line or add "star.dir=..." 
 to your $HOME/.stardev.properties file if you want your installation
-to be different to "../.."). This should install a version of ANT
-ready to build our real sources. Remember to add the new installation
-bin directory to your PATH before proceeding (if you don't do this
-you'll start getting messages about unknown tasks at some point).
+to be different to "../.."). This should build and install a version
+of ANT (in "../../bin" by default) ready to build our real sources.
+
+To use this new version of ANT you need to add the directory that the
+ant script has been installed ("../../bin") to your PATH. If you don't
+do this you'll start getting messages about unknown tasks (like
+extclasspath) at some point.
 
 The new files added to this release are:
 
