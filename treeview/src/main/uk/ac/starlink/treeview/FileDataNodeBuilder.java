@@ -7,14 +7,18 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.util.ArrayDataInput;
 import nom.tam.util.BufferedDataInputStream;
+import org.w3c.dom.Node;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.util.SourceReader;
 
 /**
  * A DataNodeBuilder which tries to build a DataNode from a File object.
@@ -128,15 +132,15 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             }
 
             /* XML file? */
-            if ( XMLDocumentDataNode.isMagic( magic ) ) {
-                DOMSource xsrc = XMLDocumentDataNode.makeDomSource( file );
+            if ( XMLDataNode.isMagic( magic ) ) {
+                DOMSource xsrc = makeDomSource( file );
                 try {
                     DataNode dn = new NdxDataNode( xsrc );
                     dn.setLabel( file.getName() );
                     return dn;
                 }
                 catch ( NoSuchDataException e ) {
-                    DataNode dn = new XMLDocumentDataNode( xsrc );
+                    DataNode dn = new XMLDataNode( xsrc );
                     dn.setLabel( file.getName() );
                     return dn;
                 }
@@ -173,6 +177,22 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
     public String toString() {
         return "special DataNodeBuilder (java.io.File)";
+    }
+
+    public static DOMSource makeDomSource( File file )
+            throws NoSuchDataException {
+        SourceReader sr = new SourceReader();
+        Source xsrc = new StreamSource( file );
+        try {
+            Node domnode = sr.getDOM( xsrc );
+            DOMSource dsrc = new DOMSource( domnode );
+            dsrc.setSystemId( file.toString() );
+            return dsrc;
+        }
+        catch ( TransformerException e ) {
+            throw new NoSuchDataException( "Couldn't get Node from file "
+                                         + file, e );
+        }
     }
 
 }

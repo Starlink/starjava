@@ -19,10 +19,6 @@ import java.text.*;
  * <li> {@link HistoryDataNode}
  * <li> {@link HDSDataNode}
  * <li> {@link FITSDataNode}
- * <li> {@link XMLDocumentDataNode}
- * <li> {@link XMLElementDataNode}
- * <li> {@link XMLCommentDataNode}
- * <li> {@link XMLTextDataNode}
  * <li> {@link XMLDataNode}
  * <li> {@link ZipFileDataNode}
  * <li> {@link FileDataNode}
@@ -322,10 +318,6 @@ public class DataNodeFactory implements Cloneable {
                 HDSDataNode.class,
                 FITSDataNode.class,
                 NdxDataNode.class,
-                XMLDocumentDataNode.class,
-                XMLElementDataNode.class,
-                XMLCommentDataNode.class,
-                XMLTextDataNode.class,
                 XMLDataNode.class,
                 ZipFileDataNode.class,
                 NDArrayDataNode.class,

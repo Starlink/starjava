@@ -52,7 +52,7 @@ public class Driver {
         }
         nodeTypeFlags.put( "-zip", ZipFileDataNode.class );
         nodeTypeFlags.put( "-fit", FITSDataNode.class );
-        nodeTypeFlags.put( "-xml", XMLDocumentDataNode.class );
+        nodeTypeFlags.put( "-xml", XMLDataNode.class );
         // nodeTypeFlags.put( "-hdx", HDXContainerDataNode.class );
         nodeTypeFlags.put( "-ndx", NdxDataNode.class );
         nodeTypeFlags.put( "-nda", NDArrayDataNode.class );
