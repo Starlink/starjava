@@ -33,7 +33,6 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
@@ -49,7 +48,6 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.Loader;
 
 /**

@@ -6,11 +6,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.ComboBoxModel;
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A table load dialogue which interrogates the user about an SQL query on 
