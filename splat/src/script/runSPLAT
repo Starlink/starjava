@@ -1,5 +1,6 @@
-
-#  N.B. the previous line should be blank.
+#!/bin/sh
+#  N.B. the previous line should be blank. 
+#  But not if you want to exec it from Java!
 #+
 #  Name:
 #     splat
