@@ -76,20 +76,25 @@ public class SplatBrowserMain
         Properties props = System.getProperties();
 
         // Locate the line identifiers.
-        File sdir = Loader.starjavaDirectory();
-        if ( sdir != null ) {
-            String stardir = sdir.toString() + File.separatorChar;
-            if ( ! props.containsKey( "splat.etc" ) ) {
-                props.setProperty( "splat.etc", stardir + "etc" );
+        try {
+            File sdir = Loader.starjavaDirectory();
+            if ( sdir != null ) {
+                String stardir = sdir.toString() + File.separatorChar;
+                if ( ! props.containsKey( "splat.etc" ) ) {
+                    props.setProperty( "splat.etc", stardir + "etc" );
+                }
+            }
+            if ( props.containsKey( "splat.etc" ) ) {
+                String etcdir = props.getProperty( "splat.etc" );
+                props.setProperty( "splat.etc.ids", etcdir +
+                                   File.separatorChar + "splat" +
+                                   File.separatorChar + "ids" );
             }
         }
-        if ( props.containsKey( "splat.etc" ) ) {
-            String etcdir = props.getProperty( "splat.etc" );
-            props.setProperty( "splat.etc.ids", etcdir +
-                               File.separatorChar + "splat" +
-                               File.separatorChar + "ids" );
+        catch (Exception e) {
+            System.err.println( "Failed to load line identifiers" );
         }
-
+            
         //  Web service defaults.
         if ( ! props.containsKey( "axis.EngineConfigFactory" ) ) {
             props.setProperty( "axis.EngineConfigFactory",
