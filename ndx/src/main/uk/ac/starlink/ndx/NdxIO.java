@@ -80,26 +80,26 @@ public class NdxIO {
             catch ( ClassNotFoundException e ) {
                 logger.config( className + " not found - can't register" );
             }
-            catch ( InvocationTargetException e ) {
 
-                /* A LinkageError probably means that the native libraries are
-                 * not available.  In this case, try to invoke the
-                 * HDSPackage.isAvailable method to do logging in a standard
-                 * way.  If that doesn't work though, log it directly. */
-                if ( e.getTargetException() instanceof LinkageError ) {
-                    try {
-                        Class.forName( "uk.ac.starlink.hds.HDSPackage" )
-                             .getMethod( "isAvailable", noParams )
-                             .invoke( null, noArgs );
-                    }
-                    catch ( Exception e2 ) {
-                        logger.config( className + " " + e2 +
-                                       " - can't register" );
-                    }
+            /* A LinkageError probably means that the native libraries are
+             * not available.  In this case, try to invoke the
+             * HDSPackage.isAvailable method to do logging in a standard way. */
+            catch ( LinkageError e ) {
+                try {
+                    Class.forName( "uk.ac.starlink.hds.HDSPackage" )
+                         .getMethod( "isAvailable", noParams )
+                         .invoke( null, noArgs );
                 }
-                else {
-                    logger.config( className + " " + e + " - can't register" );
+                catch ( Exception e2 ) {
+                    logger.config( className + " " + e2 +
+                                   " - can't register" );
                 }
+            }
+
+            /* Any other error, just log it directly. */
+            catch ( InvocationTargetException e ) {
+                logger.config( className + " " + e.getTargetException() 
+                             + " - can't register" );
             }
             catch ( Exception e ) {
                 logger.config( className + " " + e + " - can't register" );
