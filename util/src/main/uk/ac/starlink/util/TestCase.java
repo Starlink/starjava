@@ -1,9 +1,14 @@
 package uk.ac.starlink.util;
 
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.Random;
 import java.net.URL;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -13,6 +18,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import junit.framework.AssertionFailedError;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 
 /**
@@ -884,6 +892,93 @@ public class TestCase extends junit.framework.TestCase {
         assert n == null;
 
         return null;            // found nothing
+    }
+
+    /**
+     * Asserts that the contents of a stream are valid XML.
+     * The stream is passed through a validating XML parser.
+     * Badly-formed XML, or failure to conform to any DTD or schema
+     * referenced in the 
+     * document's declaration will result in a SAXParseException.
+     * The stream will be closed following the (successful or unsuccessful)
+     * parsing and validation.
+     *
+     * @param  message  message associated with assertion failure
+     * @param  strm  input stream containing an XML document
+     * @throws  IOException  if there is an error reading <tt>strm</tt>
+     * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
+     *                        or invalid
+     */
+    public void assertValidXML( String message, InputStream strm )
+            throws IOException, SAXException {
+        final String prefix = message == null ? "" : ( message + ": " );
+
+        /* Obtain a validating parser. */
+        SAXParser parser;
+        try {
+            SAXParserFactory sfact = SAXParserFactory.newInstance();
+            sfact.setValidating( true );
+            parser = sfact.newSAXParser();
+        }
+        catch ( ParserConfigurationException e ) {
+            throw new RuntimeException( prefix + "Unexpected failure to get " +
+                                        "validating SAX parser", e );
+        }
+        assertTrue( "Check parser is validating", parser.isValidating() );   
+
+        /* Set up a handler which rethrows parse errors as 
+         * AssertionFailedErrors.  If a custom handler along these lines
+         * is not used then validation errors are simply ignored. */
+        DefaultHandler handler = new DefaultHandler() {
+            public void warning( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            public void error( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            public void fatalError( SAXParseException e ) throws SAXException {
+                rethrow( e );
+            }
+            private void rethrow( SAXParseException e ) throws SAXException {
+                StringBuffer sbuf = new StringBuffer();
+                sbuf.append( "Parse error" )
+                    .append( e.getMessage() );
+                String sysid = e.getSystemId();
+                if ( sysid != null && sysid.length() > 0 ) {
+                    sbuf.append( " in " + sysid );
+                }
+                sbuf.append( " at line " + e.getLineNumber() );
+                sbuf.append( " column " + e.getColumnNumber() );
+                throw new SAXException( sbuf.toString(), e );
+            }
+        };
+
+        /* Do the parse. */
+        try {
+            parser.parse( strm, handler );
+        }
+        finally {
+            strm.close();
+        }
+    }
+
+    /**
+     * Asserts that the contents of a stream are valid XML.
+     * The stream is passed through a validating XML parser.
+     * Badly-formed XML, or failure to conform to any DTD or schema
+     * referenced in the 
+     * document's declaration will result in a SAXParseException.
+     * The stream will be closed following the (successful or unsuccessful)
+     * parsing and validation.
+     *
+     * @param  strm  input stream containing an XML document
+     * @throws  IOException  if there is an error reading <tt>strm</tt>
+     * @throws  SAXException  if the document in <tt>strm</tt> is badly-formed
+     *                        or invalid
+     */
+    public void assertValidXML( InputStream strm ) 
+            throws IOException, SAXException {
+        assertValidXML( null, strm );
     }
     
     /**

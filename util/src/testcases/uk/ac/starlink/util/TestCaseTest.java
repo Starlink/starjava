@@ -3,16 +3,20 @@ package uk.ac.starlink.util;
 import junit.framework.AssertionFailedError;
 
 import java.util.Iterator;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.TransformerException;
-
+import junit.framework.AssertionFailedError;
+import org.xml.sax.SAXException;
 import org.w3c.dom.*;
 
 /**
  * Tests assertDOMEquals and assertSourceEquals
  *
  * @author   Norman Gray (Starlink)
+ * @author   Mark Taylor (Starlink)
  */
 public class TestCaseTest extends TestCase {
 
@@ -97,5 +101,28 @@ public class TestCaseTest extends TestCase {
     private Element StringToDom(String s) 
             throws TransformerException {
         return srcrdr.getElement(new StreamSource(new StringReader(s)));
+    }
+
+    public void testValidation() throws IOException, SAXException {
+        String decl = new StringBuffer()
+            .append( "<?xml version='1.0'?>" )
+            .append( "<!DOCTYPE animal [" )
+            .append( "<!ELEMENT animal EMPTY>" )
+            .append( "<!ATTLIST animal species CDATA #REQUIRED>" )
+            .append( "]>" )
+            .toString();
+        validateString( decl + "<animal species='rabbit'/>" );
+        try {
+            validateString( decl + "<animal species='cow' name='daisy'/>" );
+            fail( "Parse should have failed" );
+        }
+        catch ( SAXException e ) {
+            // ok
+        }
+    }
+
+    private void validateString( String text )
+            throws IOException, SAXException {
+        assertValidXML( new ByteArrayInputStream( text.getBytes() ) );
     }
 }
