@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   VO build file
  !
- !   This file describes how to build and install {Package} from
- !   source and binary releases. {Package} is a class library
+ !   This file describes how to build and install VO from
+ !   source and binary releases. VO is a class library
  !   (i.e. provides an API and related documentation).
  !
  !   The main targets are:
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for VO" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,12 +77,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="VO"/>
+  <property name="name" value="vo"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.vo"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -176,6 +176,7 @@
 
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
+  <taskdef resource="axis-tasks.properties" classpathref="classpath"/>
 
   <!--
    !   =========
@@ -201,11 +202,11 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
+    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+    <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -215,12 +216,11 @@
    !-->
   <extclasspath id="built.jarpath">
 
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
+    <pathelement location="${star.build.dir}/axis/lib/axis/axis.jar"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
+    <pathelement location="${star.build.dir}/votable/lib/votable/votable.jar"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -231,9 +231,11 @@
    !   should be entered into the main jar file manifest.
    !-->
   <path id="package.jars">
+ <!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
+  -->
   </path>
 
   <!-- Create the local build system CLASSPATH.
@@ -343,22 +345,30 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
+    <!-- AXIS -->
+    <available property="axis.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+               classname="org.apache.axis.client.Service"/>
+    <fail message="No AXIS available" unless="axis.present"/>
 
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
+    <!-- UTIL -->
+    <available property="util.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
+               classname="uk.ac.starlink.util.CgiQuery"/>
+    <fail message="No UTIL available" unless="util.present"/>
 
-    <fail message="No {package2} available" unless="{package2}.present"/>
+    <!-- TABLE -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No TABLE available" unless="table.present"/>
 
-    <!-- {More critical dependencies} -->
-
+    <!-- VOTABLE -->
+    <available property="votable.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.votable.VOElementFactory"/>
+    <fail message="No VOTABLE available" unless="votable.present"/>
+ 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
                classpathref="classpath"
@@ -403,12 +413,12 @@
    !  copied into place here.
    !-->
   <target name="build"
-          depends="prepare, check_packages"
+          depends="prepare, check_packages, ws_sources"
           unless="runonly.install"
           description="-> compiles the source code">
 
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${java.dir}"
+    <javac srcdir="${java.dir}:${build.java}"
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
@@ -419,30 +429,49 @@
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
       <exclude name="**/*.html"/>
       <exclude name="**/*.properties*"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+ <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
-        <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+  -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
+ <!--
     <mkdir dir="${dist.lib.pkg}"/>
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+  -->
 
+  </target>
+
+  <!--
+   !   =================================
+   !   Build web service support sources
+   !   =================================
+   !
+   !   Assembles and compiles source for classes obtained automatically 
+   !   from remote WSDL descriptions of web services.
+   !-->
+  <target name="ws_sources"
+          depends="prepare, check_packages"
+          unless="runonly.install"
+          description="-> acquires web service definition java source files">
+
+    <mkdir dir="${build.java}"/>
+    <axis-wsdl2java output="${build.java}" 
+                    url="http://nvo.stsci.edu/voregistry/registry.asmx?WSDL"/>
   </target>
 
   <!--
@@ -462,20 +491,31 @@
           description="-> creates the package jar file(s)">
 
     <mkdir dir="${dist.lib.pkg}"/>
+
     <jar destfile="${dist.lib.pkg}/${name}.jar"
-         basedir="${build.classes}">
+         basedir="${build.classes}"
+         includes="uk/**">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
 
+    <jar destfile="${dist.lib.pkg}/nvo-registry.jar"
+         basedir="${build.classes}"
+         excludes="uk/**">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+
     <!-- Sign all jar files -->
-    <signjar jar="${dist.lib.pkg}/${name}.jar"
-             alias="${webstart.alias}"
+    <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib.pkg}" includes="*.jar"/>
+    </signjar>
 
   </target>
 
@@ -494,11 +534,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>VO - Classes for access to some VO services</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink VO - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -511,10 +551,12 @@
 
          <!-- Define the main library jar file -->
          <jar href="${name}/${name}.jar"/>
+         <jar href="${name}/nvo-registry.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+         <extension name="AXIS" href="axis.jnlp"/>
+         <extension name="VOTABLE" href="votable.jnlp"/>
+ 
        </resources>
 
        <!-- This is a component -->
@@ -552,24 +594,30 @@
     <mkdir dir="${dist.etc.pkg}"/>
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+ -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+ <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+ -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+ <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+ -->
 
   </target>
 
@@ -777,11 +825,13 @@
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
+ <!--
     <chmod perm="ugo+rx" failonerror="${chmod.fail}">
       <fileset dir="${star.bin}">
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
+ -->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
