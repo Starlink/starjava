@@ -24,9 +24,9 @@
 
 #  Find where this script is located.  We normally find this out by
 #  looking at where we were invoked from, but this can be overridden
-#  by setting TREEVIEW_DIR (necessary if invocation is from another
+#  by setting TOPCAT_DIR (necessary if invocation is from another
 #  directory because of filesystem links).
-if test -z "$TREEVIEW_DIR"
+if test -z "$TOPCAT_DIR"
 then
     bindir="`dirname $0`"
 else
