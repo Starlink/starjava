@@ -11,7 +11,7 @@ import org.apache.axis.Handler;
 import org.apache.axis.handlers.soap.SOAPService;
 import org.apache.axis.encoding.TypeMappingRegistry;
 
-import javax.xml.rpc.namespace.QName;
+import javax.xml.namespace.QName;
 
 import java.io.InputStream;
 import java.util.Hashtable;
