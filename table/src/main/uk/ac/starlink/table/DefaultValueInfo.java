@@ -172,11 +172,21 @@ public class DefaultValueInfo implements ValueInfo {
             cellEditor = null;
         }
 
+        /* Set the class. */
+        this.contentClass = contentClass;
+
         /* If the content class is not an array type, set the shape to null. */
         if ( ! isArray() ) {
             setShape( null );
         }
-        this.contentClass = contentClass;
+
+        /* If it is an array, ensure that the shape array is consistent
+         * with this. */
+        else {
+            if ( shape == null ) {
+                setShape( new int[] { -1 } );
+            }
+        }
     }
 
     public boolean isArray() {
