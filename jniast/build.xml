@@ -1034,7 +1034,7 @@
    !  documentation (FAQs etc.).
    !-->
   <target name="javadocs"
-          depends="prepare,javadoc_check"
+          depends="prepare,javadoc_check,assemble_java"
           unless="javadoc.notrequired"
           description="-> creates the API documentation">
 

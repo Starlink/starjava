@@ -47,10 +47,10 @@ import uk.ac.starlink.ast.AstObject;
  * method (which will eventually call this paint method).
  * <p>
  * Standard {@link Color} objects are encoded to an integer using
- * {@link DefaultGrf.encodeColour} method,
+ * {@link #encodeColor} method,
  * so that all colours can be represented by a unique integer
  * for passing through the Grf interface. To reconstruct a Color use the
- * {@link DefaultGrf.decodeColour} method.
+ * {@link #decodeColor} method.
  * <p>
  * In addition to the standard Grf interface this implementation also
  * offers a set of additional public methods that can be used
@@ -369,6 +369,12 @@ public class DefaultGrf
     /**
      * Return the extent of a character string.
      *
+     * <p><b>Note:</b>
+     * The text rotation and position is determined by creating an
+     * affine transformation and applying this directly to the unrotated
+     * bounding box. I hope this saves time and is faster than adding a
+     * transform to the Graphics2D object.
+     *
      * @param text Pointer to the string to be measured.
      * @param x The reference x coordinate.
      * @param y The reference y coordinate.
@@ -394,11 +400,6 @@ public class DefaultGrf
      *            negated to ensure that positive values always refer to
      *            displacements from bottom to top on the screen.
      * @return double[] the X and Y bounds
-     *
-     * @notes The text rotation and position is determined by creating an
-     *        affine transformation and applying this directly to the unrotated
-     *        bounding box. I hope this saves time and is faster than adding a
-     *        transform to the Graphics2D object.
      */
     public double[] textExtent( String text, double x, double y, String just,
                                 double upx, double upy )
@@ -1146,7 +1147,7 @@ public class DefaultGrf
      *     by the {@link DefaultGrfFontManager} class.
      * <dt>attr=GRF__COLOUR
      * <dd>integer interpreted as a 32-bit alpha-red-green-blue value,
-     *     as per the result of a {@link encodeColor} call.
+     *     as per the result of a {@link #encodeColor} call.
      *     <p>
      *     Normally bits 0-23 of the integer represent the red green
      *     and blue intensities in the usual way, and bits 24-31

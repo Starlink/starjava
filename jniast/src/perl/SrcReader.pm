@@ -174,6 +174,7 @@ sub getName {
 sub getPurpose {
    my( $purpose ) = getStanza( $_[ 0 ], "Purpose" );
    $purpose = strip( 6, $purpose );
+   $purpose =~ s/\?\s*$//;
    return $purpose;
 }
 

@@ -35,7 +35,7 @@ public class IntraMap extends Mapping implements NeedsChannelizing {
      * @param   nin    the number of input coordinates for the forward 
      *                 transformation
      *                 (or output coordinates for the inverse transformation)
-     * @para    nout   the number of output coordinates for the forward
+     * @param   nout   the number of output coordinates for the forward
      *                 transformation
      *                 (or input coordinates for the inverse transformation)
      * @throws  AstException  if an error arose in the AST library, or 

@@ -450,7 +450,7 @@ makeSetAttrib( @args );
       or <code>setColour(0xffc0c0c0)</code>, 
       and <i>not</i> <code>setColour(0xc0c0c0)</code>.
 
-      @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
+      @see uk.ac.starlink.ast.grf.DefaultGrf#attr
    }
 );
 makeGetAttribByElement( @args );
@@ -498,7 +498,7 @@ makeSetAttribByAxis( @args );
       the submitted integer is mapped to a font using the 
       {@link uk.ac.starlink.ast.grf.DefaultGrfFontManager} class.
 
-      @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
+      @see uk.ac.starlink.ast.grf.DefaultGrf#attr
    },
 );
 makeGetAttribByElement( @args );
@@ -622,7 +622,7 @@ makeSetAttrib( @args );
       The implementation of this method is determined by the current Grf
       object.
 
-      @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
+      @see uk.ac.starlink.ast.grf.DefaultGrf#attr
    }
 );
 makeGetAttribByElement( @args );
@@ -641,7 +641,7 @@ makeSetAttrib( @args );
       implement the graphics 
       (by default {@link uk.ac.starlink.ast.grf.DefaultGrf}).
 
-      @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
+      @see uk.ac.starlink.ast.grf.DefaultGrf#attr
    },
 );
 makeGetAttribByElement( @args );
@@ -704,7 +704,7 @@ makeSetAttrib( @args );
       The implementation of this method is determined by the current Grf
       object.
 
-      @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
+      @see uk.ac.starlink.ast.grf.DefaultGrf#attr
    }
 );
 makeGetAttribByElement( @args );

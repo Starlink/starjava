@@ -78,7 +78,7 @@ public interface Grf {
     public void flush() throws Exception;
 
     /**
-     * Draws a polyline (i.e. a set of connected lines).
+     * Draws a polyline (a set of connected lines).
      * Nothing should be done if <code>n</code> is less than 2, or if 
      * <code>x</code> or <code>y</code> are null.
      *

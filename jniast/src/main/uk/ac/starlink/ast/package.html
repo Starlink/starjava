@@ -198,7 +198,8 @@ to do this than to throw a fatal error.  This can make it possible to
 run (albeit with reduced functionality) on a wider range of platforms
 than would otherwise be possible.
 
-<p>To do this, code can use the {@link AstPackage#isAvailable} method,
+<p>To do this, code can use the 
+{@link uk.ac.starlink.ast.AstPackage#isAvailable} method,
 which indicates whether the requisite native code is available for use.
 If it is, then AST processing can take place as usual, but if not
 then as long as code avoids attempting to create or dereference 
