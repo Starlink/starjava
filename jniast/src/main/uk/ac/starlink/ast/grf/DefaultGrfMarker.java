@@ -80,6 +80,23 @@ public class DefaultGrfMarker
      */
     public final static int FILLEDTRIANGLE = 10;
 
+    /**
+     * Descriptions of the various types of markers. This is indexed by the
+     * public variables.
+     */
+    private final static String[] descriptions = {
+        "dot",
+        "cross",
+        "plus",
+        "square",
+        "circle",
+        "diamond",
+        "triangle",
+        "filled square",
+        "filled circle",
+        "filled diamond",
+        "filled triangle"
+    };
 
     /**
      * Draw a marker at a given position.
@@ -134,6 +151,16 @@ public class DefaultGrfMarker
         }
     }
 
+    /**
+     * Get a user presentable description of a marker.
+     *
+     * @param type the type of marker (POINT etc.).
+     * @return the marker description.
+     */
+    public static String getDescription( int type )
+    {
+        return descriptions[type];
+    }
 
     /**
      * Draw a dot, should be a point really, but is a filled square.
@@ -182,8 +209,8 @@ public class DefaultGrfMarker
     {
         double half = size * 0.5;
         Rectangle2D.Double square = new Rectangle2D.Double( x - half,
-            y - half,
-            size, size );
+                                                            y - half,
+                                                            size, size );
         g2.draw( square );
         if ( filled ) {
             g2.fill( square );
@@ -199,8 +226,8 @@ public class DefaultGrfMarker
     {
         double half = size * 0.5;
         Ellipse2D.Double circle = new Ellipse2D.Double( x - half,
-            y - half,
-            size, size );
+                                                        y - half,
+                                                        size, size );
         g2.draw( circle );
         if ( filled ) {
             g2.fill( circle );
