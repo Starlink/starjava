@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * Instances of this class know about the size and shape of fields
  * as well as their numeric type, and can decode various data sources 
  * into the objects they represent.  To construct a decoder use the
- * static {@link makeDecoder} method.
+ * static {@link #makeDecoder} method.
  * 
  * <p>The various <tt>decode</tt> methods turn some kind of representation of
  * the given object into a standard representation.  The standard
