@@ -132,7 +132,7 @@ public class FitsNdxTest extends TestCase {
          */
         assertDOMEquals( doc.getDocumentElement(), hdx.getDOM( null ),
                          null,
-                         TestCase.NO_ATTRIBUTE_VALUE | TestCase.NO_WHITESPACE);
+                         TestCase.IGNORE_ATTRIBUTE_VALUE | TestCase.IGNORE_WHITESPACE);
 
         /*
          * Check HdxFacade by extracting elements from the DOM, then
