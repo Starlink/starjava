@@ -27,6 +27,7 @@ public class VODocument extends DelegatingDocument {
     private final String systemId_;
     private final Map idMap_ = new HashMap();
     private StoragePolicy storagePolicy_ = StoragePolicy.PREFER_MEMORY;
+    private boolean strict_;
 
     /**
      * Constructs a VODocument based on a Document from an existing DOM.
@@ -35,30 +36,14 @@ public class VODocument extends DelegatingDocument {
      *         delegates
      * @param  systemId  system ID for the VOTable document represented 
      *         by this DOM (sometimes used for resolving URLs)
+     * @param  strict  whether to enforce the VOTable standard strictly
+     *         or in some cases do what is probably meant 
+     *         ({@see VOElementFactory#setStrict})
      */
-    VODocument( Document base, String systemId ) {
+    VODocument( Document base, String systemId, boolean strict ) {
         super( base, systemId );
         systemId_ = systemId;
-    }
-
-    /**
-     * Constructs a new VODocument with a specified System ID.
-     *
-     * @param  systemId  system ID for the VOTable document represented by
-     *         this DOM (sometimes used for resolving URLs) - may be null
-     */
-    public VODocument( String systemId ) {
-        super( systemId );
-        systemId_ = systemId;
-    }
-
-    /**
-     * Constructs a new VODocument.
-     * No system ID is registered, so that all URLs in the document will
-     * be considered as absolute ones.
-     */
-    public VODocument() {
-        this( null );
+        strict_ = strict;
     }
 
     /**
@@ -144,5 +129,16 @@ public class VODocument extends DelegatingDocument {
         return "ID".equals( baseNode.getName() )
              ? super.createDelegatingAttr( baseNode, true )
              : super.createDelegatingAttr( baseNode );
+    }
+
+    /**
+     * Indicates whether this document enforces a strict reading of the
+     * VOTable standard.
+     *
+     * @return   true if strictness is enforced
+     * @see   VOElementFactory#setStrict
+     */
+    boolean isStrict() {
+        return strict_;
     }
 }

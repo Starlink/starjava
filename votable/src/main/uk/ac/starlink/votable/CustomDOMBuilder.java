@@ -27,9 +27,18 @@ import org.w3c.dom.Node;
  */
 class CustomDOMBuilder implements ContentHandler {
 
-    private SAXDocumentBuilder builder = new VOSAXDocumentBuilder();
+    private final SAXDocumentBuilder builder;
     private ContentHandler customHandler = new DefaultContentHandler();
     private Locator locator;
+
+    /**
+     * Constructor.
+     *
+     * @param  strict whether to effect a strict reading of the VOTable standard
+     */
+    public CustomDOMBuilder( boolean strict ) {
+        builder = new VOSAXDocumentBuilder( strict );
+    }
 
     /**
      * Sets the object used for handling SAX events until further notice.

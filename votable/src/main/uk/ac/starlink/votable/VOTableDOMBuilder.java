@@ -54,7 +54,8 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     /**
      * Constructs a new builder.
      */
-    public VOTableDOMBuilder( StoragePolicy storagePolicy ) {
+    public VOTableDOMBuilder( StoragePolicy storagePolicy, boolean strict ) {
+        super( strict );
         basicHandler = new BasicContentHandler();
         defaultHandler = new DefaultContentHandler();
         this.storagePolicy = storagePolicy;

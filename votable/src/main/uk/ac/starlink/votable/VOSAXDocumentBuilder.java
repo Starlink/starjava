@@ -31,6 +31,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
     private VODocument doc_;
     private NodeStack nodeStack_ = new NodeStack();
     private Map prefixMap_ = new HashMap();
+    private boolean strict_;
     private static final Logger logger_ =
         Logger.getLogger( "uk.ac.starlink.votable" );
     private static final String[] ELEMENTS_WITH_ID = new String[] { 
@@ -45,6 +46,16 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
         "LINK",
         "COOSYS",
     };
+
+    /**
+     * Constructor.
+     *
+     * @param   strict  whether to effect a strict reading of the
+     *          VOTable standard
+     */
+    public VOSAXDocumentBuilder( boolean strict ) {
+        strict_ = strict;
+    }
 
     public Node getNewestNode() {
         return nodeStack_.top();
@@ -74,7 +85,7 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
                  .initCause( e );
         }
         String systemId = locator_ == null ? null : locator_.getSystemId();
-        doc_ = new VODocument( baseDoc, systemId );
+        doc_ = new VODocument( baseDoc, systemId, strict_ );
         nodeStack_.push( doc_ );
     }
 

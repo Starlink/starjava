@@ -11,6 +11,7 @@ import org.w3c.dom.Node;
  */
 public class FieldElement extends VOElement {
 
+    private final boolean strict_;
     private final static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -22,6 +23,7 @@ public class FieldElement extends VOElement {
      */
     FieldElement( Element base, VODocument doc ) {
         super( base, doc );
+        strict_ = doc.isStrict(); 
     }
 
     /**
@@ -214,6 +216,25 @@ public class FieldElement extends VOElement {
      * could be public if there was some reason for it to be so.
      */
     Decoder getDecoder() {
-        return Decoder.makeDecoder( getDatatype(), getArraysize(), getNull() );
+
+        /* Get information we need to create a decoder for this field. */
+        String datatype = getDatatype();
+        long[] arraysize = getArraysize();
+        String nul = getNull();
+
+        /* Doctor it.  This is to work around the fact that many FIELD
+         * elements in practice omit an "arraysize='*'" attribute for
+         * character datatypes.  According to a strict reading of the
+         * standard this means each data cell contains a single character.
+         * What is meant is almost always an N-character string though. */
+        if ( ( "char".equals( datatype ) || 
+               "unicodeChar".equals( datatype ) ) &&
+             arraysize.length == 0 &&
+             ! strict_ ) {
+            arraysize = new long[] { -1L };
+        }
+
+        /* Create a decoder. */
+        return Decoder.makeDecoder( datatype, arraysize, nul );
     }
 }

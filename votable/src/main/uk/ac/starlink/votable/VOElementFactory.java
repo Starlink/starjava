@@ -62,6 +62,16 @@ public class VOElementFactory {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
     private StoragePolicy storagePolicy;
+    private Boolean strict;
+
+    /**
+     * Property which determines the default strictness state.
+     * If its value is set to "true" (case-insensitively), then 
+     * {@link #isStrict} will return true unless set explicitly.
+     * Otherwise, it will return false unless set explicitly.
+     * @see  #setStrict
+     */
+    public static final String STRICT_PROPERTY = "votable.strict";
 
     /**
      * Constructs a new VOElementFactory with a given storage policy.
@@ -119,7 +129,8 @@ public class VOElementFactory {
             return (VOElement) el;
         }
         else {
-            VODocument doc = new VODocument( el.getOwnerDocument(), systemId );
+            VODocument doc = new VODocument( el.getOwnerDocument(), systemId,
+                                             isStrict() );
             doc.setStoragePolicy( getStoragePolicy() );
             return (VOElement) doc.getDelegator( el );
         }
@@ -140,7 +151,7 @@ public class VOElementFactory {
             return (VOElement) doc.getDocumentElement();
         }
         else {
-            VODocument vodoc = new VODocument( doc, systemId );
+            VODocument vodoc = new VODocument( doc, systemId, isStrict() );
             vodoc.setStoragePolicy( getStoragePolicy() );
             return (VOElement) vodoc.getDocumentElement();
         }
@@ -306,12 +317,13 @@ public class VOElementFactory {
                 return (DOMSource) xsrc;
             }
 
-            /* Otherwise create anew VODocument DOM around it and return. */
+            /* Otherwise create a new VODocument DOM around it and return. */
             else {
                 Document baseDoc = node instanceof Document
                                  ? (Document) node
                                  : node.getOwnerDocument();
-                VODocument vodoc = new VODocument( baseDoc, systemId );
+                VODocument vodoc = new VODocument( baseDoc, systemId,
+                                                   isStrict() );
                 vodoc.setStoragePolicy( getStoragePolicy() );
                 return new DOMSource( vodoc.getDelegator( node ), systemId );
             }
@@ -372,6 +384,63 @@ public class VOElementFactory {
         /* Return a DOM source based on this with the same System ID as the
          * original source. */
         return new DOMSource( node, systemId );
+    }
+
+    /**
+     * Determines whether a strict reading of the VOTable standard will be
+     * enforced.  Currently if strict is set to false the
+     * following standard-violating assumptions will be made:
+     * <ul>
+     * <li>A <tt>FIELD</tt> or <tt>PARAM</tt> element with 
+     *     a <tt>datatype</tt> attribute of "<tt>char</tt>" or
+     *     "<tt>unicodeChar</tt>" but no <tt>arraysize</tt> attribute will
+     *     be assumed to represent a character array (<tt>arraysize="*"</tt>)
+     *     rather than a single-character value.</li>
+     * </ul>
+     *
+     * @param   strict   true iff you want a strict reading of the VOTable
+     *          standard
+     * @see  #isStrict
+     * @see  #STRICT_PROPERTY
+     */
+    public void setStrict( boolean strict ) {
+        this.strict = Boolean.valueOf( strict );
+    }
+
+    /**
+     * Indicates whether a strict reading of the VOTable standard is
+     * in effect.  If it has not been set explicitly, this will return
+     * the result of {@link #isStrictByDefault}.
+     *
+     * @return true if the VOTable standard is being interpreted strictly
+     * @see  #setStrict
+     */
+    public boolean isStrict() {
+        if ( strict == null ) {
+            strict = Boolean.valueOf( isStrictByDefault() );
+        }
+        return strict.booleanValue();
+    }
+
+    /**
+     * Indicates whether strict interpretation of the VOTable standard is
+     * on by default (if it has not been set explicitly).
+     * The return value will be false, unless the system property named
+     * {@link #STRICT_PROPERTY} is set "true" (case-insensitive).
+     *
+     * @return   whether VOTable strict interpretation is on by default
+     * @see      #setStrict
+     */
+    public static boolean isStrictByDefault() {
+        try {
+            String strictVal = System.getProperty( STRICT_PROPERTY );
+            return ( strictVal == null )
+                 ? false
+                 : Boolean.valueOf( strictVal ).booleanValue();
+        }
+        catch ( SecurityException e ) {
+            return false;
+        }
     }
 
     /**
@@ -448,7 +517,8 @@ public class VOElementFactory {
             throws IOException, SAXException {
 
         /* Parse using a custom handler. */
-        VOTableDOMBuilder db = new VOTableDOMBuilder( getStoragePolicy() );
+        VOTableDOMBuilder db = new VOTableDOMBuilder( getStoragePolicy(),
+                                                      isStrict() );
         parser.setContentHandler( db );
         try {
             parser.parse( insource );

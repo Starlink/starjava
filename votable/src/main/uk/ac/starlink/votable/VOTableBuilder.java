@@ -26,8 +26,29 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class VOTableBuilder implements TableBuilder {
 
+    private boolean strict_;
     private static Pattern htmlPattern = 
         Pattern.compile( "<x?html", Pattern.CASE_INSENSITIVE );
+
+    /**
+     * Default constructor.
+     * Strictness of VOTable standard enforcement is determined by 
+     * {@link VOElementFactory#isStrictByDefault}.
+     */
+    public VOTableBuilder() {
+        this( VOElementFactory.isStrictByDefault() );
+    }
+
+    /**
+     * Constructs a builder with explicit setting of whether VOTable
+     * standard interpreation is strict or not. 
+     *
+     * @param  strict  true iff you want strict enforcement of VOTable standard
+     * @see    VOElementFactory#setStrict
+     */
+    public VOTableBuilder( boolean strict ) {
+        strict_ = strict;
+    }
 
     /**
      * Returns the string "votable".
@@ -181,7 +202,7 @@ public class VOTableBuilder implements TableBuilder {
                    : 0;
         try {
             TableStreamer.streamStarTable( new InputSource( istrm ),
-                                           sink, itable );
+                                           sink, itable, strict_ );
         }
         catch ( SAXException e ) {
             throw (IOException) new IOException( e.getMessage() )

@@ -69,8 +69,11 @@ class TableStreamer extends CustomDOMBuilder {
      *
      * @param   sink  the sink to which a table will be written when it's found
      * @param   itable  index of the TABLE element to write (0-based)
+     * @param   strict  whether to enforce a strict reading of the VOTable
+     *          standard
      */
-    public TableStreamer( TableSink sink, int itable ) {
+    public TableStreamer( TableSink sink, int itable, boolean strict ) {
+        super( strict );
         this.sink = sink;
         this.skipTables = itable;
         basicHandler = new BasicContentHandler();
@@ -86,9 +89,10 @@ class TableStreamer extends CustomDOMBuilder {
      *                data will be dumped
      * @param  itable index of the table in the document to be read 
      *                (0-based)
+     * @param  strict whether to enforce strict reading of the VOTable standard
      */
     public static void streamStarTable( InputSource saxsrc, TableSink sink, 
-                                        int itable )
+                                        int itable, boolean strict )
             throws IOException, SAXException {
 
         /* Get a SAX parser. */
@@ -121,7 +125,7 @@ class TableStreamer extends CustomDOMBuilder {
 
         /* Install a content handler which can pull out data from one table
          * as required. */
-        parser.setContentHandler( new TableStreamer( sink, itable ) );
+        parser.setContentHandler( new TableStreamer( sink, itable, strict ) );
 
         /* Do the parse.  We expect to be signalled by the handler with a
          * SuccessfulCompletionException if the table gets copied.
