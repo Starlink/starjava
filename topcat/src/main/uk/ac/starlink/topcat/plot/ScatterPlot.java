@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Shape;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import javax.swing.JComponent;
@@ -31,6 +32,12 @@ public class ScatterPlot extends JComponent implements Printable {
     private Points points_;
     private PlotState state_;
     private PlotSurface surface_;
+    private Points lastPoints_;
+    private PlotState lastState_;
+    private PlotSurface lastSurface_;
+    private int lastWidth_;
+    private int lastHeight_;
+    private BufferedImage image_;
 
     /**
      * Constructs a new scatter plot, specifying the initial plotting surface
@@ -266,8 +273,29 @@ public class ScatterPlot extends JComponent implements Printable {
             setOpaque( false );
         }
         protected void paintComponent( Graphics g ) {
-            super.paintComponent( g );
-            drawPoints( g, surface_ );
+            int width = getBounds().width;
+            int height = getBounds().height;
+            if ( state_ == lastState_ &&
+                 surface_ == lastSurface_ &&
+                 points_ == lastPoints_ &&
+                 width == lastWidth_ &&
+                 height == lastHeight_ ) {
+                assert image_ != null;
+            }
+            else {
+                image_ = new BufferedImage( width, height,
+                                            BufferedImage.TYPE_INT_ARGB );
+                Graphics ig = image_.createGraphics();
+                super.paintComponent( ig );
+                drawPoints( ig, surface_ );
+                lastState_ = state_;
+                lastSurface_ = surface_;
+                lastPoints_ = points_;
+                lastWidth_ = width;
+                lastHeight_ = height;
+            }
+            boolean done = ((Graphics2D) g).drawImage( image_, 0, 0, null );
+            assert done;
         }
     }
 
