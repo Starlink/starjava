@@ -122,10 +122,10 @@ public class RowMatcher {
          * They are added without scores, since they don't represent 
          * actual matches. */
         Set singles = new HashSet();
-        if ( req1 ) {
+        if ( ! req1 ) {
             singles.addAll( missingSingles( pairScores.keySet(), 0 ) );
         }
-        if ( req2 ) {
+        if ( ! req2 ) {
             singles.addAll( missingSingles( pairScores.keySet(), 1 ) );
         }
         for ( Iterator it = singles.iterator(); it.hasNext(); ) {
