@@ -1,7 +1,15 @@
+/*
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     13-NOV-2000 (Peter W. Draper):
+ *        Original version.
+ *     18-FEB-2004 (Peter W. Draper):
+ *        Changed to use a GridBagLayouter.
+ */
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Color;
-import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -14,26 +22,23 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 
 import uk.ac.starlink.ast.grf.DefaultGrf;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * LineControls add a series of controls for showing and changing the
  * display properties of any drawn lines (the thickness, style and
  * colour).  
  * <p>
- * This class assumes that it will be laying out its components in a
- * GridBagLayout container of somekind. It adds the controls in a set
- * of incrementing rows, starting from given values.
+ * This class assumes that it will be laying out its components as part of a
+ * GridBagLayouter scheme. It adds the controls in a set of incrementing rows,
+ * starting from the current GridBagLayouter position.
  * <p>
  * Users of this class should register a ChangeListener to be informed
  * when the line properties are changed (get the actual value using
  * the get methods).
  *
- * @since $Date$
- * @since 13-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research
- * Councils 
  */
 public class LineControls 
 {
@@ -58,25 +63,17 @@ public class LineControls
     protected JComboBox thickBox = new JComboBox();
 
     /**
-     * Parent component.
+     * The GridBagLayouter. Used to get parent component access.
      */
-    protected JComponent parent = null;
+    protected GridBagLayouter layouter = null;
 
     /**
-     * Construct an instance filling component starting at 0,0.
+     * Construct an instance using the given GridBagLayouter to arrange the
+     * components. Use the given postfix to qualify the standard labels.
      */
-    public LineControls( JComponent parent ) 
+    public LineControls( GridBagLayouter layouter, String postfix ) 
     {
-        initUI( parent, 0, 0 );
-    }
-
-    /**
-     * Construct an instance filling component starting at given row
-     * and column (column is fixed, row increments).
-     */
-    public LineControls( JComponent parent, int row, int column ) 
-    {
-        initUI( parent, row, column );
+        initUI( layouter, postfix );
     }
 
     /**
@@ -92,22 +89,19 @@ public class LineControls
     /**
      * Initialise the user interface.
      */
-    private void initUI( JComponent parent, int row, int column ) 
+    private void initUI( GridBagLayouter layouter, String postfix ) 
     {
-        this.parent = parent;
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
+        this.layouter = layouter;
 
-        //  Add components.
-        gbc.gridx = column;
-        gbc.gridy = row++;
-        parent.add( thickBox, gbc );
-        gbc.gridx = column;
-        gbc.gridy = row++;
-        parent.add( styleBox, gbc );
-        gbc.gridx = column;
-        gbc.gridy = row;
-        parent.add( colourButton, gbc );
+        layouter.add( "Thickness " + postfix + ":", false );
+        layouter.add( thickBox, false );
+        layouter.eatLine();
+        layouter.add( "Style " + postfix + ":", false );
+        layouter.add( styleBox, false );
+        layouter.eatLine();
+        layouter.add( "Colour " + postfix + ":", false );
+        layouter.add( colourButton, false );
+        layouter.eatLine();
 
         //  Set the possible line thicknesses.
         for ( int i = 1; i < 21; i++ ) {
@@ -196,8 +190,10 @@ public class LineControls
      */
     protected void chooseColour() 
     {
-        Color newColour = JColorChooser.showDialog( 
-            parent, "Select line colour", colourIcon.getMainColour() );
+        Color newColour = 
+            JColorChooser.showDialog( layouter.getContainer(), 
+                                      "Select line colour", 
+                                      colourIcon.getMainColour() );
         if ( newColour != null ) {
             colourIcon.setMainColour( newColour );
             fireChanged();

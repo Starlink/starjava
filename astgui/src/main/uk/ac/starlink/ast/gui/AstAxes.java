@@ -18,7 +18,8 @@ import uk.ac.starlink.ast.grf.DefaultGrf;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class AstAxes extends AbstractPlotControlsModel
+public class AstAxes 
+    extends AbstractPlotControlsModel
 {
     /**
      * Whether X axis is set or unset.

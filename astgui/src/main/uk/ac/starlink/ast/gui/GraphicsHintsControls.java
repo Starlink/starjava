@@ -8,9 +8,6 @@
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -21,6 +18,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * GraphicsHintsControls creates a "page" of widgets that are a view
@@ -53,16 +52,6 @@ public class GraphicsHintsControls extends JPanel
     protected JCheckBox allAntialiased = new JCheckBox();
 
     /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
-
-    /**
      * The default title for these controls.
      */
     protected static String defaultTitle = "Graphics rendering hints:";
@@ -84,10 +73,8 @@ public class GraphicsHintsControls extends JPanel
     /**
      * Create and initialise the user interface.
      */
-    protected void initUI() {
-
-        setLayout( new GridBagLayout() );
-
+    protected void initUI()
+    {
         textAntialiased.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
                     matchTextState();
@@ -100,41 +87,21 @@ public class GraphicsHintsControls extends JPanel
                 }
             });
 
-        //  Add labels for all fields.
-        addLabel( "Text:", 0 );
-        addLabel( "Everything:", 1 );
+        //  Add components.
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Text:", false );
+        layouter.add( textAntialiased, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( "Everything:", false );
+        layouter.add( allAntialiased, true );
 
-        //  Text antialiased.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( textAntialiased, gbc );
-
-        //  Everything antialiased.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( allAntialiased, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
-        textAntialiased.setToolTipText( 
-           "Render text using antialiasing" );
-        allAntialiased.setToolTipText( 
-           "Render everthing using antialiasing (can be slow)" );
+        textAntialiased.setToolTipText( "Render text using antialiasing" );
+        allAntialiased.setToolTipText
+            ( "Render everthing using antialiasing (can be slow)" );
     }
 
     /**
@@ -163,23 +130,6 @@ public class GraphicsHintsControls extends JPanel
      */
     public GraphicsHints getGraphicsHints() {
         return hints;
-    }
-
-    /**
-     * Add a new UI description label. This is added to the front of
-     * the given row.
-     */
-    private void addLabel( String text, int row ) {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
     }
 
     /**

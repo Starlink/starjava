@@ -8,9 +8,6 @@
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -24,6 +21,8 @@ import javax.swing.event.ChangeListener;
 
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * GraphicsEdgesControls creates a "page" of widgets that are a view
@@ -79,16 +78,6 @@ public class GraphicsEdgesControls extends JPanel
                                 GraphicsEdges.GAP_STEP );
 
     /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
-
-    /**
      * The default title for these controls.
      */
     protected static String defaultTitle = "Edge drawing properties:";
@@ -112,8 +101,6 @@ public class GraphicsEdgesControls extends JPanel
      */
     protected void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Clip graphics to within border.
         clip.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -138,47 +125,27 @@ public class GraphicsEdgesControls extends JPanel
             });
 
         //  Add labels for all fields.
-        addLabel( "Clip graphics:", 0 );
-        addLabel( "X reserve:", 1 );
-        addLabel( "Y reserve:", 2 );
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Clip graphics:", false );
+        layouter.add( clip, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( "X reserve:", false );
+        layouter.add( xFraction, false );
+        layouter.eatLine();
 
-        //  Clipped
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( clip, gbc );
+        layouter.add( "Y reserve:", false );
+        layouter.add( yFraction, false );
+        layouter.eatLine();
 
-        //  X fraction.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xFraction, gbc );
-
-        //  Y fraction.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yFraction, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
         clip.setToolTipText( "Clip graphics to lie within border" );
-        xFraction.setToolTipText(
-           "Set space reserved for X labels (fraction)");
-        yFraction.setToolTipText(
-           "Set space reserved for Y labels (fraction)");
+        xFraction.setToolTipText
+            ( "Set space reserved for X labels (fraction)" );
+        yFraction.setToolTipText
+            ( "Set space reserved for Y labels (fraction)" );
     }
 
     /**
@@ -209,24 +176,6 @@ public class GraphicsEdgesControls extends JPanel
     public GraphicsEdges getGraphicsEdges()
     {
         return edges;
-    }
-
-    /**
-     * Add a new UI description label. This is added to the front of
-     * the given row.
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
     }
 
     /**

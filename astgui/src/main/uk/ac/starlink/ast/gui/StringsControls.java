@@ -10,9 +10,6 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -25,6 +22,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * StringsControls creates a "page" of widgets that are a view of an
@@ -51,16 +50,6 @@ public class StringsControls extends JPanel
      * The sample text field.
      */
     protected JLabel sampleText = new JLabel( "The quick brown fox" );
-
-    /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
 
     /**
      * Colour button.
@@ -101,8 +90,6 @@ public class StringsControls extends JPanel
      */
     protected void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Set ColourIcon of colour button.
         colourButton.setIcon( colourIcon );
         colourButton.addActionListener( new ActionListener() {
@@ -111,41 +98,19 @@ public class StringsControls extends JPanel
             }
         });
 
-        //  Add labels for all fields.
-        addLabel( "Sample:", 0 );
-        addLabel( "Font:", 1 );
-        addLabel( "Style:", 2 );
-        addLabel( "Size:", 3 );
-        addLabel( "Colour:", 4 );
+        //  Add components.
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Sample:", false );
+        layouter.add( sampleText, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        addFontControls( layouter );
 
-        //  Sample text.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( sampleText, gbc );
+        layouter.add( "Colour:", false );
+        layouter.add( colourButton, false );
+        layouter.eatLine();
 
-        //  Font family selection.
-        row = addFontControls( row );
-
-        //  Colour selector.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( colourButton, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
         colourButton.setToolTipText( "Select a colour" );
@@ -184,34 +149,16 @@ public class StringsControls extends JPanel
     }
 
     /**
-     * Add a new label. This is added to the front of the given row.
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
-    }
-
-    /**
      * Add the font controls.
      */
-    private int addFontControls( int row )
+    private void addFontControls( GridBagLayouter layouter )
     {
-        fontControls = new FontControls( this, row, 1 );
+        fontControls = new FontControls( layouter, "" );
         fontControls.addListener( new FontChangedListener() {
             public void fontChanged( FontChangedEvent e ) {
                 updateFont( e );
             }
         });
-        return row + 3;
     }
 
     /**

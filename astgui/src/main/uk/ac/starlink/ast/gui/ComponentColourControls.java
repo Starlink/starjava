@@ -9,9 +9,6 @@ package uk.ac.starlink.ast.gui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
@@ -24,6 +21,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * Create controls for setting the colour of a component. The actual
@@ -125,28 +124,11 @@ public class ComponentColourControls
                 }
             });
 
-        setLayout( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
-        Insets labelInsets = new Insets( 10, 5, 5, 10 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = labelInsets;
-        gbc.fill = GridBagConstraints.NONE;
-
-        add( colourLabel, gbc );
-        add( colourButton, gbc );
-
-        //  Eat up spare horizontal space.
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        Component fillx = Box.createHorizontalStrut( 5 );
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        add( fillx, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
+        layouter.add( colourLabel, false );
+        layouter.add( colourButton, false );
+        layouter.eatLine();
+        layouter.eatSpare();
     }
 
     /**

@@ -10,9 +10,6 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -34,6 +31,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.SelectTextField;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * AxisLabelControls creates a "page" of widgets that are a view of an
@@ -77,16 +75,6 @@ public class AxisLabelControls extends JPanel
      * characters that cannot be easily typed in).
      */
     protected SelectTextField yTextField = new SelectTextField();
-
-    /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
 
     /**
      * Spinner for controlling the position of the X label.
@@ -181,8 +169,6 @@ public class AxisLabelControls extends JPanel
      */
     protected void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Choices for label positioning.
         xEdge.addItem( "BOTTOM" );
         xEdge.addItem( "TOP" );
@@ -275,82 +261,50 @@ public class AxisLabelControls extends JPanel
                 }
             });
 
-        //  Add labels for all fields.
-        addLabel( "Show X:", 0 );
-        addLabel( "X label:", 1 );
-        addLabel( "Show Y:", 2 );
-        addLabel( "Y label:", 3 );
-        addLabel( "Font:", 4 );
-        addLabel( "Style:", 5 );
-        addLabel( "Size:", 6 );
-        addLabel( "Colour:", 7 );
-        addLabel( "X gap:", 8 );
-        addLabel( "Y gap:", 9 );
-        addLabel( "X edge:", 10 );
-        addLabel( "Y edge:", 11 );
-        addLabel( "X units:", 12 );
-        addLabel( "Y units:", 13 );
+        //  Add components.
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Show X:", false );
+        layouter.add( xShowLabel, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( "X label:", false );
+        layouter.add( xTextField, true );
 
-        //  X label controls.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( xShowLabel, gbc );
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( xTextField, gbc );
+        layouter.add( "Show Y:", false );
+        layouter.add( yShowLabel, true );
 
-        //  Y label controls.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( yShowLabel, gbc );
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( yTextField, gbc );
+        layouter.add( "Y label:", false );
+        layouter.add( yTextField, true );
 
-        //  Font family selection.
-        row = addFontControls( row );
+        addFontControls( layouter );
 
-        //  Colour selector.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( colourButton, gbc );
+        layouter.add( "Colour:", false );
+        layouter.add( colourButton, false );
+        layouter.eatLine();
 
-        //  Gap spinners.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xGapSpinner, gbc );
-        gbc.gridy = row++;
-        add( yGapSpinner, gbc );
+        layouter.add( "X gap:", false );
+        layouter.add( xGapSpinner, false );
+        layouter.eatLine();
 
-        //  Sides for the labels.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xEdge, gbc );
-        gbc.gridy = row++;
-        add( yEdge, gbc );
+        layouter.add( "Y gap:", false );
+        layouter.add( yGapSpinner, false );
+        layouter.eatLine();
 
-        //  Whether to append units (if any).
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xUnits, gbc );
-        gbc.gridy = row++;
-        add( yUnits, gbc );
+        layouter.add( "X edge:", false );
+        layouter.add( xEdge, false );
+        layouter.eatLine();
 
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.add( "Y edge:", false );
+        layouter.add( yEdge, false );
+        layouter.eatLine();
+
+        layouter.add( "X units:", false );
+        layouter.add( xUnits, true );
+
+        layouter.add( "Y units:", false );
+        layouter.add( yUnits, true );
+
+        layouter.eatSpare();
 
         //  Set tooltips.
         colourButton.setToolTipText( "Select a colour" );
@@ -432,34 +386,16 @@ public class AxisLabelControls extends JPanel
     }
 
     /**
-     * Add a new label. This is added to the front of the given row.
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
-    }
-
-    /**
      * Add the font controls.
      */
-    private int addFontControls( int row )
+    private void addFontControls( GridBagLayouter layouter )
     {
-        fontControls = new FontControls( this, row, 1 );
+        fontControls = new FontControls( layouter, "" );
         fontControls.addListener( new FontChangedListener() {
             public void fontChanged( FontChangedEvent e ) {
                 updateFont( e );
             }
         });
-        return row + 3;
     }
 
     /**

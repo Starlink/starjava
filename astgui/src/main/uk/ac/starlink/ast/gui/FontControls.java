@@ -1,8 +1,16 @@
+/*
+ * Copyright (C) 2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     08-NOV-2000 (Peter W. Draper):
+ *        Original version.
+ *     18-FEB-2004 (Peter W. Draper):
+ *        Modified to use GridBagLayouter.
+ */
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -10,22 +18,20 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.event.EventListenerList;
 
+import uk.ac.starlink.util.gui.GridBagLayouter;
+
 /**
  * FontControls add a series of controls for selecting from the
  * available families of fonts and assigning a size and style.
  * <p>
- * This class assumes that it will be laying out its components in a
- * GridBagLayout container of somekind. It adds the controls in a set of
- * incrementing rows, starting from given values.
+ * This class assumes that it will be laying out its components using
+ * the standard GridBagLayouter.
  * <p>
  * Users of this class should implement the FontChangedListener
  * interface to be informed when the selected font is updated.
  *
- * @since $Date$
- * @since 08-NOV-2000
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
 public class FontControls 
 {
@@ -74,20 +80,12 @@ public class FontControls
     };
 
     /**
-     * Construct an instance filling component starting at 0,0.
+     * Construct an instance. Add the postfix to the standard labels
+     * (set to "" for none).
      */
-    public FontControls( JComponent parent ) 
+    public FontControls( GridBagLayouter layouter, String postfix ) 
     {
-        initUI( parent, 0, 0 );
-    }
-
-    /**
-     * Construct an instance filling component starting at given row
-     * and column (column is fixed, row increments).
-     */
-    public FontControls( JComponent parent, int row, int column ) 
-    {
-        initUI( parent, row, column );
+        initUI( layouter, postfix );
     }
 
     /**
@@ -106,21 +104,19 @@ public class FontControls
     /**
      * Initialise the user interface.
      */
-    private void initUI( JComponent parent, int row, int column ) 
+    private void initUI( GridBagLayouter layouter, String postfix )
     {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
+        layouter.add( "Font:", false );
+        layouter.add( fontBox, false );
+        layouter.eatLine();
 
-        //  Add JComboBoxes.
-        gbc.gridx = column;
-        gbc.gridy = row++;
-        parent.add( fontBox, gbc );
-        gbc.gridx = column;
-        gbc.gridy = row++;
-        parent.add( styleBox, gbc );
-        gbc.gridx = column;
-        gbc.gridy = row;
-        parent.add( sizeBox, gbc );
+        layouter.add( "Style:", false );
+        layouter.add( styleBox, false );
+        layouter.eatLine();
+
+        layouter.add( "Size:", false );
+        layouter.add( sizeBox, false );
+        layouter.eatLine();
 
         //  Set the fonts that we will use.
         addFonts();

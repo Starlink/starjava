@@ -1,16 +1,15 @@
 /*
- * Copyright (C) 2000-2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     20-AUG-2000 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     18-FEB-2004 (Peter W. Draper):
+ *        Added GridBagLayouter.
  */
 package uk.ac.starlink.ast.gui;
 
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
@@ -30,6 +29,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
 import uk.ac.starlink.ast.Frame;  // for javadocs
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * TickControls.Java creates a "page" of widgets that are a view of an
@@ -55,16 +55,6 @@ public class TickControls extends JPanel
      * formatting/unformatting axes correctly.
      */
     protected PlotController controller = null;
-
-    /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
 
     /**
      * Check box for  whether ticks should be shown or not.
@@ -194,8 +184,6 @@ public class TickControls extends JPanel
      */
     protected void initUI() 
     {
-        setLayout( new GridBagLayout() );
-
         //  Whether ticks are shown or not.
         show.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -276,84 +264,48 @@ public class TickControls extends JPanel
             });
 
 
-        //  Add labels for all fields.
-        addLabel( "Show ticks:", 0 );
-        addLabel( "X spacing:", 1 );
-        addLabel( "Y spacing:", 2 );
-        addLabel( "Thickness:" , 3 );
-        addLabel( "Style:", 4 );
-        addLabel( "Colour:", 5 );
-        addLabel( "X major len:", 6 );
-        addLabel( "Y major len:", 7 );
-        addLabel( "X minor len:", 8 );
-        addLabel( "Y minor len:", 9 );
-        addLabel( "X divisions:", 10 );
-        addLabel( "Y divisions:", 11 );
-        addLabel( "Tick all:", 12 );
+        //  Add components.
+        GridBagLayouter layouter = Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Show ticks:", false );
+        layouter.add( show, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( "X spacing:", false );
+        layouter.add( xMajorGap, true );
 
-        //  Show
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( show, gbc );
+        layouter.add( "Y spacing:", false );
+        layouter.add( yMajorGap, true );
 
-        //  Gaps
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( xMajorGap, gbc );
+        addLineControls( layouter );
 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( yMajorGap, gbc );
+        layouter.add( "X major len:", false );
+        layouter.add( xMajorLength, false );
+        layouter.eatLine();
 
-        //  Line controls.
-        row = addLineControls( row );
+        layouter.add( "Y major len:", false );
+        layouter.add( yMajorLength, false );
+        layouter.eatLine();
 
-        //  Lengths
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xMajorLength, gbc );
+        layouter.add( "X minor len:", false );
+        layouter.add( xMinorLength, false );
+        layouter.eatLine();
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yMajorLength, gbc );
+        layouter.add( "Y minor len:", false );
+        layouter.add( yMinorLength, false );
+        layouter.eatLine();
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xMinorLength, gbc );
+        layouter.add( "X divisions:", false );
+        layouter.add( xMinorDivisions, false );
+        layouter.eatLine();
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yMinorLength, gbc );
+        layouter.add( "Y divisions:", false );
+        layouter.add( yMinorDivisions, false );
+        layouter.eatLine();
 
-        //  Divisions
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xMinorDivisions, gbc );
+        layouter.add( "Tick all:", false );
+        layouter.add( tickAll, true );
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yMinorDivisions, gbc );
-
-        //  Tick all
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( tickAll, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
         show.setToolTipText( "Show tick marks in plot" );
@@ -438,28 +390,11 @@ public class TickControls extends JPanel
     }
 
     /**
-     * Add a new label. This is added to the front of the given row.
-     */
-    private void addLabel( String text, int row ) 
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
-    }
-
-    /**
      * Add line property controls.
      */
-    private int addLineControls( int row ) 
+    private void addLineControls( GridBagLayouter layouter ) 
     {
-        lineControls = new LineControls( this, row, 1 );
+        lineControls = new LineControls( layouter, "" );
 
         //  Respond to changed of line properties.
         lineControls.addChangeListener( new ChangeListener() {
@@ -467,7 +402,6 @@ public class TickControls extends JPanel
                     matchLine();
                 }
             });
-        return row + 3;
     }
 
     /**

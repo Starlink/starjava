@@ -10,9 +10,6 @@ package uk.ac.starlink.ast.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -32,6 +29,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import uk.ac.starlink.util.gui.SelectTextField;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * TitleControls creates a "page" of widgets that are a view of an
@@ -66,25 +64,15 @@ public class TitleControls extends JPanel
     protected SelectTextField textField = new SelectTextField();
 
     /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
-
-    /**
-     * Slider for controlling title gap.
+     * Spinner for controlling title gap.
      */
     protected JSpinner gapSpinner = null;
 
     /**
-     * Slider model.
+     * Spinner model.
      */
-    protected SpinnerNumberModel spinnerModel = 
-        new SpinnerNumberModel( 0.0, AstTitle.GAP_MIN, AstTitle.GAP_MAX, 
+    protected SpinnerNumberModel spinnerModel =
+        new SpinnerNumberModel( 0.0, AstTitle.GAP_MIN, AstTitle.GAP_MAX,
                                 AstTitle.GAP_STEP );
 
     /**
@@ -131,8 +119,6 @@ public class TitleControls extends JPanel
      */
     protected void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Toggle whether title is to be shown or not.
         showTitle.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -160,54 +146,26 @@ public class TitleControls extends JPanel
                 }
             });
 
-        //  Add labels for all fields.
-        addLabel( "Show:", 0 );
-        addLabel( "Label:", 1 );
-        addLabel( "Font:", 2 );
-        addLabel( "Style:", 3 );
-        addLabel( "Size:", 4 );
-        addLabel( "Colour:", 5 );
-        addLabel( "Gap:", 6 );
+        //  Add components.
+        GridBagLayouter layouter =  Utilities.getGridBagLayouter( this );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Show:", false );
+        layouter.add( showTitle, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( "Label:", false );
+        layouter.add( textField, true );
 
-        //  Show field.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( showTitle, gbc );
+        addFontControls( layouter  );
 
-        //  Text field.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( textField, gbc );
+        layouter.add( "Colour:", false );
+        layouter.add( colourButton, false );
+        layouter.eatLine();
 
-        //  Font family selection.
-        row = addFontControls( row );
+        layouter.add( "Gap:", false );
+        layouter.add( gapSpinner, false );
+        layouter.eatLine();
 
-        //  Colour selector.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.NONE;
-        add( colourButton, gbc );
-
-        //  Gap slider.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        ////add( gapSlider, gbc );
-        add( gapSpinner, gbc );
-
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
         colourButton.setToolTipText( "Select a colour" );
@@ -244,7 +202,7 @@ public class TitleControls extends JPanel
         colourButton.repaint();
 
         spinnerModel.setValue( new Double( astTitle.getGap() ) );
-        
+
         //astTitle.setState( true );
 
         astTitle.addChangeListener( this );
@@ -259,34 +217,16 @@ public class TitleControls extends JPanel
     }
 
     /**
-     * Add a new label. This is added to the front of the given row.
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
-    }
-
-    /**
      * Add the font controls.
      */
-    private int addFontControls( int row )
+    private void addFontControls( GridBagLayouter layouter )
     {
-        fontControls = new FontControls( this, row, 1 );
+        fontControls = new FontControls( layouter, "" );
         fontControls.addListener( new FontChangedListener() {
             public void fontChanged( FontChangedEvent e ) {
                 updateFont( e );
             }
         });
-        return row + 3;
     }
 
     /**

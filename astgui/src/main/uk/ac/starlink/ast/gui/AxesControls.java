@@ -3,14 +3,12 @@
  *
  *  History:
  *     10-OCT-2002 (Peter W. Draper):
- *       Original version.
+ *        Original version.
+ *     18-FEB-2004 (Peter W. Draper):
+ *        Added log axis.
  */
 package uk.ac.starlink.ast.gui;
 
-import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -23,6 +21,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.ast.Frame; // for javadocs
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * AxesControls creates a "page" of widgets that are a view of an
@@ -60,6 +59,16 @@ public class AxesControls extends JPanel
     private JCheckBox showY = new JCheckBox();
 
     /**
+     * Whether the X axis is to drawn logarithmically.
+     */
+    private JCheckBox logX = new JCheckBox();
+
+    /**
+     * Whether the Y axis is to drawn logarithmically.
+     */
+    private JCheckBox logY = new JCheckBox();
+
+    /**
      * Whether the axes are drawn on the interior.
      */
     private JCheckBox interior = new JCheckBox();
@@ -73,16 +82,6 @@ public class AxesControls extends JPanel
      * Preferred coordinate for drawing the Y axis, i.e X origin.
      */
     private AstDoubleField yLabelAt = null;
-
-    /**
-     * GridBagConstraints object.
-     */
-    private GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    private Insets labelInsets = new Insets( 10, 5, 5, 10 );
 
     /**
      * X axis line properties controls.
@@ -125,8 +124,6 @@ public class AxesControls extends JPanel
      */
     private void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Whether X axis is shown or not.
         showX.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -164,65 +161,33 @@ public class AxesControls extends JPanel
             });
 
 
+        //  Add components.
+        GridBagLayouter layouter = Utilities.getGridBagLayouter( this );
 
-        //  Add labels for all fields.
-        addLabel( "Show X:", 0 );
-        addLabel( "Show Y:", 1 );
-        addLabel( "Interior:", 2 );
-        addLabel( "X origin:", 3 );
-        addLabel( "Y origin:", 4 );
-        addLabel( "Thickness X:", 5 );
-        addLabel( "Style X:", 6 );
-        addLabel( "Colour X:", 7 );
-        addLabel( "Thickness Y:", 8 );
-        addLabel( "Style Y:", 9 );
-        addLabel( "Colour Y:", 10 );
+        layouter.add( "Show X:", false );
+        layouter.add( showX, true );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( "Show Y:", false );
+        layouter.add( showY, true );
 
-        //  Current row for adding components.
-        int row = 0;
-
-        //  Show X axis
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( showX, gbc );
-
-        //  Show Y axis
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( showY, gbc );
-
-        //  Whether to display axes on interior.
-        gbc.gridy = row++;
-        gbc.fill = GridBagConstraints.BOTH;
-        add( interior, gbc );
+        layouter.add( "Interior:", false );
+        layouter.add( interior, true );
 
         //  X and Y origins.
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( yLabelAt, gbc );
+        layouter.add( "X origin:", false );
+        layouter.add( yLabelAt, true );
 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( xLabelAt, gbc );
+        layouter.add( "Y origin:", false );
+        layouter.add( xLabelAt, true );
 
         //  X axis line controls.
-        row = addXLineControls( row );
+        addXLineControls( layouter );
 
         //  Y axis line controls.
-        row = addYLineControls( row );
+        addYLineControls( layouter );
 
         //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly, gbc );
+        layouter.eatSpare();
 
         //  Set tooltips.
         showX.setToolTipText( "Display an X axis" );
@@ -286,24 +251,6 @@ public class AxesControls extends JPanel
     }
 
     /**
-     * Add a new UI description label. This is added to the front of
-     * the given row.
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
-    }
-
-    /**
      * Match whether to display the X axis.
      */
     private void matchXShow()
@@ -346,9 +293,9 @@ public class AxesControls extends JPanel
     /**
      * Add X line property controls.
      */
-    private int addXLineControls( int row )
+    private void addXLineControls( GridBagLayouter layouter )
     {
-        xLineControls = new LineControls( this, row, 1 );
+        xLineControls = new LineControls( layouter, "X" );
 
         //  Respond to changed of line properties.
         xLineControls.addChangeListener( new ChangeListener() {
@@ -356,15 +303,14 @@ public class AxesControls extends JPanel
                     matchXLine();
                 }
             });
-        return row + 3;
     }
 
     /**
      * Add Y line property controls.
      */
-    private int addYLineControls( int row )
+    private void addYLineControls( GridBagLayouter layouter )
     {
-        yLineControls = new LineControls( this, row, 1 );
+        yLineControls = new LineControls( layouter, "Y" );
 
         //  Respond to changed of line properties.
         yLineControls.addChangeListener( new ChangeListener() {
@@ -372,7 +318,6 @@ public class AxesControls extends JPanel
                     matchYLine();
                 }
             });
-        return row + 3;
     }
 
     /**
