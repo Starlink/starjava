@@ -3,8 +3,8 @@ package uk.ac.starlink.topcat;
 import java.util.Enumeration;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
+import junit.framework.TestCase;
 import uk.ac.starlink.topcat.doc.DocNames;
-import uk.ac.starlink.util.TestCase;
 
 public class MethodDocTest extends TestCase {
 
@@ -12,18 +12,11 @@ public class MethodDocTest extends TestCase {
 
     public MethodDocTest( String name ) {
         super( name );
-        if ( isHeadless() ) {
-            return;
-        }
         methodWindow = new MethodWindow( null );
         methodWindow.setVisible( false );
     }
 
     public void testDocumentationForTree() {
-        if ( isHeadless() ) {
-            System.out.println( "Headless environment - no GUI test" );
-            return;
-        }
         TreeModel tmodel = methodWindow.getTreeModel();
         Object root = tmodel.getRoot();
         assertTrue( root instanceof DefaultMutableTreeNode );
