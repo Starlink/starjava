@@ -41,7 +41,7 @@ import uk.ac.starlink.util.gui.AWTXMLEncodeDecode;
  * @see DrawActions
  */
 public class FigureProps
-    implement XMLEncodeDecode
+    implements XMLEncodeDecode
 {
     /**
      * DrawFigureFactory constant for this figure type.
