@@ -4,12 +4,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import uk.ac.starlink.topcat.JELUtils;
 import uk.ac.starlink.util.TestCase;
 
 public class FuncTest extends TestCase {
 
     private static final double TINY = 1e-13;
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.util" ).setLevel( Level.SEVERE );
+        Logger.getLogger( "uk.ac.starlink.ast" ).setLevel( Level.SEVERE );
+    }
 
     public FuncTest( String name ) {
         super( name );

@@ -1,9 +1,15 @@
 package uk.ac.starlink.topcat;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.TestCase;
 import uk.ac.starlink.table.StarTable;
 
 public class DemoTest extends TestCase {
+
+    static {
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
+    }
 
     public DemoTest( String name ) {
         super( name );
