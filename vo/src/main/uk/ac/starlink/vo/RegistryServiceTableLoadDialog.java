@@ -4,12 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
@@ -129,8 +131,9 @@ public abstract class RegistryServiceTableLoadDialog
         if ( dia.getJMenuBar() == null ) {
             dia.setJMenuBar( new JMenuBar() );
         }
-        dia.getJMenuBar()
-           .add( regPanel_.makeColumnVisibilityMenu( "Display" ) );
+        JMenu metaMenu = regPanel_.makeColumnVisibilityMenu( "Columns" );
+        metaMenu.setMnemonic( KeyEvent.VK_C );
+        dia.getJMenuBar().add( metaMenu );
         return dia;
     }
 
