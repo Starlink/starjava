@@ -1,24 +1,33 @@
 package uk.ac.starlink.util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Provides utilities associated with loading resources.
- * Perhaps this functionality should be recast as a Starlink ClassLoader
- * at some point.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class Loader {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
+    private static boolean propsLoaded = false;
+
+    /** 
+     * Name of the file in the user's home directory from which properties
+     * are loaded.
+     */
+    public static final String PROPERTIES_FILE = "starjava.properties";
 
     /**
      * Returns the location of the main Starlink java directory which 
@@ -134,4 +143,62 @@ public class Loader {
         File libfile = new File( archdir, filename );
         System.load( libfile.toString() );
     }
+
+    /**
+     * Returns the name of the file from which properties will be loaded
+     * by this class.
+     *
+     * @return  a file called {@link #PROPERTIES_FILE} in the directory
+     *          given by the System property "<tt>user.home</tt>".
+     */
+    public static File getPropertiesFile() {
+        return new File( System.getProperty( "user.home" ),
+                         PROPERTIES_FILE );
+    }
+
+    /**
+     * Ensures that the user's customised properties have been loaded;
+     * these are read once from the file returned by the 
+     * {@link #getPropertiesFile} method and incorporated into 
+     * the System properties.
+     * Calling this method after the first time has no effect.
+     *
+     * @see  java.lang.System#getProperties
+     */
+    public static synchronized void loadProperties() {
+
+        /* No action required if we have already done this. */
+        if ( propsLoaded ) {
+            return;
+        }
+
+        /* Otherwise try to load them. */
+        InputStream pstrm = null;
+        File propfile = getPropertiesFile();
+        try {
+            pstrm = new FileInputStream( propfile );
+            Properties starProps = new Properties();
+            starProps.load( new FileInputStream( propfile ) );
+            System.getProperties().putAll( starProps );
+            logger.info( "Properties read from " + propfile );
+        }
+        catch ( FileNotFoundException e ) {
+            logger.info( "No properties file " + propfile + " found" );
+        }
+        catch ( IOException e ) {
+            logger.warning( "Error reading properties from " + propfile 
+                          + " " + e );
+        }
+        finally {
+            if ( pstrm != null ) {
+                try {
+                    pstrm.close();
+                }
+                catch ( IOException e ) {
+                    // no action
+                }
+            }
+        }
+    }
+
 }
