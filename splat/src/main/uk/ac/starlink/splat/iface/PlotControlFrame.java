@@ -32,17 +32,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
-import uk.ac.starlink.ast.gui.PlotConfigurator;
-import uk.ac.starlink.ast.gui.GraphicsHintsControls;
-import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
+import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
+import uk.ac.starlink.ast.gui.GraphicsHintsControls;
+import uk.ac.starlink.ast.gui.PlotConfigurator;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.plot.DivaGraphicsMenu;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.splat.plot.DivaPlotCanvasDraw;
+import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.JPEGUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.JPEGUtilities;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
@@ -52,7 +54,7 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
  * @author Peter W. Draper
  * @version $Id$
  */
-public class PlotControlFrame 
+public class PlotControlFrame
     extends JFrame
     implements ItemListener
 {
@@ -77,6 +79,13 @@ public class PlotControlFrame
      * (created when required).
      */
     protected PolyFitFrame polyFitFrame = null;
+
+    /**
+     * InterpolateFrame window for using a hand guided spline or
+     * linear interpolation to a spectrum background (created when
+     * required).
+     */
+    protected InterpolateFrame interpFrame = null;
 
     /**
      * LineFitFrame window for measuring to the spectral line properties.
@@ -110,13 +119,10 @@ public class PlotControlFrame
      */
     protected JMenuBar menuBar = new JMenuBar();
     protected JMenu fileMenu = new JMenu();
-    protected JMenuItem closeFileMenu = new JMenuItem();
     protected JMenu helpMenu = new JMenu();
-    protected JMenuItem windowHelp = new JMenuItem();
+    protected JMenuItem drawMenu = new JMenuItem();
     protected JMenu analysisMenu = new JMenu();
     protected JMenu optionsMenu = new JMenu();
-    protected JMenuItem polyFitMenu = new JMenuItem();
-    protected JMenuItem lineFitMenu = new JMenuItem();
     protected JCheckBoxMenuItem coordinateMatching = null;
 
     /**
@@ -134,6 +140,7 @@ public class PlotControlFrame
     protected JButton lineFitButton = new JButton();
     protected JButton pannerButton = new JButton();
     protected JButton polyFitButton = new JButton();
+    protected JButton interpButton = new JButton();
     protected JButton printButton = new JButton();
     protected JButton printPostscriptButton = new JButton();
     protected JButton printJPEGButton = new JButton();
@@ -240,6 +247,9 @@ public class PlotControlFrame
         //  Set up the Options menu.
         setupOptionsMenu();
 
+        //  Set up the Graphics menu.
+        setupGraphicsMenu();
+
         //  Set up the help menu.
         setupHelpMenu();
     }
@@ -277,7 +287,7 @@ public class PlotControlFrame
 
         //  Add action to print figure to postscript file.
         PrintPostscriptAction printPostscriptAction  =
-            new PrintPostscriptAction( "Print to postscript", 
+            new PrintPostscriptAction( "Print to postscript",
                                        printPostscriptImage );
         fileMenu.add( printPostscriptAction );
         printPostscriptButton = toolBar.add( printPostscriptAction );
@@ -337,6 +347,8 @@ public class PlotControlFrame
 
         ImageIcon backImage = new ImageIcon(
             ImageHolder.class.getResource( "fitback.gif" ) );
+        ImageIcon interpImage = new ImageIcon(
+            ImageHolder.class.getResource( "interpolate.gif" ) );
         ImageIcon lineImage = new ImageIcon(
             ImageHolder.class.getResource( "fitline.gif" ) );
         ImageIcon cutterImage = new ImageIcon(
@@ -372,6 +384,14 @@ public class PlotControlFrame
         polyFitButton.setToolTipText(
                       "Fit parts of spectrum using a polynomial" );
 
+        //  Add the interpolate background item.
+        InterpAction interpAction = new InterpAction( "Draw spline",
+                                                      interpImage );
+        analysisMenu.add( interpAction );
+        interpButton = toolBar.add( interpAction );
+        interpButton.setToolTipText(
+                     "Create a background using spline/linear interpolation" );
+
         //  Add the measure and fit spectral lines action.
         LineFitAction lineFitAction = new LineFitAction( "Fit lines",
                                                          lineImage );
@@ -403,6 +423,15 @@ public class PlotControlFrame
         coordinateMatching.addItemListener( this );
     }
 
+    /**
+     * Configure the Graphics menu.
+     */
+    protected void setupGraphicsMenu()
+    {
+        DivaPlotCanvasDraw canvasDraw =
+            new DivaPlotCanvasDraw( plot.getPlot() );
+        menuBar.add( new DivaGraphicsMenu( canvasDraw ) );
+    }
 
     /**
      * Configure the help menu.
@@ -422,8 +451,8 @@ public class PlotControlFrame
             plot.print();
         }
         catch (SplatException e) {
-            JOptionPane.showMessageDialog ( this, e.getMessage(), 
-                                            "Printer warning", 
+            JOptionPane.showMessageDialog ( this, e.getMessage(),
+                                            "Printer warning",
                                             JOptionPane.ERROR_MESSAGE );
         }
     }
@@ -444,8 +473,8 @@ public class PlotControlFrame
                 plot.printPostscript( file.getName() );
             }
             catch (SplatException e) {
-                JOptionPane.showMessageDialog ( this, e.getMessage(), 
-                                                "Printer warning", 
+                JOptionPane.showMessageDialog ( this, e.getMessage(),
+                                                "Printer warning",
                                                 JOptionPane.ERROR_MESSAGE );
             }
         }
@@ -486,11 +515,11 @@ public class PlotControlFrame
                                                 plot.getPlotConfiguration(),
                                                 Utilities.getApplicationName(),
                                                 "PlotConfigs.xml" );
-            
+
             //  Add the SPLAT on-line help.
             HelpFrame.createHelpMenu( "config-window", "Help on window",
                                       configFrame.getJMenuBar(), null );
-            
+
             //  Add controls for the extra facilities provided by the
             //  DivaPlot.
             DivaPlot divaPlot = plot.getPlot();
@@ -575,6 +604,46 @@ public class PlotControlFrame
         if ( polyFitFrame != null ) {
             polyFitFrame.dispose();
             polyFitFrame = null;
+        }
+    }
+
+    /**
+     *  Activate the pop-up window for creating an interpolation
+     *  spectrum.
+     */
+    public void interpolate()
+    {
+        if ( interpFrame == null ) {
+            interpFrame = new InterpolateFrame( this );
+            //  We'd like to know if the window is closed.
+            interpFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        interpClosed();
+                    }
+                });
+        }
+        else {
+            Utilities.raiseFrame( interpFrame );
+        }
+    }
+
+    /**
+     *  Interpolation window is closed.
+     */
+    protected void interpClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // interpFrame = null;
+    }
+
+    /**
+     *  Close the interpolation window.
+     */
+    protected void closeInterpFrame()
+    {
+        if ( interpFrame != null ) {
+            interpFrame.dispose();
+            interpFrame = null;
         }
     }
 
@@ -770,6 +839,7 @@ public class PlotControlFrame
     {
         closeConfigFrame();
         closePolyFitFrame();
+        closeInterpFrame();
         closeLineFitFrame();
         closePanner();
         closeCutter();
@@ -966,6 +1036,19 @@ public class PlotControlFrame
     }
 
     /**
+     *  Inner class defining Action for creating an interpolated background.
+     */
+    protected class InterpAction extends AbstractAction
+    {
+        public InterpAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            interpolate();
+        }
+    }
+
+    /**
      *  Inner class defining Action for fitting spectral lines.
      */
     protected class LineFitAction extends AbstractAction
@@ -983,7 +1066,7 @@ public class PlotControlFrame
     // that do not require the full capabilities of an Action
     // (i.e. don't need an icon and don't also appear in the toolbar).
     //
-    public void itemStateChanged( ItemEvent e ) 
+    public void itemStateChanged( ItemEvent e )
     {
         //  Just the coordinate matching at present.
         specDataComp.setCoordinateMatching( coordinateMatching.isSelected() );
