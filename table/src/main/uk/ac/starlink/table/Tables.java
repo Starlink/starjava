@@ -18,33 +18,16 @@ public class Tables {
      * access then it is returned, otherwise a new random access table
      * is built using its data.
      *
+     * <p>This convenience method is equivalent to calling
+     * <tt>StoragePolicy.getDefaultPolicy().randomTable(startab)</tt>.
+     *
      * @param  stab  original table
      * @return  a table with the same data as <tt>startab</tt> and with 
      *          <tt>isRandom()==true</tt>
      */
     public static StarTable randomTable( StarTable startab )
             throws IOException {
-
-        /* If it has random access already, we don't need to do any work. */
-        if ( startab.isRandom() ) {
-            return startab;
-        }
-
-        /* If it's JDBC we can turn it random. */
-        else if ( startab instanceof JDBCStarTable ) {
-            try {
-                ((JDBCStarTable) startab).setRandom();
-                return startab;
-            }
-            catch ( SQLException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
-        }
-
-        /* Otherwise, we need to construct a table based on the sequential
-         * table that acts random. */
-        return new RowRandomWrapperStarTable( startab );
+        return StoragePolicy.getDefaultPolicy().randomTable( startab );
     }
 
     /**
