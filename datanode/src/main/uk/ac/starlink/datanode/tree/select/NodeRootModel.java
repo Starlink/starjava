@@ -10,6 +10,7 @@ import javax.swing.ComboBoxModel;
 import uk.ac.starlink.connect.Branch;
 import uk.ac.starlink.connect.Connection;
 import uk.ac.starlink.connect.ConnectorAction;
+import uk.ac.starlink.datanode.factory.CreationState;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.datanode.nodes.BranchDataNode;
 import uk.ac.starlink.datanode.nodes.DataNode;
@@ -85,7 +86,7 @@ public class NodeRootModel extends AbstractListModel implements ComboBoxModel {
     private void setSelectedNode( DataNode node ) {
         DataNode root = new NodeChain( node ).getRoot();
         for ( int i = 0; i < chains_.length; i++ ) {
-            if ( root.equals( chains_[ i ].getRoot() ) ) {
+            if ( sameData( root, chains_[ i ].getRoot() ) ) {
                 chains_[ i ].setNode( node );
                 selected_ = i;
                 fireContentsChanged( this, -1, -1 );
@@ -147,6 +148,33 @@ public class NodeRootModel extends AbstractListModel implements ComboBoxModel {
                 }
             } );
         }
+    }
+
+    /**
+     * Tests whether two data nodes reference the same data object.
+     *
+     * @param  n1  one node
+     * @param  n2  other node
+     * @return  true  iff n1 and n2 are representations of the same thing
+     */
+    private boolean sameData( DataNode n1, DataNode n2 ) {
+        if ( n1.equals( n2 ) ) {
+            return true;
+        }
+        else {
+            CreationState creator1 = n1.getCreator();
+            CreationState creator2 = n2.getCreator();
+            if ( creator1 != null && creator2 != null ) {
+                Object dataObj1 = creator1.getObject();
+                Object dataObj2 = creator2.getObject();
+                if ( dataObj1 != null && dataObj2 != null &&
+                     dataObj1.equals( dataObj2 ) ) {
+                    return true;
+                }
+            }
+        }
+      
+        return false;
     }
 
     public void removeAllElements() {
