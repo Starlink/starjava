@@ -81,33 +81,38 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
      * 
      * @return   the StarTable object containing the data for this HDU
      */
-    private synchronized StarTable getStarTable()
-            throws FitsException, IOException {
+    public synchronized StarTable getStarTable() throws IOException {
 
         /* If we haven't got it yet, read data and build a StarTable. */
         if ( starTable == null ) {
-            ArrayDataInput istrm = hdudata.getArrayData();
+            try {
+                ArrayDataInput istrm = hdudata.getArrayData();
 
-            /* Skip the header which we have already seen. */
-            Header hdr = new Header( istrm );
+                /* Skip the header which we have already seen. */
+                Header hdr = new Header( istrm );
 
-            /* Read the table data. */
-            TableHDU thdu;
-            if ( tdata instanceof BinaryTable ) {
-                ((BinaryTable) tdata).read( istrm );
-                thdu = new BinaryTableHDU( header, (Data) tdata );
-            }
-            else if ( tdata instanceof AsciiTable ) {
-                ((AsciiTable) tdata).read( istrm );
-                ((AsciiTable) tdata).getData();
-                thdu = new AsciiTableHDU( header, (Data) tdata );
-            }
-            else {
-                throw new IOException( "Unknown FITS table type " + tdata );
-            }
+                /* Read the table data. */
+                TableHDU thdu;
+                if ( tdata instanceof BinaryTable ) {
+                    ((BinaryTable) tdata).read( istrm );
+                    thdu = new BinaryTableHDU( header, (Data) tdata );
+                }
+                else if ( tdata instanceof AsciiTable ) {
+                    ((AsciiTable) tdata).read( istrm );
+                    ((AsciiTable) tdata).getData();
+                    thdu = new AsciiTableHDU( header, (Data) tdata );
+                }
+                else {
+                    throw new IOException( "Unknown FITS table type " + tdata );
+                }
 
-            /* Make a StarTable out of it. */
-            starTable = new FitsStarTable( thdu );
+                /* Make a StarTable out of it. */
+                starTable = new FitsStarTable( thdu );
+            }
+            catch ( FitsException e ) {
+                throw (IOException) new IOException( e.getMessage() ) 
+                                   .initCause( e );
+            }
         }
         return starTable;
     }
@@ -149,13 +154,6 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
                 /* Do table-specific display. */
                 StarTableDataNode.addDataViews( dv, getStarTable() );
             }
-            catch ( final FitsException e ) {
-                dv.addPane( "Error reading table", new ComponentMaker() {
-                     public JComponent getComponent() {
-                         return new TextViewer( e );
-                     }
-                } );
-            }
             catch ( final IOException e ) {
                 dv.addPane( "Error reading table", new ComponentMaker() {
                      public JComponent getComponent() {
@@ -169,13 +167,7 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
 
     public void customiseTransferable( DataNodeTransferable trans ) 
             throws IOException {
-        try {
-            StarTableDataNode.customiseTransferable( trans, getStarTable() );
-        }
-        catch ( FitsException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
-        }
+        StarTableDataNode.customiseTransferable( trans, getStarTable() );
     }
 
     public String getDescription() {

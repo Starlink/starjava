@@ -106,7 +106,7 @@ public class VOTableTableDataNode extends VOComponentDataNode
         StarTableDataNode.customiseTransferable( trans, getStarTable() );
     }
 
-    private StarTable getStarTable() throws IOException {
+    public StarTable getStarTable() throws IOException {
         if ( startable == null ) {
             startable = Tables.randomTable( new VOStarTable( domsrc ) );
 
