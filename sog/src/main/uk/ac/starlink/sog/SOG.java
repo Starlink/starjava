@@ -47,11 +47,12 @@ import jsky.util.Preferences;
 import jsky.util.gui.BasicWindowMonitor;
 import jsky.util.gui.DesktopUtil;
 import jsky.util.gui.DialogUtil;
-import jsky.util.gui.ExampleFileFilter;
 import jsky.util.gui.LookAndFeelMenu;
 
 import uk.ac.starlink.jaiutil.HDXCodec;
 import uk.ac.starlink.jaiutil.HDXImage;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 /**
  * Main class for the SOG application.
@@ -445,21 +446,21 @@ public class SOG
      */
     public JFileChooser makeFileChooser()
     {
-        JFileChooser fileChooser = new JFileChooser( new File( "." ) );
+        BasicFileChooser fileChooser = new BasicFileChooser( false );
 
-        ExampleFileFilter configFileFilter =
-            new ExampleFileFilter( new String[]{"cfg"},
-                                  _I18N.getString("catalogConfigFilesSkycat"));
+        BasicFileFilter configFileFilter =
+            new BasicFileFilter( new String[]{"cfg"},
+                                 _I18N.getString("catalogConfigFilesSkycat"));
         fileChooser.addChoosableFileFilter( configFileFilter );
 
-        ExampleFileFilter skycatLocalCatalogFilter =
-            new ExampleFileFilter( new String[]{"table", "tbl", "cat"},
-                                   _I18N.getString("localCatalogFilesSkycat"));
+        BasicFileFilter skycatLocalCatalogFilter =
+            new BasicFileFilter( new String[]{"table", "tbl", "cat"},
+                                 _I18N.getString("localCatalogFilesSkycat"));
         fileChooser.addChoosableFileFilter( skycatLocalCatalogFilter );
 
-        ExampleFileFilter fitsFilter =
-            new ExampleFileFilter( new String[]{"fit", "fits", "fts"},
-                                   _I18N.getString( "fitsFileWithTableExt" ) );
+        BasicFileFilter fitsFilter =
+            new BasicFileFilter( new String[]{"fit", "fits", "fts"},
+                                 _I18N.getString( "fitsFileWithTableExt" ) );
         fileChooser.addChoosableFileFilter( fitsFilter );
 
         fileChooser.setFileFilter( fitsFilter );
@@ -478,7 +479,7 @@ public class SOG
             fileChooser = makeFileChooser();
         }
         int option = fileChooser.showOpenDialog( this );
-        if ( option == JFileChooser.APPROVE_OPTION &&
+        if ( option == BasicFileChooser.APPROVE_OPTION &&
              fileChooser.getSelectedFile() != null ) {
             open( fileChooser.getSelectedFile().getAbsolutePath() );
         }

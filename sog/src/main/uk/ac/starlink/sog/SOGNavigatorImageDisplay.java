@@ -26,9 +26,9 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 
 import jsky.coords.CoordinateConverter;
 import jsky.coords.WorldCoordinateConverter;
@@ -38,7 +38,6 @@ import jsky.image.gui.ImageHistoryItem;
 import jsky.navigator.NavigatorImageDisplay;
 import jsky.util.FileUtil;
 import jsky.util.gui.DialogUtil;
-import jsky.util.gui.ExampleFileFilter;
 
 import org.w3c.dom.Element;
 
@@ -55,6 +54,8 @@ import uk.ac.starlink.jaiutil.HDXImage;
 import uk.ac.starlink.jaiutil.HDXImageProcessor;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
+import uk.ac.starlink.util.gui.BasicFileChooser;
+import uk.ac.starlink.util.gui.BasicFileFilter;
 
 import uk.ac.starlink.sog.photom.SOGCanvasDraw;
 import uk.ac.starlink.sog.photom.AperturePhotometryFrame;
@@ -786,19 +787,27 @@ public class SOGNavigatorImageDisplay
 
     /**
      * Create and return a new file chooser to be used to select an image file
-     * to display. Overridden to add HDS and HDX file types.
+     * to display. Overridden to add HDS and HDX file types and use a
+     * chooser that sometimes works with windows shortcuts.
      */
      public static JFileChooser makeImageFileChooser() {
-         JFileChooser chooser = NavigatorImageDisplay.makeImageFileChooser();
+         JFileChooser plainChooser = 
+             NavigatorImageDisplay.makeImageFileChooser();
 
-         FileFilter currentFilter = chooser.getFileFilter();
+         FileFilter currentFilter = plainChooser.getFileFilter();
+         FileFilter defaultFilters[] = plainChooser.getChoosableFileFilters();
 
-         ExampleFileFilter hdsFilter =
-             new ExampleFileFilter( "sdf", "HDS container files" );
+         BasicFileChooser chooser = new BasicFileChooser();
+         for ( int i = 0; i < defaultFilters.length; i++ ) {
+             chooser.setFileFilter( defaultFilters[i] );
+         }
+
+         BasicFileFilter hdsFilter =
+             new BasicFileFilter( "sdf", "HDS container files" );
          chooser.addChoosableFileFilter( hdsFilter );
 
-         ExampleFileFilter hdxFilter = 
-             new ExampleFileFilter( "xml", "HDX/NDX XML files");
+         BasicFileFilter hdxFilter = 
+             new BasicFileFilter( "xml", "HDX/NDX XML files");
          chooser.addChoosableFileFilter( hdxFilter );
 
          //  Restore the default filter.
