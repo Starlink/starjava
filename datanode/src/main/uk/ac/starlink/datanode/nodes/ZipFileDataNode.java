@@ -41,6 +41,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
             throw new NoSuchDataException( e.getMessage() );
         }
         this.file = file;
+        setName( file.getName() );
         setLabel( file.getName() );
     }
 
