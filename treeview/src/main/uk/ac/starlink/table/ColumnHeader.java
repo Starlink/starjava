@@ -67,6 +67,7 @@ public class ColumnHeader {
      * @return  the UCD, or <tt>null</tt> if none is known
      * @see  <a href="http://vizier.u-strasbg.fr/doc/UCD.htx">Unified 
      *       Column Descriptor scheme</a>
+     * @see  UCD
      */
     public String getUCD() {
         return ucd;

@@ -20,6 +20,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.treeview.votable.Coosys;
 import uk.ac.starlink.treeview.votable.GenericElement;
 import uk.ac.starlink.treeview.votable.Param;
@@ -320,14 +321,17 @@ public class VOComponentDataNode extends DefaultDataNode {
         private static final String ID_KEY = "ID";
         private static final String VALUE_KEY = "Value";
         private static final String UNIT_KEY = "Units";
+        private static final String DESCRIPTION_KEY = "Description";
         private static final String UCD_KEY = "UCD";
+        private static final String UCD_DESCRIPTION_KEY = "UCD description";
         private static final String DATATYPE_KEY = "Datatype";
         private static final String PRECISION_KEY = "Precision";
         private static final String WIDTH_KEY = "Width";
         private static final String ARRAYSIZE_KEY = "Arraysize";
 
         private static List keyOrder = Arrays.asList( new String[] {
-            NAME_KEY, ID_KEY, VALUE_KEY, UNIT_KEY, UCD_KEY, 
+            NAME_KEY, ID_KEY, VALUE_KEY, UNIT_KEY, DESCRIPTION_KEY,
+            UCD_KEY, UCD_DESCRIPTION_KEY,
             DATATYPE_KEY, PRECISION_KEY, WIDTH_KEY, ARRAYSIZE_KEY,
         } );
 
@@ -347,6 +351,13 @@ public class VOComponentDataNode extends DefaultDataNode {
                 addEntry( i, UCD_KEY, el.getAttribute( "ucd" ) );
                 addEntry( i, VALUE_KEY, el.getAttribute( "value" ) );
                 addEntry( i, ARRAYSIZE_KEY, el.getAttribute( "arraysize" ) );
+                addEntry( i, DESCRIPTION_KEY, param.getDescription() );
+                if ( hasEntry( i, UCD_KEY ) ) {
+                    UCD ucd = UCD.getUCD( (String) getEntry( i, UCD_KEY ) );
+                    String desc = ( ucd != null ) ? ucd.getDescription()
+                                                  : "<unknown UCD>";
+                    addEntry( i, UCD_DESCRIPTION_KEY, desc );
+                }
             }
         }
     }

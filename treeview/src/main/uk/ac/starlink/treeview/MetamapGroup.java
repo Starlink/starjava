@@ -56,6 +56,32 @@ public class MetamapGroup {
     }
 
     /**
+     * Retrieves an entry from one of the metadata sets by key.
+     * <tt>null</tt> is returned if no such entry exists.
+     *
+     * @param  item  the index of the set from which the entry should be got
+     * @param  key   the metadatum key
+     * @return  the value of the entry associated with <tt>key</tt>,
+     *          or <tt>null</tt> if there isn't one
+     */
+    public Object getEntry( int item, String key ) {
+        return metamaps[ item ].get( key );
+    }
+
+    /**
+     * Indicates whether an entry with a given key is present in one of
+     * the metadata sets.
+     *
+     * @param  item  the index of the set from which the entry should be got
+     * @param  key   the metadatum key
+     * @return   true iff the entry corresponding to <tt>key</tt> exists
+     *           in set number <tt>item</tt>
+     */
+    public boolean hasEntry( int item, String key ) {
+        return metamaps[ item ].containsKey( key );
+    }
+
+    /**
      * Mandates an ordering to be imposed on the metadata keys.
      * The supplied list is a 
      * The effect of this call is to influence the order of the list 
