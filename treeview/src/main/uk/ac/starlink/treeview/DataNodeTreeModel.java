@@ -139,6 +139,29 @@ public class DataNodeTreeModel implements TreeModel {
     }
 
     /**
+     * Returns an array of the children currently owned by a given node.
+     * Unlike {@link #getChildCount}, this does not trigger expansion
+     * of a not-currently-expanded node, it just gives a snapshot of
+     * the current state of the model.
+     *
+     * @param  dataNode  the node whose children are being enquired about
+     * @return  an array of <tt>dataNode</tt>'s children
+     */
+    public DataNode[] getCurrentChildren( DataNode dataNode ) {
+        TreeModelNode modelNode = getModelNode( dataNode );
+        synchronized ( modelNode ) {
+            List childList = modelNode.getChildren();
+            int nChild = childList.size();
+            DataNode[] children = new DataNode[ nChild ];
+            for ( int i = 0; i < nChild; i++ ) {
+                children[ i ] = 
+                    ((TreeModelNode) childList.get( i )).getDataNode();
+            }
+            return children;
+        }
+    }
+
+    /**
      * Indicates whether the node is a leaf, that is cannot have any 
      * children.  Non-leaf nodes may still be childless though.
      *
@@ -205,6 +228,15 @@ public class DataNodeTreeModel implements TreeModel {
      */
     public int getNodeCount() {
         return nodeMap.size();
+    }
+
+    /**
+     * Indicates whether this model contains a given data node.
+     *
+     * @return  <tt>true</tt> iff this model contains <tt>node</tt>
+     */
+    public boolean containsNode( DataNode node ) {
+        return nodeMap.containsKey( node );
     }
 
     /**
@@ -333,7 +365,8 @@ public class DataNodeTreeModel implements TreeModel {
     }
 
     /**
-     * Replaces a given data node with a new one.
+     * Replaces a given data node with a new one.  This only works for
+     * non-root nodes.  To replace the root node, use {@link #setRoot}.
      *
      * @param  oldDataNode  the node to be replaced
      * @param  newDataNode  the node to replace it with
@@ -341,11 +374,12 @@ public class DataNodeTreeModel implements TreeModel {
     public void replaceNode( DataNode oldDataNode, DataNode newDataNode ) {
         TreeModelNode oldModelNode = getModelNode( oldDataNode );
         TreeModelNode parentModelNode = oldModelNode.getParent();
-        synchronized ( parentModelNode ) {
  
-            /* Create a new model node representing the new data node. */
-            TreeModelNode newModelNode = 
-                makeModelNode( newDataNode, parentModelNode );
+        /* Create a new model node representing the new data node. */
+        TreeModelNode newModelNode = 
+            makeModelNode( newDataNode, parentModelNode );
+
+        synchronized ( parentModelNode ) {
 
             /* Replace the old model node by the new one in its parent. */
             List childList = parentModelNode.getChildren();
@@ -359,6 +393,27 @@ public class DataNodeTreeModel implements TreeModel {
             Object[] path = getPathToRoot( newDataNode );
             listenerHandler.fireTreeStructureChanged( this, path, null, null );
         }
+    }
+
+    /**
+     * Sets the root node of the tree.
+     *
+     * @param  rootDataNode  the new root node 
+     */
+    public synchronized void setRoot( DataNode rootDataNode ) {
+
+        /* Clear out the existing data structures. */
+        discardModelNode( root );
+
+        /* Construct a new root model node. */
+        TreeModelNode newRoot = makeModelNode( rootDataNode, null );
+
+        /* Change the root. */
+        root = newRoot;
+
+        /* Notify listeners. */
+        Object[] path = new Object[] { newRoot };
+        listenerHandler.fireTreeStructureChanged( this, path, null, null );
     }
 
     /**
@@ -388,10 +443,12 @@ public class DataNodeTreeModel implements TreeModel {
         TreeModelNode newModelNode = repackage( dataNode, parentModelNode );
 
         /* Replace the modelnode in its parent with the repackaged one. */
-        synchronized ( parentModelNode ) {
-            List childList = parentModelNode.getChildren();
-            int index = childList.indexOf( oldModelNode );
-            childList.set( index, newModelNode );
+        if ( parentModelNode != null ) {
+            synchronized ( parentModelNode ) {
+                List childList = parentModelNode.getChildren();
+                int index = childList.indexOf( oldModelNode );
+                childList.set( index, newModelNode );
+            }
         }
 
         /* Notify the listeners that a change has taken place. */
@@ -415,6 +472,27 @@ public class DataNodeTreeModel implements TreeModel {
                 listenerHandler
                .fireTreeNodesChanged( this, path, new int[] { index }, 
                                       new Object[] { dataNode } );
+            }
+        }
+    }
+
+    /**
+     * Stops a node from expanding.  If the given node is currently 
+     * undergoing expansion, calling this will stop it, leaving in 
+     * place any children which have already been added to it.
+     * Processing work associated with the expansion should be stopped,
+     * though this may not happen immediately.
+     * If the given node is not undergoing expansion this method will 
+     * have no effect.
+     *
+     * @param  dataNode  the node whose expansion is to be stopped
+     */
+    public void stopExpansion( DataNode dataNode ) {
+        TreeModelNode modelNode = getModelNode( dataNode );
+        synchronized ( modelNode ) {
+            NodeExpander expander = modelNode.getExpander();
+            if ( expander != null && ! expander.isStopped() ) {
+                expander.stop();
             }
         }
     }
@@ -468,7 +546,10 @@ public class DataNodeTreeModel implements TreeModel {
         synchronized ( node ) {
 
             /* Stop any expansion in progress. */
-            node.setExpander( null );
+            NodeExpander expander = node.getExpander();
+            if ( expander != null && ! expander.isStopped() ) {
+                expander.stop();
+            }
 
             /* Recursively discard each child of this node. */
             for ( Iterator it = node.getChildren().iterator(); it.hasNext(); ) {
@@ -568,6 +649,12 @@ public class DataNodeTreeModel implements TreeModel {
                     throw new UnsupportedOperationException();
                 }
             };
+        }
+        public String getName() {
+            return "Empty";
+        }
+        public String toString() {
+            return getName();
         }
     }
 
