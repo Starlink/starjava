@@ -86,6 +86,7 @@ C_ROUTINES = \
    CmpMap.c \
    DSBSpecFrame.c \
    FitsChan.c \
+   FluxFrame.c \
    Frame.c \
    FrameSet.c \
    GrismMap.c \
@@ -101,6 +102,7 @@ C_ROUTINES = \
    SkyFrame.c \
    SlaMap.c \
    ShiftMap.c \
+   SpecFluxFrame.c \
    SpecFrame.c \
    SpecMap.c \
    SphMap.c \

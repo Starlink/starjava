@@ -51,6 +51,8 @@ typedef union {
    AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
    AstDSBSpecFrame *DSBSpecFrame; /* Pointer to C AstDSBSpecFrame struct */
+   AstFluxFrame *FluxFrame;  /* Pointer to C FluxFrame struct */
+   AstSpecFluxFrame *SpecFluxFrame; /* Pointer to C AstSpecFluxFrame struct */
    AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */

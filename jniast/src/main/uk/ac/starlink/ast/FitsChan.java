@@ -29,8 +29,8 @@ import java.io.*;
  * the FitsChan's integer Card attribute, which identifies a "current"
  * card, to which subsequent operations apply. Searches
  * based on keyword may be performed (using astFindFits), new
- * cards may be inserted (astPutFits, astPutCards) and existing ones may be
- * deleted (astDelFits).
+ * cards may be inserted (astPutFits, astPutCards, astSetFits<X>) and 
+ * existing ones may be deleted (astDelFits) or changed (astSetFits<X>).
  * <p>
  * When you create a FitsChan, you have the option of specifying
  * "source" and "sink" functions which connect it to external data

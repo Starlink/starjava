@@ -151,7 +151,7 @@ public class Frame extends Mapping {
      * @param   v2
      * The second axis value.
      * 
-     * @return  The distance between the two axis values.
+     * @return  The distance from the first to the second axis value.
      * 
      * @throws  AstException  if an error occurred in the AST library
      */
@@ -819,7 +819,6 @@ public class Frame extends Mapping {
      * is assigned to the Unit attribute.
      * <p>
      * Note, if a non-zero value is set for the ActiveUnit flag, then changing a
-     * Note, if a .TRUE. value is set for the ActiveUnit flag, then changing a
      * Unit value for the current Frame within a FrameSet will result in the
      * Frame being re-mapped (that is, the Mappings which define the
      * relationships between Frames within the FrameSet will be modified to
@@ -1008,10 +1007,9 @@ public class Frame extends Mapping {
      * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
-     * The Mapping returned by 
-     * astFindFrame or astConvert
-     * will use the coordinate system specified by the AlignSystem attribute as 
-     * an intermediate coordinate system. The total returned Mapping will first
+     * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
+     * coordinate system specified by the AlignSystem attribute as an
+     * intermediate coordinate system. The total returned Mapping will first
      * map positions from the first Frame into this intermediate coordinate
      * system, using the attributes of the first Frame. It will then map
      * these positions from the intermediate coordinate system into the
@@ -1057,10 +1055,9 @@ public class Frame extends Mapping {
      * will accept any of the values which may be assigned to the System
      * attribute.
      * <p>
-     * The Mapping returned by 
-     * astFindFrame or astConvert
-     * will use the coordinate system specified by the AlignSystem attribute as 
-     * an intermediate coordinate system. The total returned Mapping will first
+     * The Mapping returned by AST_FINDFRAME or AST_CONVERT will use the
+     * coordinate system specified by the AlignSystem attribute as an
+     * intermediate coordinate system. The total returned Mapping will first
      * map positions from the first Frame into this intermediate coordinate
      * system, using the attributes of the first Frame. It will then map
      * these positions from the intermediate coordinate system into the
@@ -2690,6 +2687,13 @@ public class Frame extends Mapping {
      *    - "FK5" or "EQUATORIAL": The modern FK5 (barycentric) equatorial
      *    coordinate system. This should be qualified by an Equinox value.
      * <p>
+     *    - "J2000": An equatorial coordinate system based on the mean
+     *    dynamical equator and equinox of the J2000 epoch. The dynamical
+     *    equator and equinox differ slightly from those used by the FK5
+     *    model, and so a "J2000" SkyFrame will differ slightly from an
+     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
+     *    qualified by an Equinox value
+     * <p>
      *    - "GAPPT", "GEOCENTRIC" or "APPARENT": The geocentric apparent
      *    equatorial coordinate system, which gives the apparent positions
      *    of sources relative to the true plane of the Earth's equator and
@@ -2760,6 +2764,21 @@ public class Frame extends Mapping {
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
      *    (see astSetActiveUnit function for further information).
+     * <dt>FluxFrame</dt><dd>
+     *    The FluxFrame class supports the following System values and
+     *    associated systems for measuring observed value:
+     * <p>
+     *    - "FLUXDEN": Flux density in frequency units (W/m^2/Hz)
+     *    - "FLUXDENW": Flux density in wavelength units (W/m^2/Angstrom)
+     * <p>
+     *    The above lists specified the default units for each System. If an 
+     *    explicit value is set for the Unit attribute but no value is set 
+     *    for System, then the default System value is determined by the Unit 
+     *    string (if the units are not appropriate for describing any of the 
+     *    supported Systems then an error will be reported when an attempt is 
+     *    made to access the System value). If no value has been specified for
+     *    either Unit or System, then System=FLUXDEN and Unit=W/m^2/Hz are
+     *    used.
      * </dl>
      * 
      *
@@ -2826,6 +2845,13 @@ public class Frame extends Mapping {
      *    - "FK5" or "EQUATORIAL": The modern FK5 (barycentric) equatorial
      *    coordinate system. This should be qualified by an Equinox value.
      * <p>
+     *    - "J2000": An equatorial coordinate system based on the mean
+     *    dynamical equator and equinox of the J2000 epoch. The dynamical
+     *    equator and equinox differ slightly from those used by the FK5
+     *    model, and so a "J2000" SkyFrame will differ slightly from an
+     *    "FK5(Equinox=J2000)" SkyFrame. The J2000 System need not be 
+     *    qualified by an Equinox value
+     * <p>
      *    - "GAPPT", "GEOCENTRIC" or "APPARENT": The geocentric apparent
      *    equatorial coordinate system, which gives the apparent positions
      *    of sources relative to the true plane of the Earth's equator and
@@ -2896,6 +2922,21 @@ public class Frame extends Mapping {
      *    a SpecFrame will result in the SpecFrame being re-mapped within
      *    its enclosing FrameSet in order to reflect the change in units
      *    (see astSetActiveUnit function for further information).
+     * <dt>FluxFrame</dt><dd>
+     *    The FluxFrame class supports the following System values and
+     *    associated systems for measuring observed value:
+     * <p>
+     *    - "FLUXDEN": Flux density in frequency units (W/m^2/Hz)
+     *    - "FLUXDENW": Flux density in wavelength units (W/m^2/Angstrom)
+     * <p>
+     *    The above lists specified the default units for each System. If an 
+     *    explicit value is set for the Unit attribute but no value is set 
+     *    for System, then the default System value is determined by the Unit 
+     *    string (if the units are not appropriate for describing any of the 
+     *    supported Systems then an error will be reported when an attempt is 
+     *    made to access the System value). If no value has been specified for
+     *    either Unit or System, then System=FLUXDEN and Unit=W/m^2/Hz are
+     *    used.
      * </dl>
      * 
      *

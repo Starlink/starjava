@@ -46,7 +46,13 @@ package uk.ac.starlink.ast;
  * coordinates into "apparent" ones, and vice versa. Like any
  * Mapping, a FrameSet may also be inverted (see astInvert), which
  * has the effect of interchanging its base and current Frames and
- * hence of reversing the Mapping between them.
+ * hence of reversing the Mapping between them. 
+ * <p>
+ * Regions may be added into a FrameSet (since a Region is a type of
+ * Frame), either explicitly or as components within CmpFrames. In this 
+ * case the Mapping between a pair of Frames within a FrameSet will 
+ * include the effects of the clipping produced by any Regions included 
+ * in the path between the Frames. 
  * 
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FrameSet'>AST FrameSet</a>  
@@ -133,6 +139,8 @@ public class FrameSet extends Frame {
      * 
      * @param   frame
      * Pointer to a Frame that describes the new coordinate system.
+     * Any class of Frame may be supplied (including Regions and
+     * FrameSets).
      * <p>
      * This function may also be used to merge two FrameSets by
      * supplying a pointer to a second FrameSet for this parameter
@@ -172,6 +180,9 @@ public class FrameSet extends Frame {
      * coordinates between the coordinate systems represented by two
      * Frames in a FrameSet.
      * <h4>Notes</h4>
+     * <br> - The returned Mapping will include the clipping effect of any
+     * Regions which occur on the path between the two supplied Frames
+     * (this includes the two supplied Frames themselves).
      * <br> - The values given for the "iframe1" and "iframe2" parameters
      * should lie in the range from 1 to the number of Frames in the
      * FrameSet (as given by its Nframe attribute). A value of

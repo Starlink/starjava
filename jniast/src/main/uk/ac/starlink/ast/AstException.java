@@ -655,6 +655,15 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__RDERR" );
        }
    }
+   /** Status constant for error "invalid or corrupted Region structure supplied" */
+   public static final int AST__REGIN;
+   static {
+       try { AST__REGIN = getErrConst( "AST__REGIN" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__REGIN" );
+       }
+   }
    /** Status constant for error "invalid attempt to remove last Frame" */
    public static final int AST__REMIN;
    static {
@@ -1130,6 +1139,24 @@ public class AstException extends RuntimeException {
        catch( IllegalArgumentException e ) {
            throw new LinkageError(
                 "Unknown AST error constant AST__BADOC" );
+       }
+   }
+   /** Status constant for error "error getting a named value from a KeyMap" */
+   public static final int AST__MPGER;
+   static {
+       try { AST__MPGER = getErrConst( "AST__MPGER" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__MPGER" );
+       }
+   }
+   /** Status constant for error "invalid integer index supplied for a KeyMap entry" */
+   public static final int AST__MPIND;
+   static {
+       try { AST__MPIND = getErrConst( "AST__MPIND" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__MPIND" );
        }
    }
 }

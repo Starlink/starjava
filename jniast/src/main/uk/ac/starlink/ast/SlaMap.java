@@ -115,14 +115,16 @@ public class SlaMap extends Mapping {
      * <br> - "FK54Z" (BEPOCH): Convert FK5 to FK4 (no proper motion or parallax).
      * <br> - "AMP" (DATE,EQ): Convert geocentric apparent to mean place.
      * <br> - "MAP" (EQ,DATE): Convert mean place to geocentric apparent.
-     * <br> - "ECLEQ" (DATE): Convert ecliptic coordinates to J2000.0 equatorial.
-     * <br> - "EQECL" (DATE): Convert equatorial J2000.0 to ecliptic coordinates.
-     * <br> - "GALEQ": Convert galactic coordinates to J2000.0 equatorial.
-     * <br> - "EQGAL": Convert J2000.0 equatorial to galactic coordinates.
-     * <br> - "HFK5Z" (JEPOCH): Convert ICRS coordinates to J2000.0 equatorial.
-     * <br> - "FK5HZ" (JEPOCH): Convert J2000.0 equatorial coordinates to ICRS.
+     * <br> - "ECLEQ" (DATE): Convert ecliptic coordinates to FK5 J2000.0 equatorial.
+     * <br> - "EQECL" (DATE): Convert equatorial FK5 J2000.0 to ecliptic coordinates.
+     * <br> - "GALEQ": Convert galactic coordinates to FK5 J2000.0 equatorial.
+     * <br> - "EQGAL": Convert FK5 J2000.0 equatorial to galactic coordinates.
+     * <br> - "HFK5Z" (JEPOCH): Convert ICRS coordinates to FK5 J2000.0 equatorial.
+     * <br> - "FK5HZ" (JEPOCH): Convert FK5 J2000.0 equatorial coordinates to ICRS.
      * <br> - "GALSUP": Convert galactic to supergalactic coordinates.
      * <br> - "SUPGAL": Convert supergalactic coordinates to galactic.
+     * <br> - "J2000H": Convert dynamical J2000.0 to ICRS.
+     * <br> - "HJ2000": Convert ICRS to dynamical J2000.0.
      * <p>
      * For example, to use the "ADDET" conversion, which takes a single
      * argument EQ, you should consult the documentation for the SLALIB
