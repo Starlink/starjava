@@ -56,6 +56,7 @@ public class AuxWindow extends JFrame {
     private JPanel controlPanel;
     private JMenuBar menuBar;
     private boolean closeIsExit;
+    private boolean isStandalone;
 
     private Action aboutAct;
     private Action closeAct;
@@ -96,7 +97,8 @@ public class AuxWindow extends JFrame {
                                  "Exit the application" );
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setMnemonic( KeyEvent.VK_C );
-        if ( Driver.isStandalone() ) {
+        isStandalone = Driver.isStandalone();
+        if ( isStandalone ) {
             JMenuItem exitItem = fileMenu.add( exitAct );
             exitItem.setMnemonic( KeyEvent.VK_X );
         }
@@ -210,23 +212,25 @@ public class AuxWindow extends JFrame {
      * Should be called <em>before</em> any call to {@link #addHelp}.
      */
     public void setCloseIsExit() {
-        closeIsExit = true;
+        if ( isStandalone ) {
+            closeIsExit = true;
 
-        /* Remove any Close item in the File menu. */
-        boolean exitFound = false;
-        for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
-            JMenuItem item = fileMenu.getItem( i );
-            if ( item != null ) {
-                Action act = item.getAction();
-                if ( act == closeAct ) {
-                    fileMenu.remove( item );
-                }
-                else if ( act == exitAct ) {
-                    exitFound = true;
+            /* Remove any Close item in the File menu. */
+            boolean exitFound = false;
+            for ( int i = fileMenu.getItemCount() - 1; i >= 0; i-- ) {
+                JMenuItem item = fileMenu.getItem( i );
+                if ( item != null ) {
+                    Action act = item.getAction();
+                    if ( act == closeAct ) {
+                        fileMenu.remove( item );
+                    }
+                    else if ( act == exitAct ) {
+                        exitFound = true;
+                    }
                 }
             }
+            assert exitFound;
         }
-        assert exitFound;
     }
 
     /**
