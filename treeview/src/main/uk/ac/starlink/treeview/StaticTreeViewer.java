@@ -81,6 +81,7 @@ public class StaticTreeViewer extends JFrame {
     private Action deleteAction;
     private Action upAction;
     private Action copyTopAction;
+    private Action stopAction;
 
     /** No details panel is displayed. */
     public static final short DETAIL_NONE = 0;
@@ -467,6 +468,15 @@ public class StaticTreeViewer extends JFrame {
                 }
             };
 
+        stopAction =
+            new BasicAction( "Stop expansion",
+                             IconFactory.getIcon( IconFactory.STOP ),
+                             "Interrupt any node expansion happening" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    recursiveStopExpansion( root );
+                }
+            };
+
         /* Configure a selection listener to control availability of actions
          * where this is related to what items are selected. */
         selectModel.addTreeSelectionListener( new TreeSelectionListener() {
@@ -526,11 +536,12 @@ public class StaticTreeViewer extends JFrame {
         treeMenu.add( recursiveExpandAction ).setIcon( null );
         treeMenu.add( collapseAllAction ).setIcon( null );
         treeMenu.add( expandAllAction ).setIcon( null );
+        // treeMenu.add( stopAction ).setIcon( null ); // doesn't work properly
         tools.add( collapseAction );
         tools.add( expandAction );
-        tools.addSeparator();
         tools.add( recursiveCollapseAction );
         tools.add( recursiveExpandAction );
+        // tools.add( stopAction );                    // doesn't work properly
         tools.addSeparator();
         tools.add( upAction );
         tools.add( copyTopAction );
@@ -690,6 +701,14 @@ public class StaticTreeViewer extends JFrame {
 
     private void recursiveExpand( DataNode dataNode ) {
         jtree.recursiveExpand( dataNode );
+    }
+
+    private void recursiveStopExpansion( DataNode node ) {
+        treeModel.stopExpansion( node );
+        DataNode[] children = treeModel.getCurrentChildren( node );
+        for ( int i = 0; i < children.length; i++ ) {
+            recursiveStopExpansion( children[ i ] );
+        }
     }
 
     private void chooseNewFile() {
