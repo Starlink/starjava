@@ -11,13 +11,14 @@ import java.util.List;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.UCD;
 
@@ -303,7 +304,7 @@ public class TableSpecDataImpl
             readTable();
         }
         catch (Exception e) {
-            throw new SplatException( "Failed to open table: "+tablespec, e );
+            throw new SplatException("Failed to open table: " + tablespec, e);
         }
     }
 
@@ -549,6 +550,12 @@ public class TableSpecDataImpl
         //  Base frame. Indices of data values array.
         astref.setCurrent( base );
         guessUnitsDescription( dataColumn );
+
+        //  Set the units and label for data.
+        dataUnits = astref.getUnit( 1 );
+        dataLabel = astref.getLabel( 1 );
+        
+        //  Coordinate units.
         astref.setCurrent( current );
         guessUnitsDescription( coordColumn );
     }
@@ -559,10 +566,10 @@ public class TableSpecDataImpl
      */
     protected void guessUnitsDescription( int column )
     {
-        // Units exist or not.
+        // Units exist or not. If so apply the fixup heuristics.
         String unit = columnInfos[column].getUnitString();
         if ( unit != null && ! "".equals( unit ) ) {
-            astref.setUnit( 1, unit );
+            astref.setUnit( 1, UnitUtilities.fixUpUnits( unit ) );
         }
 
         // If the description doesn't exist, then try for a UCD

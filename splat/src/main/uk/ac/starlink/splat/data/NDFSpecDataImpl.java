@@ -16,6 +16,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 
 /**
  * NDFSpecDataImpl - implementation of SpecDataImpl to access NDF
@@ -112,9 +113,13 @@ public class NDFSpecDataImpl
      */
     public FrameSet getAst()
     {
-        // The NDFJ object will annul this identifier when
-        // finalized, so we do not need to keep a copy.
-        return theNDF.getAst();
+
+        // The NDFJ object will annul this identifier when finalized, so we do
+        // not need to keep a copy. Fix up the coordinate units for problems.
+        FrameSet frameSet = theNDF.getAst();
+        frameSet.setUnit
+            ( 1, UnitUtilities.fixUpUnits( frameSet.getUnit( 1 ) ) );
+        return frameSet;
     }
 
     /**
@@ -151,6 +156,9 @@ public class NDFSpecDataImpl
     public String getProperty( String key )
     {
         if ( theNDF.has( key ) ) {
+            if ( key.equals( "units" ) ) {
+                return UnitUtilities.fixUpUnits( theNDF.getCharComp( key ) ); 
+            }
             return theNDF.getCharComp( key );
         }
         else {
@@ -320,7 +328,7 @@ public class NDFSpecDataImpl
         //  Set the Units and Label if we can.
         FrameSet frameSet = source.getAst().getRef();
         String label = frameSet.getC( "Label(2)" );
-        String unit = frameSet.getC( "Unit(2)" );
+        String unit = UnitUtilities.fixUpUnits( frameSet.getC( "Unit(2)" ) );
         if ( label != null && ( ! label.equals( "" ) ) ) {
             theNDF.setCharComp( "label", label );
         }

@@ -35,6 +35,7 @@ import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 
 /**
  * NDXSpecDataImpl - implementation of SpecDataImpl to access a spectrum
@@ -185,7 +186,10 @@ public class NDXSpecDataImpl
     public FrameSet getAst()
     {
         try {
-            return Ndxs.getAst( ndx );
+            FrameSet frameSet = Ndxs.getAst( ndx );
+            frameSet.setUnit
+                ( 1, UnitUtilities.fixUpUnits( frameSet.getUnit( 1 ) ) );
+            return frameSet;
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -224,7 +228,7 @@ public class NDXSpecDataImpl
             return ndx.getLabel();
         }
         if ( key.equalsIgnoreCase( "units" ) && ndx.hasUnits() ) {
-            return ndx.getUnits();
+            return UnitUtilities.fixUpUnits( ndx.getUnits() );
         }
         return "";
     }

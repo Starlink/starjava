@@ -40,6 +40,8 @@ public class UnitUtilities
      */
     public static String fixUpUnits( String dodgyUnits )
     {
+        if ( dodgyUnits == null ) return null;
+
         // Need to parse into words and check each of the components. Word
         // delimeters are: " ", "*", ".", and "/". The "*" may not be a
         // delimeter when repeated, happily we can replace this sequence with
@@ -217,6 +219,7 @@ public class UnitUtilities
             "ERG/CM2/S/A",
             "W/CM2/UM",
             "WATT/M2",
+            "watts/cm^2/micron",
             "ANGSTROMS", 
             "10-18W/m2/nm",
             "erg /s /cm2 /angstroms",
