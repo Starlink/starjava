@@ -42,7 +42,7 @@ public class SOGNavigatorImageDisplayToolBar
         super.addToolBarItems();
         addSeparator();
         add( makeGridButton() );
-        //add( makePhotomButton() );
+        add( makePhotomButton() );
     }
 
     /**
