@@ -1,10 +1,13 @@
 package uk.ac.starlink.treeview;
 
-// NB: this version does not compile and may contain various kinds of
-// errors.  It is a sketch of one way of doing it that I am probably
-// going to ditch in favour of another way, but I'm checking it in 
-// in case I want to go back to that.
-
+import java.io.IOException;
+import uk.ac.starlink.array.AccessImpl;
+import uk.ac.starlink.array.ArrayAccess;
+import uk.ac.starlink.array.BadHandler;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.array.Type;
+import uk.ac.starlink.array.WrapperArrayImpl;
 
 /**
  * Wraps an NDArray to provide another with fewer dimensions.
@@ -15,11 +18,17 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
 
     private final NDArray baseNda;
     private final OrderedNDShape baseShape;
-    private final Type baseType;
+    private final long[] baseOrigin;
+    private final BadHandler baseHandler;
     private final OrderedNDShape shape;
     private final Type type;
+    private final BadHandler handler;
+    private final int collAxis;
+    private final int ndim;
     private final long collOrigin;
-    private final long collLimit;
+    private final long collDim;
+    private final Collapsor collapsor;
+    private final long stride;
 
     /**
      * Constructs a new CollapseArrayImpl from an underlying NDArray
@@ -27,7 +36,7 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
      */
     public CollapseArrayImpl( NDArray nda, int collAxis ) {
         this( nda, collAxis, nda.getShape().getOrigin()[ collAxis ], 
-                             nda.getShape().getDims()[ collAxis ] );
+              nda.getShape().getDims()[ collAxis ] );
     }
 
     /**
@@ -39,10 +48,14 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
         super( nda );
         this.baseNda = nda;
         this.baseShape = baseNda.getShape();
+        this.baseHandler = baseNda.getBadHandler();
+        this.collAxis = collAxis;
         this.collOrigin = collOrigin;
-        this.collLimit = collOrigin + collDim;
+        this.collDim = collDim;
+        this.collapsor = getMeanCollapsor( nda.getType() );
         int baseNdim = baseShape.getNumDims();
-        long[] baseOrigin = baseShape.getOrigin();
+        this.ndim = baseNdim - 1;
+        this.baseOrigin = baseShape.getOrigin();
         long[] baseDims = baseShape.getDims();
 
         /* Validate. */
@@ -59,34 +72,35 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
             throw new IllegalArgumentException(
                 "Base array does not have random access" );
         }
+        if ( collDim > Integer.MAX_VALUE ) {
+            throw new IllegalArgumentException(
+                "Implemented does not permit collapse dimension > " +
+                "Integer.MAX_VALUE, sorry" );
+        }
 
         /* Calculate the shape of this array. */
         long[] origin = new long[ ndim ];
         long[] dims = new long[ ndim ];
-        for ( int i = 0, j = 0; i < ndim; i++ ) {
-            if ( i != axis ) {
+        for ( int i = 0, j = 0; i < baseNdim; i++ ) {
+            if ( i != collAxis ) {
                 origin[ j ] = baseOrigin[ i ];
                 dims[ j ] = baseDims[ i ];
                 j++;
             }
         }
-        this.shape = new OrderedNDShape( origin, dims, baseNda.getOrder() );
+        this.shape = new OrderedNDShape( origin, dims, baseShape.getOrder() );
 
         /* Decide on the data type of this array. */
-        this.baseType = nda.getType();
-        if ( baseType == Type.DOUBLE ) {
-            type = Type.DOUBLE;
-        }
-        else {
-            type = Type.FLOAT;
-        }
+        this.type = collapsor.getOutputType();
+        this.handler = type.defaultBadHandler();
 
         /* Calculate the step between base array pixels which map to
          * the same collapsed array pixel. */
-        long step = 1L;
+        long str = 1L;
         for ( int i = 0; i < collAxis; i++ ) {
-            step *= baseDims[ i ];
+            str *= baseDims[ i ];
         }
+        stride = str;
 
     }
 
@@ -98,98 +112,30 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
         return type;
     }
 
+    public BadHandler getBadHandler() {
+        return handler;
+    }
+
     public boolean isWritable() {
         return false;
     }
 
     public AccessImpl getAccess() throws IOException {
-        private final int chunkSize = ChunkStepper.defaultChunkSize;
-        private Object baseBuf = getType().newArray( chunkSize );
-
-        if ( baseType == Type.BYTE ) {
-            assert type == Type.INTEGER;
-            return new CollapseAccessImpl() {
-                protected void fillWithZeros( Object buffer, int start,
-                                              int size ) {
-                    Arrays.fill( (int[]) buffer, start, start + size, 0 );
-                }
-                protected void accumulate( Object inBuf, int inOff,
-                                           Object outBuf, int outOff ) {
-                    ((int[]) outBuf)[ inOff ] += ((byte[]) inBuf)[ inOff ];
-                }
-            };
-        }
-        else if ( baseType == Type.SHORT ) {
-            assert type == Type.INTEGER;
-            return new CollapseAccessImpl() {
-                protected void fillWithZeros( Object buffer, int start,
-                                              int size ) {
-                    Arrays.fill( (int[]) buffer, start, start + size, 0 );
-                }
-                protected void accumulate( Object inBuf, int inOff,
-                                           Object outBuf, int outOff ) {
-                    ((int[]) outBuf)[ outOff ] += ((short[]) inBuf)[ inOff ];
-                }
-            };
-        }
-        else if ( baseType == Type.INTEGER ) {
-            assert type == Type.INTEGER;
-            return new CollaseAccessImpl() {
-                protected void fillWithZeros( Object buffer, int start,
-                                              int size ) {
-                    Arrays.fill( (int[]) buffer, start, start + size, 0 );
-                }
-                protected void accumulate( Object inBuf, int inOff,
-                                           Object outBuf, int outOff ) {
-                    ((int[]) outBuf)[ outOff ] += ((int[]) inBuf)[ inOff ];
-                }
-            };
-        }
-        else if ( baseType == Type.FLOAT ) {
-            assert type == Type.FLOAT;
-            return new CollapseAccessImpl() {
-                protected void fillWithZeros( Object buffer, int start, 
-                                              int size ) {
-                    Arrays.fill( (float[]) buffer, start, start + size, 0.0f );
-                }
-                protected void accumulate( Object inBuf, int inOff,
-                                           Object outBuf, int outOff ) {
-                    ((float[]) outBuf)[ outOff ] += ((float[]) inBuf)[ inOff ];
-                }
-            };
-        }
-        else if ( baseType == Type.DOUBLE ) {
-            assert type == Type.DOUBLE;
-            return new CollapseAccessImpl() {
-                protected void fillWithZeros( Object buffer, int start,
-                                              int size ) {
-                    Arrays.fill( (double[]) buffer, start, start + size, 0.0 );
-                }
-                protected void accumulate( Object inBuf, int inOff,
-                                           Object outBuf, int outOff ) {
-                    ((double[]) outBuf)[ outOff ] += ((double[])inBuf)[ inOff ];
-                }
-            };
-        }
-        else {
-            assert false;
-        }
+        return new CollapseAccessImpl();
     }
 
 
-    private abstract class CollapseAccessImpl implements AccessImpl {
+    private class CollapseAccessImpl implements AccessImpl {
         private ArrayAccess baseAcc;
         private long[] basePos;
+        private Object cbuf;
 
-        abstract protected void fillWithZeros( Object buffer, 
-                                               int start, int size );
-        abstract protected void accumulate( Object inBuf, int inOff, 
-                                            Object outBuf, int outOff );
-
-        public CollapseAccessImpl() {
+        public CollapseAccessImpl() throws IOException {
             baseAcc = baseNda.getAccess();
-            basePos = (long[]) baseOrigin().clone();
+            basePos = (long[]) baseOrigin.clone();
             basePos[ collAxis ] = collOrigin;
+            assert collDim < Integer.MAX_VALUE; // checked in constructor
+            cbuf = type.newArray( (int) collDim );
         }
 
         public void setOffset( long off ) throws IOException {
@@ -201,54 +147,112 @@ public class CollapseArrayImpl extends WrapperArrayImpl {
             baseAcc.setPosition( basePos );
         }
 
-        public void read( Object buffer, int start, int size )
+        public void read( Object buffer, int start, int size ) 
                 throws IOException {
-            fillWithZeros( buffer, start, size );
-            ChunkStepper cstep = new ChunkStepper( size, chunkSize );
-            int boff = 0;
-            for ( ChunkStepper cstep = new ChunkStepper( size, chunkSize );
-                  cstep.hasNext(); cstep.next() ) {
-                int csz = cstep.getSize();
-                baseAcc.read( baseBuf, 0, csz );
-                int baseOff = start;
-                while ( csz-- > 0 ) {
-
-                    /* Calculate the position in the output buffer to which
-                     * the next input pixel maps. */
-                    int stride = 1;
-                    for ( int j = 0; j < ndim; j++ ) {
-                        int i = hasFitsOrder ? j : ( baseNdim - 1 - j );
-                        basePos[ i ]++;
-                        if ( j != collAxis ) {
-                            boff += stride;
-                        }
-                        if ( basePos[ i ] < baseLimits[ i ] ) {
-                            break;
-                        }
-                        else {
-                            if ( j != collAxis ) {
-                                stride *= dims[ i ];
-                                boff -= stride;
-                            }
-                            basePos[ i ] = baseOrigin[ i ];
-                        }
+            long baseOff = baseAcc.getOffset();
+            for ( int i = 0; i < size; i++ ) {
+                int ngood = 0;
+                for ( int j = 0; j < collDim; j++ ) {
+                    baseAcc.setOffset( baseOff + i + j * stride );
+                    baseAcc.read( cbuf, ngood, 1 );
+                    if ( ! baseHandler.isBad( cbuf, j ) ) {
+                        ngood++;
                     }
-
-                    /* Accumulate statistics in that pixel. */
-                    accumulate( buffer, boff, baseBuf, baseOff );
-
-                    baseOff++;
+                }
+                if ( ngood > 0 ) {
+                    collapsor.collapse( cbuf, ngood, buffer, start + i );
+                }
+                else {
+                    handler.putBad( buffer, start + i );
                 }
             }
-            assert boff = start + size;
+            baseAcc.setOffset( baseOff + size );
         }
 
         public void write( Object buffer, int start, int size ) {
-            throw UnsupportedOperationException();
+            throw new UnsupportedOperationException();
         }
 
         public void close() throws IOException {
             baseAcc.close();
+        }
+    }
+
+
+    private static interface Collapsor {
+        public Type getOutputType();
+        public void collapse( Object inBuf, int inSize,
+                              Object outBuf, int outOff );
+    }
+
+    private static Collapsor getMeanCollapsor( Type inType ) {
+        if ( inType == Type.BYTE ) {
+            return new Collapsor() {
+                public Type getOutputType() { return Type.FLOAT; }
+                public void collapse( Object inBuf, int inSize,
+                                      Object outBuf, int outOff ) { 
+                    float sum = 0.0f;
+                    for ( int i = 0; i < inSize; i++ ) {
+                        sum += ((byte[]) inBuf)[ i ];
+                    }
+                    ((float[]) outBuf)[ outOff ] = sum / inSize;
+                }
+            };
+        }
+        else if ( inType == Type.SHORT ) {
+            return new Collapsor() {
+                public Type getOutputType() { return Type.FLOAT; }
+                public void collapse( Object inBuf, int inSize,
+                                      Object outBuf, int outOff ) {
+                    float sum = 0.0f;
+                    for ( int i = 0; i < inSize; i++ ) {
+                        sum += ((short[]) inBuf)[ i ];
+                    }
+                    ((float[]) outBuf)[ outOff ] = sum / inSize;
+                }
+            };
+        }
+        else if ( inType == Type.INT ) {
+            return new Collapsor() {
+                public Type getOutputType() { return Type.FLOAT; }
+                public void collapse( Object inBuf, int inSize,
+                                      Object outBuf, int outOff ) {
+                    float sum = 0.0f;
+                    for ( int i = 0; i < inSize; i++ ) {
+                        sum += ((int[]) inBuf)[ i ];
+                    }
+                    ((float[]) outBuf)[ outOff ] = sum / inSize;
+                }
+            };
+        }
+        else if ( inType == Type.FLOAT ) {
+            return new Collapsor() {
+                public Type getOutputType() { return Type.FLOAT; }
+                public void collapse( Object inBuf, int inSize,
+                                      Object outBuf, int outOff ) {
+                    float sum = 0.0f;
+                    for ( int i = 0; i < inSize; i++ ) {
+                        sum += ((float[]) inBuf)[ i ];
+                    }
+                    ((float[]) outBuf)[ outOff ] = sum / inSize;
+                }
+            };
+        }
+        else if ( inType == Type.DOUBLE ) {
+            return new Collapsor() {
+                public Type getOutputType() { return Type.DOUBLE; }
+                public void collapse( Object inBuf, int inSize,
+                                      Object outBuf, int outOff ) {
+                    double sum = 0.0;
+                    for ( int i = 0; i < inSize; i++ ) {
+                        sum += ((double[]) inBuf)[ i ];
+                    }
+                    ((double[]) outBuf)[ outOff ] = sum / inSize;
+                }
+            };
+        }
+        else {
+            throw new AssertionError( "Unknown type" );
         }
     }
 
