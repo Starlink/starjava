@@ -7,13 +7,14 @@
  */
 package uk.ac.starlink.splat.data;
 
-import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.table.StarTableFactory;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.UCD;
 
 /**
  * This class provides access to spectral data stored in tables.
@@ -76,6 +77,19 @@ public class TableSpecDataImpl
     {
         super( tablespec, source );
         this.fullName = tablespec;
+    }
+
+    /**
+     * Create an object by reusing an existing instance if StarTable.
+     *
+     * @param starTable reference to a {@link StarTable}.
+     */
+    public TableSpecDataImpl( StarTable starTable )
+        throws SplatException
+    {
+        super( starTable.getName() );
+        this.fullName = starTable.getName();
+        openTable( starTable );
     }
 
     /**
@@ -151,17 +165,31 @@ public class TableSpecDataImpl
 
     public String getDataErrorColumnName()
     {
-        return columnNames[errorColumn];
+        if ( errorColumn != -1 ) {
+            return columnNames[errorColumn];
+        }
+        return "";
     }
 
     public void setDataErrorColumnName( String name )
         throws SplatException
     {
-        for ( int i = 0; i < columnNames.length; i++ ) {
-            if ( columnNames[i].equals( name ) ) {
-                if ( errorColumn != i ) {
-                    errorColumn = i;
-                    readColumn( errors, errorColumn );
+        // A null or empty string means no errors.
+        if ( name == null || name.equals( "" ) ) {
+            errorColumn = -1;
+            errors = null;
+        }
+        else {
+            for ( int i = 0; i < columnNames.length; i++ ) {
+                if ( columnNames[i].equals( name ) ) {
+                    if ( errorColumn != i ) {
+                        errorColumn = i;
+                        if ( errors == null && ! name.equals( "" ) ) {
+                            errors = new double[dims[0]];
+                        }
+                        readColumn( errors, errorColumn );
+                    }
+                    break;
                 }
             }
         }
@@ -175,6 +203,25 @@ public class TableSpecDataImpl
      * Reference to the StarTable.
      */
     protected StarTable starTable = null;
+
+    /**
+     * Open a table.
+     */
+    protected void openTable( StarTable starTable )
+        throws SplatException
+    {
+        //  Table needs random access so we can size it for making local
+        //  copies of the data in the columns. This is a nullop if the table
+        //  is already random.
+        try {
+            this.starTable = Tables.randomTable( starTable );
+            readTable();
+        }
+        catch (Exception e) {
+            throw new SplatException( "Failed to open table: " + 
+                                      starTable.getName(), e );
+        }
+    }
 
     /**
      * Open a table.
@@ -354,26 +401,39 @@ public class TableSpecDataImpl
         int current = astref.getCurrent();
         int base = astref.getBase();
 
+        //  Base frame. Indices of data values array.
         astref.setCurrent( base );
-        String unit = columnInfos[dataColumn].getUnitString();
-        String desc = columnInfos[dataColumn].getDescription();
-        if ( desc != null ) {
-            astref.set( "label(1)=" + desc );
+        guessUnitsDescription( dataColumn );
+        astref.setCurrent( current );
+        guessUnitsDescription( coordColumn );
+    }
 
-        }
-        if ( unit != null ) {
-            astref.set( "unit(1)=" + unit );
+    /**
+     * Guess the unit and description of a given column and assign
+     * then to the current frame of the AST frameset.
+     */
+    protected void guessUnitsDescription( int column )
+    {
+        // Units exist or not.
+        String unit = columnInfos[column].getUnitString();
+        if ( unit != null && ! "".equals( unit ) ) {
+            astref.setUnit( 1, unit );
         }        
 
-        astref.setCurrent( current );
-        unit = columnInfos[coordColumn].getUnitString();
-        desc = columnInfos[coordColumn].getDescription();
-        if ( desc != null ) {
-            astref.set( "label(1)=" + desc );
-
+        // If the description doesn't exist, then try for a UCD
+        // description, if that doesn't exist just use the column name.
+        String desc = columnInfos[column].getDescription();
+        if ( desc == null ) {
+            desc = columnInfos[column].getUCD();
+            if ( desc != null ) {
+                desc = UCD.getUCD( desc ).getDescription();
+            }
+            if ( desc == null ) {
+                desc = columnInfos[column].getName();
+            }
         }
-        if ( unit != null ) {
-            astref.set( "unit(1)=" + unit );
+        if ( desc != null && ! "".equals( desc ) ) {
+            astref.setLabel( 1, desc );
         }
     }
 }
