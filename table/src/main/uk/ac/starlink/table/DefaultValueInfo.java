@@ -243,7 +243,15 @@ public class DefaultValueInfo implements ValueInfo {
      * @param   vi2  the other <tt>ValueInfo</tt> object
      * @return  a generalised <tt>ValueInfo</tt> object
      */
-    public static DefaultValueInfo generalise( ValueInfo vi1, ValueInfo vi2 ) {
+    public static ValueInfo generalise( ValueInfo vi1, ValueInfo vi2 ) {
+
+        /* If they are the same, either will do. */
+        if ( vi1.equals( vi2 ) ) {
+            return vi1;
+        }
+
+        /* Otherwise we will need to create a new one with characteristics
+         * build up from the supplied ones. */
         DefaultValueInfo vi = new DefaultValueInfo( vi1 );
 
         /* Cancel the units if not consistent. */
