@@ -180,6 +180,15 @@ public class FileDataNode extends DefaultDataNode {
                         }
                     } );
                 }
+                else {
+                    dv.addPane( "Hex dump", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            RandomAccessFile raf =
+                                new RandomAccessFile( file, "r" );
+                            return new HexDumper( raf );
+                        }
+                    } );
+                }
             }
             catch ( IOException e ) {}
         }

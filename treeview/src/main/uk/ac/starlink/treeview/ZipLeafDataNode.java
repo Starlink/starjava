@@ -98,6 +98,14 @@ public class ZipLeafDataNode extends DefaultDataNode {
                         }
                     } );
                 }
+                else {
+                    dv.addPane( "Hex dump", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            InputStream istrm = zfile.getInputStream( zentry );
+                            return new HexDumper( istrm, -1 );
+                        }
+                    } );
+                }
             }
             catch ( IOException e ) {}
         }
