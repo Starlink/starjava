@@ -38,24 +38,29 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
         /* Add fields for entering query parameters. */
         raField_ = DoubleValueField.makeRADegreesField();
         raField_.getEntryField().addActionListener( okAction );
-        raField_.getValueInfo()
-                .setDescription( "Right Ascension of cone centre (J2000)" );
+        raField_.setDescription( "Right Ascension of cone centre (J2000)" );
 
         decField_ = DoubleValueField.makeDecDegreesField();
         decField_.getEntryField().addActionListener( okAction );
-        decField_.getValueInfo()
-                 .setDescription( "Declination of cone centre (J2000)" );
+        decField_.setDescription( "Declination of cone centre (J2000)" );
 
         srField_ = DoubleValueField.makeRadiusDegreesField();
         srField_.getEntryField().addActionListener( okAction );
-        srField_.getValueInfo()
-                .setDescription( "Radius of cone search" );
+        srField_.setDescription( "Radius of cone search" );
 
+        /* Install these fields in the control panel. */
         ValueFieldPanel qPanel = new ValueFieldPanel();
         qPanel.addField( raField_, new JLabel( "(J2000)" ) );
         qPanel.addField( decField_, new JLabel( "(J2000)" ) );
         qPanel.addField( srField_ );
         getControlBox().add( qPanel );
+    }
+
+    public void setEnabled( boolean enabled ) {
+        super.setEnabled( enabled );
+        raField_.setEnabled( enabled );
+        decField_.setEnabled( enabled );
+        srField_.setEnabled( enabled );
     }
 
     protected TableSupplier getTableSupplier() {
@@ -64,13 +69,7 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
             throw new IllegalStateException( "No cone search service " +
                                              "selected" );
         }
-        final ConeSearch coner;
-        try {
-            coner = new ConeSearch( resources[ 0 ] );
-        }
-        catch ( IllegalArgumentException e ) {
-            throw new IllegalStateException( e.getMessage() );
-        }
+        final ConeSearch coner = new ConeSearch( resources[ 0 ] );
         final double ra = raField_.getValue();
         final double dec = decField_.getValue();
         final double sr = srField_.getValue();
@@ -94,12 +93,5 @@ public class ConeSearchDialog extends RegistryServiceTableLoadDialog {
                 return coner.toString();
             }
         };
-    }
-
-    public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        raField_.setEnabled( enabled );
-        decField_.setEnabled( enabled );
-        srField_.setEnabled( enabled );
     }
 }
