@@ -306,7 +306,9 @@ public class ActivationQueryWindow extends QueryWindow {
         Activator makeActivator( TableColumn tcol ) {
             return new ColumnActivator( "splat", tcol ) {
                 String activateValue( Object val ) {
-                    return Activation.splat( val );
+                    return val == null
+                         ? null
+                         : Activation.splat( val.toString() );
                 }
             };
         }
