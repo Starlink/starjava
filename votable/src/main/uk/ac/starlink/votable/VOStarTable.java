@@ -61,7 +61,7 @@ public class VOStarTable extends AbstractStarTable {
     }
 
     public long getRowCount() {
-        return tdata.getRowCount();
+        return votable.getNrows();
     }
 
     public boolean isRandom() {
