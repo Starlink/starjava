@@ -187,6 +187,7 @@ public class FrogSOAPServer
     {
        debugManager.print( "Called displaySeries() via SOAP Service");
        debugManager.print( "Passed:\n" + series );
+       browserMain.setStatus("Recieved SOAP message...");
        
        // break the String into lines
        String[] lines = series.split("\\n");
@@ -203,10 +204,22 @@ public class FrogSOAPServer
        
           // add it to the Frog Main Window
           browserMain.addSeries( newSeries );
-       } catch (FrogException e) {
-           e.printStackTrace();
+       } catch (FrogException fe) {
+           //fe.printStackTrace();
+           debugManager.print( "Unable to parse message...");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
            return false;
-       }   
+       } catch (NumberFormatException ne) {
+           debugManager.print( "Unable to parse message...");
+           debugManager.print( "Doesn't look like it's even numeric input?");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
+           return false;
+       } catch (Exception e ){
+           debugManager.print( "Unable to parse message...");
+           debugManager.print( "Generic Exception, who knows...");
+           browserMain.setStatus("ERROR: Unable to parse SOAP message");
+           return false;
+       } 
        return true;       
     }
 

@@ -1490,7 +1490,16 @@ public class Frog extends JFrame
         loadThread.setPriority( Thread.MIN_PRIORITY );
         loadThread.start();
     }
-     
+    
+     /**
+     * Set the main FROG status text
+     *
+     * @param statusText A String you want displayed on the Status Line
+     */
+    public void setStatus( String statusText )
+    {
+        frogStatus.setText( statusText );
+    }    
     
     /**
      * Return a reference top the mainDesktop
