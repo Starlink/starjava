@@ -138,6 +138,10 @@ public class NDFSpecDataImpl
         NDFJ newNDF = theNDF.getCopy( fullName );
         newNDF.saveAst( getAst() );
         theNDF = newNDF;
+
+        // Close and re-open to flush to disk.
+        theNDF.close();
+        open( fullName );
     }
 
     /**
