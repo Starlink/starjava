@@ -115,7 +115,7 @@ public class ResourceIcon implements Icon {
         BACKWARD = makeIcon( "Back24.gif" ),
         PAGE_SETUP = makeIcon( "PageSetup24.gif" ),
 
-        /* Treeview (hierarchy browser) icons. */
+        /* Datanode (hierarchy browser) icons. */
         COLLAPSED = makeIcon( "handle1.gif" ),
         EXPANDED = makeIcon( "handle2.gif" ),
         HOME = makeIcon( "Home24.gif" ),
