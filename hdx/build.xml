@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!DOCTYPE project SYSTEM "../project.dtd">
 
 <!--
  !   HDX build file
@@ -99,7 +100,7 @@
   <!-- JUnit test options -->
   <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
-  <property name="junit.summary" value="no"/>
+  <property name="junit.summary" value="on"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
@@ -811,15 +812,17 @@
              locale="en"
              windowtitle="${Name} API"
              doctitle="${Name}"
-             classpathref="classpath"
-             source="1.4">
+      	     source="1.4">
+      <!-- classpathref="classpath" probably useful eventually, but
+      MASSIVELY confuses things as long as there are any hdx.jar files
+      elsewhere in the classpath -->
 
       <!-- Get a list of directories that name all the potential
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
-         <include name="**"/>
-         <exclude name="**/support/*"/>
-          <exclude name="**/testcases/*"/>
+        <include name="**"/>
+        <exclude name="**/support/*"/>
+        <exclude name="**/testcases/*"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
@@ -929,9 +932,12 @@
       <classpath refid="tests-classpath"/>
 
       <sysproperty key="build.tests" value="${build.tests}"/>
-      <sysproperty key="tests-classpath.value"
+      <sysproperty key="tests-classpath-value"
                    value="${tests-classpath.value}"/>
+      <sysproperty key="Hdx.properties"
+                   value="${tests.etc.dir}/Hdx.properties"/>
 
+      <!--formatter type="brief" usefile="true"/-->
       <formatter type="brief" usefile="false"/>
 
       <batchtest>
