@@ -168,7 +168,7 @@ public class WCSDataNode extends DefaultDataNode {
     }
 
     public FrameSet getWcs() {
-        return wcs;
+        return (FrameSet) wcs.copy();
     }
 
     private static FrameSet getWcsFromHds( HDSObject hobj ) 

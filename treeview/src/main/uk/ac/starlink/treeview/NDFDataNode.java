@@ -20,6 +20,8 @@ import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
 import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 
 /**
@@ -27,9 +29,6 @@ import uk.ac.starlink.ndx.Ndx;
  * <a href="http://star-www.rl.ac.uk/cgi-bin/htxserver/sun33.htx/sun33.html">NDF</a>
  * object.
  * <p>
- * Note that the WCS FrameSet, which is read using HDS rather than 
- * NDF_GTWCS, may not be consistent with the NDF; the GRID, PIXEL and
- * AXIS Frames are likely to be incorrect.
  *
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
@@ -178,8 +177,7 @@ public class NDFDataNode extends HDSDataNode {
                     if ( axes != null ) {
                         uk.ac.starlink.ast.Frame afrm = 
                             wcs.getFrame( AXIS_FRAME );
-                        afrm.setTitle( afrm.getTitle() 
-                                     + " (broken in Treeview)" );
+                        afrm.setDomain( afrm.getDomain() + "-BROKEN" );
                     }
                 }
                 catch ( Exception e ) {
@@ -425,8 +423,10 @@ public class NDFDataNode extends HDSDataNode {
                 ndurl = null;
             }
             try {
-                Ndx ndx = NDFNdxHandler.getInstance()
-                         .makeNdx( ndfobj, ndurl, AccessMode.READ );
+                Ndx baseNdx = NDFNdxHandler.getInstance()
+                             .makeNdx( ndfobj, ndurl, AccessMode.READ );
+                MutableNdx ndx = new DefaultMutableNdx( baseNdx );
+                ndx.setWCS( wcs );
                 NdxDataNode.addDataViews( dv, ndx );
             }
             catch ( HDSException e ) {

@@ -37,14 +37,13 @@ public class GridPlotter extends JPanel {
         currentFrame = wcs.getCurrent();
 
         /* Get upper and lower limits on the actual plotting surface. */
+        long[] dims = baseShape.getDims();
         int ndim = baseShape.getNumDims();
-        long[] lbnds = baseShape.getOrigin();
-        long[] ubnds = baseShape.getUpperBounds();
         double[] lower = new double[ ndim ];
         double[] upper = new double[ ndim ];
         for ( int i = 0; i < ndim; i++ ) {
-            lower[ i ] = (double) lbnds[ i ] - 0.5;
-            upper[ i ] = (double) ubnds[ i ] + 0.5;
+            lower[ i ] = 0.5;
+            upper[ i ] = 0.5 + dims[ i ];
         }
 
         /* Construct a panel to hold the plot display itself. */

@@ -84,10 +84,10 @@ public class ImageViewPane extends JPanel {
             Rectangle inRect = new Rectangle( lgap, tgap,
                                               pim.getWidth(), pim.getHeight() );
             double[] basebox = new double[ 4 ];
-            basebox[ 0 ] = origin[ 0 ] + 0.5;
-            basebox[ 1 ] = origin[ 1 ] + 0.5;
-            basebox[ 2 ] = origin[ 0 ] + 0.5 + pim.getWidth();
-            basebox[ 3 ] = origin[ 1 ] + 0.5 + pim.getHeight();
+            basebox[ 0 ] = 0.5;
+            basebox[ 1 ] = 0.5;
+            basebox[ 2 ] = 0.5 + pim.getWidth();
+            basebox[ 3 ] = 0.5 + pim.getHeight();
             plot = new Plot( wcs, outRect, basebox, lgap, rgap, bgap, tgap );
 
             /* Configure the Plot. */
