@@ -89,11 +89,9 @@ class HdxElement
     protected String backingNodeNSPrefix;
 
     /**
-     * The name of this element.  The element name should normally be
-     * derived from {@link #type}, but this class supports element
-     * types which are not registered with {@link HdxResourceType}.
-     * If <code>type</code> is not {@link HdxResourceType#NONE} then
-     * this is ignored.
+     * The name of this element.  Since this class supports element
+     * types which are not registered with {@link HdxResourceType},
+     * this will not necessarily correspond to a registered type.
      */
     private String giName;
 
@@ -105,6 +103,19 @@ class HdxElement
      * be ignored.
      */
     private java.util.Map attMap;
+
+    private static java.util.logging.Logger logger
+            = java.util.logging.Logger.getLogger( "uk.ac.starlink.hdx" );
+    // How the hell do I enable fine logging?
+//     static {
+//         logger.setLevel(java.util.logging.Level.FINE);
+//         java.util.logging.Handler[] h = logger.getHandlers();
+//         for (int i=0; i<h.length; i++) {
+//             System.err.println("Changing handler level from "
+//                                + h[i].getLevel() + " to FINE");
+//             h[i].setLevel(java.util.logging.Level.FINE);
+//         }
+//     }
 
     /**
      * Constructs an HdxElement with the given GI name.
@@ -123,8 +134,7 @@ class HdxElement
              new ElementTypeInfo(giName, null),
              false,
              owner);
-        //if (type == HdxResourceType.NONE)
-            this.giName = giName;
+        this.giName = giName;
     }
     
         
@@ -162,12 +172,12 @@ class HdxElement
      * dummy HdxElement instances for its own use.  
      *
      * @param setType the HdxResourceType type which the new
-     * HdxElement is an representative of.  If this is null, then the
+     * HdxElement is representative of.  If this is null, then the
      * type is to be determined from the element.  If this cannot be
      * done, then the type is set to NONE.
      *
      * @param inNamespace if true, we examine only GI names and attributes
-     * in the HDX namespace; if false, only those in no namespace.
+     * in the HDX namespace; if false, <em>only</em> those in no namespace.
      *
      * @param owner the Document which is to own this new element, or null.
      */
@@ -194,10 +204,14 @@ class HdxElement
             backingNodeNSPrefix = setType.getPrefix();
         }
         assert giName != null;
+        logger.info("HdxElement: giName=" + this.giName
+                    + " => type=" + getHdxType());
 
         backingNode = el;        
         if (backingNode == null) {
             assert backingNodeNSPrefix == null;
+            //logger.fine
+                System.err.println("HdxElement: no backing node");
             return;
         }
         assert el != null;
@@ -235,9 +249,9 @@ class HdxElement
                     hdxName = att.getName();
                 }
             }
-            System.err.println("Attr: " + att.getName() + "=" + att.getValue()
-                               + " (ns=" + inNamespace +
-                               ") -> hdxname=" + hdxName);
+            logger.info("Attr: " + att.getName() + "=" + att.getValue()
+                        + " (ns=" + inNamespace +
+                        ") -> hdxname=" + hdxName);
             if (hdxName != null && !hdxName.equals("name"))
                 addAtt(hdxName, att);
         }
@@ -247,6 +261,13 @@ class HdxElement
         // immediate children text nodes to find a value for this
         // attribute.
         String hoist = getHdxType().getHoistAttribute();
+        System.err.println("HdxElement logger at: " + logger.getLevel());
+        //logger.fine
+        System.err.println("Hoist attribute for " + getHdxType() + ": " + hoist
+                    + ", test="
+                    + (hoist != null)
+                    + "&" + !hasAttribute(hoist)
+                    + "&" + el.hasChildNodes());
         if (hoist != null
             && !hasAttribute(hoist)
             && el.hasChildNodes()) {
@@ -368,11 +389,11 @@ class HdxElement
      * @return a new DocumentFragment representing an HDX, or null if none
      * could be found.
      */
-    public static DocumentFragment constructHdxElementTree(Element el) {
+    static DocumentFragment constructHdxElementTree(Element el) {
         ElementTypeInfo inf = getElementTypeInfo(el, 0);
         boolean useNS = (inf.getType() == HdxResourceType.NONE
                          || inf.fromNamespace());
-        System.err.println("constructHdxElementTree:" + el.toString()
+        logger.info("constructHdxElementTree:" + el.toString()
                            + ", useNS=" + useNS);
         Document tdoc = HdxDOMImplementation
             .getInstance()
@@ -390,14 +411,14 @@ class HdxElement
                  kid != null;
                  kid = (HdxElement)kid.getNextSibling()) {
                 if (kid.getHdxType() != HdxResourceType.HDX) {
-                    System.err.println
+                    logger.info
                         ("constructHdxElementTree: not all children are HDX");
                     return null;
                 }
             } 
             return df;
         } else {
-            System.err.println("df=" + df);
+            logger.info("df=" + df);
             DocumentFragment newfrag = tdoc.createDocumentFragment();
             Element newhdx
                 = tdoc.createElement(HdxResourceType.HDX.xmlName());
@@ -406,7 +427,7 @@ class HdxElement
             // How best?
             newhdx.appendChild(df);
             newfrag.appendChild(newhdx);
-            System.err.println("newfrag=" + newfrag);
+            logger.info("newfrag=" + newfrag);
             return newfrag;
         }
     }
@@ -415,10 +436,10 @@ class HdxElement
         assert el.getNodeType() == Node.ELEMENT_NODE;
         
         ElementTypeInfo elType = getElementTypeInfo(el, (useNS ? 1 : -1));
-        System.err.println("addHdxChildren("
-                           + ((HdxNode)n).toString() + ",\n\t"
-                           + el.getTagName() + '(' + elType + "),\n\t"
-                           + useNS + ')');
+        logger.info("addHdxChildren("
+                    + ((HdxNode)n).toString() + ",\n\t"
+                    + el.getTagName() + '(' + elType + "),\n\t"
+                    + useNS + ')');
         Node fosterParent;
         if (elType.getName() == null)
             fosterParent = n;
@@ -470,8 +491,7 @@ class HdxElement
 //     }            
 
     private HdxResourceType getHdxType() {
-    return HdxResourceType.match(giName);
-    //return type;
+        return HdxResourceType.match(giName);
     }
 
     /*
@@ -481,10 +501,6 @@ class HdxElement
 
     public String getTagName() {
         return giName;
-//         if (type == HdxResourceType.NONE)
-//             return giName;
-//         else
-//             return type.xmlName();
     }
 
     /*
@@ -895,12 +911,10 @@ class HdxElement
 
     public String getNodeName() {
         return giName;
-        //return type.xmlName();
     }
 
     public String getLocalName() {
         return giName;
-        //return type.xmlName();
     }
     
     public boolean hasAttributes() {
@@ -990,8 +1004,20 @@ class HdxElement
      * declaration.
      */
     public String toString() {
-        return "<" + getTagName() + ">";
-        //return toXML();
+        // return "<" + getTagName() + ">";
+        StringBuffer sb = new StringBuffer("<");
+        sb.append(getTagName());
+        NamedNodeMap nodemap = getAttributes();
+        for (int i=0; i<nodemap.getLength(); i++) {
+            Attr att = (Attr)nodemap.item(i);
+            sb.append(' ');
+            sb.append(att.getName());
+            sb.append("=\"");
+            sb.append(att.getValue());
+            sb.append('"');
+        }
+        sb.append('>');
+        return sb.toString();
     }
 
     /**

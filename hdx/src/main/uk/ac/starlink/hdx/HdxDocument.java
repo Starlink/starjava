@@ -10,6 +10,17 @@ import org.w3c.dom.*;
  * consistent implementations of the various <code>org.w3c.dom</code>
  * interfaces.  It also extends the interface by adding creation
  * method {@link #createElement(HdxResourceType,DOMFacade)}.
+ *
+ * <p>To avoid confusion, note that, despite its name,
+ * <code>HdxDocumentFactory</code> is <em>not</em> a general factory
+ * for creating empty instances of {@link HdxDocument}.  If you wish
+ * to create a blank <code>HdxDocument</code> (perhaps because you are
+ * implementing {@link HdxDocumentFactory#makeHdxDocument}), you do so
+ * simply with a call to
+ * <pre>
+ *   HdxDOMImplementation.getInstance().createDocument(null,&lt;el&gt;,null)
+ * </pre>
+ * (where <code>&lt;el&gt;</code> represents the name of the document element.
  */
 public class HdxDocument
         extends HdxNode
@@ -47,16 +58,17 @@ public class HdxDocument
 
     /**
      * Creates an element which manages its children using a
-     * <code>DOMFacade</code>.
+     * <code>DOMFacade</code>.  The <code>tagName</code> of the
+     * resulting element is that corresponding to the <code>HdxResourceType</code>.
      *
      * <p>This is an extension to the <code>org.w3c.dom.Document</code>
      * interface.
      *
-     * @param type The type of the element to create, which must not be null,
-     * nor {@link HdxResourceType#NONE}.
+     * @param type the type of the element to create, which must not be null,
+     * nor {@link HdxResourceType#NONE}
      *
-     * @param facade An implementation of the <code>DOMFacade</code>
-     * interface.
+     * @param facade an implementation of the <code>DOMFacade</code>
+     * interface
      *
      * @throws IllegalArgumentException if the type or facade is invalid.
      */
@@ -155,7 +167,8 @@ public class HdxDocument
                 value = null;
             }
             public String getName() { return name; }
-            public String getNodeName() { return name; }
+            public String getLocalName() { return name; } // override HdxNode
+            public String getNodeName() { return name; } // override HdxNode
             public Element getOwnerElement() {
                 Node n = getParentNode();
                 assert n instanceof HdxElement;
@@ -163,7 +176,7 @@ public class HdxDocument
             }
             public boolean getSpecified() { return true; }
             public String getValue() { return value; }
-            public String getNodeValue() { return value; }
+            public String getNodeValue() { return value; } // override HdxNode
             public void setValue(String value) {
                 this.value = value;
             }
@@ -265,7 +278,7 @@ public class HdxDocument
 
         /**
          * Creates a new HdxFacadeElement.  The {@link
-         * DOMFacade#toDOM} of the <code>facade</code> object must
+         * DOMFacade#getDOM} of the <code>facade</code> object must
          * return an element which matches <code>resourceType</code>.
          *
          */
@@ -288,36 +301,42 @@ public class HdxDocument
          *
          * @return a Java object, which will always be non-null
          * @throws PluginException (unchecked exception) if the facade's 
-         * {@link DOMFacade#getObject getObject} method returns a null object.
+         * {@link DOMFacade#getObject} method fails.
          * @see HdxNode#getNodeObject
          */
         public Object getNodeObject() {
             assert facade != null;
-            Object ret = facade.getObject(this);
-            System.err.println
-                ("HdxDocument.HdxFacadeElement.getNodeObject returned class "
-                 + ret.getClass().getName());
-            if (ret == null)
+            try {
+                Object ret = facade.getObject(this);
+                assert ret != null;
+                System.err.println
+                  ("HdxDocument.HdxFacadeElement.getNodeObject returned class "
+                   + ret.getClass().getName());
+                return ret;
+            } catch (HdxException ex) {
+                // oh dear, the implementation of DOMFacade is faulty
+                // -- convert this to an error
                 throw new PluginException
-                    ("facade.getObject() returned a null object for element "
-                     + getTagName());
-            return ret;
+                      ("facade.getObject() returned a null object for element "
+                       + getTagName());
+            }
         }
 
         /**
          * Gets the DOM from the facade.
          *
          * @throws PluginException (unchecked exception) if the object
-         * returned by {@link DOMFacade#toDOM} does not match the type
+         * returned by {@link DOMFacade#getDOM} does not match the type
          * {@link #resourceType} declared in the constructor.
          */
         private HdxElement getDOM() {
-            HdxElement el = facade.toDOM();
+            Element el = facade.getDOM(null);
+            assert el instanceof HdxElement;
             if (! el.getTagName().equals(resourceType.xmlName()))
                 throw new PluginException
-                    ("Facade.toDOM() returned " + el.getTagName()
+                    ("Facade.getDOM(null) returned " + el.getTagName()
                      + ", not " + resourceType.xmlName() + " as required");
-            return el;
+            return (HdxElement)el;
         }
 
         public String getTagName() {

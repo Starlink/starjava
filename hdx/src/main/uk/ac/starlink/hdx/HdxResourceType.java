@@ -1,6 +1,7 @@
 package uk.ac.starlink.hdx;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.net.URL;
 import org.w3c.dom.*;
 
@@ -13,17 +14,27 @@ import org.w3c.dom.*;
  * <p>To add an extension class, which registers a new
  * HdxResourceType, you must do two things:
  * <ol>
+ *
  * <li>Define a class which registers the new type, through a call to
  * {@link #newHdxResourceType}, in a static initialiser.
  *
- * <li>List the class in the property file
- * <code>HdxResourceType.properties</code>.  This file must be located
- * in the current directory, or in the directory named by the system
- * property <code>HdxResourceType.dir</code>.  The file should
- * list classes to be initialised, in the form
- * <code>HdxResourceType.0=full.class.name</code>,
- * <code>HdxResourceType.1=another.class</code>, and so on.
+ * <li>If the new class is called <code>my.new.type</code>, and if
+ * there is an `Hdx property'
+ * <code>HdxResourceType.load.my.new.type</code> with the value
+ * <code>true</code> (or anything which the <code>Boolean</code> class
+ * evaluates to true), then the specified class is loaded during
+ * initialization of this <code>HdxResourceType</code> class.  This is an
+ * `Hdx property', which means that it may be specified as either a
+ * System property, or in an Hdx property file as described in {@link
+ * HdxProperties}.</p>
+ *
  * </ol>
+ *
+ * <p>Alternatively, you may register the type by explicitly loading
+ * and initialising the class (and thus executing its static
+ * initialiser).  This can happen as a result of a call to some static
+ * method in the class, or explicitly via
+ * <code>java.lang.Class.forName</code>.</p>
  *
  * <p>The structure of the elements within the HDX namespace is as
  * follows: 
@@ -35,8 +46,11 @@ import org.w3c.dom.*;
  * object {@link #HDX}.
  *
  * @author Norman Gray (norman@astro.gla.ac.uk)
- * @version $Id$ */
+ * @version $Id$
+ */
 public class HdxResourceType {
+
+    private static Logger logger = Logger.getLogger("uk.ac.starlink.hdx");
 
     /** The namespace for HDX */
     public static final String HDX_NAMESPACE = "http://www.starlink.ac.uk/HDX";
@@ -82,6 +96,16 @@ public class HdxResourceType {
         try {
             NONE = newHdxResourceType("none");
             resourceTypeMap.remove("none");
+            // XXX Should we add a `validator' to the NONE type, if
+            // for no other reason than to document whether a NONE
+            // object (ie, an unregistered object) is deemed valid or
+            // not?  If so, should NONE be always-valid or
+            // always-invalid?  Since a NONE element is by definition
+            // unknown, we can't reasonably assert that it's invalid;
+            // however, if we take isValid to be an assertion that `we
+            // know about this element and it's OK', then it doesn't
+            // make sense to call it valid.  Choosing a sensible
+            // default here could short-circuit some tests.
 
             HDX = newHdxResourceType("hdx");
             HDX.setElementValidator(new ElementValidator() {
@@ -90,31 +114,31 @@ public class HdxResourceType {
                     // nodes; each one is recognised by
                     // HdxResourceType.match (ie, all are registered); and
                     // each is valid.
-                    System.err.println("validateElement("
-                                       + HdxFactory.serializeDOM(el)
-                                       + "):");
+                    logger.fine("validateElement("
+                                + HdxFactory.serializeDOM(el)
+                                + "):");
                     if (HdxResourceType.match(el) != HDX)
                         return false;
                     for (Node n = el.getFirstChild();
                          n != null;
                          n = n.getNextSibling()) {
                         if (n.getNodeType() != Node.ELEMENT_NODE) {
-                            System.err.println("...child type=" + n.getNodeType()
-                                               + " value=<"
-                                               + n.getNodeValue() + ">");
+                            logger.fine("...child type=" + n.getNodeType()
+                                        + " value=<"
+                                        + n.getNodeValue() + ">");
                             return false;
                         }
                         HdxResourceType type = HdxResourceType.match((Element)n);
                         if (type == HdxResourceType.NONE) {
-                            System.err.println("...unrecognised child type");
+                            logger.fine("...unrecognised child type");
                             return false;
                         }
                         if (!type.isValid((Element)n)) {
-                            System.err.println("...child not valid");
+                            logger.fine("...child not valid");
                             return false;
                         }
                     }
-                    System.err.println("...OK");
+                    logger.fine("...OK");
                     return true;
                 }
             });
@@ -134,51 +158,64 @@ public class HdxResourceType {
                 ("Failed to initialise HDX properly.  What now?!");
         }
 
-        // Load properties which tell us which classes to load
-        Properties hdxprops;
-        Properties sysprops = System.getProperties();
-        String propdir = System.getProperty("HdxResourceType.dir");
-        if (propdir == null)
-            propdir = System.getProperty("user.dir");
-        String fn = propdir + "/HdxResourceType.properties";
+        // Work through any list of properties HdxResourceType.load.*...
+        // [It might seem more natural to have the class to be loaded
+        // as the _value_ of some property.  However, since property
+        // names must be unique, we must distinguish the property
+        // keys by some means.  A number is one possibility, but
+        // using the class name is more robust.  In that case, the
+        // information we actually want is now in the key and needn't
+        // be duplicated in the value.  Having the true/false value
+        // means that we can switch loading _off_ if that turns out to
+        // be useful.
+        String classname = "...eh?";// obligatory initialisation
         try {
-            java.io.FileInputStream propfile = new java.io.FileInputStream(fn);
-            hdxprops = new Properties(sysprops);
-            hdxprops.load(propfile);
-        } catch (java.io.FileNotFoundException e) {
-            // Not a problem -- fix silently
-            System.err.println("No file " + fn);
-            hdxprops = sysprops;
-        } catch (java.io.IOException e) {
-            System.err.println
-                ("IOException reading file " + fn + ": " + e);
-            hdxprops = sysprops;
-        } catch (java.lang.SecurityException e) {
-            System.err.println
-                ("Security exception opening " + fn + ":" + e);
-            hdxprops = sysprops;
-        }
-
-        // Work through any list of properties HdxResourceType.0...
-        for (int i=0; true; i++) {
-            String propname = "HdxResourceType." + Integer.toString(i);
-            String prop = hdxprops.getProperty(propname);
-            System.err.println("Property " + propname + "="
-                               + (prop == null ? "<null>" : prop));
-            if (prop == null)
-                break;          // JUMP OUT
-            try {
-                Class newclass = Class.forName(prop, true, null);
-            } catch (ExceptionInInitializerError ex) {
-                System.err.println
-                    ("Failed to initialize class " + prop + " (" + ex + ")");
-            } catch (LinkageError ex) {
-                System.err.println
-                    ("Failed to load class " + prop + " (" + ex + ")");
-            } catch (ClassNotFoundException ex) {
-                System.err.println
-                    ("Failed to find class " + prop + " (" + ex + ")");
+            String prefix = "HdxResourceType.load.";
+            for (Enumeration e = HdxProperties.getProperties().propertyNames();
+                 e.hasMoreElements(); ) {
+                String propname = (String)e.nextElement();
+                if (propname.startsWith(prefix)) {
+                    classname = propname.substring(prefix.length());
+                    Boolean loadflag = Boolean.valueOf
+                            (HdxProperties.getProperty(propname));
+                    logger.info
+                            ("HdxResourceType class " + classname + ":"
+                             + (loadflag.booleanValue() ? "LOAD" : "NOLOAD"));
+                    if (loadflag.booleanValue()) {
+                        // Get the Class object corresponding to the class
+                        // named in this property.  If the class has not
+                        // already been loaded, then this will find, load,
+                        // link, and initialise the class.  It is the
+                        // initialisation of the class that does the work of
+                        // registration.
+                        //
+                        // The call to getSystemClassLoader looks redundant,
+                        // as forName is documented to use this class loader
+                        // if the third argument is null.  However, this
+                        // appears not to work for some reason.  It's no
+                        // problem, though, since (a) it's good to make this
+                        // explicit, (b) this should work better in the
+                        // somewhat odd environment of JUnit regression tests,
+                        // and (c) in the potentially very odd environment of
+                        // dynamic network class loading.
+                        Class newclass = Class.forName
+                                (classname, // class name
+                                 true, // yes, initialise it
+                                 ClassLoader.getSystemClassLoader());
+                    }
+                }
             }
+        } catch (NoSuchElementException ex) {
+            throw new PluginException("Ooops, runaway Enumeration!:" + ex);
+        } catch (ExceptionInInitializerError ex) {
+            throw new PluginException
+                ("Failed to initialize class " + classname + " (" + ex + ")");
+        } catch (LinkageError ex) {
+            throw new PluginException
+                ("Failed to load class " + classname + " (" + ex + ")");
+        } catch (ClassNotFoundException ex) {
+            throw new PluginException
+                ("Failed to find class " + classname + " (" + ex + ")");
         }
     }
 
@@ -236,7 +273,7 @@ public class HdxResourceType {
             return null;
         HdxResourceType t = new HdxResourceType(name);
         resourceTypeMap.put(name, t);
-        System.err.println("Registered new HDX resource type " + t);
+        logger.info("Registered new HDX resource type " + t);
         return t;
     }
 
@@ -259,7 +296,7 @@ public class HdxResourceType {
      * none has been defined.
      * @see #setHoistAttribute
      */
-    String getHoistAttribute() {
+    public String getHoistAttribute() {
         return hoistAttribute;
     }
     
@@ -301,7 +338,7 @@ public class HdxResourceType {
      * must match.  This may be null to turn off such verification,
      * but that is probably a bad idea.
      *
-     * @throws HdxException if the specified class cannot be found.
+     * @throws HdxException if the specified class cannot be found
      *
      * @see #setConstructedClass(Class)
      */
@@ -320,7 +357,7 @@ public class HdxResourceType {
      * Obtains the expected Java type corresponding to this Hdx type.
      *
      * @return the Class object registered with {@link
-     * #setConstructedClass}, or null if no type was so registered.
+     * #setConstructedClass}, or null if no type was so registered
      */
     public Class getConstructedClass() {
         return requiredClass;
@@ -360,7 +397,8 @@ public class HdxResourceType {
      *
      * @param el an element to be validated.
      *
-     * @return true if the element is a valid instance of this type.
+     * @return true if the element is a valid instance of this type;
+     *         if the type has no validator, then return true always.
      */
     public boolean isValid(Element el) {
         return (validator == null ? true : validator.validateElement(el));
@@ -377,17 +415,21 @@ public class HdxResourceType {
     /**
      * Registers a handler for this type.  New handlers are added at
      * the front of the list.
-     *
-     * <p><strong>Note</strong>:This is a package-private method, but
-     * although it is therefore accessible to other objects in this
-     * package, it should only be called indirectly, via {@link
-     * HdxFactory#registerHdxResourceFactory}.
      */
     public void registerHdxResourceFactory (HdxResourceFactory factory) {
+        /* At one time, it was recommended that this method should be
+         * called only from {@link
+         * HdxFactory#registerHdxResourceFactory}.  This was in order
+         * to permit easy _de_registration of resource factories.
+         * This seems unnecessary, however, so it seems best to remove
+         * the advice.  If this turns out to be useful in fact, then
+         * that is where to restore the indirection.
+         */
         if (handlers == null)
             handlers = new LinkedList();
-        System.err.println("HdxResourceType.registerHdxResourceFactory for " + toString()
-                           + " type=" + factory.getClass().getName());
+        logger.info("HdxResourceType.registerHdxResourceFactory for "
+                    + toString()
+                    + " type=" + factory.getClass().getName());
         handlers.add(0, factory);
     }
 
@@ -416,13 +458,13 @@ public class HdxResourceType {
      */
     Object getObject (Element el)
             throws HdxException {
-        System.err.println("HdxResourceType.callHandler for " + toString()
-                           + ": element=" + el.getTagName());
+        logger.fine("HdxResourceType.callHandler for " + toString()
+                    + ": element=" + el.getTagName());
         if (handlers != null)
             for (ListIterator li = handlers.listIterator();
                  li.hasNext();
                  ) {
-                System.err.println("  next handler...");
+                logger.fine("  next handler...");
                 Object ret = ((HdxResourceFactory)li.next()).getObject(el);
                 if (ret != null) {
                     if (requiredClass == null)
@@ -440,8 +482,8 @@ public class HdxResourceType {
                     }   
                 }
             }
-        System.err.println("  callHandler for " + toString()
-                           + ": nothing matched!");
+        logger.fine("  callHandler for " + toString()
+                    + ": nothing matched!");
         return null;            // nothing matched
     }
 
@@ -474,7 +516,7 @@ public class HdxResourceType {
      */
     public static HdxResourceType match(String gi) {
 	HdxResourceType result;
-        System.err.println("HdxResourceType.match(" + gi + ")");
+        logger.fine("HdxResourceType.match(" + gi + ")");
         if (gi == null || unmatchedTypes.contains(gi))
             result = NONE;
         else {
@@ -501,7 +543,7 @@ public class HdxResourceType {
 //                 }
 //            }
         }
-        System.err.println("match(" + gi + ") produces " + result);
+        logger.fine("match(" + gi + ") produces " + result);
 	return result;
     }
 

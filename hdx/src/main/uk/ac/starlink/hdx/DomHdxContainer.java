@@ -2,6 +2,13 @@ package uk.ac.starlink.hdx;
 
 import org.w3c.dom.*;
 
+
+/**
+ * A DOM-based implementation of <code>HdxContainer</code>.
+ *
+ * @author Norman Gray
+ * @version $Id$
+ */
 class DomHdxContainer
         implements HdxContainer {
     private Element hdxElement;
@@ -14,6 +21,9 @@ class DomHdxContainer
      * <p>It is possible that the Element we receive will have
      * siblings.  Allow this, but ignore the siblings.
      *
+     * @param dom the DOM which represents the Hdx which this
+     *            container encapsulates
+     * 
      * @throws HdxException if the implementation cannot be
      * constructed for some reason.
      */
@@ -31,6 +41,10 @@ class DomHdxContainer
                                    + ", not "
                                    + HdxResourceType.HDX.xmlName());
     }
+
+    // XXX Should we add a constructor which takes a Source?
+    // Probably, but we need to know how permanent Sources can be.  Do
+    // we have to create a new Source on each call of getSource?
 
     public Object get(HdxResourceType type) {
         assert hdxElement.getTagName().equals(HdxResourceType.HDX.xmlName());
@@ -96,7 +110,11 @@ class DomHdxContainer
         return retlist;
     }
 
-    public Element toDOM() {
+    public Element getDOM() {
         return hdxElement;
+    }
+
+    public javax.xml.transform.Source getSource() {
+        return new javax.xml.transform.dom.DOMSource(hdxElement);
     }
 }

@@ -6,18 +6,41 @@ package uk.ac.starlink.hdx;
  * them.
  *
  * <p>Implementations of this interface should be registered by the
- * {@link HdxFactory#registerHdxResourceFactory registerHdxResourceFactory} method of
- * <code>HdxFactory</code>
+ * {@link HdxResourceType#registerHdxResourceFactory} method on the
+ * object which represents the type.
  *
+ * @author Norman Gray
  * @version $Id$
  */
 public interface HdxResourceFactory {
     /**
-     * Constructs an object from the URL given in the `url' attribute
-     * of the given {@link org.w3c.dom.Element}, and returns it cast
-     * to Object.  If the URL is not one that this constructor can
+     * Returns the Java object which corresponds to the URL given in
+     * the `url' attribute of the given {@link org.w3c.dom.Element},
+     * as an Object.  If the URL is not one that this accessor can
      * handle, then it should signal this by returning null promptly,
      * without error.
+     *
+     * <p>The DOM element should be regarded as the master
+     * representation of the data object, thus it is the Element which
+     * client code should generally hold on to, rather than the Java object,
+     * which can be extracted from the element using this method at
+     * any time.  That is why this is a <code>get...</code> method
+     * rather than being referred to as a constructor.
+     *
+     * <p><strong>Implementation note:</strong> When implementing this
+     * class, this intended usage should be borne in mind, and result
+     * of the transformation from Element to Object should be
+     * aggressively cached.  The association between a DOM element and
+     * a Java object is not, in general, volatile.  However, do note
+     * that in the implementations of some types, the DOM is
+     * modifiable (see {@link DOMFacade}), and any changes of state by
+     * this route should be respected.
+     *
+     * <p><strong>Usage note:</strong> This interface is a helper interface,
+     * and should generally <em>not</em> be called directly by client code.
+     * Instead, call {@link HdxFactory#getObject}, which provides or
+     * constructs required context, and which may have other methods
+     * for constructing or recovering the object.
      *
      * <p>The URL will typically be an absolute URL (but not
      * necessarily, since there are cases where there is no absolute
@@ -43,7 +66,7 @@ public interface HdxResourceFactory {
      * an InputStream.
      *
      * @param el an element containing the information required to
-     * construct a Java object.
+     * construct a Java object
      *
      * @return an object of the correct type, as an Object, or null if
      * this constructor cannot handle this URL
@@ -52,6 +75,10 @@ public interface HdxResourceFactory {
      * handle this element but is unable to.  This should also be
      * thrown for any this-can't-happen errors, such as the element
      * argument being an unrecognised type.
+     *
+     * @throws PluginException (unchecked exception) if the
+     * constructor returned an object which did not match the required
+     * class registered using {@link HdxResourceType#setConstructedClass}.
      */
     public Object getObject(org.w3c.dom.Element el)
             throws HdxException;

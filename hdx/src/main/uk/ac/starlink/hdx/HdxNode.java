@@ -64,7 +64,7 @@ class HdxNode
      * only caller of this method is {@link HdxFactory#getObject}.
      *
      * @return a Java object which this node corresponds to, or null
-     * if there is no such node.
+     * if there is no such node
      * @see DOMFacade#getObject(Element)
      */
     Object getNodeObject() {
@@ -72,7 +72,8 @@ class HdxNode
         return null;
     }
 
-    /* Following methods should be overridden by extending classes */
+    /* Following methods are generally inherited from Element, and
+     * should be overridden by extending classes */
 
     public String getNodeName() {
         Class c = getClass();

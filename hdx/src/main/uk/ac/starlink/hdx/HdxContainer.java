@@ -8,7 +8,9 @@ package uk.ac.starlink.hdx;
 public interface HdxContainer {
 
     /**
-     * Returns a list of objects from the Hdx.
+     * Returns a list of objects from the Hdx.  The objects returned will be
+     * of the Java type returned by {@link
+     * HdxResourceType#getConstructedClass}, if that is non-null.
      *
      * @param type the type of object to return
      *
@@ -18,15 +20,26 @@ public interface HdxContainer {
     public java.util.List getList(HdxResourceType type);
 
     /** Returns a single object from the HDX.  If there is more than one, 
-     * this will return any one of them.
+     * this will return any one of them.  The object returned will be
+     * of the Java type returned by {@link
+     * HdxResourceType#getConstructedClass}, if that is non-null.
      *
      * @param type the type of object to return
      *
      * @return an object of the required type, or null if there is no
-     * appropriate object in the HDX.
+     * appropriate object in the HDX
      */
     public Object get(HdxResourceType type);
 
-    /** Obtains a DOM representing the HDX.  XXX will change */
-    public org.w3c.dom.Element toDOM();
+    /** Obtains a DOM representing the HDX. 
+     *
+     * @return a DOM (what more can one say?)
+     */
+    public org.w3c.dom.Element getDOM();
+
+    /** Obtains a {@link javax.xml.transform.Source} representing the HDX.
+     *
+     * @return a Source which represents the HDX.
+     */
+    public javax.xml.transform.Source getSource();
 }

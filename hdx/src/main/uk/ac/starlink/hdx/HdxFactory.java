@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.io.File;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -15,7 +16,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.*;
 
 /**
- * This factory marshalls all the object creation factories involved
+ * Marshalls all the object creation factories involved
  * in the Hdx layer.
  *
  * <p>To create a new {@link HdxContainer} from a URI, use the
@@ -27,13 +28,38 @@ import org.w3c.dom.*;
  * // process myHdx...
  * </pre>
  * If you already have a DOM obtained from an XML file, then you can extract 
- * the HdxContainer from it using the {@link #newHdxContainer(Element)} method.
+ * the HdxContainer from it using the {@link
+ * #newHdxContainer(Element)} method.</p>
  *
- * <p>This class is also the one responsible for validating DOMs as
- * being part of the HDX system.  This validation method is contained
- * in the static method {@link HdxResourceType#isValidHdx(Document)} and the validators for the individual types, {@link HdxResourceType#isValid(Element)}.
+ * <p>This class, or rather the group of <code>newHdxContainer</code>
+ * methods, is also the gatekeeper for the Hdx system, in the sense
+ * that it is this class which ensures that the
+ * <code>HdxContainer</code> which it produces is in a normalised
+ * form, and is valid.  The Hdx validation is that defined by the
+ * static method {@link HdxResourceType#isValidHdx(Document)} and the
+ * validators for the individual types, {@link
+ * HdxResourceType#isValid(Element)}.</p>
  *
- * @author Norman Gray (norman@astro.gla.ac.uk)
+ * <p>To add an extension class, which handles a new file type, you
+ * must do two things:
+ * <ol>
+ *
+ * <li>Define a class which implements {@link HdxDocumentFactory}, and
+ * which registers itself as such a factory, through a call to {@link
+ * #registerHdxDocumentFactory}, in a static initialiser.
+ *
+ * <li>If the new class is called <code>my.new.type</code>, and if
+ * there is an `Hdx property'
+ * <code>HdxDocumentFactory.load.my.new.type</code> with the value
+ * <code>true</code> (or anything which the <code>Boolean</code> class
+ * evaluates to true), then the specified class is loaded during
+ * initialization of this <code>HdxFactory</code> class.  This is an
+ * `Hdx property', which means that it may be specified as either a
+ * System property, or in an Hdx property file as described in {@link
+ * HdxProperties}.</p>
+ *
+ * </ol>
+ * @author Norman Gray
  * @version $Id$ 
  */
 public class HdxFactory {
@@ -42,19 +68,74 @@ public class HdxFactory {
     private static HdxFactory instance = null;
 
     /** List of HdxDocumentFactory instances, tried in turn. */
-    private java.util.List hdxFactoryList;
+    private static java.util.List hdxFactoryList = new java.util.ArrayList(3);
+
+    private static Logger logger = Logger.getLogger("uk.ac.starlink.hdx");
+   
 
     /** XSLT transform engine. */
     private static javax.xml.transform.Transformer transformer;
 
     private HdxFactory()
             throws HdxException {
-        // Private constructor
-        hdxFactoryList = new java.util.ArrayList(3);
-
         // Add default HdxDocumentFactory instances
+        HdxProperties.setProperty
+           ("HdxDocumentFactory.load.uk.ac.starlink.hdx.XmlHdxDocumentFactory",
+            "true");
+        
         //registerHdxDocumentFactory(HdsHdxDocumentFactory.getInstance());
-        registerHdxDocumentFactory(XmlHdxDocumentFactory.getInstance());
+
+        // Work through any list of properties HdxDocumentFactory.load.*...
+        String classname = "...eh?";// obligatory initialisation
+        try {
+            String prefix = "HdxDocumentFactory.load.";
+            for (java.util.Enumeration e
+                         = HdxProperties.getProperties().propertyNames();
+                 e.hasMoreElements(); ) {
+                String propname = (String)e.nextElement();
+                if (propname.startsWith(prefix)) {
+                    classname = propname.substring(prefix.length());
+                    Boolean loadflag = Boolean.valueOf
+                            (HdxProperties.getProperty(propname));
+                    logger.info
+                            ("HdxDocumentFactory class " + classname + ":"
+                             + (loadflag.booleanValue() ? "LOAD" : "NOLOAD"));
+                    if (loadflag.booleanValue()) {
+                        // Get the Class object corresponding to the class
+                        // named in this property.  If the class has not
+                        // already been loaded, then this will find, load,
+                        // link, and initialise the class.  It is the
+                        // initialisation of the class that does the work of
+                        // registration.
+                        //
+                        // The call to getSystemClassLoader looks redundant,
+                        // as forName is documented to use this class loader
+                        // if the third argument is null.  However, this
+                        // appears not to work for some reason.  It's no
+                        // problem, though, since (a) it's good to make this
+                        // explicit, (b) this should work better in the
+                        // somewhat odd environment of JUnit regression tests,
+                        // and (c) in the potentially very odd environment of
+                        // dynamic network class loading.
+                        Class newclass = Class.forName
+                                (classname, // class name
+                                 true, // yes, initialise it
+                                 ClassLoader.getSystemClassLoader());
+                    }
+                }
+            }
+        } catch (java.util.NoSuchElementException ex) {
+            throw new PluginException("Ooops, runaway Enumeration!:" + ex);
+        } catch (ExceptionInInitializerError ex) {
+            throw new PluginException
+                ("Failed to initialize class " + classname + " (" + ex + ")");
+        } catch (LinkageError ex) {
+            throw new PluginException
+                ("Failed to load class " + classname + " (" + ex + ")");
+        } catch (ClassNotFoundException ex) {
+            throw new PluginException
+                ("Failed to find class " + classname + " (" + ex + ")");
+        }
     }
 
     /**
@@ -69,39 +150,59 @@ public class HdxFactory {
 
     /**
      * Adds a {@link HdxDocumentFactory} to the list of factories
-     * tried by {@link #newHdxContainer(Element)}.  The factory is
+     * tried by {@link #newHdxContainer}.  The factory is
      * added at the beginning of the list of factories tried.
      *
      * @param factory an object implementing the {@link
      * HdxDocumentFactory} interface.
      */
-    public void registerHdxDocumentFactory(HdxDocumentFactory factory) {
+    public static void registerHdxDocumentFactory(HdxDocumentFactory factory) {
         hdxFactoryList.add(0, factory);
+        System.err.println("Registered HdxDocumentFactory "
+                           + factory.getClass().getName());
     }
+
 
     /**
      * Constructs a new {@link HdxContainer} from the supplied URI.
+     * The resulting <code>HdxContainer</code> is normalised as
+     * described in {@link #newHdxContainer(Element)}.
      *
-     * <p>If there is no handler available to parse the given URI,
-     * then we return null.
-     *
+     * @param uri a <code>URI</code> pointing to the resource
+     * @return a new <code>HdxContainer</code>, or null if there
+     *         is no handler available to parse the given URI
      * @throws HdxException if there is an unexpected problem creating
-     * the <code>HdxContainer</code> (that is, if we <em>ought</em> to
-     * be able to handle this URI, but fail for some reason).
+     *         the <code>HdxContainer</code> (that is, if we
+     *         <em>ought</em> to be able to handle this URI, but fail
+     *         for some reason)
      */
     public HdxContainer newHdxContainer(URI uri)
             throws HdxException {
+        return newHdxContainer(fullyResolveURI(uri));
+    }
+
+    /**
+     * Constructs a new {@link HdxContainer} from the supplied URL.
+     * The resulting <code>HdxContainer</code> is normalised as
+     * described in {@link #newHdxContainer(Element)}.
+     *
+     * @param url a <code>URL</code> pointing to the resource
+     * @return a new <code>HdxContainer</code>, or null if there
+     *         is no handler available to parse the given URI
+     * @throws HdxException if there is an unexpected problem creating
+     *         the <code>HdxContainer</code> (that is, if we
+     *         <em>ought</em> to be able to handle this URL, but fail
+     *         for some reason)
+     */
+    public HdxContainer newHdxContainer(URL url)
+            throws HdxException {
         Document hdxdom = null;
-        URL url = fullyResolveURI(uri);
         for (Iterator fi = hdxFactoryList.iterator();
              hdxdom == null && fi.hasNext();
              ) {
             HdxDocumentFactory factory = (HdxDocumentFactory)fi.next();
-            hdxdom = factory.makeHdx(url);
+            hdxdom = factory.makeHdxDocument(url);
         }
-
-//         System.err.println("HdxFactory.newHdxContainer(" + uri + "):"
-//                            + (hdxdom == null ? "null" : hdxdom.toString()));
 
         if (hdxdom == null)
             // we fell out of the end of the loop -- no good handlers
@@ -116,14 +217,6 @@ public class HdxFactory {
             return null;
 
         return newHdxContainer(docelem);
-        
-//         Element hdx = validateHdxDOM(docelem);
-//         System.err.println("  validated="
-//                            + (hdx==null ? "null" : hdx.getTagName()));
-//         if (hdx == null)
-//             return null;
-//         else
-//             return new DomHdxContainer(hdx);
     }
 
     /**
@@ -134,12 +227,20 @@ public class HdxFactory {
      * a single HDX element in the DOM tree it receives: if there is
      * more than one, it returns null.
      *
-     * <p>The DOM which this builds contains only the element types
-     * which are defined in the HDX namespace, but these elements are
-     * not declared to be in any namespace within the normalised DOM
-     * (that is, there are no prefixes).  The new DOM is backed by the
-     * old one, so that changes in the new one also appear in the old
-     * one.
+     * <p>The DOM which this builds is normalised, in the sense
+     * that:</p>
+     * <ul>
+     *
+     * <li>it contains only the element types
+     * which are defined in the HDX namespace; and</li>
+     *
+     * <li>these elements are not declared to be in any namespace
+     * (that is, there are no prefixes).</li>
+     *
+     * </ul>
+     *
+     * <p>The new DOM is backed by the old one, so that changes in the
+     * new one also appear in the old one.
      *
      * <p>The Element argument should contain one or more HDX objects
      * (that is, elements representing an <code>&lt;hdx&gt;</code>
@@ -157,14 +258,14 @@ public class HdxFactory {
      * will examine <em>only</em> elements and attributes in the HDX
      * namespace.
      *
-     * @param el An element in or beneath which there is the XML which
-     * represents a single HDX object.
+     * @param el an element in or beneath which there is the XML which
+     * represents a single HDX object
      *
      * @return an HdxContainer, or null if there is not exactly one
-     * HDX element in the DOM.
+     * HDX element in the DOM
      *
      * @throws HdxException if there is an unexpected problem
-     * normalizing the DOM.
+     * normalizing the DOM
      */
     public HdxContainer newHdxContainer(Element el)
             throws HdxException {
@@ -187,35 +288,51 @@ public class HdxFactory {
         }
     }
 
-    /**
-     * Registers a handler for {@link HdxResourceType}.  Handlers
-     * should be installed this way rather than directly with the
-     * corresponding object in <code>HdxResourceType</code>, so that
-     * we can manage <em>de</em>registering them later.
-     *
-     * @param res The HdxResourceType which this handler will deal with
-     *
-     * @param factory The factory which will be invoked when this
-     * handler is needed.
-     */
-    public static void registerHdxResourceFactory (HdxResourceType res,
-                                        HdxResourceFactory factory) {
-        res.registerHdxResourceFactory(factory);
-    }
+    // Redundant method, since no deregistration is needed (yes?).
+    // Just use HdxResourceType.registerHdxResourceFactory instead.
+//     /**
+//      * Registers a handler for {@link HdxResourceType}.  Handlers
+//      * should be installed this way rather than directly with the
+//      * corresponding object in <code>HdxResourceType</code>, so that
+//      * we can manage <em>de</em>registering them later.
+//      *
+//      * @param res the HdxResourceType which this handler will deal with
+//      *
+//      * @param factory the factory which will be invoked when this
+//      * handler is needed
+//      */
+//     public static void registerHdxResourceFactory
+//             (HdxResourceType res,
+//              HdxResourceFactory factory) {
+//         res.registerHdxResourceFactory(factory);
+//     }
 
     /**
-     * Constructs the Java object which corresponds to the given
-     * element.  This finds the correct constructor, resolves the
+     * Recovers the Java object which corresponds to the given
+     * element.  This finds the correct underlying method, resolves the
      * necessary URIs and URLs, supplying any necessary context when
-     * doing so, then invokes the real constructor.
+     * doing so, then invokes the real accessor.
+     *
+     * <p>The DOM element should be regarded as the master
+     * representation of the data object, thus it is the Element which
+     * client code should generally hold on to, rather than the Java object,
+     * which can be extracted from the element using this method at
+     * any time.  That is why this is a <code>get...</code> method
+     * rather than being referred to as a constructor.
      *
      * <p>The returned object is checked to correspond to the type registered
      * using {@link HdxResourceType#setConstructedClass}.
      *
-     * @param el An element in the HDX DOM.
+     * @param el an element in the Hdx DOM
+     *
+     * @return an object of the appropriate type, or null on any error
      *
      * @throws HdxException if the given element is somehow inconsistent
-     * @return an object of the appropriate type, or null on any error
+     *
+     * @throws PluginException (unchecked exception) if the
+     * underlying code returned an object which did not match the
+     * registered target class obtained from {@link
+     * HdxResourceType#getConstructedClass}, if that is non-null
      */
     public Object getObject(Element el)
             throws HdxException {
@@ -237,6 +354,9 @@ public class HdxFactory {
                 URL url = fullyResolveURI(uri);
                 if (url != null)
                     if (el instanceof HdxElement)
+                        // we are able to call the
+                        // setAttribute(String,String,boolean) method
+                        // which avoids changing the backing DOM
                         ((HdxElement)el)
                             .setAttribute("url", url.toString(), false);
                     else
@@ -251,6 +371,10 @@ public class HdxFactory {
         if (el instanceof HdxNode)
             ret = ((HdxNode)el).getNodeObject();
         if (ret == null)
+            // It's this call which can throw PluginException if the
+            // (Java) type of the returned object doesn't match the
+            // target type required by the HdxResourceType we're
+            // aiming for.
             ret = hdxType.getObject(el);
 
         return ret;
@@ -274,6 +398,8 @@ public class HdxFactory {
      *
      * <p>XXX Do we want to make this private?  Probably, when we add
      * the URI-to-URL resolution and have a bit of a rethink then.
+     *
+     * @param uri the URI which is to be resolved
      *
      * @return a URL corresponding to an absolute URI, or null if the
      * URI cannot be resolved for some reason.
@@ -313,12 +439,12 @@ public class HdxFactory {
     }
 
     /**
-     * Completely resolves a URI into a URL.  This performs both
-     * relative to absolute URI resolution, and URI to URL resolution,
-     * in both cases supplying all required context.  The result is an
-     * absolute URL.
+     * Completely resolves a URI, expressed as a string, into a URL.
+     * This performs both relative to absolute URI resolution, and URI
+     * to URL resolution, in both cases supplying all required
+     * context.  The result is an absolute URL.
      *
-     * @param uri A URI as a String
+     * @param uri a String holding the URI
      *
      * @return a URL corresponding to an absolute URI, or null if the
      * URI cannot be resolved for some reason.
@@ -354,8 +480,9 @@ public class HdxFactory {
      * don't remove these siblings here, but leave that to the caller
      * to do if it wants.
      *
-     * <p>Valid, here, means acceptable to {@link
-     * HdxResourceType#isValidHdx(Element)}.
+     * <p>Valid, here, means acceptable to the {@link
+     * HdxResourceType#isValid(Element)} method on
+     * {@link HdxResourceType#HDX}.
      *
      * @param hdxElement an element to be checked, and normalized if
      * necessary.  The input DOM is unchanged.
@@ -386,8 +513,7 @@ public class HdxFactory {
         for (Node kid = df.getFirstChild();
              kid != null;
              kid = kid.getNextSibling()) {
-            System.err.println("--->  "
-                               + serializeDOM(kid));
+            System.err.println("--->  " + serializeDOM(kid));
         }
         System.err.println("...validateHdxDOM done");
 
