@@ -29,6 +29,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTFITSChan;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 
 /**
  *  FITSSpecDataImpl - implementation of SpecDataImpl to access FITS
@@ -176,6 +177,11 @@ public class FITSSpecDataImpl
             if ( scard != null ) {
                 HeaderCard card = new HeaderCard( scard );
                 if ( card != null ) {
+                    
+                    //  Check units are sensible.
+                    if ( key.equals( "units" ) ) {
+                        return UnitUtilities.fixUpUnits( card.getValue() );
+                    }
                     return card.getValue();
                 }
             }
@@ -698,6 +704,12 @@ public class FITSSpecDataImpl
         if ( astref == null ) {
             //  Read failed for some reason. Just create a dummy frameset.
             astref = dummyAstSet();
+        }
+
+        //  Try to repair any dodgy units strings.
+        String unit = astref.getUnit( 1 );
+        if ( unit != null && ! unit.equals( "" ) ) {
+            astref.setUnit( 1, UnitUtilities.fixUpUnits( unit ) );
         }
         return astref;
     }
