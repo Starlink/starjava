@@ -18,7 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.Plot; // for documentation links
-import uk.ac.starlink.util.XMLEncodeAndDecode;
+import uk.ac.starlink.util.XMLEncodeDecode;
 import uk.ac.starlink.util.gui.StoreConfiguration;
 
 /**
@@ -54,7 +54,7 @@ import uk.ac.starlink.util.gui.StoreConfiguration;
  * @see AstTicks
  */
 public class PlotConfiguration 
-    implements XMLEncodeAndDecode
+    implements XMLEncodeDecode
 {
     /**
      * AST model of the title.
@@ -190,7 +190,7 @@ public class PlotConfiguration
     }
 
 //
-// Implementation of the XMLEncodeAndDecode interface.
+// Implementation of the XMLEncodeDecode interface.
 //
     /**
      * Encode the internal state of this object into an XML snippet

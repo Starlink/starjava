@@ -20,14 +20,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import uk.ac.starlink.util.XMLEncodeAndDecode;
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
-import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
+import uk.ac.starlink.util.XMLEncodeDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
+import uk.ac.starlink.util.gui.AWTXMLEncodeDecode;
 import uk.ac.starlink.util.gui.StoreConfiguration;
 
 /**
  * This abstract class provides a default implementation for a
- * XMLEncodeAndDecode. An AbstractPlotControlsModel provides backing
+ * XMLEncodeDecode. An AbstractPlotControlsModel provides backing
  * store for the state of some controls that define properties that
  * are related to a {@link Plot}. The state of the model can be saved
  * and restored from an XML description.
@@ -41,12 +41,12 @@ import uk.ac.starlink.util.gui.StoreConfiguration;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see XMLEncodeAndDecode
+ * @see XMLEncodeDecode
  * @see ChangeEvent
  * @see ChangeListener
  */
 public abstract class AbstractPlotControlsModel
-    implements XMLEncodeAndDecode
+    implements XMLEncodeDecode
 {
 //
 //  Define change listeners interface.
@@ -91,7 +91,7 @@ public abstract class AbstractPlotControlsModel
     }
 
 //
-// Implementations of the XMLEncodeAndDecode methods.
+// Implementations of the XMLEncodeDecode methods.
 //
     // Encode is object specific and has an empty default implementation.
     abstract public void encode( Element rootElement );
@@ -130,8 +130,8 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     String value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, 
-                                                     name, value );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, 
+                                                  name, value );
     }
 
     /**
@@ -140,8 +140,8 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     boolean value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     name, value );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  name, value );
     }
 
     /**
@@ -150,8 +150,8 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     int value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement,
-                                                     name, value );
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement,
+                                                  name, value );
     }
 
     /**
@@ -160,8 +160,8 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     double value )
     {
-        PrimitiveXMLEncodeAndDecode.addChildElement( rootElement, name, 
-                                                     value ); 
+        PrimitiveXMLEncodeDecode.addChildElement( rootElement, name, 
+                                                  value ); 
     }
 
     /**
@@ -170,7 +170,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     Color value )
     {
-        AWTXMLEncodeAndDecode.addChildElement( rootElement, name, value);
+        AWTXMLEncodeDecode.addChildElement( rootElement, name, value);
     }
 
     /**
@@ -179,7 +179,7 @@ public abstract class AbstractPlotControlsModel
     protected void addChildElement( Element rootElement, String name,
                                     Font value )
     {
-        AWTXMLEncodeAndDecode.addChildElement( rootElement, name, value);
+        AWTXMLEncodeDecode.addChildElement( rootElement, name, value);
     }
 
     /**
@@ -188,7 +188,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected NodeList getChildren( Element rootElement )
     {
-        return PrimitiveXMLEncodeAndDecode.getChildren( rootElement );
+        return PrimitiveXMLEncodeDecode.getChildren( rootElement );
     }
 
     /**
@@ -196,7 +196,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String getElementName( Element element )
     {
-        return PrimitiveXMLEncodeAndDecode.getElementName( element );
+        return PrimitiveXMLEncodeDecode.getElementName( element );
     }
 
     /**
@@ -204,7 +204,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String getElementValue( Element element )
     {
-        return PrimitiveXMLEncodeAndDecode.getElementValue( element );
+        return PrimitiveXMLEncodeDecode.getElementValue( element );
     }
 
     /**
@@ -212,7 +212,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String fontToString( Font value )
     {
-        return AWTXMLEncodeAndDecode.fontToString( value );
+        return AWTXMLEncodeDecode.fontToString( value );
     }
 
     /**
@@ -220,7 +220,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected Font fontFromString( String value )
     {
-        return AWTXMLEncodeAndDecode.fontFromString( value );
+        return AWTXMLEncodeDecode.fontFromString( value );
     }
 
     /**
@@ -228,7 +228,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String doubleToString( double value )
     {
-        return PrimitiveXMLEncodeAndDecode.doubleToString( value );
+        return PrimitiveXMLEncodeDecode.doubleToString( value );
     }
 
     /**
@@ -236,7 +236,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected double doubleFromString( String value )
     {
-        return PrimitiveXMLEncodeAndDecode.doubleFromString( value );
+        return PrimitiveXMLEncodeDecode.doubleFromString( value );
     }
 
     /**
@@ -244,7 +244,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String booleanToString( boolean value )
     {
-        return PrimitiveXMLEncodeAndDecode.booleanToString( value );
+        return PrimitiveXMLEncodeDecode.booleanToString( value );
     }
 
     /**
@@ -252,7 +252,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected boolean booleanFromString( String value )
     {
-        return PrimitiveXMLEncodeAndDecode.booleanFromString( value );
+        return PrimitiveXMLEncodeDecode.booleanFromString( value );
     }
 
     /**
@@ -260,7 +260,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String intToString( int value )
     {
-        return PrimitiveXMLEncodeAndDecode.intToString( value );
+        return PrimitiveXMLEncodeDecode.intToString( value );
     }
 
     /**
@@ -268,7 +268,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected int intFromString( String value )
     {
-        return PrimitiveXMLEncodeAndDecode.intFromString( value );
+        return PrimitiveXMLEncodeDecode.intFromString( value );
     }
 
     /**
@@ -276,7 +276,7 @@ public abstract class AbstractPlotControlsModel
      */
     protected String colorToString( Color value )
     {
-        return AWTXMLEncodeAndDecode.colorToString( value );
+        return AWTXMLEncodeDecode.colorToString( value );
     }
 
     /**
@@ -284,6 +284,6 @@ public abstract class AbstractPlotControlsModel
      */
     protected Color colorFromString( String value )
     {
-        return AWTXMLEncodeAndDecode.colorFromString( value );
+        return AWTXMLEncodeDecode.colorFromString( value );
     }
 }

@@ -14,7 +14,7 @@ import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Element;
 
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
 
 /**
  * Photom is a base-model of the data associated with a photometry
@@ -50,7 +50,7 @@ import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
  * @version $Id$
  */
 public class BasePhotom
-    extends PrimitiveXMLEncodeAndDecode
+    extends PrimitiveXMLEncodeDecode
     implements Cloneable
 {
     /** A unique number used to generate unique identifiers (when one
@@ -571,7 +571,7 @@ public class BasePhotom
 
 
 //
-// Implement abstract parts of PrimitiveXMLEncodeAndDecode
+// Implement abstract parts of PrimitiveXMLEncodeDecode
 //
 
     public void encode( Element rootElement )

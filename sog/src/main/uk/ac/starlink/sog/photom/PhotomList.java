@@ -22,7 +22,7 @@ import java.io.FileNotFoundException;
 
 import org.w3c.dom.Element;
 
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
 
 /**
  * Manage a list of photometry measurement objects. It provides a
@@ -41,7 +41,7 @@ import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
  * @version $Id$
  */
 public class PhotomList
-    extends PrimitiveXMLEncodeAndDecode
+    extends PrimitiveXMLEncodeDecode
     implements ChangeListener
 {
     /** Index of the "current" measurement */
@@ -361,7 +361,7 @@ public class PhotomList
     }
 
     //
-    // Implement the XMLEncodeAndDecode interface so that this object
+    // Implement the XMLEncodeDecode interface so that this object
     // can be stored and restored in an Element (and consequently XML).
     //
     public void encode( Element rootElement )

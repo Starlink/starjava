@@ -9,7 +9,7 @@
 package uk.ac.starlink.sog.photom;
 
 import org.w3c.dom.Element;
-import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
+import uk.ac.starlink.util.PrimitiveXMLEncodeDecode;
 
 /**
  * Provides a model of the global parameters that may be required 
@@ -25,7 +25,7 @@ import uk.ac.starlink.util.PrimitiveXMLEncodeAndDecode;
  * @version $Id$
  */
 public class PhotometryGlobals 
-    extends PrimitiveXMLEncodeAndDecode
+    extends PrimitiveXMLEncodeDecode
     implements Cloneable
 {
     /** The photometric zero point */
