@@ -100,6 +100,7 @@ public class ControlWindow extends AuxWindow
     private LoadQueryWindow loadWindow;
     private StarTableSaver saver;
     private MatchWindow matchWindow;
+    private ConcatWindow concatWindow;
 
     private final JTextField idField = new JTextField();
     private final JLabel indexLabel = new JLabel();
@@ -124,6 +125,7 @@ public class ControlWindow extends AuxWindow
     private final Action mirageAct;
     private final Action removeAct;
     private final Action matchAct;
+    private final Action concatAct;
 
     /**
      * Constructs a new window.
@@ -183,6 +185,9 @@ public class ControlWindow extends AuxWindow
                                      "Open a new table" );
         matchAct = new ControlAction( "Match Rows", ResourceIcon.MATCH,
                                       "Join tables using row matching" );
+        concatAct = new ControlAction( "Concatenate Tables",
+                                       ResourceIcon.CONCAT,
+                                       "Join tables by concatenating them" );
         readAct.setEnabled( canRead );
 
         writeAct = new ExportAction( "Save Table", ResourceIcon.SAVE,
@@ -212,6 +217,7 @@ public class ControlWindow extends AuxWindow
         JToolBar toolBar = getToolBar();
         toolBar.add( readAct ).setTransferHandler( importTransferHandler );
         toolBar.add( matchAct );
+        toolBar.add( concatAct );
         toolBar.addSeparator();
 
         /* Add export buttons to the toolbar. */
@@ -367,6 +373,18 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Returns a dialog used for doing table concatenation.
+     *
+     * @return  concatenation window
+     */
+    public ConcatWindow getConcatWindow() {
+        if ( concatWindow == null ) {
+            concatWindow = new ConcatWindow( this );
+        }
+        return concatWindow;
+    }
+
+    /**
      * Returns the table factory used by this window.
      *
      * @return  table factory
@@ -485,6 +503,7 @@ public class ControlWindow extends AuxWindow
     public void updateControls() {
         boolean hasTables = tablesModel.getSize() > 0;
         matchAct.setEnabled( hasTables );
+        concatAct.setEnabled( hasTables );
     }
 
     /*
@@ -592,6 +611,12 @@ public class ControlWindow extends AuxWindow
             }
             else if ( this == matchAct ) {
                 getMatchWindow().makeVisible();
+            }
+            else if ( this == concatAct ) {
+                getConcatWindow().makeVisible();
+            }
+            else {
+                throw new AssertionError();
             }
         }
     }
