@@ -226,14 +226,15 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
                 /* If the only changed items are ones which have been
                  * deselected, we can do this cheaply. */
-                boolean allClear = true;
                 int first = evt.getFirstIndex();
                 int last = evt.getLastIndex();
                 PlotState state = getPlotState();
                 RowSubset[] mask = state.subsetMask;
                 RowSubset[] lastMask = lastState.subsetMask;
-                for ( int i = first; i <= last; i++ ) {
-                    if ( mask[ i ] != null && lastMask[ i ] == null ) {
+                boolean allClear = true;
+                for ( int i = first; i <= last && allClear; i++ ) {
+                    if ( i >= mask.length || i > lastMask.length ||
+                         ( mask[ i ] != null && lastMask[ i ] == null ) ) {
                         allClear = false;
                     }
                 }
