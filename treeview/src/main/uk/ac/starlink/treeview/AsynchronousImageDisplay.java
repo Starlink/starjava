@@ -50,6 +50,8 @@ public class AsynchronousImageDisplay extends ImageDisplay {
     private int maxTileX;
     private int minTileY;
     private int maxTileY;
+    private boolean busy;
+    private boolean verbose = false;
 
     private static Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
 
@@ -194,7 +196,7 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                 TileRequest req = displayImage.queueTiles( new Point[] { pt } );
                 tileRequests.put( pt, req );
                 setBusy( true );
-     System.out.println( "Order:\t" + pt );
+                log( "Order:\t" + pt );
             }
         }
 
@@ -219,7 +221,9 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                     req.cancelTiles( req.getTileIndices() );
                     it.remove();
                     tileMap.remove( pt );
-     System.out.println( "Cancel:\t" + pt + "  " + (showing ? (txmin+".."+txmax+", "+tymin+".."+tymax) : "hidden") );
+                    log( "Cancel:\t" + pt + "  " + 
+                         (showing ? (txmin+".."+txmax+", "+tymin+".."+tymax) 
+                                  : "hidden") );
                 }
             }
             if ( tileRequests.isEmpty() ) {
@@ -239,7 +243,7 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                 tileMap.put( pt, rec );
                 tileRefs.put( pt, new WeakReference( raster ) );
             }
-     System.out.println( "Put:\t" + pt + " " + rec.refCount );
+            log( "Put:\t" + pt + " " + rec.refCount );
         }
 
         public synchronized Raster get( Point pt ) {
@@ -247,7 +251,7 @@ public class AsynchronousImageDisplay extends ImageDisplay {
             Record rec = (Record) tileMap.get( pt );
             if ( rec != null ) {
                 raster = rec.raster;
-     System.out.println( "Buy:\t" + pt + " " + rec.refCount );
+                log( "Buy:\t" + pt + " " + rec.refCount );
                 if ( --rec.refCount == 0 ) {
                     tileMap.remove( pt );
                     tileRequests.remove( pt );
@@ -260,10 +264,12 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                 Reference ref = (Reference) tileRefs.get( pt );
                 raster = (Raster) ref.get();
                 if ( raster == null ) {
-     System.out.println( "Gone:\t" + pt );
+                log( "Gone:\t" + pt );
                     tileRefs.remove( pt );
                 }
-     else System.out.println( "Steal:\t" + pt );
+                else {
+                    log( "Steal:\t" + pt );
+                }
             }
             else {
                 raster = null;
@@ -305,8 +311,15 @@ public class AsynchronousImageDisplay extends ImageDisplay {
     }
 
     private void setBusy( boolean busy ) {
-  System.out.println( "busy: " + busy );
+        this.busy = busy;
         setCursor( busy ? busyCursor : null );
+        log( "busy: " + busy );
+    }
+
+    private void log( String msg ) {
+        if ( verbose ) {
+            System.out.println( msg );
+        }
     }
 
 
