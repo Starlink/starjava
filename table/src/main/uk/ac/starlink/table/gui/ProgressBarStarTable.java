@@ -18,6 +18,9 @@ import uk.ac.starlink.table.WrapperStarTable;
  * to throw an <tt>IOException</tt>.
  * Said <tt>RowSequence</tt>s may be used from any thread, that is 
  * they are not restricted to use from the AWT event dispatcher thread.
+ * <strong>However</strong> you don't want to be using two such 
+ * row sequences simultaneously or the progress bar will be getting two
+ * sets of updates at once.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -47,13 +50,13 @@ public class ProgressBarStarTable extends WrapperStarTable {
                     counter = every;
                 }
                 super.next();
-                boolean stop = Thread.interrupted();
-                if ( stop || ! hasNext() ) {
-                    setZero();
-                }
-                if ( stop ) {
+                if ( Thread.interrupted() ) {
                     throw new IOException( "Operation interrupted" );
                 }
+            }
+            public void close() throws IOException {
+                setZero();
+                super.close();
             }
         };
     }

@@ -114,9 +114,15 @@ public abstract class StoragePolicy {
 
         /* Otherwise get a suitable row store and stream the rows into it. */
         RowStore store = makeConfiguredRowStore( table );
-        for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            store.acceptRow( rseq.getRow() );
+        RowSequence rseq = table.getRowSequence();
+        try {
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                store.acceptRow( rseq.getRow() );
+            }
+        }
+        finally {
+            rseq.close();
         }
         store.endRows();
 

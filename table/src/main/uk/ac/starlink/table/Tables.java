@@ -104,9 +104,15 @@ public class Tables {
     public static void streamStarTable( StarTable source, TableSink sink ) 
             throws IOException {
         sink.acceptMetadata( source );
-        for ( RowSequence rseq = source.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            sink.acceptRow( rseq.getRow() );
+        RowSequence rseq = source.getRowSequence();
+        try {
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                sink.acceptRow( rseq.getRow() );
+            }
+        }
+        finally {
+            rseq.close();
         }
         sink.endRows();
     }
@@ -236,6 +242,7 @@ public class Tables {
             }
             lrow++;
         }
+        rseq.close();
 
         /* Check that the claimed number of rows is correct. */
         if ( nrow >= 0 ) {

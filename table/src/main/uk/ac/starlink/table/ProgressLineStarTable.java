@@ -53,16 +53,11 @@ public class ProgressLineStarTable extends WrapperStarTable {
                 }
             }
 
-            public boolean hasNext() {
-                if ( super.hasNext() ) {
-                    return true;
+            public void close() throws IOException {
+                if ( started ) {
+                    out_.println( ps.getFinishedLine( irow ) );
                 }
-                else {
-                    if ( started ) {
-                        out_.println( ps.getFinishedLine( irow ) );
-                    }
-                    return false;
-                }
+                super.close();
             }
         };
     }

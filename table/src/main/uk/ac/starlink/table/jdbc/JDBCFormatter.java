@@ -33,9 +33,6 @@ public class JDBCFormatter {
 
     public void createJDBCTable( StarTable table, String tableName )
             throws IOException, SQLException {
-
-        /* Get an iterator over the table rows. */
-        RowSequence rseq = table.getRowSequence();
  
         /* Table deletion. */
         Statement stmt = conn.createStatement();
@@ -122,28 +119,34 @@ public class JDBCFormatter {
         PreparedStatement pstmt = conn.prepareStatement( cmd.toString() );
 
         /* Add the data. */
-        while ( rseq.hasNext() ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            int pix = 0;
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                if ( sqlTypes[ icol ] != Types.NULL ) {
-                    pix++;
-                    Object val = row[ icol ];
-                    if ( val instanceof Float && 
-                         Float.isNaN( ((Float) val).floatValue() ) ||
-                         val instanceof Double &&
-                         Double.isNaN( ((Double) val).doubleValue() ) ) {
-                        pstmt.setObject( pix, "NULL" );
-                    }
-                    else {
-                        // pstmt.setObject( pix, row[ icol ],
-                        //                  sqlTypes[ icol ] );
-                        pstmt.setObject( pix, row[ icol ] );
+        RowSequence rseq = table.getRowSequence();
+        try {
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                int pix = 0;
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    if ( sqlTypes[ icol ] != Types.NULL ) {
+                        pix++;
+                        Object val = row[ icol ];
+                        if ( val instanceof Float && 
+                             Float.isNaN( ((Float) val).floatValue() ) ||
+                             val instanceof Double &&
+                             Double.isNaN( ((Double) val).doubleValue() ) ) {
+                            pstmt.setObject( pix, "NULL" );
+                        }
+                        else {
+                            // pstmt.setObject( pix, row[ icol ],
+                            //                  sqlTypes[ icol ] );
+                            pstmt.setObject( pix, row[ icol ] );
+                        }
                     }
                 }
+                pstmt.executeUpdate();
             }
-            pstmt.executeUpdate();
+        }
+        finally {
+            rseq.close();
         }
     }
 

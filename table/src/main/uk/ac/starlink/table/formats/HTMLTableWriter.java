@@ -70,80 +70,89 @@ public class HTMLTableWriter implements StarTableWriter {
     public void writeStarTable( StarTable table, String location )
             throws IOException {
 
+        /* Get an iterator over the table data. */
+        RowSequence rseq = table.getRowSequence();
+
         /* Get a stream for output. */
         OutputStream ostrm = new BufferedOutputStream( getStream( location ) );
 
         /* Output table header. */
-        if ( standalone ) {
-            printHeader( ostrm, table );
-        }
-        StringBuffer sbuf = new StringBuffer();
-        printLine( ostrm, "<TABLE BORDER='1'>" );
-        String tname = table.getName();
-        if ( tname != null ) {
-            printLine( ostrm,
-                       "<CAPTION><STRONG>" + tname + "</STRONG></CAPTION>" );
-        }
-
-        /* Output column headings. */
-        sbuf = new StringBuffer();
-        int ncol = table.getColumnCount();
-        ColumnInfo[] colinfos = Tables.getColumnInfos( table );
-        String[] names = new String[ ncol ];
-        String[] units = new String[ ncol ];
-        boolean hasUnits = false;
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            ColumnInfo colinfo = colinfos[ icol ];
-            String name = colinfo.getName();
-            String unit = colinfo.getUnitString();
-            if ( unit != null ) {
-                hasUnits = true;
-                unit = "(" + unit + ")";
+        try {
+            if ( standalone ) {
+                printHeader( ostrm, table );
             }
-            names[ icol ] = name;
-            units[ icol ] = unit;
-        }
-        String[] headings = new String[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            String heading = names[ icol ];
-            String unit = units[ icol ];
-            if ( hasUnits ) {
-                heading += "<br>";
-                if ( unit != null ){
-                    heading += "(" + unit + ")";
-                }
+            StringBuffer sbuf = new StringBuffer();
+            printLine( ostrm, "<TABLE BORDER='1'>" );
+            String tname = table.getName();
+            if ( tname != null ) {
+                printLine( ostrm,
+                           "<CAPTION><STRONG>" + tname +
+                           "</STRONG></CAPTION>" );
             }
-            headings[ icol ] = heading;
-        }
-        outputRow( ostrm, "TH", null, names );
-        if ( hasUnits ) {
-            outputRow( ostrm, "TH", null, units );
-        }
 
-        /* Separator. */
-        printLine( ostrm, "<TR><TD colspan='" + ncol + "'></TD></TR>" );
-
-        /* Output the table data. */
-        for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            String[] cells = new String[ ncol ];
+            /* Output column headings. */
+            sbuf = new StringBuffer();
+            int ncol = table.getColumnCount();
+            ColumnInfo[] colinfos = Tables.getColumnInfos( table );
+            String[] names = new String[ ncol ];
+            String[] units = new String[ ncol ];
+            boolean hasUnits = false;
             for ( int icol = 0; icol < ncol; icol++ ) {
-                cells[ icol ] =
-                    escape( colinfos[ icol ].formatValue( row[ icol ], 200 ) );
-                if ( cells[ icol ].length() == 0 ) {
-                    cells[ icol ] = "&nbsp;";
+                ColumnInfo colinfo = colinfos[ icol ];
+                String name = colinfo.getName();
+                String unit = colinfo.getUnitString();
+                if ( unit != null ) {
+                    hasUnits = true;
+                    unit = "(" + unit + ")";
                 }
+                names[ icol ] = name;
+                units[ icol ] = unit;
             }
-            outputRow( ostrm, "TD", null, cells );
-        }
+            String[] headings = new String[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                String heading = names[ icol ];
+                String unit = units[ icol ];
+                if ( hasUnits ) {
+                    heading += "<br>";
+                    if ( unit != null ){
+                        heading += "(" + unit + ")";
+                    }
+                }
+                headings[ icol ] = heading;
+            }
+            outputRow( ostrm, "TH", null, names );
+            if ( hasUnits ) {
+                outputRow( ostrm, "TH", null, units );
+            }
 
-        /* Finish up. */
-        printLine( ostrm, "</TABLE>" );
-        if ( standalone ) {
-            printFooter( ostrm );
+            /* Separator. */
+            printLine( ostrm, "<TR><TD colspan='" + ncol + "'></TD></TR>" );
+
+            /* Output the table data. */
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                String[] cells = new String[ ncol ];
+                for ( int icol = 0; icol < ncol; icol++ ) {
+                    cells[ icol ] = escape( colinfos[ icol ]
+                                           .formatValue( row[ icol ], 200 ) );
+                    if ( cells[ icol ].length() == 0 ) {
+                        cells[ icol ] = "&nbsp;";
+                    }
+                }
+                outputRow( ostrm, "TD", null, cells );
+            }
+
+            /* Finish up. */
+            printLine( ostrm, "</TABLE>" );
+            if ( standalone ) {
+                printFooter( ostrm );
+            }
         }
-        ostrm.close();
+        finally {
+            rseq.close();
+            ostrm.close();
+        }
     }
 
     /**

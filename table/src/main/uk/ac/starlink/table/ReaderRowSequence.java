@@ -7,6 +7,7 @@ import java.io.IOException;
  * by classes which can read a row at a time and don't know when the
  * row stream will come to an end.
  * Concrete subclasses have to implement the {@link #readRow} method.
+ * They may also want to override {@link #close}.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -78,6 +79,12 @@ public abstract class ReaderRowSequence implements RowSequence {
 
     public long getRowIndex() {
         return lrow;
+    }
+
+    /**
+     * The <tt>ReaderRowSequence</tt> implementation does nothing.
+     */
+    public void close() throws IOException {
     }
 
 }

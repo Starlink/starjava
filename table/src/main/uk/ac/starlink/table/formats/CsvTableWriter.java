@@ -65,6 +65,7 @@ public class CsvTableWriter implements StarTableWriter {
             throws IOException {
         int ncol = table.getColumnCount();
         ColumnInfo[] cinfos = Tables.getColumnInfos( table );
+        RowSequence rseq = table.getRowSequence();
         Writer out = getStream( location );
         try {
 
@@ -79,7 +80,7 @@ public class CsvTableWriter implements StarTableWriter {
 
             /* Write the data. */
             String[] dataRow = new String[ ncol ];
-            for ( RowSequence rseq = table.getRowSequence(); rseq.hasNext(); ) {
+            while ( rseq.hasNext() ) {
                 rseq.next();
                 Object[] row = rseq.getRow();
                 for ( int icol = 0; icol < ncol; icol++ ) {
@@ -90,11 +91,8 @@ public class CsvTableWriter implements StarTableWriter {
             }
         }
         finally {
-            try {
-                out.close();
-            }
-            catch ( IOException e ) {
-            }
+            rseq.close();
+            out.close();
         }
     }
 

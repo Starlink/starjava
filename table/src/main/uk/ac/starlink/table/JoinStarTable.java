@@ -278,6 +278,12 @@ public class JoinStarTable extends AbstractStarTable {
         public long getRowIndex() {
             return index;
         }
+
+        public void close() throws IOException {
+            for ( int itab = 0; itab < nTab; itab++ ) {
+                rseqs[ itab ].close();
+            }
+        }
     }
 
     /**

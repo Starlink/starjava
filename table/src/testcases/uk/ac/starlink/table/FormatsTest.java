@@ -300,6 +300,8 @@ public class FormatsTest extends TestCase {
         }
         assertTrue( ! rseq1.hasNext() );
         assertTrue( ! rseq2.hasNext() );
+        rseq1.close();
+        rseq2.close();
     }
 
     public void testFits() throws IOException {
@@ -405,6 +407,8 @@ public class FormatsTest extends TestCase {
                 }
             }
         }
+        rseq1.close();
+        rseq1.close();
     }
 
     public void assertTableEquals( StarTable t1, StarTable t2 )
@@ -446,6 +450,8 @@ public class FormatsTest extends TestCase {
         }
         assertTrue( ! rseq1.hasNext() );
         assertTrue( ! rseq2.hasNext() );
+        rseq1.close();
+        rseq2.close();
     }
 
     void assertScalarOrArrayEquals( Object o1, Object o2 ) {

@@ -119,6 +119,10 @@ public class RowSubsetStarTable extends WrapperStarTable {
             public long getRowIndex() {
                 return iSubset;
             }
+
+            public void close() throws IOException {
+                baseSeq.close();
+            }
         };
     }
 }

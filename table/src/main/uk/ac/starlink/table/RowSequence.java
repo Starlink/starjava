@@ -80,4 +80,12 @@ public interface RowSequence {
      */
     long getRowIndex();
 
+    /**
+     * Indicates that this sequence will not be required any more.
+     * This should release resources associated with this sequence.
+     * The effect of calling any of the other methods following a 
+     * <code>close</code> is undefined.
+     */
+    void close() throws IOException;
+
 }

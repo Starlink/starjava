@@ -87,5 +87,7 @@ public class RandomRowSequence implements RowSequence {
         }
         return nrow;
     }
- 
+
+    public void close() {
+    }
 }

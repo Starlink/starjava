@@ -346,6 +346,16 @@ public class JDBCStarTable extends AbstractStarTable {
                 }
             }
 
+            public void close() throws IOException {
+                try {
+                    rset.close();
+                }
+                catch ( SQLException e ) {
+                    throw (IOException) new IOException( e.getMessage() )
+                                       .initCause( e );
+                }
+            }
+
         };
     }
 

@@ -17,6 +17,7 @@ public class ProgressRowSequence extends WrapperRowSequence {
 
     private final double nrow_;
     private final ProgressIndicator indicator_;
+    private boolean closed;
 
     /**
      * Constructs a new ProgressRowSequence.
@@ -45,7 +46,11 @@ public class ProgressRowSequence extends WrapperRowSequence {
      * Indicates that progress is at an end.  Must be called to end the
      * progress indicator's stage.
      */
-    public void close() {
-        indicator_.endStage();
+    public void close() throws IOException {
+        if ( ! closed ) {
+            indicator_.endStage();
+            closed = true;
+        }
+        super.close();
     }
 }

@@ -50,5 +50,9 @@ public class WrapperRowSequence implements RowSequence {
     public long getRowIndex() {
         return baseSeq.getRowIndex();
     }
+
+    public void close() throws IOException {
+        baseSeq.close();
+    }
         
 }

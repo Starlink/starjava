@@ -83,6 +83,9 @@ public class IteratorRowSequence implements RowSequence {
         return irow;
     }
 
+    public void close() {
+    }
+
 
     /**
      * Unchecked exception class to be used for smuggling 

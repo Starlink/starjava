@@ -93,6 +93,9 @@ public abstract class StreamStarTable extends AbstractStarTable {
                     return row;
                 }
             }
+            public void close() throws IOException {
+                in.close();
+            }
         };
     }
 

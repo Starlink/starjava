@@ -67,20 +67,25 @@ public class TextTableWriter implements StarTableWriter {
         }
 
         boolean allRowsSampled = false;
-        for ( RowSequence rseq = startab.getRowSequence(); 
-              rseq.hasNext() && rseq.getRowIndex() < sampledRows; ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            for ( int i = 0; i < ncol; i++ ) {
-                String formatted = cinfos[ i ]
-                                  .formatValue( row[ i ], maxWidth );
-                if ( formatted.length() > cwidths[ i ] ) {
-                    cwidths[ i ] = formatted.length();
+        RowSequence srseq = startab.getRowSequence();
+        try {
+            while ( srseq.hasNext() && srseq.getRowIndex() < sampledRows ) {
+                srseq.next();
+                Object[] row = srseq.getRow();
+                for ( int i = 0; i < ncol; i++ ) {
+                    String formatted = cinfos[ i ]
+                                      .formatValue( row[ i ], maxWidth );
+                    if ( formatted.length() > cwidths[ i ] ) {
+                        cwidths[ i ] = formatted.length();
+                    }
                 }
             }
-            if ( ! rseq.hasNext() ) {
+            if ( ! srseq.hasNext() ) {
                 allRowsSampled = true;
             }
+        }
+        finally {
+            srseq.close();
         }
 
         if ( ! allRowsSampled ) {
@@ -99,41 +104,51 @@ public class TextTableWriter implements StarTableWriter {
         for ( int i = 0; i < ncol; i++ ) {
             cwidths[ i ] = Math.min( maxWidth, cwidths[ i ] );
         }
+
+        /* Get an iterator over the table data. */
+        RowSequence rseq = startab.getRowSequence();
             
         /* Get an output stream. */
         OutputStream strm = getStream( location );
+        try {
 
-        /* Print parameters. */
-        if ( writeParams ) {
-            String name = startab.getName();
-            if ( name != null && name.trim().length() > 0 ) {
-                printParam( strm, "Table name", name );
+            /* Print parameters. */
+            if ( writeParams ) {
+                String name = startab.getName();
+                if ( name != null && name.trim().length() > 0 ) {
+                    printParam( strm, "Table name", name );
+                }
+                for ( Iterator it = startab.getParameters().iterator();
+                      it.hasNext(); ) {
+                    DescribedValue param = (DescribedValue) it.next();
+                    printParam( strm, param.getInfo().getName(),
+                                      param.getValueAsString( 160 ) );
+                }
             }
-            for ( Iterator it = startab.getParameters().iterator();
-                  it.hasNext(); ) {
-                DescribedValue param = (DescribedValue) it.next();
-                printParam( strm, param.getInfo().getName(),
-                                  param.getValueAsString( 160 ) );
-            }
-        }
  
-        /* Print headings. */
-        printColumnHeads( strm, cwidths, cinfos );
+            /* Print headings. */
+            printColumnHeads( strm, cwidths, cinfos );
 
-        /* Print data. */
-        for ( RowSequence rseq = startab.getRowSequence(); rseq.hasNext(); ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            String[] data = new String[ ncol ];
-            for ( int i = 0; i < ncol; i++ ) {
-                data[ i ] = formatValue( row[ i ], cinfos[ i ], cwidths[ i ] );
+            /* Print data. */
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                String[] data = new String[ ncol ];
+                for ( int i = 0; i < ncol; i++ ) {
+                    data[ i ] = formatValue( row[ i ], cinfos[ i ],
+                                             cwidths[ i ] );
+                }
+                printLine( strm, cwidths, data );
             }
-            printLine( strm, cwidths, data );
+            printSeparator( strm, cwidths );
         }
-        printSeparator( strm, cwidths );
 
         /* Tidy up. */
-        strm.flush();
+        finally {
+            strm.flush();
+            strm.close();
+            rseq.close();
+        }
     }
 
     /**

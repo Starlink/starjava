@@ -51,6 +51,9 @@ class WDCStarTable extends AbstractStarTable {
                 String line = WDCTableBuilder.readLine( strm );
                 return ( line == null ) ? null : wknow.decodeLine( line );
             }
+            public void close() throws IOException {
+                strm.close();
+            }
         };
     }
 

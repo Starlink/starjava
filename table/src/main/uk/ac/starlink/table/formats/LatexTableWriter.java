@@ -70,9 +70,6 @@ public class LatexTableWriter implements StarTableWriter {
 
     public void writeStarTable( StarTable startab, String location ) 
             throws IOException {
-
-        /* Get a stream for output. */
-        OutputStream ostrm = getStream( location );
  
         /* Work out the tabular format. */
         StringBuffer tfmt = new StringBuffer( "|" );
@@ -93,59 +90,68 @@ public class LatexTableWriter implements StarTableWriter {
             tfmt.append( '|' );
         }
 
-        /* Write the header information. */
-        if ( standalone ) {
-            printHeader( ostrm, startab );
-        }
-        printLine( ostrm, "\\begin{tabular}{" + tfmt + "}" );
-        printLine( ostrm, "\\hline" );
-
-        /* Write the column headings. */
-        for ( int i = 0; i < ncol; i++ ) {
-            boolean first = i == 0;
-            boolean last = i == ncol - 1;
-            ColumnInfo colinfo = colinfos[ i ];
-            String line = new StringBuffer()
-                         .append( "  \\multicolumn{1}{" )
-                         .append( first ? "|" : "" )
-                         .append( 'c' )
-                         .append( "|" )
-                         .append( "}{" )
-                         .append( escape( colinfo.getName() ) )
-                         .append( "} " )
-                         .append( last ? "\\\\" : "&" )
-                         .toString();
-            printLine( ostrm, line );
-            
-        }
-        printLine( ostrm, "\\hline" );
-
-        /* Write the data. */
+        /* Get an iterator over the table data. */
         RowSequence rseq = startab.getRowSequence();
-        while ( rseq.hasNext() ) {
-            rseq.next();
-            Object[] row = rseq.getRow();
-            print( ostrm, "  " );
-            for ( int i = 0; i < ncol; i++ ) {
-                String datum = colinfos[ i ]
-                              .formatValue( row[ i ], maxWidths[ i ] );
-                if ( i > 0 ) {
-                    print( ostrm, " & " );
-                }
-                print( ostrm, escape( datum ) );
-            }
-            printLine( ostrm, "\\\\" );
-        }
 
-        /* Write footer information. */
-        print( ostrm, "\\hline" );
-        printLine( ostrm, "\\end{tabular}" );
-        if ( standalone ) {
-            printFooter( ostrm, startab );
+        /* Get a stream for output. */
+        OutputStream ostrm = getStream( location );
+        try {
+
+            /* Write the header information. */
+            if ( standalone ) {
+                printHeader( ostrm, startab );
+            }
+            printLine( ostrm, "\\begin{tabular}{" + tfmt + "}" );
+            printLine( ostrm, "\\hline" );
+
+            /* Write the column headings. */
+            for ( int i = 0; i < ncol; i++ ) {
+                boolean first = i == 0;
+                boolean last = i == ncol - 1;
+                ColumnInfo colinfo = colinfos[ i ];
+                String line = new StringBuffer()
+                             .append( "  \\multicolumn{1}{" )
+                             .append( first ? "|" : "" )
+                             .append( 'c' )
+                             .append( "|" )
+                             .append( "}{" )
+                             .append( escape( colinfo.getName() ) )
+                             .append( "} " )
+                             .append( last ? "\\\\" : "&" )
+                             .toString();
+                printLine( ostrm, line );
+            }
+            printLine( ostrm, "\\hline" );
+
+            /* Write the data. */
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                Object[] row = rseq.getRow();
+                print( ostrm, "  " );
+                for ( int i = 0; i < ncol; i++ ) {
+                    String datum = colinfos[ i ]
+                                  .formatValue( row[ i ], maxWidths[ i ] );
+                    if ( i > 0 ) {
+                        print( ostrm, " & " );
+                    }
+                    print( ostrm, escape( datum ) );
+                }
+                printLine( ostrm, "\\\\" );
+            }
+
+            /* Write footer information. */
+            print( ostrm, "\\hline" );
+            printLine( ostrm, "\\end{tabular}" );
+            if ( standalone ) {
+                printFooter( ostrm, startab );
+            }
         }
 
         /* Close. */
-        ostrm.close();
+        finally {
+            rseq.close();
+            ostrm.close();
+        }
     }
 
     /**
