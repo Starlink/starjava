@@ -3,6 +3,7 @@ package uk.ac.starlink.ttools;
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
 import gnu.jel.Evaluator;
+import gnu.jel.Library;
 import java.io.IOException;
 import java.util.List;
 import uk.ac.starlink.table.RowSequence;
@@ -39,19 +40,8 @@ public class JELSelectorTable extends WrapperStarTable {
         expr_ = expr;
 
         /* Check the expression. */
-        JELRowReader dummyReader = new JELRowReader( baseTable ) {
-            protected Object getCell( int icol ) {
-                throw new UnsupportedOperationException();
-            }
-            protected Object[] getRow() {
-                throw new UnsupportedOperationException();
-            }
-            public long getCurrentRow() {
-                return -1L;
-            }
-        };
-        Evaluator.compile( expr, JELUtils.getLibrary( dummyReader ),
-                           boolean.class );
+        Library lib = JELUtils.getLibrary( new DummyJELRowReader( baseTable ) );
+        JELUtils.checkExpressionType( lib, expr, boolean.class );
     }
 
     public boolean isRandom() {
