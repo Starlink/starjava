@@ -257,17 +257,6 @@ public class Driver {
                 props.setProperty( demodirProp, stardir + "etc" + sc + 
                                                 "treeview" + sc + "demo" );
             }
-
-            String sogdirProp = prefix + "sogdir";
-            if ( ! props.containsKey( sogdirProp ) ) {
-                props.setProperty( sogdirProp, stardir + "bin" + sc + "sog" );
-            }
-
-            String splatdirProp = prefix + "splatdir";
-            if ( ! props.containsKey( splatdirProp ) ) {
-                props.setProperty( splatdirProp, stardir + "bin" + 
-                                                 sc + "splat" );
-            }
         }
     }
 

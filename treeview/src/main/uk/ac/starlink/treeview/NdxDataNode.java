@@ -17,6 +17,7 @@ import javax.swing.Action;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import javax.xml.rpc.ServiceException;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -386,39 +387,19 @@ public class NdxDataNode extends DefaultDataNode
         /* Add actions as appropriate. */
         List actlist = new ArrayList();
         if ( ndim == 1 && endim == 1 ) {
-            final ApplicationInvoker displayer = ApplicationInvoker.SPLAT;
-            if ( displayer.canDisplayNDX() ) {
-                Icon splatic = IconFactory.getIcon( IconFactory.SPLAT );
-                Action splatAct = new AbstractAction( "Splat", splatic ) {
-                    public void actionPerformed( ActionEvent evt ) {
-                        try {
-                            displayer.displayNDX( ndx );
-                        }
-                        catch ( ServiceException e ) {
-                            beep();
-                            e.printStackTrace();
-                        }
-                    }
-                };
+            final SplatNdxDisplayer displayer = SplatNdxDisplayer.getInstance();
+            if ( displayer.canDisplay( ndx ) ) {
+                Action splatAct = new NdxDisplayAction( displayer, ndx, "SPLAT",
+                                                        IconFactory.SPLAT );
                 actlist.add( splatAct );
             }
         }
 
         if ( ndim == 2 && endim == 2 ) {
-            final ApplicationInvoker displayer = ApplicationInvoker.SOG;
-            if ( displayer.canDisplayNDX() ) {
-                Icon sogic = IconFactory.getIcon( IconFactory.SOG );
-                Action sogAct = new AbstractAction( "SoG", sogic ) {
-                    public void actionPerformed( ActionEvent evt ) {
-                        try {
-                            displayer.displayNDX( ndx );
-                        }
-                        catch ( ServiceException e ) {
-                            beep();
-                            e.printStackTrace();
-                        }
-                    }
-                };
+            final SogNdxDisplayer displayer = SogNdxDisplayer.getInstance();
+            if ( displayer.canDisplay( ndx ) ) {
+                Action sogAct = new NdxDisplayAction( displayer, ndx, "SoG",
+                                                      IconFactory.SOG );
                 actlist.add( sogAct );
             }
         }
@@ -497,6 +478,39 @@ public class NdxDataNode extends DefaultDataNode
 
     public void customiseTransferable( DataNodeTransferable trans ) {
         customiseTransferable( trans, ndx );
+    }
+
+    /**
+     * Helper class providing an action which invokes an NdxDisplayer.
+     * It tries the RPC method first, and if that fails it does it in
+     * the local JVM.  It just beeps if that fails too.
+     * It tries not to do anything time-consuming in the event-dispatch
+     * thread.
+     */
+    private static class NdxDisplayAction extends AbstractAction {
+        NdxDisplayer displayer;
+        Ndx ndx;
+        NdxDisplayAction( NdxDisplayer displayer, Ndx ndx, String name, 
+                          short iconId ) {
+            super( name, IconFactory.getIcon( iconId ) );
+            this.displayer = displayer;
+            this.ndx = ndx;
+        }
+        public void actionPerformed( ActionEvent evt ) {
+            new Thread() {
+                public void run() { 
+                    if ( ! displayer.soapDisplay( ndx ) ) {
+                        SwingUtilities.invokeLater( new Runnable() {
+                            public void run() {
+                                if ( ! displayer.localDisplay( ndx ) ) {
+                                    beep();
+                                }
+                            }
+                        } );
+                    }
+                }
+            }.start();
+        }
     }
 
 }

@@ -1,0 +1,70 @@
+#!/bin/sh
+
+#+
+#  Name:
+#     showndx
+
+#  Purpose:
+#     Invokes an appropriate viewer to show one or more NDXs
+
+#  Description:
+#     This is a simple command to display NDXs.  It currently uses
+#     SPLAT for 1-d NDXs, SoG for 2-d NDXs, and refuses to cope with
+#     any other dimensionality.
+
+#  Authors:
+#     MBT: Mark Taylor
+#-
+
+#  Find where this script is located.  We normally find this out by
+#  looking at where we were invoked from, but this can be overridden
+#  by setting TREEVIEW_DIR (necessary if invocation is from another
+#  directory because of filesystem links).
+if test -z "$TREEVIEW_DIR"
+then
+    bindir="`dirname $0`"
+else
+    bindir="$TREEVIEW_DIR"
+fi
+
+#  Locate the application jar file.  This is relative to this script.
+
+appjar="$bindir/../lib/treeview/showndx.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate $appjar."
+   exit 1
+fi
+
+#  Locate the java startup script.
+
+starjava="$bindir/starjava"
+if test ! -f "$starjava"; then
+   echo "Failed to locate '$bindir/starjava'."
+   exit 1
+fi
+
+#  Divide the arguments into two parts: those destined as flags for
+#  the java binary, and the rest.
+
+javaArgs=""
+appArgs=""
+while test "$1"
+do
+   if echo $1 | grep -q -- '^-[XD]'
+   then
+      javaArgs="$javaArgs \"$1\""
+   else
+      appArgs="$appArgs \"$1\""
+   fi
+   shift
+done
+
+#  Invoke the jar file.
+
+cmd="$starjava \
+        $javaArgs \
+        -enableassertions \
+        -classpath $appjar:${CLASSPATH} uk.ac.starlink.treeview.NdxDisplayer \
+        $appArgs"
+eval "$cmd"
+

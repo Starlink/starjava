@@ -224,6 +224,9 @@
     <!-- Splat -->
     <pathelement location="${star.jar.dir}/splat/splat.jar"/>
 
+    <!-- SoG -->
+    <pathelement location="${star.jar.dir}/sog/sog.jar"/>
+
     <!-- Axis -->
     <pathelement location="${star.jar.dir}/axis/axis.jar"/>
 
@@ -275,6 +278,8 @@
        location="${star.build.dir}/jaiutil/lib/jaiutil/jaiutil.jar"/>
     <pathelement
        location="${star.build.dir}/splat/lib/splat/splat.jar"/>
+    <pathelement
+       location="${star.build.dir}/sog/lib/sog/sog.jar"/>
     <pathelement
        location="${star.build.dir}/axis/lib/axis/axis.jar"/>
 
@@ -465,6 +470,12 @@
                classname="uk.ac.starlink.splat/data/SpecData"/>
     <fail message="No Splat available" unless="splat.present"/>
 
+    <!-- Need SoG -->
+    <available property="sog.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.sog/SOG"/>
+    <fail message="No SOG available" unless="sog.present"/>
+
     <!-- Need Axis -->
     <available property="axis.present"
                classpathref="classpath"
@@ -607,6 +618,8 @@
           description="-> creates the package jar file(s)">
 
     <mkdir dir="${dist.lib.pkg}"/>
+
+    <!-- Main Treeview jar file -->
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <exclude name="**/.*"/>
@@ -614,13 +627,19 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../hdx/hdx.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar ../ant.jar"/>
+           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../hdx/hdx.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../topcat/topcat.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../sog/sog.jar ../axis/axis.jar ../ant.jar"/>
       </manifest>
     </jar>
 
-    <zip destfile="${dist.lib.pkg}/${name}_src.zip" 
-         basedir="${java.dir}"
-         excludes="**/.*"/>
+    <!-- Jar files for other commands -->
+    <jar destfile="${dist.lib.pkg}/showndx.jar">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Main-Class" 
+                   value="uk.ac.starlink.treeview.NdxDisplayer"/>
+        <attribute name="Class-Path" value="treeview.jar"/>
+      </manifest>
+    </jar>
 
   </target>
 
