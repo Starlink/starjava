@@ -233,7 +233,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 RowSubset[] lastMask = lastState.subsetMask;
                 boolean allClear = true;
                 for ( int i = first; i <= last && allClear; i++ ) {
-                    if ( i >= mask.length || i > lastMask.length ||
+                    if ( i >= mask.length || i >= lastMask.length ||
                          ( mask[ i ] != null && lastMask[ i ] == null ) ) {
                         allClear = false;
                     }
