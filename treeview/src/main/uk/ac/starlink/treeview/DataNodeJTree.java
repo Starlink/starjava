@@ -143,16 +143,23 @@ public class DataNodeJTree extends JTree {
      * @param   modelNode  the node to expand
      */
     private void recursiveExpand( TreeModelNode modelNode ) {
-
-        /* If this node is not childbearing, there is no work to do. */
-        DataNode dataNode = modelNode.getDataNode();
-        if ( ! dataNode.allowsChildren() ) {
-            return;
-        }
-
-        /* See whether this node is already expanded or not. */
         NodeExpander newExpander;
+        DataNode dataNode;
         synchronized ( modelNode ) {
+            dataNode = modelNode.getDataNode();
+
+            /* If this node has somehow been removed from the tree, 
+             * give up now. */
+            if ( ! model.containsNode( dataNode ) ) {
+                return;
+            }
+
+            /* If this node is not childbearing, there is no work to do. */
+            if ( ! dataNode.allowsChildren() ) {
+                return;
+            }
+
+            /* See whether this node is already expanded or not. */
             NodeExpander expander = modelNode.getExpander();
 
             /* If it's never been expanded, prepare to expand it now. */
@@ -193,22 +200,20 @@ public class DataNodeJTree extends JTree {
         }
 
         /* Make sure the tree knows that this node is open not shut. */
-        synchronized ( modelNode ) {
-            Object[] path = model.getPathToRoot( dataNode );
-            if ( path != null ) {
-                final TreePath tpath = new TreePath( path );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        expandPath( tpath );
-                    }
-                } );
-            }
+        Object[] path = model.getPathToRoot( dataNode );
+        if ( path != null ) {
+            final TreePath tpath = new TreePath( path );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    expandPath( tpath );
+                }
+            } );
+        }
 
-            /* Finally, recursively expand all the node's children. */
-            for ( Iterator it = modelNode.getChildren().iterator();
-                  it.hasNext(); ) {
-                 recursiveExpand( (TreeModelNode) it.next() );
-            }
+        /* Finally, recursively expand all the node's children. */
+        for ( Iterator it = modelNode.getChildren().iterator();
+              it.hasNext(); ) {
+             recursiveExpand( (TreeModelNode) it.next() );
         }
     }
 
