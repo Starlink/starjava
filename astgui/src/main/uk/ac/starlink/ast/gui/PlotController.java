@@ -43,6 +43,13 @@ public interface PlotController
     public void setPlotColour( Color color );
 
     /**
+     * Get the current colour of the Component that contains the Plot. Only
+     * needed if any {@link ComponentColourControls} instances are used,
+     * otherwise the implementation may do nothing.
+     */
+    public Color getPlotColour();
+
+    /**
      * Return a reference to the current {@link Frame} that is used
      * when creating the controlled {@link Plot}s. This is used for
      * formatting and unformatting data values in a way that is

@@ -84,8 +84,9 @@ public class ComponentColourControls
 
     /**
      * The original colour of the component. Kept for resetting.
+     * Will be initialised when the PlotController is set.
      */
-    protected Color[] originalColour = new Color[1];
+    protected Color originalColour = Color.black;
 
     /**
      * Create an instance. Requires a PlotController to send change
@@ -137,6 +138,7 @@ public class ComponentColourControls
     public void setController( PlotController controller )
     {
         this.controller = controller;
+        originalColour = controller.getPlotColour();
     }
 
     /**
@@ -236,7 +238,7 @@ public class ComponentColourControls
     public void reset()
     {
         try {
-            colourStore.setColor( originalColour[0] );
+            colourStore.setColor( originalColour );
         }
         catch (Exception e) {
             //  Tough, do nothing.
