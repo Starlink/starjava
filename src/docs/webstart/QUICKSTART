@@ -40,7 +40,7 @@ Make a web page with all the applications present and some notes about
 installing webstart (and what applications are supported on what
 OSes).
 
-For more complex uses, see the README (source/docs/webstart), build
+For more complex uses, see the README (source/src/docs/webstart), build
 files or ask me.
 
 Peter W. Draper 14-NOV-2003.
