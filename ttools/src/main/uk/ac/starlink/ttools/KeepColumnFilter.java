@@ -25,27 +25,35 @@ public class KeepColumnFilter implements ProcessingFilter {
         if ( argIt.hasNext() ) {
             String colIdList = (String) argIt.next();
             argIt.remove();
-            return new KeepColumnStep( colIdList.split( "\\s+" ) );
+            final String[] colIds = colIdList.split( "\\s+" );
+            return new ProcessingStep() {
+                public StarTable wrap( StarTable base ) throws IOException {
+                    return keepColumnTable( base, colIds );
+                }
+            };
         }
         else {
             return null;
         }
     }
 
-    private static class KeepColumnStep implements ProcessingStep {
-        final String[] colIds_;
-
-        KeepColumnStep( String[] colIds ) {
-            colIds_ = colIds;
+    /**
+     * Returns a table which selects a number of columns from its base 
+     * table by column ID.
+     *
+     * @param  table  base table
+     * @param  colIds  array of column IDs, one for each row in the output
+     *         table
+     * @return  new table using columns selected from <tt>table</tt>
+     */
+    public static StarTable keepColumnTable( StarTable table, String[] colIds )
+            throws IOException {
+        ColumnIdentifier identifier = new ColumnIdentifier( table );
+        int[] colMap = new int[ colIds.length ];
+        for ( int i = 0; i < colIds.length; i++ ) {
+            colMap[ i ] = identifier.getColumnIndex( colIds[ i ] );
         }
-
-        public StarTable wrap( StarTable base ) throws IOException {
-            ColumnIdentifier identifier = new ColumnIdentifier( base );
-            int[] colMap = new int[ colIds_.length ];
-            for ( int i = 0; i < colIds_.length; i++ ) {
-                colMap[ i ] = identifier.getColumnIndex( colIds_[ i ] );
-            }
-            return new ColumnPermutedStarTable( base, colMap );
-        }
+        return new ColumnPermutedStarTable( table, colMap );
     }
+
 }
