@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
@@ -18,7 +17,6 @@ public class HistoryDataNode extends DefaultDataNode {
     private HDSObject histobj;
     private HDSObject records;
     private int nrec;
-    private Icon icon;
     private JComponent fullView;
     private String name;
     private String created;
@@ -68,6 +66,7 @@ public class HistoryDataNode extends DefaultDataNode {
         catch ( HDSException e ) {
             throw new NoSuchDataException( "Error parsing HISTORY object",  e );
         }
+        setIconID( IconFactory.HISTORY );
     }
 
     public HistoryDataNode( String path ) throws NoSuchDataException {
@@ -76,13 +75,6 @@ public class HistoryDataNode extends DefaultDataNode {
 
     public String getDescription() {
         return " (" + nrec + ")";
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.HISTORY );
-        }
-        return icon;
     }
 
     public String getNodeTLA() {

@@ -1,6 +1,5 @@
 package uk.ac.starlink.treeview;
 
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import nom.tam.fits.Header;
 import nom.tam.fits.AsciiTableHDU;
@@ -19,7 +18,6 @@ import uk.ac.starlink.fits.FitsConstants;
  */
 public class HDUDataNode extends DefaultDataNode {
 
-    private Icon icon;
     private JComponent fullview;
     private String description;
     private Header header;
@@ -79,17 +77,11 @@ public class HDUDataNode extends DefaultDataNode {
         }
 
         description = "(" + hduType + ")";
+        setIconID( IconFactory.HDU );
     }
 
     public boolean allowsChildren() {
         return false;
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.HDU );
-        }
-        return icon;
     }
 
     public boolean hasFullView() {

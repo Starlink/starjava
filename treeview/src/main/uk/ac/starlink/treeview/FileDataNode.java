@@ -1,9 +1,22 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import java.io.*;
-import java.awt.*;
-import javax.swing.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.util.Compression;
@@ -50,6 +63,8 @@ public class FileDataNode extends DefaultDataNode {
             this.parentFile = null;
         }
         setPath( file.getAbsolutePath() );
+        setIconID( file.isDirectory() ? IconFactory.DIRECTORY 
+                                      : IconFactory.FILE );
     }
 
     /**
@@ -67,29 +82,22 @@ public class FileDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        final DataNode parent = this;
-        final File[] subFiles = file.listFiles();
-        Arrays.sort( subFiles );
+        File[] subFiles = file.listFiles();
+        List files = Arrays.asList( file.listFiles() );
+        Collections.sort( files );
+        final Iterator it = files.iterator();
         return new Iterator() {
-            private int index = 0;
             public boolean hasNext() {
-                return index < subFiles.length;
+                return it.hasNext();
             }
             public Object next() {
-                DataNode child;
-                try {
-                    child = getChildMaker()
-                           .makeDataNode( parent, subFiles[ index ] );
-                }
-                catch ( NoSuchDataException e ) {
-                    child = getChildMaker().makeErrorDataNode( parent, e );
-                }
-                child.setLabel( subFiles[ index ].getName() );
-                index++;
+                File file = (File) it.next();
+                DataNode child = makeChild( file );
+                child.setLabel( file.getName() );
                 return child;
             }
             public void remove() {
-                throw new UnsupportedOperationException( "No remove" );
+                throw new UnsupportedOperationException();
             }
         };
     }
@@ -104,11 +112,6 @@ public class FileDataNode extends DefaultDataNode {
 
     public String getName() {
         return name;
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( file.isDirectory() ? IconFactory.DIRECTORY
-                                                       : IconFactory.FILE );
     }
 
     public String getPathElement() {

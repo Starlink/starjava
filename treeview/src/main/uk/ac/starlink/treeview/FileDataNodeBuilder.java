@@ -119,7 +119,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* If it's an HDS file, make it an NDF (if it is one) 
              * or an HDS node. */
-            if ( Driver.hasHDS && HDSDataNode.isMagic( magic ) ) {
+            if ( TreeviewUtil.hasHDS() && HDSDataNode.isMagic( magic ) ) {
                 HDSObject hobj = null;
                 try {
                     hobj = new HDSReference( file ).getObject( "READ" );

@@ -28,7 +28,6 @@ import javax.swing.tree.*;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-
 public interface DataNode {
 
     /** 
@@ -179,7 +178,13 @@ public interface DataNode {
      * Gets an <code>Icon</code> which can be used when displaying this node.
      * This should return an icon suitable for displaying in a JTree,
      * ideally about 16x16 pixels.  It should give some indication of
-     * the type of node.
+     * the type of node.  
+     * <p>
+     * Implementations are encouraged to construct this icon lazily 
+     * (i.e. not do it until this method is called), since using Icons
+     * usually causes a large number of Swing classes to be loaded,
+     * and in some circumstances (such as treeview -text) these may
+     * never be used.
      *
      * @return  an <code>Icon</code> for display
      */
@@ -237,18 +242,27 @@ public interface DataNode {
     public JComponent getFullView();
 
     /**
-     * Sets the factory which will be used to generate child nodes.
+     * Sets the factory which should in general be used to generate 
+     * child nodes.
+     * This is not necessarily the factory which is used for generating
+     * children of this node, since this node may have special procedures
+     * for generating children.  However it is the factory which should 
+     * in general be used for creating descendants of this node.
+     * <p>
+     * This method should only be used by applications which wish to
+     * restrict the type of node which can appear in a whole subtree
+     * of the node hierarchy.  The childMaker is normally inherited
+     * from parent to child, so for instance customising the childMaker
+     * of the tree root by removing certain builders will prevent 
+     * such nodes from appearing anywhere in the tree.
      *
      * @param  factory  the factory to use for generating children
      */
     public void setChildMaker( DataNodeFactory factory );
 
     /**
-     * Gets the factory which will be used to generate child nodes.
-     * If <code>allowsChildren</code> returns <code>true</code>, then
-     * calling this method prior to any call of <code>setChildFactory</code>
-     * must return a default <code>DataNodeFactory</code> object suitable
-     * for generating children.
+     * Gets the factory which should in general be used to generate 
+     * descendant nodes.
      *
      * @return  the factory used for generating children
      */

@@ -16,6 +16,7 @@ public class IconFactory {
 
     public static final String IMAGE_PATH = "uk/ac/starlink/treeview/images/";
 
+    public static final short NO_ICON = - Short.MAX_VALUE;
     public static final short STOP = 1;
     public static final short EXIT = 2;
     public static final short HELP = 3;
@@ -203,7 +204,7 @@ public class IconFactory {
     }
 
 
-    public static Icon getArrayIcon( int ndim ) {
+    public static short getArrayIconID( int ndim ) {
         String iname;
         short id;
         switch ( ndim ) {
@@ -220,7 +221,7 @@ public class IconFactory {
                 id = ARY3;
                 break;
         }
-        return getIcon( id );
+        return id;
     }
 
     /**

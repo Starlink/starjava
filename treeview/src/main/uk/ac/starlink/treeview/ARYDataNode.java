@@ -26,12 +26,10 @@ public class ARYDataNode extends HDSDataNode {
      * This class is implemented to access data using HDSObject rather
      * than the ARY library.
      */
-    private static DataNodeFactory defaultChildMaker;
-
     private ArrayStructure aryobj;
     private JComponent fullView;
-    private DataNodeFactory childMaker;
     private NDShape shape;
+    private DataNodeFactory customChildMaker;
 
     /**
      * Constructs an ARYDataNode from an HDSObject.
@@ -59,7 +57,6 @@ public class ARYDataNode extends HDSDataNode {
         this.shape = aryobj.getShape();
     }
 
-
     /**
      * Constructs an ARYDataNode from an HDS path.
      */
@@ -70,10 +67,6 @@ public class ARYDataNode extends HDSDataNode {
     public String getDescription() {
         return NDShape.toString( shape )
              + "  <" + aryobj.getType() + ">";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getArrayIcon( shape.getNumDims() );
     }
 
     /**
@@ -88,21 +81,31 @@ public class ARYDataNode extends HDSDataNode {
     public String getNodeType() {
         return "HDS array structure";
     }
-    
-    public void setChildMaker( DataNodeFactory factory ) {
-        childMaker = factory;
+
+    public Icon getIcon() {
+        return IconFactory
+              .getIcon( IconFactory.getArrayIconID( shape.getNumDims() ) );
     }
-    public DataNodeFactory getChildMaker() {
-        if ( defaultChildMaker == null ) {
-            defaultChildMaker = new DataNodeFactory();
-            defaultChildMaker.removeNodeClass( ARYDataNode.class );
-            defaultChildMaker.removeNodeClass( WCSDataNode.class );
-            defaultChildMaker.removeNodeClass( NDFDataNode.class );
+    
+    /**
+     * Removes the possibility of creating certain types of data node
+     * prior to setting the factory (ARY, NDF, WCS).  These can never
+     * be descendants of an ARY, but the descendants of an ARY can 
+     * sometimes look like they are one of these to the factory.
+     */
+    public synchronized DataNodeFactory getChildMaker() {
+        if ( customChildMaker == null ) {
+            customChildMaker = (DataNodeFactory) super.getChildMaker().clone();
+            customChildMaker.removeNodeClass( ARYDataNode.class );
+            customChildMaker.removeNodeClass( WCSDataNode.class );
+            customChildMaker.removeNodeClass( NDFDataNode.class );
         }
-        if ( childMaker == null ) {
-            childMaker = defaultChildMaker;
-        }
-        return childMaker;
+        return customChildMaker;
+    }
+
+    public synchronized void setChildMaker( DataNodeFactory childMaker ) {
+        super.setChildMaker( childMaker );
+        customChildMaker = null;
     }
 
     public boolean hasFullView() {

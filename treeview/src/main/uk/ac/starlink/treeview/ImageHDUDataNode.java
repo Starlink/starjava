@@ -3,8 +3,9 @@ package uk.ac.starlink.treeview;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Iterator;
-import javax.swing.Icon;
+import java.util.List;
 import javax.swing.JComponent;
 import nom.tam.fits.BasicHDU;
 import nom.tam.fits.FitsException;
@@ -34,7 +35,6 @@ import uk.ac.starlink.splat.util.SplatException;
  * @version  $Id$
  */
 public class ImageHDUDataNode extends HDUDataNode {
-    private Icon icon;
     private String name;
     private String description;
     private String hduType;
@@ -123,7 +123,7 @@ public class ImageHDUDataNode extends HDUDataNode {
                 dataType = null;
         }
 
-        if ( Driver.hasAST ) {
+        if ( TreeviewUtil.hasAST() ) {
             try {
                 final Iterator hdrIt = hdr.iterator();
                 Iterator lineIt = new Iterator() {
@@ -163,6 +163,17 @@ public class ImageHDUDataNode extends HDUDataNode {
                          ? ( " " + NDShape.toString( shape.getDims() ) + " " ) 
                          : "" )
                     + ")";
+
+        /* Set the icon based on the shape of the image. */
+        short iconID;
+        if ( shape == null ) {
+            iconID = IconFactory.HDU;
+        }
+        else {
+            int nd = shape.getNumPixels() == 1 ? 0 : shape.getNumDims();
+            iconID = IconFactory.getArrayIconID( nd );
+        }
+        setIconID( iconID );
     }
 
     public boolean allowsChildren() {
@@ -170,38 +181,12 @@ public class ImageHDUDataNode extends HDUDataNode {
         return wcs != null;
     }
 
-    public DataNode[] getChildren() {
-        if ( wcs == null ) {
-        // if ( true ) {
-            return new DataNode[ 0 ];
+    public Iterator getChildIterator() {
+        List children = new ArrayList();
+        if ( wcs != null ) {
+            children.add( makeChild( wcs ) );
         }
-        else {
-            DataNode wcschild;
-            try {
-                wcschild = getChildMaker().makeDataNode( this, wcs );
-            }
-            catch ( NoSuchDataException e ) {
-                wcschild = getChildMaker().makeErrorDataNode( this, e );
-            }
-            return new DataNode[] { wcschild };
-        }
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            if ( shape != null ) {
-                if ( shape.getNumPixels() == 1 ) {
-                    icon = IconFactory.getArrayIcon( 0 );
-                }
-                else {
-                    icon = IconFactory.getArrayIcon( shape.getNumDims() );
-                }
-            }
-            else {
-                icon = IconFactory.getIcon( IconFactory.HDU );
-            }
-        }
-        return icon;
+        return children.iterator();
     }
 
     public boolean hasFullView() {

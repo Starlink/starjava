@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 
 public class ZipBranchDataNode extends DefaultDataNode {
@@ -33,6 +32,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
             name = name.substring( 0, name.length() - 1 );
         }
         setLabel( name );
+        setIconID( IconFactory.ZIPBRANCH );
     }
 
     public String getName() {
@@ -41,10 +41,6 @@ public class ZipBranchDataNode extends DefaultDataNode {
 
     public String getPathSeparator() {
         return "/";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.ZIPBRANCH );
     }
 
     public String getNodeTLA() {
@@ -64,9 +60,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
             return ziparchivenode.getChildIteratorAtLevel( path, this );
         }
         catch ( IOException e ) {
-            return Collections
-                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
-                  .iterator();
+            return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
     }
 

@@ -7,7 +7,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -97,6 +96,7 @@ public class HDXDataNode extends DefaultDataNode {
             name = el.getTagName();
         }
         setLabel( name );
+        setIconID( IconFactory.HDX_CONTAINER );
     }
 
     /**
@@ -156,10 +156,6 @@ public class HDXDataNode extends DefaultDataNode {
         return "HDX container";
     }
 
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.HDX_CONTAINER );
-    }
-
     public boolean allowsChildren() {
         return true;
     }
@@ -167,7 +163,6 @@ public class HDXDataNode extends DefaultDataNode {
     public Iterator getChildIterator() {
         return new Iterator() {
             Node next = XMLDataNode.firstUsefulSibling( hdxel.getFirstChild() );
-            DataNodeFactory childMaker = getChildMaker();
             public boolean hasNext() {
                 return next != null;
             }
@@ -179,10 +174,10 @@ public class HDXDataNode extends DefaultDataNode {
                 next = XMLDataNode.firstUsefulSibling( next.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nod, systemId );
-                    return childMaker.makeDataNode( HDXDataNode.this, xsrc );
+                    return makeChild( xsrc );
                 }
                 catch ( Exception e ) {
-                    return childMaker.makeErrorDataNode( HDXDataNode.this, e );
+                    return makeErrorChild( e );
                 }
             }
             public void remove() {

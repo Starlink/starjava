@@ -3,9 +3,11 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import java.io.IOException;
 import java.nio.Buffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Iterator;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
@@ -76,6 +78,11 @@ public class HDSDataNode extends DefaultDataNode {
             else {
                 this.shape = null;
             }
+            setIconID( hobj.datStruc() 
+                           ? IconFactory.STRUCTURE
+                           : IconFactory.getArrayIconID( shape != null 
+                                                            ? shape.getNumDims()
+                                                            : 0 ) );
         }
         catch ( HDSException e ) {
             throw new NoSuchDataException( e.getMessage() );
@@ -101,7 +108,7 @@ public class HDSDataNode extends DefaultDataNode {
 
     protected static HDSObject getHDSFromPath( String path )
             throws NoSuchDataException {
-        if ( ! Driver.hasHDS ) {
+        if ( ! TreeviewUtil.hasHDS() ) {
             throw new NoSuchDataException( "HDS subsystem not installed" );
         }
         if ( path.endsWith( ".sdf" ) ) {
@@ -125,7 +132,7 @@ public class HDSDataNode extends DefaultDataNode {
     protected static HDSObject getHDSFromFile( File file ) 
             throws NoSuchDataException {
         HDSReference ref;
-        if ( ! Driver.hasHDS ) {
+        if ( ! TreeviewUtil.hasHDS() ) {
             throw new NoSuchDataException( "HDS subsystem not installed" );
         }
         try {
@@ -179,64 +186,57 @@ public class HDSDataNode extends DefaultDataNode {
      * @return  an array of <code>DataNode</code>s considered to be the
      *          children of this node
      */
-    public DataNode[] getChildren() {
-        DataNode[] children;
+    public Iterator getChildIterator() {
 
         /* If it's a scalar structure, its children are its components. */
         if ( isStruct && shape == null ) {
-            int nChildren;
             try {
-                nChildren = hobj.datNcomp();
+                List childList = new ArrayList();
+                int nChildren = hobj.datNcomp();
+                for ( int i = 0; i < nChildren; i++ ) {
+                    try {
+                        childList.add( makeChild( hobj.datIndex( i + 1 ) ) );
+                    }
+                    catch ( HDSException e ) {
+                        childList.add( makeErrorChild( e ) );
+                    }
+                }
+                return childList.iterator();
             }
             catch ( HDSException e ) {
-                return new DataNode[] 
-                           { getChildMaker().makeErrorDataNode( this, e ) };
-            }
-            children = new DataNode[ nChildren ];
-            for ( int i = 0; i < nChildren; i++ ) {
-                try {
-                    children[ i ] = 
-                        getChildMaker()
-                       .makeDataNode( this, hobj.datIndex( i + 1 ) );
-                }
-                catch ( HDSException e ) {
-                    children[ i ] = getChildMaker().makeErrorDataNode( this, e );
-                }
-                catch ( NoSuchDataException e ) {
-                    children[ i ] = getChildMaker().makeErrorDataNode( this, e );
-                }
+                return Collections.singleton( makeErrorChild( e ) ).iterator();
             }
         }
 
         /* If it's an array structure, its children are its elements. */
         else if ( isStruct && shape.getNumPixels() < MAX_CHILDREN_PER_ARRAY ) {
-            int nChildren = (int) shape.getNumPixels();
-            children = new DataNode[ nChildren ];
-            int ichild = 0;
-            for ( Iterator pit = shape.pixelIterator(); pit.hasNext(); ) {
-                long[] pos = (long[]) pit.next();
-                try {
-                    children[ ichild ] = getChildMaker()
-                                        .makeDataNode( HDSDataNode.this, hobj.datCell( pos ) );
+            final Iterator it = shape.pixelIterator();
+            return new Iterator() {
+                public boolean hasNext() {
+                    return it.hasNext();
                 }
-                catch ( HDSException e ) {
-                    children[ ichild ] = getChildMaker()
-                                        .makeErrorDataNode( HDSDataNode.this, e );
+                public Object next() {
+                    long[] pos = (long[]) it.next();
+                    DataNode child;
+                    try {
+                        child = makeChild( hobj.datCell( pos ) );
+                    }
+                    catch ( HDSException e ) {
+                        child = makeErrorChild( e );
+                    }
+                    child.setLabel( child.getName() + NDShape.toString( pos ) );
+                    return child;
                 }
-                catch ( NoSuchDataException e ) {
-                    children[ ichild ] = getChildMaker()
-                                        .makeErrorDataNode( HDSDataNode.this, e );
+                public void remove() {
+                    throw new UnsupportedOperationException();
                 }
-                children[ ichild ].setLabel( children[ ichild ].getName() 
-                                           + NDShape.toString( pos ) );
-                ichild++;
-            }
+            };
         }
+
+        /* Well it must be one or the other. */
         else {
-            throw new RuntimeException( "I have no children!" 
-                                      + "(programming error)" );
+            throw new AssertionError();
         }
-        return children;
     }
 
     public boolean hasParentObject() {
@@ -274,13 +274,6 @@ public class HDSDataNode extends DefaultDataNode {
             }
         }
         return descrip.toString();
-    }
-
-    public Icon getIcon() {
-        return allowsChildren() 
-            ? IconFactory.getIcon( IconFactory.STRUCTURE )
-            : IconFactory.getArrayIcon( shape != null ? shape.getNumDims() 
-                                                      : 0 );
     }
 
     public String getPath() {
@@ -394,4 +387,3 @@ public class HDSDataNode extends DefaultDataNode {
     }
 
 }
-

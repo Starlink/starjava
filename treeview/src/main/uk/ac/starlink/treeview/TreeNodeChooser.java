@@ -148,7 +148,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public TreeNodeChooser( DataNode root ) {
         this();
-        setRoot( root );
+        if ( root != null ) {
+            setRoot( root );
+        }
     }
 
     /**

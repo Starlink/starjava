@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.swing.Icon;
@@ -34,15 +36,13 @@ import uk.ac.starlink.ndx.Ndx;
  * @version  $Id$
  */
 public class NDFDataNode extends HDSDataNode implements Draggable {
-    private static Icon icon;
-    private static DataNodeFactory defaultChildMaker;
-    private static DataNodeFactory axisChildMaker;
 
     private HDSObject ndfobj;
     private NDShape shape;
     private FrameSet wcs;
     private JComponent fullView;
-    private DataNodeFactory childMaker;
+    private DataNodeFactory axisChildMaker;
+    private DataNodeFactory ndfChildMaker;
     private Ndx ndx;
 
     private static final int GRID_FRAME = 1;
@@ -129,11 +129,9 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
             }
 
             /* Try to find a WCS component that looks right. */
-            if ( Driver.hasAST && ndfobj.datThere( "WCS" ) ) {
+            if ( TreeviewUtil.hasAST() && ndfobj.datThere( "WCS" ) ) {
                 try {
-                    DataNode wcsnode = 
-                        getChildMaker()
-                       .makeDataNode( this, ndfobj.datFind( "WCS" ) );
+                    DataNode wcsnode = makeNDFChild( ndfobj.datFind( "WCS" ) );
                     if ( wcsnode instanceof WCSDataNode ) {
                         wcsComponent = (WCSDataNode) wcsnode;
                     }
@@ -188,18 +186,11 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
 
             /* Try to find a HISTORY component that looks right. */
             if ( ndfobj.datThere( "HISTORY" ) ) {
-                try {
-                    DataNode histnode =
-                        getChildMaker()
-                       .makeDataNode( this, ndfobj.datFind( "HISTORY" ) );
-                    if ( histnode instanceof HistoryDataNode ) {
-                        historyComponent = (HistoryDataNode) histnode;
-                    }
-                    else {
-                        historyComponent = null;
-                    }
+                DataNode histnode = makeNDFChild( ndfobj.datFind( "HISTORY" ) );
+                if ( histnode instanceof HistoryDataNode ) {
+                    historyComponent = (HistoryDataNode) histnode;
                 }
-                catch ( NoSuchDataException e ) {
+                else {
                     historyComponent = null;
                 }
             }
@@ -214,7 +205,6 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
                     extensions = null;
                 }
             }
-
         }
         catch ( HDSException e ) {
             throw new NoSuchDataException( e.getMessage() );
@@ -244,13 +234,13 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
     /**
      * Returns the standard NDF components in a standard order.
      */
-    public DataNode[] getChildren() {
+    public Iterator getChildIterator() {
         int nChild;
         try {
             nChild = ndfobj.datNcomp();
         }
         catch ( HDSException e ) {
-            return new DataNode[] { getChildMaker().makeErrorDataNode( this, e ) };
+            return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
         List clist = new ArrayList( nChild );
         Set used = new HashSet( nChild );
@@ -258,30 +248,27 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
 
             /* First add all the standard components in a standard order. */
             if ( title != null ) {
-                clist.add( getChildMaker()
-                          .makeDataNode( this, ndfobj.datFind( "TITLE" ) ) );
+                clist.add( makeNDFChild( ndfobj.datFind( "TITLE" ) ) );
                 used.add( "TITLE" );
             }
             if ( label != null ) {
-                clist.add( getChildMaker()
-                          .makeDataNode( this, ndfobj.datFind( "LABEL" ) ) );
+                clist.add( makeNDFChild( ndfobj.datFind( "LABEL" ) ) );
                 used.add( "LABEL" );
             }
             if ( units != null ) {
-                clist.add( getChildMaker()
-                          .makeDataNode( this, ndfobj.datFind( "UNITS" ) ) );
+                clist.add( makeNDFChild( ndfobj.datFind( "UNITS" ) ) );
                 used.add( "UNITS" );
             }
             if ( dataArray != null ) {
-                clist.add( getChildMaker().makeDataNode( this, dataArray ) );
+                clist.add( makeNDFChild( dataArray ) );
                 used.add( "DATA_ARRAY" );
             }
             if ( varianceArray != null ) {
-                clist.add( getChildMaker().makeDataNode( this, varianceArray ) );
+                clist.add( makeNDFChild( varianceArray ) );
                 used.add( "VARIANCE" );
             }
             if ( qualityArray != null ) {
-                clist.add( getChildMaker().makeDataNode( this, qualityArray ) );
+                clist.add( makeNDFChild( qualityArray ) );
                 used.add( "QUALITY" );
             }
             if ( wcsComponent != null ) {
@@ -293,16 +280,13 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
                 used.add( "HISTORY" );
             }
             if ( axes != null ) {
-                DataNode axnode = 
-                    getChildMaker()
-                   .makeDataNode( this, ndfobj.datFind( "AXIS" ) );
+                DataNode axnode = makeNDFChild( ndfobj.datFind( "AXIS" ) );
                 axnode.setChildMaker( getAxisChildMaker() );
                 clist.add( axnode );
                 used.add( "AXIS" );
             }
             if ( extensions != null ) {
-                clist.add( getChildMaker()
-                          .makeDataNode( this, ndfobj.datFind( "MORE" ) ) );
+                clist.add( makeNDFChild( ndfobj.datFind( "MORE" ) ) );
                 used.add( "MORE" );
             }
          
@@ -312,31 +296,23 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
                 for ( int i = 0; i < nChild; i++ ) {
                     HDSObject hobj = ndfobj.datIndex( i + 1 );
                     if ( ! used.contains( hobj.datName().toUpperCase() ) ) {
-                        clist.add( getChildMaker()
-                                  .makeDataNode( this, hobj ) );
+                        clist.add( makeNDFChild( hobj ) );
                     }
                 }
             }
         }
         catch ( HDSException e ) {
-            clist.add( getChildMaker().makeErrorDataNode( this, e ) );
+            clist.add( makeErrorChild( e ) );
         }
-        catch ( NoSuchDataException e ) {
-            clist.add( getChildMaker().makeErrorDataNode( this, e ) );
-        }
-        return (DataNode[]) clist.toArray( new DataNode[ 0 ] );
-    }
-
-
-    public String getDescription() {
-        return NDShape.toString( shape );
+        return clist.iterator();
     }
 
     public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.NDF );
-        }
-        return icon;
+        return IconFactory.getIcon( IconFactory.NDF );
+    }
+
+    public String getDescription() {
+        return NDShape.toString( shape );
     }
 
     public String getName() {
@@ -444,20 +420,6 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
         }
     }
 
-    public void setChildMaker( DataNodeFactory fact ) {
-        childMaker = fact;
-    }
-    public DataNodeFactory getChildMaker() {
-        if ( defaultChildMaker == null ) {
-            defaultChildMaker = new DataNodeFactory();
-            defaultChildMaker.removeNodeClass( NDFDataNode.class );
-        }
-        if ( childMaker == null ) {
-            childMaker = defaultChildMaker;
-        }
-        return childMaker;
-    }
-
     public byte getQualityBadbits() {
         return qualityBadbits;
     }
@@ -479,9 +441,17 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
         return ndx;
     }
 
+    private DataNode makeNDFChild( Object childObj ) {
+        if ( ndfChildMaker == null ) {
+            ndfChildMaker = (DataNodeFactory) getChildMaker().clone();
+            ndfChildMaker.removeNodeClass( NDFDataNode.class );
+        }
+        return makeChild( childObj, this, ndfChildMaker );
+    }
+
     private DataNodeFactory getAxisChildMaker() {
         if ( axisChildMaker == null ) {
-            axisChildMaker = new DataNodeFactory();
+            axisChildMaker = (DataNodeFactory) getChildMaker().clone();
             axisChildMaker.removeNodeClass( NDFDataNode.class );
             axisChildMaker.removeNodeClass( ARYDataNode.class );
         }

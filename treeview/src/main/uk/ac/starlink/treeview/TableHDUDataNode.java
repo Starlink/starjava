@@ -1,7 +1,6 @@
 package uk.ac.starlink.treeview;
 
 import java.io.IOException;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import nom.tam.fits.AsciiTable;
 import nom.tam.fits.AsciiTableHDU;
@@ -71,8 +70,8 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
         catch ( FitsException e ) {
             throw new NoSuchDataException( e );
         }
+        setIconID( IconFactory.TABLE );
     }
-
 
     /**
      * Returns the StarTable containing the data.  Its construction,
@@ -119,10 +118,6 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
 
     public boolean allowsChildren() {
         return false;
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.TABLE );
     }
 
     public boolean hasFullView() {

@@ -32,6 +32,7 @@ public class DefaultDataNode implements DataNode {
     private JComponent fullView;
     private CreationState creator;
     private Object parentObject;
+    private short iconID = IconFactory.NO_ICON;
 
     /**
      * Constructs a blank <code>DefaultDataNode</code>.
@@ -54,23 +55,8 @@ public class DefaultDataNode implements DataNode {
         return false;
     }
 
-    /**
-     * Returns an array of the node's children; this method is called by
-     * this class's implementation of <code>getChildIterator</code>.
-     * To provide <code>DataNode</code>'s <code>getChildIterator</code>
-     * public method, either this method or <code>getChildIterator</code>
-     * itself should be overridden, but not both.
-     *
-     * @return  a list of the child nodes as iterated over by the 
-     *          <code>getChildIterator</code> method - <code>null</code>
-     *          in the default implementation
-     */
-    protected DataNode[] getChildren() {
-        return null;
-    }
-
     public Iterator getChildIterator() {
-        return Arrays.asList( getChildren() ).iterator();
+        return null;
     }
 
     public boolean hasParentObject() {
@@ -134,9 +120,31 @@ public class DefaultDataNode implements DataNode {
         return result;
     }
 
+    /**
+     * This may be called by subclasses to set the icon returned by 
+     * this node to one of the ones defined in the IconFactory class.
+     *
+     * @param   code  one of the icon identifiers defined as static
+     *          final members of the {@link IconFactory} class
+     */
+    protected void setIconID( short id ) {
+        this.iconID = id;
+    }
+
+    /**
+     * Returns a default icon, unless setIconID has been called, in which
+     * case it returns the one indicated by that call.
+     *
+     * @return   an icon representing this node
+     */
     public Icon getIcon() {
-        return IconFactory.getIcon( allowsChildren() ? IconFactory.PARENT
-                                                     : IconFactory.LEAF );
+        if ( iconID == IconFactory.NO_ICON ) {
+            return IconFactory.getIcon( allowsChildren() ? IconFactory.PARENT
+                                                         : IconFactory.LEAF );
+        }
+        else {
+            return IconFactory.getIcon( iconID );
+        }
     }
 
     public String getPathSeparator() {
@@ -171,6 +179,63 @@ public class DefaultDataNode implements DataNode {
             childMaker = defaultChildMaker;
         }
         return childMaker;
+    }
+
+    /**
+     * Uses the node's childMaker to turn objects into data nodes.
+     * Nodes should if possible construct their children using this method
+     * or one of the other <tt>makeChild</tt> methods.
+     * invoking it in their getChildIterator implementation.  It may not
+     * be possible to do so if the children cannot be constructed by
+     * a DataNodeFactory, for instance if they do not have one-argument
+     * constructors.
+     *
+     * @param  childObj  the object which forms the basis for a child
+     *         data node
+     */
+    public DataNode makeChild( Object childObj ) {
+        return makeChild( childObj, this, getChildMaker() );
+    }
+
+    /**
+     * Uses a custom node factory and given parent to turn objects 
+     * into data nodes.
+     * Nodes may construct their children using this method if they
+     * need to use a node factory other than the inherited one or
+     * a parent other than themselves for the purpose.
+     *
+     * @param  childObj  the object which forms the basis for a child
+     *         data node
+     * @param  factory  the custom node factory
+     */
+    public DataNode makeChild( Object childObj, DataNode parent, 
+                               DataNodeFactory factory ) {
+        try {
+            return factory.makeDataNode( parent, childObj );
+        }
+        catch ( NoSuchDataException e ) {
+            return getChildMaker().makeErrorDataNode( parent, e );
+        }
+    }
+
+    /**
+     * Constructs an error data node from a throwable.  This method can
+     * be used to create a error which is the child of this node.
+     *
+     * @param  th  the throwable on which the data node will be based
+     */
+    public DataNode makeErrorChild( Throwable th ) {
+        return getChildMaker().makeErrorDataNode( this, th );
+    }
+
+    /**
+     * Constructs an error data node from a throwable with given parentage.
+     *
+     * @param  th  the throwable on which the data node will be based
+     * @param  parent  the parent of the new error data node
+     */
+    public DataNode makeErrorChild( Throwable th, DataNode parent ) {
+        return getChildMaker().makeErrorDataNode( parent, th );
     }
 
     public void setCreator( CreationState state ) {

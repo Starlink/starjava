@@ -46,9 +46,12 @@ class HelpDetailViewer extends DetailViewer {
         addText( "Mark Taylor" );
 
         addSubHead( "Optional components" );
-        addKeyedItem( "JNIAST", Driver.hasAST ? "installed" : "not installed" );
-        addKeyedItem( "JNIHDS", Driver.hasHDS ? "installed" : "not installed" );
-        addKeyedItem( "JAI", Driver.hasJAI ? "installed" : "not installed" );
+        addKeyedItem( "JNIAST", TreeviewUtil.hasAST() ? "installed" 
+                                                      : "not installed" );
+        addKeyedItem( "JNIHDS", TreeviewUtil.hasHDS() ? "installed" 
+                                                      : "not installed" );
+        addKeyedItem( "JAI", TreeviewUtil.hasJAI() ? "installed" 
+                                                   : "not installed" );
 
         addSubHead( "Java" );
         addKeyedItem( "JRE", System.getProperty( "java.vendor" ) + " " 

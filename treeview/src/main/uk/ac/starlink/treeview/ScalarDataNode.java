@@ -1,6 +1,5 @@
 package uk.ac.starlink.treeview;
 
-import javax.swing.Icon;
 import javax.swing.JComponent;
 
 /**
@@ -11,7 +10,6 @@ public class ScalarDataNode extends DefaultDataNode {
     private String desc;
     private String type;
     private String value;
-    private Icon icon;
     private JComponent fullView;
     private static final String QUOTE = "\"";
     
@@ -32,6 +30,7 @@ public class ScalarDataNode extends DefaultDataNode {
             this.type = type;
             desc = "<" + type + ">" + desc;
         }
+        setIconID( IconFactory.SCALAR );
     }
 
     public String getDescription() {
@@ -44,13 +43,6 @@ public class ScalarDataNode extends DefaultDataNode {
 
     public String nodeType() {
         return "Scalar";
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.SCALAR );
-        }
-        return icon;
     }
 
     public boolean hasFullView() {

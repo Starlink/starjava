@@ -110,12 +110,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
                         }
                     };
                     datsrc.setName( subname );
-                    try {
-                        return childMaker.makeDataNode( parent, datsrc );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
-                    }
+                    return makeChild( datsrc, parent, childMaker );
                 }
             }
             public boolean hasNext() {

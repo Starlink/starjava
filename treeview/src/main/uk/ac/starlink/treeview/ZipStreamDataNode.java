@@ -91,8 +91,15 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                             }
                         }
                         if ( ! found ) {
-                            System.err.println( "Can't find entry " + zname );
-                            return new DefaultDataNode( subname );
+                            try {
+                                throw new AssertionError( "Entry " + zname + 
+                                                          " not found" );
+                            }
+                            catch ( AssertionError e ) {
+                                DataNode node = makeErrorChild( e, parent );
+                                node.setLabel( subname );
+                                return node;
+                            }
                         }
 
                         /* Make a DataSource which will use our zstream now,
@@ -126,7 +133,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                         childSrc = ssrc;
                     }
                     catch ( IOException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
+                        return makeErrorChild( e, parent );
                     }
 
                     /* If we are at the end of the children, close the zip 
@@ -141,12 +148,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                     }
  
                     /* Construct the node as normal from its source. */
-                    try {
-                        return childMaker.makeDataNode( parent, childSrc );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
-                    }
+                    return makeChild( childSrc, parent, getChildMaker() );
                 }
             }
             public boolean hasNext() {

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -42,7 +41,6 @@ public class VOComponentDataNode extends DefaultDataNode {
     protected final String systemId;
     private String name;
     private JComponent fullView;
-    private Icon icon;
 
     public VOComponentDataNode( Source xsrc ) throws NoSuchDataException {
         Node domNode;
@@ -83,6 +81,7 @@ public class VOComponentDataNode extends DefaultDataNode {
             name = vocel.getTagName();
         }
         setLabel( name );
+        setIconID( IconFactory.VOCOMPONENT );
     }
 
     protected VOComponentDataNode( Source xsrc, String elname )
@@ -105,19 +104,8 @@ public class VOComponentDataNode extends DefaultDataNode {
         return "VOTable component";
     }
 
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( getIconId() );
-        }
-        return icon;
-    }
-
     public String getPathSeparator() {
         return "/";
-    }
-
-    protected short getIconId() {
-        return IconFactory.VOCOMPONENT;
     }
 
     public String getDescription() {
@@ -136,7 +124,6 @@ public class VOComponentDataNode extends DefaultDataNode {
 
     public Iterator getChildIterator() {
         return new Iterator() {
-            private DataNodeFactory childMaker = getChildMaker();
             private Node next = firstUsefulSibling( vocel.getFirstChild() );
             public boolean hasNext() {
                 return next != null;
@@ -149,12 +136,10 @@ public class VOComponentDataNode extends DefaultDataNode {
                 next = firstUsefulSibling( nd.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nd, systemId );
-                    return childMaker
-                          .makeDataNode( VOComponentDataNode.this, xsrc );
+                    return makeChild( xsrc );
                 }
                 catch ( Exception e ) {
-                    return childMaker
-                          .makeErrorDataNode( VOComponentDataNode.this, e );
+                    return makeErrorChild( e );
                 }
             }
             public void remove() {

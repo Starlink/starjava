@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
@@ -30,6 +29,7 @@ public class PlainDataNode extends DefaultDataNode {
 
         this.name = datsrc.getName();
         setLabel( name );
+        setIconID( IconFactory.DATA );
     }
 
     public String getName() {
@@ -42,10 +42,6 @@ public class PlainDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return "Unknown data";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.DATA );
     }
 
     public String getPathElement() {

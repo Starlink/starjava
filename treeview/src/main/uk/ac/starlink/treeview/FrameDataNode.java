@@ -40,6 +40,19 @@ public class FrameDataNode extends DefaultDataNode {
         spec = frame instanceof SpecFrame;
         description = "(" + frame.getNaxes() + " axes) \"" 
                           + frame.getTitle() + "\"";
+
+        /* Set the icon according to the type of frame it is. */
+        short iconid;
+        if ( sky ) {
+            iconid = IconFactory.SKYFRAME;
+        }
+        else if ( spec ) {
+            iconid = IconFactory.SPECFRAME;
+        }
+        else {
+            iconid = IconFactory.FRAME;
+        }
+        setIconID( iconid );
     }
 
     /**
@@ -57,20 +70,6 @@ public class FrameDataNode extends DefaultDataNode {
 
     public String getDescription() {
         return description;
-    }
-
-    public Icon getIcon() {
-        short iconid;
-        if ( sky ) {
-            iconid = IconFactory.SKYFRAME;
-        }
-        else if ( spec ) {
-            iconid = IconFactory.SPECFRAME;
-        }
-        else {
-            iconid = IconFactory.FRAME;
-        }
-        return IconFactory.getIcon( iconid ); 
     }
 
     public String getName() {

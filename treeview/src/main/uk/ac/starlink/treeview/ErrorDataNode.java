@@ -1,17 +1,16 @@
 package uk.ac.starlink.treeview;
 
 import java.io.PrintWriter;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 
 public class ErrorDataNode extends DefaultDataNode {
     private Throwable thrown;
-    private Icon icon;
     private JComponent fullView;
 
     public ErrorDataNode( Throwable th ) {
         super( th.getClass().getName() );
         this.thrown = th;
+        setIconID( IconFactory.ERROR );
     }
 
     public String getNodeTLA() {
@@ -24,13 +23,6 @@ public class ErrorDataNode extends DefaultDataNode {
 
     public String getDescription() {
         return "(" + thrown.getMessage() + ")";
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.ERROR );
-        }
-        return icon;
     }
 
     public JComponent getFullView() {

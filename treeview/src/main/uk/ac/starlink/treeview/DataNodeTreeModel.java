@@ -466,12 +466,15 @@ public class DataNodeTreeModel implements TreeModel {
         TreeModelNode modelNode = getModelNode( dataNode );
         if ( modelNode != root ) {
             TreeModelNode parentModelNode = modelNode.getParent();
-            synchronized ( parentModelNode ) {
-                Object[] path = getPathToRoot( parentModelNode );
-                int index = parentModelNode.getChildren().indexOf( modelNode );
-                listenerHandler
-               .fireTreeNodesChanged( this, path, new int[] { index }, 
-                                      new Object[] { dataNode } );
+            if ( parentModelNode != null ) {
+                synchronized ( parentModelNode ) {
+                    Object[] path = getPathToRoot( parentModelNode );
+                    int index = parentModelNode.getChildren()
+                                               .indexOf( modelNode );
+                    listenerHandler
+                   .fireTreeNodesChanged( this, path, new int[] { index }, 
+                                          new Object[] { dataNode } );
+                }
             }
         }
     }

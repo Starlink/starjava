@@ -53,6 +53,7 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
            .append( 'x' )
            .append( nrow > 0 ? Long.toString( nrow ) : "*" )
            .toString();
+        setIconID( IconFactory.TABLE );
     }
 
     public StarTableDataNode( String loc ) throws NoSuchDataException {
@@ -69,10 +70,6 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
 
     public String getDescription() {
         return description;
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.TABLE );
     }
 
     public String getNodeTLA() {
@@ -261,7 +258,7 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
                      * authentication is done in a GUI fashion. */
                     if ( handler.getAuthenticator() 
                          instanceof TerminalAuthenticator &&
-                         Driver.hasGUI ) {
+                         TreeviewUtil.hasGUI() ) {
                         SwingAuthenticator auth = new SwingAuthenticator();
                         handler.setAuthenticator( auth );
                     }

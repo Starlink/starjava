@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import java.util.Iterator;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import org.apache.tools.tar.TarEntry;
 
@@ -29,6 +28,7 @@ public class TarBranchDataNode extends DefaultDataNode {
             name = name.substring( 0, name.length() - 1 );
         }
         setLabel( name );
+        setIconID( IconFactory.TARBRANCH );
     }
 
     public String getName() {
@@ -37,10 +37,6 @@ public class TarBranchDataNode extends DefaultDataNode {
 
     public String getPathSeparator() {
         return "/";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.TARBRANCH );
     }
 
     public String getNodeTLA() {

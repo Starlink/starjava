@@ -43,6 +43,7 @@ public class VOTableTableDataNode extends VOComponentDataNode
              + "x" 
              + ( ( nrows > 0 ) ? "" + nrows : "?" )
              + ")";
+        setIconID( IconFactory.TABLE );
     }
 
     public String getNodeTLA() {
@@ -55,10 +56,6 @@ public class VOTableTableDataNode extends VOComponentDataNode
 
     public String getDescription() {
         return desc;
-    }
-
-    public short getIconId() {
-        return IconFactory.TABLE;
     }
 
     public boolean allowsChildren() {

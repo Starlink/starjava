@@ -1,7 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.io.File;
-import javax.swing.Icon;
+import java.util.Iterator;
 import javax.swing.JComponent;
 
 /**
@@ -16,24 +16,17 @@ public class DemoDataNode extends FileDataNode {
         "uk.ac.starlink.treeview.demodir";
 
     private String name = "Demonstration data";
-    private Icon icon;
     private JComponent fullView;
 
     public DemoDataNode() throws NoSuchDataException {
         super( getDemoDir() );
         setLabel( name );
         setCreator( new CreationState( DataNode.ROOT ) );
+        setIconID( IconFactory.DEMO );
     }
 
     public String getName() {
         return name;
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.DEMO );
-        }
-        return icon;
     }
 
     public String getPathElement() {
@@ -54,6 +47,28 @@ public class DemoDataNode extends FileDataNode {
 
     public String getNodeType() {
         return "Demonstration data";
+    }
+
+    public Iterator getChildIterator() {
+        final Iterator it = super.getChildIterator();
+        return new Iterator() {
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+            public Object next() {
+                DataNode node = (DataNode) it.next();
+                if ( node.getName().equals( "ndx" ) ) {
+                    DataNodeFactory maker =
+                        (DataNodeFactory) node.getChildMaker().clone();
+                    maker.setPreferredClass( NdxDataNode.class );
+                    node.setChildMaker( maker );
+                }
+                return node;
+            }
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     public JComponent getFullView() {

@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -40,10 +39,8 @@ public class XMLDataNode extends DefaultDataNode {
     private final String type;
     private final String description;
     private final boolean allowsChildren;
-    private final short iconId;
     private String name;
     private JComponent fullView;
-    private Icon icon;
 
     public static final int MAX_LINES = 12;
     public static final String[] MAGICS = new String[] { "<!", "<?" };
@@ -65,6 +62,7 @@ public class XMLDataNode extends DefaultDataNode {
         this.systemId = xsrc.getSystemId();
 
         name = domNode.getNodeName();
+        short iconId;
         switch ( domNode.getNodeType() ) {
 
             case Node.DOCUMENT_NODE:
@@ -141,6 +139,7 @@ public class XMLDataNode extends DefaultDataNode {
                 break;
         }
         setLabel( name );
+        setIconID( iconId );
     }
 
     public String getName() {
@@ -153,13 +152,6 @@ public class XMLDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return type;
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ){
-            icon = IconFactory.getIcon( iconId );
-        }
-        return icon;
     }
 
     public String getPathElement() {
@@ -181,7 +173,6 @@ public class XMLDataNode extends DefaultDataNode {
     public Iterator getChildIterator() {
         return new Iterator() {
             private Node next = firstUsefulSibling( domNode.getFirstChild() );
-            private DataNodeFactory childMaker = getChildMaker();
             public boolean hasNext() {
                 return next != null;
             }
@@ -193,10 +184,10 @@ public class XMLDataNode extends DefaultDataNode {
                 next = firstUsefulSibling( next.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nod, systemId );
-                    return childMaker.makeDataNode( XMLDataNode.this, xsrc );
+                    return makeChild( xsrc );
                 }
                 catch ( Exception e ) {
-                    return childMaker.makeErrorDataNode( XMLDataNode.this, e );
+                    return makeErrorChild( e );
                 }
             }
             public void remove() {

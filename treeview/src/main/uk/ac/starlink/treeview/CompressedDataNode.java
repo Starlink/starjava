@@ -3,7 +3,6 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
@@ -35,6 +34,7 @@ public class CompressedDataNode extends DefaultDataNode {
         }
         this.name = datsrc.getName();
         setLabel( name );
+        setIconID( IconFactory.COMPRESSED );
     }
 
     public String getName() {
@@ -51,10 +51,6 @@ public class CompressedDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return "Compressed data";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.COMPRESSED );
     }
 
     public String getPathElement() {

@@ -24,6 +24,7 @@ public class VOTableDataNode extends VOComponentDataNode {
 
     public VOTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "VOTABLE" );
+        setIconID( IconFactory.VOTABLE );
     }
 
     public String getNodeTLA() {
@@ -32,10 +33,6 @@ public class VOTableDataNode extends VOComponentDataNode {
 
     public String getNodeType() {
         return "VOTable";
-    }
-
-    public short getIconId() {
-        return IconFactory.VOTABLE;
     }
 
     public boolean allowsChildren() {

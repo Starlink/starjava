@@ -15,26 +15,43 @@ public class TableNodeChooser extends TreeNodeChooser {
     private DataNodeFactory nodeFact;
 
     /**
-     * Constructs a new chooser.
+     * Constructs a new chooser.  If <tt>root</tt> is <tt>null</tt>,
+     * a default root is used (the user's current directory).
      *
-     * @param  initial root of the tree to browse
+     * @param  initial root of the tree to browse, or <tt>null</tt>
      */
     public TableNodeChooser( DataNode root ) {
         super( root );
+        if ( root == null ) {
+            try {
+                File dir = new File( System.getProperty( "user.dir" ) );
+                setRoot( new FileDataNode( dir ) );
+            }
+            catch ( NoSuchDataException e ) {
+                // never mind
+            }
+        }
     }
 
     /**
      * Constructs a new chooser with the current directory as the root.
      */
     public TableNodeChooser() {
-        super();
-        try {
-            File dir = new File( System.getProperty( "user.dir" ) );
-            setRoot( new FileDataNode( dir ) );
-        }
-        catch ( NoSuchDataException e ) {
-            // never mind
-        }
+        this( null );
+    }
+
+    /**
+     * As well as setting the root, this modifies the root node's 
+     * childMaker object as appropriate for a tree which is interested 
+     * in tables.
+     */
+    public void setRoot( DataNode root ) {
+        DataNodeFactory maker = root.getChildMaker();
+        maker.removeNodeClass( NDFDataNode.class );
+        maker.removeNodeClass( HDSDataNode.class );
+        maker.removeNodeClass( NDArrayDataNode.class );
+        maker.removeNodeClass( NdxDataNode.class );
+        super.setRoot( root );
     }
 
     /**

@@ -1,8 +1,10 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
 import java.io.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -25,7 +27,6 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class WCSDataNode extends DefaultDataNode {
 
-    private Icon icon;
     private JComponent fullView;
     private FrameSet wcs;
     private String description;
@@ -40,6 +41,7 @@ public class WCSDataNode extends DefaultDataNode {
         description = wcs.getNframe() + " frames;"
                     + " current domain \"" 
                     + wcs.getDomain() + "\"";
+        setIconID( IconFactory.WCS );
     }
 
     /**
@@ -73,41 +75,25 @@ public class WCSDataNode extends DefaultDataNode {
      *
      * @return  an array of children of this node
      */
-    public DataNode[] getChildren() {
+    public Iterator getChildIterator() {
+        List children = new ArrayList();
         int nframe = wcs.getNframe();
-        DataNode[] dchil = null;
-        if ( dchil == null ) {
-            dchil = new DataNode[ 0 ];
-        }
-        DataNode[] children = new DataNode[ dchil.length + nframe ];
-        System.arraycopy( dchil, 0, children, 0, dchil.length );
         for ( int i = 1; i <= nframe; i++ ) {
-            DataNode child;
             try {
-                child = new FrameDataNode( wcs.getFrame( i ) );
+                children.add( new FrameDataNode( wcs.getFrame( i ) ) );
             }
             catch ( NoSuchDataException e ) {
-                child = new DefaultDataNode( "frame " + i + ": " 
-                                           + e.getMessage() );
+                children.add( makeErrorChild( e ) );
             }
             catch ( AstException e ) {
-                child = new DefaultDataNode( "frame " + i + ": " 
-                                           + e.getMessage() );
+                children.add( makeErrorChild( e ) );
             } 
-            children[ i - 1 + dchil.length ] = child;
         }
-        return children;
+        return children.iterator();
     }
 
     public String getDescription() {
         return description;
-    }
-
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.WCS );
-        }
-        return icon;
     }
 
     public String getPathSeparator() {
@@ -177,7 +163,7 @@ public class WCSDataNode extends DefaultDataNode {
 
     private static FrameSet getWcsFromHds( HDSObject hobj ) 
             throws NoSuchDataException {
-        if ( ! Driver.hasAST ) {
+        if ( ! TreeviewUtil.hasAST() ) {
             throw new NoSuchDataException( "AST native library not installed" );
         }
         try {

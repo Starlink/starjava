@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.swing.Icon;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarInputStream;
 import uk.ac.starlink.util.DataSource;
@@ -47,6 +46,7 @@ public class TarStreamDataNode extends DefaultDataNode {
         }
         name = datsrc.getName();
         setLabel( name );
+        setIconID( IconFactory.TARFILE );
     }
 
     public String getName() {
@@ -55,10 +55,6 @@ public class TarStreamDataNode extends DefaultDataNode {
 
     public String getPathSeparator() {
         return ":";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.TARFILE );
     }
 
     public String getNodeTLA() {
@@ -91,8 +87,8 @@ public class TarStreamDataNode extends DefaultDataNode {
             tstream = getTarInputStream();
         }
         catch ( IOException e ) {
-            DataNode bumNode = childMaker.makeErrorDataNode( parent, e );
-            return Collections.singleton( bumNode ).iterator();
+            return Collections.singleton( makeErrorChild( e, parent ) )
+                              .iterator();
         }
 
         /* Return an iterator which makes DataNodes from each entry. */
@@ -145,8 +141,15 @@ public class TarStreamDataNode extends DefaultDataNode {
 
                         /* In case we can't find the entry (shouldn't happen) */
                         if ( ! found ) {
-                            System.err.println( "Can't find entry " + tname );
-                            return new DefaultDataNode( subname );
+                            try {
+                                throw new AssertionError( "Can't find entry" 
+                                                        + tname );
+                            }
+                            catch ( AssertionError e ) {
+                                DataNode node = makeErrorChild( e, parent );
+                                node.setLabel( tname );
+                                return node;
+                            }
                         }
 
                         /* Make a DataSource out of it which will, for now,
@@ -211,7 +214,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                         childSrc = ssrc;
                     }
                     catch ( IOException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
+                        return makeErrorChild( e, parent );
                     }
 
                     /* If we are at the end of the children, close the 
@@ -226,12 +229,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                     }
 
                     /* Construct the node as normal from its source. */
-                    try {
-                        return childMaker.makeDataNode( parent, childSrc );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        return childMaker.makeErrorDataNode( parent, e );
-                    }
+                    return makeChild( childSrc, parent, getChildMaker() );
                 }
             }
             public void remove() {

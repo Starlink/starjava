@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import java.net.URL;
-import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.BridgeNDArray;
@@ -24,24 +23,21 @@ public class NDArrayDataNode extends DefaultDataNode {
     private JComponent fullView;
     private String name;
 
-    public NDArrayDataNode( String loc ) throws NoSuchDataException {
-        this( getNda( loc ) );
-    }
-
     public NDArrayDataNode( NDArray nda ) {
         this.nda = nda;
         URL url = nda.getURL();
         name = ( url == null ) ? "NDArray" : url.getFile();
         setLabel( name );
+        setIconID( IconFactory.getArrayIconID( nda.getShape().getNumDims() ) );
+    }
+
+    public NDArrayDataNode( String loc ) throws NoSuchDataException {
+        this( getNda( loc ) );
     }
 
     public String getDescription() {
         return NDShape.toString( nda.getShape() )
              + "  <" + nda.getType() + ">";
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getArrayIcon( nda.getShape().getNumDims() );
     }
 
     public String getPathElement() {
@@ -175,7 +171,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 return new StatsViewer( rnda );
             }
         } );
-        if ( endim == 1 && Driver.hasAST ) {
+        if ( endim == 1 && TreeviewUtil.hasAST() ) {
             dv.addScalingPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent() 
                         throws IOException, SplatException {
@@ -191,7 +187,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             } );
         }
-        if ( endim == 2 && Driver.hasJAI ) {
+        if ( endim == 2 && TreeviewUtil.hasJAI() ) {
             dv.addPane( "Image view", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim == 2 && ndim != 2 ) {
@@ -203,7 +199,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             } );
         }
-        if ( endim > 2 && Driver.hasJAI ) {
+        if ( endim > 2 && TreeviewUtil.hasJAI() ) {
             dv.addPane( "Slices", new ComponentMaker() {
                 public JComponent getComponent() {
                     if ( endim != ndim ) {
@@ -215,7 +211,7 @@ public class NDArrayDataNode extends DefaultDataNode {
                 }
             } );
         }
-        if ( endim == 3 && Driver.hasJAI ) {    
+        if ( endim == 3 && TreeviewUtil.hasJAI() ) {    
             dv.addPane( "Collapsed", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim != ndim ) {

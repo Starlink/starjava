@@ -11,6 +11,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
@@ -54,7 +55,6 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
     private Ndx ndx;
     private String name;
     private String desc;
-    private Icon icon;
     private JComponent fullView;
     private URL url;
 
@@ -162,8 +162,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         return true;
     }
 
-    protected DataNode[] getChildren() {
-        DataNodeFactory childMaker = getChildMaker();
+    public Iterator getChildIterator() {
         List children = new ArrayList();
 
         if ( ndx.hasTitle() ) {
@@ -173,36 +172,18 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             children.add( tit );
         }
 
-        DataNode im;
-        try {
-            im = childMaker.makeDataNode( this, ndx.getImage() );
-        }
-        catch ( NoSuchDataException e ) {
-            im = childMaker.makeErrorDataNode( this, e );
-        }
+        DataNode im = makeChild( ndx.getImage() );
         im.setLabel( "image" );
         children.add( im );
 
         if ( ndx.hasVariance() ) {
-            DataNode var;
-            try {
-                var = childMaker.makeDataNode( this, ndx.getVariance() );
-            }
-            catch ( NoSuchDataException e ) {
-                var = childMaker.makeErrorDataNode( this, e );
-            }
+            DataNode var = makeChild( ndx.getVariance() );
             var.setLabel( "variance" );
             children.add( var );
         }
 
         if ( ndx.hasQuality() ) {
-            DataNode qual;
-            try {
-                qual = childMaker.makeDataNode( this, ndx.getQuality() );
-            }
-            catch ( NoSuchDataException e ) {
-                qual = childMaker.makeErrorDataNode( this, e );
-            }
+            DataNode qual = makeChild( ndx.getQuality() );
             qual.setLabel( "quality" );
             children.add( qual );
         }
@@ -216,29 +197,17 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             children.add( bb );
         }
     
-        if ( Driver.hasAST && ndx.hasWCS() ) {
-            DataNode wnode;
-            try {
-                wnode = childMaker.makeDataNode( this, ndx.getAst() );
-            }
-            catch ( NoSuchDataException e ) {
-                wnode = childMaker.makeErrorDataNode( this, e );
-            }
+        if ( TreeviewUtil.hasAST() && ndx.hasWCS() ) {
+            DataNode wnode = makeChild( ndx.getAst() );
             children.add( wnode );
         }
 
         if ( ndx.hasEtc() ) {
-            DataNode etcNode;
-            try {
-                etcNode = childMaker.makeDataNode( this, ndx.getEtc() );
-            }
-            catch ( NoSuchDataException e ) {
-                etcNode = childMaker.makeErrorDataNode( this, e );
-            }
+            DataNode etcNode = makeChild( ndx.getEtc() );
             children.add( etcNode );
         }
 
-        return (DataNode[]) children.toArray( new DataNode[ 0 ] );
+        return children.iterator();
     }
 
     public String getName() {
@@ -254,10 +223,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
     }
 
     public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getIcon( IconFactory.NDX );
-        }
-        return icon;
+        return IconFactory.getIcon( IconFactory.NDX );
     }
 
     public String getPathElement() {
@@ -322,7 +288,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         final NDArray image =
             NDArrays.toRequiredArray( Ndxs.getMaskedImage( ndx ), req );
     
-        final FrameSet ast = Driver.hasAST ? Ndxs.getAst( ndx ) : null;
+        final FrameSet ast = TreeviewUtil.hasAST() ? Ndxs.getAst( ndx ) : null;
         final NDShape shape = image.getShape();
         final int ndim = shape.getNumDims();
 
@@ -343,7 +309,8 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         }
 
         /* Add data views as appropriate. */
-        if ( Driver.hasAST && ndx.hasWCS() && ndim == 2 && endim == 2 ) {
+        if ( TreeviewUtil.hasAST() && ndx.hasWCS() &&
+             ndim == 2 && endim == 2 ) {
             dv.addScalingPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     return new GridPlotter( shape, ast );
@@ -368,7 +335,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             }
         } );
 
-        if ( endim == 1 && Driver.hasAST ) {
+        if ( endim == 1 && TreeviewUtil.hasAST() ) {
             dv.addScalingPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent()
                         throws IOException, SplatException {
@@ -377,7 +344,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             } );
         }
 
-        if ( ( ndim == 2 || endim == 2 ) && Driver.hasJAI ) {
+        if ( ( ndim == 2 || endim == 2 ) && TreeviewUtil.hasJAI() ) {
             dv.addPane( "Image display", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim == 2 && ndim != 2 ) {
@@ -390,7 +357,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             } );
         }
 
-        if ( endim > 2 && Driver.hasJAI ) {
+        if ( endim > 2 && TreeviewUtil.hasJAI() ) {
             dv.addPane( "Slices", new ComponentMaker() {
                 public JComponent getComponent() {
                     if ( endim != ndim ) {
@@ -402,7 +369,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
                 }
             } );
         }
-        if ( endim == 3 && Driver.hasJAI ) {
+        if ( endim == 3 && TreeviewUtil.hasJAI() ) {
             dv.addPane( "Collapsed", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     if ( endim != ndim ) {

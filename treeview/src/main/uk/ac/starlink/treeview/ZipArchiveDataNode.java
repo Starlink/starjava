@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
-import javax.swing.Icon;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -46,6 +45,7 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
         catch ( IOException e ) {
             throw new NoSuchDataException( "Can't see if it's zip", e );
         }
+        setIconID( IconFactory.ZIPFILE );
     }
 
     /**
@@ -94,10 +94,6 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
         return name;
     }
 
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.ZIPFILE );
-    }
-
     public String getPathSeparator() {
         return ":";
     }
@@ -124,9 +120,7 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
             return getChildIteratorAtLevel( "", this );
         }
         catch ( IOException e ) {
-            return Collections
-                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
-                  .iterator();
+            return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
     }
 

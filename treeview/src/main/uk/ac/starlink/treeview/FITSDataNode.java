@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import javax.swing.Icon;
 import nom.tam.fits.Header;
 import nom.tam.fits.AsciiTableHDU;
 import nom.tam.fits.BinaryTableHDU;
@@ -104,6 +103,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
         }
         this.name = datsrc.getName();
         setLabel( name );
+        setIconID( IconFactory.FITS );
     }
 
     public String getName() {
@@ -141,14 +141,10 @@ public abstract class FITSDataNode extends DefaultDataNode {
             firstHeaderSize = FitsConstants.readHeader( firstHeader, istrm );
         }
         catch ( TruncatedFileException e ) {
-            return Collections
-                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
-                  .iterator();
+            return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
         catch ( IOException e ) {
-            return Collections
-                  .singleton( getChildMaker().makeErrorDataNode( this, e ) )
-                  .iterator();
+            return Collections.singleton( makeErrorChild( e ) ).iterator();
         }
         return new Iterator() {
             private int nchild = 0;
@@ -158,7 +154,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
             private long hduStart = 0L;
 
             public Object next() {
-                DefaultDataNode dnode;
+                DataNode dnode;
                 if ( hasNext() ) {
 
                     /* Construct a new node from the header we have ready. */
@@ -198,14 +194,16 @@ public abstract class FITSDataNode extends DefaultDataNode {
                                                         : "HDU " + nchild );
                     }
                     catch ( NoSuchDataException e ) {
-                        dnode = new ErrorDataNode( e );
+                        dnode = makeErrorChild( e );
                     }
                     catch ( IOException e ) {
-                        dnode = new ErrorDataNode( e );
+                        dnode = makeErrorChild( e );
                     }
 
                     /* Remember parentage of the new node. */
-                    dnode.setParentObject( datsrc );
+                    if ( dnode instanceof DefaultDataNode ) {
+                        ((DefaultDataNode) dnode).setParentObject( datsrc );
+                    }
                     dnode.setCreator( new CreationState( parent ) );
 
                     /* Read the next header. */
@@ -246,10 +244,6 @@ public abstract class FITSDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException();
             }
         };
-    }
-
-    public Icon getIcon() {
-        return IconFactory.getIcon( IconFactory.FITS );
     }
 
     public String getPathSeparator() {

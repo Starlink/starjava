@@ -4,22 +4,21 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.fits.FitsNdxHandler;
-import uk.ac.starlink.hds.HDSPackage;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.util.Loader;
 
 public class Driver {
     public final static String CMDNAME_PROPERTY =
         "uk.ac.starlink.treeview.cmdname";
-
-    public static boolean hasAST;
-    public static boolean hasHDS;
-    public static boolean hasJAI;
-    public static boolean hasGUI;
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.treeview" );
@@ -44,11 +43,11 @@ public class Driver {
         /* Check requisites.  We may be able to proceed without JNIAST
          * and JNIHDS, but we should warn up front that their absence
          * is likely to lead to problems. */
-        hasAST = AstPackage.isAvailable();
-        hasHDS = HDSPackage.isAvailable();
+        boolean hasAST = TreeviewUtil.hasAST();
+        boolean hasHDS = TreeviewUtil.hasHDS();
 
-        /* Set up a HashMap mapping flags to expected Node type of argument. */
-        HashMap nodeTypeFlags = new HashMap();
+        /* Set up a Map mapping flags to expected Node type of argument. */
+        Map nodeTypeFlags = new HashMap();
         if ( hasHDS ) {
             nodeTypeFlags.put( "-hds", HDSDataNode.class );
         }
@@ -99,7 +98,7 @@ public class Driver {
 
         /* Process arguments. */
         int iarg;
-        Vector topNodes = new Vector( args.length );
+        final List topNodes = new ArrayList( args.length );
         for ( iarg = 0; iarg < args.length; iarg++ ) {
             String arg = args[ iarg ];
 
@@ -158,47 +157,24 @@ public class Driver {
             topNodes.add( makeDataNode( nodeFactory, dfltarg ) );
         }
 
-        /* Check for presence of JAI if we might need it (i.e. if we are
-         * running in graphical mode. */
-        if ( textView ) {
-            hasJAI = false;
-        }
-        else {
-            try {
-                /* Use this class because it's lightweight and won't cause a
-                 * whole cascade of other classes to be loaded. */
-                new javax.media.jai.util.CaselessStringKey( "dummy" );
-                hasJAI = true;
-            }
-            catch ( NoClassDefFoundError e ) {
-                hasJAI = false;
-                logger.warning( 
-                    "JAI extension not present - no image display" );
-            }
-        }
-
-        /* Make a tree out of all the node arguments we got. */
-        DefaultDataNode root;
-        final DataNode[] topChildren = 
-            (DataNode[]) topNodes.toArray( new DataNode[ 0 ] );
-
         /* Construct root as a DefaultDataNode able also to bear children. */
-        root = new DefaultDataNode() {
+        DataNode root = new DefaultDataNode() {
             public boolean allowsChildren() {
                 return true;
             }
-            public DataNode[] getChildren() {
-                return topChildren;
+            public Iterator getChildIterator() {
+                return topNodes.iterator();
             }
         };
 
         /* View the tree. */
         if ( textView ) {
+            TreeviewUtil.setGUI( false );
             viewAsText( root );
         }
         else {
+            TreeviewUtil.setGUI( true );
             viewAsGUI( root, orient );
-            hasGUI = true;
         }
     }
 

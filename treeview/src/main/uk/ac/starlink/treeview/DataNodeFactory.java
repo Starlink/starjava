@@ -253,6 +253,8 @@ public class DataNodeFactory implements Cloneable {
             verbStream.println( "    SUCCESS: " + newNode + "\n" );
         }
         newNode.setCreator( creator );
+        newNode.setChildMaker( parent == null ? new DataNodeFactory() 
+                                              : parent.getChildMaker() );
         return DataNodeBuilder.configureNode( newNode, obj );
     }
 
@@ -387,13 +389,13 @@ public class DataNodeFactory implements Cloneable {
              * AST subsystems available, which may not be the case if the 
              * corresponding native libraries are not present.  Remove classes
              * we know that we will not be able to deal with. */
-            if ( ! Driver.hasHDS ) {
+            if ( ! TreeviewUtil.hasHDS() ) {
                 defaultClassList.remove( NDFDataNode.class );
                 defaultClassList.remove( ARYDataNode.class );
                 defaultClassList.remove( HistoryDataNode.class );
                 defaultClassList.remove( HDSDataNode.class );
             }
-            if ( ! Driver.hasAST ) {
+            if ( ! TreeviewUtil.hasAST() ) {
                 defaultClassList.remove( WCSDataNode.class );
             }
         }
