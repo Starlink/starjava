@@ -14,6 +14,7 @@ public class XYStats {
     private double sX;
     private double sY;
     private double sXX;
+    private double sYY;
     private double sXY;
     private double minX;
     private double maxX;
@@ -51,6 +52,7 @@ public class XYStats {
         sX += x;
         sY += y;
         sXX += x * x;
+        sYY += y * y;
         sXY += x * y;
         if ( x < minX ) {
             minX = x;
@@ -67,9 +69,21 @@ public class XYStats {
      * @return  2-element array: (intercept, gradient)
      */
     public double[] getLinearCoefficients() {
-        double c = ( sXX * sY - sX * sXY ) / ( n * sXX - sX * sX );
-        double m = ( n * sXY - sX * sY ) / ( n * sXX - sX * sX );
+        double s2x = n * sXX - sX * sX;
+        double c = ( sXX * sY - sX * sXY ) / s2x;
+        double m = ( n * sXY - sX * sY ) / s2x;
         return new double[] { c, m };
+    }
+
+    /**
+     * Returns the product moment correlation coefficient.
+     *
+     * @return  correlation coefficient
+     */
+    public double getCorrelation() {
+        double s2x = n * sXX - sX * sX;
+        double s2y = n * sYY - sY * sY;
+        return ( n * sXY - sX * sY ) / Math.sqrt( s2x * s2y );
     }
 
     /**
