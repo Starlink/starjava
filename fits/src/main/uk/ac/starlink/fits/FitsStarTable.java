@@ -11,6 +11,7 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.TableData;
 import nom.tam.fits.TableHDU;
+import nom.tam.util.ArrayFuncs;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -235,7 +236,8 @@ public class FitsStarTable extends RandomStarTable {
      * @return  the object representing the value of the cell
      */
     private Object packageValue( Object base, int icol ) {
-        /* Data is normally returned as a 1-element array. */
+
+        /* Scalar data is normally returned as a 1-element array. */
         Class cls = base.getClass().getComponentType();
         if ( cls != null && Array.getLength( base ) == 1 ) {
             boolean hasblank = hasBlank[ icol ];
@@ -295,8 +297,14 @@ public class FitsStarTable extends RandomStarTable {
             }
         }
 
-        /* If it's not a 1-element array, just return the object as 
-         * presented. */
+        /* If it's not a 1-element array, it may be an array of arrays;
+         * we would rather have a 'flattened' 1-d array (multidimensionality
+         * is handled elsewhere). */
+        if ( cls != null && cls.getComponentType() != null ) {
+            return ArrayFuncs.flatten( base );
+        }
+
+        /* Otherwise, just return it. */
         return base;
     }
 }
