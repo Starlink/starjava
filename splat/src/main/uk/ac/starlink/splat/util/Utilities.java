@@ -44,7 +44,7 @@ public class Utilities
      */
     public static String getReleaseVersion()
     {
-        return "2.1-0";
+        return Version.getVersion();
     }
 
     /**
