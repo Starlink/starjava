@@ -63,6 +63,10 @@ public abstract class Compression {
                   magic[ 2 ] == (byte) 'h' ) {
             return BZIP2;
         }
+        else if ( magic[ 0 ] == (byte) 0x1f &&
+                  magic[ 1 ] == (byte) 0x9d ) {
+            return COMPRESS;
+        }
         else {
             return NONE;
         }
@@ -113,11 +117,14 @@ public abstract class Compression {
     public static final Compression GZIP = new Compression( "gzip" ) {
         public InputStream decompress( InputStream raw ) throws IOException {
 
-            /* This is a workaround for a bug in GZIPInputStream in J2SE1.4.
+            /* This is a workaround for a bug in GZIPInputStream in J2SE1.4.0
              * GZIPInputStream.markSupported() returns true; however
              * instances of this class do not support marking, which
              * screws up some things that the DataSource class tries to do.
              * So we fiddle the inflating stream to tell the truth. */
+            /* Note this seems to be not uncommon in decompression streams
+             * (had to fix the same bug in the UncompressInputStream 
+             * implementation used here too). */
             /* (bug ID 4812237 submitted to developer.java.sun.com by mbt) */
             return new GZIPInputStream( raw ) {
                 public boolean markSupported() {
@@ -139,6 +146,15 @@ public abstract class Compression {
                     "Wrong magic number for bzip2 encoding" );
             }
             return new CBZip2InputStream( raw );
+        }
+    };
+
+    /**
+     * A Compression object representing Unix compress-type compression.
+     */
+    public static final Compression COMPRESS = new Compression( "compress" ) {
+        public InputStream decompress( InputStream raw ) throws IOException {
+            return new UncompressInputStream( raw );
         }
     };
 }

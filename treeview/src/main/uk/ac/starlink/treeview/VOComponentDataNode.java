@@ -107,7 +107,7 @@ public class VOComponentDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( getIconId() );
+            icon = IconFactory.getIcon( getIconId() );
         }
         return icon;
     }

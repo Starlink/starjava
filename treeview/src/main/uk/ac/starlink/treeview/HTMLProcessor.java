@@ -112,7 +112,7 @@ class HTMLProcessor {
         try {
             Field field = IconFactory.class.getField( symbol );
             short id = field.getShort( null );
-            URL iconURL = IconFactory.getInstance().getIconURL( id );
+            URL iconURL = IconFactory.getIconURL( id );
             return iconURL.openStream();
         }
         catch ( NoSuchFieldException e ) {
@@ -130,7 +130,7 @@ class HTMLProcessor {
         try {
             Field field = IconFactory.class.getField( symbol );
             short id = field.getShort( null );
-            return IconFactory.getInstance().getIcon( id );
+            return IconFactory.getIcon( id );
         }
         catch ( NoSuchFieldException e ) {
             throw new IllegalArgumentException( symbol );

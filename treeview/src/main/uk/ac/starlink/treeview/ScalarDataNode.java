@@ -48,7 +48,7 @@ public class ScalarDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.SCALAR );
+            icon = IconFactory.getIcon( IconFactory.SCALAR );
         }
         return icon;
     }

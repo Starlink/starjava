@@ -66,7 +66,7 @@ public class StarTableDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.TABLE );
+        return IconFactory.getIcon( IconFactory.TABLE );
     }
 
     public String getNodeTLA() {
@@ -166,7 +166,7 @@ public class StarTableDataNode extends DefaultDataNode {
         } );
 
         List actions = new ArrayList();
-        Icon tcic = IconFactory.getInstance().getIcon( IconFactory.TOPCAT );
+        Icon tcic = IconFactory.getIcon( IconFactory.TOPCAT );
         Action topcatAct = new AbstractAction( "TOPCAT", tcic ) {
             public void actionPerformed( ActionEvent evt ) {
                 try {
@@ -218,7 +218,6 @@ public class StarTableDataNode extends DefaultDataNode {
                          instanceof TerminalAuthenticator &&
                          Driver.hasGUI ) {
                         SwingAuthenticator auth = new SwingAuthenticator();
-                        auth.setParentComponent( Driver.treeviewer );
                         handler.setAuthenticator( auth );
                     }
                     return handler;

@@ -77,7 +77,7 @@ public class TableHDUDataNode extends HDUDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.TABLE );
+        return IconFactory.getIcon( IconFactory.TABLE );
     }
 
     public boolean hasFullView() {

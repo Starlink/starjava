@@ -333,7 +333,7 @@ public class NDFDataNode extends HDSDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.NDF );
+            icon = IconFactory.getIcon( IconFactory.NDF );
         }
         return icon;
     }

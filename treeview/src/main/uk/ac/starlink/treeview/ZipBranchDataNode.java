@@ -44,7 +44,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.ZIPBRANCH );
+        return IconFactory.getIcon( IconFactory.ZIPBRANCH );
     }
 
     public String getNodeTLA() {

@@ -105,7 +105,7 @@ public class WCSDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.WCS );
+            icon = IconFactory.getIcon( IconFactory.WCS );
         }
         return icon;
     }

@@ -87,7 +87,7 @@ public class HDUDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.HDU );
+            icon = IconFactory.getIcon( IconFactory.HDU );
         }
         return icon;
     }

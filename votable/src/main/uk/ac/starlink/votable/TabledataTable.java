@@ -45,8 +45,13 @@ class TabledataTable extends Table {
             if ( i < ncell ) {
                 String txt = DOMUtils
                             .getTextContent( (Element) cellNodes.get( i ) );
-                rowContents[ i ] = getField( i )
-                                  .getDecoder().decodeString( txt );
+                if ( txt != null && txt.length() > 0 ) {
+                    rowContents[ i ] = getField( i )
+                                      .getDecoder().decodeString( txt );
+                }
+                else {
+                    rowContents[ i ] = null;
+                }
             }
             else {
                 rowContents[ i ] = null;

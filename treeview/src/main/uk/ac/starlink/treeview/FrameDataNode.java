@@ -18,7 +18,6 @@ import uk.ac.starlink.ast.xml.XAstWriter;
  */
 public class FrameDataNode extends DefaultDataNode {
     private Frame frame;
-    private static IconFactory iconMaker = IconFactory.getInstance();
     private String description;
     private JComponent fullView;
     private String name;
@@ -71,7 +70,7 @@ public class FrameDataNode extends DefaultDataNode {
         else {
             iconid = IconFactory.FRAME;
         }
-        return iconMaker.getIcon( iconid ); 
+        return IconFactory.getIcon( iconid ); 
     }
 
     public String getName() {

@@ -45,7 +45,7 @@ public class PlainDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.DATA );
+        return IconFactory.getIcon( IconFactory.DATA );
     }
 
     public String getPathElement() {

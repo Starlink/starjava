@@ -31,7 +31,11 @@ import javax.swing.tree.*;
 
 public interface DataNode {
 
-    /** DataNode representing the root of the known tree. */
+    /** 
+     * DataNode representing the notional root of node space.
+     * Any node whose parent is <tt>ROOT</tt> name which meaningful without
+     * further qualification.
+     */
     public static final DataNode ROOT = new DefaultDataNode();
 
     /**
@@ -93,7 +97,7 @@ public interface DataNode {
 
     /**
      * Returns an object which is in some sense the parent of the one
-     * this node is based on.  The parent is <em>not</tt> a <tt>DataNode</tt>,
+     * this node is based on.  The parent is <em>not</em> a <tt>DataNode</tt>,
      * it is something which may get fed to a <tt>DataNodeFactory</tt> 
      * to create <tt>DataNode</tt>.
      * This method should only be called if the {@link #hasParentObject}
@@ -204,15 +208,6 @@ public interface DataNode {
     public String getPathSeparator();
 
     /**
-     * Returns a TreeCellRenderer object for the node.  This determines
-     * how it will be displayed in a <code>JTree</code>.
-     *
-     * @return  a <code>TreeCellRenderer</code> which controls this object's
-     *          display as part of a <code>JTree</code>
-     */
-    public TreeCellRenderer getTreeCellRenderer();
-
-    /**
      * Indicates whether there is a more detailed view of this object available.
      *
      * @return  <code>true</code> if a call to <code>getFullView</code> 
@@ -226,9 +221,8 @@ public interface DataNode {
      * If the <code>hasFullView</code> method returns <code>true</code>,
      * this method returns a <code>JComponent</code> giving a full view 
      * representing this object.
-     * This complements the (one-line) representation supplied
-     * by the <code>TreeCellRenderer</code> returned by the 
-     * <code>getTreeCellRenderer</code> method (which in turn probably
+     * This complements the (one-line) representation used by the 
+     * tree cell renderer (which in turn probably
      * calls <code>getName</code> and <code>getDescription</code>).
      * The returned JComponent will be displayed in a viewport of
      * limited size, so should be packed in a JScrollPane if it is

@@ -15,7 +15,6 @@ import uk.ac.starlink.hds.HDSObject;
  */
 public class HistoryDataNode extends DefaultDataNode {
 
-    private static IconFactory iconMaker = IconFactory.getInstance();
     private HDSObject histobj;
     private HDSObject records;
     private int nrec;
@@ -81,7 +80,7 @@ public class HistoryDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = iconMaker.getIcon( IconFactory.HISTORY );
+            icon = IconFactory.getIcon( IconFactory.HISTORY );
         }
         return icon;
     }

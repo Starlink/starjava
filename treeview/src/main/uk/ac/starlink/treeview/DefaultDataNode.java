@@ -20,9 +20,7 @@ import uk.ac.starlink.util.DataSource;
  * @version  $Id$
  */
 public class DefaultDataNode implements DataNode {
-    static IconFactory iconMaker = IconFactory.getInstance();
 
-    private static TreeCellRenderer cellRenderer;
     private static DataNodeFactory defaultChildMaker;
     private static final String PATH_UNSET = new String( "path_not_set" );
 
@@ -137,8 +135,8 @@ public class DefaultDataNode implements DataNode {
     }
 
     public Icon getIcon() {
-        return iconMaker.getIcon( allowsChildren() ? IconFactory.PARENT
-                                                   : IconFactory.LEAF );
+        return IconFactory.getIcon( allowsChildren() ? IconFactory.PARENT
+                                                     : IconFactory.LEAF );
     }
 
     public String getPathSeparator() {
@@ -173,18 +171,6 @@ public class DefaultDataNode implements DataNode {
             childMaker = defaultChildMaker;
         }
         return childMaker;
-    }
-
-    public TreeCellRenderer getTreeCellRenderer() {
-        /*
-         * Note that the TreeCellRenderer is not constructed until it is 
-         * asked for, so that if it never gets asked for we can execute 
-         * without any Swing loader overheads.
-         */
-        if ( cellRenderer == null ) {
-            cellRenderer = new DataNodeTreeCellRenderer();
-        }
-        return cellRenderer;
     }
 
     public void setCreator( CreationState state ) {
@@ -246,37 +232,6 @@ public class DefaultDataNode implements DataNode {
         }
         else {
             return accumulatePath( parent, path );
-        }
-    }
-
-    /*
-     * Class to do tree cell rendering.  It inherits most behaviour from
-     * DefaultTreeCellRenderer, but modifies the icon and text in accordance
-     * with the DataNode's getIcon and toString methods.
-     */
-    protected class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
-        public Component getTreeCellRendererComponent( JTree tree, Object value,
-                                                       boolean selected,
-                                                       boolean expanded,
-                                                       boolean leaf, int row,
-                                                       boolean hasFocus ) {
-
-            /* Get the data node from the tree node. */
-            DefaultMutableTreeNode tNode = (DefaultMutableTreeNode) value;
-            DataNode dNode = (DataNode) tNode.getUserObject();
-
-            /* Use the superclass to construct a default component. */
-            super.getTreeCellRendererComponent( tree, value, selected, 
-                                                expanded, leaf, row, hasFocus );
-
-            /* Customise it according to the data. */
-            setIcon( dNode.getIcon() );
-            String text = dNode.toString();
-            if ( text.trim().equals( "" ) ) text = "...";
-            setText( text );
-
-            /* Return the constructed JLabel. */
-            return this;
         }
     }
 

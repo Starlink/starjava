@@ -157,7 +157,7 @@ public class HDXDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.HDX_CONTAINER );
+        return IconFactory.getIcon( IconFactory.HDX_CONTAINER );
     }
 
     public boolean allowsChildren() {

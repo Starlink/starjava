@@ -143,8 +143,11 @@ public class VOStarTable extends AbstractStarTable {
                     Param pel = (Param) paramels[ i ];
                     DescribedValue dval = 
                         new DescribedValue( getValueInfo( pel ) );
-                    Object val = VOStarValueAdapter.makeAdapter( pel )
-                                                   .adapt( pel.getObject() );
+                    Object pval = pel.getObject();
+                    Object val = pval == null 
+                               ? null
+                               : VOStarValueAdapter.makeAdapter( pel )
+                                                   .adapt( pval );
                     dval.setValue( val );
                     params.add( dval );
                 }
@@ -176,7 +179,10 @@ public class VOStarTable extends AbstractStarTable {
                         try {
                             Object[] row = vtab.nextRow();
                             for ( int i = 0; i < row.length; i++ ) {
-                                row[ i ] = adapters[ i ].adapt( row[ i ] );
+                                Object val = row[ i ];
+                                row[ i ] = val == null 
+                                         ? null 
+                                         : adapters[ i ].adapt( val );
                             }
                             return row;
                         }
@@ -198,7 +204,9 @@ public class VOStarTable extends AbstractStarTable {
             Object[] row = ((RandomTable) votable)
                           .getRow( checkedLongToInt( lrow ) );
             for ( int i = 0; i < row.length; i++ ) {
-                row[ i ] = adapters[ i ].adapt( row[ i ] );
+                Object val = row[ i ];
+                row[ i ] = val == null ? null
+                                       : adapters[ i ].adapt( row[ i ] );
             }
             return row;
         }
@@ -211,7 +219,8 @@ public class VOStarTable extends AbstractStarTable {
         if ( isRandom() ) {
             Object val = ((RandomTable) votable)
                         .getCell( checkedLongToInt( lrow ), icol );
-            return adapters[ icol ].adapt( val );
+            return val == null ? null 
+                               : adapters[ icol ].adapt( val );
         }
         else {
             throw new UnsupportedOperationException();

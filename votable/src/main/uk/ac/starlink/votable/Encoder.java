@@ -30,7 +30,8 @@ class Encoder {
     /**
      * Returns a text string which represents a given value of the type
      * encoded by this object.  The text is suitable for use as the
-     * content of a CDATA element.
+     * content of a VOTable CDATA element, except that no escaping of
+     * XML special characters has been done.
      *
      * @param  value  an object of the type handled by this encoder
      * @return  text representing the value suitable for inclusion in

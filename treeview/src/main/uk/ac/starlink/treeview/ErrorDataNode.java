@@ -24,7 +24,7 @@ public class ErrorDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.ERROR );
+            icon = IconFactory.getIcon( IconFactory.ERROR );
         }
         return icon;
     }

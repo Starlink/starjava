@@ -54,7 +54,7 @@ public class CompressedDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.COMPRESSED );
+        return IconFactory.getIcon( IconFactory.COMPRESSED );
     }
 
     public String getPathElement() {

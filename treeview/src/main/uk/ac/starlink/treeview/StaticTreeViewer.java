@@ -1,12 +1,5 @@
 package uk.ac.starlink.treeview;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.io.*;
-import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import java.awt.event.*;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -14,48 +7,80 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 /**
- * Views a tree of DataNode objects.  The GUI provides a two-part 
+ * Main class for the Treeview application.  The GUI provides a two-part
  * panel for viewing, one containing the tree itself and the other which
  * contains additional information on a selected node if required.
  *
  * @author   Mark Taylor (Starlink)
- * @version  $Id$
  */
 public class StaticTreeViewer extends JFrame {
 
-/*
- * This class is implemented such that every node of the JTree is a
- * DefaultMutableObject, and the userObject of each of these
- * DefaultMutableObjects is a DataNode. 
- */
-
-    private JTree tree;
-    private DefaultTreeModel treeModel;
-    private JSplitPane splitter;
-    private JComponent blankDetail;
+    private TreeSelectionModel selectModel;
+    private DetailPlacer detailPlacer;
+    private DataNodeJTree jtree;
+    private DataNodeTreeModel treeModel;
+    private DataNode root;
+    private DemoDataNode demoNode;
+    private JFileChooser fileChooser;
+    private JComponent helpPanel;
     private JViewport detailHolder;
-    private boolean showDetail;
+    private JSplitPane splitter;
+    private JLabel treeNodesLabel;
+    private JLabel modelNodesLabel;
+    private boolean showDetail = true;
     private double splitHloc;
     private double splitVloc;
-    private DetailProducer detailProducer;
-    private TreeWillExpandListener expansionListener;
-    private IconFactory iconMaker = IconFactory.getInstance();
-    private JFileChooser fileChooser;
     private DataNodeFactory nodeMaker = new DataNodeFactory();
-    private short initialLayout = DETAIL_BESIDE;
-    private JComponent helpPanel;
-    private DefaultMutableTreeNode demoNode;
-
-    private Action rExpandSelAct;
-    private Action rCollapseSelAct;
-    private Action expandSelAct;
-    private Action collapseSelAct;
-    private Action helpAct;
-    private Action deleteAct;
-    private Action upAct;
-    private Action copyTopAct;
+    private Action helpAction;
+    private Action collapseAction;
+    private Action expandAction;
+    private Action recursiveCollapseAction;
+    private Action recursiveExpandAction;
+    private Action deleteAction;
+    private Action upAction;
+    private Action copyTopAction;
 
     /** No details panel is displayed. */
     public static final short DETAIL_NONE = 0;
@@ -68,7 +93,6 @@ public class StaticTreeViewer extends JFrame {
 
     /**
      * Constructs a viewer with a default window title.
-     *
      * @param  root   root node of the tree to view.  All the children of
      *                this node will be visible on startup.
      */
@@ -91,86 +115,21 @@ public class StaticTreeViewer extends JFrame {
 
         /* Invoke the parent window constructor. */
         super( title );
+        this.root = root;
 
         /* Construct a JTree from the supplied root. */
-        final DefaultMutableTreeNode rootNode = 
-            new DefaultMutableTreeNode( root );
-        treeModel = new DefaultTreeModel( rootNode, true );
-        tree = new JTree( treeModel );
-        rootNode.setAllowsChildren( true );
-        ensureHasChildren( rootNode );
-    //  tree.setLargeModel( true );
+        treeModel = new DataNodeTreeModel( root );
+        jtree = new DataNodeJTree( treeModel );
 
-        /* Configure visual aspects of the JTree. */
-        tree.setShowsRootHandles( true );
-        tree.setScrollsOnExpand( false );
-        tree.setRootVisible( false );
-        tree.putClientProperty( "JTree.lineStyle", "Angled" );
+        /* Configure some custom aspects of the tree. */
+        jtree.setScrollsOnExpand( false );
 
-        /* Configure interpretation of button clicks and selections. */
-        tree.setToggleClickCount( 2 );
-        TreeSelectionModel selectModel = tree.getSelectionModel();
-        selectModel.setSelectionMode( TreeSelectionModel
-                                     .SINGLE_TREE_SELECTION );
+        /* Set up the selection model to update the detail panel on 
+         * node selection. */
+        selectModel = jtree.getSelectionModel();
         selectModel.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent event ) {
-                updateDetail( event.getNewLeadSelectionPath() );
-            }
-        } );
-
-        /*
-         * Configure the expansion listener.
-         */
-        expansionListener = new TreeWillExpandListener() {
-
-            /* When a node is about to expand, determine and add its 
-             * children. */
-            public synchronized void treeWillExpand( TreeExpansionEvent evt ) 
-                    throws ExpandVetoException {
-                TreePath expPath = evt.getPath();
-                final DefaultMutableTreeNode expNode = 
-                    (DefaultMutableTreeNode) expPath.getLastPathComponent();
-                new SwingWorker() {
-                    public Object construct() {
-                        ensureHasChildren( expNode );
-                        return null;
-                    }
-                }.start();
-            }
-
-            /* When a node is about to collapse, make sure none of its children
-             * is selected.  If this isn't done then the JTree transfers the
-             * selection to the lowest still-visible parent, which is not 
-             * what we want. */
-       //       - actually, it is.
-            public synchronized void treeWillCollapse( TreeExpansionEvent ev ) {
-       //       TreePath collapsor = ev.getPath();
-       //       TreePath selection = tree.getSelectionPath();
-       //       if ( collapsor.isDescendant( selection ) &&
-       //            collapsor != selection ) {
-       //           tree.removeSelectionPath( selection );
-       //       }
-            }
-        };
-        tree.addTreeWillExpandListener( expansionListener );
-
-        /*
-         * Configure the tree cell renderer.  Note that we subclass the
-         * DefaultTreeCellRenderer class here rather than just implementing 
-         * the TreeCellRenderer interface to take advantage of some of
-         * the JComponent methods DefaultTreeCellRenderer overrides for
-         * performance reasons.
-         */
-        tree.setCellRenderer( new DefaultTreeCellRenderer() {
-            public Component getTreeCellRendererComponent( JTree tree,
-                    Object value, boolean selected, boolean expanded,
-                    boolean leaf, int row, boolean hasFocus ) {
-                DataNode node = (DataNode) ((DefaultMutableTreeNode) value)
-                                          .getUserObject();
-                TreeCellRenderer tcr = node.getTreeCellRenderer();
-                return tcr.getTreeCellRendererComponent( tree, value, selected,
-                                                         expanded, leaf, row,
-                                                         hasFocus );
+                updateDetail( getSelectedDataNode() );
             }
         } );
 
@@ -179,13 +138,13 @@ public class StaticTreeViewer extends JFrame {
         Dimension detailsize = new Dimension( 520, 430 );
 
         /* Construct the container for the tree. */
-        final JScrollPane treePanel = new JScrollPane( tree );
+        final JScrollPane treePanel = new JScrollPane( jtree );
         treePanel.setPreferredSize( treesize );
 
         /* Construct a panel to display statistics. */
         JPanel statter = new JPanel();
-        final JLabel treeNodesLabel = new JLabel( " Visible nodes: " );
-        final JLabel modelNodesLabel = new JLabel( " Total nodes: ");
+        treeNodesLabel = new JLabel( " Visible nodes: " );
+        modelNodesLabel = new JLabel( " Total nodes: ");
         statter.setLayout( new GridLayout() );
         statter.add( treeNodesLabel );
         statter.add( modelNodesLabel );
@@ -194,17 +153,18 @@ public class StaticTreeViewer extends JFrame {
         /* Construct the panel containing help text. */
         helpPanel = new HelpDetailViewer().getComponent();
 
-        /* Set up a blank detail frame for use when there is no real detail. */
-        blankDetail = new JPanel();
-        blankDetail.setPreferredSize( detailsize );
-
-        /* Set up the object to deal with asynchronous interrogation of 
+        /* Set up the object to deal with asynchronous interrogation of
          * nodes. */
-        detailProducer = new DetailProducer();
+        detailPlacer = new DetailPlacer();
+        detailPlacer.start();
+
+        /* Set up a blank detail frame for use when there is no real detail. */
+        JPanel dummyDetail = new JPanel();
+        dummyDetail.setPreferredSize( detailsize );
 
         /* Construct the container for the detailed view. */
         detailHolder = new JViewport();
-        detailHolder.setView( blankDetail );
+        detailHolder.setView( dummyDetail );
         detailHolder.setPreferredSize( detailsize );
 
         /* Construct the split pane. */
@@ -214,11 +174,11 @@ public class StaticTreeViewer extends JFrame {
         switch ( initialLayout ) {
             case DETAIL_BESIDE:
                 psize = new Dimension( treesize.width + detailsize.width,
-                                       ( treesize.height 
+                                       ( treesize.height
                                        + detailsize.height ) / 2 );
                 break;
             case DETAIL_BELOW:
-                psize = new Dimension( ( treesize.width 
+                psize = new Dimension( ( treesize.width
                                        + detailsize.width ) / 2,
                                          treesize.height + detailsize.height );
                 break;
@@ -226,8 +186,8 @@ public class StaticTreeViewer extends JFrame {
                 psize = new Dimension( treesize.width, treesize.height );
                 break;
             default:
-                throw new Error( "Invalid initialLayout value " 
-                               + initialLayout );
+                throw new AssertionError( "Invalid initialLayout value "
+                                        + initialLayout );
         }
         splitter.setPreferredSize( psize );
 
@@ -240,59 +200,39 @@ public class StaticTreeViewer extends JFrame {
 
         /* Put things in the splitter. */
         configureSplitter( initialLayout );
-        helpAct.actionPerformed( null );
+        helpAction.actionPerformed( null );
 
-        /* Set up listeners to keep the statistics displays up to date. */
-        class StatWatcher implements TreeExpansionListener, TreeModelListener {
-            private int nnode = countDescendants( rootNode );
-
-            /* TreeExpansionListener methods. */
-            public void treeExpanded( TreeExpansionEvent ev ) {
+        /* Set up a listener to keep the number of visible nodes up to date. */
+        jtree.addTreeExpansionListener( new TreeExpansionListener() {
+            public void treeExpanded( TreeExpansionEvent evt ) {
                 showTreeCount();
             }
-            public void treeCollapsed( TreeExpansionEvent ev ) {
+            public void treeCollapsed( TreeExpansionEvent evt ) {
                 showTreeCount();
             }
+        } );
 
-            /* TreeModelListener methods. */
-            public void treeNodesChanged( TreeModelEvent ev ) {
+        /* Set up a listener to keep the total number of nodes up to date. */
+        treeModel.addTreeModelListener( new TreeModelListener() {
+            public void treeNodesInserted( TreeModelEvent evt ) {
+                showNodeCount();
+                showTreeCount();
             }
-            public void treeNodesInserted( TreeModelEvent ev ) {
-                nnode += ev.getChildIndices().length;
+            public void treeNodesRemoved( TreeModelEvent evt ) {
+                showNodeCount();
+                showTreeCount();
+            }
+            public void treeStructureChanged( TreeModelEvent evt ) {
+                showNodeCount();
+                showTreeCount();
+            }
+            public void treeNodesChanged( TreeModelEvent evt ) {
                 showNodeCount();
             }
-            public void treeNodesRemoved( TreeModelEvent ev ) {
-                Object[] children = ev.getChildren();
-                for ( int i = 0; i < children.length; i++ ) {
-                    nnode -= 1 + countDescendants( children[ i ] );
-                }
-                showNodeCount();
-            }
-            public void treeStructureChanged( TreeModelEvent ev ) {
-                nnode = countDescendants( rootNode );
-                showNodeCount();
-            }
-
-            /* Private methods. */
-            private void showTreeCount() {
-                treeNodesLabel.setText( " Visible nodes: " 
-                                      + tree.getRowCount() );
-            }
-            private void showNodeCount() {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        modelNodesLabel.setText( " Total nodes: " + nnode );
-                        showTreeCount();
-                    }
-                } );
-            }
-        }
-        StatWatcher statWatcher = new StatWatcher();
-        tree.addTreeExpansionListener( statWatcher );
-        treeModel.addTreeModelListener( statWatcher );
+        } );
 
         /* Set up a mouse listener for right-clicks. */
-        tree.addMouseListener( new MouseAdapter() {
+        jtree.addMouseListener( new MouseAdapter() {
             public void mousePressed( MouseEvent evt ) {
                 maybeShowPopup( evt );
             }
@@ -305,7 +245,7 @@ public class StaticTreeViewer extends JFrame {
                     /* Work out what node, if any, has been clicked on. */
                     int x = evt.getX();
                     int y = evt.getY();
-                    TreePath path = tree.getPathForLocation( x, y );
+                    TreePath path = jtree.getPathForLocation( x, y );
                     if ( path != null ) {
 
                         /* Activate the popup menu. */
@@ -314,443 +254,226 @@ public class StaticTreeViewer extends JFrame {
                             popup.show( evt.getComponent(), x, y );
                         }
                         else {
-                            beep();
+                            Toolkit.getDefaultToolkit().beep();
                         }
                     }
                 }
             }
-        } ); 
-      
-        /* If we have just the one node, set it to expand, but do it in a
-         * separate thread in case it is slow. */
-        if ( treeModel.getChildCount( rootNode ) == 1 ) {
-            final TreePath onlyChild = new TreePath( new Object[] {
-                rootNode,
-                treeModel.getChild( rootNode, 0 ),
-            } );
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    tree.expandPath( onlyChild );
+        } );
+
+        /* Do a bit of special setup on the nodes at the top of the tree. */
+        if ( root.allowsChildren() ) { // it had better
+
+            /* Acquire all the children from the root node.  This would not
+             * be efficient in general (child acquisition should be done
+             * asynchronously under control of the DataNodeTreeModel), 
+             * but we happen to know how the root node has been put 
+             * together by the Driver class, and it will be OK. */
+            int nnode = 0;
+            for ( Iterator it = root.getChildIterator(); it.hasNext(); 
+                  nnode++ ) {
+                DataNode child = (DataNode) it.next();
+
+                /* If there is only one child in the root, expand it. */
+                if ( nnode == 0 && ! it.hasNext() ) {
+                    Object[] path = treeModel.getPathToRoot( child );
+                    jtree.expandPath( new TreePath( path ) );
                 }
-            } );
+
+                /* If one of the nodes is a demo data node, keep track of
+                 * it so that we don't create another one. */
+                if ( child instanceof DemoDataNode ) {
+                    demoNode = (DemoDataNode) child;
+                }
+            }
         }
-        else {
-            statWatcher.showNodeCount();
-        }
-        splitter.revalidate();
     }
 
-    private void setDetailPane( JComponent detail ) {
-        detail.setMinimumSize( new Dimension( 100, 100 ) );
-        detailHolder.setView( detail );
-    }
-
-    private static DataNode getDataNodeFromTreePath( TreePath tPath ) {
-        DefaultMutableTreeNode tNode = 
-            (DefaultMutableTreeNode) tPath.getLastPathComponent();
-        return (DataNode) tNode.getUserObject();
-    }
-
-    /*
-     * Counts the total number of nodes in the TreeModel descended from the
-     * given node. 
+    /**
+     * Set up some actions.
      */
-    private int countDescendants( Object node ) {
-        int count = 0;
-        for ( int i = treeModel.getChildCount( node ) - 1; i >= 0; i-- ) {
-            count += 1 + countDescendants( treeModel.getChild( node, i ) );
-        }
-        return count;
-    }
-
-    /*
-     * Ensures that a given node has all its children, adding them if 
-     * necessary.
-     * This method may be time-consuming, and should not be called from
-     * the event-dispatching thread.  It will only add children if no
-     * children have been added previously to the node.
-     * Whether it actually adds children or not, it will call a notify
-     * in another thread on the treeNode it is passed.
-     */
-    private void ensureHasChildren( DefaultMutableTreeNode treeNode ) {
-        final DefaultMutableTreeNode tnode = treeNode;
-        synchronized ( tnode ) {
-            boolean willNotify = false;
-            DataNode dataNode = (DataNode) tnode.getUserObject();
-            if ( dataNode.allowsChildren() ) {
-
-                /* Only proceed if children have not already been added to this
-                 * node. */
-                if ( treeModel.getChildCount( tnode ) == 0 ) { 
-                    int nchild = 0;
-                    Iterator cIt = dataNode.getChildIterator();
-                    if ( cIt.hasNext() ) {
-                        try {
-
-                            /* Handle each child node in turn. */
-                            while ( cIt.hasNext() ) {
-
-                                /* Get the next child (this may be 
-                                 * time-consuming). */
-                                DataNode cdn = (DataNode) cIt.next();
-                                final DefaultMutableTreeNode child = 
-                                    new DefaultMutableTreeNode( cdn );
-                                child.setAllowsChildren( cdn.allowsChildren() );
- 
-                                /* Queue a request to insert the child in the
-                                 * tree.  First time round only, wait for 
-                                 * it to complete - this ensures that this 
-                                 * method cannot complete and thus relinquish
-                                 * the node lock unless at least one child
-                                 * has been added.  In this way we guarantee
-                                 * that children cannot be added to the
-                                 * same node twice. */
-                                final int nc = nchild++;
-                                Runnable inserter = new Runnable() {
-                                    public void run() {
-                                        treeModel.insertNodeInto( child, 
-                                                                  tnode, nc );
-                                    }
-                                };
-                                if ( nc == 0 ) {
-                                    SwingUtilities.invokeAndWait( inserter );
-                                }
-                                else {
-                                    SwingUtilities.invokeLater( inserter );
-                                }
-                            }
-
-                            /* Put a thread on the event dispatcher queue to 
-                             * call a notify on the tree node after all the
-                             *  children have been added. */
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    synchronized ( tnode ) {
-                                        tnode.notify();
-                                    }
-                                }
-                            } );
-                            willNotify = true;
-                        }
-                        catch ( InterruptedException e ) {}
-                        catch ( InvocationTargetException e ) {}
-                    }
-                }
-            }
-
-            /* If we have not already arranged to do so, make sure that a 
-             * notify will be called on the treenode in a different thread. */
-            if ( ! willNotify ) {
-                new Thread() {
-                    public void run() {
-                        synchronized ( tnode ) {
-                            tnode.notify();
-                        }
-                    }
-                }.start();
-            }
-        }
-    }
-
-
     private void configureActions() {
-        /* 
-         * Set up some actions.
-         */
 
         /* Exit action. */
-        Action exitAct = 
-            new AbstractAction( "Exit", 
-                                iconMaker.getIcon( IconFactory.EXIT ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                doExit();
-            }
-        };
-        exitAct.putValue( Action.SHORT_DESCRIPTION, 
-                          "Exit the viewer" );
-
-        /* Selected node simple collapse and expand actions. */
-        collapseSelAct = 
-            new AbstractAction( "Collapse selected",
-                                iconMaker.getIcon( IconFactory.CLOSE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                tree.collapsePath( tree.getSelectionPath() );
-            }
-        };
-        collapseSelAct.putValue( Action.SHORT_DESCRIPTION,
-                                 "Close the selected node" );
-        expandSelAct =
-            new AbstractAction( "Expand selected",
-                                iconMaker.getIcon( IconFactory.OPEN ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                tree.expandPath( tree.getSelectionPath() );
-            }
-        };
-        expandSelAct.putValue( Action.SHORT_DESCRIPTION,
-                               "Open the selected node" );
-
-        /* Selected node recursive collapse and expand actions. */
-        rCollapseSelAct = 
-            new AbstractAction( "Recursive collapse selected",
-                                iconMaker.getIcon( IconFactory.EXCISE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                treeCollapse( tree.getSelectionPath() );
-            }
-        };
-        rCollapseSelAct.putValue( Action.SHORT_DESCRIPTION, 
-                                  "Recursively collapse the selected node" );
-        rExpandSelAct = 
-            new AbstractAction( "Recursive expand selected", 
-                                iconMaker.getIcon( IconFactory.CASCADE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                treeExpand( tree.getSelectionPath() );
-            }
-        };
-        rExpandSelAct.putValue( Action.SHORT_DESCRIPTION, 
-                                "Recursively expand the selected node" );
-
-        /* All nodes recursive collapse and expand actions. */
-        Action rCollapseAllAct = 
-            new AbstractAction( "Recursive collapse all" ) {
-            public void actionPerformed( ActionEvent event ) {
-                Enumeration cEn = 
-                    ( (DefaultMutableTreeNode) treeModel.getRoot() )
-                   .children();
-                while ( cEn.hasMoreElements() ) {
-                    TreePath topChild = 
-                        new TreePath( new Object[] { treeModel.getRoot(),
-                                                     cEn.nextElement() } );
-                    treeCollapse( topChild );
-                }
-            }
-        };
-        rCollapseAllAct.putValue( Action.SHORT_DESCRIPTION, 
-                                  "Recursively collapse the entire tree" );
-        Action rExpandAllAct = new AbstractAction( "Recursive expand all" ) {
-            public void actionPerformed( ActionEvent event ) {
-                treeExpand( new TreePath( treeModel.getRoot() ) );
-            }
-        };
-        rExpandAllAct.putValue( Action.SHORT_DESCRIPTION, 
-                                "Recursively expand the entire tree" );
-
-        /* Set viewing geometry actions. */
-        Action detailBelowAct = 
-            new AbstractAction( "Details below", 
-                                iconMaker.getIcon( IconFactory.SPLIT_BELOW ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                configureSplitter( DETAIL_BELOW );
-            }
-        };
-        detailBelowAct.putValue( Action.SHORT_DESCRIPTION,
-                                 "Display the node details below the tree" );
-        Action detailBesideAct = 
-            new AbstractAction( "Details beside",
-                                iconMaker.getIcon( IconFactory
-                                                  .SPLIT_BESIDE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                configureSplitter( DETAIL_BESIDE );
-            }
-        };
-        detailBesideAct.putValue( Action.SHORT_DESCRIPTION,
-                        "Display the node details to the right of the tree" );
-        Action detailNoneAct = 
-            new AbstractAction( "No details",
-                                iconMaker.getIcon( IconFactory.SPLIT_NONE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                configureSplitter( DETAIL_NONE );
-            }
-        };
-        detailNoneAct.putValue( Action.SHORT_DESCRIPTION,
-                                "Do not display any node details" );
-
-        /* Action for adding a new top-level file node to the tree. */
-        Action chooseNewFileAct = 
-            new AbstractAction( "Open file",
-                                iconMaker.getIcon( IconFactory.LOAD ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                if ( fileChooser == null ) {
-                    fileChooser = new JFileChooser( "." );
-                    fileChooser.setApproveButtonText( "Add node" );
-                    fileChooser.setFileSelectionMode( JFileChooser
-                                                     .FILES_AND_DIRECTORIES );
-                }
-                int retval = fileChooser
-                            .showOpenDialog( StaticTreeViewer.this );
-                if ( retval == JFileChooser.APPROVE_OPTION ) {
-                    DefaultMutableTreeNode root = 
-                        (DefaultMutableTreeNode) treeModel.getRoot();
-                    File file = fileChooser.getSelectedFile();
-                    DataNode dnode;
-                    try {
-                        dnode = nodeMaker.makeDataNode( DataNode.ROOT, file );
-                    }
-                    catch ( NoSuchDataException e ) {
-                        dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
-                    }
-                    dnode.setLabel( file.getAbsolutePath() );
-                    DefaultMutableTreeNode tnode = 
-                        new DefaultMutableTreeNode( dnode );
-                    tnode.setAllowsChildren( dnode.allowsChildren() );
-                    treeModel.insertNodeInto( tnode, root, 
-                                              root.getChildCount() );
-                    tree.scrollPathToVisible( new TreePath( tnode.getPath() ) );
-                }
-            }
-        };
-        chooseNewFileAct.putValue( Action.SHORT_DESCRIPTION,
-            "Add a new node to the tree from the filesystem" );
-
-        /* Action for adding a new top-level non-file node to the tree. */
-        Action chooseNewNameAct = new AbstractAction( "Open name" ) {
-            public void actionPerformed( ActionEvent event ) {
-                String name = JOptionPane
-                             .showInputDialog( StaticTreeViewer.this, 
-                                               "Name of the new node" );
-                if ( name == null ) {
-                    return;
-                }
-                DataNode dnode;
-                try {
-                    dnode = nodeMaker.makeDataNode( DataNode.ROOT, name );
-                }
-                catch ( NoSuchDataException e ) {
-                    dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
-                }
-                dnode.setLabel( name );
-                DefaultMutableTreeNode tnode =
-                    new DefaultMutableTreeNode( dnode );
-                tnode.setAllowsChildren( dnode.allowsChildren() );
-                DefaultMutableTreeNode root = 
-                    (DefaultMutableTreeNode) treeModel.getRoot();
-                treeModel.insertNodeInto( tnode, root, root.getChildCount() );
-                tree.scrollPathToVisible( new TreePath( tnode.getPath() ) );
-            }
-        };
-        chooseNewNameAct.putValue( Action.SHORT_DESCRIPTION,
-            "Add a new node to the tree by name" );
-
-        /* Action for displaying demo data. */
-        Action demoAct =
-            new AbstractAction( "Display demo data",
-                                iconMaker.getIcon( IconFactory.DEMO ) ) {
-                public void actionPerformed( ActionEvent event ) {
-                    if ( demoNode == null ) {
-                        DataNode dnode;
-                        try { 
-                            dnode = new DemoDataNode();
-                        }
-                        catch ( NoSuchDataException e ) {
-                            dnode = nodeMaker
-                                   .makeErrorDataNode( DataNode.ROOT, e );
-                        }
-                        demoNode = new DefaultMutableTreeNode( dnode );
-                        demoNode.setAllowsChildren( dnode.allowsChildren() );
-                        DefaultMutableTreeNode root = 
-                            (DefaultMutableTreeNode) treeModel.getRoot();
-                        treeModel.insertNodeInto( demoNode, root, 0 );
-                    }
-                    TreePath tpath = new TreePath( demoNode.getPath() );
-                    tree.scrollPathToVisible( tpath );
-                    tree.setSelectionPath( tpath );
+        Action exitAction = 
+            new BasicAction( "Exit",
+                             IconFactory.getIcon( IconFactory.EXIT ),
+                             "Exit the viewer" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    System.exit( 0 );
                 }
             };
-        demoAct.putValue( Action.SHORT_DESCRIPTION,
-                          "Add demo data node at top of tree" );
 
-        /* Action for showing help text. */
-        helpAct = 
-            new AbstractAction( "Show help text",
-                                iconMaker.getIcon( IconFactory.HELP ) ) {
-            public void actionPerformed( ActionEvent event ) {
-               displayHelpComponent( helpPanel );
-            }
-        };
-        helpAct.putValue( Action.SHORT_DESCRIPTION,
-                          "Show help text in info panel" );
-
-        /* Action for removing a top-level node from the tree. */
-        deleteAct = 
-            new AbstractAction( "Delete node from root",
-                                iconMaker.getIcon( IconFactory.DELETE ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                MutableTreeNode tnode = 
-                    (MutableTreeNode) tree.getLastSelectedPathComponent();
-                if ( tnode == demoNode ) {
-                    demoNode = null;
+        /* Collapse selected node action. */
+        collapseAction =
+            new BasicAction( "Collapse Selected",
+                             IconFactory.getIcon( IconFactory.CLOSE ),
+                             "Close the selected node" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    jtree.collapsePath( jtree.getSelectionPath() );
                 }
-                treeModel.removeNodeFromParent( tnode );
+            };
 
-                /* Post the help window so we don't have a blank detail pane. */
-                setDetailPane( helpPanel );
+        /* Expand selected node action. */
+        expandAction =
+            new BasicAction( "Expand Selected", 
+                             IconFactory.getIcon( IconFactory.OPEN ),
+                             "Open the selected node" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    jtree.expandPath( jtree.getSelectionPath() );
+                }
+            };
+
+        /* Recursively collapse node action. */
+        recursiveCollapseAction =
+            new BasicAction( "Recursive Collapse Selected",
+                             IconFactory.getIcon( IconFactory.EXCISE ),
+                             "Recursively collapse the selected node" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    recursiveCollapse( getSelectedDataNode() );
+                }
+            };
+
+        /* Recursively expand node action. */
+        recursiveExpandAction =
+            new BasicAction( "Recursive Expand Selected",
+                             IconFactory.getIcon( IconFactory.CASCADE ),
+                             "Recursively expand the selected node" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    recursiveExpand( getSelectedDataNode() );
+                }
+            };
+
+        /* Recursively collapse whole tree action. */
+        Action collapseAllAction =
+            new BasicAction( "Recursive Collapse All",
+                             null,
+                             "Recursively collapse the entire tree" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    collapseAll();
+                }
+            };
+
+        /* Recursively expand whole tree action. */
+        Action expandAllAction =
+            new BasicAction( "Recursive Expand All",
+                             null,
+                             "Recursively expand the entire tree" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    recursiveExpand( root );
+                }
+            };
+
+        /* Actions for specifying position of detail panel. */
+        class SplitPosAction extends BasicAction {
+            short pos;
+            SplitPosAction( String name, Icon icon, String desc, short pos ) {
+                super( name, icon, desc );
+                this.pos = pos;
             }
-        };
-        deleteAct.putValue( Action.SHORT_DESCRIPTION,
-                            "Delete top level node from display" );
+            public void actionPerformed( ActionEvent evt ) {
+                configureSplitter( pos );
+            }
+        }
+        Action detailBelowAction = 
+            new SplitPosAction( "Details Below",
+                                IconFactory.getIcon( IconFactory.SPLIT_BELOW ),
+                                "Display node details below the tree",
+                                DETAIL_BELOW );
+        Action detailBesideAction =
+            new SplitPosAction( "Details Beside",
+                                IconFactory.getIcon( IconFactory.SPLIT_BESIDE ),
+                                "Display node details to right of the tree",
+                                DETAIL_BESIDE );
+        Action detailNoneAction =
+            new SplitPosAction( "No Details",
+                                IconFactory.getIcon( IconFactory.SPLIT_NONE ),
+                                "Do not display node details",
+                                DETAIL_NONE );
+ 
+        /* Action for adding a new top-level node to the tree. */
+        Action newFileAction =
+            new BasicAction( "Open File", 
+                             IconFactory.getIcon( IconFactory.LOAD ),
+                             "Add a new node to the tree from filesystem" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    chooseNewFile();
+                }
+            };
+
+        /* Action for adding a new top-level non-file node to the tree. */
+        Action newNameAction =
+            new BasicAction( "Open Name",
+                             null,
+                             "Add a new node to the tree by name" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    chooseNewName();
+                }
+            };
+
+        /* Demo data action. */
+        Action demoAction = 
+            new BasicAction( "Demo Data",
+                             IconFactory.getIcon( IconFactory.DEMO ),
+                             "Add demo data node at top of tree" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    addDemoData();
+                }
+            };
+
+        /* Help text action. */
+        helpAction =
+            new BasicAction( "Show Help",
+                             IconFactory.getIcon( IconFactory.HELP ),
+                             "Show help text in details panel" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    displayHelpComponent( helpPanel );
+                }
+            };
+
+        /* Delete node from top level of tree action. */
+        deleteAction =
+            new BasicAction( "Delete Node",
+                             IconFactory.getIcon( IconFactory.DELETE ),
+                             "Delete top-level node from the tree" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    treeModel.removeNode( getSelectedDataNode() );
+                }
+            };
 
         /* Action for adding a new level of nodes to the tree. */
-        upAct = 
-            new AbstractAction( "Add node parent",
-                                iconMaker.getIcon( IconFactory.UP ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                TreePath tp = tree.getSelectionPath();
-                DataNode dn = getDataNodeFromTreePath( tp );
-                assert dn.hasParentObject(); // action only enabled if so
-                Object parent = dn.getParentObject();
-                DataNode pdn;
-                boolean error = false;
-                try { 
-                    pdn = nodeMaker.makeDataNode( DataNode.ROOT, parent );
+        upAction =
+            new BasicAction( "Add Parent",
+                             IconFactory.getIcon( IconFactory.UP ),
+                             "Replace a top-level node by its parent" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    replaceWithParent( getSelectedDataNode() );
                 }
-                catch ( NoSuchDataException e ) {
-                    pdn = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
-                    error = true;
-                }
-                MutableTreeNode tnode =
-                    (MutableTreeNode) tree.getLastSelectedPathComponent();
-                MutableTreeNode root = (MutableTreeNode) treeModel.getRoot();
-                DefaultMutableTreeNode ptnode = 
-                    new DefaultMutableTreeNode( pdn );
-                ptnode.setAllowsChildren( pdn.allowsChildren() );
-                int pos = treeModel.getIndexOfChild( root, tnode );
-                if ( ! error ) {
-                    treeModel.removeNodeFromParent( tnode );
-                }
-                treeModel.insertNodeInto( ptnode, root, pos );
-                TreePath selPath = 
-                    new TreePath( treeModel.getPathToRoot( ptnode ) );
-                tree.setSelectionPath( selPath );
-            }
-        };
-        upAct.putValue( Action.SHORT_DESCRIPTION,
-                        "Replace a top-level node by its parent" );
+            };
 
         /* Action for copying a node into the top level. */
-        copyTopAct =
-            new AbstractAction( "Copy node to root",
-                                iconMaker.getIcon( IconFactory.DOWN ) ) {
-            public void actionPerformed( ActionEvent event ) {
-                TreePath tp = tree.getSelectionPath();
-                DataNode dn = getDataNodeFromTreePath( tp );
-                MutableTreeNode root = (MutableTreeNode) treeModel.getRoot();
-                DefaultMutableTreeNode tnode = new DefaultMutableTreeNode( dn );
-                tnode.setAllowsChildren( dn.allowsChildren() );
-                treeModel.insertNodeInto( tnode, root, root.getChildCount() );
-            }
-        };
-        copyTopAct.putValue( Action.SHORT_DESCRIPTION,
-                             "Copy node into the top level" );
+        copyTopAction = 
+            new BasicAction( "Copy To Root",
+                             IconFactory.getIcon( IconFactory.DOWN ),
+                             "Copy node into the top level" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    DataNode newNode = 
+                        new DuplicateDataNode( getSelectedDataNode() );
+                    treeModel.appendNode( newNode, root );
+                }
+            };
 
-        /* Configure a selection listener to control availability of actions. */
-        tree.getSelectionModel()
-            .addTreeSelectionListener( new TreeSelectionListener() {
+        /* Configure a selection listener to control availability of actions
+         * where this is related to what items are selected. */
+        selectModel.addTreeSelectionListener( new TreeSelectionListener() {
             public void valueChanged( TreeSelectionEvent evt ) {
                 configActs();
             }
         } );
 
-        /* Configure an expansion listener to control action availability. */
-        tree.addTreeExpansionListener( new TreeExpansionListener() {
+        /* Configure an expansion listener to control availability of actions
+         * where this is related to expansion status of nodes. */
+        jtree.addTreeExpansionListener( new TreeExpansionListener() {
             public void treeCollapsed( TreeExpansionEvent evt ) {
                 configActs();
             }
@@ -758,137 +481,123 @@ public class StaticTreeViewer extends JFrame {
                 configActs();
             }
         } );
-
+    
         /* Set up initial availability of actions. */
         configActs();
 
-        /*
-         * Set up a toolbar.
-         */
+        /* Set up a toolbar. */
         JToolBar tools = new JToolBar();
         getContentPane().add( tools, BorderLayout.NORTH );
 
-        /*
-         * Set up menus.
-         */
+        /* Set up menus. */
         JMenuBar mb = new JMenuBar();
         setJMenuBar( mb );
 
         /* Add file actions. */
         JMenu fileMenu = new JMenu( "File" );
         mb.add( fileMenu );
-        fileMenu.add( chooseNewFileAct ).setIcon( null );
-        fileMenu.add( chooseNewNameAct ).setIcon( null );
-        fileMenu.add( exitAct ).setIcon( null );
-        tools.add( exitAct );
-        tools.add( chooseNewFileAct );
+        fileMenu.add( newFileAction ).setIcon( null );
+        fileMenu.add( newNameAction ).setIcon( null );
+        fileMenu.add( exitAction ).setIcon( null );
+        tools.add( exitAction );
+        tools.add( newFileAction );
         tools.addSeparator();
 
         /* Add the detail geometry choices to both menu and toolbar. */
         JMenu viewMenu = new JMenu( "View" );
         mb.add( viewMenu );
-        addButtonGroup( tools, viewMenu, new Action[] { detailBesideAct, 
-                                                        detailBelowAct, 
-                                                        detailNoneAct } );
+        addButtonGroup( tools, viewMenu, new Action[] { detailBesideAction,
+                                                        detailBelowAction,
+                                                        detailNoneAction } );
 
         /* Add collapse/expand actions to menu and toolbar. */
         JMenu treeMenu = new JMenu( "Tree" );
         mb.add( treeMenu );
-        treeMenu.add( deleteAct ).setIcon( null );
-        treeMenu.add( upAct ).setIcon( null );
-        treeMenu.add( copyTopAct ).setIcon( null );
-        treeMenu.add( collapseSelAct ).setIcon( null );
-        treeMenu.add( expandSelAct ).setIcon( null );
-        treeMenu.add( rCollapseSelAct ).setIcon( null );
-        treeMenu.add( rExpandSelAct ).setIcon( null );
-        treeMenu.add( rCollapseAllAct ).setIcon( null );
-        treeMenu.add( rExpandAllAct ).setIcon( null );
-        tools.add( collapseSelAct );
-        tools.add( expandSelAct );
+        treeMenu.add( deleteAction ).setIcon( null );
+        treeMenu.add( upAction ).setIcon( null );
+        treeMenu.add( copyTopAction ).setIcon( null );
+        treeMenu.add( collapseAction ).setIcon( null );
+        treeMenu.add( expandAction ).setIcon( null );
+        treeMenu.add( recursiveCollapseAction ).setIcon( null );
+        treeMenu.add( recursiveExpandAction ).setIcon( null );
+        treeMenu.add( collapseAllAction ).setIcon( null );
+        treeMenu.add( expandAllAction ).setIcon( null );
+        tools.add( collapseAction );
+        tools.add( expandAction );
         tools.addSeparator();
-        tools.add( rCollapseSelAct );
-        tools.add( rExpandSelAct );
+        tools.add( recursiveCollapseAction );
+        tools.add( recursiveExpandAction );
         tools.addSeparator();
-        tools.add( upAct );
-        tools.add( copyTopAct );
-        tools.add( deleteAct );
+        tools.add( upAction );
+        tools.add( copyTopAction );
+        tools.add( deleteAction );
 
-        /* Add the help menu action. */
+        /* Add the help menu actions. */
         JMenu helpMenu = new JMenu( "Help" );
         mb.add( Box.createHorizontalGlue() );
         mb.add( helpMenu );
-        helpMenu.add( helpAct ).setIcon( null );
-        helpMenu.add( demoAct ).setIcon( null );
+        helpMenu.add( helpAction ).setIcon( null );
+        helpMenu.add( demoAction ).setIcon( null );
         tools.addSeparator();
-        tools.add( demoAct );
-        tools.add( helpAct );
+        tools.add( demoAction );
+        tools.add( helpAction );
     }
 
-
-    /*
-     * Displays a JComponent, not associated with a selection, into the 
-     * detail panel.  Ensures that the detail panel is visible first.
-     */
-    private void displayHelpComponent( JComponent comp ) {
-
-        /* If there is a selection, deselect it. */
-        if ( tree.getSelectionPath() != null ) {
-            tree.clearSelection();
-        }
-        
-        /* Check that the info panel is visible, and put the help text
-         * into it. */
-        if ( ! showDetail ) {
-            configureSplitter( DETAIL_BESIDE );
-        }
-        setDetailPane( comp );
-    }
-
-
-    /*
-     * Sets the availability of certain actions based on the current 
+    /**
+     * Sets the availability of certain actions based on the current
      * selection etc.
      */
     private void configActs() {
-        boolean hasSelection = tree.getSelectionCount() > 0;
-        if ( hasSelection ) {
-            TreePath tp = tree.getSelectionPath();
-            boolean isExpansible = ! tree.getModel()
-                                    .isLeaf( tp.getLastPathComponent() );
-            rExpandSelAct.setEnabled( isExpansible );
-            rCollapseSelAct.setEnabled( isExpansible );
+        DataNode selNode = getSelectedDataNode();
+        if ( selNode != null ) {
+            TreePath tp = jtree.getSelectionPath();
+            boolean isExpansible = ! treeModel.isLeaf( selNode );
+            recursiveExpandAction.setEnabled( isExpansible );
+            recursiveCollapseAction.setEnabled( isExpansible );
             if ( isExpansible ) {
-                boolean isExpanded = tree.isExpanded( tp );
-                expandSelAct.setEnabled( ! isExpanded );
-                collapseSelAct.setEnabled( isExpanded );
+                boolean isExpanded = jtree.isExpanded( tp );
+                expandAction.setEnabled( ! isExpanded );
+                collapseAction.setEnabled( isExpanded );
             }
             else {
-                expandSelAct.setEnabled( false );
-                collapseSelAct.setEnabled( false );
+                expandAction.setEnabled( false );
+                collapseAction.setEnabled( false );
             }
             boolean inRoot = ( tp.getPathCount() == 2 );
-            deleteAct.setEnabled( inRoot );
-            DataNode dn = getDataNodeFromTreePath( tp );
-            upAct.setEnabled( inRoot && dn.hasParentObject() );
-            copyTopAct.setEnabled( ! inRoot );
+            deleteAction.setEnabled( inRoot );
+            upAction.setEnabled( inRoot && selNode.hasParentObject() );
+            copyTopAction.setEnabled( ! inRoot );
         }
         else {
-            rExpandSelAct.setEnabled( false );
-            rCollapseSelAct.setEnabled( false );
-            expandSelAct.setEnabled( false );
-            collapseSelAct.setEnabled( false );
-            deleteAct.setEnabled( false );
-            upAct.setEnabled( false );
-            copyTopAct.setEnabled( false );
+            recursiveExpandAction.setEnabled( false );
+            recursiveCollapseAction.setEnabled( false );
+            expandAction.setEnabled( false );
+            collapseAction.setEnabled( false );
+            deleteAction.setEnabled( false );
+            upAction.setEnabled( false );
+            copyTopAction.setEnabled( false );
         }
     }
 
-  
-    /*
+    /**
+     * Returns the DataNode which is the current selection in the JTree,
+     * or <tt>null</tt> if none is selected.
+     *
+     * @return  the selected node
+     */
+    private DataNode getSelectedDataNode() {
+        return (DataNode) jtree.getLastSelectedPathComponent();
+    }
+
+    /**
      * Adds a group of radio buttons to both a given toolbar and a given
      * menu.  The same ButtonModel is used for the corresponding buttons
-     * in each set, ensuring that changes in one set of buttons is 
+     * in each set, ensuring that changes in one set of buttons is
      * reflected in the other set.
+     *
+     * @param  bar  the toolbar
+     * @param  menu  the menu
+     * @param  acts  the actions to add
      */
     private void addButtonGroup( JToolBar bar, JMenu menu, Action[] acts ) {
         ButtonGroup grp = new ButtonGroup();
@@ -912,106 +621,270 @@ public class StaticTreeViewer extends JFrame {
         bar.addSeparator();
     }
 
-
-    /* 
-     * Collapse all nodes in a tree recursively starting from a given path.
-     * We actually remove these nodes from the tree.
+    /**
+     * Display the number of visible nodes in the info panel. 
      */
-    private void treeCollapse( TreePath tpath ) {
-        MutableTreeNode tnode = (MutableTreeNode) tpath.getLastPathComponent();
-        for ( int i = treeModel.getChildCount( tnode ) - 1; i >= 0; i-- ) {
-            MutableTreeNode tchild = (MutableTreeNode) treeModel
-                                                      .getChild( tnode, i );
-            treeModel.removeNodeFromParent( tchild );
-        }
-
-        /* Now remove the node and add it again.  In this way it will be 
-         * examined again when it is next expanded.  We also check if it
-         * was the current selection and reinstate this if necessary. */
-        boolean selected = ( tree.getSelectionPath() == tpath );
-        MutableTreeNode parent = (MutableTreeNode) tpath.getParentPath()
-                                                        .getLastPathComponent();
-        int pos = treeModel.getIndexOfChild( parent, tnode );
-        treeModel.removeNodeFromParent( tnode );
-        treeModel.insertNodeInto( tnode, parent, pos );
-        if ( selected ) {
-            tree.setSelectionPath( tpath );
-        }
+    private void showTreeCount() {
+        treeNodesLabel.setText( " Visible nodes: " + jtree.getRowCount() );
     }
 
-    /*
-     * Replace a node at the given path with a new one.  This is done
-     * in a similar way to treeCollapse.  This also causes the new node
-     * to be selected.  This is not essential, but avoids some display
-     * anomalies, and it is not an unreasonable thing to do in any case.
+    /**
+     * Display the total number of nodes in the info panel.
      */
-    private void replaceNode( TreePath tpath, MutableTreeNode tnode ) {
-        TreePath parentPath = tpath.getParentPath();
-        MutableTreeNode parent = (MutableTreeNode) parentPath
-                                                  .getLastPathComponent();
-        MutableTreeNode oldtnode = (MutableTreeNode) tpath
-                                                    .getLastPathComponent();
-        int pos = treeModel.getIndexOfChild( parent, oldtnode );
-        treeModel.removeNodeFromParent( oldtnode );
-        treeModel.insertNodeInto( tnode, parent, pos );
+    private void showNodeCount() {
 
-        /* Select the new node. */
-        TreePath newpath = parentPath.pathByAddingChild( tnode );
-        tree.setSelectionPath( newpath );
+        /* Don't count the root node. */
+        int nnode = treeModel.getNodeCount() - 1;
+        modelNodesLabel.setText( " Total nodes: " + nnode );
     }
 
-    /*
-     * Expand all nodes in a tree recursively starting from a given path.
+    /**
+     * Displays a JComponent, not associated with a selection, into the 
+     * detail panel.  Ensures that the detail panel is visible first.
      */
-    private void treeExpand( TreePath treepath ) {
-        final DefaultMutableTreeNode tnode = 
-            (DefaultMutableTreeNode) treepath.getLastPathComponent();
-        if ( tnode.getAllowsChildren() ) {
-            final TreePath tpath = treepath;
-            new SwingWorker() {
-                public Object construct() {
-                    try {
+    private void displayHelpComponent( JComponent comp ) {
 
-                        /* Expand the node without triggering the normal
-                         * automatic expansion of children. */
-                        synchronized ( expansionListener ) {
-                            tree.removeTreeWillExpandListener(
-                                    expansionListener );
-                            SwingUtilities.invokeAndWait( new Runnable() {
-                                public void run() {
-                                    tree.expandPath( tpath );
-                                }
-                            } );
-                            tree.addTreeWillExpandListener( expansionListener );
-                        }
+        /* If there is a selection, deselect it. */
+        if ( jtree.getSelectionPath() != null ) {
+            jtree.clearSelection();
+        }
 
-                        /* Make sure that all the children are in place 
-                         * (if necessary wait until they have finished 
-                         * being added) */
-                        synchronized ( tnode ) {
-                            ensureHasChildren( tnode );
-                            tnode.wait();
-                        }
+        /* Check that the info panel is visible, and put the help text
+         * into it. */
+        if ( ! showDetail ) {
+            configureSplitter( DETAIL_BESIDE );
+        }
+        setDetailPane( comp );
+    }
 
-                        /* Get the children, and invoke the expansion 
-                         * recursively. */
-                        Enumeration cEn = tnode.children();
-                        while ( cEn.hasMoreElements() ) {
-                            DefaultMutableTreeNode cnode = 
-                                (DefaultMutableTreeNode) cEn.nextElement();
-                            TreePath cpath = new TreePath( cnode.getPath() );
-                            treeExpand( cpath );
-                        }
-                    }
-                    catch ( InterruptedException e ) {}
-                    catch ( InvocationTargetException e ) {}
-                    return null;
-                }
-            }.start();
+    private void replaceWithParent( DataNode node ) {
+        assert node.hasParentObject(); // otherwise action disabled
+        Object parentObj = node.getParentObject();
+        DataNode parentNode;
+        boolean error = false;
+        try {
+            parentNode = nodeMaker.makeDataNode( root, parentObj );
+        }
+        catch ( NoSuchDataException e ) {
+            parentNode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+            error = true;
+        }
+        replaceNode( node, parentNode );
+    }
+
+    private void recursiveCollapse( DataNode node ) {
+        refreshNode( node );
+    }
+
+    private void collapseAll() {
+        int nChild = treeModel.getChildCount( root );
+        for ( int i = 0; i < nChild; i++ ) {
+            DataNode node = (DataNode) treeModel.getChild( root, i );
+            refreshNode( node );
         }
     }
 
-    /*
+    private void recursiveExpand( DataNode dataNode ) {
+        jtree.recursiveExpand( dataNode );
+    }
+
+    private void chooseNewFile() {
+        if ( fileChooser == null ) {
+            fileChooser = new JFileChooser( "." ); 
+            fileChooser.setApproveButtonText( "Add Node" );
+            fileChooser.setFileSelectionMode( JFileChooser
+                                             .FILES_AND_DIRECTORIES );
+        }
+        int retval = fileChooser.showOpenDialog( this );
+        if ( retval == JFileChooser.APPROVE_OPTION ) {
+            File file = fileChooser.getSelectedFile();
+            DataNode node;
+            try {
+                node = nodeMaker.makeDataNode( DataNode.ROOT, file );
+            }
+            catch ( NoSuchDataException e ) {
+                node = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+            }
+            node.setLabel( file.getAbsolutePath() );
+            appendNodeToRoot( node );
+        }
+    }
+
+    private void chooseNewName() {
+        String name = JOptionPane
+                     .showInputDialog( this, "Name of the new node" );
+        if ( name == null || name.trim().length() == 0 ) {
+            return;
+        }
+        DataNode dnode;
+        try {
+            dnode = nodeMaker.makeDataNode( DataNode.ROOT, name );
+        }
+        catch ( NoSuchDataException e ) {
+            dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+        }
+        dnode.setLabel( name );
+        appendNodeToRoot( dnode );
+    }
+
+    private synchronized void addDemoData() {
+        DataNode dnode = demoNode;
+
+        /* If we don't already have a demo data node, try to construct one. */
+        if ( dnode == null ) {
+            try {
+                dnode = new DemoDataNode();
+                demoNode = (DemoDataNode) dnode;
+            }
+            catch ( NoSuchDataException e ) {
+                dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+            }
+        }
+
+        /* If the node doesn't exist in the tree, add it. */
+        Object[] path = treeModel.getPathToRoot( dnode );
+        if ( path == null ) {
+            treeModel.insertNode( dnode, root, 0 );
+            path = treeModel.getPathToRoot( dnode );
+        }
+
+        /* Set the selection to the demo node. */
+        TreePath tpath = new TreePath( path );
+        jtree.scrollPathToVisible( tpath );
+        jtree.setSelectionPath( tpath );
+    }
+
+    /**
+     * Appends a new DataNode to the root of the tree, and does some 
+     * related visual housekeeping.
+     *
+     * @param  node  the node to append
+     */
+    private void appendNodeToRoot( DataNode node ) {
+        treeModel.appendNode( node, root );
+        TreePath tpath = new TreePath( treeModel.getPathToRoot( node ) );
+        jtree.scrollPathToVisible( tpath );
+        jtree.setSelectionPath( tpath );
+    }
+
+    /**
+     * Replaces a node in the tree with a different one.  The replacement
+     * appears collapsed, since it would be hard to reproduce the same
+     * nested expansion status that the old one had.  The user can
+     * expand it manually.
+     *
+     * @param   oldNode  node to replace
+     * @param   newNode  node to replace it with
+     */
+    private void replaceNode( DataNode oldNode, DataNode newNode ) {
+        TreePath path = new TreePath( treeModel.getPathToRoot( oldNode ) );
+        jtree.collapsePath( path );
+        boolean isSelected = path.equals( jtree.getSelectionPath() );
+        treeModel.replaceNode( oldNode, newNode );
+        if ( isSelected ) {
+            TreePath newPath = path.getParentPath()
+                                   .pathByAddingChild( newNode );
+            jtree.setSelectionPath( newPath );
+        }
+    }
+
+    /**
+     * Refreshes a node in the tree; its children are removed from the
+     * tree entirely and will be re-acquired from the DataNode if
+     * the tree node is opened up again.
+     *
+     * @param  node  the node to refresh
+     */
+    private void refreshNode( DataNode node ) {
+        TreePath path = new TreePath( treeModel.getPathToRoot( node ) );
+        jtree.collapsePath( path );
+        treeModel.refreshNode( node );
+    }
+
+    /**
+     * Configures the geometric layout of the display.
+     *
+     * @param config  a constant indicating the configuration of the split
+     *                pane in which the tree and details panels are displayed.
+     *                May be DETAIL_NONE for no details panel,
+     *                DETAIL_BELOW for a vertical split or
+     *                DETAIL_BESIDE for a horizontal split.
+     */
+    public void configureSplitter( short config ) {
+        Component bottom = splitter.getBottomComponent();
+
+        /* If we have not been here before, do some initialisation. */
+        if ( bottom != null && bottom != detailHolder ) {
+            double initloc = 0.5;
+            splitHloc = initloc;
+            splitVloc = initloc;
+            splitter.setDividerLocation( initloc );
+            splitter.setLastDividerLocation( splitter.getDividerLocation() );
+        }
+
+        /* In the event of no change, proceed no further. */
+        else if ( bottom == null && config == DETAIL_NONE ||
+                  bottom == detailHolder &&
+                  ( config == DETAIL_BESIDE &&
+                    splitter.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ||
+                    config == DETAIL_BELOW &&
+                    splitter.getOrientation() == JSplitPane.VERTICAL_SPLIT ) ) {
+            return;
+        }
+
+        /* Save the current position of the divider if it is valid. */
+        else if ( bottom == detailHolder &&
+                  splitter.getDividerLocation() > 0 ) {
+            if ( splitter.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ) {
+                splitHloc = (double) splitter.getDividerLocation()
+                                   / splitter.getSize().getWidth();
+            }
+            else if ( splitter.getOrientation() == JSplitPane.VERTICAL_SPLIT ) {
+                splitVloc = (double) splitter.getDividerLocation()
+                                   / splitter.getSize().getHeight();
+            }
+        }
+
+        /* Will we show data at all? */
+        if ( config == DETAIL_BESIDE || config == DETAIL_BELOW ) {
+            showDetail = true;
+            splitter.setDividerSize( 4 );
+            if ( bottom != detailHolder ) {
+                splitter.setBottomComponent( detailHolder );
+            }
+            if ( config == DETAIL_BESIDE ) {
+                splitter.setLastDividerLocation(
+                    (int) ( splitHloc * splitter.getSize().getWidth() ) );
+                splitter.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
+                splitter.setDividerLocation( splitHloc );
+            }
+            else {
+                splitter.setLastDividerLocation(
+                    (int) ( splitVloc * splitter.getSize().getHeight() ) );
+                splitter.setOrientation( JSplitPane.VERTICAL_SPLIT );
+                splitter.setDividerLocation( splitVloc );
+            }
+        }
+
+        /* No details will be shown. */
+        else if ( config == DETAIL_NONE ) {
+            showDetail = false;
+            if ( bottom != null ) {
+                splitter.setLastDividerLocation( splitter
+                                                .getDividerLocation() );
+                splitter.setBottomComponent( null );
+                splitter.setDividerSize( 0 );
+            }
+        }
+        else {
+            throw new IllegalArgumentException( "Unknown option" );
+        }
+
+        /* Ensure the detail panel is up to date. */
+        updateDetail( getSelectedDataNode() );
+    }
+
+    /**
      * Creates the popup menu used for the node at tpath.
      * This contains a reload item and an item for each type of node
      * this node could be viewed as.  These two types of entry are
@@ -1028,13 +901,13 @@ public class StaticTreeViewer extends JFrame {
      * from the tree and replaced by one of the newly created ones.
      */
     private JPopupMenu alterEgoPopup( final TreePath tpath ) {
-        final DataNode dn = getDataNodeFromTreePath( tpath );
+        final DataNode dn = (DataNode) tpath.getLastPathComponent();
         final CreationState creator = dn.getCreator();
-        JPopupMenu popper = new JPopupMenu(); 
+        JPopupMenu popper = new JPopupMenu();
         if ( creator != null && creator.getObject() != null ) {
             final DataNodeBuilder origbuilder = creator.getBuilder();
             final Object cobj = creator.getObject();
-
+  
             /* Add the reload menu item. */
             final Class origclass = dn.getClass();
             Action reload = new AbstractAction( "Reload", dn.getIcon() ) {
@@ -1053,10 +926,7 @@ public class StaticTreeViewer extends JFrame {
                         newdn = new ErrorDataNode( e );
                         newdn.setCreator( creator );
                     }
-                    DefaultMutableTreeNode newtn = 
-                        new DefaultMutableTreeNode( newdn );
-                    newtn.setAllowsChildren( newdn.allowsChildren() );
-                    replaceNode( tpath, newtn );
+                    replaceNode( dn, newdn );
                 }
             };
             popper.add( reload );
@@ -1067,7 +937,7 @@ public class StaticTreeViewer extends JFrame {
             List alteregos = new ArrayList();
             Set nodetypes = new HashSet();
             nodetypes.add( dn.getClass() );
- 
+
             /* Go through the builders available when the DataNode was first
              * created, trying to build a new DataNode with each one.
              * Assemble a list of possible alteregos in this way. 
@@ -1078,7 +948,7 @@ public class StaticTreeViewer extends JFrame {
              * for every node ever made - OK for a popup menu but expensive
              * to have it done preemptively. */
             /* Should really do some node disposal here. */
-            DataNode parent = creator.getParent();
+              DataNode parent = creator.getParent();
             for ( Iterator bit = builders.iterator(); bit.hasNext(); ) {
                 DataNodeBuilder builder = (DataNodeBuilder) bit.next();
                 if ( builder.suitable( cobj.getClass() ) ) {
@@ -1090,14 +960,14 @@ public class StaticTreeViewer extends JFrame {
                         newdn1 = null;
                     }
                     final DataNode newdn = newdn1;
-                    if ( newdn == null || 
+                    if ( newdn == null ||
                          nodetypes.contains( newdn.getClass() ) ||
                          newdn instanceof ErrorDataNode ) {
                         // no new node, or broken one, or we've already got one
                     }
                     else {
                         newdn.setLabel( dn.getLabel() );
-                        CreationState creat = 
+                        CreationState creat =
                             new CreationState( cfact, builder, parent, cobj );
                         newdn.setCreator( creat );
                         String text = newdn.getNodeTLA() + ": "
@@ -1105,11 +975,7 @@ public class StaticTreeViewer extends JFrame {
                         Icon icon = newdn.getIcon();
                         Action act = new AbstractAction( text, icon ) {
                             public void actionPerformed( ActionEvent evt ) {
-                                DefaultMutableTreeNode newtn =
-                                    new DefaultMutableTreeNode( newdn );
-                                newtn.setAllowsChildren( 
-                                    newdn.allowsChildren() );
-                                replaceNode( tpath, newtn );
+                                replaceNode( dn, newdn );
                             }
                         };
                         alteregos.add( act );
@@ -1131,93 +997,15 @@ public class StaticTreeViewer extends JFrame {
         }
     }
 
-
     /**
-     * Configures the geometric layout of the display.
+     * Returns an icon for this viewer window.  This is specified by
+     * JFrame and may be used by the windowing system during 
+     * window minimisation etc.
      *
-     * @param config  a constant indicating the configuration of the split
-     *                pane in which the tree and details panels are displayed.
-     *                May be DETAIL_NONE for no details panel, 
-     *                DETAIL_BELOW for a vertical split or 
-     *                DETAIL_BESIDE for a horizontal split.
+     * @return  icon
      */
-    public void configureSplitter( short config ) {
-        Component bottom = splitter.getBottomComponent();
-
-        /* If we have not been here before, do some initialisation. */
-        if ( bottom != null && bottom != detailHolder ) {
-            double initloc = 0.5;
-            splitHloc = initloc;
-            splitVloc = initloc;
-            splitter.setDividerLocation( initloc );
-            splitter.setLastDividerLocation( splitter.getDividerLocation() );
-        }
-
-        /* In the event of no change, proceed no further. */
-        else if ( bottom == null && config == DETAIL_NONE ||
-                  bottom == detailHolder && 
-                  ( config == DETAIL_BESIDE && 
-                    splitter.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ||
-                    config == DETAIL_BELOW &&
-                    splitter.getOrientation() == JSplitPane.VERTICAL_SPLIT ) ) {
-            return;
-        }
-
-        /* Save the current position of the divider if it is valid. */
-        else if ( bottom == detailHolder && 
-                  splitter.getDividerLocation() > 0 ) {
-            if ( splitter.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ) {
-                splitHloc = (double) splitter.getDividerLocation() 
-                                   / splitter.getSize().getWidth();
-            }
-            else if ( splitter.getOrientation() == JSplitPane.VERTICAL_SPLIT ) {
-                splitVloc = (double) splitter.getDividerLocation()
-                                   / splitter.getSize().getHeight();
-            }
-        }
-
-        /* Will we show data at all? */
-        if ( config == DETAIL_BESIDE || config == DETAIL_BELOW ) {
-            showDetail = true;
-            splitter.setDividerSize( 4 );
-            if ( bottom != detailHolder ) {
-                splitter.setBottomComponent( detailHolder );
-            }
-            if ( config == DETAIL_BESIDE ) {
-                splitter.setLastDividerLocation( 
-                    (int) ( splitHloc * splitter.getSize().getWidth() ) );
-                splitter.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
-                splitter.setDividerLocation( splitHloc );
-            }
-            else {
-                splitter.setLastDividerLocation( 
-                    (int) ( splitVloc * splitter.getSize().getHeight() ) );
-                splitter.setOrientation( JSplitPane.VERTICAL_SPLIT );
-                splitter.setDividerLocation( splitVloc );
-            }
-        }
-
-        /* No details will be shown. */
-        else if ( config == DETAIL_NONE ) {
-            showDetail = false;
-            if ( bottom != null ) {
-                splitter.setLastDividerLocation( splitter
-                                                .getDividerLocation() );
-                splitter.setBottomComponent( null );
-                splitter.setDividerSize( 0 );
-            }
-        }
-        else {
-            throw new Error( "Unknown option" );
-        }
-
-        /* Ensure the detail panel is up to date. */
-        updateDetail( tree.getSelectionPath() );
-    }
-
     public Image getIconImage() {
-        Icon treeicon = IconFactory.getInstance()
-                                   .getIcon( IconFactory.TREE_LOGO );
+        Icon treeicon = IconFactory.getIcon( IconFactory.TREE_LOGO );
         if ( treeicon instanceof ImageIcon ) {
             return ((ImageIcon) treeicon).getImage();
         }
@@ -1226,102 +1014,107 @@ public class StaticTreeViewer extends JFrame {
         }
     }
 
-    public String toString() {
-        String result = "";
-        for ( int i = 0; i < tree.getRowCount(); i++ ) {
-            result += i + "   " 
-                    + ( (DefaultMutableTreeNode) tree.getPathForRow( i )
-                                                     .getLastPathComponent() )
-                     .getUserObject()
-                     .toString() + "\n";
-        }
-        return result;
-    }
+    /**
+     * Puts the appropriate detail view in the detail panel for a given
+     * data node.
+     *
+     * @param   dataNode the node whose details are to be displayed
+     */
+    private void updateDetail( final DataNode dataNode ) {
 
-    /* This may be invoked by the event dispatcher, so should execute fast. */
-    private void updateDetail( TreePath selection ) {
-        DataNode snode = null;
-        boolean blank = true;
-
-        /* See if there is a detailed information panel to view. */
-        if ( showDetail ) {
-            if ( selection != null ) {
-                snode = getDataNodeFromTreePath( selection );
-                blank = ! snode.hasFullView();
-            }
+        /* If no detail panel is visible, no work needs to be done. */
+        if ( ! showDetail ) {
+            return;
         }
 
-        /* Prepare and show the details.  This may be time-consuming, so 
-         * do it outside this thread.  Do it at a lower priority, so it does
-         * not slow direct user actions (such as moving the selection). */
-        if ( blank ) {
-            Component detail = detailHolder.getView();
-            if ( detail == helpPanel ) {
-                setDetailPane( (JComponent) detail );
-            }
-            else {
-                setDetailPane( blankDetail );
-            }
+        /* If there's no selection, show something useful rather than 
+         * nothing at all. */
+        if ( dataNode == null  ) {
+            setDetailPane( helpPanel );
         }
+
+        /* Otherwise, arrange to show the appropriate detail component. */
         else {
-            final DataNode snode1 = snode;
-            detailProducer.requestDetailsForNode( snode1 );
-            new SwingWorker() {
-                public Object construct() {
-                    Thread here = Thread.currentThread();
-                    here.setPriority( Math.max( here.getPriority() - 2,
-                                      Thread.MIN_PRIORITY ) );
-                    final JComponent details = detailProducer.getDetailPane();
-                    if ( detailProducer.getDataNode() == snode1 ) {
-                        SwingUtilities.invokeLater( new Runnable() {
-                            public void run() {
-                                setDetailPane( details );
-                            }
-                        } );
-                    }
-                    return null;
+            detailPlacer.requestDetails( dataNode );
+        }
+    }
+
+    private void setDetailPane( JComponent detail ) {
+        detail.setMinimumSize( new Dimension( 100, 100 ) );
+        detailHolder.setView( detail );
+    }
+
+    private JComponent getDetailPane() {
+        return (JComponent) detailHolder.getView();
+    }
+
+    /**
+     * Helper class which handles getting detail components for selected nodes
+     * and placing them in the detail panel.
+     */
+    private class DetailPlacer extends Thread {
+
+        private DataNode requestNode;
+        private DataNode workingNode;
+        private DataNode completeNode;
+        private JComponent completeDetail;
+
+        /**
+         * Initiates a request for the detail panel of a new node.
+         * 
+         * @param  node  the node we would like to represent in the
+         *         detail panel
+         */
+        public synchronized void requestDetails( DataNode node ) {
+            requestNode = node;
+            interrupt();
+        }
+
+        /**
+         * Loops, responding to requests for new detail panels.
+         */
+        public void run() {
+            while ( true ) {
+ 
+                /* Determine whether work needs to be done. */
+                boolean done;
+                if ( requestNode == null  ) {
+                    done = true;
                 }
-            }.start();
-        }
-    }
+                else if ( requestNode == completeNode ) {
+                    done = true;
+                }
+                else {
+                    done = false;
+                }
 
-    private void beep() {
-        Toolkit.getDefaultToolkit().beep();
-    }
+                /* If no work is required, sleep until interrupt. */
+                if ( done ) {
+                    try {
+                        sleep( Integer.MAX_VALUE );
+                    }
+                    catch ( InterruptedException e ) {
+                        // continue
+                    }
+                }
 
-    private class DetailProducer {
-        private DataNode requestedNode;
-        private DataNode completedNode;
-        private JComponent completedDetail = blankDetail;
+                /* Otherwise, do the work in this thread, and arrange for
+                 * it to be used in the event-dispatch thread. */
+                else {
+                    workingNode = requestNode;
+                    completeDetail = requestNode.getFullView();
+                    workingNode = null;
+                    completeNode = requestNode;
+                    SwingUtilities.invokeLater( new Runnable() {
+                        public void run() {
+                            setDetailPane( completeDetail );
+                        }
+                    } );
+                }
 
-        void requestDetailsForNode( DataNode node ) {
-            requestedNode = node;
-        }
-
-        synchronized JComponent getDetailPane() {
-         
-            /* Get the most recently requested node (note that the value of
-             * requestedNode itself may change under us during this method). */
-            DataNode node = requestedNode;
-
-            /* Calculate the details for it - potentially time-consuming. */
-            if ( node != null && completedNode != node ) {
-                completedNode = node;
-                completedDetail = node.hasFullView() ? node.getFullView()
-                                                     : blankDetail;
+                /* Clear interrupted status. */
+                interrupted();
             }
-            return completedDetail;
-        }
-
-        synchronized DataNode getDataNode() {
-            return completedNode;
         }
     }
-      
-
-    private void doExit() {
-        dispose();
-        System.exit( 0 );
-    }
-
 }

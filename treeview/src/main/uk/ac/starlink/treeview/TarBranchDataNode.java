@@ -40,7 +40,7 @@ public class TarBranchDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.TARBRANCH );
+        return IconFactory.getIcon( IconFactory.TARBRANCH );
     }
 
     public String getNodeTLA() {

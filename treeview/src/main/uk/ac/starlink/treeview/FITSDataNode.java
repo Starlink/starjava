@@ -251,7 +251,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.FITS );
+        return IconFactory.getIcon( IconFactory.FITS );
     }
 
     public String getPathSeparator() {

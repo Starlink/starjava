@@ -51,6 +51,18 @@ You can see a more impressive example if you do:
 
 <h4>Other flags</h4>
 
+<p>You can use the <tt>-D</tt> and <tt>-X</tt> flags with the 
+<tt>treeview</tt> script to pass flags directly to the java 
+command (the JVM).  The most common use for this is to increase the
+amount of memory available to treeview using the <tt>-Xmx</tt> flag.
+The following invocation will start up treeview with 256 Megabytes
+available instead of the default amount (probably 64Mb):
+<pre>
+   treeview -Xmx256M
+</pre>
+You should do something like this if you are experiencing 
+<tt>java.lang.OutOfMemoryError</tt>s when treeview is running.
+
 <p>Treeview has a number of other command line flags which are mostly
 concerned with forcing nodes to be interpreted in a particular way.
 These are intended mainly for debugging purposes, but you can

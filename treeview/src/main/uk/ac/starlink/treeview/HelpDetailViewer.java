@@ -13,7 +13,6 @@ import javax.swing.JComponent;
  */
 class HelpDetailViewer extends DetailViewer {
 
-    private static IconFactory ifact = IconFactory.getInstance();
     public final static String BUILD_PROPS = 
         "uk/ac/starlink/treeview/text/build.properties";
 
@@ -21,7 +20,7 @@ class HelpDetailViewer extends DetailViewer {
 
         /* Add the "About" information as an overview pane. */
         super( "About" );
-        addIcon( ifact.getIcon( IconFactory.TREE ) );
+        addIcon( IconFactory.getIcon( IconFactory.TREE ) );
         addSpace();
         addTitle( "Starlink Treeview" );
         addSpace();
@@ -50,6 +49,13 @@ class HelpDetailViewer extends DetailViewer {
         addKeyedItem( "JNIAST", Driver.hasAST ? "installed" : "not installed" );
         addKeyedItem( "JNIHDS", Driver.hasHDS ? "installed" : "not installed" );
         addKeyedItem( "JAI", Driver.hasJAI ? "installed" : "not installed" );
+
+        addSubHead( "Java" );
+        addKeyedItem( "JRE", System.getProperty( "java.vendor" ) + " " 
+                           + System.getProperty( "java.version" ) );
+        addKeyedItem( "JVM", System.getProperty( "java.vm.vendor" ) + " "
+                           + System.getProperty( "java.vm.version" ) );
+        addKeyedItem( "Installation", System.getProperty( "java.home" ) );
 
         addSubHead( "Further information" );
         addKeyedItem( "WWW", "http://www.starlink.ac.uk/treeview/" );
@@ -146,7 +152,7 @@ class HelpDetailViewer extends DetailViewer {
 
         private void addKnownIcon( short iconID, String descrip ) {
             ta.addSpace();
-            ta.addIcon( ifact.getIcon( iconID ) );
+            ta.addIcon( IconFactory.getIcon( iconID ) );
             ta.addSpace();
             ta.addText( descrip );
         }

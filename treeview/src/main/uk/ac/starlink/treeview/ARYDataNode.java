@@ -26,7 +26,6 @@ public class ARYDataNode extends HDSDataNode {
      * This class is implemented to access data using HDSObject rather
      * than the ARY library.
      */
-    private static IconFactory iconMaker = IconFactory.getInstance();
     private static DataNodeFactory defaultChildMaker;
 
     private ArrayStructure aryobj;
@@ -74,7 +73,7 @@ public class ARYDataNode extends HDSDataNode {
     }
 
     public Icon getIcon() {
-        return iconMaker.getArrayIcon( shape.getNumDims() );
+        return IconFactory.getArrayIcon( shape.getNumDims() );
     }
 
     /**

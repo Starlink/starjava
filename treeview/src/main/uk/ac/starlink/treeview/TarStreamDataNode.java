@@ -58,7 +58,7 @@ public class TarStreamDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.TARFILE );
+        return IconFactory.getIcon( IconFactory.TARFILE );
     }
 
     public String getNodeTLA() {

@@ -29,7 +29,6 @@ import uk.ac.starlink.splat.util.SplatException;
  * @version  $Id$
  */
 public class HDSDataNode extends DefaultDataNode {
-    private static IconFactory iconMaker = IconFactory.getInstance();
 
     private HDSObject hobj;
     private HDSObject hparent;
@@ -279,8 +278,9 @@ public class HDSDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         return allowsChildren() 
-            ? iconMaker.getIcon( IconFactory.STRUCTURE )
-            : iconMaker.getArrayIcon( shape != null ? shape.getNumDims() : 0 );
+            ? IconFactory.getIcon( IconFactory.STRUCTURE )
+            : IconFactory.getArrayIcon( shape != null ? shape.getNumDims() 
+                                                      : 0 );
     }
 
     public String getPath() {

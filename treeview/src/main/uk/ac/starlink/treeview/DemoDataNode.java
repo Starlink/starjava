@@ -31,7 +31,7 @@ public class DemoDataNode extends FileDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.DEMO );
+            icon = IconFactory.getIcon( IconFactory.DEMO );
         }
         return icon;
     }

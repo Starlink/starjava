@@ -185,7 +185,7 @@ public class HTMLViewer extends JEditorPane {
             try {
                 Field field = IconFactory.class.getField( symbol );
                 short id = field.getShort( null );
-                URL imageURL = IconFactory.getInstance().getIconURL( id );
+                URL imageURL = IconFactory.getIconURL( id );
                 return ( imageURL == null ) ? "unknown" : imageURL.toString();
             }
             catch ( Exception e ) {

@@ -82,19 +82,10 @@ public class IconFactory {
     public static final short HANDLE1 = 403;
     public static final short HANDLE2 = 404;
    
-    private static IconFactory soleInstance = new IconFactory();
-
-    private boolean festive = isFestive();
-    private Map iconMap = new HashMap();
+    private static boolean festive = isFestive();
+    private static Map iconMap = new HashMap();
 
     private IconFactory() {
-    }
-
-    /**
-     * Returns the sole instance of this class.
-     */
-    public static IconFactory getInstance() {
-        return soleInstance;
     }
 
     /**
@@ -103,7 +94,7 @@ public class IconFactory {
      * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
      *          known icon identifiers
      */
-    public Icon getIcon( short id ) {
+    public static Icon getIcon( short id ) {
         return getIconByName( getIconName( id ) );
     }
 
@@ -117,9 +108,9 @@ public class IconFactory {
      * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
      *          known icon identifiers
      */
-    public URL getIconURL( short id ) {
+    public static URL getIconURL( short id ) {
         String ipath = IMAGE_PATH + getIconName( id );
-        return getClass().getClassLoader().getResource( ipath );
+        return IconFactory.class.getClassLoader().getResource( ipath );
     }
 
     /**
@@ -132,7 +123,7 @@ public class IconFactory {
      * @throws  IllegalArgumentException  if <tt>id</tt> is not one of the
      *          known icon identifiers
      */
-    private String getIconName( short id ) {
+    private static String getIconName( short id ) {
         String iname;
         switch ( id ) {
             case SPLIT_BELOW:    iname = "SplitHorizontal.gif";      break;
@@ -210,7 +201,7 @@ public class IconFactory {
     }
 
 
-    public Icon getArrayIcon( int ndim ) {
+    public static Icon getArrayIcon( int ndim ) {
         String iname;
         short id;
         switch ( ndim ) {
@@ -235,12 +226,12 @@ public class IconFactory {
      * in the icons directory or an attribute name known to the UIManager
      * (see javax.swing.plaf.basic.BasicLookAndFeel source code).
      */
-    private Icon getIconByName( String name ) {
+    private static Icon getIconByName( String name ) {
         if ( ! iconMap.containsKey( name ) ) {
             Icon icon = null;
             if ( name.endsWith( ".gif" ) ) {
                 String iname = IMAGE_PATH + name;
-                InputStream istrm = this.getClass().getClassLoader()
+                InputStream istrm = IconFactory.class.getClassLoader()
                                    .getResourceAsStream( iname );
                 if ( istrm != null ) {
                     try {

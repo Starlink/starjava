@@ -89,7 +89,7 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance().getIcon( IconFactory.ZIPFILE );
+        return IconFactory.getIcon( IconFactory.ZIPFILE );
     }
 
     public String getPathSeparator() {

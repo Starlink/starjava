@@ -19,7 +19,6 @@ import uk.ac.starlink.util.FileDataSource;
  * @version  $Id$
  */
 public class FileDataNode extends DefaultDataNode {
-    private static IconFactory iconMaker = IconFactory.getInstance();
 
     private String name;
     private JPanel viewPanel;
@@ -108,8 +107,8 @@ public class FileDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return iconMaker.getIcon( file.isDirectory() ? IconFactory.DIRECTORY
-                                                     : IconFactory.FILE );
+        return IconFactory.getIcon( file.isDirectory() ? IconFactory.DIRECTORY
+                                                       : IconFactory.FILE );
     }
 
     public String getPathElement() {

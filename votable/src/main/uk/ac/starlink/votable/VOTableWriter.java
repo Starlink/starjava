@@ -55,8 +55,8 @@ public class VOTableWriter implements StarTableWriter {
                   +  "'http://us-vo.org/xml/VOTable.dtd'>" );
         out.println( "<VOTABLE version='1.0'>" );
         out.println( "<!--" );
-        out.println( " !  VOTable written by " + this );
-        out.println( " !  outputting table " + startab );
+        out.println( " !  VOTable written by " + 
+                     formatText( this.getClass().getName() ) );
         out.println( " !-->" );
         out.println( "<RESOURCE>" );
 
@@ -83,7 +83,7 @@ public class VOTableWriter implements StarTableWriter {
                 out.print( formatAttribute( "value", valtext ) );
                 if ( content.length() > 0 ) {
                     out.println( ">" );
-                    out.println( content );
+                    out.println( formatText( content ) );
                     out.println( "</PARAM>" );
                 }
                 else {
@@ -93,12 +93,17 @@ public class VOTableWriter implements StarTableWriter {
         }
 
         /* Start the TABLE element itself. */
-        out.println( "<TABLE>" );
+        out.print( "<TABLE" );
+        String tname = startab.getName();
+        if ( tname != null && tname.trim().length() > 0 ) {
+            out.print( formatAttribute( "name", tname.trim() ) );
+        }
+        out.println( ">" );
 
         /* Output a DESCRIPTION element if we have something suitable. */
         if ( description != null && description.trim().length() > 0 ) {
             out.println( "<DESCRIPTION>" );
-            out.println( description.trim() );
+            out.println( formatText( description.trim() ) );
             out.println( "</DESCRIPTION>" );
         }
 
@@ -114,7 +119,7 @@ public class VOTableWriter implements StarTableWriter {
             out.print( formatAttributes( encoder.getFieldAttributes() ) );
             if ( content.length() > 0 ) {
                 out.println( ">" );
-                out.println( content );
+                out.println( formatText( content ) );
                 out.println( "</FIELD>" );
             }
             else {
@@ -133,7 +138,8 @@ public class VOTableWriter implements StarTableWriter {
             Object[] rowdata = rseq.getRow();
             for ( int icol = 0; icol < ncol; icol++ ) {
                 out.print( "    <TD>" );
-                out.print( encoders[ icol ].encodeAsText( rowdata[ icol ] ) );
+                out.print( formatText( encoders[ icol ]
+                                      .encodeAsText( rowdata[ icol ] ) ) );
                 out.println( "</TD>" );
             }
             out.println( "  </TR>" );
@@ -208,5 +214,34 @@ public class VOTableWriter implements StarTableWriter {
                           .replaceAll( "\"", "&quot;" ) )
             .append( '"' )
             .toString();
+    }
+
+    /**
+     * Performs necessary special character escaping for text which 
+     * will be written as XML CDATA.
+     * 
+     * @param   text  the input text
+     * @return  <tt>text</tt> but with XML special characters escaped
+     */
+    private static String formatText( String text ) {
+        int leng = text.length();
+        StringBuffer sbuf = new StringBuffer( leng );
+        for ( int i = 0; i < leng; i++ ) {
+            char c = text.charAt( i );
+            switch ( c ) {
+                case '<':
+                    sbuf.append( "&lt;" );
+                    break;
+                case '>':
+                    sbuf.append( "&gt;" );
+                    break;
+                case '&':
+                    sbuf.append( "&amp;" );
+                    break;
+                default:
+                    sbuf.append( c );
+            }
+        }
+        return sbuf.toString();
     }
 }

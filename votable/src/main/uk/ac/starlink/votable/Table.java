@@ -147,9 +147,9 @@ public class Table extends VOElement {
      * <li>a primitive wrapper object (<tt>Integer</tt>, <tt>Float</tt> etc)
      *     if the element is a scalar
      * <li>a java array of primitives (<tt>int[]</tt>, <tt>float[]</tt> etc)
-     *     if the element is a one-dimensional array
-     * <li>an {@link uk.ac.starlink.array.NDArray} if the element is an
-     *     array of &gt;1 dimension
+     *     if the element is an array.  This is stored in column-major
+     *     order, where that makes a difference (for arrays with more than
+     *     one diemension).
      * </ul>
      * Complex types are treated by adding an extra dimension to the 
      * shape of the data, the most rapidly varying, of size 2.

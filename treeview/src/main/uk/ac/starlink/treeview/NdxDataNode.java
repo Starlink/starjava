@@ -246,7 +246,7 @@ public class NdxDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.NDX );
+            icon = IconFactory.getIcon( IconFactory.NDX );
         }
         return icon;
     }
@@ -411,8 +411,7 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndim == 1 && endim == 1 ) {
             final ApplicationInvoker displayer = ApplicationInvoker.SPLAT;
             if ( displayer.canDisplayNDX() ) {
-                Icon splatic = IconFactory.getInstance()
-                                          .getIcon( IconFactory.SPLAT );
+                Icon splatic = IconFactory.getIcon( IconFactory.SPLAT );
                 Action splatAct = new AbstractAction( "Splat", splatic ) {
                     public void actionPerformed( ActionEvent evt ) {
                         try {
@@ -431,8 +430,7 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndim == 2 && endim == 2 ) {
             final ApplicationInvoker displayer = ApplicationInvoker.SOG;
             if ( displayer.canDisplayNDX() ) {
-                Icon sogic = IconFactory.getInstance()
-                                        .getIcon( IconFactory.SOG );
+                Icon sogic = IconFactory.getIcon( IconFactory.SOG );
                 Action sogAct = new AbstractAction( "SoG", sogic ) {
                     public void actionPerformed( ActionEvent evt ) {
                         try {

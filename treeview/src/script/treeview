@@ -73,14 +73,32 @@ fi
 
 demodir="$bindir/../etc/treeview/demo"
 
+#  Divide the arguments into two parts: those destined as flags for
+#  the java binary, and the rest.
+
+javaArgs=""
+appArgs=""
+while test "$1"
+do
+   if echo $1 | grep -q -- '^-[XD]'
+   then
+      javaArgs="$javaArgs \"$1\""
+   else
+      appArgs="$appArgs \"$1\""
+   fi
+   shift
+done
+
 #  Run Treeview.
 
-$starjava \
-   -Duk.ac.starlink.treeview.cmdname="treeview" \
-   -Duk.ac.starlink.treeview.demodir="$demodir" \
-   -Duk.ac.starlink.treeview.sogdir="$SOG_DIR" \
-   -Duk.ac.starlink.treeview.splatdir="$SPLAT_DIR" \
-   -enableassertions \
-   -classpath $appjar:${CLASSPATH} uk.ac.starlink.treeview.Driver \
-   "$@"
-  
+cmd="$starjava \
+        $javaArgs \
+        -Duk.ac.starlink.treeview.cmdname=treeview \
+        -Duk.ac.starlink.treeview.demodir=$demodir \
+        -Duk.ac.starlink.treeview.sogdir=$SOG_DIR \
+        -Duk.ac.starlink.treeview.splatdir=$SPLAT_DIR \
+        -enableassertions \
+        -classpath $appjar:${CLASSPATH} uk.ac.starlink.treeview.Driver \
+        $appArgs"
+eval "$cmd"
+

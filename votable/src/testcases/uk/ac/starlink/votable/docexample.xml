@@ -20,12 +20,23 @@
       <DATA>
         <TABLEDATA>
         <TR>
-          <TD>Procyon</TD><TD>114.827</TD><TD> 5.227</TD>
+          <TD>Procyon</TD>
+          <TD>114.827</TD>
+          <TD> 5.227</TD>
           <TD>4 5 3 4 3 2 1 2 3 3 5 6</TD>
         </TR>
         <TR>
-          <TD>Vega</TD><TD>279.234</TD>
-          <TD>38.782</TD><TD>8 7 8 6 8 6</TD>
+          <TD>Vega</TD>
+          <TD>279.234</TD>
+          <TD>38.782</TD>
+          <TD>8 7 8 6 8 6</TD>
+          <TD>Ignore me!</TD> <!-- extra cell should be ignored -->
+        </TR>
+        <TR>
+           <TD/>
+           <TD/>
+           <TD/>
+                 <!-- Missing cell should be supplied as null -->
         </TR>
         </TABLEDATA>
       </DATA>

@@ -384,6 +384,11 @@ public abstract class DataSource {
 
             /* Mark it, read enough bytes into the supplied buffer, 
              * and reset to the start. */
+            // Note that a 'Resetting to invalid mark' IOException encountered
+            // here may result from an InputStream which doesn't support
+            // marks but claims it does (markSupported returns true).
+            // Sun's J2SE1.4.0 implementation of GZIPInputStream, amongst
+            // others, features this bug.
             strm.mark( nReq );
             nGot = strm.read( buffer, 0, nReq );
             if ( nGot == -1 ) {

@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.ArrayList;
 import java.net.URL;
 import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.SAXException;
@@ -38,20 +39,23 @@ public class VOTableTest extends TestCase {
         Table tab = (Table) res.getChildrenByName( "TABLE" )[ 0 ];
         int ncol = tab.getColumnCount();
         int nrow = tab.getRowCount();
-        assertEquals( 2, nrow );
+        assertEquals( 3, nrow );
         assertEquals( 4, ncol );
 
         VOStarTable stab = new VOStarTable( (DOMSource) tab.getSource() );
         assertEquals( tab.getRowCount(), stab.getRowCount() );
         assertEquals( tab.getColumnCount(), stab.getColumnCount() );
         RowSequence rseq = stab.getRowSequence();
+        List rows = new ArrayList();
         for ( int ir = 0; ir < nrow; ir++ ) {
             assertTrue( tab.hasNextRow() );
             assertTrue( rseq.hasNext() );
             rseq.next();
             Object[] row = tab.nextRow();
+            assertEquals( ncol, row.length );
             for ( int ic = 0; ic < ncol; ic++ ) {
-                if ( row[ ic ].getClass().getComponentType() == null ) {
+                if ( row[ ic ] == null ||
+                     row[ ic ].getClass().getComponentType() == null ) {
                     assertEquals( rseq.getCell( ic ), row[ ic ] );
                 }
                 else if ( Array.getLength( row[ ic ] ) == 1 ) {
@@ -59,9 +63,19 @@ public class VOTableTest extends TestCase {
                                   Array.get( row[ ic ], 0 ) );
                 }
             }
+            rows.add( row );
         }
         assertTrue( ! tab.hasNextRow() );
         assertTrue( ! rseq.hasNext() );
+
+        assertEquals( "Procyon",
+                      ((String) ((Object[]) rows.get( 0 ))[ 0 ]).trim() );
+        assertEquals( "Vega",
+                      ((String) ((Object[]) rows.get( 1 ))[ 0 ]).trim() );
+        assertEquals( 12, ((int[]) ((Object[]) rows.get( 0 ))[ 3 ]).length );
+        assertEquals( 6, ((int[]) ((Object[]) rows.get( 1 ))[ 3 ]).length );
+
+        assertArrayEquals( new Object[ ncol ], (Object[]) rows.get( 2 ) );
 
         DescribedValue parameter = stab.getParameterByName( param.getName() );
         assertTrue( stab.getParameters().contains( parameter ) );

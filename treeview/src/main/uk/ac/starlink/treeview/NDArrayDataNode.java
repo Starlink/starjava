@@ -41,8 +41,7 @@ public class NDArrayDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        return IconFactory.getInstance()
-                          .getArrayIcon( nda.getShape().getNumDims() );
+        return IconFactory.getArrayIcon( nda.getShape().getNumDims() );
     }
 
     public String getPathElement() {

@@ -157,7 +157,7 @@ public class XMLDataNode extends DefaultDataNode {
 
     public Icon getIcon() {
         if ( icon == null ){
-            icon = IconFactory.getInstance().getIcon( iconId );
+            icon = IconFactory.getIcon( iconId );
         }
         return icon;
     }

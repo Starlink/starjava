@@ -35,7 +35,10 @@ public class Param extends Field {
      */
     public Object getObject() {
         if ( valueObject == null ) {
-            valueObject = getDecoder().decodeString( getValue() );
+            String val = getValue();
+            return ( val != null && val.length() > 0 )
+                 ? getDecoder().decodeString( val ) 
+                 : null;
         }
         return valueObject;
     }

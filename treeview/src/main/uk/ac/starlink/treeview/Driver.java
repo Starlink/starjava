@@ -21,8 +21,6 @@ public class Driver {
     public static boolean hasJAI;
     public static boolean hasGUI;
 
-    public static StaticTreeViewer treeviewer;
-
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.treeview" );
 
@@ -208,15 +206,13 @@ public class Driver {
      * Create and display the viewer object.
      */
     private static void viewAsGUI( DataNode root, short orient ) {
-        StaticTreeViewer tv = 
-            new StaticTreeViewer( root, "Starlink Treeview", orient );
+        JFrame tv = new StaticTreeViewer( root, "Starlink Treeview", orient );
         tv.addWindowListener( new WindowAdapter() {
             public void windowClosing( WindowEvent e ) {
                 System.exit( 0 );
             }
         } );
         tv.setVisible( true );
-        treeviewer = tv;
     }
 
     public static void viewAsText( DataNode root ) {
