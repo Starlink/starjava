@@ -3,7 +3,10 @@ package uk.ac.starlink.util;
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Array;
 import java.util.Random;
+import java.net.URL;
 import junit.framework.AssertionFailedError;
+import org.w3c.dom.*;
+
 
 /**
  * This class extends {@link junit.framework.TestCase}, providing some 
@@ -22,6 +25,13 @@ import junit.framework.AssertionFailedError;
 public class TestCase extends junit.framework.TestCase {
 
     private Random rand = new Random( 23L );
+
+    /** Flags for {@link #assertDOMEquals} */
+    public static final short NO_ATTRIBUTE_PRESENCE = 1;
+    public static final short NO_ATTRIBUTE_VALUE = 2;
+    public static final short NO_WHITESPACE = 4;    
+ 
+    static private javax.xml.parsers.DocumentBuilder docParser;
 
     /**
      * Constructs a test case with the given name.
@@ -78,8 +88,8 @@ public class TestCase extends junit.framework.TestCase {
          * lot of unnecesary message strings. */
         if ( ctype == boolean.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                boolean v1 = ((boolean[]) expected)[ i ];
-                boolean v2 = ((boolean[]) actual)[ i ];
+                boolean v1 = ( (boolean[]) expected)[ i ];
+                boolean v2 = ( (boolean[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
@@ -87,8 +97,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == byte.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                byte v1 = ((byte[]) expected)[ i ];
-                byte v2 = ((byte[]) actual)[ i ];
+                byte v1 = ( (byte[]) expected)[ i ];
+                byte v2 = ( (byte[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
@@ -96,8 +106,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == short.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                short v1 = ((short[]) expected)[ i ];
-                short v2 = ((short[]) actual)[ i ];
+                short v1 = ( (short[]) expected)[ i ];
+                short v2 = ( (short[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
@@ -105,8 +115,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == int.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                int v1 = ((int[]) expected)[ i ];
-                int v2 = ((int[]) actual)[ i ];
+                int v1 = ( (int[]) expected)[ i ];
+                int v2 = ( (int[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
@@ -114,8 +124,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == long.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                long v1 = ((long[]) expected)[ i ];
-                long v2 = ((long[]) actual)[ i ];
+                long v1 = ( (long[]) expected)[ i ];
+                long v2 = ( (long[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), v1, v2 );
                 }
@@ -123,8 +133,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == float.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                float v1 = ((float[]) expected)[ i ];
-                float v2 = ((float[]) actual)[ i ];
+                float v1 = ( (float[]) expected)[ i ];
+                float v2 = ( (float[]) actual)[ i ];
                 if ( v1 != v2 && 
                      ! ( Float.isNaN( v1 ) && Float.isNaN( v2 ) ) ) { 
                     assertEquals( itemMismatchMessage( message, i ), 
@@ -134,8 +144,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == double.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                double v1 = ((double[]) expected)[ i ];
-                double v2 = ((double[]) actual)[ i ];
+                double v1 = ( (double[]) expected)[ i ];
+                double v2 = ( (double[]) actual)[ i ];
                 if ( v1 != v2 &&
                      ! ( Double.isNaN( v1 ) && Double.isNaN( v2 ) ) ) { 
                     assertEquals( itemMismatchMessage( message, i ), 
@@ -145,8 +155,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else if ( ctype == char.class ) {
             for ( int i = 0; i < nel; i++ ) {
-                char v1 = ((char[]) expected)[ i ];
-                char v2 = ((char[]) actual)[ i ];
+                char v1 = ( (char[]) expected)[ i ];
+                char v2 = ( (char[]) actual)[ i ];
                 if ( v1 != v2 ) { 
                     assertEquals( itemMismatchMessage( message, i ), 
                                   v1, v2, 0.0 );
@@ -480,6 +490,248 @@ public class TestCase extends junit.framework.TestCase {
         assertEquals( expected, actual, 0.0 );
     }
 
+    /**
+     * Asserts that a DOM is equivalent to the XML in a given URL.
+     * Equivalent to <code>assertDOMEquals(dom, actual, filename, 0)</code> with
+     * the first argument being the document element of the DOM read
+     * from the URL, and the third argument being the last part
+     * (the `file name') of the URL.
+     *
+     * @param url pointing to an XML file -- the document element of
+     * this file is the expected value
+     * @param actual the node which is being compared
+     * @throws java.io.IOException if the file cannot be found
+     * @throws org.xml.sax.SAXException if there is a problem parsing the XML
+     * @throws javax.xml.parsers.ParserConfigurationException if the
+     *            XML parser cannot be initialised
+     * @throws AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
+     */
+    public void assertDOMEquals( URL url, Node actual ) 
+            throws java.io.IOException,
+            org.xml.sax.SAXException,
+            javax.xml.parsers.ParserConfigurationException {
+        assertDOMEquals( url.openStream(),
+                        actual, 
+                        url.toString().replaceFirst( ".*/", ".../" )+":",
+                        (int)0 );
+    }
+
+    /**
+     * Asserts that a DOM is equivalent to the DOM implied by the XML
+     * in a given string.
+     * 
+     * @see #assertDOMEquals(String,Node,String,int)
+     */
+    public void assertDOMEquals( String s, Node n )
+            throws
+            java.io.IOException,
+            org.xml.sax.SAXException,
+            javax.xml.parsers.ParserConfigurationException {
+        assertDOMEquals( s, n, "string:", 0 );
+    }
+
+    /**
+     * Asserts that a DOM is equivalent to the DOM implied by the XML
+     * in a given string.
+     *
+     * @param expected a string containing XML -- the document element of
+     * this file is the expected value
+     * @param actual the node which is compared
+     * @param context a string indicating the context of this; if
+     * <code>null</code>, it defaults to `string:'
+     * @param flags a set of flags controlling the comparison; see
+     * {@link #assertDOMEquals(Node,Node,String,int)}
+     * 
+     * @throws AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
+     */
+    public void assertDOMEquals( String expected, Node actual,
+                                String context, int flags )
+            throws
+            java.io.IOException,
+            org.xml.sax.SAXException,
+            javax.xml.parsers.ParserConfigurationException {
+        java.io.ByteArrayInputStream bais
+                = new java.io.ByteArrayInputStream( expected.getBytes() );
+        assertDOMEquals( bais,
+                        actual,
+                        (context == null ? "string:" : context),
+                        flags );
+    }
+
+    /**
+     * Asserts that a DOM is equivalent to the DOM read from a given stream.
+     * 
+     *
+     * @param s a stream from which XML may be read -- the document element of
+     * the resulting DOM is the expected value
+     * @param actual the node which is compared
+     * @param context a string indicating the context of this; may be
+     * <code>null</code>
+     * @param flags a set of flags controlling the comparison; see
+     * {@link #assertDOMEquals(Node,Node,String,int)}
+     * 
+     * @throws AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
+     */
+    public void assertDOMEquals( java.io.InputStream s, Node actual,
+                                String context, int flags ) 
+            throws
+            java.io.IOException,
+            org.xml.sax.SAXException,
+            javax.xml.parsers.ParserConfigurationException {
+        if ( docParser == null ) {
+            javax.xml.parsers.DocumentBuilderFactory factory
+                    = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware( true );
+            docParser = factory.newDocumentBuilder();
+        }
+        Document doc = docParser.parse( s );
+        assertDOMEquals( doc.getDocumentElement(), actual, context, 0 );
+    }
+    
+    /**
+     * Asserts that two DOMs are equal.
+     *
+     * @param expected the Node containing the expected DOM
+     * @param actual the Node to be tested
+     * @throws AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
+     */
+    public void assertDOMEquals( Node expected, Node actual ) {
+        assertDOMEquals( expected, actual, null, 0 );
+    }
+    
+    /**
+     * Asserts that two DOMs are equal.
+     *
+     * <p>If an assertion fails, the method indicates the location by
+     * showing in the failure message the location of the mismatched node, so that
+     * <pre>
+     * AssertionFailedError: .../test.xml:/[1]ndx/[2]data
+     * expected: ...
+     * </pre>
+     * indicates that the assertion failed when examining the second child node
+     * (which was a <code>&lt;data&gt;</code> element) of the first
+     * child of the file <code>test.xml</code>
+     *
+     * <p>If the <code>flags</code> argument is non-zero, it indicates
+     * a set of tests on the DOM to omit.  The value is ORed together
+     * from the following constants:
+     * <dl>
+     * <dt><code>TestCase.NO_ATTRIBUTE_PRESENCE</code>
+     * <dt>do not check whether attributes match
+     * <dt><code>TestCase.NO_ATTRIBUTE_VALUE</code>
+     * <dd>check that
+     * the same attributes are present on the corresponding elements
+     * in the tree, but do not check their values
+     * <dt><code>TestCase.NO_WHITESPACE</code>
+     * <dd>skip whitespace-only text nodes
+     * </dl>
+     *
+     * @param expected the Node containing the expected DOM
+     * @param actual the Node to be tested
+     * @param context a string indicating the context, which will be
+     * used in assertion failure reports.  May be null
+     * @param flags a set of flags indicating which node tests to
+     * omit.  Passing as zero includes all tests.
+     * @throws AssertionFailedError if the assertion is untrue
+     */
+    public void assertDOMEquals( Node expected, Node actual,
+                                String context, int flags ) {
+        if ( context == null )
+            context = "TOP:";
+        context = context + expected.getNodeName();
+        assertNotNull( context, expected );
+        assertNotNull( context, actual );
+        if ( expected.getNodeType() != actual.getNodeType() ) {
+            StringBuffer msg = new StringBuffer( context );
+            msg.append( ": expected " )
+                    .append( DOMUtils.mapNodeType( expected.getNodeType() ))
+                    .append( ", got " )
+                    .append( DOMUtils.mapNodeType( actual.getNodeType() ));
+            fail( msg.toString() );
+        }
+
+        assertEquals( context+"(type)",
+                     expected.getNodeType(), actual.getNodeType() );
+
+        String expectedNS = expected.getNamespaceURI();
+        if ( expectedNS == null ) {
+            assertNull( context+"(ns null)", actual.getNamespaceURI() );
+            assertNull( context+"(localname null)", actual.getLocalName() );
+            assertEquals( context+"(name)",
+                         expected.getNodeName(), actual.getNodeName() );
+        } else {
+            assertEquals( context+"(ns)",
+                         expectedNS, actual.getNamespaceURI() );
+            assertEquals( context+"(localName)",
+                         expected.getLocalName(), actual.getLocalName() );
+            /*
+             * Don't compare prefixes, since these are defined to be
+             * arbitrary.  getNodeName() includes the prefix, so don't
+             * compare that either
+             */
+        }
+
+        assertEquals( context+"(value)",
+                     expected.getNodeValue(),actual.getNodeValue() );
+
+        if ( (flags & NO_ATTRIBUTE_PRESENCE) == 0 ) {
+            NamedNodeMap okatts = expected.getAttributes();
+            if ( okatts != null ) {
+                NamedNodeMap testatts = actual.getAttributes();
+                assertNotNull( context, testatts );
+                assertEquals( context+"(natts)",
+                             okatts.getLength(), testatts.getLength() );
+                for (int i=0; i<okatts.getLength(); i++) {
+                    Attr okatt = (Attr)okatts.item(i);
+                    Attr testatt = (Attr)testatts.getNamedItem( okatt.getName() );
+                    assertNotNull( testatt );
+                    if ( (flags & NO_ATTRIBUTE_VALUE) == 0 )
+                        assertEquals( context+'@'+okatt.getName(),
+                                     okatt.getValue(), testatt.getValue() );
+                }
+            }
+        }
+
+        boolean skip = ( flags & NO_WHITESPACE ) != 0;
+        Node okkid = skipWhitespaceNodes( expected.getFirstChild(), skip );
+        Node testkid = skipWhitespaceNodes( actual.getFirstChild(), skip );
+        int kidno = 1;
+        while ( okkid != null ) {
+            assertNotNull( context+" too few kid elements", testkid );
+            assertDOMEquals
+                    ( okkid,
+                     testkid,
+                     context + "/["+Integer.toString( kidno )+']',
+                     flags );
+            okkid = skipWhitespaceNodes( okkid.getNextSibling(), skip );
+            testkid = skipWhitespaceNodes( testkid.getNextSibling(), skip );
+            kidno++;
+        }
+        assertNull( context+" extra kids: "+testkid, testkid );
+    }
+
+    /**
+     * Returns the first node from the set of this node and its
+     * following siblings which is not a whitespace-only text node.
+     * 
+     * @param n the node to follow
+     * @param skip if false, the input node is returned
+     * unconditionally (ie, this method is a no-op)
+     * @return the next non-whitespace interesting node, or null if there are none
+     */
+    private Node skipWhitespaceNodes( Node n, boolean skip ) {
+        while ( skip
+                && n != null
+                && n.getNodeType()==Node.TEXT_NODE
+                && n.getNodeValue().trim().length() == 0 )
+            n = n.getNextSibling();
+        return n;
+    }
+    
 
     /**
      * Fills a given array with random numbers between two floating point
