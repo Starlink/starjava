@@ -25,6 +25,19 @@ public class JDBCHandler {
         this.auth = auth;
     }
 
+    /**
+     * Clone constructor.  This constructor creates a new JDBCHandler
+     * with the all the same fields as the given one <tt>jh</tt>.
+     *
+     * @param   jh  the handler whose fields to copy
+     */
+    public JDBCHandler( JDBCHandler jh ) {
+        this( jh.auth );
+        this.user = jh.user;
+        this.passwd = jh.passwd;
+        this.authDone = jh.authDone;
+    }
+
     public JDBCAuthenticator getAuthenticator() {
         return auth;
     }
