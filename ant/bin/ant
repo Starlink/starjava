@@ -57,7 +57,7 @@ echo $JAVA_HOME
 
 # Extract launch and ant arguments, (see details below).
 ant_exec_args=
-no_config=false
+no_config=true
 use_jikes_default=false
 ant_exec_debug=false
 show_help=false
