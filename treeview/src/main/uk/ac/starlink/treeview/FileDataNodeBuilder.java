@@ -112,7 +112,10 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* If it's an HDS file, make it an NDF (if it is one) 
              * or an HDS node. */
-            if ( TreeviewUtil.hasHDS() && HDSDataNode.isMagic( magic ) ) {
+            String fname = file.getName();
+            if ( ( fname.endsWith( ".sdf" ) || fname.endsWith( ".SDF" ) ) &&
+                 TreeviewUtil.hasHDS() && 
+                 HDSDataNode.isMagic( magic ) ) {
                 HDSObject hobj = null;
                 try {
                     hobj = new HDSReference( file ).getObject( "READ" );
