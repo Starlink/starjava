@@ -518,6 +518,7 @@ public class SpecDataComp
         throws SplatException
     {
         Plot result = (Plot) plot.copy();
+        result.setGrf( plot.getGrf() ); // Missing from copy (3.2-8).
 
         //  Try to align the plot FrameSet and the SpecData. Only
         //  need to do this between DATAPLOT domains.
