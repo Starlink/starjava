@@ -20,9 +20,9 @@ public class JAIHelloWorld extends JPanel
 
     public JAIHelloWorld()
     {
-        java.net.URL url = JAIHelloWorld.class.getResource( "temp.xml" );
-        RenderedImage src = JAI.create( "url", url );
-        //RenderedImage src = JAI.create( "fileload", "temp.xml" );
+        //java.net.URL url = JAIHelloWorld.class.getResource( "temp.xml" );
+        //RenderedImage src = JAI.create( "url", url );
+        RenderedImage src = JAI.create( "fileload", "src/testcases/uk/ac/starlink/jaiutil/temp.xml" );
 
         //  Draw image scaled by 0.5 (for fun).
         Interpolation interp = 
