@@ -94,9 +94,6 @@ public class PlotConfigurator
     protected JMenuItem autoDrawOptionsMenu =
         new JCheckBoxMenuItem( "Auto-update" );
 
-    protected JMenu helpMenu = new JMenu();
-    protected JMenuItem helpMenuAbout = new JMenuItem();
-
     /**
      * Graphics configuration object.
      */
@@ -257,8 +254,6 @@ public class PlotConfigurator
             ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "exit.gif" ) );
-        ImageIcon helpImage = new ImageIcon(
-            ImageHolder.class.getResource( "help.gif" ) );
         ImageIcon configImage = new ImageIcon(
             ImageHolder.class.getResource( "config.gif" ) );
 
@@ -310,10 +305,6 @@ public class PlotConfigurator
 
         topAction.add( Box.createGlue() );
         botAction.add( Box.createGlue() );
-
-        //  Add the help menu.
-	//HelpFrame.createHelpMenu( "config-window", "Help on window",
-        //                          menuBar, null );
     }
 
     /**
