@@ -1,9 +1,11 @@
 /*
- * Copyright (C) 2000-2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *    30-JUN-2000 (Peter W. Draper):
  *       Original version.
+ *    01-MAR-2005 (Peter W. Draper):
+ *       Added methods for establishing contexts to group drawn elements.
  */
 package uk.ac.starlink.ast.grf;
 
@@ -21,6 +23,8 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.swing.JComponent;
 
@@ -74,7 +78,7 @@ public class DefaultGrf
      */
     public DefaultGrf()
     {
-        //  Do nothing.
+        establishContext( DEFAULT );
     }
 
     /**
@@ -88,6 +92,7 @@ public class DefaultGrf
      */
     public DefaultGrf( JComponent component )
     {
+        establishContext( DEFAULT );
         this.component = component;
     }
 
@@ -138,6 +143,10 @@ public class DefaultGrf
      */
     public final static int DOTDASH = 6;
 
+    /**
+     * Name of the default context list.
+     */
+    public static final String DEFAULT = "DEFAULT";
 
     //  ===================
     //  Protected variables
@@ -147,24 +156,32 @@ public class DefaultGrf
      * JComponent (or sub-class) that is to be drawn into. This is
      * needed only for checking out text rendering.
      */
-    protected JComponent component = null;
+    private JComponent component = null;
 
     /**
      * Current graphic state
      */
-    protected DefaultGrfState gstate = new DefaultGrfState();
+    private DefaultGrfState gstate = new DefaultGrfState();
 
     /**
-     * Vector of graphics context information.
+     * The current list of graphics context information.
      */
-    protected ArrayList context = new ArrayList();
+    private ArrayList currentContext = null;
+
+    /**
+     * List of all graphics context information.
+     */
+    private ArrayList masterContext = new ArrayList();
+
+    /**
+     * Map of keys for graphics context lists.
+     */
+    private Map masterMap = new HashMap();
 
     /**
      * Object for managing the global list of graphics fonts.
      */
-    protected DefaultGrfFontManager grfFontManager =
-        DefaultGrfFontManager.getReference();
-
+    private DefaultGrfFontManager grfFontManager = DefaultGrfFontManager.getReference();
 
     //  =======
     //  Methods
@@ -190,6 +207,34 @@ public class DefaultGrf
         return component;
     }
 
+    /** 
+     * Establish a graphics context for grouping a set of related drawing
+     * operations. The context is associated with the given String, which you
+     * must ensure is unique within your application. 
+     * The key can be used to reference this context when clearing grahics.
+     * A special context {@link #DEFAULT} is recognised as the default
+     * context. This is the initial state and can be reused (although
+     * switching back will produce a confusion in the Z-ordering of the
+     * graphics, all elements drawn to the default context will be rendered first).
+     *
+     * @param key a key to associate with this context. If null then the
+     *            DEFAULT context will be assumed.
+     */
+    public void establishContext( String key )
+    {
+        if ( key == null || key.equals( DEFAULT ) ) {
+            
+            //  Default context. Retrieve this if available.
+            if ( masterContext.size() != 0 ) {
+                currentContext = (ArrayList) masterMap.get( key );
+                return;
+            }
+        }
+        currentContext = new ArrayList();
+
+        masterMap.put( key, currentContext );
+        masterContext.add( currentContext );
+    }
 
     /**
      * Draw the complete current graphics context onto a Graphics2D
@@ -203,14 +248,49 @@ public class DefaultGrf
         update( g2 );
     }
 
-
     /**
-     * Clear all graphics buffers (does not erase drawing).
+     * Clear all graphics buffers. Note this  does not erase drawing, that
+     * happens after next paint.
      */
     public void reset()
     {
-        context.clear();
+        masterContext.clear();
         gstate = new DefaultGrfState();
+    }
+
+    /**
+     * Remove and return all graphics in a given context. Returns the complete
+     * context, if found, otherwise a null is returned. The returned context
+     * maybe reestablished using the {@link reAdd} method (although the
+     * Z-order will now be different).
+     */
+    public Object remove( String key )
+    {
+        Object removedList = masterMap.remove( key );
+        if ( removedList != null ) {
+            masterContext.remove( removedList );
+            masterMap.put( key, null );
+        }
+        gstate = new DefaultGrfState();
+        return removedList;
+    }
+
+    /**
+     * Re-add a removed context. The context must have been returned by the
+     * {@link remove} method.
+     */
+    public void reAdd( String key, Object context )
+    {
+        if ( key == null || key.equals( DEFAULT ) ) {
+            
+            //  Default context. Not allowed, so ignore.
+            return;
+        }
+        if ( context instanceof ArrayList ) {
+            currentContext = (ArrayList) context;
+            masterMap.put( key, currentContext );
+            masterContext.add( currentContext );
+        }
     }
 
 
@@ -226,7 +306,7 @@ public class DefaultGrf
             DefaultGrfContainer g =
                 new DefaultGrfContainer( DefaultGrfContainer.LINE, x, y,
                                          gstate );
-            context.add( g );
+            currentContext.add( g );
         }
     }
 
@@ -246,7 +326,7 @@ public class DefaultGrf
             DefaultGrfContainer g =
                 new DefaultGrfContainer( DefaultGrfContainer.MARK,
                                          x, y, type, gstate );
-            context.add( g );
+            currentContext.add( g );
         }
     }
 
@@ -287,7 +367,7 @@ public class DefaultGrf
         if ( component != null ) {
             DefaultGrfContainer g =
                 textProperties( text, x, y, just, upx, upy );
-            context.add( g );
+            currentContext.add( g );
         }
     }
 
@@ -713,16 +793,26 @@ public class DefaultGrf
     protected void update( Graphics2D g2 )
     {
         DefaultGrfContainer cont;
-        for ( int i = 0; i < context.size(); i++ ) {
-            cont = (DefaultGrfContainer) context.get( i );
-            if ( cont.getType() == DefaultGrfContainer.LINE ) {
-                drawLine( g2, cont );
-            }
-            else if ( cont.getType() == DefaultGrfContainer.MARK ) {
-                drawMark( g2, cont );
-            }
-            else if ( cont.getType() == DefaultGrfContainer.TEXT ) {
-                drawText( g2, cont );
+        ArrayList context = null;
+        int size = 0;
+
+        //  Recover the context lists in the order they were added.
+        for ( int j = 0; j < masterContext.size(); j++ ) {
+            context = (ArrayList) masterContext.get( j );
+            
+            //  Render each context container in the order they were added.
+            size = context.size();
+            for ( int i = 0; i < size; i++ ) {
+                cont = (DefaultGrfContainer) context.get( i );
+                if ( cont.getType() == DefaultGrfContainer.LINE ) {
+                    drawLine( g2, cont );
+                }
+                else if ( cont.getType() == DefaultGrfContainer.MARK ) {
+                    drawMark( g2, cont );
+                }
+                else if ( cont.getType() == DefaultGrfContainer.TEXT ) {
+                    drawText( g2, cont );
+                }
             }
         }
     }
