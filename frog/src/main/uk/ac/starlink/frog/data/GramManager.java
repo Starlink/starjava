@@ -181,7 +181,19 @@ public class GramManager
         // increment the gramCounter
         gramCounter = gramCounter + 1;
     }
-    
+
+    /**
+     * Return the gram key when referenced by a GramControlFrame 
+     *
+     * @param f GramControlFrame containing a GramComp object
+     * @return key Unique lookup key for this object
+     */
+     public String getKey( GramControlFrame frame ) 
+     {
+        return (String)reverseMap.get(frame);
+        
+     }  
+       
     /**
      * Remove Gram and JInteralFrame objects with a keyword
      *

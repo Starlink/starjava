@@ -13,6 +13,11 @@ import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.view.TableViewer;
+
 import uk.ac.starlink.frog.data.Gram;
 import uk.ac.starlink.frog.data.GramComp;
 import uk.ac.starlink.frog.data.GramManager;
@@ -199,7 +204,21 @@ public class GramControlFrame extends JInternalFrame
 
         // separator
         fileMenu.addSeparator();
-                        
+
+        JMenuItem tableItem = new JMenuItem("View Data");
+        tableItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+
+               debugManager.print( "Creating TableViewer Popup...");
+               doTableViewer( );     
+           }
+        }); 
+        fileMenu.add(tableItem);       
+
+
+        // separator
+        fileMenu.addSeparator();
+                                
         // Close Window
         JMenuItem closeItem = new JMenuItem("Close");
         closeItem.setMnemonic(KeyEvent.VK_C);
@@ -496,6 +515,68 @@ public class GramControlFrame extends JInternalFrame
        menuBar.add( opsMenu );
     
     }
+
+
+    /**
+     * Spawn a TableViewer popup
+     *
+     */
+     protected void doTableViewer( ) 
+     {
+     
+        Gram gram = gramManager.getGram(this).getGram();
+     
+        ColumnInfo iColInfo = null;
+        ColumnInfo xColInfo = null;
+        ColumnInfo yColInfo = null;
+        ColumnInfo eColInfo = null;
+        
+        iColInfo = new ColumnInfo( "Index", Integer.class, "Row index" );
+        xColInfo = new ColumnInfo( "Frequency", Double.class, "Frequency" );
+        yColInfo = new ColumnInfo( "Power", Double.class, "Power / arbitary" );
     
+        // grab data
+        double xRef[] = gram.getXData();
+        double yRef[] = gram.getYData();
+         
+        // copy the arrays, this sucks as it double the memory requirement
+        // or the application at a stroke, but we currently have only
+        // references to the data held in the currentGram object.
+        double xData[] = (double[]) xRef.clone();
+        double yData[] = (double[]) yRef.clone();
+
+        // make row index
+        int iData[] = new int[xData.length];
+        for ( int i = 0; i < xData.length; i++ ) {
+            iData[i] = i;
+        }
+              
+        // you can add some more column metadata here by calling ColumnInfo
+        // methods if you've got more to say about these columns
+
+        ArrayColumn iCol = ArrayColumn.makeColumn( iColInfo, iData );
+        ArrayColumn xCol = ArrayColumn.makeColumn( xColInfo, xData );
+        ArrayColumn yCol = ArrayColumn.makeColumn( yColInfo, yData );
+
+        final int nRows = xData.length;
+        ColumnStarTable sTable = new ColumnStarTable() {
+            public long getRowCount() {
+                return (long) nRows;
+            }
+        };
+
+        sTable.setName( gramManager.getKey( this ) );
+
+        // you can add some more table metadata here by calling 
+        // AbstractStarTable methods on st if you've got more to say
+
+        sTable.addColumn( iCol );
+        sTable.addColumn( xCol );
+        sTable.addColumn( yCol );
+        
+        // spawn the table viewer
+        new TableViewer( sTable, null );
+  
+     }      
         
 }

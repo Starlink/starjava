@@ -126,7 +126,17 @@ public class GramComp implements GramAccess
      {
         return currentGram;
      }     
-    
+     
+   /**
+     * Get the "current" gram
+     *
+     * @return gra, The current gram object
+     */
+     public Gram getGram( )
+     {
+        return (Gram) gram.get( currentGram );
+     } 
+          
 
     /**
      *  Get a reference to a gram.

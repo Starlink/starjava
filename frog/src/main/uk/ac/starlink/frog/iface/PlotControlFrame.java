@@ -748,7 +748,7 @@ public class PlotControlFrame extends JInternalFrame
         }
         
         // spawn the table viewer
-        new TableViewer( sTable, seriesManager.getFrog() );
+        new TableViewer( sTable, null );
   
      }  
        
