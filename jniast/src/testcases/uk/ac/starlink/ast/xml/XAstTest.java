@@ -1,6 +1,7 @@
 package uk.ac.starlink.ast.xml;
 
 import java.io.IOException;
+import javax.xml.transform.Source;
 import org.w3c.dom.Element;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.Frame;
@@ -35,15 +36,26 @@ public class XAstTest extends TestCase {
         fset.setID( confusingID );
     }
 
-    public void testReadWrite() throws IOException {
+    public void testReadWriteElement() throws IOException {
         Element el = xw.makeElement( fset, "hdx:" );
         AstObject obj = xr.makeAst( el, "hdx:" );
         assertEquals( obj.getID(), confusingID );
         assertTrue( obj.equals( fset ) );
+        obj.setID( "something else" );
+        assertTrue( ! obj.equals( fset ) );
 
         Element el2 = xw.makeElement( fset, null );
         AstObject obj2 = xr.makeAst( el2, null );
         assertTrue( obj2.equals( fset ) );
+    }
+
+    public void testReadWriteSource() throws IOException {
+        Source xsrc = xw.makeSource( fset, "eric:" );
+        AstObject obj = xr.makeAst( xsrc, "eric:" );
+        assertEquals( obj.getID(), confusingID );
+        assertTrue( obj.equals( fset ) );
+        obj.setID( "something else" );
+        assertTrue( ! obj.equals( fset ) );
     }
 
     public void testExceptions() {

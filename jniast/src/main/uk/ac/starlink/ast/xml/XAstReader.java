@@ -3,14 +3,18 @@ package uk.ac.starlink.ast.xml;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.Channel;
+import uk.ac.starlink.util.SourceReader;
 
 /** 
- * Provides a method of getting an AstObject from an XML Element.
+ * Provides a method of getting an AstObject from its XML representation.
  *
  * @author Mark Taylor
  * @author Peter W. Draper
@@ -23,9 +27,9 @@ public class XAstReader {
      * @param  el  the Element to transform
      * @param  prefix the namespace prefix for elements and
      *             attributes, null for none (include :)
-     * @return     the AstObject constructed from el
-     * @throws     IOException  if el does not have the correct structure
-     *             to be an AstObject
+     * @return     the AstObject constructed from <tt>el</tt>
+     * @throws     IOException  if <tt>el</tt> does not have the correct 
+     *             structure to be an <tt>AstObject</tt>
      */
     public AstObject makeAst( Element el, String prefix ) throws IOException {
         ChannelWriter chan = new ChannelWriter( prefix );
@@ -37,6 +41,41 @@ public class XAstReader {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    /**
+     * Constructs an AstObject from an XML Source.
+     *
+     * @param  xsrc  the XML Source to transform
+     * @param  prefix the namespace prefix for elements and
+     *             attributes, null for none (include :)
+     * @return the AstObject constructed from <tt>xsrc</tt>
+     * @throws    IOException  if <tt>xsrc</tt> does not have the right
+     *            structure to be an <tt>AstObject</tt>
+     */
+    public AstObject makeAst( Source xsrc, String prefix ) throws IOException {
+        Node node;
+        try {
+            node = new SourceReader().getDOM( xsrc );
+        }
+        catch ( TransformerException e ) {
+            throw (IOException) 
+                  new IOException( "Error transforming XML source: "
+                                 + e.getMessage() )
+                 .initCause( e );
+        }
+        Element el;
+        if ( node instanceof Document ) {
+            el = ((Document) node).getDocumentElement();
+        }
+        else if ( node instanceof Element ) {
+            el = (Element) node;
+        }
+        else {
+            throw new IOException( 
+                "Source does not represent an Element or Document" );
+        }
+        return makeAst( el, prefix );
     }
 
     /*

@@ -6,22 +6,18 @@ import java.util.Stack;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.Channel;
+import uk.ac.starlink.util.SourceReader;
 
 
 /**
- * Provides a method of getting an XML Element from an AstObject.
+ * Provides a method of getting the XML representation for an AstObject.
  *
  * @author Mark Taylor
  * @author Peter W. Draper
@@ -31,10 +27,10 @@ public class XAstWriter {
     /**
      * Turns an AstObject into an Element.
      *
-     * @param   obj  the AstObject
+     * @param   obj  the AstObject to be serialised
      * @param   prefix the namespace prefix for elements and
      *                 attributes, null for none (include :)
-     * @return  an Element representing obj
+     * @return  an Element representing <tt>obj</tt>
      */
     public Element makeElement( AstObject obj, String prefix ) {
         ChannelReader chan;
@@ -56,6 +52,19 @@ public class XAstWriter {
     }
 
     /**
+     * Turns an AstObject into an XML Source.
+     *
+     * @param   obj     the AstObject to be serialised
+     * @param   prefix  the namespace prefix for elements and attributes,
+     *                  null for none (include :)
+     * @return  a Source representing <tt>obj</tt>
+     */
+    public Source makeSource( AstObject obj, String prefix ) {
+        Element el = makeElement( obj, prefix );
+        return new DOMSource( el );
+    }
+
+    /**
      * Convenience method to write the XML representation of an AstObject
      * to an output stream.
      *
@@ -65,49 +74,17 @@ public class XAstWriter {
      */
     public static void trace( AstObject obj, OutputStream out )
             throws IOException {
-        XAstWriter xwriter = new XAstWriter();
-        Element el = xwriter.makeElement( obj, null );
-        Source xsrc = new DOMSource( el );
-        Result xres = new StreamResult( out );
+        SourceReader sr = new SourceReader().setIncludeDeclaration( false )
+                                            .setIndent( 2 );
+        Source xsrc = new XAstWriter().makeSource( obj, null );
         try {
-            getStreamTransformer().transform( xsrc, xres );
+            sr.writeSource( xsrc, out );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
     }
-
-    /**
-     * Returns a transformer suitable for writing an XML-ised AstObject
-     * to an OutputStream.  Tempting to cache the transformer, but best not
-     * since Transformer is documented not to be thread-safe.
-     */
-    private static Transformer getStreamTransformer() 
-            throws TransformerException {
-
-        /* Get a transformer. */
-        Transformer strans = TransformerFactory.newInstance().newTransformer();
-
-        /* The following properties ought to be configurable, but if
-         * not we will continue anyway. */
-        try {
-            strans.setOutputProperty( OutputKeys.INDENT, "yes" );
-            strans.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
-            strans.setOutputProperty( OutputKeys.METHOD, "xml" );
-        }
-        catch ( IllegalArgumentException e ) {
-            // no action
-        }
-
-        /* Attempt to set the indent; if we don't have an Apache 
-         * transformer this may have no effect, but at worst it is 
-         * harmless. */
-        strans.setOutputProperty( "{http://xml.apache.org/xslt}indent-amount",
-                                 "2" );
-        return strans;
-    }
-
 
     /*
      * Handles the work of turning an AstObject into XML.
