@@ -67,6 +67,12 @@ public class OptionsListModel extends AbstractList implements ListModel {
         return ret;
     }
 
+    public Object set( int irow, Object obj ) {
+        Object oldval = options.set( irow, obj );
+        bmodel.fireContentsChanged( bmodel, irow, irow );
+        return oldval;
+    }
+
     /**
      * Constructs a new ComboBoxModel backed by this list.
      *
@@ -106,7 +112,8 @@ public class OptionsListModel extends AbstractList implements ListModel {
      * Makes a new JComboBox from this model.  This adds to the functionality
      * of {@link #makeComboBoxModel} by ensuring that the box is 
      * revalidated when new items are added to the model; otherwise the
-     * box can end up too small.
+     * box can end up too small.  It also ensures that the box is
+     * rendered by using the name of the RowSubset is written.
      *
      * @return  a combo box from which items in this model can be selected
      */
@@ -118,6 +125,16 @@ public class OptionsListModel extends AbstractList implements ListModel {
             }
             public void intervalRemoved( ListDataEvent evt ) {}
             public void contentsChanged( ListDataEvent evt ) {}
+        } );
+        box.setRenderer( new CustomComboBoxRenderer() {
+            public Object mapValue( Object value ) {
+                if ( value instanceof RowSubset ) {
+                    return ((RowSubset) value).getName();
+                }
+                else {
+                    return value;
+                }
+            }
         } );
         return box;
     }
