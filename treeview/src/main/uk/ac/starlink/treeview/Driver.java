@@ -237,6 +237,7 @@ public class Driver {
     private static void guessProperties() {
         Properties props = System.getProperties();
         String prefix = "uk.ac.starlink.treeview.";
+        String sc = "" + File.separatorChar;
 
         String cmdnameProp = prefix + "cmdname";
         if ( ! props.containsKey( cmdnameProp ) ) {
@@ -245,20 +246,22 @@ public class Driver {
 
         File sdir = Loader.starjavaDirectory();
         if ( sdir != null ) {
-            String stardir = sdir.toString() + "/";
+            String stardir = sdir.toString() + sc;
             String demodirProp = prefix + "demodir";
             if ( ! props.containsKey( demodirProp ) ) {
-                props.setProperty( demodirProp, stardir + "etc/treeview/demo" );
+                props.setProperty( demodirProp, stardir + "etc" + sc + 
+                                                "treeview" + sc + "demo" );
             }
 
             String sogdirProp = prefix + "sogdir";
             if ( ! props.containsKey( sogdirProp ) ) {
-                props.setProperty( sogdirProp, stardir + "bin/sog" );
+                props.setProperty( sogdirProp, stardir + "bin" + sc + "sog" );
             }
 
             String splatdirProp = prefix + "splatdir";
             if ( ! props.containsKey( splatdirProp ) ) {
-                props.setProperty( splatdirProp, stardir + "bin/splat" );
+                props.setProperty( splatdirProp, stardir + "bin" + 
+                                                 sc + "splat" );
             }
         }
     }

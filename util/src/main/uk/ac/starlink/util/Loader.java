@@ -2,7 +2,10 @@ package uk.ac.starlink.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +17,8 @@ import java.util.regex.Pattern;
  * @author   Mark Taylor (Starlink)
  */
 public class Loader {
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.util" );
 
     /**
      * Returns the location of the main Starlink java directory which 
@@ -30,10 +35,18 @@ public class Loader {
      */
     public static File starjavaDirectory() {
         URL classURL = Loader.class.getResource( "Loader.class" );
-        Matcher matcher = Pattern.compile( "jar:file:(.*)!.*" )
+        Matcher matcher = Pattern.compile( "^jar:(file:.*?)!.*" )
                                  .matcher( classURL.toString() );
         if ( matcher.matches() ) {
-            File jarfile = new File( matcher.group( 1 ) );
+            URI jaruri;
+            try {
+                jaruri = new URI( matcher.group( 1 ) );
+            }
+            catch ( URISyntaxException e ) {
+                logger.warning( "Unexpected URI syntax exception + e" );
+                return null;
+            }
+            File jarfile = new File( jaruri );
             if ( jarfile.exists() ) {
                 File sjfile;
                 try {
@@ -53,6 +66,10 @@ public class Loader {
                     return sjfile;
                 }
             }
+        }
+        else {
+            logger.warning( "Loader.class location " 
+                          + classURL + " unexpected" );
         }
         return null;
     }
