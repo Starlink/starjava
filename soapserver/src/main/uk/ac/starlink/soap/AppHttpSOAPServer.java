@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.Socket;
 import java.util.Vector;
 
 import javax.servlet.Servlet;
@@ -54,7 +55,10 @@ import org.mortbay.xml.XmlConfiguration;
  *    server.addSOAPServices( <Url of "deploy.wsdd" file> );
  * </pre>
  *
- * @author Peter W. Draper
+ * Automatically incrememnets the port number from the one given until
+ * it finds a free port to put the server onto.
+ *
+ * @author Peter W. Draper, Alasdair Allan
  * @version $Id$
  * @since 22-MAY-2002
  */
@@ -80,8 +84,7 @@ public class AppHttpSOAPServer extends HttpServer
      *
      * @param portNum the port on which to establish the HTTP services
      */
-    public AppHttpSOAPServer( int portNum )
-        throws IOException
+    public AppHttpSOAPServer( int portNum ) throws IOException
     {
         //  Define the port number.
         setDefaultPort( portNum );
@@ -194,15 +197,45 @@ public class AppHttpSOAPServer extends HttpServer
     }
 
     /**
-     * Set the default port number to use.
+     * Set the default port number to use, will try the suggested port
+     * number, if free will set the port number to that. However if that
+     * port is in use it will in incremement the number until it finds
+     * a free port. It will then put the server on that port.
      *
      * @param portNum the port number.
      */
     protected void setDefaultPort( int portNum )
     {
-        System.setProperty( "jetty.port", Integer.toString( portNum ) );
-        this.portNum = portNum;
+    
+        int startPort = portNum;
+        int usingPort = startPort;           
+        for( int i = startPort; i < startPort+1000; i++ ) {
+                   
+           // check port 
+           boolean open = true;
+           try {
+              Socket tempSocket = new Socket( "localhost", i );
+              tempSocket.close();
+           } catch (Exception any) {
+              // Fails if not already in use, which is good.
+              open = false;
+           }
+           
+           if( !open) {
+              usingPort = i;
+              //System.out.println( "Using port " + usingPort );
+              break;
+           }
+        }   
+    
+        System.setProperty( "jetty.port", Integer.toString( usingPort ) );
+        this.portNum = usingPort;
     }
+    
+    public int getPort( ) 
+    {
+       return this.portNum;
+    }   
 
     /* ------------------------------------------------------------ */
     public static void main(String[] arg)
