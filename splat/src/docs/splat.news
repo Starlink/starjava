@@ -38,3 +38,11 @@ spectra should have monotonic coordinates has been removed (you can plot
 these, but the results may be unpredictable).
 
 Peter W. Draper (p.w.draper@durham.ac.uk)          11th May 2004
+
+A bug in the astrometry reading software has been fixed. This led to the 
+application of CDELT1 and CD1_1 scales to the wavelength range of some
+spectra (produced by IRAF), which meant that the range was underestimated
+by a scale CDELT1.
+
+
+Peter W. Draper (p.w.draper@durham.ac.uk)          9th Sep 2004
