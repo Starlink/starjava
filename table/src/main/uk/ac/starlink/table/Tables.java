@@ -242,6 +242,36 @@ public class Tables {
     }
 
     /**
+     * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
+     * If the supplied long integer <tt>lval</tt> is out of the range
+     * which can be represented in an <tt>int</tt>, then unlike a
+     * typecast, this method will throw an <tt>IllegalArgumentException</tt>.
+     *
+     * @param  the <tt>long</tt> value to convert
+     * @return an <tt>int</tt> value which has the same value as <tt>lval</tt>
+     * @throws IllegalArgumentException  if the conversion cannot be done
+     */
+    public static int checkedLongToInt( long lval ) {
+        int ival = (int) lval;
+        if ( (long) ival == lval ) {
+            return ival;
+        }
+        else {
+            if ( ival < Integer.MIN_VALUE ) { 
+                throw new IllegalArgumentException( "Out of supported range: "
+                    + ival + " < Integer.MIN_VALUE" );
+            }
+            else if ( ival > Integer.MAX_VALUE ) {
+                throw new IllegalArgumentException( "Out of supported range: "
+                    + ival + " > Integer.MAX_VALUE" );
+            }
+            else {
+                throw new AssertionError();
+            }
+        }
+    }
+
+    /**
      * Implements assertion semantics.  This differs from the <tt>assert</tt>
      * Java 1.4 language element in that the assertion is always done,
      * it doesn't depend on the JVM running in assertions-enabled mode.
