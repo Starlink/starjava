@@ -104,7 +104,6 @@ public class Sog {
         }
         SOGNavigatorImageDisplay sogger =
             (SOGNavigatorImageDisplay) soggers_.get( label );
-  System.out.println( "showing: " + sogger.isShowing() );
         if ( ! sogger.isShowing() ) {
             SwingUtilities.windowForComponent( sogger ).setVisible( true );
         }
