@@ -1,21 +1,16 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
-import uk.ac.starlink.table.ReaderRowSequence;
-import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DataSource;
@@ -52,111 +47,44 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextStarTable extends AbstractStarTable {
+public class TextStarTable extends StreamStarTable {
 
-    private static final char END = (char) -1;
-
-    private final DataSource datsrc_;
-    private int ncol_;
-    private long nrow_;
-    private ColumnInfo[] colInfos_;
-    private Decoder[] decoders_;
     private List comments_;
-    private boolean[] maybeBoolean_;
-    private boolean[] maybeShort_;
-    private boolean[] maybeInteger_;
-    private boolean[] maybeLong_;
-    private boolean[] maybeFloat_;
-    private boolean[] maybeDouble_;
-    private int[] stringLength_;
     private boolean dataStarted_;
-    private List cellList_ = new ArrayList();
 
     /**
      * Constructs a new TextStarTable from a datasource.
      *
-     * @param  stream  the data stream containing the table text
+     * @param  datsrc  the data source containing the table text
+     * @throws TableFormatException  if the input stream doesn't appear to
+     *         form a text-format table
+     * @throws IOException if some I/O error occurs
      */
-    public TextStarTable( DataSource datsrc ) throws IOException {
-        datsrc_ = datsrc;
-
-        /* Read the stream once to find out all about the columns in the 
-         * table.  If we don't have something we can turn into a table,
-         * this will throw a TableFormatException  */
-        readMetadata();
-
-        /* Configure table characteristics from the data source. */
-        setName( datsrc.getName() );
-        setURL( datsrc.getURL() );
+    public TextStarTable( DataSource datsrc )
+            throws TableFormatException, IOException {
+        super( datsrc );
     }
 
-    public int getColumnCount() {
-        return ncol_;
-    }
-
-    public long getRowCount() {
-        return nrow_;
-    }
-
-    public ColumnInfo getColumnInfo( int icol ) {
-        return colInfos_[ icol ];
-    }
-
-    public RowSequence getRowSequence() throws IOException {
-        final PushbackInputStream in = getInputStream();
-        return new ReaderRowSequence() {
-            protected Object[] readRow() throws IOException {
-                List cellList = TextStarTable.this.readRow( in );
-                if ( cellList == null ) {
-                    in.close();
-                    return null;
-                }
-                else {
-                    Object[] row = new Object[ ncol_ ];
-                    for ( int icol = 0; icol < ncol_; icol++ ) {
-                        String sval = (String) cellList.get( icol );
-                        if ( sval != null && sval.length() > 0 ) {
-                            row[ icol ] = decoders_[ icol ].decode( sval );
-                        }
-                    }
-                    return row;
-                }
-            }
-        };
-    }
-
-    private PushbackInputStream getInputStream() throws IOException {
-        return new PushbackInputStream( 
-                   new BufferedInputStream( datsrc_.getInputStream() ) );
-    }
-
-    private void readMetadata() throws IOException {
+    protected Metadata obtainMetadata()
+            throws TableFormatException, IOException {
 
         /* Get an input stream. */
         PushbackInputStream in = getInputStream();
 
         /* Look at each row in it counting cells and assessing what sort of
          * data they look like. */
+        RowEvaluator evaluator = new RowEvaluator();
         comments_ = new ArrayList();
+        long lrow = 0;
         try {
-            long lrow = 0;
             for ( List row; ( row = readRow( in ) ) != null; ) {
                 lrow++;
-                int nc = row.size();
-                if ( lrow == 1 ) {
-                    initMetadata( nc );
-                }
-                if ( nc != ncol_ ) {
-                    throw new TableFormatException(
-                        "Wrong number of columns at row " + lrow + 
-                        " (expecting " + ncol_ + ", found " + nc +  ")" );
-                }
-                evaluateRow( row );
+                evaluator.submitRow( row );
             }
-            if ( lrow == 0 ) {
-                throw new TableFormatException( "No rows" );
-            }
-            nrow_ = lrow;
+        }
+        catch ( TableFormatException e ) {
+            throw new TableFormatException( e.getMessage() + " at row " + lrow,
+                                            e );
         }
         finally {
             if ( in != null ) {
@@ -164,216 +92,29 @@ public class TextStarTable extends AbstractStarTable {
             }
         }
 
-        /* Turn the information we have into a list of column headers. */
-        setupColumns();
-        interpretComments();
+        /* Get and check the metadata. */
+        Metadata meta = evaluator.getMetadata();
+        if ( meta.nrow_ == 0 ) {
+            throw new TableFormatException( "No rows" );
+        }
+
+        /* Try to make use of any comment lines we read. */
+        interpretComments( meta.colInfos_ );
         comments_ = null;
-    }
 
-    /**
-     * Looking at the information we have collected on the way through 
-     * the table, sets up the required state to be able to turn the
-     * stream into a RowSequence.
-     */
-    private void setupColumns() {
-        colInfos_ = new ColumnInfo[ ncol_ ];
-        decoders_ = new Decoder[ ncol_ ];
-        for ( int icol = 0; icol < ncol_; icol++ ) {
-            Class clazz;
-            Decoder decoder;
-            ColumnInfo colinfo;
-            String name = "col" + ( icol + 1 );
-            if ( maybeBoolean_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Boolean.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        char v1 = value.charAt( 0 );
-                        return ( v1 == 't' || v1 == 'T' ) ? Boolean.TRUE
-                                                          : Boolean.FALSE;
-                    }
-                };
-            }
-            else if ( maybeShort_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Short.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return new Short( Short.parseShort( value ) );
-                    }
-                };
-            }
-            else if ( maybeInteger_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Integer.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return new Integer( Integer.parseInt( value ) );
-                    }
-                };
-            }
-            else if ( maybeFloat_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Float.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return new Float( Float.parseFloat( value ) );
-                    }
-                };
-            }
-            else if ( maybeDouble_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Double.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return new Double( Double.parseDouble( value ) );
-                    }
-                };
-            }
-            else if ( maybeLong_[ icol ] ) {
-                colinfo = new ColumnInfo( name, Long.class, null );
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return new Long( Long.parseLong( value ) );
-                    }
-                };
-            }
-            else {
-                colinfo = new ColumnInfo( name, String.class, null );
-                colinfo.setElementSize( stringLength_[ icol ] );
-                clazz = String.class;
-                decoder = new Decoder() {
-                    Object decode( String value ) {
-                        return value;
-                    }
-                };
-            }
-            colInfos_[ icol ] = colinfo;
-            decoders_[ icol ] = decoder;
-        }
-    }
-
-    /**
-     * Asserts that if the rows in this table represent a table, it's
-     * one with a given number of columns.  Does any required setup.
-     *
-     * @param  ncol   number of columns we're looking for
-     */
-    private void initMetadata( int ncol ) {
-        ncol_ = ncol;
-        maybeBoolean_ = makeFlagArray( true );
-        maybeShort_ = makeFlagArray( true );
-        maybeInteger_ = makeFlagArray( true );
-        maybeFloat_ = makeFlagArray( true );
-        maybeDouble_ = makeFlagArray( true );
-        maybeLong_ = makeFlagArray( true );
-        stringLength_ = new int[ ncol ];
-        dataStarted_ = true;
-    }
-
-    /**
-     * Returns a new <tt>ncol</tt>-element boolean array.
-     *
-     * @param   val  initial value of all flags
-     * @return  new flag array initialized to <tt>val</tt>
-     */
-    private boolean[] makeFlagArray( boolean val ) {
-        boolean[] flags = new boolean[ ncol_ ];
-        Arrays.fill( flags, val );
-        return flags;
-    }
-
-    /**
-     * Looks at a given row (list of strings) and records information about
-     * what sort of things it looks like it contains.
-     */
-    private void evaluateRow( List row ) {
-        assert row.size() == ncol_;
-        for ( int icol = 0; icol < ncol_; icol++ ) {
-            boolean done = false;
-            String cell = (String) row.get( icol );
-            int leng = cell.length();
-            if ( cell == null || leng == 0 ) {
-                done = true;
-            }
-            if ( leng > stringLength_[ icol ] ) {
-                stringLength_[ icol ] = leng;
-            }
-            if ( ! done && maybeBoolean_[ icol ] ) {
-                if ( cell.equalsIgnoreCase( "false" ) ||
-                     cell.equalsIgnoreCase( "true" ) ||
-                     cell.equalsIgnoreCase( "f" ) ||
-                     cell.equalsIgnoreCase( "t" ) ) {
-                    done = true;
-                }
-                else {
-                    maybeBoolean_[ icol ] = false;
-                }
-            }
-            /* We are careful to check for "-0" type cells here - it is
-             * essential that they are coded as floating types (which 
-             * can represent negative zero) rather than integer types
-             * (which can't), since a negative zero is most likely the
-             * hours/degrees part of a sexegesimal angle, in which the
-             * difference is very important 
-             * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
-            boolean isMinus = ( ! done ) ? cell.charAt( 0 ) == '-' : false;
-            
-            if ( ! done && maybeShort_[ icol ] ) {
-                try {
-                    short val = Short.parseShort( cell );
-                    if ( val == (short) 0 && isMinus ) {
-                        throw new NumberFormatException();
-                    }
-                    done = true;
-                }
-                catch ( NumberFormatException e ) {
-                    maybeShort_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeInteger_[ icol ] ) {
-                try {
-                    int val = Integer.parseInt( cell );
-                    if ( val == 0 && isMinus ) {
-                        throw new NumberFormatException();
-                    }
-                    done = true;
-                }
-                catch ( NumberFormatException e ) {
-                    maybeInteger_[ icol ] = false;
-                }
-            }
-            if ( ! done && ( maybeFloat_[ icol ] || maybeDouble_[ icol ] ) ) {
-                try {
-                    ParsedFloat pf = parseFloating( cell );
-                    if ( maybeFloat_[ icol ] ) {
-                        if ( pf.sigFig > 7 ) {
-                            maybeFloat_[ icol ] = false;
-                        }
-                        else if ( ! Double.isInfinite( pf.dValue ) &&
-                                  Float.isInfinite( (float) pf.dValue ) ) {
-                            maybeFloat_[ icol ] = false;
-                        }
-                    }
-                    done = true;
-                }
-                catch ( NumberFormatException e ) {
-                    maybeFloat_[ icol ] = false;
-                    maybeDouble_[ icol ] = false;
-                }
-            }
-            if ( ! done && maybeLong_[ icol ] ) {
-                try {
-                    Long.parseLong( cell );
-                    done = true;
-                }
-                catch ( NumberFormatException e ) {
-                    maybeLong_[ icol ] = false;
-                }
-            }
-        }
+        return meta;
     }
 
     /**
      * Tries to make sense of any comment lines which have been read.
+     * It may make changes to the initial <tt>colInfos</tt> set with
+     * which it is provided.
+     *
+     * @param  colInfos  column infos already worked out for this table
      */
-    private void interpretComments() throws IOException {
+    private void interpretComments( ColumnInfo[] colInfos ) throws IOException {
         trimLines( comments_ );
+        int ncol = colInfos.length;
 
         /* Try to interpret the last remaining comment line as a set of
          * column headings. */
@@ -385,10 +126,10 @@ public class TextStarTable extends AbstractStarTable {
             /* If this line looks like a set of headings (there are the
              * right number of fields) modify the colinfos accordingly and
              * remove it from the set of comments. */
-            if ( headings.size() == ncol_ ) {
+            if ( headings.size() == ncol ) {
                 comments_.remove( comments_.size() - 1 );
-                for ( int i = 0; i < ncol_; i++ ) {
-                    colInfos_[ i ].setName( (String) headings.get( i ) );
+                for ( int i = 0; i < ncol; i++ ) {
+                    colInfos[ i ].setName( (String) headings.get( i ) );
                 }
                 trimLines( comments_ );
             }
@@ -420,16 +161,16 @@ public class TextStarTable extends AbstractStarTable {
      * @return  list of Strings one for each cell in the row, or 
      *          <tt>null</tt> for end of stream
      */
-    private List readRow( PushbackInputStream in ) throws IOException {
-        cellList_.clear();
-        while ( cellList_.size() == 0 ) {
+    protected List readRow( PushbackInputStream in ) throws IOException {
+        List cellList = new ArrayList();
+        while ( cellList.size() == 0 ) {
             for ( boolean endLine = false; ! endLine; ) {
                 int c = in.read();
                 switch ( (char) c ) {
                     case '\r':
                     case '\n':
                     case END:
-                        if ( cellList_.size() == 0 ) {
+                        if ( cellList.size() == 0 ) {
                             return null;
                         }
                         endLine = true;
@@ -449,15 +190,16 @@ public class TextStarTable extends AbstractStarTable {
                     case '"':
                     case '\'':
                         in.unread( c );
-                        cellList_.add( readString( in ) );
+                        cellList.add( readString( in ) );
                         break;
                     default:
                         in.unread( c );
-                        cellList_.add( readToken( in ) );
+                        cellList.add( readToken( in ) );
                 }
             }
         }
-        return cellList_;
+        dataStarted_ = true;
+        return cellList;
     }
 
     /**
@@ -554,7 +296,7 @@ public class TextStarTable extends AbstractStarTable {
     }
 
     /**
-     * Reads a row of heaadings from a stream.  This is speculative; it
+     * Reads a row of headings from a stream.  This is speculative; it
      * will interpret the remaining characters in a row as if it is a
      * set of text titles for following columns.  When the rest of the
      * table has been read, if the number of items in this array turns
@@ -620,103 +362,5 @@ public class TextStarTable extends AbstractStarTable {
                 break;
             }
         }
-    }
-
-    /**
-     * Helper class to encapsulate the result of a floating point number 
-     * parse.
-     */
-    private static class ParsedFloat {
-
-        /** Singleton instance. */
-        static ParsedFloat instance = new ParsedFloat();
-
-        /** Number of significant figures. */
-        int sigFig;
-
-        /** Value of the number. */
-        double dValue;
-
-        /**
-         * Returns an instance with given values.  This is always the
-         * same instance - cheap, and possible, because we happen to know
-         * only one instance is ever considered at once.
-         */
-        static ParsedFloat getInstance( int sigFig, double dValue ) {
-            instance.sigFig = sigFig;
-            instance.dValue = dValue;
-            return instance;
-        }
-    }
-
-    /**
-     * Parses a floating point value.  This does a couple of extra things
-     * than Double.parseDouble - it understands 'd' or 'D' as the exponent
-     * signifier as well as 'e' or 'E', and it counts the number of
-     * significant figures.
-     *
-     * @param   item  string representing a floating point number
-     * @return  object encapsulating information about the floating pont
-     *          value extracted from <tt>item</tt> - note it's always the
-     *          same instance returned, so don't hang onto it
-     * @throws  NumberFormatException  if <tt>item</tt> can't be understood
-     *          as a float or double
-     */
-    private static ParsedFloat parseFloating( String item ) {
-
-        /* Do a couple of jobs by looking at the string directly:
-         * Substitute 'd' or 'D' which may indicate an exponent in 
-         * FORTRAN77-style output for an 'e', and count the number of
-         * significant figures.  With some more work it would be possible
-         * to do the actual parse here, but since this probably isn't
-         * a huge bottleneck we leave it to Double.parseDouble. */
-        int nc = item.length();
-        boolean foundExp = false;
-        int sigFig = 0;
-        for ( int i = 0; i < nc; i++ ) {
-            char c = item.charAt( i );
-            switch ( c ) {
-                case 'd':
-                case 'D':
-                    if ( ! foundExp ) {
-                        StringBuffer sbuf = new StringBuffer( item );
-                        sbuf.setCharAt( i, 'e' );
-                        item = sbuf.toString();
-                    }
-                    foundExp = true;
-                    break;
-                case 'e':
-                case 'E':
-                    foundExp = true;
-                    break;
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                    if ( ! foundExp ) {
-                        sigFig++;
-                    }
-                    break;
-                default:
-            }
-        }
-
-        /* Parse the number. */
-        double dvalue = Double.parseDouble( item );
-        return ParsedFloat.getInstance( sigFig, dvalue );
-    }
-
-    /**
-     * Interface for an object that can turn a string into a cell content
-     * object.
-     */
-    private abstract class Decoder {
-        abstract Object decode( String value );
     }
 }
