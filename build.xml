@@ -19,6 +19,7 @@
  !      export-full-source -> exports full source archives
  !      export-full-built  -> exports monolithic runtime distributions
  !      export-full-docs   -> exports monolithic javadocs archive
+ !      test           -> run any JUnit tests in the system
  !
  !   Authors:
  !      Peter W. Draper (2-JUL-2002)
@@ -586,8 +587,15 @@
    !   =================
    !   Run the testcases
    !   =================
-   ! Do this when know how!
    !-->
+  <target name="test" depends="prepare" 
+          description="--> run all the test targets">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="test"/>
+     </antcall>
+
+  </target>
 
 </project>
 
