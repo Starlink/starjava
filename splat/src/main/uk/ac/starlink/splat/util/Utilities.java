@@ -59,7 +59,7 @@ public class Utilities
      */
     public static String getReleaseName()
     {
-        return "Starlink SPLAT";
+        return "Starlink SPLAT-VO";
     }
 
     /**
@@ -86,7 +86,7 @@ public class Utilities
     public static String getCopyright()
     {
         return
-        "Copyright (C) 2001-2004 Central Laboratory of the Research Councils";
+        "Copyright (C) 2001-2005 Central Laboratory of the Research Councils";
     }
 
     /**
