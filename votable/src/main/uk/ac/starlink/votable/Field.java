@@ -63,7 +63,7 @@ public class Field extends VOElement {
                     isVariable = true;
                 }
                 else {
-                    int dim;
+                    long dim;
                     try {
                         dim = Long.parseLong( dimtxt[ i ] );
                     }
@@ -72,11 +72,10 @@ public class Field extends VOElement {
                         logger.warning( "Bad arraysize element " + dimtxt[ i ]
                                       + " - assuming 1" );
                     }
-                    if ( arraysize[ i ] <= 0 ) {
+                    if ( dim <= 0 ) {
                         dim = 1;
-                        logger.warning( "Bad arraysize element " + 
-                                        arraysize[ i ] + " is negative" +
-                                        " - assuming 1" );
+                        logger.warning( "Bad arraysize element " + dimtxt[ i ]
+                                      + " - assuming 1" );
                     }
                     arraysize[ i ] = dim;
                     sliceSize *= arraysize[ i ];
