@@ -54,7 +54,7 @@ public class Utilities
      */
     public static String getReleaseName()
     {
-        return "SPLAT";
+        return "Starlink SPLAT";
     }
 
     /**
@@ -99,6 +99,22 @@ public class Utilities
     {
         return "SPLAT is free software under the terms of the "+
             "GNU General Public License.";
+    }
+
+    /** 
+     * Get the SPLAT support page URL.
+     */
+    public static String getSupportURL()
+    {
+        return "http://www.starlink.ac.uk/splat";
+    }
+
+    /** 
+     * Get the SPLAT support email address.
+     */
+    public static String getSupportEmail()
+    {
+        return "splat@starlink.ac.uk";
     }
 
 //
