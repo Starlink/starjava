@@ -202,6 +202,9 @@
     <!-- Table -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
 
+    <!-- TTOOLS -->
+    <pathelement location="${star.jar.dir}/ttools/ttools.jar"/>
+
     <!-- Help -->
     <pathelement location="${star.jar.dir}/help/jhall.jar"/>
 
@@ -229,6 +232,7 @@
   <extclasspath id="built.jarpath">
     <pathelement location="${star.build.jar}/util/lib/util/util.jar"/>
     <pathelement location="${star.build.jar}/table/lib/table/table.jar"/>
+    <pathelement location="${star.build.jar}/ttools/lib/ttools/ttools.jar"/>
     <pathelement location="${star.build.jar}/help/lib/help/jhall.jar"/>
   </extclasspath>
 
@@ -638,6 +642,7 @@
          <extension name="UTIL" href="util.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="TTOOLS-PARTS" href="ttools-parts.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
        </resources>
        <component_desc/>
@@ -1098,8 +1103,8 @@
              docletpathref="classpath"
              public="true"
              additionalparam="-gen -o ${build.docs}/general-javadocs.xml" 
-             sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.topcat.func"
+             sourcepath="${java.dir}/../../../ttools/src/main"
+             packagenames="uk.ac.starlink.ttools.func"
              classpathref="classpath"
              source="${source.version}"/>
     <javadoc doclet="uk.ac.starlink.topcat.doc.XmlDoclet"
@@ -1119,8 +1124,9 @@
              public="true"
              additionalparam="-headings"
              destdir="${build.classes}"
-             sourcepath="${java.dir}"
-             packagenames="uk.ac.starlink.topcat.func"
+             sourcepath="${java.dir}:${java.dir}/../../../ttools/src/main"
+             packagenames="uk.ac.starlink.ttools.func,
+                           uk.ac.starlink.topcat.func"
              classpathref="classpath"
              source="${source.version}"/>
 

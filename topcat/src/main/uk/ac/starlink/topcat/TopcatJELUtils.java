@@ -9,21 +9,18 @@ import gnu.jel.Library;
 import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
-import uk.ac.starlink.topcat.func.Arithmetic;
 import uk.ac.starlink.topcat.func.BasicImageDisplay;
-import uk.ac.starlink.topcat.func.Conversions;
-import uk.ac.starlink.topcat.func.Coords;
 import uk.ac.starlink.topcat.func.Image;
-import uk.ac.starlink.topcat.func.Maths;
 import uk.ac.starlink.topcat.func.Mgc;
 import uk.ac.starlink.topcat.func.Output;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.func.Splat;
-import uk.ac.starlink.topcat.func.Strings;
 import uk.ac.starlink.topcat.func.SuperCosmos;
 import uk.ac.starlink.topcat.func.TwoQZ;
+import uk.ac.starlink.ttools.JELRowReader;
+import uk.ac.starlink.ttools.JELUtils;
 
 /**
  * This class provides some utility methods for use with the JEL
@@ -31,12 +28,9 @@ import uk.ac.starlink.topcat.func.TwoQZ;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class JELUtils {
+public class TopcatJELUtils extends JELUtils {
 
-    private static List generalStaticClasses;
     private static List activationStaticClasses;
-    public static final String GENERAL_CLASSES_PROPERTY = 
-        "jel.classes";
     public static final String ACTIVATION_CLASSES_PROPERTY =
         "jel.classes.activation";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -54,95 +48,17 @@ public class JELUtils {
      */
     public static Library getLibrary( JELRowReader rowReader,
                                       boolean activation ) {
-        List statix = new ArrayList( getGeneralStaticClasses() );
+        List statix = new ArrayList( getStaticClasses() );
         if ( activation ) {
             statix.addAll( getActivationStaticClasses() );
         }
         Class[] staticLib = (Class[]) statix.toArray( new Class[ 0 ] );
-        Class[] dynamicLib = new Class[] { JELRowReader.class };
+        Class[] dynamicLib = new Class[] { rowReader.getClass() };
         Class[] dotClasses = new Class[ 0 ];
         DVMap resolver = rowReader;
         Hashtable cnmap = null;
         return new Library( staticLib, dynamicLib, dotClasses,
                             resolver, cnmap );
-    }
-
-    /**
-     * Returns the list of classes whose static methods will be mapped
-     * into the JEL evaluation namespace.  This may be modified.
-     *
-     * @return   list of classes with static methods
-     */
-    public static List getGeneralStaticClasses() {
-        if ( generalStaticClasses == null ) {
-
-            /* Basic classes always present. */
-            List classList = new ArrayList( Arrays.asList( new Class[] {
-                Arithmetic.class,
-                Conversions.class,
-                Coords.class,
-                Maths.class, 
-                Strings.class,
-            } ) );
-
-            /* Add classes specified by a system property. */
-            try {
-                String auxClasses = 
-                    System.getProperty( GENERAL_CLASSES_PROPERTY );
-                if ( auxClasses != null && auxClasses.trim().length() > 0 ) {
-                    String[] cs = auxClasses.split( ":" );
-                    for ( int i = 0; i < cs.length; i++ ) {
-                        String className = cs[ i ].trim();
-                        Class clazz = classForName( className );
-                        if ( clazz != null ) { 
-                            if ( ! classList.contains( clazz ) ) {
-                                classList.add( clazz );
-                            }
-                        }
-                        else {
-                            logger.warning( "Class not found: " + className );
-                        }
-                    }
-                }
-            }
-            catch ( SecurityException e ) {
-                logger.info( "Security manager prevents loading "
-                           + "auxiliary JEL classes" );
-            }
-
-            /* Produce the final list. */
-            generalStaticClasses = classList;
-        }
-        return generalStaticClasses;
-    }
-
-    /**
-     * Returns the class with the given name, or null if it's not on the
-     * path.  If the name is unqualified and can't be found, it will try
-     * in the package uk.ac.starlink.topcat.func as well.
-     *
-     * @param   cname  class name
-     * @return  class or null
-     */
-    public static Class classForName( String cname ) {
-
-        // Hmm - not sure now why I wanted to make sure I got this classloader.
-        // I wonder if there is a good reason??
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        try {
-            return Class.forName( cname, true, loader );
-        }
-        catch ( ClassNotFoundException e ) {
-            if ( cname.indexOf( "." ) < 0 ) {
-                try {
-                     cname = "uk.ac.starlink.topcat.func." + cname;
-                     return Class.forName( cname, true, loader );
-                }
-                catch ( ClassNotFoundException e2 ) {
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -238,6 +154,26 @@ public class JELUtils {
         }
         else {
             throw new IllegalArgumentException( prim + " is not primitive" );
+        }
+    }
+
+    /**
+     * Returns the class with the given name, or null if it's not on the
+     * path.
+     *
+     * @param   cname  class name
+     * @return  class or null
+     */
+    public static Class classForName( String cname ) {
+
+        // Hmm - not sure now why I wanted to make sure I got this classloader.
+        // I wonder if there is a good reason??
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        try {
+            return Class.forName( cname, true, loader );
+        }
+        catch ( ClassNotFoundException e ) {
+            return null;
         }
     }
 

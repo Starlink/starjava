@@ -33,7 +33,7 @@ import uk.ac.starlink.table.join.RangeModelProgressIndicator;
 import uk.ac.starlink.table.join.SphericalPolarMatchEngine;
 import uk.ac.starlink.topcat.AuxWindow;
 import uk.ac.starlink.topcat.BasicAction;
-import uk.ac.starlink.topcat.func.Coords;
+import uk.ac.starlink.ttools.func.Coords;
 
 /**
  * Window for selecting the characteristics of and invoking a match 

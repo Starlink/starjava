@@ -16,8 +16,7 @@ public class JELActivator implements Activator {
 
     private final TopcatModel tcModel_;
     private final String expression_;
-    private final JELRowReader rowReader_;
-    private final Object[] args_;
+    private final RandomJELRowReader rowReader_;
     private final CompiledExpression compEx_;
     private final Class resultType;
 
@@ -34,25 +33,26 @@ public class JELActivator implements Activator {
         expression_ = expression;
 
         /* Get a RowReader. */
-        rowReader_ = new JELRowReader( tcModel_.getDataModel(), 
-                                       tcModel_.getSubsets() );
+        RowSubset[] subsetArray = (RowSubset[]) tcModel_.getSubsets()
+                                               .toArray( new RowSubset[ 0 ] );
+        rowReader_ = new RandomJELRowReader( tcModel_.getDataModel(),
+                                             subsetArray );
 
         /* Compile the expression. */
-        Library lib = JELUtils.getLibrary( rowReader_, true );
+        Library lib = TopcatJELUtils.getLibrary( rowReader_, true );
         compEx_ = Evaluator.compile( expression, lib, null );
-        args_ = new Object[] { rowReader_ };
 
         /* Determine the result type. */
         Class clazz = new Parser( expression, lib ).parse( null ).resType;
         if ( clazz.isPrimitive() ) {
-            clazz = JELUtils.wrapPrimitiveClass( clazz );
+            clazz = TopcatJELUtils.wrapPrimitiveClass( clazz );
         }
         resultType = clazz;
     }
 
     public String activateRow( long lrow ) {
         try {
-            Object result = rowReader_.evaluateAtRow( compEx_, args_, lrow );
+            Object result = rowReader_.evaluateAtRow( compEx_, lrow );
             if ( result != null && ! ( result instanceof Boolean ) ) {
                 return result.toString();
             }

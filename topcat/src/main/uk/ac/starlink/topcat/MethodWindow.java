@@ -89,14 +89,14 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
                                             getTreeModel().getRoot();
 
         /* Put class information into the tree. */
-        for ( Iterator it = JELUtils.getGeneralStaticClasses().iterator();
+        for ( Iterator it = TopcatJELUtils.getStaticClasses().iterator();
               it.hasNext(); ) {
             addStaticClass( (Class) it.next(), root );
         }
         activNode = new DefaultMutableTreeNode( Heading.ACTIVATION, true );
         root.add( activNode );
-        for ( Iterator it = JELUtils.getActivationStaticClasses().iterator();
-              it.hasNext(); ) {
+        for ( Iterator it = TopcatJELUtils.getActivationStaticClasses()
+                                          .iterator(); it.hasNext(); ) {
             addStaticClass( (Class) it.next(), activNode );
         }
 
@@ -165,9 +165,9 @@ public class MethodWindow extends AuxWindow implements TreeSelectionListener {
                         return;
                     }
                     else {
-                        Class clazz = JELUtils.classForName( cname );
+                        Class clazz = TopcatJELUtils.classForName( cname );
                         if ( clazz != null ) {
-                            JELUtils.getGeneralStaticClasses().add( clazz );
+                            TopcatJELUtils.getStaticClasses().add( clazz );
                             addStaticClass( clazz, root );
                             return;
                         }

@@ -2,10 +2,8 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
@@ -27,8 +25,7 @@ public class SyntheticRowSubset implements RowSubset {
     private List subsets;
     private String name;
     private String expression;
-    private JELRowReader rowReader;
-    private Object[] args;
+    private RandomJELRowReader rowReader;
     private CompiledExpression compEx;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -57,11 +54,12 @@ public class SyntheticRowSubset implements RowSubset {
 
         /* Get an up-to-date RowReader (an old one may not be aware of recent
          * changes to the StarTable or subset list). */
-        rowReader = new JELRowReader( stable, subsets );
-        args = new Object[] { rowReader };
+        RowSubset[] subsetArray = 
+            (RowSubset[]) subsets.toArray( new RowSubset[ 0 ] );
+        rowReader = new RandomJELRowReader( stable, subsetArray );
 
         /* Compile the expression. */
-        Library lib = JELUtils.getLibrary( rowReader, false );
+        Library lib = TopcatJELUtils.getLibrary( rowReader, false );
         compEx = Evaluator.compile( expression, lib, boolean.class );
         this.expression = expression;
     }
@@ -77,7 +75,7 @@ public class SyntheticRowSubset implements RowSubset {
     public boolean isIncluded( long lrow ) {
         try {
             Boolean result = (Boolean) 
-                             rowReader.evaluateAtRow( compEx, args, lrow );
+                             rowReader.evaluateAtRow( compEx, lrow );
             return result == null ? false : result.booleanValue();
         }
         catch ( RuntimeException e ) {

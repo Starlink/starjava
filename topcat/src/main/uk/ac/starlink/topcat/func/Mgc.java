@@ -5,6 +5,8 @@
 
 package uk.ac.starlink.topcat.func;
 
+import uk.ac.starlink.ttools.func.Strings;
+
 /**
  * Specialist functions for use with data from the the Millennium Galaxy
  * Survey.

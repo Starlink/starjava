@@ -919,6 +919,12 @@
       <link offline="true" href="${javaapi.url}"
             packagelistLoc="${javaapi.lis}"/>
 
+      <!-- Cope with custom tags. -->
+      <tag name="example" 
+           description="Examples:"
+           scope="methods, fields"
+           enabled="true"/>
+
       <group title="${Name} API" packages="${package.name}*"/>
 
       <bottom>Copyright &#169; ${year} \\
@@ -1033,7 +1039,7 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test*"/>
         </fileset>
       </batchtest>
 

@@ -1936,7 +1936,8 @@ when you enter them (if there is a 'compilation error' it will be
 reported straight away).  The functions listed in the previous subsections
 are all the <code>public static</code> methods of the classes which
 are made available by default.  The classes listed are all in the
-package <code>uk.ac.starlink.topcat.func</code>
+packages <code>uk.ac.starlink.ttools.func</code> and
+<code>uk.ac.starlink.topcat.func</code>
 (<code>uk.ac.starlink.topcat.func.Strings</code> etc).
 However, the public static methods are all imported into an anonymous
 namespace for bytecode compilation, so that you write
@@ -2047,6 +2048,11 @@ probably best off ignoring this feature.
 <dt>Converting a null value to a magic one</dt>
 <dd><p><verbatim>
     NULL_jmag ? 9999 : jmag
+</verbatim></p></dd>
+
+<dt>Taking the third scalar element from an array-valued column</dt>
+<dd><p><verbatim>
+    psfCounts[2]
 </verbatim></p></dd>
 
 </dl>

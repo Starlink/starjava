@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import uk.ac.starlink.topcat.JELUtils;
+import uk.ac.starlink.topcat.TopcatJELUtils;
 
 /**
  * Doclet which documents public static members of classes in XML 
@@ -24,11 +24,12 @@ import uk.ac.starlink.topcat.JELUtils;
  *
  * <dt>-act</dt>
  * <dd>Write output only for 'activation' classes - as reported by
- *     {@link uk.ac.starlink.topcat.JELUtils#getActivationStaticClasses}.</dd>
+ *     {@link uk.ac.starlink.topcat.TopcatJELUtils#getActivationStaticClasses}.
+ *     </dd>
  * 
  * <dt>-gen</dt>
  * <dd>Write output only for 'general' classes - as reported by
- *     {@link uk.ac.starlink.topcat.JELUtils.getGeneralStaticClasses}.</dd>
+ *     {@link uk.ac.starlink.topcat.TopcatJELUtils.getStaticClasses}.</dd>
  * </dl>
  * 
  * @author   Mark Taylor (Starlink)
@@ -77,12 +78,12 @@ public class XmlDoclet extends MemberDoclet {
                 outloc = options[ i ][ 1 ];
             }
             else if ( opt.equals( "-gen" ) ) {
-                classes_ = (Class[]) JELUtils.getGeneralStaticClasses()
-                                             .toArray( new Class[ 0 ] );
+                classes_ = (Class[]) TopcatJELUtils.getStaticClasses()
+                                                   .toArray( new Class[ 0 ] );
             }
             else if ( opt.equals( "-act" ) ) {
-                classes_ = (Class[]) JELUtils.getActivationStaticClasses()
-                                             .toArray( new Class[ 0 ] );
+                classes_ = (Class[]) TopcatJELUtils.getActivationStaticClasses()
+                                                   .toArray( new Class[ 0 ] );
             }
         }
         OutputStream ostrm = ( outloc == null || outloc.equals( "-" ) )

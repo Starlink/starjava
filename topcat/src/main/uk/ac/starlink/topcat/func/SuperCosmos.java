@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.fits.FitsConstants;
+import uk.ac.starlink.ttools.func.Coords;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 

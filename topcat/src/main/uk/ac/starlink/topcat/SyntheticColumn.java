@@ -2,7 +2,6 @@ package uk.ac.starlink.topcat;
 
 import gnu.jel.CompilationException;
 import gnu.jel.CompiledExpression;
-import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import gnu.jel.Parser;
@@ -37,8 +36,7 @@ public class SyntheticColumn extends ColumnData {
     private List subsets;
     private String expression;
     private CompiledExpression compEx;
-    private JELRowReader rowReader;
-    private Object[] args;
+    private RandomJELRowReader rowReader;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -84,18 +82,19 @@ public class SyntheticColumn extends ColumnData {
 
         /* Get an up-to-date RowReader (an old one may not be aware of recent
          * changes to the StarTable or subset list). */
-        rowReader = new JELRowReader( stable, subsets );
-        args = new Object[] { rowReader };
+        RowSubset[] subsetArray = 
+            (RowSubset[]) subsets.toArray( new RowSubset[ 0 ] );
+        rowReader = new RandomJELRowReader( stable, subsetArray );
 
         /* Compile the expression. */
-        Library lib = JELUtils.getLibrary( rowReader, false );
+        Library lib = TopcatJELUtils.getLibrary( rowReader, false );
         compEx = Evaluator.compile( expression, lib, resultType );
 
         /* Work out the type of the compiled expression. */
         Class actualType =
             new Parser( expression, lib ).parse( resultType ).resType;
         if ( actualType.isPrimitive() ) {
-            actualType = JELUtils.wrapPrimitiveClass( actualType );
+            actualType = TopcatJELUtils.wrapPrimitiveClass( actualType );
         }
 
         /* Configure the column data type correctly for this expression. */
@@ -127,7 +126,7 @@ public class SyntheticColumn extends ColumnData {
 
     public Object readValue( long lrow ) throws IOException {
         try {
-            return rowReader.evaluateAtRow( compEx, args, lrow );
+            return rowReader.evaluateAtRow( compEx, lrow );
         }
         catch ( RuntimeException e ) {
             logger.info( e.toString() );
