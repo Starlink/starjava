@@ -19,8 +19,7 @@ package uk.ac.starlink.ast;
  * for details).
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecFrame'>AST SpecFrame</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecFrame'>AST SpecFrame</a>  
  */
 public class SpecFrame extends Frame {
     /** 

@@ -49,8 +49,7 @@ package uk.ac.starlink.ast;
  * hence of reversing the Mapping between them.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FrameSet'>AST FrameSet</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FrameSet'>AST FrameSet</a>  
  */
 public class FrameSet extends Frame {
 

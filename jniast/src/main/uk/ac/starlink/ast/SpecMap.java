@@ -38,8 +38,7 @@ package uk.ac.starlink.ast;
  * see the description of the astSpecAdd function.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecMap'>AST SpecMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SpecMap'>AST SpecMap</a>  
  */
 public class SpecMap extends Mapping {
     /** 

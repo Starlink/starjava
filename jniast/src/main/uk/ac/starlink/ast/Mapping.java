@@ -21,8 +21,7 @@ package uk.ac.starlink.ast;
  * of coordinate transformation.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Mapping'>AST Mapping</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Mapping'>AST Mapping</a>  
  */
 public class Mapping extends AstObject {
 

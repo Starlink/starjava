@@ -19,8 +19,7 @@ package uk.ac.starlink.ast;
  * coordinate systems.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_WinMap'>AST WinMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_WinMap'>AST WinMap</a>  
  */
 public class WinMap extends Mapping {
     /** 

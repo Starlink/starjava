@@ -22,8 +22,7 @@ package uk.ac.starlink.ast;
  * second Mapping supplied when the TranMap was constructed.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TranMap'>AST TranMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_TranMap'>AST TranMap</a>  
  */
 public class TranMap extends Mapping {
     /** 

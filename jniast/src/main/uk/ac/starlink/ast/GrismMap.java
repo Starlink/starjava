@@ -27,8 +27,7 @@ package uk.ac.starlink.ast;
  * also be used for the wavelength values.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_GrismMap'>AST GrismMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_GrismMap'>AST GrismMap</a>  
  */
 public class GrismMap extends Mapping {
     /** 

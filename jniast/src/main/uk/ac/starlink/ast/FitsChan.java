@@ -92,8 +92,7 @@ import java.io.*;
  *       if the <code>finalize</code> method is explicitly called.
  *    
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FitsChan'>AST FitsChan</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_FitsChan'>AST FitsChan</a>  
  */
 
 public class FitsChan extends Channel {

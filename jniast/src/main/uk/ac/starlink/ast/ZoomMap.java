@@ -16,8 +16,7 @@ package uk.ac.starlink.ast;
  * representing each point is unchanged.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_ZoomMap'>AST ZoomMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_ZoomMap'>AST ZoomMap</a>  
  */
 public class ZoomMap extends Mapping {
     /** 

@@ -26,8 +26,7 @@ import java.io.OutputStream;
  * to standard output.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_XmlChan'>AST XmlChan</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_XmlChan'>AST XmlChan</a>  
  */
 public class XmlChan extends Channel {
 

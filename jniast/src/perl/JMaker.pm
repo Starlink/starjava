@@ -491,7 +491,8 @@ sub makeClassHeader {
    my( $moreText ) = jdocize( $descrip ) . jdocize( $extra );
    $startText =~ s/^    //mg;
    $moreText =~ s/^    //mg;
-   my( $authorText ) = $author ? "\n * \@author   $author" : "";
+   # my( $authorText ) = $author ? "\n * \@author   $author" : "";
+   my( $authorText ) = "";
    # my( $versionText ) = $version ? "\n * \@version  $version" : "";
    my( $versionText ) = "";
    my( $seeText ) = "\n * \@see  <a href='$htxserver$astname'>AST $astname</a>";

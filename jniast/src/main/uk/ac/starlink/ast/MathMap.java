@@ -21,8 +21,7 @@ package uk.ac.starlink.ast;
  * interpreted by other programs.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_MathMap'>AST MathMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_MathMap'>AST MathMap</a>  
  */
 public class MathMap extends Mapping {
     /** 

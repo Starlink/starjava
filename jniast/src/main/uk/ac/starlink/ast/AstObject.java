@@ -20,8 +20,7 @@ import uk.ac.starlink.util.Loader;
  * on their own are not useful.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Object'>AST Object</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Object'>AST Object</a>  
  */
 public class AstObject {
 

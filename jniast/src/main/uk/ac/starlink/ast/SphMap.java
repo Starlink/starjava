@@ -19,8 +19,7 @@ package uk.ac.starlink.ast;
  * (i.e. unit vectors).
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SphMap'>AST SphMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SphMap'>AST SphMap</a>  
  */
 public class SphMap extends Mapping {
     /** 

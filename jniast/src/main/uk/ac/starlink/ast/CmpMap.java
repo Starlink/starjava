@@ -24,8 +24,7 @@ package uk.ac.starlink.ast;
  * way.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_CmpMap'>AST CmpMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_CmpMap'>AST CmpMap</a>  
  */
 public class CmpMap extends Mapping {
     /** 

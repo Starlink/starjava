@@ -19,8 +19,7 @@ package uk.ac.starlink.ast;
  * values to be assigned to any new ones.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PermMap'>AST PermMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PermMap'>AST PermMap</a>  
  */
 public class PermMap extends Mapping {
     /** 

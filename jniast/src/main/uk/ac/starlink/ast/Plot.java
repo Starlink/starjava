@@ -115,8 +115,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfMarker;
  *       </pre>
  *    
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Plot'>AST Plot</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Plot'>AST Plot</a>  
  */
 public class Plot extends FrameSet {
    /* Private fields. */

@@ -31,8 +31,7 @@ package uk.ac.starlink.ast;
  * both equal to the number of Frame axes.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Frame'>AST Frame</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Frame'>AST Frame</a>  
  */
 public class Frame extends Mapping {
     /** 

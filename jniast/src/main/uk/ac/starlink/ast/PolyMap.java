@@ -16,8 +16,7 @@ package uk.ac.starlink.ast;
  * are defined independantly by separate sets of coefficients.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PolyMap'>AST PolyMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_PolyMap'>AST PolyMap</a>  
  */
 public class PolyMap extends Mapping {
     /** 

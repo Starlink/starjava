@@ -28,8 +28,7 @@ package uk.ac.starlink.ast;
  * display by using astFormat.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SkyFrame'>AST SkyFrame</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SkyFrame'>AST SkyFrame</a>  
  */
 public class SkyFrame extends Frame {
     /** 

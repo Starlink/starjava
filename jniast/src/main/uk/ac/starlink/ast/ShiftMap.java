@@ -13,8 +13,7 @@ package uk.ac.starlink.ast;
  * specified constant value.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_ShiftMap'>AST ShiftMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_ShiftMap'>AST ShiftMap</a>  
  */
 public class ShiftMap extends Mapping {
     /** 

@@ -33,8 +33,7 @@ package uk.ac.starlink.ast;
  * transformation may also be performed.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_LutMap'>AST LutMap</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_LutMap'>AST LutMap</a>  
  */
 public class LutMap extends Mapping {
     /** 

@@ -32,8 +32,7 @@ package uk.ac.starlink.ast;
  * above of below the central position.
  * 
  * 
- * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_DSBSpecFrame'>AST DSBSpecFrame</a> 
- * @author   Mark Taylor (Starlink) 
+ * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_DSBSpecFrame'>AST DSBSpecFrame</a>  
  */
 public class DSBSpecFrame extends SpecFrame {
     /** 
@@ -178,7 +177,10 @@ public class DSBSpecFrame extends SpecFrame {
     /**
      * Get 
      * indicates which sideband a dual sideband spectrum represents.  
-     * Indicates which sideband a dual sideband spectrum represents.
+     * This attribute indicates whether the DSBSpecFrame currently
+     * represents its lower or upper sideband. It may take one of the
+     * values "lower" or "upper" (case insensitive). The default value is
+     * "upper".
      * 
      *
      * @return  this object's SideBand attribute
@@ -190,7 +192,10 @@ public class DSBSpecFrame extends SpecFrame {
     /**
      * Set 
      * indicates which sideband a dual sideband spectrum represents.  
-     * Indicates which sideband a dual sideband spectrum represents.
+     * This attribute indicates whether the DSBSpecFrame currently
+     * represents its lower or upper sideband. It may take one of the
+     * values "lower" or "upper" (case insensitive). The default value is
+     * "upper".
      * 
      *
      * @param  sideBand   the SideBand attribute of this object
