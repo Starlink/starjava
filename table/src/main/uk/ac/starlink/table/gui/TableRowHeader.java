@@ -31,6 +31,9 @@ import javax.swing.table.TableModel;
  * model so that it can respond to changes.
  * In the event that the master JTable's model changes during the lifetime of
  * this header table, then {@link #modelChanged} should be called.
+ * At construction time the master table's selection model will be 
+ * installed in this header too, so that you can make row selections by
+ * clicking on the header or the master.
  *
  * @author   Mark Taylor (Starlink)
  * @see      javax.swing.JScrollPane
@@ -62,6 +65,10 @@ public class TableRowHeader extends JTable {
             }
         };
         setModel( rowModel );
+
+        /* Use the same selection model as the master table, so that you
+         * can select rows by clicking on the row header or the master. */
+        setSelectionModel( masterTable.getSelectionModel() );
 
         /* Set up a listener on the master table which will trigger change
          * events on this table when the master model changes. */
