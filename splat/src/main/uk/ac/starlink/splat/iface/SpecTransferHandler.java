@@ -70,10 +70,6 @@ public class SpecTransferHandler
 
     public boolean canImport( JComponent comp, DataFlavor flavor[] )
     {
-        for ( int i = 0; i < flavor.length; i++ ) {
-            System.out.println( "canImport: " + flavor[i] );
-        }
-        System.out.println();
         if ( checkImportComponent( comp ) ) {
             for ( int i = 0, n = flavor.length; i < n; i++ ) {
                 for ( int j = 0, m = flavors.length; j < m; j++ ) {
@@ -212,7 +208,6 @@ public class SpecTransferHandler
 
     protected boolean importNDXStream( JComponent comp, Transferable t )
     {
-        System.out.println( "importNDXStream" );
         boolean added = false;
         InputStream inputStream = null;
         try {
@@ -238,17 +233,15 @@ public class SpecTransferHandler
     protected boolean importFITSStream( JComponent comp, Transferable t )
     {
         // NDX as FITS stream?
-        System.out.println( "importFITSStream" );
+        System.out.println( "No Support for FITS streams" );
         return false;
     }
 
     protected boolean importURL( JComponent comp, Transferable t )
     {
-        System.out.println( "importURL" );
         boolean added = false;
         try {
             URL url = (URL) t.getTransferData( flavors[3] );
-            System.out.println( url );
             NDXSpecDataImpl impl = new NDXSpecDataImpl( url );
             SpecData spectrum = new SpecData( impl );
             displaySpectrum( comp, spectrum );
@@ -307,6 +300,7 @@ public class SpecTransferHandler
 
         public boolean isDataFlavorSupported( DataFlavor flavor )
         {
+            //  Note we only support SpecData internally.
             return flavor.equals( flavors[0] );
         }
     }
