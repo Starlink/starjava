@@ -434,7 +434,7 @@
   <target name="build-standalone"
           depends="install"
           description="-> builds a standalone jar file">
-    <java classname="uk.ac.starlink.util.SuperJar">
+    <java classname="uk.ac.starlink.util.SuperJar" failonerror="yes">
       <classpath refid="classpath"/>
       <arg value="-o"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>
       <arg value="-x"/><arg value="junit.jar"/>
@@ -1012,7 +1012,8 @@
                includes="images/*"/>
     </copy>
     <java classname="uk.ac.starlink.topcat.ResourceIcon" 
-          output="${build.docs}/image.defs">
+          output="${build.docs}/image.defs"
+          failonerror="yes">
       <classpath refid="classpath"/>
       <arg value="-entities"/>
     </java>
@@ -1027,6 +1028,7 @@
     <java classpathref="classpath"
           dir="${src.docs}"
           classname="uk.ac.starlink.util.MultiXML"
+          failonerror="yes"
           fork="yes">
       <arg value="-style"/> <arg value="${src.docs}/toHTML.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
@@ -1037,6 +1039,7 @@
     <java classpathref="classpath"
           dir="${src.docs}" 
           classname="uk.ac.starlink.util.MultiXML" 
+          failonerror="yes"
           fork="yes">
       <arg value="-style"/> <arg value="${src.docs}/toHelp.xslt"/>
       <arg value="-param"/> <arg value="VERSION=${version}"/>
