@@ -20,6 +20,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.SQLReadDialog;
+import uk.ac.starlink.table.gui.StarTableNodeChooser;
 import uk.ac.starlink.table.jdbc.JDBCAuthenticator;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
@@ -47,6 +48,7 @@ public class LoadQueryWindow extends QueryWindow {
     private JTextField locField;
     private StarTableFactory tableFactory;
     private JFileChooser fileChooser;
+    private StarTableNodeChooser nodeChooser;
     private SQLReadDialog sqlDialog;
 
     /**
@@ -64,7 +66,7 @@ public class LoadQueryWindow extends QueryWindow {
         getStack().addLine( "Location", locField );
 
         /* Define the actions for starting other dialogues. */
-        Action browseAction = new AbstractAction( "Browse Files" ) {
+        Action fileAction = new AbstractAction( "Browse Files" ) {
             public void actionPerformed( ActionEvent evt ) {
                 fileDialog();
             }
@@ -74,6 +76,13 @@ public class LoadQueryWindow extends QueryWindow {
                 jdbcDialog();
             }
         };
+        Action nodeAction;
+        nodeAction = new AbstractAction( "Browse Hierarchy" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                nodeDialog();
+            }
+        };
+        nodeAction.setEnabled( StarTableNodeChooser.isAvailable() );
 
         /* Deactivate the JDBC action if no JDBC drivers are installed. */
         if ( ! DriverManager.getDrivers().hasMoreElements() ) {
@@ -84,7 +93,10 @@ public class LoadQueryWindow extends QueryWindow {
 
         /* Place the buttons for the other dialogues. */
         JPanel controls = getAuxControlPanel();
-        controls.add( new JButton( browseAction ) );
+        if ( nodeAction != null ) {
+            controls.add( new JButton( nodeAction ) );
+        }
+        controls.add( new JButton( fileAction ) );
         controls.add( new JButton( jdbcAction ) );
 
         /* Configure drag'n'drop operation. */
@@ -240,6 +252,23 @@ public class LoadQueryWindow extends QueryWindow {
     }
 
     /**
+     * This method is invoked when the user hits the 'Browse hierarchy' button
+     * in the loader dialogue.
+     */
+    private void nodeDialog() {
+        assert StarTableNodeChooser.isAvailable();
+        StarTable st = getStarTableNodeChooser().chooseStarTable( this );
+        if ( st != null ) {
+            st = doctorTable( st );
+            if ( st != null ) {
+                performLoading( st );
+                dispose();
+            }
+        }
+    }
+
+
+    /**
      * This method is invoked when the user hits the 'SQL' button on the
      * loader dialogue.
      */
@@ -268,6 +297,19 @@ public class LoadQueryWindow extends QueryWindow {
             fileChooser.setCurrentDirectory( new File( "." ) );
         }
         return fileChooser;
+    }
+
+    /**
+     * Returns the StarTableNodeChooser object used for hierarchical browsing.
+     *
+     * @return   a chooser
+     */
+    public StarTableNodeChooser getStarTableNodeChooser() {
+        assert StarTableNodeChooser.isAvailable();
+        if ( nodeChooser == null ) {
+            nodeChooser = StarTableNodeChooser.newInstance();
+        }
+        return nodeChooser;
     }
 
     /**
