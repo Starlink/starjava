@@ -496,24 +496,34 @@ public class HdxDocument
 
         /* ******************** Element interface ******************** */
         public boolean hasAttribute(String name) {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             updateDOM();
             return super.hasAttribute(name);
         }
         
         public String getAttribute(String name) {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             updateDOM();
             return super.getAttribute(name);
         }
         public Attr getAttributeNode(String name) {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             updateDOM();
             return super.getAttributeNode(name);
         }
         public String getAttributeNS(String namespaceURI, String name) {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             if (namespaceURI == null)
                 updateDOM();
             return super.getAttributeNS(namespaceURI, name);
         }
         public Attr getAttributeNodeNS(String namespaceURI, String name) {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             if (namespaceURI == null)
                 updateDOM();
             return super.getAttributeNodeNS(namespaceURI, name);
@@ -521,6 +531,8 @@ public class HdxDocument
         
         void setAttribute(String name, String value, boolean useBacking)
                 throws DOMException {
+            if (name == null || value == null)
+                throw new IllegalArgumentException("name or value is null");
             if (useBacking)
                 setAttribute(name, value);
             else
@@ -530,6 +542,8 @@ public class HdxDocument
         public void setAttribute(String name, 
                                  String value)
                 throws DOMException {
+            if (name == null || value == null)
+                throw new IllegalArgumentException("name or value is null");
             if (useFacade()
                 && !facade.setAttribute(this, name, value))
                     // Either the setAttribute failed or (more likely)
@@ -540,6 +554,8 @@ public class HdxDocument
         }
         public Attr setAttributeNode(Attr att)
                 throws DOMException {
+            if (att == null)
+                throw new IllegalArgumentException("att is null");
             if (useFacade()
                 && !facade.setAttribute(this, att.getName(), att.getValue()))
                     readonlyFacade();
@@ -549,6 +565,8 @@ public class HdxDocument
                                    String name, 
                                    String value)
                 throws DOMException {
+            if (name == null || value == null)
+                throw new IllegalArgumentException("name or value is null");
             if (useFacade()
                 && namespaceURI != null
                 && !facade.setAttribute(this, name, value))
@@ -560,6 +578,8 @@ public class HdxDocument
         }
         public Attr setAttributeNodeNS(Attr att)
                 throws DOMException {
+            if (att == null)
+                throw new IllegalArgumentException("att is null");
             if (useFacade()
                 && att.getNamespaceURI() != null
                 && !facade.setAttribute(this, att.getName(), att.getValue()))
@@ -569,6 +589,8 @@ public class HdxDocument
         
         public void removeAttribute(String name)
                 throws DOMException {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             if (useFacade()
                 && !facade.setAttribute(this, name, null))
                 readonlyFacade();
@@ -576,6 +598,8 @@ public class HdxDocument
         }
         public Attr removeAttributeNode(Attr oldAttr)
                 throws DOMException {
+            if (oldAttr == null)
+                throw new IllegalArgumentException("oldAttr is null");
             if (useFacade()
                 && !facade.setAttribute(this, oldAttr.getName(), null))
                 readonlyFacade();
@@ -583,6 +607,8 @@ public class HdxDocument
         }
         public void removeAttributeNS(String namespaceURI, String name)
                 throws DOMException {
+            if (name == null)
+                throw new IllegalArgumentException("name is null");
             if (useFacade()
                 && namespaceURI != null
                 && !facade.setAttribute(this, name, null))
@@ -598,6 +624,8 @@ public class HdxDocument
         
         public Node insertBefore(Node newChild, Node refChild)
                 throws DOMException {
+            if (newChild == null)
+                throw new IllegalArgumentException("newChild is null");
             if (useFacade()
                 && !facade.addChildBefore(this,
                                           (Element)newChild,
@@ -608,6 +636,8 @@ public class HdxDocument
             
         public Node appendChild(Node newChild)
                 throws DOMException {
+            if (newChild == null)
+                throw new IllegalArgumentException("newChild is null");
             if (useFacade()
                 && !facade.addChildBefore(this, (Element)newChild, null))
                 readonlyFacade();
@@ -616,6 +646,8 @@ public class HdxDocument
         
         public Node replaceChild(Node newChild, Node oldChild)
                 throws DOMException {
+            if (newChild == null)
+                throw new IllegalArgumentException("newChild is null");
             if (useFacade()
                 && !facade.replaceChild(this,
                                         (Element)oldChild,
@@ -626,6 +658,8 @@ public class HdxDocument
         
         public Node removeChild(Node oldChild)
                 throws DOMException {
+            if (oldChild == null)
+                throw new IllegalArgumentException("oldChild is null");
             if (useFacade()
                 && !facade.replaceChild(this, (Element)oldChild, null))
                 readonlyFacade();

@@ -210,9 +210,15 @@ class HdxNode
         return (parent == null ? false : parent.isAncestor(n));
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if newChild is null
+     */
     public Node insertBefore(Node newChild, Node refChild)
             throws DOMException {
 
+        if (newChild == null)
+            throw new IllegalArgumentException("newChild is null");
         assertModifiableNode();
 
         // Handle DocumentFragment nodes specially
@@ -286,16 +292,27 @@ class HdxNode
         return newChild;
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if newChild or oldChild is null
+     */
     public Node replaceChild(Node newChild, Node oldChild)
             throws DOMException {
-        if (oldChild == null)
-            throw new IllegalArgumentException("replaceChild: null oldChild");
+        if (newChild == null || oldChild == null)
+            throw new IllegalArgumentException
+                    ("replaceChild: null newChild or oldChild");
         insertBefore(newChild, oldChild);
         return removeChild(oldChild);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if oldChild is null
+     */
     public Node removeChild(Node oldChild)
             throws DOMException {
+        if (oldChild == null)
+            throw new IllegalArgumentException("oldChild is null");
         assertModifiableNode();
         HdxNode kid = findChild((HdxNode)oldChild);
         if (kid == null)
@@ -312,6 +329,10 @@ class HdxNode
         return oldChild;
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if newChild is null
+     */
     public Node appendChild(Node newChild)
             throws DOMException {
         return insertBefore(newChild, null);

@@ -72,6 +72,13 @@ import java.util.logging.Level;
  * that this is inconsistent with the XML Base specification, or
  * otherwise undesirable, Norman would like to hear it.
  *
+ * <p>Although this is not required by the <code>Element</code>
+ * interface, all of the <code>Element</code> methods below check that
+ * their arguments are not <code>null</code>, and throw an
+ * <code>IllegalArgumentException</code> if they are; the only
+ * exception is <code>namespaceURI</code>, where a null argument is
+ * documented to correspond to no namespace.
+ *
  * @author Norman Gray (norman@astro.gla.ac.uk)
  * @version $Id$
  */
@@ -234,12 +241,12 @@ class HdxElement
         // newly-constructed HdxElement when the DOM is constructed in
         // addHdxChildren below.  This code might better belong in addHdxChildren
         String hoist = getHdxType().getHoistAttribute();
-        if (logger.isLoggable(Level.FINE))
-            logger.fine("    hoist for " + getHdxType() + " is " + hoist
-                        + ", test="
-                        + (hoist != null)
-                        + "&" + !hasAttribute(hoist)
-                        + "&" + el.hasChildNodes());
+//         if (logger.isLoggable(Level.FINE))
+//             logger.fine("    hoist for " + getHdxType() + " is " + hoist
+//                         + ", test="
+//                         + (hoist != null)
+//                         + "&" + (hoist!=null && !hasAttribute(hoist))
+//                         + "&" + el.hasChildNodes());
         if (hoist != null
             && !hasAttribute(hoist)
             && el.hasChildNodes()) {
@@ -519,13 +526,25 @@ class HdxElement
      * HAS attributes...
      */
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if name is null
+     */
     public boolean hasAttribute(String name) {
+        if (name == null)
+            throw new IllegalArgumentException("name is null");
         return attributeMap.containsKey(name);
     }
     
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if localName is null
+     */
     public boolean hasAttributeNS(String namespaceURI, 
-                                        String localName) {
+                                  String localName) {
+        if (localName == null)
+            throw new IllegalArgumentException("localName is null");
         try {
             trapHdxNamespace(namespaceURI);
             if (namespaceURI == null)
@@ -542,17 +561,35 @@ class HdxElement
      * GET attributes...
      */
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if name is null
+     */
     public String getAttribute(String name) {
+        if (name == null)
+            throw new IllegalArgumentException("name is null");
         Attr a = attributeMap.get(name);
         return (a == null ? "" : a.getValue());
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if name is null
+     */
     public Attr getAttributeNode(String name) {
+        if (name == null)
+            throw new IllegalArgumentException("name is null");
         return attributeMap.get(name);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if localName is null
+     */
     public String getAttributeNS(String namespaceURI, 
-                                       String localName) {
+                                 String localName) {
+        if (localName == null)
+            throw new IllegalArgumentException("localName is null");
         try {
             trapHdxNamespace(namespaceURI);
         } catch (DOMException ex) {
@@ -561,8 +598,14 @@ class HdxElement
         return attributeMap.getString(namespaceURI, localName);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if localName is null
+     */
     public Attr getAttributeNodeNS(String namespaceURI, 
-                                         String localName) {
+                                   String localName) {
+        if (localName == null)
+            throw new IllegalArgumentException("localName is null");
         try {
             trapHdxNamespace(namespaceURI);
         } catch (DOMException ex) {
@@ -586,22 +629,37 @@ class HdxElement
      * element if it did not already exist.
      *
      * @param value the value of the attribute
+     * @throws IllegalArgumentException (unchecked) if name or value is null
      */
     public void setAttribute(String name, String value)
             throws DOMException {
+        if (name == null || value == null)
+            throw new IllegalArgumentException("name or value is null");
         attributeMap.set(name, value);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if name or value is null
+     */
     void setAttribute(String name, String value, boolean useBacking) 
             throws DOMException {
+        if (name == null || value == null)
+            throw new IllegalArgumentException("name or value is null");
         boolean tshadow = attributeMap.shadowNewAttributes;
         attributeMap.shadowNewAttributes = false;
         setAttribute(name, value);
         attributeMap.shadowNewAttributes = tshadow;
     }
     
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if newAttr is null
+     */
     public Attr setAttributeNode(Attr newAttr)
             throws DOMException {
+        if (newAttr == null)
+            throw new IllegalArgumentException("newAttr is null");
         Attr oldAtt = getAttributeNode(newAttr.getName());
         attributeMap.set(newAttr);
         return oldAtt;
@@ -625,11 +683,16 @@ class HdxElement
      *
      * <p>XXX SEMANTICS This currently throws an exception if
      * namespaceURI is blank, or in the HDX namespace.  Should it?
+     *
+     * @throws IllegalArgumentException (unchecked) if qualifiedName or value is null
      */
     public void setAttributeNS(String namespaceURI, 
-                                     String qualifiedName, 
-                                     String value)
+                               String qualifiedName, 
+                               String value)
             throws DOMException {
+        if (qualifiedName == null || value == null)
+            throw new IllegalArgumentException
+                    ("qualifiedName or value is null");
         trapHdxNamespace(namespaceURI);
 
         if (namespaceURI == null)
@@ -659,9 +722,13 @@ class HdxElement
      *
      * <p>XXX SEMANTICS This currently throws an exception if
      * namespaceURI is blank, or in the HDX namespace.  Should it?
+     *
+     * @throws IllegalArgumentException (unchecked) if newAttr is null
      */
     public Attr setAttributeNodeNS(Attr newAttr)
             throws DOMException {
+        if (newAttr == null)
+            throw new IllegalArgumentException("newAttr is null");
         String namespaceURI = newAttr.getNamespaceURI();
         trapHdxNamespace(namespaceURI);
 
@@ -689,9 +756,12 @@ class HdxElement
      *
      * @throws DOMException - NO_MODIFICATION_ALLOWED_ERR: if this
      * element is read-only.
+     * @throws IllegalArgumentException (unchecked) if name is null
      */
     public void removeAttribute(String name)
             throws DOMException {
+        if (name == null)
+            throw new IllegalArgumentException("name is null");
         attributeMap.remove(name);
         return;
     }
@@ -708,9 +778,12 @@ class HdxElement
      * element is read-only.  
      * @throws DOMException - NOT_FOUND_ERR: if
      * oldAttr is not an attribute of the element.
+     * @throws IllegalArgumentException (unchecked) if oldAtt is null
      */
     public Attr removeAttributeNode(Attr oldAtt)
             throws DOMException {
+        if (oldAtt == null)
+            throw new IllegalArgumentException("oldAtt is null");
         Attr att = getAttributeNode(oldAtt.getName());
         if (att == null)
             throw new DOMException
@@ -735,10 +808,13 @@ class HdxElement
      * tree, then this call will be passed on to that element; if
      * there is no such shadowing Element, then we throw a
      * <code>NAMESPACE_ERR</code> DOM Exception.
+     * @throws IllegalArgumentException (unchecked) if localName is null
      */
     public void removeAttributeNS(String namespaceURI, 
-                                        String localName)
+                                  String localName)
             throws DOMException {
+        if (localName == null)
+            throw new IllegalArgumentException("localName is null");
         trapHdxNamespace(namespaceURI);
 
         if (namespaceURI == null) {
@@ -752,6 +828,10 @@ class HdxElement
                      "HdxElement elements can't take namespaced attributes");
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException (unchecked) if name is null
+     */
     public NodeList getElementsByTagName(final String name) {
 
         class TagnameNodeList implements NodeList, NodeDescendants.Visitor {
@@ -778,6 +858,9 @@ class HdxElement
             }
         }
 
+        if (name == null)
+            throw new IllegalArgumentException("name is null");
+
         TagnameNodeList tnl = new TagnameNodeList();
         NodeDescendants nd
                 = new NodeDescendants(this, NodeDescendants.SHOW_ELEMENT);
@@ -791,9 +874,12 @@ class HdxElement
      * encountered in a preorder traversal of this Element tree.  In
      * this implementation this is always an empty list, since this
      * tree always represents elements in the empty namespace.
+     * @throws IllegalArgumentException (unchecked) if localName is null
      */
     public NodeList getElementsByTagNameNS(String namespaceURI, 
                                            String localName) {
+        if (localName == null)
+            throw new IllegalArgumentException("localName is null");
         return new NodeList() {
             public int getLength() { return 0; }
             public Node item(int index) { return null; }
