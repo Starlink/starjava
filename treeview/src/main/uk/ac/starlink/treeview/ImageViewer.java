@@ -89,7 +89,7 @@ class ImageViewer extends JPanel {
             plot.setGrid( true );
             plot.setColour( "grid", 0x8000ff00 );
             plot.setColour( "ticks", Color.GREEN.getRGB() );
-            plot.setColour( "text", Color.BLACK.getRGB() );
+            plot.setColour( "textlab", Color.BLACK.getRGB() );
             plot.grid();
 
             /* Make a panel which will cope with redrawing it as required. */

@@ -444,7 +444,7 @@ public class AstTest extends TestCase {
         plot.setSize( "markers", plot.getSize( "markers" ) * 20 );
         plot.mark( 5, 2, points, DefaultGrfMarker.FILLEDDIAMOND );
 
-        plot.setSize( "text", 12 );
+        plot.setSize( "textlab", 12 );
         plot.text( "JNI", new double[] { 1e4, 1e4 },
                    new float[] { -1, 1 }, "BL" );
         plot.text( "AST", new double[] { 4e4, 4e4 },
