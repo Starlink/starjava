@@ -1,7 +1,7 @@
 /*
- * $Id: CenterSite.java,v 1.2 2000/05/02 00:43:18 johnr Exp $
+ * $Id: CenterSite.java,v 1.3 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -19,7 +19,7 @@ import java.awt.geom.Rectangle2D;
  * provided for convenience of figures that need to make their
  * center points connectible.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @author 	John Reekie
  */
 public class CenterSite extends AbstractSite {
@@ -78,4 +78,5 @@ public class CenterSite extends AbstractSite {
         return bounds.getY() + bounds.getHeight()/2;
     } 
 }
+
 

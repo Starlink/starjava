@@ -1,14 +1,23 @@
+/*
+ * $Id: CommandInterpreter.java,v 1.39 2001/10/27 00:29:24 hwawen Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.whiteboard;
-import diva.sketch.BasicInterpreter;
-import diva.sketch.BasicSketchController;
+import diva.sketch.SketchController;
+import diva.sketch.CheckSelectionAction;
+import diva.sketch.DeletionAction;
+import diva.sketch.LassoSelectionAction;
+import diva.sketch.MultiStateInterpreter;
 import diva.sketch.SketchModel;
 import diva.sketch.StrokeSymbol;
 import diva.sketch.Symbol;
 import diva.sketch.features.FEUtilities;
-import diva.sketch.features.StrokePathLengthFE;
+import diva.sketch.features.PathLengthFE;
 import diva.sketch.recognition.BasicStrokeRecognizer;
-import diva.sketch.recognition.StrokeRecognition;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.Recognition;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.StrokeRecognizer;
 import diva.sketch.recognition.TimedStroke;
 import diva.canvas.Figure;
@@ -19,30 +28,28 @@ import diva.canvas.interactor.AbstractInteractor;
 import diva.canvas.interactor.SelectionModel;
 import diva.gui.MultipageDocument;
 import diva.util.java2d.Polygon2D;
+import diva.resource.DefaultBundle;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.io.FileReader;
+import java.awt.event.ActionEvent;
+//import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Iterator;
 import java.awt.geom.Rectangle2D;
 
-public class CommandInterpreter extends BasicInterpreter {
+/**
+ * This interpreter handles selection and deletion of a stroke or a
+ * group of strokes.
+ *
+ * @author  Heloise Hse (hwawen@eecs.berkeley.edu)
+ * @version $Revision: 1.39 $
+ * @rating Red
+ */
+public class CommandInterpreter extends MultiStateInterpreter {
     public final static String DELETION_TYPE_ID = "scribble";
     public final static String SELECTION_TYPE_ID = "check";
 
-    /**
-     * If the number of points in a stroke is less than
-     * CLICK_VERTEX_COUNT points, then it's probably a click.  We also
-     * have to check the distance between its start and end points.
-     */
-    //    private final static int CLICK_VERTEX_COUNT = 10;
-
-    /**
-     * If the distance between the start and the end points of a
-     * stroke is less than CLICK_VERTEX_THRESHOLD, this could be a
-     * click (or a closed shape.
-     */
-    //    private final static int CLICK_VERTEX_THRESHOLD = 15;
     private final static int DOT_THRESHOLD = 15;
 
     /**
@@ -63,11 +70,6 @@ public class CommandInterpreter extends BasicInterpreter {
      */
     private static double CLOSE_PROPORTION = 1.0/6.0;
 
-    /**
-     * The feature extraction used to compute a stroke's length.
-     */
-    private StrokePathLengthFE _pathLengthFE = new StrokePathLengthFE();
-
     private WhiteboardState _whiteboardState = null;
 
     private MultipageDocument _document = null;
@@ -84,16 +86,24 @@ public class CommandInterpreter extends BasicInterpreter {
      */
     private static StrokeRecognizer _recognizer;
 
-    public CommandInterpreter(BasicSketchController c, WhiteboardState state, MultipageDocument d){
+    LassoSelectionAction _lassoSelAction;
+    CheckSelectionAction _checkSelAction;
+    DeletionAction _delAction;
+
+    public CommandInterpreter(SketchController c, WhiteboardState state, MultipageDocument d){
         super(c);
         _whiteboardState = state;
         _document = d;
         addStrokeListener(new CommandStrokeListener());
         addClickListener(new ClickListener());
         addHoldListener(new HoldListener());
+        _lassoSelAction = new LassoSelectionAction(this);
+        _checkSelAction = new CheckSelectionAction(this);
+        _delAction = new DeletionAction(this);
         try{
-            _recognizer =
-                new BasicStrokeRecognizer(new FileReader("commands.tc"));
+            DefaultBundle bundle = new DefaultBundle();
+            Reader reader = new InputStreamReader(bundle.getResourceAsStream("CommandGestures"));
+            _recognizer = new BasicStrokeRecognizer(reader);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -120,13 +130,9 @@ public class CommandInterpreter extends BasicInterpreter {
             //it is likely to be a click in which case, deselect
             //figures
             TimedStroke stroke = getCurrentStroke();
-            double length = _pathLengthFE.apply(stroke);
-            //int num = stroke.getVertexCount();
-            //double dist = FEUtilities.distance(stroke.getX(0), stroke.getY(0),
-            //       stroke.getX(num-1), stroke.getY(num-1));
-            //if((num < CLICK_VERTEX_COUNT)&&(dist < CLICK_VERTEX_THRESHOLD)){
+            double length = PathLengthFE.pathLength(stroke);
+            removeCurrentSymbol();            
             if(length < DOT_THRESHOLD){
-                removeCurrentSymbol();
                 if(getController().getSelectionModel().getSelectionCount()>0){
                     Rectangle2D bounds = stroke.getBounds();
                     Iterator iter = getController().hitSketchFigures(bounds);
@@ -136,13 +142,47 @@ public class CommandInterpreter extends BasicInterpreter {
                 }
             }
             else{
-                removeCurrentSymbol();
-                processCommand(stroke);
+                _gestureModel.addSymbol(new StrokeSymbol(stroke,Color.black,null,2.0f));
+                FigureLayer layer =
+                    getController().getSketchPane().getForegroundLayer();
+                RecognitionSet rset =_recognizer.strokeCompleted(stroke);
+                Recognition r = rset.getBestRecognition();
+                SelectionModel m = getController().getSelectionModel();
+                boolean isProcessed = false;
+
+                if(r != null) {
+                    String id = r.getType().getID();                    
+                    double confidence = r.getConfidence();
+                    if((id.equals(DELETION_TYPE_ID))&&
+                            (confidence>DELETE_THRESHOLD)){
+                        _delAction.actionPerformed(new ActionEvent(this,0,DELETION_TYPE_ID));
+                        isProcessed = true;
+                    }
+                    else if((id.equals(SELECTION_TYPE_ID))&&
+                            (confidence>SELECT_THRESHOLD)){
+                        _checkSelAction.actionPerformed(new ActionEvent(this,0,SELECTION_TYPE_ID));
+                        isProcessed = true;
+                    }
+                    else {
+                        // confidence lower than threshold,
+                        //check for lasso selection
+                        int num = stroke.getVertexCount();
+                        double dist = FEUtilities.distance(stroke.getX(0), stroke.getY(0), stroke.getX(num-1), stroke.getY(num-1));
+                        double ratio = dist/length;
+                        if(ratio <= CLOSE_PROPORTION){
+                            _lassoSelAction.actionPerformed(new ActionEvent(this, 0, SELECTION_TYPE_ID));
+                            isProcessed = true;
+                        }
+                    }
+                }
+                if(!isProcessed) {
+                    System.out.println("NOT RECOGNIZED");
+                }
             }
         }
     }
- 
-    public class ClickListener extends AbstractInteractor {
+
+    private class ClickListener extends AbstractInteractor {
         public ClickListener() {}
 
         public void mouseClicked(LayerEvent e){
@@ -153,7 +193,7 @@ public class CommandInterpreter extends BasicInterpreter {
         }
     }
 
-    public class HoldListener extends AbstractInteractor {
+    private class HoldListener extends AbstractInteractor {
         public HoldListener() {}
         public void mousePressed(LayerEvent e){
             //if the pen is on a figure, select that figure
@@ -166,128 +206,5 @@ public class CommandInterpreter extends BasicInterpreter {
             }
         }
     }
-
-    public void processCommand(TimedStroke stroke){
-        _gestureModel.addSymbol(new StrokeSymbol(stroke, Color.black, null, 2.0f));
-        BasicSketchController controller =
-            (BasicSketchController)getController();
-        FigureLayer layer =
-            controller.getSketchPane().getForegroundLayer();
-        StrokeRecognitionSet rset =_recognizer.strokeCompleted(stroke);
-        StrokeRecognition r = rset.getBestRecognition();
-        SelectionModel m = controller.getSelectionModel();
-        boolean isProcessed = false;
-
-        if(r != null) {
-            double confidence = r.getConfidence();
-            if((r.getType().getID().equals(DELETION_TYPE_ID))
-                    && (confidence > DELETE_THRESHOLD)){
-                Rectangle2D bounds = stroke.getBounds();
-                // We first remove the objects that are hit by the
-                // deletion gesture from the selection model if
-                // they are currently selected.  This is because
-                // when objects are selected they have
-                // FigureDecorators wrapped around them, so if an
-                // object is a node, it will not be detected.
-                Iterator iter = controller.hitSketchFigures(bounds);
-                while(iter.hasNext()){
-                    Figure f = (Figure)iter.next();
-                    if (f instanceof FigureDecorator) {
-                        f = ((FigureDecorator)f).getDecoratedFigure();
-                        m.removeSelection(f);
-                    }
-                }
-                // Remove random unrecognized scribbles
-                iter = controller.hitSketchFigures(bounds);
-                WhiteboardEdits.DeleteGroupedStrokeEdit compoundEdit =
-                    new WhiteboardEdits.DeleteGroupedStrokeEdit();
-                int numEdits = 0;
-                while(iter.hasNext()) {
-                    Figure f = (Figure)iter.next();
-                    Object obj = f.getUserObject();
-                    if(obj instanceof Symbol) {
-                        Symbol s = (Symbol)obj;
-                        SketchModel sm = controller.getSketchModel();
-                        sm.removeSymbol(s);
-                        //create and post edits
-                        WhiteboardEdits.DeleteStrokeEdit edit =
-                            new WhiteboardEdits.DeleteStrokeEdit(sm, s, _document.getMultipageModel());
-                        compoundEdit.addEdit(edit);
-                        numEdits++;
-                    }
-                }
-                compoundEdit.end();
-                if(numEdits>0){
-                    _document.getEditSupport().postEdit(compoundEdit);
-                }
-                isProcessed = true;
-            }
-            else if((r.getType().getID().equals(SELECTION_TYPE_ID))&&
-                    (confidence > SELECT_THRESHOLD)){
-                int ct=0;
-                Rectangle2D bounds = stroke.getBounds();
-                // Toggle the hit figures into or out of the
-                // selection.  For each, make sure that we have
-                // the figure itself, and not the manipulator, by
-                // testing its class and calling
-                // FigureDecorator.getDecoratedFigure if
-                // necessary. Then see if the figure is in or not
-                // in the selection, and add it or take it out.
-                Iterator i = controller.hitSketchFigures(bounds);
-                while(i.hasNext()) {
-                    ct++;
-                    Figure f = (Figure)i.next();
-                    if (f instanceof FigureDecorator) {
-                        f = ((FigureDecorator) f).getDecoratedFigure();
-                    }
-                    if (!(m.containsSelection(f))) {
-                        m.addSelection(f);
-                    } else {
-                        m.removeSelection(f);
-                    }
-                }
-                if(ct==0){
-                    // a selection gesture is made on the empty part of
-                    // the canvas, therefore deselect everything that
-                    // is currently selected.
-                    m.clearSelection();
-                }
-                isProcessed = true;
-            }
-            else {
-                // confidence lower than threshold
-                // try to do selection
-                int num = stroke.getVertexCount();
-                double dist = FEUtilities.distance(stroke.getX(0), stroke.getY(0), stroke.getX(num-1), stroke.getY(num-1));
-                double length = _pathLengthFE.apply(stroke);
-                double ratio = dist/length;
-                if(ratio <= CLOSE_PROPORTION){
-                    Polygon2D poly = new Polygon2D.Float();
-                    poly.moveTo(stroke.getX(0), stroke.getY(0));
-                    for(int i = 1; i < num; i++) {
-                        poly.lineTo(stroke.getX(i), stroke.getY(i));
-                    }
-                    poly.closePath();
-                    Iterator iter = controller.containedSketchFigures(poly);
-                    while(iter.hasNext()){
-                        Figure f = (Figure)iter.next();
-                        if (f instanceof FigureDecorator) {
-                            f = ((FigureDecorator)f).getDecoratedFigure();
-                        }
-                        if (!(m.containsSelection(f))) {
-                            m.addSelection(f);
-                        }
-                        else {
-                            m.removeSelection(f);
-                        }
-                    }
-                    isProcessed = true;
-                }
-            }
-        }
-        if(!isProcessed) {
-            System.out.println("NO RECOGNITION");
-            // no recognition at all
-        }
-    }
 }
+

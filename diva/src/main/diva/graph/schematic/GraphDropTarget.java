@@ -1,7 +1,7 @@
 /*
- * $Id: GraphDropTarget.java,v 1.3 2000/07/18 19:09:39 neuendor Exp $
+ * $Id: GraphDropTarget.java,v 1.4 2001/07/22 22:01:25 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.schematic;
@@ -27,7 +27,7 @@ import java.util.Iterator;
  * object.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public class GraphDropTarget extends DropTarget {
@@ -197,4 +197,5 @@ public class GraphDropTarget extends DropTarget {
         }
     }
 }
+
 

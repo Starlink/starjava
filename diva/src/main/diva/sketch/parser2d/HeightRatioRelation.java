@@ -1,8 +1,8 @@
 /*
- * $Id: HeightRatioRelation.java,v 1.6 2000/08/12 10:59:43 michaels Exp $
+ * $Id: HeightRatioRelation.java,v 1.7 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -13,7 +13,7 @@ import java.awt.geom.Rectangle2D;
  * scene element to the height of the second.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @rating  Red
   */
 public class HeightRatioRelation implements Relation {
@@ -54,6 +54,7 @@ public class HeightRatioRelation implements Relation {
         return out;
     }    
 }
+
 
 
 

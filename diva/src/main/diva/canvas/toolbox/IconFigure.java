@@ -1,7 +1,7 @@
 /*
- * $Id: IconFigure.java,v 1.6 2000/05/22 17:08:21 neuendor Exp $
+ * $Id: IconFigure.java,v 1.7 2001/07/22 22:00:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -37,7 +37,7 @@ import java.util.Iterator;
  * a PaintedObject to decorate that figure, a label, and an arbitrary
  * number of attached Terminal objects.
  *
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  * @author 	John Reekie
  */
 public class IconFigure extends AbstractFigure {
@@ -259,4 +259,5 @@ public class IconFigure extends AbstractFigure {
 	repaint();
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: PerimeterSite.java,v 1.11 2000/05/02 00:43:24 johnr Exp $
+ * $Id: PerimeterSite.java,v 1.12 2001/07/22 22:00:32 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -28,7 +28,7 @@ import diva.util.java2d.Polygon2D;
  * any other shape, the site locates itself on the perimeter of the bounding
  * box for the shape.
  *
- * @version	$Revision: 1.11 $
+ * @version	$Revision: 1.12 $
  * @author 	John Reekie, Steve Neuendorffer
  */
 public class PerimeterSite extends AbstractSite {
@@ -211,5 +211,6 @@ public class PerimeterSite extends AbstractSite {
         return getPoint().getY();
     }
 }
+
 
 

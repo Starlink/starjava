@@ -1,7 +1,7 @@
 /*
- * $Id: CenterTarget.java,v 1.3 2000/05/02 00:43:18 johnr Exp $
+ * $Id: CenterTarget.java,v 1.4 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 /** An implementation of connector targets that finds center sites.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author John Reekie (johnr@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
  */
@@ -43,4 +43,5 @@ public class CenterTarget extends AbstractConnectorTarget {
         return null;
     }
 }
+
 

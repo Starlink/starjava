@@ -1,7 +1,7 @@
 /*
- * $Id: ImageFigure.java,v 1.6 2000/05/02 00:43:38 johnr Exp $
+ * $Id: ImageFigure.java,v 1.7 2001/07/22 22:00:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.toolbox;
@@ -18,7 +18,7 @@ import java.awt.geom.Rectangle2D;
  * A figure which draws a user-specified image.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public class ImageFigure extends AbstractFigure {
     /**
@@ -97,5 +97,6 @@ public class ImageFigure extends AbstractFigure {
         repaint();
     }
 }
+
 
 

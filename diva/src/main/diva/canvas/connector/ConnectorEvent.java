@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorEvent.java,v 1.6 2000/05/02 00:43:19 johnr Exp $
+ * $Id: ConnectorEvent.java,v 1.8 2001/07/30 02:17:53 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.connector;
@@ -18,7 +18,8 @@ import diva.canvas.Figure;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @contributor Edward A. Lee (eal@eecs.berkeley.edu)
+ * @version $Revision: 1.8 $
  * @rating Red
  */
 public class ConnectorEvent extends java.util.EventObject {
@@ -49,7 +50,7 @@ public class ConnectorEvent extends java.util.EventObject {
     public static final int CONNECTOR_UNSNAPPED = 15;
 
     /**
-     * This event concernts the head end of the connector.
+     * This event concerns the head end of the connector.
      * 
      * @see #getEnd()
      */
@@ -68,6 +69,13 @@ public class ConnectorEvent extends java.util.EventObject {
      * @see #getEnd()
      */
     public static final int BOTH_ENDS = 23;
+
+    /**
+     * This event is concerns the midpoint of the connector.
+     * 
+     * @see #getEnd()
+     */
+    public static final int MIDPOINT = 24;
     
     /**
      * The event ID.
@@ -180,4 +188,5 @@ public class ConnectorEvent extends java.util.EventObject {
         return "ConnectorEvent[" + idToString() + ", " + getConnector() + ", " + endToString() + "]";
     }
 }
+
 

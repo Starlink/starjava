@@ -1,7 +1,7 @@
 /*
- * $Id: SimpleTutorial.java,v 1.9 2000/05/22 17:07:25 neuendor Exp $
+ * $Id: SimpleTutorial.java,v 1.12 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,15 +25,64 @@ import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 
+import javax.swing.SwingUtilities;
+
 /**
- * A simple example showing how to construct a canvas and place
- * some simple figures on it. The JCanvas class contains a GraphicsPane,
- * which in turn contains several layers. In this example, we draw
- * on the <i>foreground layer</i> of the pane.
+ * <p> This tutorial shows how to construct a JCanvas and place
+ * figures on it.
+ * <p>
+ * <img src="../../../../packages/canvas/tutorial/images/SimpleTutorial.gif" align="right">
+ *
+ * <P> In this example, we create figures with a few
+ * different shapes, using the BasicFigure class in
+ * <b>diva.canvas.toolbox</b>, which takes an instance of Shape (an
+ * interface defined in the Java AWT) and draws it on the screen using
+ * given colors and strokes.
+ * 
+ * <p> Each JCanvas contains by default an instance of GraphicsPane.
+ * To get the graphics pane from a JCanvas:
+ * 
+ * <pre>
+ *   GraphicsPane graphicsPane = (GraphicsPane)canvas.getCanvasPane();
+ * </pre>
+ * 
+ * The pane contains several layers, one of which is a foreground
+ * FigureLayer upon which figures are drawn and interacted with.  To
+ * get the figure layer:
+ * 
+ * <pre>
+ *   FigureLayer layer = graphicsPane.getForegroundLayer();
+ * </pre>
+ * 
+ * There are three figures on the screen, each created using a
+ * different kind of shape. The code to create a rectangle and add it
+ * to the figure layer is:
+ * 
+ * <pre>
+ *   Figure rectangle = new BasicRectangle(10,10,100,100,Color.blue);
+ *   layer.add(rectangle);
+ * </pre>
+ * 
+ * The code to create the curved shape is more complex, and uses an
+ * instance of <b>java.awt.geom.GeneralPath</b>.
+ * 
+ * <pre>
+ *    GeneralPath path = new GeneralPath();
+ *    path.moveTo(120,240);
+ *    path.lineTo(240,240);
+ *    path.quadTo(180,120,120,240);
+ *    path.closePath();
+ *    Figure semi = new BasicFigure(path, Color.green);
+ *    layer.add(semi);
+ * </pre>
+ * 
+ * The third figure is much the same, but uses an instance of
+ * <b>diva.util.java2d.Polyline2D</b>. Polyline2D is more efficient
+ * than GeneralPath, and should be used anytime only straight-line
+ * segments are needed.
  *
  * @author John Reekie
- * @version $Revision: 1.9 $
- */
+ * @version $Revision: 1.12 $ */
 public class SimpleTutorial {
 
     // The JCanvas
@@ -100,10 +149,16 @@ public class SimpleTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        SimpleTutorial ex = new SimpleTutorial();
-        ex.createBasicRectangle();
-        ex.createBasicFigure();
-        ex.createPolyline();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    SimpleTutorial ex = new SimpleTutorial();
+		    ex.createBasicRectangle();
+		    ex.createBasicFigure();
+		    ex.createPolyline();
+		}
+	    });
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: GraphDocument.java,v 1.3 2000/08/23 05:00:10 michaels Exp $
+ * $Id: GraphDocument.java,v 1.5 2001/07/22 22:01:24 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.schematic;
@@ -59,7 +59,7 @@ import java.net.URL;
  * the various method comments for further imformation.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  */
 public class GraphDocument extends AbstractDocument {
     
@@ -243,7 +243,7 @@ public class GraphDocument extends AbstractDocument {
      * format; this is just included as an example.
      *
      * @author John Reekie (johnr@eecs.berkeley.edu)
-     * @version $Revision: 1.3 $
+     * @version $Revision: 1.5 $
      */
     private class BasicGraphBuilder extends LoggableOp implements XmlBuilder {
         /** Given an object, which should be a basic graph model,
@@ -339,6 +339,11 @@ public class GraphDocument extends AbstractDocument {
         public Object build (XmlElement elt) {
             return build(elt, elt.getType());
         }
+
+        /** Do nothing.
+         */
+        public void setDelegate(XmlBuilder delegate) {
+        }
     
         /** Given an XmlElement, create and return a represention
          * of it as a graph model. The type variable must be "graph".
@@ -411,5 +416,6 @@ public class GraphDocument extends AbstractDocument {
         }
     }
 }
+
 
 

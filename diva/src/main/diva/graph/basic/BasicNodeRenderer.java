@@ -1,7 +1,7 @@
 /*
- * $Id: BasicNodeRenderer.java,v 1.3 2000/06/14 16:41:25 neuendor Exp $
+ * $Id: BasicNodeRenderer.java,v 1.4 2001/07/22 22:01:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -24,7 +24,7 @@ import java.awt.geom.GeneralPath;
  * to render.
  *
  * @author  Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating  Red
  */
 public class BasicNodeRenderer implements NodeRenderer {
@@ -204,4 +204,5 @@ public class BasicNodeRenderer implements NodeRenderer {
     }
 
 }
+
 

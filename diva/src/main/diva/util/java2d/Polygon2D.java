@@ -1,7 +1,7 @@
 /*
- * $Id: Polygon2D.java,v 1.8 2000/09/14 11:47:57 michaels Exp $
+ * $Id: Polygon2D.java,v 1.9 2001/07/22 22:02:08 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
  * two concrete inner classes, one storing floats and one
  * storing doubles.
  *
- * @version	$Revision: 1.8 $
+ * @version	$Revision: 1.9 $
  * @author 	John Reekie
  */
 public abstract class Polygon2D implements Shape {
@@ -600,4 +600,5 @@ public abstract class Polygon2D implements Shape {
         }
     }
 }
+
 

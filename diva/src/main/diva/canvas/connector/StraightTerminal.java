@@ -1,7 +1,7 @@
 /*
- * $Id: StraightTerminal.java,v 1.3 2000/05/02 00:43:24 johnr Exp $
+ * $Id: StraightTerminal.java,v 1.4 2001/07/22 22:00:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -27,7 +27,7 @@ import java.awt.geom.Point2D;
 /** A terminal that consists of a straight line plus an additional
  * decoration at the connection end of the terminal.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  */
 public class StraightTerminal extends AbstractFigure implements Terminal {
@@ -325,5 +325,6 @@ public class StraightTerminal extends AbstractFigure implements Terminal {
         }
     }
 }
+
 
 

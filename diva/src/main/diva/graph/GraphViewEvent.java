@@ -1,7 +1,7 @@
 /*
- * $Id: GraphViewEvent.java,v 1.1 2000/07/23 23:32:50 neuendor Exp $
+ * $Id: GraphViewEvent.java,v 1.2 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -19,7 +19,7 @@ import java.util.*;
  * @see GraphController
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public class GraphViewEvent extends java.util.EventObject {
@@ -125,4 +125,5 @@ public class GraphViewEvent extends java.util.EventObject {
             + getTarget() + ", " + getOldValue() + "]";
     }
 }
+
 

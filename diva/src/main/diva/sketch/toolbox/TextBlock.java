@@ -1,52 +1,33 @@
-
+/*
+ * $Id: TextBlock.java,v 1.4 2001/07/22 22:01:59 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.sketch.toolbox;
 import diva.sketch.recognition.Type;
-import diva.sketch.recognition.TypedData;
 
 /**
  * Native class that defines a collection of TextLine's. It also defines 
  * the avg x-height and character width. 
  *
+ * @author Michael Shilman (michaels@eecs.berkeley.edu)
  * @author Niraj Shah  (niraj@eecs.berkeley.edu)
+ * @version $Revision: 1.4 $
  * @rating Red
  */
-public class TextBlock implements TypedData {
+public class TextBlock extends TextAnnotations {
     /**
      * The static type associated with this typed data.
      */
     public static final Type type = Type.makeType(TextBlock.class);
-    
-    private double _charHeight;
-    private double _charWidth;
-	
-    public TextBlock(double ch, double cw) {
-        _charHeight = ch;
-        _charWidth = cw;
+    public TextBlock() {
+    }            
+    public TextBlock(double charHeight, double charWidth) {
+        super(charHeight, charWidth);
     }
-	
     public Type getType() {
         return TextBlock.type;
     }
-	
-    public double getCharHeight() {
-        return _charHeight;
-    }
-	
-    public double getCharWidth() {
-        return _charWidth;
-    }
-
-    public boolean equals(Object o) {
-        if(o instanceof TextBlock) {
-            TextBlock tb = (TextBlock)o;
-            return (_charHeight == tb.getCharHeight() &&
-                    _charWidth == tb.getCharWidth());
-        }
-        return false;
-    }
-	
-    public String toString() {
-        return "TextBlock[ charHeight = " + _charHeight + 
-		  ", charWidth = " + _charWidth + "]";
-    }
 }
+

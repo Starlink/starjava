@@ -1,7 +1,7 @@
 /*
- * $Id: FilteredIterator.java,v 1.6 2000/05/02 00:45:24 johnr Exp $
+ * $Id: FilteredIterator.java,v 1.8 2002/01/12 00:06:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -12,9 +12,9 @@ import java.util.Iterator;
  * to each element that it gets.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  */
-public class FilteredIterator implements Iterator {
+public class FilteredIterator extends IteratorAdapter {
     private Filter _filter;
     private Iterator _iterator;
     private Object _nextObject = null;
@@ -45,12 +45,6 @@ public class FilteredIterator implements Iterator {
         return result;
     }
 
-    public void remove() {
-      // FIXME: we should probably be able to do this...
-        throw new UnsupportedOperationException(
-                "Filtered iterator cannot delete element");
-    }
-
     private void getNext() {
         while (_iterator.hasNext()) {
             Object o = _iterator.next();
@@ -61,4 +55,5 @@ public class FilteredIterator implements Iterator {
         }
     }
 }
+
 

@@ -1,8 +1,8 @@
 /*
- * $Id: GraphModel.java,v 1.11 2000/12/25 13:38:45 neuendor Exp $
+ * $Id: GraphModel.java,v 1.12 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
 import java.util.Iterator;
@@ -27,7 +27,7 @@ import diva.util.PropertyContainer;
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * @rating Yellow
  */
 public interface GraphModel {
@@ -170,3 +170,4 @@ public interface GraphModel {
      */
     public void setSemanticObject(Object o, Object visual);
 }
+

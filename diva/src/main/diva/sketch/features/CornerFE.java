@@ -1,7 +1,7 @@
 /*
- * $Id: CornerFE.java,v 1.7 2000/05/10 18:54:53 hwawen Exp $
+ * $Id: CornerFE.java,v 1.13 2002/01/19 19:33:48 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -19,140 +19,197 @@ import java.util.ArrayList;
  * path length are less than a threshold value (20%), then this is not
  * really a corner.  Otherwise it is likely to be a corner. <p>
  *
- *  @author Heloise Hse (hwawen@eecs.berkeley.edu)
- *  @version $Revision: 1.7 $
+ * @author Heloise Hse (hwawen@eecs.berkeley.edu)
+ * @version $Revision: 1.13 $
+ * @rating Red
  */
 public class CornerFE implements FeatureExtractor {
+    /**
+     * The key to access the cached corner property.
+     */
+    public static final String PROPERTY_KEY = "Corners";
+    
+    /**
+     * The default threshold ratio of a segment length to the entire
+     * path length of the stroke.
+     */
+    public static final double DEFAULT_THRESH_MAG_RATIO = 0.2;
 
     /**
-     * The threshold ratio of a segment to the entire path length of
-     * the stroke.  If the ratio is smaller than this threshold
-     * ratio, then the segment is too small for determining a corner.
+     * The default dot product value for determining whether two
+     * vectors form a corner.  If the dot product of two vectors is
+     * less than this value, there is definitely a corner.
      */
-    private double _thresholdMagRatio = 0.2;
+    public static final double DEFAULT_THRESH_DOT = 0.3;
 
     /**
-     * Threshold value for definite angles
+     * If the dot product of two vectors is greater than
+     * DEFAULT_THRESH_DOT but less than this parameter
+     * (DEFAULT_THRESH_RELAXED_DOT), we identify this to be a likely
+     * corner, and more checkings are performed on the two vectors to
+     * verify.  See numCorners for more details.
      */
-    private double _thresholdDotProduct = 0.3;
+    public static final double DEFAULT_THRESH_RELAXED_DOT = 0.6;
+    
+    /**
+     * The default threshold ratio of a segment length to the entire
+     * path length of the stroke.
+     */
+    private double _threshMagRatio;
 
     /**
-     * Threshold for likely angles
+     * The dot product value for determining whether two vectors form
+     * a corner.  If the dot product of two vectors is less than this
+     * value, there is definitely a corner.
      */
-    private double _thresholdRelaxedDotProduct = 0.6;
+    private double _threshDot;
 
     /**
-     * Create a corner feature extractor.  Default threshold values are
-     * used.  The default value for vector dot product is 0.6, and
-     * the default value for the ratio of magnitude is 0.2 (20%).
+     * If the dot product of two vectors is greater than _threshDot
+     * but less than this parameter (_threshRelaxedDot), we identify
+     * this to be a likely corner, and more checkings are performed on
+     * the two vectors to verify.  See numCorners for more details.
      */
-    public CornerFE() { }
+    private double _threshRelaxedDot;
 
     /**
-     * Create a corner feature extractor with the specified threshold
-     * values used to determine possible corners.  If two vector's dot
-     * product is less than dotThreshold, the two vectors form a cusp.
-     * However, this may not necessarily be a corner, because if the
-     * two vector are very short compare to the entire stroke path,
-     * this may just be an irregularity in drawing.  Therefore, we
-     * need to compute the ratio of each vector and the stroke path
-     * length.  If both exceed magThreshold value, then we can confirm
-     * that there is indeed a corner.
+     * Create a CornerFE with default parameters.  The default value
+     * for vector dot product is 0.3, the relaxed dot product is 0.6,
+     * and the ratio of magnitude is 0.2 (20%).  See numCorners for
+     * more detail on how these parameters are being used.
      */
-    public CornerFE(double dotThreshold, double magThreshold) {
-        _thresholdDotProduct = dotThreshold;
-        _thresholdMagRatio = magThreshold;
+    public CornerFE() {
+        _threshMagRatio = DEFAULT_THRESH_MAG_RATIO;
+        _threshDot = DEFAULT_THRESH_DOT;
+        _threshRelaxedDot = DEFAULT_THRESH_RELAXED_DOT;
     }
 
     /**
-     * Return the number of corners in the specified stroke.  Iterate
-     * over the points in the stroke, for every three points we form
-     * two vectors.  From the dot product and the magnitude of the
-     * vectors, we determine how many corners there are in the
-     * stroke.
+     * Create a CornerFE with the specified parameters.
+     */
+    public CornerFE(double magThresh, double dotThresh, double dotRelaxThresh) {
+        _threshDot = dotThresh;
+        _threshMagRatio = magThresh;
+        _threshRelaxedDot = dotRelaxThresh;
+    }
+
+    /**
+     * Return the number of corners in the specified stroke.  This
+     * calls numCorners with threshold values either initialized in
+     * the constructor or specified by the user. <p>
+     *
+     * First check to see if this feature already exists in the
+     * stroke's property table (access using PROPERTY_KEY).  If so,
+     * return that value (cast to double).  Otherwise call numCorners
+     * to compute and cache the result in the table. <p>
      */
     public double apply(TimedStroke s) {
-        debug("=====");
-        int numCorners = 0;
-        
-        // find corner points.
-        if(s != null) {
-            int numPoints = s.getVertexCount();
-            
-            if((numPoints == 1)||(numPoints == 2)){
-                numCorners = 0;
-            }
-            else {
-                ArrayList cornerIndices = new ArrayList();
-                double pathLength = (new StrokePathLengthFE()).apply(s);
-                double x1, y1, x2, y2, x3, y3;
-                for(int i=0; i<numPoints-2; i++){
-                    x1 = s.getX(i);
-                    y1 = s.getY(i);
-                    x2 = s.getX(i+1);
-                    y2 = s.getY(i+1);
-                    x3 = s.getX(i+2);
-                    y3 = s.getY(i+2);
-                    double dot = FEUtilities.dotProduct(x1,y1,x2,y2,x3,y3);
-                    
-                    if(dot < _thresholdDotProduct) {//definitely an angle
-                        double angle = Math.acos(dot);
-                        angle = radianToDegree(angle);
-                        debug("definite angle = " + angle);
-                        int j = i+1;
-                        cornerIndices.add(new Integer(j));
-                        numCorners++;
-                    }
-                    else if(dot < _thresholdRelaxedDotProduct) { //likely to be an angle
-                        double l1 = FEUtilities.distance(x1, y1, x2, y2);
-                        double l2 = FEUtilities.distance(x2, y2, x3, y3);
-                        l1 = l1/pathLength;
-                        l2 = l2/pathLength;
-                        if((l1 > _thresholdMagRatio)||(l2 > _thresholdMagRatio)){
-                            double angle = Math.acos(dot);
-                            angle = radianToDegree(angle);
-                            numCorners++;
-                            int j = i+1;
-                            debug("Unsure angle = " + angle);
-                            debug(", [" + l1 + ", " + l2 + "]");
-                            cornerIndices.add(new Integer(j));
-                        }
-                    }
-                }
-                s.setProperty(getName(), cornerIndices);
-            }
-        }
-        debug("num corners = " + numCorners);
-        return numCorners;
-    }
-
-    private void debug(String s) {
-        //        System.err.println(s);
-    }
-
-    /*
-    private boolean isCusp(int x1, int y1, int x2, int y2, int x3, int y3){
-        int nVx1 = x2-x1;
-        int nVy1 = y2-y1;
-        int nVx2 = x3-x2;
-        int nVy2 = y3-y2;
-        double nVMag1 = Math.sqrt(nVx1*nVx1 + nVy1*nVy1);
-        double nVMag2 = Math.sqrt(nVx2*nVx2 + nVy2*nVy2);
-        if((nVMag1==0) || (nVMag2 == 0)){
-            return false;
+        Integer num = (Integer)s.getProperty(PROPERTY_KEY);
+        if(num == null){
+            int val = numCorners(s,_threshDot,_threshMagRatio,_threshRelaxedDot);
+            s.setProperty(PROPERTY_KEY, new Integer(val));
+            return (double)val;
         }
         else {
-            double dot = (nVx1/nVMag1)*(nVx2/nVMag2) + (nVy1/nVMag1)*(nVy2/nVMag2);
-            if(dot < 0.6){
-                return true;
+            return num.doubleValue();
+        }
+    }
+
+
+    /**
+     * Return the indices where the corners occur in the given stroke.
+     * Return null if no corners exist in the stroke.  This methods
+     * makes a call to cornerIndices with default threshold values.
+     */
+    public static final int[] cornerIndices(TimedStroke s){
+        return cornerIndices(s, DEFAULT_THRESH_MAG_RATIO,
+                DEFAULT_THRESH_DOT, DEFAULT_THRESH_RELAXED_DOT);
+    }
+
+    
+    /**
+     * Return the indices where the corners occur in the given stroke.
+     * Return null if no corners exist in the stroke.  Iterate over
+     * the points in the stroke, for every three points (p1, p2, p3)
+     * we form two vectors, (p1,p2) and (p2, p3).  If the dot product
+     * of these two vectors is less than threshDot, then there is
+     * definitely an angle at p2.  If the dot product is greater than
+     * threshDot but less than threshRelaxedDot, it is likely that
+     * there is an angle at p2, but we're not sure.  In this case, the
+     * magnitudes of both vectors are calculated, m1 and m2.  Let
+     * 'plen' be the stroke path length, we calculate r1 = m1/plen and
+     * r2 = m2/plen.  If either r1 or r2 is greater than
+     * threshMagRatio, then we say that there is a corner.  If both
+     * vectors are really short (r1<threshMagRatio &&
+     * r2<threshMagRatio), then they are not significant enough to be
+     * used to determine a corner.  They are more likely to be noise
+     * due to the pen/tablet hardware.
+     */
+    public static final int[] cornerIndices(TimedStroke s,
+            double threshMagRatio, double threshDot,
+            double threshRelaxedDot) {
+        if(s == null) {
+            return null;
+        }
+        else if(s.getVertexCount()<3){
+            return null;
+        }
+        else {
+            int numPoints = s.getVertexCount();
+            ArrayList cornerIndices = new ArrayList();
+            double pathLength = PathLengthFE.pathLength(s);
+            double x1, y1, x2, y2, x3, y3;
+            for(int i=0; i<numPoints-2; i++){
+                x1 = s.getX(i);
+                y1 = s.getY(i);
+                x2 = s.getX(i+1);
+                y2 = s.getY(i+1);
+                x3 = s.getX(i+2);
+                y3 = s.getY(i+2);
+                double dot = FEUtilities.dotProduct(x1,y1,x2,y2,x3,y3);
+                
+                if(dot < threshDot) {//definitely an angle
+                    double angle = Math.acos(dot);
+                    angle = Math.toDegrees(angle);
+                    int j = i+1;
+                    cornerIndices.add(new Integer(j));
+                    //                        numCorners++;
+                }
+                else if(dot < threshRelaxedDot) {
+                    //likely to be an angle
+                    double l1 = FEUtilities.distance(x1, y1, x2, y2);
+                    double l2 = FEUtilities.distance(x2, y2, x3, y3);
+                    l1 = l1/pathLength;
+                    l2 = l2/pathLength;
+                    if((l1 > threshMagRatio)||(l2 > threshMagRatio)){
+                        double angle = Math.acos(dot);
+                        angle = Math.toDegrees(angle);
+                        //                            numCorners++;
+                        int j = i+1;
+                        cornerIndices.add(new Integer(j));
+                    }
+                }
+            }
+            if(cornerIndices.size()==0){
+                return null;
             }
             else {
-                return false;
+                int arr[] = new int[cornerIndices.size()];
+                //System.out.println("Corner indices:-----");
+                int k=0;
+                for(Iterator i = cornerIndices.iterator(); i.hasNext();){
+                    Integer index = (Integer)i.next();
+                    int val = index.intValue();
+                    arr[k++]=val;
+                    //System.out.println(val+":("+s.getX(val)+", "+s.getY(val)+")");
+                }
+                //System.out.println("--------------------");                
+                return arr;
             }
         }
     }
-    */
 
+    
     /**
      * Return the name of this feature extractor.
      */
@@ -160,32 +217,61 @@ public class CornerFE implements FeatureExtractor {
         return "Corners";
     }
 
+    
     /**
-     * Return the degree of the specified radian angle.
+     * Return the number of corners in the given stroke.  This method
+     * calls numCorners with default threshold values.
      */
-    private double radianToDegree(double angle) {
-        return (angle/Math.PI * 180.0);
+    public static final int numCorners(TimedStroke s) {
+        return numCorners(s, DEFAULT_THRESH_MAG_RATIO,
+                DEFAULT_THRESH_DOT, DEFAULT_THRESH_RELAXED_DOT);
     }
 
     /**
-     * Set the vector dot product threshold which is used to determine
-     * whether a cusp is formed between the vectors.  If the dot
-     * product between two vectors is less than the threshold, then
-     * the vectors form a cusp.
+     * Return the number of corners in the given stroke.  This method
+     * calls cornerIndices.
+     */
+    public static final int numCorners(TimedStroke s,
+            double threshMagRatio, double threshDot,
+            double threshRelaxedDot) {
+        int indices[] = cornerIndices(s,threshMagRatio,threshDot,threshRelaxedDot);
+        if(indices==null){
+            return 0;
+        }
+        else{
+            return indices.length;
+        }
+    }
+    
+
+    /**
+     * Set the dot product threshold for determining whether two
+     * vectors form a corner.  If the dot product of two vectors is
+     * less than this value, there is definitely a corner.
      */
     public void setDotThreshold(double val){
-        _thresholdDotProduct = val;
+        _threshDot = val;
     }
 
+
     /**
-     * Set the magnitude ratio threshold which is used to determine
-     * whether a cusp is indeed a corner.  If we know that there is a
-     * cusp between two vectors, if the ratio of the vector's
-     * magnitude and the stroke path length for both vectors exceed
-     * the threshold value, then there is a corner.
+     * Set the magnitude ratio threshold.  The default threshold ratio
+     * of a segment length to the entire path length of the stroke.
      */
     public void setMagRatioThreshold(double val){
-        _thresholdMagRatio = val;
+        _threshMagRatio = val;
+    }
+
+    
+    /**
+     * If the dot product of two vectors is greater than _threshDot
+     * but less than this parameter (_threshRelaxedDot), we identify
+     * this to be a likely corner, and more checkings are performed on
+     * the two vectors to verify.  See numCorners for more details.
+     */
+    public void setRelaxedDotThreshold(double val){
+        _threshRelaxedDot = val;
     }
 }
+
 

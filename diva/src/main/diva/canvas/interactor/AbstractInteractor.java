@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractInteractor.java,v 1.6 2000/09/12 03:05:33 hwawen Exp $
+ * $Id: AbstractInteractor.java,v 1.8 2001/07/24 06:33:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -22,7 +22,7 @@ import java.util.Hashtable;
  * interactors. The listener methods are all implemented,
  * to make it easier to implement interactor subclasses.
  *
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  * @author John Reekie
  */
 public abstract class AbstractInteractor implements Interactor {
@@ -67,15 +67,15 @@ public abstract class AbstractInteractor implements Interactor {
         return _consuming;
     }
 
-    /** Test the enabled flag of this role. If true, the role
+    /** Test the enabled flag of this interactor. If true, the interactor
      * is prepared to handle layer events.
      */
     public boolean isEnabled () {
         return _enabled;
     }
 
-    /** Test the motion enabled flag of this role. If true, the role
-     * is prepared to handle layer motion events.
+    /** Test the motion enabled flag of this interactor. If true, the
+     * interactor is prepared to handle layer motion events.
      */
     public boolean isMotionEnabled () {
         return _motionEnabled;
@@ -131,7 +131,7 @@ public abstract class AbstractInteractor implements Interactor {
         _consuming = flag;
     }
 
-    /** Set the enabled flag of this role.  If true, the role
+    /** Set the enabled flag of this interactor.  If true, the interactor
      * is prepared to handle layer events. The default setting
      * of this flag is <b>true</b>.
      */
@@ -139,9 +139,9 @@ public abstract class AbstractInteractor implements Interactor {
         _enabled = flag;
     }
 
-    /** Set the motion enabled flag of this role.  If true, the role
-     * is prepared to handle layer motion events. The default setting
-     * of this flag is <b>false</b>.
+    /** Set the motion enabled flag of this interactor.  If true, the
+     * interactor is prepared to handle layer motion events. The default
+     * setting of this flag is <b>false</b>.
      */
     protected void setMotionEnabled (boolean flag) {
         _motionEnabled = flag;
@@ -153,4 +153,5 @@ public abstract class AbstractInteractor implements Interactor {
         _mouseFilter = filter;
     }
 }
+
 

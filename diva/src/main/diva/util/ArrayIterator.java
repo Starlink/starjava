@@ -1,7 +1,7 @@
 /*
- * $Id: ArrayIterator.java,v 1.2 2000/05/02 00:45:24 johnr Exp $
+ * $Id: ArrayIterator.java,v 1.4 2002/01/12 00:06:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
  * empty array.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  */
 public class ArrayIterator extends IteratorAdapter {
     private Object[] _array;
@@ -40,9 +40,4 @@ public class ArrayIterator extends IteratorAdapter {
             throw new NoSuchElementException("No more elements");
         }
     }
-
-    public void remove() {
-        throw new UnsupportedOperationException("Can't remove element");
-    }
 }
-

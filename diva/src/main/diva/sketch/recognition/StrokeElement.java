@@ -1,7 +1,7 @@
 /*
- * $Id: StrokeElement.java,v 1.2 2000/08/04 01:24:02 michaels Exp $
+ * $Id: StrokeElement.java,v 1.3 2001/07/22 22:01:54 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
@@ -13,7 +13,7 @@ import diva.sketch.recognition.TimedStroke;
  * a typed interpretation of this stroke.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @rating Red
  */
 public interface StrokeElement extends SceneElement {
@@ -23,3 +23,4 @@ public interface StrokeElement extends SceneElement {
      */
     public TimedStroke getStroke();
 }
+

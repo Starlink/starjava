@@ -1,11 +1,11 @@
 /*
- * $Id: WhiteboardState.java,v 1.2 2000/10/30 00:15:17 michaels Exp $
+ * $Id: WhiteboardState.java,v 1.5 2001/07/22 22:02:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
-import diva.sketch.BasicSketchController;
+import diva.sketch.SketchController;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -18,7 +18,7 @@ import java.util.Iterator;
  * event to its listeners when a property has been changed.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.5 $
  */
 public class WhiteboardState {
     public final static String PEN_COLOR = "PEN_COLOR";
@@ -27,11 +27,12 @@ public class WhiteboardState {
     public final static String MODE = "MODE";    
     public final static String SKETCH_MODE = "SKETCH";
     public final static String COMMAND_MODE = "COMMAND";
+    public final static String HIGHLIGHT_MODE = "HIGHLIGHT";
     
     ArrayList _listeners = new ArrayList();
-    Float _penWidth = new Float(BasicSketchController.DEFAULT_LINE_WIDTH);
-    Color _penColor = BasicSketchController.DEFAULT_PEN_COLOR;
-    Color _fillColor = BasicSketchController.DEFAULT_FILL_COLOR;
+    Float _penWidth = new Float(SketchController.DEFAULT_LINE_WIDTH);
+    Color _penColor = SketchController.DEFAULT_PEN_COLOR;
+    Color _fillColor = SketchController.DEFAULT_FILL_COLOR;
     String _mode = SKETCH_MODE;
 
     public WhiteboardState(){}
@@ -92,3 +93,4 @@ public class WhiteboardState {
         }
     }
 }
+

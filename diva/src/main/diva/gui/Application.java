@@ -1,7 +1,7 @@
 /*
- * $Id: Application.java,v 1.12 2000/09/15 21:53:16 michaels Exp $
+ * $Id: Application.java,v 1.13 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -20,7 +20,7 @@ import java.util.List;
  * create an implementation of this interface.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * @rating Red
  */
 public interface Application {
@@ -185,4 +185,5 @@ public interface Application {
      */
     public void showError(String op, Exception e);
 }
+
 

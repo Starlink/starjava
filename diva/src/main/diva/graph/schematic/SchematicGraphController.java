@@ -1,7 +1,7 @@
 /*
- * $Id: SchematicGraphController.java,v 1.12 2000/09/06 20:30:51 neuendor Exp $
+ * $Id: SchematicGraphController.java,v 1.14 2001/07/22 22:01:25 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.schematic;
@@ -49,10 +49,10 @@ import javax.swing.SwingConstants;
  * the ports, and are connected by them
  *
  * @author 	Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version	$Revision: 1.12 $
+ * @version	$Revision: 1.14 $
  * @rating      Red
  */
-public class SchematicGraphController extends GraphController {
+public class SchematicGraphController extends AbstractGraphController {
     /**
      * The global count for the default node/edge creation.
      */
@@ -68,15 +68,15 @@ public class SchematicGraphController extends GraphController {
 
     /** The entity controller
      */
-    private NodeController _entityController;
+    private BasicNodeController _entityController;
 
     /** The port controller
      */
-    private NodeController _portController;
+    private BasicNodeController _portController;
 
     /** The link controller
      */
-    private EdgeController _linkController;
+    private BasicEdgeController _linkController;
 
     /** The filter for control operations
      */
@@ -102,10 +102,10 @@ public class SchematicGraphController extends GraphController {
 							      200.0, 200.0));
 	nodeRenderer.setNodeFill(Color.black);
 
-	_entityController = new NodeController(this);	
+	_entityController = new BasicNodeController(this);	
 	_entityController.setNodeRenderer(nodeRenderer);
 
-	_portController = new NodeController(this);
+	_portController = new BasicNodeController(this);
 	// The ports are terminals with a fixed attachment site and a fixed 
 	// direction.
 	_portController.setNodeRenderer(new NodeRenderer() {
@@ -122,7 +122,7 @@ public class SchematicGraphController extends GraphController {
 	
 	_portController.setNodeInteractor(new CompositeInteractor());
 	
-	_linkController = new EdgeController(this);
+	_linkController = new BasicEdgeController(this);
 	_linkController.setEdgeRenderer(new ManhattanEdgeRenderer());
 			
 	addGraphViewListener(new IncrementalLayoutListener(new IncrLayoutAdapter(new AbstractGlobalLayout(new BasicLayoutTarget(this)) {
@@ -203,19 +203,19 @@ public class SchematicGraphController extends GraphController {
 
     /** Return the entity controller.
      */
-    public NodeController getEntityController() {
+    public BasicNodeController getEntityController() {
 	return _entityController;
     }
 
     /** Return the port controller.
      */
-    public NodeController getPortController() {
+    public BasicNodeController getPortController() {
 	return _portController;
     }
 
     /** Return the link controller.
      */
-    public EdgeController getLinkController() {
+    public BasicEdgeController getLinkController() {
 	return _linkController;
     }
 
@@ -251,4 +251,5 @@ public class SchematicGraphController extends GraphController {
         }
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: Figure.java,v 1.36 2000/11/10 00:36:53 neuendor Exp $
+ * $Id: Figure.java,v 1.40 2002/01/11 23:00:45 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -24,7 +24,7 @@ import java.awt.geom.Rectangle2D;
  * implemented by the AbstractFigure class, which roots the tree
  * of concrete figure classes.
  *
- * @version $Revision: 1.36 $
+ * @version $Revision: 1.40 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -36,7 +36,8 @@ public interface Figure extends VisibleComponent, UserObjectContainer {
     public boolean contains (Point2D p);
 
     /** Get the bounding box of this figure. The result rectangle is
-     *  given in the enclosing transform context.
+     *  given in the enclosing transform context.  The returned rectangle
+     *  may be an internally cached shape, and should not be modified.
      */
     public Rectangle2D getBounds ();
 
@@ -48,6 +49,14 @@ public interface Figure extends VisibleComponent, UserObjectContainer {
     /** Get the most immediate layer containing this figure.
      */
     public CanvasLayer getLayer ();
+
+    /** Return the origin of the figure in the enclosing transform
+     *  context.  This might be, for example, the center of the figure,
+     *  the upper left corner, or some other point with respect to which
+     *  the pieces of the figure are defined.
+     *  @return The origin of the figure.
+     */
+    public Point2D getOrigin ();
 
     /** Return the parent of this figure. Return null if the figure
      *  does not have a parent.  (Note that a figure with no parent
@@ -84,7 +93,7 @@ public interface Figure extends VisibleComponent, UserObjectContainer {
      */
     public boolean intersects (Rectangle2D r);
 
-    /** Set the interactor role of this figure. Once a figure has an
+    /** Set the interactor of this figure. Once a figure has an
      *  interactor given to it, it will respond to events
      *  on the canvas, in the ways determined by the interactor.
      */
@@ -113,4 +122,5 @@ public interface Figure extends VisibleComponent, UserObjectContainer {
      */
     public void translate (double x, double y);
 }
+
 

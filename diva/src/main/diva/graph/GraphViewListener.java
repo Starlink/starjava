@@ -1,7 +1,7 @@
 /*
- * $Id: GraphViewListener.java,v 1.1 2000/07/23 23:32:50 neuendor Exp $
+ * $Id: GraphViewListener.java,v 1.3 2001/07/24 06:34:51 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -15,25 +15,28 @@ package diva.graph;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Steve Neuendorffer  (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public interface GraphViewListener extends java.util.EventListener {
 
     /**
+     * The figure representing a node was moved.
      */
     public void nodeMoved(GraphViewEvent e);
 
     /**
+     * The connector representing an edge was just routed.
      */
     public void edgeRouted(GraphViewEvent e);
 
     /**
+     * A figure representing a node was just drawn.
      */
     public void nodeDrawn(GraphViewEvent e);
 
     /**
+     * A connector representing an edge was just drawn.
      */
     public void edgeDrawn(GraphViewEvent e);
 }
-

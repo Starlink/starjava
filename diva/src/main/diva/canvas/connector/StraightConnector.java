@@ -1,7 +1,7 @@
 /*
- * $Id: StraightConnector.java,v 1.18 2000/07/23 23:29:53 neuendor Exp $
+ * $Id: StraightConnector.java,v 1.20 2001/11/27 01:44:45 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.connector;
@@ -17,12 +17,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
-/** A Connector that draws itself in a straight line. The connector
- * uses an instance of PaintedPath to draw itself, so see that class
- * for a more detailed description of the paint- and stroke-related
- * methods.
+/** A Connector that draws itself in a straight line.
  *
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.20 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
  * @rating  Red
@@ -41,7 +38,7 @@ public class StraightConnector extends AbstractConnector {
      */
     public StraightConnector (Site tail, Site head) {
         super(tail, head);
-        getPaintedPath().shape = new Line2D.Double();
+        setShape(new Line2D.Double());
         route();
     }
 
@@ -54,7 +51,7 @@ public class StraightConnector extends AbstractConnector {
                     (_headPt.getX() + _tailPt.getX()) / 2,
                     (_headPt.getY() + _tailPt.getY()) / 2);
             getLabelFigure().translateTo(pt);
-            getLabelFigure().autoAnchor(getPaintedPath().shape);
+            getLabelFigure().autoAnchor(getShape());
         }
     }
 
@@ -134,7 +131,7 @@ public class StraightConnector extends AbstractConnector {
             getTailEnd().getConnection(tailPt);
         }
         // Change the line shape
-        ((Line2D)getPaintedPath().shape).setLine(tailPt, headPt);
+        ((Line2D)getShape()).setLine(tailPt, headPt);
 
         // Move the label
         repositionLabel();
@@ -148,7 +145,7 @@ public class StraightConnector extends AbstractConnector {
      */
     public void translate (double x, double y) {
         repaint();
-        Line2D line = (Line2D) getPaintedPath().shape;
+        Line2D line = (Line2D) getShape();
         line.setLine(
                 line.getX1()+x, line.getY1()+y, 
                 line.getX2()+x, line.getY2()+y);
@@ -158,4 +155,5 @@ public class StraightConnector extends AbstractConnector {
         repaint();
     }
 }
+
 

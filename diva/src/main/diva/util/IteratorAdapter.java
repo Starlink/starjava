@@ -1,7 +1,7 @@
 /*
- * $Id: IteratorAdapter.java,v 1.3 2000/05/02 00:45:24 johnr Exp $
+ * $Id: IteratorAdapter.java,v 1.4 2001/07/22 22:02:03 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -14,7 +14,7 @@ import java.util.Iterator;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class IteratorAdapter implements Iterator {
   public boolean hasNext() {
@@ -27,4 +27,5 @@ public class IteratorAdapter implements Iterator {
     throw new UnsupportedOperationException("Can't remove element");
   }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: AppletContext.java,v 1.3 2000/06/14 16:43:22 neuendor Exp $
+ * $Id: AppletContext.java,v 1.4 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -37,7 +37,7 @@ import javax.swing.event.EventListenerList;
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class AppletContext extends JApplet implements AppContext {
     /** 
@@ -177,5 +177,6 @@ public class AppletContext extends JApplet implements AppContext {
         return true;
     }
 }
+
 
 

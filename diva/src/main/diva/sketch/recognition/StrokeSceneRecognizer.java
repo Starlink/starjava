@@ -1,7 +1,7 @@
 /*
- * $Id: StrokeSceneRecognizer.java,v 1.7 2000/08/04 01:24:02 michaels Exp $
+ * $Id: StrokeSceneRecognizer.java,v 1.12 2001/08/28 06:34:12 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -9,12 +9,12 @@ package diva.sketch.recognition;
 import java.util.Iterator;
 
 /**
- * A scene recognizer that uses adapts a given stroke recognizer
+ * A scene recognizer that uses a given stroke recognizer
  * so that the results of its single-stroke recognition get added
  * to the scene properly.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.12 $
  * @rating Red
  */
 public class StrokeSceneRecognizer implements SceneRecognizer {
@@ -46,6 +46,12 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
     public StrokeSceneRecognizer(StrokeRecognizer r) {
         _strokeRecognizer = r;
     }
+
+    /** Return the stroke recognizer that this wraps.
+     */
+    public StrokeRecognizer getStrokeRecognzer() {
+        return _strokeRecognizer;
+    }
 	
     /**
      * Call the child recognizer and add the results, if any,
@@ -75,14 +81,14 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
     }
 	
     /**
-     * Call the child recognizer and add the results, if any,
-     * to the given scene database.  If the session contains
-     * more than one stroke, call the child recognizer for
-     * each stroke in the session.  (FIXME: does this make
+     * Call the child recognizer and add the results, if any, to the
+     * given scene database.  If the session contains more than one
+     * stroke, call the child recognizer for each stroke in the
+     * session and append the deltas.  (FIXME: does this make
      * sense?)
      */
     public SceneDeltaSet sessionCompleted (StrokeElement[] session, Scene db) {
-        StrokeRecognitionSet s = null;
+        RecognitionSet s = null;
         if(session.length == 1) {
             StrokeElement se = session[0];
             return genDeltas(_strokeRecognizer.strokeCompleted(se.getStroke()),
@@ -93,8 +99,7 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
             for(int i = 0; i < session.length; i++) {
                 StrokeElement se = session[i];
                 SceneDeltaSet sub =
-                    genDeltas(_strokeRecognizer.strokeCompleted(se.getStroke()), 
-                            se, db);
+                    genDeltas(_strokeRecognizer.strokeCompleted(se.getStroke()), se, db);
                 if(sub != SceneDeltaSet.NO_DELTA) {
                     if(out == SceneDeltaSet.NO_DELTA) {
                         out = sub;
@@ -109,8 +114,8 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
             }
             return out;
         }
-    }	
-	
+    }
+    
     /**
      * Go through each recognition, check to see if it's already
      * in the tree, and add it if it's not.
@@ -120,16 +125,17 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
      * update the confidence?  take the highest confidence?
      * vote using another voting mechanism of some kind?
      */
-    private SceneDeltaSet genDeltas (StrokeRecognitionSet srs,
+    private SceneDeltaSet genDeltas (RecognitionSet srs,
             StrokeElement se, Scene db) {
         SceneDeltaSet out = SceneDeltaSet.NO_DELTA;
-		
+        int ct=0;
         for(Iterator i = srs.recognitions(); i.hasNext(); ) {
-            StrokeRecognition sr = (StrokeRecognition)i.next();
-			
+            Recognition sr = (Recognition)i.next();
+            //System.out.println("\trecognition #" + ct++ +" "+sr.getType());
             boolean found = false;
             for(Iterator j = se.parents().iterator(); j.hasNext(); ) {
                 CompositeElement parent = (CompositeElement)j.next();
+                //System.out.println("\t\t parent (" + parent.getData().getType() + ")");
                 if(sr.getType().equals(parent.getData().getType())) {
                     found = true;
                     //TODO: what do we do here?  update the confidence??
@@ -146,10 +152,13 @@ public class StrokeSceneRecognizer implements SceneRecognizer {
                // db.setRoot(newElt);
                 if(out == SceneDeltaSet.NO_DELTA) {
                     out = new SceneDeltaSet();
-                    out.addDelta(new SceneDelta.Subtractive(db, newElt));
+                    //                    out.addDelta(new SceneDelta.Subtractive(db, newElt));
                 }
+                out.addDelta(new SceneDelta.Subtractive(db, newElt));    
             }
         }
+        //System.out.println("Num deltas = " + out.getDeltaCount());
         return out;
     }
 }
+

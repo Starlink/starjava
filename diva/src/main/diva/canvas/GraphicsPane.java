@@ -1,7 +1,7 @@
 /*
- * $Id: GraphicsPane.java,v 1.10 2000/09/06 20:59:08 michaels Exp $
+ * $Id: GraphicsPane.java,v 1.11 2001/07/22 22:00:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -62,7 +62,7 @@ import java.util.Iterator;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version	$Revision: 1.10 $
+ * @version	$Revision: 1.11 $
  * @rating Yellow
  */
 public class GraphicsPane extends CanvasPane {
@@ -247,4 +247,5 @@ public class GraphicsPane extends CanvasPane {
         _layers[cursor++] = _backgroundEventLayer;
     }
 }
+
 

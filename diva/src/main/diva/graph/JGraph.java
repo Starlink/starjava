@@ -1,7 +1,7 @@
 /*
- * $Id: JGraph.java,v 1.18 2000/07/09 19:57:12 michaels Exp $
+ * $Id: JGraph.java,v 1.20 2001/07/24 06:34:51 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -16,13 +16,14 @@ import java.awt.geom.*;
 
 /**
  * A graph widget analagous to java.swing.JTree.
- * JGraph contains a GraphModel and can be customized
- * to render it in an application-specific way through
- * its GraphPane member variable.
+ * JGraph functions as a container for an
+ * instance of GraphPane, which is a multi-layer graphics
+ * object containing (among other things) a layer upon which
+ * graph elements are drawn and manipulated.
  *
- * @see GraphModel
+ * @see GraphModel, GraphPane
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.18 $
+ * @version	$Revision: 1.20 $
  */
 public class JGraph extends JCanvas {
 
@@ -49,4 +50,5 @@ public class JGraph extends JCanvas {
         setCanvasPane(p);
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: ArcRenderer.java,v 1.3 2000/07/31 22:15:54 neuendor Exp $
+ * $Id: ArcRenderer.java,v 1.5 2002/05/16 20:49:05 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -22,7 +22,7 @@ import java.awt.Font;
  * instance of ArcConnector and initializes it.
  *
  * @author Edward A. Lee  (eal@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  * @rating Red
  */
 public class ArcRenderer implements EdgeRenderer {
@@ -38,10 +38,11 @@ public class ArcRenderer implements EdgeRenderer {
         Object p = "edge";//edge.getProperty("label");
         String label = p == null ? "#" : (String) p;
 	LabelFigure labelFigure = new LabelFigure(label);
-        labelFigure.setStyle(Font.ITALIC);
-        labelFigure.setSize(14);
+        String fontname = labelFigure.getFont().getFontName();
+        labelFigure.setFont(new Font(fontname, Font.ITALIC, 14));
         c.setLabelFigure(labelFigure);
         return c;
     }
 }
+
 

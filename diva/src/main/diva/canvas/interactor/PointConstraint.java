@@ -1,7 +1,7 @@
 /*
- * $Id: PointConstraint.java,v 1.2 2000/05/02 00:43:31 johnr Exp $
+ * $Id: PointConstraint.java,v 1.3 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
  * An interface implemented by classes that can constrain a point
  * to lie within a certain set of values.
  * 
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author John Reekie
  */
 public interface PointConstraint {
@@ -31,4 +31,5 @@ public interface PointConstraint {
      */
     public boolean snapped();
 }
+
 

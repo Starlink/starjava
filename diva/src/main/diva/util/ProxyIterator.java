@@ -1,7 +1,7 @@
 /*
- * $Id: ProxyIterator.java,v 1.2 2000/05/02 00:45:25 johnr Exp $
+ * $Id: ProxyIterator.java,v 1.4 2002/01/12 00:06:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -14,9 +14,9 @@ import java.util.Iterator;
  * next() method.
  *
  * @author Michael Shilman     (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  */
-public class ProxyIterator implements Iterator {
+public class ProxyIterator extends IteratorAdapter {
     private Iterator _iterator;
 
     public ProxyIterator(Iterator i) {
@@ -30,9 +30,6 @@ public class ProxyIterator implements Iterator {
     public Object next() {
         return _iterator.next();
     }
-
-    public void remove() {
-        _iterator.remove();
-    }
 }
+
 

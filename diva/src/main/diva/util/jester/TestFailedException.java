@@ -1,7 +1,7 @@
 /*
- * $Id: TestFailedException.java,v 1.5 2000/05/02 00:45:30 johnr Exp $
+ * $Id: TestFailedException.java,v 1.6 2001/07/22 22:02:09 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
@@ -11,7 +11,7 @@ package diva.util.jester;
  * incorrect result.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class TestFailedException extends Exception {
     /**
@@ -52,4 +52,5 @@ public class TestFailedException extends Exception {
         second = b;
     }
 }
+
 

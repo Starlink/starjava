@@ -1,8 +1,8 @@
 /*
- * $Id: EventPlayer.java,v 1.2 2000/09/19 17:10:12 michaels Exp $
+ * $Id: EventPlayer.java,v 1.3 2001/07/22 22:02:08 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
 
@@ -17,7 +17,7 @@ import java.awt.Component;
  *
  * @see EventRecorder
  * @author Michael Shilman      (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public class EventPlayer {
@@ -44,6 +44,7 @@ public class EventPlayer {
         }
     }
 }
+
 
 
 

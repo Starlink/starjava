@@ -1,7 +1,7 @@
 /*
- * $Id: TestHarness.java,v 1.5 2000/05/02 00:45:30 johnr Exp $
+ * $Id: TestHarness.java,v 1.7 2002/01/10 10:33:53 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
@@ -16,7 +16,7 @@ import java.io.*;
  * in the future.)
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.7 $
  */
 public class TestHarness {
   /** The output stream
@@ -35,12 +35,12 @@ public class TestHarness {
    * Run a single test and log the results
    */
   public void runTestCase (TestCase testCase) {
-    println(testCase.getName());
+    printnoln(testCase.getName());
     try {
       testCase.init();
     }
     catch (Exception e) {
-      println("Initialization aborted: ");
+      println("\nInitialization aborted: ");
       println("    " + testCase.toString());
       println("    " + e.getMessage());
       println("Stack trace: ");
@@ -51,7 +51,7 @@ public class TestHarness {
       testCase.run();
     }
     catch (Exception e) {
-      println("Test case aborted: ");
+      println("\nTest case aborted: ");
       println("    " + testCase.toString());
       println("    " + e.getMessage());
       println("Stack trace: ");
@@ -62,17 +62,22 @@ public class TestHarness {
       testCase.check();
     }
     catch (TestFailedException e) {
-      println("Test failed: ");
+      println("\nTest failed: ");
       println("    " + testCase.toString());
       println("    " + e.getMessage());
       return;
     }
     catch (Exception e) {
-      println("Test check aborted: ");
+      println("\nTest check aborted: ");
       println("    " + testCase.toString());
       println("    " + e.getMessage());
       println("Stack trace: ");
       e.printStackTrace(_outputStream);
+    }
+    if (testCase.getExecutionTime() > 0) {
+	print(" (" + testCase.getExecutionTime() + " ms)\n");
+    } else {
+	print("\n");
     }
   }
 
@@ -115,5 +120,19 @@ public class TestHarness {
       _outputStream.print(_indentString);
       _outputStream.println(s);
     }
+
+    /** Print to the output stream with the current indent
+     */
+    void printnoln (String s) {
+      _outputStream.print(_indentString);
+      _outputStream.print(s);
+    }
+
+    /** Print to the output stream with no indent
+     */
+    void print (String s) {
+      _outputStream.print(s);
+    }
 }
+
 

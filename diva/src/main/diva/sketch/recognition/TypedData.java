@@ -1,11 +1,12 @@
 /*
- * $Id: TypedData.java,v 1.2 2000/05/29 21:10:38 michaels Exp $
+ * $Id: TypedData.java,v 1.5 2001/08/28 06:34:12 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
 package diva.sketch.recognition;
+import java.util.Set;
 
 /**
  * Typed data refers to a piece of semantic data that results from a
@@ -37,18 +38,26 @@ package diva.sketch.recognition;
  * are specified in a text file and there is no associated class
  * to go along with them).
  *
+ * <p>
+ * Additionally, TypedData extends XmlBuilder, so that recognition
+ * results can be saved to and from XML files.
+ *
  * @see Type
  * @see SimpleData
- * @see StrokeRecognition
+ * @see Recognition
  * @see SceneElement
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.5 $
  * @rating      Red
  */
-public interface TypedData {
+public interface TypedData extends diva.util.xml.XmlBuilder {
     /**
      * Return the uniquely identifying type associated
      * with this piece of data.
      */
     public Type getType();
 }
+
+
+
+

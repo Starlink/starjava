@@ -1,13 +1,12 @@
 /*
- * $Id: Whiteboard.java,v 1.55 2001/01/25 06:25:06 hwawen Exp $
+ * $Id: Whiteboard.java,v 1.60 2001/08/27 22:29:37 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
 
 import diva.sketch.JSketch;
-import diva.sketch.BasicSketchController;
 import diva.sketch.SketchEvent;
 import diva.sketch.SketchListener;
 import diva.sketch.SketchModel;
@@ -101,7 +100,7 @@ import javax.swing.undo.UndoManager;
  * and gestural command editing.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.55 $
+ * @version $Revision: 1.60 $
  */
 public class Whiteboard extends MDIApplication {
     /**
@@ -162,6 +161,7 @@ public class Whiteboard extends MDIApplication {
     protected JPopupMenu _widthPopupMenu = new JPopupMenu();    
     protected JButton _widthButton;
     protected JButton _sketchModeButton;
+    protected JButton _highlightModeButton;
     protected JButton _commandModeButton;    
     /*********************** Tool Bar Buttons *************************/
 
@@ -602,6 +602,17 @@ public class Whiteboard extends MDIApplication {
             GUIUtilities.addToolBarButton(tb, action, null,
                     getResources().getImageIcon("SketchModeImage"), false);
         _sketchModeButton.setMargin(new Insets(offset, 0, offset, 0));
+
+        action = new AbstractAction(WhiteboardState.HIGHLIGHT_MODE){
+            public void actionPerformed(ActionEvent e) {
+                _whiteboardState.setMode(WhiteboardState.HIGHLIGHT_MODE);
+            }
+        };
+        addAction(action);
+        _highlightModeButton =
+            GUIUtilities.addToolBarButton(tb, action, null,
+                    getResources().getImageIcon("HighlightModeImage"), false);
+        _highlightModeButton.setMargin(new Insets(offset, 0, offset, 0));
         
         action = new AbstractAction(WhiteboardState.COMMAND_MODE){
             public void actionPerformed(ActionEvent e) {
@@ -660,15 +671,6 @@ public class Whiteboard extends MDIApplication {
                 JColorChooser.showDialog(getDesktopContext().makeComponent(),
                         "Pen Color", Color.white);
                 _whiteboardState.setPenColor(newColor);
-                //create and record the edit
-                /*
-                WhiteboardEdits.PenColorChangeEdit edit =
-                new WhiteboardEdits.PenColorChangeEdit(_whiteboardState,
-                        oldColor, newColor);
-                MultipageDocument d =
-                (MultipageDocument)getCurrentView().getDocument();
-                d.getEditSupport().postEdit(edit);
-                */
             }
         });
         item.setText("Custom...");
@@ -718,8 +720,8 @@ public class Whiteboard extends MDIApplication {
      * Adds a button to the toolbar which allows the user to change
      * the thickness of the pen.  When the button is pressed, a menu
      * will show up, and the menu provides 5 choices of line widths
-     * for convenience.  User can also perform this task through
-     * the menu.
+     * for convenience.  User can also perform this task through the
+     * menu.
      */
     protected void initializeToolbarPenWidthMenu(JToolBar tb){
         Action action;
@@ -820,15 +822,6 @@ public class Whiteboard extends MDIApplication {
         }
 
         public void actionPerformed(ActionEvent e){
-            //create and record the edit
-            /*
-            WhiteboardEdits.PenColorChangeEdit edit =
-                new WhiteboardEdits.PenColorChangeEdit(_whiteboardState,
-                        _whiteboardState.getPenColor(), _color);
-            MultipageDocument d =
-                (MultipageDocument)getCurrentView().getDocument();
-            d.getEditSupport().postEdit(edit);
-            */
             _whiteboardState.setPenColor(_color);
             _outlinePopupMenu.setVisible(false);
         }
@@ -866,16 +859,6 @@ public class Whiteboard extends MDIApplication {
         }
 
         public void actionPerformed(ActionEvent e){
-            
-            //create and record the edit
-            /*
-            WhiteboardEdits.PenWidthChangeEdit edit =
-                new WhiteboardEdits.PenWidthChangeEdit(_whiteboardState,
-                        _whiteboardState.getPenWidth(), _width);
-            MultipageDocument d =
-                (MultipageDocument)getCurrentView().getDocument();
-            d.getEditSupport().postEdit(edit);
-            */  
             _whiteboardState.setPenWidth(_width);
             _widthPopupMenu.setVisible(false);
         }
@@ -931,6 +914,10 @@ public class Whiteboard extends MDIApplication {
         }
     }    
 
+    /**
+     * Listens to the whiteboard state and updates the widgets
+     * accordingly.
+     */
     protected class WBStateListener implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent e){
             String propertyName = e.getPropertyName();
@@ -954,10 +941,17 @@ public class Whiteboard extends MDIApplication {
                 //button state
                 if(mode.equals(WhiteboardState.COMMAND_MODE)){
                     _commandModeButton.setEnabled(false);
+                    _highlightModeButton.setEnabled(true);
                     _sketchModeButton.setEnabled(true);
                 }
-                else {
+                else if(mode.equals(WhiteboardState.HIGHLIGHT_MODE)){
                     _commandModeButton.setEnabled(true);
+                    _highlightModeButton.setEnabled(false);
+                    _sketchModeButton.setEnabled(true);
+                }
+                else { //sketch mode
+                    _commandModeButton.setEnabled(true);
+                    _highlightModeButton.setEnabled(true);
                     _sketchModeButton.setEnabled(false);
                 }
             }
@@ -1037,6 +1031,7 @@ public class Whiteboard extends MDIApplication {
 
             _commandModeButton.setEnabled(false);
             _sketchModeButton.setEnabled(false);
+            _highlightModeButton.setEnabled(false);
         }
     }
 
@@ -1232,4 +1227,5 @@ public class Whiteboard extends MDIApplication {
         g.dispose();
     }
     */
+
 

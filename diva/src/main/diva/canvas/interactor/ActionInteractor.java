@@ -1,7 +1,7 @@
 /*
- * $Id: ActionInteractor.java,v 1.5 2000/11/18 09:42:55 neuendor Exp $
+ * $Id: ActionInteractor.java,v 1.6 2001/07/22 22:00:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -16,7 +16,7 @@ import java.awt.event.ActionEvent;
 /** 
  * An interactor that fires an Action when a mouse pressed event occurs.
  *
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
  */
 public class ActionInteractor extends AbstractInteractor {
@@ -63,4 +63,5 @@ public class ActionInteractor extends AbstractInteractor {
 	_action = action;
     }
 }
+
 

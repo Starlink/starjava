@@ -1,7 +1,7 @@
 /*
- * $Id: BasicEllipse.java,v 1.3 2000/05/02 00:43:37 johnr Exp $
+ * $Id: BasicEllipse.java,v 1.4 2001/07/22 22:00:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -19,7 +19,7 @@ import java.awt.geom.Ellipse2D;
  * a single Ellipse2D as its shape. It provides a useful set of
  * constructors.
  *
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  * @author 	John Reekie
  */
 public class BasicEllipse extends BasicFigure {
@@ -66,4 +66,5 @@ public class BasicEllipse extends BasicFigure {
         super(new Ellipse2D.Double(x,y,width,height),fill,lineWidth);
     }
 }
+
 

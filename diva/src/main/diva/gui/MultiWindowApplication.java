@@ -1,7 +1,7 @@
 /*
- * $Id: MultiWindowApplication.java,v 1.1 2000/09/22 19:11:20 neuendor Exp $
+ * $Id: MultiWindowApplication.java,v 1.2 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -50,7 +50,7 @@ import javax.swing.event.ListDataEvent;
  * These toplevel frames are raised and lowered together.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public abstract class MultiWindowApplication extends AbstractApplication {
@@ -165,4 +165,5 @@ public abstract class MultiWindowApplication extends AbstractApplication {
         }
     }
 }
+
 

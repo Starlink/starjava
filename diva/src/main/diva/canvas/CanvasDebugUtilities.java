@@ -1,7 +1,7 @@
 /*
- * $Id: CanvasDebugUtilities.java,v 1.1 2000/06/27 00:43:04 pwhitake Exp $
+ * $Id: CanvasDebugUtilities.java,v 1.3 2001/12/10 22:32:41 neuendor Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -33,7 +33,7 @@ import javax.swing.SwingConstants;
  * in the Java 2D API, while others accept iterators over Figures
  * or Shapes and compute a useful composite result.
  *
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.3 $
  * @author John Reekie
  * @rating Red
  */
@@ -49,7 +49,8 @@ public final class CanvasDebugUtilities {
         return out;
     }
 
-    private static String printHelper(Figure root, String prefix, TransformContext parent) {
+    private static String printHelper(Figure root, String prefix,
+            TransformContext parent) {
         String out = "";
         if(root.getTransformContext() != parent) {
             out = out + prefix + root + root.getTransformContext() + "\n";
@@ -64,3 +65,4 @@ public final class CanvasDebugUtilities {
         return out;
     }
 }
+

@@ -1,7 +1,7 @@
 /*
- * $Id: SumOfAbsDeltaRatioFE.java,v 1.6 2000/05/10 18:54:54 hwawen Exp $
+ * $Id: SumOfAbsDeltaRatioFE.java,v 1.9 2001/07/22 22:01:48 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -12,17 +12,35 @@ import diva.sketch.recognition.TimedStroke;
  * values of the delta y's and the sum of the absolute values of the
  * delta x's (sum of |delta y|)/(sum of |delta x|).
  *
- *  @author Heloise Hse (hwawen@eecs.berkeley.edu)
- *  @version $Revision: 1.6 $
+ * @author Heloise Hse (hwawen@eecs.berkeley.edu)
+ * @version $Revision: 1.9 $
+ * @rating Red
  */
 public class SumOfAbsDeltaRatioFE implements FeatureExtractor {
-
     /**
      * Return the ratio of the sum of the absolute values of the delta
      * y's and the sum of the absolute values of the delta x's.
      * (sum of |delta y|)/(sum of |delta x|).
      */
     public double apply(TimedStroke s) {
+        return sumOfAbsDeltaRatio(s);
+    }
+
+
+    /**
+     * Return the name of this feature extractor.
+     */    
+    public String getName() {
+        return "Sum of Absolute Delta Ratio";
+    }
+
+
+    /**
+     * Return the ratio of the sum of the absolute values of the delta
+     * y's and the sum of the absolute values of the delta x's.
+     * (sum of |delta y|)/(sum of |delta x|).
+     */
+    public static double sumOfAbsDeltaRatio(TimedStroke s) {
         double sumDx = 0;
         double sumDy = 0;
 
@@ -39,13 +57,6 @@ public class SumOfAbsDeltaRatioFE implements FeatureExtractor {
         }
         return (sumDy/sumDx);
     }
-
-    /**
-     * Return the name of this feature extractor.
-     */    
-    public String getName() {
-        return "Sum of Absolute Delta Ratio";
-    }
-
 }
+
 

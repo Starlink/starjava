@@ -1,17 +1,16 @@
 /*
- * $Id: SceneWriter.java,v 1.8 2000/08/04 01:24:02 michaels Exp $
+ * $Id: SceneWriter.java,v 1.10 2001/07/22 22:01:54 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import diva.util.xml.*;
+import java.io.*;
 import java.util.Iterator;
+import diva.resource.DefaultBundle;
+
 
 /**
  * SceneWriter writes a single interpretation of a scene to an output
@@ -22,10 +21,28 @@ import java.util.Iterator;
  *
  * @see SceneParser
  * @author Michael Shilman      (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  * @rating Red
  */
 public class SceneWriter {
+    CompositeBuilder _compBuilder;
+
+    /** Build a scene writer using the system-specified composite
+     * builder for
+     */
+    public SceneWriter() throws Exception {
+        DefaultBundle resources = new DefaultBundle();
+        _compBuilder = new CompositeBuilder();
+        _compBuilder.addBuilderDecls(new InputStreamReader(resources.getResourceAsStream(SceneBuilder.BUILDER_DECLS)));
+    }
+    
+    /** Build a scene writer using the given composite builder for
+     * mapping types to builders.
+     */
+    public SceneWriter(CompositeBuilder builder) {
+        _compBuilder = builder;
+    }
+    
     /**
      * Write the single interpretation of the scene given rooted by
      * the given root to the character-output stream.  The caller is
@@ -33,94 +50,14 @@ public class SceneWriter {
      * if it encounters typed data that is not of the type
      * SimpleData.
      */
-    public void write(Scene db, SceneElement root, Writer writer)
-            throws IOException {
-        writeHeader(writer);
-        writer.write("<" + SceneParser.SCENE_TAG + ">\n");
-        writeElement(db, root, "root", "  ", writer);
-        writer.write("</"+ SceneParser.SCENE_TAG + ">\n");
-        writer.flush();
-    }
-
-    /**
-     * Write the stroke information (x, y, timestamp) and its
-     * label (indicating either positive or negative example) to the
-     * character-output stream.
-     */
-    private void writeElement(Scene db, SceneElement root, String name,
-            String prefix, Writer writer) throws IOException {
-        writer.write(prefix);
-        if(root instanceof StrokeElement) {
-            StrokeElement strokeElt = (StrokeElement)root;
-            writeStroke(strokeElt.getStroke(), writer);
-        }
-        else {
-            CompositeElement compElt = (CompositeElement)root;
-            writer.write("<" + SceneParser.SCENE_ELEMENT_TAG + " " 
-                    + SceneParser.NAME_TAG + "=\"" + name + "\" "
-                    + SceneParser.TYPE_TAG + "=\"");
-            TypedData data = compElt.getData();
-            if(data instanceof SimpleData) {
-                writer.write(((SimpleData)data).getTypeID());
-            }
-            else {
-                String err = "Only support simple types";
-                throw new UnsupportedOperationException(err);
-            }
-            writer.write("\" " + SceneParser.CONFIDENCE_TAG + "=\"");
-            writer.write(String.valueOf(compElt.getConfidence()));
-            writer.write("\">\n");
-            //write type information
-            Iterator j = compElt.childNames().iterator();
-            for(Iterator i = compElt.children().iterator(); i.hasNext(); ) {
-                SceneElement elt = (SceneElement)i.next();
-                String cname = (String)j.next();
-                writeElement(db, elt, cname, prefix+"  ", writer);
-            }
-            writer.write(prefix);
-            writer.write("</" + SceneParser.SCENE_ELEMENT_TAG + ">\n");
-        }
-    }
-    
-
-    /**
-     * Write the stroke information (x, y, timestamp) and its
-     * label (indicating either positive or negative example) to the
-     * character-output stream.
-     */
-    private void writeStroke(TimedStroke stroke, Writer writer)
-            throws IOException {
-        writer.write("<" + SceneParser.STROKE_ELEMENT_TAG + " " + SceneParser.POINTS_TAG + "=\"");
-        if(stroke == null){
-            System.out.println("NULL stroke!");
-        }
-        int len = stroke.getVertexCount();
-        for(int k=0; k<len; k++){
-            double x = stroke.getX(k);
-            String xs = String.valueOf(x);
-            writer.write(xs);
-            writer.write(" ");
-            double y = stroke.getY(k);
-            String ys = String.valueOf(y);
-            writer.write(ys);
-            writer.write(" ");
-            long t = stroke.getTimestamp(k);
-            String ts = String.valueOf(t);
-            writer.write(ts);
-            if(k != (len-1)){
-                writer.write(" ");
-            }
-        }
-        writer.write("\"/>\n");
-    }
-    
-    /**
-     * Write header information to the character-output stream.
-     */
-    private void writeHeader(Writer writer) throws IOException {
-        writer.write("<?xml version=\"1.0\" standalone=\"no\"?>\n");
-        writer.write("<!DOCTYPE " + SceneParser.SCENE_TAG + " PUBLIC \""
-                + SceneParser.PUBLIC_ID + "\"\n\t\""
-                + SceneParser.DTD_URL + "\">\n\n");
+    public void write(Scene db, SceneElement root, Writer out)
+            throws Exception {
+        XmlDocument doc = new XmlDocument();
+        XmlWriter writer = new XmlWriter();
+        XmlElement scene = new XmlElement(SceneBuilder.SCENE_TAG);
+        scene.addElement(_compBuilder.generate(root));
+        doc.setRoot(scene);
+        writer.write(doc, out);
     }
 }
+

@@ -1,7 +1,7 @@
 /*
- * $Id: GraphException.java,v 1.7 2000/07/02 03:23:45 michaels Exp $
+ * $Id: GraphException.java,v 1.8 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -15,7 +15,7 @@ package diva.graph;
  * it.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * @rating Red
  */
 public class GraphException extends RuntimeException {
@@ -31,4 +31,5 @@ public class GraphException extends RuntimeException {
         super(e.getMessage());
     }
 }
+
 

@@ -1,12 +1,14 @@
 /*
- * $Id: FigureContainer.java,v 1.22 2000/05/02 00:43:15 johnr Exp $
+ * $Id: FigureContainer.java,v 1.25 2002/08/19 07:07:54 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
 
 package diva.canvas;
+
+import diva.util.Filter;
 
 import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
@@ -17,11 +19,16 @@ import java.util.Iterator;
  * and adds methods related to containment of a known
  * and finite set of figures.
  *
- * @version	$Revision: 1.22 $
+ * @version	$Revision: 1.25 $
  * @author John Reekie
  * @rating Yellow
  */
 public interface FigureContainer extends FigureSet, VisibleComponent {
+
+    /** Add a figure to this container. The figure should be added so
+     * that it always displays above existing figures.
+     */
+    public void add (Figure f);
 
     /** Test if this container contains the given figure. As a general
      * rule, the implementation of this method is not required to be
@@ -52,9 +59,26 @@ public interface FigureContainer extends FigureSet, VisibleComponent {
      */
     public Figure pick (Rectangle2D region);
 
+    /** Given a rectangle, return the top-most descendent figure
+     * that hits it, and is accepted by the given filter. 
+     * Otherwise, return null. Implementors
+     * should not call their own hit() method, but only
+     * those of their children.
+     *
+     * <P>Note that a region is given instead of a point so
+     * that "pick halo" can be implemented. The region should
+     * not have zero size, or no figure will be hit.
+     */
+    public Figure pick (Rectangle2D region, Filter f);
+
+    /** Remove the given figure from this container.
+     */
+    public void remove (Figure f);
+
     /** Remove a figure from the given decorator and add
      * it back into this container.
      */
     public void undecorate (FigureDecorator d);
 }
+
 

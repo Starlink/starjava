@@ -1,7 +1,7 @@
 /*
- * $Id: BasicSelectionModel.java,v 1.14 2000/08/30 22:09:49 neuendor Exp $
+ * $Id: BasicSelectionModel.java,v 1.16 2001/07/24 06:33:01 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -16,13 +16,13 @@ import javax.swing.event.EventListenerList;
  * A basic implementation of the SelectionModel interface.
  * This model requires that each object in the selection be
  * an instance of Figure. When each item is added to the selection,
- * the model gets its interaction role, and if it is an
- * instance of SelectionRole, gets a selection renderer
- * from the role and uses it to highlight the selected
+ * the model gets its interactor, and if it is an
+ * instance of SelectionInteractor, gets a selection renderer
+ * from the interactor and uses it to highlight the selected
  * figures.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.14 $
+ * @version	$Revision: 1.16 $
  */
 public class BasicSelectionModel implements SelectionModel {
     /** The selection mode -- single or multiple selection
@@ -257,4 +257,5 @@ public class BasicSelectionModel implements SelectionModel {
         _mode = mode;
     }
 }
+
 

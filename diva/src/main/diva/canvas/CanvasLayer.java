@@ -1,7 +1,7 @@
 /*
- * $Id: CanvasLayer.java,v 1.21 2000/05/02 00:43:15 johnr Exp $
+ * $Id: CanvasLayer.java,v 1.23 2001/12/10 22:35:18 neuendor Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -22,7 +22,7 @@ import diva.canvas.event.LayerEvent;
  * This is an abstract class -- concrete subclasses provide facilities
  * for drawing graphics or handling events.
  *
- * @version	$Revision: 1.21 $
+ * @version	$Revision: 1.23 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -54,6 +54,13 @@ public abstract class CanvasLayer implements CanvasComponent {
         return _containingPane;
     }
   
+    /** Get the bounds of the shapes draw in this layer.  In this base
+     *  class, return an empty rectangle.
+     */
+    public Rectangle2D getLayerBounds () {
+        return new Rectangle2D.Double();
+    }        
+
     /** Get the parent component, or null if there isn't one.
      * This will return the same object as getCanvasPane().
      */
@@ -111,4 +118,5 @@ public abstract class CanvasLayer implements CanvasComponent {
         this._containingPane = (CanvasPane)parent;
     }
 }
+
 

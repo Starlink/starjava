@@ -1,7 +1,7 @@
 /*
- * $Id: JCanvas.java,v 1.44 2000/12/10 01:09:37 neuendor Exp $
+ * $Id: JCanvas.java,v 1.49 2002/08/19 00:15:32 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -43,7 +43,7 @@ import javax.swing.JComponent;
  * within some other layer. For example, it will be possible for a
  * visualization component to be "embedded" in a larger component.
  *
- * @version	$Revision: 1.44 $
+ * @version	$Revision: 1.49 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -111,10 +111,8 @@ public class JCanvas extends JComponent implements Printable {
         layerevent = new LayerEvent(e);
         AffineTransform at =
             _canvasPane.getTransformContext().getInverseTransform();
-        if (!at.isIdentity()) {
-            layerevent.transform(at);
-        }
-
+        layerevent.transform(at);
+        
         // Process it on the pane
         String tip = _canvasPane.getToolTipText(layerevent);
 	return tip;
@@ -220,30 +218,46 @@ public class JCanvas extends JComponent implements Printable {
      *  @param graphics The context into which the page is drawn.
      *  @param format The size and orientation of the page being drawn.
      *  @param index The zero based index of the page to be drawn.
-     *  @returns PAGE_EXISTS if the page is rendered successfully, or
+     *  @return PAGE_EXISTS if the page is rendered successfully, or
      *   NO_SUCH_PAGE if pageIndex specifies a non-existent page.
      *  @exception PrinterException If the print job is terminated.
      */
     public int print(Graphics graphics, PageFormat format,
             int index) throws PrinterException {
-        // We only print on one page.
-        if (index >= 1) {
-            return Printable.NO_SUCH_PAGE;
-        }
-        //        graphics.translate((int)format.getImageableX(),
-        //        (int)format.getImageableY());
-
-        Rectangle2D printBounds = new Rectangle2D.Double (
-                format.getImageableX(),
-                format.getImageableY(),
-                format.getImageableWidth(),
-                format.getImageableHeight());
+        
         Dimension dimension = getSize();        
         Rectangle2D bounds = new Rectangle2D.Double (
                 0, 0,
                 dimension.width, dimension.height);
-        ((Graphics2D) graphics).transform(CanvasUtilities.computeFitTransform(bounds, printBounds));
-        
+        return print(graphics, format, index, bounds);
+    }
+
+    /** Print the canvas to a printer, represented by the specified graphics
+     *  object.  Scale the given printRegion to fit onto the printed page,
+     *  while preserving the shape of the objects on the page.
+     *  @param graphics The context into which the page is drawn.
+     *  @param format The size and orientation of the page being drawn.
+     *  @param index The zero based index of the page to be drawn.
+     *  @param printRegion The rectangular region of the canvaws, in screen
+     *  coordinates, that will be printed to the screen.
+     *  @return PAGE_EXISTS if the page is rendered successfully, or
+     *   NO_SUCH_PAGE if pageIndex specifies a non-existent page.
+     *  @exception PrinterException If the print job is terminated.
+     */
+    public int print(Graphics graphics, PageFormat format,
+            int index, Rectangle2D printRegion) throws PrinterException {
+        // We only print on one page.
+        if (index >= 1) {
+            return Printable.NO_SUCH_PAGE;
+        }
+        Rectangle2D pageBounds = new Rectangle2D.Double (
+                format.getImageableX(),
+                format.getImageableY(),
+                format.getImageableWidth(),
+                format.getImageableHeight());
+        ((Graphics2D) graphics).transform(CanvasUtilities.computeFitTransform(
+                printRegion, pageBounds));
+        graphics.setClip(printRegion);        
         
         paint(graphics);
         return Printable.PAGE_EXISTS;
@@ -339,10 +353,8 @@ public class JCanvas extends JComponent implements Printable {
         layerevent = new LayerEvent(e);
         AffineTransform at =
             _canvasPane.getTransformContext().getInverseTransform();
-        if (!at.isIdentity()) {
-            layerevent.transform(at);
-        }
-
+        layerevent.transform(at);
+        
         // Process it on the pane
         _canvasPane.dispatchEvent(layerevent);
     }
@@ -353,4 +365,5 @@ public class JCanvas extends JComponent implements Printable {
         return System.getProperty("java.version").equals("1.2beta4");
     }
 }
+
 

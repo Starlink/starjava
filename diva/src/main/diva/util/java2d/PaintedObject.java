@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedObject.java,v 1.3 2000/07/17 18:13:17 neuendor Exp $
+ * $Id: PaintedObject.java,v 1.7 2002/08/12 06:37:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -11,14 +11,14 @@ package diva.util.java2d;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
-/** The interface for a set of utility classes that paint shapes
+/** The interface for a SMALL set of utility classes that paint shapes
  * or other kinds of graphical objects. The purpose of these classes
- * is to provide a simple interface for basic graphical drawing
- * operations. Generally, they combine a number of different
- * objects from the Java2D API in the most commonly useful way.
+ * is to provide a simple interface for some of the more complicated
+ * things in Java2D, like strings and Images.
  *
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.7 $
  * @author 	John Reekie
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public interface PaintedObject {
 
@@ -35,4 +35,5 @@ public interface PaintedObject {
      */
     public void paint (Graphics2D g);
 }
+
 

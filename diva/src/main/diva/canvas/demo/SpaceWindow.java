@@ -1,7 +1,7 @@
 /*
- * $Id: SpaceWindow.java,v 1.3 2000/06/22 03:31:54 michaels Exp $
+ * $Id: SpaceWindow.java,v 1.4 2001/07/22 22:00:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -26,7 +26,7 @@ import javax.swing.event.*;
  * cannot be done using the gesture-based navigation.
  *
  * @author John Reekie
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class SpaceWindow extends JFrame {
     // My menubar
@@ -252,4 +252,5 @@ public class SpaceWindow extends JFrame {
     };
 
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: SketchModel.java,v 1.9 2000/10/30 07:52:02 michaels Exp $
+ * $Id: SketchModel.java,v 1.11 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.11 $
  * @rating Red
  */
 public class SketchModel {
@@ -41,17 +41,35 @@ public class SketchModel {
     }
      
     /**
-     * Add the specified SketchListener to the set of listeners.
+     * Add the given SketchListener to the set of listeners.
      */
     public void addSketchListener(SketchListener l) {
         _listeners.add(l);
     }
 
     /**
-     * Add the specified symbol to the model.
+     * Add the given symbol to the model.
      */
     public void addSymbol(Symbol s) {
-        _symbols.add(s);
+        _symbols.add(0, s);
+        dispatch(new SketchEvent(SketchEvent.SYMBOL_ADDED, s));
+    }
+
+    /**
+     * Insert a symbol into the model at the given position (Z order).
+     * To insert the symbol just in front of some other symbol, use
+     * getSymbol() to get the other symbol's index, and pass
+     * <i>index</i> as the first argument. To insert the symbol just
+     * behind some other symbol, pass <i>index+1</i> as the first
+     * argument. To insert so the symbol displays over the top of
+     * other symbols, insert at zero.
+     *
+     * <p>Clients should assume that an implementation of this method
+     * does <i>not</i> check if the symbol is already contained --
+     * clients are therefore responsible for being bug-free.
+     */
+    public void addSymbol(int index, Symbol s) {
+        _symbols.add(index, s);
         dispatch(new SketchEvent(SketchEvent.SYMBOL_ADDED, s));
     }
 
@@ -88,6 +106,14 @@ public class SketchModel {
         return _symbols.size();
     }
 
+    /**
+     * Return the index of the given symbol, or -1 if
+     * the symbol is not contained by the model.
+     */
+    public int indexOf(Symbol s) {
+        return _symbols.indexOf(s);
+    }
+    
     /**
      * Remove the specified SketchListener from the set
      * of listeners.
@@ -134,4 +160,5 @@ public class SketchModel {
         dispatch(new SketchEvent(SketchEvent.SYMBOL_MODIFIED, s));
     }
 }
+
 

@@ -1,8 +1,8 @@
 /*
- * $Id: AbstractGraphModel.java,v 1.4 2000/12/10 00:59:47 neuendor Exp $
+ * $Id: AbstractGraphModel.java,v 1.5 2001/07/22 22:01:16 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
 import diva.graph.toolbox.GraphEventMulticaster;
@@ -16,7 +16,7 @@ import javax.swing.SwingUtilities;
  * the basic event notification system
  * 
  * @author Steve Neuendorffer (neuenodr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * @rating Red
  */
 public abstract class AbstractGraphModel implements GraphModel {
@@ -85,3 +85,4 @@ public abstract class AbstractGraphModel implements GraphModel {
         _dispatch = val;
     }
 }
+

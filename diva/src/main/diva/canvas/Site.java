@@ -1,7 +1,7 @@
 /*
- * $Id: Site.java,v 1.10 2000/05/02 00:43:16 johnr Exp $
+ * $Id: Site.java,v 1.11 2001/07/22 22:00:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import java.awt.geom.Point2D;
  * allows clients to find attachment points and other key points
  * on the figure.
  *
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  * @author  John Reekie
  * @rating  Red
  */
@@ -113,4 +113,5 @@ public interface Site {
      */
     public void translate (double x, double y);
 }
+
 

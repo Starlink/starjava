@@ -1,7 +1,7 @@
 /*
- * $Id: TransformContext.java,v 1.10 2000/05/02 00:43:17 johnr Exp $
+ * $Id: TransformContext.java,v 1.12 2001/07/22 22:00:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  * */
 
@@ -22,7 +22,7 @@ import java.util.Iterator;
  * display tree.  This class provides the support for most of the
  * transform-related operations on the display tree.
  *
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.12 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -137,6 +137,26 @@ public class TransformContext {
         return _transform;
     }
 
+    /** Get the transform of this context, relative to the given context. 
+     *  This is the transform from this context into the given context, which 
+     *  must enclose this one.
+     */
+    public AffineTransform getTransform (TransformContext context) {
+        
+        if(context == this) {
+            return new AffineTransform();
+        } else {
+            TransformContext parentContext = 
+                _component.getParent().getTransformContext();
+            AffineTransform transform = _transform;
+            if(parentContext == context) {
+                transform = new AffineTransform(transform);
+                transform.preConcatenate(parentContext.getTransform(context));
+            }
+            return transform;
+        }
+    }
+
     /** Get the version number of the transfom context. The version number
      * is incremented whenever the transform changes, so can be
      * used by client components to figure out when to update cached
@@ -225,4 +245,5 @@ public class TransformContext {
         _cacheValid = true;
     }
 }
+
 

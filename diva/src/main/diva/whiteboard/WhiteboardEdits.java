@@ -1,7 +1,7 @@
 /*
- * $Id: WhiteboardEdits.java,v 1.12 2000/11/17 17:51:43 michaels Exp $
+ * $Id: WhiteboardEdits.java,v 1.13 2001/07/22 22:02:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
@@ -28,7 +28,7 @@ import java.util.Iterator;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  * @rating Red
  */
 public class WhiteboardEdits {
@@ -450,3 +450,4 @@ public class WhiteboardEdits {
         }
     }
 }
+

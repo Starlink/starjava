@@ -1,3 +1,9 @@
+/*
+ * $Id: GraphView.java,v 1.4 2001/07/23 04:11:23 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.graph.schematic;
 
 import diva.gui.AbstractView;
@@ -15,6 +21,12 @@ import java.awt.event.KeyListener;
 import javax.swing.KeyStroke;
 import javax.swing.JComponent;
 
+/**
+ * Steve, fix me!
+ * 
+ * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu
+ * @version $Revision: 1.4 $
+ */
 public class GraphView extends AbstractView {
     private JGraph _jgraph = null;
     public GraphView(Document d) {
@@ -43,3 +55,5 @@ public class GraphView extends AbstractView {
         return "Graph";
     }
 }
+
+

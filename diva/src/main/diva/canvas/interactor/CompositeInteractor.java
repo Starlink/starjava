@@ -1,7 +1,7 @@
 /*
- * $Id: CompositeInteractor.java,v 1.10 2000/05/02 00:43:30 johnr Exp $
+ * $Id: CompositeInteractor.java,v 1.12 2002/02/06 03:27:43 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -13,9 +13,6 @@ import diva.canvas.event.LayerListener;
 import diva.canvas.event.LayerMotionListener;
 import diva.canvas.event.MouseFilter;
 
-import diva.util.PropertyContainer;
-import diva.util.BasicPropertyContainer;
-
 import java.awt.event.MouseEvent;
 import java.util.Hashtable;
 import java.util.ArrayList;
@@ -24,7 +21,7 @@ import java.util.Iterator;
 /** 
  * An interactor that forwards events to other interactors.
  *
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.12 $
  * @author John Reekie
  */
 public class CompositeInteractor extends AbstractInteractor {
@@ -214,4 +211,5 @@ public class CompositeInteractor extends AbstractInteractor {
 	_interactors.remove(i);
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: CanvasPane.java,v 1.37 2000/05/04 02:21:55 neuendor Exp $
+ * $Id: CanvasPane.java,v 1.38 2001/07/22 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -34,7 +34,7 @@ import java.util.Iterator;
  * reorder and remove layers. Particular applications may choose
  * to create their own special-purpose sub-classes.
  * 
- * @version	$Revision: 1.37 $
+ * @version	$Revision: 1.38 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -429,5 +429,6 @@ public abstract class CanvasPane implements EventAcceptor, CanvasComponent {
         l._containingPane = null;
     }
 }
+
 
 

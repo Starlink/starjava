@@ -1,7 +1,7 @@
 /*
- * $Id: JStatusBar.java,v 1.5 2000/05/02 00:44:36 johnr Exp $
+ * $Id: JStatusBar.java,v 1.6 2001/07/22 22:01:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -17,7 +17,7 @@ import javax.swing.JProgressBar;
  * A status bar for displaying at the bottonm of typical applications.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class JStatusBar extends JPanel {
 
@@ -67,4 +67,5 @@ public class JStatusBar extends JPanel {
         _message.setBorder(_messageBorder);
     }
 }
+
 

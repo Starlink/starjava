@@ -1,7 +1,7 @@
 /*
- * $Id: Interactor.java,v 1.3 2000/05/02 00:43:30 johnr Exp $
+ * $Id: Interactor.java,v 1.4 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -28,7 +28,7 @@ import java.util.Hashtable;
  * underneath the mouse, and then searches up the tree of figures
  * looking for an interactor that can handle that event.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author John Reekie
  */
 public interface Interactor extends LayerListener, LayerMotionListener {
@@ -78,4 +78,5 @@ public interface Interactor extends LayerListener, LayerMotionListener {
      */
     public void setMouseFilter (MouseFilter filter);
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: BubblePane.java,v 1.2 2000/05/22 17:12:13 neuendor Exp $
+ * $Id: BubblePane.java,v 1.3 2001/07/22 22:01:20 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -12,7 +12,7 @@ import diva.graph.*;
  * A pane containing a bubble-and-arc editor.
  *
  * @author 	John Reekie (johnr@eecs.berkeley.edu)
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @rating Red
  */
 public class BubblePane extends GraphPane {
@@ -26,4 +26,5 @@ public class BubblePane extends GraphPane {
         getForegroundLayer().setPickHalo(4.0);
     }
 }
+
 

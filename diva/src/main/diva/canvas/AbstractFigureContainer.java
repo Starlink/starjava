@@ -1,12 +1,15 @@
 /*
- * $Id: AbstractFigureContainer.java,v 1.17 2000/05/02 00:43:14 johnr Exp $
+ * $Id: AbstractFigureContainer.java,v 1.19 2001/07/22 22:00:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
 
 package diva.canvas;
+
+import diva.util.Filter;
+import diva.util.FilteredIterator;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
@@ -21,7 +24,7 @@ import java.util.Iterator;
 /** AbstractFigureContainer is an abstract class that roots the tree
  * of figure-containing classes.
  *
- * @version $Revision: 1.17 $
+ * @version $Revision: 1.19 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -94,6 +97,15 @@ public abstract class AbstractFigureContainer extends AbstractFigure implements 
                 region);
     }
     
+    /** Given a rectangle, return the top-most descendent figure
+     * that it hits that is accepted by the given filter. 
+     * If none does, return null.
+     */
+    public Figure pick (Rectangle2D region, Filter filter) {
+        return CanvasUtilities.pick(figuresFromFront(),
+                region, filter);
+    }
+    
     /** Accept notification that a repaint has occurred somewhere
      * in the hierarchy below this container. This default implementation
      * simply forwards the notification to its parent.
@@ -160,5 +172,6 @@ public abstract class AbstractFigureContainer extends AbstractFigure implements 
         repaint();
     }
 }
+
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: StoragePolicy.java,v 1.7 2000/07/18 17:22:27 neuendor Exp $
+ * $Id: StoragePolicy.java,v 1.8 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -32,7 +32,7 @@ import java.util.Iterator;
  * set of implementing classes.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public interface StoragePolicy {
 
@@ -86,4 +86,5 @@ public interface StoragePolicy {
      */
     public boolean saveAs (Document d);
 }
+
 

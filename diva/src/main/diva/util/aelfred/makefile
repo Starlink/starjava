@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.2 1999/10/23 18:02:48 johnr Exp $
+# $Id: makefile,v 1.4 2002/05/16 20:37:42 johnr Exp $
 #
 # Makefile for diva.util.aelfred
 #

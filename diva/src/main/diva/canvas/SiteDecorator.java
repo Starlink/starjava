@@ -1,7 +1,7 @@
 /*
- * $Id: SiteDecorator.java,v 1.2 2000/05/02 00:43:16 johnr Exp $
+ * $Id: SiteDecorator.java,v 1.4 2002/09/26 10:00:10 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -12,10 +12,13 @@ import diva.canvas.Figure;
 import diva.canvas.TransformContext;
 import java.awt.geom.Point2D;
 
-/** This is an abstract decorator for sites.  It can be used to add or change
+/** 
+ * @deprecated This is complete unneeded. Do not use.
+ * 
+ * This is an abstract decorator for sites.  It can be used to add or change
  * the functionality of an arbitrary site.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  * @author  Steve Neuendorffer (neuendor@eecs.berkeley.edu)
  * @rating  Red
  */
@@ -146,4 +149,5 @@ public class SiteDecorator implements Site {
         _site.translate(x, y);
     }
 }
+
 

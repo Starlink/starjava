@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractGlobalLayout.java,v 1.1 2000/07/23 23:32:50 neuendor Exp $
+ * $Id: AbstractGlobalLayout.java,v 1.2 2001/07/22 22:01:20 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -10,7 +10,7 @@ package diva.graph.layout;
  * An abstract implementation of the GlobalLayout interface.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public abstract class AbstractGlobalLayout implements GlobalLayout {
@@ -41,4 +41,5 @@ public abstract class AbstractGlobalLayout implements GlobalLayout {
      */
     public abstract void layout(Object composite);
 }
+
 

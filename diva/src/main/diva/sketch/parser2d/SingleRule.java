@@ -1,8 +1,8 @@
 /*
- * $Id: SingleRule.java,v 1.2 2000/08/04 01:24:00 michaels Exp $
+ * $Id: SingleRule.java,v 1.3 2001/07/22 22:01:51 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.Scene;
@@ -17,7 +17,7 @@ import diva.sketch.recognition.Type;
  * of the rule.
  * 
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class SingleRule implements Rule {
     /**
@@ -81,3 +81,4 @@ public class SingleRule implements Rule {
         return null;	
     }
 }
+

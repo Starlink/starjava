@@ -1,7 +1,7 @@
 /*
- * $Id: MDIApplicationTutorial.java,v 1.2 2000/09/15 21:53:18 michaels Exp $
+ * $Id: MDIApplicationTutorial.java,v 1.3 2001/07/22 22:01:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.tutorial;
@@ -69,7 +69,7 @@ import java.beans.PropertyChangeEvent;
  * jdk1.3.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class MDIApplicationTutorial extends MDIApplication {
 
@@ -257,6 +257,7 @@ public class MDIApplicationTutorial extends MDIApplication {
 	}
         }*/
 }
+
 
 
 

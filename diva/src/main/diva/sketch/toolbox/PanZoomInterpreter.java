@@ -1,14 +1,14 @@
 /*
- * $Id: PanZoomInterpreter.java,v 1.7 2000/10/29 02:15:23 michaels Exp $
+ * $Id: PanZoomInterpreter.java,v 1.9 2001/08/28 06:37:13 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
 import diva.sketch.StrokeSymbol;
 import diva.sketch.recognition.BasicStrokeRecognizer;
-import diva.sketch.recognition.StrokeRecognition;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.Recognition;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.StrokeRecognizer;
 import diva.sketch.recognition.TimedStroke;
 import diva.sketch.recognition.VotingStrokeRecognizer;
@@ -23,7 +23,7 @@ import java.awt.Color;
 /**
  * 
  * @author  Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.9 $
  * @rating Red
  */
 public class PanZoomInterpreter extends AbstractInteractor {
@@ -133,8 +133,8 @@ public class PanZoomInterpreter extends AbstractInteractor {
      */
     public void mouseDragged (LayerEvent e) {
         appendStroke(e);
-        StrokeRecognitionSet rset = _recognizer.strokeModified(_curStroke);
-        StrokeRecognition r = rset.getBestRecognition();
+        RecognitionSet rset = _recognizer.strokeModified(_curStroke);
+        Recognition r = rset.getBestRecognition();
         if(r != null){
             if(r.getType().equals(PanRecognizer.PanData.type)){
                 PanRecognizer.PanData data =(PanRecognizer.PanData)r.getData();
@@ -181,10 +181,11 @@ public class PanZoomInterpreter extends AbstractInteractor {
             super(trainingFile);
         }
 
-        public StrokeRecognitionSet strokeModified (TimedStroke s) {
+        public RecognitionSet strokeModified (TimedStroke s) {
             return strokeCompleted(s);
         }
     }
 }
+
 
 

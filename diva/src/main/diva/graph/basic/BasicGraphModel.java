@@ -1,8 +1,8 @@
 /*
- * $Id: BasicGraphModel.java,v 1.14 2000/08/29 00:37:18 neuendor Exp $
+ * $Id: BasicGraphModel.java,v 1.16 2002/05/19 21:45:48 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
 import diva.util.ArrayIterator;
@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import diva.util.SemanticObjectContainer;
 import diva.util.BasicPropertyContainer;
-import diva.util.VisualObjectContainer;
 
 /**
  * A basic implementation of a mutable graph model that stores its
@@ -26,7 +25,7 @@ import diva.util.VisualObjectContainer;
  * things differently.
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.16 $
  * @rating Red
  */
 public class BasicGraphModel extends BasicModularGraphModel {
@@ -360,3 +359,4 @@ public class BasicGraphModel extends BasicModularGraphModel {
         }
     }
 }
+

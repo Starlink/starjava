@@ -1,7 +1,7 @@
 /*
- * $Id: MDIApplication.java,v 1.12 2000/09/18 05:44:16 neuendor Exp $
+ * $Id: MDIApplication.java,v 1.13 2001/07/22 22:01:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -25,7 +25,7 @@ import javax.swing.JInternalFrame;
  * implement the view-document mapping yourself.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  */
 public abstract class MDIApplication extends AbstractApplication {
     /** A mapping from content panes to views
@@ -129,4 +129,5 @@ public abstract class MDIApplication extends AbstractApplication {
         }
     }
 }
+
 

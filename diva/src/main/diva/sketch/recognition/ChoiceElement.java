@@ -1,8 +1,8 @@
 /*
- * $Id: ChoiceElement.java,v 1.1 2000/08/04 01:24:01 michaels Exp $
+ * $Id: ChoiceElement.java,v 1.2 2001/07/22 22:01:53 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 import diva.sketch.recognition.Type;
@@ -51,7 +51,7 @@ import java.util.List;
  * mediate when the difference in confidences is low).
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.1 $
+ * @version	$Revision: 1.2 $
  * @rating Red
  */
 public interface ChoiceElement extends CompositeElement {
@@ -68,4 +68,5 @@ public interface ChoiceElement extends CompositeElement {
      */
     public List choiceNames();
 }
+
 

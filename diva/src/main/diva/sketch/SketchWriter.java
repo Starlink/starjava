@@ -1,13 +1,13 @@
 /*
- * $Id: SketchWriter.java,v 1.18 2000/10/30 00:15:16 michaels Exp $
+ * $Id: SketchWriter.java,v 1.21 2002/08/12 06:36:58 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
 import diva.sketch.recognition.TimedStroke;
-import diva.sketch.recognition.TrainingParser;
-import diva.sketch.recognition.TrainingWriter;
+import diva.sketch.recognition.SSTrainingParser;
+import diva.sketch.recognition.SSTrainingWriter;
 import diva.util.ModelWriter;
 import java.awt.Color;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.Iterator;
  * character stream.  The output is in XML format.
  *
  * @author Heloise Hse  (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.18 $
+ * @version $Revision: 1.21 $
  */
 public class SketchWriter implements ModelWriter {
     /** Construct an empty sketch writer.
@@ -82,8 +82,8 @@ public class SketchWriter implements ModelWriter {
             }
             writer.write(SketchParser.LINEWIDTH_TAG + "=\"");
             writer.write(String.valueOf(w));
-            writer.write("\" " + TrainingParser.POINTS_TAG + "=\"");
-            TrainingWriter.writeStroke(stroke, writer);
+            writer.write("\" " + SSTrainingParser.POINTS_TAG + "=\"");
+            SSTrainingWriter.writeStroke(stroke, writer);
             writer.write("\"/>\n");
         }
         else {
@@ -106,4 +106,6 @@ public class SketchWriter implements ModelWriter {
                 + SketchParser.DTD_URL + "\">\n\n");
     }
 }
+
+
 

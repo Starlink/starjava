@@ -1,7 +1,7 @@
 /*
- * $Id: BoundsConstraint.java,v 1.2 2000/05/02 00:43:30 johnr Exp $
+ * $Id: BoundsConstraint.java,v 1.3 2001/07/22 22:00:37 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -13,7 +13,7 @@ import java.awt.geom.Rectangle2D;
 /** 
  * Keep a point within a given rectangular bounds.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author John Reekie
  */
 public class BoundsConstraint implements PointConstraint {
@@ -75,4 +75,5 @@ public class BoundsConstraint implements PointConstraint {
         _boundsY1 = _boundsY0 + bounds.getHeight();
     }
 }
+
 

@@ -1,12 +1,14 @@
 /*
- * $Id: TextData.java,v 1.6 2000/08/05 07:02:06 michaels Exp $
+ * $Id: TextData.java,v 1.9 2001/07/22 22:01:59 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
 import diva.sketch.recognition.Type;
 import diva.sketch.recognition.TypedData;
+import diva.util.xml.AbstractXmlBuilder;
+import diva.util.xml.XmlElement;
 
 /**
  * A typed data that holds a recognized text string.
@@ -16,15 +18,15 @@ import diva.sketch.recognition.TypedData;
  * software.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.9 $
  * @rating Red
  */
-public class TextData implements TypedData {
+public class TextData extends AbstractXmlBuilder implements TypedData {
     /**
      * The static type associated with this typed data.
      */
     public static final Type type = Type.makeType(TextData.class);
-    
+
     /**
      * The semantic text associated with this data.
      */
@@ -69,9 +71,6 @@ public class TextData implements TypedData {
     /**
      * Equality test: are the strings identical?
      */
-    /**
-     * Equality test: are the types equal?
-     */
     public boolean equals(Object o) {
         if(o instanceof TextData) {
             String text = ((TextData)o).getText();
@@ -79,7 +78,19 @@ public class TextData implements TypedData {
         }
         return false;
     }
-	
+
+    public Object build(XmlElement in, String type) {
+        setText(in.getPCData());
+        return this;
+    }
+
+    public XmlElement generate(Object in) {
+        TextData dat = (TextData)in;
+        XmlElement out = new XmlElement(in.getClass().getName());
+        out.appendPCData(dat.getText());
+        return out;
+    }
+    
     /**
      * Return a string representation of this data for debugging.
      */
@@ -87,3 +98,4 @@ public class TextData implements TypedData {
         return "TextData[" + _text + "]";
     }
 }
+

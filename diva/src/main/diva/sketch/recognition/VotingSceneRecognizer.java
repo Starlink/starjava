@@ -1,11 +1,12 @@
 /*
- * $Id: VotingSceneRecognizer.java,v 1.4 2000/08/04 01:24:02 michaels Exp $
+ * $Id: VotingSceneRecognizer.java,v 1.6 2001/07/22 22:01:55 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * A composite recognizer which allows multiple sub-recognizers 
@@ -16,7 +17,7 @@ import java.util.Iterator;
  *
  * @see VotingStrokeRecognizer
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.6 $
  * @rating Red
  */
 public class VotingSceneRecognizer implements SceneRecognizer {
@@ -71,6 +72,12 @@ public class VotingSceneRecognizer implements SceneRecognizer {
         }
     }
 
+    /** Return the children as a list.
+     */
+    public List children() {
+        return java.util.Arrays.asList(_children);
+    }
+
     /**
      * Debugging output.
      */
@@ -93,7 +100,7 @@ public class VotingSceneRecognizer implements SceneRecognizer {
      */
     public int getNHighest () {
         return _nHighest;
-    };
+    }
 
     /**
      * Set the minimum confidence classifications that will get passed
@@ -244,4 +251,5 @@ public class VotingSceneRecognizer implements SceneRecognizer {
         return out;
     }
 }
+
 

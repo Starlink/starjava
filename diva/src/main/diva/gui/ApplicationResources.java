@@ -1,7 +1,7 @@
 /*
- * $Id: ApplicationResources.java,v 1.7 2000/07/03 17:18:46 eal Exp $
+ * $Id: ApplicationResources.java,v 1.9 2002/04/18 02:31:20 cxh Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *
  * @deprecated Use diva.resource.DefaultBundle instead.
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.9 $
  */
 public class ApplicationResources extends ResourceBundle {
 
@@ -77,7 +77,8 @@ public class ApplicationResources extends ResourceBundle {
      */
     public URL getResource (String key) {
         String s = getString(key);
-        return _class.getResource(s);        
+	// Web Start requires using getClassLoader.
+        return _class.getClassLoader().getResource(s);        
     }
 
     /** Get a resource as an image icon. The name of the resource is
@@ -124,4 +125,5 @@ public class ApplicationResources extends ResourceBundle {
         return _delegate.getKeys();
     }
 }
+
 

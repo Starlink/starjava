@@ -1,7 +1,7 @@
 /*
- * $Id: AppContext.java,v 1.3 2000/08/16 20:24:32 neuendor Exp $
+ * $Id: AppContext.java,v 1.4 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -30,7 +30,7 @@ import javax.swing.UIManager;
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public interface AppContext extends RootPaneContainer {
     
@@ -104,5 +104,6 @@ public interface AppContext extends RootPaneContainer {
      */
     public void showStatus(String status);
 }
+
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedList.java,v 1.2 2000/05/02 00:45:28 johnr Exp $
+ * $Id: PaintedList.java,v 1.6 2002/08/12 06:37:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,8 +18,9 @@ import java.util.Iterator;
  * low-level utility class intended for constructing graphical
  * objects from some kind of external list.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.6 $
  * @author 	John Reekie
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public class PaintedList implements PaintedObject {
 
@@ -63,4 +64,5 @@ public class PaintedList implements PaintedObject {
         }
     }
 }
+
 

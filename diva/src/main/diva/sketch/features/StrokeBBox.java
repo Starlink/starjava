@@ -1,7 +1,7 @@
 /*
- * $Id: StrokeBBox.java,v 1.6 2000/05/10 18:54:54 hwawen Exp $
+ * $Id: StrokeBBox.java,v 1.8 2001/07/22 22:01:48 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D.Double;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  */
 public class StrokeBBox {
     /**
@@ -37,12 +37,21 @@ public class StrokeBBox {
      *         recognition.  check number of points in stroke?
      *         have a force recompute function?
      */
-    public Rectangle2D apply(TimedStroke s) {
+    public static Rectangle2D apply(TimedStroke s) {
         Rectangle2D rect = (Rectangle2D)s.getProperty(PROPERTY_KEY);
         if(rect != null){
             return rect;
         }
+        rect = bboxNoCache(s);
+        s.setProperty(PROPERTY_KEY, rect);
+        return rect;
+    }
+        
 
+    /** Return the bounding box, but do not cache the
+     * results in the stroke's property table.
+     */
+    public static Rectangle2D bboxNoCache(TimedStroke s) {
         int num = s.getVertexCount();
         if(num > 0){
             double xmin = s.getX(0);
@@ -58,7 +67,6 @@ public class StrokeBBox {
             
             Rectangle2D r = new Rectangle2D.Double();
             r.setFrame(xmin-1, ymin-1, xmax-xmin+2, ymax-ymin+2);
-            s.setProperty(StrokeBBox.PROPERTY_KEY, r);
             return r;
         }
         else {
@@ -67,5 +75,6 @@ public class StrokeBBox {
         }
     }
 }
+
 
 

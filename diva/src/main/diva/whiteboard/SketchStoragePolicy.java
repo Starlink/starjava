@@ -1,7 +1,7 @@
 /*
- * $Id: SketchStoragePolicy.java,v 1.7 2000/09/15 21:53:19 michaels Exp $
+ * $Id: SketchStoragePolicy.java,v 1.8 2001/07/22 22:02:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -27,7 +27,7 @@ import javax.swing.filechooser.FileFilter;
  * the rest of the methods are the same as DefaultStoragePolicy.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public class SketchStoragePolicy extends DefaultStoragePolicy {
     /**
@@ -159,4 +159,5 @@ public class SketchStoragePolicy extends DefaultStoragePolicy {
         return finalFile;
     }
 }
+
 

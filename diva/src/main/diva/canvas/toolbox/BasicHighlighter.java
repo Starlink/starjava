@@ -1,7 +1,7 @@
 /*
- * $Id: BasicHighlighter.java,v 1.14 2000/05/02 00:43:38 johnr Exp $
+ * $Id: BasicHighlighter.java,v 1.15 2001/07/22 22:00:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D.Double;
  * but this may be changed to take notice of the figure's
  * shape in the future.
  *
- * @version	$Revision: 1.14 $
+ * @version	$Revision: 1.15 $
  * @author 	John Reekie
  */
 public class BasicHighlighter extends FigureDecorator {
@@ -164,4 +164,5 @@ public class BasicHighlighter extends FigureDecorator {
                 x,y,w,h));
     }
 }
+
 

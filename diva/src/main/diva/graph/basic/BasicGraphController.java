@@ -1,7 +1,7 @@
 /*
- * $Id: BasicGraphController.java,v 1.7 2001/02/09 04:50:47 michaels Exp $
+ * $Id: BasicGraphController.java,v 1.9 2001/07/22 22:01:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -47,7 +47,7 @@ import java.util.HashMap;
  * sets up some simple interaction on its view's pane.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.7 $
+ * @version	$Revision: 1.9 $
  * @rating      Red
  */
 public class BasicGraphController extends SimpleGraphController {
@@ -78,11 +78,11 @@ public class BasicGraphController extends SimpleGraphController {
      * Create a new basic controller with default node and edge controllers.
      */
     public BasicGraphController () {
-	NodeController nc = new NodeController(this);
+	NodeController nc = new BasicNodeController(this);
 	nc.setNodeRenderer(new BasicNodeRenderer(this));
 	setNodeController(nc);
 	
-	EdgeController ec = new EdgeController(this);
+	BasicEdgeController ec = new BasicEdgeController(this);
 	ec.setEdgeRenderer(new BasicEdgeRenderer());
 	setEdgeController(ec);
 
@@ -139,4 +139,5 @@ public class BasicGraphController extends SimpleGraphController {
 	}
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: BoundedDragInteractor.java,v 1.5 2000/05/02 00:43:30 johnr Exp $
+ * $Id: BoundedDragInteractor.java,v 1.6 2001/07/22 22:00:37 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -23,7 +23,7 @@ import java.awt.geom.Rectangle2D;
  * <p> This interactor is intended more as an example of how to
  * produce a customized drag-interactor than anything else.
  *
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * @author John Reekie
  */
 public class BoundedDragInteractor extends DragInteractor {
@@ -71,6 +71,7 @@ public class BoundedDragInteractor extends DragInteractor {
         _constraint.setBounds(new Rectangle2D.Double(x,y,w,h));
     }
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: WeightedEuclideanClassifier.java,v 1.4 2000/05/02 00:44:48 johnr Exp $
+ * $Id: WeightedEuclideanClassifier.java,v 1.7 2001/08/06 18:48:21 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.classification;
@@ -15,31 +15,26 @@ import java.util.Iterator;
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  */
-public class WeightedEuclideanClassifier implements TrainableClassifier {
+public class WeightedEuclideanClassifier extends AbstractClassifier {
     /**
      * The minimum sigma value; used to avoid divide-by-zero errors.
      */
-    private static final double MIN_SIGMA = .01;
+    protected static final double MIN_SIGMA = .01;
 
     /**
-     * A normalization constant: 10 divided by 30, every 30 step
+     * A normalization constant: 10 divided by 30, every 30 unit
      * in distance results in a 10% recognition drop.
      */
-    private static final double NORMALIZATION = 0.3;
+    protected static final double NORMALIZATION = 0.3;
 
-    /**
-     * The weights that are used to perform the classification.
-     */
-    private ArrayList _weights;
-    
     /**
      * Construct a classifier with no weight set.  The weight
      * set is created by the train method.
      */
     public WeightedEuclideanClassifier() {
-        _weights = new ArrayList();
+        super();
     }
 
     /**
@@ -54,7 +49,7 @@ public class WeightedEuclideanClassifier implements TrainableClassifier {
      *
      * Finally, normalize the value into a confidence between 0 and 100.
      */
-    public final Classification classify(FeatureSet fs) throws ClassifierException {
+    public Classification classify(FeatureSet fs) throws ClassifierException {
         if((fs == null) || (fs.getFeatureCount() == 0)){
             return new Classification(null,null);
         }
@@ -91,44 +86,4 @@ public class WeightedEuclideanClassifier implements TrainableClassifier {
         debug(results.toString());
         return results;
     }
-
-    /**
-     * Reset the weight sets.
-     */
-    public void clear() {
-        _weights.clear();
-    }
-
-    /**
-     * Debugging output.
-     */
-    private final void debug(String s) {
-        //System.err.println(s);
-    }
-
-    /**
-     * Return false; WeightedEuclideanClassifiers are not incremental.
-     */
-    public final boolean isIncremental() {
-        return false;
-    }
-    
-    /**
-     * Train on the given data set by building the set of weights that
-     * are used in the classify() method.  There is one weight per
-     * type, so for each positive example in the training class,
-     * create a weight set and train it.
-     */
-    public final void train(TrainingSet tset) throws ClassifierException {
-        for(Iterator i = tset.types(); i.hasNext(); ){
-            String type = (String)i.next();
-            WeightSet ws = new GaussianWeightSet(type);
-            for(Iterator j = tset.positiveExamples(type); j.hasNext(); ) {
-                ws.addExample((FeatureSet)j.next());
-            }
-            ws.train();
-            _weights.add(ws);
-        }
-    }
 }
-

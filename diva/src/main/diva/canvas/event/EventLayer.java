@@ -1,7 +1,7 @@
 /*
- * $Id: EventLayer.java,v 1.15 2000/11/16 10:25:51 michaels Exp $
+ * $Id: EventLayer.java,v 1.16 2001/07/22 22:00:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -34,7 +34,7 @@ import java.util.Iterator;
  * of the pane, which didn't hit a figure in the figure layer.
  * </ul>
  *
- * @version	$Revision: 1.15 $
+ * @version	$Revision: 1.16 $
  * @author 	John Reekie
  */
 public class EventLayer extends CanvasLayer implements EventAcceptor {
@@ -237,5 +237,6 @@ public class EventLayer extends CanvasLayer implements EventAcceptor {
         _enabled = flag;
     }
 }
+
 
 

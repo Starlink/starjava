@@ -1,7 +1,7 @@
 /*
- * $Id: LayerEventMulticaster.java,v 1.5 2000/09/12 03:05:33 hwawen Exp $
+ * $Id: LayerEventMulticaster.java,v 1.6 2001/07/22 22:00:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -14,7 +14,7 @@ import java.util.EventListener;
 /** A subclass of the AWT event multi-caster, which adds support
  * for layer events.
  *
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  * @author 	John Reekie
  */
 public class LayerEventMulticaster extends AWTEventMulticaster implements LayerListener, LayerMotionListener {
@@ -128,5 +128,6 @@ public class LayerEventMulticaster extends AWTEventMulticaster implements LayerL
     }
 
 }
+
 
 

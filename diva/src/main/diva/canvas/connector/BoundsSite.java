@@ -1,7 +1,7 @@
 /*
- * $Id: BoundsSite.java,v 1.4 2000/05/02 00:43:18 johnr Exp $
+ * $Id: BoundsSite.java,v 1.5 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import javax.swing.SwingConstants;
 /** A site that locates itself on the bounds of a figure's shape.
  * It has two fields that govern its position on the bounds.
  *
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  * @author 	John Reekie
  */
 public class BoundsSite extends AbstractSite {
@@ -140,5 +140,6 @@ public class BoundsSite extends AbstractSite {
 	return "BoundsSite[" + getX() + "," + getY() + "," + getNormal() + "]";
     }
 }
+
 
 

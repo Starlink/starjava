@@ -1,7 +1,7 @@
 /*
- * $Id: PathGeometry.java,v 1.14 2000/07/06 18:53:03 nzamor Exp $
+ * $Id: PathGeometry.java,v 1.15 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -30,7 +30,7 @@ import java.awt.geom.PathIterator;
  * of the path, and for the control point for those segments
  * that are quadratic or cubic curves.
  *
- * @version	$Revision: 1.14 $
+ * @version	$Revision: 1.15 $
  * @author 	John Reekie
  * @author      Nick Zamora
  */
@@ -537,4 +537,5 @@ public class PathGeometry implements Geometry {
         }
     }
 }
+
 

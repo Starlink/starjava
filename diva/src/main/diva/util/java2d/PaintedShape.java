@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedShape.java,v 1.8 2000/09/07 05:16:03 michaels Exp $
+ * $Id: PaintedShape.java,v 1.12 2002/08/12 06:37:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -22,9 +22,10 @@ import java.awt.geom.Rectangle2D;
  * govern how the shape is painted, such as the fill paint, stroke
  * stroke or line width, and stroke paint.
  *
- * @version	$Revision: 1.8 $
+ * @version	$Revision: 1.12 $
  * @author 	John Reekie
  * @author      Nick Zamora
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public class PaintedShape extends AbstractPaintedGraphic {
 
@@ -165,4 +166,5 @@ public class PaintedShape extends AbstractPaintedGraphic {
         this.fillPaint = fillPaint;
     }
 }
+
 

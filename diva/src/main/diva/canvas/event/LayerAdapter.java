@@ -1,7 +1,7 @@
 /*
- * $Id: LayerAdapter.java,v 1.4 2000/09/12 03:05:33 hwawen Exp $
+ * $Id: LayerAdapter.java,v 1.5 2001/07/22 22:00:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -12,7 +12,7 @@ package diva.canvas.event;
  * are empty -- the class is provided to make it easier to
  * produce anonymous LayerListeners.
  *
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  * @author 	John Reekie
  */
 public class LayerAdapter implements LayerListener {
@@ -34,5 +34,6 @@ public class LayerAdapter implements LayerListener {
      */
     public void mouseClicked (LayerEvent e) {}    
 }
+
 
 

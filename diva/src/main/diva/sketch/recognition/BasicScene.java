@@ -1,8 +1,8 @@
 /*
- * $Id: BasicScene.java,v 1.4 2000/08/12 22:32:21 michaels Exp $
+ * $Id: BasicScene.java,v 1.8 2001/07/22 22:01:53 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
@@ -39,32 +39,40 @@ import java.awt.geom.Rectangle2D;
  * implementations of the scene interface may 
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.8 $
  * @rating Red
  */
 public class BasicScene implements Scene {
     /**
-     * Store the roots for fast access.
+     * Store the roots for fast access.  The roots are CompositeElt's
+     * (ChoiceElt's extends from CompositeElt, so it could be a root)
+     * and they are stored in the order of descending confidence values.
      */
     private ArrayList _roots = new ArrayList();
     
     /**
-     * Store the strokes for fast access.
+     * Store the strokes for fast access.  These are StrokeElt's each
+     * of which contains a TimedStroke.
      */
     private ArrayList _strokes = new ArrayList();
 	
     /**
-     * Store the choices indexed by type for fast access.
+     * Store the choices indexed by type for fast access.  This is a hash
+     * table whose key is a Type object (ChoiceElt's type) and
+     * value is an ArrayList containing ChoiceElt's of that Type).
      */
     private HashMap _choices = new HashMap();
 	
     /**
-     * Fast index for scene elements based on types.
+     * Fast index for scene elements based on types.  This is a hash
+     * table whose key is a Type object (CompositeElt's type) and
+     * value is an ArrayList containing CompositeElt's of that Type).
      */
     private HashMap _typeIndex = new HashMap();
 
     /**
-     * Store a count of the strokes
+     * Store a count of the strokes.  The number of TimedStrokes in the
+     * scene.
      */
     private int _strokeCnt = 0;
 
@@ -80,7 +88,9 @@ public class BasicScene implements Scene {
     private BitSet _deletedStrokes = new BitSet();
 
     /**
-     * Book-keeping of how many internal nodes we have.
+     * Book-keeping of how many internal nodes we have.  This is a
+     * count of CompositeElt (including ChoiceElt since it's a
+     * subclass) in the scene.
      */
     private int _compositeCnt = 0;
 	
@@ -104,7 +114,7 @@ public class BasicScene implements Scene {
             l = new ArrayList();
             _choices.put(data.getType(), l);
         }
-        boolean found = false;
+
         for(Iterator i = l.iterator(); i.hasNext(); ) {
             ChoiceElt existing = (ChoiceElt)i.next();
             if(existing.getData().equals(data) && _sameID(id, existing.getID())) {
@@ -137,9 +147,12 @@ public class BasicScene implements Scene {
      */
     public CompositeElement addComposite(TypedData data, double confidence, 
             SceneElement[] children, String[] names) {
+
+        /*
         if(children.length == 1 && (children[0] instanceof CompositeElement)) {
             return _addChoice(data, confidence, (CompositeElement)children[0], names[0]);
         }
+        */
 
         //figure out the bit set id for the new element
         AbstractElt child0 = (AbstractElt)children[0];
@@ -232,9 +245,6 @@ public class BasicScene implements Scene {
         for(Iterator i = l.iterator(); i.hasNext(); ) {
             SceneElement e2 = (SceneElement)i.next();
             if(isConsistent(elt, e2)) {
-                if(results == null) {
-                    results = new ArrayList();
-                }
                 results.add(e2);
             }
         }
@@ -265,6 +275,7 @@ public class BasicScene implements Scene {
      * element.
      */
     public boolean isCoveringAll(SceneElement elt) {
+        //FIXME: a -> b -> cd -> ... (?)
         if(!_roots.contains(elt)) {
             return false;
         }
@@ -288,7 +299,8 @@ public class BasicScene implements Scene {
     /**
      * Return whether or not the two elements are consistent, that is,
      * whether the leaf nodes that they cover (their support) are
-     * strictly disjoint.
+     * strictly disjoint.  Return true if either of the elements are
+     * null.
      */
     public boolean isConsistent(SceneElement e1, SceneElement e2) {
         if(e1 == null || e2 == null) {
@@ -395,8 +407,15 @@ public class BasicScene implements Scene {
     }
 
     /**
-     * Index the new element by type and add it to the roots
-     * array in order of confidence.  This method might 
+     * Index the new element by type and add it to the roots array in
+     * order of confidence.<p>
+     *
+     * Using elt's type as the key, this method indexes into the
+     * _typeIndex hash table to get the ArrayList containing
+     * CompositeElt's of this type.  If no such ArrayList exists
+     * (meaning no CompositeElt of this type is in the scene), create
+     * an ArrayList.  Add 'elt' to the ArrayList.  Then add 'elt' into
+     * _roots in descending confidence order.
      */
     private void _indexElt(CompositeElt elt) {
         Type type = elt.getData().getType();
@@ -692,4 +711,5 @@ public class BasicScene implements Scene {
         }
     }
 }
+
 

@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.8 2000/07/03 01:56:59 neuendor Exp $
+# $Id: makefile,v 1.20 2002/07/09 22:00:28 johnr Exp $
 #
 # Makefile for diva.util.xml
 #
@@ -8,6 +8,8 @@ include $(DIVA)/diva.mk
 
 # Java files in this directory
 JSRCS = \
+	AbstractXmlBuilder.java \
+	CompositeBuilder.java \
 	XmlBuilder.java \
 	XmlDemo.java \
 	XmlDocument.java \
@@ -28,47 +30,31 @@ demo: XmlDemo.class
 
 
 ### DEPENDENCIES: DO NOT EDIT BELOW THIS LINE
+AbstractXmlBuilder.class: \
+	AbstractXmlBuilder.java
+
+CompositeBuilder.class: \
+	CompositeBuilder.java
+
 XmlBuilder.class: \
-	XmlBuilder.java \
-	XmlElement.java
+	XmlBuilder.java
 
 XmlDemo.class: \
-	XmlDemo.java \
-	XmlDocument.java \
-	XmlReader.java \
-	XmlWriter.java \
-	../LoggableOp.java \
-	../aelfred/XmlHandler.java
+	XmlDemo.java
 
 XmlDocument.class: \
-	XmlDocument.java \
-	XmlElement.java \
-	../aelfred/XmlHandler.java \
-	../aelfred/XmlParser.java
+	XmlDocument.java
 
 XmlElement.class: \
-	XmlElement.java \
-	../Filter.java \
-	../FilteredIterator.java \
-	../IteratorUtilities.java \
-	../aelfred/XmlHandler.java
+	XmlElement.java
 
 XmlReader.class: \
-	XmlDocument.java \
-	XmlElement.java \
-	XmlReader.java \
-	../LoggableOp.java \
-	../aelfred/XmlException.java \
-	../aelfred/XmlHandler.java \
-	../aelfred/XmlParser.java \
-	../../resource/DefaultBundle.java \
-	../../resource/RelativeBundle.java
+	XmlReader.java
+
+XmlUtilities.class: \
+	XmlUtilities.java
 
 XmlWriter.class: \
-	XmlDocument.java \
-	XmlElement.java \
-	XmlWriter.java \
-	../LoggableOp.java \
-	../aelfred/XmlParser.java
+	XmlWriter.java
 
 

@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.11 2000/09/19 16:37:25 michaels Exp $
+# $Id: makefile,v 1.13 2002/05/16 20:37:43 johnr Exp $
 #
 # Makefile for diva.util.jester
 #
@@ -27,6 +27,31 @@ include $(DIVA)/compile.mk
 
 
 ### DEPENDENCIES: DO NOT EDIT BELOW THIS LINE
+EventParser.class: \
+	EventParser.java \
+	EventPlayer.java \
+	../LoggableOp.java \
+	../ModelParser.java \
+	../xml/XmlDocument.java \
+	../xml/XmlElement.java \
+	../xml/XmlReader.java \
+	../../canvas/JCanvas.java \
+	../../sketch/JSketch.java
+
+EventPlayer.class: \
+	EventPlayer.java
+
+EventRecorder.class: \
+	EventRecorder.java
+
+EventWriter.class: \
+	EventParser.java \
+	EventRecorder.java \
+	EventWriter.java \
+	../ModelWriter.java \
+	../../canvas/JCanvas.java \
+	../../sketch/JSketch.java
+
 TestCase.class: \
 	TestCase.java \
 	TestFailedException.java

@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractFigure.java,v 1.29 2000/05/02 00:43:14 johnr Exp $
+ * $Id: AbstractFigure.java,v 1.32 2002/01/11 23:00:44 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,7 +25,7 @@ import java.awt.geom.Rectangle2D;
  * how to move themselves.  They are not required to know when to
  * repaint, as that is done by the canvas they are drawn on.
  *
- * @version $Revision: 1.29 $
+ * @version $Revision: 1.32 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -67,7 +67,7 @@ public abstract class AbstractFigure implements Figure {
         return getShape().getBounds2D();
     }
 
-    /** Return the interactor role of this figure. Return
+    /** Return the interactor of this figure. Return
      *  null if there isn't one.
      */
     public Interactor getInteractor () {
@@ -90,12 +90,16 @@ public abstract class AbstractFigure implements Figure {
         }
     }
 
-    /** Get the outline shape of this figure. The outline shape is
-     *  used for things like highlighting.  This is an abstract
-     * method, provided  here since a number of other concrete 
-     * methods use it.
+    /** Return the origin of the figure in the enclosing transform
+     *  context, which in this base class is the center of the bounds
+     *  returned by getBounds().
+     *  @see #getBounds()
+     *  @return The origin of the figure.
      */
-    public abstract Shape getShape ();
+    public Point2D getOrigin () {
+        Rectangle2D bounds = getBounds();
+        return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+    }
 
     /** Return the parent of this figure. Return null if the figure
      *  does not have a parent.  (Note that a figure with no parent
@@ -105,6 +109,13 @@ public abstract class AbstractFigure implements Figure {
     public CanvasComponent getParent () {
         return _parent;
     }
+
+    /** Get the outline shape of this figure. The outline shape is
+     *  used for things like highlighting.  This is an abstract
+     * method, provided  here since a number of other concrete 
+     * methods use it.
+     */
+    public abstract Shape getShape ();
 
     /** Return the transform context of the figure. This default
      * implementation assumes that the figure does not implement
@@ -271,4 +282,5 @@ public abstract class AbstractFigure implements Figure {
         transform(AffineTransform.getTranslateInstance(x,y));
     }
 }
+
 

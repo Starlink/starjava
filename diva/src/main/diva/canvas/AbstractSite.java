@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractSite.java,v 1.8 2000/05/02 00:43:14 johnr Exp $
+ * $Id: AbstractSite.java,v 1.10 2001/07/22 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -12,12 +12,13 @@ import diva.canvas.Site;
 import diva.canvas.TransformContext;
 import diva.canvas.Figure;
 import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
 
 /** An abstract implementation of Site. This class provides default
  * implementations of several methods in the Site interface, to
  * make it easier to implement site classes.
  *
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  * @author John Reekie
  * @rating Red
  */
@@ -88,8 +89,9 @@ public abstract class AbstractSite implements Site {
      * that method.
      */
     public Point2D getPoint (TransformContext tc, double normal) {
-        return CanvasUtilities.transformInto(
-	           getPoint(normal), getTransformContext(), tc);
+        AffineTransform transform = getTransformContext().getTransform(tc);
+        Point2D point = getPoint(normal);
+        return transform.transform(point, point);
     }
 
     /** Get the enclosing transform context of this site.
@@ -143,4 +145,5 @@ public abstract class AbstractSite implements Site {
         // do nothing
     }
 }
+
 

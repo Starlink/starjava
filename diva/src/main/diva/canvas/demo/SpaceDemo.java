@@ -1,7 +1,7 @@
 /*
- * $Id: SpaceDemo.java,v 1.7 2000/05/22 17:13:59 neuendor Exp $
+ * $Id: SpaceDemo.java,v 1.8 2001/07/22 22:00:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -28,7 +28,7 @@ import diva.graph.*;
  * size in the user's field of view.
  *
  * @author John Reekie
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  */
 public class SpaceDemo {
 
@@ -105,6 +105,7 @@ public class SpaceDemo {
         new SpaceDemo("Infospace Demo, 0.1");
     }
 }
+
 
 
 

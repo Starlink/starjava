@@ -1,7 +1,7 @@
 /*
- * $Id: XmlBuilder.java,v 1.4 2000/05/02 00:45:34 johnr Exp $
+ * $Id: XmlBuilder.java,v 1.6 2001/07/22 22:02:13 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.xml;
@@ -19,21 +19,30 @@ package diva.util.xml;
  * get a low-level graphical object.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.6 $
+ * @rating Red
  */
 public interface XmlBuilder {
-
     /** Given an XmlElement, create and return an internal representtion
      * of it. Implementors should also provide a more
      * type-specific version of this method:
      * <pre>
-     *   public Graph build (XmlELement elt);
+     *   public Graph build (XmlELement elt, String type);
      * </pre> 
      */
-    public Object build (XmlElement elt, String type);
+    public Object build (XmlElement elt, String type) throws Exception;
+
+    /** Delegate builders can be used to build/generate for objects
+     * that are unknown by the current builder, as might be the
+     * case in a hierarchy of heterogeneous objects.
+     *
+     * @see diva.util.xml.CompositeBuilder
+     */
+    public void setDelegate(XmlBuilder child);
 
     /** Given an object, produce an XML representation of it.
      */
-    public XmlElement generate (Object obj);
+    public XmlElement generate (Object obj) throws Exception;
 }
+
 

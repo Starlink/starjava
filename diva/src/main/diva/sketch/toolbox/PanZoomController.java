@@ -1,8 +1,8 @@
 /*
- * $Id: PanZoomController.java,v 1.5 2000/06/28 21:50:39 michaels Exp $
+ * $Id: PanZoomController.java,v 1.6 2001/07/22 22:01:58 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  *
  */
 package diva.sketch.toolbox;
@@ -40,7 +40,7 @@ import java.util.Iterator;
  * mouse button, move the mouse in any direction to pan in that
  * direction.
  *
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
  * @author 	Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author 	John Reekie (johnr@eecs.berkeley.edu)
@@ -209,3 +209,4 @@ public class PanZoomController extends SketchController {
         }
     }
 }
+

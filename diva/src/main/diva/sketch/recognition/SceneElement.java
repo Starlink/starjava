@@ -1,8 +1,8 @@
 /*
- * $Id: SceneElement.java,v 1.6 2000/08/04 01:24:02 michaels Exp $
+ * $Id: SceneElement.java,v 1.7 2001/07/22 22:01:54 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * @see Scene, StrokeElement, CompositeElement, ChoiceElement
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  * @rating Red
  */
 public interface SceneElement {
@@ -41,3 +41,4 @@ public interface SceneElement {
      */
     public Set parents();
 }
+

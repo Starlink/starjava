@@ -1,7 +1,7 @@
 /*
- * $Id: GeometricSet.java,v 1.9 2000/05/02 00:43:16 johnr Exp $
+ * $Id: GeometricSet.java,v 1.10 2001/07/22 22:00:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -19,7 +19,7 @@ import java.util.Iterator;
  * allow the geometry to be changed, so they can throw an exception on
  * the setGeometry(), freshFigures(), and staleFigures() methods.
  *
- * @version	$Revision: 1.9 $
+ * @version	$Revision: 1.10 $
  * @author John Reekie
  * @rating Red
  */
@@ -61,4 +61,5 @@ public interface GeometricSet extends FigureSet {
      */
     //public abstract Iterator undecoratedFigures();
 }
+
 

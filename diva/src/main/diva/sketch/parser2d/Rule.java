@@ -1,8 +1,8 @@
 /*
- * $Id: Rule.java,v 1.8 2000/08/04 01:24:00 michaels Exp $
+ * $Id: Rule.java,v 1.9 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.Scene;
@@ -15,7 +15,7 @@ import diva.sketch.recognition.Type;
  * of a production and generates the LHS.
  * 
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public interface Rule {
 	/**
@@ -39,3 +39,4 @@ public interface Rule {
 	 */	
 	public CompositeElement match(CompositeElement[] rhs, Scene db);
 }
+

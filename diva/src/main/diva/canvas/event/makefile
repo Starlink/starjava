@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.28 1999/09/18 19:36:24 johnr Exp $
+# $Id: makefile,v 1.30 2002/05/16 20:37:31 johnr Exp $
 #
 # Makefile for diva.canvas.event
 #
@@ -50,11 +50,8 @@ LayerConsumer.class: \
 
 LayerEvent.class: \
 	LayerEvent.java \
-	../CanvasComponent.java \
 	../CanvasLayer.java \
-	../Figure.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Figure.java
 
 LayerEventMulticaster.class: \
 	LayerEvent.java \

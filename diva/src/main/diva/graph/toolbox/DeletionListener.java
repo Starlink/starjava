@@ -1,8 +1,8 @@
 /*
- * $Id: DeletionListener.java,v 1.3 2000/08/02 21:57:53 neuendor Exp $
+ * $Id: DeletionListener.java,v 1.4 2001/07/22 22:01:26 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.toolbox;
 
@@ -24,7 +24,7 @@ import javax.swing.*;
  * the selection model of the graph pane's controller will be removed.
  *
  * @author Steve Neuendorffer
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public class DeletionListener implements ActionListener {
@@ -64,3 +64,4 @@ public class DeletionListener implements ActionListener {
 	}
     }
 }
+

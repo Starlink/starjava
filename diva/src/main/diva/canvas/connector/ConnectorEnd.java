@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorEnd.java,v 1.3 2000/05/02 00:43:19 johnr Exp $
+ * $Id: ConnectorEnd.java,v 1.4 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import java.awt.geom.Rectangle2D;
  * to draw arrow-heads, circles, diamonds, and various other
  * kinds of decoration at the end of connectors.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  */
 public interface ConnectorEnd {
@@ -58,4 +58,5 @@ public interface ConnectorEnd {
      */
     public void translate (double x, double y);
 }
+
 

@@ -1,3 +1,9 @@
+/*
+ * $Id: ContextGraphView.java,v 1.4 2001/07/23 04:11:23 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.graph.schematic;
 
 import diva.gui.AbstractView;
@@ -35,6 +41,12 @@ import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
 import javax.swing.JMenuItem;
 
+/**
+ * Steve, fix me!
+ * 
+ * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu
+ * @version $Revision: 1.4 $
+ */
 public class ContextGraphView extends AbstractView implements ContextView {
     private JGraph _jgraph = null;
     private ApplicationContext _context = null;
@@ -114,3 +126,5 @@ public class ContextGraphView extends AbstractView implements ContextView {
 	splitPane.setRightComponent(_jgraph);
     }
 }
+
+

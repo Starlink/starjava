@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedString.java,v 1.5 2001/01/02 21:21:23 neuendor Exp $
+ * $Id: PaintedString.java,v 1.11 2002/08/12 06:37:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.java2d;
@@ -37,7 +37,8 @@ import java.text.AttributedString;
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie  (johnr@eecs.berkeley.edu)
  * @author Steve Neuendorffer  (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.11 $
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public class PaintedString implements PaintedObject {
 
@@ -288,7 +289,7 @@ public class PaintedString implements PaintedObject {
     private void _update () {
         // Since we are generating a shape and drawing that, it makes
         // no difference what the values of the flags are
-        FontRenderContext frc = new FontRenderContext(_transform, true, false);
+        FontRenderContext frc = new FontRenderContext(null, true, false);
         // Return the delimeters, so that we get the right line count.
         StringTokenizer lines = new StringTokenizer(_string, "\n", true);
         double dy = _font.getMaxCharBounds(frc).getHeight();
@@ -305,21 +306,27 @@ public class PaintedString implements PaintedObject {
             } else {
                 GlyphVector gv = _font.createGlyphVector(frc, line);
                 
+		// Get the shape and bounds. Work around JDK1.4 bug.
+		Shape s = gv.getOutline();
+		Rectangle2D b;
+                s = _transform.createTransformedShape(s);
+                b = s.getBounds2D();
                 if(_bounds == null) {
                     // implicit translate by (0,0)
-                    _bounds = gv.getVisualBounds();
-                    _shapes.add(gv.getOutline());
+                    _bounds = b;
+                    _shapes.add(s);
                 } else {
                     Rectangle2D.union(
                             _bounds, 
                             (Rectangle2D)ShapeUtilities.translateModify(
-                                    gv.getVisualBounds(), x, y),
+                                    b, x, y),
                             _bounds);
                     _shapes.add(ShapeUtilities.translateModify(
-                            gv.getOutline(), x, y));
+                            s, x, y));
                 }
             }
         }
     }
 }
+
 

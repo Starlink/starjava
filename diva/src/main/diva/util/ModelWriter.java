@@ -1,7 +1,7 @@
 /*
- * $Id: ModelWriter.java,v 1.1 2000/05/10 22:02:15 hwawen Exp $
+ * $Id: ModelWriter.java,v 1.2 2001/07/22 22:02:03 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -16,7 +16,7 @@ import java.io.Writer;
  * writes out a sketch model to a stream.
  *
  * @author Heloise Hse  (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public interface ModelWriter {
 
@@ -25,6 +25,7 @@ public interface ModelWriter {
      */
     public void writeModel(Object model, Writer writer) throws IOException;
 }
+
 
 
 

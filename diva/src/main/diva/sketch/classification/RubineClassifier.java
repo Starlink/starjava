@@ -1,10 +1,12 @@
 /*
- * $Id: RubineClassifier.java,v 1.2 2000/09/07 07:25:14 hwawen Exp $
+ * $Id: RubineClassifier.java,v 1.5 2001/07/22 22:01:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.classification;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 
 /**
@@ -12,7 +14,7 @@ import java.util.Iterator;
  * More information can be obtained from Rubine's paper.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.5 $
  */
 public class RubineClassifier implements TrainableClassifier {
 
@@ -46,7 +48,8 @@ public class RubineClassifier implements TrainableClassifier {
     private double[] _constants = null;
 
     /**
-     *
+     * Inverted common covariance matrix stored in a 2D array.
+     * [row][col]  This matrix is produced in train().
      */
     private double[][] _commonCovarianceInverse = null;
 
@@ -89,14 +92,17 @@ public class RubineClassifier implements TrainableClassifier {
         }
 
     }
-   
+
+    public RubineClassifier(){}
+        
     /**
      * Return a classification for the specified feature set, or throw
      * a runtime exception if the feature set that is given does not
      * have the same number of features as the training set that it
      * was trained on.
      */
-    public Classification classify(FeatureSet fs) throws ClassifierException {
+    public Classification classify2(FeatureSet fs) throws ClassifierException {
+        System.out.println("classify");
         int num = _types.length;
         double[] values = new double[num];
         double[] features = fs.getFeatures();
@@ -111,75 +117,56 @@ public class RubineClassifier implements TrainableClassifier {
                 sum += (w[j]*features[j]);
             }
             values[i] = sum+_constants[i];
+            System.out.println("\t"+_types[i]+": "+values[i]);
             if(values[i]>valueBest){
                 valueBest = values[i];
                 indexBest = i;
             }
         }
+
         if(indexBest == -1){
             //no match
             return new Classification(null, null);
         }
-        //probability
-        double sum = 0;
-        for(int j = 0; j < num; j++) {
-            double power = values[j]-valueBest;
-            // avoid computing negligible term
+
+        double denom = 0;
+        for(int i=0; i<num; i++){
+            double power = values[i]-valueBest;
             if(power > EXPONENT_THRESHOLD){
-                sum += Math.exp(power);
+                denom += Math.exp(power);
             }
         }
+        double accuracy = 1/denom;
+        
         //distance from mean
+        /*
         double deviation = mahalanobisDistance(features,
                 _means[indexBest].getFeatures(),
                 _commonCovarianceInverse);
-
+        */
+        /*
+        //my own way of normalizing confidence value between 0 and 1
         double confidence;
         double threshold = _thresholds[indexBest];
-        if(deviation == 0){
-            confidence = 1.0;
-        }
-        else if(deviation > threshold){
-            confidence = 0.0;
-        }
-        else {
-            confidence = 1-(deviation/threshold);
-        }
+        confidence = 1-deviation/(4*threshold);
+        System.out.println("deviation = " + deviation + ", threshold = " + threshold);        
+        */
         Classification c;
         String[] s = new String[1];
         s[0] = _types[indexBest];
         double[] v = new double[1];
-        v[0] = confidence;
+        v[0] = accuracy;
         c = new Classification(s, v);
         
-        //eliminate obvious outliers
-        /*
-        Classification c;
-        int len = features.length;
-        if(deviation > (0.5*len*len)){
-            System.out.println("OUTLIER, deviation: " + deviation);
-            c = new Classification(null, null);
-        }
-        else {   
-            double prob = 1.0/sum;
-            String[] s = new String[1];
-            s[0] = _types[indexBest];
-            double[] v = new double[1];
-            v[0] = prob;
-            System.out.println(s[0]+", prob: " + prob + ", deviation: " + deviation);
-            c = new Classification(s, v);
-        }
-        */
         return c;
     }
 
-    public Classification classify2(FeatureSet fs)
-            throws ClassifierException {
+    public Classification classify(FeatureSet fs) throws ClassifierException {
         int num = _types.length;
-        double[] values = new double[num];
         double[] features = fs.getFeatures();
         double EXPONENT_THRESHOLD = -7.0;
-
+        TypeAndValuePair pairs[] = new TypeAndValuePair[num];
+            
         //confidence values
         for(int i = 0; i < num; i++) {
             double[] w = _weights[i].getFeatures();
@@ -187,56 +174,56 @@ public class RubineClassifier implements TrainableClassifier {
             for(int j = 0; j < features.length; j++) {
                 sum += (w[j]*features[j]);
             }
-            values[i] = sum+_constants[i];
+            pairs[i] = new TypeAndValuePair(_types[i], sum+_constants[i]);
         }
-        //distance from mean
-        double[] confidences = new double[num];
-        for(int i=0; i<num; i++){
-            double threshold = _thresholds[i];
-            double deviation = mahalanobisDistance(features,
-                    _means[i].getFeatures(),
-                    _commonCovarianceInverse);
-            double confidence;
-            if(deviation == 0){
-                confidence = 1.0;
-            }
-            else if(deviation > threshold){
-                confidence = 0.0;
-            }
-            else {
-                confidence = 1-(deviation/threshold);
-            }
-            confidences[i] = confidence;
-        }
-
-        //sort by values[]
-        int[] indices = new int[num];
-        for(int i=0; i<num; i++){
-            int j = getIndexMaxValue(values);
-            indices[i] = j;
-            values[i] = -1;
-        }
+        
+        //sort values[] in ascending numeric order
+        Arrays.sort(pairs, new MyComparator());
         String[] s = new String[num];
-        double[] v = new double[num];        
-        for(int i=0; i<num; i++){
-            int index = indices[i];
-            s[i] = _types[index];
-            v[i] = confidences[index];
+        double[] v = new double[num];
+        for(int i=num-1, j=0; i>=0; i--, j++){
+            s[j] = pairs[i].type;
+            v[j] = pairs[i].value; //descending order
         }
         Classification c = new Classification(s,v);
         return c;
     }
 
-    private int getIndexMaxValue(double[] values){
-        int maxIndex = -1;
-        double maxValue = -1;
-        for(int i=0; i<values.length; i++){
-            if(values[i]>maxValue){
-                maxIndex = i;
-                maxValue = values[i];
-            }
+    /**
+     * Internal data structure used by the classify method.  A pair is
+     * a type and confidence value.
+     */
+    private class TypeAndValuePair {
+        public String type;
+        public double value;
+        
+        public TypeAndValuePair(String t, double v){
+            type = t;
+            value = v;
         }
-        return maxIndex;
+
+        public String toString(){
+            return type+": "+value;
+        }
+    }
+
+    /**
+     * Compares 2 TypeAndValuePair objects based on their "values".
+     */
+    private class MyComparator implements Comparator {
+        public MyComparator(){}
+        public int compare (Object o1, Object o2){
+            double v1 = ((TypeAndValuePair)o1).value;
+            double v2 = ((TypeAndValuePair)o2).value;
+            int result = 0;
+            if(v1<v2){
+                result = -1;
+            }
+            else if(v1>v2){
+                result = 1;
+            }
+            return result;
+        }
     }
     
     /**
@@ -406,7 +393,7 @@ public class RubineClassifier implements TrainableClassifier {
                     }
                 }
                 _thresholds[k] = maxDist;
-                System.out.println("Threshold for " + type + ": " + maxDist);
+                //                System.out.println("Threshold for " + type + ": " + maxDist);
             }
         }
         catch(RuntimeException ex){
@@ -583,3 +570,4 @@ public class RubineClassifier implements TrainableClassifier {
         return result;
     }
 }
+

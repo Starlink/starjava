@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.13 2000/07/07 22:17:22 nzamor Exp $
+# $Id: makefile,v 1.15 2002/05/16 20:37:31 johnr Exp $
 #
 # Makefile for diva.canvas.interactor
 #
@@ -80,15 +80,10 @@ BasicGrabHandleFactory.class: \
 	BasicGrabHandleFactory.java \
 	GrabHandle.java \
 	GrabHandleFactory.java \
-	ShapedFigure.java \
 	../AbstractFigure.java \
-	../CanvasComponent.java \
-	../Figure.java \
 	../Site.java \
-	../VisibleComponent.java \
 	../toolbox/BasicFigure.java \
-	../toolbox/BasicRectangle.java \
-	../../util/UserObjectContainer.java
+	../toolbox/BasicRectangle.java
 
 BoundedDragInteractor.class: \
 	AbstractInteractor.java \
@@ -113,11 +108,8 @@ BoundsGeometry.class: \
 	BoundsGeometry.java \
 	Geometry.java \
 	../AbstractSite.java \
-	../CanvasComponent.java \
 	../Figure.java \
-	../Site.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Site.java
 
 BoundsManipulator.class: \
 	AbstractInteractor.java \
@@ -125,13 +117,11 @@ BoundsManipulator.class: \
 	BoundsGeometry.java \
 	BoundsManipulator.java \
 	DragInteractor.java \
-	Geometry.java \
 	GrabHandle.java \
 	GrabHandleFactory.java \
 	Interactor.java \
 	Manipulator.java \
 	MoveHandle.java \
-	ShapedFigure.java \
 	../AbstractFigure.java \
 	../AbstractFigureContainer.java \
 	../AbstractSite.java \
@@ -166,8 +156,6 @@ BasicSelectionModel.class: \
 	../CanvasComponent.java \
 	../Figure.java \
 	../VisibleComponent.java \
-	../event/LayerListener.java \
-	../event/LayerMotionListener.java \
 	../../util/UserObjectContainer.java
 
 BasicSelectionRenderer.class: \
@@ -185,6 +173,45 @@ BasicSelectionRenderer.class: \
 	../toolbox/BasicHighlighter.java \
 	../../util/UserObjectContainer.java
 
+CircleGeometry.class: \
+	CircleGeometry.java \
+	Geometry.java \
+	../AbstractSite.java \
+	../Figure.java \
+	../Site.java
+
+CircleManipulator.class: \
+	AbstractInteractor.java \
+	BasicGrabHandleFactory.java \
+	CircleGeometry.java \
+	CircleManipulator.java \
+	DragInteractor.java \
+	GrabHandle.java \
+	GrabHandleFactory.java \
+	Interactor.java \
+	Manipulator.java \
+	MoveHandle.java \
+	../AbstractFigure.java \
+	../AbstractFigureContainer.java \
+	../AbstractSite.java \
+	../CanvasComponent.java \
+	../CanvasUtilities.java \
+	../DamageRegion.java \
+	../Figure.java \
+	../FigureContainer.java \
+	../FigureDecorator.java \
+	../FigureSet.java \
+	../Site.java \
+	../VisibleComponent.java \
+	../connector/CenterSite.java \
+	../event/LayerEvent.java \
+	../event/LayerListener.java \
+	../event/LayerMotionListener.java \
+	../event/MouseFilter.java \
+	../toolbox/BasicFigure.java \
+	../toolbox/BasicRectangle.java \
+	../../util/UserObjectContainer.java
+
 CompositeInteractor.class: \
 	AbstractInteractor.java \
 	CompositeInteractor.java \
@@ -193,9 +220,7 @@ CompositeInteractor.class: \
 	../event/LayerEventMulticaster.java \
 	../event/LayerListener.java \
 	../event/LayerMotionListener.java \
-	../event/MouseFilter.java \
-	../../util/BasicPropertyContainer.java \
-	../../util/PropertyContainer.java
+	../event/MouseFilter.java
 
 DragInteractor.class: \
 	AbstractInteractor.java \
@@ -218,10 +243,7 @@ DragInteractor.class: \
 
 Geometry.class: \
 	Geometry.java \
-	../CanvasComponent.java \
-	../Figure.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Figure.java
 
 GrabHandle.class: \
 	GrabHandle.java \
@@ -234,11 +256,7 @@ GrabHandle.class: \
 GrabHandleFactory.class: \
 	GrabHandle.java \
 	GrabHandleFactory.java \
-	../CanvasComponent.java \
-	../Figure.java \
-	../Site.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Site.java
 
 Interactor.class: \
 	Interactor.java \
@@ -266,8 +284,6 @@ Manipulator.class: \
 	../FigureDecorator.java \
 	../FigureSet.java \
 	../VisibleComponent.java \
-	../event/LayerListener.java \
-	../event/LayerMotionListener.java \
 	../event/MouseFilter.java \
 	../../util/UserObjectContainer.java
 
@@ -289,17 +305,13 @@ PathGeometry.class: \
 	Geometry.java \
 	PathGeometry.java \
 	../AbstractSite.java \
-	../CanvasComponent.java \
 	../Figure.java \
-	../Site.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Site.java
 
 PathManipulator.class: \
 	AbstractInteractor.java \
 	BasicGrabHandleFactory.java \
 	DragInteractor.java \
-	Geometry.java \
 	GrabHandle.java \
 	GrabHandleFactory.java \
 	Interactor.java \
@@ -356,7 +368,6 @@ SelectionDragger.class: \
 	../OverlayLayer.java \
 	../VisibleComponent.java \
 	../ZList.java \
-	../event/EventAcceptor.java \
 	../event/EventLayer.java \
 	../event/LayerAdapter.java \
 	../event/LayerConsumer.java \
@@ -383,13 +394,9 @@ SelectionInteractor.class: \
 	SelectionInteractor.java \
 	SelectionModel.java \
 	SelectionRenderer.java \
-	../AbstractFigure.java \
-	../AbstractFigureContainer.java \
 	../CanvasComponent.java \
 	../Figure.java \
-	../FigureContainer.java \
 	../FigureDecorator.java \
-	../FigureSet.java \
 	../VisibleComponent.java \
 	../event/LayerEvent.java \
 	../event/LayerEventMulticaster.java \
@@ -408,10 +415,7 @@ SelectionModel.class: \
 
 SelectionRenderer.class: \
 	SelectionRenderer.java \
-	../CanvasComponent.java \
-	../Figure.java \
-	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../Figure.java
 
 ShapedFigure.class: \
 	ShapedFigure.java \

@@ -1,7 +1,7 @@
 /*
- * $Id: BasicFrame.java,v 1.13 2000/07/06 00:40:01 nzamor Exp $
+ * $Id: BasicFrame.java,v 1.14 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -20,7 +20,7 @@ import javax.swing.event.*;
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
  * @author Nick Zamora (nzamor@eecs.berkeley.edu)
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  */
 public class BasicFrame extends ApplicationContext {
 
@@ -124,4 +124,5 @@ public class BasicFrame extends ApplicationContext {
         this._component = component;
     }
 }
+
 

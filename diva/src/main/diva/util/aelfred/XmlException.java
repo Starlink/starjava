@@ -1,6 +1,6 @@
 // XmlException.java: Simple base class for AElfred processors.
 // NO WARRANTY! See README, and copyright below.
-// $Id: XmlException.java,v 1.2 2000/05/02 00:45:26 johnr Exp $
+// $Id: XmlException.java,v 1.3 2001/07/22 22:02:05 johnr Exp $
 
 //package com.microstar.xml;
 package diva.util.aelfred;
@@ -83,5 +83,7 @@ public class XmlException extends Exception
   }
 
 }
+
+
 
 

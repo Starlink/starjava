@@ -1,7 +1,7 @@
 /*
- * $Id: FigureWrapper.java,v 1.11 2000/05/02 00:43:16 johnr Exp $
+ * $Id: FigureWrapper.java,v 1.12 2001/07/22 22:00:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * need to implement certain behaviour but don't particularly
  * care about their appearance.
  *
- * @version	$Revision: 1.11 $
+ * @version	$Revision: 1.12 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -98,4 +98,5 @@ public abstract class FigureWrapper extends AbstractFigure {
         }
     }
 }
+
 

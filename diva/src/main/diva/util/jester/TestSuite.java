@@ -1,7 +1,7 @@
 /*
- * $Id: TestSuite.java,v 1.6 2000/05/02 00:45:30 johnr Exp $
+ * $Id: TestSuite.java,v 1.7 2001/07/22 22:02:09 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
@@ -54,7 +54,7 @@ package diva.util.jester;
  * the expected formatting of the source.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  */
 public abstract class TestSuite {
 
@@ -152,4 +152,5 @@ public abstract class TestSuite {
       return _factory;
   }
 }
+
 

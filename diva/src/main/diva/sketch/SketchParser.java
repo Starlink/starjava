@@ -1,16 +1,15 @@
 /*
- * $Id: SketchParser.java,v 1.14 2000/10/29 02:15:23 michaels Exp $
+ * $Id: SketchParser.java,v 1.18 2002/08/12 06:36:58 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
 
 import diva.sketch.recognition.TimedStroke;
-import diva.sketch.recognition.TrainingParser;
+import diva.sketch.recognition.SSTrainingParser;
 import diva.util.ModelParser;
-import diva.util.aelfred.*;
-import diva.util.xml.*;
+import diva.compat.xml.*;
 import java.awt.Color;
 import java.io.Reader;
 import java.io.StringReader;
@@ -23,9 +22,9 @@ import java.util.Iterator;
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.18 $
  */
-public class SketchParser extends HandlerBase implements ModelParser {
+public class SketchParser implements ModelParser {
     /**
      * The public identity of the sketch dtd file.
      */
@@ -81,6 +80,7 @@ public class SketchParser extends HandlerBase implements ModelParser {
         doc.setDTDPublicID(PUBLIC_ID);
         doc.setDTD(DTD_1);
         XmlReader reader = new XmlReader();
+	reader.setVerbose(true);
         reader.parse(doc, in);
         if(reader.getErrorCount() > 0) {
             throw new Exception("errors encountered during parsing");
@@ -136,11 +136,11 @@ public class SketchParser extends HandlerBase implements ModelParser {
             String outlineStr = eltXml.getAttribute(OUTLINE_TAG);
             String fillStr = eltXml.getAttribute(FILL_TAG);
             String linewidthStr = eltXml.getAttribute(LINEWIDTH_TAG);
-            String pointStr = eltXml.getAttribute(TrainingParser.POINTS_TAG);
+            String pointStr = eltXml.getAttribute(SSTrainingParser.POINTS_TAG);
             Color outline = parseColor(outlineStr);
             Color fill = parseColor(fillStr);
             float w = Float.valueOf(linewidthStr).floatValue();
-            TimedStroke stroke = TrainingParser.parsePoints(pointStr);
+            TimedStroke stroke = SSTrainingParser.parsePoints(pointStr);
             return new StrokeSymbol(stroke, outline, fill, w);
         }
         else {
@@ -153,4 +153,5 @@ public class SketchParser extends HandlerBase implements ModelParser {
         }
     }
 }
+
 

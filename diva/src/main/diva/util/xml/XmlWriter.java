@@ -1,13 +1,13 @@
 /*
- * $Id: XmlWriter.java,v 1.7 2000/08/22 17:53:58 neuendor Exp $
+ * $Id: XmlWriter.java,v 1.11 2002/07/09 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 // From aelfred's demo classes:
 // DtdDemo.java: demonstration application showing DTD queries.
 // NO WARRANTY! See README, and copyright below.
-// $Id: XmlWriter.java,v 1.7 2000/08/22 17:53:58 neuendor Exp $
+// $Id: XmlWriter.java,v 1.11 2002/07/09 22:00:28 johnr Exp $
 
 package diva.util.xml;
 
@@ -33,7 +33,7 @@ import java.net.URL;
  * @author Copyright (c) 1997, 1998 by Microstar Software Ltd.;
  * @author written by David Megginson &lt;dmeggins@microstar.com&gt;
  * @author Steve Neuendorffer, John Reekie
- * @version $Id: XmlWriter.java,v 1.7 2000/08/22 17:53:58 neuendor Exp $
+ * @version $Id: XmlWriter.java,v 1.11 2002/07/09 22:00:28 johnr Exp $
  */
 public class XmlWriter extends LoggableOp {
 
@@ -364,5 +364,6 @@ public class XmlWriter extends LoggableOp {
         return buf.toString();
     }
 }
+
 
 

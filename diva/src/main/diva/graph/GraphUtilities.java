@@ -1,7 +1,7 @@
 /*
- * $Id: GraphUtilities.java,v 1.14 2000/09/14 20:31:12 neuendor Exp $
+ * $Id: GraphUtilities.java,v 1.15 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -19,7 +19,7 @@ import diva.util.Filter;
  * A set of utilities for traversing/manipulating/etc. graphs.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  * @rating Red
  */
 public final class GraphUtilities {
@@ -327,4 +327,5 @@ public final class GraphUtilities {
         }
     }
 }
+
 

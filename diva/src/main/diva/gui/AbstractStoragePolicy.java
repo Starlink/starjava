@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractStoragePolicy.java,v 1.2 2000/05/02 00:44:33 johnr Exp $
+ * $Id: AbstractStoragePolicy.java,v 1.3 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -23,7 +23,7 @@ import javax.swing.JTextArea;
  * file they last opened.  This abstract class provides such functionality.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public abstract class AbstractStoragePolicy implements StoragePolicy {
 
@@ -69,5 +69,6 @@ public abstract class AbstractStoragePolicy implements StoragePolicy {
         _directory = directory;
     }
 }
+
 
 

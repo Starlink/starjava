@@ -1,7 +1,7 @@
 /*
- * $Id: ProxyIncrLayout.java,v 1.6 2000/07/23 23:47:16 neuendor Exp $
+ * $Id: ProxyIncrLayout.java,v 1.7 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -17,7 +17,7 @@ import diva.graph.GraphEvent;
  * to deal with.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public class ProxyIncrLayout implements IncrementalLayout {
@@ -79,4 +79,5 @@ public class ProxyIncrLayout implements IncrementalLayout {
 	_delegate.layout(composite);
     }
 }
+
 

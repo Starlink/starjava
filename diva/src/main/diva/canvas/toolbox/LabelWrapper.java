@@ -1,7 +1,7 @@
 /*
- * $Id: LabelWrapper.java,v 1.2 2000/05/02 00:43:38 johnr Exp $
+ * $Id: LabelWrapper.java,v 1.3 2001/07/22 22:00:45 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -38,7 +38,7 @@ import javax.swing.SwingConstants;
  * applications, such as attaching multiple labels, you will need
  * to implement your own class.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @author John Reekie
  */
 public class LabelWrapper extends AbstractFigure {
@@ -134,4 +134,5 @@ public class LabelWrapper extends AbstractFigure {
         repaint();
     }
 }
+
 

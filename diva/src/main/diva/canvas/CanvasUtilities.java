@@ -1,7 +1,7 @@
 /*
- * $Id: CanvasUtilities.java,v 1.22 2001/01/02 21:14:02 neuendor Exp $
+ * $Id: CanvasUtilities.java,v 1.27 2002/08/19 00:15:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -33,7 +33,7 @@ import javax.swing.SwingConstants;
  * in the Java 2D API, while others accept iterators over Figures
  * or Shapes and compute a useful composite result.
  *
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.27 $
  * @author John Reekie
  * @rating Red
  */
@@ -331,7 +331,7 @@ public final class CanvasUtilities {
      *
      * @param i An iterator over figures
      * @param region A rectangle which represents the pick or hit region
-     * @returns The topmost descendent under the pick region, or null
+     * @return The topmost descendent under the pick region, or null
      * there isn't one.
      */
     public static Figure pick (Iterator i, Rectangle2D region) {
@@ -353,6 +353,36 @@ public final class CanvasUtilities {
         return null;
     }
 
+    /** Return the first figure that is hit by the given region.
+     * The figures tested are contained in the given iterator, which
+     * must contain only figures. And figure that is also a FigureContainer
+     * is descended into recursively; other figures are simply tested
+     * using their hit() method.
+     *
+     * @param i An iterator over figures
+     * @param region A rectangle which represents the pick or hit region
+     * @return The topmost descendent under the pick region, or null
+     * there isn't one.
+     */
+    public static Figure pick (Iterator i, Rectangle2D region, 
+            Filter filter) {
+        Figure f;
+        Figure picked;
+        
+        while (i.hasNext()) {
+            f = (Figure) i.next();
+            if(f instanceof FigureContainer) {
+                picked = ((FigureContainer) f).pick(region, filter);
+                if (picked != null) {
+                    return picked;
+                }
+            }
+            if(f.hit(region) && filter.accept(f)) {
+                return f;
+            }
+        }
+        return null;
+    }
 
     /**
      * Return an iterator over the figures hit by the given region.
@@ -365,7 +395,7 @@ public final class CanvasUtilities {
      *
      * @param i An iterator over figures
      * @param region A rectangle which represents the pick or hit region
-     * @returns An iterator over the hit figures.
+     * @return An iterator over the hit figures.
      */
     public static Iterator pickIter (Iterator i, Rectangle2D region) {
         final Rectangle2D rl = region;
@@ -378,11 +408,12 @@ public final class CanvasUtilities {
                 return f.hit(_region);
             }
         });
+        
     }
 
-    /** Reverse a direction flag. The flag must one of the eight compass directions
-     * defined in SwingConstants. Return the flag that represents the opposite
-     * direction.
+    /** Reverse a direction flag. The flag must one of the eight
+     * compass directions defined in SwingConstants. Return the flag
+     * that represents the opposite direction.
      */
     public static int reverseDirection (int direction) {
         switch (direction) {
@@ -511,6 +542,7 @@ public final class CanvasUtilities {
      * root transform context.   The root context must enclose
      * the local one, otherwise this method goes into an infinite
      * loop.  You asked for it.
+     *  @deprecated Use local.getTransform(root) instead.
      */
     public static Point2D transformInto (Point2D p, TransformContext local, 
 					 TransformContext root) {
@@ -645,14 +677,15 @@ public final class CanvasUtilities {
     }
 
     /**
-     * Move a figure so that its center is located at the given
+     * Move a figure so that its origin is located at the given
      * coordinates.
      */
     public static void translateTo(Figure f, double x, double y) {
-        Rectangle2D bounds = f.getBounds();
-        double xdash = x - bounds.getCenterX();
-        double ydash = y - bounds.getCenterY();
+        Point2D origin = f.getOrigin();
+        double xdash = x - origin.getX();
+        double ydash = y - origin.getY();
         f.translate(xdash, ydash);
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: GrabHandle.java,v 1.6 2000/05/02 00:43:30 johnr Exp $
+ * $Id: GrabHandle.java,v 1.7 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -15,7 +15,7 @@ import diva.canvas.Figure;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  */
 public interface GrabHandle extends Figure {
     /**
@@ -47,4 +47,5 @@ public interface GrabHandle extends Figure {
      */
     public void setSize (float size);
 }
+
 

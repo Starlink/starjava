@@ -1,8 +1,8 @@
 /*
- * $Id: SceneDelta.java,v 1.3 2000/08/04 01:24:02 michaels Exp $
+ * $Id: SceneDelta.java,v 1.5 2001/07/22 22:01:54 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
@@ -12,10 +12,13 @@ import java.util.Iterator;
 
 /**
  * A class that represents a change in the scene database.
+ * Deltas can either be additive or subtractive, meaning
+ * that they can
+ *
  * TODO: more documentation on SceneDelta
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.5 $
  * @rating Red
  */
 public abstract class SceneDelta {
@@ -213,3 +216,4 @@ public abstract class SceneDelta {
         }		
     }
 }
+

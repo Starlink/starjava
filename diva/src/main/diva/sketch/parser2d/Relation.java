@@ -1,8 +1,8 @@
 /*
- * $Id: Relation.java,v 1.13 2000/08/12 10:59:44 michaels Exp $
+ * $Id: Relation.java,v 1.14 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -14,7 +14,7 @@ import diva.sketch.recognition.SceneElement;
  * classifier of some sort.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  * @rating  Red
  */
 public interface Relation {
@@ -34,6 +34,7 @@ public interface Relation {
      */
     public String toString(String e1Name, String e2Name);
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: Filter.java,v 1.4 2000/05/02 00:45:24 johnr Exp $
+ * $Id: Filter.java,v 1.5 2001/07/22 22:02:03 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -10,7 +10,7 @@ package diva.util;
  * An interface for objects that filter other objects
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public interface Filter {
   /** Test if an object passes the filter, returning true
@@ -18,4 +18,5 @@ public interface Filter {
    */
   public boolean accept (Object o);
 }
+
 

@@ -1,8 +1,8 @@
 /*
- * $Id: SchematicGraphModel.java,v 1.1 2000/06/14 16:41:26 neuendor Exp $
+ * $Id: SchematicGraphModel.java,v 1.2 2001/07/22 22:01:25 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.schematic;
 
@@ -14,7 +14,7 @@ import diva.graph.basic.*;
  * composite.
  * 
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public class SchematicGraphModel extends BasicGraphModel {
@@ -42,3 +42,4 @@ public class SchematicGraphModel extends BasicGraphModel {
 	    return false;
     }
 }
+

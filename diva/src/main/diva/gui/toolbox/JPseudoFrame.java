@@ -1,7 +1,7 @@
 /*
- * $Id: JPseudoFrame.java,v 1.10 2000/07/01 22:26:33 michaels Exp $
+ * $Id: JPseudoFrame.java,v 1.11 2001/07/22 22:01:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -58,7 +58,7 @@ import javax.swing.event.EventListenerList;
  * of getting this done....)
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.11 $
  */
 public abstract class JPseudoFrame extends JComponent {
     /** Some glue
@@ -316,5 +316,6 @@ public abstract class JPseudoFrame extends JComponent {
 	}
     }
 }
+
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: LayerMouseAdapter.java,v 1.5 2000/09/12 03:05:33 hwawen Exp $
+ * $Id: LayerMouseAdapter.java,v 1.6 2001/07/22 22:00:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.event;
@@ -15,7 +15,7 @@ import java.awt.event.MouseMotionListener;
  * system.  XXX haven't translated it yet.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class LayerMouseAdapter implements LayerListener, LayerMotionListener {
     MouseFilter _filter;
@@ -78,4 +78,5 @@ public class LayerMouseAdapter implements LayerListener, LayerMotionListener {
         _filter = f;
     }
 }
+
 

@@ -1,11 +1,16 @@
 /*
- * $Id: WhiteboardView.java,v 1.28 2001/01/25 06:25:06 hwawen Exp $
+ * $Id: WhiteboardView.java,v 1.33 2001/07/22 22:02:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
 
+import diva.canvas.CanvasUtilities;
+import diva.canvas.Figure;
+import diva.canvas.event.LayerEvent;
+import diva.canvas.interactor.AbstractInteractor;
+import diva.canvas.interactor.SelectionModel;
 import diva.gui.AbstractView;
 import diva.gui.Document;
 import diva.gui.Page;
@@ -13,38 +18,20 @@ import diva.gui.BasicPage;
 import diva.gui.MultipageModel;
 import diva.gui.MultipageDocument;
 import diva.gui.DesktopContext;
+import diva.gui.toolbox.ListDataModel;
+import diva.util.java2d.ShapeUtilities;
 import Acme.JPM.Encoders.GifEncoder;
 
 import diva.sketch.*;
-/*
-import diva.sketch.JSketch;
-import diva.sketch.SketchPane;
-import diva.sketch.SketchListener;
-import diva.sketch.BasicSketchController;
-import diva.sketch.SketchModel;
-import diva.sketch.SketchEvent;
-import diva.sketch.SketchParser;
-import diva.sketch.SketchWriter;
-import diva.sketch.StrokeSymbol;
-import diva.sketch.CompositeSymbol;
-import diva.sketch.Symbol;
-*/
-import diva.gui.toolbox.ListDataModel;
-import diva.canvas.Figure;
-import diva.canvas.event.LayerEvent;
-import diva.canvas.interactor.AbstractInteractor;
-import diva.canvas.interactor.SelectionModel;
 
-import java.awt.Color;
-//import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Graphics;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.awt.print.PrinterException;
@@ -64,20 +51,14 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.undo.UndoableEditSupport;
 
 import java.awt.*;
-import java.awt.geom.*;
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import java.awt.event.*;
-import diva.canvas.CanvasUtilities;
-import diva.util.java2d.ShapeUtilities;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 
 /**
  * WhiteboardView is responsible for view-specific operations
@@ -86,7 +67,7 @@ import java.awt.geom.NoninvertibleTransformException;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.28 $
+ * @version $Revision: 1.33 $
  * @rating Red
  */
 public class WhiteboardView extends AbstractView implements Printable, ClipboardOwner {
@@ -128,7 +109,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
     public JButton createThumbnail(Page page) {
         SketchModel model = (SketchModel)page.getModel();
         SketchPane pane = new SketchPane();
-        ((BasicSketchController)pane.getSketchController()).setSketchModel(model);
+        (pane.getSketchController()).setSketchModel(model);
         JSketch jsketch = new JSketch(pane);
         jsketch.setSize(540, 720);	
         SketchThumbnail thumb = new SketchThumbnail(model, jsketch, 80, 100);
@@ -169,8 +150,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
     public SketchModel getGestureModel() {
         JSketch jsketch = (JSketch)getComponent();
         SketchPane sketchPane = jsketch.getSketchPane();
-        BasicSketchController controller =
-            (BasicSketchController)sketchPane.getSketchController();
+        SketchController controller = sketchPane.getSketchController();
         CommandInterpreter cmd = (CommandInterpreter)controller.getBackgroundInterpreter();
         return cmd.getGestureModel();
     }
@@ -181,12 +161,11 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
     public void playGestureModel(SketchModel model) {
         JSketch jsketch = (JSketch)getComponent();
         SketchPane sketchPane = jsketch.getSketchPane();
-        BasicSketchController controller =
-            (BasicSketchController)sketchPane.getSketchController();
+        SketchController controller = sketchPane.getSketchController();
         CommandInterpreter cmd = (CommandInterpreter)controller.getBackgroundInterpreter();
         for(Iterator i = model.symbols(); i.hasNext(); ) {
             StrokeSymbol s = (StrokeSymbol)i.next();
-            cmd.processCommand(s.getStroke());
+            //FIXME            cmd.processCommand(s.getStroke());
             //            cmd.processCommand(s.getStroke(), (MultipageDocument)getDocument(), controller);
         }
     }
@@ -198,8 +177,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         //create a pane to view the model
         SketchModel model = (SketchModel)page.getModel();
         SketchPane pane = new SketchPane();
-        BasicSketchController bsc =
-            (BasicSketchController)pane.getSketchController();
+        SketchController bsc = pane.getSketchController();
         bsc.setPenColor(_whiteboardState.getPenColor());
         bsc.setLineWidth(_whiteboardState.getPenWidth());
         MultipageDocument d = (MultipageDocument)getDocument();
@@ -278,8 +256,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
     private void cutCopy (Clipboard c, boolean cut) {
         JSketch jsketch = (JSketch)getComponent();
         SketchPane sketchPane = jsketch.getSketchPane();
-        BasicSketchController controller =
-            (BasicSketchController)sketchPane.getSketchController();
+        SketchController controller = sketchPane.getSketchController();
         SelectionModel model = controller.getSelectionModel();
         SketchModel sketchModel = controller.getSketchModel();
         SketchModel copy = new SketchModel();
@@ -350,8 +327,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         Transferable transferable = c.getContents(this);
         JSketch jsketch = (JSketch)getComponent();
         SketchPane sketchPane = jsketch.getSketchPane();
-        BasicSketchController controller =
-            (BasicSketchController)sketchPane.getSketchController();
+        SketchController controller = sketchPane.getSketchController();
         SketchModel model = controller.getSketchModel();
         if(transferable == null) {
             return;
@@ -410,7 +386,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         Page curPage = mpm.getCurrentPage();
         JSketch jsketch = (JSketch)getDesktopContext().getCurrentContentPane();
         SketchPane pane = (SketchPane)_sketchPanes.get(curPage);
-        BasicSketchController controller = (BasicSketchController)pane.getSketchController();
+        SketchController controller = pane.getSketchController();
         SelectionModel model = controller.getSelectionModel();
         SketchModel sketchModel = controller.getSketchModel();
         Object selection[] = model.getSelectionAsArray();
@@ -442,7 +418,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         Page curPage = mpm.getCurrentPage();
         JSketch jsketch = (JSketch)getDesktopContext().getCurrentContentPane();
         SketchPane pane = (SketchPane)_sketchPanes.get(curPage);
-        BasicSketchController controller = (BasicSketchController)pane.getSketchController();
+        SketchController controller = pane.getSketchController();
         SelectionModel model = controller.getSelectionModel();
         SketchModel sketchModel = controller.getSketchModel();
         Object selection[] = model.getSelectionAsArray();
@@ -523,8 +499,6 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
             Page curPage = mpm.getCurrentPage();
             JSketch jsketch = (JSketch)getDesktopContext().getCurrentContentPane();
             SketchPane pane = (SketchPane)_sketchPanes.get(curPage);
-            //debug
-            BasicSketchController c = (BasicSketchController)pane.getSketchController();
             jsketch.setSketchPane(pane);
             jsketch.repaint();
         }
@@ -538,8 +512,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
                 //set colors in each pane
                 for(Iterator panes = panes(); panes.hasNext();){
                     SketchPane p = (SketchPane)panes.next();
-                    BasicSketchController controller =
-                        (BasicSketchController)p.getSketchController();
+                    SketchController controller = p.getSketchController();
                     controller.setPenColor(c);
                     //update currently selected symbols
                     SelectionModel sm = controller.getSelectionModel();
@@ -562,8 +535,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
                 //set colors in each pane
                 for(Iterator panes = panes(); panes.hasNext();){
                     SketchPane p = (SketchPane)panes.next();
-                    BasicSketchController controller =
-                        (BasicSketchController)p.getSketchController();
+                    SketchController controller = p.getSketchController();
                     controller.setFillColor(c);
                     //controller.updateSelectedSymbols();
                     SelectionModel sm = controller.getSelectionModel();
@@ -587,8 +559,7 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
                 //set widths in each pane                
                 for(Iterator panes = panes(); panes.hasNext();){
                     SketchPane p = (SketchPane)panes.next();
-                    BasicSketchController controller =
-                        (BasicSketchController)p.getSketchController();
+                    SketchController controller = p.getSketchController();
                     controller.setLineWidth(w);
 
                     SelectionModel sm = controller.getSelectionModel();
@@ -611,18 +582,24 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
                 String mode = (String)e.getNewValue();
                 for(Iterator panes = panes(); panes.hasNext();){
                     SketchPane p = (SketchPane)panes.next();
-                    BasicSketchController controller =
-                        (BasicSketchController)p.getSketchController();
+                    SketchController controller = p.getSketchController();
                     if(mode.equals(WhiteboardState.COMMAND_MODE)){
                         System.out.println("change to COMMAND");
                         _jsketch.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));                        
                         controller.getForegroundInterpreter().setEnabled(false);
                         controller.getBackgroundInterpreter().setEnabled(true);
                     }
+                    else if(mode.equals(WhiteboardState.HIGHLIGHT_MODE)){
+                        System.out.println("change to HIGHLIGHT");
+                        _jsketch.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                        controller.setForegroundInterpreter(new HighlightInterpreter(controller));
+                        controller.getBackgroundInterpreter().setEnabled(false);
+                        controller.getSelectionInteractor().getSelectionModel().clearSelection();
+                    }
                     else {
                         System.out.println("change to SKETCH");
-                        _jsketch.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));                        
-                        controller.getForegroundInterpreter().setEnabled(true);
+                        _jsketch.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                        controller.setForegroundInterpreter(new SketchInterpreter(controller));
                         controller.getBackgroundInterpreter().setEnabled(false);
                         controller.getSelectionInteractor().getSelectionModel().clearSelection();
                     }
@@ -715,10 +692,10 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         }
     }
 
-    public class SketchInterpreter extends BasicInterpreter {
+    public class SketchInterpreter extends MultiStateInterpreter {
         boolean _singleCommand = false;
     
-        public SketchInterpreter(BasicSketchController c){
+        public SketchInterpreter(SketchController c){
             super(c);
             addClickListener(new ModeChangeListener());
         }
@@ -779,3 +756,4 @@ public class WhiteboardView extends AbstractView implements Printable, Clipboard
         }
     }
 }
+

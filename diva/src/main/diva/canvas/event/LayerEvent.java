@@ -1,7 +1,7 @@
 /*
- * $Id: LayerEvent.java,v 1.19 2000/05/02 00:43:28 johnr Exp $
+ * $Id: LayerEvent.java,v 1.21 2001/07/22 22:00:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -31,7 +31,7 @@ import java.awt.geom.Point2D;
  * package-scope constructor, and hence cannot be subclassed outside
  * the AWT package.)
  *
- * @version	$Revision: 1.19 $
+ * @version	$Revision: 1.21 $
  * @author John Reekie
  */
 public class LayerEvent extends MouseEvent {
@@ -255,10 +255,13 @@ public class LayerEvent extends MouseEvent {
      * transform.
      */
     public void transform (AffineTransform at) {
+        if(at.isIdentity())
+            return;
 	Point2D p = new Point2D.Double(_layerX, _layerY);
 	at.transform(p, p);
 	_layerX = p.getX();
 	_layerY = p.getY();
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: PropertyChangeMulticaster.java,v 1.4 2000/05/02 00:45:25 johnr Exp $
+ * $Id: PropertyChangeMulticaster.java,v 1.5 2001/07/22 22:02:03 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -12,7 +12,7 @@ import java.beans.*;
  * A list of PropertyChangeListeners.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public class PropertyChangeMulticaster implements PropertyChangeListener {
     /**
@@ -63,4 +63,5 @@ public class PropertyChangeMulticaster implements PropertyChangeListener {
         _listeners.remove(l);
     }
 }
+
 

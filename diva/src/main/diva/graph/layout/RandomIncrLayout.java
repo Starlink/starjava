@@ -1,7 +1,7 @@
 /*
- * $Id: RandomIncrLayout.java,v 1.22 2000/07/23 23:47:16 neuendor Exp $
+ * $Id: RandomIncrLayout.java,v 1.23 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -17,7 +17,7 @@ import java.util.Iterator;
  * that it will fall into the required viewport.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * @rating Red
  */
 public class RandomIncrLayout implements IncrementalLayout {
@@ -108,5 +108,6 @@ public class RandomIncrLayout implements IncrementalLayout {
 	_global.layout(composite);
     }
 }
+
 
 

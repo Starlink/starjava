@@ -1,7 +1,7 @@
 /*
- * $Id: JSketch.java,v 1.5 2000/05/02 00:44:45 johnr Exp $
+ * $Id: JSketch.java,v 1.6 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -18,7 +18,7 @@ import diva.canvas.JCanvas;
  *
  * @see SketchPane
  * @author 	Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  */
 public class JSketch extends JCanvas {
     /**
@@ -51,4 +51,5 @@ public class JSketch extends JCanvas {
         setCanvasPane(p);
     }
 }
+
 

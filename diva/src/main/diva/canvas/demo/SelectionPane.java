@@ -1,7 +1,7 @@
 /*
- * $Id: SelectionPane.java,v 1.21 2000/05/22 17:13:59 neuendor Exp $
+ * $Id: SelectionPane.java,v 1.23 2001/11/27 02:10:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -24,7 +24,7 @@ import diva.sketch.toolbox.PanZoomController;
 /** A pane that illustrates selection.
  *
  * @author John Reekie
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.23 $
  */
 public class SelectionPane extends GraphicsPane {
 
@@ -113,7 +113,7 @@ public class SelectionPane extends GraphicsPane {
         p.transform(at);
 
         BasicFigure star = new BasicFigure(p);
-        star.setStroke(new BasicStroke(2.0f));
+        star.setLineWidth(2.0f);
         star.setStrokePaint(Color.blue);
 
         figureLayer.add(star);
@@ -187,4 +187,5 @@ public class SelectionPane extends GraphicsPane {
         return selectionInteractor;
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorManipulator.java,v 1.11 2000/05/02 00:43:23 johnr Exp $
+ * $Id: ConnectorManipulator.java,v 1.14 2001/07/30 02:17:53 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.connector;
@@ -27,12 +27,12 @@ import diva.canvas.toolbox.BasicHighlighter;
 
 /**
  * A manipulator which attaches grab handles to the ends of
- * a connector. The role given to the grab-handles determines
+ * a connector. The interactor given to the grab-handles determines
  * the behaviour of the grab-handles.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.14 $
  */
 public class ConnectorManipulator extends Manipulator {
 
@@ -62,11 +62,11 @@ public class ConnectorManipulator extends Manipulator {
      */
     String _targetPropertyValue;
 
-    /** The handle at the connector head
+    /** The handle at the connector head.
      */
     private GrabHandle _headHandle;
 
-    /** The handle at the connector tail
+    /** The handle at the connector tail.
      */
     private GrabHandle _tailHandle;
 
@@ -133,7 +133,7 @@ public class ConnectorManipulator extends Manipulator {
     }
  
     /** Create a new instance of this manipulator. The new
-     * instance will have the same grab handle, and interaction role
+     * instance will have the same grab handle, and interactor
      * for grab-handles, as this one.
      */
     public FigureDecorator newInstance (Figure f) {
@@ -192,22 +192,7 @@ public class ConnectorManipulator extends Manipulator {
             throw new IllegalArgumentException(
                     "Connector required by ConnectorManipulator");
         }
-        clearGrabHandles();
-        Connector c = (Connector) f;
-
-        // Create the grab handles and set them up
-        GrabHandleFactory factory = getGrabHandleFactory();
-        _headHandle = factory.createGrabHandle(c.getHeadSite());
-        _tailHandle = factory.createGrabHandle(c.getTailSite());
-
-        _headHandle.setParent(this);
-        _tailHandle.setParent(this);
-
-        _headHandle.setInteractor(getHandleInteractor());
-        _tailHandle.setInteractor(getHandleInteractor());
-
-        addGrabHandle(_headHandle);
-        addGrabHandle(_tailHandle);
+        _createGrabHandles((Connector)f);
 
         // Finally call the superclass method, which will
         // make it repaint
@@ -237,12 +222,35 @@ public class ConnectorManipulator extends Manipulator {
 
     /** Set the drop target property and value. The interactor will
      * make callbacks to the layer motion listeners while the mouse is
-     * over any figure which has an interaction role with matching
+     * over any figure which has an interactor with matching
      * properties.
      */
     public void setTargetProperty (String key, String value) {
         _targetProperty = key;
         _targetPropertyValue = value;
+    }
+
+    /** Clear the current grab handles and create one for each of
+     *  the head and tail sites.  Subclasses may override this to
+     *  create additional grab handles.
+     *  @param connector The connector.
+     */
+    protected void _createGrabHandles(Connector connector) {
+        clearGrabHandles();
+
+        // Create the grab handles and set them up
+        GrabHandleFactory factory = getGrabHandleFactory();
+        _headHandle = factory.createGrabHandle(connector.getHeadSite());
+        _tailHandle = factory.createGrabHandle(connector.getTailSite());
+
+        _headHandle.setParent(this);
+        _tailHandle.setParent(this);
+
+        _headHandle.setInteractor(getHandleInteractor());
+        _tailHandle.setInteractor(getHandleInteractor());
+
+        addGrabHandle(_headHandle);
+        addGrabHandle(_tailHandle);
     }
 
     ///////////////////////////////////////////////////////////////
@@ -270,4 +278,5 @@ public class ConnectorManipulator extends Manipulator {
         }
     }
 }
+
 

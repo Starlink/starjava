@@ -1,7 +1,7 @@
 /*
- * $Id: NodeDragInteractor.java,v 1.18 2000/08/23 01:08:47 neuendor Exp $
+ * $Id: NodeDragInteractor.java,v 1.21 2001/07/24 06:34:51 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -22,11 +22,11 @@ import java.util.Set;
 
 
 /**
- * An interaction role that drags nodes.
+ * An interactor that drags nodes.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
  * @author 	John Reekie (johnr@eecs.berkeley.edu)
- * @version	$Revision: 1.18 $
+ * @version	$Revision: 1.21 $
  * @rating Red
  */
 public class NodeDragInteractor extends DragInteractor {
@@ -59,10 +59,13 @@ public class NodeDragInteractor extends DragInteractor {
 	    // to targets?
 	    if ( !(model.isEdge(t.getUserObject()))) {
                 // Perform an inverse transform on coordinates for
-                // composite nodes
-                TransformContext tc = t.getParent().getTransformContext();
-                tc.getInverseTransform().deltaTransform(pt, localpt);
-                t.translate(localpt.x,localpt.y);
+                // composite nodes??  
+                // FIXME: This isn't right for scaling canvases... so I 
+                // doubt it is right for composite nodes.
+                // TransformContext tc = t.getParent().getTransformContext();
+                // tc.getInverseTransform().deltaTransform(pt, localpt);
+                //t.translate(localpt.x,localpt.y);
+                t.translate(x, y);
 	    } 
 
 	    // Remember the edges so we route them later.
@@ -125,4 +128,5 @@ public class NodeDragInteractor extends DragInteractor {
         }
 	}*/
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: TerminalFigure.java,v 1.4 2000/05/02 00:43:24 johnr Exp $
+ * $Id: TerminalFigure.java,v 1.7 2002/01/12 00:50:04 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -29,7 +29,7 @@ import java.awt.geom.Rectangle2D;
  * class, any Figure can be made a terminal.  As per the decorator pattern,
  * the Figure should be not be accessed externally to this class.
  * 
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  * @author Steve Neuendorffer
  */
 public class TerminalFigure extends AbstractFigure implements Terminal {
@@ -83,6 +83,14 @@ public class TerminalFigure extends AbstractFigure implements Terminal {
      */
     public CanvasLayer getLayer () {
         return _figure.getLayer();
+    }
+
+    /** Return the origin of the wrapped figure in the enclosing
+     *  transform context.
+     *  @return The origin of the background figure.
+     */
+    public Point2D getOrigin () {
+        return _figure.getOrigin();
     }
 
     /** Return the parent of this component. Return null if the component
@@ -195,7 +203,7 @@ public class TerminalFigure extends AbstractFigure implements Terminal {
         _attachSite = s;
     }
     
-    /** Set the interactor role of this figure. Once a figure has an
+    /** Set the interactor of this figure. Once a figure has an
      *  interactor given to it, it will respond to events
      *  on the canvas, in the ways determined by the interactor.
      */
@@ -247,4 +255,5 @@ public class TerminalFigure extends AbstractFigure implements Terminal {
         _figure.setVisible(flag);
     }
 }
+
 

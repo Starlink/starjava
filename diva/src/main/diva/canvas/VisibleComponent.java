@@ -1,7 +1,7 @@
 /*
- * $Id: VisibleComponent.java,v 1.6 2000/05/02 00:43:17 johnr Exp $
+ * $Id: VisibleComponent.java,v 1.7 2001/07/22 22:00:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import java.awt.geom.Rectangle2D;
  * interface so that paint routines can tell whether certain objects
  * want to be painted or not.
  *
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  * @author 	John Reekie
  * @rating Yellow
  */
@@ -49,4 +49,5 @@ public interface VisibleComponent extends CanvasComponent {
    */
   public void setVisible (boolean flag);
 }
+
 

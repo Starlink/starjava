@@ -1,7 +1,7 @@
 /*
- * $Id: GridAnnealingLayout.java,v 1.19 2000/07/23 23:27:36 neuendor Exp $
+ * $Id: GridAnnealingLayout.java,v 1.20 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -36,7 +36,7 @@ import java.util.Iterator;
  * be relatively easy to extend or modify.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.19 $
+ * @version $Revision: 1.20 $
  * @rating Red
  */
 public class GridAnnealingLayout extends AbstractGlobalLayout {
@@ -647,5 +647,6 @@ public class GridAnnealingLayout extends AbstractGlobalLayout {
 	return node;
     }
 }
+
 
 

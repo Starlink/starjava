@@ -1,7 +1,7 @@
 /*
- * $Id: SimplePane.java,v 1.11 2000/05/02 00:43:26 johnr Exp $
+ * $Id: SimplePane.java,v 1.13 2001/11/27 02:10:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -24,7 +24,7 @@ import java.awt.geom.*;
  * figures can be dragged about with the mouse.
  *
  * @author John Reekie
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.13 $
  */
 public class SimplePane extends GraphicsPane {
 
@@ -62,14 +62,14 @@ public class SimplePane extends GraphicsPane {
     public void drawFigures () {
         // Here's a square
         BasicRectangle rect = new BasicRectangle(40.0,40.0,80.0,80.0);
-        rect.setStroke(new BasicStroke(8.0f));
+        rect.setLineWidth(8);
         rect.setStrokePaint(Color.red);
         figureLayer.add(rect);
         rect.setInteractor(selectionInteractor);
  
         // Here's an ellipse
         BasicEllipse oval = new BasicEllipse(160.0,10.0,120.0,80.0);
-        oval.setStroke(new BasicStroke(2.0f));
+        oval.setLineWidth(2);
         oval.setFillPaint(Color.magenta);
         figureLayer.add(oval);
         oval.setInteractor(selectionInteractor);
@@ -89,7 +89,7 @@ public class SimplePane extends GraphicsPane {
         p.transform(at);
 
         BasicFigure star = new BasicFigure(p);
-        star.setStroke(new BasicStroke(2.0f));
+        star.setLineWidth(2);
         star.setStrokePaint(Color.blue);
         figureLayer.add(star);
         star.setInteractor(selectionInteractor);
@@ -129,5 +129,6 @@ public class SimplePane extends GraphicsPane {
     }
 
 }
+
 
 

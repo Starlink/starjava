@@ -1,7 +1,7 @@
 /*
- * $Id: SketchListener.java,v 1.3 2000/05/02 00:44:46 johnr Exp $
+ * $Id: SketchListener.java,v 1.4 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -13,7 +13,7 @@ package diva.sketch;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public interface SketchListener {
@@ -32,4 +32,5 @@ public interface SketchListener {
      */
     public void symbolModified(SketchEvent e);
 }
+
 

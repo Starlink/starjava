@@ -1,8 +1,8 @@
 /*
- * $Id: RelationConstraint.java,v 1.3 2000/08/12 10:59:45 michaels Exp $
+ * $Id: RelationConstraint.java,v 1.4 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -12,7 +12,7 @@ import diva.sketch.recognition.SceneElement;
  * constraints on the values of a specified relation.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating  Red
  */
 public interface RelationConstraint {
@@ -28,6 +28,7 @@ public interface RelationConstraint {
     public String toString(String root, String relative);
     */
 }
+
 
 
 

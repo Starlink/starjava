@@ -1,7 +1,7 @@
 /*
- * $Id: Type.java,v 1.4 2000/06/12 04:13:02 michaels Exp $
+ * $Id: Type.java,v 1.6 2001/07/22 22:01:55 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -23,16 +23,16 @@ import java.util.HashMap;
  * detail, and is transparent to the user.
  *
  * <p> There are two ways to get a handle to a type object.  The
- * static method Type.getType with a String name argument will 
+ * static method Type.getType with a String name argument will return
  * a static type if the name has been registered as static.  Otherwise
- * or it will return a dynamic type.  There is also a getType method
+ * it will return a dynamic type.  There is also a getType method
  * with a Class object argument that can be used to create a static
  * type.
  *
  * @see TypedData
  * @see SimpleData
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.6 $
  * @rating      Red
  */
 public final class Type {
@@ -97,14 +97,6 @@ public final class Type {
     }
 
     /**
-     * Return the type ID of this object.  This is useful
-     * when the type is dynamic.
-     */
-    public String getID() {
-        return _id;
-    }
-
-    /**
      * Return whether the given type object is equivalent to
      * this one.
      */
@@ -121,17 +113,11 @@ public final class Type {
     }
 
     /**
-     * Override the hashCode() method so that
-     * objects of the same type hash to the same
-     * index.
+     * Return the type ID of this object.  This is useful
+     * when the type is dynamic.
      */
-    public int hashCode() {
-        if(_class.equals(SimpleData.class)) {
-            return _id.hashCode();
-        }
-        else {
-            return _class.hashCode();
-        }
+    public String getID() {
+        return _id;
     }
 
     /**
@@ -147,6 +133,20 @@ public final class Type {
 		
         Class c = _class.getSuperclass();
         return new Type(c);
+    }
+
+    /**
+     * Override the hashCode() method so that
+     * objects of the same type hash to the same
+     * index.
+     */
+    public int hashCode() {
+        if(_class.equals(SimpleData.class)) {
+            return _id.hashCode();
+        }
+        else {
+            return _class.hashCode();
+        }
     }
 
     /**
@@ -219,3 +219,4 @@ public final class Type {
         return "<" + strip(_class.getName()) + ">";
     }    
 }
+

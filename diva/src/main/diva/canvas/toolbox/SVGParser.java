@@ -1,7 +1,7 @@
 /*
- * $Id: SVGParser.java,v 1.2 2000/12/01 01:19:55 neuendor Exp $
+ * $Id: SVGParser.java,v 1.12 2002/04/18 02:34:13 cxh Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -10,6 +10,7 @@ package diva.canvas.toolbox;
 
 import diva.util.java2d.Polyline2D;
 import diva.util.java2d.Polygon2D;
+import diva.util.java2d.PaintedImage;
 import diva.util.java2d.PaintedList;
 import diva.util.java2d.PaintedShape;
 import diva.util.java2d.PaintedString;
@@ -18,10 +19,13 @@ import diva.util.java2d.PaintedObject;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Shape;
+import java.awt.Toolkit;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.ImageObserver;
 
 import java.io.StreamTokenizer;
 import java.io.StringReader;
@@ -31,16 +35,33 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import java.net.URL;
+
 import diva.util.xml.*;
 
 /** A collection of utilities to help parse graphics out of SVG files.
  *  For a description of SVG see <a href="http://www.w3.org/TR/SVG/">the 
  *  specification</a>.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.12 $
  * @author 	John Reekie, Steve Neuendorffer
  */
 public class SVGParser {
+
+    /** Return a list of basic color names that are understood.
+     *  Note that colors can also be specified using #rrggbb notation,
+     *  where rr is the hex representation of the red component, etc.
+     *  This method can be used to construct a dialog listing available
+     *  colors symbolically by name.
+     *  @return An array of symbolic color names.
+     */
+    public static String[] colorNames () {
+        String[] result = {"black", "blue", "cyan", "darkgray", "gray", "green",
+                "lightgray", "magenta", "orange", "pink", "red", "white",
+                "yellow"};
+        return result;
+    }
 
     /** Create a new painted object. The element is parsed from
      * two strings, the first being a representation of the element
@@ -67,13 +88,11 @@ public class SVGParser {
     public static PaintedObject createPaintedObject (
             String type, Map attributes, String content) {
         if (type.equals("rect")) {
-            double x, y, width, height, rx, ry;            
+            double x, y, width, height;
             x = _getDouble(attributes, "x", 0);
             y = _getDouble(attributes, "y", 0);
             width = _getDouble(attributes, "width");
             height = _getDouble(attributes, "height");
-            rx = _getDouble(attributes, "rx", 0);
-            ry = _getDouble(attributes, "ry", 0);
                      
             PaintedShape ps = new PaintedShape(new Rectangle2D.Double(
                     x, y, width, height));
@@ -87,7 +106,7 @@ public class SVGParser {
             r = _getDouble(attributes, "r");
                                  
             PaintedShape ps = new PaintedShape(new Ellipse2D.Double(
-                    cx - r/2, cy - r/2, 2 * r, 2 * r));
+                    cx - r, cy - r, 2 * r, 2 * r));
             processPaintedShapeAttributes(ps, attributes);
             return ps;
 
@@ -99,7 +118,7 @@ public class SVGParser {
             ry = _getDouble(attributes, "ry");
                                  
             PaintedShape ps = new PaintedShape(new Ellipse2D.Double(
-                    cx - rx/2, cy - ry/2, 2 * rx, 2 * ry));
+                    cx - rx, cy - ry, 2 * rx, 2 * ry));
             processPaintedShapeAttributes(ps, attributes);
             return ps;
 
@@ -146,6 +165,59 @@ public class SVGParser {
 	    processPaintedStringAttributes(string, attributes);
 	    string.translate(x, y);
 	    return string;
+	} else if (type.equals("image")) {
+	    double x, y, width, height;
+            x = _getDouble(attributes, "x", 0);
+            y = _getDouble(attributes, "y", 0);
+            width = _getDouble(attributes, "width");
+            height = _getDouble(attributes, "height");
+            Rectangle2D bounds = new Rectangle2D.Double(x, y, width, height);
+            String link = (String)attributes.get("xlink:href");
+            // First try as a system resource.
+            URL url = ClassLoader.getSystemResource(link);
+            try {
+                if(url == null) {
+		    // Web Start needs this.
+		    if (_refClass == null) {
+			try {
+			    _refClass =
+				Class.forName("diva.canvas.toolbox.SVGParser");
+			} catch (ClassNotFoundException ex) {
+			    throw new RuntimeException("Could not find " +
+						       "diva.canvas.toolbox.SVGParser");
+			}
+		    }
+		    url = _refClass.getClassLoader().getResource(link);
+                }
+
+                // Try as a regular URL.
+                if(url == null) {
+                    url = new URL(link);
+                }
+                Toolkit tk = Toolkit.getDefaultToolkit();
+                Image img = tk.getImage(url);
+                PaintedImage image = new PaintedImage(img, bounds);
+                // Wait until the image has been completely loaded,
+                // unless an error occurred.
+                while(true) {
+                    if(tk.prepareImage(img, -1, -1, image)) {
+                        // The image was fully prepared, so return the
+                        // created image.
+                        break;
+                    }
+                    int bitflags = tk.checkImage(img, -1, -1, image);
+                    if((bitflags &
+                        (ImageObserver.ABORT | ImageObserver.ERROR)) != 0) {
+                        // There was an error if either flag is set,
+                        // so return null.
+                        return null;
+                    }
+                    Thread.yield();
+                }
+                return image;
+            } catch (java.net.MalformedURLException ex) {
+                return null;
+            }
 	}
         return null;
     }
@@ -246,19 +318,18 @@ public class SVGParser {
         } else if (s.equals("yellow")) {
             return Color.yellow;
         } else {
-            return Color.black;
+            Color c = Color.getColor(s);
+            if (c == null) {
+                try {
+                    c = Color.decode(s);
+                }
+                catch (Exception e) {}
+            }
+            if (c == null) {
+                c = Color.black;
+            }
+            return c;
         }
-//          Color c = Color.getColor(s);
-//          if (c == null) {
-//              try {
-//                  c = Color.decode(s);
-//              }
-//              catch (Exception e) {}
-//          }
-//          if (c == null) {
-//              c = Color.black;
-//          }
-//          return c;
     }
 
     /** Parse a string of numbers into an array of double.  The doubles
@@ -388,5 +459,9 @@ public class SVGParser {
     private static double _getDouble(Map map, String name) {
         return Double.parseDouble((String)map.get(name));
     }
+
+    // Reference class used to get resources.
+    private static Class _refClass = null; 
 }
+
 

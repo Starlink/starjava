@@ -1,8 +1,8 @@
 /*
- * $Id: BasicConstraint.java,v 1.6 2000/08/12 10:59:41 michaels Exp $
+ * $Id: BasicConstraint.java,v 1.8 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -16,7 +16,7 @@ import java.awt.geom.Rectangle2D;
  * specify an open range in either or both directions.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  * @rating  Red
  */
 public class BasicConstraint implements RelationConstraint {
@@ -106,6 +106,7 @@ public class BasicConstraint implements RelationConstraint {
      */
     public boolean test (SceneElement e1, SceneElement e2) {
         double val = _relation.apply(e1, e2);
+        System.out.println(" val = " + val + ", (" + _minVal + ", " + _maxVal + ")");
         return (val >= _minVal && val <= _maxVal);
     }
     /**
@@ -129,6 +130,7 @@ public class BasicConstraint implements RelationConstraint {
         return out;
     }
 }
+
 
 
 

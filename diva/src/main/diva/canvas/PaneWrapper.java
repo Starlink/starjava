@@ -1,7 +1,7 @@
 /*
- * $Id: PaneWrapper.java,v 1.24 2000/05/02 00:43:16 johnr Exp $
+ * $Id: PaneWrapper.java,v 1.27 2001/11/30 02:41:56 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  * the PaneWrapper implements EventAccepter. It forwards events to the
  * internal pane.
  *
- * @version	$Revision: 1.24 $
+ * @version	$Revision: 1.27 $
  * @author John Reekie
  * @rating Red
  */
@@ -131,9 +131,8 @@ public class PaneWrapper extends AbstractFigure implements EventAcceptor {
 
         // Set the clip region. This could probably be made more
         // efficient by downcasting to Rectangle2D where possible
-        if (isClipEnabled()) {
-            Shape currentClip = g.getClip();
-
+	Shape currentClip = g.getClip();
+        if (isClipEnabled() && currentClip != null) {
             // Note: clip screws up down-scaled lines
             // Note: we need to take the intersection of the current
             // clip with the background figure. This is probably slow...
@@ -170,14 +169,13 @@ public class PaneWrapper extends AbstractFigure implements EventAcceptor {
 
         // Set the clip region. This could probably be made more
         // efficient by downcasting to Rectangle2D where possible
-        if (isClipEnabled()) {
-            Shape currentClip = g.getClip();
-
+	Shape currentClip = g.getClip();
+        if (isClipEnabled() && currentClip != null) {
             // Note: clip screws up down-scaled lines
             // Note: we need to take the intersection of the current
             // clip with the background figure. This is probably slow...
             // FIXME: Optimize for rectangles
-            Area a = new Area(currentClip);
+	    Area a = new Area(currentClip);
             a.intersect(new Area(getShape()));
             g.setClip(a);
 
@@ -201,7 +199,7 @@ public class PaneWrapper extends AbstractFigure implements EventAcceptor {
      *
      * <p> Currently, this methods also implements a simple technique
      * to manage event-handling between the "inner" and "outer"
-     * panes. If this PaneWrapper has a selection role, and
+     * panes. If this PaneWrapper has a selection interactor, and
      * it is in the selection, then don't process the event. This
      * means that the outer pane gets to handle all events if
      * the wrapper has already been selected.
@@ -309,4 +307,5 @@ public class PaneWrapper extends AbstractFigure implements EventAcceptor {
         repaint();
     }
 }
+
 

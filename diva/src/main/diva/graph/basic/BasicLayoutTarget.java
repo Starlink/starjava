@@ -1,7 +1,7 @@
 /*
- * $Id: BasicLayoutTarget.java,v 1.6 2000/07/23 23:27:35 neuendor Exp $
+ * $Id: BasicLayoutTarget.java,v 1.7 2001/07/22 22:01:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -30,7 +30,7 @@ import java.util.Iterator;
  * algorithms to other display implementations.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public class BasicLayoutTarget implements LayoutTarget {
@@ -238,4 +238,5 @@ public class BasicLayoutTarget implements LayoutTarget {
         f.translate(dx,dy);
     }
 }
+
 

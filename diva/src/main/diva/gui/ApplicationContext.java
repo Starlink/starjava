@@ -1,7 +1,7 @@
 /*
- * $Id: ApplicationContext.java,v 1.5 2000/08/16 20:24:32 neuendor Exp $
+ * $Id: ApplicationContext.java,v 1.6 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -37,7 +37,7 @@ import javax.swing.event.EventListenerList;
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class ApplicationContext extends JFrame implements AppContext {
     /** 
@@ -166,5 +166,6 @@ public class ApplicationContext extends JFrame implements AppContext {
         super.setJMenuBar(menu);
     }
 }
+
 
 

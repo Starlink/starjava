@@ -1,8 +1,8 @@
 /*
- * $Id: BasicStrokeRecognizer.java,v 1.5 2000/07/14 23:44:02 hwawen Exp $
+ * $Id: BasicStrokeRecognizer.java,v 1.10 2001/08/28 06:34:10 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
@@ -44,7 +44,7 @@ import java.util.Iterator;
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
  * @author  Heloise Hse     (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.10 $
  */
 public class BasicStrokeRecognizer implements StrokeRecognizer {
     /**
@@ -64,9 +64,9 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
     private StrokeFilter _filter = null;
 
     /**
-     * Construct a basic recognizer that either performs
-     * recognition using a WeightedEuclideanClassifier,
-     * the default features, and an ApproximateStrokeFilter.
+     * Construct a basic recognizer that performs recognition using a
+     * WeightedEuclideanClassifier, the default features, and an
+     * ApproximateStrokeFilter.
      *
      * @see #defaultFeatureExtractors()
      */
@@ -76,6 +76,18 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
                 new ApproximateStrokeFilter());
     }
 
+    /**
+     * Construct a basic recognizer that performs recognition using
+     * the given classifier, the default features, and an
+     * ApproximateStrokeFilter.
+     *
+     * @see #defaultFeatureExtractors()
+     */
+    public BasicStrokeRecognizer(Classifier classifier){
+        this(classifier, defaultFeatureExtractors(),
+                new ApproximateStrokeFilter());
+    }
+    
     /**
      * Construct a classifying recognizer that classifies with the
      * given classifier, set of feature extractors, and filter.  A
@@ -95,22 +107,22 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
      */
     public BasicStrokeRecognizer(Reader trainingFile) throws Exception {
         this();
-        TrainingParser parser = new TrainingParser();
-        TrainingModel model = (TrainingModel)parser.parse(trainingFile);
+        SSTrainingParser parser = new SSTrainingParser();
+        SSTrainingModel model = (SSTrainingModel)parser.parse(trainingFile);
         train(model);
     }
 
     /**
      * Construct a basic recognizer that trains on the gestures in the
-     * training files.  A TrainingParser is used to combine the
+     * training files.  A SSTrainingParser is used to combine the
      * gestures in the training files and form a training model data
      * structure.  The recognizer then trains its classifier on the
      * training model.
      */
     public BasicStrokeRecognizer(Reader[] trainingFiles) throws Exception {
         this();
-        TrainingParser parser = new TrainingParser();
-        TrainingModel model = (TrainingModel)parser.parse(trainingFiles);
+        SSTrainingParser parser = new SSTrainingParser();
+        SSTrainingModel model = (SSTrainingModel)parser.parse(trainingFiles);
         train(model);
     }
     
@@ -154,7 +166,7 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
             new DistanceStartEndPtsFE(),
             new CosFirstLastPtsFE(),
             new SineFirstLastPtsFE(),
-		    new SumOfAnglesFE(),
+            new SumOfAnglesFE(),
             new SumOfAbsoluteAnglesFE(),
             new SumOfSquaredAnglesFE(),
             new AreaRatioFE(),
@@ -217,32 +229,32 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
      * <li> classify the feature set using the default or user-specified
      * classifier. </li>
      * 
-     * <li> create a StrokeRecognition object for each classification
+     * <li> create a Recognition object for each classification
      * type.  This object stores the type and confidence of the stroke.
      * For example, the stroke may receive 95% confidence for being
      * a square type. </li>
      *
-     * <li> Return the StrokeRecognition objects. </li>
+     * <li> Return the Recognition objects. </li>
      * </ol>
      */
-    public StrokeRecognitionSet strokeCompleted (TimedStroke s) {
+    public RecognitionSet strokeCompleted (TimedStroke s) {
         try{
             FeatureSet fset = extractFeatures(s);
             if(fset == null) {
-                return StrokeRecognitionSet.NO_RECOGNITION;
+                return RecognitionSet.NO_RECOGNITION;
             }
             Classification classification = getClassifier().classify(fset);
-            StrokeRecognition[] rs = new StrokeRecognition[classification.getTypeCount()];
+            Recognition[] rs = new Recognition[classification.getTypeCount()];
             for(int i = 0; i < rs.length; i++) {
                 String type = classification.getType(i);
                 double confidence = classification.getConfidence(i);
-                rs[i] = new StrokeRecognition(new SimpleData(type), confidence);
+                rs[i] = new Recognition(new SimpleData(type), confidence);
             }
-            return new StrokeRecognitionSet(rs);
+            return new RecognitionSet(rs);
         }
         catch(ClassifierException ex) {
             ex.printStackTrace();
-            return StrokeRecognitionSet.NO_RECOGNITION;
+            return RecognitionSet.NO_RECOGNITION;
         }
     }
 
@@ -250,20 +262,20 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
      * Returns NO_RECOGNITION; BasicStrokeRecognizer only operates
      * on completed strokes.
      */
-    public StrokeRecognitionSet strokeModified (TimedStroke s) {
-        return StrokeRecognitionSet.NO_RECOGNITION;
+    public RecognitionSet strokeModified (TimedStroke s) {
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
      * Returns NO_RECOGNITION; BasicStrokeRecognizer only operates
      * on completed strokes.
      */
-    public StrokeRecognitionSet strokeStarted (TimedStroke s) {
-        return StrokeRecognitionSet.NO_RECOGNITION;
+    public RecognitionSet strokeStarted (TimedStroke s) {
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
-     * This function takes in a TrainingModel, builds a TrainingSet
+     * This function takes in a SSTrainingModel, builds a TrainingSet
      * object from the examples in the model, and trains the
      * classifier with the training set data.  This only makes sense
      * if the classifier used by this recognizer is trainable.
@@ -287,7 +299,7 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
      *
      * </ol>
      */
-    public void train(TrainingModel model)
+    public void train(SSTrainingModel model)
             throws ClassifierException {
 
         Classifier c = getClassifier();
@@ -326,6 +338,7 @@ public class BasicStrokeRecognizer implements StrokeRecognizer {
         classifier.train(set);
     }
 }
+
 
 
 
