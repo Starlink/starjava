@@ -430,30 +430,33 @@
     <property name="java.shareables" value="${jniast.share}"/>
 
     <mkdir dir="${dist.lib}"/>
+    
+    <echo message="java.home=${java.home}"/>
+    
     <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="Linux">
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="JAVA_SYSTEM" value="linux"/>
-      <env key="JAVA_HOME" value="${java.home}/bin/java"/>
+      <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib"/>
+      <env key="TARGET_LIB" value="${dist.lib}"/>
       <arg line="${mk.action}"/>
     </exec>
 
     <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="SunOS">
       <env key="SYSTEM" value="sun4_Solaris"/>
       <env key="JAVA_SYSTEM" value="solaris"/>
-      <env key="JAVA_HOME" value="${java.home}/bin/java"/>
+      <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib"/>
+      <env key="TARGET_LIB" value="${dist.lib}"/>
       <arg line="${mk.action}"/>
     </exec>
 
     <exec dir="${src.jni.dir}" executable="${src.jni.dir}/mk" os="OSF1">
       <env key="SYSTEM" value="alpha_OSF1"/>
       <env key="JAVA_SYSTEM" value="alpha"/>
-      <env key="JAVA_HOME" value="${java.home}/bin/java"/>
+      <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib"/>
+      <env key="TARGET_LIB" value="${dist.lib}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -526,7 +529,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar fits.jar jdom.jar jhall.jar
      !   are generated from the source-->
     <copy todir="${dist.docs}">
       <fileset dir="${src.docs}"/>
-    <copy>
+    </copy>
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
