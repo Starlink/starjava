@@ -27,6 +27,9 @@ public class JELRowReader extends DVMap {
     private StarTable stable;
     private List subsets;
 
+    /* Special value identifiers. */
+    private static final byte INDEX_ID = 1;
+
     /**
      * Constructs a new row reader for a given StarTable. 
      * Note that this reader cannot become aware of changes to the 
@@ -66,6 +69,15 @@ public class JELRowReader extends DVMap {
      * @see   "JEL manual"
      */
     public String getTypeName( String name ) {
+
+        /* See if it's a known special, and treat it specially if so. */
+        int ispecial = getSpecialId( name );
+        if ( ispecial >= 0 ) {
+            switch ( ispecial ) {
+                case INDEX_ID: return "Long";
+                default:       throw new AssertionError( "Unknown special" );
+            }
+        }
 
         /* See if it's a known column, and get the return value type by
          * looking at the column info if so. */
@@ -148,10 +160,16 @@ public class JELRowReader extends DVMap {
     /**
      * Turns a column specification into a constant object which can be
      * used at evaluation time to reference a particular quantity to
-     * evaluate.  Currently this routine returns an <tt>Integer</tt> object if
-     * <tt>name</tt> appears to reference a known column and a <tt>Short</tt>
-     * if it appears to reference a known row subset (and null otherwise).
-     * The two integral types are only used to separate the namespaces,
+     * evaluate.  Currently this routine returns 
+     * <ul>
+     * <li>an <tt>Integer</tt> object (the column index) if 
+     *     <tt>name</tt> appears to reference a known column 
+     * <li>a <tt>Short</tt> object (the subset index) if it appears 
+     *     to reference a known row subset
+     * <li>a <tt>byte</tt> object for one of the defined "special" values
+     * <li><tt>null</tt> otherwise
+     * </ul>
+     * The different integral types are only used to separate the namespaces,
      * (and Short is bound to be big enough), there is no other significance
      * in these types.
      * <p>
@@ -164,6 +182,12 @@ public class JELRowReader extends DVMap {
      * @see    "JEL manual"
      */
     public Object translate( String name ) {
+
+        /* See if it corresponds to a special value. */
+        int ispecial = getSpecialId( name );
+        if ( ispecial >= 0 ) {
+            return new Byte( (byte) ispecial );
+        }
 
         /* See if it corresponds to a column. */
         int icol = getColumnIndex( name );
@@ -189,6 +213,7 @@ public class JELRowReader extends DVMap {
     * <li> column name (case insensitive, first occurrence used)
     * <li> "$"+(index+1) (so first column would be "$1")
     * </ul>
+    * Note that the name '$0' is reserved for the special index column.
     * <p>
     * Note this method is only called during expression compilation,
     * so it doesn't need to be particularly efficient.
@@ -197,12 +222,8 @@ public class JELRowReader extends DVMap {
     * @return  column index, or -1 if the column was not known
     */
    private int getColumnIndex( String name ) {
-        for ( int icol = 0; icol < stable.getColumnCount(); icol++ ) {
-            if ( stable.getColumnInfo( icol ).getName()
-                       .equalsIgnoreCase( name ) ) {
-                return icol;
-            }
-        }
+
+        /* Try the '$' + number format. */
         if ( name.charAt( 0 ) == '$' ) {
             try {
                 int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
@@ -214,6 +235,16 @@ public class JELRowReader extends DVMap {
                 // no good
             }
         }
+
+        /* Try the column name. */
+        for ( int icol = 0; icol < stable.getColumnCount(); icol++ ) {
+            if ( stable.getColumnInfo( icol ).getName()
+                       .equalsIgnoreCase( name ) ) {
+                return icol;
+            }
+        }
+
+        /* It's not a column. */
         return -1;
     }
 
@@ -232,13 +263,8 @@ public class JELRowReader extends DVMap {
      *          subset was not known
      */
     private int getSubsetIndex( String name ) {
-        int i = 0;
-        for ( Iterator it = subsets.iterator(); it.hasNext(); i++ ) {
-            RowSubset rset = (RowSubset) it.next();
-            if ( rset.getName().equalsIgnoreCase( name ) ) {
-                return i;
-            }
-        }
+
+        /* Try the '£' + number format. */
         if ( name.charAt( 0 ) == '£' ) {
             try {
                 int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
@@ -250,7 +276,44 @@ public class JELRowReader extends DVMap {
                 // no good
             }
         }
+
+        /* Try the subset name. */
+        int i = 0;
+        for ( Iterator it = subsets.iterator(); it.hasNext(); i++ ) {
+            RowSubset rset = (RowSubset) it.next();
+            if ( rset.getName().equalsIgnoreCase( name ) ) {
+                return i;
+            }
+        }
+
+        /* It's not a subset. */
         return -1;
+    }
+
+    /**
+     * Returns the byte ID of the special quantity which corresponds to
+     * a given name, or -1 if it isn't a special.
+     * The current specials are:
+     * <ul>
+     * <li>"$0" or "index" returns INDEX_ID, which will return the
+     *     (1-based) row number
+     * </ul>
+     */
+    private byte getSpecialId( String name ) {
+        if ( name.equals( "$0" ) || name.equalsIgnoreCase( "Index" ) ) {
+            return INDEX_ID;
+        }
+        return (byte) -1;
+    }
+
+    /**
+     * Returns the actual value for the special Index column.
+     */
+    public long getLongProperty( byte ispecial ) {
+        switch ( ispecial ) {
+            case INDEX_ID:   return lrow + 1;
+            default:         throw new AssertionError();
+        }
     }
 
     /**

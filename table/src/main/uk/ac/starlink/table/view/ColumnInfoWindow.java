@@ -7,7 +7,11 @@ import javax.swing.JTable;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.ValueInfoMapGroup;
 import uk.ac.starlink.table.gui.MapGroupTableModel;
 import uk.ac.starlink.table.gui.MultilineJTable;
@@ -73,6 +77,11 @@ public class ColumnInfoWindow extends AuxWindow {
         mg.getKeyOrder().add( 1, PlasticStarTable.COLID_INFO.getName() );
         mg.addColumnAuxDataKeys( dataModel );
 
+  //    /* Add metadata for the dummy column zero. */
+  //    Map map0 = ValueInfoMapGroup.makeMap( dummyIndexColumn );
+  //    map0.put( ValueInfoMapGroup.INDEX_KEY, new Integer( 0 ) );
+  //    mg.addMap( map0 );
+
         /* Add the metadata for each of the columns. */
         int ncol = columnModel.getColumnCount();
         for ( int i = 0; i < ncol; i++ ) {
@@ -89,6 +98,19 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Configure the column widths. */
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
+    }
+
+    /**
+     * Returns a ColumnInfo object describing a fictitious column zero
+     * which contains index information.
+     */
+    public static ColumnInfo dummyIndexColumn() {
+        ValueInfo indexInfo = new DefaultValueInfo( "Index", Long.class,
+                                                    "Table row index" );
+        ColumnInfo cinfo = new ColumnInfo( indexInfo );
+        cinfo.setAuxDatum( new DescribedValue( PlasticStarTable.COLID_INFO,
+                                               "$0" ) );
+        return cinfo;
     }
 
 }

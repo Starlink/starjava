@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -27,6 +28,13 @@ public class ColumnsDisplay extends JPanel {
 
     public ColumnsDisplay( StarTable stable ) {
         ValueInfoMapGroup mg = new ValueInfoMapGroup();
+
+        /* Add metadata for the dummy column zero. */
+        Map map0 = ValueInfoMapGroup
+                  .makeMap( ColumnInfoWindow.dummyIndexColumn() );
+        map0.put( ValueInfoMapGroup.INDEX_KEY, new Integer( 0 ) );
+        mg.addMap( map0 );
+
         mg.addTableColumns( stable );
         mg.setKeyOrder( keyList );
         mg.retainKeys( keyList );
