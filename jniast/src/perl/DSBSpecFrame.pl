@@ -50,7 +50,7 @@ my( @sidebandArgs ) = (
    name => ( $aName = "sideBand" ),
    type => 'String',
    purpose => AttPurpose( $aName ),
-   descrip => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
 );
 makeGetAttrib( @sidebandArgs );
 makeSetAttrib( @sidebandArgs );
