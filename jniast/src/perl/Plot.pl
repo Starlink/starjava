@@ -447,7 +447,7 @@ makeSetAttrib( @args );
       will give you a transparent colour, which is probably not what you
       want.  Assuming you want to be able to see the results you should
       do <code>setColour(java.awt.Color.LIGHT_GRAY.getRGB())</code>
-      or <code>setColour(0xffc0c0c0), 
+      or <code>setColour(0xffc0c0c0)</code>, 
       and <i>not</i> <code>setColour(0xc0c0c0)</code>.
 
       @see uk.ac.starlink.ast.grf.DefaultGrf#attrib
