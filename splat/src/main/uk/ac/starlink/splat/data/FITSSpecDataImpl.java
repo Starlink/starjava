@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     01-SEP-2000 (Peter W. Draper):
@@ -23,6 +23,7 @@ import nom.tam.util.BufferedDataOutputStream;
 import nom.tam.util.Cursor;
 
 import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTFITSChan;
@@ -656,6 +657,34 @@ public class FITSSpecDataImpl
             chan.add( ((HeaderCard) iter.next()).toString() );
         }
         chan.rewind();
+
+        //  Fixups. 
+        //  Some IRAF headers contain CDELT1 and CD1_1 values. Older versions
+        //  of AST apply both these values, which we do not want to happen,
+        //  for those we need to set CDELT1 to 1.0.
+        //  Commented out as AST is fixed for next release.
+//         FitsChan realChan = chan.getFitsChan();
+//         if ( realChan.getEncoding().equals( "FITS-WCS" ) &&
+//              realChan.getCDMatrix() ) {
+//             String card = realChan.findFits( "CDELT1", false );
+//             if ( card != null ) {
+//                 try {
+//                     HeaderCard hcard = new HeaderCard( card );
+//                     String value = hcard.getValue();
+//                     String key = hcard.getKey();
+//                     String comment = hcard.getComment();
+//                     if ( comment == null ) {
+//                         comment = "Unused CDELT1 value";
+//                     }
+//                     HeaderCard ncard = new HeaderCard( key, 1.0, comment );
+//                     realChan.putFits( ncard.toString(), true );
+//                 }
+//                 catch (Exception e) {
+//                     System.out.println( "Failed to apply AST fixups" );
+//                 }
+//             }
+//             chan.rewind();
+//         }
 
         //  Now get the ASTFrameSet.
         try {
