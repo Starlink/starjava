@@ -5,6 +5,8 @@ import java.util.List;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
  * Does a similar job as for ColumnComboBoxModel, but when only a subset
@@ -42,23 +44,34 @@ public abstract class RestrictedColumnComboBoxModel
     }
 
     /**
-     * Determines whether a given column in the column model should show
-     * up in the combobox.
+     * Determines whether a column with given metadata in the column 
+     * model should show up in the combobox.
      *
-     * @param   tcol  the column to assess
+     * @param   cinfo  column metadata to assess
      * @return  <tt>true</tt> iff the column is to be used
      */
-    protected abstract boolean acceptColumn( TableColumn tcol );
+    public abstract boolean acceptColumn( ColumnInfo cinfo );
 
-    public synchronized Object getElementAt( int index ) {
+    /**
+     * Determines whether a given TableColumn should show up in the combobox.
+     *
+     * @param  tcol  table column to assess
+     * @return  <tt>true</tt> iff the column is to be used
+     */
+    private boolean acceptColumn( TableColumn tcol ) {
+        return tcol instanceof StarTableColumn 
+            && acceptColumn( ((StarTableColumn) tcol).getColumnInfo() );
+    }
+
+    public Object getElementAt( int index ) {
         return activeColumns.get( index );
     }
 
-    public synchronized int getSize() {
+    public int getSize() {
         return activeColumns.size();
     }
 
-    public synchronized void columnAdded( TableColumnModelEvent evt ) {
+    public void columnAdded( TableColumnModelEvent evt ) {
         int index = evt.getToIndex();
         TableColumn tcol = colModel.getColumn( index );
         modelColumns.add( tcol );
@@ -69,7 +82,7 @@ public abstract class RestrictedColumnComboBoxModel
         }
     }
 
-    public synchronized void columnRemoved( TableColumnModelEvent evt ) {
+    public void columnRemoved( TableColumnModelEvent evt ) {
         int index = evt.getFromIndex();
         TableColumn tcol = (TableColumn) modelColumns.get( index );
         modelColumns.remove( tcol );
@@ -80,7 +93,7 @@ public abstract class RestrictedColumnComboBoxModel
         }
     }
 
-    public synchronized void columnMoved( TableColumnModelEvent evt ) {
+    public void columnMoved( TableColumnModelEvent evt ) {
         int from = evt.getFromIndex();
         TableColumn tcol = (TableColumn) modelColumns.get( from );
         if ( activeColumns.contains( tcol ) ) {

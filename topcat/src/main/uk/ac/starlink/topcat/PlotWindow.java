@@ -569,9 +569,8 @@ public class PlotWindow extends TopcatViewWindow implements ActionListener {
          * which contains Numbers or Dates. */
         ComboBoxModel boxModel = 
             new RestrictedColumnComboBoxModel( columnModel, false ) {
-                protected boolean acceptColumn( TableColumn tcol ) {
-                    StarTableColumn stcol = (StarTableColumn) tcol;
-                    Class clazz = stcol.getColumnInfo().getContentClass();
+                public boolean acceptColumn( ColumnInfo cinfo ) {
+                    Class clazz = cinfo.getContentClass();
                     return Number.class.isAssignableFrom( clazz )
                         || Date.class.isAssignableFrom( clazz );
                 }
