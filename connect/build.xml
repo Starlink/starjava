@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
- !   {Package} build file
+ !   CONNECT build file
  !
  !   This file describes how to build and install {Package} from
  !   source and binary releases. {Package} is a class library
@@ -31,7 +31,7 @@
  !
  !-->
 
-<project name="Build file for {Package}" default="build" basedir=".">
+<project name="Build file for CONNECT" default="build" basedir=".">
 
   <!-- If either or both of these files exist then any properties
    !   contained within them will override those defined here.  -->
@@ -77,12 +77,12 @@
    !-->
 
   <!-- Define the package name and current versions -->
-  <property name="Name" value="{PACKAGE}"/>
-  <property name="name" value="{package}"/>
-  <property name="version" value="1.0"/>
+  <property name="Name" value="CONNECT"/>
+  <property name="name" value="connect"/>
+  <property name="version" value="0.1"/>
 
   <!-- The Java package name -->
-  <property name="package.name" value="{package.path}"/>
+  <property name="package.name" value="uk.ac.starlink.connect"/>
 
   <!-- Compilation options -->
   <property name="debug" value="true"/>
@@ -172,7 +172,7 @@
   <property name="webstart.keypass" value="Vroomfondel"/>
   <property name="webstart.storepass" value="Majikthise"/>
   <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
-  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/"/>
 
   <!--
    !   =========
@@ -198,11 +198,9 @@
    !-->
   <extclasspath id="installed.classpath">
 
-    <!-- {Other packages} -->
-    <pathelement location="${star.jar.dir}/{package1}/{package1.jar}"/>
-    <pathelement location="${star.jar.dir}/{package2}/{package2.jar}"/>
+    <!-- UTIL -->
+    <pathelement location="${star.jar.dir}/util/util.jar"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Local build system jar files.
@@ -212,12 +210,8 @@
    !-->
   <extclasspath id="built.jarpath">
 
-    <pathelement
-       location="${star.build.dir}/{package1}/lib/{package1}/{package1.jar}"/>
-    <pathelement
-       location="${star.build.dir}/{package2}/lib/{package2}/{package2.jar}"/>
+    <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
 
-    <!-- {More packages} -->
   </extclasspath>
 
   <!-- Find all local third party jars files.
@@ -228,9 +222,11 @@
    !   should be entered into the main jar file manifest.
    !-->
   <path id="package.jars">
+ <!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
+ -->
   </path>
 
   <!-- Create the local build system CLASSPATH.
@@ -350,21 +346,11 @@
   <target name="check_packages"
           unless="runonly.install">
 
-    <!--  {Example package1} -->
-    <available property="{package1}.present"
+    <!-- UTIL -->
+    <available property="util.present"
                classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package1} available" unless="{package1}.present"/>
-
-    <!--  {Example package2} -->
-    <available property="{package2}.present"
-               classpathref="classpath"
-               classname="uk.ac.starlink.{package1}.{MainClass}"/>
-
-    <fail message="No {package2} available" unless="{package2}.present"/>
-
-    <!-- {More critical dependencies} -->
+               classname="uk.ac.starlink.util.DataSource"/>
+    <fail message="No UTIL available" unless="util.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -426,29 +412,29 @@
 
       <!-- Exclude any files in the source tree that should not be
        !   compiled -->
-      <exclude name="**/{Retired1.java}"/>
-      <exclude name="**/{Retired2.java}"/>
-      <exclude name="**/*.html"/>
-      <exclude name="**/*.properties*"/>
+      <include name="**/*.java"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+ <!--
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/{package.support.files}"/>
-        <include name="**/{more.package.support.files}"/>
       </fileset>
     </copy>
+ -->
 
     <!-- Local third party jars, if any. Copy straight into
      !   distribution directories to save on unnecessary copies and to
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
+ <!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+ -->
 
   </target>
 
@@ -501,11 +487,11 @@
           codebase="${webstart.codebase}">
 
       <information>
-         <title>{Package} - {description}</title>
+         <title>CONNECT - connection to remote resources</title>
          <vendor>Starlink UK</vendor>
          <homepage href="${home.page}"/>
          <icon href="${webstart.starlink_logo}"/>
-         <description>"Starlink {Package} - Webstart edition"</description>
+         <description>"Starlink CONNECT - Webstart edition"</description>
          <offline_allowed/>
        </information>
 
@@ -520,8 +506,7 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="{EXT1}" href="{ext1}.jnlp"/>
-         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+         <extension name="UTIL" href="util.jnlp"/>
        </resources>
 
        <!-- This is a component -->
@@ -553,30 +538,36 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
+ <!--   <mkdir dir="${dist.bin.pkg}"/> -->
     <mkdir dir="${dist.lib.pkg}"/>
-    <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+ <!--   <mkdir dir="${dist.docs.pkg}"/> -->
+ <!--   <mkdir dir="${dist.etc.pkg}"/> -->
 
     <!-- Copy any configuration/helper scripts etc. -->
+ <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+ -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+ <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+ -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+ <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+ -->
 
   </target>
 
@@ -768,19 +759,31 @@
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
+ <!--   <mkdir dir="${star.bin.pkg}"/> -->
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
-    <mkdir dir="${star.docs.pkg}"/>
+ <!--   <mkdir dir="${star.etc.pkg}"/> -->
+ <!--   <mkdir dir="${star.docs.pkg}"/> -->
 
     <!-- Note: if you uncomment any of the following (reasonable since
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
-    <loggedcopy todir="${star.bin}"
+    <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
                 logfileAppend="false">
+      <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+      </fileset>
+    </loggedcopy>
+
+ <!--
+    <loggedcopy todir="${star.bin}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
@@ -789,17 +792,7 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
-
-    <loggedcopy todir="${star.lib}"
-                logfile="${install.log}"
-                overwrite="${install.overwrite}"
-                logfileAppend="true">
-      <fileset dir="${dist.lib}">
-        <include name="**/*.jnlp"/>
-        <include name="**/*.jar"/>
-        <include name="**/*.zip"/>
-      </fileset>
-    </loggedcopy>
+ -->
 
     <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
