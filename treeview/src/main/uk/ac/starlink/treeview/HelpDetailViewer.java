@@ -136,7 +136,7 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.TARBRANCH, "Tar archive entry" );
 
             ta.addSeparator();
-            addKnownIcon( IconFactory.ERROR, "An error which has occurred" );
+            addKnownIcon( IconFactory.ERROR, "Error creating a node" );
 
             return ta;
         }
