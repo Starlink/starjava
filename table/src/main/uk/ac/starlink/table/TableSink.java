@@ -46,7 +46,7 @@ public interface TableSink {
      * transmitted.  The number and classes of the elements of <tt>row</tt>
      * are described by the metadata object previously accepted.
      *
-     * @para   row  table data row
+     * @param   row  table data row
      */
     void acceptRow( Object[] row ) throws IOException;
 
