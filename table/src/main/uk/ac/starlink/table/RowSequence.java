@@ -11,7 +11,7 @@ import java.io.IOException;
  * invoked before the first row can be accessed.
  *
  * <p>Typical usage might look like this:
- * <blockquote>
+ * <pre>
  *     RowSequence rseq = table.getRowSequence();
  *     try {
  *         while ( rseq.hasNext() ) {
@@ -23,7 +23,7 @@ import java.io.IOException;
  *     finally {
  *         rseq.close();
  *     }
- * </blockquote>
+ * </pre>
  * 
  * <p>A RowSequence cannot in general be expected to be used safely from 
  * multiple threads.
