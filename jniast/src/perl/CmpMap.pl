@@ -29,17 +29,17 @@ makeNativeConstructor(
       {
          name => ( $aName = "map1" ),
          type => 'Mapping',
-         descrip => ArgDescrip( $aName ),
+         descrip => ArgDescrip( $cName, $aName ),
       },
       {
          name => ( $aName = "map2" ),
          type => 'Mapping',
-         descrip => ArgDescrip( $aName ),
+         descrip => ArgDescrip( $cName, $aName ),
       },
       {
          name => ( $aName = "series" ),
          type => 'boolean',
-         descrip => ArgDescrip( $aName ),
+         descrip => ArgDescrip( $cName, $aName ),
       },
    ],
 );
