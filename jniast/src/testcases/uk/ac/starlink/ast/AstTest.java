@@ -286,6 +286,44 @@ public class AstTest extends TestCase {
      
     }
 
+    public void testSkyRef() {
+        SkyFrame sk8 = new SkyFrame();
+        assertEquals( "origin", sk8.getSkyRefIs().toLowerCase() );
+        sk8.setSkyRefIs( "pole" );
+        assertEquals( "pole", sk8.getSkyRefIs().toLowerCase() );
+        try {
+            sk8.setSkyRefIs( "Bristol" );
+            fail();
+        }
+        catch( AstException e ) {
+            assertEquals( AstException.AST__OPT, e.getStatus() );
+        }
+
+        double ref1 = Math.PI / 8.;
+        double ref2 = Math.PI / 16.;
+        String ref = "1:30:00.0, 11:15:00";
+
+        sk8.setSkyRef( 1, ref1 );
+        sk8.setSkyRef( 2, ref2 );
+        assertEquals( ref1, sk8.getSkyRef( 1 ), 1e-10 );
+        assertEquals( ref2, sk8.getSkyRef( 2 ), 1e-10 );
+        assertEquals( ref, sk8.getSkyRef() );
+        sk8.setSkyRef( ref );
+        assertEquals( ref1, sk8.getSkyRef( 1 ), 1e-10 );
+        assertEquals( ref2, sk8.getSkyRef( 2 ), 1e-10 );
+        assertEquals( ref, sk8.getSkyRef() );
+
+        sk8.setSkyRefP( 1, ref1 );
+        sk8.setSkyRefP( 2, ref2 );
+        assertEquals( ref1, sk8.getSkyRefP( 1 ), 1e-10 );
+        assertEquals( ref2, sk8.getSkyRefP( 2 ), 1e-10 );
+        assertEquals( ref, sk8.getSkyRefP() );
+        sk8.setSkyRefP( ref );
+        assertEquals( ref1, sk8.getSkyRefP( 1 ), 1e-10 );
+        assertEquals( ref2, sk8.getSkyRefP( 2 ), 1e-10 );
+        assertEquals( ref, sk8.getSkyRefP() );
+    }
+
     public void testGeometry() {
         double[] point0 = new double[] { 100, 200 };
         double[] point1 = new double[] { 103, 200 };
@@ -680,8 +718,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V3\\.2-8; " +
-                                           "JNIAST java V3\\.2-8" )
+                                           "JNIAST native V3\\.3-0; " +
+                                           "JNIAST java V3\\.3-0" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );

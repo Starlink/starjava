@@ -34,8 +34,8 @@
 
 /* Required versions of the AST package. */
 #define JNIAST_MAJOR_VERS 3
-#define JNIAST_MINOR_VERS 2
-#define JNIAST_RELEASE 8
+#define JNIAST_MINOR_VERS 3
+#define JNIAST_RELEASE 0
 
 /* Typedefs. */
 typedef union {
