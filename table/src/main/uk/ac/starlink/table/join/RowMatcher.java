@@ -31,7 +31,7 @@ public class RowMatcher {
     private final MatchEngine engine;
     private final StarTable[] tables;
     private final int nTable;
-    private ProgressIndicator indicator = new TextProgressIndicator();
+    private ProgressIndicator indicator = new NullProgressIndicator();
 
     /**
      * Constructs a new matcher with match characteristics defined by
