@@ -101,8 +101,11 @@ public class FitsConstants {
      * Skips forward over a given number of HDUs in the supplied stream.
      * If it reaches the end of the stream, it throws an IOException
      * with a Cause of a TruncatedFileException.
+     *
+     * @param  stream  the stream to skip through
+     * @param  nskip  the number of HDUs to skip
      */
-    static void skipHDUs( ArrayDataInput stream, int nskip )
+    public static void skipHDUs( ArrayDataInput stream, int nskip )
             throws IOException {
         try {
             while ( nskip-- > 0 ) {
@@ -158,24 +161,21 @@ public class FitsConstants {
         ArrayDataInput strm;
 
         /* Get a stream for the whole file. */
-
-    // Using a MappedFile works, and apparently allows you to look at
-    // tables of unlimited size(?) but makes table access extremely slow.
-    // Using a BufferedFile gives screeds of IOExceptions.
-    // Fall back for now to using a BufferedDataInputStream in all cases,
-    // which requires all data to be held in memory and so limits the
-    // size of tables which can be accessed, but does seem to work 
-    // at a reasonable speed.
-    // This is under investigation.
-    //
-    //  if ( datsrc instanceof FileDataSource && 
-    //       datsrc.getCompression() == Compression.NONE ) {
-    //      strm = new MappedFile( ((FileDataSource) datsrc)
-    //                            .getFile().toString() );
-    //  }
-    //  else {
+        // Note the use of a MappedFile here really requires use of a 
+        // modified nom.tam.fits.BinaryTable implementation.  The original 
+        // (v0.96?) version implements getElement on top of getRow for
+        // deferred reads (RandomAccess input streams), which makes 
+        // single-element access exceedingly slow for tables with many
+        // columns.  I made this change in the starlink tam.fits package
+        // at 7-OCT-2003 (MBT).
+        if ( datsrc instanceof FileDataSource && 
+             datsrc.getCompression() == Compression.NONE ) {
+            strm = new MappedFile( ((FileDataSource) datsrc)
+                                  .getFile().toString() );
+        }
+        else {
             strm = new BufferedDataInputStream( datsrc.getInputStream() );
-    //  }
+        }
 
         /* If we have a position, try to position the stream accordingly. */
         String pos = datsrc.getPosition();
