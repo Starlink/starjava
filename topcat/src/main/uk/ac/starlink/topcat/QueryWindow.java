@@ -26,7 +26,7 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
  */
 public abstract class QueryWindow extends AuxWindow implements WindowListener {
 
-    private JPanel controls;
+    private JPanel auxControls;
     private LabelledComponentStack stack;
     private Action okAction;
     protected Border blankBorder = 
@@ -61,10 +61,15 @@ public abstract class QueryWindow extends AuxWindow implements WindowListener {
             }
         };
 
-        /* Set up the control panel. */
-        controls = new JPanel();
-        controls.add( new JButton( okAction ) );
-        controls.add( new JButton( cancelAction ) );
+        /* Set up the control panel, which will contain the OK and Cancel
+         * buttons. */
+        JPanel queryControls = getControlPanel();
+        queryControls.add( new JButton( okAction ) );
+        queryControls.add( new JButton( cancelAction ) );
+
+        /* Set up an auxiliary control panel, for custom buttons required by 
+         * subclasses. */
+        auxControls = new JPanel();
 
         /* React to window events. */
         addWindowListener( this );
@@ -74,10 +79,10 @@ public abstract class QueryWindow extends AuxWindow implements WindowListener {
         iconBox.add( new JLabel( ResourceIcon.QUERY ) );
         iconBox.setBorder( blankBorder );
         stack.setBorder( blankBorder );
-        controls.setBorder( blankBorder );
-        getContentPane().add( iconBox, BorderLayout.WEST );
-        getContentPane().add( stack, BorderLayout.CENTER );
-        getContentPane().add( controls, BorderLayout.SOUTH );
+        auxControls.setBorder( blankBorder );
+        getMainArea().add( iconBox, BorderLayout.WEST );
+        getMainArea().add( stack, BorderLayout.CENTER );
+        getMainArea().add( auxControls, BorderLayout.SOUTH );
     }
 
     /**
@@ -100,10 +105,24 @@ public abstract class QueryWindow extends AuxWindow implements WindowListener {
     }
 
     /**
+     * Returns a panel which can be used by subclasses to place custom
+     * controls.  The panel returned by {@link #getControlPanel} is 
+     * used for the OK and Cancel controls.
+     * 
+     * @return   a container for custom controls
+     */
+    public JPanel getAuxControlPanel() {
+        return auxControls;
+    }
+
+    /**
      * Give focus to the first input field in the stack.
      */
     private void initFocus() {
-        getFirstFocusableField().requestFocusInWindow();
+        Component ff = getFirstFocusableField();
+        if ( ff != null ) {
+            ff.requestFocusInWindow();
+        }
     }
 
     /**

@@ -59,7 +59,6 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.table.gui.TableRowHeader;
@@ -113,7 +112,7 @@ public class TableViewer extends AuxWindow
     private static boolean standalone = false;
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
-    private static StarTableChooser chooser;
+    private static LoadQueryWindow loadWindow;
     private static StarTableSaver saver;
     private static ListCellRenderer columnRenderer;
 
@@ -621,18 +620,17 @@ public class TableViewer extends AuxWindow
     /**
      * Returns a dialog used for loading new tables.
      *
-     * @return  a table chooser
+     * @return  a table load window
      */
-    private static StarTableChooser getChooser() {
-        if ( chooser == null ) {
-            File dir = ( saver == null ) 
-                           ? new File( "." )
-                           : saver.getFileChooser().getCurrentDirectory();
-            chooser = new StarTableChooser();
-            chooser.getFileChooser().setCurrentDirectory( dir );
-            chooser.setStarTableFactory( tabfact );
+    private static LoadQueryWindow getLoader() {
+        if ( loadWindow == null ) {
+            loadWindow = new LoadQueryWindow( tabfact );
+            if ( saver != null ) {
+                File dir = saver.getFileChooser().getCurrentDirectory();
+                loadWindow.getFileChooser().setCurrentDirectory( dir );
+            }
         }
-        return chooser;
+        return loadWindow;
     }
 
     /**
@@ -642,33 +640,14 @@ public class TableViewer extends AuxWindow
      */
     private static StarTableSaver getSaver() {
         if ( saver == null ) {
-            File dir = ( chooser == null )
+            File dir = ( loadWindow == null )
                            ? new File( "." )
-                           : chooser.getFileChooser().getCurrentDirectory();
+                           : loadWindow.getFileChooser().getCurrentDirectory();
             saver = new StarTableSaver();
             saver.getFileChooser().setCurrentDirectory( dir );
             saver.setStarTableOutput( taboutput );
         }
         return saver;
-    }
-
-    /**
-     * Call this method to indicate that where there is a choice between
-     * a command line and a graphical user interface, the graphical one
-     * should be used.  The idea is that if the application is started
-     * up from the command line, it might as well use a command line
-     * interface until such time as it has posted any windows since
-     * (a) that is where the user will be looking and (b) if there is
-     * an error near startup it may never be necessary to to the 
-     * expensive load of Swing classes.  But once the GUI has got going,
-     * then the user will be thinking GUI and a few more dialog boxes
-     * won't make any odds.
-     */
-    private static void setUseGUI() {
-        JDBCHandler jh = tabfact.getJDBCHandler();
-        if ( ! ( jh.getAuthenticator() instanceof SwingAuthenticator ) ) {
-            jh.setAuthenticator( new SwingAuthenticator() );
-        }
     }
 
     /**
@@ -751,10 +730,7 @@ public class TableViewer extends AuxWindow
 
             /* Open a new table viewer window. */
             if ( this == newAct ) {
-                StarTable st = getChooser().getRandomTable( parent );
-                if ( st != null ) {
-                    new TableViewer( st, parent );
-                }
+                getLoader().loadRandomStarTable( parent );
             }
 
             /* Open the same table in a new viewer. */
@@ -1172,8 +1148,11 @@ public class TableViewer extends AuxWindow
         if ( cmdname == null ) {
             cmdname = "TableViewer";
         }
-        String usage = "Usage:\n" 
-                     + "   " + cmdname + " [table ...]\n";
+        String usage = new StringBuffer()
+              .append( "Usage:\n" ) 
+              .append( "   " + cmdname + " [table ...]\n" )
+              .append( "   " + cmdname + " -guihelp" )
+              .toString();
         setStandalone( true );
         if ( args.length > 0 ) {
             int nok = 0;
@@ -1182,11 +1161,15 @@ public class TableViewer extends AuxWindow
             for ( int i = 0; i < args.length; i++ ) {
 
                 /* Deal with any known flags. */
-                if ( args[ i ].startsWith( "-h" ) ) {
+                if ( args[ i ].equalsIgnoreCase( "-guihelp" ) ) {
                     System.out.println( "Displaying help browser" );
                     help = true;
                     HelpWindow.getInstance( null );
                     break;
+                }
+                else if ( args[ i ].startsWith( "-h" ) ) {
+                    System.out.println( usage );
+                    System.exit( 0 );
                 }
 
                 /* Try to interpret each command line argument as a 
@@ -1200,7 +1183,6 @@ public class TableViewer extends AuxWindow
                     else {
                         startab = Tables.randomTable( startab );
                         lastViewer = new TableViewer( startab, lastViewer );
-                        setUseGUI();
                         ok = true;
                     }
                 }
@@ -1231,13 +1213,7 @@ public class TableViewer extends AuxWindow
         /* No tables named on the command line - pop up a dialog asking
          * for one. */
         else {
-            StarTable st = getChooser().getRandomTable( null );
-            if ( st != null ) {
-                new TableViewer( st, null );
-            }
-            else {
-                System.exit( 1 );
-            }
+            new LoadQueryWindow( tabfact ).loadRandomStarTable( null );
         }
     }
 
