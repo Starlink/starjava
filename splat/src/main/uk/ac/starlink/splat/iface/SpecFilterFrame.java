@@ -8,6 +8,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -46,6 +47,7 @@ import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.GridBagLayouter;
+import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.ast.gui.DecimalField;
 
@@ -499,7 +501,16 @@ public class SpecFilterFrame
         }
         localList.add( newSpec );
 
-        // XXX and plot?
+        // And plot the filter.
+        try {
+            globalList.addSpectrum( plot, newSpec );
+            globalList.setKnownNumberProperty( newSpec,
+                                               SpecData.LINE_COLOUR,
+                                               new Integer(Color.red.getRGB()) );
+        }
+        catch (SplatException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

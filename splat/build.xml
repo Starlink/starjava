@@ -121,6 +121,9 @@
   <!-- Directory containing JNI source code -->
   <property name="src.jni.dir" value="${src.dir}/jni"/>
 
+  <!-- Directory for miscellaneous files -->
+  <property name="src.etc" value="${src.dir}/etc"/>
+
   <!-- Directories for JUnit test cases and related files -->
   <property name="tests.dir" value="${src.dir}/testcases"/>
   <property name="tests.etc.dir" value="${src.dir}/etc/testcases"/>
@@ -198,6 +201,9 @@
     <!-- SOAPSERVER -->
     <pathelement location="${star.jar.dir}/soapserver/soapserver.jar"/>
 
+    <!-- PAL -->
+    <pathelement location="${star.jar.dir}/pal/pal.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -221,6 +227,7 @@
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
+    <pathelement location="${star.build.dir}/pal/lib/pal/pal.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -549,6 +556,11 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
     <!-- Copy any startup scripts etc. -->
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
+    </copy>
+
+    <!-- Copy auxiliary files. -->
+    <copy todir="${dist.etc.pkg}">
+      <fileset dir="${src.etc}"/>
     </copy>
 
     <!-- Copy extra documentation, note doesn't include javadocs these
@@ -1000,8 +1012,7 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
       <jvmarg value="-Xnoagent"/>
       <jvmarg value="-Djava.compiler=NONE"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
-      <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
-      <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
+      <jvmarg value="-Dsplat.etc=${src.etc}"/>
       <arg value="src/etc/testdata/ramp.txt"/>
     </java>
   </target>

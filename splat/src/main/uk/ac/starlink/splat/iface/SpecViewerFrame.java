@@ -467,19 +467,18 @@ public class SpecViewerFrame
     {
         if ( column != null && source != null ) {
             try {
+                FrameSet frameSet = specData.getFrameSet();
                 if ( source == dataColumnGenerator ) {
                     // Data column.
-                    double[] coords = specData.getXData();
                     double[] errors = specData.getYDataErrors();
-                    ((EditableSpecData)specData).setDataQuick( coords,
+                    ((EditableSpecData)specData).setDataQuick( frameSet,
                                                                column,
                                                                errors );
                 }
                 else {
                     // Error column.
-                    double[] coords = specData.getXData();
                     double[] values = specData.getYData();
-                    ((EditableSpecData)specData).setDataQuick( coords,
+                    ((EditableSpecData)specData).setDataQuick( frameSet,
                                                                values,
                                                                column );
                 }
@@ -626,12 +625,11 @@ public class SpecViewerFrame
     protected void deleteErrorColumn()
     {
         if ( ! model.isReadOnly() && specData.haveYDataErrors() ) {
-
-            double[] coords = specData.getXData();
+            FrameSet frameSet = specData.getFrameSet();
             double[] values = specData.getYData();
             double[] errors = null;
             try {
-                ((EditableSpecData)specData).setData( coords, values, errors );
+                ((EditableSpecData)specData).setData(frameSet, values, errors);
                 specDataChanged();
             }
             catch (SplatException e) {

@@ -7,6 +7,7 @@
  */
 package uk.ac.starlink.splat.data;
 
+import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -49,7 +50,7 @@ public class LineIDMEMSpecDataImpl
 
         // Get any labels.
         if ( spectrum instanceof LineIDSpecData ) {
-            setLabels( ( (LineIDSpecData) spectrum ).getLabels(), true ); 
+            setLabels( ( (LineIDSpecData) spectrum ).getLabels(), true );
         }
         else {
             //  Need a dummy set.
@@ -77,7 +78,7 @@ public class LineIDMEMSpecDataImpl
      * Set all the labels by making a copy (of the array holding the
      * String references), if asked.
      */
-    public void setLabels( String[] labels, boolean copy ) 
+    public void setLabels( String[] labels, boolean copy )
         throws SplatException
     {
         String[] localLabels = labels;
@@ -93,7 +94,7 @@ public class LineIDMEMSpecDataImpl
     /**
      * Set all the labels.
      */
-    public void setLabels( String[] labels ) 
+    public void setLabels( String[] labels )
         throws SplatException
     {
         if ( coords == null || ( labels.length == coords.length ) ) {
@@ -106,18 +107,18 @@ public class LineIDMEMSpecDataImpl
 
     /**
      * Make up a set of labels (assuming these will be modified
-     * individually later). The names created are the equivalent 
+     * individually later). The names created are the equivalent
      * X axis value, or just a sequence number (plus some fluff to
      * make it clearly a String).
      */
-    public void makeLabels() 
+    public void makeLabels()
         throws SplatException
     {
         if ( coords != null ) {
             String[] labels = new String[coords.length];
             if ( astref != null ) {
                 for ( int i = 0; i < coords.length; i++ ) {
-                    labels[i] = "Line at: " + astref.format( 1, coords[i] ); 
+                    labels[i] = "Line at: " + astref.format( 1, coords[i] );
                 }
             }
             else {
@@ -134,7 +135,7 @@ public class LineIDMEMSpecDataImpl
 
     /**
      * Get a specific label.
-     */ 
+     */
     public String getLabel( int index )
     {
         if ( labels != null && ( index < labels.length ) ) {
@@ -174,5 +175,74 @@ public class LineIDMEMSpecDataImpl
      */
     protected boolean haveDataPositions = false;
 
+//
+// Override some methods so that we can keep the haveDataPositions
+// variable up to date.
+//
+
+    public void setData( double[] coords, double[] data )
+        throws SplatException
+    {
+        haveDataPositions = ( data != null );
+        super.setData( coords, data );
+    }
+
+    public void setData( FrameSet frameSet, double[] data )
+        throws SplatException
+    {
+        haveDataPositions = ( data != null );
+        super.setData( frameSet, data );
+    }
+
+    public void setDataQuick( double[] coords, double[] data )
+    {
+        haveDataPositions = ( data != null );
+        super.setDataQuick( coords, data );
+    }
+
+    public void setDataQuick( FrameSet frameSet, double[] data )
+    {
+        haveDataPositions = ( data != null );
+        super.setDataQuick( frameSet, data );
+    }
+
+    public void setData( double[] coords, double[] data, double[] errors )
+        throws SplatException
+    {
+        haveDataPositions = ( data != null );
+        super.setData( coords, data, errors );
+    }
+
+    public void setData( FrameSet frameSet, double[] data, double[] errors )
+        throws SplatException
+    {
+        haveDataPositions = ( data != null );
+        super.setData( frameSet, data, errors );
+    }
+
+    public void setDataQuick( double[] coords, double[] data, double[] errors )
+    {
+        haveDataPositions = ( data != null );
+        super.setDataQuick( coords, data, errors );
+    }
+
+    public void setDataQuick( FrameSet frameSet, double[] data,
+                              double[] errors )
+    {
+        haveDataPositions = ( data != null );
+        super.setDataQuick( frameSet, data, errors );
+    }
+
+    public void setYDataValue( int index, double value )
+        throws SplatException
+    {
+        haveDataPositions = true;
+        if ( index < data.length ) {
+            data[index] = value;
+        }
+        else {
+            throw new SplatException( "Array index out of bounds" );
+        }
+    }
 }
 

@@ -68,11 +68,6 @@ public class MEMSpecDataImpl
         copyData( spectrum.getXData(), spectrum.getYData(), 
                   spectrum.getYDataErrors() );
 
-        //  Was: but this fails to create coords when using a not
-        //  editable copy.
-        //setData( spectrum.getFrameSet(), spectrum.getYData(),
-        //         spectrum.getYDataErrors() );
-
         //  Record any source of header information.
         if ( spectrum.getSpecDataImpl().isFITSHeaderSource() )
         {

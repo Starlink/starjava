@@ -7,9 +7,14 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import uk.ac.starlink.splat.util.Utilities;
+import java.io.File;
+import java.util.Properties;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.Loader;
 
 /**
  * Main class for the SPLAT, Spectral Analysis Tool, application.
@@ -35,17 +40,28 @@ public class SplatBrowserMain
         }
         final String[] spectra = realArgs;
 
+        //  Cause a load and/or guess of various properties that can
+        //  be useful in locating resources etc.
+        guessProperties();
+
         //  Make splash screen and interface visible. Do these from
         //  event threads as parts of GUI could be realized before
         //  returning (not thread safe). SplatSplash dies after a
         //  given time.
         final SplatSplash splashFrame = new SplatSplash();
-        SwingUtilities.invokeLater( new Runnable() {
-                public void run()
-                {
-                    splashFrame.setVisible( true );
-                }
-            });
+        try {
+            SwingUtilities.invokeAndWait( new Runnable() {
+                    public void run()
+                    {
+                        splashFrame.setVisible( true );
+                        splashFrame.repaint();
+                    }
+                });
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
         SwingUtilities.invokeLater( new Runnable() {
                 public void run()
                 {
@@ -62,7 +78,42 @@ public class SplatBrowserMain
     }
 
     /**
-     * Main method. Starting point for splat application.
+     * Load user properties and make guesses for any that are needed
+     * and are not set.
+     */
+    private void guessProperties()
+    {
+        Loader.loadProperties();
+        Properties props = System.getProperties();
+
+        // Locate the line identifiers.
+        File sdir = Loader.starjavaDirectory();
+        if ( sdir != null ) {
+            String stardir = sdir.toString() + File.separatorChar;
+            if ( ! props.containsKey( "splat.etc" ) ) {
+                props.setProperty( "splat.etc", stardir + "etc" );
+            }
+        }
+        if ( props.containsKey( "splat.etc" ) ) {
+            String etcdir = props.getProperty( "splat.etc" );
+            props.setProperty( "splat.etc.ids", etcdir +
+                               File.separatorChar + "splat" +
+                               File.separatorChar + "ids" );
+        }
+
+        //  Web service defaults.
+        if ( ! props.containsKey( "axis.EngineConfigFactory" ) ) {
+            props.setProperty( "axis.EngineConfigFactory",
+                  "uk.ac.starlink.soap.AppEngineConfigurationFactory" );
+        }
+        if ( ! props.containsKey( "axis.ServerFactory" ) ) {
+            props.setProperty( "axis.ServerFactory",
+                               "uk.ac.starlink.soap.AppAxisServerFactory" );
+        }
+    }
+
+    /**
+     * Main method. Starting point for SPLAT application.
      * @param args list of input spectra
      */
     public static void main( String[] args )

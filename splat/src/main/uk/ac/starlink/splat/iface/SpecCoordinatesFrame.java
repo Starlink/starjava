@@ -96,9 +96,7 @@ public class SpecXCoordTypeFrame
      */
     private JMenuBar menuBar = new JMenuBar();
     private JMenu fileMenu = new JMenu();
-    private JMenuItem closeFileMenu = new JMenuItem();
-    private JMenu helpMenu = new JMenu();
-    private JMenuItem helpMenuAbout = new JMenuItem();
+    private JMenu optionsMenu = new JMenu();
 
     /**
      * Control for displaying/changing the system.
@@ -345,17 +343,17 @@ public class SpecXCoordTypeFrame
 
     /**
      * Create an instance.
-     * 
+     *
      * @param selectionSource if not null then this defines another
      *                        JList those selection is to be copied to
-     *                        our JList. 
+     *                        our JList.
      */
     public SpecXCoordTypeFrame( JList selectionSource )
     {
         contentPane = (JPanel) getContentPane();
         initUI();
         initFrame();
-        
+
         if ( selectionSource != null ) {
             setSelectionFrom( selectionSource );
         }
@@ -375,11 +373,16 @@ public class SpecXCoordTypeFrame
         fileMenu.setText( "File" );
         menuBar.add( fileMenu );
 
+        // Create the options menu.
+        optionsMenu.setText( "Options" );
+        menuBar.add( optionsMenu );
+
         //  Create the Help menu.
         HelpFrame.createHelpMenu( "specxcoord-window", "Help on window",
                                   menuBar, null );
         initSpecListArea();
         initControlArea();
+        initOptions();
     }
 
     /**
@@ -602,9 +605,20 @@ public class SpecXCoordTypeFrame
     }
 
     /**
+     * Add various options to the Options menu.
+     */
+    protected void initOptions()
+    {
+        JMenuItem lineIdValues = new JMenuItem( "Line ID defaults" );
+        lineIdValues.addActionListener( this );
+        lineIdValues.setActionCommand( "set1" );
+        optionsMenu.add( lineIdValues );
+    }
+
+    /**
      * Set the selection of the JList to the same as another list
      * (which is presumably showing the global list).
-     */ 
+     */
     public void setSelectionFrom( JList fromList )
     {
         specList.setSelectedIndices( fromList.getSelectedIndices() );
@@ -925,33 +939,76 @@ public class SpecXCoordTypeFrame
             }
 
             // Set the values.
-            inhibitChanges = true;
+            setInterface( system, unit, stdofrest, geolon, geolat, refra,
+                          refdec, restfreq, sourcevrf, sourcevel,
+                          epoch );
+        }
+    }
 
-            String value = (String) astSystemsInverse.get( system );
+    /**
+     * Set the interface to show a full set of values. The Strings are
+     * the AST attributes values (not the full expanded names shown in
+     * the interface, but these do have to match the ones in the
+     * various Maps defined in this class). The rest frequency must be
+     * in GHz. If any values are to be left upset they should be set
+     * to null. To reset values set them to "", except for system
+     * which should be set to "Unknown".
+     */
+    public void setInterface( String system, String unit, 
+                              String stdofrest, String geolon, 
+                              String geolat, String refra, String refdec,
+                              String restfreq, String sourcevrf,
+                              String sourcevel, String epoch )
+    {
+        inhibitChanges = true;
+        String value = null;
+
+        if ( system != null ) {
+            value = (String) astSystemsInverse.get( system );
             systemBox.setSelectedItem( value );
+        }
+        if ( unit != null ) {
             systemUnitsBox.setSelectedItem( unit );
+        }
 
+        if ( stdofrest != null ) {
             value = (String) stdOfRestInverse.get( stdofrest );
             stdOfRestBox.setSelectedItem( value );
+        }
 
+        if ( geolon != null ) {
             obsLong.setText( geolon );
+        }
+        if ( geolat != null ) {
             obsLat.setText( geolat );
+        }
 
+        if ( refra != null ) {
             sourceRA.setText( refra );
-            sourceDec.setText( refdec );
+        }
 
+        if ( refdec != null ) {
+            sourceDec.setText( refdec );
+        }
+
+        if ( restfreq != null ) {
             restFrequency.setText( restfreq );
             restFrequencyUnits.setSelectedItem( "GHz" );
+        }
 
+        if ( sourcevel != null ) {
             sourceVel.setText( sourcevel );
+        }
 
+        if ( sourcevrf != null ) {
             value = (String) stdOfRestInverse.get( sourcevrf );
             sourceStdOfRestBox.setSelectedItem( value );
-
-            dateObs.setText( epoch );
-
-            inhibitChanges = false;
         }
+
+        if ( epoch != null ) {
+            dateObs.setText( epoch );
+        }
+        inhibitChanges = false;
     }
 
     private String checkAttr( FrameSet frameSet, String value, String attr )
@@ -1066,6 +1123,13 @@ public class SpecXCoordTypeFrame
                 if ( units != null ) {
                     restFrequencyUnits.setSelectedItem( units );
                 }
+            }
+        }
+        else if ( source instanceof JMenuItem ) {
+            String cmd = e.getActionCommand();
+            if ( "set1".equals( cmd ) ) {
+                setInterface( "WAVE", "Angstrom", "Source", "", "", "", "",
+                              "", "Topocentric", "0.0", "" );
             }
         }
     }

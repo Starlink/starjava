@@ -591,7 +591,7 @@ public class SplatBrowser
         LocalAction animateAction =
             new LocalAction( LocalAction.ANIMATE_DISPLAY,
                              "Animate spectra", animateImage,
-                             "Animate selected spectra by displaying one at a time" );
+                "Animate selected spectra by displaying one at a time" );
         viewMenu.add( animateAction );
         toolBar.add( animateAction );
 
@@ -610,7 +610,7 @@ public class SplatBrowser
             new ImageIcon(ImageHolder.class.getResource("xunits.gif"));
         LocalAction xCoordTypeAction =
             new LocalAction( LocalAction.XCOORDTYPE_VIEWER,
-                             "View/modify X axis coordinate type", 
+                             "View/modify X axis coordinate type",
                              xCoordTypeImage, "View/modify the X axis" +
                              " coordinate type of selected spectra");
         viewMenu.add( xCoordTypeAction );
@@ -631,9 +631,11 @@ public class SplatBrowser
         JMenu optionsMenu = new JMenu( "Options" );
         menuBar.add( optionsMenu );
 
+        //  Add any locally availabel line identifiers.
+        new LocalLineIDManager( optionsMenu, this );
+
         //  Add the LookAndFeel selections.
-        SplatLookAndFeelManager splatLookAndFeelManager =
-            new SplatLookAndFeelManager( contentPane, optionsMenu );
+        new SplatLookAndFeelManager( contentPane, optionsMenu );
 
         //  Add facility to colourise all spectra.
         ImageIcon rainbowImage = new ImageIcon(
@@ -1172,8 +1174,8 @@ public class SplatBrowser
      *              to add.
      *  @param usertype index of the type of spectrum, 0 for default
      *                  based on file extension, otherwise this is an
-     *                  index of the knownTypes array in 
-     *                  {@link SpecDataFactory}. 
+     *                  index of the knownTypes array in
+     *                  {@link SpecDataFactory}.
      *
      *  @return true if spectrum is added, false otherwise.
      */
@@ -1459,7 +1461,7 @@ public class SplatBrowser
      * Make a report using an ExceptionDialog for when loading a list
      * of spectra has failed for some.
      */
-    private void reportOpenListFailed( int failed, 
+    private void reportOpenListFailed( int failed,
                                        SplatException lastException )
     {
         String message = null;
@@ -1529,7 +1531,7 @@ public class SplatBrowser
     }
 
     /**
-     * Display a window for viewing and possibly modifying the 
+     * Display a window for viewing and possibly modifying the
      * coordinate type of the X axis.
      */
     public void viewXCoordType()
@@ -1538,9 +1540,9 @@ public class SplatBrowser
             xCoordTypeFrame = new SpecXCoordTypeFrame( specList );
 
             //  We'd like to know if the window is closed.
-            xCoordTypeFrame.addWindowListener( new WindowAdapter() 
+            xCoordTypeFrame.addWindowListener( new WindowAdapter()
             {
-                public void windowClosed( WindowEvent evt ) 
+                public void windowClosed( WindowEvent evt )
                 {
                     xCoordTypeClosed();
                 }

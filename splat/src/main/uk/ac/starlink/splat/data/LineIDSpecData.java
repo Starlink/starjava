@@ -141,7 +141,12 @@ public class LineIDSpecData
         if ( ypos != null ) {
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
-                xypos[i + 1] = ypos[j] + yshift;
+                if ( ypos[j] == BAD ) {
+                    xypos[i + 1] = limits[1] + yshift;
+                }
+                else {
+                    xypos[i + 1] = ypos[j] + yshift;
+                }
             }
         }
         else {

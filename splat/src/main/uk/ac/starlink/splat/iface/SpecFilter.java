@@ -205,7 +205,8 @@ public class SpecFilter
     {
         KernelFilter filter = new KernelFilter( spectrum.getYData(),
                                                 kernel );
-        return updateSpectrum( spectrum, filter.eval(), name );
+        return updateSpectrum( spectrum, filter.eval(), 
+                               makeName( name, spectrum ) );
     }
 
     /**
@@ -265,7 +266,7 @@ public class SpecFilter
             }
             else {
                 newSpec = SpecDataFactory.getReference().
-                    createEditable( "Dummy", spectrum );
+                    createEditable( spectrum.getShortName(), spectrum );
                 globalList.add( newSpec );
             }
             return newSpec;

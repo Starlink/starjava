@@ -1,6 +1,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -27,7 +28,9 @@ import uk.ac.starlink.splat.util.Utilities;
  * @author Jeff Dinkins
  * @author Peter W. Draper
  */
-public class SpectralFileFilter extends FileFilter
+public class SpectralFileFilter 
+    extends FileFilter
+    implements FilenameFilter
 {
     private static String TYPE_UNKNOWN = "Type Unknown";
     private static String HIDDEN_FILE = "Hidden File";
@@ -235,5 +238,23 @@ public class SpectralFileFilter extends FileFilter
     public boolean isExtensionListInDescription()
     {
         return useExtensionsInDescription;
+    }
+    
+    // FilenameFilter implementation.
+    public boolean accept( File dir, String name )
+    {
+        if ( dir != null ) {
+            String extension = Utilities.getExtension( name );
+            if ( extension != null && filters.get( extension ) != null ) {
+                return true;
+            }
+
+            //  Could be a directory.
+            File maybeDir = new File( dir, name );
+            if ( maybeDir.isDirectory() ) {
+                return true;
+            }
+        }
+        return false;
     }
 }

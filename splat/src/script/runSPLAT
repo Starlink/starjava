@@ -78,6 +78,9 @@ if test ! -f "$appjar"; then
    exit
 fi
 
+#  Location of the etc directory (needed for line id files).
+defines="$defines -Dsplat.etc.dir=$SPLAT_DIR/../etc/splat"
+
 #  Need the port and default configuration for the web services.
 defines="$defines \
 -Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory \

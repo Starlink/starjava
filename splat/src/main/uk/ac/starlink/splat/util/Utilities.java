@@ -147,10 +147,22 @@ public class Utilities
     public static String getExtension( File f )
     {
         if ( f != null ) {
-            String filename = f.getName();
-            int i = filename.lastIndexOf( '.' );
-            if ( i > 0 && i < filename.length() - 1 ) {
-                return filename.substring( i + 1 ).toLowerCase();
+            return getExtension( f.getName() );
+        }
+        return null;
+    }
+
+    /**
+     * Return the extension of a file's name.
+     *
+     * @param f the File.
+     */
+    public static String getExtension( String name )
+    {
+        if ( name != null ) {
+            int i = name.lastIndexOf( '.' );
+            if ( i > 0 && i < name.length() - 1 ) {
+                return name.substring( i + 1 ).toLowerCase();
             }
         }
         return null;
