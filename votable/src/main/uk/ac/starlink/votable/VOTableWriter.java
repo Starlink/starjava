@@ -12,7 +12,9 @@ import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
 import uk.ac.starlink.fits.FitsTableWriter;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.TableFormatException;
 
 /**
  * Implementation of the <tt>StarTableWriter</tt> interface for
@@ -77,22 +79,30 @@ public class VOTableWriter implements StarTableWriter {
      *
      * @param   startab  the table to write
      * @param   location  the filename to which to write the table
+     * @param   sto   object used for location resolution
      */
-    public void writeStarTable( StarTable startab, String location )
+    public void writeStarTable( StarTable startab, String location,
+                                StarTableOutput sto )
             throws IOException { 
 
         /* Get the stream to write to. */
-        OutputStream out;
-        File file;
-        if ( location.equals( "-" ) ) {
-            file = null;
-            out = System.out;
+        OutputStream out = null; 
+        try {
+            out = sto.getOutputStream( location );
+            File file = out instanceof FileOutputStream
+                      ? new File( location )
+                      : null;
+            if ( ! inline && file == null ) {
+                throw new TableFormatException( "Can't write non-inline format"
+                                              + " to a stream" );
+            }
+            writeStarTable( startab, out, file );
         }
-        else {
-            file = new File( location );
-            out = new BufferedOutputStream( new FileOutputStream( file ) );
+        finally {
+            if ( out != null ) {
+                out.close();
+            }
         }
-        writeStarTable( startab, out, file );
     }
 
     /**
