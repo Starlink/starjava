@@ -264,6 +264,12 @@
     </fo:block>
   </xsl:template>
 
+  <xsl:template match="blockcode">
+    <fo:block xsl:use-attribute-sets="verbatim">
+      <xsl:apply-templates select="text()"/>
+    </fo:block>
+  </xsl:template>
+
   <xsl:template match="blockquote">
     <fo:block xsl:use-attribute-sets="blockquote">
       <xsl:apply-templates/>
@@ -286,6 +292,35 @@
     <fo:inline xsl:use-attribute-sets="code">
       <xsl:apply-templates/>
     </fo:inline>
+  </xsl:template>
+
+  <xsl:template match="javadoc">
+    <xsl:choose>
+      <xsl:when test="@plaintext">
+        <xsl:value-of select="@plaintext"/>
+      </xsl:when>
+      <xsl:when test="string(.)">
+        <xsl:apply-templates/>
+      </xsl:when>
+      <xsl:otherwise>
+        <fo:inline xsl:use-attribute-sets="code">
+          <xsl:choose>
+            <xsl:when test="substring(@class, string-length(@class))='.'">
+              <xsl:value-of
+                   select="substring(@class, 1, string-length(@class)-1)"/>
+            </xsl:when>
+            <xsl:when test="@member">
+              <xsl:value-of select="substring-before(@member, '(')"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="lastPart">
+                <xsl:with-param name="text" select="@class"/>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
+        </fo:inline>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <xsl:template match="var">
@@ -546,6 +581,20 @@
       </xsl:when>
       <xsl:otherwise>
         <xsl:text>???</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <xsl:template name="lastPart">
+    <xsl:param name="text"/>
+    <xsl:choose>
+      <xsl:when test="contains($text, '.')">
+        <xsl:call-template name="lastPart">
+          <xsl:with-param name="text" select="substring-after($text, '.')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$text"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
