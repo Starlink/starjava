@@ -373,13 +373,7 @@ public class StarTableSaver extends JOptionPane {
      */
     private boolean confirmOverwrite( Component parent, File loc ) {
         String[] msg = new String[] {
-            "You have selected the output file " + loc + ".",
-            "A file with this name already exists, " +
-            "do you wish to overwrite it?",
-            "",
-            "IMPORTANT: in some cases, overwriting a file while it is being",
-            "edited in TOPCAT can cause an error, losing the data completely.",
-            "If in doubt, you are advised to save using a new name.",
+            "Overwrite existing file \"" + loc + "\"?",
         };
         Object cancelOption = "Cancel";
         Object overwriteOption = "Overwrite";
