@@ -129,7 +129,7 @@ public abstract class WindowAction extends BasicAction {
      *
      * @return  true iff the window exists
      */
-    protected abstract boolean hasWindow();
+    public abstract boolean hasWindow();
 
     /**
      * Returns a toggle button which toggles visibility of the window

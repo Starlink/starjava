@@ -756,7 +756,7 @@ public class TopcatModel {
             super( name, icon, shortdesc );
         }
 
-        protected boolean hasWindow() {
+        public boolean hasWindow() {
             if ( this == viewerAct ) {
                 return viewerWindow != null;
             }
