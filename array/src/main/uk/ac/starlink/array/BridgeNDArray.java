@@ -92,20 +92,24 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         }
 
         /* If the impl is capable of producing multiple AccessImpls, 
-         * or we are only going to dispense a single ArrayAccess in any
-         * case, obtain a new AccessImpl and build an ArrayAccess object 
-         * on it. */
-        if ( impl.multipleAccess() || ! impl.isRandom() ) {
+         * obtain a new AccessImpl and build an ArrayAccess object on it. */
+        if ( impl.multipleAccess() ) {
             return new DefaultArrayAccess( this, impl.getAccess(), 
                                            mappedArray );
         }
 
-        /* Otherwise, we will need to build an ArrayAccess object on top
-         * of a shared sole AccessImpl object. */
-        else {
-            // assert ( ! impl.multipleAccess() && impl.isRandom() );
+        /* Otherwise, if the impl is random then build an ArrayAccess on 
+         * top of a shared AccessImpl. */
+        else if ( impl.isRandom() ) {
             return new MultiplexArrayAccess( this, soleAccessImpl,
                                              mappedArray );
+        }
+
+        /* Otherwise, just build a sole ArrayAccess object on top
+         * of a sole AccessImpl object. */
+        else {
+            return new DefaultArrayAccess( this, soleAccessImpl,
+                                           mappedArray );
         }
     }
 
