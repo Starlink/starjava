@@ -2,106 +2,77 @@
  * Copyright (C) 2003 Central Laboratory of the Research Councils
  *
  *  History:
- *     20-JUN-2001 (Peter W. Draper):
+ *     13-DEC-2003 (Peter W. Draper):
  *       Original version.
  */
+
 package uk.ac.starlink.splat.plot;
 
-import diva.canvas.toolbox.PathFigure;
-import diva.canvas.interactor.SelectionInteractor;
-import diva.canvas.interactor.SelectionModel;
-import diva.canvas.interactor.Interactor;
+import diva.canvas.toolbox.LabelFigure;
 
-import java.awt.Paint;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
-
 import javax.swing.event.EventListenerList;
 
 /**
- * PathPlotFigure extends the diva PathFigure class to add support for
- * events that allow users of any derived figures to be made aware of
- * any changes, i.e.<!-- --> figure creation, removal and transformations.
- * <p>
- * This base class should be used for non-filled figures, use
- * BasicPlotFigure for filled types.
- * <p>
- * All figures used on a Plot should be derived classes of this class
- * or BasicPlotFigure, or implement the necessary code to support the
- * FigureListener class. They should also invoke fireChanged in their
- * translate and transform methods (but not if calling super) and
- * respect the transformFreely state.
+ * Implementation of a LabelFigure for use with a DivaPlot.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-public class PathPlotFigure
-    extends PathFigure
+public class PlotLabelFigure
+    extends LabelFigure
     implements PlotFigure
 {
-    /**
-     * Create a new figure with the given shape. The figure, by
-     * default, is stroked with a unit-width continuous black stroke.
-     */
-    public PathPlotFigure( Shape shape )
+    //  Constructors from LabelFigure
+
+    public PlotLabelFigure()
     {
-        super( shape );
+        super();
         fireCreated();
     }
 
-    /**
-     * Create a new figure with the given shape and width.  The
-     * default paint is black.
-     */
-    public PathPlotFigure( Shape shape, float lineWidth )
+    public PlotLabelFigure( String s )
     {
-        super( shape, lineWidth );
+        super( s );
         fireCreated();
     }
 
-    /**
-     * Create a new figure with the given paint and width.
-     */
-    public PathPlotFigure( Shape shape, Paint paint, float lineWidth )
+    public PlotLabelFigure( String s, String face, int style, int size )
     {
-        super( shape, paint, lineWidth );
+        super( s, face, style, size );
         fireCreated();
     }
 
-    /**
-     * Transform the figure with the supplied transform.
-     */
+    public PlotLabelFigure( String s, Font f )
+    {
+        super( s, f );
+        fireCreated();
+    }
+
+    public PlotLabelFigure( String s, Font font, double padding, int anchor )
+    {
+        super( s, font, padding, anchor );
+        fireCreated();
+    }
+
     public void transform( AffineTransform at )
     {
         super.transform( at );
         fireChanged();
     }
 
-    /**
-     * Translate the figure with by the given distance.
-     */
     public void translate( double x, double y )
     {
         super.translate( x, y );
         fireChanged();
     }
 
-    public void setVisible( boolean flag )
+    // Part of PlotFigure interface, not implemented.
+    public void setShape( Shape shape )
     {
-        super.setVisible( flag );
-
-        // Don't leave selection decorators around.
-        if ( !flag ) {
-            Interactor interactor = getInteractor();
-            if ( interactor instanceof SelectionInteractor ) {
-                SelectionModel model = 
-                    ((SelectionInteractor) interactor).getSelectionModel();
-                if ( model.containsSelection( this ) ) {
-                    model.removeSelection( this );
-                }
-            }
-        }
-        repaint();
+        //  Do nothing.
     }
 
     //
@@ -114,12 +85,6 @@ public class PathPlotFigure
      */
     protected static boolean transformFreely = false;
 
-    /**
-     * Enable the hint that a figure should allow itself to transform
-     * freely, rather than obey any constraints (this is meant for
-     * figures that could not otherwise redraw themselves to fit a
-     * resized Plot, given their normal constraints, e.g. XRangeFigure).
-     */
     public void setTransformFreely( boolean state )
     {
         transformFreely = state;
@@ -127,7 +92,7 @@ public class PathPlotFigure
 
     /**
      * Find out if this is an occasion when a figure should give up
-     * any constraints and traneform freely.
+     * any constraints and transform freely.
      */
     public static boolean isTransformFreely()
     {
@@ -137,7 +102,6 @@ public class PathPlotFigure
     //
     //  FigureListener events.
     //
-
     protected EventListenerList listeners = new EventListenerList();
 
     /**

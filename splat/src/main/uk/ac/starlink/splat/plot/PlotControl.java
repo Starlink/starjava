@@ -882,7 +882,7 @@ public class PlotControl
         throws SplatException
     {
         PrintService[] services = getPostscriptPrintServices( fileName );
-        if ( services.length == 0 ) {
+        if ( services.length != 0 ) {
             try {
                 PrinterJob pj = PrinterJob.getPrinterJob();
                 pj.setPrintService( services[0] );

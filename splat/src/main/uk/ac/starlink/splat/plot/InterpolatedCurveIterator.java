@@ -45,28 +45,34 @@ public class InterpolatedCurveIterator
                                       AffineTransform at )
     {
         int count = curve.getCoordCount();
-        xCoords = new double[count];
-        yCoords = new double[count];
+        if ( count > 0 ) {
+            xCoords = new double[count];
+            yCoords = new double[count];
 
-        if ( at == null || at.isIdentity() ) {
-            System.arraycopy( curve.getXCoords(), 0, xCoords, 0, count );
-            System.arraycopy( curve.getYCoords(), 0, yCoords, 0, count );
+            if ( at == null || at.isIdentity() ) {
+                System.arraycopy( curve.getXCoords(), 0, xCoords, 0, count );
+                System.arraycopy( curve.getYCoords(), 0, yCoords, 0, count );
+            }
+            else {
+                double[] x = curve.getXCoords();
+                double[] y = curve.getYCoords();
+                double[] xy = new double[x.length*2];
+                int j = 0;
+                for ( int i = 0; i < x.length; i++ ) {
+                    xy[j++] = x[i];
+                    xy[j++] = y[i];
+                }
+                at.transform( xy, 0, xy, 0, x.length );
+                j = 0;
+                for ( int i = 0; i < x.length; i++ ) {
+                    xCoords[i] = xy[j++];
+                    yCoords[i] = xy[j++];
+                }
+            }
         }
         else {
-            double[] x = curve.getXCoords();
-            double[] y = curve.getYCoords();
-            double[] xy = new double[x.length*2];
-            int j = 0;
-            for ( int i = 0; i < x.length; i++ ) {
-                xy[j++] = x[i];
-                xy[j++] = y[i];
-            }
-            at.transform( xy, 0, xy, 0, x.length );
-            j = 0;
-            for ( int i = 0; i < x.length; i++ ) {
-                xCoords[i] = xy[j++];
-                yCoords[i] = xy[j++];
-            }
+            xCoords = new double[1];
+            yCoords = new double[1];
         }
     }
 

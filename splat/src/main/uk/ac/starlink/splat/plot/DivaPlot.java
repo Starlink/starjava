@@ -149,7 +149,7 @@ public class DivaPlot
     protected ASTJ astJ = null;
 
     /**
-     * DefaultGrf object that manages all graphics.
+     * DefaultGrf object that manages all AST graphics.
      */
     protected DefaultGrf javaGrf = null;
 
@@ -273,7 +273,11 @@ public class DivaPlot
         //  Initialize preferred initial size.
         setPreferredSize( new Dimension( 700, 350 ) );
 
-        //  Create the required DefaultGrf object to draw graphics.
+        //  Create Figure that contains the spectra.
+        GrfFigure grfFigure = new GrfFigure( this );
+        graphicsPane.recordFigure( grfFigure );
+
+        //  Create the required DefaultGrf object to draw AST graphics.
         javaGrf = new DefaultGrf( this );
 
         //  First time initialisation of spectra properties.
@@ -462,7 +466,7 @@ public class DivaPlot
 
         //  Get the spectra AST frameset, that describes the
         //  coordinates and set the DefaultGrf object is should use to draw
-        //  graphics.
+        //  AST graphics.
         astJ = spectra.getAst();
         astJ.setGraphic( javaGrf );
 
@@ -742,15 +746,16 @@ public class DivaPlot
      *
      * @param g Graphics object
      */
-    public void paintComponent( Graphics g )
+    //public void paintComponent( Graphics g )
+    public void redrawAll( Graphics2D g )
     {
-        super.paintComponent( g );
+        //super.paintComponent( g );
         if ( spectra.count() == 0 ) {
             return;
         }
         try {
 
-            //  XXX restore the correct DefaultGrf object to the AST interface.
+            //  Restore the correct DefaultGrf object to the AST interface.
             astJ.setGraphic( javaGrf );
 
             if ( xyScaled ) {

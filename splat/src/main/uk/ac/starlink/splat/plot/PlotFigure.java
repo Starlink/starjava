@@ -7,6 +7,9 @@
  */
 package uk.ac.starlink.splat.plot;
 
+import diva.canvas.Figure;
+import java.awt.Shape;
+
 /**
  * PlotFigure defines an interface that any Figures drawn on a Plot
  * should implement. See BasicPlotFigure for a concrete implementation
@@ -17,13 +20,26 @@ package uk.ac.starlink.splat.plot;
  * @see DivaPlot
  */
 public interface PlotFigure
+    extends Figure
 {
-    //  Common BasicFigure members.
-    //public Paint getFillPaint ();
+    //
+    //  The whole Figure interface.
+    //
 
-//
-//  Transform freely interface.
-//
+    /**
+     * Set the Figure shape.
+     */
+    public void setShape( Shape shape );
+
+    /**
+     * Set the visibility. Needs re-implementing to also remove any
+     * decorators.
+     */
+    public void setVisible( boolean flag );
+
+    //
+    //  Transform freely interface.
+    //
     /**
      * Enable the hint that a figure should allow itself to transform
      * freely, rather than obey any constraints (this is meant for
@@ -32,12 +48,12 @@ public interface PlotFigure
      */
     public void setTransformFreely( boolean state );
 
-//
-//  Events interface.
-//
+    //
+    //  Events interface.
+    //
     /**
      *  Registers a listener for to be informed when figure changes
-     *  occur. 
+     *  occur.
      *
      *  @param l the FigureListener
      */

@@ -9,13 +9,17 @@ package uk.ac.starlink.splat.plot;
 
 import diva.canvas.Figure;
 import diva.canvas.toolbox.BackgroundedCompositeFigure;
+import diva.canvas.interactor.SelectionInteractor;
+import diva.canvas.interactor.SelectionModel;
+import diva.canvas.interactor.Interactor;
 
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 
 import javax.swing.event.EventListenerList;
 
 /**
- * PlotCompositeFigure extends the diva BackgroundedCompositeFigure
+ * PlotCompositeFigure extends the Diva BackgroundedCompositeFigure
  * class to add support for events that allow users of any derived
  * figures to be made aware of any changes,<!-- --> i.e. composite figure
  * creation, removal and transformations.
@@ -40,7 +44,8 @@ public class PlotCompositeFigure
      * Construct a backgrounded composite figure with
      * no background and no children.
      */
-    public PlotCompositeFigure() {
+    public PlotCompositeFigure() 
+    {
         this(null);
     }
     
@@ -48,7 +53,8 @@ public class PlotCompositeFigure
      * Construct a backgrounded composite figure with the
      * given background and no children.
      */
-    public PlotCompositeFigure(Figure background) {
+    public PlotCompositeFigure( Figure background ) 
+    {
         super( background );
         fireCreated();
     }
@@ -56,7 +62,8 @@ public class PlotCompositeFigure
     /** 
      * Translate the figure the given distance, but only in X.
      */
-    public void translate( double x, double y ) {
+    public void translate( double x, double y ) 
+    {
         super.translate(x,y);
         fireChanged();
     }
@@ -64,9 +71,36 @@ public class PlotCompositeFigure
     /** 
      * Transform the figure. Just allow transforms of X scale.
      */
-    public void transform( AffineTransform at ) {
+    public void transform( AffineTransform at ) 
+    {
         super.transform( at );
         fireChanged();
+    }
+
+    /**
+     * Set the background Figure using a Shape.
+     */
+    public void setShape( Shape shape )
+    {
+        setBackgroundFigure( new BasicPlotFigure( shape ) ); 
+    }
+
+    public void setVisible( boolean flag )
+    {
+        super.setVisible( flag );
+
+        // Don't leave selection decorators around.
+        if ( !flag ) {
+            Interactor interactor = getInteractor();
+            if ( interactor instanceof SelectionInteractor ) {
+                SelectionModel model = 
+                    ((SelectionInteractor) interactor).getSelectionModel();
+                if ( model.containsSelection( this ) ) {
+                    model.removeSelection( this );
+                }
+            }
+        }
+        repaint();
     }
 
     //
@@ -80,7 +114,8 @@ public class PlotCompositeFigure
      *
      *  @param l the FigureListener
      */
-    public void addListener( FigureListener l ) {
+    public void addListener( FigureListener l ) 
+    {
         listeners.add( FigureListener.class, l );
     }
 
@@ -89,7 +124,8 @@ public class PlotCompositeFigure
      *
      * @param l the FigureListener
      */
-    public void removeListener( FigureListener l ) {
+    public void removeListener( FigureListener l ) 
+    {
         listeners.remove( FigureListener.class, l );
     }
 
@@ -97,7 +133,8 @@ public class PlotCompositeFigure
      * Send a FigureChangedEvent object specifying that this figure
      * has created to all listeners.
      */
-    protected void fireCreated() {
+    protected void fireCreated() 
+    {
         Object[] list = listeners.getListenerList();
         FigureChangedEvent e = null;
         for ( int i = list.length - 2; i >= 0; i -= 2 ) {
@@ -115,7 +152,8 @@ public class PlotCompositeFigure
      * Send a FigureChangedEvent object specifying that this figure
      * has been removed.
      */
-    protected void fireRemoved() {
+    protected void fireRemoved() 
+    {
         Object[] list = listeners.getListenerList();
         FigureChangedEvent e = null;
         for ( int i = list.length - 2; i >= 0; i -= 2 ) {
@@ -133,7 +171,8 @@ public class PlotCompositeFigure
      * Send a FigureChangedEvent object specifying that this figure
      * has changed.
      */
-    protected void fireChanged() {
+    protected void fireChanged() 
+    {
         Object[] list = listeners.getListenerList();
         FigureChangedEvent e = null;
         for ( int i = list.length - 2; i >= 0; i -= 2 ) {
@@ -171,7 +210,8 @@ public class PlotCompositeFigure
      * Find out if this is an occasion when a figure should give up
      * any constraints and traneform freely.
      */
-    public static boolean isTransformFreely() {
+    public static boolean isTransformFreely() 
+    {
         return transformFreely;
     }
 }

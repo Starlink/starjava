@@ -8,6 +8,9 @@
 package uk.ac.starlink.splat.plot;
 
 import diva.canvas.toolbox.BasicFigure;
+import diva.canvas.interactor.SelectionInteractor;
+import diva.canvas.interactor.SelectionModel;
+import diva.canvas.interactor.Interactor;
 
 import java.awt.Paint;
 import java.awt.Shape;
@@ -17,11 +20,11 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.event.EventListenerList;
 
 /**
- * PlotFigure extends the diva BasicFigure class to add support for
+ * BasicPlotFigure extends the diva BasicFigure class to add support for
  * events that allow users of any derived figures to be made aware of
  * any changes, i.e.&nbsp;figure creation, removal and transformations.
  * <p>
- * All figures used on a Plot should be derived classes of this class,
+ * All figures used on a DIvaPlot should be derived classes of this class,
  * or implement the necessary code to support the FigureListener
  * class. They should also invoke fireChanged in their translate and
  * transform methods (but not if calling super) and respect the
@@ -60,6 +63,7 @@ public class BasicPlotFigure
     public BasicPlotFigure( Shape shape, float lineWidth )
     {
         super( shape, lineWidth );
+        setLineWidth( lineWidth );
         fireCreated();
     }
 
@@ -74,26 +78,40 @@ public class BasicPlotFigure
     }
 
     /**
+     * Create a new figure with the given fill and outline paints 
+     * and outline width.
+     */
+    public BasicPlotFigure( Shape shape, Paint fill, Paint outline, 
+                            float lineWidth )
+    {
+        super( shape, fill, lineWidth );
+        setStrokePaint( outline );
+        setLineWidth( lineWidth );
+        fireCreated();
+    }
+
+    /**
      * Create a new figure with the given paint pattern and outline width.
      * The default outline paint is black.
      */
     public BasicPlotFigure( Shape shape, Paint fill, float lineWidth )
     {
         super( shape, fill, lineWidth );
+        setLineWidth( lineWidth );
         fireCreated();
     }
 
     /**
-     * Translate the figure the given distance, but only in X.
+     * Translate the figure.
      */
     public void translate( double x, double y )
     {
-        super.translate(x,y);
+        super.translate( x, y );
         fireChanged();
     }
 
     /**
-     * Transform the figure. Just allow transforms of X scale.
+     * Transform the figure.
      */
     public void transform( AffineTransform at )
     {
@@ -101,9 +119,28 @@ public class BasicPlotFigure
         fireChanged();
     }
 
-//
-//  Transform freely interface.
-//
+    public void setVisible( boolean flag )
+    {
+        super.setVisible( flag );
+
+        // Don't leave selection decorators around.
+        if ( !flag ) {
+            Interactor interactor = getInteractor();
+            if ( interactor instanceof SelectionInteractor ) {
+                SelectionModel model = 
+                    ((SelectionInteractor) interactor).getSelectionModel();
+                if ( model.containsSelection( this ) ) {
+                    model.removeSelection( this );
+                }
+            }
+        }
+        repaint();
+    }
+
+    //
+    //  Transform freely interface.
+    //
+
     /**
      * Hint that figures should ignore any transformation constraints
      * (to match a resize of Plot).

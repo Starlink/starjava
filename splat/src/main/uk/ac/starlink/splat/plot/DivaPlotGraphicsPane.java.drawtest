@@ -12,17 +12,13 @@ import diva.canvas.FigureLayer;
 import diva.canvas.GraphicsPane;
 import diva.canvas.event.MouseFilter;
 import diva.canvas.interactor.BoundsManipulator;
-import diva.canvas.interactor.CircleManipulator;
 import diva.canvas.interactor.Interactor;
 import diva.canvas.interactor.Manipulator;
 import diva.canvas.interactor.PathManipulator;
 import diva.canvas.interactor.SelectionInteractor;
 import diva.canvas.interactor.SelectionListener;
-import diva.canvas.interactor.SelectionModel;
-import diva.canvas.toolbox.BasicEllipse;
-import diva.canvas.toolbox.LabelFigure;
 import diva.canvas.toolbox.TypedDecorator;
-import diva.util.java2d.Polyline2D;
+import diva.canvas.toolbox.LabelFigure;
 
 import java.awt.Font;
 import java.awt.Paint;
@@ -115,25 +111,23 @@ public class DivaPlotGraphicsPane
 	// Use a generic decorator that can be tuned to use
         // different actual manipulators according to the type of
         // figure. The default manipulator is a BoundsManipulator.
-        Manipulator man = new BoundsManipulator();
-        TypedDecorator decorator = new TypedDecorator( man );
+        Manipulator manipulator = new BoundsManipulator();
+        TypedDecorator decorator = new TypedDecorator( manipulator );
 
         // Tell the controller to use this decorator for deciding how
         // to wrap selected figures.
         selectionInteractor.setPrototypeDecorator( decorator );
 
         //  Set manipulators for each figure type, if required.
-        man = new RangeManipulator();
+        Manipulator man = new RangeManipulator();
         decorator.addDecorator( XRangeFigure.class, man );
 
         man = new PathManipulator();
         decorator.addDecorator( PolylineFigure.class, man );
+        decorator.addDecorator( BasicPlotFigure.class, man );
 
         man = new InterpolatedCurveManipulator();
         decorator.addDecorator( InterpolatedCurveFigure.class, man );
-
-        man = new CircleManipulator();
-        decorator.addDecorator( BasicEllipse.class, man );
 
         // Add the additional drag region interactor to work with
         // mouse button 2.
@@ -141,6 +135,140 @@ public class DivaPlotGraphicsPane
                                                InputEvent.BUTTON3_MASK );
         dragRegion = new DragRegion( this );
         dragRegion.setSelectionFilter( mFilter );
+
+        //  Test section.
+        try {
+            double[] x = new double[10];
+            double[] y = new double[10];
+            for ( int i = 0; i < 10; i++ ) {
+                x[i] = i * 8.0 + 200.0;
+                y[i] = 100.0 + 5.0 * Math.sin( i + 1 );
+            }
+            InterpolatedCurve2D ic2d;
+            InterpolatedCurveFigure icf;
+
+            try {
+                uk.ac.starlink.splat.util.HermiteSplineInterp hp =
+                    new uk.ac.starlink.splat.util.HermiteSplineInterp( x, y );
+                ic2d = new InterpolatedCurve2D( hp );
+                icf = new InterpolatedCurveFigure( ic2d,
+                                                   java.awt.Color.green, 1.0f);
+                recordFigure( icf );
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+
+//             try {
+//                 double[] xx = (double[]) x.clone();
+//                 double[] yy = (double[]) y.clone();
+//                 for ( int i = 0; i < yy.length; i++ ) {
+//                     yy[i] += 20;
+//                 }
+//                 uk.ac.starlink.splat.util.CubicSplineInterp cp =
+//                     new uk.ac.starlink.splat.util.CubicSplineInterp( xx, yy);
+//                 ic2d = new InterpolatedCurve2D( cp );
+//                 icf = new InterpolatedCurveFigure( ic2d,
+//                                                    java.awt.Color.blue,2.0f );
+//                 recordFigure( icf );
+//             }
+//             catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+
+             try {
+                 double[] xx = (double[]) x.clone();
+                 double[] yy = (double[]) y.clone();
+                 for ( int i = 0; i < yy.length; i++ ) {
+                     yy[i] += 40;
+                 }
+                 uk.ac.starlink.splat.util.AkimaSplineInterp ap =
+                     new uk.ac.starlink.splat.util.AkimaSplineInterp( xx, yy);
+                 ic2d = new InterpolatedCurve2D( ap );
+                 icf = new InterpolatedCurveFigure( ic2d,
+                                                    java.awt.Color.red,2.0f );
+                 recordFigure( icf );
+             }
+             catch (Exception e) {
+                 e.printStackTrace();
+             }
+
+//             try {
+//                 double[] xx = (double[]) x.clone();
+//                 double[] yy = (double[]) y.clone();
+//                 for ( int i = 0; i < yy.length; i++ ) {
+//                     yy[i] += 60;
+//                 }
+//                 uk.ac.starlink.splat.util.LinearInterp ip =
+//                     new uk.ac.starlink.splat.util.LinearInterp( xx, yy);
+//                 ic2d = new InterpolatedCurve2D( ip );
+//                 icf = new InterpolatedCurveFigure( ic2d,
+//                                                    java.awt.Color.cyan, 2.0f );
+//                 recordFigure( icf );
+//             }
+//             catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+
+//             try {
+//                 double[] xx = new double[10];
+//                 double[] yy = new double[10];
+//                 for ( int i = 0; i < 10; i++ ) {
+//                     xx[i] = i * 40.0 + 200.0;
+//                     yy[i] = 250.0 + 5.0 * Math.sin( i + 1 );
+//                 }
+//                 uk.ac.starlink.splat.util.PolynomialInterp pp =
+//                     new uk.ac.starlink.splat.util.PolynomialInterp(5, xx, yy);
+//                 ic2d = new InterpolatedCurve2D( pp );
+//                 icf = new InterpolatedCurveFigure( ic2d,
+//                                                    java.awt.Color.magenta, 2.0f );
+//                 recordFigure( icf );
+//             }
+//             catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+
+//             try {
+//                 double[] xx = new double[4];
+//                 double[] yy = new double[4];
+
+//                 xx[0] = 50.0;
+//                 yy[0] = 200.0;
+
+//                 xx[1] = 100.0;
+//                 yy[1] = 200.0;
+
+//                 xx[2] = 150.0;
+//                 yy[2] = 300.0;
+
+//                 xx[3] = 200.0;
+//                 yy[3] = 200.0;
+
+//                 uk.ac.starlink.splat.util.LorentzInterp pp =
+//                     new uk.ac.starlink.splat.util.LorentzInterp( xx, yy);
+//                 ic2d = new InterpolatedCurve2D( pp );
+//                 icf = new InterpolatedCurveFigure( ic2d,
+//                                                    java.awt.Color.green, 2.0f );
+//                 recordFigure( icf );
+
+//                 xx = (double[]) xx.clone();
+//                 yy = (double[]) yy.clone();
+
+//                 pp = new uk.ac.starlink.splat.util.LorentzInterp( xx, yy);
+//                 ic2d = new InterpolatedCurve2D( pp );
+//                 icf = new InterpolatedCurveFigure( ic2d,
+//                                                    java.awt.Color.red, 2.0f );
+//                 recordFigure( icf );
+
+//             }
+//             catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -184,34 +312,14 @@ public class DivaPlotGraphicsPane
     {
         Figure newFigure = null;
         if ( shape instanceof InterpolatedCurve2D ) {
-            newFigure = 
-                new InterpolatedCurveFigure( (InterpolatedCurve2D) shape,
-                                             outline, lineWidth );
-        }
-        else if ( shape instanceof Polyline2D ) {
-            newFigure = new PathPlotFigure( shape, outline, lineWidth );
+            newFigure = new InterpolatedCurveFigure( (InterpolatedCurve2D) shape, 
+                                                     outline, lineWidth );
         }
         else {
             newFigure = new BasicPlotFigure( shape, fill, outline, lineWidth );
         }
         recordFigure( newFigure );
         return newFigure;
-    }
-
-    /**
-     * Lower a Figure to the bottom of the ZList.
-     */
-    public void lowerFigure( Figure figure )
-    {
-        figureLayer.setIndex( 0, figure );
-    }
-
-    /**
-     * Raise a figure to the front of the ZList.
-     */
-    public void raiseFigure( Figure figure ) 
-    {
-        figureLayer.setIndex( figureLayer.getFigureCount(), figure );
     }
 
     /**
@@ -241,8 +349,7 @@ public class DivaPlotGraphicsPane
     /**
      *  Get a list of the currently selected Figures.
      */
-    public Object[] getSelectionAsArray() 
-    {
+    public Object[] getSelectionAsArray() {
         return selectionInteractor.getSelectionModel().getSelectionAsArray();
     }
 
@@ -276,7 +383,7 @@ public class DivaPlotGraphicsPane
 
     /**
      *  Add a FigureListener to the DragRegion used for interacting
-     *  with figures.
+     * with figures.
      */
     public void addFigureDraggerListener( FigureListener l )
     {
@@ -284,8 +391,8 @@ public class DivaPlotGraphicsPane
     }
 
     /**
-     *  Remove a FigureListener to the DragRegion used for interacting
-     *  with figures.
+     * Remove a FigureListener to the DragRegion used for interacting
+     * with figures.
      */
     public void removeFigureDraggerListener( FigureListener l )
     {
@@ -293,8 +400,8 @@ public class DivaPlotGraphicsPane
     }
 
     /**
-     *  Add a FigureListener to the DragRegion used for non-figure
-     *  selection work.
+     * Add a FigureListener to the DragRegion used for non-figure
+     * selection work.
      */
     public void addZoomDraggerListener( FigureListener l )
     {
@@ -302,8 +409,8 @@ public class DivaPlotGraphicsPane
     }
 
     /**
-     *  Remove a FigureListener from the DragRegion used for non-figure
-     *  selection work.
+     * Remove a FigureListener from the DragRegion used for non-figure
+     * selection work.
      */
     public void removeZoomDraggerListener( FigureListener l )
     {
@@ -356,10 +463,16 @@ public class DivaPlotGraphicsPane
                                         String text, Paint outline,
                                         Font font )
     {
-        PlotLabelFigure label = new PlotLabelFigure( text, font );
-        label.setFillPaint( outline );
-        label.translateTo( x, y );
-        return label;
+        //return new PlotLabelFigure( props.getXCoordinate(),
+        //                            props.getYCoordinate(),
+        //                            props.getXLength(),
+        //                            props.getYLength(),
+        //                            props.getMainColour() );
+        LabelFigure label = new LabelFigure( text, font );
+        Figure figure = makeFigure( label.getShape(), outline, outline,
+                                    1.0f );
+        //figure.translateTo( x, y );
+        return figure;
     }
 
     /**
@@ -370,26 +483,6 @@ public class DivaPlotGraphicsPane
         figureLayer.add( newFigure );
         newFigure.setInteractor( selectionInteractor );
         figureList.add( newFigure );
-    }
-
-    /**
-     *  Remove a Figure.
-     *
-     *  @param figure the figure to remove.
-     */
-    public void removeFigure( Figure figure )
-    {
-        Interactor interactor = figure.getInteractor();
-        if ( interactor instanceof SelectionInteractor ) {
-            // remove any selection handles, etc.
-            SelectionModel model = 
-                ((SelectionInteractor) interactor).getSelectionModel();
-            if ( model.containsSelection( figure ) ) {
-                model.removeSelection( figure );
-            }
-        }
-        figureLayer.remove( figure );
-        figureList.remove( figure);
     }
 
     /**
@@ -436,10 +529,9 @@ public class DivaPlotGraphicsPane
      *  system (like wavelength,counts) and the second back from this
      *  system to the new graphics coordinates.
      */
+    //  TODO: could do all this using a single AffineTransform?
     public void astTransform( Mapping oldMapping, Mapping newMapping )
     {
-        //  TODO: could do all this using a single AffineTransform?
-
         // Switch off figure resizing constraints
         new BasicPlotFigure().setTransformFreely( true );
 

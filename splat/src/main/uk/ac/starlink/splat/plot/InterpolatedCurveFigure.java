@@ -8,6 +8,9 @@
 package uk.ac.starlink.splat.plot;
 
 import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import uk.ac.starlink.splat.util.Interpolator;
 
 /**
@@ -33,6 +36,7 @@ public class InterpolatedCurveFigure
     public InterpolatedCurveFigure( InterpolatedCurve2D curve )
     {
         super( curve );
+        this.curve = curve;
     }
 
     /**
@@ -42,6 +46,7 @@ public class InterpolatedCurveFigure
                                     Paint fill, float lineWidth )
     {
         super( curve, fill, lineWidth );
+        this.curve = curve;
     }
 
     /**
@@ -78,5 +83,39 @@ public class InterpolatedCurveFigure
         curve = new InterpolatedCurve2D( interpolator );
         curve.moveTo( x, y );
         return curve;
+    }
+
+    public void transform( AffineTransform at )
+    {
+        repaint();
+        curve.transform( at );
+        repaint();
+    }
+
+    public void translate( double x, double y )
+    {
+        repaint();
+        curve.translate( x, y );
+        repaint();
+    }
+
+    // Do not use default implementation, this is more efficient
+    // (avoids trip to GeneralPath).
+    public boolean hit( Rectangle2D r ) 
+    {
+        if ( !isVisible() ) {
+            return false;
+        }
+        return intersects( r );
+    }
+
+
+    // Keep the shape and curve in sync.
+    public void setShape( Shape shape )
+    {
+        if ( shape instanceof InterpolatedCurve2D ) {
+            this.curve = (InterpolatedCurve2D) shape;
+        }
+        super.setShape( shape );
     }
 }
