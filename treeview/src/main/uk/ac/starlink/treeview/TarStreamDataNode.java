@@ -170,7 +170,8 @@ public class TarStreamDataNode extends DefaultDataNode {
                                      * placing traces on the read() methods
                                      * of various streams have been fruitless.
                                      * So reluctantly I wrap it here. */
-                                    strm = new BufferedInputStream( strm );
+                                    // fixed??
+                                    // strm = new BufferedInputStream( strm );
 
                                     return strm;
                                 }
