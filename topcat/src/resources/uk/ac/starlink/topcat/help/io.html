@@ -55,6 +55,10 @@ TOPCAT will detect the format based on the location given.
 These facilities are available because the I/O facilities are taken
 care of by the Starlink generic tables access library.
 
+<p>If you receive an <strong>OutOfMemoryError</strong> while loading
+a table, increase the available heap memory as described in the
+section on <a href="invoke.html">Invoking TOPCAT</a>.
+
 <p>The available input formats are described on the following pages:
 <ul>
 <li><a href="fits-read.html">FITS</a>
@@ -82,7 +86,7 @@ made and will be reflected are:
 <li>Existing columns deleted
 <li>Columns moved around
 <li>Row order changed by sorting
-<li>Rows hidden by applying a Row Subset
+<li>Rows hidden by applying a <a href="subsets.html">Row Subset</a>
 </ul>
 Row Subsets which have been defined on the table in the current session
 will not be saved themselves, but new columns may be added containing

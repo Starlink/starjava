@@ -39,24 +39,31 @@ the values in the data table column corresponding to that grid row:
 </dl>
 
 
-<h4><a name="subsets"></a>Controls</h4>
+<h4><a name="subsets"></a>Subset selection</h4>
 
 <p>The quantities displayed in this window are not necessarily those for
-the entire table; they are those for a particular Row Subset.
+the entire table; they are those for a particular 
+<a href="subsets.html">Row Subset</a>.
 
 <p>At the bottom of the window is a selector button which allows you
 to select which subset you want the calculations to be done for.
 By clicking on this you can calculate the statistics for different
 subsets.
-Calculations are cached by subset, so that if you pick a subset for
-which calculations have already been done, the old results will be
-redisplayed.  If you want to recalculate them because the data have
-changed, you can use the Recalculate button.
 
 <p>When the window is first opened, or when it is invoked from a menu
 or the toolbar in the main
 browser window, the subset will correspond to the active subset in
 the main window.
+
+<h4>Toolbar</h4>
+
+<dl>
+<dt><img src="../images/Redo24.gif"><strong>Recalculate</strong>
+<dd>Once statistics have been calculated for a given subset they are
+    cached and not normally recalculated again.  
+    Use this button if you want to force a recalculation because the
+    data may have changed.<br>
+    Also available as the "Recalculate" item on the Statistics menu.
 
 <h4>Progress Bar</h4>
 
