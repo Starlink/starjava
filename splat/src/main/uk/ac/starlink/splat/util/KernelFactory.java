@@ -40,7 +40,7 @@ public class KernelFactory
             new GaussianGenerator( 1.0, center, sigma );
 
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalPoint( (double) j );
+            kernel[j] = generator.evalYData( (double) j );
         }
 
         return kernel;
@@ -65,7 +65,7 @@ public class KernelFactory
             new LorentzGenerator( 1.0, center, lwidth );
 
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalPoint( (double) j );
+            kernel[j] = generator.evalYData( (double) j );
         }
 
         return kernel;
@@ -91,7 +91,7 @@ public class KernelFactory
             new VoigtGenerator( 1.0, center, gwidth, lwidth );
 
         for ( int j = 0; j < width; j++ ) {
-            kernel[j] = generator.evalPoint( (double) j );
+            kernel[j] = generator.evalYData( (double) j );
         }
 
         return kernel;
