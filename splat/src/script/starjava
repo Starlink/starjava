@@ -2,15 +2,29 @@
 #  N.B. the previous line should be blank.
 #+
 #  Name:
-#     splatjava
+#     starjava
 
 #  Purpose:
-#     Locate and run the Java JVM with any given arguments.
+#     Locate and run the Starlink installed "java" command with any
+#     given arguments.
 
 #  Description:
-#     Attempts to use the Starlink installed version (in
-#     $STARLINK/java/jdkhome|jrehome or /star/java/jdkhome|jrehome ),
-#     otherwise it uses any version found on the PATH.
+#     This script should be used as the "java" command when starting a
+#     Starlink program. It attempts to make sure that the installed
+#     version of the "java" command is used in preference to any
+#     others (this increases the likelyhood that programs are only
+#     executed by JVMs that they have been tested against).
+#
+#     The real "java" command is searched for in the following order:
+#
+#        - `cat $STARLINK/java/jrehome`/bin/java
+#        - `cat /star/java/jrehome`/bin/java
+#        - anywhere on the PATH
+#
+#     For development purposes it is possible to overide this
+#     behaviour and force the use of a specific "java" command.
+#     To do this define the variable STAR_JAVA to point at a "java"
+#     command before starting this script.
 
 #  Type of Module:
 #     Shell script.
@@ -25,8 +39,6 @@
 #  History:
 #     24-OCT-2001 (PWD):
 #        Original version.
-#     29-JAB-2002 (PWD):
-#        Updated for release java location scheme.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -36,23 +48,25 @@
 
 #.
 
-#  Development Java
+#  Development version of "java".
 if test "$STAR_JAVA" != ""; then
    java="$STAR_JAVA"
+
 else
 
-   #  Fall-back Java is on current PATH.
+   #  Fall-back "java" is on current PATH.
    java="java"
 
    #  If $STARLINK is defined then try that. Only look for the JRE
-   #  version (only need JDK for development).
+   #  command (only need JDK for development, use "STAR_JAVA" to
+   #  override).
    if test "$STARLINK" != ""; then
       if test -r "$STARLINK/java/jrehome"; then
          java="`cat $STARLINK/java/jrehome`/bin/java"
       fi
    fi
 
-   #  If still not changed, look for Java in the standard installation.
+   #  If still not changed, look for "java" in the standard installation.
    if test "$java" = "java"; then
       if test -r "/star/java/jrehome"; then
          java="`cat /star/java/jrehome`/bin/java"
@@ -61,5 +75,4 @@ else
 fi
 
 #  Execute it.
-echo "Running command: $java ${1+"$@"}"
 $java ${1+"$@"}
