@@ -1,6 +1,7 @@
 package uk.ac.starlink.votable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import junit.framework.TestCase;
 import uk.ac.starlink.fits.FitsTableBuilder;
@@ -85,7 +86,7 @@ public class FitsPlusTest extends TestCase {
            throws IOException {
         File tmp = File.createTempFile( "table", ".tmp" );
         tmp.deleteOnExit();
-        outie.writeStarTable( table, tmp.toString() );
+        outie.writeStarTable( table, new FileOutputStream( tmp ) );
         return innie.makeStarTable( new FileDataSource( tmp ), 
                                     true, StoragePolicy.PREFER_MEMORY );
     }
