@@ -135,7 +135,7 @@ public class TestWCS extends JPanel implements ImageGraphicsHandler
             HDXImage hdxImage = (HDXImage) o;
             Ndx ndx = hdxImage.getCurrentNDX();
             try {
-                frameSet = ndx.getWCS();
+                frameSet = ndx.getAst();
                 if ( frameSet != null ) {
                     addAstTransform();
                     addMouseTracker();
