@@ -51,11 +51,11 @@ public class MEMSpecDataImpl
         super( name, spectrum );
         this.shortName = name;
         if ( spectrum.haveYDataErrors() ) {
-            setData( spectrum.getYData(), spectrum.getXData(),
+            setData( spectrum.getXData(), spectrum.getYData(),
                      spectrum.getYDataErrors() );
         }
         else {
-            setData( spectrum.getYData(), spectrum.getXData() );
+            setData( spectrum.getXData(), spectrum.getYData() );
         }
     }
 
@@ -221,10 +221,10 @@ public class MEMSpecDataImpl
     public void save() throws SplatException
     {
         if ( errors != null ) {
-	   setData( data, coords, errors );
+	   setData( coords, data, errors );
         }
         else {
-	   setData( data, coords );
+	   setData( coords, data );
 	}
     }
 
@@ -236,10 +236,10 @@ public class MEMSpecDataImpl
      * Set the spectrum data. No errors. Takes complete copies of the
      * data.
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      */
-    public void setData( double[] data, double[] coords )
+    public void setData( double[] coords, double[] data )
     {
         //  Create memory needed to store these coordinates.
         this.data = new double[data.length];
@@ -258,10 +258,10 @@ public class MEMSpecDataImpl
      * Set the spectrum data. No errors. Doesn't copy the data, just
      * keeps references (quick but less safe).
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      */
-    public void setDataQuick( double[] data, double[] coords )
+    public void setDataQuick( double[] coords, double[] data )
     {
         this.data = data;
         this.coords = coords;
@@ -275,14 +275,14 @@ public class MEMSpecDataImpl
      * Set the spectrum data. With errors. Doesn't copy the data, just
      * keeps references (quick but less safe).
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values. Null for
      *               none. 
      */
-    public void setData( double[] data, double[] coords, double[] errors )
+    public void setData( double[] coords, double[] data, double[] errors )
     {
-        setData( data, coords );
+        setData( coords, data );
         if ( errors != null ) {
             this.errors = new double[data.length];
             System.arraycopy( errors, 0, this.errors, 0, data.length );
@@ -301,9 +301,9 @@ public class MEMSpecDataImpl
      * @param errors the errors of the spectrum data values. Null for
      *               none. 
      */
-    public void setDataQuick( double[] data, double[] coords, double[] errors )
+    public void setDataQuick( double[] coords, double[] data, double[] errors )
     {
-        setDataQuick( data, coords );
+        setDataQuick( coords, data );
         this.errors = errors;
     }
 
@@ -358,11 +358,15 @@ public class MEMSpecDataImpl
     }
 
     /**
-     * Accept a new FrameSet.
+     * Accept a new FrameSet. The existing FrameSet is annulled,
+     * unless a reference to it is given.
      */
     public void setAst( FrameSet frameSet )
         throws SplatException
     {
-        this.astref = frameSet;
+        if ( frameSet != astref ) {
+            astref.annul();
+            astref = frameSet;
+        }
     }
 }

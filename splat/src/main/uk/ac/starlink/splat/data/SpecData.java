@@ -670,12 +670,10 @@ public class SpecData
         try {
             newSpec = SpecDataFactory.getReference().createEditable( name );
             if ( errors == null ) {
-                System.out.println( "setDataQuick: " + data + ", " +
-                                    coords );
-                newSpec.setDataQuick( data, coords );
+                newSpec.setDataQuick( coords, data );
             }
             else {
-                newSpec.setDataQuick( data, coords, errors );
+                newSpec.setDataQuick( coords, data, errors );
             }
         }
         catch ( Exception e ) {
@@ -1081,9 +1079,9 @@ public class SpecData
             //  sigaxis (if input data has more than one dimension)
             //  and may be a distance, rather than absolute coordinate.
             FrameSet specref = ast.makeSpectral( sigaxis, 0, yPos.length,
-                impl.getProperty( "label" ),
-                impl.getProperty( "units" ),
-                false );
+                                                 impl.getProperty( "label" ),
+                                                 impl.getProperty( "units" ),
+                                                 false );
             astJ = new ASTJ( specref, true );
 
             //  Get the mapping for the X axis and check that it is
@@ -1092,11 +1090,11 @@ public class SpecData
             boolean invertable = ( oned.getI( "TranInverse" ) == 1 );
             if ( ! invertable ) {
                 throw new SplatException( "The coordinate axis " +
-                    "of the spectrum '" + shortName +
-                    "' does not increase or " +
-                    "decrease monotonically.\n" +
-                    "This means that it cannot " +
-                    "be used." );
+                                          "of the spectrum '" + shortName +
+                                          "' does not increase or " +
+                                          "decrease monotonically.\n" +
+                                          "This means that it cannot " +
+                                          "be used." );
             }
 
             //  Get the centres of the pixel positions in current
@@ -1315,7 +1313,7 @@ public class SpecData
      */
     protected void renderErrorBars( DefaultGrf grf, Plot plot )
     {
-        if ( drawErrorBars ) {
+        if ( drawErrorBars && yErr != null ) {
             double[] xypos = new double[4];
             double[][] xygpos = null;
             double[] xpos = null;
@@ -1705,10 +1703,10 @@ public class SpecData
         MEMSpecDataImpl newImpl = new MEMSpecDataImpl( shortName );
         fullName = null;
         if ( haveYDataErrors() ) {
-            newImpl.setData( getYData(), getXData(), getYDataErrors() );
+            newImpl.setData( getXData(), getYData(), getYDataErrors() );
         }
         else {
-            newImpl.setData( getYData(), getXData() );
+            newImpl.setData( getXData(), getYData() );
         }
         this.impl = newImpl;
         try {

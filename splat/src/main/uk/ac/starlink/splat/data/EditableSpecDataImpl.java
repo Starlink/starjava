@@ -45,40 +45,40 @@ public abstract class EditableSpecDataImpl
     /**
      * Change the complete spectrum data. Takes a copy of all data.
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      */
-    abstract public void setData( double[] data, double[] coords )
+    abstract public void setData( double[] coords, double[] data )
         throws SplatException;
 
     /**
      * Change the complete spectrum data. Original data is not copied.
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      */
-    abstract public void setDataQuick( double[] data, double[] coords )
+    abstract public void setDataQuick( double[] coords, double[] data )
         throws SplatException;
 
     /**
      * Change the complete spectrum data. Takes a copy of all data.
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    abstract public void setData( double[] data, double[] coords, 
+    abstract public void setData( double[] coords, double[] data, 
                                   double[] errors )
         throws SplatException;
 
     /**
      * Change the complete spectrum data. Original data is not copied.
      *
-     * @param data the spectrum data values.
      * @param coords the spectrum coordinates, one per data value.
+     * @param data the spectrum data values.
      * @param errors the errors of the spectrum data values.
      */
-    abstract public void setDataQuick( double[] data, double[] coords, 
+    abstract public void setDataQuick( double[] coords, double[] data, 
                                        double[] errors )
         throws SplatException;
 
