@@ -48,6 +48,7 @@ import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.datanode.nodes.NoSuchDataException;
 import uk.ac.starlink.datanode.tree.select.NodeRootComboBox;
+import uk.ac.starlink.datanode.tree.select.NodeRootModel;
 
 /**
  * A component which presents a tree of nodes and allows navigation 
@@ -326,6 +327,23 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         configureActionAvailability( null );
         jtree.expandPathLater( new TreePath( root ) );
         rootSelector.getModel().setSelectedItem( root );
+    }
+
+    /**
+     * Returns the component which allows the user to select the current
+     * root of the tree.
+     *
+     * @return   root combo box;
+     */
+    public NodeRootComboBox getRootSelector() {
+        return rootSelector;
+    }
+
+    /**
+     * Removes all roots from the root selector.
+     */
+    public void clear() {
+        ((NodeRootModel) rootSelector.getModel()).removeAllElements();
     }
 
     /**
