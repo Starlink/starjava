@@ -286,7 +286,8 @@
               windowtitle="${FullName} API"
               doctitle="${FullName}" 
               protected="true"
-              classpathref="classpath">
+              classpathref="classpath"
+              source="1.4">
 
       <!-- Get all possible package names from the build/java
        !   directories. Need to name all top-level packages
