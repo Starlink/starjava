@@ -164,7 +164,7 @@ public class VOTableWriter implements StarTableWriter {
                 writer.newLine();
                 writer.write( serializer.formatAttribute( 
                                   "xsi:noNamespaceSchemaLocation",
-                                  "http://www.ivoa.net/xml/VOTable/VOTable/v"
+                                  "http://www.ivoa.net/xml/VOTable/v"
                                   + votableVersion ) );
             }
         }
