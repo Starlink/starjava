@@ -89,7 +89,6 @@ public class ControlWindow extends AuxWindow
     private final ListDataListener tablesWatcher = this;
     private final TableColumnModelListener columnWatcher = this;
     private final WindowListener windowWatcher = new ControlWindowListener();
-    private final StarTableFactory tabfact = new StarTableFactory( true );
     private final StarTableOutput taboutput = new StarTableOutput();
     private final boolean canWrite = Driver.canWrite();
     private final boolean canRead = Driver.canRead();
@@ -102,6 +101,7 @@ public class ControlWindow extends AuxWindow
     private final Window window = this;
     private final ComboBoxModel dummyComboBoxModel = new DefaultComboBoxModel();
     private final ButtonModel dummyButtonModel = new DefaultButtonModel();
+    private StarTableFactory tabfact = new StarTableFactory( true );
     private LoadQueryWindow loadWindow;
     private StarTableSaver saver;
     private ConcatWindow concatWindow;
@@ -455,6 +455,15 @@ public class ControlWindow extends AuxWindow
      */
     public StarTableFactory getTableFactory() {
         return tabfact;
+    }
+
+    /**
+     * Sets the table factory used by this window.
+     *
+     * @param   tabfact   table factory
+     */
+    public void setTableFactory( StarTableFactory tabfact ) {
+        this.tabfact = tabfact;
     }
 
     /**

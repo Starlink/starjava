@@ -30,6 +30,8 @@ public class Driver {
     private static Boolean canWrite;
     private static StarTable[] demoTables;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
+    private static StarTableFactory tabfact = new StarTableFactory( true );
+    private static ControlWindow control;
 
     /**
      * Determines whether TableViewers associated with this class should
@@ -168,6 +170,9 @@ public class Driver {
             }
         }
 
+        /* Start up the GUI now. */
+        getControlWindow();
+
         /* Start up with demo data if requested. */
         if ( demo ) {
             StarTable[] demoTables = getDemoTables();
@@ -185,8 +190,7 @@ public class Driver {
             final String arg = args[ i ];
             if ( arg != null ) {
                 try {
-                    StarTable startab = getControlWindow().getTableFactory()
-                                                          .makeStarTable( arg );
+                    StarTable startab = tabfact.makeStarTable( arg );
                     if ( startab == null ) {
                         System.err.println( "No table \"" + arg + "\"" );
                     }
@@ -205,10 +209,6 @@ public class Driver {
                 }
             }
         }
-
-        /* If the GUI hasn't started up yet (no command-line arguments),
-         * make sure it starts up now. */
-        getControlWindow();
     }
 
     /**
@@ -220,7 +220,11 @@ public class Driver {
      * @return  control window
      */
     private static ControlWindow getControlWindow() {
-        return ControlWindow.getInstance();
+        if ( control == null ) {
+            control = ControlWindow.getInstance();
+            control.setTableFactory( tabfact );
+        }
+        return control;
     }
 
     /**
@@ -250,7 +254,6 @@ public class Driver {
      * @return  array of demo tables
      */
     static StarTable[] getDemoTables() {
-        StarTableFactory tabfact = new StarTableFactory( true );
         String base = LoadQueryWindow.DEMO_LOCATION + '/';
         String[] demoNames = new String[] {
             "863sub.fits",
