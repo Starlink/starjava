@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -129,6 +130,18 @@ public class TarFileDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException();
             }
         };
+    }
+
+    /**
+     * Returns the stream representing the content of this tar file, 
+     * if one exists, or <tt>null</tt> if it can't be done.
+     *
+     * @return  a TarInputStream holding this tar archive, or <tt>null</tt>
+     */
+    public TarInputStream getTarInputStream() throws IOException {
+        return ( file == null ) 
+                   ? null
+                   : new TarInputStream( new FileInputStream( file ) );
     }
 
     private TarEntry[] getEntriesAtLevel( String level ) {
