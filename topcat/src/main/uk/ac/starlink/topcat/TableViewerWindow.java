@@ -62,7 +62,7 @@ public class TableViewerWindow extends TopcatViewWindow
     private boolean selfHighlighting;
 
     private static int MAX_COLUMN_WIDTH = 300; 
-    private static int MAX_SAMPLE_ROWS = 2000;
+    private static int MAX_SAMPLE_ROWS = 800;
 
     /**
      * Constructs a new TableViewer to view a given table.
