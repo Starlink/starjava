@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.AlphaComposite;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -17,6 +18,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import javax.media.jai.PlanarImage;
@@ -48,6 +50,8 @@ public class AsynchronousImageDisplay extends ImageDisplay {
     private int maxTileX;
     private int minTileY;
     private int maxTileY;
+
+    private static Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
 
     public AsynchronousImageDisplay() {
         super();
@@ -91,6 +95,7 @@ public class AsynchronousImageDisplay extends ImageDisplay {
                                       TileRequest[] requests,
                                       PlanarImage image, int tileX, int tileY,
                                       Raster tile) {
+                tileStore.cancelUnneededRequests();
                 tileStore.put( new Point( tileX, tileY), tile );
                 Insets insets = getInsets();
                 int x = displayImage.tileXToX( tileX ) + insets.left;
@@ -129,38 +134,25 @@ public class AsynchronousImageDisplay extends ImageDisplay {
         }
 
         // Determine the extent of the clipping region in tile coordinates.
-        int txmin, txmax, tymin, tymax;
-        int ti, tj;
-
-        txmin = displayImage.XToTileX( clipBounds.x );
-        txmin = Math.max( txmin, minTileX );
-        txmin = Math.min( txmin, maxTileX );
-
-        txmax = displayImage.XToTileX( clipBounds.x + clipBounds.width - 1 );
-        txmax = Math.max( txmax, minTileX );
-        txmax = Math.min( txmax, maxTileX );
-
-        tymin = displayImage.YToTileY( clipBounds.y );
-        tymin = Math.max( tymin, minTileY );
-        tymin = Math.min( tymin, maxTileY );
-
-        tymax = displayImage.YToTileY( clipBounds.y + clipBounds.height - 1 );
-        tymax = Math.max( tymax, minTileY );
-        tymax = Math.min( tymax, maxTileY );
+        Rectangle tilePoints = getTileSpace( clipBounds );
+        int txmin = tilePoints.x;
+        int tymin = tilePoints.y;
+        int txmax = tilePoints.x + tilePoints.width - 1;
+        int tymax = tilePoints.y + tilePoints.height - 1;
 
         Insets insets = getInsets();
         boolean iap = colorModel.isAlphaPremultiplied();
 
-        for ( tj = tymin; tj <= tymax; tj++ ) {
+        for ( int tj = tymin; tj <= tymax; tj++ ) {
             int ty = displayImage.tileYToY( tj );
-            for ( ti = txmin; ti <= txmax; ti++ ) {
+            for ( int ti = txmin; ti <= txmax; ti++ ) {
                 int tx = displayImage.tileXToX( ti );
 
                 /* Either get the ready tile or queue it for calculation. */
                 Point tpt = new Point( ti, tj );
                 Raster tile = tileStore.get( tpt );
                 if ( tile == null ) {
-                    displayImage.queueTiles( new Point[] { tpt } );
+                    tileStore.queue( tpt );
                 }
 
                 /* Do we have a tile ready to draw? */
@@ -191,50 +183,130 @@ public class AsynchronousImageDisplay extends ImageDisplay {
      * been queued and calculated.  For each call of put, exactly
      * one subsequent call of remove should be made.
      */
-    private static class TileStore {
+    private class TileStore {
         private class Record { int refCount = 1; Raster raster; }
         private Map tileMap = new HashMap();
         private Map tileRefs = new HashMap();
+        private Map tileRequests = new HashMap();
 
-        public synchronized void put(Point pt,Raster raster) {
+        public synchronized void queue(Point pt) {
+            if ( ! tileRequests.containsKey( pt ) ) {
+                TileRequest req = displayImage.queueTiles( new Point[] { pt } );
+                tileRequests.put( pt, req );
+                setBusy( true );
+     System.out.println( "Order:\t" + pt );
+            }
+        }
+
+        public synchronized void cancelUnneededRequests() {
+            boolean showing = isShowing();
+            Rectangle visibleTiles = getTileSpace( getVisibleRect() );
+            int txmin = visibleTiles.x;
+            int tymin = visibleTiles.y;
+            int txmax = visibleTiles.x + visibleTiles.width - 1;
+            int tymax = visibleTiles.y + visibleTiles.height - 1;
+            for ( Iterator it = tileRequests.entrySet().iterator(); 
+                  it.hasNext(); ) {
+                Map.Entry ent = (Map.Entry) it.next();
+                Point pt = (Point) ent.getKey();
+                if ( ( ! showing ) ||
+                     pt.x < txmin || pt.x > txmax || 
+                     pt.y < tymin || pt.y > tymax ) {
+                    TileRequest req = (TileRequest) ent.getValue();
+                    Point[] reqpts = req.getTileIndices();
+                    assert reqpts.length == 1;
+                    assert reqpts[ 0 ].equals( pt );
+                    req.cancelTiles( req.getTileIndices() );
+                    it.remove();
+                    tileMap.remove( pt );
+     System.out.println( "Cancel:\t" + pt + "  " + (showing ? (txmin+".."+txmax+", "+tymin+".."+tymax) : "hidden") );
+                }
+            }
+            if ( tileRequests.isEmpty() ) {
+                setBusy( false );
+            }
+        }
+
+        public synchronized void put( Point pt, Raster raster ) {
             Record rec;
-            if (tileMap.containsKey(pt)) {
-                rec = (Record) tileMap.get(pt);
+            if ( tileMap.containsKey( pt ) ) {
+                rec = (Record) tileMap.get( pt );
                 rec.refCount++;
             }
             else {
                 rec = new Record();
                 rec.raster = raster;
-                tileMap.put(pt, rec);
-                tileRefs.put(pt, new WeakReference(raster));
+                tileMap.put( pt, rec );
+                tileRefs.put( pt, new WeakReference( raster ) );
             }
-  // System.out.println( "Put:\t" + pt + "\t" + rec.refCount );
+     System.out.println( "Put:\t" + pt + " " + rec.refCount );
         }
 
-        public synchronized Raster get(Point pt) {
+        public synchronized Raster get( Point pt ) {
             Raster raster;
-            Record rec = (Record) tileMap.get(pt);
-            if (rec != null) {
+            Record rec = (Record) tileMap.get( pt );
+            if ( rec != null ) {
                 raster = rec.raster;
-  // System.out.println( "Buy:\t" + pt + " " + rec.refCount );
-                if (--rec.refCount == 0) {
-                    tileMap.remove(pt);
+     System.out.println( "Buy:\t" + pt + " " + rec.refCount );
+                if ( --rec.refCount == 0 ) {
+                    tileMap.remove( pt );
+                    tileRequests.remove( pt );
+                    if ( tileRequests.isEmpty() ) {
+                        setBusy( false );
+                    }
                 }
             }
-            else if (tileRefs.containsKey(pt)) {
-                Reference ref = (Reference) tileRefs.get(pt);
+            else if ( tileRefs.containsKey( pt ) ) {
+                Reference ref = (Reference) tileRefs.get( pt );
                 raster = (Raster) ref.get();
-                if (raster == null) {
-  // System.out.println( "Gone:\t" + pt );
-                    tileRefs.remove(pt);
+                if ( raster == null ) {
+     System.out.println( "Gone:\t" + pt );
+                    tileRefs.remove( pt );
                 }
-  // else System.out.println( "Steal:\t" + pt );
+     else System.out.println( "Steal:\t" + pt );
             }
             else {
                 raster = null;
             }
             return raster;
         }
+    }
+
+    /**
+     * Calculates the area in tile space (pixel 0,0 represents the first
+     * tile etc) which corresponds to a given area in pixel space.
+     * Any tile which is wholly or partially covered by the pixel region
+     * is included in the result.
+     */
+    private Rectangle getTileSpace( Rectangle pixelSpace ) {
+        int txmin;
+        int txmax;
+        int tymin;
+        int tymax;
+
+        txmin = displayImage.XToTileX( pixelSpace.x );
+        txmin = Math.max( txmin, minTileX );
+        txmin = Math.min( txmin, maxTileX );
+
+        txmax = displayImage.XToTileX( pixelSpace.x + pixelSpace.width - 1 );
+        txmax = Math.max( txmax, minTileX );
+        txmax = Math.min( txmax, maxTileX );
+
+        tymin = displayImage.YToTileY( pixelSpace.y );
+        tymin = Math.max( tymin, minTileY );
+        tymin = Math.min( tymin, maxTileY );
+
+        tymax = displayImage.YToTileY( pixelSpace.y + pixelSpace.height - 1 );
+        tymax = Math.max( tymax, minTileY );
+        tymax = Math.min( tymax, maxTileY );
+
+        return new Rectangle( txmin, tymin, 
+                              txmax - txmin + 1, tymax - tymin + 1 );
+    }
+
+    private void setBusy( boolean busy ) {
+  System.out.println( "busy: " + busy );
+        setCursor( busy ? busyCursor : null );
     }
 
 
