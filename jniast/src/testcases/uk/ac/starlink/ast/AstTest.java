@@ -25,6 +25,7 @@ import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 import uk.ac.starlink.ast.grf.DefaultGrfFontManager;
+import uk.ac.starlink.ast.grf.GrfEscape;
 
 public class AstTest extends TestCase {
 
@@ -74,7 +75,9 @@ public class AstTest extends TestCase {
             new Frame( 1 ).getC( "Sir Not-appearing-in-this-class" );
             fail();
         }
-        catch ( AstException e ) {}
+        catch ( AstException e ) {
+            assertEquals( AstException.AST__BADAT, e.getStatus() );
+        }
 
         Frame ff = grid;
         ff.setIdent( "1-2-3-4" );
@@ -503,14 +506,14 @@ public class AstTest extends TestCase {
             fail();
         }
         catch ( AstException e ) {
-            assertTrue( e.getMessage().indexOf( "not defined" ) > 0 );
+            assertEquals( AstException.AST__TRNND, e.getStatus() );
         }
         try {
             imap.tran1( 1, numarr, true );
             fail();
         }
         catch ( AstException e ) {
-            assertTrue( e.getMessage().indexOf( "not defined" ) > 0 );
+            assertEquals( AstException.AST__TRNND, e.getStatus() );
         }
     }
 
@@ -636,7 +639,6 @@ public class AstTest extends TestCase {
         plot2.setNumLab( true );
         plot2.setDrawTitle( true );
         plot2.setTitle("Log Coords (10%^50+%s70+%c1000+n%c+%s+%^+ notation)");
-
         plot2.setTextLab( true );
         plot2.set("label(1)=Axis %^50+ %s50+ one %s+ %^+" );
         plot2.setLabel( 2, "Axis %^50+ %s50+ two %s+ %^+");
@@ -736,12 +738,15 @@ public class AstTest extends TestCase {
     public void testException() {
         AstException e1 = new AstException( "t", AstException.AST__UK1ER );
         AstException e2 = new AstException( "t", AstException.AST__BADUN );
+        assertEquals( AstException.AST__UK1ER, e1.getStatus() ); 
+        assertEquals( "AST__UK1ER", e1.getStatusName() );
+        assertEquals( AstException.AST__BADUN, e2.getStatus() );
+        assertEquals( "AST__BADUN", e2.getStatusName() );
     }
 
     public static Test suite() {
         return new TestSuite( AstTest.class );
     }
-
 
 }
 
