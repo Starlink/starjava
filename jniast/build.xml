@@ -326,18 +326,42 @@
     <!-- Work out what doesn't need to be done -->
     <condition property="java.assembled">
       <and>
-        <istrue value="false"/>   <!-- Note this doesn't work for now.. -->
         <uptodate>
-          <srcfiles dir="${src.perl}" includes="*.pl"/>
-          <mapper type="glob" from="${src.perl}/*.pl"
-                              to="${build.java}/${package.path}/*.java"/>
+          <srcfiles dir="${basedir}" includes="${src.perl}/*.pl"/>
+          <mapper type="glob" 
+                  from="${src.perl}${file.separator}*.pl"
+                  to="${build.java}${file.separator}${package.path}${file.separator}*.java"/>
         </uptodate>
         <uptodate>
-          <srcfiles dir="${java.dir}">
-            <include name="**/*.java"/>
-            <include name="**/*.html"/>
+          <srcfiles dir="${basedir}">
+            <include name="${java.dir}/**/*.java"/>
+            <include name="${java.dir}/**/*.html"/>
           </srcfiles>
-          <mapper type="glob" from="${java.dir}" to="${build.java}"/>
+          <mapper type="glob"
+                  from="${java.dir}${file.separator}*"
+                  to="${build.java}${file.separator}*"/>
+        </uptodate>
+      </and>
+    </condition>
+
+    <condition property="jni.assembled">
+      <and>
+        <uptodate>
+          <srcfiles dir="${basedir}">
+            <include name="${src.jni}/*"/>
+          </srcfiles>
+          <mapper type="glob"
+                  from="${src.jni}${file.separator}*"
+                  to="${build.jni}${file.separator}*"/>
+        </uptodate>
+        <uptodate>
+          <srcfiles dir="${basedir}">
+            <include name="${build.ast}/grf.h"/>
+            <include name="${build.ast}/ast.h"/>
+          </srcfiles>
+          <mapper type="glob"
+                  from="${build.ast}${file.separator}*"
+                  to="${build.jni}${file.separator}*"/>
         </uptodate>
       </and>
     </condition>
@@ -677,7 +701,7 @@
    !  a large binary, so it is not distributed.  Hence it may not be
    !  there; in this case a failure message tells you what to do.
    !-->
-  <target name="get_ast_source" unless="got.ast.source">
+  <target name="get_ast_source">
     <available file="${ast.archive}" property="got.ast.archive"/>
     <fail unless="got.ast.archive"
      message="No file ${ast.archive}. Get it from an AST source distribution."/>
