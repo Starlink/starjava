@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -60,7 +60,7 @@ import java.util.Vector;
  * Encapsulates an input request.
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.1.2.1 $
  * @since Ant 1.5
  */
 public class MultipleChoiceInputRequest extends InputRequest {

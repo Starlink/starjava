@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -315,6 +315,13 @@ public class ManifestTest extends BuildFileTest {
         assertNotNull(mfAsString);
         assertTrue(mfAsString.startsWith("Manifest-Version: 2.0"));
         assertTrue(mfAsString.indexOf("Foo: Bar") > -1);
+
+        mf = getManifest("src/etc/testcases/taskdefs/mftest2.mf");
+        assertNotNull(mf);
+        mfAsString = mf.toString();
+        assertNotNull(mfAsString);
+        assertEquals(-1, mfAsString.indexOf("Foo: Bar"));
+        assertTrue(mfAsString.indexOf("Foo: Baz") > -1);
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -99,7 +99,7 @@ import java.util.Vector;
  *      rvaughn@seaconinc.com</a>
  * @author Glenn McAllister <a href="mailto:glennm@ca.ibm.com">
  *      glennm@ca.ibm.com</a>
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @since Ant 1.3
  */
 public class FTP
@@ -603,25 +603,56 @@ public class FTP
      */
     protected void createParents(FTPClient ftp, String filename)
          throws IOException, BuildException {
-        Vector parents = new Vector();
+
         File dir = new File(filename);
+        if (dirCache.contains(dir)) {
+            return;
+        }
+
+        
+        Vector parents = new Vector();
         String dirname;
 
         while ((dirname = dir.getParent()) != null) {
-            dir = new File(dirname);
+            File checkDir = new File(dirname);
+            if (dirCache.contains(checkDir)) {
+                break;
+            }
+            dir = checkDir;
             parents.addElement(dir);
         }
 
-        for (int i = parents.size() - 1; i >= 0; i--) {
-            dir = (File) parents.elementAt(i);
-            if (!dirCache.contains(dir)) {
-                log("creating remote directory " + resolveFile(dir.getPath()),
-                    Project.MSG_VERBOSE);
-                if(!ftp.makeDirectory(resolveFile(dir.getPath()))) {
-                    handleMkDirFailure(ftp);
+        // find first non cached dir
+        int i = parents.size() - 1;
+                
+        if (i >= 0) {
+            String cwd = ftp.printWorkingDirectory();
+            String parent = dir.getParent();
+            if (parent != null) {
+                if (!ftp.changeWorkingDirectory(parent)) {
+                    throw new BuildException("could not change to " 
+                        + "directory: " + ftp.getReplyString());
+                }
+            }
+            
+            while (i >= 0) {
+                dir = (File) parents.elementAt(i--);
+                // check if dir exists by trying to change into it.
+                if (!ftp.changeWorkingDirectory(dir.getName())) {
+                    // could not change to it - try to create it
+                    log("creating remote directory " 
+                        + resolveFile(dir.getPath()), Project.MSG_VERBOSE);
+                    if(!ftp.makeDirectory(dir.getName())) {
+                        handleMkDirFailure(ftp);
+                    }
+                    if (!ftp.changeWorkingDirectory(dir.getName())) {
+                        throw new BuildException("could not change to " 
+                            + "directory: " + ftp.getReplyString());
+                    }
                 }
                 dirCache.addElement(dir);
             }
+            ftp.changeWorkingDirectory(cwd);            
         }
     }
 
@@ -960,9 +991,7 @@ public class FTP
             // directory is the directory to create.
 
             if (action == MK_DIR) {
-
                 makeRemoteDir(ftp, remotedir);
-
             } else {
                 if (remotedir != null) {
                     log("changing the remote directory", Project.MSG_VERBOSE);

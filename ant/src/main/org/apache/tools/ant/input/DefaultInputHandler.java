@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -63,10 +63,10 @@ import java.util.Enumeration;
 import org.apache.tools.ant.BuildException;
 
 /**
- * Prompts on System.out, reads input from System.in
+ * Prompts on System.err, reads input from System.in
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.1.2.2 $
  * @since Ant 1.5
  */
 public class DefaultInputHandler implements InputHandler {
@@ -86,7 +86,7 @@ public class DefaultInputHandler implements InputHandler {
         BufferedReader in = 
             new BufferedReader(new InputStreamReader(getInputStream()));
         do {
-            System.out.println(prompt);
+            System.err.println(prompt);
             try {
                 String input = in.readLine();
                 request.setInput(input);

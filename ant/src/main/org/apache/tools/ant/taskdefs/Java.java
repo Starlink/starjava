@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights 
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -376,11 +376,37 @@ public class Java extends Task {
     }
     
     /**
+     * Pass output sent to System.out to specified output file.
+     *
+     * @since Ant 1.5.2
+     */
+    protected void handleFlush(String line) {
+        if (outStream != null) {
+            outStream.print(line);
+        } else {
+            super.handleFlush(line);
+        }
+    }
+    
+    /**
      * Pass output sent to System.err to specified output file.
      *
      * @since Ant 1.5
      */
     protected void handleErrorOutput(String line) {
+        if (outStream != null) {
+            outStream.println(line);
+        } else {
+            super.handleErrorOutput(line);
+        }
+    }
+    
+    /**
+     * Pass output sent to System.err to specified output file.
+     *
+     * @since Ant 1.5.2
+     */
+    protected void handleErrorFlush(String line) {
         if (outStream != null) {
             outStream.println(line);
         } else {
@@ -403,7 +429,9 @@ public class Java extends Task {
                 outStream = 
                     new PrintStream(new FileOutputStream(out.getAbsolutePath(),
                                                          append));
-                exe.execute(project);
+                exe.execute(getProject());
+                System.out.flush();
+                System.err.flush();
             } catch (IOException io) {
                 throw new BuildException(io, location);
             } finally {

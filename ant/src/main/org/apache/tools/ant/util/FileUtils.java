@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -92,10 +92,10 @@ import org.apache.tools.ant.taskdefs.condition.Os;
  * @author duncan@x180.com
  * @author Conor MacNeill
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @author <a href="mailto:jtulley@novell.com">Jeff Tulley</a> 
  *
- * @version $Revision: 1.25.2.4 $
+ * @version $Revision: 1.25.2.7 $
  */
 
 public class FileUtils {
@@ -682,7 +682,7 @@ public class FileUtils {
         synchronized (rand) {
             do {
                 result = new File(parent,
-                                  prefix + fmt.format(rand.nextInt())
+                                  prefix + fmt.format(Math.abs(rand.nextInt()))
                                   + suffix);
             } while (result.exists());
         }

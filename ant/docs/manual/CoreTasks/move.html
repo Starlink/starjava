@@ -79,6 +79,13 @@ href="../CoreTypes/mapper.html#identity-mapper">identity</a>.</p>
 <h4>filterchain</h4>
 <p>The Move task supports nested <a href="../CoreTypes/filterchain.html">
 FilterChain</a>s.</p>
+
+<p>
+If &lt;filterset&gt; and &lt;filterchain&gt; elements are used inside the
+same &lt;move&gt; task, all &lt;filterchain&gt; elements are processed first
+followed by &lt;filterset&gt; elements.
+</p>
+
 <h3>Examples</h3>
 <p><b>Move a single file (rename a file)</b></p>
 <pre>
@@ -96,8 +103,8 @@ FilterChain</a>s.</p>
 </pre>
 <p><b>Move a set of files to a new directory</b></p>
 <pre>
-  &lt;move todir=&quot;some/new/dir&quot; &gt;
-    &lt;fileset dir=&quot;my/src/dir&quot; &gt;
+  &lt;move todir=&quot;some/new/dir&quot;&gt;
+    &lt;fileset dir=&quot;my/src/dir&quot;&gt;
       &lt;include name=&quot;**/*.jar&quot;/&gt;
       &lt;exclude name=&quot;**/ant.jar&quot;/&gt;
     &lt;/fileset&gt;
@@ -106,8 +113,8 @@ FilterChain</a>s.</p>
 <p><b>Append <code>&quot;.bak&quot;</code> to the names of all files
 in a directory.</b></p>
 <pre>
-  &lt;move todir=&quot;my/src/dir&quot; &gt;
-    &lt;fileset dir=&quot;my/src/dir&quot; &gt;
+  &lt;move todir=&quot;my/src/dir&quot;&gt;
+    &lt;fileset dir=&quot;my/src/dir&quot;&gt;
       &lt;exclude name=&quot;**/*.bak&quot;/&gt;
     &lt;/fileset&gt;
     &lt;mapper type=&quot;glob&quot; from=&quot;*&quot; to=&quot;*.bak&quot;/&gt;

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -100,7 +100,7 @@ import org.apache.tools.ant.types.FileSet;
  *
  * @author <a href="mailto:jeff.martin@synamic.co.uk">Jeff Martin</a>
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.14.2.2 $ $Date: 2002/06/24 02:28:08 $
+ * @version $Revision: 1.14.2.6 $ $Date: 2003/02/21 00:19:22 $
  * @since Ant 1.5
  * @ant.task name="cvschangelog"
  */
@@ -249,9 +249,10 @@ public class ChangeLogTask extends Task {
                     new SimpleDateFormat("yyyy-MM-dd");
 
                 // We want something of the form: -d ">=YYYY-MM-dd"
-                final String dateRange = "-d >="
-                     + outputDate.format(m_start);
+                final String dateRange = ">=" + outputDate.format(m_start);
 
+		// Supply '-d' as a separate argument - Bug# 14397
+                command.createArgument().setValue("-d");
                 command.createArgument().setValue(dateRange);
             }
 
@@ -262,7 +263,7 @@ public class ChangeLogTask extends Task {
                 while (e.hasMoreElements()) {
                     final FileSet fileSet = (FileSet) e.nextElement();
                     final DirectoryScanner scanner =
-                        fileSet.getDirectoryScanner(project);
+                        fileSet.getDirectoryScanner(getProject());
                     final String[] files = scanner.getIncludedFiles();
 
                     for (int i = 0; i < files.length; i++) {
@@ -275,8 +276,7 @@ public class ChangeLogTask extends Task {
             final RedirectingStreamHandler handler =
                 new RedirectingStreamHandler(parser);
 
-            log("ChangeLog command: [" + command.toString() + "]",
-                Project.MSG_VERBOSE);
+            log(command.describeCommand(), Project.MSG_VERBOSE);
 
             final Execute exe = new Execute(handler);
 

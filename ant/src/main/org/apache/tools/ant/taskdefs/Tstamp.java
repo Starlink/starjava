@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -79,7 +79,7 @@ import java.text.SimpleDateFormat;
  * @author stefano@apache.org
  * @author roxspring@yahoo.com
  * @author Conor MacNeill
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @since Ant 1.1
  * @ant.task category="utility"
  */
@@ -112,18 +112,18 @@ public class Tstamp extends Task {
             Enumeration i = customFormats.elements();
             while (i.hasMoreElements()) {
                 CustomFormat cts = (CustomFormat) i.nextElement();
-                cts.execute(project, d, location);
+                cts.execute(getProject(), d, getLocation());
             }
 
             SimpleDateFormat dstamp = new SimpleDateFormat ("yyyyMMdd");
-            project.setNewProperty(prefix + "DSTAMP", dstamp.format(d));
+            setProperty("DSTAMP", dstamp.format(d));
 
             SimpleDateFormat tstamp = new SimpleDateFormat ("HHmm");
-            project.setNewProperty(prefix + "TSTAMP", tstamp.format(d));
+            setProperty("TSTAMP", tstamp.format(d));
 
             SimpleDateFormat today
                 = new SimpleDateFormat ("MMMM d yyyy", Locale.US);
-            project.setNewProperty(prefix + "TODAY", today.format(d));
+            setProperty("TODAY", today.format(d));
 
         } catch (Exception e) {
             throw new BuildException(e);
@@ -135,9 +135,17 @@ public class Tstamp extends Task {
      * @return a ready to fill-in format
      */
     public CustomFormat createFormat() {
-        CustomFormat cts = new CustomFormat(prefix);
+        CustomFormat cts = new CustomFormat();
         customFormats.addElement(cts);
         return cts;
+    }
+
+    /**
+     * helper that encapsulates prefix logic and property setting
+     * policy (i.e. we use setNewProperty instead of setProperty).
+     */
+    private void setProperty(String name, String value) {
+        getProject().setNewProperty(prefix + name, value);
     }
 
     /**
@@ -158,14 +166,11 @@ public class Tstamp extends Task {
         private String variant;
         private int offset = 0;
         private int field = Calendar.DATE;
-        private String prefix = "";
 
         /**
-         * Create a format with the current prefix
-         * @param prefix
+         * Create a format
          */
-        public CustomFormat(String prefix) {
-            this.prefix = prefix;
+        public CustomFormat() {
         }
 
         /**
@@ -173,7 +178,7 @@ public class Tstamp extends Task {
          * @param propertyName
          */
         public void setProperty(String propertyName) {
-            this.propertyName = prefix + propertyName;
+            this.propertyName = propertyName;
         }
 
         /**
@@ -204,7 +209,7 @@ public class Tstamp extends Task {
                     if (st.hasMoreElements()) {
                         variant = st.nextToken();
                         if (st.hasMoreElements()) {
-                            throw new BuildException("bad locale format", 
+                            throw new BuildException("bad locale format",
                                                       getLocation());
                         }
                     }
@@ -212,7 +217,7 @@ public class Tstamp extends Task {
                     country = "";
                 }
             } catch (NoSuchElementException e) {
-                throw new BuildException("bad locale format", e, 
+                throw new BuildException("bad locale format", e,
                                          getLocation());
             }
         }
@@ -307,7 +312,7 @@ public class Tstamp extends Task {
             if (timeZone != null){
                 sdf.setTimeZone(timeZone);
             }
-            project.setNewProperty(propertyName, sdf.format(date));
+            Tstamp.this.setProperty(propertyName, sdf.format(date));
         }
     }
 

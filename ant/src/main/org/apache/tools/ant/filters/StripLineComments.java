@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -82,7 +82,7 @@ import org.apache.tools.ant.types.Parameter;
  *   &lt;param type=&quot;comment&quot; value=&quot;//&quot;/&gt;
  * &lt;/filterreader&gt;</pre>
  *
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  */
 public final class StripLineComments
     extends BaseParamFilterReader
@@ -143,10 +143,9 @@ public final class StripLineComments
             }
         } else {
             line = readLine();
-            if (line == null) {
-                ch = -1;
-            } else {
-                int commentsSize = comments.size();
+            final int commentsSize = comments.size();
+
+            while (line != null) {
                 for (int i = 0; i < commentsSize; i++) {
                     String comment = (String) comments.elementAt(i);
                     if (line.startsWith(comment)) {
@@ -154,6 +153,16 @@ public final class StripLineComments
                         break;
                     }
                 }
+
+                if (line == null) {
+                    // line started with comment
+                    line = readLine();
+                } else {
+                    break;
+                }
+            }
+
+            if (line != null) {
                 return read();
             }
         }

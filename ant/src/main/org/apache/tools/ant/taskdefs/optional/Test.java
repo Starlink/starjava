@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000,2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000,2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -58,8 +58,12 @@ import org.apache.tools.ant.taskdefs.Java;
 import java.util.Vector;
 
 /**
- * This is a primitive task to execute a unit test in the org.apache.testlet framework.
+ * This is a primitive task to execute a unit test in the
+ * org.apache.testlet framework.
  * 
+ * @deprecated testlet has been abandoned in favor of JUnit by the
+ * Avalon community
+ *
  * @author <a href="mailto:donaldp@apache.org">Peter Donald</a>
  * @ant.task ignore="true"
  */

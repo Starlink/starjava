@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -82,7 +82,7 @@ import org.apache.tools.ant.Task;
  *
  * @author Diane Holt <a href="mailto:holtdl@apache.org">holtdl@apache.org</a>
  *
- * @version $Revision: 1.2.2.3 $
+ * @version $Revision: 1.2.2.5 $
  *
  * @since Ant 1.5
  *
@@ -118,20 +118,25 @@ public class Basename extends Task {
 
   // The method executing the task
   public void execute() throws BuildException {
-      String value;
       if (property == null) {
-          throw new BuildException("property attribute required", location);
+          throw new BuildException("property attribute required", getLocation());
       }
       if (file == null) {
-          throw new BuildException("file attribute required", location);
-      } else {
-        value = file.getName();
-        if (suffix != null && value.endsWith(suffix)) {
-            int pos = value.indexOf('.');
-            value = value.substring(0, pos);
-        }
-        getProject().setNewProperty(property, value);
+          throw new BuildException("file attribute required", getLocation());
       }
+      String value = file.getName();
+      if (suffix != null && value.endsWith(suffix)) {
+          // if the suffix does not starts with a '.' and the
+          // char preceding the suffix is a '.', we assume the user
+          // wants to remove the '.' as well (see docs)
+          int pos = value.length() - suffix.length();
+          if (pos > 0 && suffix.charAt(0) != '.' 
+              && value.charAt(pos - 1) == '.') {
+              pos--;
+          }
+          value = value.substring(0, pos);
+      }
+      getProject().setNewProperty(property, value);
   }
 }
 

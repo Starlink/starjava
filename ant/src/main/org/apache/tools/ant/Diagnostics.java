@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -120,6 +120,9 @@ public final class Diagnostics {
      */
     public static File[] listLibraries() {
         String home = System.getProperty("ant.home");
+        if (home == null) {
+            return null;
+        }
         File libDir = new File(home, "lib");
         FilenameFilter filter = new FilenameFilter() {
             public boolean accept(File dir, String name) {
@@ -128,6 +131,9 @@ public final class Diagnostics {
         };
         // listFiles is JDK 1.2+ method...
         String[] filenames = libDir.list(filter);
+        if (filenames == null) {
+            return null;
+        }
         File[] files = new File[filenames.length];
         for (int i = 0; i < filenames.length; i++){
             files[i] = new File(libDir, filenames[i]);
@@ -235,7 +241,12 @@ public final class Diagnostics {
      * @param out the stream to print the content to
      */
     private static void doReportLibraries(PrintStream out){
+        out.println("ant.home: " + System.getProperty("ant.home"));
         File[] libs = listLibraries();
+        if (libs == null) {
+            out.println("Unable to list libraries.");
+            return;
+        }
         for (int i = 0; i < libs.length; i++){
             out.println(libs[i].getName()
                     + " (" + libs[i].length() + " bytes)");
@@ -258,7 +269,7 @@ public final class Diagnostics {
             out.println("Download it at http://xml.apache.org/commons/");
         } catch (InvocationTargetException e) {
             error = e.getTargetException() == null ? e : e.getTargetException();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             error = e;
         }
         // report error if something weird happens...this is diagnostic.
@@ -274,11 +285,11 @@ public final class Diagnostics {
      * because Ant requires multiple libraries to compile and one of them
      * was missing when compiling Ant.
      * @param out the stream to print the tasks report to
-     * @param is the stream defining the mapping task name/classname, can be
      * <tt>null</tt> for a missing stream (ie mapping).
      */
     private static void doReportTasksAvailability(PrintStream out){
-        InputStream is = Main.class.getResourceAsStream("/org/apache/tools/ant/taskdefs/defaults.properties");
+        InputStream is = Main.class.getResourceAsStream(
+                "/org/apache/tools/ant/taskdefs/defaults.properties");
         if (is == null) {
             out.println("None available");
         } else {
@@ -293,6 +304,11 @@ public final class Diagnostics {
                         props.remove(key);
                     } catch (ClassNotFoundException e){
                         out.println(key + " : Not Available");
+                    } catch (NoClassDefFoundError e) {
+                        String pkg = e.getMessage().replace('/', '.');
+                        out.println(key + " : Missing dependency " + pkg );
+                    } catch (Error e) {
+                        out.println(key + " : Initialization error");
                     }
                 }
                 if (props.size() == 0){

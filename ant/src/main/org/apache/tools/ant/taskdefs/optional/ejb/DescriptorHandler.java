@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -94,6 +94,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
      * constructing the filenames of various parts of the ejb jar.
      */
     private static final String EJB_REF               = "ejb-ref";
+    private static final String EJB_LOCAL_REF         = "ejb-local-ref";
     private static final String HOME_INTERFACE        = "home";
     private static final String REMOTE_INTERFACE      = "remote";
     private static final String LOCAL_HOME_INTERFACE  = "local-home";
@@ -161,6 +162,11 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         }
 
         File fileDTD = new File(location);
+        if (!fileDTD.exists()) {
+            // resolve relative to project basedir
+            fileDTD = owningTask.getProject().resolveFile(location);
+        }
+        
         if (fileDTD.exists()) {
             if (publicId != null) {
                 fileDTDs.put(publicId, fileDTD);
@@ -270,7 +276,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         throws SAXException {
         this.currentElement = name;
         currentText = "";
-        if (name.equals(EJB_REF)) {
+        if (name.equals(EJB_REF) || name.equals(EJB_LOCAL_REF)) {
             inEJBRef = true;
         } else if (parseState == STATE_LOOKING_EJBJAR && name.equals(EJB_JAR)) {
             parseState = STATE_IN_EJBJAR;
@@ -299,7 +305,7 @@ public class DescriptorHandler extends org.xml.sax.HandlerBase {
         processElement();
         currentText = "";
         this.currentElement = "";
-        if (name.equals(EJB_REF)) {
+        if (name.equals(EJB_REF) || name.equals(EJB_LOCAL_REF)) {
             inEJBRef = false;
         } else if (parseState == STATE_IN_ENTITY && name.equals(ENTITY_BEAN)) {
             parseState = STATE_IN_BEANS;

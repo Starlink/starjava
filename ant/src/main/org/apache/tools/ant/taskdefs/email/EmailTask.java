@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -70,7 +70,7 @@ import org.apache.tools.ant.types.FileSet;
  * A task to send SMTP email. This is a refactoring of the SendMail and
  * MimeMail tasks such that both are within a single task.
  *
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  * @author glenn_twiggs@bmc.com
  * @author steve_l@iseran.com steve loughran
  * @author ehatcher@apache.org Erik Hatcher

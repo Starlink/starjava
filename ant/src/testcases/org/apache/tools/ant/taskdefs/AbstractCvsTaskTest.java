@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -60,7 +60,7 @@ import org.apache.tools.ant.BuildFileTest;
 /**
  * @author stephan <stephan@wanderinghorse.net>
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.4.2.2 $
  */
 public class AbstractCvsTaskTest extends BuildFileTest {
 
@@ -85,14 +85,14 @@ public class AbstractCvsTaskTest extends BuildFileTest {
     }
 
     public void testPackageAttribute() {
-        File f = getProject().resolveFile("tmpdir/jakarta-ant/build.xml");
+        File f = getProject().resolveFile("tmpdir/ant/build.xml");
         assertTrue("starting empty", !f.exists());
-        expectLogContaining("package-attribute", "U jakarta-ant/build.xml");
+        expectLogContaining("package-attribute", "U ant/build.xml");
         assertTrue("now it is there", f.exists());
     }
 
     public void testTagAttribute() {
-        File f = getProject().resolveFile("tmpdir/jakarta-ant/build.xml");
+        File f = getProject().resolveFile("tmpdir/ant/build.xml");
         assertTrue("starting empty", !f.exists());
         expectLogContaining("tag-attribute", "ANT_141 (revision: 1.175.2.13)");
         assertTrue("now it is there", f.exists());

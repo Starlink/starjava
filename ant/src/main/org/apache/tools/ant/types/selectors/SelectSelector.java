@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -161,7 +161,7 @@ public class SelectSelector extends AndSelector {
     public void verifySettings() {
         if (selectorCount() != 1) {
             setError("One and only one selector is allowed within the " +
-                    "<select> tag");
+                    "<selector> tag");
         }
     }
 

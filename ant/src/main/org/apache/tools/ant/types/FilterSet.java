@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -212,7 +212,7 @@ public class FilterSet extends DataType implements Cloneable {
      */
     public Hashtable getFilterHash() {
         int filterSize = getFilters().size();
-        Hashtable filterHash = new Hashtable(filterSize);
+        Hashtable filterHash = new Hashtable(filterSize + 1);
         for (Enumeration e = getFilters().elements(); e.hasMoreElements();) {
            Filter filter = (Filter) e.nextElement();
            filterHash.put(filter.getToken(), filter.getValue());
@@ -418,7 +418,7 @@ public class FilterSet extends DataType implements Cloneable {
     *
     * @param filterSet the filterset to be added to this filterset
     */
-    public void addFilterSet(FilterSet filterSet) {
+    public void addConfiguredFilterSet(FilterSet filterSet) {
         if (isReference()) {
             throw noChildrenAllowed();
         }

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -102,7 +102,7 @@ import java.io.File;
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  * @author <a href="mailto:jayglanville@home.com">J D Glanville</a>
  *
- * @version $Revision: 1.102.2.2 $
+ * @version $Revision: 1.102.2.4 $
  *
  * @since Ant 1.1
  *
@@ -214,7 +214,7 @@ public class Javac extends MatchingTask {
      */
     public Path createSrc() {
         if (src == null) {
-            src = new Path(project);
+            src = new Path(getProject());
         }
         return src.createPath();
     }
@@ -282,7 +282,7 @@ public class Javac extends MatchingTask {
      */
     public Path createSourcepath() {
         if (compileSourcepath == null) {
-            compileSourcepath = new Path(project);
+            compileSourcepath = new Path(getProject());
         }
         return compileSourcepath.createPath();
     }
@@ -317,7 +317,7 @@ public class Javac extends MatchingTask {
      */
     public Path createClasspath() {
         if (compileClasspath == null) {
-            compileClasspath = new Path(project);
+            compileClasspath = new Path(getProject());
         }
         return compileClasspath.createPath();
     }
@@ -354,7 +354,7 @@ public class Javac extends MatchingTask {
      */
     public Path createBootclasspath() {
         if (bootclasspath == null) {
-            bootclasspath = new Path(project);
+            bootclasspath = new Path(getProject());
         }
         return bootclasspath.createPath();
     }
@@ -391,7 +391,7 @@ public class Javac extends MatchingTask {
      */
     public Path createExtdirs() {
         if (extdirs == null) {
-            extdirs = new Path(project);
+            extdirs = new Path(getProject());
         }
         return extdirs.createPath();
     }
@@ -666,11 +666,11 @@ public class Javac extends MatchingTask {
         // compile lists
         String[] list = src.list();
         for (int i = 0; i < list.length; i++) {
-            File srcDir = project.resolveFile(list[i]);
+            File srcDir = getProject().resolveFile(list[i]);
             if (!srcDir.exists()) {
-                throw new BuildException("srcdir \"" 
-                                         + srcDir.getPath() 
-                                         + "\" does not exist!", location);
+                throw new BuildException("srcdir \""
+                                         + srcDir.getPath()
+                                         + "\" does not exist!", getLocation());
             }
 
             DirectoryScanner ds = this.getDirectoryScanner(srcDir);
@@ -756,8 +756,10 @@ public class Javac extends MatchingTask {
         String compilerImpl = getCompilerVersion();
         if (fork) {
             if (isJdkCompiler(compilerImpl)) {
-                log("Since fork is true, ignoring compiler setting.",
-                    Project.MSG_WARN);
+                if (facade.hasBeenSet()) {
+                    log("Since fork is true, ignoring compiler setting.",
+                        Project.MSG_WARN);
+                }
                 compilerImpl = "extJavac";
             } else {
                 log("Since compiler setting isn't classic or modern,"
@@ -793,19 +795,19 @@ public class Javac extends MatchingTask {
      */
     protected void checkParameters() throws BuildException {
         if (src == null) {
-            throw new BuildException("srcdir attribute must be set!", 
-                                     location);
+            throw new BuildException("srcdir attribute must be set!",
+                                     getLocation());
         }
         if (src.size() == 0) {
-            throw new BuildException("srcdir attribute must be set!", 
-                                     location);
+            throw new BuildException("srcdir attribute must be set!",
+                                     getLocation());
         }
 
         if (destDir != null && !destDir.isDirectory()) {
             throw new BuildException("destination directory \"" 
                                      + destDir 
                                      + "\" does not exist "
-                                     + "or is not a directory", location);
+                                     + "or is not a directory", getLocation());
         }
     }
 
@@ -839,7 +841,7 @@ public class Javac extends MatchingTask {
             // finally, lets execute the compiler!!
             if (!adapter.execute()) {
                 if (failOnError) {
-                    throw new BuildException(FAIL_MSG, location);
+                    throw new BuildException(FAIL_MSG, getLocation());
                 } else {
                     log(FAIL_MSG, Project.MSG_ERR);
                 }

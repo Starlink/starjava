@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -70,7 +70,7 @@ import org.apache.tools.ant.taskdefs.UpToDate;
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a>
  * @since Ant 1.4
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.14.2.1 $
  */
 public abstract class ConditionBase extends ProjectComponent {
     private Vector conditions = new Vector();

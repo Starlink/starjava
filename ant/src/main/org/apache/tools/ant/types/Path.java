@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -604,7 +604,27 @@ public class Path extends DataType implements Cloneable {
                                  + File.separator + "jre"
                                  + File.separator + "lib"
                                  + File.separator + "rt.jar"));
-            
+
+            // Sun's 1.4 has JCE and JSSE in separate jars.
+            String[] secJars = { "jce", "jsse" };
+            for (int i = 0; i < secJars.length; i++) {
+                addExisting(new Path(null,
+                                     System.getProperty("java.home")
+                                     + File.separator + "lib"
+                                     + File.separator + secJars[i] + ".jar"));
+            }
+
+            // IBM's 1.4 has rt.jar split into 4 smaller jars and a combined
+            // JCE/JSSE in security.jar.
+            String[] ibmJars =
+                { "core", "graphics", "security", "server", "xml" };
+            for (int i = 0; i < ibmJars.length; i++) {
+                addExisting(new Path(null,
+                                     System.getProperty("java.home")
+                                     + File.separator + "lib"
+                                     + File.separator + ibmJars[i] + ".jar"));
+            }
+
             // Added for MacOS X
             addExisting(new Path(null,
                                  System.getProperty("java.home")

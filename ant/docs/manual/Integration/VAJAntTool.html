@@ -10,11 +10,11 @@
 <H1>Visual Age for Java Tasks and Plugin User Manual</H1>
  <a name="authors"></A>by<UL>
   <LI>Wolf Siberski
-      (<A href="mailto:wolf.siberski@tui.de">
-  wolf.siberski@tui.de</A> )
+      (<A href="mailto:siberski@kbs.uni-hannover.de">
+  siberski@kbs.uni-hannover.de</A> )
   <LI>Christoph Wilhelms
-      (<A href="mailto:christoph.wilhelms@tui.de">
-  christoph.wilhelms@tui.de</A>)</LI></UL>
+      (<A href="mailto:christoph.wilhelms@impress.com">
+  christoph.wilhelms@impress.com</A>)</LI></UL>
 Version 1.2 - 2001/06/14<br>
 <hr>
 <h2>Table of Contents</H2>
@@ -22,16 +22,16 @@ Version 1.2 - 2001/06/14<br>
   <li><A href="#introduction">Introduction</A>
   <li><A href="#tasks">The Tasks</A><A href="#introduction"></A>
   <ul>
-    <li><A href="#vajload">VAJLoad</A>&gt;
-    <li><A href="#vajexport">VAJExport</A>&gt;
-    <li><A href="#vajimport">VAJImport</A>&gt;</LI></UL>
+    <li><A href="#vajload">VAJLoad</A>
+    <li><A href="#vajexport">VAJExport</A>
+    <li><A href="#vajimport">VAJImport</A></LI></UL>
   <li><A href="#sample_buildfile">A sample build file</A><br>
   <li><A href="#plugin">The Plugin</A>
   <ul>
-    <li><A href="#installation">Installation</A>&gt;
+    <li><A href="#installation">Installation</A>
     <li><A href="#usage">Usage</A> </LI></UL>
-  <li><A href="#faq">Frequently Asked Questions</A>&gt;
-  <li><A href="#va_versions">Visual Age Versions</A>&gt;
+  <li><A href="#faq">Frequently Asked Questions</A>
+  <li><A href="#va_versions">Visual Age Versions</A>
   <li><A href="#history">History</A><A href="#history"></A> </LI></UL>
 
 <hr>
@@ -130,7 +130,7 @@ workspace.</P>
 <h3>Example</H3>
 <pre>&lt;vajload remote="localhost:32767"&gt;
     &lt;vajproject name="My Testcases" version="1.7beta"/&gt;
-    &lt;vajproject name="JUnit" version="3.2" /&gt;
+    &lt;vajproject name="JUnit" version="3.2"/&gt;
 &lt;/vajload&gt;
 </PRE>
 
@@ -140,8 +140,8 @@ workspace.</P>
 <h3>Description:</H3>
 <p>Exports Java source files, class files and/or resources from the workspace
 to the file system. Exports can be specified by giving the VAJ project
-name and package name(s). This works very similar to <A href="index.html#fileset">
-FileSets</A>. </P>
+name and package name(s). This works very similar to 
+<A href="../CoreTypes/fileset.html">FileSets</A>. </P>
 
 <h3>Parameters</H3>
 <table border="1" cellpadding="2" cellspacing="0">
@@ -342,7 +342,7 @@ install directory. If You have installed it elsewhere, adapt the pathes below.
   task). If You need this tasks either import these packages into VAJ, too, or
   copy the .class files directly from the binary distribution.
   <li>copy <CODE>default.ini</CODE> (in <CODE>
-      jakarta-ant\src\...\taskdefs\optional\ide</CODE>)     to <CODE>
+      ant\src\...\taskdefs\optional\ide</CODE>)     to <CODE>
       C:\IBMVJava\ide\tools\org-apache-tools-ant\default.ini</CODE>.
 
   <li>if you want to access this help from the Workbench, create the
@@ -555,7 +555,7 @@ JDK independent by now.
        <td valign="top">
       <P>Added documentation of new remote feature.<BR>Minor corrections.</P></TD></TR></TABLE>
 <hr>
-<center>Copyright &amp;#copy 2001,2002 Apache Software
+<center>Copyright &amp;#copy 2001-2003 Apache Software
 Foundation. All rights Reserved.</CENTER>
 </body>
 </html>

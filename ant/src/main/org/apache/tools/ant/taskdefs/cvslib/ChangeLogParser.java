@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -58,12 +58,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.TimeZone;
 
 /**
  * A class used to parse the output of the CVS log command.
  *
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.14 $ $Date: 2002/04/15 23:53:14 $
+ * @version $Revision: 1.14.2.4 $ $Date: 2003/02/10 14:24:56 $
  */
 class ChangeLogParser {
     //private static final int GET_ENTRY = 0;
@@ -74,8 +75,13 @@ class ChangeLogParser {
     private static final int GET_PREVIOUS_REV = 5;
 
     /** input format for dates read in from cvs log */
-    private static final SimpleDateFormat c_inputDate 
-        = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss");
+    private static final SimpleDateFormat c_inputDate
+        = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+    static {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        c_inputDate.setTimeZone(utc);
+    }
 
     //The following is data used while processing stdout of CVS command
     private String m_file;
@@ -112,6 +118,9 @@ class ChangeLogParser {
     public void stdout(final String line) {
         switch(m_status) {
             case GET_FILE:
+                // make sure attributes are reset when
+                // working on a 'new' file.
+                reset();
                 processFile(line);
                 break;
             case GET_REVISION:
@@ -142,13 +151,13 @@ class ChangeLogParser {
         if (line.startsWith("======")) {
             //We have ended changelog for that particular file
             //so we can save it
-            final int end 
+            final int end
                 = m_comment.length() - lineSeparator.length(); //was -1
             m_comment = m_comment.substring(0, end);
             saveEntry();
             m_status = GET_FILE;
         } else if (line.startsWith("----------------------------")) {
-            final int end 
+            final int end
                 = m_comment.length() - lineSeparator.length(); //was -1
             m_comment = m_comment.substring(0, end);
             m_status = GET_PREVIOUS_REV;
@@ -211,7 +220,7 @@ class ChangeLogParser {
      */
     private void processGetPreviousRevision(final String line) {
         if (!line.startsWith("revision")) {
-            throw new IllegalStateException("Unexpected line from CVS: " 
+            throw new IllegalStateException("Unexpected line from CVS: "
                 + line);
         }
         m_previousRevision = line.substring(9);
@@ -253,4 +262,17 @@ class ChangeLogParser {
             return null;
         }
     }
+    
+    /**
+     * reset all internal attributes except status.
+     */
+    private void reset(){
+        m_file = null;
+        m_date = null;
+        m_author = null;
+        m_comment = null;
+        m_revision = null;
+        m_previousRevision = null;
+    }
+
 }

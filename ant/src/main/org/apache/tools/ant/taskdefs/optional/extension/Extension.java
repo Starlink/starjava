@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -79,7 +79,7 @@ import java.util.jar.Manifest;
  *
  * @author <a href="mailto:craigmcc@apache.org">Craig R. McClanahan</a>
  * @author <a href="mailto:peter@apache.org">Peter Donald</a>
- * @version $Revision: 1.2.2.2 $ $Date: 2002/05/27 11:02:06 $
+ * @version $Revision: 1.2.2.3 $ $Date: 2003/02/10 14:25:08 $
  */
 public final class Extension
 {

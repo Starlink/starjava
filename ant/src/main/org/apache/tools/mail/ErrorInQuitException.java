@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -65,7 +65,7 @@ import java.io.IOException;
  * report 5273</a>.</p>
  *
  * @author <a href="mailto:stefan.bodewig@epost.de">Stefan Bodewig</a> 
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.2.2.1 $
  */
 public class ErrorInQuitException extends IOException {
 

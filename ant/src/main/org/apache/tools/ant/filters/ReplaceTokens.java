@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -58,6 +58,7 @@ import java.io.Reader;
 import java.util.Hashtable;
 
 import org.apache.tools.ant.types.Parameter;
+import org.apache.tools.ant.BuildException;
 
 /**
  * Replaces tokens in the original input with user-supplied values.
@@ -76,7 +77,7 @@ import org.apache.tools.ant.types.Parameter;
  *   &lt;param type="token" name="DATE" value="${TODAY}"/&gt;
  * &lt;/filterreader&gt;</pre>
  *
- * @author <a href="mailto:umagesh@apache.org">Magesh Umasankar</a>
+ * @author Magesh Umasankar
  */
 public final class ReplaceTokens
     extends BaseParamFilterReader
@@ -87,9 +88,18 @@ public final class ReplaceTokens
     /** Default "end token" character. */
     private static final char DEFAULT_END_TOKEN = '@';
 
-    /** Data that must be read from, if not null. */
+    /** Data to be used before reading from stream again */
     private String queuedData = null;
 
+    /** replacement test from a token */
+    private String replaceData = null;
+
+    /** Index into replacement data */
+    private int replaceIndex = -1;
+    
+    /** Index into queue data */
+    private int queueIndex = -1;
+    
     /** Hashtable to hold the replacee-replacer pairs (String to String). */
     private Hashtable hash = new Hashtable();
 
@@ -118,6 +128,18 @@ public final class ReplaceTokens
         super(in);
     }
 
+    private int getNextChar() throws IOException {
+        if (queueIndex != -1) {
+            final int ch = queuedData.charAt(queueIndex++);
+            if (queueIndex >= queuedData.length()) {
+                queueIndex = -1;
+            }
+            return ch;
+        }
+        
+        return in.read();
+    }
+    
     /**
      * Returns the next character in the filtered stream, replacing tokens
      * from the original stream.
@@ -134,21 +156,20 @@ public final class ReplaceTokens
             setInitialized(true);
         }
 
-        if (queuedData != null && queuedData.length() > 0) {
-            final int ch = queuedData.charAt(0);
-            if (queuedData.length() > 1) {
-                queuedData = queuedData.substring(1);
-            } else {
-                queuedData = null;
+        if (replaceIndex != -1) {
+            final int ch = replaceData.charAt(replaceIndex++);
+            if (replaceIndex >= replaceData.length()) {
+                replaceIndex = -1;
             }
             return ch;
         }
+        
+        int ch = getNextChar();
 
-        int ch = in.read();
         if (ch == beginToken) {
             final StringBuffer key = new StringBuffer("");
             do  {
-                ch = in.read();
+                ch = getNextChar();
                 if (ch != -1) {
                     key.append((char) ch);
                 } else {
@@ -157,17 +178,31 @@ public final class ReplaceTokens
             } while (ch != endToken);
 
             if (ch == -1) {
-                queuedData = beginToken + key.toString();
-                return read();
+                if (queuedData == null || queueIndex == -1) {
+                    queuedData = key.toString();
+                } else {
+                    queuedData 
+                        = key.toString() + queuedData.substring(queueIndex);
+                }
+                queueIndex = 0;
+                return beginToken;
             } else {
                 key.setLength(key.length() - 1);
+                
                 final String replaceWith = (String) hash.get(key.toString());
                 if (replaceWith != null) {
-                    queuedData = replaceWith;
+                    replaceData = replaceWith;
+                    replaceIndex = 0;
                     return read();
                 } else {
-                    queuedData = beginToken + key.toString() + endToken;
-                    return read();
+                    String newData = key.toString() + endToken;
+                    if (queuedData == null || queueIndex == -1) {
+                        queuedData = newData;
+                    } else {
+                        queuedData = newData + queuedData.substring(queueIndex);
+                    }
+                    queueIndex = 0;
+                    return beginToken;
                 }
             }
         }
@@ -270,9 +305,18 @@ public final class ReplaceTokens
                     final String type = params[i].getType();
                     if ("tokenchar".equals(type)) {
                         final String name = params[i].getName();
+                        String value = params[i].getValue();
                         if ("begintoken".equals(name)) {
+                            if (value.length() == 0) {
+                                throw new BuildException("Begin token cannot " 
+                                    + "be empty");
+                            }
                             beginToken = params[i].getValue().charAt(0);
                         } else if ("endtoken".equals(name)) {
+                            if (value.length() == 0) {
+                                throw new BuildException("End token cannot " 
+                                    + "be empty");
+                            }
                             endToken = params[i].getValue().charAt(0);
                         }
                     } else if ("token".equals(type)) {

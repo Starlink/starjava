@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2001-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2001-2003 The Apache Software Foundation.  All rights 
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -62,7 +62,7 @@ import org.apache.tools.ant.Project;
  * <code>ant.regexp.regexpimpl</code>.
  *
  * @author Matthew Inger <a href="mailto:mattinger@mindless.com">mattinger@mindless.com</a>
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.8.2.2 $
  */
 public class RegexpFactory extends RegexpMatcherFactory {
     public RegexpFactory() {
@@ -95,14 +95,17 @@ public class RegexpFactory extends RegexpMatcherFactory {
         }
 
         try {
+            testAvailability("java.util.regex.Matcher");
             return createRegexpInstance("org.apache.tools.ant.util.regexp.Jdk14RegexpRegexp");
         } catch (BuildException be) {}
         
         try {
+            testAvailability("org.apache.oro.text.regex.Pattern");
             return createRegexpInstance("org.apache.tools.ant.util.regexp.JakartaOroRegexp");
         } catch (BuildException be) {}
         
         try {
+            testAvailability("org.apache.regexp.RE");
             return createRegexpInstance("org.apache.tools.ant.util.regexp.JakartaRegexpRegexp");
         } catch (BuildException be) {}
 

@@ -2,7 +2,6 @@ package org.apache.tools.ant.taskdefs.optional;
 
 import org.apache.tools.ant.taskdefs.XSLTLiaison;
 import org.apache.tools.ant.taskdefs.XSLTLogger;
-import org.apache.tools.ant.taskdefs.condition.Os;
 import org.apache.tools.ant.BuildException;
 
 import java.io.File;
@@ -34,7 +33,7 @@ import junit.framework.AssertionFailedError;
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Jakarta-Regexp", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.

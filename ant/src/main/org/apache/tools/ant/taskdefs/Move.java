@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -83,8 +83,8 @@ import java.util.Enumeration;
  *
  * @author Glenn McAllister 
  *         <a href="mailto:glennm@ca.ibm.com">glennm@ca.ibm.com</a>
- * @author <a href="mailto:umagesh@rediffmail.com">Magesh Umasankar</a>
- * @version $Revision: 1.25.2.2 $
+ * @author Magesh Umasankar
+ * @version $Revision: 1.25.2.4 $
  *
  * @since Ant 1.2
  *

@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2002-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -82,7 +82,7 @@ public class JavaEnvUtils {
 
     /** Version of currently running VM. */
     private static String javaVersion;
-    
+
     /** floating version of the JVM */
     private static int javaVersionNumber;
 
@@ -97,9 +97,9 @@ public class JavaEnvUtils {
     /** Version constant for Java 1.4 */
     public static final String JAVA_1_4 = "1.4";
 
-    /** array of packages in the runtime */ 
+    /** array of packages in the runtime */
     private static Vector jrePackages;
-    
+
 
     static {
 
@@ -125,7 +125,7 @@ public class JavaEnvUtils {
             Class.forName("java.lang.CharSequence");
             javaVersion = JAVA_1_4;
             javaVersionNumber++;
-        } catch (ClassNotFoundException cnfe) {
+        } catch (Throwable t) {
             // swallow as we've hit the max class version that
             // we have
         }
@@ -185,7 +185,7 @@ public class JavaEnvUtils {
             jExecutable = findInDir(javaHome + "/sh", command);
         }
 
-        if (jExecutable == null) { 
+        if (jExecutable == null) {
             jExecutable = findInDir(javaHome + "/bin", command);
         }
 
@@ -225,7 +225,7 @@ public class JavaEnvUtils {
             jExecutable = findInDir(javaHome + "/../sh", command);
         }
 
-        if (jExecutable == null) { 
+        if (jExecutable == null) {
             jExecutable = findInDir(javaHome + "/../bin", command);
         }
 
@@ -266,12 +266,12 @@ public class JavaEnvUtils {
         }
         return executable;
     }
-        
+
     /**
      * demand creation of the package list.
      * When you add a new package, add a new test below
      */
-     
+
     private static void buildJrePackages() {
         jrePackages=new Vector();
         switch(javaVersionNumber) {
@@ -284,7 +284,7 @@ public class JavaEnvUtils {
                 jrePackages.addElement("org.w3c.dom");
                 jrePackages.addElement("org.xml.sax");
                 // fall through
-            case 13:    
+            case 13:
                 jrePackages.addElement("org.omg");
                 jrePackages.addElement("com.sun.corba");
                 jrePackages.addElement("com.sun.jndi");
@@ -295,15 +295,15 @@ public class JavaEnvUtils {
                 jrePackages.addElement("sunw.io");
                 jrePackages.addElement("sunw.util");
                 // fall through
-            case 12:    
+            case 12:
                 jrePackages.addElement("com.sun.java");
                 jrePackages.addElement("com.sun.image");
                 // are there any here that we forgot?
                 // fall through
-            case 11:    
+            case 11:
             default:
                 //things like sun.reflection, sun.misc, sun.net
-                jrePackages.addElement("sun.");
+                jrePackages.addElement("sun");
                 jrePackages.addElement("java");
                 jrePackages.addElement("javax");
                 break;
@@ -311,8 +311,7 @@ public class JavaEnvUtils {
     }
 
     /**
-     * testing helper method; kept here for unification of changes.
-     * @return
+     * Testing helper method; kept here for unification of changes.
      */
     public static Vector getJrePackageTestCases() {
         Vector tests=new Vector();
@@ -354,9 +353,9 @@ public class JavaEnvUtils {
         return tests;
     }
     /**
-     * get a vector of strings of packages built into 
+     * get a vector of strings of packages built into
      * that platforms runtime jar(s)
-     * @return list of packages 
+     * @return list of packages
      */
     public static Vector getJrePackages() {
         if(jrePackages==null) {

@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -116,7 +116,7 @@ import java.util.NoSuchElementException;
  *
  * @author Sam Ruby <a href="mailto:rubys@us.ibm.com">rubys@us.ibm.com</a>
  * @author <a href="mailto:pbwest@powerup.com.au">Peter B. West</a>
- * @version $Revision: 1.37.2.2 $ $Name:  $
+ * @version $Revision: 1.37.2.4 $ $Name:  $
  * @since Ant 1.1
  *
  * @ant.task category="filesystem"
@@ -299,7 +299,7 @@ public class FixCRLF extends MatchingTask {
     public void setTablength(int tlength) throws BuildException {
         if (tlength < 2 || tlength > 80) {
             throw new BuildException("tablength must be between 2 and 80",
-                                     location);
+                                     getLocation());
         }
         tablength = tlength;
         StringBuffer sp = new StringBuffer();
@@ -449,7 +449,7 @@ public class FixCRLF extends MatchingTask {
                             break;
 
                         case IN_MULTI_COMMENT:
-                            endComment 
+                            endComment
                                 = lineString.indexOf("*/", line.getNext());
                             if (endComment >= 0) {
                                 // End of multiLineComment on this line
@@ -486,7 +486,7 @@ public class FixCRLF extends MatchingTask {
                                 if (line.getNextCharInc() == '\t') {
                                     line.setColumn(line.getColumn() +
                                                    tablength -
-                                                   (line.getColumn() 
+                                                   (line.getColumn()
                                                     % tablength));
                                 } else {
                                     line.incColumn();
@@ -495,7 +495,7 @@ public class FixCRLF extends MatchingTask {
 
                             // Now output the substring
                             try {
-                                outWriter.write(line.substring(begin, 
+                                outWriter.write(line.substring(begin,
                                                                line.getNext()));
                             } catch (IOException e) {
                                 throw new BuildException(e);
@@ -547,7 +547,7 @@ public class FixCRLF extends MatchingTask {
                 lines.close();
                 lines = null;
             } catch (IOException e) {
-                throw new BuildException("Unable to close source file " 
+                throw new BuildException("Unable to close source file "
                                          + srcFile);
             }
 
@@ -807,15 +807,18 @@ public class FixCRLF extends MatchingTask {
         private BufferedReader reader;
         private StringBuffer line = new StringBuffer();
         private boolean reachedEof = false;
+        private File srcFile;
 
         public OneLiner(File srcFile)
             throws BuildException {
+            this.srcFile = srcFile;
             try {
                 reader = new BufferedReader
                         (getReader(srcFile), INBUFLEN);
                 nextLine();
             } catch (IOException e) {
-                throw new BuildException(e);
+                throw new BuildException(srcFile + ": "+ e.getMessage(),
+                                         e, getLocation());
             }
         }
 
@@ -899,7 +902,8 @@ public class FixCRLF extends MatchingTask {
                 } // end of if (eolcount == 0)
 
             } catch (IOException e) {
-                throw new BuildException(e);
+                throw new BuildException(srcFile + ": "+ e.getMessage(),
+                                         e, getLocation());
             }
         }
 

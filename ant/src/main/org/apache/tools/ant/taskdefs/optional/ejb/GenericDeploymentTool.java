@@ -1,7 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
+ * Copyright (c) 2000-2003 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -318,11 +318,13 @@ public class GenericDeploymentTool implements EJBDeploymentTool {
             dependencyAnalyzer.addClassPath(config.classpath);
         } catch (NoClassDefFoundError e) {
             dependencyAnalyzer = null;
-            task.log("Unable to load dependency analyzer: " + analyzerClassName,
+            task.log("Unable to load dependency analyzer: " + analyzerClassName
+                + " - dependent class not found: " + e.getMessage(),
                 Project.MSG_WARN);
         } catch (Exception e) {
             dependencyAnalyzer = null;
-            task.log("Unable to load dependency analyzer: " + analyzerClassName,
+            task.log("Unable to load dependency analyzer: " + analyzerClassName
+                     + " - exception: " + e.getMessage(),
                 Project.MSG_WARN);
         }
     }

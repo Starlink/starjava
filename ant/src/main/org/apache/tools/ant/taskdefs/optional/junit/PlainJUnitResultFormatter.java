@@ -23,7 +23,7 @@
  *    Alternately, this acknowlegement may appear in the software itself,
  *    if and wherever such third-party acknowlegements normally appear.
  *
- * 4. The names "The Jakarta Project", "Ant", and "Apache Software
+ * 4. The names "Ant" and "Apache Software
  *    Foundation" must not be used to endorse or promote products derived
  *    from this software without prior written permission. For written
  *    permission, please contact apache@apache.org.
@@ -205,10 +205,14 @@ public class PlainJUnitResultFormatter implements JUnitResultFormatter {
                 return;
             }
             Long l = (Long) testStarts.get(test);
-            wri.println(" took " 
-                        + nf.format((System.currentTimeMillis() - l.longValue())
-                                    / 1000.0)
-                        + " sec");
+            double seconds = 0;
+            // can be null if an error occured in setUp
+            if (l != null) {
+                seconds = 
+                    (System.currentTimeMillis() - l.longValue()) / 1000.0;
+            }
+            
+            wri.println(" took " + nf.format(seconds) + " sec");
         }
     }
 
