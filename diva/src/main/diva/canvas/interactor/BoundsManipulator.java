@@ -41,11 +41,11 @@ public class BoundsManipulator extends Manipulator {
 
     /** The geometry "helper"
      */
-    private BoundsGeometry _geometry;
+    protected BoundsGeometry _geometry;
 
     /** The interactor that is attached to a move handle.
      */
-    private Interactor _dragInteractor = null;
+    protected Interactor _dragInteractor = null;
 
     /**
      * Construct a new manipulator that uses rectangular grab-handles.
@@ -63,8 +63,9 @@ public class BoundsManipulator extends Manipulator {
     }
 
     /** Return the geometry of this manipulator
+     * PWD: change protection to protected from private(!).
      */
-    private BoundsGeometry getGeometry () {
+    protected BoundsGeometry getGeometry () {
         return _geometry;
     }
 
@@ -125,7 +126,7 @@ public class BoundsManipulator extends Manipulator {
 
             // Set the minimum size
             // FIXME: this is bogus: set it in the interactor instead!
-            _geometry.setMinimumSize(4*g.getSize());
+            //_geometry.setMinimumSize(4*g.getSize()); //PWD: bad.
 
         }
     }

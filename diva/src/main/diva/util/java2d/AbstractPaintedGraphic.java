@@ -44,30 +44,34 @@ public abstract class AbstractPaintedGraphic implements PaintedGraphic {
      * account of the thickness of the stroke.
      */
     public Rectangle2D getBounds () {
+        return shape.getBounds2D(); // PWD: need this for my figures,
+                                    // below is much worse!
+
         // FIXME: these bounds REALLY need to be cached.  But it's 
         // painful because of the public members.
-        if (stroke == null) {
-            return shape.getBounds2D();
-        } else if(stroke instanceof BasicStroke) {
-            // For some reason (antialiasing?) the bounds returned by 
-	    // BasicStroke is off by one.  This code works around it.
-            // if all we want is the bounds, then we don't need to actually
-            // stroke the shape.
-            Rectangle2D rect = shape.getBounds2D();
-            int width = (int)((BasicStroke)stroke).getLineWidth() + 2;
-	    return new Rectangle2D.Double(rect.getX() - width, 
-					  rect.getY() - width,
-					  rect.getWidth() + width + width,
-					  rect.getHeight() + width + width);
-        } else {
-	    // For some reason (antialiasing?) the bounds returned by 
-	    // BasicStroke is off by one.  This code works around it.
-	    Rectangle2D rect = stroke.createStrokedShape(shape).getBounds2D();
-            return new Rectangle2D.Double(rect.getX() - 1, 
-					  rect.getY() - 1,
-					  rect.getWidth() + 2,
-					  rect.getHeight() + 2);
-	}
+//         if (stroke == null) {
+//             return shape.getBounds2D();
+//         } else if(stroke instanceof BasicStroke) {
+//             // For some reason (antialiasing?) the bounds returned by 
+//             // BasicStroke is off by one.  This code works around it.
+//             // if all we want is the bounds, then we don't need to actually
+//             // stroke the shape.
+//             Rectangle2D rect = shape.getBounds2D();
+//             int width = (int)((BasicStroke)stroke).getLineWidth();// + 2;
+//             return new Rectangle2D.Double(rect.getX() - width, 
+//                                           rect.getY() - width,
+//                                           rect.getWidth() + width + width,
+//     					  rect.getHeight() + width + width);
+//         } else {
+//   	    // For some reason (antialiasing?) the bounds returned by 
+//  	    // BasicStroke is off by one.  This code works around it.
+//   	    Rectangle2D rect = stroke.createStrokedShape(shape).getBounds2D();
+//             return rect;
+//             return new Rectangle2D.Double(rect.getX() - 1, 
+//    					  rect.getY() - 1,
+//    					  rect.getWidth() + 2,
+//    					  rect.getHeight() + 2);
+//   	}
     }
 
     /** Get the stroke.

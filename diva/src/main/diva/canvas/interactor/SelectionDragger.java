@@ -47,6 +47,9 @@ import java.util.Iterator;
  *
  * @version $Revision: 1.8 $
  * @author John Reekie
+ * @author Peter W. Draper.
+ * @history Changed access of _rubberBand to protected (need access in
+ *          derived class).
  */
 public class SelectionDragger extends DragInteractor {
 
@@ -68,7 +71,7 @@ public class SelectionDragger extends DragInteractor {
 
     /* The rubber-band
      */
-    private Rectangle2D _rubberBand = null;
+    protected Rectangle2D _rubberBand = null;
 
     /* The set of figures covered by the rubber-band
      */

@@ -33,7 +33,7 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
 
     /* The half-length of the sides
      */
-    private float _size = 4.0f;
+    private float _size = 2.0f; // PWD: was 4, which seems excessive.
 
     /**
      * Construct a new grab handle attached to the given
@@ -41,7 +41,11 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
      */
     public BasicGrabHandle(Site s) {
         // Can't reference variable until superclass is called...
-        super(0,0,0,0, java.awt.Color.blue);
+        super(0,0,0,0,java.awt.Color.black);// PWD: was
+                                            // java.awt.Color.blue, I
+                                            // prefer clear, but seems
+                                            // to leave "trails" when
+                                            // outline is set, si use black!
 	setSize(_size);
         _site = s;
     }
