@@ -15,7 +15,7 @@ import java.net.URL;
  *
  * @author   Mark Taylor (Starlink)
  */
-public interface ArrayFactory {
+public interface ArrayBuilder {
 
     /**
      * Constructs an NDArray based on the existing resource at a given URL.
