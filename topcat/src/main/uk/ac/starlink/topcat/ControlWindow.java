@@ -488,7 +488,9 @@ public class ControlWindow extends AuxWindow
      *          or (standalone case) there will be no return.
      */
     public boolean exit( boolean confirm ) {
-        if ( ( ! confirm ) || confirm( "Shut down TOPCAT", "Confirm Exit" ) ) {
+        if ( ( ! confirm ) || 
+             tablesModel.getSize() == 0 ||
+             confirm( "Shut down TOPCAT", "Confirm Exit" ) ) {
             removeWindowListener( windowWatcher );
             if ( Driver.isStandalone() ) {
                 System.exit( 0 );
