@@ -123,11 +123,11 @@ class HelpDetailViewer extends DetailViewer {
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ZIPFILE, "ZIP archive" );
-            addKnownIcon( IconFactory.ZIPENTRY, "ZIP archive entry" );
+            addKnownIcon( IconFactory.ZIPBRANCH, "ZIP archive entry" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.TARFILE, "TAR archive" );
-            addKnownIcon( IconFactory.TARENTRY, "TAR archive entry" );
+            addKnownIcon( IconFactory.TARBRANCH, "TAR archive entry" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ERROR, "An error which has occurred" );

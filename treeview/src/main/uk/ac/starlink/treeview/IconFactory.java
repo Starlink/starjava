@@ -43,7 +43,7 @@ public class IconFactory {
     public static final short DIRECTORY = 106;
     public static final short NDF = 107;
     public static final short ZIPFILE = 108;
-    public static final short ZIPENTRY = 109;
+    public static final short ZIPBRANCH = 109;
     public static final short WCS = 110;
     public static final short FITS = 111;
     public static final short HDU = 112;
@@ -65,7 +65,8 @@ public class IconFactory {
     public static final short NDX = 130;
     public static final short HDX_CONTAINER = 131;
     public static final short TARFILE = 132;
-    public static final short TARENTRY = 133;
+    public static final short TARBRANCH = 133;
+    public static final short COMPRESSED = 134;
     public static final short VOTABLE = 140;
     public static final short VOCOMPONENT = 141;
     public static final short SPLAT = 200;
@@ -157,7 +158,7 @@ public class IconFactory {
             case DIRECTORY:      iname = "dir4.gif";                 break;
             case NDF:            iname = "star_gold.gif";            break;
             case ZIPFILE:        iname = "squishdir2.gif";           break;
-            case ZIPENTRY:       iname = "squishfile2.gif";          break;
+            case ZIPBRANCH:      iname = "tarentry1.gif";            break;
             case WCS:            iname = "world1.gif";               break;
             case FITS:           iname = "gstar2.gif";               break;
             case HDU:            iname = "TileCascade.gif";          break;
@@ -180,7 +181,8 @@ public class IconFactory {
             case NDX:            iname = "fuzz3.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
             case TARFILE:        iname = "tarchive1.gif";            break;
-            case TARENTRY:       iname = "tarentry1.gif";            break;
+            case TARBRANCH:      iname = "tarentry1.gif";            break;
+            case COMPRESSED:     iname = "squishfile2.gif";          break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPLAT:          iname = "multidisplay.gif";         break;

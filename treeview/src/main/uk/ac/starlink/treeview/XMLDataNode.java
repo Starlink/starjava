@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Notation;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
+import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 
 public class XMLDataNode extends DefaultDataNode {
@@ -145,6 +146,12 @@ public class XMLDataNode extends DefaultDataNode {
 
     public XMLDataNode( String loc ) throws NoSuchDataException {
         this( new File( loc ) );
+    }
+
+    public XMLDataNode( DataSource datsrc ) throws NoSuchDataException {
+        this( SourceDataNodeBuilder.makeDOMSource( datsrc ) );
+        this.name = datsrc.getName();
+        setLabel( name );
     }
 
     public String getName() {

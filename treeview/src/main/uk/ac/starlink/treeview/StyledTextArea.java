@@ -113,6 +113,10 @@ public class StyledTextArea extends JTextPane {
         addKeyedItem( name, Float.toString( value ) );
     }
 
+    public void addKeyedItem( String name, boolean value ) {
+        addKeyedItem( name, value ? "yes" : "no" );
+    }
+
     public void logError( Throwable th ) {
         append( "normal", "\n" );
         append( "errorhead", "Error:  " );

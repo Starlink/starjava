@@ -47,6 +47,9 @@ public class Driver {
             nodeTypeFlags.put( "-hds", HDSDataNode.class );
         }
         nodeTypeFlags.put( "-file", FileDataNode.class );
+        nodeTypeFlags.put( "-plain", PlainDataNode.class );
+        nodeTypeFlags.put( "-comp", CompressedDataNode.class );
+        nodeTypeFlags.put( "-src", PlainDataNode.class );
         if ( hasHDS ) {
             nodeTypeFlags.put( "-ary", ARYDataNode.class );
             nodeTypeFlags.put( "-ndf", NDFDataNode.class );

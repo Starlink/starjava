@@ -1,9 +1,21 @@
 package uk.ac.starlink.treeview;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
-import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import javax.swing.Icon;
+import uk.ac.starlink.util.DataSource;
+
 
 /**
  * A {@link DataNode} representing a zip file.
@@ -12,7 +24,6 @@ import javax.swing.*;
  * @version  $Id$
  */
 public class ZipFileDataNode extends DefaultDataNode {
-    private static Icon icon;
 
     private String name;
     private ZipFile zfile;
@@ -53,38 +64,46 @@ public class ZipFileDataNode extends DefaultDataNode {
         return true;
     }
 
-    /**
-     * Returns all the entries in the zipfile.  Note that this is a flat
-     * list; any directory structure implicit in the contents of the
-     * zip file is ignored.
-     *
-     * @return   an array of <code>DataNode</code>s representing the 
-     *           entries in the zip file
-     */
     public Iterator getChildIterator() {
+        return getChildIteratorAtLevel( "", this );
+    }
 
-        /* Note that when constructing the child nodes here we first construct
-         * DataNodes corresponding to the entries in the ZipFile 
-         * (these will be ZipBranchDataNodes and ZipLeafDataNodes), 
-         * then pass these to the DataNodeFactory so that any class who
-         * wishes to make something more specific from it can do 
-         * (if they have a constructor which takes a ZipLeafDataNode). */
-        DataNode[] nodes = getEntriesAtLevel( zfile, "" );
-        final Iterator nodeIt = Arrays.asList( nodes ).iterator();
+    Iterator getChildIteratorAtLevel( String level, final DataNode parent ) {
+        final DataNodeFactory childMaker = getChildMaker();
+        ZipEntry[] zents = getEntriesAtLevel( level );
+        final Iterator zentIt = Arrays.asList( zents ).iterator();
+        final int lleng = level.length();
+        final ZipFileDataNode zfdn = ZipFileDataNode.this;
         return new Iterator() {
             public boolean hasNext() {
-                return nodeIt.hasNext();
+                return zentIt.hasNext();
             }
             public Object next() {
-                DataNode node = (DataNode) nodeIt.next();
-                try {
-                   return getChildMaker()
-                         .makeDataNode( ZipFileDataNode.this, node );
+                final ZipEntry zent = (ZipEntry) zentIt.next();
+                boolean isDir = zent.isDirectory();
+                final String subname = zent.getName().substring( lleng );
+                if ( isDir ) {
+                    DataNode dnode = new ZipBranchDataNode( zfdn, zent );
+                    dnode.setCreator( new CreationState( parent ) );
+                    dnode.setLabel( subname );
+                    return dnode;
                 }
-                catch ( NoSuchDataException e ) {
-                    DataNode parent = ZipFileDataNode.this;
-                    node.setCreator( new CreationState( parent ) );
-                    return node;
+                else {
+                    DataSource datsrc = new DataSource() {
+                        public String getName() {
+                            return subname;
+                        }
+                        protected InputStream getRawInputStream() 
+                                throws IOException {
+                            return zfile.getInputStream( zent );
+                        }
+                    };
+                    try {
+                        return childMaker.makeDataNode( parent, datsrc );
+                    }
+                    catch ( NoSuchDataException e ) {
+                        return childMaker.makeErrorDataNode( parent, e );
+                    }
                 }
             }
             public void remove() {
@@ -106,10 +125,7 @@ public class ZipFileDataNode extends DefaultDataNode {
     }
 
     public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.ZIPFILE );
-        }
-        return icon;
+        return IconFactory.getInstance().getIcon( IconFactory.ZIPFILE );
     }
 
     public String getPathSeparator() {
@@ -144,67 +160,63 @@ public class ZipFileDataNode extends DefaultDataNode {
     }
 
     /*
-     * Returns a list of the DataNodes at a given level (i.e. path prefix)
-     * in the zip file.  These will be ZipBranchDataNodes and 
-     * ZipLeafDataNodes.  Since the file access proved by the java.util.zip
+     * Returns a list of the ZipEntries at a given level (i.e. path prefix)
+     * in the zip file.  Since the file access proved by the java.util.zip
      * classes is not itself hierarchical (you just get a list of entries)
      * this is a bit fiddly to do.  Moreover (I think) you can have files
      * (leaves) within a zip directory (branch) in a zip file without 
      * branch actually having an entry in the zip file, so we have to watch
-     * out for this and construct the corresponding ZipBranchDataNodes
+     * out for this and construct the corresponding (dummy) ZipEntries
      * specially if required.
      */
-    static DataNode[] getEntriesAtLevel( ZipFile zfile, String level ) {
+    private ZipEntry[] getEntriesAtLevel( String level ) {
 
-        /* Loop over all the entries in the zip file, and make map entries
-         * for those which are at the right level.  Each entry has
-         * key=name and value=ZipEntry value.  Directories are identified
-         * by a name that ends in '/'.  In the case of a phantom directory,
-         * the ZipEntry is null.  I'm assuming that within a zip file,
-         * the directory separator character is '/' and all directory
-         * entry names end in a '/'. */
-        Enumeration entEn = zfile.entries();
-        SortedMap map = new TreeMap();
+        /* Loop over all the entries in the zip file, getting entries at
+         * the requested level.  This is harder work than you might think,
+         * since we need to pick up directories which don't actually
+         * exist in the archive, but whose presence is implied by
+         * entries contained within them. */
+        /* I'm assuming that within a zip file, the directory separator
+         * character is '/' and all directory entry names end in a '/'. */
+        Set realDirs = new HashSet();
+        Set impliedDirs = new TreeSet();
+        List levEnts = new ArrayList();
         int lleng = level.length();
-        while ( entEn.hasMoreElements() ) {
-            ZipEntry entry = (ZipEntry) entEn.nextElement();
-            String name = entry.getName();
-            if ( name.startsWith( level ) && ! name.equals( level ) ) {
-                String subname = name.substring( lleng );
+        for ( Enumeration entEn = zfile.entries(); entEn.hasMoreElements(); ) {
+            ZipEntry ent = (ZipEntry) entEn.nextElement();
+            String entname = ent.getName();
+            if ( entname.startsWith( level ) && ! entname.equals( level ) ) {
+                String subname = entname.substring( lleng );
                 int slashix = subname.indexOf( '/' );
-                String dirname = subname.substring( 0, slashix + 1 );
+
+                /* Entry is a directory, real or implied. */
                 if ( slashix >= 0 ) {
+                    String dirname = subname.substring( 0, slashix + 1 );
                     if ( slashix == subname.length() - 1 ) {
-                        map.put( dirname, entry );
+                        realDirs.add( dirname );
+                        levEnts.add( ent );
                     }
-                    else if ( ! map.containsKey( dirname ) ) {
-                        map.put( dirname, null );
+                    else {
+                        impliedDirs.add( dirname );
                     }
                 }
+
+                /* Entry is a file. */
                 else {
-                    map.put( subname, entry );
+                    levEnts.add( ent );
                 }
             }
         }
 
-        /* Construct an array of DataNodes from the map entries. */
-        DataNode[] nodes = new DataNode[ map.size() ];
-        Iterator itemIt = map.entrySet().iterator();
-        for ( int i = 0; itemIt.hasNext(); i++ ) {
-            Map.Entry item = (Map.Entry) itemIt.next();
-            String name = (String) item.getKey();
-            ZipEntry zent = (ZipEntry) item.getValue(); 
-            if ( zent == null ) {
-                nodes[ i ] = new ZipBranchDataNode( zfile, level + name );
-            }
-            else if ( zent.isDirectory() ) {
-                nodes[ i ] = new ZipBranchDataNode( zfile, zent );
-            }
-            else {
-                nodes[ i ] = new ZipLeafDataNode( zfile, zent );
-            }
+        /* Add dummy entries for phantom directories. */
+        impliedDirs.removeAll( realDirs );
+        for ( Iterator phIt = impliedDirs.iterator(); phIt.hasNext(); ) {
+            String dirname = (String) phIt.next();
+            levEnts.add( new ZipEntry( dirname ) );
         }
-        return nodes;
+
+        /* Return an array of all the entries. */
+        return (ZipEntry[]) levEnts.toArray( new ZipEntry[ 0 ] );
     }
 
     public static boolean isMagic( byte[] magic ) {

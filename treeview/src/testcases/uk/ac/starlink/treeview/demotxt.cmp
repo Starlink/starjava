@@ -193,20 +193,68 @@
     + [DIR] zip
       + [ZIP] hello.jar
         + [ZPD] META-INF/
-          - [ZPE] MANIFEST.MF
-        - [ZPE] build.xml
+          - [DAT] MANIFEST.MF
         + [ZPD] uk/
           + [ZPD] ac/
             + [ZPD] starlink/
               + [ZPD] hello/
-                - [ZPE] HelloWorld.class
-                - [ZPE] HelloWorld.java
-                - [ZPE] greet.txt
+                - [DAT] HelloWorld.class
+                - [DAT] HelloWorld.java
+                - [DAT] greet.txt
+        + [DOC] build.xml
+          - [COM]   <!-- Ant build file for toy 'Hello ...
+          + [ELE] <project>  "hello"
+            - [ELE] <property>  package.name="hello"
+            + [ELE] <target>  "build"
+              - [ELE] <javac>
+              + [ELE] <jar>
+                - [ELE] <exclude>  "**/.*"
+                - [ELE] <exclude>  "*.jar"
+                - [ELE] <exclude>  "*.zip"
+                + [ELE] <manifest>
+                  - [ELE] <attribute>  Main-Class="uk.ac.starlink.hello.HelloWo...
+              + [ELE] <zip>
+                - [ELE] <exclude>  "**/.*"
+                - [ELE] <exclude>  "**/*.class"
+                - [ELE] <exclude>  "*.jar"
+                - [ELE] <exclude>  "*.zip"
+            + [ELE] <target>  "test"
+              - [ELE] <java>
+            + [ELE] <target>  "clean"
+              + [ELE] <delete>
+                + [ELE] <fileset>
+                  - [ELE] <include>  "**/*.class"
+                  - [ELE] <include>  "${package.name}.jar"
+                  - [ELE] <include>  "${package.name}_src.zip"
       + [ZIP] hello_src.zip
-        - [ZPE] build.xml
         + [ZPD] uk/
           + [ZPD] ac/
             + [ZPD] starlink/
               + [ZPD] hello/
-                - [ZPE] HelloWorld.java
-                - [ZPE] greet.txt
+                - [DAT] HelloWorld.java
+                - [DAT] greet.txt
+        + [DOC] build.xml
+          - [COM]   <!-- Ant build file for toy 'Hello ...
+          + [ELE] <project>  "hello"
+            - [ELE] <property>  package.name="hello"
+            + [ELE] <target>  "build"
+              - [ELE] <javac>
+              + [ELE] <jar>
+                - [ELE] <exclude>  "**/.*"
+                - [ELE] <exclude>  "*.jar"
+                - [ELE] <exclude>  "*.zip"
+                + [ELE] <manifest>
+                  - [ELE] <attribute>  Main-Class="uk.ac.starlink.hello.HelloWo...
+              + [ELE] <zip>
+                - [ELE] <exclude>  "**/.*"
+                - [ELE] <exclude>  "**/*.class"
+                - [ELE] <exclude>  "*.jar"
+                - [ELE] <exclude>  "*.zip"
+            + [ELE] <target>  "test"
+              - [ELE] <java>
+            + [ELE] <target>  "clean"
+              + [ELE] <delete>
+                + [ELE] <fileset>
+                  - [ELE] <include>  "**/*.class"
+                  - [ELE] <include>  "${package.name}.jar"
+                  - [ELE] <include>  "${package.name}_src.zip"

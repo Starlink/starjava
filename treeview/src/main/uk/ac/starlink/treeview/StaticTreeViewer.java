@@ -675,6 +675,9 @@ public class StaticTreeViewer extends JFrame {
                     demoNode = null;
                 }
                 treeModel.removeNodeFromParent( tnode );
+
+                /* Post the help window so we don't have a blank detail pane. */
+                setDetailPane( helpPanel );
             }
         };
         deleteAct.putValue( Action.SHORT_DESCRIPTION,
@@ -848,7 +851,6 @@ public class StaticTreeViewer extends JFrame {
             collapseSelAct.setEnabled( false );
             deleteAct.setEnabled( false );
             upAct.setEnabled( false );
-            setDetailPane( helpPanel );
         }
     }
 

@@ -25,7 +25,9 @@ import java.text.*;
  * <li> {@link ZipFileDataNode}
  * <li> {@link TarFileDataNode}
  * <li> {@link NDArrayDataNode}
+ * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
+ * <li> {@link PlainDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
  * the object it is given for construction, the constructors available
@@ -50,13 +52,15 @@ import java.text.*;
  * should be turned into.
  * <p>
  * Initially a newly constructed DataNodeFactory has a 
- * <tt>FileDataNodeBuilder</tt> at the head of the list, followed by
+ * <tt>FileDataNodeBuilder</tt> and <tt>SourceDataNodeBuilder</tt> 
+ * at the head of the list, followed by
  * ones got from constructors of the known DataNode implementations.
  * This means that a file or string will get tackled first by 
- * the clever class, but if that fails it will trawl through all the
+ * the clever classes, but if that fails it will trawl through all the
  * other possibilities.  Modifying the list of preferred classes
  * using {@link #setNodeClassList} or {@link #setPreferredClass}
- * will normally demote the <tt>FileDataNodeBuilder</tt> so that
+ * will normally demote the <tt>FileDataNodeBuilder</tt> &amp; 
+ * <tt>SourceDataNodeBuilder</tt> so that
  * all node construction is done by brute force in strict order
  * of classes in the class list.
  *
@@ -313,27 +317,10 @@ public class DataNodeFactory implements Cloneable {
      * class list it may slip lower down or disappear from the hierarchy.
      */
     public static List getSpecialBuilders() {
-
-        final DataNodeBuilder fileBuilder = FileDataNodeBuilder.getInstance();
-
-        DataNodeBuilder stringBuilder = new DataNodeBuilder() {
-            public boolean suitable( Class objClass ) {
-                return objClass.equals( String.class );
-            }
-            public DataNode buildNode( Object obj ) {
-                if ( ! ( obj instanceof String ) ) {
-                    return null;
-                }
-                return fileBuilder.buildNode( new File( (String) obj ) );
-            }
-            public String toString() {
-                return "special DataNodeBuilder (java.lang.String)";
-            }
-        };
-
-        List specials = new ArrayList();
-        specials.add( fileBuilder );
-        specials.add( stringBuilder );
+        List specials = new ArrayList( 3 );
+        specials.add( FileDataNodeBuilder.getInstance() );
+        specials.add( StringDataNodeBuilder.getInstance() );
+        specials.add( SourceDataNodeBuilder.getInstance() );
         return specials;
     }
 
@@ -358,7 +345,9 @@ public class DataNodeFactory implements Cloneable {
                 ZipFileDataNode.class,
                 TarFileDataNode.class,
                 NDArrayDataNode.class,
+                CompressedDataNode.class,
                 FileDataNode.class,
+                PlainDataNode.class,
             };
             defaultClassList = new ArrayList( Arrays.asList( classes ) );
 

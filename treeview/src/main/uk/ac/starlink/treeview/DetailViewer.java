@@ -258,6 +258,10 @@ public class DetailViewer {
         over.addKeyedItem( name, value );
     }
 
+    public void addKeyedItem( String name, boolean value ) {
+        over.addKeyedItem( name, value );
+    }
+
     public void logError( Throwable th ) {
         over.logError( th );
     }

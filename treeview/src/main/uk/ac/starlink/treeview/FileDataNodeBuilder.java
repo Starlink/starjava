@@ -19,6 +19,9 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSReference;
+import uk.ac.starlink.util.Compression;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 import uk.ac.starlink.util.SourceReader;
 
 /**
@@ -35,6 +38,8 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
     /** Singleton instance. */
     private static FileDataNodeBuilder instance = new FileDataNodeBuilder();
+
+    private DataNodeBuilder sourceBuilder = SourceDataNodeBuilder.getInstance();
 
     /**
      * Obtains the singleton instance of this class.
@@ -62,27 +67,28 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             return null;
         }
 
-        InputStream strm; 
-        try {
-            strm = new FileInputStream( file );
-            strm = new BufferedInputStream( strm );
-        }
-        catch ( FileNotFoundException e ) {
-            e.printStackTrace(); // shouldn't happen
-            return null;
-        }
+        /* Make a DataSource from the file. */
+        DataSource datsrc = new FileDataSource( file );
 
         try {
-            strm.mark( 300 );
+
+            /* If there is compression, pass it to the handler for streams. */
+            Compression compress = datsrc.getCompression();
+            if ( datsrc.getCompression() != Compression.NONE ) {
+                return sourceBuilder.buildNode( datsrc );
+            }
+
+            /* Get the magic number. */
             byte[] magic = new byte[ 300 ];
-            strm.read( magic );
-            strm.reset();
+            int nGot = datsrc.getMagic( magic );
 
             /* If it's a FITS file, make it an NDX (if it looks like it
              * was created as one) or a FITS node. */
             if ( FITSDataNode.isMagic( magic ) ) {
-                ArrayDataInput istrm = new BufferedDataInputStream( strm );
+                ArrayDataInput istrm = null;
                 try {
+                    InputStream strm1 = datsrc.getInputStream();
+                    istrm = new BufferedDataInputStream( strm1 );
                     Header hdr = new Header( istrm );
                     if ( hdr.containsKey( "NDX_XML" ) ) {
                         try {
@@ -102,6 +108,11 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                 }
                 catch ( FitsException e ) {
                     return null;
+                }
+                finally {
+                    if ( istrm != null ) {
+                        istrm.close();
+                    }
                 }
             }
 
@@ -139,9 +150,9 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* XML file? */
             if ( XMLDataNode.isMagic( magic ) ) {
+                DOMSource xsrc = makeDOMSource( file );
 
                 /* NDX? */
-                DOMSource xsrc = makeDOMSource( file );
                 try {
                     DataNode dn = new NdxDataNode( xsrc );
                     dn.setLabel( file.getName() );
@@ -160,13 +171,9 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                 }
 
                 /* Normal XML file? */
-                try {
-                    DataNode dn = new XMLDataNode( xsrc );
-                    dn.setLabel( file.getName() );
-                    return dn;
-                }
-                catch ( NoSuchDataException e ) {
-                }
+                DataNode dn = new XMLDataNode( xsrc );
+                dn.setLabel( file.getName() );
+                return dn;
             }
 
             /* We don't know what it is.  Return null. */
@@ -190,7 +197,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
         /* Clear up. */
         finally {
             try {
-                strm.close();
+                datsrc.close();
             }
             catch ( IOException e ) {
                 e.printStackTrace();
@@ -199,7 +206,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
     }
 
     public String toString() {
-        return "special DataNodeBuilder (java.io.File)";
+        return "FileDataNodeBuilder(java.io.File)";
     }
 
     public static DOMSource makeDOMSource( File file )

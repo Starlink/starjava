@@ -6,6 +6,8 @@ import java.awt.*;
 import javax.swing.*;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 
 /**
  * A {@link DataNode} representing a file or directory in the 
@@ -77,6 +79,7 @@ public class FileDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
+        final DataNode parent = this;
         final File[] subFiles = file.listFiles();
         Arrays.sort( subFiles );
         return new Iterator() {
@@ -88,10 +91,10 @@ public class FileDataNode extends DefaultDataNode {
                 DataNode child;
                 try {
                     child = getChildMaker()
-                           .makeDataNode( FileDataNode.this, subFiles[ index ] );
+                           .makeDataNode( parent, subFiles[ index ] );
                 }
                 catch ( NoSuchDataException e ) {
-                    child = getChildMaker().makeErrorDataNode( FileDataNode.this, e );
+                    child = getChildMaker().makeErrorDataNode( parent, e );
                 }
                 index++;
                 return child;
@@ -208,20 +211,23 @@ public class FileDataNode extends DefaultDataNode {
             /* If it looks like a text file, add the option to view the
              * content. */
             try {
-                StreamCheck sc = new StreamCheck( file );
+                DataSource datsrc = new FileDataSource( file );
+                boolean isText = datsrc.isASCII();
+                boolean isHTML = datsrc.isHTML();
+                datsrc.close();
 
             //  HTML viewing does work but there are problems with it; 
             //  for one thing I can't make the HTML load asynchronously.
             //  If I do have HTML viewing, I'm not sure if it should be 
             //  here or (more likely) an HTMLDataNode.
-            //  if ( sc.isHTML() ) {
+            //  if ( isHTML ) {
             //      dv.addPane( "HTML view", new ComponentMaker() {
             //          public JComponent getComponent() throws IOException {
             //              return new HTMLViewer( file );
             //          }
             //      } );
             //  }
-                if ( sc.isText() ) {
+                if ( isText ) {
                     dv.addPane( "File text", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( new FileReader( file ) );
@@ -238,7 +244,13 @@ public class FileDataNode extends DefaultDataNode {
                     } );
                 }
             }
-            catch ( IOException e ) {}
+            catch ( final IOException e ) {
+                dv.addPane( "Error reading file", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TextViewer( e );
+                    }
+                } );
+            }
         }
         return fullView;
     }

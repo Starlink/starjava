@@ -1,64 +1,42 @@
 package uk.ac.starlink.treeview;
 
-import java.io.File;
-import java.util.*;
-import java.util.zip.*;
-import javax.swing.*;
+import java.util.Iterator;
+import java.util.zip.ZipEntry;
+import javax.swing.Icon;
 
-/**
- * A {@link DataNode} representing a zip file entry which is represents
- * a directory.
- *
- * @author   Mark Taylor (Starlink)
- * @version  $Id$
- */
 public class ZipBranchDataNode extends DefaultDataNode {
-    private static Icon icon;
 
-    private String name;
-    private ZipFile zfile;
-    private ZipEntry zentry;
-    private String path;
+    private final ZipFileDataNode zipfilenode;
+    private final ZipEntry zipentry;
+    private final String path;
+    private final String name;
 
     /**
-     * Intializes a ZipBranchDataNode from its pathname.
+     * Constructs a ZipBranchDataNode from a ZipEntry and ZipFile.
      *
-     * @param  zipfile  the ZipFile to which the entry refers
-     * @param  name     the pathname of the directory entry within the zipfile
+     * @param  zipfilenode  DataNode representing the zip file within which
+     *         this entry lives
+     * @param  entry  the ZipEntry object represented by this node
      */
-    public ZipBranchDataNode( ZipFile zipfile, String path ) {
-        this.zfile = zipfile;
-        this.zentry = null;
-        this.path = path;
-        this.name = path.substring( path.substring( 0, path.length() - 1 )
-                                        .lastIndexOf( '/' ) + 1 );
+    public ZipBranchDataNode( ZipFileDataNode zipfilenode, ZipEntry entry ) {
+        this.zipfilenode = zipfilenode;
+        this.zipentry = entry;
+        this.path = entry.getName();
+        this.name = path.substring( path.substring( 0, path.length() - 1 ) 
+                                   .lastIndexOf( '/' ) + 1 );
         setLabel( name );
-    }
-
-    /**
-     * Initializes a ZipBranchDataNode from a ZipEntry object.
-     *
-     * @param  zipfile   the ZipFile from which the entry comes
-     * @param  zipentry  the ZipEntry from which the node is to be formed
-     */
-    public ZipBranchDataNode( ZipFile zipfile, ZipEntry zipentry ) {
-        this( zipfile, zipentry.getName() );
-        this.zentry = zipentry;
     }
 
     public String getName() {
         return name;
     }
 
-    public Icon getIcon() {
-        if ( icon == null ) {
-            icon = IconFactory.getInstance().getIcon( IconFactory.ZIPENTRY );
-        }
-        return icon;
+    public String getPathSeparator() {
+        return "/";
     }
 
-    public String getPathSeparator() {
-        return "";
+    public Icon getIcon() {
+        return IconFactory.getInstance().getIcon( IconFactory.ZIPBRANCH );
     }
 
     public String getNodeTLA() {
@@ -66,7 +44,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public String getNodeType() {
-        return "Zip file directory entry";
+        return "Directory in Zip archive";
     }
 
     public boolean allowsChildren() {
@@ -74,27 +52,7 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public Iterator getChildIterator() {
-        DataNode[] nodes = ZipFileDataNode.getEntriesAtLevel( zfile, path );
-        final Iterator nodeIt = Arrays.asList( nodes ).iterator();
-        return new Iterator() {
-            public boolean hasNext() {
-                return nodeIt.hasNext();
-            }
-            public Object next() {
-                DataNode node = (DataNode) nodeIt.next();
-                try {
-                    return getChildMaker()
-                          .makeDataNode( ZipBranchDataNode.this, node );
-                }
-                catch ( NoSuchDataException e ) {
-                    DataNode parent = ZipBranchDataNode.this;
-                    node.setCreator( new CreationState( parent ) );
-                    return node;
-                }
-            }
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        return zipfilenode.getChildIteratorAtLevel( path, this );
     }
+
 }
