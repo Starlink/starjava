@@ -561,9 +561,9 @@ public class StaticTreeViewer extends JFrame {
         detailNoneAct.putValue( Action.SHORT_DESCRIPTION,
                                 "Do not display any node details" );
 
-        /* Action for adding a new top-level node to the tree. */
-        Action chooseNewNodeAct = 
-            new AbstractAction( "Open",
+        /* Action for adding a new top-level file node to the tree. */
+        Action chooseNewFileAct = 
+            new AbstractAction( "Open file",
                                 iconMaker.getIcon( IconFactory.LOAD ) ) {
             public void actionPerformed( ActionEvent event ) {
                 if ( fileChooser == null ) {
@@ -577,26 +577,51 @@ public class StaticTreeViewer extends JFrame {
                 if ( retval == JFileChooser.APPROVE_OPTION ) {
                     DefaultMutableTreeNode root = 
                         (DefaultMutableTreeNode) treeModel.getRoot();
+                    File file = fileChooser.getSelectedFile();
+                    DataNode dnode;
                     try {
-                        File file = fileChooser.getSelectedFile();
-                        DataNode dnode = nodeMaker.makeDataNode( file );
-                        dnode.setLabel( file.getAbsolutePath() );
-                        DefaultMutableTreeNode tnode = 
-                            new DefaultMutableTreeNode( dnode );
-                        tnode.setAllowsChildren( dnode.allowsChildren() );
-                        treeModel.insertNodeInto( tnode, root, 
-                                                  root.getChildCount() );
-                        tree.scrollPathToVisible( new TreePath( tnode
-                                                               .getPath() ) );
+                        dnode = nodeMaker.makeDataNode( file );
                     }
                     catch ( NoSuchDataException e ) {
-                        System.out.println( e.getMessage() );
+                        dnode = new ErrorDataNode( e );
                     }
+                    dnode.setLabel( file.getAbsolutePath() );
+                    DefaultMutableTreeNode tnode = 
+                        new DefaultMutableTreeNode( dnode );
+                    tnode.setAllowsChildren( dnode.allowsChildren() );
+                    treeModel.insertNodeInto( tnode, root, 
+                                              root.getChildCount() );
+                    tree.scrollPathToVisible( new TreePath( tnode.getPath() ) );
                 }
             }
         };
-        chooseNewNodeAct.putValue( Action.SHORT_DESCRIPTION,
-            "Add a new file to the tree" );
+        chooseNewFileAct.putValue( Action.SHORT_DESCRIPTION,
+            "Add a new node to the tree from the filesystem" );
+
+        /* Action for adding a new top-level non-file node to the tree. */
+        Action chooseNewNameAct = new AbstractAction( "Open name" ) {
+            public void actionPerformed( ActionEvent event ) {
+                String name = JOptionPane
+                             .showInputDialog( "Name of the new node" );
+                DataNode dnode;
+                try {
+                    dnode = nodeMaker.makeDataNode( name );
+                }
+                catch ( NoSuchDataException e ) {
+                    dnode = new ErrorDataNode( e );
+                }
+                dnode.setLabel( name );
+                DefaultMutableTreeNode tnode =
+                    new DefaultMutableTreeNode( dnode );
+                tnode.setAllowsChildren( dnode.allowsChildren() );
+                DefaultMutableTreeNode root = 
+                    (DefaultMutableTreeNode) treeModel.getRoot();
+                treeModel.insertNodeInto( tnode, root, root.getChildCount() );
+                tree.scrollPathToVisible( new TreePath( tnode.getPath() ) );
+            }
+        };
+        chooseNewNameAct.putValue( Action.SHORT_DESCRIPTION,
+            "Add a new node to the tree by name" );
 
         /* Action for displaying demo data. */
         Action demoAct =
@@ -672,10 +697,11 @@ public class StaticTreeViewer extends JFrame {
         /* Add file actions. */
         JMenu fileMenu = new JMenu( "File" );
         mb.add( fileMenu );
-        fileMenu.add( chooseNewNodeAct ).setIcon( null );
+        fileMenu.add( chooseNewFileAct ).setIcon( null );
+        fileMenu.add( chooseNewNameAct ).setIcon( null );
         fileMenu.add( exitAct ).setIcon( null );
         tools.add( exitAct );
-        tools.add( chooseNewNodeAct );
+        tools.add( chooseNewFileAct );
         tools.addSeparator();
 
         /* Add the detail geometry choices to both menu and toolbar. */

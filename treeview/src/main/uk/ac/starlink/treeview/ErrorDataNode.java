@@ -14,10 +14,6 @@ public class ErrorDataNode extends DefaultDataNode {
         this.thrown = th;
     }
 
-    public String getDescription() {
-        return thrown.getClass().getName();
-    }
-
     public String getNodeTLA() {
         return "ERR";
     }
