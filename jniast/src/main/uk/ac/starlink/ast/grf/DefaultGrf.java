@@ -1085,8 +1085,8 @@ public class DefaultGrf
                 retrgb = attribute( GRF__COLOUR, AstObject.AST__BAD, prim );
                 retalpha = attribute( GRF__ALPHA, AstObject.AST__BAD, prim );
             }
-            int retopaque = (int) ( ( retalpha ) * 256.0 );
-            return (double) ( ( retopaque << 24 ) & ( (int) retrgb ) );
+            int retopaque = (int) ( ( retalpha ) * 255.9 );
+            return (double) ( ( retopaque << 24 ) | ( (int) retrgb ) );
         }
         else {
             return attribute( attr, value, prim );
