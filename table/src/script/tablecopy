@@ -35,7 +35,7 @@ fi
 
 #  Locate the application jar file.  This is relative to this script.
 
-appjar="$bindir/../lib/table/table.jar"
+appjar="$bindir/../lib/table/tablecopy.jar"
 if test ! -f "$appjar"; then
    echo "Failed to locate $appjar."
    exit 1

@@ -406,10 +406,18 @@
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
       <manifest>
-        <attribute name="Main-Class" 
-                   value="uk.ac.starlink.table.TableCopy"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
+      </manifest>
+    </jar>
+
+    <jar destfile="${dist.lib.pkg}/tablecopy.jar">
+      <manifest>
+        <attribute name="Main-Class"
+                   value="uk.ac.starlink.table.TableCopy"/>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" 
+                   value="table.jar ../fits/fits.jar ../votable/votable.jar ../mirage/mirage.jar"/>
       </manifest>
     </jar>
 
