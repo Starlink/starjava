@@ -441,6 +441,7 @@ public class Version {
     <copy todir="${build.classes}">
       <fileset dir="${java.dir}">
         <include name="**/deploy.wsdd"/>
+        <include name="**/*.xml"/>
         <include name="**/images/**"/>
       </fileset>
     </copy>
