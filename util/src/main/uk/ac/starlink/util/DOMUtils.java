@@ -54,4 +54,23 @@ public class DOMUtils {
         return sb.toString();
     }
 
+    /**
+     * Returns the first subsequent sibling of a given node which is an Element.
+     * This is useful for naviating a DOM as a tree of elements when
+     * the presence of text or attribute children is a distraction.
+     *
+     * @param  node  the node whose siblings (including itself) you are
+     *         interested in.  May be <tt>null</tt>
+     * @return the first sibling of <tt>node</tt> which is an Element.
+     *         If <tt>node</tt> itself is an element, that is returned.
+     *         If <tt>node</tt> has no subsequent siblings which are 
+     *         elements, or if it is <tt>null</tt>,
+     *         then <tt>null</tt> is returned.
+     */
+    public static Element getFirstElementSibling( Node node ) {
+        return ( node == null || node instanceof Element ) 
+             ? (Element) node
+             : getFirstElementSibling( node.getNextSibling() );
+    }
+
 }
