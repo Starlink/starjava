@@ -291,6 +291,34 @@ public class Tables {
     }
 
     /**
+     * Returns a sorted version of a table.  The sorting is done on the
+     * values of one or more columns, as specified by the <tt>colIndices</tt>
+     * argument; the first element is the primary sort key, but in case
+     * of a tie the second element is used, and so on.  The original table
+     * is not affected.  The natural comparison order of the values in
+     * the table is used, and blank values may be ranked at the start or
+     * end of the collation order.
+     *
+     * @param   table  table to sort
+     * @param   colIndices  indices of the columns which are to act as sort
+     *          keys; first element is primary key etc
+     * @param   up  true for sorting into ascending order, false for 
+     *          descending order
+     * @param   nullsLast  true if blank values should be considered 
+     *          last in the collation order, false if they should 
+     *          be considered first
+     * @return  a table with the same rows as <tt>table</tt> but in an 
+     *          order determined by the other arguments
+     */
+    public static StarTable sortTable( StarTable table, int[] colIndices,
+                                       boolean up, boolean nullsLast )
+            throws IOException {
+        long[] rowMap =
+            TableSorter.getSortedOrder( table, colIndices, up, nullsLast );
+        return new RowPermutedStarTable( table, rowMap );
+    }
+
+    /**
      * Convenience method to get an <tt>int</tt> value from a <tt>long</tt>.
      * If the supplied long integer <tt>lval</tt> is out of the range
      * which can be represented in an <tt>int</tt>, then unlike a
