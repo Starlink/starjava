@@ -268,6 +268,10 @@ public class ControlWindow extends AuxWindow
         toolBar.add( matchActs[ 1 ] );
         toolBar.addSeparator();
 
+        /* Add miscellaneous actions to the toolbar. */
+        toolBar.add( MethodWindow.getWindowAction( this ) );
+        toolBar.addSeparator();
+
         /* Add actions to the file menu. */
         JMenu fileMenu = getFileMenu();
         int fileMenuPos = 0;
@@ -953,7 +957,7 @@ public class ControlWindow extends AuxWindow
                 return false;
             }
             try {
-                table = Tables.randomTable( table );
+                table = tabfact.randomTable( table );
                 String loc = table.getName();
                 loc = loc == null ? "dropped" : loc;
                 addTable( table, loc, true );

@@ -208,7 +208,7 @@ public class Driver {
                         System.err.println( "No table \"" + arg + "\"" );
                     }
                     else {
-                        addTableLater( Tables.randomTable( startab ), arg );
+                        addTableLater( tabfact.randomTable( startab ), arg );
                     }
                 }
                 catch ( final Throwable e ) {
@@ -306,7 +306,7 @@ public class Driver {
                                 return demoName;
                             }
                         };
-                        demoTables[ i ] = Tables.randomTable( table );
+                        demoTables[ i ] = demoFactory.randomTable( table );
                     }
                     else {
                         logger.warning( "Demo table resource not located: " +

@@ -255,7 +255,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
         /* Turn it into a random-access table if necessary. */
         if ( requireRandom ) {
             try {
-                return Tables.randomTable( startab );
+                return tableFactory.randomTable( startab );
             }
             catch ( IOException e ) {
                 ErrorDialog.showError( e, "Can't randomise table", this );

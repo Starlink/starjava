@@ -30,7 +30,6 @@ public class ViewerTableModel extends AbstractTableModel {
      * @param   startable  the <tt>StarTable</tt> object
      * @throws  IllegalArgumentException  if <tt>startable.isRandom</tt>
      *          returns <tt>false</tt>
-     * @see     uk.ac.starlink.table.Tables#randomTable
      */
     public ViewerTableModel( PlasticStarTable startable ) {
         this.startable = startable;
