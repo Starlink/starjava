@@ -56,6 +56,19 @@ public abstract class MarkStyle {
     public abstract int getMaximumRadius();
 
     /**
+     * Draws this marker's shape centred at the origin suitable for display
+     * as a legend.  The default implementation just invokes 
+     * {@link #drawShape}, but it may be overridden if there are special
+     * requirements, for instance if <tt>drawShape</tt> draws a miniscule
+     * graphic.
+     *
+     * @param   g  graphics context
+     */
+    protected void drawLegendShape( Graphics g ) {
+        drawShape( g );
+    }
+
+    /**
      * Draws this marker centered at a given position.  
      * This method sets the colour of the graphics context and 
      * then calls {@link #drawShape}.
@@ -72,6 +85,24 @@ public abstract class MarkStyle {
          g.translate( -x, -y );
          g.setColor( col );
         
+    }
+
+    /**
+     * Draws a legend for this marker centered at a given position.
+     * This method sets the colour of the graphics context and then 
+     * calls {@link #drawLegendShape}.
+     *
+     * @param  g  graphics context
+     * @param  x  x position
+     * @param  y  y position
+     */
+    public void drawLegendMarker( Graphics g, int x, int y ) {
+        Color col = g.getColor();
+        g.setColor( color_ );
+        g.translate( x, y );
+        drawLegendShape( g );
+        g.translate( -x, -y );
+        g.setColor( col );
     }
 
     /**
@@ -418,6 +449,40 @@ public abstract class MarkStyle {
         return new ConvenienceMarkStyle( color, new Integer( 23 ), 1 ) {
             protected void drawShape( Graphics g ) {
                 g.drawLine( 0, 0, 0, 0 );
+            }
+            protected void drawLegendShape( Graphics g ) {
+                g.fillOval( -1, -1, 2, 2 );
+                g.drawOval( -1, -1, 2, 2 );
+            }
+        };
+    }
+
+    /**
+     * Returns a marker style which plots using diffferent given styles
+     * for normal points and legends.
+     *
+     * @param   normalStyle  style used for most things
+     * @param   legendStyle  style used for {@link #drawLegendShape} method
+     * @return  marker style
+     */
+    public static MarkStyle compositeMarkStyle( final MarkStyle normalStyle,
+                                                final MarkStyle legendStyle ) {
+        return new MarkStyle() {
+            public void drawMarker( Graphics g, int x, int y ) {
+                normalStyle.drawMarker( g, x, y );
+            }
+            public void drawLegendMarker( Graphics g, int x, int y ) {
+                legendStyle.drawLegendMarker( g, x, y );
+            }
+            protected void drawShape( Graphics g ) {
+                normalStyle.drawShape( g );
+            }
+            protected void drawLegendShape( Graphics g ) {
+                legendStyle.drawLegendShape( g );
+            }
+            public int getMaximumRadius() {
+                return Math.max( normalStyle.getMaximumRadius(),
+                                 legendStyle.getMaximumRadius() );
             }
         };
     }

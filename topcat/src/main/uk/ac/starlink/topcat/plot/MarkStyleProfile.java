@@ -123,6 +123,20 @@ public abstract class MarkStyleProfile {
     }
 
     /**
+     * Returns a profile which gives pixels in a variety of colours.
+     *
+     * @param   name  profile name
+     * @return  profile providing coloured pixels
+     */
+    public static MarkStyleProfile points( String name ) {
+        return new MarkStyleProfile( name ) {
+            public MarkStyle getStyle( int index ) {
+                return MarkStyle.pointStyle( getColor( index ) );
+            }
+        };
+    }
+
+    /**
      * Returns a profile which gives filled circles of a given size 
      * in a variety of colours.
      *
@@ -150,6 +164,8 @@ public abstract class MarkStyleProfile {
     public static MarkStyleProfile ghosts( String name, final int size,
                                            float alpha ) {
         final int iAlpha = (int) ( alpha * 255.99 );
+        final int lAlpha = Math.max( iAlpha, 96 );
+        final int lsize = Math.max( size, 1 );
         return new MarkStyleProfile( name ) {
             public MarkStyle getStyle( int index ) {
                 Color baseColor = getColor( index );
@@ -157,7 +173,13 @@ public abstract class MarkStyleProfile {
                                          baseColor.getGreen(),
                                          baseColor.getBlue(),
                                          iAlpha );
-                return MarkStyle.filledSquareStyle( color, size );
+                Color lcolor = new Color( baseColor.getRed(),
+                                          baseColor.getGreen(),
+                                          baseColor.getBlue(),
+                                          lAlpha );
+                return MarkStyle.compositeMarkStyle(
+                    MarkStyle.filledSquareStyle( color, size ),
+                    MarkStyle.filledSquareStyle( lcolor, lsize ) );
             }
         };
     }

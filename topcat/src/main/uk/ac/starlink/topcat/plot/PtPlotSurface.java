@@ -176,7 +176,8 @@ public class PtPlotSurface extends PlotBox implements PlotSurface {
      */
     protected void _drawPoint( Graphics g, int dataset,
                                long xpos, long ypos, boolean clip ) {
-        state_.getStyles()[ dataset ].drawMarker( g, (int) xpos, (int) ypos );
+        state_.getStyles()[ dataset ]
+              .drawLegendMarker( g, (int) xpos, (int) ypos );
     }
 
     /**
