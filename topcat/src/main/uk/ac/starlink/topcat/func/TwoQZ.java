@@ -42,7 +42,7 @@ public class TwoQZ {
         for ( int i = 0; i < nobs; i++ ) {
             locs[ i ] = base + name + (char) ( 'a' + i ) + FITS_TAIL;
         }
-        return Display.splatMulti( locs );
+        return Splat.splatMulti( locs );
     }
 
     private static String getSubdir( String name ) {

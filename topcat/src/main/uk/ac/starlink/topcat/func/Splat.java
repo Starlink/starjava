@@ -5,15 +5,8 @@
 
 package uk.ac.starlink.topcat.func;
 
-import java.awt.Component;
-import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import uk.ac.starlink.topcat.TopcatUtils;
-import uk.ac.starlink.sog.SOG;
-import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -22,17 +15,15 @@ import uk.ac.starlink.splat.iface.SplatBrowser;
 import uk.ac.starlink.splat.iface.SplatBrowserMain;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
- * Functions for display of spectra and images in external viewer applications.
+ * Functions for display of spectra in the external viewer SPLAT.
  *
- * @author   Mark Taylor (Starlink)
- * @since    20 Aug 2004
+ * @author  Mark Taylor (Starlink)
  */
-public class Display {
+public class Splat {
 
-    private static SOG sog_;
-    private static List soggers_ = new ArrayList();
     private static SplatBrowser splat_;
     private static Map splatSpectra_ = new HashMap();
     private static PlotControlFrame splatPlotFrame_;
@@ -41,118 +32,11 @@ public class Display {
     /**
      * Private constructor prevents instantiation.
      */
-    private Display() {
-    }
-    
-    /**
-     * Displays the file at a given location as an image 
-     * in a graphical (SoG) viewer.
-     * <code>loc</code> should be a filename or URL, pointing to an image in 
-     * a format that SOG understands (this includes FITS, compressed FITS,
-     * and NDFs).
-     * 
-     * @param  loc  image location
-     * @return  short log message
-     * @see  <http://www.starlink.ac.uk/sog/>
-     */
-    public static String sog( String loc ) {
-        return sogMulti( new String[] { loc } );
+    private Splat() {
     }
 
     /**
-     * Displays two files at given locations as images in two graphical
-     * (SoG) viewers.  This may be useful to compare two images which 
-     * correspond to the same table row.
-     *
-     * @param  loc1  location of first image
-     * @param  loc2  location of second image
-     * @return  short report message
-     * @see  #sog
-     * @see  <http://www.starlink.ac.uk/sog/>
-     */
-    public static String sog2( String loc1, String loc2 ) {
-        return sogMulti( new String[] { loc1, loc2 } );
-    }
-
-    /**
-     * Generic routine for displaying multiple images simultaneously in
-     * SoG viewers.
-     * 
-     * @param  locs  array of image file locations (file/URL)
-     * @return  short report message
-     */
-    public static String sogMulti( String[] locs ) {
-        if ( ! TopcatUtils.canSog() ) {
-            return "Error: SOG classes not available";
-        }
-        int nsog = locs.length;
-        SOGNavigatorImageDisplay[] sogs = getSoggers( nsog );
-        String[] msgs = new String[ nsog ];
-        for ( int i = 0; i < nsog; i++ ) {
-            String loc = locs[ i ];
-            String msg;
-            if ( loc == null || loc.trim().length() == 0 ) {
-                msg = null;
-            }
-            else {
-                loc = loc.trim();
-                try {
-                    sogs[ i ].setFilename( loc, false );
-                    msg = "sog(\"" + loc + "\")";
-                }
-                catch ( Exception e ) {
-                    msg = "<Error: " + e.getMessage() + ">";
-                }
-            }
-            msgs[ i ] = msg;
-        }
-        if ( nsog == 1 ) {
-            return msgs[ 0 ];
-        }
-        else {
-            StringBuffer sbuf = new StringBuffer();
-            for ( int i = 0; i < nsog; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( "; " );
-                }
-                sbuf.append( msgs[ i ] );
-            }
-            return sbuf.toString();
-        }
-    }
-
-    /**
-     * Returns an array of SOG viewers.  New ones are only created if 
-     * you're asking for more than you've asked for before.
-     *
-     * @param  nsog  number of viewers required
-     * @return  <code>nsog</code>-element array of SOG image displays
-     */
-    private static SOGNavigatorImageDisplay[] getSoggers( int nsog ) {
-        assert TopcatUtils.canSog();
-        if ( soggers_.size() < nsog ) {
-            synchronized ( Display.class ) {
-                if ( sog_ == null ) {
-                    sog_ = new SOG();
-                }
-                for ( int i = soggers_.size(); i < nsog; i++ ) {
-                    soggers_.add( (SOGNavigatorImageDisplay) 
-                                  sog_.getImageDisplay() );
-                }
-            }
-        }
-        SOGNavigatorImageDisplay[] sogs = new SOGNavigatorImageDisplay[ nsog ];
-        for ( int i = 0; i < nsog; i++ ) {
-            sogs[ i ] = (SOGNavigatorImageDisplay) soggers_.get( i );
-            if ( ! sogs[ i ].isShowing() ) {
-                sogs[ i ].setVisible( true );
-            }
-        }
-        return sogs;
-    }
-
-    /**
-     * Displays the resource at a given location as a spectrum in a 
+     * Displays the resource at a given location as a spectrum in a
      * spectrum viewer program (SPLAT).
      * <code>loc</code> should be a filename pointing to a spectrum
      * in a format that SPLAT understands (includes FITS, NDF).
@@ -181,7 +65,7 @@ public class Display {
     /**
      * Generic routine for displaying multiple spectra simultaneously in the
      * same SPLAT plot.
-     * 
+     *
      * @param  locs  array of spectrum locations (file, or in some cases URL)
      * @return short report message
      */
@@ -251,7 +135,7 @@ public class Display {
         /* If we don't already have a plot, get one now.  We initialize it
          * with the first spectrum for display, but this is just a dummy. */
         if ( splatPlot_ == null && specGroup.count() > 0 ) {
-            synchronized ( Display.class ) {
+            synchronized ( Splat.class ) {
                 splatPlotFrame_ = splat.displaySpectrum( specGroup.get( 0 ) );
                 splatPlot_ = splatPlotFrame_.getPlot();
             }
@@ -284,7 +168,7 @@ public class Display {
      */
     private static SplatBrowser getSplat() {
         if ( splat_ == null ) {
-            synchronized ( Display.class ) {
+            synchronized ( Splat.class ) {
 
                 /* Application-level initialisations for SPLAT. */
                 SplatBrowserMain.guessProperties();

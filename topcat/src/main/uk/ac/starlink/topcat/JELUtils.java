@@ -12,9 +12,10 @@ import java.util.Hashtable;
 import uk.ac.starlink.topcat.func.Arithmetic;
 import uk.ac.starlink.topcat.func.Conversions;
 import uk.ac.starlink.topcat.func.Coords;
-import uk.ac.starlink.topcat.func.Display;
 import uk.ac.starlink.topcat.func.Maths;
 import uk.ac.starlink.topcat.func.Output;
+import uk.ac.starlink.topcat.func.Sog;
+import uk.ac.starlink.topcat.func.Splat;
 import uk.ac.starlink.topcat.func.Strings;
 
 /**
@@ -144,10 +145,18 @@ public class JELUtils {
      */
     public static List getActivationStaticClasses() {
         if ( activationStaticClasses == null ) {
-            List classList = new ArrayList( Arrays.asList( new Class[] {
-                Display.class,
-                Output.class, 
-            } ) );
+
+            /* Assemble the list of classes which we know we have on hand.
+             * Be careful though, since we may not have the classes they
+             * rely on. */
+            List classList = new ArrayList();
+            classList.add( Output.class );
+            if ( TopcatUtils.canSplat() ) {
+                classList.add( Splat.class );
+            }
+            if ( TopcatUtils.canSog() ) { 
+                classList.add( Sog.class );
+            }
 
             /* Add classes specified by a system property. */
             try {
