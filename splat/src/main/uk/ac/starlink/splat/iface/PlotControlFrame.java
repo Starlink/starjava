@@ -93,6 +93,11 @@ public class PlotControlFrame
     protected GenerateFromInterpFrame interpFrame = null;
 
     /**
+     * Window used to deblend spectra.
+     */
+    protected DeblendFrame deblendFrame = null;
+
+    /**
      * LineFitFrame window for measuring to the spectral line properties.
      * (created when required).
      */
@@ -145,6 +150,7 @@ public class PlotControlFrame
     protected JButton pannerButton = new JButton();
     protected JButton polyFitButton = new JButton();
     protected JButton interpButton = new JButton();
+    protected JButton deblendButton = new JButton();
     protected JButton printButton = new JButton();
     protected JButton printPostscriptButton = new JButton();
     protected JButton printJPEGButton = new JButton();
@@ -153,6 +159,11 @@ public class PlotControlFrame
      * File chooser used for postscript files.
      */
     protected BasicFileChooser postscriptChooser = null;
+
+    /**
+     * Show deblend tools, removed once development is complete.
+     */
+    private boolean showDeblend = false;
 
     /**
      *  Plot a spectrum.
@@ -183,9 +194,20 @@ public class PlotControlFrame
     public PlotControlFrame( String title, SpecDataComp specDataComp )
         throws SplatException
     {
+        //  Development properties.
+        java.util.Properties props = System.getProperties();
+        String isDevelop = props.getProperty( "splat.development" );
+        if (  isDevelop != null && isDevelop.equals( "1" )  ) { 
+            showDeblend = true;
+        }
+        else {
+            showDeblend = false;
+        }
+
         if ( specDataComp == null ) {
             plot = new PlotControl();
-        } else {
+        } 
+        else {
             plot = new PlotControl( specDataComp );
         }
         this.specDataComp = plot.getSpecDataComp();
@@ -349,18 +371,20 @@ public class PlotControlFrame
         analysisMenu.setText( "Analysis" );
         menuBar.add( analysisMenu );
 
-        ImageIcon backImage = new ImageIcon(
-            ImageHolder.class.getResource( "fitback.gif" ) );
-        ImageIcon interpImage = new ImageIcon(
-            ImageHolder.class.getResource( "interpolate.gif" ) );
-        ImageIcon lineImage = new ImageIcon(
-            ImageHolder.class.getResource( "fitline.gif" ) );
-        ImageIcon cutterImage = new ImageIcon(
-            ImageHolder.class.getResource( "cutter.gif" ) );
-        ImageIcon regionCutterImage = new ImageIcon(
-            ImageHolder.class.getResource( "regioncutter.gif" ) );
-        ImageIcon filterImage = new ImageIcon(
-            ImageHolder.class.getResource( "filter.gif" ) );
+        ImageIcon backImage = 
+            new ImageIcon( ImageHolder.class.getResource( "fitback.gif" ) );
+        ImageIcon interpImage = 
+            new ImageIcon( ImageHolder.class.getResource("interpolate.gif") );
+        ImageIcon deblendImage = 
+            new ImageIcon( ImageHolder.class.getResource( "deblend.gif" ) );
+        ImageIcon lineImage = 
+            new ImageIcon( ImageHolder.class.getResource( "fitline.gif" ) );
+        ImageIcon cutterImage = 
+            new ImageIcon( ImageHolder.class.getResource( "cutter.gif" ) );
+        ImageIcon regionCutterImage = 
+            new ImageIcon( ImageHolder.class.getResource("regioncutter.gif") );
+        ImageIcon filterImage = 
+            new ImageIcon( ImageHolder.class.getResource( "filter.gif" ) );
 
         //  Add action to enable to cut out the current view of
         //  current spectrum.
@@ -396,6 +420,16 @@ public class PlotControlFrame
         interpButton = toolBar.add( interpAction );
         interpButton.setToolTipText(
                      "Generate a spectrum from an interpolated line" );
+
+        //  Add the deblend lines action.
+        if ( showDeblend ) {
+            DeblendAction deblendAction =
+                new DeblendAction( "Deblend lines", deblendImage );
+            analysisMenu.add( deblendAction );
+            deblendButton = toolBar.add( deblendAction );
+            deblendButton.setToolTipText
+                ( "Fit components to a blend of lines" );
+        }
 
         //  Add the measure and fit spectral lines action.
         LineFitAction lineFitAction = new LineFitAction( "Fit lines",
@@ -694,6 +728,45 @@ public class PlotControlFrame
     }
 
     /**
+     *  Activate the pop-up window for deblending spectral lines.
+     */
+    public void deblend()
+    {
+        if ( deblendFrame == null ) {
+            deblendFrame = new DeblendFrame( this );
+            //  We'd like to know if the window is closed.
+            deblendFrame.addWindowListener( new WindowAdapter() {
+                    public void windowClosed( WindowEvent evt ) {
+                        deblendClosed();
+                    }
+                });
+        }
+        else {
+            Utilities.raiseFrame( deblendFrame );
+        }
+    }
+
+    /**
+     *  Deblend window is closed.
+     */
+    protected void deblendClosed()
+    {
+        // Nullify if method for closing switches to dispose.
+        // deblendFrame = null;
+    }
+
+    /**
+     *  Close the deblending window.
+     */
+    protected void closeDeblendFrame()
+    {
+        if ( deblendFrame != null ) {
+            deblendFrame.dispose();
+            deblendFrame = null;
+        }
+    }
+
+    /**
      *  Activate the pop-up window for fitting lines of the
      *  current spectrum.
      */
@@ -886,6 +959,7 @@ public class PlotControlFrame
         closeConfigFrame();
         closePolyFitFrame();
         closeInterpFrame();
+        closeDeblendFrame();
         closeLineFitFrame();
         closePanner();
         closeCutter();
@@ -1091,6 +1165,19 @@ public class PlotControlFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             interpolate();
+        }
+    }
+
+    /**
+     *  Inner class defining Action for deblending lines.
+     */
+    protected class DeblendAction extends AbstractAction
+    {
+        public DeblendAction( String name, Icon icon ) {
+            super( name, icon );
+        }
+        public void actionPerformed( ActionEvent ae ) {
+            deblend();
         }
     }
 
