@@ -23,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.join.CartesianMatchEngine;
+import uk.ac.starlink.table.join.EqualsMatchEngine;
 import uk.ac.starlink.table.join.HTMMatchEngine;
 import uk.ac.starlink.table.join.MatchEngine;
 import uk.ac.starlink.table.join.ProgressIndicator;
@@ -193,6 +194,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         return new MatchEngine[] {
             new HTMMatchEngine( someAngle ),
             new SphericalPolarMatchEngine( someLength ),
+            new EqualsMatchEngine(),
             new CartesianMatchEngine( 1, someLength ),
             new CartesianMatchEngine( 2, someLength ),
             new CartesianMatchEngine( 3, someLength ),
