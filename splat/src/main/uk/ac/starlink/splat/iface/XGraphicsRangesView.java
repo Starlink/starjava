@@ -35,13 +35,13 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.ast.gui.AstCellEditor;
+import uk.ac.starlink.ast.gui.AstDouble;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
-import uk.ac.starlink.splat.util.AsciiFileParser;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.plot.DivaPlot;
+import uk.ac.starlink.splat.plot.DivaPlotGraphicsPane;
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.util.AsciiFileParser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
 

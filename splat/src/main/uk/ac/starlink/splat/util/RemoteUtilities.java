@@ -16,6 +16,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import uk.ac.starlink.util.AsciiFileParser;
+
 /**
  * This class provides utility methods for remote control based
  * access to SPLAT.

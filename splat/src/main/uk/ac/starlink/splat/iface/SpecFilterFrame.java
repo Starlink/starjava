@@ -48,13 +48,13 @@ import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
-import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.WaveletFilter;
-import uk.ac.starlink.util.gui.GridBagLayouter;
+import uk.ac.starlink.util.AsciiFileParser;
 import uk.ac.starlink.util.gui.BasicFileChooser;
 import uk.ac.starlink.util.gui.BasicFileFilter;
+import uk.ac.starlink.util.gui.GridBagLayouter;
 
 /**
  * Provides a toolbox with number of ways to filter a spectrum.

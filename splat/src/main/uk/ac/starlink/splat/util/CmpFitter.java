@@ -13,9 +13,10 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Iterator;
 
-import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.EditableSpecData;
+import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.util.AsciiFileParser;
 
 /**
  * Wrapper class for performing the fitting of composite spectral models to a
