@@ -11,26 +11,28 @@ import org.w3c.dom.Element;
  */
 public class LinkElement extends VOElement {
 
-    public LinkElement( Element el, String systemId, 
-                        VOElementFactory factory ) {
-        super( el, systemId, "LINK", factory );
+    /**
+     * Constructs a LinkElement from a DOM element.
+     *
+     * @param   base  LINK element
+     * @doc     owner document for new element
+     */
+    LinkElement( Element base, VODocument doc ) {
+        super( base, doc, "LINK" );
     }
 
     /**
      * Returns the value of this LinkElement's 'href' attribute as a URL.
-     * It is resolved against the base URL of this VOTable if it 
-     * represents a relative URL.  
+     * It is resolved against the base URL of this VOTable if it
+     * represents a relative URL.
      *
-     * @return  the URL represented by this LinkElement's 'href' attribute, 
+     * @return  the URL represented by this LinkElement's 'href' attribute,
      *          or <tt>null</tt> if it has none
      * @throws  MalformedURLException in the case of a badly-formed URL
      */
     public URL getHref() throws MalformedURLException {
-        if ( hasAttribute( "href" ) ) {
-            return new URL( getContext(), getAttribute( "href" ) );
-        }
-        else {
-            return null;
-        }
+        return hasAttribute( "href" )
+             ? getContextURL( getAttribute( "href" ) )
+             : null;
     }
 }

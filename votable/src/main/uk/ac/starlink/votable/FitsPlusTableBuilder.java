@@ -92,11 +92,19 @@ public class FitsPlusTableBuilder implements TableBuilder {
                     false );
 
             /* Obtain the TABLE element, which ought to be empty. */
-            Document doc = (Document) domsrc.getNode();
-            Element topel = doc.getDocumentElement();
-            Element resel = DOMUtils.getChildElementByName( topel, "RESOURCE" );
-            Element tabel = DOMUtils.getChildElementByName( resel, "TABLE" );
-            if ( DOMUtils.getChildElementByName( tabel, "DATA" ) != null ) {
+            VODocument doc = (VODocument) domsrc.getNode();
+            VOElement topel = (VOElement) doc.getDocumentElement();
+            VOElement resel = topel.getChildByName( "RESOURCE" );
+            if ( resel == null ) {
+                logger.warning( "No RESOURCE element" );
+                return null;
+            }
+            TableElement tabel = (TableElement) resel.getChildByName( "TABLE" );
+            if ( tabel == null ) {
+                logger.warning( "No TABLE element" );
+                return null;
+            }
+            if ( tabel.getChildByName( "DATA" ) != null ) {
                 logger.warning( "Found unexpected DATA element" );
                 return null;
             }
@@ -107,20 +115,15 @@ public class FitsPlusTableBuilder implements TableBuilder {
                                  .attemptReadTable( strm, wantRandom,
                                                     datsrc, pos );
 
-            /* Turn it into a TabularData element and store that in the
-             * VOTableDOMBuilder class, where it will be associated with the 
+            /* Turn it into a TabularData element associated it with its
              * TABLE DOM element as if the DOM builder had found the table
              * data in a DATA element within the TABLE element. */
-            TabularData tdata = 
-                new TableBodies.StarTableTabularData( starTable );
-            VOTableDOMBuilder.storeData( tabel, tdata );
+            tabel.setData( new TableBodies.StarTableTabularData( starTable ) );
 
             /* Now create and return a StarTable based on the TABLE element; 
              * its metadata comes from the VOTable, but its data comes from 
              * the FITS table we've just read. */
-            TableElement votel = 
-                new TableElement( tabel, datsrc.getSystemId(), vofact );
-            VOStarTable startab = new VOStarTable( votel );
+            VOStarTable startab = new VOStarTable( tabel );
             return startab;
         }
         catch ( FitsException e ) {

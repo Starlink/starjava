@@ -253,7 +253,8 @@ public class SerializerTest extends TestCase {
         VOElement res = vodoc.getChildByName( "RESOURCE" );
         VOElement[] tables = res.getChildren();
         assertArrayEquals( tables, res.getChildrenByName( "TABLE" ) );
-        assertArrayEquals( tables, res.getDescendantsByName( "TABLE" ) );
+        assertEquals( tables.length,
+                      res.getElementsByTagName( "TABLE" ).getLength() );
         assertEquals( 5, tables.length );
 
         for ( int itab = 0; itab < tables.length; itab++ ) {
@@ -279,10 +280,10 @@ public class SerializerTest extends TestCase {
                                  .getChildByName( "FITS" )
                                  .getChildByName( "STREAM" );
 
-        assertNull( bStrIn.getAttribute( "href" ) );
-        assertNull( fStrIn.getAttribute( "href" ) );
-        assertNotNull( bStrEx.getAttribute( "href" ) );
-        assertNotNull( fStrEx.getAttribute( "href" ) );
+        assertTrue( ! bStrIn.hasAttribute( "href" ) );
+        assertTrue( ! fStrIn.hasAttribute( "href" ) );
+        assertTrue( bStrEx.hasAttribute( "href" ) );
+        assertTrue( fStrEx.hasAttribute( "href" ) );
 
         assertEquals( "base64", bStrIn.getAttribute( "encoding" ) );
         assertEquals( "base64", fStrIn.getAttribute( "encoding" ) );
@@ -296,7 +297,7 @@ public class SerializerTest extends TestCase {
             
         RowSequence rseq = table0.getRowSequence();
         int ncol = table0.getColumnCount();
-        assertEquals( ncol, votab.getColumnCount() );
+        assertEquals( ncol, votab.getFields().length );
         RowStepper rstep = votab.getData().getRowStepper();
 
         Object[] row;

@@ -2,6 +2,7 @@ package uk.ac.starlink.votable;
 
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * Table column characteristics represented by a FIELD element in a VOTable.
@@ -10,105 +11,17 @@ import org.w3c.dom.Element;
  */
 public class FieldElement extends VOElement {
 
-    private final long[] arraysize;
-    private final Decoder decoder;
-    private String datatype;
-    private String blank;
-    private String unit;
-    private String ucd;
-    private boolean isVariable;
-    private long sliceSize;
-    private ValuesElement actualValues;
-    private ValuesElement legalValues;
+    private final static Logger logger_ = 
+        Logger.getLogger( "uk.ac.starlink.votable" );
 
-    static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
-
-    public FieldElement( Element el, String systemId, 
-                         VOElementFactory factory ) {
-        this( el, systemId, "FIELD", factory );
-    }
-
-    FieldElement( Element el, String systemId, String tagname,
-                  VOElementFactory factory ) {
-        super( el, systemId, tagname, factory );
-
-        /* Get datatype. */
-        datatype = getAttribute( "datatype" );
-        boolean assumedType = false;
-        if ( datatype == null ) {
-            logger.warning( "Missing datatype attribute for " + getHandle() +
-                            " - assume char(*)" );
-            datatype = "char";
-            assumedType = true;
-        }
-
-        /* Get array size (as long as we haven't got an unknown datatype). */
-        sliceSize = 1;
-        isVariable = false;
-        String as = assumedType ? "*" : getAttribute( "arraysize" );
-        as = as == null ? as : as.trim();
-        if ( as != null && as.length() > 0 ) {
-            String[] dimtxt = as.split( "x" );
-            int ndim = dimtxt.length;
-            arraysize = new long[ ndim ];
-            for ( int i = 0; i < ndim; i++ ) {
-                if ( i == ndim - 1 && dimtxt[ i ].trim().endsWith( "*" ) ) {
-                    arraysize[ i ] = -1;
-                    isVariable = true;
-                }
-                else {
-                    long dim;
-                    try {
-                        dim = Long.parseLong( dimtxt[ i ] );
-                    }
-                    catch ( NumberFormatException e ) {
-                        dim = 1;
-                        logger.warning( "Bad arraysize element " + dimtxt[ i ]
-                                      + " - assuming 1" );
-                    }
-                    if ( dim <= 0 ) {
-                        dim = 1;
-                        logger.warning( "Bad arraysize element " + dimtxt[ i ]
-                                      + " - assuming 1" );
-                    }
-                    arraysize[ i ] = dim;
-                    sliceSize *= arraysize[ i ];
-                }
-            }
-        }
-        else {
-            arraysize = new long[ 0 ];
-        }
-
-        /* Get Values children. */
-        VOElement[] children = getChildren();
-        for ( int i = 0; i < children.length; i++ ) {
-            VOElement child = children[ i ];
-            if ( child.getTagName().equals( "VALUES" ) ) {
-                ValuesElement vals = (ValuesElement) child;
-                if ( vals.getType().equals( "legal" ) ) {
-                    legalValues = vals;
-                }
-                else if ( vals.getType().equals( "actual" ) ) {
-                    actualValues = vals;
-                }
-            }
-        }
-
-        /* Set blank value. */
-        if ( legalValues != null ) {
-            blank = legalValues.getNull();
-        }
-        else if ( actualValues != null ) {
-            blank = actualValues.getNull();
-        }
-
-        /* Construct decoder. */
-        decoder = Decoder.makeDecoder( datatype, arraysize, blank );
-
-        /* Get simple attributes. */
-        this.unit = getAttribute( "unit" );
-        this.ucd = getAttribute( "ucd" );
+    /**
+     * Constructs a FieldElement from a DOM element.
+     *
+     * @param  base  FIELD element
+     * @param  doc   owner document for new element
+     */
+    FieldElement( Element base, VODocument doc ) {
+        super( base, doc );
     }
 
     /**
@@ -120,16 +33,43 @@ public class FieldElement extends VOElement {
      * @return   array giving dimensions of data in this field.
      */
     public long[] getArraysize() {
-        return (long[]) arraysize.clone();
-    }
-
-    /**
-     * Returns the value of the <tt>datatype</tt> attribute.
-     *
-     * @return  the datatype
-     */
-    public String getDatatype() {
-        return datatype;
+        int sliceSize = 1;
+        String as = hasAttribute( "datatype" ) 
+                  ? getAttribute( "arraysize" )
+                  : "*";
+        as = as == null ? null : as.trim();
+        if ( as != null && as.length() > 0 ) {
+            String[] dimtxt = as.split( "x" );
+            int ndim = dimtxt.length;
+            long[] arraysize = new long[ ndim ];
+            for ( int i = 0; i < ndim; i++ ) {
+                if ( i == ndim - 1 && dimtxt[ i ].trim().endsWith( "*" ) ) {
+                    arraysize[ i ] = -1;
+                }
+                else {
+                    long dim;
+                    try {
+                        dim = Long.parseLong( dimtxt[ i ] );
+                    }
+                    catch ( NumberFormatException e ) {
+                        dim = 1;
+                        logger_.warning( "Bad arraysize element " + dimtxt[ i ]
+                                       + " - assuming 1" );
+                    }
+                    if ( dim <= 0 ) {
+                        dim = 1;
+                        logger_.warning( "Bad arraysize element " + dimtxt[ i ]
+                                       + " - assuming 1" );
+                    }
+                    arraysize[ i ] = dim;
+                    sliceSize *= arraysize[ i ];
+                }
+            }
+            return arraysize;
+        }
+        else {
+            return new long[ 0 ];
+        }
     }
 
     /**
@@ -144,17 +84,45 @@ public class FieldElement extends VOElement {
      *          none is defined
      */
     public String getNull() {
+        String blank = null;
+        for ( Node child = getFirstChild(); child != null;
+              child = child.getNextSibling() ) {
+            if ( child instanceof ValuesElement ) {
+                ValuesElement vals = (ValuesElement) child;
+                if ( blank == null || "legal".equals( vals.getType() ) ) {
+                    blank = vals.getNull();
+                }
+            }
+        }
         return blank;
     }
 
     /**
-     * Returns the value of the <tt>unit</tt> attribute, 
+     * Returns the value of the <tt>datatype</tt> attribute.
+     * If no datatype attribute has been defined (which is illegal, but
+     * not uncommon) then "char" will be returned.
+     *
+     * @return  the datatype
+     */
+    public String getDatatype() {
+        if ( hasAttribute( "datatype" ) ) {
+            return getAttribute( "datatype" );
+        }
+        else {
+            logger_.warning( "Missing datatype attribute for " + getHandle() +
+                             " - assume char(*)" );
+            return "char";
+        }
+    }
+
+    /**
+     * Returns the value of the <tt>unit</tt> attribute,
      * or <tt>null</tt> if there is none.
      *
      * @return  the unit string
      */
     public String getUnit() {
-        return unit;
+        return hasAttribute( "unit" ) ? getAttribute( "unit" ) : null;
     }
 
     /**
@@ -165,17 +133,24 @@ public class FieldElement extends VOElement {
      * @see     uk.ac.starlink.table.UCD
      */
     public String getUcd() {
-        return ucd;
+        return hasAttribute( "ucd" ) ? getAttribute( "ucd" ) : null;
     }
 
     /**
-     * Returns a VALUES child of this element with the attribute 
+     * Returns a VALUES child of this element with the attribute
      * type='legal', or <tt>null</tt> if none exists.
      *
      * @return  the 'legal' Values object
      */
     public ValuesElement getLegalValues() {
-        return legalValues;
+        for ( Node child = getFirstChild(); child != null; 
+              child = child.getNextSibling() ) {
+            if ( child instanceof ValuesElement &&
+                 "legal".equals( ((ValuesElement) child).getType() ) ) {
+                return (ValuesElement) child;
+            }
+        }
+        return null;
     }
 
     /**
@@ -185,7 +160,14 @@ public class FieldElement extends VOElement {
      * @return  the 'actual' Values object
      */
     public ValuesElement getActualValues() {
-        return actualValues;
+        for ( Node child = getFirstChild(); child != null; 
+              child = child.getNextSibling() ) {
+            if ( child instanceof ValuesElement &&
+                 "actual".equals( ((ValuesElement) child).getType() ) ) {
+                return (ValuesElement) child;
+            }
+        }
+        return null;
     }
 
     public String toString() {
@@ -207,13 +189,12 @@ public class FieldElement extends VOElement {
     }
 
     /**
-     * Returns the decoder object which knows how to turn raw data into 
+     * Returns the decoder object which knows how to turn raw data into
      * usable objects.  This is package-private for because it probably
      * doesn't need to be public, but it (and the Decoder class itself)
      * could be public if there was some reason for it to be so.
      */
     Decoder getDecoder() {
-        return decoder;
+        return Decoder.makeDecoder( getDatatype(), getArraysize(), getNull() );
     }
-
 }

@@ -49,11 +49,10 @@ public class VOStarTable extends AbstractStarTable {
      *
      * @param  votable  Table VOElement
      */
-    public VOStarTable( TableElement votable ) {
+    public VOStarTable( TableElement votable ) throws IOException {
         this.votable = votable;
         this.tdata = votable.getData();
         int ncol = tdata.getColumnCount();
-        colinfos = new ColumnInfo[ ncol ];
         setName( calculateName( votable ) );
     }
 
@@ -71,77 +70,82 @@ public class VOStarTable extends AbstractStarTable {
 
     public ColumnInfo getColumnInfo( int icol ) {
 
-        /* Lazily construct the columninfo object. */
-        if ( colinfos[ icol ] == null ) {
-            FieldElement field = votable.getField( icol );
-            ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
+        /* Lazily construct the columninfo list. */
+        if ( colinfos == null ) {
+            FieldElement[] fields = votable.getFields();
+            int ncol = fields.length;
+            colinfos = new ColumnInfo[ ncol ];
+            for ( int i = 0; i < ncol; i++ ) {
+                FieldElement field = fields[ i ];
+                ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
 
-            /* Set up auxiliary metadata for this column according to the
-             * attributes that the FIELD element has. */
-            List auxdata = cinfo.getAuxData();
+                /* Set up auxiliary metadata for this column according to the
+                 * attributes that the FIELD element has. */
+                List auxdata = cinfo.getAuxData();
 
-            String id = field.getAttribute( "ID" );
-            if ( id != null ) {
-                auxdata.add( new DescribedValue( idInfo, id ) );
-            }
+                String id = field.getAttribute( "ID" );
+                if ( id != null ) {
+                    auxdata.add( new DescribedValue( idInfo, id ) );
+                }
 
-            String datatype = field.getAttribute( "datatype" );
-            if ( datatype != null ) {
-                auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
-            }
+                String datatype = field.getAttribute( "datatype" );
+                if ( datatype != null ) {
+                    auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
+                }
 
-            String blankstr = field.getNull();
-            if ( blankstr != null ) {
-                Object blank = blankstr;
-                try {
-                    Class clazz = cinfo.getContentClass();
-                    if ( clazz == Byte.class ) {
-                        blank = Byte.valueOf( blankstr );
+                String blankstr = field.getNull();
+                if ( blankstr != null ) {
+                    Object blank = blankstr;
+                    try {
+                        Class clazz = cinfo.getContentClass();
+                        if ( clazz == Byte.class ) {
+                            blank = Byte.valueOf( blankstr );
+                        }
+                        else if ( clazz == Short.class ) {
+                            blank = Short.valueOf( blankstr );
+                        }
+                        else if ( clazz == Integer.class ) {
+                            blank = Integer.valueOf( blankstr );
+                        }
+                        else if ( clazz == Long.class ) {
+                            blank = Long.valueOf( blankstr );
+                        }
                     }
-                    else if ( clazz == Short.class ) {
-                        blank = Short.valueOf( blankstr );
+                    catch ( NumberFormatException e ) {
+                        blank = blankstr;
                     }
-                    else if ( clazz == Integer.class ) {
-                        blank = Integer.valueOf( blankstr );
+                    auxdata.add( new DescribedValue( nullInfo, blank ) );
+                }
+
+                String width = field.getAttribute( "width" );
+                if ( width != null ) {
+                    try {
+                        int wv = Integer.parseInt( width );
+                        auxdata.add( new DescribedValue( widthInfo,
+                                                         new Integer( wv ) ) );
                     }
-                    else if ( clazz == Long.class ) {
-                        blank = Long.valueOf( blankstr );
+                    catch ( NumberFormatException e ) {
                     }
                 }
-                catch ( NumberFormatException e ) {
-                    blank = blankstr;
-                }
-                auxdata.add( new DescribedValue( nullInfo, blank ) );
-            }
 
-            String width = field.getAttribute( "width" );
-            if ( width != null ) {
-                try {
-                    int wval = Integer.parseInt( width );
-                    auxdata.add( new DescribedValue( widthInfo,
-                                                     new Integer( wval ) ) );
+                String precision = field.getAttribute( "precision" );
+                if ( precision != null ) {
+                    try {
+                        double pv = Double.parseDouble( precision );
+                        auxdata.add( new DescribedValue( precisionInfo,
+                                                         new Double( pv ) ) );
+                    }
+                    catch ( NumberFormatException e ) {
+                    }
                 }
-                catch ( NumberFormatException e ) {
-                }
-            }
 
-            String precision = field.getAttribute( "precision" );
-            if ( precision != null ) {
-                try {
-                    double precval = Double.parseDouble( precision );
-                    auxdata.add( new DescribedValue( precisionInfo,
-                                                     new Double( precval ) ) );
+                String type = field.getAttribute( "type" );
+                if ( type != null ) {
+                    auxdata.add( new DescribedValue( typeInfo, type ) );
                 }
-                catch ( NumberFormatException e ) {
-                }
-            }
 
-            String type = field.getAttribute( "type" );
-            if ( type != null ) {
-                auxdata.add( new DescribedValue( typeInfo, type ) );
+                colinfos[ i ] = cinfo;
             }
-
-            colinfos[ icol ] = cinfo;
         }
         return colinfos[ icol ];
     }
@@ -171,8 +175,7 @@ public class VOStarTable extends AbstractStarTable {
                 VOElement[] infoels = parent.getChildrenByName( "INFO" );
                 for ( int i = 0; i < infoels.length; i++ ) {
                     VOElement iel = infoels[ i ];
-                    String content = 
-                        DOMUtils.getTextContent( iel.getElement() );
+                    String content = DOMUtils.getTextContent( iel );
                     String descrip =
                          content != null && content.trim().length() > 0
                                ? content : null;
@@ -233,7 +236,7 @@ public class VOStarTable extends AbstractStarTable {
         }
 
         /* Otherwise, try to get a system ID (document base name). */
-        String sysid = table.getSystemId();
+        String sysid = ((VODocument) table.getOwnerDocument()).getSystemId();
 
         /* Shorten the system ID to a reasonable length. */
         if ( sysid != null ) {
@@ -246,16 +249,14 @@ public class VOStarTable extends AbstractStarTable {
             }
         }
 
-        /* Work out whether how many TABLE elements there are in the 
-         * document. */
-        Element tabEl = table.getElement();
-        Element top = tabEl.getOwnerDocument().getDocumentElement();
+        /* Work out how many TABLE elements there are in the document. */
+        Element top = table.getOwnerDocument().getDocumentElement();
         NodeList tables = top.getElementsByTagName( "TABLE" );
         int index = 0;
         int ntab = tables.getLength();
         if ( ntab > 1 ) {
             for ( int i = 0; i < ntab; i++ ) {
-                if ( tables.item( i ) == tabEl ) {
+                if ( tables.item( i ) == table ) {
                     index = i + 1;
                     break;
                 }

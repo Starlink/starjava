@@ -188,7 +188,9 @@ public class VOTableBuilder implements TableBuilder {
      *          or <tt>null</tt> if there isn't one
      */
     private static TableElement findTableElement( VOElement voEl, int index ) {
-        VOElement[] tables = voEl.getDescendantsByName( "TABLE" );
-        return index < tables.length ? (TableElement) tables[ index ] : null;
+        NodeList tables = voEl.getElementsByTagName( "TABLE" );
+        return index < tables.getLength() 
+             ? (TableElement) tables.item( index ) 
+             : null;
     }
 }

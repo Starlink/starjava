@@ -34,7 +34,7 @@ public class VOTableTest extends TestCase {
         VOElement coosys = defs.getChildByName( "COOSYS" );
         assertEquals( "2000.", coosys.getAttribute( "equinox" ) );
         assertEquals( "myJ2000", coosys.getID() );
-        assertEquals( "Absent", coosys.getAttribute( "nope", "Absent" ) );
+        assertEquals( "", coosys.getAttribute( "nope" ) );
 
         VOElement res = vot.getChildByName( "RESOURCE" );
         ParamElement param = (ParamElement) res.getChildByName( "PARAM" );
@@ -45,9 +45,9 @@ public class VOTableTest extends TestCase {
         assertEquals( pval, pobj );
  
         TableElement tab = (TableElement) res.getChildrenByName( "TABLE" )[ 0 ];
-        int ncol = tab.getColumnCount();
+        int ncol = tab.getFields().length;
         assertEquals( 4, ncol );
-        long nrow = tab.getRowCount();
+        long nrow = tab.getNrows();
 
         if ( policy == StoragePolicy.DISCARD ) {
             assertEquals( 0L, nrow );
@@ -56,8 +56,8 @@ public class VOTableTest extends TestCase {
             assertEquals( 3L, nrow );
 
             VOStarTable stab = new VOStarTable( tab );
-            assertEquals( tab.getRowCount(), stab.getRowCount() );
-            assertEquals( tab.getColumnCount(), stab.getColumnCount() );
+            assertEquals( tab.getNrows(), stab.getRowCount() );
+            assertEquals( tab.getFields().length, stab.getColumnCount() );
             RowSequence rseq = stab.getRowSequence();
             RowStepper rstep = tab.getData().getRowStepper();
             List rows = new ArrayList();

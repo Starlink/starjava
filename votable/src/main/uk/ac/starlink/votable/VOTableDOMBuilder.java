@@ -10,8 +10,6 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
@@ -36,15 +34,9 @@ import uk.ac.starlink.util.URLUtils;
  * For the most part it builds a DOM, but within data-heavy elements
  * (those which represent table data) it intercepts SAX events 
  * directly to construct the table data
- * which it stores separately, rather than installing bulk data
+ * which it stores in the corresponding TableElement node, 
+ * rather than installing bulk data
  * as CDATA or Element nodes within the resulting DOM.
- * <p>
- * To access the {@link Table} elements which hold the data parsed by
- * this builder, use the static {@link #getData} method.
- * This accesses a weak hash map written to by this parser when it
- * reads the cell contents of a table - when the
- * DOM that gave rise to the data is no longer (strongly) reachable, the
- * table may be garbage collected.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -53,12 +45,8 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     private final ContentHandler basicHandler;
     private final ContentHandler defaultHandler;
     private final StoragePolicy storagePolicy;
-    private final VOElementFactory factory;
-    private final static Map tableDataMap = new WeakHashMap();
     private String systemId;
-    private Element tableEl;
-    private Element fieldEl;
-    private List fieldList;
+    private TableElement tableEl;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
@@ -68,48 +56,21 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     public VOTableDOMBuilder( StoragePolicy storagePolicy ) {
         basicHandler = new BasicContentHandler();
         defaultHandler = new DefaultContentHandler();
-        factory = new VOElementFactory( storagePolicy );
         this.storagePolicy = storagePolicy;
         setCustomHandler( basicHandler );
     }
 
     /**
-     * Returns the cell data object corresponding to a given TABLE element.
+     * Returns an array of Decoder objects for a given set of fields.
      *
-     * @param  tableEl  a DOM Element constructed by this builder for a
-     *         TABLE element of the XML document
-     * @return  the <tt>TabularData</tt> object which holds the data for 
-     *          <tt>tableEl</tt>
-     *          if one has been built, or <tt>null</tt> if it hasn't for 
-     *          any reason
+     * @param   fields  array of FIELD elements to get decoders for
+     * @return  array of corresponding decoders
      */
-    public static TabularData getData( Element tableEl ) {
-        return (TabularData) tableDataMap.get( tableEl );
-    }
-
-    /**
-     * Stores a cell data object corresponding to a given TABLE element.
-     *
-     * @param  tableEl  a DOM element constructed by this builder for a 
-     *         TABLE element of the XML document
-     * @param  tdata  the data object containing the cell data for 
-     *         <tt>tableEl</tt>
-     */
-    public static void storeData( Element tableEl, TabularData tdata ) {
-        tableDataMap.put( tableEl, tdata );
-    }
-
-    /**
-     * Returns an array of the Decoder objects for the current table.
-     *
-     * @return  array of decoders for current table
-     */
-    private Decoder[] getDecoders() {
-        int ncol = fieldList.size();
+    private static Decoder[] getDecoders( FieldElement[] fields ) {
+        int ncol = fields.length;
         Decoder[] decoders = new Decoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            decoders[ icol ] = ((FieldElement) fieldList.get( icol ))
-                              .getDecoder();
+            decoders[ icol ] = fields[ icol ].getDecoder();
         }
         return decoders;
     }
@@ -128,15 +89,15 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      * called, rendering it ready to accept rows from the the current
      * table element.
      *
+     * @param  fields  FIELD elements characterising the table columns
      * @return  configured row store
      */
-    private RowStore makeConfiguredRowStore() {
-        int ncol = fieldList.size();
+    private RowStore makeConfiguredRowStore( FieldElement[] fields ) {
+        int ncol = fields.length;
         ColumnInfo[] colinfos = new ColumnInfo[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            FieldElement field = (FieldElement) fieldList.get( icol );
             colinfos[ icol ] = 
-                new ColumnInfo( VOStarTable.getValueInfo( field ) );
+                new ColumnInfo( VOStarTable.getValueInfo( fields[ icol ] ) );
         }
         StarTable dummyTable = new RowListStarTable( colinfos ) {
             public long getRowCount() {
@@ -164,11 +125,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             super.startElement( namespaceURI, localName, qName, atts );
             String tagName = getTagName( namespaceURI, localName, qName );
             if ( "TABLE".equals( tagName ) ) {
-                tableEl = (Element) getNewestNode();
-                fieldList = new ArrayList();
-            }
-            else if ( fieldList != null && "FIELD".equals( tagName ) ) {
-                fieldEl = (Element) getNewestNode();
+                tableEl = (TableElement) getNewestNode();
             }
             else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler() );
@@ -216,11 +173,6 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             String tagName = getTagName( namespaceURI, localName, qName );
             if ( "TABLE".equals( tagName ) ) {
                 tableEl = null;
-                fieldList = null;
-            }
-            else if ( "FIELD".equals( tagName ) ) {
-                fieldList.add( new FieldElement( fieldEl, systemId, factory ) );
-                fieldEl = null;
             }
         }
     }
@@ -238,9 +190,10 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         RowStore rowStore;
 
         TabledataHandler() {
-            decoders = getDecoders();
-            ncol = decoders.length;
-            rowStore = makeConfiguredRowStore();
+            FieldElement[] fields = tableEl.getFields();
+            ncol = fields.length;
+            decoders = getDecoders( fields );
+            rowStore = makeConfiguredRowStore( fields );
             cell = new StringBuffer();
             Element tabledataEl = (Element) getNewestNode();
             String comment = "Invisible data nodes were parsed directly";
@@ -305,7 +258,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 TabularData tdata = 
                     new TableBodies.StarTableTabularData( rowStore
                                                          .getStarTable() );
-                storeData( tableEl, tdata );
+                tableEl.setData( tdata );
             }
         }
     }
@@ -318,10 +271,11 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
         HrefBinaryStreamHandler( String href, String encoding ) {
             URL url = URLUtils.makeURL( systemId, href );
+            FieldElement[] fields = tableEl.getFields();
             TabularData tdata = 
-                new TableBodies.HrefBinaryTabularData( getDecoders(), url, 
-                                                       encoding );
-            storeData( tableEl, tdata );
+                new TableBodies.HrefBinaryTabularData( getDecoders( fields ),
+                                                       url, encoding );
+            tableEl.setData( tdata );
         }
 
         public void endElement( String namespaceURI, String localName,
@@ -347,7 +301,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             StarTable startab = new FitsTableBuilder()
                                .makeStarTable( datsrc, false, storagePolicy );
             TabularData tdata = new TableBodies.StarTableTabularData( startab );
-            storeData( tableEl, tdata );
+            tableEl.setData( tdata );
         }
 
         public void endElement( String namespaceURI, String localName,
@@ -374,8 +328,9 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
             /* Set up a thread which will read from the other end of the pipe
              * and write it into a row list. */
-            final Decoder[] decoders = getDecoders();
-            rowStore = makeConfiguredRowStore();
+            FieldElement[] fields = tableEl.getFields();
+            final Decoder[] decoders = getDecoders( fields );
+            rowStore = makeConfiguredRowStore( fields );
             reader = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
@@ -442,7 +397,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 TabularData tdata = 
                     new TableBodies.StarTableTabularData( rowStore
                                                          .getStarTable() );
-                storeData( tableEl, tdata );
+                tableEl.setData( tdata );
             }
         }
     }
@@ -528,7 +483,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 TabularData tdata = 
                     new TableBodies.StarTableTabularData( rowStore
                                                          .getStarTable() );
-                storeData( tableEl, tdata );
+                tableEl.setData( tdata );
             }
         }
     }

@@ -28,21 +28,21 @@ import uk.ac.starlink.util.StarEntityResolver;
 
 /**
  * Provides methods for constructing VOElements from a variety
- * of sources.  A VOElement can be made either from an existing 
+ * of sources.  A VOElement can be made either from an existing
  * DOM {@link org.w3c.dom.Element} or from some non-DOM source such
- * as a file, input stream, or SAX stream.  
- * In the latter case a DOM is built using the 
+ * as a file, input stream, or SAX stream.
+ * In the latter case a DOM is built using the
  * {@link #transformToDOM(javax.xml.transform.Source,boolean)}
  * method with no validation.  There are several optimisations performed
- * by this method which distinguish it from a DOM that you'd get 
+ * by this method which distinguish it from a DOM that you'd get
  * if you constructed it directly; the most important ones are that
- * the data-bearing parts (children of STREAM or TABLEDATA elements) 
+ * the data-bearing parts (children of STREAM or TABLEDATA elements)
  * of the XML document are not included in the built DOM, and that
  * any reference to the VOTable DTD is resolved locally rather than
  * making a potential network connection.  You almost certainly don't
  * need to worry about this; however if for some reason you want to
  * work on a 'normal' DOM, or if you want validation, you can construct
- * the DOM yourself and invoke one of the non-transforming 
+ * the DOM yourself and invoke one of the non-transforming
  * <tt>makeVOElement</tt> methods on the result.
  * <p>
  * The various <tt>makeVOElement</tt> methods may return an object of class
@@ -53,7 +53,7 @@ import uk.ac.starlink.util.StarEntityResolver;
  * One upshot of this is that a tree of VOElements need not conform to
  * the VOTable DTD, elements of any name may be in it.  Wherever an
  * element has a name which matches an element with specific significance
- * in a VOTable document however, such as "TABLE", it is handled 
+ * in a VOTable document however, such as "TABLE", it is handled
  * accordingly.
  *
  * @author   Mark Taylor (Starlink)
@@ -65,7 +65,7 @@ public class VOElementFactory {
 
     /**
      * Constructs a new VOElementFactory with a given storage policy.
-     * The StoragePolicy object is used to determine how row data which 
+     * The StoragePolicy object is used to determine how row data which
      * is found within the DOM will be cached.
      *
      * @param  policy  storage policy
@@ -85,7 +85,7 @@ public class VOElementFactory {
 
     /**
      * Returns the storage policy currently in effect.
-     * This is used to determine how row data found in the DOM will be 
+     * This is used to determine how row data found in the DOM will be
      * stored.
      *
      * @return  current storage policy
@@ -105,67 +105,89 @@ public class VOElementFactory {
     }
 
     /**
-     * Returns a new VOElement based on a given DOM element.
+     * Returns a VOElement based on a given DOM element.
      * The systemId is also required since some elements (STREAM, LINK)
      * may need it for URL resolution.  It may be null however
      * (which is fine if there are no relative URLs used in the document).
+     * If <tt>el</tt> is already a VOElement, it is just returned.
      *
      * @param  el  DOM element on which the new object will be based
      * @param  systemId  the location of the document
      */
     public VOElement makeVOElement( Element el, String systemId ) {
-
-        /* Get the tag name. */
-        String name = el.getTagName();
-
-        /* And build an appropriate element from the (possibly transformed)
-         * source. */
-        if ( name.equals( "FIELD" ) ) {
-            return new FieldElement( el, systemId, this );
-        }
-        else if ( name.equals( "PARAM" ) ) {
-            return new ParamElement( el, systemId, this );
-        }
-        else if ( name.equals( "LINK" ) ) {
-            return new LinkElement( el, systemId, this );
-        }
-        else if ( name.equals( "VALUES" ) ) {
-            return new ValuesElement( el, systemId, this );
-        }
-        else if ( name.equals( "TABLE" ) ) {
-            return new TableElement( el, systemId, this );
+        if ( el instanceof VOElement ) {
+            return (VOElement) el;
         }
         else {
-            return new VOElement( el, systemId, this );
+            VODocument doc = new VODocument( el.getOwnerDocument(), systemId );
+            doc.setStoragePolicy( getStoragePolicy() );
+            return (VOElement) doc.getDelegator( el );
         }
     }
 
     /**
-     * Returns a new VOElement based on a DOM source.
+     * Returns a new VOElement based on a DOM Document node.
+     * The systemId is also required since some elements (STREAM, LINK)
+     * may need it for URL resolution.  It may be null however
+     * (which is fine if there are no relative URLs used in the document).
+     *
+     * @param  doc  DOM document node
+     * @param  systemId  the location of the document
+     * @return  VOElement based on <tt>doc</tt>
+     */
+    public VOElement makeVOElement( Document doc, String systemId ) {
+        if ( doc instanceof VODocument ) {
+            return (VOElement) doc.getDocumentElement();
+        }
+        else {
+            VODocument vodoc = new VODocument( doc, systemId );
+            vodoc.setStoragePolicy( getStoragePolicy() );
+            return (VOElement) vodoc.getDocumentElement();
+        }
+    }
+
+    /**
+     * Returns a VOElement based on a DOM source.
      *
      * @param   dsrc   DOM source representing an Element or Document node
      * @return  VOElement based on <tt>dsrc</tt>
      */
     public VOElement makeVOElement( DOMSource dsrc ) {
+        String systemId = dsrc.getSystemId();
         Node node = dsrc.getNode();
-        Element el;
-        if ( node instanceof Element ) {
-            el = (Element) node;
+
+        /* If it's from a VODocument, locate and return a suitable
+         * VOElement. */
+        if ( node instanceof VOElement ) {
+            return (VOElement) node;
+        }
+        else if ( node instanceof VODocument ) {
+            return (VOElement) ((VODocument) node).getDocumentElement();
+        }
+        else if ( node.getOwnerDocument() instanceof VODocument ) {
+            return (VOElement) ((VODocument) node.getOwnerDocument())
+                              .getDocumentElement();
+        }
+
+        /* If it's just from a normal DOM node, locate an element and
+         * return a VOElement based on it. */
+        else if ( node instanceof Element ) {
+            return makeVOElement( (Element) node, systemId );
         }
         else if ( node instanceof Document ) {
-            el = ((Document) node).getDocumentElement();
+            return makeVOElement( ((Document) node).getDocumentElement(),
+                                  systemId );
         }
         else {
-            throw new IllegalArgumentException( "Unsuitable DOM node " + node +
-                                                "(not Element or Document)" );
+            return makeVOElement( node.getOwnerDocument()
+                                      .getDocumentElement(),
+                                  systemId );
         }
-        return makeVOElement( el, dsrc.getSystemId() );
     }
 
     /**
-     * Returns a new VOElement based on an XML Source.
-     * If <tt>xsrc</tt> is not a DOMSource, it will be transformed to a DOM
-     * using <tt>transformToDOM</tt> first.
+     * Returns a VOElement based on an XML Source.
+     * If the source is a SAX or Stream source, this will involve a parse.
      *
      * @param   xsrc  the XML source representing the element
      * @return  VOElement based on <tt>xsrc</tt>
@@ -180,21 +202,7 @@ public class VOElementFactory {
     }
 
     /**
-     * Returns a new VOElement based on a DOM Document node.
-     * The systemId is also required since some elements (STREAM, LINK)
-     * may need it for URL resolution.  It may be null however
-     * (which is fine if there are no relative URLs used in the document).
-     *
-     * @param  doc  DOM document node
-     * @param  systemId  the location of the document
-     * @return  VOElement based on <tt>doc</tt>
-     */
-    public VOElement makeVOElement( Document doc, String systemId ) {
-        return makeVOElement( doc.getDocumentElement(), systemId );
-    }
-
-    /**
-     * Builds a custom DOM from an input stream and returns a new VOElement 
+     * Builds a custom DOM from an input stream and returns a new VOElement
      * based on its top-level element.
      * The systemId is also required since some elements (STREAM, LINK)
      * may need it for URL resolution.  It may be null however
@@ -220,17 +228,17 @@ public class VOElementFactory {
      * @param  uri  location of the document
      * @return  new VOElement
      */
-    public VOElement makeVOElement( String uri ) 
+    public VOElement makeVOElement( String uri )
             throws SAXException, IOException {
         Source saxsrc = new SAXSource( new InputSource( uri ) );
         saxsrc.setSystemId( uri );
         return makeVOElement( saxsrc );
     }
- 
+
     /**
      * Builds a custom DOM read from a URL and returns a new VOElement
      * based on its top-level element.
-     * 
+     *
      * @param  url  location of the document
      * @return  new VOElement
      */
@@ -260,36 +268,56 @@ public class VOElementFactory {
      */
     public VOElement makeVOElement( DataSource datsrc )
             throws SAXException, IOException {
-        return makeVOElement( datsrc.getHybridInputStream(), 
+        return makeVOElement( datsrc.getHybridInputStream(),
                               datsrc.getSystemId() );
     }
 
     /**
-     * Gets a DOMSource from a generic XML Source.  If the source is already
-     * a DOMSource, there's nothing to do.  If it represents a stream
-     * however, it parses it to produce a DOM, and wraps that up as a Source.
-     * The clever bit is that it intercepts SAX events indicating the
-     * start and end of any DATA elements it finds so that they are
-     * not incorporated as part of the DOM.  Such elements it parses
+     * Gets a custom DOMSource from a generic XML Source.
+     * All elements in the returned DOM will be instances of 
+     * {@link VOElement} or one of its specialist subclasses.
+     *
+     * <p>The clever bit is that during the parse (if <tt>xsrc</tt>
+     * is not already a DOMSource) it intercepts SAX events
+     * which indicate the start and end of any DATA events it finds so
+     * that they are not incorporated as part of the DOM.
+     * Such elements it parses
      * directly on the basis of what it knows about items that crop up
      * in VOTables.  This keeps the resulting DOM to a reasonable size.
      *
      * @param   xsrc  input XML source
-     * @param   validate  whether to use a validating parser if the 
-     *          transformation needs to be done (that is, if <tt>xsrc</tt> 
+     * @param   validate  whether to use a validating parser if the
+     *          transformation needs to be done (that is, if <tt>xsrc</tt>
      *          is not already a DOMSource)
      * @return  a DOMSource representing the XML document held by <tt>xsrc</tt>
+     *          The DOMSource's node will be either a VOElement or a VODocument
      */
     public DOMSource transformToDOM( Source xsrc, boolean validate )
             throws SAXException, IOException {
+        String systemId = xsrc.getSystemId();
 
-        /* If it's a DOM source already, no problem. */
+        /* If it's a DOM source already, no parse is necessary. */
         if ( xsrc instanceof DOMSource ) {
-            return (DOMSource) xsrc;
+            Node node = ((DOMSource) xsrc).getNode();
+
+            /* If it already has a VODocument DOM in it, return it unchanged. */
+            if ( node instanceof VODocument ||
+                 node.getOwnerDocument() instanceof VODocument ) {
+                return (DOMSource) xsrc;
+            }
+
+            /* Otherwise create anew VODocument DOM around it and return. */
+            else {
+                Document baseDoc = node instanceof Document
+                                 ? (Document) node
+                                 : node.getOwnerDocument();
+                VODocument vodoc = new VODocument( baseDoc, systemId );
+                vodoc.setStoragePolicy( getStoragePolicy() );
+                return new DOMSource( vodoc.getDelegator( node ), systemId );
+            }
         }
 
         /* Otherwise we're going to need to do a custom parse of it. */
-        String systemId = xsrc.getSystemId();
         InputSource insource;
         XMLReader parser = null;
 
@@ -319,12 +347,13 @@ public class VOElementFactory {
             }
         }
 
-        /* I don't know of any other kinds of source, but if there is
+        /* I don't think there's any other kind of source, but if there is
          * one we'll have to transform it to DOM using brute force. */
         else {
             try {
                 Node node = new SourceReader().getDOM( xsrc );
-                return new DOMSource( node, systemId );
+                return transformToDOM( new DOMSource( node, systemId ), 
+                                       validate );
             }
             catch ( TransformerException e ) {
                 throw (SAXException) new SAXException( e.getMessage() )
@@ -442,7 +471,7 @@ public class VOElementFactory {
      * @param  e  exception
      * @return  tweaked <tt>e</tt>
      */
-    private static SAXException fixStackTrace( SAXException e ) {
+    static SAXException fixStackTrace( SAXException e ) {
         if ( e.getException() != null && e.getCause() == null ) {
             e.initCause( e.getException() );
         }

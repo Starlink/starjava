@@ -12,44 +12,14 @@ import org.w3c.dom.Element;
  */
 public class ValuesElement extends VOElement {
 
-    private String minimum;
-    private String maximum;
-    private String[] options;
-    private String blank;
-    private String type;
-    private boolean isInvalid;
-
     /**
-     * Constructs a ValuesElement object from a VALUES element.
+     * Constructs a ValuesElement from a DOM element.
      *
-     * @param  el  a VALUES element
-     * @param  systemId  document system ID
+     * @param  base  VALUES element
+     * @para   doc   owner document for new element
      */
-    public ValuesElement( Element el, String systemId,
-                          VOElementFactory factory ) {
-        super( el, systemId, "VALUES", factory );
-        blank = getAttribute( "null" );
-        type = getAttribute( "type" );
-        isInvalid = getAttribute( "invalid" ) == "yes";
-        if ( type == null ) {
-            type = "legal";
-        }
-
-        VOElement[] children = getChildren();
-        List opts = new ArrayList();
-        for ( int i = 0; i < children.length; i++ ) {
-            VOElement child = children[ i ];
-            if ( child.getTagName().equals( "MAX" ) ) {
-                maximum = child.getAttribute( "value" );
-            }
-            else if ( child.getTagName().equals( "MIN" ) ) {
-                minimum = child.getAttribute( "value" );
-            }
-            else if ( child.getTagName().equals( "OPTION" ) ) {
-                opts.add( child.getAttribute( "name" ) );
-            }
-        }
-        options = (String[]) opts.toArray( new String[ 0 ] );
+    ValuesElement( Element base, VODocument doc ) {
+        super( base, doc, "VALUES" );
     }
 
     /**
@@ -59,17 +29,33 @@ public class ValuesElement extends VOElement {
      * @return  maximum value, or <tt>null</tt> if none specified
      */
     public String getMaximum() {
-        return maximum;
+        VOElement maxel = getChildByName( "MAX" );
+        if ( maxel != null ) {
+            return maxel.hasAttribute( "value" )
+                 ? maxel.getAttribute( "value" )
+                 : null;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
      * Returns the specified minimum value for this ValuesElement object
-     * (the value of any MINIMUM child).
+     * (the value of any Minimum child).
      *
      * @return  minimum value, or <tt>null</tt> if none specified
      */
     public String getMinimum() {
-        return minimum;
+        VOElement minel = getChildByName( "MIN" );
+        if ( minel != null ) {
+            return minel.hasAttribute( "value" )
+                 ? minel.getAttribute( "value" )
+                 : null;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -79,13 +65,20 @@ public class ValuesElement extends VOElement {
      *          of OPTION children)
      */
     public String[] getOptions() {
-        return (String[]) options.clone();
+        VOElement[] optels = getChildrenByName( "OPTION" );
+        List options = new ArrayList();
+        for ( int i = 0; i < optels.length; i++ ) {
+            if ( optels[ i ].hasAttribute( "value" ) ) {
+                options.add( optels[ i ].getAttribute( "value" ) );
+            }
+        }
+        return (String[]) options.toArray( new String[ 0 ] );
     }
 
     /**
      * Returns the 'null' value for this ValuesElement object, that is the
      * value which represents an undefined data value.  This is
-     * the value of the 'null' attribute of the VALUES element, 
+     * the value of the 'null' attribute of the VALUES element,
      * but does not have anything to do with the Java language
      * <tt>null</tt> value.
      *
@@ -93,28 +86,22 @@ public class ValuesElement extends VOElement {
      *           <tt>null</tt> if none is defined
      */
     public String getNull() {
-        return blank;
+        return hasAttribute( "null" )
+             ? getAttribute( "null" )
+             : null;
     }
 
     /**
      * Returns the supplied or implied value of the 'type' attribute of this
-     * ValuesElement object. 
+     * ValuesElement object.  According to the VOTable definition this 
+     * ought to be one of the strings "actual" or "legal".
      *
-     * @return  one of the strings 'actual' or 'legal'
+     * @return  values type
      */
     public String getType() {
-        return type;
+        return hasAttribute( "type" )
+             ? getAttribute( "type" )
+             : "legal";
     }
 
-    /**
-     * Returns the sense of the supplied or implied 'invalid' attribute 
-     * of this ValuesElement object.  I don't know what the semantics of this
-     * is supposed to be though, I can't find it referenced 
-     * in the VOTable document.
-     *
-     * @return  is the 'invalid' attribute present and equal to "yes"?
-     */
-    public boolean isInvalid() {
-        return isInvalid;
-    }
 }

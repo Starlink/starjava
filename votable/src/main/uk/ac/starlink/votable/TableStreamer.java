@@ -125,6 +125,9 @@ class TableStreamer extends CustomDOMBuilder {
         catch ( SuccessfulCompletionException e ) {
             return;
         }
+        catch ( SAXException e ) {
+            throw VOElementFactory.fixStackTrace( e );
+        }
         throw new IOException( "No TABLE element found" );
     }
 
@@ -226,10 +229,7 @@ class TableStreamer extends CustomDOMBuilder {
      */
     class TableContentHandler extends DefaultContentHandler {
 
-        Element tableEl = (Element) getNewestNode();
-        List fieldList = new ArrayList();
-        VOElementFactory factory = 
-            new VOElementFactory( StoragePolicy.DISCARD );
+        TableElement tableEl = (TableElement) getNewestNode();
         FieldElement[] fields;
         Decoder[] decoders;
 
@@ -244,22 +244,30 @@ class TableStreamer extends CustomDOMBuilder {
              * a TABLE element with no DATA. */
             String tagName = getTagName( namespaceURI, localName, qName );
             if ( "DATA".equals( tagName ) ) {
-                int ncol = fieldList.size();
-                fields = new FieldElement[ ncol ];
+                FieldElement[] fields = tableEl.getFields();
+                int ncol = fields.length;
                 decoders = new Decoder[ ncol ];
                 for ( int icol = 0; icol < ncol; icol++ ) {
-                    fields[ icol ] = 
-                        new FieldElement( (Element) fieldList.get( icol ),
-                                          systemId, factory );
                     decoders[ icol ] = fields[ icol ].getDecoder();
                 }
-                StarTable startable = 
-                    new VOStarTable( new TableElement( tableEl, systemId,
-                                                       factory ) ) {
+                StarTable startable;
+                try {
+
+                    /* If the table doesn't think it has any rows, it's 
+                     * probably mistaken (they just haven't been added to
+                     * the DOM yet) - so in this case force it to report
+                     * an unknown number instead. */
+                    startable = new VOStarTable( tableEl ) {
                         public long getRowCount() {
-                            return -1L;
+                            long nrow = super.getRowCount();
+                            return nrow > 0L ? nrow : -1L;
                         }
                     };
+                }
+                catch ( IOException e ) {
+                    throw new SAXParseException( e.getMessage(), getLocator(),
+                                                 e );
+                }
                 try {
                     sink.acceptMetadata( startable );
                 }
@@ -275,10 +283,7 @@ class TableStreamer extends CustomDOMBuilder {
              * the DOM, and then do node-specific processing. */
             super.startElement( namespaceURI, localName, qName, atts );
             Element el = (Element) getNewestNode();
-            if ( "FIELD".equals( tagName ) ) {
-                fieldList.add( el );
-            }
-            else if ( "TABLEDATA".equals( tagName ) ) {
+            if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler( decoders ) );
             }
             else if ( "STREAM".equals( tagName ) ) {

@@ -4,16 +4,22 @@ import org.w3c.dom.Element;
 
 /**
  * Object representing a PARAM element in a VOTable.
- *
+ * 
  * @author   Mark Taylor (Starlink)
  */
 public class ParamElement extends FieldElement {
 
-    private Object valueObject;
+    private String valString_;
+    private Object valObject_;
 
-    public ParamElement( Element el, String systemId,
-                         VOElementFactory factory ) {
-        super( el, systemId, "PARAM", factory );
+    /**
+     * Constructs a ParamElement from a DOM element.
+     *
+     * @param  base  PARAM element
+     * @param  doc   owner document for new element
+     */
+    ParamElement( Element base, VODocument doc ) {
+        super( base, doc );
     }
 
     /**
@@ -28,24 +34,20 @@ public class ParamElement extends FieldElement {
 
     /**
      * Returns the object represented by the value of this Param.
-     * This is constructed by decoding the <tt>value</tt> attribute in 
+     * This is constructed by decoding the <tt>value</tt> attribute in
      * the same way as for TABLEDATA content of a table for a FIELD
      * of this kind.
      *
      * @return  the value object
      */
     public Object getObject() {
-        if ( valueObject == null ) {
-            String val = getValue();
-            return ( val != null && val.length() > 0 )
-                 ? getDecoder().decodeString( val ) 
-                 : null;
+        String val = getValue();
+        if ( ! val.equals( valString_ ) ) {
+            valString_ = val;
+            valObject_ = ( val != null && val.length() > 0 )
+                       ? getDecoder().decodeString( val )
+                       : null;
         }
-        return valueObject;
+        return valObject_;
     }
-
-    public String toString() {
-        return super.toString() + "=\"" + getValue() + "\"";
-    }
-
 }

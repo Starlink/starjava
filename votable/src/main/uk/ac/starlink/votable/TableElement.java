@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import org.w3c.dom.Element;
@@ -15,9 +15,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
-import uk.ac.starlink.util.URLUtils;
 
 /**
  * An object representing the TABLE element of a VOTable.
@@ -28,119 +26,91 @@ import uk.ac.starlink.util.URLUtils;
  * element or the &lt;TR&gt; children of a &lt;TABLEDATA&gt; element)
  * may not actually be available from this node - for efficiency
  * the VOTable parser may convert them into a {@link TabularData} object
- * and discard the content of the original (STREAM or TABLEDATA) nodes 
+ * and discard the content of the original (STREAM or TABLEDATA) nodes
  * which contained the data from the DOM.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class TableElement extends VOElement {
 
-    private final FieldElement[] fields;
-    private final LinkElement[] links;
-    private final TabularData tdata;
-
-    private final static Logger logger = 
+    private TabularData tdata_;
+    private static final Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
-     * Constructs a TableElement object from a TABLE element.
+     * Constructs a TableElement from a DOM element.
      *
-     * @param   el  TABLE element
-     * @param   systemId  document system ID
+     * @param  base TABLE element
+     * @param  doc  owner document for new element
      */
-    public TableElement( Element el, String systemId,
-                         VOElementFactory factory ) {
-        super( el, systemId, "TABLE", factory );
-
-        /* Locate the element which describes the table structure.
-         * This is probably the element on which this table is based, 
-         * but may be one referenced by ID. */
-        Element metaEl;
-        if ( el.hasAttribute( "ref" ) ) {
-            String ref = el.getAttribute( "ref" );
-            metaEl = el.getOwnerDocument().getElementById( ref );
-            if ( metaEl == null ) {
-                logger.warning( "No element found with ID " + ref + 
-                                " - table empty" );
-            }
-            else if ( ! metaEl.getTagName().equals( "TABLE" ) ) {
-                logger.warning( "Element with ID " + ref + " is not a TABLE!" +
-                                " - table empty" );
-                metaEl = null;
-            }
-        }
-        else {
-            metaEl = el;
-        }
-
-        /* Deal with known metadata children. */
-        if ( metaEl != null ) {
-            List fieldList = new ArrayList();
-            List linkList = new ArrayList();
-            for ( Node ch = metaEl.getFirstChild(); ch != null;
-                  ch = ch.getNextSibling() ) {
-                if ( ch instanceof Element ) {
-                    Element childEl = (Element) ch;
-                    String elname = childEl.getTagName();
-                    if ( elname.equals( "FIELD" ) ) {
-                        fieldList.add( new FieldElement( childEl, systemId,
-                                                         getFactory() ) );
-                    }
-                    if ( elname.equals( "LINK" ) ) {
-                        linkList.add( new LinkElement( childEl, systemId,
-                                                       getFactory() ) );
-                    }
-                }
-            }
-            fields = (FieldElement[]) 
-                     fieldList.toArray( new FieldElement[ 0 ] );
-            links = (LinkElement[]) linkList.toArray( new LinkElement[ 0 ] );
-
-            /* Obtain and store the data access object. */ 
-            TabularData td;
-            try {
-                td = getTabularData( el, fields, getSystemId(), getFactory() );
-            }
-            catch ( IOException e ) {
-                int ncol = fields.length;
-                Class[] classes = new Class[ ncol ];
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    classes[ icol ] = fields[ icol ].getDecoder()
-                                                    .getContentClass();
-                }
-                logger.warning( "Error reading table data: " + e );
-                td = new TableBodies.EmptyTabularData( classes );
-            }
-            tdata = td;
-        }
-
-        /* If we failed to find any metadata we have to act like there's
-         * no data here. */
-        else {
-            fields = new FieldElement[ 0 ];
-            links = new LinkElement[ 0 ];
-            tdata = new TableBodies.EmptyTabularData( new Class[ 0 ] );
-        }
+    TableElement( Element base, VODocument doc ) {
+        super( base, doc, "TABLE" );
     }
 
     /**
-     * Returns the number of columns in this table.
+     * Returns the FIELD elements for this table.  Note these may come
+     * from a different TABLE element referenced using this one's
+     * <tt>ref</tt> attribute.
      *
-     * @return  the number of columns
+     * @return  the FIELD elements which describe the columns of this table
      */
-    public int getColumnCount() {
-        return tdata.getColumnCount();
+    public FieldElement[] getFields() {
+        VOElement[] voels = getMetadata().getChildrenByName( "FIELD" );
+        FieldElement[] fels = new FieldElement[ voels.length ];
+        System.arraycopy( voels, 0, fels, 0, voels.length );
+        return fels;
+    }
+
+    /**
+     * Returns the LINK elements for this table.
+     *
+     * @return  the LINK elements which are children of this table
+     */
+    public LinkElement[] getLinks() {
+        VOElement[] voels = getChildrenByName( "LINK" );
+        LinkElement[] lels = new LinkElement[ voels.length ];
+        System.arraycopy( voels, 0, lels, 0, voels.length );
+        return lels;
+    }
+
+    /**
+     * Returns the PARAM elements for this table.
+     *
+     * @return  the PARAM elements which are children of this table
+     */
+    public ParamElement[] getParams() {
+        VOElement[] voels = getChildrenByName( "PARAM" );
+        ParamElement[] pels = new ParamElement[ voels.length ];
+        System.arraycopy( voels, 0, pels, 0, voels.length );
+        return pels;
     }
 
     /**
      * Returns the number of rows in this table.
+     * This may be determined from the optional <tt>nrows</tt> attribute
+     * or from the table data itself.
      * If this cannot be determined, or cannot be determined efficiently,
      * the value -1 may be returned.
      *
      * @return  the number of rows, or -1 if unknown
      */
-    public long getRowCount() {
-        return tdata.getRowCount();
+    public long getNrows() {
+        if ( hasAttribute( "nrows" ) ) {
+            String nr = getAttribute( "nrows" );
+            try {
+                return Long.parseLong( nr );
+            }
+            catch ( NumberFormatException e ) {
+                logger_.warning( "nrows value not an integer: " + nr );
+                return -1L;
+            }
+        }
+        else if ( tdata_ != null ) {
+            return tdata_.getRowCount();
+        }
+        else {
+            return -1L;
+        }
     }
 
     /**
@@ -149,80 +119,76 @@ public class TableElement extends VOElement {
      *
      * @return   bulk data access object
      */
-    public TabularData getData() {
-        return tdata;
+    public TabularData getData() throws IOException {
+        synchronized ( this ) {
+            if ( tdata_ == null ) {
+                setData( makeTabularData() );
+            }
+        }
+        return tdata_;
     }
 
     /**
-     * Returns one of the FieldElement objects associated with this table.
+     * Sets the tabular data object which can be used to access the actual
+     * cell data in the body of this table.
      *
-     * @param  index  the index of the field to return 
-     * @return  the filed at index <tt>index</tt>
-     * @throws  IndexOutOfBoundsException unless 0&lt;=index&lt;numColumns
+     * @param  tdata  tabular data object
      */
-    public FieldElement getField( int index ) {
-        return fields[ index ];
+    void setData( TabularData tdata ) {
+        tdata_ = tdata;
     }
 
     /**
-     * Obtains the data access object for a given TABLE element.
-     * In the case this table has no body, a TabularData with 0 rows
-     * will be returned.
+     * Constructs and returns a TabularData object for this table
+     * based on the current contents of the DOM.
      *
-     * @param  tableEl  DOM TABLE element
-     * @param  fields   array of the fields in the table
-     * @param  systemId  sytem identifier of the document
-     * @param  factory   element factory
-     * @return  data access object for the table in <tt>tableEl</tt>
+     * @return   new TabularData object
      */
-    private static TabularData getTabularData( Element tableEl,
-                                               FieldElement[] fields,
-                                               String systemId,
-                                               VOElementFactory factory )
-            throws IOException {
+    private TabularData makeTabularData() throws IOException {
+
+        /* Get the FIELD elements. */
+        FieldElement[] fields = getFields();
         int ncol = fields.length;
+
+        /* Get the associated decoders and content types. */
+        final Class[] clazzes = new Class[ ncol ];
         final Decoder[] decoders = new Decoder[ ncol ];
-        final Class[] classes = new Class[ ncol ];
-        for ( int icol = 0; icol < ncol; icol++ ) {
-            decoders[ icol ] = fields[ icol ].getDecoder();
-            classes[ icol ] = decoders[ icol ].getContentClass();
+        for ( int i = 0; i < ncol; i++ ) {
+            decoders[ i ] = fields[ i ].getDecoder();
+            clazzes[ i ] = decoders[ i ].getContentClass();
         }
 
-        /* See if it has been stashed away by the custom VOTable parser. */
-        TabularData storedData = VOTableDOMBuilder.getData( tableEl );
-        if ( storedData != null ) {
-            return storedData;
-        }
+        /* Get the DATA element. */
+        VOElement dataEl = getChildByName( "DATA" );
 
-        /* Otherwise we will have to find it in the DOM and decode it here.
-         * Any relevant nodes will be inside the DATA element. */
-        Element dataEl = DOMUtils.getChildElementByName( tableEl, "DATA" );
-
-        /* If there's no DATA child, there's no data. */
+        /* If there's no DATA we have an empty table (perfectly legal). */
         if ( dataEl == null ) {
-            return new TableBodies.EmptyTabularData( classes );
+            return new TableBodies.EmptyTabularData( clazzes );
         }
 
         /* Try TABLEDATA format. */
-        Element tdEl = DOMUtils.getChildElementByName( dataEl, "TABLEDATA" );
+        VOElement tdEl = dataEl.getChildByName( "TABLEDATA" );
         if ( tdEl != null ) {
             return new TableBodies.TabledataTabularData( decoders, tdEl );
         }
 
         /* Try BINARY format. */
-        Element binaryEl = DOMUtils.getChildElementByName( dataEl, "BINARY" );
+        VOElement binaryEl = dataEl.getChildByName( "BINARY" );
         if ( binaryEl != null ) {
-            final Element streamEl = 
-                DOMUtils.getChildElementByName( binaryEl, "STREAM" );
+            final VOElement streamEl = binaryEl.getChildByName( "STREAM" );
+            if ( streamEl == null ) {
+                logger_.warning( "No BINARY/STREAM element" );
+                return new TableBodies.EmptyTabularData( clazzes );
+            }
             String href = streamEl.getAttribute( "href" );
             if ( href != null && href.length() > 0 ) {
-                URL url = URLUtils.makeURL( systemId, href );
+                URL url = getContextURL( href );
                 String encoding = streamEl.getAttribute( "encoding" );
                 return new TableBodies
                           .HrefBinaryTabularData( decoders, url, encoding );
             }
             else {
-                return new TableBodies.SequentialTabularData( classes ) {
+                return new TableBodies.SequentialTabularData( clazzes ) {
                     public RowStepper getRowStepper() throws IOException {
                         InputStream istrm = getTextChildrenStream( streamEl );
                         return new BinaryRowStepper( decoders, istrm,
@@ -233,29 +199,32 @@ public class TableElement extends VOElement {
         }
 
         /* Try FITS format. */
-        Element fitsEl = DOMUtils.getChildElementByName( dataEl, "FITS" );
+        VOElement fitsEl = dataEl.getChildByName( "FITS" );
         if ( fitsEl != null ) {
             String extnum = fitsEl.getAttribute( "extnum" );
             if ( extnum != null && extnum.trim().length() == 0 ) {
                 extnum = null;
             }
-            final Element streamEl =
-                DOMUtils.getChildElementByName( fitsEl, "STREAM" );
+            final VOElement streamEl = fitsEl.getChildByName( "STREAM" );
+            if ( streamEl == null ) {
+                logger_.warning( "No FITS/STREAM element" );
+                return new TableBodies.EmptyTabularData( clazzes );
+            }
             String href = streamEl.getAttribute( "href" );
 
             /* Construct a DataSource which knows how to retrieve the
              * input stream corresponding to the FITS data.  Ignore the
-             * stated encoding here, since DataSource can work out 
+             * stated encoding here, since DataSource can work out
              * compression formats on its own. */
             DataSource datsrc;
             if ( href != null && href.length() > 0 ) {
-                URL url = URLUtils.makeURL( systemId, href );
+                URL url = getContextURL( href );
                 datsrc = DataSource.makeDataSource( url );
             }
             else {
                 datsrc = new DataSource() {
                     protected InputStream getRawInputStream() {
-                        return new BufferedInputStream( 
+                        return new BufferedInputStream(
                                    new Base64InputStream(
                                        getTextChildrenStream( streamEl ) ) );
                     }
@@ -263,18 +232,51 @@ public class TableElement extends VOElement {
                 datsrc.setName( "STREAM" );
             }
             datsrc.setPosition( extnum );
-            StarTable startab = 
+            StarTable startab =
                 new FitsTableBuilder()
-               .makeStarTable( datsrc, false, factory.getStoragePolicy() );
+               .makeStarTable( datsrc, false, 
+                               ((VODocument) getOwnerDocument())
+                              .getStoragePolicy() );
             if ( startab == null ) {
-                throw new IOException( 
+                throw new IOException(
                     "STREAM element does not contain a FITS table" );
             }
             return new TableBodies.StarTableTabularData( startab );
         }
 
         /* We don't seem to have any data. */
-        return new TableBodies.EmptyTabularData( classes );
+        logger_.warning( "DATA element contains none of " +
+                         "TABLEDATA, FITS or BINARY" );
+        return new TableBodies.EmptyTabularData( clazzes );
+    }
+
+    /**
+     * Returns the element which provides the metadata (FIELD elements -
+     * and other things?  the standard isn't too clear) for this table.
+     * This is usually this element itself, but it
+     * might be one referenced by a <tt>ref</tt> element, or it might
+     * be a dummy empty element if the one referenced by a ref element
+     * doesn't exist.
+     *
+     * @return   FIELD-bearing description element of this table
+     */
+    private TableElement getMetadata() {
+        if ( hasAttribute( "ref" ) ) {
+            String ref = getAttribute( "ref" );
+            Node node = getOwnerDocument().getElementById( ref );
+            if ( node instanceof TableElement ) {
+                return (TableElement) node;
+            }
+            else {
+                logger_.warning( "No TABLE element is referenced by ID "
+                               + ref );
+                return (TableElement)
+                       getOwnerDocument().createElement( "TABLE" );
+            }
+        }
+        else {
+            return this;
+        }
     }
 
     /**
@@ -286,19 +288,19 @@ public class TableElement extends VOElement {
      */
     private static InputStream getTextChildrenStream( Node node ) {
         List tchildren = new ArrayList();
-        for ( Node child = node.getFirstChild(); child != null; 
+        for ( Node child = node.getFirstChild(); child != null;
               child = child.getNextSibling() ) {
             if ( child instanceof Text ) {
                 tchildren.add( child );
             }
         }
-        final Iterator it = tchildren.iterator();
+        final Enumeration en = Collections.enumeration( tchildren );
         return new SequenceInputStream( new Enumeration() {
             public boolean hasMoreElements() {
-                return it.hasNext();
+                return en.hasMoreElements();
             }
             public Object nextElement() {
-                Text textNode = (Text) it.next();
+                Text textNode = (Text) en.nextElement();
                 String text = textNode.getData();
                 InputStream tstrm = new StringInputStream( text );
                 return tstrm;
@@ -307,9 +309,9 @@ public class TableElement extends VOElement {
     }
 
     /**
-     * Utility class which reads a String as an InputStream.  
+     * Utility class which reads a String as an InputStream.
      * Normally this isn't a respectable thing to do because of encodings,
-     * but this is used for base64-encoded strings, so we know that a 
+     * but this is used for base64-encoded strings, so we know that a
      * simple cast of char to byte is the right way to do the conversion.
      */
     static class StringInputStream extends InputStream {
@@ -333,7 +335,7 @@ public class TableElement extends VOElement {
             for ( ; i < size && pos < leng; i++ ) {
                 b[ off++ ] = (byte) text.charAt( pos++ );
             }
-            return i;    
+            return i;
         }
         public int read( byte[] b ) {
             return read( b, 0, b.length );
@@ -353,4 +355,5 @@ public class TableElement extends VOElement {
             return true;
         }
     }
+
 }
