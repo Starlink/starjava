@@ -440,7 +440,7 @@ public class SOGNavigatorImageDisplay
                     initWCSFromFits();
                 }
                 catch ( AstException e ) {
-                    e.printStackTrace();
+                    System.out.println( e.getMessage() );
                     super.initWCS();
                 }
             }
@@ -474,7 +474,7 @@ public class SOGNavigatorImageDisplay
                 }
             }
             catch( Exception e ) {
-                e.printStackTrace();
+                System.out.println( e.getMessage() );
                 setWCS( null );
                 return;
             }
@@ -496,31 +496,29 @@ public class SOGNavigatorImageDisplay
         throws AstException
     {
         //  Access the header.
-        Header hdr = getFitsImage().getHeader();
+        Header header = getFitsImage().getHeader();
 
-        //  Arrange to read the headers into a FITS channel.
-        final Iterator cardIt = hdr.iterator();
-        Iterator lineIt = new Iterator() 
-        {
-            public boolean hasNext() 
-            { 
-                return cardIt.hasNext();
+        //  Arrange to read the headers into a FITS channel. Note we do not
+        //  use the Iterator constructor of FitsChan as this doesn't allow the
+        //  trapping of minor errors when reading the cards (like formatting
+        //  problems).
+        Iterator iter = header.iterator();
+        FitsChan fitschan = new FitsChan();
+        while ( iter.hasNext() ) {
+            try {
+                fitschan.putFits( iter.next().toString(), false );
             }
-            public Object next() 
-            {
-                return cardIt.next().toString();
+            catch (AstException e) {
+                //  Ignore. Real failure is during full read, if any.
+                System.out.println( e.getMessage() );
             }
-            public void remove() 
-            { 
-                throw new UnsupportedOperationException();
-            }
-        };
-        FitsChan fchan = new FitsChan( lineIt );
-        AstObject aobj = fchan.read();
+        }
+        fitschan.setCard( 0 );
+        AstObject astObject = fitschan.read();
 
         //  If we have a FrameSet, use this as the WCS.
-        if ( aobj != null && aobj instanceof FrameSet ) {
-            setWCS( new AstTransform( (FrameSet) aobj, 
+        if ( astObject != null && astObject instanceof FrameSet ) {
+            setWCS( new AstTransform( (FrameSet) astObject, 
                                       getImageWidth(),
                                       getImageHeight() ) );
         }
