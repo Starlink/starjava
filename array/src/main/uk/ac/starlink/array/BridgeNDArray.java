@@ -153,17 +153,4 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
         return buf.toString();
     }
 
-    /**
-     * Closes this NDArray in case an explicit call to {@link #close}
-     * has not been made, as well as invoking the superclass finalizer.
-     */
-    protected void finalize throws Throwable {
-        try {
-            close();
-        }
-        finally {
-            super.finalize();
-        }
-    }
-
 }

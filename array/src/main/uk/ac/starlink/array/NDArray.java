@@ -185,11 +185,6 @@ public interface NDArray extends ArrayDescription {
      * Note that closing an NDArray will normally result in closing any
      * arrays which it wraps.
      * <p>
-     * NDArray implementations should make an attempt to tidy up in their 
-     * finalizers, so failing to call <tt>close</tt> on an NDArray
-     * <i>which is not being used for write access</i> is in most
-     * cases not critical.
-     * <p>
      * Multiple calls of this method may harmlessly be made.
      *
      * @throws  IOException  if some I/O error occurred
