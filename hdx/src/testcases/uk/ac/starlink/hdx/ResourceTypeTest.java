@@ -178,6 +178,7 @@ public class ResourceTypeTest
             implements org.xml.sax.ContentHandler {
         private java.util.SortedSet attset;
         private StringBuffer sb;
+        private boolean seenEndDocument = false;
         
         public SummarisingContentHandler() {
             if (attset == null)
@@ -192,7 +193,16 @@ public class ResourceTypeTest
         }
         public void endDocument()
                 throws SAXException {
-            sb.append(']');
+            if (seenEndDocument) {
+                // Ooooh, that really shouldn't have happened.  But
+                // it's likely not our fault -- some versions of
+                // Xalan before 2.5.2 (?) seem to have had problems
+                // here.  Just pretend it never happened.
+                return;
+            } else {
+                sb.append(']');
+                seenEndDocument = true;
+            }
         }
         public void startPrefixMapping (String prefix, String uri)
                 throws SAXException {
