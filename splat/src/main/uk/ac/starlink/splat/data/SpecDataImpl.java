@@ -68,9 +68,29 @@ public interface SpecDataImpl
 
     /**
      * Return a keyed value from the FITS headers. Returns "" if not
-     * found.
+     * found. Properties which should usually be made available are "units"
+     * and "label", which describe the data values, not the
+     * coordinates. Values for these can be set using the 
+     * {@link #setDataUnits} and {@link setDataLabel} methods.
      */
     public String getProperty( String key );
+
+    /**
+     * Set the units of the data values contained in this spectrum. Usually
+     * these will be fluxes or counts of some kind. The units should ideally
+     * match the ones understood by AST (this those in FITS paper I).
+     *
+     * @param units the data value units (Jy etc).
+     */
+    public void setDataUnits( String units );
+
+    /**
+     * Set the label of the data values contained in this spectrum. This will
+     * be used in plots as a label for the data axis and has no other meaning.
+     * 
+     * @param label the label describing the data values (flux density etc).
+     */
+    public void setDataLabel( String label );
 
     /**
      * Whether the class is a FITSHeaderSource. This means it has FITS
