@@ -50,6 +50,11 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.astrogrid.store.tree.Container;
+import org.astrogrid.store.tree.TreeClient;
+import org.astrogrid.store.tree.TreeClientException;
+import uk.ac.starlink.astrogrid.AGConnector;
+import uk.ac.starlink.astrogrid.AGConnectorFactory;
 
 /**
  * Main class for the Treeview application.  The GUI provides a two-part
@@ -421,6 +426,16 @@ public class StaticTreeViewer extends JFrame {
                 }
             };
 
+        /* Action for browsing MySapce. */
+        Action myspaceAction =
+            new BasicAction( "Enter MySpace",
+                             IconFactory.getIcon( IconFactory.MYSPACE ),
+                             "Login to MySpace to browse files" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    myspaceLogin();
+                }
+            };
+
         /* Demo data action. */
         Action demoAction = 
             new BasicAction( "Demo Data",
@@ -430,6 +445,12 @@ public class StaticTreeViewer extends JFrame {
                     addDemoData();
                 }
             };
+        try {
+            DemoDataNode.getDemoDir();
+        }
+        catch ( NoSuchDataException e ) {
+            demoAction.setEnabled( false );
+        }
 
         /* Help text action. */
         helpAction =
@@ -548,6 +569,7 @@ public class StaticTreeViewer extends JFrame {
         mb.add( fileMenu );
         fileMenu.add( newFileAction ).setIcon( null );
         fileMenu.add( newNameAction ).setIcon( null );
+        fileMenu.add( myspaceAction ).setIcon( null );
         fileMenu.add( exitAction ).setIcon( null );
         tools.add( exitAction );
         tools.add( newFileAction );
@@ -594,6 +616,16 @@ public class StaticTreeViewer extends JFrame {
         tools.addSeparator();
         tools.add( demoAction );
         tools.add( helpAction );
+
+        /* Add Starlink logo. */
+        Image logoImage = 
+            ((ImageIcon) IconFactory.getIcon( IconFactory.STAR_LOGO ))
+           .getImage()
+           .getScaledInstance( -1, 30, Image.SCALE_SMOOTH );
+        tools.add( Box.createHorizontalGlue() );
+        tools.addSeparator();
+        tools.add( new JLabel( new ImageIcon( logoImage ) ) );
+        tools.addSeparator();
     }
 
     /**
@@ -795,6 +827,28 @@ public class StaticTreeViewer extends JFrame {
         DataNode dnode = nodeMaker.makeChildNode( null, name );
         dnode.setLabel( name );
         appendNodeToRoot( dnode );
+    }
+
+    private void myspaceLogin() {
+        try {
+            AGConnector conn = AGConnectorFactory.getInstance()
+                              .getConnector( this );
+            TreeClient tc = conn.getConnection();
+            if ( tc != null ) {
+                DataNode dnode = new MyspaceContainerDataNode( conn );
+                appendNodeToRoot( dnode );
+            }
+        }
+        catch ( TreeClientException e ) {
+            NoSuchDataException ne =
+                new NoSuchDataException( "Error connecting to MySpace", e );
+            DataNode dnode = nodeMaker.makeErrorDataNode( null, ne );
+            appendNodeToRoot( dnode );
+        }
+        catch ( NoSuchDataException e ) {
+            DataNode dnode = nodeMaker.makeErrorDataNode( null, e );
+            appendNodeToRoot( dnode );
+        }
     }
 
     private synchronized void addDemoData() {

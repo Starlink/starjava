@@ -45,6 +45,7 @@ import uk.ac.starlink.util.FileDataSource;
  * <li> {@link XMLDataNode}
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
+ * <li> {@link MyspaceContainerDataNode}
  * <li> {@link PlainDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
@@ -605,6 +606,7 @@ public class DataNodeFactory {
                 FtpDirectoryDataNode.class,
                 CompressedDataNode.class,
                 FileDataNode.class,
+                MyspaceContainerDataNode.class,
                 PlainDataNode.class,
             };
             defaultClassList = new ArrayList( Arrays.asList( classes ) );
