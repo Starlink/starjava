@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!DOCTYPE project SYSTEM "../project.dtd">
 
 <!--
  !   NDX build file
@@ -28,7 +29,7 @@
  !! test targets yet to be done.
  !!
  !   Authors:
- !      Peter W. Draper (2-JUL-2002)
+ !      Peter W. Draper (2-JUL-2002)        
  !      Mark Taylor (13-AUG-2002)
  !
  !   Version:
@@ -103,7 +104,7 @@
   <!-- JUnit test options -->
   <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="off"/>
-  <property name="junit.summary" value="no"/>
+  <property name="junit.summary" value="on"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
@@ -213,8 +214,12 @@
    !   the external classpath.
    !-->
   <extclasspath id="built.jarpath">
+    <!--
+    I'm pretty sure that uk.ac.starlink.* aren't third-party!
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/util/lib/util/util.jar"/>
+    <pathelement location="${star.build.dir}/hds/lib/hds/hds.jar"/>
+    -->
     <pathelement location="${star.build.dir}/junit/lib/junit/junit.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
   </extclasspath>
@@ -356,6 +361,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
+	   source="1.4"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -733,6 +739,7 @@
              author="true"
              version="true"
              locale="en"
+             source="1.4"
              windowtitle="${Name} API"
              doctitle="${Name}"
              classpathref="classpath">
@@ -819,10 +826,10 @@
           if="testframework.present">
     <mkdir dir="${build.tests}"/>
 
-    <javac srcdir="${tests.dir}"
+    <javac deprecation="${deprecation}"
            destdir="${build.tests}"
            debug="${debug}"
-           deprecation="${deprecation}" >
+           srcdir="${tests.dir}">
       <classpath refid="tests-classpath"/>
     </javac>
   </target>
@@ -841,16 +848,21 @@
           depends="compile-tests"
           if="testframework.present">
 
-    <junit printsummary="${junit.summary}" haltonfailure="yes"
+    <junit printsummary="${junit.summary}"
+           haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
-           fork="${junit.fork}">
+           fork="${junit.fork}"
+           dir="${tests.etc.dir}"
+           >
+      <!-- dir=... means we have that directory as the cwd when
+           running the tests, so we can put test files there -->
       <classpath refid="tests-classpath"/>
 
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="java.library.path" value="${star.lib.arch}"/>
       <sysproperty key="tests-classpath.value"
-                   value="${tests-classpath.value}"/>
+        value="${tests-classpath.value}"/>
 
       <formatter type="plain" usefile="false"/>
 
@@ -872,7 +884,8 @@
     <junit printsummary="${junit.summary}"
           haltonfailure="yes"
           fork="${junit.fork}"
-          filtertrace="${junit.filtertrace}">
+          filtertrace="${junit.filtertrace}"
+          dir="${tests.etc.dir}">
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="java.library.path" value="${star.lib.arch}"/>
@@ -900,3 +913,10 @@
   </target>
 
 </project>
+
+<!-- custom variables for emacs psgml mode (delete if you must, Mark!) -->
+<!-- Local Variables: -->
+<!-- mode: xml -->
+<!-- sgml-indent-data: t -->
+<!-- sgml-indent-step: 2 -->
+<!-- End: -->
