@@ -223,7 +223,34 @@ public class PlotWindow extends AuxWindow implements ActionListener {
          * changed. */
         subSelModel.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
-                PlotWindow.this.actionPerformed( null );
+
+                /* If the only changed items are ones which have been
+                 * deselected, we can do this cheaply. */
+                boolean allClear = true;
+                int first = evt.getFirstIndex();
+                int last = evt.getLastIndex();
+                PlotState state = getPlotState();
+                RowSubset[] mask = state.subsetMask;
+                RowSubset[] lastMask = lastState.subsetMask;
+                for ( int i = first; i <= last; i++ ) {
+                    if ( mask[ i ] != null && lastMask[ i ] == null ) {
+                        allClear = false;
+                    }
+                }
+                if ( allClear && lastPlot instanceof Plot ) {
+                    Plot plot = (Plot) lastPlot;
+                    for ( int i = first; i <= last; i++ ) {
+                        if ( mask[ i ] == null && lastMask[ i ] != null ) {
+                            plot.clear( setFor( i ) );
+                        }
+                    }
+                    lastState = state;
+                }
+
+                /* Otherwise, a proper replot will be necesary. */
+                else {
+                    PlotWindow.this.actionPerformed( null );
+                }
             }
         } );
 
