@@ -5,13 +5,20 @@
    Prerequisites
    -------------
 
-Make sure you have a J2SE SDK available. Downloads are available from:
+First make sure you have a J2SE SDK available. Downloads are available
+from:
 
    http://java.sun.com/
 
 This should probably match the version of the JRE distributed by
 Starlink (see the /star/java directory or equivalent). We cannot
 distribute the SDK for licensing reasons.
+
+You will also need to have JAI installed as part of the SDK. JAI is
+the "Java Advanced Imaging API" which is currently part of SUNs
+"Desktop Java". The version of JAI being used can be determined from
+the README-jai.txt file in the Starlink JRE package (see the
+/star/java/jre directory).
 
 Now define STAR_JAVA to point at the "java" command of this:
 
