@@ -11,8 +11,11 @@ import java.util.List;
  * directly using the {@link #getColumnData} method.  Columns can be
  * added and substituted.  If the columns permit it then table cells
  * can be written to as well as read from.
+ * <p>
  * Concrete subclasses of this abstract class must implement 
- * {@link #getRowCount}.
+ * {@link #getRowCount}. 
+ * If you just need a <tt>ColumnStarTable</tt> with a fixed number of rows
+ * you can use the static convenience method {@link #makeTableWithRows}.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -91,6 +94,20 @@ public abstract class ColumnStarTable extends RandomStarTable {
      */
     public void setColumn( int icol, ColumnData coldata ) {
         columns.set( icol, coldata );
+    }
+
+    /**
+     * Convenience method to return a <tt>ColumnStarTable</tt> 
+     * with a fixed number of rows.
+     * 
+     * @param  nrow  the number of rows this table will have
+     */
+    public static ColumnStarTable makeTableWithRows( final long nrow ) {
+        return new ColumnStarTable() {
+            public long getRowCount() {
+                return nrow;
+            }
+        };
     }
 
 }
