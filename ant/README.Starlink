@@ -44,6 +44,15 @@ The files:
 
 are also modified to add these new tasks and types to the standard sets.
 
+The files:
+
+   src/main/org/apache/tools/ant/taskdefs/Delete.java
+   src/main/org/apache/tools/ant/taskdefs/StreamPumper.java
+
+are also changed. Delete.java to allow better sub-classing and
+StreamPumper to remove a blocking problem that slows IO for the
+<exec> task.
+
 The tasks added are "loggedcopy" and "listdelete". These are
 modifications of the "copy" and "delete" tasks to add the ability to
 record the names of the files copied and to accept a list of files to
