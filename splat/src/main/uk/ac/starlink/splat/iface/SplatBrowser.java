@@ -1454,12 +1454,15 @@ public class SplatBrowser
      *                displayed. 
      * @param types the types of the spectra, if null the the usual rules are
      *              used 
+     * @param shortNames short names for the spectra, if null then the usual
+     *                   rules are used.
      */
-    public void threadLoadSpectra( String[] spectra, int[] types )
+    public void threadLoadSpectra( String[] spectra, int[] types, 
+                                   String[] shortNames )
     {
         if ( spectra.length == 0 ) return;
         SpectrumIO sio = SpectrumIO.getInstance();
-        sio.load( this, spectra, true, types );
+        sio.load( this, spectra, true, types, shortNames );
     }
 
     /**
@@ -1541,6 +1544,30 @@ public class SplatBrowser
     {
         SpecData spectrum = specDataFactory.get( name, usertype );
         addSpectrum( spectrum );
+    }
+
+    /**
+     * Add a new spectrum, with a possibly pre-defined type and short name, to
+     * the global list. This becomes the current spectrum. If an error occurs
+     * a {@link SplatException} is thrown.
+     *
+     *  @param name the name (i.e. file specification) of the spectrum
+     *              to add.
+     *  @param usertype index of the type of spectrum, 0 for default
+     *                  based on file extension, otherwise this is an
+     *                  index of the knownTypes array in
+     *                  {@link SpecDataFactory}.
+     *  @param shortName a short name for the spectrum, if null a one will be
+     *                   generated as usual.
+     */
+    public void tryAddSpectrum( String name, int usertype, String shortName )
+        throws SplatException
+    {
+        SpecData spectrum = specDataFactory.get( name, usertype );
+        addSpectrum( spectrum );
+        if ( shortName != null && shortName.length() != 0 ) {
+            spectrum.setShortName( shortName );
+        }
     }
 
     /**

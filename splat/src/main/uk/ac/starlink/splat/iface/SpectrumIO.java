@@ -62,16 +62,10 @@ public class SpectrumIO
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
-     * The list of spectra to load.
+     * The list of spectra to load. These are characterised as TypedSpectra
+     * instances.
      */
     private Vector queue = new Vector();
-
-    /**
-     * The associated data types, if used. If not set then the single type is
-     * used (which can be DEFAULT in which case the file extensions are used
-     * to type the spectra).
-     */
-    private Vector types = new Vector();
 
     /**
      * The Thread that the loading or saving is actually performed in.
@@ -135,9 +129,9 @@ public class SpectrumIO
      * the same size as the spectra array.
      */
     public void load( SplatBrowser browser, String[] spectra,
-                      boolean display, int[] usertypes )
+                      boolean display, int[] usertypes, String[] shortNames )
     {
-        setSpectra( spectra, usertypes );
+        setSpectra( spectra, usertypes, shortNames );
         this.browser = browser;
         this.display = display;
         loadSpectra();
@@ -149,10 +143,9 @@ public class SpectrumIO
     protected synchronized void setSpectra( String[] spectra, int type )
     {
         this.queue.clear();
-        this.types.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                this.queue.add( new TypedSpectrum( spectra[i], type ) );
+                this.queue.add( new TypedSpectrum( spectra[i], type, null ) );
             }
         }
     }
@@ -164,13 +157,30 @@ public class SpectrumIO
     protected synchronized void setSpectra( String[] spectra, int[] types )
     {
         this.queue.clear();
-        this.types.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                this.queue.add( new TypedSpectrum( spectra[i], types[i] ) );
+                this.queue.add( new TypedSpectrum( spectra[i], types[i], 
+                                                   null ) );
             }
         }
     }
+
+    /**
+     * Set the spectra to load and, if given (can be null) the individual
+     * types and some short names.
+     */
+    protected synchronized void setSpectra( String[] spectra, int[] types,
+                                            String[] shortNames )
+    {
+        this.queue.clear();
+        if ( spectra != null ) {
+            for ( int i = 0; i < spectra.length; i++ ) {
+                this.queue.add( new TypedSpectrum( spectra[i], types[i], 
+                                                   shortNames[i] ) );
+            }
+        }
+    }
+
 
     /**
      * Get the next spectrum to load. Returns null when none left.
@@ -280,7 +290,8 @@ public class SpectrumIO
         while( ! queue.isEmpty() ) {
             try {
                 ts = getSpectrum();
-                browser.tryAddSpectrum( ts.getSpectrum(), ts.getType() );
+                browser.tryAddSpectrum( ts.getSpectrum(), ts.getType(), 
+                                        ts.getShortName() );
                 validFiles++;
             }
             catch (SplatException e) {
@@ -293,7 +304,7 @@ public class SpectrumIO
             }
             filesDone++;
         }
-        
+
         //  Report any failures. If there is just one make usual report.
         if ( failures != null ) {
             String message = null;
@@ -416,10 +427,12 @@ public class SpectrumIO
     {
         String spectrum;
         int type;
-        TypedSpectrum( String spectrum, int type )
+        String shortName;
+        TypedSpectrum( String spectrum, int type, String shortName )
         {
             this.spectrum = spectrum;
             this.type = type;
+            this.shortName = shortName;
         }
         String getSpectrum()
         {
@@ -428,6 +441,10 @@ public class SpectrumIO
         int getType()
         {
             return type;
+        }
+        String getShortName()
+        {
+            return shortName;
         }
     }
 }

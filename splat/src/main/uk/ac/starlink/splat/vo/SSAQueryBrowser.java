@@ -634,16 +634,18 @@ public class SSAQueryBrowser
      */
     protected void displaySpectra( boolean selected )
     {
-        //  List of all spectra to be loaded and there data formats.
+        //  List of all spectra to be loaded and their data formats and short
+        //  names.
         ArrayList specList = new ArrayList();
         ArrayList typeList = new ArrayList();
+        ArrayList nameList = new ArrayList();
 
         //  Visit all the tabbed StarJTables.
         Iterator i = starJTables.iterator();
         RowSequence rseq = null;
         while ( i.hasNext() ) {
             extractSpectraFromTable( (StarJTable) i.next(), specList,
-                                     typeList, selected );
+                                     typeList, nameList, selected );
         }
 
         //  If we have no spectra complain and stop.
@@ -663,10 +665,20 @@ public class SSAQueryBrowser
         //  Create the String[] list of names and also transform MIME types
         //  into SPLAT types.
         int nspec = specList.size();
+
         String[] spectra = new String[nspec];
         for ( int k = 0; k < nspec; k++ ) {
             spectra[k] = ((String) specList.get( k )).trim();
         }
+
+        String[] names = null;
+        if ( nameList.size() > 0 ) {
+            names = new String[nspec];
+            for ( int k = 0; k < nspec; k++ ) {
+                names[k] = ((String) nameList.get( k )).trim();
+            }
+        }
+
         int ntypes = typeList.size();
         int[] types = null;
         if ( ntypes > 0 ) {
@@ -674,7 +686,7 @@ public class SSAQueryBrowser
         }
 
         //  And load and display...
-        browser.threadLoadSpectra( spectra, types );
+        browser.threadLoadSpectra( spectra, types, names );
         browser.toFront();
     }
 
@@ -683,8 +695,11 @@ public class SSAQueryBrowser
      * data formats, if available from the rows of table. Can return the
      * selected spectra, if requested, otherwise all spectra are returned.
      */
-    private void extractSpectraFromTable(StarJTable table, ArrayList specList,
-                                         ArrayList typeList, boolean selected)
+    private void extractSpectraFromTable( StarJTable table, 
+                                          ArrayList specList,
+                                          ArrayList typeList, 
+                                          ArrayList nameList, 
+                                          boolean selected )
     {
         int[] selection = null;
         //  Check for a selection if required.
@@ -702,6 +717,7 @@ public class SSAQueryBrowser
             int ncol = starTable.getColumnCount();
             int linkcol = -1;
             int typecol = -1;
+            int namecol = -1;
             ColumnInfo colInfo;
             for( int k = 0; k < ncol; k++ ) {
                 colInfo = starTable.getColumnInfo( k );
@@ -710,6 +726,9 @@ public class SSAQueryBrowser
                 }
                 if (colInfo.getUCD().equalsIgnoreCase("VOX:SPECTRUM_FORMAT")) {
                     typecol = k;
+                }
+                if (colInfo.getUCD().equalsIgnoreCase("VOX:IMAGE_TITLE")) {
+                    namecol = k;
                 }
             }
 
@@ -726,6 +745,9 @@ public class SSAQueryBrowser
                             specList.add( rseq.getCell( linkcol ) );
                             if ( typecol != -1 ) {
                                 typeList.add( rseq.getCell( typecol ) );
+                            }
+                            if ( namecol != -1 ) {
+                                nameList.add( rseq.getCell( namecol ) );
                             }
                         }
                     }
@@ -745,6 +767,9 @@ public class SSAQueryBrowser
                                 specList.add( rseq.getCell( linkcol ) );
                                 if ( typecol != -1 ) {
                                     typeList.add( rseq.getCell(typecol) );
+                                }
+                                if ( namecol != -1 ) {
+                                    nameList.add( rseq.getCell( namecol ) );
                                 }
 
                                 //  Move to next selection.
