@@ -91,6 +91,8 @@ processed table.
       Counts the number of rows and columns and writes the answers to
       standard output.
 
+   If no mode specifier is given, -write is assumed.
+
   
    Processing Specifiers
    ---------------------
@@ -106,11 +108,29 @@ processed table.
       identifier) case-independently, or as $n, where n is the column
       index.  $1 is the first column.  $0 is the row index (starting at 1).
 
+   -sort [-down] [-nullsfirst] <colid-list>
+      Sorts the table according to the columns named in <colid-list>.
+      <colid-list> is a space-sepearated list of column identifiers
+      (names, $identifiers or numbers, where 1 is the first column).
+      One or more columns may be specified: sorting is done on the
+      values in the first-specified field, but if they are equal the
+      tie is resolved by looking at the second-specified field, and so on.
+      If the -down flag is used, the sort order is descending instead
+      of ascending.  If the -nullsfirst flag is used, blank entries 
+      are considered to come at the start of the collation sequence
+      instead of the end.  
+
+   -sortexpr <expr>
+      Sorts the table according to an algebraic expression.
+
    -every <step>
       Include only every <step>'th row, starting with the first row.
 
    -head <nrows>
       Include only the first <nrows> rows of the table.
+
+   -tail <nrows>
+      Include only the last <nrows> rows of the table.
 
    -addcol [-after <col-id> | -before <col-id>] <col-name> <expr>
       Add a new column called <col-name> defined by the algebraic expression
@@ -132,6 +152,17 @@ processed table.
    -explode
       Turns any column which is an N-element array into N scalar columns.
 
+   -cache
+      Stores in memory or on disk a temporary copy of the table at this
+      point in the pipeline.  This can provide improvements in efficiency
+      if there is an expensive step upstream and a step which requires
+      more than one read of the data downstream.
+
+   -random
+      Only useful for debugging
+
+   -sequential
+      Only useful for debugging
 
 Examples
 --------
