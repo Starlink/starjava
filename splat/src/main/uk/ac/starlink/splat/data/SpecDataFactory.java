@@ -208,7 +208,7 @@ public class SpecDataFactory
             }
             break;
             case HDS: {
-                impl = makeNDFSpecDataImpl( specspec );
+                impl = makeNDFSpecDataImpl( namer.getName() );
             }
             break;
             case TEXT: {
@@ -853,22 +853,29 @@ public class SpecDataFactory
      * @param specData the SpecData object to reprocess.
      * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
      *               VECTORIZE.
-     * @param dispax the index of the dispersion axis, set to -1 for automatic
-     *               choice.
+     * @param dispax the index of the dispersion axis, set to null for
+     *               automatic choice.
      * @param selectax the index of the axis that will be stepped along
-     *                 collapsing down onto dispersion axis, set to -1 for
+     *                 collapsing down onto dispersion axis, set to null for
      *                 automatic choice. This may not be the dispax.
      */
     public SpecData[] reprocessTo1D( SpecData specData, int method,
-                                     int dispax, int selectax )
+                                     Integer dispax, Integer selectax )
         throws SplatException
     {
+        int dax = -1;
+        if ( dispax != null ) {
+            dax = dispax.intValue();
+        }
+        int sax = -1;
+        if ( selectax != null ) {
+            sax = selectax.intValue();
+        }
+
         if ( method == VECTORIZE ) {
             //  Nothing to do, this is the native form. XXX maybe we should
             //  check the dispersion axis. If this isn't the first one then we
             //  could re-order so we run along it, not perpendicular to it. 
-            //  For >2D we would have to think a little more about the order
-            //  of the other axes, but this is the expansion problem too.
             return null;
         } 
 
@@ -880,8 +887,8 @@ public class SpecDataFactory
         if ( ndims > 1 && ndims < 4 ) {
             
             //  Use choice of dispersion and stepped axis.
-            specDims.setDispAxis( dispax, true );
-            specDims.setSelectAxis( selectax, true );
+            specDims.setDispAxis( dax, true );
+            specDims.setSelectAxis( sax, true );
 
             if ( method == COLLAPSE ) {
                 results = collapseSpecData( specData, specDims );

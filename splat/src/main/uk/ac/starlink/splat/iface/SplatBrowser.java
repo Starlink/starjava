@@ -253,11 +253,50 @@ public class SplatBrowser
     protected boolean embedded = false;
 
     /**
+     * The type of data that spectra are in by default. This is the value of
+     * one of the SpecDataFactory constants.
+     */
+    protected int openUsertypeIndex = SpecDataFactory.DEFAULT;
+
+    /**
+     * The type of data that spectra are saved in by default. This is the
+     * value of one of the SpecDataFactory constants. Usually only set by the
+     * save spectrum dialog.
+     */
+    protected int saveUsertypeIndex = SpecDataFactory.DEFAULT;
+
+    /**
+     * The type of table that spectra are saved in by default. Usually only
+     * set by the save spectrum dialog. The formats available are not known
+     * until runtime.
+     */
+    protected int saveTabletypeIndex = 0;
+
+    /**
+     * The action to take with 2 and 3D data. Can be COLLAPSE, EXPAND or
+     * VECTORIZE. 
+     */
+    protected int ndAction = SpecDataFactory.COLLAPSE;
+
+    /**
+     * The dispersion axis of any 2/3D data encountered. By default SPLAT will
+     * choose this axis, but it can be specified.
+     */
+    protected Integer dispAxis = null;
+
+    /**
+     * The select axis of any 3D data encountered, this is the axis that is
+     * stepped along first, when either collapsing or expanding. By default
+     * SPLAT will choose this axis, but it can be specified.
+     */
+    protected Integer selectAxis = null;
+
+    /**
      *  Create a browser with no existing spectra.
      */
     public SplatBrowser()
     {
-        this( null, false );
+        this( null, false, null, null, null, null );
     }
 
     /**
@@ -266,7 +305,7 @@ public class SplatBrowser
      */
     public SplatBrowser( boolean embedded )
     {
-        this( null, embedded );
+        this( null, embedded, null, null, null, null );
     }
 
     /**
@@ -278,7 +317,7 @@ public class SplatBrowser
      */
     public SplatBrowser( String[] inspec )
     {
-        this( inspec, false );
+        this( inspec, false, null, null, null, null );
     }
 
     /**
@@ -290,6 +329,32 @@ public class SplatBrowser
      *  @param embedded whether the application is embedded.
      */
     public SplatBrowser( String[] inspec, boolean embedded )
+    {
+        this( inspec, embedded, null, null, null, null );
+    }
+
+    /**
+     * Constructor, with list of spectra to initialise. All spectra
+     * given this way are displayed in a single plot.
+     *
+     *  @param inspec list of spectra to add. If null then none are
+     *                added.
+     *  @param embedded whether the application is embedded.
+     *  @param type the type of spectra to be opened, if null then the SPLAT
+     *              defaults based on the file extensions is used.
+     *  @param ndAction the action to take when 2 or 3D data are encountered.
+     *                  This can be one of the strings "collapse", "expand" or
+     *                  "vectorize".
+     *  @param dispAxis the dispersion axis to use during collapse/expand
+     *                  if any of the spectra are 2/3D. If null then an
+     *                  axis will be selected automatically.
+     *  @param selectAxis the axis to step along during collapse/expand,
+     *                    if any of the spectra are 3D. If null then an axis
+     *                    will be selected automatically.
+     */
+    public SplatBrowser( String[] inspec, boolean embedded, String type,
+                         String ndAction, Integer dispAxis, 
+                         Integer selectAxis )
     {
         //  Webstart bug: http://developer.java.sun.com/developer/bugParade/bugs/4665132.html
         //  Don't know where to put this though.
@@ -304,6 +369,44 @@ public class SplatBrowser
             e.printStackTrace();
             return;
         }
+
+        //  If a type has been given then attempt to match the string to the
+        //  known types. A match is declared when the string know to
+        //  SpecDataFactory starts with the same sequence of lower case
+        //  characters.
+        openUsertypeIndex = SpecDataFactory.DEFAULT;
+        if ( type != null ) {
+            String caselessType = type.toLowerCase();
+            int nnames = SpecDataFactory.shortNames.length;
+            for ( int i = 0; i < nnames; i++ ) {
+                if ( SpecDataFactory.shortNames[i].startsWith(caselessType) ) {
+                    openUsertypeIndex = i;
+                    break;
+                }
+            }
+        }
+
+        //  If an action for dealing with 2/3D data has been given then
+        //  convert this into an appropriate action.
+        this.ndAction = SpecDataFactory.COLLAPSE;
+        if ( ndAction != null ) {
+            String caselessAction = ndAction.toLowerCase();
+            if ( "collapse".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.COLLAPSE;
+            }
+            else if ( "expand".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.EXPAND;
+            }
+            else if ( "vectorize".startsWith( caselessAction ) ) {
+                this.ndAction = SpecDataFactory.VECTORIZE;
+            }
+        }
+
+        //  If axis for dealing with 2 and 3D data have been given then we
+        //  need to make sure these are passed on to the SpecDataFactory when
+        //  necessary.
+        this.dispAxis = dispAxis;
+        this.selectAxis = selectAxis;
 
         //  Now add any command-line spectra. Do this after the interface is
         //  visible and in a separate thread from the GUI and event
@@ -323,9 +426,10 @@ public class SplatBrowser
                 });
         }
         else {
-            // Make sure we start the remote services, but avoid
-            // contention with image loading by also doing this as
-            // above when there are files to be loaded.
+
+            // Make sure we start the remote services, but avoid contention
+            // with image loading by also doing this as above when there are
+            // files to be loaded.
             SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         threadInitRemoteServices();
@@ -1034,7 +1138,6 @@ public class SplatBrowser
     }
 
     // OpenAccessory components.
-    protected int openUsertypeIndex = 0;
     protected JPanel openAccessory = null;
     protected JCheckBox openDisplayCheckBox = null;
     protected JComboBox openUsertypeBox = null;
@@ -1093,10 +1196,8 @@ public class SplatBrowser
     }
 
     // SaveAccessory components.
-    protected int saveUsertypeIndex = 0;
     protected JPanel saveAccessory = null;
     protected JComboBox saveUsertypeBox = null;
-    protected int saveTabletypeIndex = 0;
     protected JComboBox saveTabletypeBox = null;
 
     /**
@@ -1347,14 +1448,12 @@ public class SplatBrowser
         int top = list.specCount();
 
         //  2D spectra may need reprocessing by collapsing or expanding into
-        //  many spectra. This is performed here. XXX choice of default
-        //  dispersion and collapse axes....
+        //  many spectra. This is performed here. If any of ndAction, dispAxis
+        //  or selectAxis are null they defaults will be used.
         SpecData[] moreSpectra = null;
         try {
             moreSpectra = specDataFactory.reprocessTo1D
-                ( spectrum, SpecDataFactory.COLLAPSE, -1, -1 );
-            //moreSpectra = specDataFactory.reprocessTo1D
-            //    ( spectrum, SpecDataFactory.EXPAND, -1, -1 );
+                ( spectrum, ndAction, dispAxis, selectAxis );
         }
         catch (SplatException e) {
             JOptionPane.showMessageDialog

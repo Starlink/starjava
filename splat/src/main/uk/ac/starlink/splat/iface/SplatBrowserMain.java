@@ -2,20 +2,21 @@
  * Copyright (C) 2000-2003 Central Laboratory of the Research Councils
  *
  *  History:
- *     27-SEP-200 (Peter W. Draper):
+ *     27-SEP-2003 (Peter W. Draper):
  *       Original version.
  */
 package uk.ac.starlink.splat.iface;
 
+import jargs.gnu.CmdLineParser;
+
 import java.io.File;
 import java.util.Properties;
-
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.util.ProxySetup;
 import uk.ac.starlink.util.Loader;
+import uk.ac.starlink.util.ProxySetup;
 
 /**
  * Main class for the SPLAT, Spectral Analysis Tool, application.
@@ -38,17 +39,72 @@ public class SplatBrowserMain
      */
     protected SplatBrowser browser = null;
 
+    /** Command-line usage routine */
+    private static void printUsage() 
+    {
+        System.err.println
+            ( 
+             "usage: " + 
+             Utilities.getApplicationName() + 
+             " [{-t,--type} type_string]" +
+             " [{-n,--ndaction} c{ollapse}||e{xpand}||v{ectorize}]" +
+             " [{-d,--dispax} axis_index]" +
+             " [{-s,--selectax} axis_index]" +
+             " [spectra1 spectra2 ...]" 
+            );
+    }
+
     /**
      * Create the main window adding any command-line spectra.
      * @param args list of input spectra
      */
     public SplatBrowserMain( String[] args )
     {
-        String[] realArgs = null;
+        String[] spectraArgs = null;
+        String defaultType = null;
+        String ndAction = null;
+        Integer dispersionAxis = null;
+        Integer selectAxis = null;
         if ( args != null && args.length != 0 && ! "".equals( args[0] ) ) {
-            realArgs = args;
+
+            //  Parse the command-line.
+            CmdLineParser parser = new CmdLineParser();
+            CmdLineParser.Option type = parser.addStringOption( 't', "type" );
+            CmdLineParser.Option ndaction = 
+                parser.addStringOption( 'n', "ndaction" );
+            CmdLineParser.Option dispax = 
+                parser.addIntegerOption( 'd', "dispax" );
+            CmdLineParser.Option selectax = 
+                parser.addIntegerOption( 's', "selectax" );
+
+            try {
+                parser.parse( args );
+            }
+            catch ( CmdLineParser.OptionException e ) {
+                System.err.println( e.getMessage() );
+                printUsage();
+                System.exit( 2 );
+            }
+
+            defaultType = (String) parser.getOptionValue( type );
+            ndAction = (String) parser.getOptionValue( ndaction );
+            dispersionAxis = (Integer) parser.getOptionValue( dispax );
+            selectAxis = (Integer) parser.getOptionValue( selectax );
+            spectraArgs = parser.getRemainingArgs();
+            
+            System.out.println( "defaultType = " + defaultType );
+            System.out.println( "ndAction = " + ndAction );
+            System.out.println( "dispersionAxis = " + dispersionAxis );
+            System.out.println( "selectAxis = " + selectAxis );
+            System.out.println( "spectra = " + spectraArgs );
         }
-        final String[] spectra = realArgs;
+
+        //  Need final versions for use in thread.
+        final String[] spectra = spectraArgs;
+        final String type = defaultType;
+        final String action = ndAction;
+        final Integer dispax = dispersionAxis;
+        final Integer selectax = selectAxis;
 
         //  Cause a load and/or guess of various properties that can
         //  be useful in locating resources etc.
@@ -60,7 +116,8 @@ public class SplatBrowserMain
         SwingUtilities.invokeLater( new Runnable() {
                 public void run()
                 {
-                    browser = new SplatBrowser( spectra );
+                    browser = new SplatBrowser( spectra, false, type,
+                                                action, dispax, selectax );
                     browser.setVisible( true );
                 }
             });
