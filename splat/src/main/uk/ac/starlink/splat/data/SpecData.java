@@ -262,6 +262,11 @@ public class SpecData
      */
     public final static int HISTOGRAM = 2;
 
+    /**
+     * Use a point plotting style.
+     */
+    public final static int POINT = 3;
+
     //
     //  Types of spectral data. The default is UNCLASSIFIED.
     //  Nothing is done with this information here, it's just for external
@@ -445,6 +450,10 @@ public class SpecData
      */
     protected boolean monotonic = true;
 
+    /**
+     * The type of point that is drawn.
+     */
+    protected int pointType = 0;
 
     //  ==============
     //  Public methods
@@ -1350,7 +1359,7 @@ public class SpecData
         //  Note BAD value is same for graphics (AST, Grf) and data,
         //  so tests can be missed (should only be in yPos).
         double[] xypos = null;
-        if ( plotStyle == POLYLINE ) {
+        if ( plotStyle == POLYLINE || plotStyle == POINT ) {
             xypos = new double[xPos.length * 2];
             for ( int i = 0, j = 0; j < xPos.length; j++, i += 2 ) {
                 xypos[i] = xPos[j];
@@ -1435,7 +1444,13 @@ public class SpecData
         DefaultGrfState oldState = setGrfAttributes( defaultGrf );
 
         defaultGrf.setClipRegion( cliprect );
-        renderSpectrum( defaultGrf, xpos, ypos );
+
+        if ( plotStyle == POINT ) {
+            renderPointSpectrum( defaultGrf, xpos, ypos, pointType );
+        }
+        else {
+            renderSpectrum( defaultGrf, xpos, ypos );
+        }
 
         defaultGrf.attribute( Grf.GRF__COLOUR, errorColour, Grf.GRF__LINE );
         renderErrorBars( defaultGrf, plot );
@@ -1460,6 +1475,20 @@ public class SpecData
         grf.polyline( xpos, ypos );
     }
 
+    /**
+     * Draw the spectrum using markers.
+     *
+     * @param grf DefaultGrf object that can be drawn into using AST
+     *            primitives.
+     * @param xpos graphics X coordinates of spectrum
+     * @param ypos graphics Y coordinates of spectrum
+     * @param type the type of marker to use
+     */
+    protected void renderPointSpectrum( DefaultGrf grf, double[] xpos,
+                                        double[] ypos, int type )
+    {
+        grf.marker( xpos, ypos, type );
+    }
 
     /**
      * Draw error bars. These are quite simple lines above and below positions

@@ -21,9 +21,9 @@ public class PlotStyleBox
 {
     /**
      * The known plot styles. Note these correspond to
-     * SpecData.POLYLINE and SpecData.HISTOGRAM.
+     * SpecData.POLYLINE, SpecData.HISTOGRAM and SpecData.POINT.
      */
-    protected static String[] styles = { "polyline", "histogram" };
+    protected static String[] styles = { "polyline", "histogram", "point" };
 
     /**
      * The default constructor.
