@@ -2572,6 +2572,16 @@ The following ones have special significance within TOPCAT:
     False by default.
     </p></dd>
 
+<dt><code>apple.laf.useScreenMenuBar</code></dt>
+<dd><p>On the Apple Macintosh platform only, this property controls whether
+    menus appear at the top of the screen as usual for Mac, or at the
+    top of individual windows as usual for Java.  By default it is
+    set to <code>true</code> for TOPCAT, so menus mostly appear at the top
+    of the screen (though it's not true to say that TOPCAT obeys the
+    Mac look and feel completely); if you prefer the more Java-like
+    look and feel, set it to <code>false</code>.
+    </p></dd>
+
 </dl>
 </p>
 
