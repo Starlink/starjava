@@ -28,19 +28,21 @@ public class Sdss {
      * SDSS around a given sky position.  The displayed image is square, 
      * a given number of (0.4arcsec) pixels on each side.
      *
+     * @param  label  label for display window
      * @param  ra  Right Ascension in radians
      * @param  dec Declination in radians
      * @param  pixels  size of displayed image in SDSS pixels
      * @return  short log message
      */
-    public static String sdssCutout( double ra, double dec, int pixels ) {
+    public static String sdssCutout( String label, double ra, double dec, 
+                                     int pixels ) {
         String query = new CgiQuery( BASE_URL )
              .addArgument( "ra", Math.toDegrees( ra ) )
              .addArgument( "dec", Math.toDegrees( dec ) )
              .addArgument( "height", pixels )
              .addArgument( "width", pixels )
              .toString();
-        return Image.displayImage( query );
+        return Image.displayImage( label, query );
     }
 
     /**
@@ -65,7 +67,7 @@ public class Sdss {
              .addArgument( "width", pixels )
              .addArgument( "scale", scale )
              .toString();
-        return Image.displayImage( query );
+        return Image.displayImage( "SDSS", query );
     }
 
     /**
@@ -78,7 +80,7 @@ public class Sdss {
      * @return  short log message
      */
     public static String sdssCutout( double ra, double dec ) {
-        return sdssCutout( ra, dec, 128 );
+        return sdssCutout( "SDSS", ra, dec, 128 );
     }
 
 }

@@ -10,6 +10,7 @@ import gnu.jel.DVMap;
 import java.util.Date;
 import java.util.Hashtable;
 import uk.ac.starlink.topcat.func.Arithmetic;
+import uk.ac.starlink.topcat.func.BasicImageDisplay;
 import uk.ac.starlink.topcat.func.Conversions;
 import uk.ac.starlink.topcat.func.Coords;
 import uk.ac.starlink.topcat.func.Maths;
@@ -17,6 +18,7 @@ import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Output;
 import uk.ac.starlink.topcat.func.Sdss;
 import uk.ac.starlink.topcat.func.Sog;
+import uk.ac.starlink.topcat.func.Spectrum;
 import uk.ac.starlink.topcat.func.Splat;
 import uk.ac.starlink.topcat.func.Strings;
 import uk.ac.starlink.topcat.func.SuperCosmos;
@@ -158,11 +160,13 @@ public class JELUtils {
             List classList = new ArrayList();
             classList.add( Output.class );
             classList.add( Image.class );
-            if ( TopcatUtils.canSplat() ) {
-                classList.add( Splat.class );
-            }
+            classList.add( Spectrum.class );
+            classList.add( BasicImageDisplay.class );
             if ( TopcatUtils.canSog() ) { 
                 classList.add( Sog.class );
+            }
+            if ( TopcatUtils.canSplat() ) {
+                classList.add( Splat.class );
             }
             classList.add( Sdss.class );
             classList.add( SuperCosmos.class );

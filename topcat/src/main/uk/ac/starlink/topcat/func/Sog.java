@@ -5,14 +5,18 @@
 
 package uk.ac.starlink.topcat.func;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.sog.SOG;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
+import uk.ac.starlink.sog.SOGNavigatorImageDisplayFrame;
+import uk.ac.starlink.sog.SOGNavigatorImageDisplayInternalFrame;
 import uk.ac.starlink.topcat.TopcatUtils;
 
 /**
- * Functions for display of images in external viewer SOG.
+ * Functions for display of images in external viewer SOG
+ * (<a href="http://www.starlink.ac.uk/sog/">http://www.starlink.ac.uk/sog/</a>).
  *
  * @author   Mark Taylor (Starlink)
  * @since    20 Aug 2004
@@ -20,7 +24,7 @@ import uk.ac.starlink.topcat.TopcatUtils;
 public class Sog {
 
     private static SOG sog_;
-    private static List soggers_ = new ArrayList();
+    private static Map soggers_ = new HashMap();
 
     /**
      * Private constructor prevents instantiation.
@@ -31,108 +35,80 @@ public class Sog {
     /**
      * Displays the file at a given location as an image
      * in a graphical (SoG) viewer.
+     * <code>label</code> may be any string which identifies the window 
+     * for display, so that multiple images may be displayed in different
+     * windows without getting in each others' way.
      * <code>loc</code> should be a filename or URL, pointing to an image in
      * a format that SOG understands (this includes FITS, compressed FITS,
      * and NDFs).
      *
+     * @param  label  identifies the window in which the image will be displayed
      * @param  loc  image location
      * @return  short log message
-     * @see  <http://www.starlink.ac.uk/sog/>
      */
-    public static String sog( String loc ) {
-        return sogMulti( new String[] { loc } );
-    }
-
-    /**
-     * Displays two files at given locations as images in two graphical
-     * (SoG) viewers.  This may be useful to compare two images which
-     * correspond to the same table row.
-     *
-     * @param  loc1  location of first image
-     * @param  loc2  location of second image
-     * @return  short report message
-     * @see  #sog
-     * @see  <http://www.starlink.ac.uk/sog/>
-     */
-    public static String sog2( String loc1, String loc2 ) {
-        return sogMulti( new String[] { loc1, loc2 } );
-    }
-
-    /**
-     * Generic routine for displaying multiple images simultaneously in
-     * SoG viewers.
-     *
-     * @param  locs  array of image file locations (file/URL)
-     * @return  short report message
-     */
-    public static String sogMulti( String[] locs ) {
+    public static String sog( String label, String loc ) {
         if ( ! TopcatUtils.canSog() ) {
             return "Error: SOG classes not available";
         }
-        int nsog = locs.length;
-        SOGNavigatorImageDisplay[] sogs = getSoggers( nsog );
-        String[] msgs = new String[ nsog ];
-        for ( int i = 0; i < nsog; i++ ) {
-            String loc = locs[ i ];
-            String msg;
-            if ( loc == null || loc.trim().length() == 0 ) {
-                msg = null;
-            }
-            else {
-                loc = loc.trim();
-                try {
-                    sogs[ i ].setFilename( loc, false );
-                    msg = "sog(\"" + loc + "\")";
-                }
-                catch ( Exception e ) {
-                    msg = "<Error: " + e.getMessage() + ">";
-                }
-            }
-            msgs[ i ] = msg;
+        if ( loc == null || loc.trim().length() == 0 ) {
+            return "no image location";
         }
-        if ( nsog == 1 ) {
-            return msgs[ 0 ];
+        SOGNavigatorImageDisplay sog = getSogger( label );
+        try {
+            sog.setFilename( loc, false );
+            return "sog(" + loc + ")";
         }
-        else {
-            StringBuffer sbuf = new StringBuffer();
-            for ( int i = 0; i < nsog; i++ ) {
-                if ( i > 0 ) {
-                    sbuf.append( "; " );
-                }
-                sbuf.append( msgs[ i ] );
-            }
-            return sbuf.toString();
+        catch ( Exception e ) {
+            return "<Error: " + e.getMessage() + ">";
         }
     }
 
     /**
-     * Returns an array of SOG viewers.  New ones are only created if
-     * you're asking for more than you've asked for before.
+     * Returns a labelled Sog window instance.  If one by this label has
+     * been requested before, the old one will be returned, otherwise a
+     * new one will be created.
      *
-     * @param  nsog  number of viewers required
-     * @return  <code>nsog</code>-element array of SOG image displays
+     * @param  label  window label
      */
-    private static SOGNavigatorImageDisplay[] getSoggers( int nsog ) {
+    private static SOGNavigatorImageDisplay getSogger( String label ) {
         assert TopcatUtils.canSog();
-        if ( soggers_.size() < nsog ) {
+        if ( sog_ == null ) {
             synchronized ( Sog.class ) {
-                if ( sog_ == null ) {
-                    sog_ = new SOG();
-                }
-                for ( int i = soggers_.size(); i < nsog; i++ ) {
-                    soggers_.add( (SOGNavigatorImageDisplay)
-                                  sog_.getImageDisplay() );
-                }
+                sog_ = new SOG();
+                sog_.setDoExit( false );
             }
         }
-        SOGNavigatorImageDisplay[] sogs = new SOGNavigatorImageDisplay[ nsog ];
-        for ( int i = 0; i < nsog; i++ ) {
-            sogs[ i ] = (SOGNavigatorImageDisplay) soggers_.get( i );
-            if ( ! sogs[ i ].isShowing() ) {
-                sogs[ i ].setVisible( true );
+        if ( ! soggers_.containsKey( label ) ) {
+            SOGNavigatorImageDisplay rootDisplay =
+                 (SOGNavigatorImageDisplay) sog_.getImageDisplay();
+            SwingUtilities.windowForComponent( rootDisplay )
+                          .setVisible( false );
+            Object win = rootDisplay.newWindow();
+            SOGNavigatorImageDisplay sogger;
+            if ( win instanceof SOGNavigatorImageDisplayFrame ) {
+                sogger = (SOGNavigatorImageDisplay)
+                         ((SOGNavigatorImageDisplayFrame) win)
+                        .getImageDisplayControl().getImageDisplay();
             }
+            else if ( win instanceof SOGNavigatorImageDisplayInternalFrame ) {
+                sogger = (SOGNavigatorImageDisplay)
+                         ((SOGNavigatorImageDisplayInternalFrame) win)
+                        .getImageDisplayControl().getImageDisplay();
+            }
+            else {
+                throw new AssertionError();
+            }
+            sogger.setDoExit( false );
+            sogger.setTitle( label );
+            soggers_.put( label, sogger );
         }
-        return sogs;
+        SOGNavigatorImageDisplay sogger =
+            (SOGNavigatorImageDisplay) soggers_.get( label );
+  System.out.println( "showing: " + sogger.isShowing() );
+        if ( ! sogger.isShowing() ) {
+            SwingUtilities.windowForComponent( sogger ).setVisible( true );
+        }
+        return sogger;
     }
 }
 

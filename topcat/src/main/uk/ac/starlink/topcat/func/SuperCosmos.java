@@ -228,6 +228,9 @@ public class SuperCosmos {
         if ( waveband != null ) {
             query.addArgument( "waveband", waveband.id_ );
         }
+        final String label = waveband == null 
+                           ? "SuperCOSMOS Sky Surveys"
+                           : "SuperCOSMOS Sky Surveys (" + waveband.name_ + ")";
         new Thread() {
             public void run() {
                 try {
@@ -236,7 +239,7 @@ public class SuperCosmos {
                     if ( FitsConstants.isMagic( datsrc.getIntro() ) ) {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
-                                Image.displayImage( file.toString() );
+                                Image.displayImage( label, file.toString() );
                             }
                         } );
                     }

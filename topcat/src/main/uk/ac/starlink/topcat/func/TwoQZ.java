@@ -56,7 +56,7 @@ public class TwoQZ {
         for ( int i = 0; i < nobs; i++ ) {
             locs[ i ] = base + name + (char) ( 'a' + i ) + SPEC_TAIL;
         }
-        return Splat.splatMulti( locs );
+        return Spectrum.displaySpectra( "2QZ", locs );
     }
 
     /**
@@ -69,7 +69,7 @@ public class TwoQZ {
     public static String image2QZ( String name ) {
         String loc = FITS_IMAGE_BASE + getSubdir( name ) + name +
                      FITS_IMAGE_TAIL;
-        return Image.displayImage( loc );
+        return Image.displayImage( "2QZ", loc );
     }
 
     /**
@@ -82,7 +82,7 @@ public class TwoQZ {
     public static String jpeg2QZ( String name ) {
         String loc = JPEG_IMAGE_BASE + getSubdir( name ) + name +
                      JPEG_IMAGE_TAIL;
-        return Image.displayImage( loc );
+        return Image.displayImage( "2QZ", loc );
     }
 
     private static String getSubdir( String name ) {
