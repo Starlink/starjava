@@ -218,7 +218,7 @@ public class Driver {
             }
             else if ( arg.equals( "-cone" ) ) {
                 it.remove();
-                loaderList.add( "uk.ac.starlink.voserv.ConeSearchDialog" );
+                loaderList.add( "uk.ac.starlink.vo.ConeSearchDialog" );
             }
             else if ( arg.startsWith( "-" ) ) {
                 System.err.println( usage );

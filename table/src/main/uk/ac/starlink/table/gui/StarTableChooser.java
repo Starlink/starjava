@@ -76,7 +76,7 @@ import uk.ac.starlink.util.Loader;
  * installed if desired as explained above:
  * <ul>
  * <li> {@link uk.ac.starlink.astrogrid.MyspaceTableLoadDialog}
- * <li> {@link uk.ac.starlink.voserv.ConeSearchDialog}
+ * <li> {@link uk.ac.starlink.vo.ConeSearchDialog}
  * </ul>
  *
  * <p>If you want to make more customised use of this component than is
