@@ -90,6 +90,9 @@ public class FitsStarTable extends RandomStarTable {
                 hasBlank[ i ] = true;
                 metadata.put( TNULL_KEY, tnull );
             }
+            else {
+                colhead.setNullable( false );
+            }
                 
             /* Scaling. */
             String tscal = cards.getStringValue( "TSCAL" + ( i + 1 ) );
