@@ -651,16 +651,16 @@ public class PlotControlFrame
             HelpFrame.createHelpMenu( "config-window", "Help on window",
                                       configFrame.getJMenuBar(), null );
 
+
             //  Add controls for the extra facilities provided by the
             //  DivaPlot.
             DivaPlot divaPlot = plot.getPlot();
-
-            AstAxes astAxes = (AstAxes) configFrame.getConfiguration()
-                .getControlsModel( AxesControls.getControlsModelClass() );
-
             try {
-                DataLimitControls dlc = new DataLimitControls
-                    ( divaPlot.getDataLimits(), plot, astAxes );
+                AstAxes astAxes = (AstAxes) configFrame.getConfiguration()
+                    .getControlsModel( AxesControls.getControlsModelClass() );
+                DataLimitControls dlc = 
+                    new DataLimitControls( divaPlot.getDataLimits(), plot, 
+                                           astAxes );
                 configFrame.addExtraControls( dlc, false );
             }
             catch (Exception e) {

@@ -59,11 +59,16 @@ import javax.swing.JTextField;
 import javax.swing.JViewport;
 
 import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.gui.AstAxes;
 import uk.ac.starlink.ast.gui.AstDouble;
+import uk.ac.starlink.ast.gui.AxesControls;
 import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
 import uk.ac.starlink.ast.gui.PlotController;
+import uk.ac.starlink.diva.DragRegion;
+import uk.ac.starlink.diva.FigureChangedEvent;
+import uk.ac.starlink.diva.FigureListener;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
@@ -71,17 +76,14 @@ import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.DecimalComboBoxEditor;
 import uk.ac.starlink.splat.iface.GlobalSpecPlotList;
 import uk.ac.starlink.splat.iface.LineRenderer;
+import uk.ac.starlink.splat.iface.LogAxesControl;
 import uk.ac.starlink.splat.iface.SimpleDataLimitControls;
 import uk.ac.starlink.splat.iface.SpecChangedEvent;
 import uk.ac.starlink.splat.iface.SpecListener;
+import uk.ac.starlink.splat.iface.SpecTransferHandler;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.iface.SpecTransferHandler;
-
-import uk.ac.starlink.diva.FigureListener;
-import uk.ac.starlink.diva.FigureChangedEvent;
-import uk.ac.starlink.diva.DragRegion;
 
 /**
  * A PlotControl object consists of a Plot inside a scrolled pane and various
@@ -156,6 +158,8 @@ public class PlotControl
     protected JButton yIncr = new JButton();
     protected JButton yDecr = new JButton();
     protected JCheckBox showVHair = new JCheckBox( ":V-hair" );
+    protected LogAxesControl logXAxis = new LogAxesControl();
+    protected LogAxesControl logYAxis = new LogAxesControl();
 
     /**
      * Labels for displaying the current coordinates under the cursor.
@@ -370,10 +374,29 @@ public class PlotControl
         gbc.anchor = GridBagConstraints.EAST;
         gbc.gridx = 5;
         gbc.gridy = 0;
-        gbc.gridwidth = 2;
+        gbc.gridwidth = 1;//2;
         gbc.gridheight = 1;
         gbc.weightx = 0.0;
         controlPanel.add( simpleDataLimits, gbc );
+
+        //  Add the toggle for displaying the vertical hair.
+        gbc.gridx = 7;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.gridheight = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.BOTH;
+        controlPanel.add( showVHair, gbc );
+        showVHair.setToolTipText( "Toggle display of vertical hair" );
+
+        showVHair.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    toggleVHair();
+                }
+            } );
 
         //  Add the coordinate display labels to the controlPanel.
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -402,6 +425,10 @@ public class PlotControl
                 }
             } );
 
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        controlPanel.add( logXAxis, gbc );
+
         gbc.gridx = 4;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.EAST;
@@ -414,23 +441,9 @@ public class PlotControl
         yValue.setBorder( BorderFactory.createEtchedBorder() );
         controlPanel.add( yValue, gbc );
 
-        //  Add the toggle for displaying the vertical hair.
         gbc.gridx = 6;
         gbc.gridy = 1;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.BOTH;
-        controlPanel.add( showVHair, gbc );
-        showVHair.setToolTipText( "Toggle display of vertical hair" );
-
-        showVHair.addActionListener(
-            new ActionListener()
-            {
-                public void actionPerformed( ActionEvent e )
-                {
-                    toggleVHair();
-                }
-            } );
+        controlPanel.add( logYAxis, gbc );
 
         //  Add the zoom factor controls and set their default values.
         addZoomControls();
@@ -476,6 +489,17 @@ public class PlotControl
         //  Also just pressing 2 zooms in by 1 factor and pressing 3
         //  zooms out.
         plot.getGraphicsPane().addZoomDraggerListener( this );
+
+        //  We need to use the same AstAxes object as the DivaPlot for
+        //  controlling the log spacing of the axes.
+        AstAxes astAxes = (AstAxes) getPlotConfiguration()
+            .getControlsModel( AxesControls.getControlsModelClass() );
+        logXAxis.setAxis( 1 );
+        logXAxis.setAstAxes( astAxes );
+        logXAxis.setPlotController( this );
+        logYAxis.setAxis( 2 );
+        logYAxis.setAstAxes( astAxes );
+        logYAxis.setPlotController( this );
     }
 
     /**
