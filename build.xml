@@ -79,6 +79,10 @@
   <property name="docs.dir" value="${basedir}/docs"/>
   <property name="docs.javadocs" value="${docs.dir}/javadocs"/>
 
+  <!-- Local directory for support files -->
+  <property name="support.dir" value="${basedir}/src"/>
+  <property name="support.docs" value="${support.dir}/docs"/>
+
   <!-- 
    !  ======================================
    !  Execute all ANT in all sub-directories
@@ -267,6 +271,14 @@
        </fileset>
      </path>
 
+     <path id="sourcepath">
+       <dirset dir="${star.build.dir}" id="sourcepathdirs">
+          <include name="*/build/java"/>
+       </dirset>
+     </path>
+     <property name="sourcepathvalue" refid="sourcepath"/>
+     <echo message="${sourcepathvalue}"/>
+
      <mkdir dir="${docs.javadocs}"/>
      <javadoc useexternalfile="yes"
               destdir="${docs.javadocs}"
@@ -279,16 +291,63 @@
               protected="true"
               classpathref="classpath">
 
-      <!-- Get all java source files from the build/java directories-->
-      <fileset dir="${basedir}">
-         <include name="*/build/java/**/*.java"/>
-      </fileset>
+      <!-- Get all possible package names from the build/java
+       !   directories. Need to name all top-level packages
+       !   unfortunately (rather than just get all source file names)
+       !   otherwise internal linking doesn't work well. If a single
+       !   packageset (which is really a dirset) that could be
+       !   modified to remove the "{package}/build/java" part could be
+       !   created then this would be unnecessary (TODO: look into
+       !   this and maybe create a special type).
+       !--> 
+      <packageset dir="util/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
 
-      <group title="${Name} API" packages="${package.name}*"/>
+      <packageset dir="jniast/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="jnihds/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="array/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="ndx/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="hds/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="fits/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="hdx/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="soapserver/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <!-- Link to the full Java API at SUNs website -->
+      <link offline="true" 
+            href="http://java.sun.com/j2se/1.4/docs/api/"
+            packagelistLoc="${support.docs}/javaapi/"/>
+
+      <!-- TODO: link to third party docs, need fixed relative
+       !   positions or pretend offline and use a package list -->
 
       <bottom>Copyright &#169; ${year} \\
               CLRC: Central Laboratory of the Research Councils.
               All Rights Reserved.</bottom>
+
     </javadoc>
 
   </target>
