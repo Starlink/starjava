@@ -94,22 +94,32 @@ public class MethodWindow extends AuxWindow {
                                             "Add a class containing " +
                                             "more methods" ) {
             public void actionPerformed( ActionEvent evt ) {
-                String cname = JOptionPane
-                              .showInputDialog( subpar, message, 
-                                                "Enter new class",
-                                                JOptionPane.QUESTION_MESSAGE );
-                if ( cname != null ) {
-                    try {
-                        Class clazz = this.getClass().forName( cname );
-                        staticClasses.add( clazz );
-                        addStaticClass( clazz );
+                String cname = null;
+                while ( true ) {
+                    Object c = JOptionPane
+                              .showInputDialog( subpar, message,
+                                                "Add New Class",
+                                                JOptionPane.QUESTION_MESSAGE,
+                                                null, null, cname );
+                    cname = c == null ? null : c.toString();
+                    if ( c == null ) {
+                        return;
                     }
-                    catch ( ClassNotFoundException e ) {
-                        JOptionPane
-                       .showMessageDialog( subpar, "The class " + cname + 
-                                           " is not on the class path",
-                                           "Class not found",
-                                           JOptionPane.ERROR_MESSAGE );
+                    else {
+                        cname = c.toString();
+                        try {
+                            Class clazz = this.getClass().forName( cname );
+                            staticClasses.add( clazz );
+                            addStaticClass( clazz );
+                            return;
+                        }
+                        catch ( ClassNotFoundException e ) {
+                            JOptionPane
+                           .showMessageDialog( subpar, "The class " + cname + 
+                                               " is not on the class path",
+                                               "Class not found",
+                                               JOptionPane.ERROR_MESSAGE );
+                        }
                     }
                 }
             }
