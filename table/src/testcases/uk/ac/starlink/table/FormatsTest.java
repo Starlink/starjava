@@ -140,6 +140,21 @@ public class FormatsTest extends TestCase {
         assertTrue( t2 instanceof BintableStarTable );
         checkStarTable( t2 );
 
+        assertFitsTableEquals( t1, t2 );
+        StarTable t3 = new StarTableFactory()
+                      .makeStarTable( "file:" + loc );
+        assertTrue( t3 instanceof BintableStarTable );
+        checkStarTable( t3 );
+        assertFitsTableEquals( t1, t3 );
+
+        String name = "Dobbin";
+        ((BintableStarTable) t2).setName( name );
+        ((BintableStarTable) t3).setName( name );
+        assertTableEquals( t2, t3 );
+    }
+
+    private void assertFitsTableEquals( StarTable t1, StarTable t2 )
+            throws IOException {
         int ncol = t1.getColumnCount();
         assertEquals( ncol, t2.getColumnCount() );
         long nrow = t1.getRowCount();
@@ -213,7 +228,7 @@ public class FormatsTest extends TestCase {
         assertEquals( ncol, t2.getColumnCount() );
         assertValueSetEquals( t1.getParameters(), t2.getParameters() );
         assertEquals( t1.getName(), t2.getName() );
-        assertEquals( t1.getURL(), t2.getURL() );
+        assertEquals( t1.getURL() + "", t2.getURL() + "" );
         for ( int i = 0; i < ncol; i++ ) {
             assertColumnInfoEquals( t1.getColumnInfo( i ),
                                     t2.getColumnInfo( i ) );
