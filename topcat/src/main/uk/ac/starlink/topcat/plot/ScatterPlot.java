@@ -32,8 +32,6 @@ public class ScatterPlot extends JComponent implements Printable {
     private PlotState state_;
     private PlotSurface surface_;
 
-    private static final String PRINT_MIME_TYPE = "application/postscript";
-
     /**
      * Constructs a new scatter plot, specifying the initial plotting surface
      * which provides axis plotting and so on.
