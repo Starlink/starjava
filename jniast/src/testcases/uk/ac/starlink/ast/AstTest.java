@@ -3,6 +3,7 @@ package uk.ac.starlink.ast;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.InputStream;
@@ -409,6 +410,13 @@ public class AstTest extends TestCase {
     }
 
     public void testPlot() {
+
+        /* Check we have graphics capability. */
+        if ( isHeadless() ) {
+            System.out.println( "Headless environment - no Plot testing" );
+            return;
+        }
+
         double[] basebox = new double[] { 0, 0, 50000, 50000 };
         JFrame toplev = new JFrame();
         TestPlotHolder pan = new TestPlotHolder();

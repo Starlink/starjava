@@ -102,6 +102,10 @@ public class TreeviewTest extends TestCase {
         if ( args != null ) {
             return;
         }
+        if ( isHeadless() ) {
+            System.out.println( "Headless environment - no GUI test" );
+            return;
+        }
         Driver.main( new String[] { "-demo" } );
         try {
             Thread.currentThread().sleep( 1000 );
