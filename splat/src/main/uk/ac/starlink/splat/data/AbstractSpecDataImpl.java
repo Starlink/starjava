@@ -179,9 +179,10 @@ public abstract class AbstractSpecDataImpl
         // Do nothing.
     }
 
+    //  No error column by default.
     public String getDataErrorColumnName()
     {
-        return "Errors";
+        return "";
     }
 
     public void setDataErrorColumnName( String name )
