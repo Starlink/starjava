@@ -9,7 +9,7 @@
  * Peter W. Draper 2002/10/03  Added constructor that takes an
  *                             ImageProcessor, needed so that
  *                             sub-classes can define their own
- *                             Added setCanvasDraw, so that can be 
+ *                             Added setCanvasDraw, so that can be
  *                             supplied with a sub-class
  *                             Made some members protected for
  *                             sub-classing.
@@ -584,14 +584,14 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
     }
 
 
-    /** Called after a new FITSImage object was created to do FITS specific initialization */ 
+    /** Called after a new FITSImage object was created to do FITS specific initialization */
     protected void initFITSImage(FITSImage fitsImage) throws IOException, FitsException {
 	int numHDUs = fitsImage.getNumHDUs();
 	if (numHDUs >= 2 && fitsImage.isEmpty() && (fitsImage.getHDU(1) instanceof ImageHDU)) {
 	    fitsImage.setHDU(1);
 	}
 
-	// If the user previously set the image scale, restore it here to avoid doing it twice 
+	// If the user previously set the image scale, restore it here to avoid doing it twice
 	ImageHistoryItem hi = getImageHistoryItem(new File(_filename));
 	float scale;
 	if (hi != null)
@@ -1207,12 +1207,12 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
 
         // check the primary HDU to see if it is empty
 	int currentHDU = fitsImage.getCurrentHDUIndex();
-	boolean skipEmptyPrimary = (numHDUs >= 2) 
+	boolean skipEmptyPrimary = (numHDUs >= 2)
 	    && currentHDU == 0
 	    && fitsImage.isEmpty()
 	    && (fitsImage.getHDU(1) instanceof ImageHDU);
 
-        if (!show) 
+        if (!show)
 	    show = skipEmptyPrimary && numHDUs > 2;
 
 	if (!show && numHDUs <= 1)
@@ -1235,7 +1235,7 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
 	    }
 	}
 
-	if (skipEmptyPrimary) 
+	if (skipEmptyPrimary)
 	    _fitsHDUChooser.selectImage(1);
 
 	_fitsHDUChooser.setShow(show);
@@ -1525,6 +1525,23 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
         return _fileChooser;
     }
 
+
+    /**
+     * Obtain a reference to the file chooser in use. Will be null if
+     * none has been instantiated yet.
+     */
+    public JFileChooser getFileChooser() {
+        return _fileChooser;
+    }
+
+
+    /**
+     * Set the file chooser to use when selecting files. This will
+     * supercede the default chooser.
+     */
+    public void setFileChooser( JFileChooser chooser ) {
+        _fileChooser = chooser;
+    }
 
     /**
      * Display a dialog to enter a URL to display
