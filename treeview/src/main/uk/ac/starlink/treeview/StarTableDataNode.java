@@ -1,9 +1,13 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnInfo;
@@ -15,6 +19,7 @@ import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
+import uk.ac.starlink.table.view.TableViewer;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -96,6 +101,21 @@ public class StarTableDataNode extends DefaultDataNode {
             dv.addKeyedItem( "URL", url );
         }
 
+        class RandomTableGetter {
+            StarTable startab;
+            StarTable randomTable;
+            public RandomTableGetter( StarTable startab ) {
+                this.startab = startab;
+            }
+            public StarTable getRandomTable() throws IOException {
+                if ( randomTable == null ) {
+                    randomTable = Tables.randomTable( startab );
+                }
+                return randomTable;
+            }
+        }
+        final RandomTableGetter tgetter = new RandomTableGetter( startable );
+
         int npar = 0;
         final List params = startable.getParameters();
         if ( startable.getParameters().size() > 0 ) {
@@ -134,12 +154,28 @@ public class StarTableDataNode extends DefaultDataNode {
         }
         dv.addPane( "Table data", new ComponentMaker() {
             public JComponent getComponent() throws IOException {
-                StarTable rtab = Tables.randomTable( startable );
+                StarTable rtab = tgetter.getRandomTable();
                 StarJTable sjt = new StarJTable( rtab, true );
                 sjt.configureColumnWidths( 800, 100 );
                 return sjt;
             }
         } );
+
+        List actions = new ArrayList();
+        Icon tcic = IconFactory.getInstance().getIcon( IconFactory.TOPCAT );
+        Action topcatAct = new AbstractAction( "TOPCAT", tcic ) {
+            public void actionPerformed( ActionEvent evt ) {
+                try {
+                    new TableViewer( tgetter.getRandomTable(), null );
+                }
+                catch ( IOException e ) {
+                    beep();
+                    e.printStackTrace();
+                }
+            }
+        };
+        actions.add( topcatAct );
+        dv.addActions( (Action[]) actions.toArray( new Action[ 0 ] ) );
     }
 
     public StarTable getStarTable() {

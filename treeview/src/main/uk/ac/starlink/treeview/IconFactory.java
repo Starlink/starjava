@@ -74,6 +74,7 @@ public class IconFactory {
     public static final short SPECFRAME = 142;
     public static final short SPLAT = 200;
     public static final short SOG = 201;
+    public static final short TOPCAT = 202;
     public static final short HANDLE_EXPAND = 301;
     public static final short HANDLE_COLLAPSE = 302;
     public static final short TREE_LOGO = 401;
@@ -193,6 +194,7 @@ public class IconFactory {
             case SPECFRAME:      iname = "axes81.gif";               break;
             case SPLAT:          iname = "multidisplay.gif";         break;
             case SOG:            iname = "sogimage.gif";             break;
+            case TOPCAT:         iname = "TopCat2.gif";              break;
             case HANDLE_EXPAND:  iname = "Tree.expandedIcon";        break;
             case HANDLE_COLLAPSE:iname = "Tree.collapsedIcon";       break;
             case TREE_LOGO:      iname = !festive ? "TREE27.gif" 
