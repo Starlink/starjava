@@ -90,19 +90,29 @@ public class GridBagLayouter
      */
     public final static int SCHEME4 = 4;
 
-    /** The container we're packing */
+    /** 
+     * The container we're packing 
+     */
     private Container container = null;
 
-    /** Our GridBagConstraints */
+    /** 
+     * Our GridBagConstraints 
+     */
     private GridBagConstraints gbc = new GridBagConstraints();
 
-    /** Scheme being used */
+    /** 
+     * Scheme being used 
+     */
     private int scheme = SCHEME1;
 
-    /** Entry number for exact row count schemes. */
+    /** 
+     * Entry number for exact row count schemes. 
+     */
     private int entryCount = 0;
 
-    /** Insets used for padding */
+    /** 
+     * Insets used for padding 
+     */
     private Insets insets = new Insets( 2, 0, 0, 2 );
 
     /**
@@ -377,6 +387,14 @@ public class GridBagLayouter
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         container.add( Box.createVerticalGlue(), gbc );
+    }
+
+    /**
+     * Get the container we're adding to.
+     */
+    public Container getContainer()
+    {
+        return container;
     }
 
 }
