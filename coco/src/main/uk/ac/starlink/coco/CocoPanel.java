@@ -567,13 +567,15 @@ public class CocoPanel extends JPanel implements ActionListener {
                 text = outEquinox.getText().trim();
                 if( text != null && text.length() > 0 ) equinox_out = text;
 
-                String epoch_in = inEpoch.getText();
-                if( epoch_in == null || epoch_in.length() == 0 ) {
+                String epoch_in = inEpoch.getText().trim();
+                if( epoch_in == null || epoch_in.length() == 0 ||
+                                        epoch_in.equals("") ) {
                   epoch_in = equinox_in;
                 }
 
-                String epoch_out = outEpoch.getText();
-                if( epoch_out == null || epoch_out.length() == 0 ) {
+                String epoch_out = outEpoch.getText().trim();
+                if( epoch_out == null || epoch_out.length() == 0 ||
+                                        epoch_out.equals("") ) {
                   epoch_out = equinox_out;
                 }
 
