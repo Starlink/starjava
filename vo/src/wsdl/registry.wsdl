@@ -492,6 +492,11 @@
         </s:sequence>
       </s:complexType>
       <s:complexType name="Region" abstract="true" />
+      <s:complexType name="AllSky">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Region" />
+        </s:complexContent>
+      </s:complexType>
       <s:complexType name="CircleRegion">
         <s:complexContent mixed="false">
           <s:extension base="s2:Region">
@@ -518,11 +523,6 @@
           <s:element minOccurs="1" maxOccurs="1" name="long" type="s:double" />
           <s:element minOccurs="1" maxOccurs="1" name="lat" type="s:double" />
         </s:sequence>
-      </s:complexType>
-      <s:complexType name="AllSky">
-        <s:complexContent mixed="false">
-          <s:extension base="s2:Region" />
-        </s:complexContent>
       </s:complexType>
       <s:complexType name="CoordRange">
         <s:complexContent mixed="false">
