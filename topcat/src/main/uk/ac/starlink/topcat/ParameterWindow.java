@@ -342,6 +342,13 @@ public class ParameterWindow extends TopcatViewWindow
         getToolBar().add( removeAct );
         getToolBar().addSeparator();
 
+        /* Make a menu for parameter manipulation. */
+        JMenu paramMenu = new JMenu( "Parameters" );
+        paramMenu.setMnemonic( KeyEvent.VK_P );
+        paramMenu.add( addAct );
+        paramMenu.add( removeAct );
+        getJMenuBar().add( paramMenu );
+
         /* Make a menu for controlling metadata display. */
         JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );
         displayMenu.setMnemonic( KeyEvent.VK_D );
