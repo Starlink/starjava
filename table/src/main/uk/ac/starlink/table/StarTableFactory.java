@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.formats.TextTableBuilder;
+import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.URLDataSource;
@@ -27,6 +29,7 @@ import uk.ac.starlink.util.URLDataSource;
  * By default, if the corresponding classes are present, the following
  * TableBuilders are installed:
  * <ul>
+ * <li> {@link uk.ac.starlink.votable.FitsPlusTableBuilder}
  * <li> {@link uk.ac.starlink.fits.FitsTableBuilder}
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
@@ -53,10 +56,11 @@ public class StarTableFactory {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
+        "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
-        "uk.ac.starlink.table.formats.WDCTableBuilder",
-        "uk.ac.starlink.table.formats.TextTableBuilder",
+        WDCTableBuilder.class.getName(),
+        TextTableBuilder.class.getName(),
     };
 
     /**

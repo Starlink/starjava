@@ -162,6 +162,7 @@ public class FormatsTest extends TestCase {
         }
         String[] knownFormats = new String[] {
             "fits",
+            "fits-basic",
             "votable-tabledata",
             "votable-binary-inline",
             "votable-fits-href",
