@@ -98,7 +98,7 @@ public class PlotWindow extends TopcatViewWindow
     private JFileChooser printSaver_;
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
-    private MarkStyleProfile markers_ = MARKER_PROFILES[ 1 ];
+    private MarkStyleProfile markers_;
     private boolean activeBlob_;
     private boolean replotted_;
 
@@ -107,14 +107,33 @@ public class PlotWindow extends TopcatViewWindow
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
-    private static MarkStyleProfile[] MARKER_PROFILES = new MarkStyleProfile[] {
+    private static final MarkStyleProfile MARKERS1;
+    private static final MarkStyleProfile MARKERS2;
+    private static final MarkStyleProfile MARKERS3;
+    private static final MarkStyleProfile MARKERS4;
+    private static final MarkStyleProfile MARKERS5;
+    private static final MarkStyleProfile[] MARKER_PROFILES = 
+                                            new MarkStyleProfile[] {
         MarkStyleProfile.spots( "Pixels", 0 ),
+        MARKERS1 =
         MarkStyleProfile.spots( "Dots", 1 ),
+        MARKERS2 =
         MarkStyleProfile.spots( "Spots", 2 ),
-        MarkStyleProfile.filledShapes( "Coloured Shapes", 3, null ),
-        MarkStyleProfile.filledShapes( "Black Shapes", 3, Color.black ),
-        MarkStyleProfile.openShapes( "Coloured Outlines", 3, null ),
-        MarkStyleProfile.openShapes( "Black Outlines", 3, Color.black ),
+        MARKERS3 =
+        MarkStyleProfile.filledShapes( "Small Coloured Shapes", 3, null ),
+        MARKERS4 =
+        MarkStyleProfile.filledShapes( "Medium Coloured Shapes", 4, null ),
+        MARKERS5 =
+        MarkStyleProfile.filledShapes( "Large Coloured Shapes", 5, null ),
+        MarkStyleProfile.filledShapes( "Small Black Shapes", 3, Color.black ),
+        MarkStyleProfile.filledShapes( "Medium Black Shapes", 4, Color.black ),
+        MarkStyleProfile.filledShapes( "Large Black Shapes", 5, Color.black ),
+        MarkStyleProfile.openShapes( "Small Coloured Outlines", 3, null ),
+        MarkStyleProfile.openShapes( "Medium Coloured Outlines", 4, null ),
+        MarkStyleProfile.openShapes( "Large Coloured Outlines", 5, null ),
+        MarkStyleProfile.openShapes( "Small Black Outlines", 3, Color.black ),
+        MarkStyleProfile.openShapes( "Medium Black Outlines", 4, Color.black ),
+        MarkStyleProfile.openShapes( "Large Black Outlines", 5, Color.black ),
         MarkStyleProfile.ghosts( "Faint Transparent Pixels", 0, 0.1f ),
         MarkStyleProfile.ghosts( "Medium Transparent Pixels", 0, 0.4f ),
         MarkStyleProfile.ghosts( "Faint Transparent Dots", 1, 0.1f ),
@@ -259,6 +278,25 @@ public class PlotWindow extends TopcatViewWindow
         /* Arrange the components in the top level window. */
         JPanel mainArea = getMainArea();
         mainArea.add( plotPanel, BorderLayout.CENTER );
+
+        /* Set up the initial marker profile. */
+        long nRows = tcModel_.getDataModel().getRowCount();
+        if ( nRows > 20000 ) {
+            markers_ = MARKERS1;
+        }
+        else if ( nRows > 2000 ) {
+            markers_ = MARKERS2;
+        }
+        else if ( nRows > 200 ) {
+            markers_ = MARKERS3;
+        }
+        else if ( nRows > 20 ) {
+            markers_ = MARKERS4;
+        }
+        else {
+            markers_ = MARKERS5;
+        }
+        assert markers_ != null;
 
         /* Action for showing the grid. */
         String gridName = "Show Grid";
@@ -793,7 +831,7 @@ public class PlotWindow extends TopcatViewWindow
         public void mouseClicked( MouseEvent evt ) {
             int butt = evt.getButton();
             if ( butt == MouseEvent.BUTTON1 ) {
-                int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 3 );
+                int ip = visiblePoints_.getClosestPoint( evt.getPoint(), 4 );
                 if ( ip >= 0 ) {
                     activatePoint( ip );
                 }
