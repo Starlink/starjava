@@ -10,7 +10,7 @@ import uk.ac.starlink.table.ValueInfo;
  * a <tt>ValueInfo</tt> object which describes the values which it
  * is expected to have to render.
  *
- * @param   Mark Taylor (Starlink)
+ * @author   Mark Taylor (Starlink)
  */
 public class ValueInfoCellRenderer extends DefaultTableCellRenderer {
 
