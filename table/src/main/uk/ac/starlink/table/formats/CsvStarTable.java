@@ -23,8 +23,8 @@ import uk.ac.starlink.util.DataSource;
  * <li>Adjacent commas, or a comma at the start or end of a line
  *     (whitespace apart) indicates a null field.
  * <li>Lines are terminated by any sequence of carriage-return or newline
- *     characters ('\r' or '\n').  
- *     A corrollary of this is that blank lines are ignored).
+ *     characters ('\r' or '\n')
+ *     (a corollary of this is that blank lines are ignored).
  * <li>Cells may be enclosed in double quotes; quoted values may contain 
  *     linebreaks (or any other character); a double quote character within
  *     a quoted value is represented by two adjacent double quotes.
