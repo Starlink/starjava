@@ -1,0 +1,81 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+
+<HTML>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<P>The <b>diva.graphx</b> package provides extensible and interactive viewing
+of graph data structures. The name stands for "graph e<i>x</i>tension," by which
+we mean that the package is designed to be used with your existing
+graph data structure to make it visible and editable. Your graph
+data structure does not have to be modified to be used this way.
+
+<p>
+To be able to read and manipulate your graph structure, the package
+requires that you implement two interfaces, NodeModel and EdgeModel.
+Each of these is an adapter (perhaps we should have named them
+that way) to nodes or edges of your graph. For example, EdgeModel
+has method such as
+<pre>
+java.lang.Object getHead(java.lang.Object edge);
+java.lang.Object getTail(java.lang.Object edge);
+boolean isDirected(java.lang.Object edge);
+</pre>
+
+By implementing this interface, you provide diva.graphx with enough
+access to your graph structure to read and manipulate it. You will
+notice that the argument types above are all Object, so we are losing
+some type-safety in trade for this flexibility.
+
+<P>
+To draw your graph in a canvas pane, diva.graphx needs you to also
+implement the interfaces NodeRenderer and EdgeRenderer. Each of these
+has a method that takes a node or edge object as argument, constructs
+a diva.canvas.Figure, and returns it. diva.graphx will add this figure
+to the canvas, and place or route it appropriately.
+
+<p>
+The key strength of diva.graphx is thus its ability to allow you to
+quickly construct an interactive, MVC-architecture, editing pane for
+your graphs.  More complex editors can be built on top of this
+functionality if desired. For simple applications, diva.graphx
+provides a simple attributed graph data structure that can be used.
+
+<P>
+Graphs can also be constructed programmatically. Here
+is an example of  instantiating a simple graph with two
+nodes connected by an edge (<FONT FACE="Courier New, Courier"> A -&gt;
+B </FONT>).</P>
+
+
+<BLOCKQUOTE>
+	<P><FONT SIZE="2" COLOR="#990066" FACE="Courier New, Courier"><I>// Construct the widgets</I></FONT><FONT SIZE="2"
+	COLOR="#006600" FACE="Courier New, Courier"><BR>
+	Frame f = new Frame();<BR>
+	JGraph g = new JGraph();<BR>
+	f.add(&quot;Center&quot;, g);</FONT></P>
+
+	<P><FONT SIZE="2" COLOR="#990066" FACE="Courier New, Courier"><I>// Construct the graph</I></FONT><FONT SIZE="2"
+	COLOR="#006600" FACE="Courier New, Courier"><BR>
+	BasicNode a = new BasicNode(&quot;a&quot;);<BR>
+	BasicNode b = new BasicNode(&quot;b&quot;);<BR>
+	BasicEdge e = new BasicEdge(&quot;e&quot;);<BR>
+	jg.getModel().addNode(a);<BR>
+	jg.getModel().addNode(b);<BR>
+	jg.getModel().connect(e, a, b);</FONT></P>
+
+	<P><FONT SIZE="2" COLOR="#990066" FACE="Courier New, Courier"><I>// Display it all</I></FONT><FONT SIZE="2" COLOR="#006600"
+	FACE="Courier New, Courier"><BR>
+	f.setVisible(true);</FONT>
+
+</BLOCKQUOTE>
+
+<P>
+
+</BODY>
+
+</HTML>
+
+
+

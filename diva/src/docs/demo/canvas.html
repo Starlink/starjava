@@ -1,0 +1,56 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<HTML>
+
+<HEAD>
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<TITLE>The diva.canvas demo</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+<!--navbar-->
+<!--/navbar-->
+
+
+	<H1>The diva.canvas demo</H1>
+	<P ALIGN="CENTER"><IMG SRC="images/canvas.gif" WIDTH="681" HEIGHT="510" ALIGN="BOTTOM" BORDER="0"></P>
+<A HREF="howtorun.html">How to run the demo</A></P>
+	<P>The canvas demo shows off the basic architecture and feature of the canvas. At the top level of the window,
+	the canvas contains an instance of GraphicsPane contains several figures.
+
+	<OL>
+	<LI>Click with button 1 to select figures (the two large figures are different -- see below.
+	<LI>Shift-click with button 1 to toggle figures into and out of the selection.
+	<LI>Selected figures have a set of grab-handles placed on them. Click and drag on a grab-handle with button 1 to
+	reshape the figure.
+	<LI>Drag out a region of the canvas with button 1 to select multiple figures. Shift-drag to toggle items covered
+	by the drag-rectangle.
+	<LI>Click on the background to clear the selection.
+	</OL>
+
+	<P>The six sliders to the right of the window control the transform of the top-level canvas pane. They can be used
+	to control the scale, rotation, translation (two sliders), and shear (two sliders) of the top-level pane with respect
+	to the containing canvas. Note that all of the figure selection and editing operations work in the presence of
+	arbitrary transforms.</P>
+	<P>The two larger figures are nested canvas panes. Each of them has a background, and contains a complex canvas
+	pane of their own. Thus, visualization and editing components can be arbitrarily nested to any depth. (In a later
+	release, we will provide level-of-detail and control to make this more useful.) In the example, the magenta &quot;swatch&quot;
+	pane contains figures that can be selected but not reshaped, while the &quot;cloud&quot; blue pane contains the
+	same graph editor pane shown in the graph example. (Nodes can be added and connected with edges.)</P>
+
+	<P>By default, mousing inside one of these embedded processes acts on the internals of the pane. To move and reshape
+	the pane as a unit, first select it by drag-selecting on the top-level background, then drag it to move it or drag
+	a grab-handle to reshape it.
+
+
+<!--footer-->
+<!--/footer-->
+</BODY>
+
+</HTML>
+
+
+
+
+

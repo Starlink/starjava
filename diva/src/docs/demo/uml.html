@@ -1,0 +1,92 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
+<HEAD>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html;CHARSET=iso-8859-1">
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<META NAME="GENERATOR" Content="Visual Page 1.1a for Windows">
+	<TITLE>The diva.canvas demo</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+<!--/navbar-->
+<H1>The diva.whiteboard.uml</H1>
+<P>
+<P><A HREF="howtorun.html">How to run the demo</A></P>
+<P ALIGN="CENTER"><IMG SRC="images/blackjack.gif" WIDTH="801" HEIGHT="601" ALIGN="BOTTOM" BORDER="0"><A HREF="howtorun.html"></A></P>
+
+<P ALIGN="CENTER"><A HREF="howtorun.html"></A></P>
+<P>The UML editor is developed using the Diva sketch package.  The editor is a digital whiteboard application with
+an embedded sketch interpreter that understands a subset of the notations of UML class diagrams.  It provides basic
+electronic whiteboard features.  In addition it supports gesture command editing and recognition of classes and
+relations in UML static structure diagrams.</P>
+
+<P>The current prototype supports single-stroke recognition.  The table below shows a set of gestures that are
+recognized by the application.  When a user draws a rectangle, it is recognized as a class in UML.  The rectangle
+is then rectified.  The user can add and edit attributes and methods inside the class rectangle, and as the user
+runs out of writing space, the rectangle will automatically expand to provide more room.  When the user draws an
+edge from one class to another, the edge will be recognized as a relation between the two classes.  An arrowhead
+can be sketched either before or after the edge has been drawn.  The types of relations that are supported in the
+current program are association, aggregation and generalization.</P>
+
+<P>Two command gestures are supported currently.  A horizontal scribble over an object deletes it, and a check
+selects it.  When the user selects a class node, a set of handles will appear on the class which can be used to
+manipulate it.  The class can be resized with the surrounding handles and moved with the handle in the center.
+ When the user drags a class around, the edges attached to it will reroute themselves to maintain the graph structure.
+<CENTER>
+<P>
+<TABLE BORDER="1" WIDTH="682">
+	<TR>
+		<TD WIDTH="16%"><IMG SRC="images/square.gif" WIDTH="175" HEIGHT="125" ALIGN="BOTTOM" BORDER="0"></TD>
+		<TD WIDTH="16%">
+			<P ALIGN="CENTER"><IMG SRC="images/caret.gif" WIDTH="16" HEIGHT="21" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+		<TD WIDTH="16%">
+			<P ALIGN="CENTER"><IMG SRC="images/diamond.gif" WIDTH="27" HEIGHT="26" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+		<TD WIDTH="16%">
+			<P ALIGN="CENTER"><IMG SRC="images/triangle.gif" WIDTH="23" HEIGHT="26" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+		<TD WIDTH="16%">
+			<P ALIGN="CENTER"><IMG SRC="images/check.gif" WIDTH="60" HEIGHT="92" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+		<TD WIDTH="20%">
+			<P ALIGN="CENTER"><IMG SRC="images/scribble.gif" WIDTH="107" HEIGHT="63" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH="16%" HEIGHT="20">
+			<P ALIGN="CENTER">class
+		</TD>
+		<TD WIDTH="16%" HEIGHT="20">
+			<P ALIGN="CENTER">association
+		</TD>
+		<TD WIDTH="16%" HEIGHT="20">
+			<P ALIGN="CENTER">aggregation
+		</TD>
+		<TD WIDTH="16%" HEIGHT="20">
+			<P ALIGN="CENTER">generalization
+		</TD>
+		<TD WIDTH="16%" HEIGHT="20">
+			<P ALIGN="CENTER">selection
+		</TD>
+		<TD WIDTH="20%" HEIGHT="20">
+			<P ALIGN="CENTER">deletion
+		</TD>
+	</TR>
+</TABLE>
+
+</CENTER>
+<P></P>
+
+<P><!--footer--> <!--/footer-->
+
+</BODY>
+
+</HTML>
+

@@ -1,0 +1,85 @@
+<!-- Copyright (c) 1998-2001 The Regents of the University of California. -->
+<!-- All rights reserved. See the file COPYRIGHT for details.             -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+
+<HEAD>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html;CHARSET=iso-8859-1">
+<LINK href="../diva.css" rel="stylesheet" type="text/css">
+
+	<META NAME="GENERATOR" Content="Visual Page 1.1a for Windows">
+	<TITLE>The diva.canvas demo</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF">
+
+<!--navbar-->
+<!--/navbar-->
+<H1>The diva.whiteboard demo</H1>
+<P ALIGN="CENTER"><IMG SRC="images/whiteboard.gif" WIDTH="634" HEIGHT="601" ALIGN="BOTTOM" BORDER="0"></P>
+<P><A HREF="howtorun.html">How to run the demo</A></P>
+<P>The whiteboard demo is a digital whiteboard application that supports basic editor features and editing commands
+using pen gestures.</P>
+<P>Whiteboard features:</P>
+
+<UL>
+	<LI>support multiple documents and pages
+	<LI>save and load
+	<LI>save as jpeg
+	<LI>set pen color, width
+	<LI>delete/select gestures (right mouse button)
+	<LI>move/resize drawings
+	<LI>freeform drawing (left mouse button)
+</UL>
+
+<P>When the program starts up, it shows a blank page on the whiteboard canvas. The user can add more pages by clicking
+on the <I>new page</I> icon on the toolbar and traverse the pages using the <I>previous</I> and <I>next</I> buttons.
+The right-most two icons allows the user to change pen color and width. The toolbar is tearable, therefore it can
+be dragged to a different position.</P>
+<P>The user can create multiple documents by clicking on the left most <I>document</I> icon. Each document can
+be saved to a file in XML format (.sml) which can be loaded back in later. One can also save a sketch in JPEG format.
+This is done by choosing &quot;Save as...&quot; from the file menu and selecting &quot;.jpeg&quot; in the type
+field. This saves the current viewing page of the document to a JPEG file.</P>
+<P>In the default setup, two types of gestures are supported, check and scribble. The user can draw a check on
+a figure to select it. When a figure is selected, a set of grab handles appear around it which can be used to rescale
+the figure. The user can also click on the figure and drag it around. To delete a figure, simply scribble over
+it. The following picture shows the selection and deletion gestures.</P>
+<CENTER>
+<P>
+<TABLE BORDER="0" WIDTH="55%">
+	<TR>
+		<TD WIDTH="50%">
+			<P ALIGN="CENTER"><IMG SRC="images/check.gif" WIDTH="60" HEIGHT="92" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+		<TD WIDTH="50%">
+			<P ALIGN="CENTER"><IMG SRC="images/scribble.gif" WIDTH="107" HEIGHT="63" ALIGN="BOTTOM" BORDER="0">
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH="50%">
+			<P ALIGN="CENTER"><B>selection</B>
+		</TD>
+		<TD WIDTH="50%">
+			<P ALIGN="CENTER"><B>deletion</B>
+		</TD>
+	</TR>
+</TABLE>
+</P>
+</CENTER>
+<P>The recognizer for the deletion gesture is direction independent, so the gesture can be drawn starting from
+either end. The recognition for the selection gesture is direction dependent, therefore the gesture has to be drawn
+in the same way as it is trained.</P>
+<P><B>Note</B><BR>
+<BR>
+The gesture recognition in this demo currently support single-stroke gestures, which means that in order for a
+gesture to be recognized it has to be completed in one stroke (a path formed from pen down to pen up). Also the
+recognition is direction-dependent, therefore a gesture has to be drawn in the same way as it is trained. The lack
+of multi-stroke gestures and direction independence is not a shortcoming of the recognition archicture, but rather
+this particular recognizer implementation. See the package documentation for details.</P>
+
+<P><!--footer--> <!--/footer-->
+
+</BODY>
+
+</HTML>
+
