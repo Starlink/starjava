@@ -155,10 +155,11 @@ public class NDFSpecDataImpl
      */
     public String getProperty( String key )
     {
+        String result = super.getProperty( key );
+        if ( ! result.equals( "" ) ) {
+            return result;
+        }
         if ( theNDF.has( key ) ) {
-            if ( key.equals( "units" ) ) {
-                return UnitUtilities.fixUpUnits( theNDF.getCharComp( key ) ); 
-            }
             return theNDF.getCharComp( key );
         }
         else {
@@ -240,6 +241,12 @@ public class NDFSpecDataImpl
     {
         if ( theNDF.open( fileName ) ) {
             fullName = fileName;
+            if ( theNDF.has( "units" ) ) {
+                setDataUnits( theNDF.getCharComp( "units" ) ); 
+            }    
+            if ( theNDF.has( "label" ) ) {
+                setDataLabel( theNDF.getCharComp( "label" ) ); 
+            }    
         }
         else {
             throw new SplatException( "Failed to open NDF: " + fileName );
@@ -328,12 +335,14 @@ public class NDFSpecDataImpl
         //  Set the Units and Label if we can.
         FrameSet frameSet = source.getAst().getRef();
         String label = frameSet.getC( "Label(2)" );
-        String unit = UnitUtilities.fixUpUnits( frameSet.getC( "Unit(2)" ) );
+        String unit = frameSet.getC( "Unit(2)" );
         if ( label != null && ( ! label.equals( "" ) ) ) {
-            theNDF.setCharComp( "label", label );
+            setDataLabel( label );
+            theNDF.setCharComp( "label", dataLabel );
         }
         if ( unit != null && ( ! unit.equals( "" ) ) ) {
-            theNDF.setCharComp( "units", unit );
+            setDataUnits( unit );
+            theNDF.setCharComp( "units", dataUnits );
         }
     }
 }

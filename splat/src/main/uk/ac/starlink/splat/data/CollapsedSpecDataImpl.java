@@ -12,7 +12,6 @@ import java.util.Arrays;
 
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
-import uk.ac.starlink.splat.util.UnitUtilities;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.array.NDArray;
@@ -265,9 +264,8 @@ public class CollapsedSpecDataImpl
         }
 
         //  Retain the data units and label.
-        dataUnits = UnitUtilities.fixUpUnits
-            ( parent.getAst().getRef().getC( "unit(2)" ) );
-        dataLabel = parent.getAst().getRef().getC( "label(2)" );
+        setDataUnits( parent.getAst().getRef().getC( "unit(2)" ) );
+        setDataLabel( parent.getAst().getRef().getC( "label(2)" ) );
     }
 
     /**

@@ -12,6 +12,7 @@ package uk.ac.starlink.splat.data;
 import java.io.Serializable;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 import uk.ac.starlink.ast.FrameSet;
 
 /**
@@ -99,11 +100,41 @@ public abstract class AbstractSpecDataImpl
 
     /**
      * Return a keyed value from the FITS headers. Returns "" if not
-     * found. This default implementation returns "";
+     * found. This default implementation returns "", except for "units" and
+     * "label", which return the values set by {@link #setDataUnits}
+     * and {@link #setDataLabel}.
      */
     public String getProperty( String key )
     {
+        if ( "units".equals( key ) ) {
+            return dataUnits;
+        }
+        if ( "label".equals( key ) ) {
+            return dataLabel;
+        }
         return "";
+    }
+
+    /**
+     * Value for the data units. Set this if you can.
+     */
+    protected String dataUnits = "unknown";
+
+    /**
+     * Value for the data label. Set this if you can.
+     */
+    protected String dataLabel = "data values";
+
+    //  Set the data units string.
+    public void setDataUnits( String dataUnits )
+    {
+        this.dataUnits = UnitUtilities.fixUpUnits( dataUnits );
+    }
+
+    //  Set the data label string.
+    public void setDataLabel( String dataLabel )
+    {
+        this.dataLabel = dataLabel;
     }
 
     /**

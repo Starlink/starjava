@@ -348,7 +348,7 @@ public class TableSpecDataImpl
             columnInfos[0] = new ColumnInfo( label, Double.class,
                                              "Spectral coordinates" );
             if ( units != null ) {
-                columnInfos[0].setUnitString( units );
+                columnInfos[0].setUnitString(UnitUtilities.fixUpUnits(units));
             }
 
             int current = frameSet.getCurrent();
@@ -360,11 +360,14 @@ public class TableSpecDataImpl
             if ( label == null ) {
                 label = "Values";
             }
+            dataLabel = label;
+
             units = frameSet.getUnit( 1 );
             columnInfos[1] = new ColumnInfo( label, Double.class,
                                              "Spectral data values" );
             if ( units != null ) {
-                columnInfos[1].setUnitString( units );
+                setDataUnits( units );
+                columnInfos[1].setUnitString( dataUnits );
             }
             frameSet.setCurrent( current );
 
@@ -374,7 +377,8 @@ public class TableSpecDataImpl
                 columnInfos[2] = new ColumnInfo( label, Double.class,
                                                  "Spectral data errors" );
                 if ( units != null ) {
-                    columnInfos[2].setUnitString( units );
+                    columnInfos[2]
+                        .setUnitString( UnitUtilities.fixUpUnits( units ) );
                 }
             }
             else {
@@ -552,8 +556,8 @@ public class TableSpecDataImpl
         guessUnitsDescription( dataColumn );
 
         //  Set the units and label for data.
-        dataUnits = astref.getUnit( 1 );
-        dataLabel = astref.getLabel( 1 );
+        setDataUnits( astref.getUnit( 1 ) );
+        setDataLabel( astref.getLabel( 1 ) );
         
         //  Coordinate units.
         astref.setCurrent( current );

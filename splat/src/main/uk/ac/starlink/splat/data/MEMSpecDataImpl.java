@@ -88,8 +88,8 @@ public class MEMSpecDataImpl
         }
 
         //  Retain the data units and label.
-        dataUnits = mainFrameSet.getC( "unit(2)" );
-        dataLabel = mainFrameSet.getC( "label(2)" );
+        setDataUnits( mainFrameSet.getC( "unit(2)" ) );
+        setDataLabel( mainFrameSet.getC( "label(2)" ) );
     }
 
     /**
@@ -177,16 +177,12 @@ public class MEMSpecDataImpl
      */
     public String getProperty( String prop )
     {
+        String result = super.getProperty( prop );
+        if ( ! "".equals( result ) ) {
+            return result;
+        }
         if ( prop.equalsIgnoreCase( "title" ) ) {
             return shortName;
-        }
-
-        if ( prop.equalsIgnoreCase( "label" ) && dataLabel != null ) {
-            return dataLabel;
-        }
-
-        if ( prop.equalsIgnoreCase( "units" ) && dataUnits != null ) {
-            return dataUnits;
         }
 
         if ( getFitsHeaders() != null ) {
@@ -233,16 +229,6 @@ public class MEMSpecDataImpl
      * Reference to AST frameset.
      */
     protected FrameSet astref = null;
-
-    /**
-     * The units of the data values (if known).
-     */
-    protected String dataUnits = null;
-
-    /**
-     * The label of the data values (if known).
-     */
-    protected String dataLabel = null;
 
     /**
      * Finalise object. Free any resources associated with member

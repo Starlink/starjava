@@ -224,13 +224,7 @@ public class NDXSpecDataImpl
         if ( key.equalsIgnoreCase( "title" ) && ndx.hasTitle() ) {
             return ndx.getTitle();
         }
-        if ( key.equalsIgnoreCase( "label" ) && ndx.hasLabel() ) {
-            return ndx.getLabel();
-        }
-        if ( key.equalsIgnoreCase( "units" ) && ndx.hasUnits() ) {
-            return UnitUtilities.fixUpUnits( ndx.getUnits() );
-        }
-        return "";
+        return super.getProperty( key );
     }
 
 //
@@ -447,6 +441,14 @@ public class NDXSpecDataImpl
                     errAccess.read( errors, 0, size );
                     errAccess.close();
                 }
+            }
+
+            //  Set the data units and label.
+            if ( ndx.hasLabel() ) {
+                setDataLabel( ndx.getLabel() );
+            }
+            if ( ndx.hasUnits() ) {
+                setDataUnits( ndx.getUnits() );
             }
         }
         catch ( IOException e ) {

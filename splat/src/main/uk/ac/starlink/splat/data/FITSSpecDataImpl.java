@@ -39,7 +39,7 @@ import uk.ac.starlink.splat.util.UnitUtilities;
  * @version $Id$
  * @see "The Bridge Design Pattern"
  */
-public class FITSSpecDataImpl 
+public class FITSSpecDataImpl
     extends AbstractSpecDataImpl
     implements FITSHeaderSource
 {
@@ -76,11 +76,11 @@ public class FITSSpecDataImpl
     {
         if ( cloned ) {
             return data;
-        } 
+        }
         else {
             try {
                 return getDataCopy();
-            } 
+            }
             catch ( FitsException e ) {
                 return null;
             }
@@ -95,7 +95,7 @@ public class FITSSpecDataImpl
     {
         if ( cloned ) {
             return errors;
-        } 
+        }
         else {
             return null;
         }
@@ -110,7 +110,7 @@ public class FITSSpecDataImpl
             int dummy[] = new int[1];
             dummy[0] = data.length;
             return dummy;
-        } 
+        }
         else {
             return getDataDims();
         }
@@ -143,7 +143,7 @@ public class FITSSpecDataImpl
     {
         if ( cloned || astref != null ) {
             return astref;
-        } 
+        }
         else {
             return createAstSet();
         }
@@ -160,7 +160,7 @@ public class FITSSpecDataImpl
     /**
      * Save spectrum to the associated disk-file.
      */
-    public void save() 
+    public void save()
         throws SplatException
     {
         saveToFile();
@@ -172,16 +172,17 @@ public class FITSSpecDataImpl
      */
     public String getProperty( String key )
     {
+        String result = super.getProperty( key );
+        if ( ! "".equals( result ) ) {
+            return result;
+        }
+
         if ( getFitsHeaders() != null ) {
-            String scard = getFitsHeaders().findKey( key );
+            // All FITS keywords are uppercase.
+            String scard = getFitsHeaders().findKey( key.toUpperCase() );
             if ( scard != null ) {
                 HeaderCard card = new HeaderCard( scard );
                 if ( card != null ) {
-                    
-                    //  Check units are sensible.
-                    if ( key.equals( "units" ) ) {
-                        return UnitUtilities.fixUpUnits( card.getValue() );
-                    }
                     return card.getValue();
                 }
             }
@@ -308,7 +309,7 @@ public class FITSSpecDataImpl
         else {
             name = namer.fullname();
         }
-        
+
         try {
             fitsref = new Fits( name );
         }
@@ -329,11 +330,41 @@ public class FITSSpecDataImpl
         String shortName = hdurefs[0].getObject();
         if ( shortName != null ) {
             this.shortName = shortName;
-        } 
+        }
         else {
             shortName = fileName;
         }
         fullName = fileName;
+
+        //  And make guesses at the units/label.
+        if ( getFitsHeaders() != null ) {
+            String scard = getFitsHeaders().findKey( "BUNIT" );
+            if ( scard == null ) {
+                scard = getFitsHeaders().findKey( "BUNITS" );
+            }
+            if ( scard == null ) {
+                scard = getFitsHeaders().findKey( "UNITS" );
+            }
+            if ( scard != null ) {
+                HeaderCard card = new HeaderCard( scard );
+                if ( card != null ) {
+                    setDataUnits( card.getValue() );
+                }
+            }
+
+            scard = getFitsHeaders().findKey( "LABEL" );
+            if ( scard == null ) {
+                scard = getFitsHeaders().findKey( "OBJECT" );
+            }
+            if ( scard != null ) {
+                HeaderCard card = new HeaderCard( scard );
+                if ( card != null ) {
+                    setDataUnits( card.getValue() );
+                }
+            }
+        }
+        
+
     }
 
     /**
@@ -386,7 +417,7 @@ public class FITSSpecDataImpl
             //  Set the object keyword to the shortname.
             String validName = shortName;
             if ( shortName.length() > MAX_HEADER_VALUE ) {
-                validName = shortName.substring( shortName.length() - 
+                validName = shortName.substring( shortName.length() -
                                                  MAX_HEADER_VALUE );
             }
             hiter.add( "OBJECT", new HeaderCard( "OBJECT", validName,
@@ -503,7 +534,7 @@ public class FITSSpecDataImpl
     /**
      * Get a copy of the FITS spectrum data in double precision.
      */
-    protected double[] getDataCopy() 
+    protected double[] getDataCopy()
         throws FitsException
     {
         double[] spectrum = null;
@@ -527,7 +558,7 @@ public class FITSSpecDataImpl
             boolean haveblank = true;
             try {
                 blank = hdurefs[hdunum].getBlankValue();
-            } 
+            }
             catch ( FitsException e ) {
                 haveblank = false;
             }
@@ -546,7 +577,7 @@ public class FITSSpecDataImpl
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } 
+                   }
                    else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
@@ -560,7 +591,7 @@ public class FITSSpecDataImpl
                    for ( int i = 0; i < arr.length; i++ ) {
                        if ( Double.isNaN( arr[i] ) ) {
                            spectrum[i] = SpecData.BAD;
-                       } 
+                       }
                        else {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
@@ -573,7 +604,7 @@ public class FITSSpecDataImpl
                    for ( int i = 0; i < arr.length; i++ ) {
                        if ( Float.isNaN( arr[i] ) ) {
                            spectrum[i] = SpecData.BAD;
-                       } 
+                       }
                        else {
                            spectrum[i] = arr[i] * bscale + bzero;
                        }
@@ -587,7 +618,7 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } 
+                           }
                            else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
@@ -606,12 +637,12 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } 
+                           }
                            else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } 
+                   }
                    else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
@@ -626,12 +657,12 @@ public class FITSSpecDataImpl
                        for ( int i = 0; i < arr.length; i++ ) {
                            if ( arr[i] == blank ) {
                                spectrum[i] = SpecData.BAD;
-                           } 
+                           }
                            else {
                                spectrum[i] = arr[i] * bscale + bzero;
                            }
                        }
-                   } 
+                   }
                    else {
                        for ( int i = 0; i < arr.length; i++ ) {
                            spectrum[i] = arr[i] * bscale + bzero;
@@ -665,7 +696,7 @@ public class FITSSpecDataImpl
         }
         chan.rewind();
 
-        //  Fixups. 
+        //  Fixups.
         //  Some IRAF headers contain CDELT1 and CD1_1 values. Older versions
         //  of AST apply both these values, which we do not want to happen,
         //  for those we need to set CDELT1 to 1.0.
@@ -740,7 +771,7 @@ public class FITSSpecDataImpl
             //  Query the current HDU.
             try {
                 return hdurefs[hdunum].getAxes();
-            } 
+            }
             catch (FitsException e) {
                 //  Just ignore and return dummy dimension.
             }
@@ -768,7 +799,7 @@ public class FITSSpecDataImpl
         //  If the source spectrum provides access to a set of FITS
         //  headers then we should preserve them.
         if ( source.getSpecDataImpl().isFITSHeaderSource() ) {
-            clonedHeader = 
+            clonedHeader =
                 ((FITSHeaderSource) source.getSpecDataImpl()).getFitsHeaders();
         }
     }
@@ -786,7 +817,7 @@ public class FITSSpecDataImpl
     public static Cursor getStandardIterator( Header header )
     {
         Cursor iter = header.iterator();
-        
+
         //  Standard headers complete (for images) after the last
         //  NAXIS<n> card.
         int naxes = header.getIntValue( "NAXIS" );
@@ -797,12 +828,12 @@ public class FITSSpecDataImpl
         return iter;
     }
 
-    /** 
+    /**
      * Class utility: Print the header to a given stream.
-     * 
+     *
      * @param ps the stream to which the card images are dumped.
      */
-    public static void dumpHeader( Header header, PrintStream ps ) 
+    public static void dumpHeader( Header header, PrintStream ps )
     {
         Cursor iter = header.iterator();
         ps.println( "Header dump begins" );
