@@ -281,6 +281,26 @@
                echo "mk: Environment variables defined for $SYSTEM system"
                ;;
 
+#  PPC systems:
+#  ===========
+#  PowerPC running Mac OS X.
+#  ------------------------
+            ppc_MacOSX)
+               AR_IN='ar r'
+               BLD_SHR='f() { ld -dynamic -flat_namespace -undefined suppress -o $$1 $$2;}; f'
+               CC='gcc'
+               CFLAGS='-I. $(ADDINCS) -I$(JAVA_INCLUDE) -I$(JAVA_SYSTEM_INCLUDE) -I$(STAR_INC) -O'
+               FC='g77'
+               FFLAGS='-fno-second-underscore -O'
+               LINK='ln -s'
+               RANLIB='ranlib'
+               SHARE='.dylib'
+               TAR_IN='tar -cvhf'
+               TAR_OUT='tar -xf'
+               JAVA_SYSTEM='ppc'
+               echo "mk: Environment variables defined for $SYSTEM system"
+               ;;
+
 #  Issue a warning if SYSTEM is not recognised.
             *)
                SOURCE_VARIANT='unknown'
