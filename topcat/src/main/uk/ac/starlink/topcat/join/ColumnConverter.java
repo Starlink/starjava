@@ -45,8 +45,9 @@ public abstract class ColumnConverter {
              ( units != null && ( units.equalsIgnoreCase( "radian" ) ||
                                   units.equalsIgnoreCase( "radians" ) ) ) ) {
             return new ColumnConverter[] {
-                new FactorConverter( "degree", Math.PI / 180 ),
-                new UnitConverter( "radian" ),
+                new FactorConverter( "degrees", Math.PI / 180 ),
+                new FactorConverter( "hours", Math.PI / 180 * 15 ),
+                new UnitConverter( "radians" ),
             };
         }
 

@@ -225,12 +225,13 @@ public class ColumnSelector extends JComponent implements ActionListener {
         String units = info_.getUnitString();
         String cunits = cinfo.getUnitString();
         if ( units != null && cunits != null ) {
+            units = units.toLowerCase();
+            cunits = cunits.toLowerCase();
             int nconv = conversionChooser_.getItemCount();
 
             /* Known converters for radians are radian or degree. */
-            if ( units.equalsIgnoreCase( "radian" ) ||
-                 units.equalsIgnoreCase( "radians" ) ) {
-                if ( cunits.toLowerCase().startsWith( "rad" ) ) {
+            if ( units.equals( "radian" ) || units.equals( "radians" ) ) {
+                if ( cunits.startsWith( "rad" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
                         ColumnConverter conv =
                             (ColumnConverter) conversionChooser_.getItemAt( i );
@@ -240,12 +241,23 @@ public class ColumnSelector extends JComponent implements ActionListener {
                         }
                     }
                 }
-                else if ( cunits.toLowerCase().startsWith( "deg" ) ) {
+                else if ( cunits.startsWith( "deg" ) ) {
                     for ( int i = 0; i < nconv; i++ ) {
                         ColumnConverter conv = 
                             (ColumnConverter) conversionChooser_.getItemAt( i );
                         if ( conv.toString().toLowerCase()
                                             .startsWith( "deg" ) ) {
+                            return conv;
+                        }
+                    }
+                }
+                else if ( cunits.startsWith( "hour" ) || 
+                          cunits.equals( "hr" ) || cunits.equals( "hrs" ) ) {
+                    for ( int i = 0; i < nconv; i++ ) {
+                        ColumnConverter conv =
+                            (ColumnConverter) conversionChooser_.getItemAt( i );
+                        if ( conv.toString().toLowerCase()
+                                            .startsWith( "hour" ) ) {
                             return conv;
                         }
                     }

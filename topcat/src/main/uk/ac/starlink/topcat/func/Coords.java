@@ -238,6 +238,16 @@ public class Coords {
     }
 
     /**
+     * Converts hours to radians.
+     *
+     * @param  hours   angle in hours
+     * @return   angle in radians
+     */
+    public static double hoursToRadians( double hours ) {
+        return degreesToRadians( hours * 15 );
+    }
+
+    /**
      * Converts degrees to radians.
      *
      * @param  deg   angle in degrees
