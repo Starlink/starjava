@@ -1,5 +1,6 @@
 package uk.ac.starlink.util;
 
+import java.awt.GraphicsEnvironment;
 import java.lang.reflect.Array;
 import java.util.Random;
 import junit.framework.AssertionFailedError;
@@ -649,6 +650,37 @@ public class TestCase extends junit.framework.TestCase {
             throw new IllegalArgumentException(
                 "Unsupported array type or not an array " + array.getClass() );
         }
+    }
+
+    /**
+     * Tests whether or not a display, keyboard and mouse can in fact
+     * be supported in this environment.   This differs from the
+     * {@link java.awt.GraphicsEnvironment#isHeadless} method in that
+     * this one tries to do some graphics and if it catches a throwable
+     * as a consequence it will return true.  The only time that
+     * the <tt>GraphicsEnvironment</tt> call returns true in practice
+     * is if you start java with the property <tt>java.awt.headless=true</tt>.
+     *
+     * @return  <tt>true</tt> if graphics type stuff will fail
+     */
+    public static boolean isHeadless() {
+
+        /* See if we know we're headless. */
+        if ( GraphicsEnvironment.isHeadless() ) {
+            return true;
+        }
+
+        /* Do something you can't do on a headless display. 
+         * The code inside here may need some tweaking - seems to do 
+         * the trick on linux & solaris.  Possibly it ought to check 
+         * separately for presence of a mouse and keyboard as well? */
+        try {
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        }
+        catch ( Throwable e ) {
+            return true;
+        }
+        return false;
     }
 
     private String combineMessages( String msg, String detail ) {
