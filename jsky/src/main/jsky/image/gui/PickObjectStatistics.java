@@ -30,6 +30,7 @@ import java.io.DataOutputStream;
  *
  * @version $Revision: 1.6 $
  * @author Allan Brighton
+ * @author Peter W. Draper
  */
 public class PickObjectStatistics {
 
@@ -151,7 +152,20 @@ public class PickObjectStatistics {
     public void calculateStatistics(int x, int y, int w, int h) {
         // get the image data as an array of floats
         Rectangle r = new Rectangle(x, y, w, h);
-        float[] ar = _imageDisplay.getPixelValues(r, 0);
+        double[] temp = _imageDisplay.getPixelValues(r, 0);
+
+        // PWD: Need float values for IQE function, so fudge
+        // this. Cannot use System.arraycopy as types differ?
+        float[] ar = new float[temp.length];
+        try {
+            for ( int i = 0; i < temp.length; i++ ) {
+                ar[i] = (float) temp[i];
+            }
+        }
+        catch (RuntimeException e) {
+            e.printStackTrace();
+            return;
+        }
         if (ar == null) {
             //System.out.println("XXX _imageDisplay.getPixelValues() returned null for " + r);
             return;
