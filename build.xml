@@ -155,6 +155,9 @@
 
     <echo message="Executing SPLAT target: ${what}"/>
     <ant dir="./splat" target="${what}"/>
+
+    <echo message="Executing Treeview target: ${what}"/>
+    <ant dir="./treeview" target="${what}"/>
     
   </target>
   
