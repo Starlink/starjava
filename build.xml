@@ -137,6 +137,9 @@
     <echo message="Executing Task target: ${what}"/>
     <ant dir="./task" target="${what}"/>
 
+    <echo message="Executing CONNECT target: ${what}"/>
+    <ant dir="./connect" target="${what}"/>
+
     <echo message="Executing JNIAST target: ${what}"/>
     <ant dir="./jniast" target="${what}"/>
 
@@ -384,6 +387,10 @@
       </packageset>
 
       <packageset dir="task/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="connect/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
