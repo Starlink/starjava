@@ -128,7 +128,6 @@ public class Arithmetic {
 
     /**
      * Returns the smaller of two <code>double</code> values. 
-     * is, the result is the value closer to negative infinity. 
      * If the arguments have the same value, the result is that same value.
      * If either value is blank, then the result is blank.
      *
