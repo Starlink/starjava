@@ -32,7 +32,9 @@ import uk.ac.starlink.ast.gui.ColourStore;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
 
 
-public class TestPlotConfigFrame extends JPanel implements PlotController
+public class TestPlotConfigFrame 
+    extends JPanel 
+    implements PlotController
 {
     /**
      * Create a test instance.
