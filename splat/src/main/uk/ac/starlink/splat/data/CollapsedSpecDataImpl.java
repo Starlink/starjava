@@ -96,7 +96,7 @@ public class CollapsedSpecDataImpl
 
         //  2D so get the first proper axis, the two dimensions and choose the
         //  dispersion axis.
-        int firstax = specDims.getFirstAxis();
+        int firstax = specDims.getFirstAxis( false );
         int[] dims = specDims.getSigDims();
         int dispax = specDims.getDispAxis( false );
 
@@ -213,7 +213,7 @@ public class CollapsedSpecDataImpl
 
         //  Collapse onto the dispersion axis. The collapsed axis is the not
         //  picked one.
-        int collapsed = specDims.getFreeAxis();
+        int collapsed = specDims.getFreeAxis( true );
         int dispax = specDims.getDispAxis( true );
         if ( dispax < collapsed ) {
             collapse1( ds, es, wdims );

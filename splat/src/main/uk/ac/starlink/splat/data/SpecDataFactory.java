@@ -952,7 +952,7 @@ public class SpecDataFactory
         }
         else {
             int stepaxis = specDims.getSelectAxis( true );
-            int otheraxis = specDims.getFreeAxis();
+            int otheraxis = specDims.getFreeAxis( true );
             int steplength = dims[stepaxis];
             int otherlength = dims[otheraxis];
 

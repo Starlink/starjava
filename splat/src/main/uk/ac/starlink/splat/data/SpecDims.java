@@ -82,8 +82,11 @@ public final class SpecDims
     /**
      * Return the index of the first significant axis.
      */
-    public int getFirstAxis()
+    public int getFirstAxis( boolean exclude )
     {
+        if ( exclude ) {
+            return realToSigAxis( firstaxis );
+        }
         return firstaxis;
     }
 
@@ -227,7 +230,7 @@ public final class SpecDims
      * selected axis. For a 3D cube this should be the remaining axis. If none
      * can be found this returns -1.
      */
-    public int getFreeAxis()
+    public int getFreeAxis( boolean exclude )
     {
         int freeax = -1;
         int[] dims = getSigDims();
@@ -239,6 +242,9 @@ public final class SpecDims
                     freeax = i;
                 }
             }
+        }
+        if ( exclude ) {
+            return realToSigAxis( freeax );
         }
         return freeax;
     }
