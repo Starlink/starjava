@@ -1,6 +1,7 @@
 package uk.ac.starlink.treeview;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,17 +19,21 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.votable.Param;
 import uk.ac.starlink.votable.VOElement;
+import uk.ac.starlink.votable.VOStarTable;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 
 /**
  * Generic node for representing VOTable elements.
  */
-public class VOComponentDataNode extends DefaultDataNode {
+public class VOComponentDataNode extends DefaultDataNode
+                                 implements TableNodeChooser.Choosable {
 
     private static Set voTagNames = new HashSet( Arrays.asList( new String[] {
         "VOTABLE", "RESOURCE", "DESCRIPTION", "DEFINITIONS", "INFO", 
@@ -41,6 +46,8 @@ public class VOComponentDataNode extends DefaultDataNode {
     protected final String systemId;
     private String name;
     private Object parentObj;
+    private NodeList tables;
+    private StarTable startable;
 
     public VOComponentDataNode( Source xsrc ) throws NoSuchDataException {
         Node domNode;
@@ -168,6 +175,29 @@ public class VOComponentDataNode extends DefaultDataNode {
     public void configureDetail( DetailViewer dv ) {
         dv.addKeyedItem( "Element name", vocel.getTagName() );
         addVOComponentViews( dv, vocel, systemId );
+    }
+
+    private NodeList getTables() {
+        if ( tables == null ) {
+            tables = vocel.getElementsByTagName( "TABLE" );
+        }
+        return tables;
+    }
+
+    public boolean isStarTable() {
+        return getTables().getLength() == 1;
+    }
+
+    public StarTable getStarTable() throws IOException {
+        if ( ! isStarTable() ) {
+            throw new IllegalStateException();
+        }
+        if ( startable == null ) {
+            Element tel = (Element) getTables().item( 0 );
+            DOMSource xsrc = new DOMSource( tel, systemId );
+            startable = new VOStarTable( new DOMSource( tel, systemId ) );
+        }
+        return startable;
     }
 
     public static void addVOComponentViews( DetailViewer dv, final Element el,
@@ -309,7 +339,6 @@ public class VOComponentDataNode extends DefaultDataNode {
         }
         return sib;
     }
-
    
     /**
      * Private helper class which builds a MetamapGroup from a list of Params.

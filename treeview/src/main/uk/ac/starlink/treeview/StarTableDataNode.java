@@ -31,7 +31,8 @@ import uk.ac.starlink.votable.VOTableWriter;
 /**
  * DataNode representing a StarTable.
  */
-public class StarTableDataNode extends DefaultDataNode implements Draggable {
+public class StarTableDataNode extends DefaultDataNode
+                 implements Draggable, TableNodeChooser.Choosable {
 
     private StarTable startable;
     private String name;
@@ -220,6 +221,10 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
 
     public StarTable getStarTable() {
         return startable;
+    }
+
+    public boolean isStarTable() {
+        return true;
     }
 
     public static StarTable makeStarTable( String loc )

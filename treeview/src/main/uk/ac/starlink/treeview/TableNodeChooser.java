@@ -1,18 +1,33 @@
 package uk.ac.starlink.treeview;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * TreeNodeChooser subclass designed to return StarTable objects.
+ * DataNode implementations which wish to declare themselves (potentially)
+ * choosable by this chooser, because they can provide an
+ * associated {@link uk.ac.starlink.table.StarTable} object,
+ * must implement the {@link TableNodeChooser.Choosable} interface.
+ *
+ * @author   Mark Taylor (Starlink)
  */
 public class TableNodeChooser extends TreeNodeChooser {
 
     private DataNodeFactory nodeFact;
+
+    private static List shunnedClassList;
 
     /**
      * Constructs a new chooser.  If <tt>root</tt> is <tt>null</tt>,
@@ -31,6 +46,17 @@ public class TableNodeChooser extends TreeNodeChooser {
                 // never mind
             }
         }
+
+        /* Add some buttons for recursive searches. */
+        Action findSelectedAction = getSearchSelectedAction();
+        Action findAllAction = getSearchAllAction();
+        findSelectedAction.putValue( Action.SHORT_DESCRIPTION,
+                                     "Locate all tables under selected node" );
+        findAllAction.putValue( Action.SHORT_DESCRIPTION,
+                                "Locate all tables in the tree" );
+        getButtonPanel().add( new JButton( findSelectedAction ) );
+        getButtonPanel().add( Box.createHorizontalStrut( 10 ) );
+        getButtonPanel().add( new JButton( findAllAction ) );
     }
 
     /**
@@ -46,12 +72,7 @@ public class TableNodeChooser extends TreeNodeChooser {
      * in tables.
      */
     public void setRoot( DataNode root ) {
-        DataNodeFactory maker = root.getChildMaker();
-        maker.removeNodeClass( NDFDataNode.class );
-        maker.removeNodeClass( HDSDataNode.class );
-        maker.removeNodeClass( NDArrayDataNode.class );
-        maker.removeNodeClass( NdxDataNode.class );
-        maker.removeNodeClass( HDXDataNode.class );
+        customiseFactory( root.getChildMaker() );
         super.setRoot( root );
     }
 
@@ -62,50 +83,22 @@ public class TableNodeChooser extends TreeNodeChooser {
     public DataNodeFactory getNodeMaker() {
         if ( nodeFact == null ) {
             nodeFact = new DataNodeFactory();
-
-            /* You might think that it would be sensible to put the
-             * StarTable node at the head of the list, but this isn't
-             * the case, since it's too eager: for instance it would turn 
-             * a FITS file into a StarTable if any of its HDUs were tables,
-             * and we want to be offered the opportunity of expanding it
-             * and picking an HDU of our choice.  So we just remove some
-             * of the node types which are not going to have tables 
-             * inside. */
-            String[] eschewed = new String[] {
-                "uk.ac.starlink.treeview.NdxDataNode",
-                "uk.ac.starlink.treeview.NDFDataNode",
-                "uk.ac.starlink.treeview.WCSDataNode",
-                "uk.ac.starlink.treeview.HDSDataNode",
-                "uk.ac.starlink.treeview.NDArrayDataNode",
-            };
-            for ( int i = 0; i < eschewed.length; i++ ) {
-                try {
-                    Class clazz = Class.forName( eschewed[ i ] );
-                    nodeFact.removeNodeClass( clazz );
-                }
-                catch ( ClassNotFoundException e ) {
-                    // class not known, will not be created
-                    // logger.warn( "Class " + echewed[ i ] + " not known" );
-                }
-            }
+            customiseFactory( nodeFact );
         }
         return nodeFact;
     }
 
     /**
-     * Allows selection of nodes of type 
-     *    {@link TableHDUDataNode},
-     *    {@link VOTableTableDataNode},
-     *    {@link StarTableDataNode},
-     * and any node which implements {@link StarTableChoosable} and
+     * Allows selection of any node which implements 
+     * {@link Choosable} and
      * has <tt>isStarTable()==true</tt>.
+     *
+     * @param  node  the node to test for choosability
+     * @return  true iff the node is suitable for turning into a table
      */
     protected boolean isChoosable( DataNode node ) {
-        return node instanceof TableHDUDataNode 
-            || node instanceof VOTableTableDataNode
-            || node instanceof StarTableDataNode 
-            || node instanceof StarTableChoosable &&
-               ((StarTableChoosable) node).isStarTable();
+        return node instanceof Choosable 
+            && ((Choosable) node).isStarTable();
     }
 
     /**
@@ -159,17 +152,8 @@ public class TableNodeChooser extends TreeNodeChooser {
      * @throws  IOException  if there's trouble
      */
     public StarTable makeStarTable( DataNode node ) throws IOException {
-        if ( node instanceof TableHDUDataNode ) {
-            return ((TableHDUDataNode) node).getStarTable();
-        }
-        else if ( node instanceof VOTableTableDataNode ) {
-            return ((VOTableTableDataNode) node).getStarTable();
-        }
-        else if ( node instanceof StarTableDataNode ) {
-            return ((StarTableDataNode) node).getStarTable();
-        }
-        else if ( node instanceof StarTableChoosable ) {
-            return ((StarTableChoosable) node).getStarTable();
+        if ( node instanceof Choosable ) {
+            return ((Choosable) node).getStarTable();
         }
         else if ( node == null ) {
             return null;
@@ -183,12 +167,57 @@ public class TableNodeChooser extends TreeNodeChooser {
                                       " get here?" );
         }
     }
+    
+    /**
+     * Does some customisation of a DataNodeFactory to make it suitable
+     * for use in a TableNodeChooser.  Its builder list is modified so
+     * that it doesn't make any nodes which can't contain a table.
+     * <p>
+     * You might think that it would also be a good idea to promote the
+     * StarTableDataNode builder to the top of the builder list, but
+     * it wouldn't be, since it is too eager; for instance it would turn
+     * a FITS file into a StarTable if any of its HDUs were tables,
+     * and we want to be offered the opportunity of expanding it and
+     * picking the HDU of our choice.
+     *
+     * @param   fact  the factory to customise
+     */
+    private static void customiseFactory( DataNodeFactory fact ) {
+
+        /* Make sure we have the list of DataNode classes we do not
+         * wish to see. */
+        if ( shunnedClassList == null ) {
+            String[] shunned = new String[] {
+                "uk.ac.starlink.treeview.NdxDataNode",
+                "uk.ac.starlink.treeview.NDFDataNode",
+                "uk.ac.starlink.treeview.WCSDataNode",
+                "uk.ac.starlink.treeview.HDSDataNode",
+                "uk.ac.starlink.treeview.NDArrayDataNode",
+            };
+            List classes = new ArrayList();
+            for ( int i = 0; i < shunned.length; i++ ) {
+                try {
+                    Class clazz = Class.forName( shunned[ i ] );
+                    classes.add( clazz );
+                }
+                catch ( ClassNotFoundException e ) {
+                    // not known, so won't be used in any case
+                }
+            }
+            shunnedClassList = classes;   
+        }
+
+        /* Remove each of the shunned classes from the factory. */
+        for ( Iterator it = shunnedClassList.iterator(); it.hasNext(); ) {
+            fact.removeNodeClass( (Class) it.next() );
+        }
+    }
 
     /**
      * DataNodes may implement this interface to declare themselves
      * choosable by instances of TableNodeChooser.
      */
-    public interface StarTableChoosable {
+    public interface Choosable {
 
         /**
          * Indicates whether a StarTable can be obtained from this DataNode.

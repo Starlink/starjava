@@ -2,8 +2,11 @@ package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,7 +17,11 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.BorderFactory;
+import javax.swing.GrayFilter;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -22,6 +29,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -31,6 +40,31 @@ import javax.swing.tree.TreePath;
  * around it to locate a node of interest.  One node can be selected.
  * This is intended to be used in a similar way to the JFileChooser
  * component.
+ * <p>
+ * The general visual appearance of this component should be mostly 
+ * self-explanatory.  Some buttons appear near the top:
+ * <ul>
+ * <li>Up:   Changes the root of the tree to the parent object of the
+ *           current root.  In the typical case in which the current root
+ *           is a directory, this means the root of the tree becomes the
+ *           parent directory of the current root.
+ * <li>Down: This takes the currently selected node (if there is one)
+ *           and makes it into the new root node
+ * <li>Home: Sets the root as the user's home directory.
+ * </ul>
+ * <p>
+ * The protected {@link #isChoosable} method provides a way for subclasses
+ * to restrict which nodes can be chosen from the component or dialog.
+ * Subclasses may override this method to indicate which nodes are 
+ * eligible, and node eligibility will be reflected visually by the
+ * component (node names written in bold for choosable nodes, that sort
+ * of thing), as well as controlling the enabled status of the selection
+ * button etc.  The <tt>getSearch*Action</tt> methods provide actions 
+ * which may be useful in this context; they will search through the 
+ * tree recursively and expand it so that any choosable nodes are visible
+ * to the user.  Note this may result in some non-choosable nodes being
+ * visible (parents and siblings of choosable ones) too, but branches
+ * which contain no choosable nodes will not be displayed expanded in the GUI.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -49,8 +83,16 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     private Action upAction;
     private Action downAction;
     private Action homeAction;
+    private Action searchSelectedAction;
+    private Action searchAllAction;
     private DataNode chosenNode;
     private JDialog currentDialog;
+    private Box buttonBox;
+    private JComponent buttonPanel;
+
+    private static Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
+    private static Font yesFont;
+    private static Font noFont;
 
     /**
      * Constructs a new chooser widget with no content.
@@ -101,6 +143,40 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         scroller.setPreferredSize( new Dimension( 400, 300 ) );
         add( scroller, BorderLayout.CENTER );
 
+        /* Set a renderer which will indicate whether each node is 
+         * choosable or not, as well as the normal function of
+         * indicating whether it is expanding. */
+        jtree.setCellRenderer( new DataNodeTreeCellRenderer() {
+            Font[] fonts;
+            protected void configureNode( DataNode node, boolean isExpanding ) {
+                if ( fonts == null ) {
+                    fonts = new Font[ 4 ];
+                    fonts[ 0 ] = getFont();
+                    fonts[ 1 ] = fonts[ 0 ].deriveFont( Font.ITALIC );
+                    fonts[ 2 ] = fonts[ 0 ].deriveFont( Font.BOLD );
+                    fonts[ 3 ] = fonts[ 1 ].deriveFont( Font.BOLD );
+                }
+                boolean isChoosable = isChoosable( node );
+                setFont( fonts[ ( isExpanding ? 1 : 0 ) +
+                                ( isChoosable ? 2 : 0 ) ] );
+
+            //  This is probably visual overkill  //
+            //  /* Grey out the icons for non-choosable nodes. */
+            //  if ( ! isChoosable ) {
+            //      Icon ic = getIcon();
+            //      if ( ic instanceof ImageIcon ) {
+            //          Image im = ((ImageIcon) ic).getImage();
+            //          setIcon( new ImageIcon( GrayFilter
+            //                                 .createDisabledImage( im ) ) );
+            //      }
+            //  }
+            }
+        } );
+
+        /* Construct and place a button panel. */
+        buttonBox = Box.createVerticalBox();
+        bottomBox.add( buttonBox );
+
         /* Construct and place the info panel */
         infoPanel = new InfoPanel();
         nameLabel = new JLabel();
@@ -139,6 +215,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         buttonBox.add( new JButton( cancelAction ) );
         bottomBox.add( Box.createVerticalStrut( 10 ) );
         bottomBox.add( buttonBox );
+
+        /* Ensure the actions are in an appropriate state. */
+        configureActionAvailability( null );
     }
 
     /**
@@ -193,7 +272,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
          * This causes fewer threading problems than changing the root
          * node of the existing model. */
         jtree.setModel( new DataNodeTreeModel( root ) );
-        upAction.setEnabled( root.getParentObject() != null );
+        setBusy( false );
+        configureActionAvailability( null );
         jtree.expandPath( new TreePath( root ) );
         rootSelector.setBottomNode( root );
     }
@@ -205,6 +285,20 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public DataNode getRoot() {
         return (DataNode) jtree.getModel().getRoot();
+    }
+
+    /**
+     * Returns a panel into which extra buttons can be placed.
+     *
+     * @param  a box for buttons
+     */
+    public JComponent getButtonPanel() {
+        if ( buttonPanel == null ) {
+            buttonBox.add( Box.createVerticalStrut( 10 ) );
+            buttonPanel = Box.createHorizontalBox();
+            buttonBox.add( buttonPanel );
+        }
+        return buttonPanel;
     }
 
     /**
@@ -293,6 +387,14 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     protected void showNodeDetail( DataNode node ) {
         infoPanel.setIcon( node == null ? null : node.getIcon() );
+        if ( yesFont == null ) {
+            yesFont = nameLabel.getFont();
+            noFont = yesFont.deriveFont( Font.PLAIN );
+        }
+        Font font = isChoosable( node ) ? yesFont : noFont;
+        nameLabel.setFont( font );
+        typeLabel.setFont( font );
+        descLabel.setFont( font );
         nameLabel.setText( node == null ? null : node.getName() );
         typeLabel.setText( node == null ? null : node.getNodeType() );
         descLabel.setText( node == null ? null : node.getDescription() );
@@ -300,7 +402,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
 
     /**
      * Indicates whether a given node is eligable to be chosen with
-     * the Accept button.
+     * the Accept button.  The implementation in <tt>TreeNodeChooser</tt>
+     * always returns <tt>true</tt>.
      *
      * @param  node  the node to test
      * @return  <tt>true</tt> iff <tt>node</tt> can be chosen by this chooser
@@ -309,16 +412,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         return true;
     }
 
-    /**
-     * Implements the TreeSelectionListener interface.
-     */
-    public void valueChanged( TreeSelectionEvent evt ) {
-        TreePath path = evt.getPath();
-        DataNode node = path == null ? null
-                                     : (DataNode) path.getLastPathComponent();
-        showNodeDetail( node );
-        chooseAction.setEnabled( isChoosable( node ) );
-        downAction.setEnabled( node != null && node.allowsChildren() );
+    private void setBusy( boolean busy ) {
+        jtree.setCursor( busy ? busyCursor : null );
     }
 
     /**
@@ -362,8 +457,58 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                 }
             };
 
+        /* Action for recursively searching the whole tree. */
+        searchAllAction =
+            new BasicAction( "Search Tree", null, "Search the whole tree" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    showAllChoosable( getRoot() );
+                }
+            };
+
+        /* Action for recursively searching the selected node. */
+        searchSelectedAction =
+            new BasicAction( "Search Selected", null,
+                             "Search the selected node" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    TreePath tpath = jtree.getSelectionPath();
+                    if ( tpath != null ) {
+                        showAllChoosable( (DataNode) 
+                                          tpath.getLastPathComponent() );
+                    }
+                }
+            };
+
         /* Return the actions for use in the toolbar thingy. */
         return new Action[] { upAction, downAction, homeAction, };
+    }
+
+    /**
+     * Implements the TreeSelectionListener interface; public as an 
+     * implementation detail.
+     */
+    public void valueChanged( TreeSelectionEvent evt ) {
+        TreePath path = evt.getPath();
+        DataNode node = path == null ? null
+                                     : (DataNode) path.getLastPathComponent();
+        configureActionAvailability( node );
+    } 
+
+    /**
+     * Sets action availability based on what node is currently selected.
+     *
+     * @param  selectedNode  the selected node
+     */
+    private void configureActionAvailability( DataNode selectedNode ) {
+        showNodeDetail( selectedNode );
+        boolean isSelectedChoosable = selectedNode != null
+                                   && isChoosable( selectedNode );
+        boolean isSelectedParent = selectedNode != null 
+                                && selectedNode.allowsChildren();
+        upAction.setEnabled( ((DataNode) jtree.getModel().getRoot())
+                            .getParentObject() != null );
+        chooseAction.setEnabled( isSelectedChoosable );
+        downAction.setEnabled( isSelectedParent );
+        searchSelectedAction.setEnabled( isSelectedParent );
     }
 
     /**
@@ -386,6 +531,90 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      */
     public void setNodeMaker( DataNodeFactory nodeMaker ) {
         this.nodeMaker = nodeMaker;
+    }
+
+    /**
+     * Opens up the tree recursively from a given node to display 
+     * all the choosable items at any level.
+     *
+     * @param  topNode the node from which to start
+     * @return  the thread in which the search is done
+     */
+    public Thread showAllChoosable( final DataNode startNode ) {
+        final DataNodeTreeModel model = (DataNodeTreeModel) jtree.getModel();
+
+        /* Set up a listener which will make sure that choosable nodes
+         * become visible in the JTree, as well as being added to the model. */
+        final TreePath startPath = 
+            new TreePath( model.getPathToRoot( startNode ) );
+        final TreeModelListener finderListener = new TreeModelListener() {
+            public void treeNodesInserted( TreeModelEvent evt ) {
+                final TreePath path = evt.getTreePath();
+                if ( startPath.isDescendant( path ) &&
+                     ! jtree.hasBeenExpanded( path ) ) {
+                    Object[] children = evt.getChildren();
+                    for ( int i = 0; i < children.length; i++ ) {
+                        if ( isChoosable( (DataNode) children[ i ] ) ) {
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    if ( model == jtree.getModel() ) {
+                                        jtree.expandPath( path );
+                                    }
+                                }
+                            } );
+                        }
+                    }
+                }
+            }
+            public void treeNodesChanged( TreeModelEvent evt ) {}
+            public void treeNodesRemoved( TreeModelEvent evt ) {}
+            public void treeStructureChanged( TreeModelEvent evt ) {}
+        };
+        model.addTreeModelListener( finderListener );
+
+        /* Set up a thread to do the expansion. */
+        Thread finder = new Thread( "Choosable finder: " + startNode ) {
+            public void run() {
+                jtree.recursiveExpand( model.getModelNode( startNode ) );
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        model.removeTreeModelListener( finderListener );
+                        if ( model == jtree.getModel() ) {
+                            setBusy( false );
+                        }
+                    }
+                } );
+            }
+        };
+
+        /* Start the thread. */
+        setBusy( true );
+        finder.start();
+        return finder;
+    }
+
+    /**
+     * Returns an action which will search the tree recursively for 
+     * choosable nodes, starting from the selected node.
+     * The tree is opened up so that all choosable nodes thus discovered
+     * are visible.
+     *
+     * @return  action
+     */
+    public Action getSearchSelectedAction() {
+        return searchSelectedAction;
+    }
+
+    /**
+     * Returns an action which will search the entire tree for choosable
+     * nodes, starting from the root.
+     * The tree is opened up so that all choosable nodes thus discovered
+     * are visible.
+     *
+     * @return  action
+     */
+    public Action getSearchAllAction() {
+        return searchAllAction;
     }
 
     /**

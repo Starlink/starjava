@@ -23,7 +23,8 @@ import uk.ac.starlink.table.StarTable;
  * @author   Mark Taylor (Starlink)
  * @version  $Id$
  */
-public class TableHDUDataNode extends HDUDataNode implements Draggable {
+public class TableHDUDataNode extends HDUDataNode 
+                              implements Draggable, TableNodeChooser.Choosable {
 
     private String hduType;
     private TableData tdata;
@@ -113,6 +114,10 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
             }
         }
         return starTable;
+    }
+
+    public boolean isStarTable() {
+        return true;
     }
 
     public boolean allowsChildren() {

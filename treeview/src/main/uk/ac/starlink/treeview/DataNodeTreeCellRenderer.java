@@ -11,7 +11,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
 
     private Font normalFont;
-    private Font specialFont;
+    private Font expandingFont;
 
     public Component getTreeCellRendererComponent( JTree jtree, Object value,
                                                    boolean selected,
@@ -23,14 +23,7 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
         super.getTreeCellRendererComponent( jtree, value, selected, 
                                             expanded, leaf, row, hasFocus );
 
-        /* Temporary compatibility measure. */
-        if ( value instanceof javax.swing.tree.DefaultMutableTreeNode ) {
-            value = ((javax.swing.tree.DefaultMutableTreeNode) value)
-                   .getUserObject();
-        }
-
         /* Customise it according to the data, if we have a DataNode. */
-        boolean isExpanding = false;
         if ( value instanceof DataNode ) {
             DataNode node = (DataNode) value;
             setIcon( node.getIcon() );
@@ -40,25 +33,35 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
             }
             setText( text );
             DataNodeTreeModel treeModel = (DataNodeTreeModel) jtree.getModel();
+            boolean isExpanding = false;
             if ( treeModel.containsNode( node ) ) {
                 TreeModelNode modelNode = treeModel.getModelNode( node );
                 NodeExpander expander = modelNode.getExpander();
                 isExpanding = expander != null && ! expander.isStopped();
             }
+            configureNode( node, isExpanding );
         }
-
-        /* Visual feedback for nodes that are in the process of expanding. */
-        configureFont( isExpanding );
 
         /* Return the configured label. */
         return this;
     }
 
-    private void configureFont( boolean special ) {
+    /**
+     * Performs additional configuration on the rendered cell based 
+     * on the node and its expanding status.  This method is called
+     * from <tt>getTreeCellRendererComponent</tt> and may be 
+     * overridden by subclasses to provide additional visual control
+     * over the rendering.
+     *
+     * @param  node  the DataNode being rendered
+     * @param  isExpanding  whether <tt>node</tt> is currently in the
+     *         process of expanding
+     */
+    protected void configureNode( DataNode node, boolean isExpanding ) {
         if ( normalFont == null ) {
             normalFont = getFont();
-            specialFont = normalFont.deriveFont( Font.ITALIC );
+            expandingFont = normalFont.deriveFont( Font.ITALIC );
         }
-        setFont( special ? specialFont : normalFont );
+        setFont( isExpanding ? expandingFont : normalFont );
     }
 }

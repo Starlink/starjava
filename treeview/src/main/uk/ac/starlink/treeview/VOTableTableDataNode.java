@@ -20,7 +20,7 @@ import uk.ac.starlink.votable.VOTableFormatException;
 import uk.ac.starlink.util.DOMUtils;
 
 public class VOTableTableDataNode extends VOComponentDataNode 
-                                  implements Draggable {
+                 implements Draggable, TableNodeChooser.Choosable {
 
     private Table votable;
     private StarTable startable;
@@ -107,5 +107,9 @@ public class VOTableTableDataNode extends VOComponentDataNode
             }
         }
         return startable;
+    }
+
+    public boolean isStarTable() {
+        return true;
     }
 }
