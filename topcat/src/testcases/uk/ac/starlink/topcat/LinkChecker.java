@@ -9,6 +9,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -202,10 +203,37 @@ public class LinkChecker {
      * @return  true  iff all the links in the resulting XHTML document
      *          can be successfully resolved
      */
-    public boolean checkLinks( Source xsltSrc, Source xmlSrc )
+    public boolean checkLinks( Source xsltSrc, Source xmlSrc ) 
+            throws TransformerException, MalformedURLException {
+        return checkLinks( xsltSrc, xmlSrc, null );
+    }
+
+    /**
+     * Checks the result of an XML transformation to see if the links
+     * in the result are OK or not, with an optional list of parameters.
+     *
+     * @param  xsltSrc  source for the XSLT stylesheet which converts to
+     *         HTML or an HTML-like output format
+     * @param  xmlSrc   source for the XML document which will be
+     *         transformed by <tt>xsltSrc</tt> to produce the HTML to test
+     * @param  params   stylesheet parameter map (or null)
+     * @return  true  iff all the links in the resulting XHTML document
+     *          can be successfully resolved
+     */
+    public boolean checkLinks( Source xsltSrc, Source xmlSrc, Map params )
             throws TransformerException, MalformedURLException {
         Transformer trans = TransformerFactory.newInstance()
                            .newTransformer( xsltSrc );
+
+        if ( params != null ) {
+            for ( Iterator it = params.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String name = (String) entry.getKey();
+                String value = (String) entry.getValue();
+                trans.setParameter( name, value );
+            }
+        }
+
         trans.setOutputProperty( OutputKeys.METHOD, "xml" );
         LinkCheckHandler handler = new LinkCheckHandler();
         trans.transform( xmlSrc, new SAXResult( handler ) );
@@ -310,16 +338,50 @@ public class LinkChecker {
      */
     public static void main( String[] args ) 
             throws MalformedURLException, TransformerException {
-        if ( args.length != 2 ) {
-            System.err.println( "usage: LinkChecker stylesheet xmldoc" );
+        String usage = "Usage: LinkChecker [-param name value ...] "
+                     + "stylesheet [xmldoc]";
+
+        /* Process flags. */
+        List argList = new ArrayList( Arrays.asList( args ) );
+        Map params = new HashMap();
+        while ( argList.size() > 0 &&
+                ((String) argList.get( 0 )).startsWith( "-" ) ) {
+            String flag = (String) argList.remove( 0 );
+            if ( flag.endsWith( "-param" ) && argList.size() >= 2 ) {
+                params.put( argList.remove( 0 ), argList.remove( 0 ) );
+            }
+            else {
+                System.err.println( usage );
+                System.exit( 1 );
+            }
+        }
+
+        /* Check arguments. */
+        if ( argList.size() < 1 || argList.size() > 2 ) {
+            System.err.println( usage );
             System.exit( 1 );
         }
-        String xslt = args[ 0 ];
-        String xml = args[ 1 ];
+
+        /* Get stylesheet source. */
+        File stylesheet = new File( (String) argList.get( 0 ) );
+        if ( ! stylesheet.isFile() ) {
+            System.err.println( "No stylesheet " + stylesheet );
+            System.exit( 1 );
+        }
+        Source styleSrc = new StreamSource( stylesheet );
+
+        /* Get document source. */
+        Source docSrc;
+        if ( args.length > 1 ) {
+            docSrc = new StreamSource( (String) argList.get( 1 ) );
+        }
+        else {
+            docSrc = new StreamSource( System.in );
+        }
+
         try {
             LinkChecker checker = new LinkChecker( new File( "." ).toURL() );
-            boolean ok = checker.checkLinks( new StreamSource( xslt ),
-                                             new StreamSource( xml ) );
+            boolean ok = checker.checkLinks( styleSrc, docSrc, params );
             int localFailures = checker.getLocalFailures();
             int extFailures = checker.getExternalFailures();
             if ( extFailures > 0 ) {
