@@ -49,13 +49,6 @@ import uk.ac.starlink.util.DataSource;
  *     same number of fields as the columns in the table, these fields
  *     are interpreted as the headings (names) of the columns
  * </ul>
- * <p>
- * This reader reads the whole table into memory before trying to make
- * sense of it, since otherwise it would have to do two passes, one to
- * work out the type of each column and one to read the data.  This is
- * not suitable for a very large table, but you're not really expected
- * to have very large tables in plain text format.  For similar reasons,
- * it is not coded to provide maximum efficiency for very large tables.
  *
  * @author   Mark Taylor (Starlink)
  */
