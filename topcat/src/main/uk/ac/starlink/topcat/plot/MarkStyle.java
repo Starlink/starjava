@@ -1,11 +1,13 @@
 package uk.ac.starlink.topcat.plot;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import javax.swing.Icon;
 
 /**
  * Defines a style of marker for plotting.
@@ -88,6 +90,30 @@ public abstract class MarkStyle {
      */
     public void setColor( Color color ) {
         color_ = color;
+    }
+
+    /**
+     * Returns an icon that draws this MarkStyle.
+     *
+     * @param  width  icon width
+     * @param  height icon height
+     * @return icon
+     */
+    public Icon getIcon( final int width, final int height ) {
+        return new Icon() {
+            public int getIconHeight() {
+                return height;
+            }
+            public int getIconWidth() {
+                return width;
+            }
+            public void paintIcon( Component c, Graphics g, 
+                                   int xoff, int yoff ) {
+                int x = xoff + width / 2;
+                int y = yoff + height / 2;
+                drawMarker( g, x, y );
+            }
+        };
     }
 
     /**
