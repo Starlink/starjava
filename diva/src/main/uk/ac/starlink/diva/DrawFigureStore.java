@@ -51,12 +51,13 @@ public class DrawFigureStore
     /**
      * The object that controls the graphical figures.
      */
-    private DrawActions drawActions = null;
+    protected DrawActions drawActions = null;
 
     /**
      * Factory for creating figures.
      */
-    private DrawFigureFactory figureFactory = DrawFigureFactory.getReference();
+    protected DrawFigureFactory figureFactory = 
+        DrawFigureFactory.getReference();
 
     /**
      * Create an instance.
@@ -76,11 +77,10 @@ public class DrawFigureStore
     public void saveState( Element rootElement )
     {
         if ( drawActions != null ) {
-            DrawFigureFactory fact = DrawFigureFactory.getReference();
-            ListIterator it = drawActions.getFigureList().listIterator(0);
-            while ( it.hasNext() ) {
-                DrawFigure fig = (DrawFigure) it.next();
-                FigureProps props = fact.getFigureProps( fig );
+            ListIterator it = drawActions.getListIterator( false );
+            while ( it.hasPrevious() ) {
+                DrawFigure fig = (DrawFigure) it.previous();
+                FigureProps props = figureFactory.getFigureProps( fig );
                 props.encode( PrimitiveXMLEncodeDecode
                               .addChildElement( rootElement,
                                                 props.getTagName() ) );
