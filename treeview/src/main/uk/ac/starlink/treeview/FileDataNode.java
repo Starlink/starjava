@@ -223,41 +223,43 @@ public class FileDataNode extends DefaultDataNode {
                 byte[] buf = new byte[ nTest ];
                 int nGot = strm.read( buf );
                 strm.close();
-                if ( nGot < nTest ) {
+                if ( nGot > 0 ) {
+                    if ( nGot < nTest ) {
+                        byte[] buf1 = new byte[ nGot ];
+                        System.arraycopy( buf, 0, buf1, 0, nGot );
+                        buf = buf1;
+                    }
                     byte[] buf1 = new byte[ nGot ];
-                    System.arraycopy( buf, 0, buf1, 0, nGot );
-                    buf = buf1;
-                }
-                byte[] buf1 = new byte[ nGot ];
-                boolean isText = TreeviewUtil.isASCII( buf );
+                    boolean isText = TreeviewUtil.isASCII( buf );
 
-            //  HTML viewing does work but there are problems with it; 
-            //  for one thing I can't make the HTML load asynchronously.
-            //  If I do have HTML viewing, I'm not sure if it should be 
-            //  here or (more likely) an HTMLDataNode.
-            //  if ( datsrc.isHTML() ) {
-            //      dv.addPane( "HTML view", new ComponentMaker() {
-            //          public JComponent getComponent()
-            //                  throws IOException {
-            //              return new HTMLViewer( file );
-            //          }
-            //      } );
-            //  }
-                if ( isText ) {
-                    dv.addPane( "File text", new ComponentMaker() {
-                        public JComponent getComponent()
-                                throws IOException {
-                            return new TextViewer( new FileReader( file ) );
+                //  HTML viewing does work but there are problems with it; 
+                //  for one thing I can't make the HTML load asynchronously.
+                //  If I do have HTML viewing, I'm not sure if it should be 
+                //  here or (more likely) an HTMLDataNode.
+                //  if ( datsrc.isHTML() ) {
+                //      dv.addPane( "HTML view", new ComponentMaker() {
+                //          public JComponent getComponent()
+                //                  throws IOException {
+                //              return new HTMLViewer( file );
+                //          }
+                //      } );
+                //  }
+                    if ( isText ) {
+                        dv.addPane( "File text", new ComponentMaker() {
+                            public JComponent getComponent()
+                                    throws IOException {
+                                return new TextViewer( new FileReader( file ) );
+                            }
+                        } );
+                    }
+                    dv.addPane( "Hex dump", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            RandomAccessFile raf =
+                                    new RandomAccessFile( file, "r" );
+                            return new HexDumper( raf );
                         }
                     } );
                 }
-                dv.addPane( "Hex dump", new ComponentMaker() {
-                    public JComponent getComponent() throws IOException {
-                        RandomAccessFile raf =
-                                new RandomAccessFile( file, "r" );
-                        return new HexDumper( raf );
-                    }
-                } );
             }
             catch ( final IOException e ) {
                 dv.addPane( "Error reading file", new ComponentMaker() {
