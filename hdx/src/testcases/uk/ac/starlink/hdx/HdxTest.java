@@ -413,6 +413,9 @@ public class HdxTest
 
     public void testBackingElements()
             throws Exception {
+        // There are problems with versions of Xalan, causing this
+        // test to fail spuriously on Xalan <2.5 (?).  There is a fix
+        // on the USSC219 branch.  Revisit this when that is merged.
         String xmlstring = "<ndx><title>Title</title><image uri='file:test1.fits' url='file:nothing.fits'/></ndx>";
 
         HdxFactory docfact = HdxFactory.getInstance();
