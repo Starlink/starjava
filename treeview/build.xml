@@ -198,6 +198,9 @@
     <!-- HDS -->
     <pathelement location="${star.jar.dir}/hds/hds.jar"/>
 
+    <!-- NDX -->
+    <pathelement location="${star.jar.dir}/ndx/ndx.jar"/>
+
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
 
@@ -209,6 +212,9 @@
 
     <!-- Splat -->
     <pathelement location="${star.jar.dir}/splat/splat.jar"/>
+
+    <!-- Axis -->
+    <pathelement location="${star.jar.dir}/axis/axis.jar"/>
 
   </extclasspath>
 
@@ -316,12 +322,77 @@
   <target name="check_packages"
           unless="runonly.install">
 
+    <!-- Need Array -->
+    <available property="array.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.array.NDArray"/>
+    <fail message="No Array available" unless="array.present"/>
+
     <!-- Need JNIAST -->
     <available property="jniast.present"
                classpathref="classpath"
                classname="uk.ac.starlink.ast.AstObject"/>
-
     <fail message="No JNIAST available" unless="jniast.present"/>
+
+    <!-- Need TAMFITS -->
+    <available property="tamfits.present"
+               classpathref="classpath"
+               classname="nom.tam.fits.Header"/>
+    <fail message="No TAMFITS available" unless="tamfits.present"/>
+
+    <!-- Need FITS -->
+    <available property="fits.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.fits.MappedFile"/>
+    <fail message="No FITS available" unless="fits.present"/>
+
+    <!-- Need JNIHDS -->
+    <available property="jnihds.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.hds.HDSObject"/>
+    <fail message="No JNIHDS available" unless="jnihds.present"/>
+
+    <!-- Need HDS -->
+    <available property="hds.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.hds.ArrayStructure"/>
+    <fail message="No HDS available" unless="hds.present"/>
+
+    <!-- Need NDX -->
+    <available property="ndx.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.ndx.Ndx"/>
+    <fail message="No NDX available" unless="ndx.present"/>
+
+    <!-- Need Util -->
+    <available property="util.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.util.TestCase"/>
+    <fail message="No Util available" unless="util.present"/>
+
+    <!-- Need JSky -->
+    <available property="jsky.present"
+               classpathref="classpath"
+               classname="jsky.image.ImageProcessor"/>
+    <fail message="No JSky available" unless="jsky.present"/>
+
+    <!-- Need JAIUtil -->
+    <available property="jaiutil.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.jaiutil.SimpleRenderedImage"/>
+    <fail message="No JAIUtil available" unless="jaiutil.present"/>
+
+    <!-- Need Splat -->
+    <available property="splat.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.splat/data/SpecData"/>
+    <fail message="No Splat available" unless="splat.present"/>
+
+    <!-- Need Axis -->
+    <available property="axis.present"
+               classpathref="classpath"
+               classname="org.apache.axis.Message"/>
+    <fail message="No Axis available" unless="axis.present"/>
 
     <!-- Need JUnit for testcases, not essential -->
     <available property="junit.present"
@@ -437,7 +508,7 @@
         <attribute name="Main-Class" 
                    value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar"/>
+           value="../array/array.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar"/>
       </manifest>
     </jar>
 

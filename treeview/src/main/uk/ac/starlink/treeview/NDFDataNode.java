@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.hds.ArrayStructure;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSReference;
 import uk.ac.starlink.hds.NDFNdxHandler;
 import uk.ac.starlink.ndx.Ndx;
 
@@ -401,9 +403,16 @@ public class NDFDataNode extends HDSDataNode {
                 }
             }
 
+            URL ndurl;
+            try {
+                ndurl = new HDSReference( ndfobj ).getURL();
+            }
+            catch ( HDSException e ) {
+                ndurl = null;
+            }
             try {
                 Ndx ndx = NDFNdxHandler.getInstance()
-                         .makeNdx( ndfobj, AccessMode.READ );
+                         .makeNdx( ndfobj, ndurl, AccessMode.READ );
                 NdxDataNode.addDataViews( dv, ndx );
             }
             catch ( HDSException e ) {

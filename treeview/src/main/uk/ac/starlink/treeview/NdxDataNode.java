@@ -23,6 +23,7 @@ import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.hds.HDSReference;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
@@ -81,7 +82,14 @@ public class NdxDataNode extends DefaultDataNode {
      */
     public NdxDataNode( HDSObject hobj ) throws NoSuchDataException {
         try {
-            ndx = NDFNdxHandler.getInstance().makeNdx( hobj, AccessMode.READ );
+            url = new HDSReference( hobj ).getURL();
+        }   
+        catch ( HDSException e ) {
+            url = null;
+        }
+        try {
+            ndx = NDFNdxHandler.getInstance()
+                               .makeNdx( hobj, url, AccessMode.READ );
             name = hobj.datName();
         }
         catch ( HDSException e ) {

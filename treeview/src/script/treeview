@@ -45,7 +45,6 @@ $starjava \
    -Duk.ac.starlink.treeview.stardir="<unknown>" \
    -Duk.ac.starlink.treeview.sogdir="${SOG_DIR}" \
    -Duk.ac.starlink.treeview.splatdir="${SPLAT_DIR}" \
-   -D.level="WARNING" \
    -enableassertions \
    -jar $appjar $*
   
