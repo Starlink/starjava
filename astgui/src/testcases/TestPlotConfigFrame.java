@@ -109,7 +109,7 @@ public class TestPlotConfigFrame extends JPanel implements PlotController
 
         plotConfigurator = new PlotConfigurator( "Grid Overlay Configuration",
                                                  this, 
-                                                 plotConfiguration );
+                                                 plotConfiguration, "astgui", "test.xml" );
 
         //  Add extra controls to PlotConfigurator.
         plotConfigurator.addExtraControls
