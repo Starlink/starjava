@@ -77,6 +77,7 @@ public class JELUtils {
             List classList = new ArrayList( Arrays.asList( new Class[] {
                 JELUtils.class,
                 Math.class, Integer.class, Float.class, Double.class,
+                Angles.class,
             } ) );
             try {
 

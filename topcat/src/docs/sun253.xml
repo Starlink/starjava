@@ -57,7 +57,7 @@
 
 <docnumber>253</docnumber>
 
-<docdate>23 April 2004</docdate>
+<docdate>5 May 2004</docdate>
 
 <contactlist>
 <contact>TOPCAT web page:
@@ -1541,6 +1541,41 @@ Some of the more useful ones are as follows:
     <webref url="&URL.J2SE_JAVADOCS;java/lang/Math.html">Math</webref> javadocs)
 </p></dd>
 
+<dt>Angle static methods</dt>
+<dd><p>Most of these are concerned with converting angles between 
+    sexagesimal format (a string representing either 
+    hours:minutes:seconds or degrees:arcminutes:arcseconds)
+    and a floating point number in radians.
+    <dl>
+    <dt><code>dmsToRadians(dms)</code> 
+              (DD:MM:SS string to radians)</dt>
+    <dt><code>hmsToRadians(hms)</code>
+              (HH:MM:SS string to radians)</dt>
+    <dt><code>dmsToRadians(deg,min,sec)</code>
+              (degrees, arcmin, arcsec numbers to radians)</dt>
+    <dt><code>hmsToRadians(hr,min,sec)</code>
+              (hours, minutes, seconds numbers to radians)</dt>
+    <dt><code>radiansToDms(rad)</code>
+              (formats an angle in radians as a DD:MM:SS string)</dt>
+    <dt><code>(radiansToDms(rad,precision)</code>
+              (formats an angle as a DD:MM:SS.S string with a given number
+               of decimal places)</dt>
+    <dt><code>radiansToHms(rad)</code>
+              (formats an angle in radians as a HH:MM:SS string)</dt>
+    <dt><code>radiansToDms(rad,precision)</code>
+              (formats an angle as a HH:MM:SS.S string with a given number
+               of decimal places)</dt>
+    <dt><code>skyDistance(ra1,dec1,ra2,dec2)</code>
+              (separation of points in radians along a great circle)</dt>
+    <dt><code>degreesToRadians(deg)</code>
+              (converts degrees to radians)</dt>
+    <dt><code>radiansToDegrees(rad)</code>
+              (converts radians to degrees)</dt>
+    </dl>
+    When decoding a DD:MM:SS or HH:MM:SS string, the separators may be
+    colons, spaces, or some other things.
+</p></dd>
+
 <dt>Boolean String instance methods</dt>
 <dd><p>These perform tests on strings.  Note you should use the
     <code>equals</code> method listed here 
@@ -1644,6 +1679,18 @@ java you should write "<code>sqrt(x)</code>" and not
 <dd><p><verbatim>
     (short) obs_type
     (double) range
+</verbatim></p></dd>
+
+<dt>Conversion from sexagesimal to radians</dt>
+<dd><p><verbatim>
+    hmsToRadians(RA1950)
+    dmsToRadians(decDeg,decMin,decSec)
+</verbatim></p></dd>
+
+<dt>Conversion from radians to sexagesimal</dt>
+<dd><p><verbatim>
+    radiansToDms($3)
+    radiansToHms(RA,2)
 </verbatim></p></dd>
 
 <dt>Outlier clipping</dt>
@@ -2186,14 +2233,14 @@ data developed by <webref url="http://www.starlink.ac.uk/">Starlink</webref>.
 <dd><p><webref url="http://www.starlink.ac.uk/topcat/"/></p></dd>
 
 </dl>
-User comments, suggestions, requests and bug reporst to the above address
+User comments, suggestions, requests and bug reports to the above address
 are welcomed.
 </p>
 
 <p>Releases to date have been as follows:
 <dl>
 
-<dt>Version 1.1 (21 April 2003)</dt>
+<dt>Version 1.1 (5 May 2004)</dt>
 <dd><p>
 <ul>
 <li>User interface redesigned - now based around Control Window 
@@ -2205,6 +2252,7 @@ are welcomed.
     <webref url="http://www.starlink.ac.uk/stil/">STIL</webref> now provided
     as a separate product.</li>
 <li>Tables can be concatenated.</li>
+<li>Functions provided for radians&lt;-&gt;sexagesimal conversion</li>
 <li>Better top-level control over window proliferation.</li>
 <li>Columns can now be hidden/revealed not just deleted.</li>
 <li>Additional output formats/variants supported:
