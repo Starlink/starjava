@@ -141,7 +141,7 @@ public class Loader {
 
         /* Try to load it. */
         File libfile = new File( archdir, filename );
-        System.load( libfile.toString() );
+        System.load( libfile.getAbsolutePath() );
     }
 
     /**
