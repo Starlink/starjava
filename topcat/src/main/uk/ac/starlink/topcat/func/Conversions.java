@@ -67,7 +67,7 @@ public class Conversions {
     }
 
     /**
-     * Attempts to interpret a string as a long (32-bit signed integer) value.
+     * Attempts to interpret a string as a long (64-bit signed integer) value.
      * If the input string can't be interpreted in this way, a blank 
      * value will result.
      *

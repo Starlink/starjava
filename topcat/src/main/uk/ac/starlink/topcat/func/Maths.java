@@ -14,15 +14,12 @@ package uk.ac.starlink.topcat.func;
 public class Maths {
 
     /**
-     * The <code>double</code> value that is closer than any other to
-     * <em>e</em>, the base of the natural logarithms.
+     * Euler's number <em>e</em>, the base of natural logarithms.
      */
     public static final double E = 2.7182818284590452354;
 
     /**
-     * The <code>double</code> value that is closer than any other to
-     * <em>pi</em>, the ratio of the circumference of a circle to its
-     * diameter.
+     * <em>Pi</em>, the ratio of the circumference of a circle to its diameter.
      */
     public static final double PI = 3.14159265358979323846;
 
@@ -90,7 +87,7 @@ public class Maths {
 
     /**
      * Arc tangent of an angle.
-     * The results is in the range of -<em>pi</em>/2 through <em>pi</em>/2.
+     * The result is in the range of -<em>pi</em>/2 through <em>pi</em>/2.
      *
      * @param   x   the value whose arc tangent is to be returned.
      * @return  the arc tangent of the argument (radians)

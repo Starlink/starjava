@@ -51,6 +51,7 @@ public class SuperCosmos {
      * the SuperCOSMOS Sky Surveys.
      * The displayed image is square, and <code>pixels</code> pixels in
      * the X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
+     * Sky coverage is complete.
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians
@@ -64,6 +65,7 @@ public class SuperCosmos {
     /**
      * Displays a cutout image of default size in one of the available
      * bands from the SuperCOSMOS Sky Surveys.
+     * Sky coverage is complete.
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians
@@ -76,6 +78,7 @@ public class SuperCosmos {
     /**
      * Displays a cutout image of default size from one of the blue-band 
      * surveys from SuperCOSMOS.
+     * Sky coverage is complete.
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians
@@ -89,6 +92,7 @@ public class SuperCosmos {
     /**
      * Displays a cutout image of default size from one of the red-band 
      * surveys from SuperCOSMOS.
+     * Sky coverage is complete.
      *
      * @param  ra  right ascension of image centre in radians
      * @param  dec  declination of image centre in radians

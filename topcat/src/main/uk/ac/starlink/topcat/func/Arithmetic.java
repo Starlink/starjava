@@ -59,39 +59,21 @@ public class Arithmetic {
     }
 
     /**
-     * Returns a <code>double</code> value with a positive sign, greater
-     * than or equal to <code>0.0</code> and less than <code>1.0</code>.
-     * Returned values are chosen pseudorandomly with (approximately)
-     * uniform distribution from that range.
-     * <p>
-     * When this method is first called, it creates a single new
-     * pseudorandom-number generator.
-     * This new pseudorandom-number generator is used thereafter for all
-     * calls to this method and is used nowhere else.
-     *
-     * @return  a pseudorandom <code>double</code> greater than or equal
-     * to <code>0.0</code> and less than <code>1.0</code>.
-     * @see     java.util.Random#nextDouble()
-     */
-    public static double random() {
-        return Math.random();
-    }
-
-    /**
      * Returns the absolute value of an <code>int</code> value.
      * If the argument is not negative, the argument is returned.
      * If the argument is negative, the negation of the argument is returned.
-     * <p>
-     * Note that if the argument is equal to the value of
-     * <code>Integer.MIN_VALUE</code>, the most negative representable
-     * <code>int</code> value, the result is that same value, which is
-     * negative.
      *
      * @param   x   the argument whose absolute value is to be determined
      * @return  the absolute value of the argument.
-     * @see     java.lang.Integer#MIN_VALUE
      */
     public static int abs(int x) {
+
+        /* Math.abs(Integer.MIN_VALUE) returns Integer.MIN_VALUE.
+         * Since this unlikely result is likely to be confusing for a user,
+         * we return a blank result instead. */
+        if ( x == Integer.MIN_VALUE ) {
+            throw new NullPointerException();
+        }
         return Math.abs( x );
     }
 
@@ -108,29 +90,21 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the greater of two <code>int</code> values. That is, the
-     * result is the argument closer to the value of
-     * <code>Integer.MAX_VALUE</code>. If the arguments have the same value,
-     * the result is that same value.
+     * Returns the greater of two <code>int</code> values.
+     * If the arguments have the same value, the result is that same value.
      *
      * @param   a   an argument.
      * @param   b   another argument.
      * @return  the larger of <code>a</code> and <code>b</code>.
-     * @see     java.lang.Long#MAX_VALUE
      */
     public static int max(int a, int b) {
         return Math.max( a, b );
     }
 
     /**
-     * Returns the greater of two <code>double</code> values.  That
-     * is, the result is the argument closer to positive infinity. If
-     * the arguments have the same value, the result is that same
-     * value. If either value is NaN, then the result is NaN.  Unlike
-     * the the numerical comparison operators, this method considers
-     * negative zero to be strictly smaller than positive zero. If one
-     * argument is positive zero and the other negative zero, the
-     * result is positive zero.
+     * Returns the greater of two <code>double</code> values.
+     * If the arguments have the same value, the result is that same
+     * value. If either value is blank, then the result is blank.
      *
      * @param   a   an argument.
      * @param   b   another argument.
@@ -141,29 +115,22 @@ public class Arithmetic {
     }
 
     /**
-     * Returns the smaller of two <code>int</code> values. That is,
-     * the result the argument closer to the value of
-     * <code>Integer.MIN_VALUE</code>.  If the arguments have the same
-     * value, the result is that same value.
+     * Returns the smaller of two <code>int</code> values.
+     * If the arguments have the same value, the result is that same value.
      *
      * @param   a   an argument.
      * @param   b   another argument.
      * @return  the smaller of <code>a</code> and <code>b</code>.
-     * @see     java.lang.Long#MIN_VALUE
      */
     public static int min(int a, int b) {
         return Math.min( a, b );
     }
 
     /**
-     * Returns the smaller of two <code>double</code> values.  That
-     * is, the result is the value closer to negative infinity. If the
-     * arguments have the same value, the result is that same
-     * value. If either value is NaN, then the result is NaN.  Unlike
-     * the the numerical comparison operators, this method considers
-     * negative zero to be strictly smaller than positive zero. If one
-     * argument is positive zero and the other is negative zero, the
-     * result is negative zero.
+     * Returns the smaller of two <code>double</code> values. 
+     * is, the result is the value closer to negative infinity. 
+     * If the arguments have the same value, the result is that same value.
+     * If either value is blank, then the result is blank.
      *
      * @param   a   an argument.
      * @param   b   another argument.
