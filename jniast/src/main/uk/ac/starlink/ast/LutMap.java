@@ -32,7 +32,6 @@ package uk.ac.starlink.ast;
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_LutMap'>AST LutMap</a> 
  * @author   Mark Taylor (Starlink) 
- * @version  $Id$
  */
 public class LutMap extends Mapping {
     /** 

@@ -29,7 +29,6 @@ package uk.ac.starlink.ast;
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_SlaMap'>AST SlaMap</a> 
  * @author   Mark Taylor (Starlink) 
- * @version  $Id$
  */
 public class SlaMap extends Mapping {
 

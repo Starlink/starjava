@@ -22,7 +22,6 @@ import uk.ac.starlink.util.Loader;
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_Object'>AST Object</a> 
  * @author   Mark Taylor (Starlink) 
- * @version  $Id$
  */
 public class AstObject {
 

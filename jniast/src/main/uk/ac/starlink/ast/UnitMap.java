@@ -19,7 +19,6 @@ package uk.ac.starlink.ast;
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_UnitMap'>AST UnitMap</a> 
  * @author   Mark Taylor (Starlink) 
- * @version  $Id$
  */
 public class UnitMap extends Mapping {
     /** 

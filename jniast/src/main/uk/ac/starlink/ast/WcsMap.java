@@ -53,7 +53,6 @@ package uk.ac.starlink.ast;
  * 
  * @see  <a href='http://star-www.rl.ac.uk/cgi-bin/htxserver/sun211.htx/?xref_WcsMap'>AST WcsMap</a> 
  * @author   Mark Taylor (Starlink) 
- * @version  $Id$
  */
 public class WcsMap extends Mapping {
    /** Indicates FITS-WCS mapping of type AZP. */
