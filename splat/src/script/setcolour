@@ -1,0 +1,145 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    setcolour
+ *
+ * Purpose:
+ *    Set the colour of a spectrum loaded into SPLAT.
+ *
+ * Usage:
+ *    setcolour short_name colour
+ *
+ * Description:
+ *    This command contacts SPLAT and asks it to set the colour
+ *    of a spectrum that it is displaying.
+ * 
+ *    The possible colours are black, blue, cyan, darkGray,
+ *    gray, green, lightGray, magenta, orange, pink, red, white and
+ *    yellow. Alternatively you can also give an hexidecimal #RRGGBB
+ *    integer.
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 26-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: setcolour short_name colour" );
+    exit();
+}
+
+//  Import any classes that we need from SPLAT.
+import uk.ac.starlink.splat.util.RemoteUtilities;
+
+/**
+ * Open up the connection to SPLAT, this does not return if fails.
+ */
+openConnection()
+{
+    //  Read the contact details for the current SPLAT instance. These are
+    //  the machine name, the server port and the authentication cookie.
+    Object[] contactDetails = RemoteUtilities.readContactFile();
+
+    //  See if SPLAT is around and listening.
+    if ( contactDetails == null ||
+         ! RemoteUtilities.isListening( contactDetails ) ) {
+        print( "Failed to connect to SPLAT" );
+        exit();
+    }
+    return contactDetails;
+}
+
+/**
+ * Send a command to SPLAT.
+ */
+sendCommand( command )
+{
+    try {
+        result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
+    }
+    catch ( Exception e ) {
+        print( "Failed to send command to SPLAT");
+        print( e.getMessage() );
+    }
+    return result;
+}
+
+/**
+ * Convert the spectrum short name into a reference to the SpecData
+ * object. This is assigned to the variable "spectrum" in the remote
+ * interpreter.
+ */
+getSpectrum( shortName )
+{
+    result = sendCommand
+        ( "specIndex = globallist.getSpectrumIndex(\"" + shortName + "\");" );
+
+    //  If we get back a "-1" then the spectrum doesn't exist.
+    if ( "-1".equals( result ) ) {
+        print( "Failed to find spectrum: " + shortName );
+        exit();
+    }
+    result = sendCommand
+        ( "spectrum = globallist.getSpectrum( specIndex );" );
+}
+
+/**
+ * Set the spectrum colour. Must be a Color.<name> static method
+ * or an RGB integer.
+ */
+setColour( colour )
+{
+    try {
+        newColour = eval( "Color." + colour );
+    }
+    catch (Exception e) {
+        //  Failed try an integer.
+        try {
+            newColour = Color.decode( colour );
+        }
+        catch (Exception ee) {
+            print( "Failed to interpret '" + colour + "' as a colour");
+            exit();
+        }
+    }
+
+    //  Convert colour into an RGB integer and issue command to change
+    //  it.
+    iColour = newColour.getRGB();
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.LINE_COLOUR, new Integer(" + iColour + ") )" );
+
+    //  Make changed spectrum the current one so that changes to it
+    //  are propagated.
+    sendCommand( "globallist.setCurrentSpectrum( specIndex )" );
+}
+
+//  Check number of command-line arguments match our expectation.
+if ( bsh.args.length != 2 ) {
+   usage();
+}
+
+//  Contact SPLAT. If successful the contact details are returned.
+Object[] contactDetails = openConnection();
+
+//  Make sure our spectrum exists and make a reference to it.
+getSpectrum( bsh.args[0] );
+
+//  Apply the colour.
+setColour( bsh.args[1] );
+
+exit();

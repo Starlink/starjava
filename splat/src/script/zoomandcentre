@@ -1,0 +1,149 @@
+
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    zoomandcentre
+ *
+ * Purpose:
+ *    Zoom a SPLAT plot and maybe centre it on a wavelength
+ *
+ * Usage:
+ *    zoomandcentre plot_number x_scale [wavelength]
+ *
+ * Description:
+ *    This command zooms a plot to the given X scale factor and
+ *    then, optionally, centres it on a given wavelength.
+ *
+ * Notes:
+ *    This actually reduces to wrapping the following lines
+ *    of Beanshell that are evaluated in the remote interpreter:
+ *
+ *       plotIndex = globallist.getPlotIndex( plotNumber );
+ *       plot = globallist.getPlot( plotIndex );
+ *       plot.setXScale( scale );
+ *       plot.setScale();
+ *       plot.centreOnXCoordinate( wavelength );
+ *
+ *    Where plotNumber, scale and wavelength are the command-line
+ *    arguments to this script.
+ *
+ * Language:
+ *    Beanshell (Java-based scripting language).
+ *
+ * @since $Date$
+ * @since 23-NOV-2001
+ * @author Peter W. Draper
+ * @version $Id$
+ * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: zoomandcentre plot_number x_scale [wavelength]" );
+    exit();
+}
+
+//  Import any classes that we need from SPLAT.
+import uk.ac.starlink.splat.util.RemoteUtilities;
+
+/**
+ * Open up the connection to SPLAT, this does not return if fails.
+ */
+openConnection()
+{
+    //  Read the contact details for the current SPLAT instance. These are
+    //  the machine name, the server port and the authentication cookie.
+    Object[] contactDetails = RemoteUtilities.readContactFile();
+
+    //  See if SPLAT is around and listening.
+    if ( contactDetails == null ||
+         ! RemoteUtilities.isListening( contactDetails ) ) {
+        print( "Failed to connect to SPLAT" );
+        exit();
+    }
+    return contactDetails;
+}
+
+/**
+ * Convert the plot identifier into a global index. Also
+ * assigns the PlotControl object to the plot variable in the remote
+ * interpreter.
+ */
+getPlot( plotNumber )
+{
+    // Ask global list for the proper index of the plot. Assigns the
+    // result to the variable "plotIndex" in the remote interpreter.
+    result = sendCommand
+        ( "plotIndex = globallist.getPlotIndex(" + plotNumber + ");"  );
+
+    //  If we get back a "-1" then the plot doesn't exist.
+    if ( "-1".equals( result ) ) {
+        print( "Failed to find plot (" + plotNumber + ")" );
+        exit();
+    }
+    else {
+        // Plot exists, so get the actual object and assign this to
+        // the plot variable.
+        result = sendCommand( "plot = globallist.getPlot( plotIndex );" );
+    }
+}
+
+/**
+ * Send the command to scale in X.
+ */
+setScale( scale )
+{
+    result = sendCommand( "plot.setXScale(" + scale + ");" );
+    result = sendCommand( "plot.setScale();" );
+}
+
+/**
+ * Send the command to centre on a given wavelength.
+ */
+setCentre( wavelength )
+{
+    result = sendCommand
+        ( "plot.centreOnXCoordinate( \"" + wavelength + "\");" );
+}
+
+/**
+ * Send a command to SPLAT.
+ */
+sendCommand( command )
+{
+    try {
+        result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
+    }
+    catch ( Exception e ) {
+        print( "Failed to send command to SPLAT");
+        print( e.getMessage() );
+    }
+    return result;
+}
+
+//  Check number of command-line arguments match our expectation.
+if ( bsh.args.length > 3 || bsh.args.length < 2 ) {
+   usage();
+}
+
+//  Contact SPLAT. If successful the contact details are returned.
+Object[] contactDetails = openConnection();
+
+//  Make the translation from plot identifier to plot object.
+getPlot( bsh.args[0] );
+
+//  Send the scale command.
+setScale( bsh.args[1] );
+
+//  Send the centre command.
+if ( bsh.args.length == 3  ) {
+  setCentre( bsh.args[2] );
+}
+exit();

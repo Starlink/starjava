@@ -1,0 +1,87 @@
+#!/bin/sh
+
+#+
+#   Name:
+#      splatsh
+#
+#   Purpose:
+#      Wrapper script to start a beanshell interpreter and load a given
+#      script. 
+#   
+#   Usage:
+#      splatsh beanshell_script [script_arguments]
+#
+#   Authors:
+#      Peter W. Draper (PWD): Starlink, Durham University.
+#-
+
+# Check that we have been given a script to execute
+if [ -z "$1" ]; then
+   echo "splatsh beanshell_script [script_arguments]"
+   exit
+fi
+
+
+#  Skip the definition of SPLAT_DIR if it's in the standard place for
+#  old-SPLAT. Remove this when new SPLAT is the official release.
+if test "$SPLAT_DIR" = "/star/bin/splat" \
+        -o "$SPLAT_DIR" = "/stardev/bin/splat" ; then
+  SPLAT_DIR=""
+fi
+
+#  Locate this script or SPLAT_DIR to find our jar files etc.
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR=`dirname $0`
+fi
+echo "SPLAT_DIR = $SPLAT_DIR"
+
+
+# Set the amount of memory that we use for the heap. Increase this
+# if you start getting out of memory errors. Decrease it for smaller 
+# footprint machines.
+if test -z "$SPLAT_MAXMEM"; then
+   SPLAT_MAXMEM=128m
+fi
+
+# If NDF format conversion if switched on them pass this information into 
+# SPLAT.
+defines=""
+if test ! -z "$NDF_FORMATS_IN"; then
+   defines="-Dndf.formats.in=$NDF_FORMATS_IN"
+fi
+
+# Load any startup plugin code.
+if test ! -z "$SPLAT_PLUGINS"; then
+   defines="-Dsplat.plugins=$SPLAT_PLUGINS $defines"
+fi
+
+#  Locate the application jar file. This is relative to this script or
+#  SPLAT_DIR.
+appjar="$SPLAT_DIR/../../lib/splat/splat.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the SPLAT application. Please define SPLAT_DIR"
+   exit
+fi
+
+#  Location of the etc directory (needed for line id files).
+defines="$defines -Dsplat.etc.dir=$SPLAT_DIR/../etc/splat"
+
+#  Need the port and default configuration for the web services.
+defines="$defines \
+-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory \
+-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"
+
+#  Locate the "starjava" command. This should be in ".." or on the 
+#  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
+#  SPLAT shareable library, so it's absence is critical.
+if test -f "$SPLAT_DIR/../starjava"; then
+   starjava="$SPLAT_DIR/../starjava"
+else
+   starjava="starjava"
+fi
+
+# Execute the script passing any arguments along, except the name of
+# this script ($0).
+
+$starjava -mx$SPLAT_MAXMEM $defines -classpath $appjar bsh.Interpreter ${1+"$@"}
+exit

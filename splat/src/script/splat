@@ -1,0 +1,101 @@
+#!/bin/sh
+#  N.B. the previous line should be blank. 
+#  But not if you want to exec it from Java!
+#+
+#  Name:
+#     splat
+
+#  Purpose:
+#     Start the main SPLAT application.
+
+#  Description:
+#     This script defines the environment necessary to start the SPLAT
+#     program. SPLAT should be installed in a standard place, the 
+#     main directory of which (i.e. the one containing this file) should
+#     be identified by the environment variable SPLAT_DIR. Any arguments
+#     to this script should be the names of any spectra to add to the 
+#     stack and then display (all spectra are displayed in the same plot).
+
+#  Type of Module:
+#     Shell script.
+
+#  Copyright:
+#     Copyright (C) 2002 Central Laboratory of the Research Councils
+
+#  Authors:
+#     PWD: P.W. Draper (Starlink, Durham University)
+#     {enter_new_authors_here}
+
+#  History:
+#     01-AUG-2002 (PWD):
+#        Original version.
+#     {enter_further_changes_here}
+
+#  Bugs:
+#     {note_any_bugs_here}
+
+#-
+echo "Starting SPLAT"
+
+#  Skip the definition of SPLAT_DIR if it's in the standard place for
+#  old-SPLAT. Remove this when new SPLAT is the official release.
+if test "$SPLAT_DIR" = "/star/bin/splat" \
+        -o "$SPLAT_DIR" = "/stardev/bin/splat" ; then
+  SPLAT_DIR=""
+fi
+
+#  Locate this script or SPLAT_DIR to find our jar files etc.
+if test -z "$SPLAT_DIR"; then
+   SPLAT_DIR=`dirname $0`
+fi
+echo "SPLAT_DIR = $SPLAT_DIR"
+
+
+# Set the amount of memory that we use for the heap. Increase this
+# if you start getting out of memory errors. Decrease it for smaller 
+# footprint machines.
+if test -z "$SPLAT_MAXMEM"; then
+   SPLAT_MAXMEM=128m
+fi
+
+# If NDF format conversion if switched on them pass this information into 
+# SPLAT.
+defines=""
+if test ! -z "$NDF_FORMATS_IN"; then
+   defines="-Dndf.formats.in=$NDF_FORMATS_IN"
+fi
+
+# Load any startup plugin code.
+if test ! -z "$SPLAT_PLUGINS"; then
+   defines="-Dsplat.plugins=$SPLAT_PLUGINS $defines"
+fi
+
+#  Locate the application jar file. This is relative to this script or
+#  SPLAT_DIR.
+appjar="$SPLAT_DIR/../../lib/splat/splat.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the SPLAT application. Please define SPLAT_DIR"
+   exit
+fi
+
+#  Location of the etc directory (needed for line id files).
+defines="$defines -Dsplat.etc.dir=$SPLAT_DIR/../etc/splat"
+
+#  Need the port and default configuration for the web services.
+defines="$defines \
+-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory \
+-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"
+
+#  Locate the "starjava" command. This should be in ".." or on the 
+#  PATH. "starjava" also defines the LD_LIBRARY_PATH to locate the
+#  SPLAT shareable library, so it's absence is critical.
+if test -f "$SPLAT_DIR/../starjava"; then
+   starjava="$SPLAT_DIR/../starjava"
+else
+   starjava="starjava"
+fi
+
+# Run up the main application. Uses the JVM located by the starjava
+# script
+$starjava -mx$SPLAT_MAXMEM $defines -jar $appjar ${1+"$@"}
+exit
