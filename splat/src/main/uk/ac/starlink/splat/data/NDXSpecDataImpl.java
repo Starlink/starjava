@@ -15,6 +15,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.Source;
 
 import uk.ac.starlink.ast.FrameSet;
 ////import uk.ac.starlink.hdx.HdxContainer;
@@ -69,6 +70,26 @@ public class NDXSpecDataImpl
     {
         super( "Wired NDX" );
         open( ndxElement );
+    }
+
+    /**
+     * Constructor - use a URL containing a NDX.
+     */
+    public NDXSpecDataImpl( URL url  )
+        throws SplatException
+    {
+        super( "Sourced NDX" );
+        open( url );
+    }
+
+    /**
+     * Constructor - use a Source containing a NDX.
+     */
+    public NDXSpecDataImpl( Source source  )
+        throws SplatException
+    {
+        super( "Sourced NDX" );
+        open( source );
     }
 
     /**
@@ -218,13 +239,7 @@ public class NDXSpecDataImpl
     protected void open( String hdxName )
         throws SplatException
     {
-        // Read the complete document that we've been given.
-        ////List ndxs = null;
-        ////HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
-        ////HdxContainer hdx;
         try {
-            NdxIO ndxIO = new NdxIO();
-
             // Check for a local file first. Windows doesn't like 
             // using a "file:." for these.
             URL url = null;
@@ -235,6 +250,21 @@ public class NDXSpecDataImpl
             else {
                 url = new URL( new URL( "file:." ), hdxName );
             }
+            open( url );
+        }
+        catch ( Exception e ) {
+            throw new SplatException( e );
+        }
+    }
+
+    /**
+     * Open an HDX description and locate the NDX.
+     */
+    protected void open( URL url )
+        throws SplatException
+    {
+        try {
+            NdxIO ndxIO = new NdxIO();
             ndx = ndxIO.makeNdx( url, AccessMode.READ );
         }
         catch ( Exception e ) {
@@ -243,8 +273,30 @@ public class NDXSpecDataImpl
         if ( ndx == null ) {
             throw new SplatException( "Document contains no NDXs" );
         }
-        fullName = hdxName;
-        shortName = hdxName;
+        setNames( url.toString(), false );
+
+        //  Read in the data.
+        readData();
+    }
+
+    /**
+     * Open an NDX stored in a Source.
+     */
+    protected void open( Source source )
+        throws SplatException
+    {
+        try {
+            // Get a HDX container with the NDX inside.
+            ndx = XMLNdxHandler.getInstance().makeNdx( source,
+                                                       AccessMode.READ );
+        }
+        catch (Exception e) {
+            throw new SplatException( e );
+        }
+        if ( ndx == null ) {
+            throw new SplatException( "Document contains no NDXs" );
+        }
+        setNames( "Sourced NDX", true );
 
         //  Read in the data.
         readData();
@@ -258,31 +310,24 @@ public class NDXSpecDataImpl
     protected void open( Element ndxElement )
         throws SplatException
     {
-        ////List ndxs = null;
-        ////HdxContainerFactory hdxf = HdxContainerFactory.getInstance();
-        ////HdxContainer hdx;
         DOMSource ndxSource = new DOMSource( ndxElement );
-        try {
-            // Get a HDX container with the NDX inside.
-            ndx = XMLNdxHandler.getInstance().makeNdx( ndxSource,
-                                                       AccessMode.READ );
-        }
-        catch (Exception e) {
-            throw new SplatException( e );
-        }
-        if ( ndx == null ) {
-            throw new SplatException( "Document contains no NDXs" );
-        }
+        open( ndxSource );
+        setNames( "Wired NDX", true );
+    }
 
+    //  Match names to title of the ndx, or generate a unique title from
+    //  a prefix.
+    protected void setNames( String defaultPrefix, boolean unique ) 
+    {
         String title = ndx.hasTitle() ? ndx.getTitle() : "";
-        if ( title == null || title.equals( "" ) ) {
-            title = "Wired NDX (" + (counter++) + ")";
+        if ( ( title == null || title.equals( "" ) ) && unique ) {
+            title = defaultPrefix + " (" + (counter++) + ")";
+        }
+        else {
+            title = defaultPrefix;
         }
         fullName = title;
         shortName = title;
-
-        //  Read in the data.
-        readData();
     }
 
     /**

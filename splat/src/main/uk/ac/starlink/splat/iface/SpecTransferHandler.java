@@ -11,20 +11,31 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.net.URL;
+
+import javax.xml.transform.stream.StreamSource;
 
 import javax.swing.TransferHandler;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.NDXSpecDataImpl;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
- * A TransferHandler for dragging and dropping SpecData instances
- * between a JList using a SpecListModel and a PlotControl. This works
- * between different JVMs too.
+ * A TransferHandler for dragging and dropping SpecData instances.
+ * In SPLAT these are between any JLists showing the global list (i.e.
+ * using a SpecListModel) and a PlotControl. Drop events outside of
+ * SPLAT may be encodings of various types that need to be converted
+ * into SpecData instances (Treeview is the primary source of these
+ * and should be checked for the various types).
+ * <p>
+ * Notes that this all works between different JVMs as Transferables
+ * contain serialized objects.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -39,16 +50,30 @@ public class SpecTransferHandler
         globalList = GlobalSpecPlotList.getReference();
 
     /**
-     * Define a flavor for transfering spectra.
      */
     public static final DataFlavor flavors[] = {
+
+        // Define a flavor for transfering spectra.
         new DataFlavor( DataFlavor.javaJVMLocalObjectMimeType +
-                      ";class=uk.ac.starlink.splat.iface.SpecTransferHandler",
-                      "Local SpecData" )
+                        ";class=uk.ac.starlink.splat.iface.SpecTransferHandler",
+                        "Local SpecData" ),
+
+        // Flavors we can accept from Treeview.
+        new DataFlavor( "application/xml;class=java.io.InputStream",
+                        "NDX stream" ),
+        new DataFlavor( "application/fits;class=java.io.InputStream",
+                        "FITS stream" ),
+        new DataFlavor( DataFlavor.javaSerializedObjectMimeType +
+                        ";class=java.net.URL", "URL" )
     };
+
 
     public boolean canImport( JComponent comp, DataFlavor flavor[] )
     {
+        for ( int i = 0; i < flavor.length; i++ ) {
+            System.out.println( "canImport: " + flavor[i] );
+        }
+        System.out.println();
         if ( checkImportComponent( comp ) ) {
             for ( int i = 0, n = flavor.length; i < n; i++ ) {
                 for ( int j = 0, m = flavors.length; j < m; j++ ) {
@@ -83,7 +108,6 @@ public class SpecTransferHandler
         return false;
     }
 
-
     public int getSourceActions( JComponent c )
     {
         return TransferHandler.COPY;
@@ -110,72 +134,159 @@ public class SpecTransferHandler
         return null;
     }
 
-    //  Drop event, if the target is suitable (i.e a PlotControl
-    //  object), then get it to display any of the spectra that it is
-    //  not already displaying.
+    //  Drop event, if the target is a PlotControl object, then get it
+    //  to display any of the spectra that it is not already
+    //  displaying. If the Transferable is from a external application
+    //  with known mimetype then create a spectrum and display and add
+    //  it to the global list.
     public boolean importData( JComponent comp, Transferable t )
     {
         if ( checkImportComponent( comp ) ) {
-            if ( t.isDataFlavorSupported( flavors[0] ) ) {
-                try {
-                    ArrayList spectra = 
-                        (ArrayList) t.getTransferData( flavors[0] );
-                    int added = 0;
+            DataFlavor[] importFlavors = t.getTransferDataFlavors();
+            for ( int j = 0; j < importFlavors.length; j++ ) {
 
-                    //  Add any unknowns to the global list (needed in
-                    //  both cases). These will be imports from other
-                    //  instances of SPLAT!
-                    for ( int i = 0; i < spectra.size(); i++ ) {
-                        SpecData spec = (SpecData) spectra.get( i );
-                        if ( globalList.getSpectrumIndex( spec ) == -1 ) {
-                            globalList.add( spec );
-                            added++;
-                        }
-                    }
-
-                    //  If importing to a PlotControl also arrange to
-                    //  display any currently undisplayed spectra.
-                    if ( comp instanceof PlotControl ) {
-                        added = 0;
-                        PlotControl plot = (PlotControl) comp;
-                        for ( int i = 0; i < spectra.size(); i++ ) {
-                            SpecData spec = (SpecData) spectra.get( i );
-                            if ( ! plot.isDisplayed( spec ) ) {
-                                try {
-                                    globalList.addSpectrum( plot, spec );
-                                    added++;
-                                }
-                                catch (SplatException e) {
-                                    // Not a good time to do anything.
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-                    return ( added > 0 );
+                if ( flavors[0].match( importFlavors[j] ) ) {
+                    return importSpecData( comp, t );
                 }
-                catch ( UnsupportedFlavorException ignored ) {
-                    ignored.printStackTrace();
+                if ( flavors[1].match( importFlavors[j] ) ) {
+                    return importNDXStream( comp, t );
                 }
-                catch ( IOException ignored ) {
-                    ignored.printStackTrace();
+                if ( flavors[2].match( importFlavors[j] ) ) {
+                    return importFITSStream( comp, t );
+                }
+                if ( flavors[3].match( importFlavors[j] ) ) {
+                    return importURL( comp, t );
                 }
             }
         }
         return false;
     }
 
+    protected boolean importSpecData( JComponent comp, Transferable t )
+    {
+        try {
+            ArrayList spectra =
+                (ArrayList) t.getTransferData( flavors[0] );
+            int added = 0;
+
+            //  Add any unknowns to the global list (needed in
+            //  both cases). These will be imports from other
+            //  instances of SPLAT!
+            for ( int i = 0; i < spectra.size(); i++ ) {
+                SpecData spec = (SpecData) spectra.get( i );
+                if ( globalList.getSpectrumIndex( spec ) == -1 ) {
+                    globalList.add( spec );
+                    added++;
+                }
+            }
+
+            //  If importing to a PlotControl also arrange to
+            //  display any currently undisplayed spectra.
+            if ( comp instanceof PlotControl ) {
+                added = 0;
+                PlotControl plot = (PlotControl) comp;
+                for ( int i = 0; i < spectra.size(); i++ ) {
+                    SpecData spec = (SpecData) spectra.get( i );
+                    if ( ! plot.isDisplayed( spec ) ) {
+                        try {
+                            globalList.addSpectrum( plot, spec );
+                            added++;
+                        }
+                        catch (SplatException e) {
+                            // Not a good time to do anything.
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return ( added > 0 );
+        }
+        catch ( UnsupportedFlavorException ignored ) {
+            ignored.printStackTrace();
+        }
+        catch ( IOException ignored ) {
+            ignored.printStackTrace();
+        }
+        return false;
+    }
+
+    protected boolean importNDXStream( JComponent comp, Transferable t )
+    {
+        System.out.println( "importNDXStream" );
+        boolean added = false;
+        InputStream inputStream = null;
+        try {
+            inputStream = (InputStream) t.getTransferData( flavors[1] );
+            StreamSource streamSource = new StreamSource( inputStream );
+            NDXSpecDataImpl impl = new NDXSpecDataImpl( streamSource );
+            SpecData spectrum = new SpecData( impl );
+            displaySpectrum( comp, spectrum );
+            added = true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        try { 
+            inputStream.close();
+        }
+        catch (Exception e) {
+            // Do nothing.
+        }
+        return added;
+    }
+
+    protected boolean importFITSStream( JComponent comp, Transferable t )
+    {
+        // NDX as FITS stream?
+        System.out.println( "importFITSStream" );
+        return false;
+    }
+
+    protected boolean importURL( JComponent comp, Transferable t )
+    {
+        System.out.println( "importURL" );
+        boolean added = false;
+        try {
+            URL url = (URL) t.getTransferData( flavors[3] );
+            System.out.println( url );
+            NDXSpecDataImpl impl = new NDXSpecDataImpl( url );
+            SpecData spectrum = new SpecData( impl );
+            displaySpectrum( comp, spectrum );
+            added = true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return added;
+    }
+
+    protected void displaySpectrum( JComponent comp, SpecData spectrum )
+    {
+        globalList.add( spectrum );
+        if ( comp instanceof PlotControl ) {
+            PlotControl plot = (PlotControl) comp;
+            if ( ! plot.isDisplayed( spectrum ) ) {
+                try {
+                    globalList.addSpectrum( plot, spectrum );
+                }
+                catch (Exception e) {
+                    //  Ignore.
+                }
+            }
+        }
+    }
+
     // Inner class that implements Transferable. This is the object
     // that stores the information generated when the drag event
     // happens (this stores the list of spectra to be transferred and
     // our flavor signature for SpecData).
-    protected class SpecTransferable 
+    protected class SpecTransferable
         implements Transferable
     {
         protected ArrayList spectra;
         protected DataFlavor[] flavors;
 
-        public SpecTransferable( ArrayList spectra, DataFlavor[] flavors ) 
+        public SpecTransferable( ArrayList spectra, DataFlavor[] flavors )
         {
             this.spectra = spectra;
             this.flavors = flavors;
@@ -193,7 +304,7 @@ public class SpecTransferHandler
         {
             return flavors;
         }
-        
+
         public boolean isDataFlavorSupported( DataFlavor flavor )
         {
             return flavor.equals( flavors[0] );

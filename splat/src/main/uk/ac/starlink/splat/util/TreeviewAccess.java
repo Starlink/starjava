@@ -76,10 +76,7 @@ public class TreeviewAccess
         }
         try {
             // Equivalent Java
-            // IconFactory.getInstance().getIcon( IconFactory.XXXX );
-
-            Method method = iconFactory.getMethod( "getInstance", null );
-            Object instance = method.invoke( null, null );
+            // IconFactory.getIcon( IconFactory.XXXX );
 
             Field field = iconFactory.getField( name );
             Object[] args = new Object[1];
@@ -87,7 +84,7 @@ public class TreeviewAccess
 
             Class[] classArgs = new Class[1];
             classArgs[0] = Short.TYPE;
-            method = iconFactory.getMethod( "getIcon", classArgs );
+            Method method = iconFactory.getMethod( "getIcon", classArgs );
 
             return (Icon) method.invoke( instance, args );
         }
