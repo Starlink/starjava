@@ -239,7 +239,7 @@ public abstract class DataSource {
     public synchronized int getMagic( byte[] buffer ) throws IOException {
 
         /* See how many bytes have been requested. */
-        int nReq = buffer.length;
+        int nReq = Math.min( buffer.length, eofPos );
         int nGot;
 
         /* Handle the case in which we need to read from the stream. */
@@ -288,7 +288,7 @@ public abstract class DataSource {
          * we kept. */
         else {
             assert nReq <= magic.length;
-            nGot = Math.min( nReq, eofPos );
+            nGot = nReq;
             System.arraycopy( magic, 0, buffer, 0, nGot );
         }
 
