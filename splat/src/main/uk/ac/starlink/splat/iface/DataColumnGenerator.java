@@ -10,7 +10,7 @@ package uk.ac.starlink.splat.iface;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 
-import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.VoigtGenerator;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 
@@ -61,6 +61,18 @@ public class DataColumnGenerator
                             "center", "100.0",
                             "gwidth", "1.0",
                             "lwidth", "1.0" },
+        { "Voigt function added to data", "false",
+                            "data+scale*voigt(coord-center,gwidth,lwidth)",
+                            "scale", "1.0",
+                            "center", "100.0",
+                            "gwidth", "1.0",
+                            "lwidth", "1.0" },
+        { "Voigt function subtracted from data", "false",
+                            "data-scale*voigt(coord-center,gwidth,lwidth)",
+                            "scale", "1.0",
+                            "center", "100.0",
+                            "gwidth", "1.0",
+                            "lwidth", "1.0" },
         { "Lorenzian function", "true",
                                 "scale/(1.0+0.5*(radius/width)**2)",
                                 "radius", "coord-center",
@@ -83,7 +95,7 @@ public class DataColumnGenerator
     /**
      * Create an instance.
      */
-    public DataColumnGenerator( SpecData specData,
+    public DataColumnGenerator( EditableSpecData specData,
                                 ColumnGeneratorListener listener )
     {
         super( specData, templates, listener );
@@ -114,21 +126,39 @@ public class DataColumnGenerator
     protected double[] handleSpecialFunction( int templateIndex,
                                               String[] parameters )
     {
-        if ( templateIndex == 8 ) {
+        if ( templateIndex == 8 || templateIndex == 9 || 
+             templateIndex == 10 ) {
             try {
                 //  Need to deal with voigt function, which cannot be
                 //  translated into an AstMathMap function.
                 double[] coord = specData.getXData();
-
+                
                 //  Get the various parameter values.
                 double scale = Double.parseDouble( parameters[0] );
                 double centre = Double.parseDouble( parameters[1] );
                 double gwidth = Double.parseDouble( parameters[2] );
                 double lwidth = Double.parseDouble( parameters[3] );
+                
+                VoigtGenerator generator = new VoigtGenerator( scale, centre,
+                                                               gwidth, lwidth);
+                double[] function = generator.evalArray( coord );
+                double[] result = function;
 
-                VoigtGenerator generator = new VoigtGenerator(scale, centre,
-                                                              gwidth, lwidth );
-                return generator.evalArray( coord );
+                //  If needed either add or subtract result from
+                //  existing data.
+                if ( templateIndex == 9 ) {
+                    result = specData.getYData();
+                    for ( int i = 0; i < result.length; i++ ) {
+                        result[i] += function[i];
+                    }
+                }
+                else if ( templateIndex == 10 ) {
+                    result = specData.getYData();
+                    for ( int i = 0; i < result.length; i++ ) {
+                        result[i] -= function[i];
+                    }
+                }
+                return result;
             }
             catch (Exception e) {
                 new ExceptionDialog( this, e );

@@ -32,7 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import uk.ac.starlink.ast.gui.DecimalField;
-import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
@@ -58,7 +58,7 @@ public abstract class ColumnGenerator
     /**
      * The spectrum we're about to modify.
      */
-    protected SpecData specData = null;
+    protected EditableSpecData specData = null;
 
     /**
      * The listener for our change events. XXX extend for more than one.
@@ -95,7 +95,7 @@ public abstract class ColumnGenerator
     /**
      * Create an instance.
      */
-    public ColumnGenerator( SpecData specData,
+    public ColumnGenerator( EditableSpecData specData,
                             String[][] templates,
                             ColumnGeneratorListener listener )
     {
@@ -105,7 +105,7 @@ public abstract class ColumnGenerator
 
         //  Set the SpecData we're taking values from. Note this must
         //  happen after the interface is generated.
-        setSpecData( specData );
+        setEditableSpecData( specData );
         setVisible( true );
     }
 
@@ -150,7 +150,7 @@ public abstract class ColumnGenerator
     /**
      * Set the spectrum we're working on.
      */
-    public void setSpecData( SpecData specData )
+    public void setEditableSpecData( EditableSpecData specData )
     {
         this.specData = specData;
 
@@ -251,7 +251,7 @@ public abstract class ColumnGenerator
         public TemplateAction( int index )
         {
             super( templates[index][0] );
-            putValue( SHORT_DESCRIPTION, templates[index][1] );
+            putValue( SHORT_DESCRIPTION, templates[index][2] );
             this.index = index;
         }
 

@@ -356,4 +356,13 @@ public class MEMSpecDataImpl
             throw new SplatException( "Array index out of bounds" );
         }
     }
+
+    /**
+     * Accept a new FrameSet.
+     */
+    public void setAst( FrameSet frameSet )
+        throws SplatException
+    {
+        this.astref = frameSet;
+    }
 }

@@ -7,7 +7,7 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.data.EditableSpecData;
 import javax.swing.JMenuBar;
 
 /**
@@ -60,7 +60,7 @@ public class ErrorColumnGenerator
     /**
      * Create an instance.
      */
-    public ErrorColumnGenerator( SpecData specData,
+    public ErrorColumnGenerator( EditableSpecData specData,
                                  ColumnGeneratorListener listener )
     {
         super( specData, templates, listener );

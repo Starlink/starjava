@@ -8,6 +8,7 @@
 package uk.ac.starlink.splat.data;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.ast.FrameSet;
 
 /**
  * Extends the SpecDataImpl class to include methods for modifying the
@@ -97,6 +98,15 @@ public abstract class EditableSpecDataImpl
      * Change a data error value.
      */
     abstract public void setYDataErrorValue( int index, double value )
+        throws SplatException;
+
+    /**
+     * Set the FrameSet used for the coordinate system. This should
+     * be one-dimensional (at the base and current frames at least)
+     * and map the base coordinates to some wavelength-related
+     * coordinate.
+     */
+    abstract public void setAst( FrameSet frameSet )
         throws SplatException;
 }
 

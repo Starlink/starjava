@@ -9,11 +9,13 @@
 package uk.ac.starlink.splat.data;
 
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.ast.FrameSet;
 
 /**
  * Extends {@link SpecData} for types of SpecDataImpl that also
  * implement the EditableSpecDataImpl interface, i.e. this provides
- * facilities for modifying individual values of a SpecData object.
+ * facilities for modifying the values and coordinates of a
+ * SpecData object. 
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -144,4 +146,26 @@ public class EditableSpecData
         editableImpl.setYDataErrorValue( index, value );
         readData();
     }
+
+    /**
+     * Get access to the FrameSet of the original data set (should be
+     * 1 dimensional).
+     */
+    public FrameSet getFrameSet()
+    {
+        return impl.getAst();
+    }
+
+    /**
+     * Accept a FrameSet that defines a new set of coordinates.
+     */
+    public void setFrameSet( FrameSet frameSet )
+        throws SplatException
+    {
+        // Give the new FrameSet to the implementation, then cause a
+        // reset of the coordinates.
+        editableImpl.setAst( frameSet );
+        readData();
+    }
+
 }

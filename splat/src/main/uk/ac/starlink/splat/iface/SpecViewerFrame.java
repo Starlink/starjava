@@ -52,7 +52,8 @@ import uk.ac.starlink.splat.util.SplatException;
  */
 public class SpecViewerFrame
     extends JFrame
-    implements ItemListener, SpecListener, ColumnGeneratorListener
+    implements ItemListener, SpecListener, ColumnGeneratorListener,
+               CoordinateGeneratorListener
 {
     /**
      * Spectrum we're viewing.
@@ -227,6 +228,12 @@ public class SpecViewerFrame
         opsMenu.setText( "Operations" );
         menuBar.add( opsMenu );
 
+        //  Modify the coordinates
+        CreateCoordinatesAction createCoordinatesAction = 
+            new CreateCoordinatesAction( "Modify Coordinates",
+                                         "Modify or create new coordinates" );
+        opsMenu.add( createCoordinatesAction );
+
         //  Modify the data column.
         CreateDataColumnAction createDataColumnAction = 
             new CreateDataColumnAction( "Modify Data Column",
@@ -270,6 +277,35 @@ public class SpecViewerFrame
         globalList.notifySpecListeners( specData );
     }
 
+    protected CoordinateGeneratorFrame coordinateGeneratorWindow = null;
+    protected CoordinateGenerator coordinateGenerator = null;
+
+    /**
+     * Create or modify the coordinates.
+     */
+    protected void createCoordinates()
+    {
+        if ( ! model.isReadOnly() ) {
+            if ( coordinateGeneratorWindow == null ) {
+                coordinateGenerator = 
+                    new CoordinateGenerator( (EditableSpecData) specData, 
+                                             this );
+                coordinateGeneratorWindow = 
+                    new CoordinateGeneratorFrame( coordinateGenerator );
+            }
+            coordinateGeneratorWindow.setVisible( true );
+            coordinateGenerator.setEditableSpecData
+                ( (EditableSpecData) specData );
+        }
+        else {
+            JOptionPane.showMessageDialog
+                ( this, "Cannot create or modify the coordinates " +
+                  "of a readonly spectrum", "Readonly", 
+                  JOptionPane.ERROR_MESSAGE );
+        }
+    }
+
+
     protected ColumnGeneratorFrame errorColumnWindow = null;
     protected ErrorColumnGenerator errorColumnGenerator = null;
 
@@ -282,12 +318,14 @@ public class SpecViewerFrame
         if ( ! model.isReadOnly() ) {
             if ( errorColumnWindow == null ) {
                 errorColumnGenerator = 
-                    new ErrorColumnGenerator( specData, this );
+                    new ErrorColumnGenerator( (EditableSpecData) specData, 
+                                              this );
                 errorColumnWindow = 
                     new ColumnGeneratorFrame( errorColumnGenerator );
             }
             errorColumnWindow.setVisible( true );
-            errorColumnGenerator.setSpecData( specData );
+            errorColumnGenerator.setEditableSpecData
+                ( (EditableSpecData) specData );
         }
         else {
             JOptionPane.showMessageDialog
@@ -309,12 +347,14 @@ public class SpecViewerFrame
         if ( ! model.isReadOnly() ) {
             if ( dataColumnWindow == null ) {
                 dataColumnGenerator = 
-                    new DataColumnGenerator( specData, this );
+                    new DataColumnGenerator( (EditableSpecData) specData, 
+                                             this );
                 dataColumnWindow = 
                     new ColumnGeneratorFrame( dataColumnGenerator );
             }
             dataColumnWindow.setVisible( true );
-            dataColumnGenerator.setSpecData( specData );
+            dataColumnGenerator.setEditableSpecData
+                ( (EditableSpecData) specData );
         }
         else {
             JOptionPane.showMessageDialog
@@ -322,6 +362,19 @@ public class SpecViewerFrame
                   "of a readonly spectrum", "Readonly", 
                   JOptionPane.ERROR_MESSAGE );
         }
+    }
+
+    //
+    // CoordinateGeneratorListener
+    //
+
+    /**
+     * Respond to coordinate modification events.
+     */
+    public void generatedCoordinates()
+    {
+        specDataChanged();
+        coordinateGenerator.setEditableSpecData( (EditableSpecData) specData );
     }
 
     //
@@ -352,7 +405,8 @@ public class SpecViewerFrame
                                                                column );
                 }
                 specDataChanged();
-                dataColumnGenerator.setSpecData( specData );
+                dataColumnGenerator.setEditableSpecData
+                    ( (EditableSpecData)specData );
             }
             catch (SplatException e) {
                 new ExceptionDialog( this, e );
@@ -495,6 +549,26 @@ public class SpecViewerFrame
         public void actionPerformed( ActionEvent ae )
         {
             closeWindow();
+        }
+    }
+
+    /**
+     * Inner class defining Action for modifying coordinates.
+     */
+    protected class CreateCoordinatesAction extends AbstractAction
+    {
+        public CreateCoordinatesAction( String name, String shortHelp )
+        {
+            super( name );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            createCoordinates();
         }
     }
 
