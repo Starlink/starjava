@@ -112,6 +112,57 @@ public class ColumnInfo extends DefaultValueInfo {
     }
 
     /**
+     * Gets the value of an item of auxiliary metadata using its specification,
+     * requiring a particular return type.
+     * This convenience method works like {@link #getAuxDatum} 
+     * but returns a non-null value
+     * only if the named item exists and if its value is an instance of
+     * the given type <tt>clazz</tt>.
+     *
+     * @param  vinfo  the data item to match
+     * @param  clazz  required return type
+     * @return  value of the auxiliary metadata item matching 
+     *          <tt>vinfo</tt> for this 
+     *          column if it exists and is an instance of <tt>clazz</tt> or
+     *          one of its subtypes, otherwise <tt>null</tt>
+     */
+    public Object getAuxDatumValue( ValueInfo vinfo, Class clazz ) {
+        DescribedValue dval = getAuxDatum( vinfo );
+        if ( dval != null ) {
+            Object val = dval.getValue();
+            if ( val != null && clazz.isAssignableFrom( val.getClass() ) ) {
+                return val;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the value of an item of auxiliary metadata by its name,
+     * requiring a particular return type.
+     * This convenience method works like {@link #getAuxDatumByName},
+     * but returns a non-null value only if the named item exists, 
+     * and if its value is an instance of the given type <tt>clazz</tt>.
+     *
+     * @param  name  the name of an auxiliary metadata item
+     * @param  clazz  required return type
+     * @return  value of the auxiliary metadata item matching 
+     *          <tt>vinfo</tt> for this column if it exists and is an
+     *          instance of <tt>clazz</tt> or one of its subtypes, 
+     *          otherwise <tt>null</tt>
+     */
+    public Object getAuxDatumValueByName( String name, Class clazz ) {
+        DescribedValue dval = getAuxDatumByName( name );
+        if ( dval != null ) {
+            Object val = dval.getValue();
+            if ( val != null && clazz.isAssignableFrom( val.getClass() ) ) {
+                return val;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Adds the given DescribedValue to the list of auxiliary metadata
      * for this object.  If an item in the metadata list with the same
      * name as the supplied value already exists, it is removed from the

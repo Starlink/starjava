@@ -64,24 +64,61 @@ abstract class Encoder {
         this.info = info;
 
         /* Datatype attribute. */
-        attMap.put( "datatype", datatype );
+        attMap.put( "datatype", datatype.trim() );
 
         /* Name attribute. */
         String name = info.getName();
-        if ( name != null ) {
+        if ( name != null && name.trim().length() > 0 ) {
             attMap.put( "name", name.trim() );
         }
 
         /* Unit attribute. */
         String units = info.getUnitString();
-        if ( units != null ) {
-            attMap.put( "unit", units );
+        if ( units != null && units.trim().length() > 0 ) {
+            attMap.put( "unit", units.trim() );
         }
 
         /* UCD attribute. */
         String ucd = info.getUCD();
-        if ( ucd != null ) {
-            attMap.put( "ucd", ucd );
+        if ( ucd != null && ucd.trim().length() > 0 ) {
+            attMap.put( "ucd", ucd.trim() );
+        }
+
+        /* Column auxiliary metadata items. */
+        if ( info instanceof ColumnInfo ) {
+            ColumnInfo cinfo = (ColumnInfo) info;
+
+            /* ID attribute. */
+            String id = 
+                (String) cinfo.getAuxDatumValue( VOStarTable.ID_INFO,
+                                                 String.class );
+            if ( id != null && id.trim().length() > 0 ) {
+                attMap.put( "ID", id.trim() );
+            }
+
+            /* UType attribute. */
+            String utype =
+                (String) cinfo.getAuxDatumValue( VOStarTable.UTYPE_INFO,
+                                                 String.class );
+            if ( utype != null && utype.trim().length() > 0 ) {
+                attMap.put( "utype", utype.trim() );
+            }
+
+            /* Width attribute. */
+            Integer width = 
+                (Integer) cinfo.getAuxDatumValue( VOStarTable.WIDTH_INFO,
+                                                  Integer.class );
+            if ( width != null && width.intValue() > 0 ) {
+                attMap.put( "width", width.toString() );
+            }
+
+            /* Precision attribute. */
+            String precision =
+                (String) cinfo.getAuxDatumValue( VOStarTable.PRECISION_INFO,
+                                                 String.class );
+            if ( precision != null && precision.trim().length() > 0 ) {
+                attMap.put( "precision", precision.trim() );
+            }
         }
 
         /* Description information. */

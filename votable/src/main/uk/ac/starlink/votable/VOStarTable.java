@@ -22,6 +22,30 @@ import uk.ac.starlink.util.DOMUtils;
 /**
  * A {@link uk.ac.starlink.table.StarTable} implementation based on a VOTable.
  *
+ * <p>Some of the FIELD attributes defined by the VOTable format 
+ * correspond to standard information in the corresponding ColumnInfo 
+ * object, and some do not.  Those that do are accessed using the 
+ * relevant ColumnInfo getter/setter methods directly, for instance
+ * <pre>
+ *     String ucd = table.getColumnInfo(0).getUCD();
+ * </pre>
+ * The ones that don't are stored in the ColumnInfo's auxiliary metadata
+ * keyed using the various <tt>*_INFO</tt> public static variables defined
+ * in this class.  These are accessed using the
+ * {@link uk.ac.starlink.table.ColumnInfo#getAuxDatum} method, for instance:
+ * <pre>
+ *     String id = (String) table.getColumnInfo(0)
+                                 .getAuxDatumValue(VOStarTable.ID_INFO);
+ * </pre>
+ * In the same way, if you set an auxiliary metadata item under one of
+ * these keys, like this:
+ * <pre>
+ *     DescribedValue idVal = new DescribedValue(VOStarTable.ID_INFO, "COL0");
+ *     table.getColumnInfo(0).setAuxDatum(idVal);
+ * </pre>
+ * then if the result is written to a VOTable the relevant attribute
+ * will be attached to the corresponding FIELD element.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class VOStarTable extends AbstractStarTable {
@@ -35,24 +59,36 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo ucdInfo = new DefaultValueInfo(
         "UCD", String.class, "Table UCD" );
 
-    /* Column auxiliary metadata. */
-    private final static ValueInfo idInfo = new DefaultValueInfo(
-        "ID", String.class, "VOTable ID attribute" );
+    /* Public column auxiliary metadata definitions. */
+
+    /** ValueInfo for VOTable <tt>ID</tt> attribute. */
+    public final static ValueInfo ID_INFO = new DefaultValueInfo(
+        "VOTable ID", String.class, "VOTable ID attribute" );
+
+    /** ValueInfo for VOTable <tt>utype</tt> attribute. */
+    public final static ValueInfo UTYPE_INFO = new DefaultValueInfo(
+        "utype", String.class, 
+        "Usage-specific type (ties value to an external data model)" );
+
+    /** ValueInfo for VOTable <tt>width</tt> attribute. */
+    public final static ValueInfo WIDTH_INFO = new DefaultValueInfo(
+        "VOTable width", Integer.class, "VOTable width attribute" );
+
+    /** ValueInfo for VOTable <tt>precision</tt> attribute. */
+    public final static ValueInfo PRECISION_INFO = new DefaultValueInfo(
+        "VOTable precision", String.class, "VOTable precision attribute" );
+
+    /** ValueInfo for VOTable <tt>type</tt> attribute. */
+    public final static ValueInfo TYPE_INFO = new DefaultValueInfo(
+        "Type", String.class, "VOTable type attribute" );
+
     private final static ValueInfo datatypeInfo = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
-    private final static ValueInfo utypeInfo = new DefaultValueInfo(
-        "utype", String.class, 
-        "Usage-specific type (ties value to an external data model)" );
-    private final static ValueInfo widthInfo = new DefaultValueInfo(
-        "Width", Integer.class, "VOTable width attribute" );
-    private final static ValueInfo precisionInfo = new DefaultValueInfo(
-        "Precision", Double.class, "VOTable precision attribute" );
-    private final static ValueInfo typeInfo = new DefaultValueInfo(
-        "Type", String.class, "VOTable type attribute" );
+
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        idInfo, datatypeInfo, nullInfo, utypeInfo,
-        widthInfo, precisionInfo, typeInfo,
+        ID_INFO, datatypeInfo, nullInfo, UTYPE_INFO,
+        WIDTH_INFO, PRECISION_INFO, TYPE_INFO,
     } );
 
     /**
@@ -94,13 +130,13 @@ public class VOStarTable extends AbstractStarTable {
                  * attributes that the FIELD element has. */
                 List auxdata = cinfo.getAuxData();
 
-                String id = field.getAttribute( "ID" );
-                if ( id != null ) {
-                    auxdata.add( new DescribedValue( idInfo, id ) );
+                if ( field.hasAttribute( "ID" ) ) {
+                    String id = field.getAttribute( "ID" );
+                    auxdata.add( new DescribedValue( ID_INFO, id ) );
                 }
 
-                String datatype = field.getAttribute( "datatype" );
-                if ( datatype != null ) {
+                if ( field.hasAttribute( "datatype" ) ) {
+                    String datatype = field.getAttribute( "datatype" );
                     auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
                 }
 
@@ -128,31 +164,31 @@ public class VOStarTable extends AbstractStarTable {
                     auxdata.add( new DescribedValue( nullInfo, blank ) );
                 }
 
-                String width = field.getAttribute( "width" );
-                if ( width != null ) {
+                if ( field.hasAttribute( "width" ) ) {
+                    String width = field.getAttribute( "width" );
                     try {
                         int wv = Integer.parseInt( width );
-                        auxdata.add( new DescribedValue( widthInfo,
+                        auxdata.add( new DescribedValue( WIDTH_INFO,
                                                          new Integer( wv ) ) );
                     }
                     catch ( NumberFormatException e ) {
                     }
                 }
 
-                String precision = field.getAttribute( "precision" );
-                if ( precision != null ) {
-                    try {
-                        double pv = Double.parseDouble( precision );
-                        auxdata.add( new DescribedValue( precisionInfo,
-                                                         new Double( pv ) ) );
-                    }
-                    catch ( NumberFormatException e ) {
-                    }
+                if ( field.hasAttribute( "precision" ) ) {
+                    String precision = field.getAttribute( "precision" );
+                    auxdata.add( new DescribedValue( PRECISION_INFO,
+                                                     precision ) );
                 }
 
-                String type = field.getAttribute( "type" );
-                if ( type != null ) {
-                    auxdata.add( new DescribedValue( typeInfo, type ) );
+                if ( field.hasAttribute( "type" ) ) {
+                    String type = field.getAttribute( "type" );
+                    auxdata.add( new DescribedValue( TYPE_INFO, type ) );
+                }
+
+                if ( field.hasAttribute( "utype" ) ) {
+                    String utype = field.getAttribute( "utype" );
+                    auxdata.add( new DescribedValue( UTYPE_INFO, utype ) );
                 }
 
                 VOElement[] links = field.getChildrenByName( "LINK" );
@@ -192,7 +228,7 @@ public class VOStarTable extends AbstractStarTable {
             /* Utype attribute. */
             if ( votable.hasAttribute( "utype" ) ) {
                 DescribedValue dval =
-                    new DescribedValue( utypeInfo,
+                    new DescribedValue( UTYPE_INFO,
                                         votable.getAttribute( "utype" ) );
                 params.add( dval );
             }
