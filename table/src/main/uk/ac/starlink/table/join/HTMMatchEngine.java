@@ -83,9 +83,7 @@ public class HTMMatchEngine implements MatchEngine {
         /* Declinations at least are close; do a proper test. */
         double ra1 = ((Number) radec1[ 0 ]).doubleValue();
         double ra2 = ((Number) radec2[ 0 ]).doubleValue();
-        double sep = Math.acos( Math.sin( dec1 ) * Math.sin( dec2 ) +
-                              ( Math.cos( dec1 ) * Math.cos( dec2 ) )
-                              * Math.cos( ra1 - ra2 ) );
+        double sep = calculateSeparation( ra1, dec1, ra2, dec2 );
         return sep <= separation;
     }
 
@@ -112,5 +110,25 @@ public class HTMMatchEngine implements MatchEngine {
             throw new RuntimeException( "Uh-oh", e );
         }
         return binList.toArray();
+    }
+
+    /**
+     * Returns the distance along a great circle between two points.
+     *
+     * @param   ra1  right ascension of point 1 in radians
+     * @param   dec1 declination of point 1 in radians
+     * @param   ra2  right ascension of point 2 in radians
+     * @param   dec2 declination of point 2 in radians
+     * @return  angular separation of point 1 and point 2 in radians
+     */
+    private double calculateSeparation( double ra1, double dec1,
+                                        double ra2, double dec2 ) {
+
+        // this formula isn't too good for small angles!
+        return Math.acos( ( Math.sin( dec1 ) * Math.sin( dec2 ) +
+                            Math.cos( dec1 ) * Math.cos( dec2 ) )
+                        * Math.cos( ra1 - ra2 ) );
+
+        // Should probably use 'haversine' formula.  What is it?
     }
 }
