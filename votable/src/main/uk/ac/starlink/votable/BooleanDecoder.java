@@ -39,6 +39,7 @@ class BooleanDecoder extends NumericDecoder {
                 case 'f':
                 case '0':
                     flag = Boolean.FALSE;
+                    break;
             }
         }
         ((boolean[]) array)[ index ] = flag == Boolean.TRUE;
@@ -52,6 +53,7 @@ class BooleanDecoder extends NumericDecoder {
             case 't':
             case '1':
                 flag = true;
+                break;
             default:
                 flag = false;
         }
