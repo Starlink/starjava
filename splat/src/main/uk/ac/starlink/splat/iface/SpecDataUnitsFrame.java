@@ -105,8 +105,8 @@ public class SpecDataUnitsFrame
         unitsMap.put( "W/m^2/Hz", "W/m^2/Hz" );
         unitsMap.put( "W/m^2/Angstrom", "W/m^2/Angstrom" );
         unitsMap.put( "W/cm^2/um", "W/cm^2/um" );
-        unitsMap.put( "erg/cm2/s/Hz", "erg/cm2/s/Hz" );
-        unitsMap.put( "erg/cm2/s/Angstrom", "erg/cm2/s/Angstrom" ); 
+        unitsMap.put( "erg/cm^2/s/Hz", "erg/cm^2/s/Hz" );
+        unitsMap.put( "erg/cm^2/s/Angstrom", "erg/cm^2/s/Angstrom" ); 
     };
 
     /**
