@@ -20,16 +20,15 @@ import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * This class is designed to handle multiple instances of SpecData
- * objects. Thus creating an apparent "composite" spectrum, from
- * possibly several others.
+ * objects. Thus creating an apparent "composite" spectrum, from possibly
+ * several others.
  * <p>
- * This feature is intended, for instance, to allow the display
- * multiple spectra in a single plot and should be used when
- * referencing spectral data.
+ * This feature is intended, for instance, to allow the display multiple
+ * spectra in a single plot and should be used when referencing spectral data.
  * <p>
  * Note that the first spectrum holds special status. This defines the
- * coordinate system that all other spectra should honour. It also is
- * reported first in constructs such as the name.
+ * coordinate system that all other spectra should honour. It also is reported
+ * first in constructs such as the name.
  * <p>
  * Alignment of coordinates uses astConvert.
  *
@@ -45,14 +44,22 @@ public class SpecDataComp
      * allowing the import of single spectra at a time.
      *
      * The alignment stuff is quite expensive, slow and takes a lot of
-     * memery, especially for large numbers of spectra, so it is
+     * memory, especially for large numbers of spectra, so it is
      * switchable at present. Could look into why and maybe form a
      * caching system of somekind (or get SpecData's to take an extra
      * mapping).
      */
 
-    /** Whether we're being careful to match coordinates */
+    /** 
+     * Whether we're being careful to match coordinates 
+     */
     private boolean coordinateMatching = false;
+
+    /**
+     * Whether we're need to include spacing for error bars in the automatic
+     * ranging.
+     */
+    private boolean errorbarAutoRanging = false;
 
     /**
      *  List of references to the spectra. Note that indexing this
@@ -103,6 +110,24 @@ public class SpecDataComp
     public boolean isCoordinateMatching()
     {
         return coordinateMatching;
+    }
+
+    /**
+     * Set whether we need to add extra space in the autoranging for 
+     * the errorbars, if displayed.
+     */
+    public void setErrorbarAutoRanging( boolean on )
+    {
+        errorbarAutoRanging = on;
+    }
+
+    /**
+     * Get whether we need to add extra space in the autoranging for the
+     * errorbars, if displayed.
+     */
+    public boolean isErrorbarAutoRanging()
+    {
+        return errorbarAutoRanging;
     }
 
     /**
@@ -289,6 +314,23 @@ public class SpecDataComp
         range[3] = Math.max( range[3], newrange[3] );
     }
 
+
+    /**
+     * Get the range of a spectrum. Includes space for errorbars in they are
+     * being drawn and if we have been asked to include it.
+     */
+    protected double[] getSpectrumRange( SpecData spectrum )
+    {
+        double[] newrange = null;
+        if ( spectrum.isDrawErrorBars() && errorbarAutoRanging ) {
+            newrange = spectrum.getFullRange();
+        }
+        else {
+            newrange = spectrum.getRange();
+        }
+        return newrange;
+    }
+
     /**
      *  Get the full data range of all the spectra.
      */
@@ -304,9 +346,10 @@ public class SpecDataComp
         SpecData spectrum = null;
         int failed = 0;
         SplatException lastException = null;
+        double[] newrange;
         for ( int i = 0; i < spectra.size(); i++ ) {
             spectrum = (SpecData) spectra.get(i);
-            double[] newrange = spectrum.getFullRange();
+            newrange = getSpectrumRange( spectrum );
             if ( coordinateMatching ) {
                 if ( i > 0 ) {
                     //  Need to convert between these coordinates and
@@ -336,10 +379,10 @@ public class SpecDataComp
 
     /**
      * Get the data range of the spectra, that should be used when
-     * auto-ranging. Autoranging only uses spectra marked for this
-     * purpose, unless there are no allowable spectra (in which case
-     * it would be bad to have no autorange). If errorbars are in use
-     * then their range is also accomodated.
+     * auto-ranging. Autoranging only uses spectra marked for this purpose,
+     * unless there are no allowable spectra (in which case it would be bad to
+     * have no autorange). If errorbars are in use then their range is also
+     * accommodated, if requested.
      */
     public double[] getAutoRange()
         throws SplatException
@@ -359,12 +402,7 @@ public class SpecDataComp
         for ( int i = 0; i < count; i++ ) {
             spectrum = (SpecData)spectra.get(i);
             if ( spectrum.isUseInAutoRanging() || count == 1 ) {
-                if ( spectrum.isDrawErrorBars() ) {
-                    newrange = spectrum.getFullRange();
-                }
-                else {
-                    newrange = spectrum.getRange();
-                }
+                newrange = getSpectrumRange( spectrum );
                 if ( coordinateMatching ) {
                     if ( i > 0 ) {
                         //  Need to convert between these coordinates and
@@ -582,9 +620,9 @@ public class SpecDataComp
     }
 
     /**
-     *  Lookup interpolated physical values (i.e.<!-- --> 
-     *  wavelength and data value) that correspond to a 
-     *  graphics X coordinate, returned in formatted strings 
+     *  Lookup interpolated physical values (i.e.<!-- -->
+     *  wavelength and data value) that correspond to a
+     *  graphics X coordinate, returned in formatted strings
      *  (could be hh:mm:ss.ss for instance).
      *  <p>
      *  Note that this only works for first spectrum.
