@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     02-OCT-2000 (Peter W. Draper):
@@ -10,6 +10,7 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -79,7 +80,8 @@ public class SplatSelectedProperties
     protected JComboBox dataColumn = new JComboBox();
     protected JComboBox errorColumn = new JComboBox();
     protected JComboBox thickness = new JComboBox();
-    protected JComboBox pointType = new JComboBox();
+    protected PointTypeBox pointType = new PointTypeBox();
+    protected JComboBox pointSize = new JComboBox();
     protected JLabel format = new JLabel();
     protected JLabel fullName = new JLabel();
     protected JTextField shortName = new JTextField();
@@ -185,46 +187,68 @@ public class SplatSelectedProperties
         layouter.add( "Line type:", false );
         layouter.add( lineType, false );
         layouter.eatLine();
-        lineType.setToolTipText( "Type of line used to show spectrum" );
+        lineType.setToolTipText( "Type used to render the spectrum" );
 
         lineType.addActionListener( this );
 
-        //  Set up the line thickness control.
-        layouter.add( "Thickness:", false );
-        layouter.add( thickness, false );
-        layouter.eatLine();
-        thickness.setToolTipText( "Thickness of spectrum line" );
+        //  The thickness and style are joined into a single line.
+        JPanel lineProps = new JPanel();
+        GridBagLayouter layouter2 =
+            new GridBagLayouter( lineProps, GridBagLayouter.SCHEME3 );
 
+        //  Set up the line thickness control.
+        thickness.setToolTipText( "Width of spectrum when draw as a line" );
         for ( int i = 1; i < 20; i++ ) {
             thickness.addItem( new Integer( i ) );
         }
         thickness.addActionListener( this );
 
         //  Set up the line style control.
-        layouter.add( "Line style:", false );
-        layouter.add( lineStyle, false );
-        layouter.eatLine();
         lineStyle.setToolTipText
             ( "Type of line style used when drawing spectrum" );
-
         lineStyle.addActionListener( this );
 
-        //  Set up the point type control.
-        layouter.add( "Point type:", false );
-        layouter.add( pointType, false );
-        layouter.eatLine();
-        pointType.setToolTipText
-            ( "Type of points used when drawing spectrum" );
+        //  Add controls to this combined line.
+        layouter2.add( thickness, false );
+        layouter2.add( "Style:", false );
+        layouter2.add( lineStyle, false );
+        layouter2.eatLine();
 
-        for ( int i = 0; i < 13; i++ ) {
-            pointType.addItem( new Integer( i ) );
-        }
+        //  Label this line (need this for aligned purposes) and add the 
+        //  combined thickness and style component.
+        layouter.add( "Line width:", false );
+        layouter.add( lineProps, false );
+        layouter.eatLine();
+
+        //  The point type and size are joined into a single line.
+        JPanel pointProps = new JPanel();
+        layouter2 = new GridBagLayouter( pointProps, GridBagLayouter.SCHEME3 );
+
+        //  Set up the point type control.
+        pointType.setToolTipText("Type of points used when drawing spectrum");
         pointType.addActionListener( this );
 
+        //  And point size.
+        pointSize.setToolTipText
+            ( "Size of the points used when drawing spectrum" );
+        for ( int i = 1; i < 32; i++ ) {
+            pointSize.addItem( new Double( i ) );
+        }
+        pointSize.addActionListener( this );
+
+        layouter2.add( pointType, false );
+        layouter2.add( "Size:", false );
+        layouter2.add( pointSize, false );
+        layouter2.eatLine();
+
+        layouter.add( "Point type:", false );
+        layouter.add( pointProps, false );
+        layouter.eatLine();
+
         //  Set up the errorbar display control.
-        layouter.add( "Error bars:", false );
         JPanel errorControls = new JPanel();
-        layouter.add( errorControls, false );
+        layouter2 = new GridBagLayouter( errorControls, 
+                                         GridBagLayouter.SCHEME3 );
         errorControls.add( errors );
 
         errors.setToolTipText
@@ -233,7 +257,7 @@ public class SplatSelectedProperties
 
         //  Add additional button for setting the error bar colour.
         errorsColour.setIcon( errorsColourIcon );
-        errorControls.add( errorsColour );
+        layouter2.add( errorsColour, false );
 
         errorsColour.setToolTipText( "Choose a colour for error bars" );
         errorsColour.addActionListener( this );
@@ -244,7 +268,7 @@ public class SplatSelectedProperties
         }
         errorScale.setToolTipText("Set number of sigma shown for error bars");
         errorScale.addActionListener( this );
-        errorControls.add( errorScale );
+        layouter2.add( errorScale, false );
 
         //  Frequency of error bars (1, 2, 3, 4, 5, 6, 7, 8, 9 ... 20)
         for ( int i = 1; i < 21; i++ ) {
@@ -252,8 +276,12 @@ public class SplatSelectedProperties
         }
         errorFrequency.setToolTipText("Set frequency for drawing error bars");
         errorFrequency.addActionListener( this );
-        errorControls.add( errorFrequency );
+        layouter2.add( errorFrequency, false );
+        layouter2.eatLine();
 
+        //  Add the main error control component.
+        layouter.add( "Error bars:", false );
+        layouter.add( errorControls, false );
         layouter.eatSpare();
 
         //  Set up the listSelectionListener so that we can update
@@ -293,7 +321,8 @@ public class SplatSelectedProperties
                 fullName.setText( spec.getFullName() );
                 format.setText( spec.getDataFormat() );
                 thickness.setSelectedIndex( (int)spec.getLineThickness() - 1 );
-                //pointType.setSelectedIndex( (int)spec.getPointType() );
+                pointType.setSelectedType( (int)spec.getPointType() );
+                pointSize.setSelectedIndex( (int)spec.getPointSize() - 1 );
                 lineStyle.setSelectedStyle( (int)spec.getLineStyle() );
                 lineType.setSelectedStyle( (int)spec.getPlotStyle() );
                 errors.setEnabled( spec.haveYDataErrors() );            
@@ -398,8 +427,22 @@ public class SplatSelectedProperties
 
         int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
-            Integer type = (Integer) pointType.getSelectedItem();
+            Integer type = new Integer( pointType.getSelectedType() );
             applyProperty( indices, SpecData.POINT_TYPE, type );
+        }
+    }
+
+    /**
+     *  Change the point size of all selected spectra.
+     */
+    protected void updatePointSize()
+    {
+        if ( inhibitChanges ) return;
+
+        int[] indices = specList.getSelectedIndices();
+        if ( indices.length > 0 && indices[0] > -1 ) {
+            Double size = (Double) pointSize.getSelectedItem();
+            applyProperty( indices, SpecData.POINT_SIZE, size );
         }
     }
 
@@ -675,6 +718,11 @@ public class SplatSelectedProperties
             return;
         }
 
+        if ( source.equals( pointSize ) ) {
+            updatePointSize();
+            return;
+        }
+
         if ( source.equals( lineStyle ) ) {
             updateLineStyle();
             return;
@@ -692,10 +740,12 @@ public class SplatSelectedProperties
 
         if ( source.equals( errorScale ) ) {
             updateErrorScale();
+            return;
         }
 
         if ( source.equals( errorFrequency ) ) {
             updateErrorFrequency();
+            return;
         }
     }
 }
