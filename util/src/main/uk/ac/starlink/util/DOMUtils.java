@@ -1,14 +1,75 @@
 package uk.ac.starlink.util;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
 
+import java.net.URI;
+
+/**
+ * Provides convenience methods for handling DOMs.
+ */
 public class DOMUtils {
 
     /** Private dummy sole constructor. */
     private DOMUtils() {}
 
+    /** Maps node type codes to names.  Used by {@link #mapNodeType} */
+    static private String[] nodeTypeMap;
+    static {
+        // The following appears nasty and errorprone, and vulnerable
+        // to updates in the DOM spec.  However, it's not as bad as it
+        // looks.  The DOM spec
+        // <http://www.w3.org/TR/DOM-Level-2-Core> includes the
+        // numerical values of the Node constants in the definition of
+        // the Node interface, so they can't change.  The outside
+        // possibility of change is held open within the spec, by the
+        // statement reserving the first 200 such codes for use by
+        // W3C, but if such a change were to come about, and affect
+        // us, this is the least of the things which would have to
+        // be modified.  It's possible to use a hash map to make this
+        // completely general, but that gains us very little beyond
+        // paranoid generality.
+        //
+        // See also nodeToMaskMap in NodeDescendants.java
+        nodeTypeMap = new String[16];
+        
+        assert Node.ATTRIBUTE_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.ATTRIBUTE_NODE] = "Attribute";
+
+        assert Node.CDATA_SECTION_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.CDATA_SECTION_NODE] = "CDATASection";
+
+        assert Node.COMMENT_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.COMMENT_NODE] = "Comment";
+
+        assert Node.DOCUMENT_FRAGMENT_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.DOCUMENT_FRAGMENT_NODE] = "DocumentFragment";
+
+        assert Node.DOCUMENT_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.DOCUMENT_NODE] = "Document";
+
+        assert Node.DOCUMENT_TYPE_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.DOCUMENT_TYPE_NODE] = "DocumentType";
+
+        assert Node.ELEMENT_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.ELEMENT_NODE] = "Element";
+
+        assert Node.ENTITY_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.ENTITY_NODE] = "Entity";
+
+        assert Node.ENTITY_REFERENCE_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.ENTITY_REFERENCE_NODE] = "EntityReference";
+
+        assert Node.NOTATION_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.NOTATION_NODE] = "Notation";
+
+        assert Node.PROCESSING_INSTRUCTION_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.PROCESSING_INSTRUCTION_NODE]
+                = "ProcessingInstruction";
+
+        assert Node.TEXT_NODE < nodeTypeMap.length;
+        nodeTypeMap[Node.TEXT_NODE] = "Text";
+    }
+    
     /**
      * Returns the first child element of a node which has a given name.
      *
@@ -73,4 +134,70 @@ public class DOMUtils {
              : getFirstElementSibling( node.getNextSibling() );
     }
 
+    /**
+     * Traverses the given DOM, relativising all the URIs in the
+     * <code>uri</code> attributes of each <code>Element</code>.
+     *
+     * <p>The (uri-attribute) nodes in the input DOM are modified by this
+     * method; if this is a problem, use {@link
+     * org.w3c.dom.Node#cloneNode} first.
+     *
+     * @param n a node containing the DOM whose URIs are to be
+     * relativized.  If this is null, the method immediately returns null
+     * @param baseURI the URI relative to which the DOM is to be
+     * relativised.  If this is null, then the input node is
+     * immediately returned unchanged.
+     * @param attname the attribute name to be used.  If null, this
+     * defaults to <code>uri</code>
+     * @return the input node
+     * @see java.net.URI#relativize
+     */
+    public static Node relativizeDOM(Node n, URI baseURI, String attname) {
+        if (n == null || baseURI == null)
+            return n;
+        if (attname == null)
+            attname = "uri";
+        NamedNodeMap nm = n.getAttributes();
+        if (nm != null)
+            for (int i=0; i<nm.getLength(); i++) {
+                Attr att = (Attr)nm.item(i);
+                if (att.getName().equals(attname)) {
+                    String oldAttValue = att.getValue();
+                    try {
+                        att.setValue
+                                (baseURI.relativize(new URI(oldAttValue))
+                                 .toString());
+                    } catch (java.net.URISyntaxException ex) {
+                        // Malformed URI -- restore the attribute to its original value
+                        att.setValue(oldAttValue);
+                    }
+                }
+            }
+        for (Node kid=n.getFirstChild(); kid!=null; kid=kid.getNextSibling())
+            relativizeDOM(kid, baseURI, attname);
+        return n;
+    }
+
+    /**
+     * Maps a node type, as returned by to a name.
+     * The node types returned by {@link Node#getNodeType()} are
+     * numeric and are therefore inconveniently opaque.
+     *
+     * @param nodeType a numeric Node type, one of the node type
+     * constants defined in <code>Node</code>
+     * @return a string name for the type
+     */
+    static public String mapNodeType(short nodeType) {
+        // Mostly for debugging -- the numeric node types are pretty
+        // useless in any sort of log message.  Yes, this _is_
+        // more elaborate than you'd guess it'd have to be, and no,
+        // there's no other way to debug node types other than by grubbing
+        // through org.w3c.dom.Node.java
+        assert nodeType < nodeTypeMap.length;
+        String val = nodeTypeMap[nodeType];
+        if (val == null)
+            val = "UNKNOWN!!!";
+        assert val instanceof String;
+        return (String)val;
+    }
 }
