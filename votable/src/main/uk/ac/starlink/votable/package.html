@@ -20,13 +20,9 @@ The classes in this package fall into the following categories:
     However, they could be publicised if there was some reason this
     was wanted.
 <dt>Compatibility classes:
-<dd>The {@link uk.ac.starlink.votable.RandomVOStarTable} 
+<dd>The {@link uk.ac.starlink.votable.VOStarTable} 
     class provides an adaptor between 
-    a VOTable TABLE element and a {@link uk.ac.starlink.table.StarTable}, 
-    and the {@link uk.ac.starlink.votable.RandomVOTableModel} 
-    provides one between a TABLE element and a 
-    {@link javax.swing.table.TableModel}.  Using one or other of these
-    it is easy to make a JTable.
+    a VOTable TABLE element and a {@link uk.ac.starlink.table.StarTable}.
 </dl>
 
 <p>Elements in the VOTable DTD are represented by instances of
@@ -47,8 +43,8 @@ the <tt>getChildren</tt> etc methods.
 However a static method {@link uk.ac.starlink.votable.VOElement#makeVOElement} 
 is provided for constructing a <tt>VOElement</tt> from an 
 XML {@link javax.xml.transform.Source},
-so VOTable components can be made from bits of the DOM tree/SAX stream/
-whatever
+so VOTable components can be made from bits of the 
+DOM tree/SAX stream/whatever if
 you're not interested in the whole document, 
 or if you prefer to navigate around the XML using other techniques.
 The purpose of using an XML <tt>Source</tt> here is twofold:
