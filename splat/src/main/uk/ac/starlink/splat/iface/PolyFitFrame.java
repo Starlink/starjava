@@ -263,7 +263,7 @@ public class PolyFitFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Fit Polynomial to a Spectrum" ));
+        setTitle( Utilities.getTitle( "Fit polynomial to a spectrum" ));
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         contentPane.add( actionBarContainer, BorderLayout.SOUTH );
         setSize( new Dimension( 550, 500 ) );
