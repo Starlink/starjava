@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import junit.framework.AssertionFailedError;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -41,6 +43,8 @@ public class FormatsTest extends TestCase {
         NAMES_INFO.setElementSize( 24 );
         DRINK_INFO.setUCD( "ID_VERSION" );
         SIZE_INFO.setUnitString( "Area of Wales" );
+
+        Logger.getLogger( "uk.ac.starlink.table" ).setLevel( Level.WARNING );
     }
 
     private StarTable table;
