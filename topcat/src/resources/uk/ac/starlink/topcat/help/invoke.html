@@ -50,6 +50,13 @@ tuning and debugging; a full list can be seen by doing
    topcat -X
 </pre>
 
+<p>Finally, invoking TOPCAT with the <code>-guihelp</code> flag:
+<pre>
+   topcat -guihelp
+</pre>
+causes the help browser to be displayed, but the rest of the program 
+will not run.
+
 
 <h3>Invoking directly</h3>
 
@@ -59,7 +66,7 @@ startup script is unlikely to work.  In this case you can probably
 invoke the Jar file <tt>lib/topcat/tocpat.jar</tt> file directly,
 for instance by clicking on it or typing something like 
 <pre>
-   java -jar topcat.jar
+   java -jar topcat.jar [args]
 </pre>
 In this case however, since your normal class path (e.g. your CLASSPATH
 environment variable) is ignored, it will be impossible to use JDBC
