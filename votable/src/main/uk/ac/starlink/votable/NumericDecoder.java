@@ -108,6 +108,142 @@ abstract class NumericDecoder extends Decoder {
         }
         return packageArray( result );
     }
+
+    /**
+     * Decodes a string as a single scalar.  This method is used by the
+     * scalar decoders, and would be handled using multiple inheritance
+     * if it existed in java.
+     *
+     * @param   txt  text string representing a single value
+     * @return  decoded value of <tt>txt</tt>
+     */
+    Object scalarDecodeString( String txt ) {
+        if ( txt == null || txt.length() == 0 ) {
+            return null;
+        }
+        else {
+            Object array = getEmptyArray( 1 );
+            try {
+                decodeString1( array, 0, txt.trim() );
+            }
+            catch ( IllegalArgumentException e ) {
+                return null;
+            }
+            return packageArray( array );
+        }
+    }
+
+    /**
+     * Interprets a string as a <tt>short</tt>.
+     *
+     * @param   txt  text string
+     * @return  numeric value of <tt>txt</tt>
+     * @throws  NumberFormatException  if the parse fails
+     */
+    static short parseShort( String txt ) {
+        int pos = 0;
+        int leng = txt.length();
+        while ( txt.charAt( pos ) == ' ' ) {
+            pos++;
+        }
+        if ( leng - pos > 1 ) {
+            if ( txt.charAt( pos + 1 ) == 'x' &&
+                 txt.charAt( pos ) == '0' ) {
+                return Short.parseShort( txt.substring( pos + 2 ), 16 );
+            }
+        }
+        return Short.parseShort( txt );
+    }
+
+    /**
+     * Interprets a string as an <tt>int</tt>.
+     *
+     * @param   txt  text string
+     * @return  numeric value of <tt>txt</tt>
+     * @throws  NumberFormatException  if the parse fails
+     */
+    static int parseInt( String txt ) {
+        int pos = 0;
+        int leng = txt.length();
+        while ( txt.charAt( pos ) == ' ' ) {
+            pos++;
+        }
+        if ( leng - pos > 1 ) {
+           if ( txt.charAt( pos + 1 ) == 'x' &&
+                txt.charAt( pos ) == '0' ) {
+               return Integer.parseInt( txt.substring( pos + 2 ), 16 );
+           }
+        }
+        return Integer.parseInt( txt );
+    }
+
+    /**
+     * Interprets a string as a <tt>long</tt>.
+     *
+     * @param   txt  text string
+     * @return  numeric value of <tt>txt</tt>
+     * @throws  NumberFormatException  if the parse fails
+     */
+    static long parseLong( String txt ) {
+        int pos = 0;
+        int leng = txt.length();
+        while ( txt.charAt( pos ) == ' ' ) {
+            pos++;
+        }
+        if ( leng - pos > 1 ) {
+            if ( txt.charAt( pos + 1 ) == 'x' &&
+                 txt.charAt( pos ) == '0' ) {
+                return Long.parseLong( txt.substring( pos + 2 ), 16 );
+            }
+        }
+        return Long.parseLong( txt );
+    }
+
+    /**
+     * Interprets a string as a <tt>float</tt>.
+     *
+     * @param   txt  text string
+     * @return  numeric value of <tt>txt</tt>
+     * @throws  NumberFormatException  if the parse fails
+     */
+    static float parseFloat( String txt ) {
+        int pos = 0;
+        int leng = txt.length();
+        while ( txt.charAt( pos ) == ' ' ) {
+            pos++;
+        }
+        if ( leng - pos > 1 ) {
+            if ( txt.charAt( pos + 1 ) == 'I' &&
+                 txt.indexOf( "Inf" ) == 1 ) {
+                return txt.charAt( pos ) == '-' ? Float.NEGATIVE_INFINITY
+                                                : Float.POSITIVE_INFINITY;
+            }
+        }
+        return Float.parseFloat( txt );
+    }
+
+    /**
+     * Interprets a string as a <tt>double</tt>.
+     *
+     * @param   txt  text string
+     * @return  numeric value of <tt>txt</tt>
+     * @throws  NumberFormatException  if the parse fails
+     */
+    static double parseDouble( String txt ) {
+        int pos = 0;
+        int leng = txt.length();
+        while ( txt.charAt( pos ) == ' ' ) {
+            pos++;
+        }
+        if ( leng - pos > 1 ) {
+            if ( txt.charAt( pos + 1 ) == 'I' &&
+                 txt.indexOf( "Inf" ) == 1 ) {
+                return txt.charAt( pos ) == '-' ? Double.NEGATIVE_INFINITY
+                                                : Double.POSITIVE_INFINITY;
+            }
+        }
+        return Double.parseDouble( txt );
+    }
 }
 
 class ShortDecoder extends NumericDecoder {
@@ -120,14 +256,14 @@ class ShortDecoder extends NumericDecoder {
         super( clazz, arraysize );
     }
     void setNullValue( String txt ) {
-        bad = Short.parseShort( txt );
+        bad = parseShort( txt );
         hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new short[ size ];
     }
     void decodeString1( Object array, int index, String txt ) {
-        ((short[]) array)[ index ] = Short.parseShort( txt );
+        ((short[]) array)[ index ] = parseShort( txt );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -148,6 +284,9 @@ class ScalarShortDecoder extends ShortDecoder {
     Object packageArray( Object array ) {
         short[] arr = (short[]) array;
         return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
+    }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
     }
 }
 
@@ -173,6 +312,9 @@ class ScalarUnsignedByteDecoder extends UnsignedByteDecoder {
         short[] arr = (short[]) array;
         return isNull( arr, 0 ) ? null : new Short( arr[ 0 ] );
     }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
+    }
 }
 
 class IntDecoder extends NumericDecoder {
@@ -185,14 +327,14 @@ class IntDecoder extends NumericDecoder {
         this( int[].class, arraysize );
     }
     void setNullValue( String txt ) {
-        bad = Integer.parseInt( txt );
+        bad = parseInt( txt );
         hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new int[ size ];
     }
     void decodeString1( Object array, int index, String txt ) {
-        ((int[]) array)[ index ] = Integer.parseInt( txt );
+        ((int[]) array)[ index ] = parseInt( txt );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -214,6 +356,9 @@ class ScalarIntDecoder extends IntDecoder {
         int[] arr = (int[]) array;
         return isNull( arr, 0 ) ? null : new Integer( arr[ 0 ] );
     }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
+    }
 }
 
 class LongDecoder extends NumericDecoder {
@@ -226,14 +371,14 @@ class LongDecoder extends NumericDecoder {
         this( long[].class, arraysize );
     }
     void setNullValue( String txt ) {
-        bad = Long.parseLong( txt );
+        bad = parseLong( txt );
         hasBad = true;
     }
     Object getEmptyArray( int size ) {
         return new long[ size ];
     }
     void decodeString1( Object array, int index, String txt ) {
-        ((long[]) array)[ index ] = Long.parseLong( txt );
+        ((long[]) array)[ index ] = parseLong( txt );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -255,6 +400,9 @@ class ScalarLongDecoder extends LongDecoder {
         long[] arr = (long[]) array;
         return isNull( arr, 0 ) ? null : new Long( arr[ 0 ] );
     }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
+    }
 }
 
 class FloatDecoder extends NumericDecoder {
@@ -271,7 +419,7 @@ class FloatDecoder extends NumericDecoder {
         return new float[ size ];
     }
     void decodeString1( Object array, int index, String txt ) {
-        ((float[]) array)[ index ] = Float.parseFloat( txt );
+        ((float[]) array)[ index ] = parseFloat( txt );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -293,6 +441,9 @@ class ScalarFloatDecoder extends FloatDecoder {
         float[] arr = (float[]) array;
         return isNull( arr, 0 ) ? null : new Float( arr[ 0 ] );
     }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
+    }
 }
 
 class DoubleDecoder extends NumericDecoder {
@@ -309,7 +460,7 @@ class DoubleDecoder extends NumericDecoder {
         return new double[ size ];
     }
     void decodeString1( Object array, int index, String txt ) {
-        ((double[]) array)[ index ] = Double.parseDouble( txt );
+        ((double[]) array)[ index ] = parseDouble( txt );
     }
     void decodeStream1( Object array, int index, DataInput strm )
             throws IOException {
@@ -330,5 +481,8 @@ class ScalarDoubleDecoder extends DoubleDecoder {
     Object packageArray( Object array ) {
         double[] arr = (double[]) array;
         return isNull( arr, 0 ) ? null : new Double( arr[ 0 ] );
+    }
+    public Object decodeString( String txt ) {
+        return scalarDecodeString( txt );
     }
 }
