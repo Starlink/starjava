@@ -260,8 +260,8 @@
 
   </path>
 
-  <!-- Extra user-defined classpath. This is set by the property 
-   !   "extra.class.path" (which can be defined locally using say 
+  <!-- Extra user-defined classpath. This is set by the property
+   !   "extra.class.path" (which can be defined locally using say
    !   -Dextra.class.path=$CLASSPATH on the command line or by setting
    !   the property in either of the properties files.-->
   <property name="extra.class.path" value=""/>
@@ -296,7 +296,7 @@
    ! this throws a <fail> and exits the build.
    !-->
   <target name="check_packages"
-          unless="runonly.install" 
+          unless="runonly.install"
           if="fasttest">
 
     <!--  Need NDArray -->
@@ -453,9 +453,9 @@
     <property name="java.shareables" value="${jniast.share}"/>
 
     <mkdir dir="${dist.lib.arch}"/>
-    
+
     <echo message="java.home=${java.home}"/>
-    
+
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Linux">
       <env key="SYSTEM" value="ix86_Linux"/>
       <env key="JAVA_SYSTEM" value="linux"/>
@@ -510,9 +510,9 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
-value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar  
-../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar 
-../jniast/jniast.jar ../soapserver/soapserver.jar ../fits/fits.jar 
+value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
+../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar
+../jniast/jniast.jar ../soapserver/soapserver.jar ../fits/fits.jar
 ../hds/hds.jar"/>
       </manifest>
     </jar>
@@ -770,7 +770,7 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
       <fileset dir="${dist.bin}"/>
     </loggedcopy>
 
-    <!-- Also remove the package-specific directory. 
+    <!-- Also remove the package-specific directory.
      !   Note exact format is required.-->
     <echo file="${install.log}" append="true">${star.bin.pkg}
 </echo>
@@ -861,7 +861,7 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
 
   <!-- Real deinstall target. Only activated if "install.log.present"
    !   is defined -->
-  <target name="real_deinstall" 
+  <target name="real_deinstall"
           if="install.log.present">
 
     <loadfile property="files" srcFile="${install.log}"/>
@@ -980,8 +980,36 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
    !-->
   <target name="test"
           depends="compile-tests">
+    <!-- does nothing, no tests in SPLAT -->
+  </target>
 
-    <!-- Run up SPLAT from the local build -->
+  <!-- Compile all code and run up the UI -->
+  <target name="fullui"
+          depends="compile-tests">
+    <antcall target="debugui"/>
+  </target>
+
+  <!-- RUN up UI without compilation dependency (for testing/inspecting 
+   !   when coding not complete). -->
+  <target name="debugui">
+
+    <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
+    <java classname="uk.ac.starlink.splat.iface.SplatBrowserMain" fork="true">
+      <classpath refid="tests-classpath"/>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xnoagent"/>
+      <jvmarg value="-Djava.compiler=NONE"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
+      <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
+      <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
+      <arg value="src/etc/testdata/ramp.txt"/>
+    </java>
+  </target>
+
+  <!-- RUN up UI without compilation dependency and without remote
+   !   debugging support -->
+  <target name="plainui">
+
     <java classname="uk.ac.starlink.splat.iface.SplatBrowserMain" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
@@ -1001,23 +1029,6 @@ value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
    !-->
   <target name="dtd">
      <antstructure output="project.dtd"/>
-  </target>
-
-  <!-- 
-   ! Run up JSwat. Only works at Durham as pdraper...
-   !-->
-  <target name="jswat"
-          depends="compile-tests">
-
-    <path id="jswat-classpath">
-       <path refid="tests-classpath"/>
-       <pathelement 
-           location="/loc/pwdb/pdraper/java/jswat/jswat-2.10/jswat.jar"/>
-       <pathelement location="/stardev/java/jdk-1.4.0_01/lib/tools.jar"/>
-    </path> 
-    <java classname="com.bluemarsh.jswat.Main" fork="true">
-      <classpath refid="jswat-classpath"/>
-    </java>
   </target>
 
 </project>

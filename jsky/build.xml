@@ -846,7 +846,6 @@
    !-->
   <target name="test"
           depends="compile-tests">
-
   </target>
 
   <target name="fullui"

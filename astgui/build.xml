@@ -871,9 +871,7 @@
    !   ===================
    !-->
   <target name="test"
-          depends="run-tests"
-          description="-> run JUnit tests">
-  </target>
+          description="-> does nothing"/>
 
   <target name="run-tests"
           depends="compile-tests"

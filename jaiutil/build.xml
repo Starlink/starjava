@@ -891,8 +891,16 @@
    !   ============
    !-->
   <target name="test"
+          description="-> does nothing"/>
+
+  <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="uitest"
           depends="run-tests"
-          description="-> run JUnit tests"/>
+          description="-> run JUnit tests (UI)"/>
 
   <target name="run-tests"
           depends="compile-tests"

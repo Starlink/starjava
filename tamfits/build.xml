@@ -840,12 +840,9 @@
    !   ============
    !   Run testcase
    !   ============
-   ! Note these are not JUnit based.
    !-->
   <target name="test"
-          depends="compile-tests">
-
-  </target>
+          description="-> does nothing"/>
 
   <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!

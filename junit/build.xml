@@ -372,6 +372,14 @@
   </target>
 
   <!--
+   !   ============
+   !   Run testcase
+   !   ============
+   !-->
+  <target name="test"
+          description="-> does nothing"/>
+
+  <!--
    ! Get a DTD for this build file. Documentation suggests may be incomplete!
    !
    ! Use:
