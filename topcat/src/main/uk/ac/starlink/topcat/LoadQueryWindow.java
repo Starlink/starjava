@@ -13,18 +13,27 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.DriverManager;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.TransferHandler;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.SQLReadDialog;
 import uk.ac.starlink.table.gui.StarTableNodeChooser;
@@ -60,7 +69,9 @@ public abstract class LoadQueryWindow extends QueryWindow {
     private JFileChooser fileChooser;
     private StarTableNodeChooser nodeChooser;
     private SQLReadDialog sqlDialog;
+    private ComboBoxModel formatModel;
 
+    private static ListCellRenderer formatRenderer;
     public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
     public static String DEMO_TABLE = "863sub.fits";
     public static String DEMO_NODES = "demo_list";
@@ -79,6 +90,24 @@ public abstract class LoadQueryWindow extends QueryWindow {
         /* Place the field for entering the location. */
         locField = new JTextField();
         getStack().addLine( "Location", locField );
+
+        /* Construct and place the selector for input format. */
+        JComboBox formatField = new JComboBox();
+        formatField.addItem( null );
+        for ( Iterator it = tableFactory.getKnownBuilders().iterator();
+              it.hasNext(); ) {
+            formatField.addItem( ((TableBuilder) it.next()).getFormatName() );
+        }
+        formatModel = formatField.getModel();
+        getStack().addLine( "Format", formatField );
+
+        /* Set an appropriate renderer for the input format selector. */
+        if ( formatRenderer == null ) {
+            formatRenderer = new CustomComboBoxRenderer();
+            ((CustomComboBoxRenderer) formatRenderer)
+                                     .setNullRepresentation( "(auto)" );
+        }
+        formatField.setRenderer( formatRenderer );
 
         /* Define the actions for starting other dialogues. */
         Action fileAction = new AbstractAction( "Browse Files" ) {
@@ -126,7 +155,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
             public void actionPerformed( ActionEvent evt ) {
                 String demoPath = DEMO_LOCATION + "/" + DEMO_TABLE;
                 submitLocation( getClass().getClassLoader()
-                               .getResource( demoPath ).toString() );
+                               .getResource( demoPath ).toString(), null );
             }
         } );
         demoMenu.add( demoAction );
@@ -198,7 +227,8 @@ public abstract class LoadQueryWindow extends QueryWindow {
     }
 
     protected boolean perform() {
-        return submitLocation( locField.getText() );
+        return submitLocation( locField.getText(),
+                               (String) formatModel.getSelectedItem() );
     }
 
     /**
@@ -208,9 +238,10 @@ public abstract class LoadQueryWindow extends QueryWindow {
      * If the loading is successful, this window will dispose of itself.
      *
      * @param  loc  the location of the table to attempt to open
+     * @param  format  format name for table construction
      * @return  true iff the table was successfully loaded
      */
-    private boolean submitLocation( String loc ) {
+    private boolean submitLocation( String loc, String format ) {
 
         /* If it's blank, refuse to accept it. */
         if ( loc.trim().length() == 0 ) {
@@ -221,10 +252,12 @@ public abstract class LoadQueryWindow extends QueryWindow {
         /* Turn the location string into a StarTable. */
         StarTable st;
         try {
-            st = tableFactory.makeStarTable( loc );
+            st = tableFactory.makeStarTable( loc, format );
         }
         catch ( Throwable e ) {
-            ErrorDialog.showError( e, "Can't make table " + loc, this );
+            String[] lines = { "Can't open table " + loc, e.getMessage() };
+            JOptionPane.showMessageDialog( this, lines, "Load Error",
+                                           JOptionPane.ERROR_MESSAGE );
             return false;
         }
 
@@ -277,7 +310,8 @@ public abstract class LoadQueryWindow extends QueryWindow {
         if ( result == JFileChooser.APPROVE_OPTION ) {
             File file = fc.getSelectedFile();
             if ( file != null ) {
-                submitLocation( file.toString() );
+                submitLocation( file.toString(), 
+                                (String) formatModel.getSelectedItem() );
             }
         }
     }
@@ -324,9 +358,24 @@ public abstract class LoadQueryWindow extends QueryWindow {
      */
     public JFileChooser getFileChooser() {
         if ( fileChooser == null ) {
+
+            /* Create a new file chooser. */
             fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode( JFileChooser.FILES_ONLY );
             fileChooser.setCurrentDirectory( new File( "." ) );
+
+            /* Add a format selector as an accessory. */
+            /* The layout of this is currently ugly in the default PLAF - 
+             * I can't seem to unugly it. */
+            JComboBox fsel = new JComboBox( formatModel );
+            fsel.setRenderer( formatRenderer );
+            JComponent line = new JPanel();
+            line.add( new JLabel( "Table Format: " ) );
+            line.add( fsel );
+            JComponent acc = Box.createVerticalBox();
+            acc.add( Box.createVerticalGlue() );
+            acc.add( line );
+            fileChooser.setAccessory( acc );
         }
         return fileChooser;
     }
