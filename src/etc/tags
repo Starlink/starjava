@@ -19,3 +19,10 @@ r0-2:
            HDX are omitted because they cause some of the test targets to
            fail (FITS, HDS).
 
+r0-3:
+   Date:   21-FEB-2003
+   Tagger: Mark Taylor
+   Info:   Added now non-broken copies of COCO, PAL, RV and fixed JNIAST so
+           that you don't now need to copy an external AST source file
+           into the source directory.
+
