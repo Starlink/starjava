@@ -23,7 +23,13 @@ import javax.swing.JMenuItem;
 /**
  * Class that makes any locally installed examples available and arranges for
  * them to be loaded into SPLAT. All examples are stored in SPLAT serialised
- * stacks that are contained in the "/examples" hierarchy.
+ * stacks that are contained in the "/examples" hierarchy. The examples to
+ * be used are listed in the simple text file "list", which is located with
+ * the stacks.
+ * <p>
+ * The format of the list file is one example per-line, with the following
+ * details, name of the stack file, title for the example (additional graphics
+ * options?). Each part is separated by tabs.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -85,10 +91,15 @@ public class ExamplesManager
         BufferedReader rdr =
             new BufferedReader( new InputStreamReader( strm ) );
 
-        List examplesList = new ArrayList();
+        List fileNames = new ArrayList();
+        List shortNames = new ArrayList();
+        String[] parts = null;
         try {
             for ( String line; ( line = rdr.readLine() ) != null; ) {
-                examplesList.add( "/examples/" + line );
+                //  Parse line into filename and title.
+                parts = line.split( "\t" );
+                fileNames.add( "/examples/" + parts[0].trim() );
+                shortNames.add( parts[1] );
             }
             rdr.close();
         }
@@ -96,13 +107,14 @@ public class ExamplesManager
             return false;
         }
 
-        for ( int i = 0; i < examplesList.size(); i++ ) {
-            JMenuItem item = new JMenuItem( (String) examplesList.get(i) );
+        JMenuItem item = null;
+        for ( int i = 0; i < fileNames.size(); i++ ) {
+            item = new JMenuItem( (String) shortNames.get(i) );
             menu.add( item );
             item.addActionListener( this );
-            item.setActionCommand( (String) examplesList.get(i) );
+            item.setActionCommand( (String) fileNames.get(i) );
         }
-        if ( examplesList.size() > 0 ) {
+        if ( fileNames.size() > 0 ) {
             return true;
         }
         return false;
