@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalogs PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+  This document describes the query arguments and access method for an astronomical catalog.
+
+  XXX Work in progress XXX
+-->
+
+<catalogs version="0.1">
+ <catalog 
+   id="gsc@eso" 
+   name="Guide Star Catalog at ESO (v1)" 
+   type="catalog"
+   protocol="http"
+   host="archive.eso.org"
+   path="/skycat/servers/gsc-server">
+
+   <params>
+     <param 
+       id="center" 
+       name="Center (RA Dec)"
+       description="Center RA, Dec Coordinates in J2000"
+       type="radec"/>
+     <param 
+       id="radius" 
+       name="Radius"
+       description="Radius from center RA, Dec in arcmin (may be two values: min, max radius)"
+       type="radius"
+       units="arcmin"/>
+     <param 
+       id="mag" 
+       name="Mag"
+       description="Magnitude (may be two values: min, max magnitude)"
+       value="0,15"/>
+     <param 
+       id="nout" 
+       name="Max Rows"
+       description="Maximum number of rows to return"
+       value="1000"/>
+     <param 
+       id="sort" 
+       name="Sort"
+       description="Sort order for results"
+       value="d'"/>
+     <param 
+       id="format" 
+       name="Format"
+       description="Output format"
+       value="8"
+       type="hidden"/>
+   </params>
+
+   <symbols version="0.1">
+     <symbol 
+       name="Magnitude"
+       description="Show symbol positions and magnitudes"
+       raCol="1"
+       decCol="2"
+       equinox="J2000"
+       columsUsed="mag"
+       shape="square"
+       color="white"
+       condition="1"
+       ratio="1"
+       angle="0"
+       label=""
+       size="(25-mag)/3600."
+       units="deg"/>
+   </symbols>
+
+ </catalog>
+</catalogs>

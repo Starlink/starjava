@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndx>
+  <title>Output from FLATCOR</title>
+  <image>file:rdata2.fits#0</image>
+  <variance>file:rdata2.fits#1</variance>
+  <wcs encoding="AST-XML">
+    <FrameSet>
+      <_attribute name="Nframe" value="5"/>
+      <_attribute name="Currnt" value="5"/>
+      <_attribute name="Lnk2" value="1"/>
+      <_attribute name="Lnk3" value="1"/>
+      <_attribute name="Lnk4" value="1"/>
+      <_attribute name="Lnk5" value="4"/>
+      <Frame label="Frm1">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="GRID" quoted="true"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm2">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="PIXEL" quoted="true"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm3">
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="AXIS" quoted="true"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm4">
+        <_attribute name="Title" value="Alignment of CCDGENERATE test data" quoted="true"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="CCD_GEN" quoted="true"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <Frame label="Frm5">
+        <_attribute name="Title" value="Alignment by REGISTER" quoted="true"/>
+        <_attribute name="Naxes" value="2"/>
+        <_attribute name="Domain" value="CCD_REG" quoted="true"/>
+        <Axis label="Ax1"/>
+        <Axis label="Ax2"/>
+      </Frame>
+      <UnitMap label="Map2">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+      </UnitMap>
+      <UnitMap label="Map3">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+      </UnitMap>
+      <CmpMap label="Map4">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <_attribute name="InvB" value="1"/>
+        <WinMap label="MapA">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="0"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Sft1" value="44.5"/>
+          <_attribute name="Sft2" value="-15.5"/>
+        </WinMap>
+        <MatrixMap label="MapB">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="0"/>
+          <_isa class="Mapping"/>
+          <_attribute name="M0" value="0.866025403784439"/>
+          <_attribute name="M1" value="0.5"/>
+          <_attribute name="M2" value="-0.5"/>
+          <_attribute name="M3" value="0.866025403784439"/>
+          <_attribute name="Form" value="Full" quoted="true"/>
+        </MatrixMap>
+      </CmpMap>
+      <CmpMap label="Map5">
+        <_attribute name="Nin" value="2"/>
+        <_isa class="Mapping"/>
+        <MatrixMap label="MapA">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="0"/>
+          <_isa class="Mapping"/>
+          <_attribute name="M0" value="0.999999676359254"/>
+          <_attribute name="M1" value="0.000804537995989099"/>
+          <_attribute name="M2" value="-0.000804537995989099"/>
+          <_attribute name="M3" value="0.999999676359254"/>
+          <_attribute name="Form" value="Full" quoted="true"/>
+        </MatrixMap>
+        <WinMap label="MapB">
+          <_attribute name="Nin" value="2"/>
+          <_attribute name="Invert" value="0"/>
+          <_isa class="Mapping"/>
+          <_attribute name="Sft1" value="-1.17215261442692"/>
+          <_attribute name="Sft2" value="-1.052581180536"/>
+        </WinMap>
+      </CmpMap>
+    </FrameSet>
+  </wcs>
+  <etc>
+    <FITS type="_CHAR*80">
+      <!--Extension content not yet implemented-->
+    </FITS>
+    <CCDPACK type="CCDPACK_EXT">
+      <!--Extension content not yet implemented-->
+    </CCDPACK>
+  </etc>
+</ndx>

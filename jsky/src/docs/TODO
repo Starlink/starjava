@@ -1,0 +1,95 @@
+-*-outline-*-
+
+* catalogs
+
+** add catalog menu: "Display in new Window"
+
+** implement table filter window (with sliders based on range of table values)
+
+** implement code to optionally plot catalog tables as graphs.
+
+** Add a log window that optionally displays the previous URLs accessed (for error checking)
+
+** Work on HTML display, add option to display in a specified browser
+
+** Need a way to determine the (expected) file type when openening a local catalog, other than
+** just assuming a certain file suffix (.cat, .table, .scat)
+
+** Add tool tips (for FITS tables, get column descriptions from header...)
+
+** Check that the menu item "Reload Catalog Config File" works (if you add a new catalog dir).
+
+** Pressing "Stop" in the progress dialog while catalog data is downloading doesn't always stop
+** the background thread right away 
+
+** Add a "Print Preview" menu for tables
+
+** Add a "Save as HTML" option for tables
+
+** Menu item "Save catalog overlays with image" should be disabled when no FITS image is loaded
+
+
+* image display
+
+** Add support for images with NAXIS > 2.
+
+** Add support for displaying multi-extension FITS files (combine to one large or true color image)
+
+** Center image after resize of image window
+
+** pan window: shouldn't be able to loose pan rect by dragging it off the image
+
+** Add alternate method of scrolling image (when pan window is hidden)
+
+** Should be able to specify preferences, such as the location of the image cache dir
+
+** Under Linux only: Print Preview window comes up with wrong size
+*** May be the old Linux font size problem
+
+** add a WCS grid feature (see the SEA VTT for an example)
+
+** Change zoom window to include the image graphics?
+
+** Saving image as .fits.gz or .hfits doesn't work as expected.
+
+** Return OBJCTRA,OBJCTDEC for getBasePos(), instead of the image center (if defined)
+
+
+* Graphics
+
+** implement a Diva Interactor for rotating graphics objects
+
+** add a graphics tools popup window
+
+** Replace the use of the Diva package?
+
+** Text mode is broken under jdk1.4 (also labels on WCS measure band)
+
+** bug: After you "Hide graphics", you can still select objects...
+
+* Misc
+
+** add preferences (Toolbar icons, etc...)
+
+** make Java Beans out of the classes (Need to add default constructors). 
+
+** Add numbers to frame headers to indicate which windows go together
+
+** Implement the menus for the desktop/internal frame version.
+
+** Add toolbar buttons
+
+** Java style changes
+*** Change most protected class members to private and add accessor methods where needed
+*** Use "_name" for private members
+*** Replace some class hierarchies (image, catalogs, etc.) with composition based classes
+
+
+** Make a generic utility for checking on Close if there are any other open/visible top level windows
+
+** Find problem with System.exit(0) not always exiting under Windows2000.
+
+** Work on the documentation (programmer's manual, user manual)
+
+** Implement a "cuts" feature (cut through image, with graph display of pixel values), as in skycat
+

@@ -1,0 +1,31 @@
+<html>
+
+<head>
+<title>GOV.nasa.gsfc.sea.util.wcstools package overview</title>
+</head>
+
+<body>
+Contains classes for <A HREF="http://tdc-www.harvard.edu/software/wcstools/wcstools.wcs.html">
+World Coordinate System</A> transformations.
+Currently this package consists of ports of pieces of the
+<A HREF="http://tdc-www.harvard.edu/software/wcstools/">WCSTOOLS</A>
+library originally written in C.  The main purpose
+of these classes is to do WCS to/from image pixel conversions,
+and so only those WCSTOOLS files necessary to achieve this
+were ported. In addition to porting files from WCSTOOLS,
+enhancements were made to hook the code to Tom McGlynn's FITS I/O classes
+(via the nom.tam.fits.Header class) so that the required FITS header
+information is automatically extracted from the FITS file.
+<P>
+<H2>Future Work</H2>
+Note that since this package was written, other potentially better solutions
+have been created by other people.  Mark Calabretta's <A HREF="http://www.atnf.csiro.au/computing/software/wcslib.html">
+WCSLIB</A> library (used by WCSTOOLS), 
+for example, has been ported to Java.  The NCSA <A HREF="http://imagelib.ncsa.uiuc.edu:90/imagelib/Horizon/">
+Horizon</A> project has also done some
+interesting work in coordinate system conversions.  Possibly in the future
+we might reevaluate this package and choose to use one of the other libraries instead.
+</body>
+
+</html>
+

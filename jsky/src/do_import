@@ -1,0 +1,9 @@
+#!/bin/sh -xv
+
+# Import the JSky sources directories. May want to track these as third
+# party changes. 
+CVS_RSH=ssh
+export CVS_RSH
+cd main
+cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+   import -ko -I! -m "JSky sources" java/source/jsky/src/main JSky JSky_V2

@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+
+<!-- Testing:basic case: unknown XML file with HDX namespace included -->
+
+<rubbish xmlns:hdx="http://www.starlink.ac.uk/HDX"
+	xmlns:b="http://www.astro.gla.ac.uk/norman">
+  <b:el1 here="is an attribute" />
+  <el2 ></el2>
+
+  <hdx:ndx>
+    <hdx:data>
+      file:test1.fits
+    </hdx:data>
+    <hdx:variance
+      hdx:uri="file:test2.fits"
+      >junk</hdx:variance>
+  </hdx:ndx>
+
+  <hdx:ndx>
+    <nothing>here</nothing>
+  </hdx:ndx>
+
+  <other>
+    <stuff hdx:name="ndx">
+      <wotsit
+	hdx:name="data"
+	hdx:uri="file:test3.fits">
+	Miscellaneous content
+      </wotsit>
+      <blarfle
+	hdx:name="quality"
+	b:uri="file:test4.fits">
+	file:test5.fits
+      </blarfle>
+    </stuff>
+  </other>
+</rubbish>

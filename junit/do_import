@@ -1,0 +1,12 @@
+#!/bin/sh -xv
+
+# Import the JUnit docs. May want to track these as third party
+# changes. Note that docs/junit is the original doc and javadoc
+# directories plus the README.html, so you'll need to restructure any
+# future imports.
+
+CVS_RSH=ssh
+export CVS_RSH
+cd docs
+cvs  -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
+   import -ko -I! -m "JUnit docs" java/source/junit/docs JUNIT JUnit_Docs_V3_7

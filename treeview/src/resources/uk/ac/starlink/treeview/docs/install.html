@@ -1,0 +1,155 @@
+<html>
+<head>
+<title>Treeview Installation</title>
+</head>
+<body bgcolor="white">
+
+<h1><img src="IconFactory.TREE_LOGO">&nbsp;&nbsp;Installing Treeview</h1>
+
+<h2><img src="IconFactory.TREE">&nbsp;Requisites</h2>
+
+<p>Treeview is written in java using J2SE1.4.
+
+It makes use of some optional components (JAI, JNIAST and JNIHDS),
+which are installed separately; however if these are absent the program
+will run quite happily with the corresponding facilities disabled.
+
+<p>Since the core program is written in pure java, it will run anywhere
+that a Java 1.4 virtual machine is installed, and this means it can
+run on a wide range of platforms.  It has been tested on Linux, 
+Solaris, Compaq Tru64 Unix and MS Windows.  Note however that there
+are currently problems with some of the optional components in 
+Tru64 and Windows.
+
+<p>The following procedure describes how to install the Starlink 
+java classes from scratch.  
+This gets you Treeview plus some other applications
+(SPLAT and SoG) and utilities (NDTools), 
+along with all the Starlink java infrastructure classes
+and a number of third party class libraries required by them, as
+well as the Java Runtime Environment itself.
+All these are documented elsewhere.
+Not all of this infrastructures is used by Treeview, but it is 
+currently distributed together for ease of installation and maintenance.
+
+<h2><img src="IconFactory.TREE">&nbsp;Installation procedure</h2>
+
+<p>Follow these steps:
+<h3>1.  Install version 1.4 of the Java Runtime Environment if you do not
+    already have it.</h3>
+
+    If you already have java installed, find out what version it is;
+    something like "<tt>java -version</tt>" will probably tell you this.
+    If the version is lower than 1.4.0, you will need to replace this
+    version or install a separate one for Treeview to use.
+ 
+    <p>You can get versions for Linux, Solaris/SPARC, Solaris/x86 and
+    MS Windows from 
+    <a href="http://java.sun.com/j2se/1.4/download.html">Sun's web site</a>
+    (you only need the JRE download rather than the SDK, 
+    unless you will be doing development work).  MS Windows users can use Sun's 
+    <a href="http://java.sun.com/getjava/download.html">automatic download</a>
+    procedure if they prefer.
+    J2SE Runtime Enviroments (sometimes called JVM or Java Virtual Machines)
+    for other platforms may be available from operating system vendors;
+    Sun maintains a <a href="http://java.sun.com/cgi-bin/java-ports.cgi">list
+    of java implementations for other platforms</a>; make sure you get
+    version 1.4.0 or higher.
+
+<h3>2.  Install Java Advanced Imaging (JAI) <i>(Optional)</i></h3>
+
+    JAI is used for graphical display of arrays; without this you will
+    not be able to see image-type display of data files.
+    <p>Download this package from the <a
+    href="http://java.sun.com/products/java-media/jai/downloads/download-1_1_1_01.html">Sun download site</a>.
+    Unless you are doing development, you will want to use the
+    "JRE install" option (note the CLASSPATH install will <i>not</i> work
+    without some changes, because of the way that Treeview does its 
+    class loading).
+    <p>Although Sun only advertises versions for Solaris, Linux and MS Windows,
+    it is possible to use these on other platforms; if you have a different
+    platform download, say the Linux one and install it anyway.
+    This should provide the necessary imaging functionality, 
+    but without some platform-speicific graphical acceleration.
+    You may also see some complaints at runtime about missing components.
+    
+
+<h3>3.  Install the Starlink Java classes</h3>
+    Download the Starlink java classes package as a 
+    <a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava.zip">zip archive</a> or 
+    <a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava.tar.gz">compressed tar archive</a>
+    and unpack it somewhere suitable.
+
+
+<h3>4.  Install platform-specific shared libraries <i>(Optional)</i></h3>
+    Platform-specific code comprises two libraries:
+    <ul>
+    <li>JNIAST handles world coordinate system processing - without it
+        display of coordinates on images and use of external programs
+        SPLAT and SoG will be unavailable.
+    <li>JNIHDS handles processing of Starlink HDS and NDF files - without it
+        Treeview will not be able to look inside these files at all.
+    </ul>
+    <p>Download the zipped archive appropriate for your system:
+    <ul>
+    <li><a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava-i386.tar.gz">i386</a> for Linux systems on Intel hardware
+    <li><a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava-sparc.tar.gz">sparc</a> for Sun Solaris systems on SPARC hardware
+    <li><a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava-alpha.tar.gz">alpha</a> for Compaq Tru64 Unix on alpha hardware
+    <li><a href="ftp://andromeda.star.bris.ac.uk/pub/star/starjava/starjava-x86.zip">x86</a> for MS Windows operating systems on Intel hardware
+    </ul>
+
+<p>Unpack this platform-specific archive in the same directory as the 
+starjava archive in step (3).  The files are in different directories,
+for different platforms, so more than one of these can be installed
+in the same place.
+
+<p><i>Notes:</i>
+<ul>
+<li>The MS Windows version is still experimental, and there
+    may be some modifications necessary before it works properly
+<li>The Tru64 Unix version currently lacks the JNIAST component;
+    it's available on request, but seems to have some bugs.
+<li>We don't have
+    the hardware to support other platforms, but if you are interested in
+    helping to compile code for other platforms, please get in touch. 
+<li>In the longer term we hope to migrate the functionality supplied by
+    these modules to pure java, for full platform independence.
+</ul>
+
+
+
+<h2><img src="IconFactory.TREE">&nbsp;Away you go</h2>
+
+<p>The package is now installed. 
+<p>To invoke the Treeview tool on Unix you should now put the 
+"<tt>bin</tt>" directory (which contains the "<tt>java</tt>" command) 
+from the JRE which 
+you installed at step (1) on your path,
+and you can then use the script
+<pre>
+    starjava/bin/treeview [file ...]
+</pre>
+under where you unpacked the starlink
+classes in step (3) to invoke Treeview.
+
+<p>If this doesn't work (and on non-Unix operating systems it may well not do)
+then change directory to the <tt>starjava/lib/treeview</tt> directory
+(on MS Windows this should contain copies of some DLLs installed in
+step 4 above) and invoke Treeview by doing
+<pre>
+   java -jar treeview.jar [file ...]
+</pre>
+There are known problems at this stage with the 
+DLLs on some Microsoft operating 
+systems including Windows XP; if the above apparently does nothing,
+try deleting the DLLs in <tt>starjava/lib/treeview</tt> and 
+<tt>starjava/lib/x86</tt> and trying again (this will run without 
+the optional components).  We hope to sort this out soon.
+
+
+<hr />
+
+Back to the <a href="index.html"/>main Treeview web page</a>.
+<br>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<plot-configs>
+   <plot-config description="default configuration" date-stamp="Thu Oct 10 12:15:30 BST 2002">
+      <title>
+         <isSet>true</isSet>
+         <show>true</show>
+         <title><![CDATA[Using default title]]></title>
+         <colour>-10066177</colour>
+         <gap>0.05</gap>
+         
+      </title>
+      <axislabels>
+         <isXSet>true</isXSet>
+         <isYSet>true</isYSet>
+         <xShown>true</xShown>
+         <yShown>true</yShown>
+         <xLabel><![CDATA[Using default label]]></xLabel>
+         <yLabel><![CDATA[Using default label]]></yLabel>
+         <colour>-39169</colour>
+         <xGap>0.01</xGap>
+         <yGap>0.01</yGap>
+         <xEdge>4</xEdge>
+         <yEdge>1</yEdge>
+         <showXUnits>false</showXUnits>
+         <showYUnits>false</showYUnits>
+         
+      </axislabels>
+      <numberlabels>
+         <isXSet>true</isXSet>
+         <isYSet>true</isYSet>
+         <xShown>true</xShown>
+         <yShown>true</yShown>
+         <xRotated>true</xRotated>
+         <yRotated>true</yRotated>
+         <colour>-256</colour>
+         <xGap>0.01</xGap>
+         <yGap>0.01</yGap>
+         <digits>-1</digits>
+         
+      </numberlabels>
+      <grid>
+         <isSet>true</isSet>
+         <show>true</show>
+         <colour>-3342490</colour>
+         <style>1</style>
+         <width>1.0</width>
+         
+      </grid>
+      <axes>
+         <interior>false</interior>
+         <isXSet>true</isXSet>
+         <showX>true</showX>
+         <xColour>-3355393</xColour>
+         <xStyle>1</xStyle>
+         <xWidth>1.0</xWidth>
+         <isYSet>true</isYSet>
+         <showY>true</showY>
+         <yColour>-3355393</yColour>
+         <yStyle>1</yStyle>
+         <yWidth>1.0</yWidth>
+         
+      </axes>
+      <border>
+         <isSet>true</isSet>
+         <show>true</show>
+         <colour>-65536</colour>
+         <style>1</style>
+         <width>1.0</width>
+         
+      </border>
+      <ticks>
+         <isSet>true</isSet>
+         <show>true</show>
+         <colour>-3342337</colour>
+         <xGap>0.0</xGap>
+         <yGap>0.0</yGap>
+         <majorXTicklen>0.015</majorXTicklen>
+         <majorYTicklen>0.015</majorYTicklen>
+         <minorXTicklen>0.0070</minorXTicklen>
+         <minorYTicklen>0.0070</minorYTicklen>
+         <minorXDivisions>0</minorXDivisions>
+         <minorYDivisions>0</minorYDivisions>
+         <style>1</style>
+         <width>1.0</width>
+         <tickAll>true</tickAll>
+         
+      </ticks>
+      <graphicshints>
+         <textAntialiased>false</textAntialiased>
+         <allAntialiased>false</allAntialiased>
+         
+      </graphicshints>
+      <graphicsedges>
+         <xFrac>0.0</xFrac>
+         <yFrac>0.0</yFrac>
+         <clip>true</clip>
+         
+      </graphicsedges>
+
+   </plot-config>
+</plot-configs>
+

@@ -1,0 +1,11 @@
+JAI support for HDX.
+
+The following files will need modifying for some new HDX system:
+
+   NDArrayData
+   HDXImage
+
+and for new Exceptions:
+
+   HDXDecoder
+   
