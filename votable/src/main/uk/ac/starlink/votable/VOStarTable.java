@@ -152,7 +152,7 @@ public class VOStarTable extends AbstractStarTable {
                                ? content : null;
                     ValueInfo info = new DefaultValueInfo( iel.getHandle(), 
                                                            String.class,
-                                                           description );
+                                                           descrip );
                     DescribedValue dval =
                         new DescribedValue( info, iel.getAttribute( "value" ) );
                     params.add( dval );
