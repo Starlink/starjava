@@ -52,15 +52,24 @@ public class AstDoubleField
      */
     public double getDoubleValue()
     {
-        return controller.getPlotCurrentFrame().unformat( axis, getText() );
+        String text = getText();
+        if ( text.equals( "" ) || text.equals( "<bad>" ) ) {
+            return AstDouble.BAD;
+        }
+        return controller.getPlotCurrentFrame().unformat( axis, text );
     }
 
     /**
-     * Set the current value. If Ast fails then a simple double value
+     * Set the current value. If AST fails then a simple double value
      * is shown.
      */
     public void setDoubleValue( double value )
     {
-        setText( controller.getPlotCurrentFrame().format( axis, value ) );
+        if ( value == AstDouble.BAD ) {
+            setText( "" );
+        }
+        else {
+            setText( controller.getPlotCurrentFrame().format( axis, value ) );
+        }
     }
 }

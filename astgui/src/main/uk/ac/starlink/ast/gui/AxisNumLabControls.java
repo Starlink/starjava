@@ -552,7 +552,7 @@ public class AxisNumLabControls extends JPanel
 // Implement the ChangeListener interface
 //
     /**
-     * If the AstTitle object changes then we need to update the
+     * If the AstNumberLabels object changes then we need to update the
      * interface.
      */
     public void stateChanged( ChangeEvent e )

@@ -55,17 +55,30 @@ public class AstDoubleDocument extends PlainDocument
                                                     currentText.length() );
         String proposedResult = beforeOffset + str + afterOffset;
 
-        //  Try to unformat this value into a double.
-        double value = 
-            controller.getPlotCurrentFrame().unformat( axis,proposedResult );
-        if ( ! AstDouble.isBad( value ) ) {
-
-            //  Conversion succeeded so insert new string.
+        //  The special field <bad> is used to mean that the default
+        //  should be used. This is shown as an empty string.
+        if ( str.equals( "<bad>" ) ) {
+            super.remove( 0, getLength() );
+        }
+        else if ( proposedResult.equals( "" ) ) {
+                //  An Empty field is acceptable, since it means <bad>
+                //  or undefined too.
             super.insertString( offs, str, a );
         }
         else {
-            // Squawk!
-            Toolkit.getDefaultToolkit().beep();
+            
+            //  Try to unformat this value into a double.
+            double value =
+                controller.getPlotCurrentFrame().unformat( axis, 
+                                                           proposedResult );
+            if ( ! AstDouble.isBad( value ) ) {
+                //  Conversion succeeded so insert new string.
+                super.insertString( offs, str, a );
+            }
+            else {
+                // Squawk!
+                Toolkit.getDefaultToolkit().beep();
+            }
         }
     }
 
@@ -75,17 +88,22 @@ public class AstDoubleDocument extends PlainDocument
     {
         String currentText = getText( 0, getLength() );
         String beforeOffset = currentText.substring( 0, offs );
-        String afterOffset =
-            currentText.substring( len + offs, currentText.length() );
+        String afterOffset = currentText.substring( len + offs,
+                                                    currentText.length() );
         String proposedResult = beforeOffset + afterOffset;
 
-        //  An Empty field is always accepted.
-        if ( proposedResult.equals( "" ) ) {
+        //  An Empty field is always accepted. This is same as <bad>
+        //  (except no-one should ever see that string, but do that as
+        //  well anyway).
+        if ( currentText.equals( "<bad>" ) ) {
+            super.remove( 0, getLength() );
+        } 
+        else if ( proposedResult.equals( "" ) ) {
             super.remove( offs, len );
         }
         else {
             //  Try to unformat this value into a double.
-            double value = 
+            double value =
                 controller.getPlotCurrentFrame().unformat(axis,proposedResult);
             if ( ! AstDouble.isBad( value ) ) {
 
@@ -93,7 +111,6 @@ public class AstDoubleDocument extends PlainDocument
                 super.remove( offs, len );
             }
             else {
-                // Squawk!
                 Toolkit.getDefaultToolkit().beep();
             }
         }

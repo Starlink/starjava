@@ -40,13 +40,13 @@ public class AstTicks extends AbstractPlotControlsModel
     protected Color colour;
 
     /**
-     * The gap between X axis major ticks (set to 0.0 if not set). This is in
+     * The gap between X axis major ticks (set to BAD if not set). This is in
      * units of the X axis.
      */
     protected double xGap;
 
     /**
-     * The gap between Y axis major ticks (set to 0.0 if not set). This is in
+     * The gap between Y axis major ticks (set to BAD if not set). This is in
      * units of the Y axis.
      */
     protected double yGap;
@@ -136,8 +136,8 @@ public class AstTicks extends AbstractPlotControlsModel
         isSet = false;
         show = true;
         colour = Color.black;
-        xGap = 0.0;
-        yGap = 0.0;
+        xGap = DefaultGrf.BAD;
+        yGap = DefaultGrf.BAD;
         majorXTicklen = 0.015;
         majorYTicklen = 0.015;
         minorXTicklen = 0.007;
@@ -561,11 +561,11 @@ public class AstTicks extends AbstractPlotControlsModel
         }
 
         //  Axis options.
-        if ( xGap != DefaultGrf.BAD && xGap != 0.0 ) {
+        if ( xGap != DefaultGrf.BAD ) {
             buffer.append( ",Gap(1)=" );
             buffer.append( xGap );
         }
-        if ( yGap != DefaultGrf.BAD && yGap != 0.0 ) {
+        if ( yGap != DefaultGrf.BAD ) {
             buffer.append( ",Gap(2)=" );
             buffer.append( yGap );
         }
