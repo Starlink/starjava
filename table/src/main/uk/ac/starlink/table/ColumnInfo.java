@@ -8,6 +8,11 @@ import java.util.List;
  * Contains information about a table column.  This includes 
  * a description of the values contained in it (as per the {@link ValueInfo}
  * interface) as well as additional miscellaneous metadata.
+ * The miscellaneous, or auxiliary, metadata takes the form of a 
+ * list of {@link DescribedValue} objects.  It is the intention that
+ * only one object in this list exists for each value name (as returned
+ * by the <tt>DescribedValue.getName</tt> method.  This restriction
+ * is not guaranteed to be enforced however.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -77,6 +82,22 @@ public class ColumnInfo extends DefaultValueInfo {
             }
         }
         return null;
+    }
+
+    /**
+     * Adds the given DescribedValue to the list of auxiliary metadata
+     * for this object.  If an item in the metadata list with the same
+     * name as the supplied value already exists, it is removed from the
+     * list.
+     *
+     * @param  dval  the new datum to add
+     */
+    public void setAuxDatum( DescribedValue dval ) {
+        DescribedValue old = getAuxDatumByName( dval.getInfo().getName() );
+        if ( old != null ) {
+            auxData.remove( old );
+        }
+        auxData.add( dval );
     }
 
     /**

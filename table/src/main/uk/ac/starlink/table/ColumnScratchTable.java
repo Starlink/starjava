@@ -75,7 +75,7 @@ public class ColumnScratchTable extends RandomStarTable {
     }
 
     public ColumnInfo getColumnInfo( int icol ) {
-        return columns[ icol ];
+        return columns[ icol ].getColumnInfo();
     }
 
     public Object[] getRow( long lrow ) {

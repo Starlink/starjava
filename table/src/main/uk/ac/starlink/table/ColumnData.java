@@ -8,7 +8,7 @@ import java.io.IOException;
  *
  * @author   Mark Taylor (Starlink)
  */
-public abstract class ColumnData extends ColumnInfo {
+public abstract class ColumnData {
 
     private ColumnInfo colinfo;
 
@@ -19,7 +19,6 @@ public abstract class ColumnData extends ColumnInfo {
      * @param  colinfo  the column metadata
      */
     public ColumnData( ColumnInfo colinfo ) {
-        super( colinfo );
         this.colinfo = colinfo;
     }
 
