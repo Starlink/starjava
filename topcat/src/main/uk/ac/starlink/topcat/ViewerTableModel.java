@@ -261,8 +261,20 @@ public class ViewerTableModel extends AbstractTableModel {
      *           model
      */
     public StarTable getSnapshot() {
+        return getRowPermutedView( startable );
+    }
+
+    /**
+     * Returns a view of a given table whose rows are permuted in the same way
+     * as the current view is permuted with respect to the basic table.
+     * The submitted table may be returned if no permutation is in force.
+     *
+     * @param  table  table to be permuted
+     * @return   a table which is a possibly permuted view of <tt>table</tt>
+     */
+    public StarTable getRowPermutedView( StarTable table ) {
         if ( rowMap == null ) {
-            return startable;
+            return table;
         }
         else {
             int nrow = rowMap.length;
@@ -270,7 +282,7 @@ public class ViewerTableModel extends AbstractTableModel {
             for ( int i = 0; i < nrow; i++ ) {
                 rowMapCopy[ i ] = (long) rowMap[ i ];
             }
-            return new RowPermutedStarTable( startable, rowMapCopy );
+            return new RowPermutedStarTable( table, rowMapCopy );
         }
     }
 }
