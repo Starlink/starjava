@@ -266,11 +266,15 @@ public class NdxDataNode extends DefaultDataNode
         dv.addPane( "HDX view", new ComponentMaker() {
             public JComponent getComponent()
                     throws TransformerException, HdxException {
-            URI uri = URLUtils.urlToUri( url );
-            Source src = HdxFactory.getInstance()
-                                   .newHdxContainer( ndx.getHdxFacade() )
-                                   .getSource( uri );
-                return new TextViewer( src );
+                try {
+                    URI uri = URLUtils.urlToUri( url );
+                    Source src = HdxFactory.getInstance()
+                            .newHdxContainer( ndx.getHdxFacade() )
+                            .getSource( uri );
+                    return new TextViewer( src );
+                } catch (java.net.MalformedURLException ex) {
+                    throw new HdxException("Malformed URL: " + url);
+                }
             }
         } );
 
