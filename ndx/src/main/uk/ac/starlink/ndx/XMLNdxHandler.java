@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -35,6 +36,8 @@ import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
+import uk.ac.starlink.hdx.HdxResourceType;
+import uk.ac.starlink.hdx.HdxFactory;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.URLUtils;
 
@@ -129,21 +132,66 @@ public class XMLNdxHandler implements NdxHandler {
                                .initCause( e );
         }
 
-        /* Check we have an <ndx> element. */
-        Element ndxel;
+        // Examine the DOM
+        Element hdxel;
         if ( ndxdom instanceof Document ) {
-            ndxel = ((Document) ndxdom).getDocumentElement();
+            hdxel = ((Document) ndxdom).getDocumentElement();
         }
         else if ( ndxdom instanceof Element ) {
-            ndxel = (Element) ndxdom;
+            hdxel = (Element) ndxdom;
         }
         else {
             throw new IllegalArgumentException( "Not a Document or Element" );
         }
-        if ( ! ndxel.getTagName().equals( "ndx" ) ) {
-            throw new IOException( 
-                "XML element of type <" + ndxel.getTagName() + "> not <ndx>" );
+        assert hdxel != null;
+
+        Element ndxel;
+        /*
+         * Check to see if it's an Hdx in fact.  If so, extract the
+         * single Ndx child from it, carefully verifying that this is
+         * in fact the case.  Throw an IOException otherwise.
+         */
+        if ( HdxResourceType.match( hdxel ) == HdxResourceType.HDX ) {
+            Element kid = null;
+            for ( Node n = hdxel.getFirstChild();
+                  n != null;
+                  n = n.getNextSibling() ) {
+                if ( n.getNodeType() != Node.ELEMENT_NODE ) {
+                    // What is this?  Hdx DOMs should have only elements in them
+                    if ( logger.isLoggable( Level.INFO ) ) {
+                        String nv = n.getNodeValue();
+                        logger.info( "Non-element node " + n.getNodeName()
+                                     + "=" + (nv==null ? "<null>" : nv)
+                                     + " ignored");
+                    }
+                    continue;
+                }
+                if ( HdxResourceType.match( (Element)n )
+                     == BridgeNdx.getHdxResourceType() ) {
+                    if ( kid != null )
+                        // Ooops, we've already found an Ndx child
+                        throw new IOException(
+                     "Can't make Ndx from HDX with multiple Ndx children" );
+                    kid = (Element)n;
+                }
+            }
+            if ( kid == null )
+                // didn't find an Ndx
+                throw new IOException
+                        ( "Can't make Ndx from HDX with no Ndx children" );
+            ndxel = kid;
+        } else if ( HdxResourceType.match( hdxel )
+                    == BridgeNdx.getHdxResourceType() ) {
+            // That's fine -- this should have been an <hdx>, but be nice and recover
+            ndxel = hdxel;
+        } else {
+            throw new IOException
+                    ( "XML element of type <" + hdxel.getTagName()
+                      + "> not <"
+                      + BridgeNdx.getHdxResourceType().xmlName() + ">" );
         }
+        assert ndxel != null;
+        
         Document doc = ndxel.getOwnerDocument();
 
         /* Parse the DOM looking for known elements.  A proper implementation
@@ -171,10 +219,24 @@ public class XMLNdxHandler implements NdxHandler {
                     quality = makeNDArray( cel, mode, systemId );
                 }
                 else if ( tagname.equals( "title" ) ) {
-                    title = getTextContent( cel );
+                    title = cel.getAttribute( "value" );
+                    if (title.length() == 0) // no such attribute
+                        title = getTextContent( cel );
                 }
                 else if ( tagname.equals( "badbits" ) ) {
-                    badbits = Long.decode( getTextContent( cel ) ).intValue();
+                    String badbitsString = cel.getAttribute( "value" );
+                    try {
+                        if (badbitsString.length() == 0) // no such attribute
+                            badbitsString = getTextContent( cel );
+                        badbits = Long.decode(badbitsString).intValue();
+                    } catch (NumberFormatException e) {
+                        if (logger.isLoggable( Level.WARNING ) )
+                            logger.warning
+                                    ( "badbits element had bad content \""
+                                      + badbitsString
+                                      + "\": ignored");
+                        badbits = 0;
+                    }
                 }
                 else if ( tagname.equals( "wcs" ) && 
                           AstPackage.isAvailable() ) {
@@ -216,7 +278,10 @@ public class XMLNdxHandler implements NdxHandler {
     private NDArray makeNDArray( Element el, AccessMode mode, String systemId )
             throws IOException {
         String loc;
-        if ( el.hasAttribute( "url" ) ) {
+        if ( el.hasAttribute( "uri" ) ) {
+            loc = el.getAttribute( "uri" );
+        }
+        else if ( el.hasAttribute( "url" ) ) {
             loc = el.getAttribute( "url" );
         }
         else {
@@ -355,57 +420,67 @@ public class XMLNdxHandler implements NdxHandler {
 
         /* Get an XML source representing the XML to be written. */
         Source xsrc;
-        if ( ! writeArrays ) {
-            xsrc = ndx.toXML( null );
-        }
-        else {
-            int hdu = 0;
-
-            NDArray inda2;
-            URL iurl = new URL( aurl, "#" + hdu++ );
-            NDArray inda1 = ndx.getImage();
-            inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
-                                        inda1.getType(),
-                                        inda1.getBadHandler() );
-            NDArrays.copy( inda1, inda2 );
-
-            NDArray vnda2;
-            if ( ndx.hasVariance() ) {
-                URL vurl = new URL( aurl, "#" + hdu++ );
-                NDArray vnda1 = ndx.getVariance();
-                vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
-                                            vnda1.getType(),
-                                            vnda1.getBadHandler() );
-                NDArrays.copy( vnda1, vnda2 );
+        try {
+            if ( ! writeArrays ) {
+                xsrc = HdxFactory.getInstance()
+                        .newHdxContainer(ndx.getHdxFacade())
+                        .getSource( null );
             }
             else {
-                vnda2 = null;
-            }
+                int hdu = 0;
 
-            NDArray qnda2;
-            if ( ndx.hasQuality() ) {
-                URL qurl = new URL( aurl, "#" + hdu++ );
-                NDArray qnda1 = ndx.getQuality();
-                BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
-                qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
-                                            qnda1.getType(), qbh );
-                NDArrays.copy( qnda1, qnda2 );
-            }
-            else {
-                qnda2 = null;
-            }
+                NDArray inda2;
+                URL iurl = new URL( aurl, "#" + hdu++ );
+                NDArray inda1 = ndx.getImage();
+                inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
+                                            inda1.getType(),
+                                            inda1.getBadHandler() );
+                NDArrays.copy( inda1, inda2 );
 
-            MutableNdx ndx2 = new DefaultMutableNdx( ndx );
-            ndx2.setImage( inda2 );
-            ndx2.setVariance( vnda2 );
-            ndx2.setQuality( qnda2 );
-            xsrc = ndx2.toXML( xurl );
+                NDArray vnda2;
+                if ( ndx.hasVariance() ) {
+                    URL vurl = new URL( aurl, "#" + hdu++ );
+                    NDArray vnda1 = ndx.getVariance();
+                    vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
+                                                vnda1.getType(),
+                                                vnda1.getBadHandler() );
+                    NDArrays.copy( vnda1, vnda2 );
+                }
+                else {
+                    vnda2 = null;
+                }
+
+                NDArray qnda2;
+                if ( ndx.hasQuality() ) {
+                    URL qurl = new URL( aurl, "#" + hdu++ );
+                    NDArray qnda1 = ndx.getQuality();
+                    BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
+                    qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
+                                                qnda1.getType(), qbh );
+                    NDArrays.copy( qnda1, qnda2 );
+                }
+                else {
+                    qnda2 = null;
+                }
+
+                MutableNdx ndx2 = new DefaultMutableNdx( ndx );
+                ndx2.setImage( inda2 );
+                ndx2.setVariance( vnda2 );
+                ndx2.setQuality( qnda2 );
+                xsrc = HdxFactory.getInstance()
+                        .newHdxContainer( ndx2.getHdxFacade() )
+                        .getSource( URLUtils.urlToUri(xurl) );
+            }
+        } catch (uk.ac.starlink.hdx.HdxException ex) {
+            throw new IOException( "Trouble constructing HdxContainer" );
         }
-
+        
         /* Write the XML to the XML stream. */
         SourceReader sr = new SourceReader();
-        // this bit isn't safe - can't guarantee the transformer will be
-        // invoked, so we may get no declaration after all.
+        /*
+         * This bit isn't safe - we can't guarantee the transformer will be
+         * invoked, so we may get no declaration after all.
+         */
         sr.setIncludeDeclaration( true );
         sr.setIndent( 2 );
         try { 
@@ -413,8 +488,9 @@ public class XMLNdxHandler implements NdxHandler {
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )
-                               .initCause( e );
+                    .initCause( e );
         }
+        
         xstrm.close();
         return true;
     }
@@ -487,7 +563,9 @@ public class XMLNdxHandler implements NdxHandler {
         sr.setIncludeDeclaration( true );
         sr.setIndent( 2 );
         try {
-            sr.writeSource( ndx.toXML( xurl ), xstrm );
+            sr.writeSource( ndx.getHdxFacade()
+                            .getSource( URLUtils.urlToUri( xurl ) ),
+                            xstrm );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )
