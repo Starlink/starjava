@@ -12,8 +12,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.CsvTableBuilder;
-import uk.ac.starlink.table.formats.TextTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.util.DataSource;
@@ -64,8 +64,8 @@ import uk.ac.starlink.util.URLDataSource;
  *      (format name="fits")
  * <li> {@link uk.ac.starlink.votable.VOTableBuilder}
  *      (format name="votable")
- * <li> {@link uk.ac.starlink.table.formats.TextTableBuilder}
- *      (format name="text")
+ * <li> {@link uk.ac.starlink.table.formats.AsciiTableBuilder}
+ *      (format name="ascii")
  * </ul>
  * and the following additional ones are in the known list
  * (not used by default but available by specifying the format name):
@@ -100,7 +100,7 @@ public class StarTableFactory {
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
         "uk.ac.starlink.fits.FitsTableBuilder",
         "uk.ac.starlink.votable.VOTableBuilder",
-        TextTableBuilder.class.getName(),
+        AsciiTableBuilder.class.getName(),
     };
     private static String[] knownBuilderClasses = {
         CsvTableBuilder.class.getName(),
