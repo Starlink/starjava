@@ -103,15 +103,17 @@ public class TextTableWriter implements StarTableWriter {
         OutputStream strm = getStream( location );
 
         /* Print parameters. */
-        String name = startab.getName();
-        if ( name != null && name.trim().length() > 0 ) {
-            printParam( strm, "Table name", name );
-        }
-        for ( Iterator it = startab.getParameters().iterator();
-              it.hasNext(); ) {
-            DescribedValue param = (DescribedValue) it.next();
-            printParam( strm, param.getInfo().getName(),
-                              param.getValueAsString( 160 ) );
+        if ( writeParams ) {
+            String name = startab.getName();
+            if ( name != null && name.trim().length() > 0 ) {
+                printParam( strm, "Table name", name );
+            }
+            for ( Iterator it = startab.getParameters().iterator();
+                  it.hasNext(); ) {
+                DescribedValue param = (DescribedValue) it.next();
+                printParam( strm, param.getInfo().getName(),
+                                  param.getValueAsString( 160 ) );
+            }
         }
  
         /* Print headings. */
