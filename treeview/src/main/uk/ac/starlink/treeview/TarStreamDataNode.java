@@ -176,22 +176,13 @@ public class TarStreamDataNode extends DefaultDataNode {
 
                         /* Make a DataSource out of it which will, for now,
                          * use the TarInputStream for its raw data. */
-                        class ProvisionalDataSource extends PathedDataSource {
-                            InputStream provisionalStream;
-                            public String getPath() {
-                                return pathHead + subname;
-                            }
-                            protected long getRawLength() {
-                                return tent.getSize();
-                            }
-                            protected InputStream getRawInputStream()
-                                    throws IOException {
-                                InputStream strm;
-                                if ( provisionalStream != null ) {
-                                    strm = provisionalStream;
-                                }
-                                else {
-                                    strm = getEntryInputStream( tent );
+                        ProvisionalDataSource psrc = 
+                            new ProvisionalDataSource( pathHead + subname,
+                                                       tent.getSize() ) {
+                                public InputStream getBackupRawInputStream()
+                                        throws IOException {
+                                    InputStream strm = 
+                                        getEntryInputStream( tent );
 
                                     /* For reasons I entirely fail to
                                      * understand, unless this stream is
@@ -205,19 +196,17 @@ public class TarStreamDataNode extends DefaultDataNode {
                                      * of various streams have been fruitless.
                                      * So reluctantly I wrap it here. */
                                     strm = new BufferedInputStream( strm );
+
+                                    return strm;
                                 }
-                                return strm;
-                            }
-                        }
-                        ProvisionalDataSource psrc = 
-                            new ProvisionalDataSource();
+                            };
                         psrc.setName( subname );
-                        psrc.provisionalStream = 
+                        psrc.setProvisionalStream( 
                             new FilterInputStream( tstream ) {
                                 public void close() {
                                     // do not close TarInputStream
                                 }
-                            };
+                            } );
 
                         /* Read some data from the data source; the source will
                          * cache this and can use it for magic number requests
@@ -228,11 +217,16 @@ public class TarStreamDataNode extends DefaultDataNode {
                          * call the expensive getEntryInputStream). */
                         psrc.getMagic( magbuf );
 
-                        /* Now invalidate the TarInputStream so that subsequent
+                        /* Now prevent the provisional source from using
+                         * the TarInputStream any more so that subsequent
                          * reads will need to open their own, safe, input
-                         * stream if they in fact do need a stream. */
-                        psrc.provisionalStream = null;
+                         * stream if they in fact do need a stream. 
+                         * The TarInputStream is still available for 
+                         * further use within this child iterator. */
+                        psrc.setProvisionalStream( null );
                         psrc.close();
+
+                        /* We have our source. */
                         childSrc = psrc;
                     }
                     catch ( IOException e ) {
