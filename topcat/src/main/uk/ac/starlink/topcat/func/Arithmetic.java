@@ -15,66 +15,41 @@ package uk.ac.starlink.topcat.func;
 public class Arithmetic {
 
     /**
-     * Returns the smallest (closest to negative infinity)
-     * <code>double</code> value that is not less than the argument and is
-     * equal to a mathematical integer.
-     * Note that the value of <code>Math.ceil(x)</code> is exactly the
-     * value of <code>-Math.floor(-x)</code>.
+     * Rounds a value up to an integer value.
+     * Formally, returns the smallest (closest to negative infinity)
+     * integer value that is not less than the argument.
      *
      * @param   x   a value.
-     * @return  the smallest (closest to negative infinity)
-     *          floating-point value that is not less than the argument
-     *          and is equal to a mathematical integer.
+     * @return  <code>x</code> rounded up
      */
-    public static double ceil(double x) {
-        return Math.ceil( x );
+    public static int roundUp( double x ) {
+        return (int) Math.ceil( x );
     }
 
     /**
-     * Returns the largest (closest to positive infinity)
-     * <code>double</code> value that is not greater than the argument and
-     * is equal to a mathematical integer.
+     * Rounds a value down to an integer value.
+     * Formally, returns the largest (closest to positive infinity)
+     * integer value that is not greater than the argument.
      *
-     * @param   x   a value.
-     * @return  the largest (closest to positive infinity)
-     *          floating-point value that is not greater than the argument
-     *          and is equal to a mathematical integer.
+     * @param  x  a value
+     * @return  <code>x</code> rounded down
      */
-    public static double floor(double x) {
-        return Math.floor( x );
+    public static int roundDown( double x ) {
+        return (int) Math.floor( x );
     }
 
     /**
-     * Returns the <code>double</code> value that is closest in value
-     * to the argument and is equal to a mathematical integer. If two
-     * <code>double</code> values that are mathematical integers are
-     * equally close, the result is the integer value that is
-     * even.
+     * Rounds a value to the nearest integer.
+     * Formally, 
+     * returns the integer that is closest in value
+     * to the argument. If two integers are
+     * equally close, the result is the even one.
      *
      * @param   x   a floating point value.
-     * @return  the closest floating-point value to <code>x</code> that is
-     *          equal to a mathematical integer.
+     * @return   <code>x</code> rounded to the nearest integer
      */
-    public static double rint(double x) {
-        return Math.rint( x );
-    }
-
-    /**
-     * Returns the closest <code>long</code> to the argument. The result
-     * is rounded to an integer by adding 1/2, taking the floor of the
-     * result, and casting the result to type <code>long</code>. In other
-     * words, the result is equal to the value of the expression:
-     * <code>Math.floor(a+0.5)</code>.
-     *
-     * @param   x   a floating-point value to be rounded to a
-     *          <code>long</code>.
-     * @return  the value of the argument rounded to the nearest
-     *          <code>long</code> value.
-     * @see     java.lang.Long#MAX_VALUE
-     * @see     java.lang.Long#MIN_VALUE
-     */
-    public static long round(double x) {
-        return Math.round( x );
+    public static int round(double x) {
+        return (int) Math.rint( x );
     }
 
     /**
