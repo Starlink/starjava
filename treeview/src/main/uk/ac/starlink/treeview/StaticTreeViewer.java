@@ -11,6 +11,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
 
@@ -44,6 +45,8 @@ public class StaticTreeViewer extends JFrame {
     private JFileChooser fileChooser;
     private DataNodeFactory nodeMaker = new DataNodeFactory();
     private short initialLayout = DETAIL_BESIDE;
+    private JComponent helpPanel;
+    private DefaultMutableTreeNode demoNode;
 
     private Action rExpandSelAct;
     private Action rCollapseSelAct;
@@ -136,14 +139,14 @@ public class StaticTreeViewer extends JFrame {
              * is selected.  If this isn't done then the JTree transfers the
              * selection to the lowest still-visible parent, which is not 
              * what we want. */
-            public synchronized void treeWillCollapse( TreeExpansionEvent evt ) 
-                    throws ExpandVetoException {
-                TreePath collapsor = evt.getPath();
-                TreePath selection = tree.getSelectionPath();
-                if ( collapsor.isDescendant( selection ) &&
-                     collapsor != selection ) {
-                    tree.removeSelectionPath( selection );
-                }
+       //       - actually, it is.
+            public synchronized void treeWillCollapse( TreeExpansionEvent ev ) {
+       //       TreePath collapsor = ev.getPath();
+       //       TreePath selection = tree.getSelectionPath();
+       //       if ( collapsor.isDescendant( selection ) &&
+       //            collapsor != selection ) {
+       //           tree.removeSelectionPath( selection );
+       //       }
             }
         };
         tree.addTreeWillExpandListener( expansionListener );
@@ -185,12 +188,12 @@ public class StaticTreeViewer extends JFrame {
         statter.add( modelNodesLabel );
         getContentPane().add( statter, BorderLayout.SOUTH );
 
+        /* Construct the panel containing help text. */
+        helpPanel = new HelpDetailViewer().getComponent();
+
         /* Set up a blank detail frame for use when there is no real detail. */
         blankDetail = new JPanel();
         blankDetail.setPreferredSize( detailsize );
-
-        /* Set the preferred size of the help window. */
-        StaticTreeViewerHelp.getHelp().setPreferredSize( detailsize );
 
         /* Set up the object to deal with asynchronous interrogation of 
          * nodes. */
@@ -566,7 +569,7 @@ public class StaticTreeViewer extends JFrame {
         /* Action for adding a new top-level node to the tree. */
         Action chooseNewNodeAct = 
             new AbstractAction( "Open",
-                                iconMaker.getIcon( IconFactory.OPEN ) ) {
+                                iconMaker.getIcon( IconFactory.LOAD ) ) {
             public void actionPerformed( ActionEvent event ) {
                 if ( fileChooser == null ) {
                     fileChooser = new JFileChooser( "." );
@@ -598,26 +601,43 @@ public class StaticTreeViewer extends JFrame {
             }
         };
 
+        /* Action for displaying demo data. */
+        Action demoAct =
+            new AbstractAction( "Display demo data",
+                                iconMaker.getIcon( IconFactory.DEMO ) ) {
+                public void actionPerformed( ActionEvent event ) {
+                    if ( demoNode == null ) {
+                        DataNode dnode;
+                        try { 
+                            dnode = new DemoDataNode();
+                        }
+                        catch ( NoSuchDataException e ) {
+                            dnode = new ErrorDataNode( e );
+                        }
+                        demoNode = new DefaultMutableTreeNode( dnode );
+                        demoNode.setAllowsChildren( dnode.allowsChildren() );
+                        DefaultMutableTreeNode root = 
+                            (DefaultMutableTreeNode) treeModel.getRoot();
+                        treeModel.insertNodeInto( demoNode, root, 0 );
+                    }
+                    TreePath tpath = new TreePath( demoNode.getPath() );
+                    tree.scrollPathToVisible( tpath );
+                    tree.setSelectionPath( tpath );
+                }
+            };
+        demoAct.putValue( Action.SHORT_DESCRIPTION,
+                          "Add demo data node at top of tree" );
+
         /* Action for showing help text. */
         helpAct = 
             new AbstractAction( "Show help text",
                                 iconMaker.getIcon( IconFactory.HELP ) ) {
             public void actionPerformed( ActionEvent event ) {
-               displayHelpComponent( StaticTreeViewerHelp.getHelp() );
+               displayHelpComponent( helpPanel );
             }
         };
         helpAct.putValue( Action.SHORT_DESCRIPTION,
                           "Show help text in info panel" );
-
-        /* Action for showing SUN text. */
-        Action sunAct = 
-            new AbstractAction( "Show user document" ) {
-            public void actionPerformed( ActionEvent event ) {
-                displayHelpComponent( StaticTreeViewerHelp.getSun() );
-            }
-        };
-        sunAct.putValue( Action.SHORT_DESCRIPTION,
-                         "Show user document in info panel" );
 
         /* Configure a selection listener to control availability of actions. */
         tree.getSelectionModel()
@@ -658,6 +678,7 @@ public class StaticTreeViewer extends JFrame {
         fileMenu.add( chooseNewNodeAct ).setIcon( null );
         fileMenu.add( exitAct ).setIcon( null );
         tools.add( exitAct );
+        tools.add( chooseNewNodeAct );
         tools.addSeparator();
 
         /* Add the detail geometry choices to both menu and toolbar. */
@@ -687,8 +708,9 @@ public class StaticTreeViewer extends JFrame {
         mb.add( Box.createHorizontalGlue() );
         mb.add( helpMenu );
         helpMenu.add( helpAct ).setIcon( null );
-        helpMenu.add( sunAct ).setIcon( null );
+        helpMenu.add( demoAct ).setIcon( null );
         tools.addSeparator();
+        tools.add( demoAct );
         tools.add( helpAct );
     }
 
@@ -1064,6 +1086,16 @@ public class StaticTreeViewer extends JFrame {
         updateDetail( tree.getSelectionPath() );
     }
 
+    public Image getIconImage() {
+        Icon treeicon = IconFactory.getInstance()
+                                   .getIcon( IconFactory.TREE_LOGO );
+        if ( treeicon instanceof ImageIcon ) {
+            return ((ImageIcon) treeicon).getImage();
+        }
+        else {
+            return super.getIconImage();
+        }
+    }
 
     public String toString() {
         String result = "";
@@ -1095,7 +1127,7 @@ public class StaticTreeViewer extends JFrame {
          * not slow direct user actions (such as moving the selection). */
         if ( blank ) {
             Component detail = detailHolder.getView();
-            if ( detail == StaticTreeViewerHelp.getHelp() ) {
+            if ( detail == helpPanel ) {
                 setDetailPane( (JComponent) detail );
             }
             else {
