@@ -101,7 +101,7 @@ public final class Sort
      * Creates an index that sorts a double precision array. On exit a
      * is sorted. A reordering of associated arrays without the need for
      * additional memory can be performed using the 
-     * {@link applySortIndex} methods.
+     * {@link #applySortIndex} methods.
      */
     public static int[] insertionSort2( double[] a )
     {
