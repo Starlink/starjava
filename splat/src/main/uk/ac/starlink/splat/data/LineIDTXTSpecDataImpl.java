@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2003-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *     11-APR-2003 (Peter W. Draper):
@@ -42,9 +42,9 @@ import uk.ac.starlink.splat.util.Utilities;
  * third the label.
  * <P.
  * An optional feature is support for a header section that defines
- * useful elements, such as the AST attributes of the coordinates and
- * a name for the content. The header section starts at the first line
- * with #BEGIN and ends on the line #END. The attributes are simple
+ * useful elements, such as the AST attributes of the coordinates, any known
+ * data units and a name for the content. The header section starts at the
+ * first line with #BEGIN and ends on the line #END. The attributes are simple
  * comment lines in between of the form "# name value".
  *  <p>
  * Whitespace separators are the space character, the tab character,
@@ -343,12 +343,20 @@ public class LineIDTXTSpecDataImpl
         try {
             r.write( "#BEGIN\n" );
             r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
-            r.write( "# name " + shortName );
+            r.write( "# name " + shortName + "\n" );
             writeAstAtt( r, "System" );
             writeAstAtt( r, "Unit" );
             writeAstAtt( r, "StdOfRest" );
             writeAstAtt( r, "SourceVRF" );
             writeAstAtt( r, "SourceVel" );
+            String units = getProperty( "units" );
+            if ( units != null ) {
+                r.write( "# DataUnits " + units + "\n" );
+            }
+            String label = getProperty( "label" );
+            if ( label != null ) {
+                r.write( "# DataLabel " + label + "\n" );
+            }
             r.write( "#END\n" );
         }
         catch (Exception e) {
@@ -358,7 +366,12 @@ public class LineIDTXTSpecDataImpl
         // Now write the data.
         for ( int i = 0; i < data.length; i++ ) {
             try {
-                r.write( coords[i] + " " + data[i] + " " + labels[i] + "\n" );
+                if ( data[i] == SpecData.BAD ) {
+                    r.write( coords[i] + " " + labels[i] + "\n" );
+                }
+                else {
+                    r.write( coords[i]+ " " +data[i]+ " " +labels[i]+ "\n" );
+                }
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -409,11 +422,20 @@ public class LineIDTXTSpecDataImpl
             Map.Entry entry = (Map.Entry) i.next();
             String key = (String) entry.getKey();
             String value = (String) entry.getValue();
-            if ( ! "name".equals( key ) ) {
-                currentframe.setC( key, value );
+            if ( "name".equalsIgnoreCase( key ) ) {
+                shortName = value;
+            }
+            else if ( "file".equalsIgnoreCase( key ) ) {
+                continue;
+            }
+            else if ( "dataunits".equalsIgnoreCase( key ) ) {
+                setDataUnits( value );
+            }
+            else if ( "datalabel".equalsIgnoreCase( key ) ) {
+                setDataLabel( value );
             }
             else {
-                shortName = value;
+                currentframe.setC( key, value );
             }
         }
 

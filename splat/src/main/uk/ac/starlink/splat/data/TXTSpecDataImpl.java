@@ -37,7 +37,7 @@ import uk.ac.starlink.splat.util.Utilities;
  *  Text files are assumed to be plain and contain either one, two,
  *  three or more whitespace separated columns. If two columns are present
  *  then these are the wavelength and data count, if three or more
- *  then the third column should be the error in the count. If only 
+ *  then the third column should be the error in the count. If only
  *  one column is present then this is the data count, and a false
  *  axis of indices is created (starting at 1).
  *  <p>
@@ -181,7 +181,7 @@ public class TXTSpecDataImpl
         try {
             f = new FileInputStream( file );
             r = new BufferedReader( new InputStreamReader( f ) );
-        } 
+        }
         catch ( Exception e ) {
             throw new SplatException( e );
         }
@@ -246,7 +246,7 @@ public class TXTSpecDataImpl
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
                      raw.charAt(0) == '#' ) {
                     continue;
-                } 
+                }
                 else {
                     // Read at least one or two floating numbers from line
                     // and no more than 3.
@@ -267,17 +267,17 @@ public class TXTSpecDataImpl
             try {
                 r.close();
                 f.close();
-            } 
+            }
             catch ( Exception ex ) {
                 ex.printStackTrace();
             }
-            throw new SplatException( "Error reading values from file: " + 
+            throw new SplatException( "Error reading values from file: " +
                                       file + " (" + e.getMessage() + ")", e );
         }
         try {
             r.close();
             f.close();
-        } 
+        }
         catch (Exception e) {
             //  Do nothing, it's not fatal.
         }
@@ -296,7 +296,7 @@ public class TXTSpecDataImpl
                 data[i] = ((Float)vec[1].get(i)).floatValue();
                 errors[i] = ((Float)vec[2].get(i)).floatValue();
             }
-        } 
+        }
         else if ( nwords == 2 ) {
             for ( int i = 0; i < nlines; i++ ) {
                 coords[i] = ((Float)vec[0].get(i)).floatValue();
@@ -312,7 +312,7 @@ public class TXTSpecDataImpl
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
-        if ( attributes == null || attributes.size() > 0 ) {
+        if ( attributes == null || attributes.size() == 0 ) {
             createAst();
         }
         else {
@@ -334,7 +334,7 @@ public class TXTSpecDataImpl
         try {
             f = new FileOutputStream( file );
             r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } 
+        }
         catch ( Exception e ) {
             throw new SplatException( e );
         }
@@ -349,6 +349,14 @@ public class TXTSpecDataImpl
             writeAstAtt( r, "StdOfRest" );
             writeAstAtt( r, "SourceVRF" );
             writeAstAtt( r, "SourceVel" );
+            String units = getProperty( "units" );
+            if ( units != null ) {
+                r.write( "# DataUnits " + units + "\n" );
+            }
+            String label = getProperty( "label" );
+            if ( label != null ) {
+                r.write( "# DataLabel " + label + "\n" );
+            }
             r.write( "#END\n" );
         }
         catch (Exception e) {
@@ -360,17 +368,17 @@ public class TXTSpecDataImpl
             for ( int i = 0; i < data.length; i++ ) {
                 try {
                     r.write( coords[i]+" "+data[i]+"\n" );
-                } 
+                }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        } 
+        }
         else {
             for ( int i = 0; i < data.length; i++ ) {
                 try {
                     r.write( coords[i]+ " "+data[i]+" "+errors[i]+"\n");
-                } 
+                }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -381,7 +389,7 @@ public class TXTSpecDataImpl
             r.newLine();
             r.close();
             f.close();
-        } 
+        }
         catch (Exception e) {
             //  Do nothing.
         }
@@ -425,11 +433,20 @@ public class TXTSpecDataImpl
             Map.Entry entry = (Map.Entry) i.next();
             String key = (String) entry.getKey();
             String value = (String) entry.getValue();
-            if ( ! "name".equals( key ) ) {
-                currentframe.setC( key, value );
+            if ( "name".equalsIgnoreCase( key ) ) {
+                shortName = value;
+            }
+            else if ( "file".equalsIgnoreCase( key ) ) {
+                continue;
+            }
+            else if ( "dataunits".equalsIgnoreCase( key ) ) {
+                setDataUnits( value );
+            }
+            else if ( "datalabel".equalsIgnoreCase( key ) ) {
+                setDataLabel( value );
             }
             else {
-                shortName = value;
+                currentframe.setC( key, value );
             }
         }
 
