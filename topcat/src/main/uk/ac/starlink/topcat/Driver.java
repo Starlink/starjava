@@ -178,7 +178,7 @@ public class Driver {
         String pad = pre.replaceAll( ".", " " );
         String usage = 
               pre + " [-help] [-demo] [-disk]\n" 
-            + pad + " [-tree] [-sql] [-cone] [-siap] [-registry]\n"
+            + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
         /* Standalone execution (e.g. System.exit() may be called). */
@@ -209,6 +209,10 @@ public class Driver {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.datanode.tree." +
                                 "TreeTableLoadDialog" );
+            }
+            else if ( arg.equals( "-file" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.table.gui.FileChooserLoader" );
             }
             else if ( arg.equals( "-sql" ) ) {
                 it.remove();
@@ -511,6 +515,7 @@ public class Driver {
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogues" )
            .append( p2 + "-tree      hierarchy browser" )
+           .append( p2 + "-file      basic file browser" )
            .append( p2 + "-sql       SQL query on relational database" )
            .append( p2 + "-cone      cone search dialogue" )
            .append( p2 + "-registry  VO registry query" )
@@ -528,6 +533,8 @@ public class Driver {
                     "custom algebraic function classes" )
            .append( p2 )
            .append( "jel.classes.activation  custom action function classes" )
+           .append( p2 )
+           .append( "star.connectors         custom remote filestore classes" )
            .append( p2 )
            .append( "startable.load.dialogs  custom load dialogue classes" )
            .append( p2 )
