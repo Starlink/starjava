@@ -101,6 +101,9 @@
      <echo message="Executing JSky target: ${what}"/>
      <ant dir="./jsky" target="${what}"/>
 
+     <echo message="Executing UTIL target: ${what}"/>
+     <ant dir="./util" target="${what}"/>
+
      <echo message="Executing JNIAST target: ${what}"/>
      <ant dir="./jniast" target="${what}"/>
 
