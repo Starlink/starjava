@@ -17,6 +17,8 @@ public class HdxTest
     }
     
     public void testURIResolution() {
+//         System.err.println("tests-classpath.value="
+//                            + System.getProperty("tests-classpath.value"));
         assertEquals("file:/path-to-parent/hdx/HdxTest.java",
                      resolveURI("HdxTest.java"));
         assertEquals("file:/path-to-parent/hdx/HdxTest.java#frag",

@@ -1,5 +1,6 @@
-package uk.ac.starlink.hdx;     // XXX move to no package
+package uk.ac.starlink.hdx.extension;
 
+import uk.ac.starlink.hdx.*;
 import org.w3c.dom.*;
 
 /**
@@ -16,7 +17,9 @@ public class SimpleWeather {
     private static HdxResourceType myType;
     static {
         try {
+            System.err.println("Initialising SimpleWeather...");
             myType = HdxResourceType.newHdxResourceType("weather");
+            System.err.println("Registered weather type: " + myType);
             myType.setElementValidator(new ElementValidator() {
                 public boolean validateElement(Element el) {
                     if (HdxResourceType.match(el) != myType)
@@ -30,14 +33,19 @@ public class SimpleWeather {
                     return new SimpleWeather(el);
                 }
             });
-            myType.setConstructedClass("uk.ac.starlink.hdx.SimpleWeather");
+            myType.setConstructedClass
+                ("uk.ac.starlink.hdx.extension.SimpleWeather");
         } catch (HdxException ex) {
-            throw new PluginException ("Failed to register SimpleWeather type:"
-                                       + ex);
+            throw new PluginException
+                ("Failed to register SimpleWeather type:" + ex);
         }
     }
 
     private String cloudColour;
+
+    public SimpleWeather() {
+        cloudColour = "transparent!";
+    }
 
     private SimpleWeather(Element el)
             throws HdxException {
@@ -51,7 +59,6 @@ public class SimpleWeather {
 
     /**
      * Return the colour of the cloud.
-     *
      * @return a non-null string representing the cloud colour.
      */
     public String getCloudColour() {

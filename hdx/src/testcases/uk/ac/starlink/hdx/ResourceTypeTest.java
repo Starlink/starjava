@@ -1,16 +1,19 @@
 package uk.ac.starlink.hdx;
 
-// import uk.ac.starlink.util.TestCase;
-// import junit.framework.Assert;
+import uk.ac.starlink.hdx.extension.SimpleWeather;
+
+import junit.framework.Assert;
+// Use JUnit TestCase rather than uk.ac.starlink.util.TestCase, 
+// to keep down dependencies (plus we don't need the extra facilities)
+import junit.framework.TestCase;
 
 import org.w3c.dom.*;           // for testWeather
 
-// public class ResourceTypeTest
-//         extends TestCase {
-public class ResourceTypeTest {
+public class ResourceTypeTest
+        extends TestCase {
     
     public ResourceTypeTest(String name) {
-        //super(name);
+        super(name);
     }
 
     public static void main(String[] args) {
@@ -48,23 +51,6 @@ public class ResourceTypeTest {
             assertEquals("black", ((SimpleWeather)weather2).getCloudColour());
         } catch (Exception ex) {
             fail("Error constructing weather document: " + ex);
-        }
-    }
-
-    public void assertNotNull(Object o) {
-        assertTrue(o != null);
-    }
-    public void assertEquals(String s1, String s2) {
-        assertTrue(s1.equals(s2));
-    }
-    public void fail(String msg) {
-        System.err.println(msg);
-        assertTrue(false);
-    }
-    public void assertTrue(boolean t) {
-        if (! t) {
-            System.err.println("Test failed");
-            System.exit(1);
         }
     }
 }
