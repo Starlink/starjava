@@ -59,6 +59,10 @@ public class TableCopy {
                         System.exit( 1 );
                     }
                 }
+                else if ( arg.equals( "-h" ) || arg.equals( "-help" ) ) {
+                    System.out.println( usage );
+                    System.exit( 0 );
+                }
                 else {
                     System.err.println( usage );
                     System.exit( 1 );
