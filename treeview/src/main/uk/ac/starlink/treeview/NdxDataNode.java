@@ -29,6 +29,7 @@ import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.ndx.XMLNdxHandler;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.util.URLUtils;
 
 /**
  * An implementation of the <tt>DataNode</tt> interface for representing
@@ -61,6 +62,9 @@ public class NdxDataNode extends DefaultDataNode {
             this.ndx = new NdxIO().makeNdx( loc, AccessMode.READ );
         }
         catch ( IOException e ) {
+            throw new NoSuchDataException( "Can't make NDX", e );
+        }
+        catch ( IllegalArgumentException e ) {
             throw new NoSuchDataException( "Can't make NDX", e );
         }
         if ( ndx == null ) {
@@ -129,6 +133,7 @@ public class NdxDataNode extends DefaultDataNode {
         else {
             name = "ndx";
         }
+        this.url = URLUtils.makeURL( xsrc.getSystemId() );
         setLabel( name );
     }
 
