@@ -35,9 +35,9 @@ public class VoigtFitter
 
     // Access to parameters.
     public static final int SCALE = 0;
-    public static final int GWIDTH = 1;
-    public static final int LWIDTH = 2;
-    public static final int CENTRE = 3;
+    public static final int CENTRE = 1;
+    public static final int GWIDTH = 2;
+    public static final int LWIDTH = 3;
 
     /**
      * The peak height of error function (scale factor for scale).
@@ -111,15 +111,15 @@ public class VoigtFitter
                         double lwidth, boolean lwidthFixed )
     {
         params[SCALE] = scale;
+        params[CENTRE] = centre;
         params[GWIDTH] = gwidth;
         params[LWIDTH] = lwidth;
-        params[CENTRE] = centre;
         peak = 1.0;
 
         fixed[SCALE] = scaleFixed;
+        fixed[CENTRE] = centreFixed;
         fixed[GWIDTH] = gwidthFixed;
         fixed[LWIDTH] = lwidthFixed;
-        fixed[CENTRE] = centreFixed;
 
         if ( w == null ) {
             // Default weights are 1.0.
@@ -152,9 +152,9 @@ public class VoigtFitter
 
         //  Set the initial guesses.
         lm.setParam( 1, params[SCALE], fixed[SCALE] );
-        lm.setParam( 2, params[GWIDTH], fixed[GWIDTH] );
-        lm.setParam( 3, params[LWIDTH], fixed[LWIDTH] );
-        lm.setParam( 4, params[CENTRE], fixed[CENTRE] );
+        lm.setParam( 2, params[CENTRE], fixed[CENTRE] );
+        lm.setParam( 3, params[GWIDTH], fixed[GWIDTH] );
+        lm.setParam( 4, params[LWIDTH], fixed[LWIDTH] );
 
         //  Each solution is scaled by a re-normalisation factor
         //  (i.e. so that error function peak is 1).
@@ -213,7 +213,7 @@ public class VoigtFitter
      */
     protected void setPeak()
     {
-        peak = 1.0;
+        peak = 1.0; // Value used in evalYData();
         peak = params[SCALE] / evalYData( params[CENTRE] );
     }
 
@@ -268,10 +268,11 @@ public class VoigtFitter
     // Set the parameters.
     public void setParams( double[] params )
     {
-        this.params[0] = params[0];
-        this.params[1] = params[1];
-        this.params[2] = params[2];
-        this.params[3] = params[3];
+        this.params[SCALE] = params[SCALE];
+        this.params[CENTRE] = params[CENTRE];
+        this.params[GWIDTH] = params[GWIDTH];
+        this.params[LWIDTH] = params[LWIDTH];
+        setPeak();
     }
 
     //  Get the fixed/floating state of parameters.
@@ -283,10 +284,21 @@ public class VoigtFitter
     // Set the fixed state of the various parameters.
     public void setFixed( boolean[] fixed )
     {
-        this.fixed[0] = fixed[0];
-        this.fixed[1] = fixed[1];
-        this.fixed[2] = fixed[2];
-        this.fixed[3] = fixed[3];
+        this.fixed[SCALE] = fixed[SCALE];
+        this.fixed[CENTRE] = fixed[CENTRE];
+        this.fixed[GWIDTH] = fixed[GWIDTH];
+        this.fixed[LWIDTH] = fixed[LWIDTH];
+    }
+
+    public String toString()
+    {
+        return "VoigtFitter[" + 
+            "flux = " + getFlux() + ", " +
+            "scale = " + getScale() + ", " +
+            "centre = " + getCentre() + ", " +
+            "gwidth = " + getGWidth() + ", " +
+            "lwidth = " + getLWidth() +
+            "]";
     }
 
     /**
@@ -342,15 +354,16 @@ public class VoigtFitter
             dwrdy *= -1.0;
         }
 
-        //  Partials wrt to scale, gaussian width, lorentzian width
-        //  and position.
+        //  Partials wrt to scale, position, gaussian width and
+        //  lorentzian width.
         dyda[1] = dyda[0];
-        dyda[2] = -atem * ( w[0] + dwrdx * xx + dwrdy * yy ) / params[GWIDTH];
-        dyda[3] = 0.5 * ctem * dwrdy;
-        dyda[4] = -dwrdx * ctem;
+        dyda[2] = peak * -dwrdx * ctem;
+        dyda[3] = peak * -atem * ( w[0] + dwrdx * xx + dwrdy * yy ) / 
+                  params[GWIDTH];
+        dyda[4] = peak * 0.5 * ctem * dwrdy;
 
         //  Return value correct to a voigt peak of 1.
-        return dyda[0] * peak;
+        return peak * dyda[0];
     }
 
     /**
@@ -362,14 +375,20 @@ public class VoigtFitter
     public double eval( double x, double[] a, int na, double[] dyda )
     {
         params[SCALE] = a[1];
-        params[GWIDTH] = a[2];
-        params[LWIDTH] = a[3];
-        params[CENTRE] = a[4];
-        
+        params[CENTRE] = a[2];
+        params[GWIDTH] = a[3];
+        params[LWIDTH] = a[4];
+
         //  Each solution is uniquely scaled by a re-normalisation factor
         //  (i.e. so that peak is 1).
         setPeak();
-        return fullEvalPoint( x, dyda );
+        double y = fullEvalPoint( x, dyda );
+        if ( a[3] < 0.0 || a[4] < 0.0 ) {
+            //  Try to discourage non-physical solutions by increasing
+            //  chi square calcs.
+            return 0.0;
+        }
+        return y;
     }
 
     /**
