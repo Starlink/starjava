@@ -347,6 +347,12 @@
     <condition property="jni.assembled">
       <and>
         <uptodate>
+          <srcfiles dir="${basedir}" includes="${src.perl}/*.pl"/>
+          <mapper type="glob" 
+                  from="${src.perl}${file.separator}*.pl"
+                  to="${build.java}${file.separator}${package.path}${file.separator}*.java"/>
+        </uptodate>
+        <uptodate>
           <srcfiles dir="${basedir}">
             <include name="${src.jni}/*"/>
           </srcfiles>
