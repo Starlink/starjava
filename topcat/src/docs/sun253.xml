@@ -2822,7 +2822,7 @@ and those common to other windows (described in <ref id="commonMenus"/>).
     where the table comes from.
     </p></dd>
 
-<dt>Export to Mirage</dt>
+<dt>Export To Mirage</dt>
 <dd><p>Starts up the external Mirage application on the current apparent table.
     This action is only available if Mirage is on your classpath.
     See <ref id="mirage"/>.
@@ -3552,8 +3552,12 @@ they'll be shown on top.
 <p>The following extra buttons are available on the toolbar:
 <dl>
 
-<dt>&IMG.PRINT; Print</dt>
+<dt>&IMG.PRINT; Export as EPS</dt>
 <dd><p>Pops up a dialogue which will print the current plot as an EPS file.
+    </p></dd>
+
+<dt>&IMG.IMAGE; Export as GIF</dt>
+<dd><p>Pops up a dialogue which will output the current plot to a GIF file.
     </p></dd>
 
 <dt>&IMG.RESIZE; Rescale</dt>
