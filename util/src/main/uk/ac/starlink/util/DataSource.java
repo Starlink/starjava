@@ -34,6 +34,7 @@ public abstract class DataSource {
     private Boolean isASCII;
     private Boolean isEmpty;
     private Boolean isHTML;
+    private String name;
 
     /* Initialise member variables. */
     { clearState(); }
@@ -43,13 +44,6 @@ public abstract class DataSource {
 
     /** Maximum line length for stream considered as ASCII. **/
     private static final int MAX_LINE_LENGTH = 240;
-
-    /**
-     * Returns a name for this source.
-     *
-     * @return  a name
-     */
-    abstract public String getName();
 
     /**
      * Provides a new InputStream for this data source.
@@ -62,6 +56,55 @@ public abstract class DataSource {
      * @return  an InputStream containing the data of this source
      */
     abstract protected InputStream getRawInputStream() throws IOException;
+
+    /**
+     * Returns the length in bytes of the stream returned by 
+     * <tt>getRawInputStream</tt>, if known.  If the length is not known
+     * then -1 should be returned.
+     * The implementation of this method in <tt>DataSource</tt> returns -1;
+     * subclasses should override it if they can determine their length.
+     *
+     * @return  the length of the raw input stream, or -1
+     */
+    protected long getRawLength() {
+        return -1L;
+    }
+
+    /**
+     * Returns the length of the stream returned by <tt>getInputStream</tt>
+     * in bytes, if known.
+     * A return value of -1 indicates that the length is unknown.
+     *
+     * @return  the length of the stream in bytes, or -1
+     */
+    public long getLength() throws IOException {
+        long rawleng = getRawLength();
+        if ( rawleng < 0L || getCompression() != Compression.NONE ) {
+            return -1L;
+        }
+        else {
+            assert getCompression() == Compression.NONE;
+            return rawleng;
+        }
+    }
+
+    /**
+     * Returns a name for this source.
+     *
+     * @return  a name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the name of this source.
+     *
+     * @param  a name
+     */
+    public void setName( String name ) {
+        this.name = name;
+    }
 
     /**
      * Returns an object which will handle any required decompression 
@@ -151,21 +194,9 @@ public abstract class DataSource {
                 protected InputStream getRawInputStream() throws IOException {
                     return base.getRawInputStream();
                 }
-                public String getName() {
-                    return base.getName();
-                }
             };
+            forced.setName( base.getName() );
             forced.setCompression( compress );
-
-            /* It is probable that the base source will not be required 
-             * again, so close it to conserve resources; however, this 
-             * doesn't prevent anyone from using it in the future. */
-            try {
-                base.close();
-            }
-            catch ( IOException e ) {
-                // never mind
-            }
 
             /* Return the new DataSource object. */
             return forced;
@@ -229,6 +260,8 @@ public abstract class DataSource {
             strm.mark( nReq );
             nGot = strm.read( buffer, 0, nReq );
             strm.reset();
+
+if ( nGot < 0 ) System.out.println( strm.getClass() );
 
             /* Record whether the file is empty or not. */
             if ( nGot == 0 ) {
@@ -312,7 +345,7 @@ public abstract class DataSource {
      * Grabs a few bytes from the start of the stream and makes some 
      * guesses about the general nature of the stream on the basis of these.
      */
-    private void characterise() throws IOException {
+    private synchronized void characterise() throws IOException {
         byte[] buf = new byte[ TESTED_BYTES ];
         int nGot = getMagic( buf );
         isEmpty = Boolean.valueOf( nGot == 0 );
@@ -403,7 +436,7 @@ public abstract class DataSource {
     /**
      * Intialises all knowledge of this object about itself.
      */
-    protected void clearState() {
+    protected synchronized void clearState() {
         try {
             close();
         }
@@ -425,15 +458,15 @@ public abstract class DataSource {
      * Currently this must be either a file name or a URL.
      * If an <em>existing</em> file or valid URL exists with the given
      * <tt>name</tt>, a DataSource based on it will be returned.
-     * Otherwise a FileNotFoundException will be thrown.
+     * Otherwise an IOException will be thrown.
      *
      * @param  name  the location of the data
      * @return  a DataSource based on the data at <tt>name</tt>
-     * @throws  FileNotFoundException  if <tt>name</tt> does not name
-     *          an existing file or valid URL
+     * @throws  IOException  if <tt>name</tt> does not name
+     *          an existing readable file or valid URL
      */
     public static DataSource makeDataSource( String name )
-            throws FileNotFoundException {
+            throws IOException {
 
         /* If there is a file by this name, return a source based on that. */
         File file = new File( name );

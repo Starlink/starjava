@@ -15,10 +15,7 @@ public class URLDataSource extends DataSource {
 
     public URLDataSource( URL url ) {
         this.url = url;
-    }
-
-    public String getName() {
-        return url.toString();
+        setName( url.toString() );
     }
 
     protected InputStream getRawInputStream() throws IOException {
