@@ -615,6 +615,7 @@
          <extension name="HDS" href="hds.jnlp"/>
          <extension name="PAL" href="pal.jnlp"/>
          <extension name="DIVA" href="diva.jnlp"/>
+         <extension name="HELP" href="help.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
