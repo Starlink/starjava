@@ -25,11 +25,11 @@
 Research Councils}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.5}
+\newcommand{\stardocnumber}    {243.6}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {24 January 2005}
+\newcommand{\stardocdate}      {24 February 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
-\newcommand{\stardocversion}   {3.0b}
+\newcommand{\stardocversion}   {3.1}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
 \textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
@@ -846,12 +846,10 @@ the display area.\\
  of the display area, you can change the size of the display surface using the
  zoom controls described below and/or you can change the actual data limits
  using the \labelitem{Configure Plot Options} window. When you add or remove a
- spectrum to a plot the aspect ratio of the coordinate system remains the same
- and the display area size is changed to accommodate the new spectrum,
- occasionally for very mismatched spectra, this can make the display area
- very small or very large (and you may see errors reported in the terminal
- window). To return to a state where the visible surface matches the display
- area you need to press the \inline{fitwidth} and \inline{fitheight} buttons.
+ spectrum the apparent size of the display region stays the same and all the
+ spectra now displayed are scaled to fit within it. To return to a state where
+ the visible surface matches the display area you need to press the
+ \inline{fitwidth} and \inline{fitheight} buttons.
 
  The \labelitem{Configure Plot Options} window also offers the ability change
  the colour of the display area background, to draw the lines using
@@ -1351,9 +1349,9 @@ images that you could combine into a movie of some kind.
   \item \labelitem{Free} selecting this option makes the spectrum add
   itself without constraints to the plot. This is essentially the same
   as just adding a spectrum to a plot using the browser window controls
-  (\ie\ the data limits of the plot are produced by combination with any
-  pre-plotted spectra, and the display area is then scaled to fit this
-  in, but at the same aspect ratio as already exists).
+  (\ie\ the data limits of the plot are produced by combinating the
+  data limits of any pre-plotted spectra and the one added, these are 
+  all scaled to fit).
  \end{itemize}
 
  The \labelitem{Current spectrum} label just displays the name of the
@@ -1872,8 +1870,8 @@ be in a valid state until you've entered the complete coordinate value).
 \mainfigure{configurewindowlimits}
 
 This page allows you to set the physical limits of the axis drawn in the
-display area. The default configuration auto-scales the display area to the
-full limits of all spectra that it is displaying.
+display area. The default configuration auto-scales all spectra to fit
+within the currently available display area.
 
 If you want to apply limits of your own then, untick the auto-scale checkboxes
 and enter your values in the lower and upper entry areas. Remember to press
@@ -1885,9 +1883,9 @@ zero) and to display the axes ranges flipped top to bottom or left to right.
 
 Other useful options are the checkboxes \labelitem{Fit X range:} and
 \labelitem{Fit Y range:} that also make the ranges that you supply
-fit the display area exactly (these are like the fitwidth and
-fitheight options in the plot window) and \labelitem{Y auto cut:}
-which applies limits to the Y axis using percentile cuts.
+fit the visible display area exactly (these are like the fitwidth and
+fitheight options in the plot window) and \labelitem{Y auto cut:} which
+applies limits to the Y axis using percentile cuts.
 
 The \labelitem{Update to current} button sets the X and Y limits to
 those of the full plot (these are the values shown initially).

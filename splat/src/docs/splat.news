@@ -1,3 +1,9 @@
+   The plot scale factors now apply to graphics size. Previously they applied
+   to the spectrum coordinates. This makes it easy to control the plot when
+   displaying spectra with very different coordinates (like those downloaded
+   from the VO), but will cause existing spectra to be re-scaled when new
+   spectra are added to a plot.
+
    Speed ups for re-drawing spectra that are being matching using
    their spectral coordinates and data units.
 

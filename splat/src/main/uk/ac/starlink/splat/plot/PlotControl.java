@@ -94,8 +94,8 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * The controls in the panel allow you to:
  * <ul
- *   <li> apply independent scales in X and Y, thus zooming and
- *   scrolling the DivaPlot,</li>
+ *   <li> apply independent scales in X and Y, thus zooming and scrolling the 
+ *        DivaPlot,</li>
  *   <li> get a continuous readout of the cursor position,
  *   <li> display a vertical hair,</li>
  *   <li> select the current spectrum and see a list of those displayed,</li>
@@ -633,8 +633,7 @@ public class PlotControl
                 }
             } );
 
-        //  The initial scale is 1.0 (do now to avoid pre-emptive
-        //  trigger).
+        //  The initial scale is 1.0 (do now to avoid pre-emptive trigger).
         resetScales();
 
         //  When an item is selected or value entered update the zoom.

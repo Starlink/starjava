@@ -1,11 +1,14 @@
 /*
- * Copyright (C) 2002-2004 Central Laboratory of the Research Councils
+ * Copyright (C) 2002-2005 Central Laboratory of the Research Councils
  *
  *  History:
  *    12-SEP-1999 (Peter W. Draper):
  *       Original version.
  *    06-JUN-2002 (Peter W. Draper):
  *       Changed to use JNIAST instead of local JNI version.
+ *    24-FEB-2005 (Peter W. Draper):
+ *       Changed meaning of scaling a plot. This now applies to the graphics
+ *       size, not the world coordinates.
  */
 package uk.ac.starlink.splat.plot;
 
@@ -108,12 +111,12 @@ public class DivaPlot
     protected float lastYScale = 0.0F;
 
     /**
-     * X scale that maps data range into initial graphic size.
+     * X scale that defines a scale factor of one.
      */
     protected float baseXScale = 1.0F;
 
     /**
-     * Y scale that maps data range into initial graphic size.
+     * Y scale that defines a scale factor of one.
      */
     protected float baseYScale = 1.0F;
 
@@ -521,15 +524,13 @@ public class DivaPlot
             baseBox[3] = yMax;
         }
 
-        //  The base scales are defined to fit the data content into
-        //  the plotting area. Do this once so that scales remain same
-        //  to user.
+        //  Set the values that define what a unit scale in either axes means.
         if ( init ) {
             setBaseScale();
         }
 
-        //  Set the preferred size of the component -- big enough for
-        //  pixel resolution times the scale factor.
+        //  Set the preferred size of the component. This is the current
+        //  scales times the basescale.
         setScale( xScale, yScale );
 
         //  Establish the border for labelling.
@@ -591,8 +592,8 @@ public class DivaPlot
     public void setBaseScale()
     {
         Dimension size = getPreferredSize();
-        baseXScale = (float) size.width / (float) ( xMax - xMin );
-        baseYScale = (float) size.height / (float) ( yMax - yMin );
+        baseXScale = (float) size.width;
+        baseYScale = (float) size.height;
     }
 
     /**
@@ -616,24 +617,22 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed width. Follow this with a
-     * setScale( 1, x ), to update the display.
+     * Fit spectrum to the displayed width. Follow this with a setScale( 1, x ), 
+     * to update the display. 
      */
     public void fitToWidth()
     {
-        Dimension size = getSize();
-        baseXScale = (float) size.width / (float) ( xMax - xMin );
+        baseXScale = (float) getWidth();
         lastXScale = 0.0F;
     }
 
     /**
-     * Fit spectrum to the displayed height. Follow this with a
-     * setScale( x, 1 ), to update the display.
+     * Fit spectrum to the displayed height. Follow this with a setScale( x, 1 ), 
+     * to update the display.
      */
     public void fitToHeight()
     {
-        Dimension size = getSize();
-        baseYScale = (float) size.height / (float) ( yMax - yMin );
+        baseYScale = (float) getHeight();
         lastYScale = 0.0F;
     }
 
@@ -647,9 +646,8 @@ public class DivaPlot
         //  honoured by the user of this class somehow (use center of a
         //  BorderLayout, probably with a JScrollPane, if expecting to resize
         //  after creation).
-        setPreferredSize
-            (new Dimension( (int)( baseXScale * xScale * ( xMax - xMin ) ),
-                            (int)( baseYScale * yScale * ( yMax - yMin ) ) ) );
+        setPreferredSize( new Dimension( (int)( baseXScale * xScale ),
+                                         (int)( baseYScale * yScale ) ) );
     }
 
     /**
@@ -819,8 +817,8 @@ public class DivaPlot
         try {
             if ( xyScaled ) {
 
-                //  Scale of plot has changed or been set for the first
-                //  time. So we need to redraw everything.
+                //  Scale of plot has changed or been set for the first time. 
+                //  So we need to redraw everything.
                 xyScaled = false;
 
                 //  Keep reference to existing AstPlot so we know how graphics
@@ -845,7 +843,7 @@ public class DivaPlot
 
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
-                        createPlot( astref, this, baseBox,
+                        createPlot( astref,
                                     graphicsEdges.getXLeft(),
                                     graphicsEdges.getXRight(),
                                     graphicsEdges.getYTop(),
@@ -853,14 +851,12 @@ public class DivaPlot
                                     config.getAst() );
                     }
                     else {
-                        createPlot( astref, this, baseBox, 
-                                    0.05, 0.00, 0.03, 0.05, 
+                        createPlot( astref, 0.05, 0.00, 0.03, 0.05, 
                                     config.getAst() );
                     }
                 }
                 else {
-                    createPlot( astref, this, baseBox, 
-                                0.05, 0.00, 0.03, 0.05, "" );
+                    createPlot( astref, 0.05, 0.00, 0.03, 0.05, "" );
                 }
 
                 // The plot must use our Grf implementation.
@@ -920,7 +916,13 @@ public class DivaPlot
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
             // when we try to repaint.
-            logger.info( e.getMessage() );
+            if ( e.getMessage() != null ) {
+                logger.info( e.getMessage() );
+            }
+            else {
+                logger.info( "Failed to draw spectra" );
+                e.printStackTrace();
+            }
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
                 ok = false;
@@ -938,14 +940,10 @@ public class DivaPlot
     }
 
     /**
-     *  Create a Plot to fit a given component.
+     *  Create a Plot matched to this component.
      *
      *  @param astref  a FrameSet that describes the mapping from physical to 
      *                 graphics coordinates.
-     *  @param comp    component that the plot will fit inside.
-     *  @param basebox array of 4 floating point number indicating the
-     *                 corners of the region to be drawn (in the
-     *                 coordinate system of the base frame).
      *  @param xleft   Fraction of component display surface to be
      *                 reserved on left for axes labels etc (can be zero, in
      *                 which case use control of the Insets to provide
@@ -964,7 +962,7 @@ public class DivaPlot
      *                 required space).
      *  @param options a string of AST options to use when creating plot.
      */
-    protected void createPlot( FrameSet astref, JComponent comp, double basebox[],
+    protected void createPlot( FrameSet astref,
                                double xleft, double xright,
                                double ytop, double ybottom,
                                String options )
@@ -976,8 +974,8 @@ public class DivaPlot
 
         //  Find out the size of the graphics component. This is used
         //  to define the base graphics coordinate system.
-        Dimension size = comp.getPreferredSize();
-        Insets inset = comp.getInsets();
+        Dimension size = getPreferredSize();
+        Insets inset = getInsets();
 
         //  Fraction of space reserved at left/right and top/bottom.
         float tinset = (float) ( size.height * ytop );
@@ -995,8 +993,12 @@ public class DivaPlot
 
         Rectangle graphrect = new Rectangle( size );
 
+        //  Note that baseBox is an array of 4 floating point number
+        //  indicating the corners of the region to be drawn, in the
+        //  coordinate system of the base frame.
+
         //  Now create the astPlot.
-        thePlot = new Plot( astref, graphrect, basebox,
+        thePlot = new Plot( astref, graphrect, baseBox,
                             (int) (inset.left + linset),
                             (int) (inset.right + rinset),
                             (int) (inset.bottom + binset),
@@ -1019,8 +1021,7 @@ public class DivaPlot
         //  use them to transform the graphics positions.
         graphicsPane.astTransform( oldAstPlot, thePlot );
 
-        //  Force a reset of the vertical hair, if vertical scale is
-        //  changed.
+        //  Force a reset of the vertical hair, if vertical scale is changed.
         resetVHair();
     }
 
@@ -1127,7 +1128,10 @@ public class DivaPlot
      */
     public double[][] transform( double[] positions, boolean forward )
     {
-        return ASTJ.astTran2( thePlot, positions, forward );
+        if ( thePlot != null ) {
+            return ASTJ.astTran2( thePlot, positions, forward );
+        }
+        return null;
     }
 
     /**
