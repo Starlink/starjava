@@ -71,15 +71,25 @@ import uk.ac.starlink.util.Loader;
  * In the latter case the implementing class(es) must have a 
  * no-arg constructor.
  *
- * <p>By default, if the required classes are present, the following 
- * handlers are installed:
+ * <p>By default, if the required classes are present, only the 
+ * {@link FileChooserLoader} handler is installed.
+ * As well as ones you might implement yourself, a number of other 
+ * useful {@link TableLoadDialog} implementations are available in
+ * the Starlink java set, including: 
  * <ul>
- * <li> {@link FileChooserLoader}
- * <li> {@link NodeLoader}
- * <li> {@link SQLReadDialog}
+ * <li> {@link SQLReadDialog} (Load tables from an SQL server using JDBC)
+ * <li> {@link uk.ac.starlink.datanode.tree.TreeTableLoadDialog}
+ *      (Treeview-like hierarchical display of nodes)
+ * <li> {@link uk.ac.starlink.vo.ConeSearchDialog}
+ *      (Obtain a source catalogue using a cone search query)
+ * <li> {@link uk.ac.starlink.vo.SiapTableLoadDialog}
+ *      (Obtain a list of SIAP services)
+ * <li> {@link uk.ac.starlink.vo.RegistryTableLoadDialog}
+ *      (Get the result of a registry query as a table of resources)
+ * <li> {@link uk.ac.starlink.astrogrid.MyspaceTableLoadDialog}
+ *      (Browse MySpace for tables)
  * </ul>
- * Other useful {@link TableLoadDialog} implementations are available in
- * the Starlink java set and can be install if desired as explained above.
+ * these can be installed if desired as explained above.
  *
  * <p>If you want to make more customised use of this component than is
  * offered by <tt>showTableDialog</tt> it is possible, but these javadocs
@@ -112,8 +122,6 @@ public class StarTableChooser extends JPanel {
      */
     public static String[] STANDARD_DIALOG_CLASSES = new String[] {
         FileChooserLoader.class.getName(),
-        NodeLoader.class.getName(),
-        SQLReadDialog.class.getName(),
     };
 
     /**
