@@ -246,7 +246,7 @@ public class HexDumper extends JTable {
                             sb.append( (char) b );
                         }
                         else {
-                            sb.append( '.' );
+                            sb.append( '\u00b7' );
                         }
                     }
                     return sb.toString();
