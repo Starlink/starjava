@@ -156,6 +156,8 @@ public class FileDataNode extends DefaultDataNode {
             dv.addKeyedItem( "Size", file.length() );
             dv.addKeyedItem( "Last modified", 
                               new Date( file.lastModified() ).toString() );
+            dv.addKeyedItem( "Read access", file.canRead() ? "yes" : "no" );
+            dv.addKeyedItem( "Write access", file.canWrite() ? "yes" : "no" );
 
             /* If it looks like a text file, add the option to view the
              * content. */
