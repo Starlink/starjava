@@ -177,7 +177,11 @@
    !-->
   <extclasspath id="installed.classpath">
 
-     <!-- Depends on no other local packages (fits/dom4j/diva??)-->
+    <!-- TAMFITS, use proper version rather than JSky release -->
+    <pathelement location="${star.jar.dir}/tamfits/tamfits.jar"/>
+
+    <!-- DIVA, use proper version rather than JSky release -->
+    <pathelement location="${star.jar.dir}/diva/diva.jar"/>
 
   </extclasspath>
   
@@ -198,9 +202,8 @@
    !   the extra classpath.
    !-->
   <extclasspath id="built.jarpath">
-
-     <!-- Depends on no other local packages-->
-
+    <pathelement location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
+    <pathelement location="${star.build.dir}/diva/lib/diva/diva.jar"/>
   </extclasspath>
 
   <!-- "Local" third party jars. Normally these will be kept in their
@@ -383,7 +386,9 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="jsky.app.jskycat.JSkyCat"/>
         <attribute name="Class-Path" 
-                   value="diva.jar fits.jar hcompress.jar image.jar jel.jar jfreechart.jar jcommon.jar log4j.jar sun-util.jar util.jar dom4j.jar"/>
+                   value="hcompress.jar jel.jar jfreechart.jar 
+         jcommon.jar log4j.jar sun-util.jar dom4j.jar ../diva/diva.jar
+         ../tamfits/tamfits.jar"/>
       </manifest>
     </jar>
   </target>
