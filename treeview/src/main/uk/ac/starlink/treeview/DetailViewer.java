@@ -28,10 +28,10 @@ import javax.swing.event.ChangeListener;
  */
 public class DetailViewer {
 
-    private final JTabbedPane tabbed;
-    private StyledTextArea over;
+    protected final JTabbedPane tabbed;
+    protected StyledTextArea over;
 
-    public DetailViewer() {
+    public DetailViewer( String overName ) {
 
         /* Construct a tabbed pane.  We have to jump through a few hoops
          * to make sure that scroll bars are always painted in the right
@@ -57,11 +57,11 @@ public class DetailViewer {
 
         /* Get the main overview pane and add it as the first item. */
         over = new StyledTextArea();
-        addPane( "Overview", over );
+        addPane( overName, over );
     }
 
     public DetailViewer( DataNode node ) {
-        this();
+        this( "Overview" );
         over.addIcon( node.getIcon() );
         over.addSpace();
         over.addTitle( node.getLabel() ); 
@@ -96,6 +96,7 @@ public class DetailViewer {
                     catch ( Exception e ) {
                         StyledTextArea sta = new StyledTextArea();
                         sta.addTitle( "Error" );
+                        sta.setWrap( false );
                         sta.addKeyedItem( "Exception class",
                                           e.getClass().getName() );
                         sta.addKeyedItem( "Message", e.getMessage() );
@@ -212,6 +213,14 @@ public class DetailViewer {
 
     public void addText( String text ) {
         over.addText( text );
+    }
+
+    public void addIcon( Icon icon ) {
+        over.addIcon( icon );
+    }
+
+    public void addSpace() {
+        over.addSpace();
     }
 
     /** 
