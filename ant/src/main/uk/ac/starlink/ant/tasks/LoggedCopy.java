@@ -59,9 +59,8 @@ public class LoggedCopy extends Copy
     }
 
     /**
-     * Sets the file to use for logging copy operations. A directory
-     * is taken to mean no logfile (this is what ypu get for a ""
-     * logfile).
+     * Sets the file to use for logging copy operations. A directory is taken
+     * to mean no logfile (this is what you get for a "" logfile).
      */
     public void setLogfile( File logfile )
     {
@@ -74,8 +73,8 @@ public class LoggedCopy extends Copy
     }
 
     /**
-     * Sets whether the logging file should be appended or
-     * overwritten, if it exists already.
+     * Sets whether the logging file should be appended or overwritten, if it
+     * exists already.
      */
     public void setLogfileAppend( boolean logfileAppend )
     {
@@ -83,9 +82,8 @@ public class LoggedCopy extends Copy
     }
 
     /**
-     * Add a file to the log file. Only done if a log file is
-     * available. Note you should close the log file when all
-     * operations are complete.
+     * Add a file to the log file. Only done if a log file is available. 
+     * Note you should close the log file when all operations are complete.
      */
     protected void addToLogfile( String filename )
     {
@@ -121,53 +119,66 @@ public class LoggedCopy extends Copy
      * Note we log all files, even if they are not copied because the
      * target file is judged to be up to date already.
      */
-    protected void doFileOperations()
+    protected void doFileOperations() 
     {
-        if ( fileCopyMap.size() > 0 ) {
-            log( "Copying " + fileCopyMap.size()
-                 + " file" + (fileCopyMap.size() == 1 ? "" : "s")
-                 + " to " + destDir.getAbsolutePath());
+        if (fileCopyMap.size() > 0) {
+            log("Copying " + fileCopyMap.size()
+                + " file" + (fileCopyMap.size() == 1 ? "" : "s")
+                + " to " + destDir.getAbsolutePath());
 
             Enumeration e = fileCopyMap.keys();
             while (e.hasMoreElements()) {
                 String fromFile = (String) e.nextElement();
-                String toFile = (String) fileCopyMap.get(fromFile);
+                String[] toFiles = (String[]) fileCopyMap.get(fromFile);
 
-                if (fromFile.equals(toFile)) {
-                    log("Skipping self-copy of " + fromFile, verbosity);
-                    addToLogfile( toFile );
-                    continue;
-                }
+                for (int i = 0; i < toFiles.length; i++) {
+                    String toFile = toFiles[i];
 
-                try {
-                    log("Copying " + fromFile + " to " + toFile, verbosity);
-                    addToLogfile( toFile );
+                    if (fromFile.equals(toFile)) {
+                        log("Skipping self-copy of " + fromFile, verbosity);
 
-                    FilterSetCollection executionFilters =
-                        new FilterSetCollection();
-                    if (filtering) {
-                        executionFilters
-                            .addFilterSet(project.getGlobalFilterSet());
+                        // PWD: modification from original method.
+                        addToLogfile( toFile );
+                        continue;
                     }
-                    for ( Enumeration filterEnum = getFilterSets().elements();
-                          filterEnum.hasMoreElements();)
-                    {
-                        executionFilters
-                            .addFilterSet((FilterSet) filterEnum.nextElement());
+
+                    try {
+                        log("Copying " + fromFile + " to " + toFile, verbosity);
+
+                        FilterSetCollection executionFilters =
+                            new FilterSetCollection();
+                        if (filtering) {
+                            executionFilters
+                                .addFilterSet(getProject().getGlobalFilterSet());
+                        }
+                        for (Enumeration filterEnum = getFilterSets().elements();
+                            filterEnum.hasMoreElements();) {
+                            executionFilters
+                                .addFilterSet((FilterSet) filterEnum.nextElement());
+                        }
+                        getFileUtils().copyFile(fromFile, toFile, executionFilters,
+                                                getFilterChains(), forceOverwrite,
+                                                preserveLastModified, getEncoding(),
+                                                getOutputEncoding(), getProject());
+
+                        // PWD: modification from original method.
+                        addToLogfile( toFile );
+
+                    } catch (IOException ioe) {
+                        String msg = "Failed to copy " + fromFile + " to " + toFile
+                            + " due to " + ioe.getMessage();
+                        File targetFile = new File(toFile);
+                        if (targetFile.exists() && !targetFile.delete()) {
+                            msg += " and I couldn't delete the corrupt " + toFile;
+                        }
+                        throw new BuildException(msg, ioe, getLocation());
                     }
-                    getFileUtils().copyFile(fromFile, toFile, executionFilters,
-                                            getFilterChains(), forceOverwrite,
-                                            preserveLastModified, getEncoding(),
-                                            project);
-                } catch (IOException ioe) {
-                    String msg = "Failed to copy " + fromFile + " to " + toFile
-                        + " due to " + ioe.getMessage();
-                    throw new BuildException(msg, ioe, location);
                 }
             }
 
-            //  Make sure that the log file is closed (need this as
-            //  other processes may write to it).
+            //  PWD: modification to original method here.
+            //  Make sure that the log file is closed (need this as other
+            //  processes may write to it).
             if ( logfileWriter != null ) {
                 try {
                     logfileWriter.close();
@@ -181,25 +192,31 @@ public class LoggedCopy extends Copy
 
         if (includeEmpty) {
             Enumeration e = dirCopyMap.elements();
-            int count = 0;
+            int createCount = 0;
             while (e.hasMoreElements()) {
-                File d = new File((String) e.nextElement());
-                if (!d.exists()) {
-                    if (!d.mkdirs()) {
-                        log("Unable to create directory "
-                            + d.getAbsolutePath(), Project.MSG_ERR);
-                    } else {
-                        count++;
+                String[] dirs = (String[]) e.nextElement();
+                for (int i = 0; i < dirs.length; i++) {
+                    File d = new File(dirs[i]);
+                    if (!d.exists()) {
+                        if (!d.mkdirs()) {
+                            log("Unable to create directory "
+                                + d.getAbsolutePath(), Project.MSG_ERR);
+                        } else {
+                            createCount++;
+                        }
                     }
                 }
             }
-
-            if (count > 0) {
-                log("Copied " + count +
-                    " empty director" +
-                    (count == 1 ? "y" : "ies") +
-                    " to " + destDir.getAbsolutePath());
+            if (createCount > 0) {
+                log("Copied " + dirCopyMap.size()
+                    + " empty director"
+                    + (dirCopyMap.size() == 1 ? "y" : "ies")
+                    + " to " + createCount
+                    + " empty director"
+                    + (createCount == 1 ? "y" : "ies") + " under "
+                    + destDir.getAbsolutePath());
             }
         }
     }
+
 }
