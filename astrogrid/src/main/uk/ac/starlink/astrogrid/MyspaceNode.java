@@ -24,7 +24,8 @@ class MyspaceNode implements uk.ac.starlink.connect.Node {
                         MyspaceBranch parent ) {
         myNode_ = myNode;
         parent_ = parent;
-        path_ = parent == null ? getName() : parent.getName() + "/" + getName();
+        path_ = parent == null ? "/" 
+                               : parent.toString() + "/" + getName();
     }
 
     public String getName() {
