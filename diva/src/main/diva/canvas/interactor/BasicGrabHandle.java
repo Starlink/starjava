@@ -41,11 +41,7 @@ public class BasicGrabHandle extends BasicRectangle implements GrabHandle {
      */
     public BasicGrabHandle(Site s) {
         // Can't reference variable until superclass is called...
-        super(0,0,0,0,java.awt.Color.black);// PWD: was
-                                            // java.awt.Color.blue, I
-                                            // prefer clear, but seems
-                                            // to leave "trails" when
-                                            // outline is set, si use black!
+        super(0,0,0,0,java.awt.Color.blue);
 	setSize(_size);
         _site = s;
     }

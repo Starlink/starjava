@@ -8,15 +8,27 @@
 CVS_RSH=ssh
 export CVS_RSH
 
+# cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+#    import -ko -I! -m "DIVA sources" \
+#       java/source/diva/src/main/diva DIVA DIVA_V_0_3
+
+# #  Gather the various documentation, into a directory and do:
+
+# cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+#    import -ko -I! -m "DIVA docs" \
+#       java/source/diva/src/docs DIVA_DOCS DIVA_DOCS_V_0_3
+
+# Update to Sep02 release.
+
 cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
    import -ko -I! -m "DIVA sources" \
-      java/source/diva/src/main/diva DIVA DIVA_V_0_3
+      java/source/diva/src/main/diva DIVA DIVA_V_0_3_Sep02
 
 #  Gather the various documentation, into a directory and do:
 
 cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
    import -ko -I! -m "DIVA docs" \
-      java/source/diva/src/docs DIVA_DOCS DIVA_DOCS_V_0_3
+      java/source/diva/src/docs DIVA_DOCS DIVA_DOCS_V_0_3_Sep02
 
 
 
