@@ -91,7 +91,7 @@ public class GraphicsEdgesControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Edge Drawing Properties:";
+    protected static String defaultTitle = "Edge drawing properties:";
 
     /**
      * The default short name for these controls.
@@ -138,9 +138,9 @@ public class GraphicsEdgesControls extends JPanel
             });
 
         //  Add labels for all fields.
-        addLabel( "Clip Spectrum:", 0 );
-        addLabel( "X Reserve:", 1 );
-        addLabel( "Y Reserve:", 2 );
+        addLabel( "Clip spectrum:", 0 );
+        addLabel( "X reserve:", 1 );
+        addLabel( "Y reserve:", 2 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
         gbc.anchor = GridBagConstraints.WEST;

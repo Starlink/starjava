@@ -102,7 +102,7 @@ public class AxesControls extends JPanel
     /**
      * The default title for these controls.
      */
-    private static String defaultTitle = "Axes Display Properties:";
+    private static String defaultTitle = "Axes display properties:";
 
     /**
      * The default short name for these controls.

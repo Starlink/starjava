@@ -70,7 +70,7 @@ public class ComponentColourControls
     /**
      * Title for a page of these controls.
      */
-    protected String title = "Colour Controls:";
+    protected String title = "Colour controls:";
 
     /**
      * Short name of these controls (for a tabbed label).

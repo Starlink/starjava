@@ -69,7 +69,7 @@ public class GridControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Grid Line Properties:";
+    protected static String defaultTitle = "Grid line properties:";
 
     /**
      * The default short name for these controls.

@@ -108,7 +108,7 @@ public class TitleControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Title Properties:";
+    protected static String defaultTitle = "Title properties:";
 
     /**
      * The default short name for these controls.
@@ -333,7 +333,7 @@ public class TitleControls extends JPanel
     protected void chooseColour()
     {
         Color newColour = JColorChooser.showDialog(
-            this, "Select Text Colour", colourIcon.getMainColour() );
+            this, "Select text colour", colourIcon.getMainColour() );
         if ( newColour != null ) {
             setTextColour( newColour );
         }

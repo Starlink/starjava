@@ -69,12 +69,12 @@ public class BorderControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Border Line Properties:";
+    protected static String defaultTitle = "Border line properties:";
 
     /**
      * The default short name for these controls.
      */
-    protected static String defaultName = "Border Lines";
+    protected static String defaultName = "Border lines";
 
     /**
      * Create an instance.

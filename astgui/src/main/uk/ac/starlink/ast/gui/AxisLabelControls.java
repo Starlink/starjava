@@ -158,12 +158,12 @@ public class AxisLabelControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Axis Labels Properties:";
+    protected static String defaultTitle = "Axis labels properties:";
 
     /**
      * The default short name for these controls.
      */
-    protected static String defaultName = "Axis Labels";
+    protected static String defaultName = "Axis labels";
 
     /**
      * Create an instance.
@@ -275,19 +275,19 @@ public class AxisLabelControls extends JPanel
 
         //  Add labels for all fields.
         addLabel( "Show X:", 0 );
-        addLabel( "X Label:", 1 );
+        addLabel( "X label:", 1 );
         addLabel( "Show Y:", 2 );
-        addLabel( "Y Label:", 3 );
+        addLabel( "Y label:", 3 );
         addLabel( "Font:", 4 );
         addLabel( "Style:", 5 );
         addLabel( "Size:", 6 );
         addLabel( "Colour:", 7 );
-        addLabel( "X Gap:", 8 );
-        addLabel( "Y Gap:", 9 );
-        addLabel( "X Edge:", 10 );
-        addLabel( "Y Edge:", 11 );
-        addLabel( "X Units:", 12 );
-        addLabel( "Y Units:", 13 );
+        addLabel( "X gap:", 8 );
+        addLabel( "Y gap:", 9 );
+        addLabel( "X edge:", 10 );
+        addLabel( "Y edge:", 11 );
+        addLabel( "X units:", 12 );
+        addLabel( "Y units:", 13 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
         gbc.anchor = GridBagConstraints.WEST;
@@ -554,7 +554,7 @@ public class AxisLabelControls extends JPanel
     protected void chooseColour()
     {
         Color newColour = JColorChooser.showDialog(
-            this, "Select Text Colour", colourIcon.getMainColour() );
+            this, "Select text colour", colourIcon.getMainColour() );
         if ( newColour != null ) {
             setTextColour( newColour );
         }

@@ -137,12 +137,12 @@ public class AxisNumLabControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Axis Number Label Properties:";
+    protected static String defaultTitle = "Axis number label properties:";
 
     /**
      * The default short name for these controls.
      */
-    protected static String defaultName = "Axis Numbers";
+    protected static String defaultName = "Axis numbers";
 
     /**
      * Create an instance.
@@ -229,8 +229,8 @@ public class AxisNumLabControls extends JPanel
         addLabel( "Style:", 6 );
         addLabel( "Size:", 7 );
         addLabel( "Colour:", 8 );
-        addLabel( "X Gap:", 9 );
-        addLabel( "Y Gap:", 10 );
+        addLabel( "X gap:", 9 );
+        addLabel( "Y gap:", 10 );
         addLabel( "Digits:", 11 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
@@ -473,7 +473,7 @@ public class AxisNumLabControls extends JPanel
     protected void chooseColour()
     {
         Color newColour = JColorChooser.showDialog(
-            this, "Select Text Colour", colourIcon.getMainColour() );
+            this, "Select text colour", colourIcon.getMainColour() );
         if ( newColour != null ) {
             setTextColour( newColour );
         }

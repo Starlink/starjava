@@ -164,7 +164,7 @@ public class StoreConfigurator extends JFrame
      */
     protected void initFrame()
     {
-        setTitle( "Save or Restore Plot Configurations" );
+        setTitle( "Save or restore plot configurations" );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         addWindowListener( new WindowAdapter() {
                 public void windowClosing( WindowEvent evt ) {

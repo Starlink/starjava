@@ -167,7 +167,7 @@ public class TickControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Tick Properties:";
+    protected static String defaultTitle = "Tick properties:";
 
     /**
      * The default short name for these controls.
@@ -277,19 +277,19 @@ public class TickControls extends JPanel
 
 
         //  Add labels for all fields.
-        addLabel( "Show Ticks:", 0 );
-        addLabel( "X Spacing:", 1 );
-        addLabel( "Y Spacing:", 2 );
+        addLabel( "Show ticks:", 0 );
+        addLabel( "X spacing:", 1 );
+        addLabel( "Y spacing:", 2 );
         addLabel( "Thickness:" , 3 );
         addLabel( "Style:", 4 );
         addLabel( "Colour:", 5 );
-        addLabel( "X Major Len:", 6 );
-        addLabel( "Y Major Len:", 7 );
-        addLabel( "X Minor Len:", 8 );
-        addLabel( "Y Minor Len:", 9 );
-        addLabel( "X Divisions:", 10 );
-        addLabel( "Y Divisions:", 11 );
-        addLabel( "Tick All:", 12 );
+        addLabel( "X major len:", 6 );
+        addLabel( "Y major len:", 7 );
+        addLabel( "X minor len:", 8 );
+        addLabel( "Y minor len:", 9 );
+        addLabel( "X divisions:", 10 );
+        addLabel( "Y divisions:", 11 );
+        addLabel( "Tick all:", 12 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
         gbc.anchor = GridBagConstraints.WEST;

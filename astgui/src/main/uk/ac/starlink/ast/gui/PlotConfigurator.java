@@ -119,9 +119,9 @@ public class PlotConfigurator
     protected Element defaultConfig = null;
 
     /**
-     * Default title for window: "Configure Ast Graphics Options".
+     * Default title for window: "Configure AST graphics options".
      */
-    protected static String defaultTitle = "Configure Ast Graphics Options";
+    protected static String defaultTitle = "Configure AST graphics options";
 
     /**
      * Application name for the store to use.
@@ -288,7 +288,7 @@ public class PlotConfigurator
         resetButton.setToolTipText( "Reset all values to defaults" );
 
         //  Add action to create the configuration storage window.
-        StoreAction storeAction = new StoreAction( "Store/Restore",
+        StoreAction storeAction = new StoreAction( "Store/restore",
                                                    configImage );
         optionsMenu.add( storeAction );
         JButton storeButton = new JButton( storeAction );

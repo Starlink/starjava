@@ -197,7 +197,7 @@ public class LineControls
     protected void chooseColour() 
     {
         Color newColour = JColorChooser.showDialog( 
-            parent, "Select Line Colour", colourIcon.getMainColour() );
+            parent, "Select line colour", colourIcon.getMainColour() );
         if ( newColour != null ) {
             colourIcon.setMainColour( newColour );
             fireChanged();

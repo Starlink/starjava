@@ -65,7 +65,7 @@ public class GraphicsHintsControls extends JPanel
     /**
      * The default title for these controls.
      */
-    protected static String defaultTitle = "Graphics Rendering Hints:";
+    protected static String defaultTitle = "Graphics rendering hints:";
 
     /**
      * The default short name for these controls.
