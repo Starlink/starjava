@@ -32,7 +32,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class VOTableWriter implements StarTableWriter {
 
-    private Format dataFormat = Format.TABLEDATA;
+    private DataFormat dataFormat = DataFormat.TABLEDATA;
     private boolean inline = true;
 
     private static final Logger logger =
@@ -92,7 +92,10 @@ public class VOTableWriter implements StarTableWriter {
          * after.  This relies on the fact that the characters output
          * from the base64 encoding have 1-byte representations in the
          * XML encoding we are using which are identical to their base64
-         * byte equivalents.  So don't use UTF-16. 
+         * byte equivalents.  So in the line below which constructs a
+         * Writer from an OutputStream, don't do it using e.g. UTF-16 
+         * encoding for which that wouldn't hold.
+         *
          * Although we frequently want to write a string followed by a 
          * new line, we don't use a PrintWriter here, since that doesn't
          * throw any exceptions; we would like exceptions to be thrown
@@ -182,67 +185,85 @@ public class VOTableWriter implements StarTableWriter {
 
         /* Get the format to provide a configuration object which describes
          * exactly how the data from each cell is going to get written. */
-        VOSerializer serializer = dataFormat.getSerializer( startab );
-        String tagname = dataFormat.getTagName();
+        VOSerializer serializer = 
+            VOSerializer.makeSerializer( dataFormat, startab );
 
         /* Output FIELD headers as determined by this object. */
         serializer.writeFields( writer );
 
-        /* Start the DATA element. */
-        writer.write( "<DATA>" );
-        writer.newLine();
-        writer.write( "<" + tagname + ">" );
-        writer.newLine();
+        /* Now write the DATA element. */
+        /* First Treat the case where we write data inline. */
+        if ( inline || file == null ) {
 
-        /* Treat elements which write to a STREAM element. */
-        if ( serializer instanceof VOStreamable ) {
-            VOStreamable streamer = (VOStreamable) serializer;
-
-            /* Case where the STREAM is to go to an external file. */
-            if ( ! inline && file != null ) {
-                String basename = file.getName();
-                int dotpos = basename.lastIndexOf( '.' );
-                basename = dotpos > 0 ? basename.substring( 0, dotpos )
-                                      : basename;
-                String dataname = basename + "-data" + 
-                                  dataFormat.getExtension();
-                writer.write( "<STREAM" + 
-                              formatAttribute( "href", dataname ) + "/>" );
+            /* For elements which stream data to a Base64 encoding we
+             * write the element by hand using some package-private methods.
+             * This is just an efficiency measure - it means the 
+             * writing is done directly to the base OutputStream rather 
+             * than wrapping a new OutputStream round the Writer which 
+             * is wrapped round the base OutputStream.
+             * But we could omit this stanza altogether and let the 
+             * work get done by serializer.writeInlineDataElement.
+             * I don't know whether the efficiency hit is significant or not. */
+            if ( serializer instanceof VOSerializer.StreamableVOSerializer ) {
+                VOSerializer.StreamableVOSerializer streamer =
+                    (VOSerializer.StreamableVOSerializer) serializer;
+                String tagname;
+                if ( dataFormat == DataFormat.FITS ) {
+                    tagname = "FITS";
+                }
+                else if ( dataFormat == DataFormat.BINARY ) {
+                    tagname = "BINARY";
+                }
+                else {
+                    throw new AssertionError( "Unknown format " 
+                                            + dataFormat.toString() );
+                }
+                writer.write( "<DATA>" );
                 writer.newLine();
-                File datfile = new File( file.getParentFile(), dataname );
-                OutputStream strm =
-                    new BufferedOutputStream( new FileOutputStream( datfile ) );
-                streamer.streamData( strm );
-                strm.close();
-            }
-
-            /* Case where the STREAM is written inline base64-encoded. */
-            else {
-                writer.write( "<STREAM" + 
-                              formatAttribute( "encoding", "base64" ) + ">" );
+                writer.write( '<' + tagname + '>' );
+                writer.newLine();
+                writer.write( "<STREAM encoding='base64'>" );
                 writer.newLine();
                 writer.flush();
                 Base64OutputStream b64strm = new Base64OutputStream( out, 16 );
-                streamer.streamData( b64strm );
+                DataOutputStream dataout = new DataOutputStream( b64strm );
+                streamer.streamData( dataout );
+                dataout.flush();
                 b64strm.endBase64();
                 b64strm.flush();
                 writer.write( "</STREAM>" );
                 writer.newLine();
+                writer.write( "</" + tagname + ">" );
+                writer.newLine();
+                writer.write( "</DATA>" );
+                writer.newLine();
+            }
+
+            /* Non-optimized/non-STREAM case. */
+            else {
+                serializer.writeInlineDataElement( writer );
             }
         }
 
-        /* If it's not going to a STREAM is has to be TABLEDATA. */
+        /* Treat the case where the data is streamed to an external file. */
         else {
-            assert serializer instanceof TabledataVOSerializer;
-            assert dataFormat == Format.TABLEDATA;
-            ((TabledataVOSerializer) serializer).writeData( writer );
+            assert file != null;
+            String basename = file.getName();
+            int dotpos = basename.lastIndexOf( '.' );
+            basename = dotpos > 0 ? basename.substring( 0, dotpos )
+                                  : basename;
+            String extension = dataFormat == DataFormat.FITS ? ".fits" : ".bin";
+            String dataname = basename + "-data" + extension;
+            File datafile = new File( file.getParentFile(), dataname );
+            DataOutputStream dataout =
+                new DataOutputStream( 
+                    new BufferedOutputStream( 
+                        new FileOutputStream( datafile ) ) );
+            serializer.writeHrefDataElement( writer, dataname, dataout );
+            dataout.close();
         }
 
         /* Close the open elements and tidy up. */
-        writer.write( "</" + tagname + ">" );
-        writer.newLine();
-        writer.write( "</DATA>" );
-        writer.newLine();
         writer.write( "</TABLE>" );
         writer.newLine();
         writer.write( "</RESOURCE>" );
@@ -279,7 +300,7 @@ public class VOTableWriter implements StarTableWriter {
      *
      * @param  bulk data format
      */
-    public void setDataFormat( Format format ) {
+    public void setDataFormat( DataFormat format ) {
         this.dataFormat = format;
     }
 
@@ -288,7 +309,7 @@ public class VOTableWriter implements StarTableWriter {
      *
      * @return  bulk data format
      */
-    public Format getDataFormat() {
+    public DataFormat getDataFormat() {
         return dataFormat;
     }
 
@@ -367,7 +388,7 @@ public class VOTableWriter implements StarTableWriter {
      * @param  value  the attribute value
      * @return  string of the form ' name="value"'
      */
-    private static String formatAttribute( String name, String value ) {
+    static String formatAttribute( String name, String value ) {
         return new StringBuffer()
             .append( ' ' )
             .append( name )
@@ -406,69 +427,5 @@ public class VOTableWriter implements StarTableWriter {
             }
         }
         return sbuf.toString();
-    }
-
-    /**
-     * Class of objects representing the different serialization formats
-     * into which VOTable cell data can be written.  Each of the 
-     * available formats is
-     * represented by a static final member of this class.
-     * Members of this class know how to supply a {@link VOSerializer}
-     * object for a given StarTable; it is the VOSerializer which
-     * does the hard work of writing the bulk table data.
-     */
-    public static abstract class Format {
-        private final String name;
-        private final String extension;
-        private Format( String name, String extension ) {
-            this.name = name;
-            this.extension = extension;
-        }
-        public String getTagName() {
-            return name;
-        }
-        public String getExtension() {
-            return extension;
-        }
-        public String toString() {
-            return name;
-        }
-
-        /**
-         * Returns a serializer object which can do the hard work 
-         * of serializing a StarTable object to a VOTable TABLE 
-         * element in the format represented by this object.
-         *
-         * @param   table  the table which must be serialized
-         * @return  a serializer object which can serialize <tt>table</tt>
-         *          in the way defined for this data format
-         */
-        public abstract VOSerializer getSerializer( StarTable table )
-               throws IOException;
-
-        /** TABLEDATA format (pure XML). */
-        public static final Format TABLEDATA = 
-            new Format( "TABLEDATA", null ) {
-                public VOSerializer getSerializer( StarTable table ) {
-                    return new TabledataVOSerializer( table );
-                }
-            };
-
-        /** FITS format. */
-        public static final Format FITS = 
-            new Format( "FITS", ".fits" ) {
-                public VOSerializer getSerializer( StarTable table )
-                        throws IOException{
-                    return new FITSVOSerializer( table );
-                }
-            };
-
-        /** Raw binary format. */
-        public static final Format BINARY =
-            new Format( "BINARY", ".bin" ) {
-                public VOSerializer getSerializer( StarTable table ) {
-                    return new BinaryVOSerializer( table );
-                }
-            };
     }
 }
