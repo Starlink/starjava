@@ -2687,6 +2687,7 @@ The main improvements are as follows:
         non-rectangular region</li>
     <li>You have more choice over plotting symbols
         (including semi-transparent ones)</li>
+    <li>Finally X or Y axes can be flipped!</li>
     <li>Export to encapsulated PostScript is of improved quality
         (though for many points file sizes can get large)</li>
     <li>Export to GIF format is available</li>
@@ -4161,6 +4162,13 @@ Each one consists of two parts:
 <dd><p>This checkbox can be clicked to toggle whether the axis in question
     is to be plotted logarithmically or not.  If it is logarithmic,
     any negative values are simply ignored (not plotted).
+    </p></dd>
+
+<dt>Flip checkbox</dt>
+<dd><p>This checkbox can be clicked to toggle whether the axis in question
+    is to be plotted reversed.  Normally (unchecked) X axis increases
+    left to right and Y axis increases bottom to top.  When checked, 
+    X axis increases right to left, and Y axis increases top to bottom.
     </p></dd>
 </dl>
 </p>
