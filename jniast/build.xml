@@ -7,6 +7,8 @@
  !   release. It requires Apache ANT and a Java Development Kit.
  !
  !      build            -> compiles the source code
+ !      build-native     -> builds native libraries from C sources
+ !      build-source     -> builds java source code from perl and AST
  !      clean            -> cleans up build and dist products
  !      deinstall        -> undo the install target
  !      dist             -> creates the local binary distribution
@@ -130,6 +132,7 @@
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.java" value="${build.dir}/java"/>
   <property name="build.jni" location="${build.dir}/jni"/>
+  <property name="build.lib" location="${build.dir}/lib"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
 
@@ -151,9 +154,10 @@
   <property name="dist.etc.pkg" value="${dist.dir}/etc/${name}"/>
   <property name="dist.javadocs" value="${dist.dir}/docs/${name}/javadocs"/>
 
-  <!-- Architecture-specific files (shared libraries) will be placed in
-   !   an appropriate subdirectory of dist.lib -->
+  <!-- Architecture-specific files (shared libraries) -->
   <property name="dist.lib.arch" value="${dist.lib}/${os.arch}"/>
+  <property name="src.lib.arch" value="${src.jars.dir}/${os.arch}"/>
+  <property name="build.lib.arch" value="${build.lib}/${os.arch}"/>
 
   <!-- Version for zipped/tarred export files. -->
   <property name="dist.version" value="${name}-${version}"/>
@@ -188,7 +192,6 @@
   <!-- Non-standard build file directories -->
   <property name="build.jni" value="${build.dir}/jni"/>
   <property name="build.ast" value="${build.dir}/ast"/>
-  <property name="build.java.pkg" value="${build.java}/${package.path}"/>
 
   <!-- Non-standard files -->
   <property name="perl" value="/stardev/Perl/bin/perl"/>
@@ -341,47 +344,6 @@
       </replacetokens>
     </filterchain>
 
-    <!-- Work out what doesn't need to be done -->
-    <!-- Note there are hard-coded names of basedir subdirectories here -
-     !   this isn't very nice but I can't get the uptodate task to
-     !   play ball without doing this.  If you can, by all means fix. -->
-    <condition property="java.assembled">
-      <and>
-        <uptodate>
-          <srcfiles dir="${basedir}" includes="src/perl/*.pl"/>
-          <mapper type="glob" 
-                  from="src/perl/*.pl"
-                  to="build/java/${package.path}/*.java"/>
-        </uptodate>
-        <uptodate>
-          <srcfiles dir="${basedir}">
-            <include name="src/main/**/*.java"/>
-            <include name="src/main/**/*.html"/>
-          </srcfiles>
-          <mapper type="glob"
-                  from="src/main/*"
-                  to="build/java/*"/>
-        </uptodate>
-      </and>
-    </condition>
-
-    <condition property="jni.assembled">
-      <and>
-        <uptodate>
-          <srcfiles dir="${basedir}" includes="src/perl/*.pl"/>
-          <mapper type="glob" 
-                  from="src/perl/*.pl"
-                  to="build/java/${package.path}*.java"/>
-        </uptodate>
-        <uptodate>
-          <srcfiles dir="${basedir}" includes="src/jni/*"/>
-          <mapper type="glob"
-                  from="src/jni/*"
-                  to="build/jni/*"/>
-        </uptodate>
-      </and>
-    </condition>
-
   </target>
 
 
@@ -395,7 +357,7 @@
    !  (i.e. resources like images) should also be copied into place here.
    !-->
   <target name="build"
-          depends="prepare, check_packages, build_classes, build_jni"
+          depends="prepare, check_packages, build_classes, unpack_jni"
           unless="runonly.install"
           description="-> compiles the source code">
 
@@ -417,11 +379,10 @@
 
   </target>
 
-
   <!-- Build the java class files. -->
-  <target name="build_classes" depends="assemble_java">
+  <target name="build_classes">
     <mkdir dir="${build.classes}"/>
-    <javac srcdir="${build.java}"
+    <javac srcdir="${java.dir}"
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
@@ -436,15 +397,217 @@
     </javac>
   </target>
 
-  <!-- Build any shareable libraries needed to support this package.
-   !   This goes straight into the distribution directory to save on
-   !   space, and to make it immediately available to locally build
-   !   packages  -->
-  <target name="build_jni" depends="assemble_jni">
-    <echo message="If C compilation fails you may have the wrong AST version - see README"/>
+
+  <!-- Pulls the architecture-specific shared libraries out of the source
+   !   jar files in which they live.  These jar files are in the CVS
+   !   repository, they are not built as part of the normal build target.
+   !   The one specific to the build-time architecture can be built
+   !   using the 'build-native' target, but this requires more than the
+   !   basic CVS files to work (e.g. it needs the stardev classic libraries).
+   !-->
+  <target name="unpack_jni">
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="i386"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="sparc"/>
+    </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="x86"/>
+    </antcall>
+  </target>
+
+  <!-- Architecture-specific JNI jar file unpacker -->
+  <target name="unpack_jni_arch">
+    <unjar src="${src.jars.dir}/${unpack.arch}/${name}_libs.jar"
+           dest="${dist.lib}/${unpack.arch}">
+      <patternset excludes="META-INF*/*"/>
+    </unjar>
+  </target>
+
+  <!--
+   !  ==================================================
+   !  Builds all secondary source files from true source
+   !  ==================================================
+   !
+   !  This processes Perl 'true' source files to generate some of the java
+   !  source files and C source files.  Since it requires Perl, it is
+   !  not a dependency of any of the other public targets, and is not
+   !  be invoked as part of the normal build process.  It should be 
+   !  invoked when the perl source files have been changed, and the
+   !  resulting new 'source' files (in src/main and src/jni) checked in.
+   !-->
+  <target name="build-source"
+          depends="get_ast_source"
+          description="-> builds java source code from Perl and AST">
+
+    <!-- Build the java classes which correspond to AST classes -->
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="AstObject"/>
+      <param name="pj.cfile" value="object.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="CmpFrame"/>
+      <param name="pj.cfile" value="cmpframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="CmpMap"/>
+      <param name="pj.cfile" value="cmpmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="FitsChan"/>
+      <param name="pj.cfile" value="fitschan.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="Frame"/>
+      <param name="pj.cfile" value="frame.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="FrameSet"/>
+      <param name="pj.cfile" value="frameset.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="LutMap"/>
+      <param name="pj.cfile" value="lutmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="Mapping"/>
+      <param name="pj.cfile" value="mapping.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="MathMap"/>
+      <param name="pj.cfile" value="mathmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="MatrixMap"/>
+      <param name="pj.cfile" value="matrixmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="PcdMap"/>
+      <param name="pj.cfile" value="pcdmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="PermMap"/>
+      <param name="pj.cfile" value="permmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="Plot"/>
+      <param name="pj.cfile" value="plot.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SlaMap"/>
+      <param name="pj.cfile" value="slamap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SkyFrame"/>
+      <param name="pj.cfile" value="skyframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SpecFrame"/>
+      <param name="pj.cfile" value="specframe.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SpecMap"/>
+      <param name="pj.cfile" value="specmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="SphMap"/>
+      <param name="pj.cfile" value="sphmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="UnitMap"/>
+      <param name="pj.cfile" value="unitmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="WcsMap"/>
+      <param name="pj.cfile" value="wcsmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="WinMap"/>
+      <param name="pj.cfile" value="winmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
+      <param name="pj.class" value="ZoomMap"/>
+      <param name="pj.cfile" value="zoommap.c"/>
+    </antcall>
+
+    <!-- Build AstException C source -->
+    <exec executable="${perl}"
+          output="${src.jni}/AstException.c"
+          failonerror="yes">
+      <arg file="${src.perl}/AstException.pl"/>
+      <arg value="-c"/>
+      <arg file="${build.ast}/${ast.fac.err}"/>
+    </exec>
+
+    <!-- Build AstException Java source -->
+    <exec executable="${perl}" 
+          output="${java.dir}/${package.path}/AstException.java"
+          failonerror="yes">
+      <arg file="${src.perl}/AstException.pl"/>
+      <arg value="-java"/>
+      <arg file="${build.ast}/${ast.fac.err}"/>
+    </exec>
+
+    <!-- Build miscellaneous Java sources -->
+    <exec executable="${perl}"
+          output="${java.dir}/${package.path}/UinterpCalculator.java"
+          failonerror="yes">
+      <arg file="${src.perl}/UinterpCalculator.pl"/> 
+    </exec>
+
+  </target>
+
+  <!-- Processes a perl file and AST C source file to generate a java source
+   !   file.
+   !   Parameters are:
+   !      pj.class:  class of java source file to produce
+   !      pj.cfile:  name of AST C source input file
+   !-->
+  <target name="perl_to_java">
+    <echo message="Generating ${pj.class}.java"/>
+    <exec executable="${perl}"
+          output="${java.dir}/${package.path}/${pj.class}.java"
+          failonerror="yes">
+      <arg value="-I${src.perl}"/>
+      <arg file="${src.perl}/${pj.class}.pl"/>
+      <arg file="${build.ast}/${pj.cfile}"/>
+    </exec>
+  </target>
+
+
+  <!--
+   !  ============================================
+   !  Build the native shared library from sources
+   !  ============================================
+   !
+   !  This does the actual build of the shared library for the build-time
+   !  architecture, and requires a stardev installation.  It is not a
+   !  dependency of any of the other public targets, and should not be
+   !  invoked as part of the normal build process.  It should be invoked
+   !  periodically (when AST or JNIAST changes), once on each of the
+   !  supported platforms, and the resulting new 'source' files 
+   !  (shared library jar files) checked in.
+   !
+   !  Note that the C compilations may fail if an attempt is made to
+   !  compile against the wrong AST version.
+   !-->
+  <target name="build-native"
+          depends="assemble_jni"
+          description="-> builds native library from C sources">
+
+    <!-- Build the library -->
     <antcall target="execute_mk_script">
       <param name="mk.action" value="shared"/>
     </antcall>
+
+    <!-- Jar it up and copy it into the source tree ready for CVS checkin -->
+    <jar destfile="${src.lib.arch}/${name}_libs.jar"
+         basedir="${build.lib.arch}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
   </target>
 
 
@@ -474,7 +637,7 @@
      !-->
     <property name="java.shareables" value=""/>
 
-    <mkdir dir="${dist.lib.arch}"/>
+    <mkdir dir="${build.lib.arch}"/>
 
     <echo message="java.home=${java.home}"/>
 
@@ -487,7 +650,7 @@
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -500,7 +663,7 @@
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
@@ -513,175 +676,12 @@
       <env key="ADDINCS" value="-I${stardev.add}/include"/>
       <env key="JDK" value="${jdk}"/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${dist.lib.arch}"/>
+      <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
 
   </target>
 
-  <!--
-   !   Put all the java source files in the build directory.
-   !   Some of these are copied direct from the source directory, some
-   !   are generated from perl source.
-   !-->
-  <target name="assemble_java" unless="java.assembled" 
-          depends="prepare, get_ast_source">
-
-    <mkdir dir="${build.java}"/>
-
-    <copy todir="${build.java}">
-      <fileset dir="${java.dir}">
-        <include name="**/*.java"/>
-        <include name="**/*.html"/>
-      </fileset>
-    </copy>
-
-    <exec executable="${perl}" output="${build.java.pkg}/AstObject.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/AstObject.pl"/>
-      <arg file="${build.ast}/object.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/CmpFrame.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/CmpFrame.pl"/>
-      <arg file="${build.ast}/cmpframe.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/CmpMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/CmpMap.pl"/>
-      <arg file="${build.ast}/cmpmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/FitsChan.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/FitsChan.pl"/>
-      <arg file="${build.ast}/fitschan.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/Frame.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/Frame.pl"/>
-      <arg file="${build.ast}/frame.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/FrameSet.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/FrameSet.pl"/>
-      <arg file="${build.ast}/frameset.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/LutMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/LutMap.pl"/>
-      <arg file="${build.ast}/lutmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/Mapping.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/Mapping.pl"/>
-      <arg file="${build.ast}/mapping.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/MathMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/MathMap.pl"/>
-      <arg file="${build.ast}/mathmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/MatrixMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/MatrixMap.pl"/>
-      <arg file="${build.ast}/matrixmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/PcdMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/PcdMap.pl"/>
-      <arg file="${build.ast}/pcdmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/PermMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/PermMap.pl"/>
-      <arg file="${build.ast}/permmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/Plot.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/Plot.pl"/>
-      <arg file="${build.ast}/plot.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/SlaMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/SlaMap.pl"/>
-      <arg file="${build.ast}/slamap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/SkyFrame.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/SkyFrame.pl"/>
-      <arg file="${build.ast}/skyframe.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/SpecFrame.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/SpecFrame.pl"/>
-      <arg file="${build.ast}/specframe.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/SpecMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/SpecMap.pl"/>
-      <arg file="${build.ast}/specmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/SphMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/SphMap.pl"/>
-      <arg file="${build.ast}/sphmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/UnitMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/UnitMap.pl"/>
-      <arg file="${build.ast}/unitmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/WcsMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/WcsMap.pl"/>
-      <arg file="${build.ast}/wcsmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/WinMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/WinMap.pl"/>
-      <arg file="${build.ast}/winmap.c"/>
-    </exec>
-    <exec executable="${perl}" output="${build.java.pkg}/ZoomMap.java"
-          failonerror="yes">
-      <arg value="-I${src.perl}"/>
-      <arg file="${src.perl}/ZoomMap.pl"/>
-      <arg file="${build.ast}/zoommap.c"/>
-    </exec>
-
-    <exec executable="${perl}" output="${build.java.pkg}/UinterpCalculator.java"
-          failonerror="yes">
-      <arg file="${src.perl}/UinterpCalculator.pl"/>
-    </exec>
-
-    <exec executable="${perl}" output="${build.java.pkg}/AstException.java"
-          failonerror="yes">
-      <arg file="${src.perl}/AstException.pl"/>
-      <arg value="-java"/>
-      <arg file="${build.ast}/${ast.fac.err}"/>
-    </exec>
- 
-  </target>
 
   <!--
    !   Put all the source files required for compilation of the shared
@@ -689,8 +689,7 @@
    !   from source directories, some are generated from perl source
    !   or using javah from class files.
    !-->
-  <target name="assemble_jni" depends="prepare, build_classes, get_ast_source" 
-          unless="jni.assembled">
+  <target name="assemble_jni" depends="prepare, build_classes, get_ast_source">
 
     <copy todir="${build.jni}">
       <fileset dir="${src.jni}" includes="*.c *.h makefile mk ${link.script}"/>
@@ -700,13 +699,6 @@
     <chmod perm="ugo+rx">
       <fileset dir="${build.jni}" includes="mk ${link.script}"/>
     </chmod>
-
-    <exec executable="${perl}" output="${build.jni}/AstException.c"
-          failonerror="yes">
-      <arg file="${src.perl}/AstException.pl"/>
-      <arg value="-c"/>
-      <arg file="${build.ast}/${ast.fac.err}"/>
-    </exec>
 
     <javah classpath="${build.classes}" destdir="${build.jni}" verbose="yes">
       <class name="${package.name}.AstException"/>
@@ -779,9 +771,6 @@
       </manifest>
     </jar>
 
-    <mkdir dir="${dist.lib.pkg}"/>
-    <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${build.java}"/>
-
     <!-- Architecture dependent jar files (shareable libraries for
      !   webstart) -->
     <copy todir="${dist.lib}">
@@ -850,30 +839,6 @@
 
        <component_desc/>
     </jnlp>
-  </target>
-
-  <!-- 
-   !  ===================================
-   !  Create a shareable library jar file
-   !  ===================================
-   ! 
-   !  This target creates a jar file that contains the shareable
-   !  library for the current architecture. It is intended for use 
-   !  by webstart applications. Copies of this jar file should be
-   !  periodically committed to CVS (in the "src/lib/${arch} directory)
-   !  so that a webstart install can support all the known operating
-   !  systems. Note that signed jars should not be committed.
-   !-->
-  <target name="webstart_jar"
-          depends="build">
-
-    <jar destfile="${dist.lib.arch}/${name}_libs.jar"
-         basedir="${dist.lib.arch}" excludes="**/*.jar">
-      <manifest>
-        <attribute name="Built-By" value="${user.name}"/>
-      </manifest>
-    </jar>
-
   </target>
 
   <!--
@@ -1102,6 +1067,7 @@
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
         <include name="**/*.so"/>
+        <include name="**/*.dll"/>
       </fileset>
     </loggedcopy>
 
@@ -1196,7 +1162,7 @@
    !  documentation (FAQs etc.).
    !-->
   <target name="javadocs"
-          depends="prepare,javadoc_check,assemble_java"
+          depends="prepare,javadoc_check"
           unless="javadoc.notrequired"
           description="-> creates the API documentation">
 
@@ -1211,7 +1177,7 @@
              classpathref="classpath">
 
       <!-- Exclude broken and test files etc. from the document -->
-      <packageset dir="${build.java}" defaultexcludes="yes">
+      <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
@@ -1261,8 +1227,11 @@
    !  part of the javadocs target.
    !-->
   <target name="javadoc-sources"
-          depends="prepare,assemble_java"
           description="-> make source files for release API documention">
+    <mkdir dir="${build.java}"/>
+    <copy todir="${build.java}">
+      <fileset dir="${java.dir}" defaultexcludes="yes"/>
+    </copy>
   </target>
 
   <!--
