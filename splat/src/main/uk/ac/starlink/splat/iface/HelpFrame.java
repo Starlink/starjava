@@ -23,7 +23,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 
-import uk.ac.starlink.splat.help.HelpHolder;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
@@ -131,7 +130,7 @@ public class HelpFrame extends JFrame
     protected void initHelp() throws Exception
     {
         //  Initialise the HelpSet.
-        URL url = HelpHolder.class.getResource( "HelpSet.hs" );
+        URL url = HelpFrame.class.getResource( "/HelpSet.hs" );
         if ( url == null ) {
             throw new SplatException( "Failed to locate help" );
         }
