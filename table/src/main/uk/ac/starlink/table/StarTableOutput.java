@@ -101,7 +101,7 @@ public class StarTableOutput {
      *         should be used for output.  This may be the class name of
      *         a <tt>StarTableWriter</tt> object (which may or may not be 
      *         registered with this <tt>StarTableOutput</tt>), or else
-     *         a string which matches one of the registered 
+     *         a string which matches the format name of one of the registered 
      *         <tt>StarTableWriter</tt>s (first match is used),
      *         or <tt>null</tt> to indicate that a handler should be 
      *         selected based on the value of <tt>location</tt>.
