@@ -83,17 +83,14 @@ public class TestCase extends junit.framework.TestCase {
         assertNotNull( combineMessages( message, "not array objects" ),
                        ctype );
 
-        /* Check both arrays are the same length. */
-        assertEquals( combineMessages( message, "array length mismatch" ),
-                      Array.getLength( expected ), Array.getLength( actual ) );
-        int nel = Array.getLength( actual );
-
         /* Test all the elements of each array.  Actual assertion testing
          * is done in-line, and the the superclass assertion methods are
          * only invoked in case of failure, at which point they handle
          * the message handling and error throwing and so on.
          * It is done like this for efficiency, to prevent generating a 
          * lot of unnecesary message strings. */
+        int nel = Math.min( Array.getLength( actual ),
+                            Array.getLength( expected ) );
         if ( ctype == boolean.class ) {
             for ( int i = 0; i < nel; i++ ) {
                 boolean v1 = ( (boolean[]) expected)[ i ];
@@ -181,6 +178,10 @@ public class TestCase extends junit.framework.TestCase {
                 }
             }
         }
+
+        /* Finally check both arrays are the same length. */
+        assertEquals( combineMessages( message, "array length mismatch" ),
+                      Array.getLength( expected ), Array.getLength( actual ) );
     }
 
     /**
