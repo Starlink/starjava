@@ -329,6 +329,10 @@ static char *sourceWrap( const char *(*source)() ) {
    jobject this;
    jmethodID sourceMethodID;
 
+   /* Return directly if AST status is set. */
+   if ( !astOK ) return NULL;
+
+   /* Initialise return value. */
    retval = NULL;
 
    /* Get the information from the chaninfo structure. */
@@ -394,6 +398,9 @@ static void sinkWrap( void (*sink)(const char *), const char *line ) {
    jobject this;
    jmethodID sinkMethodID;
    jstring jLine;
+
+   /* Return directly if AST status is set. */
+   if ( !astOK ) return;
 
    /* Get required pointers from the chaninfo structure */
    env = chaninfo->env;

@@ -93,9 +93,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_construct(
             astFitsChanFor( (const char *(*)()) chaninfo, sourceWrap,
                             (void (*)( const char * )) chaninfo, sinkWrap, "" );
       )
-
-      /* Store the pointer to the AST object in an instance variable. */
    }
+
+   /* Store the pointer to the AST object in an instance variable. */
    if ( ! (*env)->ExceptionCheck( env ) ) {
       jniastSetPointerField( env, this, pointer );
    }
@@ -412,6 +412,10 @@ static char *sourceWrap( const char *(*source)() ) {
    jobject this;
    jmethodID sourceMethodID;
 
+   /* Return directly if AST status is set. */
+   if ( !astOK ) return NULL;
+
+   /* Initialise return value. */
    retval = NULL;
 
    /* Get the information from the chaninfo structure. */
@@ -433,7 +437,9 @@ static char *sourceWrap( const char *(*source)() ) {
       else if ( jLine != NULL ) {
          line = jniastGetUTF( env, jLine );
          retval = astMalloc( strlen( line ) + 1 );
-         strcpy( retval, line );
+         if ( retval != NULL ) {
+             strcpy( retval, line );
+         }
          jniastReleaseUTF( env, jLine, line );
       }
    }
@@ -477,6 +483,9 @@ static void sinkWrap( void (*sink)(const char *), const char *line ) {
    jobject this;
    jmethodID sinkMethodID;
    jstring jLine;
+
+   /* Return directly if ast status is set. */
+   if ( !astOK ) return;
 
    /* Get required pointers from the chaninfo structure */
    env = chaninfo->env;
