@@ -230,7 +230,7 @@ public class GenericNioBuffer {
      * @see java.nio.DoubleBuffer#put(double[],int,int)
      */
     public void put( Object src, int offset, int length ) {
-        acc.put( src, 0, length );
+        acc.put( src, offset, length );
     }
 
     /**
