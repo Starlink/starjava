@@ -50,7 +50,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -136,10 +135,9 @@ public class SplatBrowser
         new Rectangle( 10, 10, 550, 550 );
 
     /**
-     *  Content pane of JFrame and its layout manager.
+     *  Content pane of JFrame.
      */
     protected JPanel contentPane;
-    protected BorderLayout mainLayout = new BorderLayout();
 
     /**
      *  Main menubar and various menus.
@@ -148,10 +146,9 @@ public class SplatBrowser
     protected JMenu themeMenu = null;
 
     /**
-     *  Toolbar and contents.
+     *  Toolbar.
      */
-    protected JPanel toolBarContainer = new JPanel();
-    protected JToolBar toolBar = new JToolBar();
+    protected ToolButtonBar toolBar = null;
 
     /**
      *  Spectral list and related widgets.
@@ -463,7 +460,9 @@ public class SplatBrowser
     {
         //  Set up the content pane and window size.
         contentPane = (JPanel) getContentPane();
-        contentPane.setLayout( mainLayout );
+
+        contentPane.setLayout( new BorderLayout() );
+
         Utilities.setFrameLocation( (JFrame) this, defaultWindowLocation,
                                     prefs, "SplatBrowser" );
         setTitle( Utilities.getFullDescription() );
@@ -533,16 +532,8 @@ public class SplatBrowser
         //  Add the menuBar.
         this.setJMenuBar( menuBar );
 
-        //  Add the toolbar to a container. Need extra component so we can
-        //  reorient with the split pane.
-        toolBarContainer.setLayout( new BorderLayout() );
-        toolBarContainer.add( toolBar, BorderLayout.CENTER );
-
-        //  Would be nice to have something that wrapped/scrolled when the
-        //  toolbar doesn't fit (scrollbar eats into toolbar space, never got
-        //  wrapping to work).
-        //JScrollPane pane = new JScrollPane( toolBar );
-        //toolBarContainer.add( pane, BorderLayout.CENTER );
+        //  Create the toolbar. This type manages lack of size.
+        toolBar = new ToolButtonBar( contentPane );
 
         //  Create the File menu.
         createFileMenu();
@@ -638,7 +629,7 @@ public class SplatBrowser
                              readStackImage,
                              "Read back spectra stored in a disk file");
         fileMenu.add( readStackAction );
-        toolBar.add( readStackAction );
+        //toolBar.add( readStackAction );
 
         //  Add an action to save the stack of spectra.
         ImageIcon saveStackImage =
@@ -647,7 +638,7 @@ public class SplatBrowser
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
                              saveStackImage, "Save all spectra to disk file" );
         fileMenu.add( saveStackAction );
-        toolBar.add( saveStackAction );
+        //toolBar.add( saveStackAction );
 
         //  Add an action to exit application.
         ImageIcon exitImage =
@@ -857,8 +848,7 @@ public class SplatBrowser
     }
 
     /**
-     * Set the vertical or horizontal split. Also positions the
-     * toolbar to match.
+     * Set the vertical or horizontal split.
      */
     protected void setSplitOrientation( boolean init )
     {
@@ -869,16 +859,11 @@ public class SplatBrowser
         }
         boolean selected = splitOrientation.isSelected();
 
-        contentPane.remove( toolBarContainer );
         if ( selected ) {
             splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
-            toolBar.setOrientation( JToolBar.HORIZONTAL );
-            contentPane.add( toolBarContainer, BorderLayout.NORTH );
         }
         else {
             splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
-            toolBar.setOrientation( JToolBar.VERTICAL );
-            contentPane.add( toolBarContainer, BorderLayout.WEST );
         }
         contentPane.revalidate();
         prefs.putBoolean( "SplatBrowser_vsplit", selected );
@@ -953,9 +938,9 @@ public class SplatBrowser
      */
     protected void createHelpMenu()
     {
-        JMenu helpMenu = HelpFrame.createHelpMenu( "browser-window",
-                                                   "Help on window",
-                                                   menuBar, toolBar );
+        JMenu helpMenu = HelpFrame.createButtonHelpMenu( "browser-window",
+                                                         "Help on window",
+                                                         menuBar, toolBar );
 
         //  Add an action to display the about dialog.
         Action aboutAction = AboutFrame.getAction( this );
