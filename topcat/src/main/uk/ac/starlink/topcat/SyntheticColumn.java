@@ -150,6 +150,9 @@ public class SyntheticColumn extends ColumnData {
         else if ( prim == int.class ) {
             return Integer.class;
         }
+        else if ( prim == long.class ) {
+            return Long.class;
+        }
         else if ( prim == float.class ) {
             return Float.class;
         }
