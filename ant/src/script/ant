@@ -12,24 +12,24 @@ else
    #  Fall-back Java is on current PATH.
    java="java"
 
-   #  If $STARLINK is defined then try that. Only look for the JRE
-   #  version (only need JDK for development).
+   #  If $STARLINK is defined then try that. Look for JDK as ANT 
+   #  needs that really.
    if test "$STARLINK" != ""; then
-      if test -r "$STARLINK/java/jrehome"; then
-         java="`cat $STARLINK/java/jrehome`/bin/java"
-      fi
       if test -r "$STARLINK/java/jdkhome"; then
          java="`cat $STARLINK/java/jdkhome`/bin/java"
+      fi
+      if test -r "$STARLINK/java/jrehome"; then
+         java="`cat $STARLINK/java/jrehome`/bin/java"
       fi
    fi
 
    #  If still not changed, look for Java in the standard installation.
    if test "$java" = "java"; then
-      if test -r "/star/java/jrehome"; then
-         java="`cat /star/java/jrehome`/bin/java"
-      fi
       if test -r "/star/java/jdkhome"; then
          java="`cat /star/java/jdkhome`/bin/java"
+      fi
+      if test -r "/star/java/jrehome"; then
+         java="`cat /star/java/jrehome`/bin/java"
       fi
    fi
 fi
