@@ -126,7 +126,7 @@ public class JDBCStarTable extends AbstractStarTable {
              * an object from that column and using its class, but then it
              * might be null...). */
             try {
-                Class ccls = Class.forName( rsmeta.getColumnClassName( jcol ) );
+                Class ccls = this.getClass().forName( rsmeta.getColumnClassName( jcol ) );
                 col.setContentClass( ccls );
             }
             catch ( ClassNotFoundException e ) {

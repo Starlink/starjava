@@ -36,7 +36,7 @@ public class NdxChooser {
     private Object chooserObject;
 
     /** The name of the class which does the work for this one. */
-    static final String CHOOSER_CLASS = 
+    static final String CHOOSER_CLASS =
         "uk.ac.starlink.treeview.NdxNodeChooser";
     static final String CHOOSE_METHOD = "chooseNdx";
     static final String MIN_METHOD = "setMinDims";
@@ -129,7 +129,7 @@ public class NdxChooser {
             }
             else if ( e2 instanceof RuntimeException ) {
                 throw (RuntimeException) e2;
-            } 
+            }
             else {
                 throw new AssertionError( e2 );
             }
@@ -187,7 +187,8 @@ public class NdxChooser {
 
     private static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
-        chooserClass = Class.forName( CHOOSER_CLASS );
+        chooserClass = Class.forName( CHOOSER_CLASS, true,
+                             Thread.currentThread().getContextClassLoader() );
         chooserConstructor = chooserClass.getConstructor( new Class[ 0 ] );
         chooseMethod = chooserClass
                       .getMethod( CHOOSE_METHOD,

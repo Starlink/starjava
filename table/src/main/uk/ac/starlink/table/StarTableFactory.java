@@ -57,7 +57,7 @@ public class StarTableFactory {
         for ( int i = 0; i < defaultBuilderClasses.length; i++ ) {
             String className = defaultBuilderClasses[ i ];
             try {
-                Class clazz = Class.forName( className );
+                Class clazz = this.getClass().forName( className );
                 TableBuilder builder = (TableBuilder) clazz.newInstance();
                 builders.add( builder );
                 logger.config( className + " registered" );

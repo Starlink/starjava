@@ -35,11 +35,12 @@ class MirageHandler {
         try {
 
             /* Check that Mirage is on the path. */
-            Class.forName( "mirage.Mirage" );
+            Class.forName( "mirage.Mirage", true, Thread.currentThread().getContextClassLoader() );
 
             /* Reflect as necessary. */
             Class driverClass = 
-                Class.forName( "uk.ac.starlink.mirage.MirageDriver" );
+                Class.forName( "uk.ac.starlink.mirage.MirageDriver",
+                               true, Thread.currentThread().getContextClassLoader());
             Class[] argTypes = new Class[] { StarTable.class, List.class };
             invokeMethod = driverClass.getMethod( "invokeMirage", argTypes );
 

@@ -201,7 +201,9 @@ public class NdxNodeChooser extends TreeNodeChooser {
             List classes = new ArrayList();
             for ( int i = 0; i < shunned.length; i++ ) {
                 try {
-                    Class clazz = Class.forName( shunned[ i ] );
+                    Class clazz = 
+                        Class.forName( shunned[ i ], true,
+                              Thread.currentThread().getContextClassLoader() );
                     classes.add( clazz );
                 }
                 catch ( ClassNotFoundException e ) {

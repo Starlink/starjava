@@ -52,7 +52,7 @@ public class StarTableOutput {
         for ( int i = 0; i < defaultHandlerClasses.length; i++ ) {
             String className = defaultHandlerClasses[ i ];
             try {
-                Class clazz = Class.forName( className );
+                Class clazz = this.getClass().forName( className );
                 StarTableWriter handler = (StarTableWriter) clazz.newInstance();
                 handlers.add( handler );
                 logger.config( className + " registered" );
@@ -166,7 +166,7 @@ public class StarTableOutput {
         
             /* See if the format is the class name of a StarTableWriter. */
             try {
-                Class fcls = Class.forName( format );
+                Class fcls = this.getClass().forName( format );
                 if ( StarTableWriter.class.isAssignableFrom( fcls ) ) {
 
                     /* Is it one of the registered ones? */

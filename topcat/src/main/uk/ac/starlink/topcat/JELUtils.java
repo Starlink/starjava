@@ -87,7 +87,9 @@ public class JELUtils {
                     for ( int i = 0; i < cs.length; i++ ) {
                         String className = cs[ i ].trim();
                         try {
-                            classList.add( Class.forName( className ) );
+                            classList.add( Class.forName( className,
+                                                          true,
+                            Thread.currentThread().getContextClassLoader()));
                         }
                         catch ( ClassNotFoundException e ) {
                             logger.warning( "Class not found: " + className );

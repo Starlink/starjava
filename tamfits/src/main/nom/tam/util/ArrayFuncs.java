@@ -151,7 +151,9 @@ public class ArrayFuncs implements PrimitiveInfo {
             baseClass = getBaseClass(o);
         } else {
               try {
-                  baseClass = Class.forName(classname.substring(ndim+1, classname.length()-1));
+                  baseClass =
+                      Class.forName(classname.substring(ndim+1,classname.length()-1),
+                                    true, Thread.currentThread().getContextClassLoader());
               } catch (ClassNotFoundException e) {
                   System.err.println("Internal error: class definition inconsistency: "+classname);
                   return null;
@@ -338,7 +340,8 @@ public class ArrayFuncs implements PrimitiveInfo {
 	
 	if (c == 'L') {
             try {
-                return Class.forName(className.substring(dims+1, className.length()-1));
+                return Class.forName(className.substring(dims+1,className.length()-1),
+                                     true,Thread.currentThread().getContextClassLoader());
             } catch (ClassNotFoundException e) {
                 return null;
             }

@@ -411,7 +411,7 @@ public class PhotomList
                 ( "no objects defined in PhotomList root element" );
         }
         try {
-            theClass = Class.forName( getElementValue( classElement ) );
+            theClass = this.getClass().forName( getElementValue( classElement ) );
         }
         catch (ClassNotFoundException e) {
             throw new IllegalArgumentException

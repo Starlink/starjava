@@ -407,7 +407,7 @@ public class LoadQueryWindow extends QueryWindow {
         if ( demoList != null ) {
             try {
                 node = 
-                    Class.forName( 
+                    this.getClass().forName( 
                         "uk.ac.starlink.treeview.ResourceListDataNode" )
                    .getConstructor( new Class[] { List.class } )
                    .newInstance( new Object[] { demoList } );

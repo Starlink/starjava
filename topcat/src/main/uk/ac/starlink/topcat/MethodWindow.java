@@ -100,7 +100,7 @@ public class MethodWindow extends AuxWindow {
                                                 JOptionPane.QUESTION_MESSAGE );
                 if ( cname != null ) {
                     try {
-                        Class clazz = Class.forName( cname );
+                        Class clazz = this.getClass().forName( cname );
                         staticClasses.add( clazz );
                         addStaticClass( clazz );
                     }

@@ -184,7 +184,8 @@ public class StarTableNodeChooser {
 
     static void reflect()
             throws ClassNotFoundException, LinkageError, NoSuchMethodException {
-        chooserClass = Class.forName( CHOOSER_CLASS );
+        chooserClass = Class.forName( CHOOSER_CLASS, true,
+                                      Thread.currentThread().getContextClassLoader());
         Class nodeClass = Class.forName( "uk.ac.starlink.treeview.DataNode" );
         chooserConstructor = chooserClass.getConstructor( new Class[ 0 ] );
         chooseMethod = chooserClass
