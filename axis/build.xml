@@ -122,8 +122,10 @@
    !   Build the code
    !   ==============
    !
-   !  Just make sure that the manifest is upto date. This needs 
-   !  the Class-Path header filled in.
+   !  Update the jar-file manifest. Note this target should be ran
+   !  before checking in the jar files (to update the manifest) and
+   !  will need repeating if the dependencies change. For safety 
+   !  this target will be executed as part of a system "build".
    !-->
   <target name="build"
           depends="prepare"
