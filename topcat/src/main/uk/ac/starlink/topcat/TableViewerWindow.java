@@ -139,9 +139,15 @@ public class TableViewerWindow extends TopcatViewWindow
                         long active = viewModel.getBaseRow( first );
                         if ( active != lastActive ) {
                             lastActive = active;
-                            selfHighlighting = true;
-                            tcModel.highlightRow( active );
-                            selfHighlighting = false;
+
+                            /* Unless this call was initiated by a call to
+                             * rowHighlight, message the topcat model that 
+                             * row has been highlighted. */
+                            if ( ! selfHighlighting ) {
+                                selfHighlighting = true;
+                                tcModel.highlightRow( active );
+                                selfHighlighting = false;
+                            }
                         }
                     }
                 }
@@ -224,12 +230,13 @@ public class TableViewerWindow extends TopcatViewWindow
      */
     public void highlightRow( long lrow ) {
 
-        /* If this highlighting request originally came from this window 
-         * (because a row has just been selected) don't do anything, since
-         * this would recurse infinitely. */
+        /* Maintain a flag to ensure that this doesn't cause a call to 
+         * the topcat model's highlightRow method, which would in turn 
+         * call this one, causing infinite recursion. */
         if ( selfHighlighting ) {
             return;
         }
+        selfHighlighting = true;
 
         /* Get ready. */
         jtab.clearSelection();
@@ -254,6 +261,7 @@ public class TableViewerWindow extends TopcatViewWindow
             JScrollBar yBar = scrollpane.getVerticalScrollBar();
             yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
         }
+        selfHighlighting = false;
     }
 
     /**
