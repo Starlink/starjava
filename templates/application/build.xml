@@ -159,6 +159,18 @@
   <property name="install.log" value=".${name}.install"/>
   <property name="install.overwrite" value="true"/>
 
+  <!-- Local webstart properties. Note this needs a local keystore,
+   !   assumed to be called keystore in $star.build.dir, .. by
+   !   default. -->
+  <property name="webstart.codebase"
+           value="http://www.starlink.ac.uk/starjava/lib"/>
+  <property name="webstart.alias" value="Starlink-UK"/>
+  <property name="webstart.keystore" value="${star.build.dir}/keystore"/>
+  <property name="webstart.keypass" value="Vroomfondel"/>
+  <property name="webstart.storepass" value="Majikthise"/>
+  <property name="webstart.starlink_logo" value="starlink_logo_med.gif"/>
+  <property name="home.page" value="http://www.starlink.ac.uk/${name}"/>
+
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
@@ -358,7 +370,7 @@
    !  The results of the compilation are placed in the build.classes
    !  directory. Other files that are also needed in the classes tree
    !  (i.e. resources like images and property files) should also be
-   !  copied into place here. 
+   !  copied into place here.
    !-->
   <target name="build"
           depends="prepare, check_packages"
@@ -413,7 +425,7 @@
    !  created here. Note this requires a manifest file that defines the
    !  jars that we directly depend on (using relative URLs) on and
    !  defines the application entrance point. The jar files should be
-   !  placed directly in the distribution directories. 
+   !  placed directly in the distribution directories.
    !-->
   <target name="jars"
           depends="build"
@@ -429,6 +441,102 @@
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
+
+    <!-- Sign all jar files -->
+    <signjar alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
+
+  </target>
+
+  <!--
+   !   ========================================
+   !   Make package JNLP file for Java webstart
+   !   ========================================
+   !-->
+  <target name="webstart"
+          description="-> create webstart descriptor files">
+
+    <!-- Create a webstart JNLP file for this application. 
+     !   This goes into "dist.lib" 
+     !-->
+    <mkdir dir="${dist.lib}"/>
+    <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
+          codebase="${webstart.codebase}">
+
+      <information>
+         <title>{Package} - {description}</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>Starlink {Package} - Webstart edition</description>
+         <offline_allowed/>
+       </information>
+
+       <security>
+          <all_permissions/>
+       </security>
+
+       <resources>
+         <j2se version="1.4+"/>
+
+         <!-- The application main jar file -->
+         <jar href="${name}/${name}.jar"/>
+
+         <!-- Other classes of this application as an extension (so
+          !   they may be used by other applications).
+         <extension name="{PACKAGE}-PARTS" href="${name}-parts.jnlp"/>
+
+         <!-- Other applications that this application uses. Note
+          !   these shouuld not normally be named in the "parts"
+          !   component to avoid the possibility of circular
+          !   dependencies -->
+         <extension name="{App1}-PARTS" href="{app1}-parts.jnlp"/>
+         <extension name="{App2}-PARTS" href="{app2}-parts.jnlp"/>
+       </resources>
+
+       <!-- This an an application JNLP file. -->
+       <application_desc main_class="{main-class}"/>
+     </jnlp>
+
+    <!-- Create a webstart JNLP file for this application as a
+     !   component, so that its classes may be referenced by other
+     !   applications. This goes into "dist.lib" 
+     !-->
+     <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
+          codebase="${webstart.codebase}">
+
+      <information>
+         <title>{Package} - {description}</title>
+         <vendor>Starlink UK</vendor>
+         <homepage href="${home.page}"/>
+         <icon href="${webstart.starlink_logo}"/>
+         <description>Starlink {Package} - Webstart edition</description>
+         <offline_allowed/>
+       </information>
+
+       <security>
+          <all_permissions/>
+       </security>
+
+       <resources>
+         <j2se version="1.4+"/>
+
+         <!-- All jar files of this application -->
+         <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+
+         <!-- Components that this component depends on (usually any
+          !   application parts should not be named here).
+         <extension name="{EXT1}" href="{ext1}.jnlp"/>
+         <extension name="{EXT2}" href="{ext2}.jnlp"/>
+       </resources>
+
+       <!-- This is a component -->
+       <component_desc/>
+     </jnlp>
 
   </target>
 
@@ -448,7 +556,7 @@
    !  targets.
    !-->
   <target name="dist"
-          depends="build,jars,javadocs"
+          depends="build,jars,javadocs,webstart"
           unless="runonly.install"
           description="-> configures the local binary distribution">
 
@@ -696,6 +804,7 @@
                 overwrite="${install.overwrite}"
                 logfileAppend="true">
       <fileset dir="${dist.lib}">
+        <include name="**/*.jnlp"/>
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
       </fileset>
@@ -856,7 +965,7 @@
    !  src/main tree. When javadocs can be generated incrementally this
    !  arrangement should be reworked to generate whatever is needed as
    !  part of the javadocs target.
-   ! 
+   !
    !  Application packages should only make public those parts of
    !  their internal APIs that they are prepared to support. Consider
    !  adding such code to proper class libraries (such as util).
