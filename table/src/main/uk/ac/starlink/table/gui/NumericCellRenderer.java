@@ -37,6 +37,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     private boolean likeHeading;
     private String badText;
     private Color badColor;
+    private Color goodColor;
     private Object badValue = new Object();
     private Class clazz;
     private Font font;
@@ -70,7 +71,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
         }
 
         /* Configure bad value representation. */
-        Color goodColor = UIManager.getColor( "Table.foreground" );
+        goodColor = UIManager.getColor( "Table.foreground" );
         badColor = new Color( goodColor.getRed(),
                               goodColor.getGreen(),
                               goodColor.getBlue(),
@@ -116,6 +117,7 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
             setText( ' ' + badText + ' ' );
             return;
         }
+        setForeground( goodColor );
 
         /* Is it null? */
         if ( value == null ) {
