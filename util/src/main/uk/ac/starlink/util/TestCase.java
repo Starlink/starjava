@@ -526,6 +526,40 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
+     * Asserts that a DOM is equivalent to the XML in a given URL.
+     * Equivalent to <code>assertDOMEquals(dom, actual, context, flags)</code> with
+     * the first argument being the document element of the DOM read
+     * from the URL, and the third argument being the last part
+     * (the `file name') of the URL.
+     *
+     * @param url     pointing to an XML file -- the document element of
+     *                this file is the expected value
+     * @param actual  the node which is being compared
+     * @param context a string indicating the context of this; if
+     *                <code>null</code>, it defaults to `string:'
+     * @param flags   a set of flags controlling the comparison; see
+     *                {@link #assertDOMEquals(Node,Node,String,int)}
+     * @throws java.io.IOException if the file cannot be found
+     * @throws org.xml.sax.SAXException if there is a problem parsing the XML
+     * @throws javax.xml.parsers.ParserConfigurationException if the
+     *            XML parser cannot be initialised
+     * @throws AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
+     */
+    public void assertDOMEquals( URL url,
+                                 Node actual,
+                                 String context,
+                                 int flags ) 
+            throws java.io.IOException,
+            org.xml.sax.SAXException,
+            javax.xml.parsers.ParserConfigurationException {
+        assertDOMEquals( url.openStream(),
+                         actual,
+                         context,
+                         flags );
+    }
+
+    /**
      * Asserts that a DOM is equivalent to the DOM implied by the XML
      * in a given string.
      * 
@@ -554,8 +588,10 @@ public class TestCase extends junit.framework.TestCase {
      * @throws AssertionFailedError if the assertion is untrue
      * @see #assertDOMEquals(Node,Node,String,int)
      */
-    public void assertDOMEquals( String expected, Node actual,
-                                String context, int flags )
+    public void assertDOMEquals( String expected,
+                                 Node actual,
+                                 String context,
+                                 int flags )
             throws
             java.io.IOException,
             org.xml.sax.SAXException,
@@ -596,7 +632,7 @@ public class TestCase extends junit.framework.TestCase {
             docParser = factory.newDocumentBuilder();
         }
         Document doc = docParser.parse( s );
-        assertDOMEquals( doc.getDocumentElement(), actual, context, 0 );
+        assertDOMEquals( doc.getDocumentElement(), actual, context, flags );
     }
     
     /**
@@ -698,8 +734,10 @@ public class TestCase extends junit.framework.TestCase {
      * omit.  Passing as zero includes all tests.
      * @throws AssertionFailedError if the assertion is untrue
      */
-    public void assertDOMEquals( Node expected, Node actual,
-                                String context, int flags ) {
+    public void assertDOMEquals( Node expected,
+                                 Node actual,
+                                 String context,
+                                 int flags ) {
         if ( context == null )
             context = "TOP:";
         context = context + expected.getNodeName();
@@ -709,13 +747,18 @@ public class TestCase extends junit.framework.TestCase {
             StringBuffer msg = new StringBuffer( context );
             msg.append( ": expected " )
                     .append( DOMUtils.mapNodeType( expected.getNodeType() ))
-                    .append( ", got " )
-                    .append( DOMUtils.mapNodeType( actual.getNodeType() ));
+                    .append( "='" )
+                    .append( expected.getNodeValue() )
+                    .append( "', got " )
+                    .append( DOMUtils.mapNodeType( actual.getNodeType() ))
+                    .append( "='" )
+                    .append( actual.getNodeValue() )
+                    .append( "'" );
             fail( msg.toString() );
         }
 
         assertEquals( context+"(type)",
-                     expected.getNodeType(), actual.getNodeType() );
+                      expected.getNodeType(), actual.getNodeType() );
 
         String expectedNS = expected.getNamespaceURI();
         if ( expectedNS == null ) {
@@ -791,6 +834,7 @@ public class TestCase extends junit.framework.TestCase {
 
         for ( /* no init */ ; n != null; n = n.getNextSibling() ) {
             boolean veto = false;
+                
             switch ( n.getNodeType() ) {
               case Node.TEXT_NODE:
                 if ( (flags & IGNORE_WHITESPACE) != 0
