@@ -2,6 +2,8 @@ package uk.ac.starlink.topcat.func;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.pal.AngleDR;
+import uk.ac.starlink.pal.Pal;
 
 /**
  * Class containing expressions for angle transformations and manipulations.
@@ -205,6 +207,138 @@ public class Angles {
      */
     public static double radiansToDegrees( double rad ) {
         return Math.toDegrees( rad );
+    }
+
+    /**
+     * Converts a B1950.0 FK4 position to J2000.0 FK5 at an epoch of B1950.0
+     * yielding Right Ascension.
+     * This assumes zero proper motion in the FK5 frame.
+     *
+     * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
+     * @param   decFK4  declination in B1950.0 FK4 system (radians)
+     * @return  right ascension in J2000.0 FK5 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk45z
+     */
+    public static double raFK4toFK5( double raFK4, double decFK4 ) {
+        return raFK4toFK5( raFK4, decFK4, 1950.0 );
+    }
+
+    /**
+     * Converts a B1950.0 FK4 position to J2000.0 FK5 at an epoch of B1950.0
+     * yielding Declination
+     * This assumes zero proper motion in the FK5 frame.
+     *
+     * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
+     * @param   decFK4  declination in B1950.0 FK4 system (radians)
+     * @return  declination in J2000.0 FK5 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk45z
+     */
+    public static double decFK4toFK5( double raFK4, double decFK4 ) {
+        return decFK4toFK5( raFK4, decFK4, 1950.0 );
+    }
+
+    /**
+     * Converts a J2000.0 FK5 position to B1950.0 FK4 at an epoch of B1950.0
+     * yielding Declination.
+     * This assumes zero proper motion, parallax and radial velocity in
+     * the FK5 frame.
+     *
+     * @param   raFK5   right ascension in J2000.0 FK5 system (radians)
+     * @param   decFK5  declination in J2000.0 FK5 system (radians)
+     * @return  right ascension in the FK4 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk54z
+     */
+    public static double raFK5toFK4( double raFK5, double decFK5 ) {
+        return raFK5toFK4( raFK5, decFK5, 1950.0 );
+    }
+
+    /**
+     * Converts a J2000.0 FK5 position to B1950.0 FK4 at an epoch of B1950.0
+     * yielding Declination.
+     * This assumes zero proper motion, parallax and radial velocity in
+     * the FK5 frame.
+     *
+     * @param   raFK5   right ascension in J2000.0 FK5 system (radians)
+     * @param   decFK5  declination in J2000.0 FK5 system (radians)
+     * @return  right ascension in the FK4 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk54z
+     */
+    public static double decFK5toFK4( double raFK5, double decFK5 ) {
+        return decFK5toFK4( raFK5, decFK5, 1950.0 );
+    }
+
+    /**
+     * Converts a B1950.0 FK4 position to J2000.0 FK5 yielding Right Ascension.
+     * This assumes zero proper motion in the FK5 frame.
+     * The <tt>bepoch</tt> parameter is the epoch at which the position in
+     * the FK4 frame was determined.
+     *
+     * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
+     * @param   decFK4  declination in B1950.0 FK4 system (radians)
+     * @param   bepoch  Besselian epoch
+     * @return  right ascension in J2000.0 FK5 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk45z
+     */
+    public static double raFK4toFK5( double raFK4, double decFK4,
+                                     double bepoch ) {
+        return new Pal()
+              .Fk45z( new AngleDR( raFK4, decFK4 ), bepoch )
+              .getAlpha();
+    }
+
+    /**
+     * Converts a B1950.0 FK4 position to J2000.0 FK5 yielding Declination.
+     * This assumes zero proper motion in the FK5 frame.
+     * The <tt>bepoch</tt> parameter is the epoch at which the position in
+     * the FK4 frame was determined.
+     *
+     * @param   raFK4   right ascension in B1950.0 FK4 system (radians)
+     * @param   decFK4  declination in B1950.0 FK4 system (radians)
+     * @param   bepoch  Besselian epoch
+     * @return  declination in J2000.0 FK5 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk45z
+     */
+    public static double decFK4toFK5( double raFK4, double decFK4,
+                                      double bepoch ) {
+        return new Pal()
+              .Fk45z( new AngleDR( raFK4, decFK4 ), bepoch )
+              .getDelta();
+    }
+
+    /**
+     * Converts a J2000.0 FK5 position to B1950.0 FK4 yielding Declination.
+     * This assumes zero proper motion, parallax and radial velocity in
+     * the FK5 frame.
+     *
+     * @param   raFK5   right ascension in J2000.0 FK5 system (radians)
+     * @param   decFK5  declination in J2000.0 FK5 system (radians)
+     * @param   bepoch  Besselian epoch
+     * @return  right ascension in the FK4 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk54z
+     */
+    public static double raFK5toFK4( double raFK5, double decFK5,
+                                     double bepoch ) {
+        return new Pal()
+              .Fk54z( new AngleDR( raFK5, decFK5 ), bepoch ).getAngle()
+              .getAlpha();
+    }
+
+    /**
+     * Converts a J2000.0 FK5 position to B1950.0 FK4 yielding Declination.
+     * This assumes zero proper motion, parallax and radial velocity in
+     * the FK5 frame.
+     *
+     * @param   raFK5   right ascension in J2000.0 FK5 system (radians)
+     * @param   decFK5  declination in J2000.0 FK5 system (radians)
+     * @param   bepoch  Besselian epoch
+     * @return  right ascension in the FK4 system (radians)
+     * @see     uk.ac.starlink.pal.Pal#Fk54z
+     */
+    public static double decFK5toFK4( double raFK5, double decFK5,
+                                      double bepoch ) {
+        return new Pal()
+              .Fk54z( new AngleDR( raFK5, decFK5 ), bepoch ).getAngle()
+              .getDelta();
     }
 
     /**
