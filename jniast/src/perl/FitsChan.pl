@@ -81,6 +81,58 @@ public class FitsChan extends Channel {
     private native void construct();
 
     /**
+     * Returns an iterator over the header cards currently in this FitsChan.
+     * Each object returned from the Iterator's <code>next</code> method
+     * will be an 80-character String.  The Iterator's <code>remove</code>
+     * method can be used to delete cards from the underlying channel.
+     * The iterator should not be used while the FitsChan is being 
+     * written to.
+     * <p>
+     * This method is a convenience wrapper which uses <code>findFits</code>
+     * and <code>delFits</code> to do the work.
+     *
+     * @return  an Iterator which retrieves each line from the FitsChan in turn
+     */
+    public Iterator iterator() {
+        return new Iterator() {
+            private int icard = 1;
+            private int removable = -1;
+            public boolean hasNext() {
+                return icard <= getNcard();
+            }
+            public Object next() {
+                if ( ! hasNext() ) {
+                    throw new NoSuchElementException();
+                }
+                else {
+                    int ic = getCard();
+                    setCard( icard );
+                    removable = icard++;
+                    String line = findFits( "%f", false );
+                    setCard( ic );
+                    return line;
+                }
+            }
+            public void remove() {
+                if ( removable > 0 ) {
+                    int ic = getCard();
+                    setCard( removable );
+                    delFits();
+                    icard--;
+                    if ( ic > removable ) { 
+                        ic--;
+                    }
+                    setCard( ic );
+                    removable = 0;
+                }
+                else {
+                    throw new IllegalStateException();
+                }
+            }
+        };
+    }
+
+    /**
      * Disposes of a line of output.  This method is invoked repeatedly 
      * when the <code>finalize</code> method of this FitsChan is called 
      * (either explicitly or under control of the garbage collector)

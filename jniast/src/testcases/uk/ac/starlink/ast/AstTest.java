@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -119,10 +120,32 @@ public class AstTest extends TestCase {
         fchan.write( wcs );
         int nc = fchan.getNcard();
         assertTrue( "Enough cards", nc > 10 );
-        fchan.setCard( 10 );
-        while ( fchan.getNcard() > 10 ) {
+        fchan.setCard( 11 );
+        while ( fchan.getNcard() >= 11 ) {
             fchan.delFits();
         }
+        int ncomm = 0;
+        int nline = 0;
+        for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
+            String line = (String) it.next();
+            assertEquals( 80, line.length() );
+            assertTrue( line.trim().length() == 0 ||
+                        line.charAt( 8 ) == '=' ||
+                        line.startsWith( "COMMENT" ) );
+            if ( line.startsWith( "COMMENT" ) ) {
+                ncomm++;
+            }
+            nline++;
+        }
+        assertEquals( 10, nline );
+        assertTrue( ncomm > 0 );
+        for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
+            String line = (String) it.next();
+            if ( line.startsWith( "COMMENT" ) ) {
+                it.remove();
+            }
+        }
+        assertEquals( 10 - ncomm, fchan.getNcard() );
     }
 
     public void testFrame() {
