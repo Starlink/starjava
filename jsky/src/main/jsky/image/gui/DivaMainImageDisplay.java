@@ -906,8 +906,16 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
             public Object construct() {
                 setDownloadState(true);
                 try {
+
+                    // PWD: need to keep the file extension if possible as the
+                    // compression state depends on this.
+                    String suffix = FileUtil.getSuffix( url.getPath() );
+                    if ( suffix.equals( "" ) ) {
+                        suffix = ".tmp";
+                    }
+
                     String dir = Preferences.getPreferences().getCacheDir().getPath();
-                    File file = File.createTempFile("jsky", ".tmp", new File(dir));
+                    File file = File.createTempFile("jsky", suffix, new File(dir));
                     //file.deleteOnExit();
                     ProgressBarFilterInputStream in = _progressPanel.getLoggedInputStream(url);
                     FileOutputStream out = new FileOutputStream(file);

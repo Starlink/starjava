@@ -115,6 +115,20 @@ public class FileUtil {
     }
 
 
+    /** 
+     * Return the suffix of a file. This is everything after the first
+     * period, so can be confused by the some names with many periods
+     *  not related to the suffix, for instance my.file.fits.gz.
+     */
+    public static String getSuffix( String filename )
+    {
+        int index = filename.indexOf( '.' );
+        if ( index != -1 ) {
+            return filename.substring( index );
+        }
+        return "";
+    }
+
     /**
      * test main
      */
