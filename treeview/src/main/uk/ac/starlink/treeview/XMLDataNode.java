@@ -2,7 +2,9 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -17,9 +19,12 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
+import org.w3c.dom.Entity;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.Notation;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 import uk.ac.starlink.util.SourceReader;
@@ -38,6 +43,11 @@ public class XMLDataNode extends DefaultDataNode {
     private Icon icon;
 
     public static final int MAX_LINES = 12;
+
+    private static final String NAME_KEY = "Name";
+    private static final String SID_KEY = "System ID";
+    private static final String PID_KEY = "Public ID";
+    private static final String NOTATION_KEY = "Notation";
 
     public XMLDataNode( Source xsrc ) throws NoSuchDataException {
         try {
@@ -105,6 +115,16 @@ public class XMLDataNode extends DefaultDataNode {
                 description = contentSummary( "\"", pi.getData(), "\"" );
                 break;
 
+            case Node.DOCUMENT_TYPE_NODE:
+                tla = "DTD";
+                type = "Document Type Declaration";
+                allowsChildren = true;
+                iconId = IconFactory.XML_DTD;
+                DocumentType dtd = (DocumentType) domNode;
+                name = "<!DOCTYPE " + dtd.getName() + ">";
+                description = "";
+                break;
+
             default:
                 tla = "XML";
                 type = "XML node";
@@ -118,7 +138,7 @@ public class XMLDataNode extends DefaultDataNode {
     }
 
     public XMLDataNode( File file ) throws NoSuchDataException {
-        this( new StreamSource( file ) );
+        this( FileDataNodeBuilder.makeDOMSource( file ) );
         this.name = file.getName();
         setLabel( name );
     }
@@ -217,6 +237,75 @@ public class XMLDataNode extends DefaultDataNode {
                         dv.addKeyedItem( (String) entry.getKey(),
                                          (String) entry.getValue() );
                     }
+                }
+            }
+
+            /* DTD specific things. */
+            if ( domNode instanceof DocumentType ) {
+                DocumentType dtd = (DocumentType) domNode;
+
+                /* Identifiers. */
+                dv.addKeyedItem( "System ID", dtd.getSystemId() );
+                dv.addKeyedItem( "Public ID", dtd.getPublicId() );
+
+                /* Internal subset. */
+                final String isubset = dtd.getInternalSubset();
+                if ( isubset != null && isubset.trim().length() > 0 ) {
+                    dv.addPane( "Internal subset", new ComponentMaker() {
+                        public JComponent getComponent() 
+                                throws TransformerException {
+                            Source ssrc = 
+                                new StreamSource( new StringReader( isubset ) );
+                            ssrc.setSystemId( systemId );
+                            return new TextViewer( ssrc );
+                        }
+                    } );
+                }
+
+                /* Entities. */
+                final NamedNodeMap entities = dtd.getEntities();
+                final int nent = entities.getLength();
+                if ( nent > 0 ) {
+                    dv.addPane( "Entities", new ComponentMaker() {
+                        public JComponent getComponent() {
+                            MetamapGroup mmg = new MetamapGroup( nent );
+                            for ( int i = 0; i < nent; i++ ) {
+                                Entity ent = (Entity) entities.item( i );
+                                mmg.addEntry( i, NAME_KEY, ent.getNodeName() );
+                                mmg.addEntry( i, SID_KEY, ent.getSystemId() );
+                                mmg.addEntry( i, PID_KEY, ent.getPublicId() );
+                                mmg.addEntry( i, NOTATION_KEY, 
+                                              ent.getNotationName() );
+                            }
+                            mmg.setKeyOrder( Arrays.asList( new String[] {
+                                NAME_KEY, SID_KEY, PID_KEY, NOTATION_KEY,
+                            } ) );
+                            return new MetaTable( mmg );
+                        }
+                    } );
+                }
+
+                /* Notations. */
+                final NamedNodeMap notations = dtd.getNotations();
+                final int nnot = notations.getLength();
+                if ( nnot > 0 ) {
+                    dv.addPane( "Notations", new ComponentMaker() {
+                        public JComponent getComponent() {
+                            MetamapGroup mmg = new MetamapGroup( nnot );
+                            for ( int i = 0; i < nnot; i++ ) {
+                                Notation not = (Notation) notations.item( i );
+                                String systemId = not.getSystemId();
+                                String publicId = not.getPublicId();
+                                mmg.addEntry( i, NAME_KEY, not.getNodeName() );
+                                mmg.addEntry( i, SID_KEY, not.getSystemId() );
+                                mmg.addEntry( i, PID_KEY, not.getPublicId() );
+                            }
+                            mmg.setKeyOrder( Arrays.asList( new String[] {
+                                NAME_KEY, SID_KEY, PID_KEY,
+                            } ) );
+                            return new MetaTable( mmg );
+                        }
+                    } );
                 }
             }
 
