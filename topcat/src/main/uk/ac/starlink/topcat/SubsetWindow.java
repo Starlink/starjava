@@ -11,6 +11,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -20,7 +21,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnInfo;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A window which displays currently defined RowSubsets for the current
@@ -208,8 +208,14 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
                     tcModel.getViewModel().fireTableDataChanged();
                 }
                 catch ( CompilationException e ) {
-                    ErrorDialog.showError( e, "Error in expression " + value,
-                                           SubsetWindow.this );
+                    String[] msg = new String[] {
+                        "Syntax error in algebraic subset expression \""
+                        + value + "\":",
+                        e.getMessage(),
+                    };
+                    JOptionPane.showMessageDialog( SubsetWindow.this, msg,
+                                                   "Expression Syntax Error",
+                                                   JOptionPane.ERROR_MESSAGE );
                 }
             }
         };

@@ -1,9 +1,10 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompilationException;
 import java.awt.Component;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A dialogue window which queries the user for the characteristics of
@@ -33,11 +34,11 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
         LabelledComponentStack stack = getStack();
 
         /* Name field. */
-        nameField = new JTextField( 32 );
+        nameField = new JTextField();
         stack.addLine( "Subset Name", nameField );
 
         /* Expression field. */
-        exprField = new JTextField( 32 );
+        exprField = new JTextField();
         stack.addLine( "Expression", exprField );
 
         /* Add tools. */
@@ -61,9 +62,13 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
             subsets.add( rset );
             return true;
         }
-        catch ( Exception e ) {
-            ErrorDialog.showError( e, "Bad subset definition: " + expr,
-                                   this );
+        catch ( CompilationException e ) {
+            String[] msg = new String[] {
+                "Syntax error in algebraic subset expression \"" + expr + "\":",
+                e.getMessage(),
+            };
+            JOptionPane.showMessageDialog( this, msg, "Expression Syntax Error",
+                                           JOptionPane.ERROR_MESSAGE );
             return false;
         }
     }

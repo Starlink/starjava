@@ -1,7 +1,10 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompilationException;
 import java.awt.Component;
 import javax.swing.AbstractSpinnerModel;
+import javax.swing.JComboBox;
+import javax.swing.JOptionPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.table.TableColumnModel;
@@ -9,7 +12,6 @@ import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
 import uk.ac.starlink.table.gui.UCDSelector;
-import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A dialogue window which queries the user for the characteristics of a
@@ -25,6 +27,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     private JTextField unitField;
     private JTextField descriptionField;
     private JTextField expressionField;
+    private JComboBox typeField;
     private UCDSelector ucdField;
     private ColumnIndexSpinner indexSpinner;
 
@@ -48,7 +51,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         LabelledComponentStack stack = getStack();
 
         /* Name field. */
-        nameField = new JTextField( 24 );
+        nameField = new JTextField();
         stack.addLine( "Name", nameField );
 
         /* Units field. */
@@ -62,6 +65,25 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         /* Expression field. */
         expressionField = new JTextField( 24 );
         stack.addLine( "Expression", expressionField );
+
+        /* Class selector. */
+        typeField = new JComboBox();
+        typeField.addItem( null );
+        typeField.addItem( byte.class );
+        typeField.addItem( short.class );
+        typeField.addItem( int.class );
+        typeField.addItem( long.class );
+        typeField.addItem( float.class );
+        typeField.addItem( double.class );
+        CustomComboBoxRenderer renderer = new ClassComboBoxRenderer();
+        renderer.setNullRepresentation( "(auto)" );
+        typeField.setRenderer( renderer );
+        typeField.setSelectedIndex( 0 );
+
+        // Don't add this option for now - it's not that useful, since
+        // narrowing conversions cause an error in any case, which, 
+        // while sensible, is not what the user is going to expect.
+        // stack.addLine( "Numeric Type", typeField );
 
         /* UCD field. */
         ucdField = new UCDSelector();
@@ -148,6 +170,26 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
     }
 
     /**
+     * Sets the class that the expression result will be converted to.
+     * If null, automatic class resolution should be used.
+     *
+     * @param   clazz  forced expression type, or null
+     */
+    public void setType( Class clazz ) {
+        typeField.setSelectedItem( clazz );
+    }
+
+    /**
+     * Returns the class that the user has selected for the expression.
+     * If null, automatic class resolution should be used.
+     *
+     * @return  forced expression type, or null
+     */
+    public Class getType() {
+        return (Class) typeField.getSelectedItem();
+    }
+
+    /**
      * Sets the index at which the new column should be inserted.
      *
      * @return  index
@@ -162,6 +204,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         String unit = getUnit();
         String expr = getExpression();
         String ucd = getUCD();
+        Class clazz = getType();
         int index = getIndex();
         DefaultValueInfo info = new DefaultValueInfo( name );
         if ( desc != null ) {
@@ -170,18 +213,22 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         if ( ucd != null ) {
             info.setUCD( ucd );
         }
-        if ( info != null ) {
+        if ( unit != null ) {
             info.setUnitString( unit );
         }
         try {
             ColumnData col = new SyntheticColumn( info, dataModel, subsets,
-                                                  expr, null );
+                                                  expr, clazz );
             tcModel.appendColumn( col, index );
             return true;
         }
-        catch ( Exception e ) {
-            ErrorDialog.showError( e, "Bad column definition: " + expr,
-                                   this );
+        catch ( CompilationException e ) {
+            String[] msg = new String[] {
+                "Syntax error in synthetic column expression \"" + expr + "\":",
+                e.getMessage(),
+            };
+            JOptionPane.showMessageDialog( this, msg, "Expression Syntax Error",
+                                           JOptionPane.ERROR_MESSAGE );
             return false;
         }
     }
