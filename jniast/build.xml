@@ -736,6 +736,7 @@
          <include name="*.c"/>
          <include name="*.h"/>
          <include name="aclocal.m4"/>
+         <include name="component.xml.in"/>
          <include name="configure.ac"/>
          <include name="configure"/>
          <include name="config.guess"/>

@@ -55,13 +55,13 @@ am__installdirs = $(DESTDIR)$(libdir)
 libLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__objects_1 =
-am__objects_2 = jniast.lo err_jniast.lo AstException.lo AstObject.lo \
-	Channel.lo CmpFrame.lo CmpMap.lo FitsChan.lo Frame.lo \
-	FrameSet.lo GrismMap.lo IntraMap.lo LutMap.lo Mapping.lo \
-	MathMap.lo MatrixMap.lo PcdMap.lo PermMap.lo Plot.lo \
-	PolyMap.lo SkyFrame.lo SlaMap.lo ShiftMap.lo SpecFrame.lo \
-	SpecMap.lo SphMap.lo TranMap.lo UnitMap.lo WcsMap.lo WinMap.lo \
-	ZoomMap.lo GrfEscape.lo
+am__objects_2 = AstException.lo AstObject.lo Channel.lo CmpFrame.lo \
+	CmpMap.lo DSBSpecFrame.lo err_jniast.lo FitsChan.lo Frame.lo \
+	FrameSet.lo GrfEscape.lo GrismMap.lo IntraMap.lo jniast.lo \
+	LutMap.lo Mapping.lo MathMap.lo MatrixMap.lo PcdMap.lo \
+	PermMap.lo Plot.lo PolyMap.lo ShiftMap.lo SkyFrame.lo \
+	SlaMap.lo SpecFrame.lo SpecMap.lo SphMap.lo TranMap.lo \
+	UnitMap.lo WcsMap.lo WinMap.lo ZoomMap.lo
 am_libjniast_la_OBJECTS = $(am__objects_1) $(am__objects_2)
 libjniast_la_OBJECTS = $(am_libjniast_la_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
@@ -70,6 +70,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/AstException.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/AstObject.Plo ./$(DEPDIR)/Channel.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/CmpFrame.Plo ./$(DEPDIR)/CmpMap.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/DSBSpecFrame.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/FitsChan.Plo ./$(DEPDIR)/Frame.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/FrameSet.Plo ./$(DEPDIR)/GrfEscape.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/GrismMap.Plo ./$(DEPDIR)/IntraMap.Plo \
@@ -233,38 +234,39 @@ INCLUDES = $(INCADD)
 libjniast_la_LDFLAGS = -module -avoid-version
 PRIVATE_INCLUDES = err_jniast.h  jniast.h
 C_ROUTINES = \
-   jniast.c \
-   err_jniast.c \
-   AstException.c \
-   AstObject.c \
-   Channel.c \
-   CmpFrame.c \
-   CmpMap.c \
-   FitsChan.c \
-   Frame.c \
-   FrameSet.c \
-   GrismMap.c \
-   IntraMap.c \
-   LutMap.c \
-   Mapping.c \
-   MathMap.c \
-   MatrixMap.c \
-   PcdMap.c \
-   PermMap.c \
-   Plot.c \
-   PolyMap.c \
-   SkyFrame.c \
-   SlaMap.c \
-   ShiftMap.c \
-   SpecFrame.c \
-   SpecMap.c \
-   SphMap.c \
-   TranMap.c \
-   UnitMap.c \
-   WcsMap.c \
-   WinMap.c \
-   ZoomMap.c \
-   GrfEscape.c
+ AstException.c \
+ AstObject.c \
+ Channel.c \
+ CmpFrame.c \
+ CmpMap.c \
+ DSBSpecFrame.c \
+ err_jniast.c \
+ FitsChan.c \
+ Frame.c \
+ FrameSet.c \
+ GrfEscape.c \
+ GrismMap.c \
+ IntraMap.c \
+ jniast.c \
+ LutMap.c \
+ Mapping.c \
+ MathMap.c \
+ MatrixMap.c \
+ PcdMap.c \
+ PermMap.c \
+ Plot.c \
+ PolyMap.c \
+ ShiftMap.c \
+ SkyFrame.c \
+ SlaMap.c \
+ SpecFrame.c \
+ SpecMap.c \
+ SphMap.c \
+ TranMap.c \
+ UnitMap.c \
+ WcsMap.c \
+ WinMap.c \
+ ZoomMap.c
 
 all: all-am
 
@@ -361,6 +363,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Channel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CmpFrame.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CmpMap.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DSBSpecFrame.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitsChan.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Frame.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FrameSet.Plo@am__quote@
