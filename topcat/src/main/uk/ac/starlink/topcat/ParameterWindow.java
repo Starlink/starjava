@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
@@ -58,6 +59,9 @@ public class ParameterWindow extends TopcatViewWindow
         new DefaultValueInfo( "Columns", Integer.class, "Number of columns" );
     private static final ValueInfo NROW_INFO =
         new DefaultValueInfo( "Rows", Long.class, "Number of rows" );
+
+    private static final Logger logger =
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a parameter window.
@@ -319,7 +323,18 @@ public class ParameterWindow extends TopcatViewWindow
                 if ( jtab.getSelectedRowCount() == 1 ) {
                     int irow = jtab.getSelectedRow();
                     DescribedValue dval = getParam( irow );
-                    ParameterWindow.this.tcModel.removeParameter( dval );
+                    if ( ParameterWindow.this.tcModel.getDataModel()
+                                        .getParameters().contains( dval ) ) {
+                        if ( confirm( "Remove Parameter \"" + dval + "\"?",
+                                      "Confirm Removal" ) ) {
+                            ParameterWindow.this.tcModel
+                                           .removeParameter( dval );
+                        }
+                    }
+                    else {
+                        logger.warning( "Parameter \"" + dval + 
+                                        "\" missing from model??" );
+                    }
                 }
             }
         };
