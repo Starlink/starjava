@@ -1,8 +1,8 @@
 package uk.ac.starlink.votable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.List;
 import java.util.logging.Logger;
@@ -25,7 +25,7 @@ import uk.ac.starlink.votable.dom.DelegatingDocument;
  * @author   Mark Taylor (Starlink)
  * @since    9 Sep 2004
  */
-class VOSAXDocumentBuilder implements SAXDocumentBuilder {
+public class VOSAXDocumentBuilder implements SAXDocumentBuilder {
 
     private Locator locator_;
     private VODocument doc_;
@@ -176,6 +176,12 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
 
     public void characters( char[] ch, int start, int length )
             throws SAXParseException {
+
+        /* Ignore trailing whitespace. */
+        if ( nodeStack_.isEmpty() && 
+             new String( ch, start, length ).trim().length() == 0 ) {
+            return;
+        }
         try {
             nodeStack_.top()
                 .appendChild( doc_.createTextNode( new String( ch, start,
@@ -222,18 +228,22 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
      * Helper class which stores encountered elements as a stack.
      */
     private static class NodeStack {
-        private List stack_ = new ArrayList();
+        private LinkedList stack_ = new LinkedList();
 
         void push( Node node ) {
             stack_.add( node );
         }
 
         Node pop() {
-            return (Node) stack_.remove( stack_.size() - 1 );
+            return (Node) stack_.removeLast();
         }
 
         Node top() {
-            return (Node) stack_.get( stack_.size() - 1 );
+            return (Node) ( stack_.isEmpty() ? null : stack_.getLast() );
+        }
+
+        boolean isEmpty() {
+            return stack_.isEmpty();
         }
     }
 }
