@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -35,18 +36,22 @@ public class CutoutSelector extends JPanel implements ItemListener {
     /** List of available cutout services. */
     private static final CutoutService[] SERVICES = new CutoutService[] {
         new CutoutService( "SuperCOSMOS All-Sky Blue", 0.67 ) {
-            String displayCutout( double ra, double dec, int npix ) {
-                return SuperCosmos.sssCutout( ra, dec, npix );
+            String displayCutout( int tableID, double ra, double dec, 
+                                  int npix ) {
+                return SuperCosmos.sssCutoutBlue( ra, dec, npix );
             }
         },
         new CutoutService( "SuperCOSMOS All-Sky Red", 0.67 ) {
-            String displayCutout( double ra, double dec, int npix ) {
-                return SuperCosmos.sssCutout( ra, dec, npix );
+            String displayCutout( int tableID, double ra, double dec,
+                                  int npix ) {
+                return SuperCosmos.sssCutoutRed( ra, dec, npix );
             }
         },
         new CutoutService( "SDSS Colour Images", 0.4 ) {
-            String displayCutout( double ra, double dec, int npix ) {
-                return Sdss.sdssCutout( ra, dec, npix );
+            String displayCutout( int tableID, double ra, double dec,
+                                  int npix ) {
+                return Sdss.sdssCutout( "SDSS (" + tableID + ")",
+                                        ra, dec, npix );
             }
         },
     };
@@ -57,6 +62,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
      * @param  tcModel  table this selector is to work for
      */
     public CutoutSelector( TopcatModel tcModel ) {
+        super( new BorderLayout() );
         tcModel_ = tcModel;
 
         /* Set up components for user interaction. */
@@ -90,16 +96,19 @@ public class CutoutSelector extends JPanel implements ItemListener {
         cutoutLine.add( serviceLabel );
         cutoutLine.add( serviceSelector_ );
         box.add( cutoutLine );
+        box.add( Box.createVerticalStrut( 5 ) );
 
         /* RA column selector. */
         Box raLine = Box.createHorizontalBox();
         raLine.add( raSelector_ );
         box.add( raLine );
+        box.add( Box.createVerticalStrut( 5 ) );
 
         /* Declination column selector. */
         Box decLine = box.createHorizontalBox();
         decLine.add( decSelector_ );
         box.add( decLine );
+        box.add( Box.createVerticalStrut( 5 ) );
 
         /* Cutout image size selector. */
         Box npixLine = Box.createHorizontalBox();
@@ -125,6 +134,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
             ColumnData raData = raSelector_.getColumnData();
             ColumnData decData = decSelector_.getColumnData();
             int npix = npixSelector_.getValue();
+            int tableID = tcModel_.getID();
             if ( raData == null ) {
                 trouble = "No RA column defined";
             }
@@ -135,7 +145,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
                 trouble = "Non-positive number of pixels";
             }
             else {
-                return serv.makeActivator( raData, decData, npix );
+                return serv.makeActivator( tableID, raData, decData, npix );
             }
         }
         else {
@@ -200,18 +210,21 @@ public class CutoutSelector extends JPanel implements ItemListener {
         /**
          * Displays an image centred around a given position.
          *
+         * @param  tableID  id value for table being displayed
          * @param  ra   right ascension in radians
          * @param  dec  declination in radians
          * @param  npix linear dimension of image in pixels
          * @return log message for display operation
          */
-        abstract String displayCutout( double ra, double dec, int npix );
+        abstract String displayCutout( int tableID, double ra, double dec,
+                                       int npix );
 
         /**
          * Returns an activator for this service in accordance with the 
          * current settings of the containing CutoutSelector.
          */
-        public Activator makeActivator( final ColumnData raData,
+        public Activator makeActivator( final int tableID,
+                                        final ColumnData raData,
                                         final ColumnData decData,
                                         final int npix ) {
             final String activatorName = name_ + "($ra, $dec, " + npix + ")";
@@ -231,7 +244,7 @@ public class CutoutSelector extends JPanel implements ItemListener {
                         double ra = ((Number) raObj).doubleValue();
                         double dec = ((Number) decObj).doubleValue();
                         if ( ! Double.isNaN( ra ) && ! Double.isNaN( dec ) ) {
-                            return displayCutout( ra, dec, npix );
+                            return displayCutout( tableID, ra, dec, npix );
                         }
                     }
                     return "No position at (" + raObj + ", " + decObj + ")";

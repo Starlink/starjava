@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ItemEvent;
@@ -28,6 +29,7 @@ public class IntSelector extends JPanel implements ItemListener {
      * @param  initial selections
      */
     public IntSelector( int[] options ) {
+        super( new BorderLayout() );
         if ( options != null ) {
             int nopt = options.length;
             Object[] items = new Object[ nopt ];
