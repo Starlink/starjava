@@ -43,7 +43,7 @@ public class Tables {
 
         /* Otherwise, we need to construct a table based on the sequential
          * table that acts random. */
-        return new RowScratchTable( startab );
+        return new RowRandomWrapperStarTable( startab );
     }
 
     /**
