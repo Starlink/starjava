@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.Source;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
@@ -26,7 +26,7 @@ public class VOStarTable extends AbstractStarTable {
     private Table votable;
     private VOStarValueAdapter[] adapters;
     private List params;
-    private DOMSource tabsrc;
+    private Source tabsrc;
     private int ncol;
 
     /* Auxiliary metadata. */
@@ -49,7 +49,7 @@ public class VOStarTable extends AbstractStarTable {
      *
      * @param  tabsrc  an XML Source containing the TABLE element
      */
-    public VOStarTable( DOMSource tabsrc ) {
+    public VOStarTable( Source tabsrc ) {
         this.tabsrc = tabsrc;
 
         /* Make a table object.  This will be used for the metadata.
