@@ -28,7 +28,7 @@ import nom.tam.util.ArrayDataOutput;
 import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedDataOutputStream;
 import nom.tam.util.BufferedFile;
-import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.BadHandler;
@@ -44,6 +44,11 @@ import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.hdx.HdxDocument;
+import uk.ac.starlink.hdx.HdxDocumentFactory;
+import uk.ac.starlink.hdx.HdxDOMImplementation;
+import uk.ac.starlink.hdx.HdxException;
+import uk.ac.starlink.hdx.HdxFactory;
 import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
@@ -95,15 +100,24 @@ import uk.ac.starlink.util.SourceReader;
  * This is a singleton class; use {@link #getInstance} to get an instance.
  *
  * @author    Mark Taylor (Starlink)
+ * @author    Norman Gray
+ * @version   $Id$
  */
-public class FitsNdxHandler implements NdxHandler {
+public class FitsNdxHandler
+        implements NdxHandler, HdxDocumentFactory {
 
     /** Sole instance of the class. */
     private static FitsNdxHandler instance = new FitsNdxHandler();
+    // register ourselves as an HdxDocumentFactory, as described in HdxFactory
+    static {
+        HdxFactory.registerHdxDocumentFactory(getInstance());
+    }
 
     private List extensions = 
         new ArrayList( FitsConstants.defaultFitsExtensions() );
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
+
+    
 
     /**
      * Private sole constructor.
@@ -315,7 +329,7 @@ public class FitsNdxHandler implements NdxHandler {
             conn.setDoOutput( true );
 
             /* The following may throw a java.net.UnknownServiceException
-             * (which is-a IOException) - in fact it almost certiainly will,
+             * (which is-a IOException) - in fact it almost certainly will,
              * since I don't know of any URL protocols (including file)
              * which support output streams. */
             conn.connect();
@@ -453,4 +467,35 @@ public class FitsNdxHandler implements NdxHandler {
         return new HeaderCard( image );
     }
 
+    public org.w3c.dom.Document makeHdxDocument(java.net.URL url)
+            throws HdxException {
+        try {
+            Ndx fitsNdx = makeNdx(url, AccessMode.READ);
+            if (fitsNdx == null)
+                // nothing to do with us
+                return null;
+        
+            HdxDocument doc = (HdxDocument)HdxDOMImplementation
+                    .getInstance()
+                    .createDocument(null, "hdx", null);
+            Element el = doc.createElement("hdx");
+            doc.appendChild(el);
+            Element ndxEl = doc.createElement(BridgeNdx.getHdxType(),
+                                              fitsNdx.getDOMFacade());
+            el.appendChild(ndxEl);
+            return doc;
+        } catch (IOException ex) {
+            // Method makeNdx thought it should have been able to
+            // handle this, but processing failed.  We reprocess this
+            // into an HdxException.
+            throw new HdxException("Failed to handle URL " + url
+                                   + " (" + ex + ")");
+        }
+    }
+
+    public javax.xml.transform.Source makeHdxSource(java.net.URL url)
+            throws HdxException {
+        return new DOMSource(makeHdxDocument(url));
+    }
+    
 }

@@ -6,8 +6,11 @@ import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.BadHandler;
@@ -16,6 +19,9 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.ScratchNDArray;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.hdx.HdxContainer;
+import uk.ac.starlink.hdx.HdxFactory;
+import uk.ac.starlink.hdx.HdxResourceType;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
@@ -66,6 +72,92 @@ public class FitsNdxTest extends TestCase {
 
     }
 
+    public void testDOM()
+            throws TransformerException, IOException,
+            uk.ac.starlink.hdx.HdxException,
+            java.net.MalformedURLException,
+            javax.xml.parsers.ParserConfigurationException,
+            org.xml.sax.SAXException {
+        // Exercise the DOMFacade and HdxDocumentFactory
+        // implementations of FitsNdxHandler
+
+        // Again using the virtualNdx generated below, write out the
+        // NDX as XML and a FITS file (as above)
+        NdxIO ndxio = new NdxIO();
+
+        // This NDX will be round-tripped back to Ndx via FITS, and
+        // via XML for comparison
+        Ndx ndx = virtualNdx();
+        String xloc = tmpdir + "/" + "copy.xml";
+        ndxio.outputNdx(xloc, ndx);
+
+        /* Write the NDX out as a new FITS file. */
+        ndxio.setHandlers(new NdxHandler[] { FitsNdxHandler.getInstance() } );
+        String hloc = tmpdir + "/" + "copy.fits";
+        ndxio.outputNdx(hloc, ndx);
+
+        // Setup done
+
+        // Check whether the HdxDocumentFactory implementation
+        // produces correct XML
+        HdxFactory hdxfact = HdxFactory.getInstance();
+        HdxContainer hdx = hdxfact.newHdxContainer
+                (new java.net.URL("file:" + hloc));
+
+        SourceReader sr = new SourceReader();
+        sr.setIncludeDeclaration(false);
+        sr.setIndent(0);
+
+        org.w3c.dom.Document doc =
+                javax.xml.parsers.DocumentBuilderFactory
+                .newInstance()
+                .newDocumentBuilder()
+                .parse(xloc);
+        StringWriter sw1 = new StringWriter();
+        sr.writeSource(new javax.xml.transform.dom.DOMSource(doc), sw1);
+
+        StringWriter sw2 = new StringWriter();
+        sr.writeSource(hdx.getSource(), sw2);
+
+        assertEquals( sw1.toString().replaceAll( "\\s", "" ),
+                      sw2.toString().replaceAll( "\\s", "" ) );
+
+        // Check DOMFacade by extracting elements from the DOM, then
+        // extracting the corresponding objects
+        HdxResourceType ndxType = uk.ac.starlink.ndx.BridgeNdx.getHdxType();
+        Element dom = hdx.getDOM();
+        assertTrue(NDArrays.equals
+                     (ndx.getImage(),
+                      extractArray(hdxfact, dom, ndxType, "image")));
+        assertTrue(NDArrays.equals
+                     (ndx.getVariance(),
+                      extractArray(hdxfact, dom, ndxType, "variance")));
+        assertTrue(NDArrays.equals
+                     (ndx.getQuality(),
+                      extractArray(hdxfact, dom, ndxType, "quality")));
+
+        HdxResourceType hdxt = HdxResourceType.match("image");
+        Object obj = hdx.get(hdxt);
+        assertNotNull(obj);
+        assertTrue(hdxt.getConstructedClass().isInstance(obj));
+        assertTrue(NDArrays.equals(ndx.getImage(),
+                                     (NDArray)hdx.get(hdxt)));
+        
+        hdxt = HdxResourceType.match("variance");
+        obj = hdx.get(hdxt);
+        assertNotNull(obj);
+        assertTrue(hdxt.getConstructedClass().isInstance(obj));
+        assertTrue(NDArrays.equals(ndx.getVariance(),
+                                     (NDArray)hdx.get(hdxt)));
+        
+        hdxt = HdxResourceType.match("quality");
+        obj = hdx.get(hdxt);
+        assertNotNull(obj);
+        assertTrue(hdxt.getConstructedClass().isInstance(obj));
+        assertTrue(NDArrays.equals(ndx.getQuality(),
+                                     (NDArray)hdx.get(hdxt)));
+    }
+    
     private void assertNdxEqual( Ndx ndx1, Ndx ndx2 )
             throws IOException, TransformerException {
         assertTrue( NDArrays.equals( ndx1.getImage(), ndx2.getImage() ) );
@@ -147,5 +239,19 @@ public class FitsNdxTest extends TestCase {
                   .getDOM( new StreamSource( new StringReader( etcstr ) ) );
         ndx.setEtc( etc );
         return ndx;
+    }
+
+    private NDArray extractArray(HdxFactory fact,
+                                 Element el,
+                                 HdxResourceType type,
+                                 String component)
+            throws uk.ac.starlink.hdx.HdxException {
+        NodeList nl = el.getElementsByTagName(component);
+        assertEquals(1, nl.getLength());
+        Object obj = fact.getObject((Element)nl.item(0));
+        assertNotNull(obj);
+        assertTrue(type.getConstructedClass().isInstance(obj));
+        // return the round-tripped image component
+        return (NDArray)obj;
     }
 }
