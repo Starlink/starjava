@@ -406,6 +406,36 @@
   </target>
 
   <!--
+   !   ===========================
+   !   Build a standalone jar file
+   !   ===========================
+   !
+   !  Builds a jar file which can be used on its own, without needing any
+   !  other jars to be present.
+   !-->
+  <target name="build-standalone"
+          depends="install"
+          description="-> builds a standalone jar file">
+    <java classname="uk.ac.starlink.util.SuperJar">
+      <classpath refid="classpath"/>
+      <arg value="-o"/><arg value="${dist.lib.pkg}/topcat-full.jar"/>
+      <arg value="-x"/><arg value="junit.jar"/>
+      <arg value="-x"/><arg value="xalan.jar"/>
+      <arg value="-x"/><arg value="xml-apis.jar"/>
+      <arg value="-x"/><arg value="xercesImpl.jar"/>
+      <arg value="-x"/><arg value="optional.jar"/>
+      <arg value="-x"/><arg value="jsky.jar"/>
+      <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="axis.jar"/>
+      <arg value="-x"/><arg value="jaiutil.jar"/>
+      <arg value="-x"/><arg value="sog.jar"/>
+      <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="soapserver.jar"/>
+      <arg value="${star.lib.pkg}/topcat.jar"/>
+    </java>
+  </target>
+
+  <!--
    !   ===================
    !   Construct demo data
    !   ===================
