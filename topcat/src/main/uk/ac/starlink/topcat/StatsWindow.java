@@ -215,6 +215,8 @@ public class StatsWindow extends AuxWindow {
 
         int ncol;
         long ngoodrow;
+        boolean[] isNumber;
+        boolean[] isComparable;
         Object[] mins;
         Object[] maxs;
         long[] ngoods;
@@ -288,6 +290,8 @@ public class StatsWindow extends AuxWindow {
             ncol = dataModel.getColumnCount();
 
             /* Allocate result objects. */
+            isNumber = new boolean[ ncol ];
+            isComparable = new boolean[ ncol ];
             mins = new Object[ ncol ];
             maxs = new Object[ ncol ];
             ngoods = new long[ ncol ];
@@ -298,8 +302,6 @@ public class StatsWindow extends AuxWindow {
             sum2s = new double[ ncol ];
 
             boolean[] badcompars = new boolean[ ncol ];
-            boolean[] isNumber = new boolean[ ncol ];
-            boolean[] isComparable = new boolean[ ncol ];
             double[] dmins = new double[ ncol ];
             double[] dmaxs = new double[ ncol ];
             Arrays.fill( dmins, Double.MAX_VALUE );
@@ -508,10 +510,18 @@ public class StatsWindow extends AuxWindow {
             switch ( icol ) {
                 case NGOOD_COL:   return new Long( calc.ngoods[ jcol ] );
                 case NBAD_COL:    return new Long( calc.nbads[ jcol ] );
-                case MEAN_COL:    return new Float( calc.means[ jcol ] );
-                case SDEV_COL:    return new Float( calc.sdevs[ jcol ] );
-                case MIN_COL:     return calc.mins[ jcol ];
-                case MAX_COL:     return calc.maxs[ jcol ];
+                case MEAN_COL:    return calc.isNumber[ jcol ]
+                                       ? new Float( calc.means[ jcol ] )
+                                       : null;
+                case SDEV_COL:    return calc.isNumber[ jcol ]
+                                       ? new Float( calc.sdevs[ jcol ] )
+                                       : null;
+                case MIN_COL:     return calc.isComparable[ jcol ] 
+                                       ? calc.mins[ jcol ]
+                                       : null;
+                case MAX_COL:     return calc.isComparable[ jcol ]
+                                       ? calc.maxs[ jcol ]
+                                       : null;
                 default:          throw new AssertionError();
             }
         }
