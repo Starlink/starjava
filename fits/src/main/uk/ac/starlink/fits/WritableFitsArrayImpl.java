@@ -14,7 +14,7 @@ import nom.tam.util.RandomAccess;
 import uk.ac.starlink.array.AccessImpl;
 import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.BadHandler;
-import uk.ac.starlink.array.ChunkIterator;
+import uk.ac.starlink.array.ChunkStepper;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Order;
 import uk.ac.starlink.array.OrderedNDShape;
@@ -294,7 +294,7 @@ class WritableFitsArrayImpl implements ArrayImpl {
                 }
                 logger.warning( "Writing " + num + " times " + " BLANK " +
                                 "value to skipped pixels in FITS output" );
-                ChunkIterator cIt = new ChunkIterator( num );
+                ChunkStepper cIt = new ChunkStepper( num );
                 Object buffer = type.newArray( cIt.getSize() );
                 handler.putBad( buffer, 0, cIt.getSize() );
                 for ( ; cIt.hasNext(); cIt.next() ) {

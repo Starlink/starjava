@@ -43,9 +43,7 @@ import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.AstObject;
 import uk.ac.starlink.ast.FitsChan;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ndx.ArraysBulkDataImpl;
 import uk.ac.starlink.ndx.BridgeNdx;
-import uk.ac.starlink.ndx.BulkDataImpl;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
@@ -214,8 +212,7 @@ public class FitsNdxHandler implements NdxHandler {
             }
 
             /* Return an NDX based on the image array and WCS we have got. */
-            MutableNdx ndx = new DefaultMutableNdx(
-                new ArraysBulkDataImpl( image, null, null ) );
+            MutableNdx ndx = new DefaultMutableNdx( image );
             if ( wcs != null ) {
                 ndx.setWCS( wcs );
             }
@@ -225,14 +222,14 @@ public class FitsNdxHandler implements NdxHandler {
 
     public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
         MutableNdx ndx = new DefaultMutableNdx( template );
-        NDArray inda = makeFitsDummyArray( template.getImage() );
-        NDArray vnda = template.hasVariance() 
-            ? makeFitsDummyArray( template.getVariance() ) : null;
-        NDArray qnda = template.hasQuality()
-            ? makeFitsDummyArray( template.getQuality() ) : null;
-
-        ndx.setBulkData( new ArraysBulkDataImpl( inda, vnda, qnda ) );
-        return outputNdx( url, template );
+        ndx.setImage( makeFitsDummyArray( template.getImage() ) );
+        if ( template.hasVariance() ) {
+            ndx.setVariance( makeFitsDummyArray( template.getVariance() ) );
+        }
+        if ( template.hasQuality() ) {
+            ndx.setQuality( makeFitsDummyArray( template.getQuality() ) );
+        }
+        return outputNdx( url, ndx );
     }
 
     public boolean outputNdx( URL url, Ndx ndx ) throws IOException {
@@ -275,11 +272,13 @@ public class FitsNdxHandler implements NdxHandler {
                                 "Location of NDX XML representation" ) );
 
             /* Write the WCS into the FITS headers. */
-            FitsChan fchan = new FitsChan();
-            fchan.setEncoding( FitsConstants.WCS_ENCODING );
-            fchan.write( ndx.getWCS() );
-            for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
-                cardlist.add( new HeaderCard( (String) it.next() ) );
+            if ( ndx.hasWCS() ) {
+                FitsChan fchan = new FitsChan();
+                fchan.setEncoding( FitsConstants.WCS_ENCODING );
+                fchan.write( ndx.getAst() );
+                for ( Iterator it = fchan.iterator(); it.hasNext(); ) {
+                    cardlist.add( new HeaderCard( (String) it.next() ) );
+                }
             }
             cards = (HeaderCard[]) cardlist.toArray( new HeaderCard[ 0 ] );
         }
@@ -380,7 +379,9 @@ public class FitsNdxHandler implements NdxHandler {
          * but references its array components at the URLs we have just
          * written them to. */
         MutableNdx ondx = new DefaultMutableNdx( ndx );
-        ondx.setBulkData( new ArraysBulkDataImpl( inda, vnda, qnda ) );
+        ondx.setImage( inda );
+        ondx.setVariance( vnda );
+        ondx.setQuality( qnda );
 
         /* Write the XML as bytes in an ASCII table extension. */
         try {

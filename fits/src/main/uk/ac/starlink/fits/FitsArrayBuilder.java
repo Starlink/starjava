@@ -24,6 +24,7 @@ import nom.tam.util.BufferedDataOutputStream;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayImpl;
 import uk.ac.starlink.array.ArrayBuilder;
+import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.Converter;
 import uk.ac.starlink.array.ConvertArrayImpl;
@@ -230,12 +231,14 @@ public class FitsArrayBuilder implements ArrayBuilder {
      *                to be written
      * @param  shape  the shape of the new NDArray to construct
      * @param  type   the primitive data type of the new NDArray to construct
+     * @param  bh     requested bad value handling policy
      * @return   the new NDArray, or <tt>null</tt> if the URL doesn't look
      *           like a FITS file
      * @throws   IOException  if the URL is a FITS URL but the requested
      *                        NDArray cannot be constructed for some reason
      */
-    public NDArray makeNewNDArray( URL url, NDShape shape, Type type ) 
+    public NDArray makeNewNDArray( URL url, NDShape shape, Type type,
+                                   BadHandler bh ) 
             throws IOException {
 
         /* Parse the URL as a reference to a FITS HDU, or bail out
@@ -321,8 +324,8 @@ public class FitsArrayBuilder implements ArrayBuilder {
 
         /* Make the implementation. */
         boolean primary = hdu == 1;
-        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, 
-                                                    type.defaultBadValue(),
+        Number badval = getBlankValue( type, bh );
+        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, badval,
                                                     stream, primary, null );
 
         /* Return an NDArray based on this. */
@@ -336,26 +339,48 @@ public class FitsArrayBuilder implements ArrayBuilder {
      * @param  stream  the stream down which the NDArray is to be written
      * @param  shape  the shape of the new NDArray to construct
      * @param  type   the primitive data type of the new NDArray to construct
+     * @param  bh     requested bad value handling policy
      * @param  primary  whether this is the primary HDU (first in file)
      * @param  cards  array of additional FITS header cards to add - may be null
      * @return the new NDArray object
      * @throws IOException  if there is some I/O error
      */
     public NDArray makeNewNDArray( OutputStream stream, NDShape shape,
-                                   Type type, boolean primary,
+                                   Type type, BadHandler bh, boolean primary,
                                    HeaderCard[] cards )
             throws IOException {
         if ( ! ( stream instanceof BufferedOutputStream ) ) {
             stream = new BufferedOutputStream( stream );
         }
         ArrayDataOutput strm = new BufferedDataOutputStream( stream );
-        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, 
-                                                    type.defaultBadValue(),
+        Number badval = getBlankValue( type, bh );
+        ArrayImpl impl = new WritableFitsArrayImpl( shape, type, badval,
                                                     strm, primary, cards );
         return new BridgeNDArray( impl );
     }
 
 
+    /**
+     * Returns a BLANK value for a given type based on a given BadHandler
+     * representing a request for bad value handling policy.
+     * An exact match may not be possible, since only integer values are
+     * allowed to specify blank values.
+     *
+     * @param  type  the numerical type
+     * @param  bh    the bad handler constituting the preferred handling policy
+     * @return   a number representing the BLANK value to use
+     */
+    private static Number getBlankValue( Type type, BadHandler bh ) {
+        if ( bh == null ) {
+            return type.defaultBadValue();
+        }
+        else if ( type.isFloating() ) {
+            return type.defaultBadValue();
+        }
+        else {
+            return bh.getBadValue();
+        }
+    }
 
 
 }

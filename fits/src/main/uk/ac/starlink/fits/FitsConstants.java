@@ -44,7 +44,7 @@ public class FitsConstants {
     public static final String NDX_PREFIX = "NDX_";
 
     /** FITS header card for location (relative URL) of XML representation. */
-    public static final String NDX_XML = "NDX_XML";
+    public static final String NDX_XML = NDX_PREFIX + "XML";
 
     /** Default encoding used for writing WCS into FITS headers. */
     public static final String WCS_ENCODING = "FITS-WCS";

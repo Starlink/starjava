@@ -16,8 +16,6 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.OrderedNDShape;
 import uk.ac.starlink.array.ScratchNDArray;
 import uk.ac.starlink.array.Type;
-import uk.ac.starlink.ndx.ArraysBulkDataImpl;
-import uk.ac.starlink.ndx.BulkDataImpl;
 import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
@@ -135,10 +133,11 @@ public class FitsNdxTest extends TestCase {
         iacc.close();
         vacc.close();
         qacc.close();
-        BulkDataImpl datimp = new ArraysBulkDataImpl( im, var, qual );
-        MutableNdx ndx = new DefaultMutableNdx( datimp );
+        MutableNdx ndx = new DefaultMutableNdx( im );
+        ndx.setVariance( var );
+        ndx.setQuality( qual );
         ndx.setTitle( "NDX for FITS testing" );
-        ndx.setBadBits( (byte) 128 );
+        ndx.setBadBits( 128 );
         String etcstr = 
               "<etc>"
             + "<weather><cloudy/><temperature value='cold'/></weather>"

@@ -8,7 +8,7 @@ import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayAccess;
 import uk.ac.starlink.array.ArrayBuilder;
 import uk.ac.starlink.array.BadHandler;
-import uk.ac.starlink.array.ChunkIterator;
+import uk.ac.starlink.array.ChunkStepper;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Order;
@@ -40,7 +40,7 @@ public class FitsNDArrayTest extends TestCase {
 
             try {
                 URL badurl = new URL( container, "#" + 10 );
-                fact.makeNewNDArray( badurl, shape, type );
+                fact.makeNewNDArray( badurl, shape, type, null );
                 fail();
             }
             catch ( IOException e ) {
@@ -49,7 +49,7 @@ public class FitsNDArrayTest extends TestCase {
          
             URL url = ( hdu == 1 ) ? container
                                    : new URL( container, "#" + hdu );
-            NDArray nda1 = fact.makeNewNDArray( url, shape, type );
+            NDArray nda1 = fact.makeNewNDArray( url, shape, type, null );
   
             int npix = (int) shape.getNumPixels();
             Object buf1 = type.newArray( npix );
@@ -57,7 +57,7 @@ public class FitsNDArrayTest extends TestCase {
             fillRandom( buf1, -100, 100 );
 
             ArrayAccess acc1 = nda1.getAccess();
-            for ( ChunkIterator cit = new ChunkIterator( npix, 23 );
+            for ( ChunkStepper cit = new ChunkStepper( npix, 23 );
                   cit.hasNext(); cit.next() ) {
                 acc1.write( buf1, (int) cit.getBase(), cit.getSize() );
             }
@@ -78,7 +78,7 @@ public class FitsNDArrayTest extends TestCase {
 
             Object buf2 = type.newArray( npix );
             ArrayAccess acc2 = nda2.getAccess();
-            for ( ChunkIterator cit = new ChunkIterator( npix, 103 );
+            for ( ChunkStepper cit = new ChunkStepper( npix, 103 );
                   cit.hasNext(); cit.next() ) {
                 acc2.read( buf2, (int) cit.getBase(), cit.getSize() );
             }
