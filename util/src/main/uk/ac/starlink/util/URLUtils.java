@@ -160,7 +160,10 @@ public class URLUtils {
         if (url == null)
             return null;
         try {
-            return new URI( url.toExternalForm() );
+            // Check for any spaces in the url. These are not permitted in URIs.
+	    String str = url.toExternalForm();
+	    String esc = str.replaceAll( " ", "%20" );
+            return new URI( esc );
         }
         catch ( java.net.URISyntaxException e ) {
             throw new AssertionError( "Failed to convert URL <" + url + "> "
