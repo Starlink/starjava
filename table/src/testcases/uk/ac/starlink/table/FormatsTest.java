@@ -321,7 +321,7 @@ public class FormatsTest extends TestCase {
         StarTable t4 = new StarTableFactory( true )
                       .makeStarTable( "file:" + loc );
         assertTrue( t4 instanceof BintableStarTable );
-        assertTrue( t4.isRandom() );
+        assertTrue( ! t4.isRandom() );
         checkStarTable( t4 );
         assertFitsTableEquals( t1, t4 );
 
