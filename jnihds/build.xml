@@ -382,9 +382,10 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
     </antcall>
-    <antcall target="unpack_jni_arch">
-      <param name="unpack.arch" value="ppc"/>
-    </antcall>
+<!--
+ !    <antcall target="unpack_jni_arch">
+ !      <param name="unpack.arch" value="ppc"/>
+ !    </antcall> -->
   </target>
 
   <!-- Architecture-specific JNI jar file unpacker -->
@@ -494,19 +495,19 @@
       <env key="TARGET_LIB" value="${build.lib.arch}"/>
       <arg line="${mk.action}"/>
     </exec>
-
-    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
-          failonerror="yes">
-      <env key="SYSTEM" value="ppc_MacOSX"/>
-      <env key="JAVA_SYSTEM" value="ppc"/>
-      <env key="STARLINK" value="${stardev}"/>
-      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
-      <env key="ADDINCS" value="-I${stardev.add}/include"/>
-      <env key="JDK" value="${jdk}"/>
-      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
-      <env key="TARGET_LIB" value="${build.lib.arch}"/>
-      <arg line="${mk.action}"/>
-    </exec>
+<!--
+ !    <exec dir="${build.jni}" executable="${build.jni}/mk" os="Mac OS X"
+ !          failonerror="yes">
+ !      <env key="SYSTEM" value="ppc_MacOSX"/>
+ !      <env key="JAVA_SYSTEM" value="ppc"/>
+ !      <env key="STARLINK" value="${stardev}"/>
+ !      <env key="ADDLIBS" value="-L${stardev.add}/lib"/>
+ !      <env key="ADDINCS" value="-I${stardev.add}/include"/>
+ !      <env key="JDK" value="${jdk}"/>
+ !      <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
+ !      <env key="TARGET_LIB" value="${build.lib.arch}"/>
+ !      <arg line="${mk.action}"/>
+ !    </exec> -->
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="OSF1"
           failonerror="yes">
@@ -632,9 +633,9 @@
        </resources>
 
        <!-- Mac OS X -->
-       <resources os="Mac OS X" arch="ppc">
-         <nativelib href="ppc/${name}_libs.jar"/>
-       </resources>
+<!--       <resources os="Mac OS X" arch="ppc">
+ !         <nativelib href="ppc/${name}_libs.jar"/>
+ !       </resources> -->
 
        <component_desc/>
     </jnlp>
