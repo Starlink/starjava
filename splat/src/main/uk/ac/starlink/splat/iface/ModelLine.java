@@ -274,7 +274,7 @@ public class ModelLine
         FigureProps props = new FigureProps();
         props.setInterpolator( interp );
         figure = (InterpolatedCurveFigure)
-            pane.createFigure( DrawFigureFactory.CURVE, props );
+            drawActions.createDrawFigure( DrawFigureFactory.CURVE, props );
         ((InterpolatedCurve2D)figure.getShape()).setInterpolator( interp );
         registerFigure( figure );
     }

@@ -263,8 +263,8 @@ public class XGraphicsRange
         if ( props.getWidth() == 0.0 ) {
             props.setWidth( 20.0 );
         }
-        figure = (XRangeFigure) pane.createFigure( DrawFigureFactory.XRANGE,
-                                                   props );
+        figure = (XRangeFigure) 
+            drawActions.createDrawFigure( DrawFigureFactory.XRANGE, props );
         registerFigure( figure );
     }
 
