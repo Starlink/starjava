@@ -225,7 +225,9 @@ public class VOTableWriter implements StarTableWriter {
                 writer.write( "<STREAM encoding='base64'>" );
                 writer.newLine();
                 writer.flush();
-                Base64OutputStream b64strm = new Base64OutputStream( out, 16 );
+                Base64OutputStream b64strm = 
+                    new Base64OutputStream( new BufferedOutputStream( out ),
+                                            16 );
                 DataOutputStream dataout = new DataOutputStream( b64strm );
                 streamer.streamData( dataout );
                 dataout.flush();
