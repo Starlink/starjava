@@ -24,14 +24,16 @@ public class BranchDataNode extends DefaultDataNode {
     private Icon icon_;
     private String tla_;
     private String type_;
+    private String path_;
 
     public BranchDataNode( Branch branch ) {
         branch_ = branch;
         String name = branch.getName();
-        if ( name == null || name.length() == 0 
+        if ( ( name == null || name.length() == 0 )
              && branch.getParent() == null ) {
             name = "/";
         }
+        setName( name );
         setLabel( name );
         setIconID( IconFactory.DIRECTORY );
     }
@@ -47,12 +49,17 @@ public class BranchDataNode extends DefaultDataNode {
         connection_ = connection;
         Connector connector = connection.getConnector();
         if ( connector != null ) {
-            icon_ = connector.getIcon();
+            if ( branch_.getParent() == null ) {
+                icon_ = connector.getIcon();
+            }
             tla_ = connector.getName().toUpperCase();
             if ( tla_.length() > 3 ) {
                 tla_ = tla_.substring( 0, 3 );
             }
             type_ = connector.getName() + " branch";
+        }
+        if ( branch_.getParent() == null ) {
+            setName( connection.toString() );
         }
     }
 
@@ -95,12 +102,24 @@ public class BranchDataNode extends DefaultDataNode {
         };
     }
 
+    /**
+     * Sets the absolute path of this node.
+     */
+    public void setPath( String path ) {
+        path_ = path;
+    }
+
     public Object getParentObject() {
         return branch_.getParent();
     }
 
     public String getPathSeparator() {
         return "/";
+    }
+
+    public String getPathElement() {
+        return path_ == null ? super.getPathElement()
+                             : path_;
     }
 
     public Icon getIcon() {
