@@ -29,23 +29,18 @@ public class SogNdxDisplayer extends NdxDisplayer {
     }
 
     public boolean canDisplay( Ndx ndx ) {
-        return ndx.isPersistent();
+        return true;
     }
 
     public boolean localDisplay( Ndx ndx, boolean embedded ) {
-        if ( ndx.isPersistent() ) {
-            try {
-                getImageDisplay( embedded ).setHDXImage( new HDXImage( ndx ) );
-                return true;
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
-                return false;
-            }
+        try {
+            getImageDisplay( embedded ).setHDXImage( new HDXImage( ndx ) );
+            return true;
         }
-        System.err.println( "Failed to localDisplay in SoG, NDX isn't" +
-                            " persistent" );
-        return false;
+        catch ( IOException e ) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private synchronized SOGNavigatorImageDisplay 

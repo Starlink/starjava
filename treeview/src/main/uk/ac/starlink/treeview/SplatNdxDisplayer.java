@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import uk.ac.starlink.datanode.nodes.NodeUtil;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.NDXSpecDataImpl;
@@ -27,6 +28,10 @@ public class SplatNdxDisplayer extends NdxDisplayer {
             instance = new SplatNdxDisplayer();
         }
         return instance;
+    }
+
+    public boolean canDisplay( Ndx ndx ) {
+        return super.canDisplay( ndx ) && NodeUtil.hasAST();
     }
 
     public boolean localDisplay( Ndx ndx, boolean embedded ) {

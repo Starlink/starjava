@@ -73,14 +73,13 @@ public abstract class NdxDisplayer {
 
     /**
      * Indicates whether this displayer can be expected to display the
-     * given NDX.  The NdxDisplayer implementation returns true
-     * iff the JNIAST package is available.
+     * given NDX.  The NdxDisplayer implementation returns true.
      *
      * @param   ndx  the Ndx to display
      * @return   whether it's worth trying to call {@link #display}
      */
     public boolean canDisplay( Ndx ndx ) {
-        return NodeUtil.hasAST();
+        return true;
     }
 
     /**

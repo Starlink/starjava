@@ -49,7 +49,6 @@ import uk.ac.starlink.datanode.nodes.ValueInfoMetamapGroup;
 import uk.ac.starlink.datanode.viewers.ArrayBrowser;
 import uk.ac.starlink.datanode.viewers.StyledTextArea;
 import uk.ac.starlink.datanode.viewers.TextViewer;
-import uk.ac.starlink.ndx.DefaultMutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.Ndxs;
 import uk.ac.starlink.splat.util.SplatException;
@@ -89,7 +88,6 @@ public class ApplicationDetailViewer implements DetailViewer {
     static {
         assert DataType.DATA_SOURCE.getDataClass() == DataSource.class;
         assert DataType.TABLE.getDataClass() == StarTable.class;
-        assert DataType.ARRAY.getDataClass() == ArrayContainer.class;
         assert DataType.NDX.getDataClass() == Ndx.class;
     }
 
@@ -189,19 +187,6 @@ public class ApplicationDetailViewer implements DetailViewer {
             }
             catch ( DataObjectException e ) {
                 addPane( "Error obtaining table",
-                         new ExceptionComponentMaker( e ) );
-            }
-        }
-
-        /* Add array-specific items. */
-        if ( node.hasDataObject( DataType.ARRAY ) ) {
-            try {
-                ArrayContainer ac = (ArrayContainer)
-                                    node.getDataObject( DataType.ARRAY );
-                addArrayViews( ac.getArray(), ac.getWCS() );
-            }
-            catch ( DataObjectException e ) {
-                addPane( "Error obtaining array",
                          new ExceptionComponentMaker( e ) );
             }
         }
@@ -473,112 +458,6 @@ public class ApplicationDetailViewer implements DetailViewer {
     }
 
     /**
-     * Configure this viewer for array-specific properties of a node.
-     *
-     * @param  nda  array
-     * @param  wcs  WCS frameset if known (or null)
-     */
-    public void addArrayViews( final NDArray nda, final FrameSet wcs ) {
-        final RandomArrayGetter agetter = new RandomArrayGetter( nda );
-        final NDShape shape = nda.getShape();
-        final int ndim = shape.getNumDims();
-        final int endim = agetter.getEffectiveNumDims();
-
-        /* Add data views as appropriate. */
-        if ( wcs != null && ndim == 2 && endim == 2 ) {
-            addScalingPane( "WCS grids", new ComponentMaker() {
-                public JComponent getComponent() throws IOException {
-                    return new GridPlotter( shape, wcs );
-                }
-            } );
-        }
-        addScalingPane( "Pixel values", new ComponentMaker() {
-            public JComponent getComponent() throws IOException {
-                if ( endim == 2 && ndim != 2 ) {
-                    return new ArrayBrowser( agetter.getEffectiveArray() );
-                }
-                else {
-                    return new ArrayBrowser( agetter.getRandomArray() );
-                }
-            }
-        } );
-        addPane( "Statistics", new ComponentMaker() {
-            public JComponent getComponent() {
-                try {
-                    return new StatsViewer( agetter.getRandomArray() );
-                }
-                catch ( IOException e ) {
-                    return new TextViewer( e );
-                }
-            }
-        } );
-        if ( endim == 1 && NodeUtil.hasAST() ) {
-            addScalingPane( "Graph view", new ComponentMaker() {
-                public JComponent getComponent()
-                        throws IOException, SplatException {
-                    Ndx ndx;
-                    if ( endim == 1 && ndim != 1 ) {
-                        ndx = new DefaultMutableNdx( agetter
-                                                    .getEffectiveArray() );
-                        ((DefaultMutableNdx) ndx).setWCS( wcs );
-                    }
-                    else {
-                        ndx = new DefaultMutableNdx( agetter.getRandomArray() );
-                    }
-                    return new GraphViewer( ndx );
-                }
-            } );
-        }
-        if ( endim == 2 && NodeUtil.hasJAI() ) {
-            addPane( "Image view", new ComponentMaker() {
-                public JComponent getComponent() throws IOException {
-                    if ( endim == 2 && ndim != 2 ) {
-                        return new ImageViewer( agetter.getEffectiveArray(),
-                                                null );
-                    }
-                    else {
-                        return new ImageViewer( agetter.getRandomArray(),
-                                                wcs );
-                    }
-                }
-            } );
-        }
-        if ( endim > 2 && NodeUtil.hasJAI() ) {
-            addPane( "Slices", new ComponentMaker() {
-                public JComponent getComponent() {
-                    try {
-                        if ( endim != ndim ) {
-                            return new SliceViewer( agetter.getRandomArray(),
-                                                    null );
-                        }
-                        else {
-                            return new SliceViewer( agetter.getRandomArray(),
-                                                    wcs );
-                        }
-                    }
-                    catch ( IOException e ) {
-                        return new TextViewer( e );
-                    }
-                }
-            } );
-        }
-        if ( endim == 3 && NodeUtil.hasJAI() ) {
-            addPane( "Collapsed", new ComponentMaker() {
-                public JComponent getComponent() throws IOException {
-                    if ( endim != ndim ) {
-                        return new CollapseViewer( agetter.getEffectiveArray(),
-                                                   null );
-                    }
-                    else {
-                        return new CollapseViewer( agetter.getRandomArray(),
-                                                   wcs );
-                    }
-                }
-            } );
-        }
-    }
-
-    /**
      * Configure this viewer for NDX-specific properties of a node.
      *
      * @param   ndx  NDX
@@ -586,7 +465,9 @@ public class ApplicationDetailViewer implements DetailViewer {
     public void addNdxViews( final Ndx ndx ) {
         final RandomNdxGetter ngetter = new RandomNdxGetter( ndx );
 
-        final FrameSet ast = NodeUtil.hasAST() ? Ndxs.getAst( ndx ) : null;
+        final FrameSet ast = ( NodeUtil.hasAST() && ndx.hasWCS() ) 
+                           ? ndx.getAst() 
+                           : null;
         final NDShape shape = ngetter.getShape();
         final int ndim = shape.getNumDims();
         final int endim = ngetter.getEffectiveNumDims();
@@ -763,71 +644,6 @@ public class ApplicationDetailViewer implements DetailViewer {
      * Helper class to defer creation of a random-access version of an
      * array until such time as it is required.
      */
-    private static class RandomArrayGetter {
-        final NDArray nda;
-        NDArray randomNda;
-        NDArray effectiveNda;
-
-        public RandomArrayGetter( NDArray nda ) {
-            this.nda = nda;
-        }
-
-        /**
-         * Returns a random-access version of the array.
-         */
-        public NDArray getRandomArray() throws IOException {
-            if ( randomNda == null ) {
-                Requirements req = new Requirements( AccessMode.READ )
-                                  .setRandom( true );
-                randomNda = NDArrays.toRequiredArray( nda, req );
-            }
-            return randomNda;
-        }
-
-        /**
-         * Returns a version of the array with degenerate dimensions collapsed.
-         *
-         * <p>It should also be possible to get a corresponding WCS, 
-         * but I haven't worked out how to do that properly yet,
-         * so methods in this detail viewer either use the basic array and
-         * its WCS or the effective array and a null WCS.
-         */
-        public NDArray getEffectiveArray() throws IOException {
-            if ( effectiveNda == null ) {
-                if ( nda.getShape().getNumPixels() > 1 ) {
-                    effectiveNda = effectiveArray( getRandomArray() );
-                }
-                else {
-                    effectiveNda = nda;
-                }
-            }
-            return effectiveNda;
-        }
-
-        /**
-         * Returns the dimensionality of the effective array 
-         * (that is omitting any degenerate dimensions which only have
-         * an extent of 1 pixel).
-         *
-         * @return effective dimensionality
-         */
-        public int getEffectiveNumDims() {
-            long[] dims = nda.getShape().getDims();
-            int endim = 0;
-            for ( int i = 0; i < dims.length; i++ ) {
-                if ( dims[ i ] > 1 ) {
-                    endim++;
-                }
-            }
-            return endim;
-        }
-
-    }
-
-    /**
-     * Helper class to defer creation of a random-access version of an
-     * array until such time as it is required.
-     */
     private static class RandomNdxGetter {
         final Ndx ndx;
         NDArray image;
@@ -924,6 +740,5 @@ public class ApplicationDetailViewer implements DetailViewer {
             }.start();
         }
     }
-
 
 }
