@@ -19,6 +19,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
@@ -26,6 +27,7 @@ import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.PrimitiveArrayColumn;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
 
@@ -192,6 +194,34 @@ public class SerializerTest extends TestCase {
         for ( Iterator it = vodocs.iterator(); it.hasNext(); ) {
             exerciseVOTableDocument( (VOTable) it.next() );
         }
+
+        /* Test the copyStarTable method; get each table in turn. */
+        for ( int itable = 0; itable < 5; itable++ ) {
+            RowStore rstore = new RowStore();
+            InputSource saxsrc = 
+                new InputSource( new ByteArrayInputStream( xmltext ) );
+            TableCopier.copyStarTable( saxsrc, rstore, itable );
+
+            RowStepper rstep = rstore.getRowStepper();
+            RowSequence rseq = table0.getRowSequence();
+            while ( rseq.hasNext() ) {
+                rseq.next();
+                assertArrayEquals( rseq.getRow(), rstep.nextRow() );
+            }
+            assertTrue( ! rseq.hasNext() );
+            assertNull( rstep.nextRow() );
+        }
+
+        try {
+            TableCopier.copyStarTable(
+                       new InputSource( new ByteArrayInputStream( xmltext ) ),
+                       new RowStore(), 5 );
+            fail();
+        }
+        catch ( SAXException e ) {
+            // ok
+        }
+
     }
 
     private void exerciseVOTableDocument( VOTable vodoc ) throws IOException {
@@ -280,5 +310,47 @@ public class SerializerTest extends TestCase {
         out.close();
         writer.write( "</TABLE>" );
         file.deleteOnExit();
+    }
+
+    private static class RowStore implements TableSink {
+        List rows = new ArrayList();
+        Class[] classes;
+        int ncol;
+        int nrow;
+        
+        public void acceptMetadata( StarTable meta ) {
+            ncol = meta.getColumnCount();
+            classes = new Class[ ncol ];
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                classes[ icol ] = meta.getColumnInfo( icol ).getContentClass();
+            }
+            nrow = (int) meta.getRowCount();
+        }
+
+        public void acceptRow( Object[] row ) {
+            assertEquals( ncol, row.length );
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                if ( row[ icol ] != null ) {
+                    assertEquals( classes[ icol ], row[ icol ].getClass() );
+                }
+            }
+            rows.add( row );
+        }
+
+        public void endRows() {
+            if ( nrow >= 0 ) {
+               assertEquals( nrow, rows.size() );
+            }
+        }
+
+        public RowStepper getRowStepper() {
+            return new RowStepper() {
+                int irow = 0;
+                public Object[] nextRow() {
+                    return irow < rows.size() ? (Object[]) rows.get( irow++ )
+                                              : null;
+                }
+            };
+        }
     }
 }
