@@ -597,6 +597,29 @@ public abstract class DataSource {
     }
 
     /**
+     * Makes a source from a URL.  If <tt>url</tt> is a file-protocol URL
+     * referencing an existing file then 
+     * a <tt>FileDataSource</tt> will be returned, otherwise it will be
+     * a <tt>URLDataSource</tt>.  Under certain circumstances, it may
+     * be more efficient to use a FileDataSource than a URLDataSource,
+     * which is why this method may be worth using.
+     *
+     * @param  url  location of the data stream
+     * @return   data source which returns the data at <tt>url</tt>
+     */
+    public static DataSource makeDataSource( URL url ) {
+        if ( url.getProtocol().equals( "file" ) ) {
+            try {
+                return new FileDataSource( new File( url.getFile() ),
+                                           url.getRef() );
+            }
+            catch ( IOException e ) {
+            }
+        }
+        return new URLDataSource( url );
+    }
+
+    /**
      * Private class which provides an input stream corresponding to this
      * DataSource, but skipping the first few bytes.  The idea is that
      * it consumes no expensive resources if it is never read.
