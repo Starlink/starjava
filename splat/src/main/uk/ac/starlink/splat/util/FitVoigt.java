@@ -25,7 +25,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 /**
- * Fits a data spectrum using a voigt function.
+ * Test routine for fitting a data spectrum using a Voigt function.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -191,7 +191,7 @@ public class FitVoigt
         VoigtFitter fitter = new VoigtFitter( xPos, yPos, weights,
                                               0.5, 4100.0, 4.0, 4.0 );
         double chi = fitter.getChi();
-        yFit = fitter.evalArray( xFit );
+        yFit = fitter.evalYDataArray( xFit );
     }
 
     /**
