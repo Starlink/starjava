@@ -64,9 +64,14 @@ public class URLValueInfo implements ValueInfo {
     }
 
     public String formatValue( Object value, int maxLength ) {
-        String txt = value.toString();
-        int leng = txt.length();
-        return leng <= maxLength ? txt : txt.substring( 0, maxLength );
+        if ( value == null ) {
+            return "";
+        }
+        else {
+            String txt = value.toString();
+            int leng = txt.length();
+            return leng <= maxLength ? txt : txt.substring( 0, maxLength );
+        }
     }
 
     public Object unformatString( String rep ) {
