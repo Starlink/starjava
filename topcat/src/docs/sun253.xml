@@ -205,12 +205,14 @@ the current state of the table according to the changes that you have made.
 imported into the program plus any of the following changes that you
 have made:
 <ul>
-<li>Changes to the current <ref id="columns">Column Set</ref> caused
+<li>Changes to the current 
+    <ref id="columns" plaintextref="yes">Column Set</ref> caused
     by adding, hiding or moving columns</li>
-<li>Changes to the current <ref id="order">Row Order</ref> caused by 
+<li>Changes to the current 
+    <ref id="order" plaintextref="yes">Row Order</ref> caused by 
     doing a sort</li>
 <li>Selection of rows changed by changing the current
-    <ref id="subsets">Row Subset</ref></li>
+    <ref id="subsets" plaintextref="yes">Row Subset</ref></li>
 <li>Changes to cell data by editing cells in the 
     <ref id="TableViewerWindow">Data window</ref></li>
 <li>Changes to table metadata by editing cells in the 
@@ -292,7 +294,7 @@ and marking groups of rows to plot using different markers in the
 <dl>
 <dt>Selecting rows in the browser</dt>
 <dd><p>You can select a single row in the 
-    <ref id="TableViewerWindow">Data window</ref> by
+    <ref id="TableViewerWindow">Data Window</ref> by
     clicking on it, or select a group of adjacent rows by dragging
     the mouse over them.  You can add more rows to the selection by
     keeping the &lt;Control&gt; button pressed while you do it.
@@ -514,11 +516,11 @@ compromise between the two, but it writes to two separate files
 files around you have to remember to keep track of both.
 </p>
 
-<p>Since you can load a tables from one format and save it in a different
+<p>Since you can load a table from one format and save it in a different
 one, TOPCAT can be used to convert a table from one format to another.
 If this is all you want to do however, you may find it more 
 convenient to use the command line utility 
-<ref id="tablecopy">tablecopy</ref>.
+<ref id="tablecopy" plaintextref="yes">tablecopy</ref>.
 </p>
 
 <p>The format handling is extensible, so new formats can
@@ -801,7 +803,7 @@ look something like the following:
 </p>
 
 <p>This handler is experimental;
-it was reverse-engineered from looking at a couple of
+it has been reverse-engineered from looking at a couple of
 data files in the target format, and may not be very robust.
 </p>
 
@@ -867,8 +869,9 @@ the table data (DATA element) is written:
 <dd><p>FITS element containing base64-encoded data within the document
     </p></dd>
 </dl>
-See the <webref url="&URL.VOTABLE;">VOTable specification</webref> for
-more explanation of what these variants mean.
+See the 
+<webref url="&URL.VOTABLE;" plaintextref="yes">VOTable specification</webref> 
+for more explanation of what these variants mean.
 They can all be read by the 
 <ref id="inVotable">VOTable input handler</ref>.
 </p>
@@ -1284,7 +1287,7 @@ match is proceeding, so you can keep an eye on this.
 
 <p>TOPCAT allows you to enter algebraic expressions in two contexts:
 to define a new column in terms of existing columns,
-and to define a new <ref id="subsets">Row Subset</ref>
+and to define a new <ref id="subsets" plaintextref="yes">Row Subset</ref>
 on the basis of table data,
 in the <ref id="SyntheticColumnQueryWindow">Synthetic Column</ref>
 and <ref id="SyntheticSubsetQueryWindow">Algebraic Subset</ref>
@@ -1519,7 +1522,7 @@ The common ones are:
 <p>All the static methods of Java's <code>Math</code> class
 and some other classes are available.
 You can see a full listing of these in the
-<ref id="MethodWindow">Available Functions window</ref>.
+<ref id="MethodWindow">Available Functions Window</ref>.
 Some of the more useful ones are as follows:
 
 <dl>
@@ -2638,8 +2641,9 @@ be able to use that table as if it had been loaded from disk.
 
 <p>The <label>Current Table Properties</label> panel on the right hand
 side of the Control Window contains a number of
-controls which relate to the currently selected table (they will be
-blank if no table is selected).
+controls which relate to the currently selected table and its 
+<ref id="apparent" plaintextref="yes">Apparent properties</ref>;
+they will be blank if no table is selected.
 Here is what the individual items mean:
 <dl>
 <dt>Label</dt>
@@ -2681,7 +2685,7 @@ Here is what the individual items mean:
 <dd><p>The column (if any) which determines the current
     <ref id="order">Row Order</ref>.
     A selector shows the column (if any) on which the rows of the 
-    <ref id="apparent">Apparent Table</ref> are sorted
+    Apparent Table are sorted
     and allows you to choose a different one.  
     The little arrow beside it
     indicates whether the sort is ascending or descending.
@@ -2690,7 +2694,7 @@ Here is what the individual items mean:
 <dt>Row Subset</dt>
 <dd><p>The name of the current <ref id="subsets">Row Subset</ref>.
     A selector shows the name of the subset which determines which 
-    rows are part of the <ref id="apparent">Apparent Table</ref>
+    rows are part of the Apparent Table
     and allows you to choose another one.  "All" indicates that all
     rows are included.
     </p></dd>
@@ -2750,7 +2754,8 @@ these views are described in more details in <ref id="views"/>.
     </p></dd>
 
 <dt>&IMG.SUBSETS; <ref id="SubsetWindow">Subsets Window</ref></dt>
-<dd><p>Displays the currently defined <ref id="subsets">row subsets</ref>
+<dd><p>Displays the currently defined 
+    <ref id="subsets" plaintextref="yes">row subsets</ref>
     and enables new ones to be defined.
     </p></dd>
 
@@ -2822,7 +2827,8 @@ and those common to other windows (described in <ref id="commonMenus"/>).
 </p>
 
 <p>The <label>Windows</label> menu contains actions for controlling which
-<ref id="views">table view</ref> windows are currently visible on the screen.
+<ref id="views" plaintextref="yes">table view windows</ref>
+are currently visible on the screen.
 If you have lots of tables and are using various different views of 
 several of them, the number of windows on the screen can get out of
 hand and it's easy to lose track of what window is where.
@@ -2926,7 +2932,8 @@ under control.
 </figure>
 
 <p>The Data Window presents a <ref id="JTable">JTable</ref>
-containing the actual cells of the <ref id="apparent">Apparent Table</ref>.
+containing the actual cells of the 
+<ref id="apparent" plaintextref="yes">Apparent Table</ref>.
 You can display it using the <label>Table Data</label> (&IMG.TABLE;) 
 button when the chosen table is selected in the
 <ref id="ControlWindow">Control Window</ref>'s Table List.
@@ -3072,7 +3079,7 @@ of getting used to, since each <var>column</var> in the main data table
 is represented by a <var>row</var> in the JTable displayed here.
 The order and widths of the columns of JTable widget can be
 changed in the same way as those for the
-<ref id="TableViewerWindow">data window</ref> JTable,
+<ref id="TableViewerWindow">Data Window</ref> JTable,
 but this has no effect on the data.
 </p>
 
@@ -3084,7 +3091,7 @@ unticked.  When unticked, the column in question will become hidden.
 The row can still be seen in this window, but the corresponding data
 column is no longer a part of
 the <ref id="apparent">Apparent Table</ref>, so will not be seen
-in the <ref id="TableViewerWindow">Data window</ref> or appear in
+in the <ref id="TableViewerWindow">Data Window</ref> or appear in
 exported versions of the table.
 You can tick/untick multiple columns at once by highlighting a set of
 rows by dragging the mouse over them and then using the
@@ -3182,8 +3189,8 @@ double-clicking on them as usual.
 </p>
 
 <p>The order in which the rows are presented is determined
-by the table's current <ref id="columns">Column Set</ref>, so can be
-changed by dragging the column headers around in the 
+by the table's current <ref id="columns" plaintextref="yes">Column Set</ref>,
+so can be changed by dragging the column headers around in the 
 <ref id="TableViewerWindow">Data Window</ref>.
 </p>
 
@@ -3242,7 +3249,8 @@ changed by dragging the column headers around in the
 <figureimage src="&FIG.SubsetWindow;"/>
 </figure>
 
-<p>The Subsets Window displays the <ref id="subsets">Row Subsets</ref>
+<p>The Subsets Window displays the 
+<ref id="subsets" plaintextref="yes">Row Subsets</ref>
 which have been defined.
 You can display it using the <label>Row Subsets</label> (&IMG.SUBSETS;)
 button when the chosen table is selected in the
@@ -3256,8 +3264,8 @@ are as follows:
 <dt>#ID</dt>
 <dd><p>A unique and unchanging identifier for the subset, which consists of
     a "#" character followed by an integer.  This can be used to refer
-    to it in <ref id="jel">expressions</ref> for synthetic columns
-    or other subsets.
+    to it in <ref id="jel" plaintextref="yes">expressions</ref>
+    for synthetic columns or other subsets.
     </p></dd>
 
 <dt>Name</dt>
@@ -3435,7 +3443,7 @@ You can reveal these by using the <label>Display</label> menu:
 
 <p>The quantities displayed in this window are not necessarily those for
 the entire table; they are those for a particular
-<ref id="subsets">Row Subset</ref>.
+<ref id="subsets" plaintextref="yes">Row Subset</ref>.
 At the bottom of the window is the <label>Subset For Calculations</label>
 selector, which allows you
 to choose which subset you want the calculations to be done for.
@@ -3483,7 +3491,8 @@ button when the chosen table is selected in the
 </p>
 
 <p>On the plotting surface a marker is plotted for each item in the
-selected <ref id="subsets">Row Subsets</ref> at a position determined by the
+selected <ref id="subsets" plaintextref="yes">Row Subsets</ref> 
+at a position determined by the
 values in the table columns selected to provide the X and Y values.
 A marker will only be plotted if both the X and Y values are not blank.
 If more than one subset is being plotted, they will be drawn using
@@ -3521,7 +3530,7 @@ Each one consists of two parts:
 <p>To the right is a set of checkboxes headed 
 <label>Row Subsets</label>.
 Click on these to choose which of the table's 
-defined <ref id="subsets">row subsets</ref> should be plotted on this graph.
+defined <ref id="subsets">Row Subsets</ref> should be plotted on this graph.
 Different subsets are plotted
 using different markers, so you can see where different groups of results
 lie in relation to each other.
@@ -3596,14 +3605,16 @@ the superceded plot will be stopped.
 following ways, described in more detail in the following sections:
 <ul>
 <li>Type the location directly in the 
-    <ref id="loadString">Location field</ref></li>
+    <ref id="loadString" plaintextref="yes">Location field</ref></li>
 <li>Use the <label>Browse Files</label> button to get a  
-    <ref id="JFileChooserLoad">standard file browser</ref></li>
+    <ref id="JFileChooserLoad" plaintextref="yes">standard
+    file browser</ref></li>
 <li>Use the <label>Browse Hierarchy</label> button to get a
     more sophisticated 
-    <ref id="StarTableNodeChooser">hierarchical table browser</ref></li>
+    <ref id="StarTableNodeChooser" plaintextref="yes">hierarchical
+    table browser</ref></li>
 <li>Use the <label>SQL Database</label> button to get the 
-    <ref id="SQLReadDialog">SQL Query Dialog</ref></li>
+    <ref id="SQLReadDialog" plaintextref="yes">SQL Query Dialog</ref></li>
 </ul>
 </p>
 
@@ -3685,7 +3696,8 @@ to what tables it can access.  For instance if you select a FITS file,
 the table opened will correspond to the first TABLE or BINTABLE
 HDU within it.
 For a more table-aware view of the file system, use the
-<ref id="StarTableNodeChooser">Hierarchy Browser</ref> instead.
+<ref id="StarTableNodeChooser" plaintextref="yes">Hierarchy Browser</ref> 
+instead.
 </p>
 
 </subsubsect>
@@ -3821,7 +3833,8 @@ Changing the root of the tree will interrupt the search.
 <figureimage src="&FIG.SQLReadDialog;"/>
 </figure>
 
-<p>If you want to <ref id="inSql">read a table from an SQL database</ref>,
+<p>If you want to 
+<ref id="inSql" plaintextref="yes">read a table from an SQL database</ref>,
 you can use a specialised dialogue to specify the SQL query by clicking
 the <label>SQL Database</label> button in the <label>Load Table</label>
 window.
@@ -3888,7 +3901,7 @@ which you can access in a number of ways:
 <li>The <label>Browse Example Hierarchy</label> (&IMG.DEMO;)
     button in the <ref id="LoadQueryWindow">Load Window</ref>
     will pop up a 
-    <ref id="StarTableNodeChooser">Hierarchy Browser</ref>
+    <ref id="StarTableNodeChooser" plaintextref="yes">Hierarchy Browser</ref>
     looking at a hierarchy of tables in different formats.
     This option is designed to show some of the organisational
     complexity which TOPCAT can handle when browsing tables.</li>
@@ -3945,11 +3958,11 @@ will be written.
 which are described in the following sections:
 <ul>
 <li>Type in the location directly in the 
-    <ref id="saveString">Output Location field</ref></li>
+    <ref id="saveString" plaintextref="yes">Output Location field</ref></li>
 <li>Use the <label>Browse files</label> button to get a
-    <ref id="JFileChooserSave">file browser</ref></li>
+    <ref id="JFileChooserSave" plaintextref="yes">file browser</ref></li>
 <li>Use the <label>SQL table</label> button to get the 
-    <ref id="SQLWriteDialog">SQL Output Dialogue</ref></li>
+    <ref id="SQLWriteDialog" plaintextref="yes">SQL Output Dialogue</ref></li>
 </ul>
 In some cases, saving the table to the same name as it was loaded from
 can cause problems (e.g. an application crash which loses the data
@@ -4032,7 +4045,8 @@ the <label>Output Format</label> selector box on the right.
 <figureimage src="&FIG.SQLWriteDialog;"/>
 </figure>
 
-<p>If you want to <ref id="outSql">write a table to an SQL database</ref>,
+<p>If you want to 
+<ref id="outSql" plaintextref="yes">write a table to an SQL database</ref>,
 you can use a specialised dialogue to specify the table destination by clicking
 the <label>SQL Table</label> button in the <label>Save Table</label>
 window.
@@ -4079,7 +4093,8 @@ the new table to write, as follows:
 
 <p>There are a number of criteria which must be satisfied for SQL
 access to work within TOPCAT (installation of appropriate drivers
-and so on) - see the section on <ref id="jdbcConfig">JDBC configuration</ref>.
+and so on) - see the section on 
+<ref id="jdbcConfig" plaintextref="yes">JDBC configuration</ref>.
 If you don't take these steps, this dialogue may be inaccessible.
 </p>
 
@@ -4133,7 +4148,8 @@ in the <ref id="ControlWindow">Control Window</ref>
 (a popup window will inform you this has happened).
 </p>
 
-<p>The result is created from the <ref id="apparent">Apparent</ref>
+<p>The result is created from the 
+<ref id="apparent" plaintextref="yes">Apparent</ref>
 versions of the base and appended tables, so that any row subsets,
 hidden columns, or sorts currently in force will be reflected in the
 output.
@@ -4770,7 +4786,8 @@ problem.
 </figure>
 
 <p>This window displays all the functions (Java methods) which are
-available for use when writing <ref id="jel">algebraic expressions</ref>.
+available for use when writing 
+<ref id="jel" plaintextref="yes">algebraic expressions</ref>.
 This includes both the built-in expressions and any 
 <ref id="jelExtend">extended ones</ref> you might have added.
 They are grouped by the class which defines them, and displayed
@@ -4854,7 +4871,8 @@ Alternatively, it can be invoked from the jar file by doing
 (the <code>topcat-full.jar</code> or <code>table.jar</code> jarfiles
 can be used instead if those are what you have).
 All the commments about classpaths and arguments to Java itself
-described in the section on <ref id="invoke">Invoking TOPCAT</ref>
+described in the section on 
+<ref id="invoke" plaintextref="yes">Invoking TOPCAT</ref>
 apply here as well.
 </p>
 
