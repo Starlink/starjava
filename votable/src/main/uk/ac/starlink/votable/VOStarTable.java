@@ -1,6 +1,8 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ReaderRowSequence;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.Tables;
+import uk.ac.starlink.table.URLValueInfo;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.DOMUtils;
 
@@ -28,12 +31,19 @@ public class VOStarTable extends AbstractStarTable {
     private List params;
     private ColumnInfo[] colinfos;
 
-    /* Auxiliary metadata. */
+    /* Table parameters. */
+    private final static ValueInfo ucdInfo = new DefaultValueInfo(
+        "UCD", String.class, "Table UCD" );
+
+    /* Column auxiliary metadata. */
     private final static ValueInfo idInfo = new DefaultValueInfo(
         "ID", String.class, "VOTable ID attribute" );
     private final static ValueInfo datatypeInfo = new DefaultValueInfo(
         "Datatype", String.class, "VOTable data type name" );
     private final static ValueInfo nullInfo = Tables.NULL_VALUE_INFO;
+    private final static ValueInfo utypeInfo = new DefaultValueInfo(
+        "utype", String.class, 
+        "Usage-specific type (ties value to an external data model)" );
     private final static ValueInfo widthInfo = new DefaultValueInfo(
         "Width", Integer.class, "VOTable width attribute" );
     private final static ValueInfo precisionInfo = new DefaultValueInfo(
@@ -41,7 +51,8 @@ public class VOStarTable extends AbstractStarTable {
     private final static ValueInfo typeInfo = new DefaultValueInfo(
         "Type", String.class, "VOTable type attribute" );
     private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
-        idInfo, datatypeInfo, nullInfo, widthInfo, precisionInfo, typeInfo,
+        idInfo, datatypeInfo, nullInfo, utypeInfo,
+        widthInfo, precisionInfo, typeInfo,
     } );
 
     /**
@@ -144,6 +155,12 @@ public class VOStarTable extends AbstractStarTable {
                     auxdata.add( new DescribedValue( typeInfo, type ) );
                 }
 
+                VOElement[] links = field.getChildrenByName( "LINK" );
+                for ( int j = 0; j < links.length; j++ ) {
+                    auxdata.add( getDescribedValue( (LinkElement) 
+                                                    links[ j ] ) );
+                }
+
                 colinfos[ i ] = cinfo;
             }
         }
@@ -155,6 +172,8 @@ public class VOStarTable extends AbstractStarTable {
         /* Lazily construct parameter list. */
         if ( params == null ) {
             params = new ArrayList();
+
+            /* DESCRIPTION child. */
             String description = votable.getDescription();
             if ( description != null ) {
                 DefaultValueInfo descInfo = 
@@ -162,8 +181,27 @@ public class VOStarTable extends AbstractStarTable {
                 params.add( new DescribedValue( descInfo, description ) );
             }
 
+            /* UCD attribute. */
+            if ( votable.hasAttribute( "ucd" ) ) {
+                DescribedValue dval =
+                    new DescribedValue( ucdInfo, 
+                                        votable.getAttribute( "ucd" ) );
+                params.add( dval );
+            }
+
+            /* Utype attribute. */
+            if ( votable.hasAttribute( "utype" ) ) {
+                DescribedValue dval =
+                    new DescribedValue( utypeInfo,
+                                        votable.getAttribute( "utype" ) );
+                params.add( dval );
+            }
+
+            /* Parameter-like elements in parent. */
             VOElement parent = votable.getParent();
             if ( parent != null && parent.getTagName().equals( "RESOURCE" ) ) {
+
+                /* PARAM elements. */
                 VOElement[] paramels = parent.getChildrenByName( "PARAM" );
                 for ( int i = 0; i < paramels.length; i++ ) {
                     ParamElement pel = (ParamElement) paramels[ i ];
@@ -172,6 +210,15 @@ public class VOStarTable extends AbstractStarTable {
                                             pel.getObject() );
                     params.add( dval );
                 }
+
+                /* LINK elements. */
+                VOElement[] linkels = parent.getChildrenByName( "LINK" );
+                for ( int i = 0; i < linkels.length; i++ ) {
+                    params.add( getDescribedValue( (LinkElement) 
+                                                   linkels[ i ] ) );
+                }
+
+                /* INFO elements. */
                 VOElement[] infoels = parent.getChildrenByName( "INFO" );
                 for ( int i = 0; i < infoels.length; i++ ) {
                     VOElement iel = infoels[ i ];
@@ -186,6 +233,13 @@ public class VOStarTable extends AbstractStarTable {
                         new DescribedValue( info, iel.getAttribute( "value" ) );
                     params.add( dval );
                 }
+            }
+
+            /* Parameter-like children. */
+            ParamElement[] pels = votable.getParams();
+            for ( int i = 0; i < pels.length; i++ ) {
+                params.add( new DescribedValue( getValueInfo( pels[ i ] ),
+                                                pels[ i ].getObject() ) );
             }
         }
         return params;
@@ -295,6 +349,28 @@ public class VOStarTable extends AbstractStarTable {
                             : Decoder.longsToInts( shapel ) );
         info.setElementSize( decoder.getElementSize() );
         return info;
+    }
+
+    /**
+     * Returns a DescribedValue representing a LINK element.
+     *
+     * @param  link link element
+     * @return value describing <tt>link</tt>
+     */
+    static DescribedValue getDescribedValue( LinkElement link ) {
+        try {
+            URL url = link.getHref();
+            ValueInfo vinfo = new URLValueInfo( link.getHandle(),
+                                                link.getDescription() );
+            return new DescribedValue( vinfo, url );
+        }
+        catch ( MalformedURLException e ) {
+            String href = link.getAttribute( "href" );
+            ValueInfo vinfo =
+                new DefaultValueInfo( link.getHandle(), String.class,
+                                      link.getDescription() );
+            return new DescribedValue( vinfo, href );
+        }
     }
 
 }
