@@ -2,6 +2,7 @@ package uk.ac.starlink.ast;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
@@ -14,8 +15,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.border.BevelBorder;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import uk.ac.starlink.util.TestCase;
@@ -177,6 +180,8 @@ public class AstTest extends TestCase {
         String s2v = sky.format( 2, 1.5 );
         assertTrue( s1v.indexOf( ':' ) > 0 );
         assertTrue( s2v.indexOf( ':' ) > 0 );
+        assertEquals( "<bad>", new Frame( 1 ).format( 1, AstObject.AST__BAD ) );
+        assertEquals( "NAN", new Frame( 1 ).format( 1, Double.NaN ) );
 
         // unformat
         assertEquals( 0.5, sky.unformat( 1, s1v ), 0.0001 );
@@ -371,7 +376,7 @@ public class AstTest extends TestCase {
             zoomer.rate( new double[ 1 ], 1, 2, null );
             fail();
         }
-        catch ( RuntimeException e ) {
+        catch ( IllegalArgumentException e ) {
             // ok
         }
 
@@ -480,6 +485,34 @@ public class AstTest extends TestCase {
         assertEquals( UnitMap.class, unit.simplify().getClass() );
     }
 
+    public void testTranMap() {
+        MathMap fmap = new MathMap( 1, 1, new String[] { "f=i*2.0" },
+                                          new String[] { "i" } );
+        MathMap imap = new MathMap( 1, 1, new String[] { "f" },
+                                          new String[] { "i=f*0.5" } );
+        TranMap tmap = new TranMap( fmap, imap );
+        double num = 44.;
+        double[] numarr = new double[] { num };
+        assertEquals( num * 2.0, tmap.tran1( 1, numarr, true )[ 0 ] );
+        assertEquals( num * 0.5, tmap.tran1( 1, numarr, false )[ 0 ] );
+        assertEquals( num * 2.0, fmap.tran1( 1, numarr, true )[ 0 ] );
+        assertEquals( num * 0.5, imap.tran1( 1, numarr, false )[ 0 ] );
+        try {
+            fmap.tran1( 1, numarr, false );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertTrue( e.getMessage().indexOf( "not defined" ) > 0 );
+        }
+        try {
+            imap.tran1( 1, numarr, true );
+            fail();
+        }
+        catch ( AstException e ) {
+            assertTrue( e.getMessage().indexOf( "not defined" ) > 0 );
+        }
+    }
+
     public void testPlot() {
 
         /* Check we have graphics capability. */
@@ -490,12 +523,14 @@ public class AstTest extends TestCase {
 
         double[] basebox = new double[] { 0, 0, 50000, 50000 };
         JFrame toplev = new JFrame();
+
         TestPlotHolder pan = new TestPlotHolder();
         pan.setPreferredSize( new Dimension( 400, 400 ) );
+        toplev.getContentPane().setLayout( new FlowLayout() );
         toplev.getContentPane().add( pan );
         toplev.pack();
 
-        Plot plot = new Plot( wcs, pan.getBounds(), basebox, 40, 20, 40, 20 );
+        Plot plot = new Plot( wcs, pan.getVisibleRect(), basebox, 40, 20, 40, 20 );
         pan.plot = plot;
 
         plot.setGrid( true );
@@ -579,10 +614,31 @@ public class AstTest extends TestCase {
         assertTrue( linbox.getHeight() > 5. && linbox.getWidth() > 5. );
         plot.setInvisible( false );
 
+        plot = null;
+
+        // log grid
+        TestPlotHolder pan2 = new TestPlotHolder();
+        pan2.setPreferredSize( new Dimension( 400, 400 ) );
+        toplev.getContentPane().add( pan2 );
+        toplev.pack();
+        Plot plot2 = new Plot( new Frame( 2 ), pan2.getVisibleRect(),
+                               new double[] { 5e-3, 5e-3, 5e3, 5e3 },
+                               60, 60, 60, 60 );
+        pan2.plot = plot2;
+        plot2.setColour( Color.black.getRGB() );
+        plot2.setGrid( true );
+        plot2.setMinTickLen( plot2.getMinTickLen( 1 ) * 2.0 );
+        plot2.curve( new double[] { 0, 0 }, new double[] { 1e8, 1e8 } );
+        plot2.setLogPlot( true );
+        plot2.setNumLab( true );
+        plot2.setTextLab( false );
+        plot2.grid();
+        plot2.border();
+
         toplev.setVisible( true );
 
         try {
-            Thread.currentThread().sleep( 4000 );
+            Thread.currentThread().sleep( 10000 );
         }
         catch ( InterruptedException e ) {
             // no action
@@ -594,8 +650,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V3\\.1-5; " +
-                                           "JNIAST java V3\\.1-5" )
+                                           "JNIAST native V3\\.2-3; " +
+                                           "JNIAST java V3\\.2-3" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
@@ -604,8 +660,8 @@ public class AstTest extends TestCase {
         System.out.println( AstObject.reportVersions() );
         assertTrue( "Checking AST version: " + AstObject.reportVersions(),
                     ( astMajor > 3 ) ||
-                    ( astMajor == 3 && astMinor > 1 ) ||
-                    ( astMajor == 3 && astMinor == 1 && astRelease >= 5 ) );
+                    ( astMajor == 3 && astMinor > 2 ) ||
+                    ( astMajor == 3 && astMinor == 2 && astRelease >= 3 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {
@@ -617,6 +673,13 @@ public class AstTest extends TestCase {
         }
         try {
             AstObject.getAstConstantD( absentConstName );
+            assertTrue( false );
+        }
+        catch ( IllegalArgumentException e ) {
+            assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
+        }
+        try {
+            AstObject.getAstConstantC( absentConstName );
             assertTrue( false );
         }
         catch ( IllegalArgumentException e ) {
@@ -685,6 +748,7 @@ class TestChannel extends Channel {
 
 class TestPlotHolder extends JPanel {
     Plot plot;
+    { setBorder( BorderFactory.createBevelBorder( BevelBorder.RAISED ) ); }
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
         plot.paint( g );

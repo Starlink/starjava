@@ -31,6 +31,9 @@ import java.io.OutputStream;
  */
 public class XmlChan extends Channel {
 
+    /** XML namespace for elements in AstObject serialization. */
+    public static final String AST__XMLNS = getAstConstantC( "AST__XMLNS" );
+
     /**
      * Creates a channel which reads from the given <code>InputStream</code>
      * and writes to the given <code>OutputStream</code>.
@@ -51,6 +54,96 @@ public class XmlChan extends Channel {
      */
     protected XmlChan() {
         super();
+    }
+
+    /**
+     * Get 
+     * system for formatting Objects as XML.  
+     * This attribute specifies the formatting system to use when AST
+     * Objects are written out as XML through an XmlChan. It
+     * affects the behaviour of the astWrite function when
+     * they are used to transfer any AST Object to or from an external
+     * XML representation.
+     * <p>
+     * The XmlChan class allows AST objects to be represented in the form
+     * of XML in several ways (conventions) and the XmlFormat attribute is 
+     * used to specify which of these should be used. The formatting options 
+     * available are outlined in the "Formats Available" section below.
+     * <p>
+     * By default, an XmlChan will attempt to determine which format system
+     * is already in use, and will set the default XmlFormat value
+     * accordingly (so that subsequent I/O operations adopt the same
+     * conventions). It does this by looking for certain critical items
+     * which only occur in particular formats. For details of how this
+     * works, see the "Choice of Default Format" section below. If you wish
+     * to ensure that a particular format system is used, independently of
+     * any XML already read, you should set an explicit XmlFormat value
+     * yourself.
+     * <h4>Formats Available</h4>
+     * The XmlFormat attribute can take any of the following (case
+     * insensitive) string values to select the corresponding formatting
+     * system:
+     * <p>
+     * <br> - "NATIVE": This is a direct conversion to XML of the heirarchical
+     * format used by a standard XML channel (and also by the NATIVE
+     * encoding of a FitsChan).
+     * <p>
+     * <br> - "QUOTED": This is the same as NATIVE format except that extra
+     * information is included which allows client code to convert the
+     * XML into a form which can be read by a standard AST Channel. This
+     * extra information indicates which AST attribute values should be
+     * enclosed in quotes before being passed to a Channel. 
+     * 
+     *
+     * @return  xmlFormat  this object's XmlFormat attribute
+     */
+    public String getXmlFormat() {
+        return getC( "XmlFormat" );
+    }
+
+    /**
+     * Set 
+     * system for formatting Objects as XML.  
+     * This attribute specifies the formatting system to use when AST
+     * Objects are written out as XML through an XmlChan. It
+     * affects the behaviour of the astWrite function when
+     * they are used to transfer any AST Object to or from an external
+     * XML representation.
+     * <p>
+     * The XmlChan class allows AST objects to be represented in the form
+     * of XML in several ways (conventions) and the XmlFormat attribute is 
+     * used to specify which of these should be used. The formatting options 
+     * available are outlined in the "Formats Available" section below.
+     * <p>
+     * By default, an XmlChan will attempt to determine which format system
+     * is already in use, and will set the default XmlFormat value
+     * accordingly (so that subsequent I/O operations adopt the same
+     * conventions). It does this by looking for certain critical items
+     * which only occur in particular formats. For details of how this
+     * works, see the "Choice of Default Format" section below. If you wish
+     * to ensure that a particular format system is used, independently of
+     * any XML already read, you should set an explicit XmlFormat value
+     * yourself.
+     * <h4>Formats Available</h4>
+     * The XmlFormat attribute can take any of the following (case
+     * insensitive) string values to select the corresponding formatting
+     * system:
+     * <p>
+     * <br> - "NATIVE": This is a direct conversion to XML of the heirarchical
+     * format used by a standard XML channel (and also by the NATIVE
+     * encoding of a FitsChan).
+     * <p>
+     * <br> - "QUOTED": This is the same as NATIVE format except that extra
+     * information is included which allows client code to convert the
+     * XML into a form which can be read by a standard AST Channel. This
+     * extra information indicates which AST attribute values should be
+     * enclosed in quotes before being passed to a Channel. 
+     * 
+     *
+     * @param  xmlFormat   the XmlFormat attribute of this object
+     */
+    public void setXmlFormat( String xmlFormat ) {
+       setC( "XmlFormat", xmlFormat );
     }
 
     /**
@@ -125,6 +218,50 @@ public class XmlChan extends Channel {
      */
     public void setXmlLength( int xmlLength ) {
        setI( "XmlLength", xmlLength );
+    }
+
+    /**
+     * Get 
+     * the namespace prefix to use when writing.  
+     * This attribute is a string which is to be used as the namespace
+     * prefix for all XML elements created as a result of writing an AST
+     * Object out through an XmlChan. The URI associated with the namespace
+     * prefix is given by the symbolic constant AST__XMLNS defined in 
+     * ast.h.
+     * A definition of the namespace prefix is included in each top-level
+     * element produced by the XmlChan.
+     * <p>
+     * The default value is a blank string which causes no prefix to be
+     * used. In this case each top-level element will set the default 
+     * namespace to be the value of AST__XMLNS.
+     * 
+     *
+     * @return  xmlPrefix  this object's XmlPrefix attribute
+     */
+    public String getXmlPrefix() {
+        return getC( "XmlPrefix" );
+    }
+
+    /**
+     * Set 
+     * the namespace prefix to use when writing.  
+     * This attribute is a string which is to be used as the namespace
+     * prefix for all XML elements created as a result of writing an AST
+     * Object out through an XmlChan. The URI associated with the namespace
+     * prefix is given by the symbolic constant AST__XMLNS defined in 
+     * ast.h.
+     * A definition of the namespace prefix is included in each top-level
+     * element produced by the XmlChan.
+     * <p>
+     * The default value is a blank string which causes no prefix to be
+     * used. In this case each top-level element will set the default 
+     * namespace to be the value of AST__XMLNS.
+     * 
+     *
+     * @param  xmlPrefix   the XmlPrefix attribute of this object
+     */
+    public void setXmlPrefix( String xmlPrefix ) {
+       setC( "XmlPrefix", xmlPrefix );
     }
 
 }

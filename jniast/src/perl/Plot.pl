@@ -502,6 +502,21 @@ makeSetAttrib( @args );
 makeGetAttribByAxis( @args );
 makeSetAttribByAxis( @args );
 
+my $escDescrip = AttDescrip( "escape" );
+$escDescrip =~ 
+   s/astEscapes/{\@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes}/g;
+@args = (
+   name => ( $aName = "escape" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => $escDescrip,
+   extra => q{
+       @see  uk.ac.starlink.ast.grf.GrfEscape
+   },
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
 @args = (
    name => ( $aName = "font" ),
    type => 'int',
@@ -586,6 +601,46 @@ makeSetAttrib( @args );
    descrip => AttDescrip( $aName ),
 );
 makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "logGap" ),
+   type => 'double',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "logLabel" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "logPlot" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
+makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "logTicks" ),
+   type => 'boolean',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttribByAxis( @args );
+makeSetAttribByAxis( @args );
 makeSetAttrib( @args );
 
 @args = (

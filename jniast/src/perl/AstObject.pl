@@ -60,8 +60,8 @@ print <<'__EOT__';
         };
         JNIAST_JAVA_VERSION = new int[] {
             3,
-            1,
-            5,
+            2,
+            3,
         };
 
         /* Check that the versions look consistent. */
@@ -109,7 +109,7 @@ print <<'__EOT__';
      * @return the value of <code>constname</code>
      * @throws IllegalArgumentException  if no constant by that name exists
      */
-    static native int getAstConstantI( String constname );
+    public static native int getAstConstantI( String constname );
 
     /**
      * Gets the value of a named double precision constant from the underlying
@@ -120,6 +120,16 @@ print <<'__EOT__';
      * @throws IllegalArgumentException  if no constant by that name exists
      */
     static native double getAstConstantD( String constname );
+
+    /**
+     * Gets the value of a named character constant from the underlying
+     * AST library.
+     *
+     * @param  constname  the name of the constant ("AST__<i>something</i>")
+     * @return  the value of <code>constname</code>
+     * @throws  IllegalArgumentException  if no constant by that name exists
+     */
+    static native String getAstConstantC( String constname );
 
     /**
      * Annul this object.  Associated resources in the underlying library

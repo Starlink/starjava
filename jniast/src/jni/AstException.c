@@ -142,6 +142,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstException_getErrConst(
       else TRY_CONST(AST__XMLPT)
       else TRY_CONST(AST__XMLIT)
       else TRY_CONST(AST__XMLWF)
+      else TRY_CONST(AST__ZERAX)
    }
    if ( ! success ) printf( "no such constant %s\n", ident );
    (*env)->ReleaseStringUTFChars( env, jIdent, ident );

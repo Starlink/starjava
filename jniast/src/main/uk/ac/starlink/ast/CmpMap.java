@@ -77,6 +77,14 @@ public class CmpMap extends Mapping {
      * <br> - A null Object pointer (AST__NULL) will be returned if this
      * function is invoked with the AST error status set, or if it
      * should fail for any reason.
+     * @param  map1  Pointer to the first component Mapping.
+     * 
+     * @param  map2  Pointer to the second component Mapping.
+     * 
+     * @param  series  If a non-zero value is given for this parameter, the two
+     * component Mappings will be connected in series. A zero
+     * value requests that they are connected in parallel.
+     * 
      * @throws  AstException  if an error occurred in the AST library
     */
     public CmpMap( Mapping map1, Mapping map2, boolean series ) {

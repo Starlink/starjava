@@ -23,6 +23,9 @@ print "public class XmlChan extends Channel {\n";
 
 print <<'__EOT__';
 
+    /** XML namespace for elements in AstObject serialization. */
+    public static final String AST__XMLNS = getAstConstantC( "AST__XMLNS" );
+
     /**
      * Creates a channel which reads from the given <code>InputStream</code>
      * and writes to the given <code>OutputStream</code>.
@@ -51,6 +54,15 @@ __EOT__
 my( @args );
 
 @args = (
+   name => ( $aName = "xmlFormat" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
+@args = (
    name => ( $aName = "xmlIndent" ),
    type => 'boolean',
    purpose => AttPurpose( $aName ),
@@ -67,6 +79,16 @@ makeSetAttrib( @args );
 );
 makeGetAttrib( @args );
 makeSetAttrib( @args );
+
+@args = (
+   name => ( $aName = "xmlPrefix" ),
+   type => 'String',
+   purpose => AttPurpose( $aName ),
+   descrip => AttDescrip( $aName ),
+);
+makeGetAttrib( @args );
+makeSetAttrib( @args );
+
 
 print "}\n";
 

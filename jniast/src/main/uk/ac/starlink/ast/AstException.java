@@ -1093,4 +1093,13 @@ public class AstException extends RuntimeException {
                 "Unknown AST error constant AST__XMLWF" );
        }
    }
+   /** Status constant for error "Range of log axis scale includes zero" */
+   public static final int AST__ZERAX;
+   static {
+       try { AST__ZERAX = getErrConst( "AST__ZERAX" ); }
+       catch( IllegalArgumentException e ) {
+           throw new LinkageError(
+                "Unknown AST error constant AST__ZERAX" );
+       }
+   }
 }

@@ -51,6 +51,18 @@ public interface Grf {
     public final static int GRF__TEXT =
         AstObject.getAstConstantI( "GRF__TEXT" );
 
+    /** Symbolic capability type indicating escape sequence recognition. */
+    public final static int GRF__ESC =
+        AstObject.getAstConstantI( "GRF__ESC" );
+
+    /** Symbolic capability type indicating M-type justification. */
+    public final static int GRF__MJUST =
+        AstObject.getAstConstantI( "GRF__MJUST" );
+
+    /** Symbolic capability type indicating a working {@link #scales} method. */
+    public final static int GRF__SCALES =
+        AstObject.getAstConstantI( "GRF__SCALES" );
+
     /**
      * Paints the graphics written to this Grf object since its 
      * construction or the last call of <code>clear</code> into the
@@ -229,4 +241,79 @@ public interface Grf {
      */
     public float[][] txExt( String text, float x, float y, String just,
                             float upx, float upy ) throws Exception;
+
+    /**
+     * Gets the axis scales.
+     * This function returns an array containing two values (one for each
+     * axis) which scale increments on the corresponding axis into a
+     * "normal" coordinate system in which:
+     * <ol>
+     * <li>The axes have equal scale in terms of (for instance) 
+     *     millimetres per unit distance.
+     * <li>X values increase from left to right.
+     * <li>Y values increase from bottom to top.
+     * </ol>
+     *
+     * @return  a 2-element array;
+     *          the first element is the scale for the X axis
+     *          (Xnorm = scales[0]*Xworld) and
+     *          the second element is the scale for the Y axis
+     *          (Ynorm = scales[1]*Yworld)
+     * @since  V3.2
+     */
+    public float[] scales() throws Exception;
+
+    /**
+     * Indicates which abilities this <code>Grf</code> implementation has.
+     * This method is used by a <code>Plot</code> to determine if
+     * this object has given capability.  Which capability is being
+     * enquired about is indicated by the value of the <code>cap</code>
+     * argument.
+     * According to the values of <code>cap</code> and <code>val</code>, 
+     * the method should return a value indicating
+     * capability as described below:
+     * <dl>
+     * <dt>GRF__SCALES
+     * <dd>Return a non-zero value if it provides a working implementation
+     *     of the {@link #scales} method, and zero otherwise.
+     *     The <code>value</code> argument should be ignored.
+     * <dt>GRF__MJUST
+     * <dd>Return a non-zero value if the {@link #text} and {@link #txExt}
+     *     methods recognise "M" as a
+     *     character in the justification string. If the first character of
+     *     a justification string is "M", then the text should be justified
+     *     with the given reference point at the bottom of the bounding box.
+     *     This is different to "B" justification, which requests that the
+     *     reference point be put on the baseline of the text, since some
+     *     characters hang down below the baseline. If <code>text</code>
+     *     or <code>txExt</code> cannot differentiate between "M" and "B",
+     *     then this method should return zero, in which case "M"
+     *     justification will never be requested by <code>Plot</code>
+     *     The <code>value</code> argument should be ignored.
+     * <dt>GRF__ESC
+     * <dd>Return a non-zero value if the {@link #text} and {@link #txExt}
+     *     methods can recognise and interpret graphics escape sequences
+     *     within the supplied string.  Zero should be returned if 
+     *     escape sequences cannot be interpreted (in which case the
+     *     <code>Plot</code> will interpret them itself if needed).
+     *     The <code>value</code> argument should be ignored only if
+     *     escape cannot be interpreted by <code>text</code> and 
+     *     <code>txExt</code>.  Otherwise <code>value</code> indicates
+     *     whether <code>text</code> and <code>txExt</code> should 
+     *     interpret escape sequences in subsequent calls.
+     *     If <code>value</code> is non-zero then escape sequences 
+     *     should be interpreted by <code>text</code> and <code>txExt</code>.
+     *     Otherwise they should be drawn as literal text.
+     *     See {@link uk.ac.starlink.ast.grf.GrfEscape} for more information
+     *     about escape sequences.
+     * </dl>
+     *
+     * @param   cap  graphics capability type - one of 
+     *          GRF__SCALES, GRF__MJUST, GRF__ESC as described above
+     * @param   value  flag whose meaning is dependent on <code>cap</code>
+     *          as described above
+     * @see     uk.ac.starlink.ast.grf.GrfEscape
+     * @since   V3.2
+     */
+    public int cap( int cap, int value );
 }

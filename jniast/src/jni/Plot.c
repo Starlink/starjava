@@ -39,9 +39,11 @@ static PlotInfo _currentinfo;
 static PlotInfo *CurrentInfo;
 static jclass Rectangle2DFloatClass;
 static jmethodID GrfAttrMethodID;
+static jmethodID GrfCapMethodID;
 static jmethodID GrfFlushMethodID;
 static jmethodID GrfLineMethodID;
 static jmethodID GrfMarkMethodID;
+static jmethodID GrfScalesMethodID;
 static jmethodID GrfTextMethodID;
 static jmethodID GrfQchMethodID;
 static jmethodID GrfTxExtMethodID;
@@ -184,7 +186,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_Plot_clip(
    /* Treat the case in which clipping is being removed specially, since
     * bounds checking would cause problems. */
    if ( (int) iframe == AST__NOFRAME ) {
-      ASTCALL(
+      PLOTCALL(
          astClip( pointer.Plot, (int) iframe, NULL, NULL );
       )
    }
@@ -557,12 +559,16 @@ static void initializeIDs( JNIEnv *env ) {
       /* Get Method IDs. */
       ( GrfAttrMethodID = (*env)->GetMethodID( env, GrfClass, "attr",
                                                "(IDI)D" ) ) &&
+      ( GrfCapMethodID = (*env)->GetMethodID( env, GrfClass, "cap",
+                                              "(II)I" ) ) &&
       ( GrfFlushMethodID = (*env)->GetMethodID( env, GrfClass, "flush",
                                                 "()V" ) ) &&
       ( GrfLineMethodID = (*env)->GetMethodID( env, GrfClass, "line",
                                                "(I[F[F)V" ) ) &&
       ( GrfMarkMethodID = (*env)->GetMethodID( env, GrfClass, "mark",
                                                "(I[F[FI)V" ) ) &&
+      ( GrfScalesMethodID = (*env)->GetMethodID( env, GrfClass, "scales",
+                                                 "()[F" ) ) &&
       ( GrfTextMethodID = (*env)->GetMethodID( env, GrfClass, "text", 
                                                "(Ljava/lang/String;FF"
                                                "Ljava/lang/String;FF)V" ) ) &&
@@ -704,6 +710,32 @@ int astGTxExt( const char *text, float x, float y, const char *just,
       }
    }
    return 0;
+}
+
+int astGCap( int cap, int value ) {
+   JNIEnv *env = CurrentInfo->env;
+   jobject grf = CurrentInfo->grf;
+   jint result;
+
+   result = (*env)->CallIntMethod( env, grf, GrfCapMethodID, 
+                                   (jint) cap, (jint) value );
+   return (int) result;
+}
+
+int astGScales( float *alpha, float *beta ) {
+   JNIEnv *env = CurrentInfo->env;
+   jobject grf = CurrentInfo->grf;
+   jfloatArray result;
+
+   result = (*env)->CallObjectMethod( env, grf, GrfScalesMethodID );
+   if ( jniastCheckArrayLength( env, result, 2 ) ) {
+      (*env)->GetFloatArrayRegion( env, result, 0, 1, (jfloat *) alpha );
+      (*env)->GetFloatArrayRegion( env, result, 1, 1, (jfloat *) beta );
+      return 1;
+   }
+   else {
+      return 0;
+   }
 }
 
 /* $Id$ */

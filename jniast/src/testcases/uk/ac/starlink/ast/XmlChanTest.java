@@ -11,9 +11,6 @@ public class XmlChanTest extends TestCase {
         "<test>test &lt; &quotone&quot <![CDATA[&&<<>>]]>" +
         " test 'two' </test>";
 
-    { confusingID = "not so confusing"; 
-      System.err.println( "Test needs reinstating following XmlChan bugfix" ); }
-
     public XmlChanTest( String name ) {
         super( name );
     }
@@ -25,6 +22,11 @@ public class XmlChanTest extends TestCase {
         xc.write( obj1 );
         AstObject obj2 = xc.read();
         assertEquals( obj1.getID(), obj2.getID() );
+    }
+
+    public void testConstants() {
+        assertEquals( "http://www.starlink.ac.uk/ast/xml/", 
+                      XmlChan.AST__XMLNS );
     }
 
 }

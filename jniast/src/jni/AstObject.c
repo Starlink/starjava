@@ -126,9 +126,29 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
       else TRY_CONST( GRF__COLOUR )
 
       /* GRF primitives. */
+      else TRY_CONST( GRF__TEXT )
       else TRY_CONST( GRF__LINE )
       else TRY_CONST( GRF__MARK )
-      else TRY_CONST( GRF__TEXT )
+
+      /** GRF capabliities. */
+      else TRY_CONST( GRF__ESC )
+      else TRY_CONST( GRF__MJUST )
+      else TRY_CONST( GRF__SCALES )
+
+      /** GRF escape sequence codes. */
+      else TRY_CONST( GRF__ESPER )
+      else TRY_CONST( GRF__ESSUP )
+      else TRY_CONST( GRF__ESSUB )
+      else TRY_CONST( GRF__ESGAP )
+      else TRY_CONST( GRF__ESBAC )
+      else TRY_CONST( GRF__ESSIZ )
+      else TRY_CONST( GRF__ESWID )
+      else TRY_CONST( GRF__ESFON )
+      else TRY_CONST( GRF__ESCOL )
+      else TRY_CONST( GRF__ESSTY )
+      else TRY_CONST( GRF__ESPOP )
+      else TRY_CONST( GRF__ESPSH )
+
 #undef TRY_CONST
    }
 
@@ -163,6 +183,11 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantD(
          success = 1; \
       }
       TRY_CONST( AST__BAD )
+
+      /* SlaMap constants. */
+      TRY_CONST( AST__AU )
+      TRY_CONST( AST__SOLRAD )
+
 #undef TRY_CONST
    }
 
@@ -173,6 +198,40 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantD(
    if ( ! success ) {
       jniastThrowIllegalArgumentException( env, 
             "There is no AST double constant called \"%s\"", namcopy );
+   }
+   return result;
+}
+
+JNIEXPORT jstring JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantC(
+   JNIEnv *env,          /* Interface pointer */
+   jclass class,         /* Class object */
+   jstring jName         /* Name of AST constant to retrieve */
+) {
+   const char *name;
+   jstring result = NULL;
+   int success = 0;
+   char namcopy[ BUFLENG ];
+
+   name = jniastGetUTF( env, jName );
+   if ( name != NULL ) {
+
+#define TRY_CONST( Xname ) \
+      if ( strcmp( #Xname, name ) == 0 ) { \
+         result = (*env)->NewStringUTF( env, Xname ); \
+         success = 1; \
+      }
+      TRY_CONST( AST__XMLNS )
+
+#undef TRY_CONST
+   }
+
+   if ( ! success ) {
+      strncpy( namcopy, name, BUFLENG - 1 );
+   }
+   jniastReleaseUTF( env, jName, name );
+   if ( ! success ) {
+      jniastThrowIllegalArgumentException( env,
+            "There is no AST character constant called \"%s\"", namcopy );
    }
    return result;
 }

@@ -1762,6 +1762,11 @@ public class Frame extends Mapping {
      * <br> - "l": Use a letter ("h"/"d", "m" or "s" as appropriate) to
      * separate fields.
      * <p>
+     * <br> - "g": Use a letter and symbols to separate fields ("h"/"d", "m" or "s",
+     * etc, as appropriate), but include escape sequences in the formatted 
+     * value so that the Plot class will draw the separators as small
+     * super-scripts.
+     * <p>
      * <br> - "d": Include a degrees field. Expressing the angle purely in
      * degrees is also the default if none of "h", "m", "s" or "t" are
      * given.
@@ -1879,6 +1884,11 @@ public class Frame extends Mapping {
      * <p>
      * <br> - "l": Use a letter ("h"/"d", "m" or "s" as appropriate) to
      * separate fields.
+     * <p>
+     * <br> - "g": Use a letter and symbols to separate fields ("h"/"d", "m" or "s",
+     * etc, as appropriate), but include escape sequences in the formatted 
+     * value so that the Plot class will draw the separators as small
+     * super-scripts.
      * <p>
      * <br> - "d": Include a degrees field. Expressing the angle purely in
      * degrees is also the default if none of "h", "m", "s" or "t" are

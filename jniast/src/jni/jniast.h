@@ -34,8 +34,8 @@
 
 /* Required versions of the AST package. */
 #define JNIAST_MAJOR_VERS 3
-#define JNIAST_MINOR_VERS 1
-#define JNIAST_RELEASE 5
+#define JNIAST_MINOR_VERS 2
+#define JNIAST_RELEASE 3
 
 /* Typedefs. */
 typedef union {
@@ -63,6 +63,7 @@ typedef union {
    AstSpecFrame *SpecFrame;  /* Pointer to C AstSpecFrame struct */
    AstSpecMap *SpecMap;      /* Pointer to C AstSpecMap struct */
    AstSphMap *SphMap;        /* Pointer to C AstSphMap struct */
+   AstTranMap *TranMap;      /* Pointer to C AstTranMap struct */
    AstUnitMap *UnitMap;      /* Pointer to C AstUnitMap struct */
    AstWcsMap *WcsMap;        /* Pointer to C AstWcsMap struct */
    AstWinMap *WinMap;        /* Pointer to C AstWinMap struct */

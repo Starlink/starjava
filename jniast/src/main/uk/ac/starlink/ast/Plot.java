@@ -690,13 +690,13 @@ public class Plot extends FrameSet {
      * Pointer to a null-terminated character string identifying the
      * reference point for the text being drawn. The first character in
      * this string identifies the reference position in the "up" direction
-     * and may be "B", "C" or "T". The second character identifies the 
-     * side-to-side reference position and may be "L", "C" or "R" (for 
-     * left, centre or right). The string is case-insensitive, and only 
-     * the first two characters are significant.
+     * and may be "B" (baseline), "C" (centre), "T" (top) or "M" (bottom). 
+     * The second character identifies the side-to-side reference position 
+     * and may be "L" (left), "C" (centre) or "R" (right ). The string is 
+     * case-insensitive, and only the first two characters are significant.
      * <p>
-     * For example, a value of "BL" means that the bottom left point
-     * of the original (un-rotated) text is to be drawn at the
+     * For example, a value of "BL" means that the left end of the
+     * baseline of the original (un-rotated) text is to be drawn at the
      * position given by "pos".
      * <p>
      * 
@@ -1374,6 +1374,194 @@ public class Plot extends FrameSet {
 
     /**
      * Get 
+     * allow changes of character attributes within strings.  
+     * This attribute controls the appearance of text strings and
+     * numerical labels drawn by the astGrid and astText functions,
+     * by determining if any escape sequences contained within the strings
+     * should be used to control the appearance of the text, or should
+     * be printed literally. 
+     * <p>
+     * If the Escape value of a Plot is one (the default), then any
+     * escape sequences in text strings produce the effects described
+     * below when printed. Otherwise, they are printed literally.
+     * <p>
+     * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
+     * <h4>Escape Sequences</h4>
+     * Escape sequences are introduced into the text string by a percent 
+     * "%" character. Any unrecognised, illegal or incomplete escape sequences 
+     * are printed literally. The following escape sequences are 
+     * currently recognised ("..." represents a string of one or more 
+     * decimal digits):
+     * <p>
+     *   %%      - Print a literal "%" character.
+     * <p>
+     *   %^...+  - Draw subsequent characters as super-scripts. The digits
+     *             "..." give the distance from the base-line of "normal" 
+     *             text to the base-line of the super-script text, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     *   %^+     - Draw subsequent characters with the normal base-line.
+     * <p>
+     *   %v...+  - Draw subsequent characters as sub-scripts. The digits
+     *             "..." give the distance from the base-line of "normal" 
+     *             text to the base-line of the sub-script text, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %v+     - Draw subsequent characters with the normal base-line
+     *             (equivalent to %^+).
+     * <p>
+     *   %>...+  - Leave a gap before drawing subsequent characters.
+     *             The digits "..." give the size of the gap, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %<...+  - Move backwards before drawing subsequent characters.
+     *             The digits "..." give the size of the movement, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %s...+  - Change the Size attribute for subsequent characters. The
+     *             digits "..." give the new Size as a fraction of the 
+     *             "normal" Size, scaled so that a value of "100" corresponds 
+     *             to 1.0;
+     * <p>
+     *   %s+     - Reset the Size attribute to its "normal" value.
+     * <p>
+     *   %w...+  - Change the Width attribute for subsequent characters. The
+     *             digits "..." give the new width as a fraction of the 
+     *             "normal" Width, scaled so that a value of "100" corresponds 
+     *             to 1.0;
+     * <p>
+     *   %w+     - Reset the Size attribute to its "normal" value.
+     * <p>
+     *   %f...+  - Change the Font attribute for subsequent characters. The
+     *             digits "..." give the new Font value.
+     * <p>
+     *   %f+     - Reset the Font attribute to its "normal" value.
+     * <p>
+     *   %c...+  - Change the Colour attribute for subsequent characters. The
+     *             digits "..." give the new Colour value.
+     * <p>
+     *   %c+     - Reset the Colour attribute to its "normal" value.
+     * <p>
+     *   %t...+  - Change the Style attribute for subsequent characters. The
+     *             digits "..." give the new Style value.
+     * <p>
+     *   %t+     - Reset the Style attribute to its "normal" value.
+     * <p>
+     *   %-      - Push the current graphics attribute values onto the top of 
+     *             the stack (see "%+").
+     * <p>
+     *   %+      - Pop attributes values of the top the stack (see "%-"). If
+     *             the stack is empty, "normal" attribute values are restored.
+     * 
+     * <p>
+     *        @see  uk.ac.starlink.ast.grf.GrfEscape
+     *    
+     *
+     * @return  escape  this object's Escape attribute
+     */
+    public boolean getEscape() {
+        return getB( "Escape" );
+    }
+
+    /**
+     * Set 
+     * allow changes of character attributes within strings.  
+     * This attribute controls the appearance of text strings and
+     * numerical labels drawn by the astGrid and astText functions,
+     * by determining if any escape sequences contained within the strings
+     * should be used to control the appearance of the text, or should
+     * be printed literally. 
+     * <p>
+     * If the Escape value of a Plot is one (the default), then any
+     * escape sequences in text strings produce the effects described
+     * below when printed. Otherwise, they are printed literally.
+     * <p>
+     * See also the {@link uk.ac.starlink.ast.grf.GrfEscape#setEscapes} function.
+     * <h4>Escape Sequences</h4>
+     * Escape sequences are introduced into the text string by a percent 
+     * "%" character. Any unrecognised, illegal or incomplete escape sequences 
+     * are printed literally. The following escape sequences are 
+     * currently recognised ("..." represents a string of one or more 
+     * decimal digits):
+     * <p>
+     *   %%      - Print a literal "%" character.
+     * <p>
+     *   %^...+  - Draw subsequent characters as super-scripts. The digits
+     *             "..." give the distance from the base-line of "normal" 
+     *             text to the base-line of the super-script text, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     *   %^+     - Draw subsequent characters with the normal base-line.
+     * <p>
+     *   %v...+  - Draw subsequent characters as sub-scripts. The digits
+     *             "..." give the distance from the base-line of "normal" 
+     *             text to the base-line of the sub-script text, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %v+     - Draw subsequent characters with the normal base-line
+     *             (equivalent to %^+).
+     * <p>
+     *   %>...+  - Leave a gap before drawing subsequent characters.
+     *             The digits "..." give the size of the gap, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %<...+  - Move backwards before drawing subsequent characters.
+     *             The digits "..." give the size of the movement, scaled 
+     *             so that a value of "100" corresponds to the height of 
+     *             "normal" text.
+     * <p>
+     *   %s...+  - Change the Size attribute for subsequent characters. The
+     *             digits "..." give the new Size as a fraction of the 
+     *             "normal" Size, scaled so that a value of "100" corresponds 
+     *             to 1.0;
+     * <p>
+     *   %s+     - Reset the Size attribute to its "normal" value.
+     * <p>
+     *   %w...+  - Change the Width attribute for subsequent characters. The
+     *             digits "..." give the new width as a fraction of the 
+     *             "normal" Width, scaled so that a value of "100" corresponds 
+     *             to 1.0;
+     * <p>
+     *   %w+     - Reset the Size attribute to its "normal" value.
+     * <p>
+     *   %f...+  - Change the Font attribute for subsequent characters. The
+     *             digits "..." give the new Font value.
+     * <p>
+     *   %f+     - Reset the Font attribute to its "normal" value.
+     * <p>
+     *   %c...+  - Change the Colour attribute for subsequent characters. The
+     *             digits "..." give the new Colour value.
+     * <p>
+     *   %c+     - Reset the Colour attribute to its "normal" value.
+     * <p>
+     *   %t...+  - Change the Style attribute for subsequent characters. The
+     *             digits "..." give the new Style value.
+     * <p>
+     *   %t+     - Reset the Style attribute to its "normal" value.
+     * <p>
+     *   %-      - Push the current graphics attribute values onto the top of 
+     *             the stack (see "%+").
+     * <p>
+     *   %+      - Pop attributes values of the top the stack (see "%-"). If
+     *             the stack is empty, "normal" attribute values are restored.
+     * 
+     * <p>
+     *        @see  uk.ac.starlink.ast.grf.GrfEscape
+     *    
+     *
+     * @param  escape   the Escape attribute of this object
+     */
+    public void setEscape( boolean escape ) {
+       setB( "Escape", escape );
+    }
+
+    /**
+     * Get 
      * character font for a Plot element by graphical element.  
      * This attribute determines the character font index used when
      * drawing each element of graphical output produced by a Plot. It
@@ -1637,14 +1825,17 @@ public class Plot extends FrameSet {
 
     /**
      * Get 
-     * interval between major axis values of a Plot by axis.  
+     * interval between linearly spaced major axis values of a Plot by axis.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * the interval between the "major" axis values of a Plot, at which
-     * (for example) major tick marks are drawn. It takes a separate
+     * the linear interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
      * value for each physical axis of the Plot so that, for instance,
-     * the setting "Gap(2)=3.0" specifies the interval between major
-     * values along the second axis.
+     * the setting "Gap(2)=3.0" specifies the difference between adjacent major
+     * values along the second axis. The Gap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be linear. If major axis values are logarithmically spaced 
+     * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
      * "nice" value, suitable (e.g.) for generating axis labels, before
@@ -1683,14 +1874,17 @@ public class Plot extends FrameSet {
 
     /**
      * Set 
-     * interval between major axis values of a Plot by axis.  
+     * interval between linearly spaced major axis values of a Plot by axis.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * the interval between the "major" axis values of a Plot, at which
-     * (for example) major tick marks are drawn. It takes a separate
+     * the linear interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
      * value for each physical axis of the Plot so that, for instance,
-     * the setting "Gap(2)=3.0" specifies the interval between major
-     * values along the second axis.
+     * the setting "Gap(2)=3.0" specifies the difference between adjacent major
+     * values along the second axis. The Gap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be linear. If major axis values are logarithmically spaced 
+     * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
      * "nice" value, suitable (e.g.) for generating axis labels, before
@@ -1730,14 +1924,17 @@ public class Plot extends FrameSet {
 
     /**
      * Set 
-     * interval between major axis values of a Plot.  
+     * interval between linearly spaced major axis values of a Plot.  
      * This attribute controls the appearance of an annotated
      * coordinate grid (drawn with the astGrid function) by determining
-     * the interval between the "major" axis values of a Plot, at which
-     * (for example) major tick marks are drawn. It takes a separate
+     * the linear interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
      * value for each physical axis of the Plot so that, for instance,
-     * the setting "Gap(2)=3.0" specifies the interval between major
-     * values along the second axis.
+     * the setting "Gap(2)=3.0" specifies the difference between adjacent major
+     * values along the second axis. The Gap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be linear. If major axis values are logarithmically spaced 
+     * then the gap is specified using attribute LogGap.
      * <p>
      * The Gap value supplied will usually be rounded to the nearest
      * "nice" value, suitable (e.g.) for generating axis labels, before
@@ -2258,6 +2455,532 @@ public class Plot extends FrameSet {
      */
     public void setLabelling( String labelling ) {
        setC( "Labelling", labelling );
+    }
+
+    /**
+     * Get 
+     * interval between major axis values of a Plot by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * the logarithmic interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
+     * value for each physical axis of the Plot so that, for instance,
+     * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
+     * values along the second axis. The LogGap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be logarithmic. If major axis values are linearly spaced 
+     * then the gap is specified using attribute Gap.
+     * <p>
+     * The LogGap value supplied will be rounded to the nearest power of 10.
+     * The reciprocal of the supplied value may be used if this is necessary 
+     * to produce usable major axis values. If a zero or negative value is 
+     * supplied, an error will be reported when the grid is drawn. The default 
+     * behaviour is for the Plot to generate its own LogGap value when 
+     * required, based on the range of axis values to be represented.
+     * <h4>Notes</h4>
+     * <br> - The LogGap value is a ratio between axis values and is therefore
+     * dimensionless.
+     * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
+     * then a "set" or "clear" operation will affect the attribute
+     * value of all the Plot axes, while a "get" or "test" operation
+     * will use just the LogGap(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the LogGap attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public double getLogGap( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getD( "LogGap" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * interval between major axis values of a Plot by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * the logarithmic interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
+     * value for each physical axis of the Plot so that, for instance,
+     * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
+     * values along the second axis. The LogGap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be logarithmic. If major axis values are linearly spaced 
+     * then the gap is specified using attribute Gap.
+     * <p>
+     * The LogGap value supplied will be rounded to the nearest power of 10.
+     * The reciprocal of the supplied value may be used if this is necessary 
+     * to produce usable major axis values. If a zero or negative value is 
+     * supplied, an error will be reported when the grid is drawn. The default 
+     * behaviour is for the Plot to generate its own LogGap value when 
+     * required, based on the range of axis values to be represented.
+     * <h4>Notes</h4>
+     * <br> - The LogGap value is a ratio between axis values and is therefore
+     * dimensionless.
+     * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
+     * then a "set" or "clear" operation will affect the attribute
+     * value of all the Plot axes, while a "get" or "test" operation
+     * will use just the LogGap(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  logGap  the LogGap attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setLogGap( int axis, double logGap ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setD( "LogGap" + "(" + axis + ")", logGap );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * interval between major axis values of a Plot.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * the logarithmic interval between the "major" axis values of a Plot, at
+     * which (for example) major tick marks are drawn. It takes a separate
+     * value for each physical axis of the Plot so that, for instance,
+     * the setting "LogGap(2)=100.0" specifies the ratio between adjacent major
+     * values along the second axis. The LogGap attribute is only used when
+     * the LogTicks attribute indicates that the spacing between major axis
+     * values is to be logarithmic. If major axis values are linearly spaced 
+     * then the gap is specified using attribute Gap.
+     * <p>
+     * The LogGap value supplied will be rounded to the nearest power of 10.
+     * The reciprocal of the supplied value may be used if this is necessary 
+     * to produce usable major axis values. If a zero or negative value is 
+     * supplied, an error will be reported when the grid is drawn. The default 
+     * behaviour is for the Plot to generate its own LogGap value when 
+     * required, based on the range of axis values to be represented.
+     * <h4>Notes</h4>
+     * <br> - The LogGap value is a ratio between axis values and is therefore
+     * dimensionless.
+     * <br> - If no axis is specified, (e.g. "LogGap" instead of "LogGap(2)"),
+     * then a "set" or "clear" operation will affect the attribute
+     * value of all the Plot axes, while a "get" or "test" operation
+     * will use just the LogGap(1) value.
+     *
+     * @param  logGap   the LogGap attribute of this object
+     */
+    public void setLogGap( double logGap ) {
+       setD( "LogGap", logGap );
+    }
+
+    /**
+     * Get 
+     * use exponential format for numerical axis labels by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the numerical axis labels should be in normal decimal form
+     * or should be represented as 10 raised to the appropriate power.
+     * That is, an axis value of 1000.0 will be drawn as "1000.0" if
+     * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
+     * graphical escape sequences are supported (see attribute Escape), 
+     * the power in such exponential labels will be drawn as a small 
+     * superscript instead of using a "^" character to represent
+     * exponentiation.
+     * <p>
+     * The default is to produce exponential labels if the corresponding 
+     * LogTicks attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - If no axis is specified, (e.g. "LogLabel" instead of
+     * "LogLabel(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogLabel(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the LogLabel attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public boolean getLogLabel( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getB( "LogLabel" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * use exponential format for numerical axis labels by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the numerical axis labels should be in normal decimal form
+     * or should be represented as 10 raised to the appropriate power.
+     * That is, an axis value of 1000.0 will be drawn as "1000.0" if
+     * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
+     * graphical escape sequences are supported (see attribute Escape), 
+     * the power in such exponential labels will be drawn as a small 
+     * superscript instead of using a "^" character to represent
+     * exponentiation.
+     * <p>
+     * The default is to produce exponential labels if the corresponding 
+     * LogTicks attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - If no axis is specified, (e.g. "LogLabel" instead of
+     * "LogLabel(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogLabel(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  logLabel  the LogLabel attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setLogLabel( int axis, boolean logLabel ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setB( "LogLabel" + "(" + axis + ")", logLabel );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * use exponential format for numerical axis labels.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the numerical axis labels should be in normal decimal form
+     * or should be represented as 10 raised to the appropriate power.
+     * That is, an axis value of 1000.0 will be drawn as "1000.0" if
+     * LogLabel is zero, but as "10^3" if LogLabel is non-zero. If
+     * graphical escape sequences are supported (see attribute Escape), 
+     * the power in such exponential labels will be drawn as a small 
+     * superscript instead of using a "^" character to represent
+     * exponentiation.
+     * <p>
+     * The default is to produce exponential labels if the corresponding 
+     * LogTicks attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - If no axis is specified, (e.g. "LogLabel" instead of
+     * "LogLabel(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogLabel(1) value.
+     *
+     * @param  logLabel   the LogLabel attribute of this object
+     */
+    public void setLogLabel( boolean logLabel ) {
+       setB( "LogLabel", logLabel );
+    }
+
+    /**
+     * Get 
+     * map the plot logarithmically onto the screen by axis.  
+     * This attribute controls the appearance of all graphics produced by
+     * the Plot, by determining whether the axes of the plotting surface
+     * are mapped logarithmically or linearly onto the base Frame of the 
+     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * value for each axis of the graphics coordinate system (i.e. the
+     * base Frame in the Plot) so that, for instance, the setting
+     * "LogPlot(2)=1" specifies that the second axis of the graphics
+     * coordinate system (usually the vertical axis) should be mapped
+     * logarithmically onto the second axis of the base Frame of the
+     * FrameSet supplied when the Plot was constructed. 
+     * <p>
+     * If the LogPlot value of a Plot axis is non-zero, it causes that
+     * axis to be mapped logarithmically, otherwise (the default) the axis
+     * is mapped linearly.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogPlot attribute provides the default value
+     * for the related LogTicks attribute. By selecting suitable values for 
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
+     * spaced in value but which are mapped logarithmically onto the screen 
+     * (and vice-versa).
+     * <br> - An axis may only be mapped logarithmically if the visible part of
+     * the axis does not include the value zero. The visible part of the
+     * axis is that part which is mapped onto the plotting area, and is
+     * measured within the base Frame of the FrameSet which was supplied when
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
+     * will be ignored (without error) if the visible part of the axis 
+     * includes the value zero
+     * <br> - If no axis is specified, (e.g. "LogPlot" instead of
+     * "LogPlot(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogPlot(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the LogPlot attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public boolean getLogPlot( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getB( "LogPlot" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * map the plot logarithmically onto the screen by axis.  
+     * This attribute controls the appearance of all graphics produced by
+     * the Plot, by determining whether the axes of the plotting surface
+     * are mapped logarithmically or linearly onto the base Frame of the 
+     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * value for each axis of the graphics coordinate system (i.e. the
+     * base Frame in the Plot) so that, for instance, the setting
+     * "LogPlot(2)=1" specifies that the second axis of the graphics
+     * coordinate system (usually the vertical axis) should be mapped
+     * logarithmically onto the second axis of the base Frame of the
+     * FrameSet supplied when the Plot was constructed. 
+     * <p>
+     * If the LogPlot value of a Plot axis is non-zero, it causes that
+     * axis to be mapped logarithmically, otherwise (the default) the axis
+     * is mapped linearly.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogPlot attribute provides the default value
+     * for the related LogTicks attribute. By selecting suitable values for 
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
+     * spaced in value but which are mapped logarithmically onto the screen 
+     * (and vice-versa).
+     * <br> - An axis may only be mapped logarithmically if the visible part of
+     * the axis does not include the value zero. The visible part of the
+     * axis is that part which is mapped onto the plotting area, and is
+     * measured within the base Frame of the FrameSet which was supplied when
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
+     * will be ignored (without error) if the visible part of the axis 
+     * includes the value zero
+     * <br> - If no axis is specified, (e.g. "LogPlot" instead of
+     * "LogPlot(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogPlot(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  logPlot  the LogPlot attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setLogPlot( int axis, boolean logPlot ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setB( "LogPlot" + "(" + axis + ")", logPlot );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * map the plot logarithmically onto the screen.  
+     * This attribute controls the appearance of all graphics produced by
+     * the Plot, by determining whether the axes of the plotting surface
+     * are mapped logarithmically or linearly onto the base Frame of the 
+     * FrameSet supplied when the Plot was constructed. It takes a separate 
+     * value for each axis of the graphics coordinate system (i.e. the
+     * base Frame in the Plot) so that, for instance, the setting
+     * "LogPlot(2)=1" specifies that the second axis of the graphics
+     * coordinate system (usually the vertical axis) should be mapped
+     * logarithmically onto the second axis of the base Frame of the
+     * FrameSet supplied when the Plot was constructed. 
+     * <p>
+     * If the LogPlot value of a Plot axis is non-zero, it causes that
+     * axis to be mapped logarithmically, otherwise (the default) the axis
+     * is mapped linearly.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogPlot attribute provides the default value
+     * for the related LogTicks attribute. By selecting suitable values for 
+     * LogPlot and LogTicks, it is possible to have tick marks which are evenly 
+     * spaced in value but which are mapped logarithmically onto the screen 
+     * (and vice-versa).
+     * <br> - An axis may only be mapped logarithmically if the visible part of
+     * the axis does not include the value zero. The visible part of the
+     * axis is that part which is mapped onto the plotting area, and is
+     * measured within the base Frame of the FrameSet which was supplied when
+     * the Plot was constructed. Any attempt to set LogPlot to a non-zero value 
+     * will be ignored (without error) if the visible part of the axis 
+     * includes the value zero
+     * <br> - If no axis is specified, (e.g. "LogPlot" instead of
+     * "LogPlot(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogPlot(1) value.
+     *
+     * @param  logPlot   the LogPlot attribute of this object
+     */
+    public void setLogPlot( boolean logPlot ) {
+       setB( "LogPlot", logPlot );
+    }
+
+    /**
+     * Get 
+     * space the major tick marks logarithmically by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the major tick marks should be spaced logarithmically or 
+     * linearly. It takes a separate value for each physical axis of the
+     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
+     * that the major tick marks on the second axis should be spaced
+     * logarithmically.
+     * <p>
+     * If the LogTicks value for a physical axis is non-zero, the major
+     * tick marks on that axis will be spaced logarithmically (that is,
+     * there will be a constant ratio betwen adjacent tick mark values).
+     * An error will be reported if the dynamic range of the axis (the
+     * ratio of the largest to smallest displayed axis value) is less than
+     * 100.0. If the LogTicks value is zero, the major tick marks will be 
+     * evenly spaced (that is, there will be a constant difference between 
+     * adjacent tick mark values). The default is to produce logarithmically 
+     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogTicks attribute does not affect the mapping
+     * of the plot onto the screen, which is controlled by attribute LogPlot.
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
+     * have tick marks which are evenly spaced in value but which are mapped 
+     * logarithmically onto the screen (and vica-versa).
+     * <br> - An error will be reported when drawing an annotated axis grid if
+     * the visible part of the physical axis includes the value zero.
+     * <br> - If no axis is specified, (e.g. "LogTicks" instead of
+     * "LogTicks(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogTicks(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be got.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @return       the LogTicks attribute for the indicated axis of this object
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public boolean getLogTicks( int axis ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            return getB( "LogTicks" + "(" + axis + ")" );
+        }
+        else {
+            throw new IndexOutOfBoundsException(
+                "axis value " + axis + " is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * space the major tick marks logarithmically by axis.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the major tick marks should be spaced logarithmically or 
+     * linearly. It takes a separate value for each physical axis of the
+     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
+     * that the major tick marks on the second axis should be spaced
+     * logarithmically.
+     * <p>
+     * If the LogTicks value for a physical axis is non-zero, the major
+     * tick marks on that axis will be spaced logarithmically (that is,
+     * there will be a constant ratio betwen adjacent tick mark values).
+     * An error will be reported if the dynamic range of the axis (the
+     * ratio of the largest to smallest displayed axis value) is less than
+     * 100.0. If the LogTicks value is zero, the major tick marks will be 
+     * evenly spaced (that is, there will be a constant difference between 
+     * adjacent tick mark values). The default is to produce logarithmically 
+     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogTicks attribute does not affect the mapping
+     * of the plot onto the screen, which is controlled by attribute LogPlot.
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
+     * have tick marks which are evenly spaced in value but which are mapped 
+     * logarithmically onto the screen (and vica-versa).
+     * <br> - An error will be reported when drawing an annotated axis grid if
+     * the visible part of the physical axis includes the value zero.
+     * <br> - If no axis is specified, (e.g. "LogTicks" instead of
+     * "LogTicks(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogTicks(1) value.
+     *
+     * @param  axis  index of the axis for which the attribute is to be set.
+     *               Must be >= 1 and <= the value of the <code>Naxes</code>
+     *               attribute.
+     * @param  logTicks  the LogTicks attribute for the indicated axis 
+     *                of this object.
+     * @throws  IndexOutOfBoundsException  if <code>axis</code> is not in the
+     *                                     range <code>1..Naxes</code>
+     */
+    public void setLogTicks( int axis, boolean logTicks ) {
+        int naxes = getNaxes();
+        if ( axis >= 1 && axis <= naxes ) {
+            setB( "LogTicks" + "(" + axis + ")", logTicks );
+        }
+        else {
+            throw new IndexOutOfBoundsException( 
+                "axis " + axis + " value is not in the range 1.." + naxes );
+        }
+    }
+
+    /**
+     * Set 
+     * space the major tick marks logarithmically.  
+     * This attribute controls the appearance of an annotated
+     * coordinate grid (drawn with the astGrid function) by determining
+     * whether the major tick marks should be spaced logarithmically or 
+     * linearly. It takes a separate value for each physical axis of the
+     * Plot so that, for instance, the setting "LogTicks(2)=1" specifies
+     * that the major tick marks on the second axis should be spaced
+     * logarithmically.
+     * <p>
+     * If the LogTicks value for a physical axis is non-zero, the major
+     * tick marks on that axis will be spaced logarithmically (that is,
+     * there will be a constant ratio betwen adjacent tick mark values).
+     * An error will be reported if the dynamic range of the axis (the
+     * ratio of the largest to smallest displayed axis value) is less than
+     * 100.0. If the LogTicks value is zero, the major tick marks will be 
+     * evenly spaced (that is, there will be a constant difference between 
+     * adjacent tick mark values). The default is to produce logarithmically 
+     * spaced tick marks if the corresponding LogPlot attribute is non-zero.
+     * <h4>Notes</h4>
+     * <br> - The setting of the LogTicks attribute does not affect the mapping
+     * of the plot onto the screen, which is controlled by attribute LogPlot.
+     * By selecting suitable values for LogPlot and LogTicks, it is possible to 
+     * have tick marks which are evenly spaced in value but which are mapped 
+     * logarithmically onto the screen (and vica-versa).
+     * <br> - An error will be reported when drawing an annotated axis grid if
+     * the visible part of the physical axis includes the value zero.
+     * <br> - If no axis is specified, (e.g. "LogTicks" instead of
+     * "LogTicks(2)"), then a "set" or "clear" operation will affect the
+     * attribute value of all the Plot axes, while a "get" or "test"
+     * operation will use just the LogTicks(1) value.
+     *
+     * @param  logTicks   the LogTicks attribute of this object
+     */
+    public void setLogTicks( boolean logTicks ) {
+       setB( "LogTicks", logTicks );
     }
 
     /**

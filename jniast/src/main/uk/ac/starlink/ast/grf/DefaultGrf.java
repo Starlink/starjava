@@ -1227,4 +1227,21 @@ public class DefaultGrf
                                   (float) dte[3], (float) dte[1]};
         return new float[][]{xte, yte};
     }
+
+    public int cap( int cap, int value )
+    {
+        //  Just support scales and let AST control the interpretation of
+        //  all escape sequences.
+        if ( cap == GRF__SCALES ) {
+            return 1;
+        }
+        return 0;
+    }
+
+    public float[] scales()
+    {
+        //  For a JComponent we assume the scales are required to be square
+        //  and fixed, so we cannot work out better values than 1, -1.
+        return new float[] { 1.0f, -1.0f };
+    }
 }

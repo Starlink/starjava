@@ -103,10 +103,12 @@ C_ROUTINES = \
    SpecFrame.c \
    SpecMap.c \
    SphMap.c \
+   TranMap.c \
    UnitMap.c \
    WcsMap.c \
    WinMap.c \
-   ZoomMap.c
+   ZoomMap.c \
+   GrfEscape.c
 
 
 #  List of object files produced by compiling the source code and rules
@@ -130,8 +132,9 @@ shared: $(SHARED_OBJECT)
 
 $(SHARED_OBJECT): $(OBJECT_FILES) $(LINK_SCRIPT)
 	- mkdir temp
-	(cd temp; \
-           for f in `../$(LINK_SCRIPT)` ""; do \
+	(files=`./$(LINK_SCRIPT)`; \
+           cd temp; \
+           for f in $$files ""; do \
            echo "Processing $$f"; \
            if test -n "$$f"; then \
               ar x $$f; \

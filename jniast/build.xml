@@ -87,7 +87,7 @@
    !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="3.1-5"/>
+  <property name="version" value="3.2-3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>
@@ -527,6 +527,10 @@
       <param name="pj.cfile" value="sphmap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="TranMap"/>
+      <param name="pj.cfile" value="tranmap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="UnitMap"/>
       <param name="pj.cfile" value="unitmap.c"/>
     </antcall>
@@ -710,10 +714,12 @@
     <copy todir="${build.jni}">
       <fileset dir="${src.jni}" includes="*.c *.h makefile mk ${link.script}"/>
       <fileset dir="${build.ast}" includes="grf.h"/>
+      <fileset dir="${build.ast}" includes="plot.h"/>
+      <fileset dir="${build.ast}" includes="ast_link"/>
     </copy>
 
     <chmod perm="ugo+rx">
-      <fileset dir="${build.jni}" includes="mk ${link.script}"/>
+      <fileset dir="${build.jni}" includes="mk ${link.script} ast_link"/>
     </chmod>
 
     <javah classpath="${build.classes}" destdir="${build.jni}" verbose="yes">
@@ -741,10 +747,12 @@
       <class name="${package.name}.SpecFrame"/>
       <class name="${package.name}.SpecMap"/>
       <class name="${package.name}.SphMap"/>
+      <class name="${package.name}.TranMap"/>
       <class name="${package.name}.UnitMap"/>
       <class name="${package.name}.WcsMap"/>
       <class name="${package.name}.WinMap"/>
       <class name="${package.name}.ZoomMap"/>
+      <class name="${package.name}.grf.GrfEscape"/>
     </javah>
   </target>
 
@@ -761,6 +769,8 @@
       <patternset>
         <include name="*.c"/>
         <include name="grf.h"/>
+        <include name="plot.h"/>
+        <include name="ast_link"/>
         <include name="${ast.fac.err}"/>
       </patternset>
     </untar>

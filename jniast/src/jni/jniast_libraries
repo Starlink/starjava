@@ -59,7 +59,7 @@ fi
 #  to extract the ".o" files.
 
 list=""
-for f in `ast_link -myerr -mygrf` ""; do
+for f in `./ast_link -myerr -grf_v3.2` ""; do
    case "$f" in
       -l*) 
          libname="`echo $f | sed 's:-l:lib:'`.a"

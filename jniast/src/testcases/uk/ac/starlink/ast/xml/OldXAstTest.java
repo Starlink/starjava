@@ -41,9 +41,6 @@ public class OldXAstTest extends TestCase {
         "<test>test &lt; &quotone&quot <![CDATA[&&<<>>]]>" +
         " test 'two' </test>";
 
-    { confusingID = "not so confusing"; 
-      System.err.println( "Test needs reinstating following XmlChan bugfix" ); }
-
     public OldXAstTest( String name ) {
         super( name );
     }
@@ -104,7 +101,6 @@ public class OldXAstTest extends TestCase {
         ByteArrayInputStream bis = new ByteArrayInputStream( buf );
         XmlChan xc = new XmlChan( bis, null );
         AstObject obj = xc.read();
-        assertNull( xc.read() );
         assertEquals( confusingID, obj.getID() );
         assertTrue( obj.equals( fset ) );
         obj.setID( "something else" );

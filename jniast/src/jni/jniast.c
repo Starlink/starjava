@@ -410,7 +410,8 @@ int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel ) {
 *     This routine checks that the array in question has at least a given
 *     number of elements.  If the array is a null pointer, then a 
 *     NullPointerException is thrown.  If the array has fewer than
-*     the requested number of elements, then a RuntimeException is thrown.
+*     the requested number of elements, then an IllegalArgumentException
+*     is thrown.
 
 *  Arguments:
 *     env = JNIEnv *
@@ -439,7 +440,7 @@ int jniastCheckArrayLength( JNIEnv *env, jarray jArray, int minel ) {
       else {
          nel = (*env)->GetArrayLength( env, jArray );
          if ( nel < minel ) {
-            jniastThrowException( env,
+            jniastThrowIllegalArgumentException( env,
                "Supplied array has only %d elements (needs %d)", nel, minel );
          }
          else {
