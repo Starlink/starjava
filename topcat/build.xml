@@ -281,7 +281,7 @@
    !-->
   <path id="tests-libpath.id">
     <pathelement path="${java.library.path}"/>
-    <pathelement location="${star.jar.dir}/${os.arch}"/>
+    <pathelement location="${star.install}/lib/${os.arch}"/>
   </path>
   <property name="tests-libpath" refid="tests-libpath.id"/>
 

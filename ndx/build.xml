@@ -73,7 +73,7 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- Directory containing native libraries. -->
-  <property name="star.lib.arch" value="${star.dir}/lib/${os.arch}"/>
+  <property name="star.lib.arch" value="${star.install}/lib/${os.arch}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
   <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>

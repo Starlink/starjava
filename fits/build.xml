@@ -76,7 +76,7 @@
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!-- Directory containing native libraries. -->
-  <property name="star.lib.arch" value="${star.dir}/lib/${os.arch}"/>
+  <property name="star.lib.arch" value="${star.install}/lib/${os.arch}"/>
 
   <!--
    !  ================

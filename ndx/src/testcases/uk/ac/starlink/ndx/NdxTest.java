@@ -50,7 +50,7 @@ public class NdxTest extends TestCase {
                 + "vndx";
         assertTrue( "JNIHDS shared library", HDSPackage.isAvailable() );
         remoteNDX = 
-            new URL( "http://andromeda.star.bris.ac.uk/~mbt/data/m31.sdf" );
+            new URL( "http://java.starlink.ac.uk/data/m31.sdf" );
         rname = System.getProperty( "java.io.tmpdir" )
               + File.separatorChar
               + "m31-from-network";
