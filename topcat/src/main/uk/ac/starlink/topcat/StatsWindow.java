@@ -143,6 +143,12 @@ public class StatsWindow extends TopcatViewWindow {
         /* Add standard help actions. */
         addHelp( "StatsWindow" );
 
+        /* Set the initial subset selection to the model's current subset,
+         * which triggers the initial statistics calculation.
+         * It doesn't continue to reflect this value (for performance reasons)
+         * but it needs an initial value from somewhere. */
+        subSelector.setSelectedItem( tcModel.getSelectedSubset() );
+
         /* Make the component visible. */
         pack();
         setVisible( true );

@@ -353,6 +353,26 @@ public class TopcatModel {
     }
 
     /**
+     * Returns the most recently selected row subset.
+     * This is the one which defines the apparent table.
+     *
+     * @param  current row subset
+     */
+    public RowSubset getSelectedSubset() {
+        return (RowSubset) subsetSelectionModel.getSelectedItem();
+    }
+
+    /**
+     * Returns the most recently selected sort order.
+     * This is the one which defines the apparent table.
+     *
+     * @param  current sort order
+     */
+    public SortOrder getSelectedSort() {
+        return (SortOrder) sortSelectionModel.getSelectedItem();
+    }
+
+    /**
      * Adds a listener to be notified of changes in this model.
      *
      * @param  listener  listener to add
