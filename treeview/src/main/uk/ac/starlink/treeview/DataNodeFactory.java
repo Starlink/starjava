@@ -332,6 +332,8 @@ public class DataNodeFactory implements Cloneable {
                 NdxDataNode.class,
                 VOTableDataNode.class,
                 XMLDataNode.class,
+                VOTableTableDataNode.class,
+                VOComponentDataNode.class,
                 ZipFileDataNode.class,
                 NDArrayDataNode.class,
                 FileDataNode.class,

@@ -3,10 +3,12 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.TreeMap;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -28,6 +30,13 @@ import uk.ac.starlink.util.SourceReader;
  * Generic node for representing VOTable elements.
  */
 public class VOComponentDataNode extends DefaultDataNode {
+
+    private static Set voTagNames = new HashSet( Arrays.asList( new String[] {
+        "VOTABLE", "RESOURCE", "DESCRIPTION", "DEFINITIONS", "INFO", 
+        "PARAM", "TABLE", "FIELD", "VALUES", "MIN", "MAX", "OPTION", 
+        "LINK", "DATA", "TABLEDATA", "TR", "TD", "BINARY", "FITS", 
+        "STREAM", "COOSYS",
+    } ) );
 
     protected final Element vocel;
     protected final String systemId;
@@ -56,6 +65,11 @@ public class VOComponentDataNode extends DefaultDataNode {
             throw new NoSuchDataException( "Source is not an element" );
         }
         this.systemId = xsrc.getSystemId();
+
+        if ( ! voTagNames.contains( vocel.getTagName() ) || 
+             vocel.getPrefix() != null ) {
+            throw new NoSuchDataException( "Not a known VOTable element" );
+        }
 
         String idval = vocel.getAttribute( "ID" );
         String nameval = vocel.getAttribute( "name" );
