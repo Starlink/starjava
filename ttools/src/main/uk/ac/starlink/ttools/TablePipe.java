@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import uk.ac.starlink.table.ColumnPermutedStarTable;
+import uk.ac.starlink.table.ExplodedStarTable;
 import uk.ac.starlink.table.ProgressLineStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
@@ -32,6 +34,7 @@ public class TablePipe extends TableTask {
     private final ProcessingMode[] modes_;
     private final static String[] MODE_NAMES = new String[] {
         CopyMode.class.getName(),
+        JdbcMode.class.getName(),
         MetadataMode.class.getName(),
         CountMode.class.getName(),
     };
@@ -99,6 +102,47 @@ public class TablePipe extends TableTask {
                     else {
                         return false;
                     }
+                }
+                else if ( arg.equals( "-delcol" ) ) {
+                    it.remove();
+                    if ( it.hasNext() ) {
+                        final String colName = (String) it.next();
+                        it.remove();
+                        pipeline_.add( new Step() {
+                            public StarTable wrap( StarTable base )
+                                    throws IOException {
+                                int delIndex = new ColumnIdentifier( base )
+                                              .getColumnIndex( colName );
+                                if ( delIndex < 0 ) {
+                                    throw new IOException( "No such column " +
+                                                           colName );
+                                }
+                                int[] colMap = 
+                                    new int[ base.getColumnCount() - 1 ];
+                                int j = 0;
+                                for ( int i = 0; i < base.getColumnCount(); 
+                                      i++ ) {
+                                    if ( i != delIndex ) {
+                                        colMap[ j++ ] = i;
+                                    }
+                                }
+                                assert j == colMap.length;
+                                return new ColumnPermutedStarTable( base, 
+                                                                    colMap );
+                            }
+                        } );
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else if ( arg.equals( "-explode" ) ) {
+                    it.remove();
+                    pipeline_.add( new Step() {
+                        public StarTable wrap( StarTable base ) {
+                            return new ExplodedStarTable( base );
+                        }
+                    } );
                 }
                 else {
                     for ( int i = 0; i < modes_.length; i++ ) {
@@ -192,6 +236,25 @@ public class TablePipe extends TableTask {
 
     public String getHelp() {
         StringBuffer help = new StringBuffer( super.getHelp() );
+
+        help.append( "\n   Mode flags - Use one of:\n" );
+        for ( int i = 0; i < modes_.length; i++ ) {
+            ProcessingMode mode = modes_[ i ];
+            help.append( "      -" )
+                .append( mode.getName() );
+            String modeUsage = mode.getModeUsage();
+            if ( modeUsage != null ) {
+                help.append( ' ' )
+                    .append( modeUsage );
+            }
+            help.append( '\n' );
+        }
+
+        help.append( "\n   Filter flags - Use any sequence of:\n" );
+        help.append( "      -select <expr>\n" );
+        help.append( "      -delcol <col-id>\n" );
+        help.append( "      -explode\n" );
+
         help.append( "\n   Auto-detected in-formats:\n" );
         for ( Iterator it = getTableFactory().getDefaultBuilders().iterator();
               it.hasNext(); ) {
@@ -200,6 +263,7 @@ public class TablePipe extends TableTask {
                         .getFormatName().toLowerCase() )
                 .append( '\n' );
         }
+
         help.append( "\n   Known in-formats:\n" );
         for ( Iterator it = getTableFactory().getKnownFormats().iterator();
               it.hasNext(); ) {
@@ -212,21 +276,10 @@ public class TablePipe extends TableTask {
 
     public String[] getSpecificOptions() {
         List opts = new ArrayList();
-        StringBuffer modeChoice = new StringBuffer( "(" );
-        for ( int i = 0; i < modes_.length; i++ ) {
-            if ( i > 0 ) {
-                modeChoice.append( " | " );
-            }
-            ProcessingMode mode = modes_[ i ];
-            modeChoice.append( '-' )
-                      .append( mode.getName() );
-        }
-        modeChoice.append( ")" );
-        opts.add( modeChoice.toString() );
-        opts.addAll( Arrays.asList( new String[] {
-            "[-ifmt <in-format> [-stream]]",
-            "[<in-table>]",
-        } ) );
+        opts.add( "[-ifmt <in-format> [-stream]]" );
+        opts.add( "[<in-table>]" );
+        opts.add( "<mode-flags>" );
+        opts.add( "[<filter-flags>]" );
         return (String[]) opts.toArray( new String[ 0 ] );
     }
 
