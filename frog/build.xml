@@ -416,10 +416,10 @@
     <!-- Build any shareable libraries needed to support this package.
      !   This goes straight into the distribution directory to save on
      !   space, and to make it immediately available to locally built
-     !   packages  -->
-    <antcall target="execute_mk_script">
+     !   packages. None at present so skipped  -->
+    <!--antcall target="execute_mk_script">
       <param name="mk.action" value="build"/>
-    </antcall>
+    </antcall-->
 
   </target>
 
