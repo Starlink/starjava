@@ -214,7 +214,9 @@ public class BridgeNDArray extends DefaultArrayDescription implements NDArray {
                           + type.xmlName()
                           + "> as expected" );
 
-            el.setAttribute( "uri", url.toString() );
+            if ( url != null ) {
+                el.setAttribute( "uri", url.toString() );
+            }
 
             return null;
         }
