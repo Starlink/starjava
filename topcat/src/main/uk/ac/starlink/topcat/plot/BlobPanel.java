@@ -10,6 +10,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.event.MouseInputListener;
 
@@ -18,7 +21,8 @@ import javax.swing.event.MouseInputListener;
  * You drag the mouse around to cover patches of the component;
  * you can create several separate or overlapping blobs by doing 
  * several click-drag sequences.  If you drag off the window the
- * currently-dragged region will be ditched.  Try it, it's easy.
+ * currently-dragged region will be ditched.  Clicking with the right
+ * button removes the most recently-added blob.  Try it, it's easy.
  *
  * @author   Mark Taylor (Starlink)
  * @since    8 Jul 2004
@@ -26,9 +30,10 @@ import javax.swing.event.MouseInputListener;
 public class BlobPanel extends JComponent
                        implements MouseListener, MouseMotionListener {
 
-    private Area blob_ = new Area();
+    private List blobs_;
     private GeneralPath dragPath_;
-    private Color color_ = new Color( 0, 0, 0, 64 );
+    private Color fillColor_ = new Color( 0, 0, 0, 64 );
+    private Color pathColor_ = new Color( 0, 0, 0, 128 );
 
     /**
      * Creates a new BlobPanel.
@@ -36,6 +41,8 @@ public class BlobPanel extends JComponent
     public BlobPanel() {
         addMouseListener( this );
         addMouseMotionListener( this );
+        setOpaque( false );
+        clear();
     }
 
     /**
@@ -44,7 +51,11 @@ public class BlobPanel extends JComponent
      * @return   shape drawn
      */
     public Shape getBlob() {
-        return simplify( blob_ );
+        Area area = new Area();
+        for ( Iterator it = blobs_.iterator(); it.hasNext(); ) {
+            area.add( new Area( (Shape) it.next() ) );
+        }
+        return simplify( area );
     }
 
     /**
@@ -53,40 +64,33 @@ public class BlobPanel extends JComponent
      * @param  blob  shape to be displayed and played around with by the user
      */
     public void setBlob( Shape blob ) {
-        blob_ = new Area( blob );
+        blobs_ = new ArrayList();
+        blobs_.add( blob );
         repaint();
     }
 
     /**
-     * Returns the current blob colour.  By default it's a semi-transparent 
-     * black.
-     *
-     * @return  blob drawing colour
+     * Resets the current blob to a null shape.
      */
-    public Color getColor() {
-        return color_;
-    }
-
-    /**
-     * Sets the current blob colour.
-     *
-     * @param  color  blob drawing colour
-     */
-    public void setColor( Color color ) {
-        color_ = color;
+    public void clear() {
+        blobs_ = new ArrayList();
         repaint();
     }
 
     protected void paintComponent( Graphics g ) {
-        super.paintComponent( g );
         Color oldColor = g.getColor();
-        g.setColor( color_ );
         Graphics2D g2 = (Graphics2D) g;
 
-        Area area = new Area( blob_ );
+        Area area = new Area();
+        for ( Iterator it = blobs_.iterator(); it.hasNext(); ) {
+            area.add( new Area( (Shape) it.next() ) );
+        }
         if ( dragPath_ != null ) {
             area.add( new Area( dragPath_ ) );
+            g2.setColor( pathColor_ );
+            g2.draw( dragPath_ );
         }
+        g2.setColor( fillColor_ );
         g2.fill( area );
 
         g.setColor( oldColor );
@@ -105,19 +109,31 @@ public class BlobPanel extends JComponent
         }
     }
 
-    public void mouseClicked( MouseEvent evt ) {}
+    public void mouseClicked( MouseEvent evt ) {
+        if ( evt.getButton() == MouseEvent.BUTTON3 ) {
+            int nblob = blobs_.size();
+            if ( nblob > 0 ) {
+                blobs_.remove( nblob - 1 );
+            }
+            repaint();
+        }
+    }
 
     public void mousePressed( MouseEvent evt ) {
-        Point p = evt.getPoint();
-        dragPath_ = new GeneralPath();
-        dragPath_.moveTo( p.x, p.y );
+        if ( evt.getButton() == MouseEvent.BUTTON1 ) {
+            Point p = evt.getPoint();
+            dragPath_ = new GeneralPath();
+            dragPath_.moveTo( p.x, p.y );
+        }
     }
 
     public void mouseReleased( MouseEvent evt ) {
-        if ( dragPath_ != null ) {
-            blob_.add( new Area( simplify( dragPath_ ) ) );
-            dragPath_ = null;
-            repaint();
+        if ( evt.getButton() == MouseEvent.BUTTON1 ) {
+            if ( dragPath_ != null ) {
+                blobs_.add( simplify( dragPath_ ) );
+                dragPath_ = null;
+                repaint();
+            }
         }
     }
 
@@ -145,18 +161,5 @@ public class BlobPanel extends JComponent
         // Current implementation is a no-op.  If we need to be cleverer,
         // probably want to look at java.awt.geom.FlatteningPathIterator?
         return shape;
-    }
-
-    /**
-     * Main method.
-     */
-    public static void main( String[] args ) {
-        BlobPanel blobber = new BlobPanel();
-        blobber.setPreferredSize( new java.awt.Dimension( 500, 400 ) );
-        javax.swing.JFrame top = new javax.swing.JFrame();
-        top.getContentPane().setLayout( new java.awt.BorderLayout() );
-        top.getContentPane().add( blobber );
-        top.pack();
-        top.setVisible( true );
     }
 }
