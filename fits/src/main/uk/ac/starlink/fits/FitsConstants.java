@@ -99,7 +99,9 @@ public class FitsConstants {
         try {
             while ( nskip-- > 0 ) {
                 Header hdr = new Header( stream );
-                stream.skip( getDataSize( hdr ) );
+                for ( long hbytes = getDataSize( hdr ); hbytes > 0; ) {
+                    hbytes -= stream.skip( hbytes );
+                }
             }
         }
         catch ( TruncatedFileException e ) {

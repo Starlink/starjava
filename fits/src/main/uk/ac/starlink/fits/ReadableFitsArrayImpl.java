@@ -186,7 +186,9 @@ class ReadableFitsArrayImpl implements ArrayImpl {
                     ((RandomAccess) stream).seek( strmBase + ( off * nByte ) );
                 }
                 else {
-                    stream.skip( ( off - offset ) * nByte );
+                    for ( long nskip = ( off - offset ) * nByte; nskip > 0; ) {
+                        nskip -= stream.skip( nskip );
+                    }
                 }
                 offset = off;
             }
