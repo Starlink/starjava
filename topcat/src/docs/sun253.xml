@@ -4959,8 +4959,18 @@ You can scroll up and down this table and select the one which you
 want to query by clicking on it.
 </p>
 
-<p>Having selected one of the cone search services from the table, enter the
-location on the sky and search radius in the boxes provided, and
+<p>Having selected one of the cone search services from the table,
+you need to specify the sky region in which you are interested.
+If you enter the name of an astronomical object into the 
+<label>Object Name</label> field and hit the <label>Resolve</label>
+button, the coordinates will be entered into the <label>RA</label> 
+and <label>Dec</label> fields below.
+Alternatively you can type the coordinates in directly, choosing
+either degrees or sexagesimal coordinates using the unit selector
+boxes.  Enter the search radius too.
+</p>
+
+<p>Having done this, 
 hit the <label>OK</label> button.  This will send the query to
 the service you selected and, if successful, load into TOPCAT a
 table containing all the objects in the region of the sky you 
