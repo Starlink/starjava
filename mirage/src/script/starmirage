@@ -60,5 +60,5 @@ fi
 
 #  Run the application.
 
-$starjava -classpath $classpath uk.ac.starlink.mirage.Driver $*
+$starjava -classpath $classpath uk.ac.starlink.mirage.MirageDriver $*
 
