@@ -2474,7 +2474,7 @@ The following ones have special significance within TOPCAT:
 
 <dt><code>startable.load.dialogs</code></dt>
 <dd><p>Can be set to a (colon-separated) list of custom table load dialogue
-    classes (see <ref id="customLoadDialogs"/>).
+    classes <!-- (see <ref id="customLoadDialogs"/>) -->.
     </p></dd>
 
 <dt><code>startable.readers</code></dt>
