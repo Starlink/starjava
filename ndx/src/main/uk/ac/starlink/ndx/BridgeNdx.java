@@ -477,7 +477,12 @@ public class BridgeNdx implements Ndx {
         try {
             return getHdxFacade().getSource( URLUtils.urlToUri(base) );
         } catch (HdxException ex) {
-            // this method `should' thrown HdxException, but for now just convert it
+            // this method `should' throw an HdxException, but the
+            // interface doesn't allow that, so for now just convert
+            // it to a PluginException
+            throw new uk.ac.starlink.hdx.PluginException( ex );
+        } catch (java.net.MalformedURLException ex) {
+            // ditto
             throw new uk.ac.starlink.hdx.PluginException( ex );
         }
     }
@@ -526,7 +531,8 @@ public class BridgeNdx implements Ndx {
         }
     }
 
-    private Element adornDOM(Element ndxEl, HdxDocument doc, URI base) {
+    private Element adornDOM(Element ndxEl, HdxDocument doc, URI base)
+            throws java.net.MalformedURLException {
         
         /* Get the base URI in a form suitable for using with URI.relativize. */
         URI baseUri;
@@ -711,9 +717,15 @@ public class BridgeNdx implements Ndx {
                           + ndxType.xmlName()
                           + "> as expected");
             
-            adornDOM( el, (HdxDocument)el.getOwnerDocument(), null );
+            try {
+                adornDOM( el, (HdxDocument)el.getOwnerDocument(), null );
 
-            return null;
+                return null;
+
+            } catch (java.net.MalformedURLException ex) {
+                throw new HdxException("Failed to synchronise element ("
+                                       + ex + ")");
+            }
         }        
 
         public Object getObject( Element el )
