@@ -485,8 +485,8 @@ public class SplatBrowser
         menuBar.add( fileMenu );
 
         //  Add action to open a list of spectrum stored in files.
-        ImageIcon openImage = new ImageIcon(
-            ImageHolder.class.getResource( "openfile.gif" ) );
+        ImageIcon openImage = 
+            new ImageIcon( ImageHolder.class.getResource( "openfile.gif" ) );
         LocalAction openAction  = new LocalAction( LocalAction.OPEN,
                                                    "Open", openImage,
                                                    "Open spectra" );
@@ -495,8 +495,10 @@ public class SplatBrowser
 
         //  Add action to browse the local file system and look for tables
         //  etc. in sub-components.
-        ImageIcon browseImage = new ImageIcon(
-            ImageHolder.class.getResource( "browse.gif" ) );
+        ImageIcon browseImage = 
+            new ImageIcon( ImageHolder.class.getResource( "browse.gif" ) );
+            javax.swing.plaf.metal.MetalIconFactory.getTreeControlIcon(true);
+
         LocalAction browseAction  = new LocalAction( LocalAction.BROWSE,
                                                      "Browse", browseImage,
                                                      "Browse for spectra" );
@@ -504,8 +506,8 @@ public class SplatBrowser
         toolBar.add( browseAction );
 
         //  Add action to save a spectrum
-        ImageIcon saveImage = new ImageIcon(
-            ImageHolder.class.getResource( "savefile.gif" ) );
+        ImageIcon saveImage = 
+            new ImageIcon( ImageHolder.class.getResource( "savefile.gif" ) );
         LocalAction saveAction  =
             new LocalAction( LocalAction.SAVE, "Save", saveImage,
                              "Save a spectrum to disk file" );
@@ -513,8 +515,8 @@ public class SplatBrowser
         toolBar.add( saveAction );
 
         //  Add an action to read in a stack of spectra.
-        ImageIcon readStackImage = new ImageIcon(
-            ImageHolder.class.getResource( "readstack.gif" ) );
+        ImageIcon readStackImage = 
+            new ImageIcon( ImageHolder.class.getResource( "readstack.gif" ) );
         LocalAction readStackAction =
             new LocalAction( LocalAction.READ_STACK, "Read stack",
                              readStackImage,
@@ -523,8 +525,8 @@ public class SplatBrowser
         toolBar.add( readStackAction );
 
         //  Add an action to save the stack of spectra.
-        ImageIcon saveStackImage = new ImageIcon(
-            ImageHolder.class.getResource( "savestack.gif" ) );
+        ImageIcon saveStackImage = 
+            new ImageIcon( ImageHolder.class.getResource( "savestack.gif" ) );
         LocalAction saveStackAction =
             new LocalAction( LocalAction.SAVE_STACK, "Save stack",
                              saveStackImage, "Save all spectra to disk file" );
@@ -532,8 +534,8 @@ public class SplatBrowser
         toolBar.add( saveStackAction );
 
         //  Add an action to exit application.
-        ImageIcon exitImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+        ImageIcon exitImage = 
+            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
         LocalAction exitAction = new LocalAction( LocalAction.EXIT,
                                                   "Exit", exitImage,
                                                   "Exit program" );
