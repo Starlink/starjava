@@ -598,7 +598,7 @@ public class DivaPlot
     {
         Dimension size = getSize();
         baseXScale = (float) size.width / (float) ( xMax - xMin );
-        lastXScale = 0;
+        lastXScale = 0.0F;
     }
 
     /**
@@ -609,7 +609,7 @@ public class DivaPlot
     {
         Dimension size = getSize();
         baseYScale = (float) size.height / (float) ( yMax - yMin );
-        lastYScale = 0;
+        lastYScale = 0.0F;
     }
 
     /**
@@ -648,6 +648,24 @@ public class DivaPlot
     {
         resetPreferredSize();
         xyScaled = true;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * Update the plot to reflect any changes in the spectra that have been
+     * drawn, but do not change the component size.
+     */
+    public void staticUpdate()
+        throws SplatException
+    {
+        float xs = xScale;
+        float ys = yScale;
+        updateProps( false );
+        xScale = xs;
+        yScale = ys;
+        xyScaled = true;
+
         revalidate();
         repaint();
     }
@@ -738,7 +756,9 @@ public class DivaPlot
 
             }
         }
-        spectra.drawSpec( javaGrf, astJ.getPlot(), limits );
+        if ( spectra.count() > 0 ) {
+            spectra.drawSpec( javaGrf, astJ.getPlot(), limits );
+        }
     }
 
     private Component parent = null;
@@ -760,40 +780,46 @@ public class DivaPlot
      */
     public void redrawAll( Graphics2D g )
     {
-        if ( spectra.count() == 0 ) {
+        //  No spectra or not realized then nothing to do yet.
+        if ( spectra.count() == 0 || getPreferredSize().width == 0 
+             || ! isVisible() ) {
             return;
         }
-        try {
+        
+        //  If we fail in the next section, then we should be ready to redraw
+        //  it all next time, so remember if this was requested.
+        boolean wasScaled = xyScaled;
 
+        try {
             //  Restore the correct DefaultGrf object to the AST interface.
             astJ.setGraphic( javaGrf );
-
+            
             if ( xyScaled ) {
 
                 //  Scale of plot has changed or been set for the first
                 //  time. So we need to redraw everything.
                 xyScaled = false;
-
-                //  Keep reference to existing AstPlot so we know how
-                //  graphics coordinates are already drawn.
+                
+                //  Keep reference to existing AstPlot so we know how graphics
+                //  coordinates are already drawn.
                 Plot oldAstPlot = astJ.getPlot();
                 if ( oldAstPlot != null ) {
                     oldAstPlot = (Plot) oldAstPlot.clone();
                 }
-
+                
                 //  Create an astPlot for the graphics, this is matched to the
                 //  component size and is how we get an apparent rescale of
                 //  drawing. So that we get linear axis 1 coordinates we must
                 //  choose the current frame as the base frame (so that the
                 //  mapping from graphics to physical is linear). We also add
                 //  any AST plotting configuration options.
-
+                
                 //  TODO: stop using ASTJ class.
                 FrameSet astref = astJ.getRef();
                 int current = astref.getCurrent();
                 int base = astref.getBase();
                 astref.setBase( current );
-
+                
                 if ( config != null ) {
                     if ( graphicsEdges != null ) {
                         astJ.astPlot( this, baseBox,
@@ -810,47 +836,49 @@ public class DivaPlot
                     }
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05, "" );
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.05, 
+                                  "" );
                 }
-
+                
                 // The plot must use our Grf implementation.
                 astJ.getPlot().setGrf( javaGrf );
-
+                
                 //  Restore the base plot.
                 astref.setBase( base );
-
+                
                 //  If requested (i.e. the default gap is chosen) then
                 //  decrease the gap between X major ticks so we see more
                 //  labels when zoomed.
                 double xGap = 0.0;
                 if ( config != null ) {
-                    AstTicks astTicks =
-                        (AstTicks) config.getControlsModel( AstTicks.class );
+                    AstTicks astTicks = (AstTicks) 
+                        config.getControlsModel( AstTicks.class );
                     xGap = astTicks.getXGap();
                 }
-                if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) && xScale > 2.0 ) {
+                if ( ( xGap == 0.0 || xGap == DefaultGrf.BAD ) && 
+                     xScale > 2.0 ) {
                     xGap = astJ.getPlot().getD( "gap(1)" );
                     xGap = xGap / Math.max( 1.0, xScale * 0.5 );
                     astJ.astSetPlot( "gap(1)=" + xGap );
                 }
-
+                
                 //  Clear all existing AST graphics
                 javaGrf.reset();
-
+                
                 //  Draw the coordinate grid/axes.
                 astJ.astGrid();
-
+                
                 //  Draw the spectra.
                 drawSpectra();
-
+                
                 //  Resize overlay graphics.
                 if ( oldAstPlot != null ) {
                     redrawOverlay( oldAstPlot );
                 }
-
+                
                 //  Inform any listeners that the Plot has been scaled.
                 fireScaled();
-
+                
                 //  Drawn at least once, so OK to track mouse events. XXX
                 //  still a few seen AST errors about null pointer..
                 readyToTrack = true;
@@ -861,23 +889,28 @@ public class DivaPlot
             if ( graphicsHints != null ) {
                 graphicsHints.applyRenderingHints( (Graphics2D) g );
             }
-
+            
             //  Repaint all graphics.
             astJ.getPlot().paint( g );
-
+            
         }
         catch (Exception e) {
             // Trap all Exceptions and continue so we can recover
             // when we try to repaint.
             System.out.println( e.getMessage() );
+            if ( wasScaled && !xyScaled ) {
+                xyScaled = true;
+            }
         }
         catch (Throwable t) {
             // Trap all errors too (like OutOfMemory).
             t.printStackTrace();
+            if ( wasScaled && !xyScaled ) {
+                xyScaled = true;
+            }
         }
-
     }
-
+    
     /**
      * Redraw any overlay graphics to match a change in size.
      *
