@@ -82,6 +82,34 @@ public class NDArrayTest extends TestCase {
         }
     }
 
+    public void testDummy() throws IOException {
+        for ( Iterator it = ndaIterator(); it.hasNext(); ) {
+            NDArray inda = (NDArray) it.next();
+            NDArray dum1 = new DummyNDArray( inda );
+            exerciseDummy( dum1 );
+            NDArray dum2 = new DummyNDArray( inda.getShape(), 
+                                             inda.getType(),
+                                             inda.getBadHandler() );
+            exerciseDummy( dum2 );
+            assertTrue( NDArrays.equals( dum1, dum2 ) );
+            assertTrue( ! NDArrays.equals( dum1, inda ) );
+        }
+    }
+
+    public void exerciseDummy( NDArray nda ) throws IOException {
+        assertTrue( nda.isReadable() );
+        assertTrue( ! nda.isWritable() );
+        ArrayAccess acc = nda.getAccess();
+        assertTrue( ! acc.isMapped() );
+        int npix = (int) nda.getShape().getNumPixels();
+        Object buf = nda.getType().newArray( npix );
+        acc.read( buf, 0, (int) npix );
+        BadHandler bh = nda.getBadHandler();
+        for ( int i = 0; i < npix; i++ ) {
+            assertTrue( bh.isBad( buf, i ) );
+        }
+        acc.close();
+    }
 
     public void testMoulded() throws IOException {
         for ( Iterator it = ndaIterator(); it.hasNext(); ) {

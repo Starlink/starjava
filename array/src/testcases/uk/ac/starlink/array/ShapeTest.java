@@ -57,6 +57,13 @@ public class ShapeTest extends TestCase {
         assertTrue( ! os1.equals( os2 ) );
         assertTrue( ! os1.sameSequence( os2 ) );
 
+        OrderedNDShape oss0 = new OrderedNDShape( sh );
+        OrderedNDShape oss1 = new OrderedNDShape( os1 );
+        OrderedNDShape oss2 = new OrderedNDShape( os2 );
+        assertEquals( os1, oss1 );
+        assertEquals( os2, oss2 );
+        assertTrue( oss0.equals( os1 ) ^ oss0.equals( os2 ) );
+
         OrderedNDShape osh = new OrderedNDShape( origin, dims, null );
         assertTrue( osh.equals( os1 ) ^ osh.equals( os2 ) );
         assertTrue( osh.sameSequence( os1 ) ^ osh.sameSequence( os2 ) );

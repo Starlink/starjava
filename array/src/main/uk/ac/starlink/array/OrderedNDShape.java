@@ -74,6 +74,22 @@ public class OrderedNDShape extends NDShape implements Cloneable {
     }
 
     /**
+     * Creates a new OrderedNDShape from an NDShape.
+     * If <tt>shape</tt> is in fact an instance of <tt>OrderedNDShape</tt>,
+     * the created object will be equivalent to it.  If not, a new 
+     * OrderedNDShape object will be created with an arbitrary 
+     * ordering scheme.
+     *
+     * @param  shape  an NDShape or OrderedNDShape object
+     */
+    public OrderedNDShape( NDShape shape ) {
+        this( shape,
+              ( shape instanceof OrderedNDShape ) 
+                   ? ((OrderedNDShape) shape).getOrder()
+                   : null );
+    }
+
+    /**
      * Gets the ordering scheme of this object.
      *
      * @return  an Order object indicating the ordering scheme
