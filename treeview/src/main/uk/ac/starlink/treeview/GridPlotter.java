@@ -2,19 +2,15 @@ package uk.ac.starlink.treeview;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JComponent;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Plot;
@@ -41,6 +37,7 @@ public class GridPlotter extends JPanel {
      */
     GridPlotter( NDShape baseShape, final FrameSet wcs ) {
         super( new BorderLayout() );
+        currentFrame = wcs.getCurrent();
 
         /* Get upper and lower limits on the actual plotting surface. */
         int ndim = baseShape.getNumDims();
@@ -56,39 +53,41 @@ public class GridPlotter extends JPanel {
         /* Construct a panel to hold the plot display itself. */
         final ScalingPlot plotPan = new ScalingPlot( wcs, lower, upper ) {
             protected void configurePlot( Plot plot ) {
-                plot.setCurrent( currentFrame );
+                plot.setCurrent( currentFrame + 1 );
                 super.configurePlot( plot );
             }
         };
-        plotPan.setBorder( BorderFactory.createLineBorder( Color.BLACK ) );
+        plotPan.setBorder( BorderFactory.createLineBorder( Color.BLACK, 2 ) );
         add( plotPan, BorderLayout.CENTER );
 
         /* Construct a current-frame selector. */
-        ButtonGroup bgrp = new ButtonGroup();
-        ActionListener buttwatch = new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-               currentFrame = Integer.parseInt( evt.getActionCommand() );
-               plotPan.refreshPlot();
-            }
-        };
         int nfrm = wcs.getNframe();
-        int curfrm = wcs.getCurrent();
-        Box buttPan = new Box( BoxLayout.Y_AXIS );
+        String[] frameNames = new String[ nfrm ];
         for ( int i = 0; i < nfrm; i++ ) {
-            String text = ( i + 1 ) + ": " + wcs.getFrame( i + 1 ).getDomain();
-            JRadioButton butt = new JRadioButton( text );
-            butt.setActionCommand( Integer.toString( i + 2 ) );
-            butt.addActionListener( buttwatch );
-            bgrp.add( butt );
-            buttPan.add( butt );
-            if ( i + 1 == curfrm ) {
-                butt.doClick();
-            }
+            frameNames[ i ] = ( i + 1 ) + ": " 
+                            + wcs.getFrame( i + 1 ).getDomain();
         }
-        add( buttPan, BorderLayout.NORTH );
+        final JComboBox selecter = new JComboBox( frameNames );
+        selecter.addItemListener( new ItemListener() {
+            public void itemStateChanged( ItemEvent evt ) {
+                if ( evt.getStateChange() == ItemEvent.SELECTED ) {
+                    currentFrame = selecter.getSelectedIndex() + 1;
+                    plotPan.refreshPlot();
+                }
+            }
+        } );
+        selecter.setSelectedIndex( currentFrame - 1 );
+        selecter.setMaximumSize( selecter.getPreferredSize() );
+        
+        /* Put the selector in a box. */
+        Box controlBox = new Box( BoxLayout.X_AXIS );
+        controlBox.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        controlBox.add( new JLabel( "Plotted co-ordinate frame: " ) );
+        controlBox.add( selecter );
+        controlBox.add( Box.createGlue() );
 
-        /* Reveal. */
-        setVisible( true );
+        /* Display the box in this panel. */
+        add( controlBox, BorderLayout.NORTH );
     }
 
 }

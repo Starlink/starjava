@@ -1,5 +1,6 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -46,6 +47,7 @@ public class ScalingPlot extends JPanel {
      *          a 2-d frame
      */
     public ScalingPlot( FrameSet wcs, double[] lower, double[] upper ) {
+        setBackground( Color.WHITE );
         if ( lower.length != 2 || upper.length != 2 ||
              wcs.getFrame( FrameSet.AST__BASE ).getNaxes() != 2 ) {
             throw new IllegalArgumentException( "Not a 2d WCS" );

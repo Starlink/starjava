@@ -4,6 +4,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.text.*;
 import uk.ac.starlink.ast.*;
 
@@ -27,6 +28,15 @@ public class AstTextShower extends JPanel {
         Box commbox = new Box( BoxLayout.X_AXIS );
         Box fullbox = new Box( BoxLayout.X_AXIS );
         Box textbox = new Box( BoxLayout.X_AXIS );
+
+        /* Set some borders. */
+        Border edges = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
+        commbox.setBorder( edges );
+        fullbox.setBorder( edges );
+        textbox.setBorder( 
+            BorderFactory.createCompoundBorder( 
+                BorderFactory.createLineBorder( Color.BLACK, 2 ),
+                BorderFactory.createMatteBorder( 5, 5, 5, 5, Color.WHITE ) ) );
 
         /* Construct the text area view and model. */
         final JTextArea ta = new JTextArea();
