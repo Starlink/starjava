@@ -12,6 +12,7 @@ package uk.ac.starlink.splat.ast;
 
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
@@ -32,11 +33,10 @@ import uk.ac.starlink.ast.UnitMap;
 import uk.ac.starlink.ast.Grf;
 
 /**
- * Java interface for AST manipulations based on a frameset
- * (i.e.<!-- --> type of operations needed to support WCS coordinates).
- * The graphics facilities (if used) are provided by the Grf
- * class. This should also be initialised before use and a reference
- * to the object passed.
+ * Java interface for AST manipulations based on a frameset (type of
+ * operations needed to support WCS coordinates).  The graphics facilities (if
+ * used) are provided by the Grf class. This should also be initialised before
+ * use and a reference to the object passed.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -249,7 +249,8 @@ public class ASTJ
      */
     public void astPlot( JComponent comp, double basebox[],
                          double xleft, double xright, 
-                         double ytop, double ybottom, String options )
+                         double ytop, double ybottom, 
+                         String options )
     {
         //  Do nothing if no AST frameset available.
         if ( astRef == null || grfRef == null ) {
@@ -262,10 +263,10 @@ public class ASTJ
         Insets inset = comp.getInsets();
 
         //  Fraction of space reserved at left/right and top/bottom.
-        float tinset = (float) ( size.width * ytop );
-        float binset = (float) ( size.width * ybottom );
-        float linset = (float) ( size.height * xleft );
-        float rinset = (float) ( size.height * xright );
+        float tinset = (float) ( size.height * ytop );
+        float binset = (float) ( size.height * ybottom );
+        float linset = (float) ( size.width * xleft );
+        float rinset = (float) ( size.width * xright );
 
         //  Bottom left-hand corner. Corrected for border insets.
         graphbox[0] = inset.left + linset;

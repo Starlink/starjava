@@ -302,10 +302,10 @@ public class AstUtilities implements Serializable
         Insets inset = comp.getInsets();
 
         //  Fraction of space reserved at left/right and top/bottom.
-        float tinset = (float) ( size.width * ytop );
-        float binset = (float) ( size.width * ybottom );
-        float linset = (float) ( size.height * xleft );
-        float rinset = (float) ( size.height * xright );
+        float tinset = (float) ( size.height * ytop );
+        float binset = (float) ( size.height * ybottom );
+        float linset = (float) ( size.width * xleft );
+        float rinset = (float) ( size.width * xright );
 
         //  Bottom left-hand corner. Corrected for border insets.
         graphbox[0] = inset.left + linset;
