@@ -56,7 +56,8 @@ public class DemoLoadDialog extends TreeTableLoadDialog {
                                    ComboBoxModel formatModel,
                                    TableConsumer eater ) {
         if ( ! initialized_ ) {
-            setRootNode( rootNode_ );
+            clear();
+            setRoot( rootNode_ );
         }
         return super.showLoadDialog( parent, factory, formatModel, eater );
     }
