@@ -13,10 +13,19 @@ import java.util.List;
 import junit.framework.AssertionFailedError;
 import uk.ac.starlink.util.TestCase;
 
+/**
+ * Tests Treeview.
+ * This testcase is unusual in that it behaves differently according to whether
+ * the property uk.ac.starlink.treeview.test.args is set or not.  If yes
+ * it starts up treeview with those args, if not it performs its usual
+ * non-interactive tests.
+ */
 public class TreeviewTest extends TestCase {
 
     /** Name of the file giving the correct output of 'treeview -demo -text'. */
     public static String DEMOTXT_FILE = "demotxt.cmp";
+
+    private String[] args;
 
     public TreeviewTest( String name ) {
         super( name );
@@ -30,9 +39,21 @@ public class TreeviewTest extends TestCase {
                             "etc" + File.separator +
                             "treeview" + File.separator +
                             "demo" );
+        String arg = System.getProperty( "uk.ac.starlink.treeview.test.args" );
+        if ( arg == null || 
+             arg.trim().length() == 0 || 
+             arg.startsWith( "${" ) ) {
+            args = null;
+        }
+        else {
+            args = arg.split( "\\s+" );
+        }
     }
 
     public void testTextMode() throws IOException {
+        if ( args != null ) {
+            return;
+        }
         PrintStream sysout = System.out;
         ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
         PrintStream ostrm = new PrintStream( bstrm );
@@ -78,11 +99,22 @@ public class TreeviewTest extends TestCase {
     }
 
     public void testGUIMode() {
+        if ( args != null ) {
+            return;
+        }
         Driver.main( new String[] { "-demo" } );
         try {
             Thread.currentThread().sleep( 1000 );
         }
         catch ( InterruptedException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public void testWithArgs() throws IOException {
+        if ( args != null ) {
+            Driver.main( args );
+            System.in.read();
         }
     }
 }
