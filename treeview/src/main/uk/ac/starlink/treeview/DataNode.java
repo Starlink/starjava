@@ -217,7 +217,7 @@ public interface DataNode {
     /**
      * Configures a DetailViewer object to show additional details
      * associated with this node.  Implementing classes should 
-     * call various methods on the given <tt>DetailViewer<tt> object
+     * call various methods on the given <tt>DetailViewer</tt> object
      * to customise it to contain information about the node in question.
      * This will
      * consist of populating the main panel with basic and compact
