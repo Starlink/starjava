@@ -140,6 +140,21 @@ abstract class Decoder {
     }
 
     /**
+     * Gets the shape of items returned by this decoder.  By default this
+     * is the same as the <tt>arraysize</tt>, but decoders may 
+     * change the shape from that defined by the <tt>arraysize</tt> attribute 
+     * of the FIELD element.  In particular, the <tt>char</tt> and 
+     * <tt>unicodeChar</tt> decoders package an array of characters as
+     * a String.
+     * 
+     * @return  the shape of objects returned by this decoder.
+     *          The last element might be negative to indicate variable size
+     */
+    public long[] getDecodedShape() {
+        return arraysize;
+    }
+
+    /**
      * Turns a primitive numeric array into an object suitable for
      * returning as the result of a cell query.
      * <p>The current implementation just returns the array itself;
@@ -361,7 +376,7 @@ abstract class Decoder {
         }
     }
 
-    private static int[] longsToInts( long[] larray ) {
+    static int[] longsToInts( long[] larray ) {
         int[] iarray = new int[ larray.length ];
         for ( int i = 0; i < larray.length; i++ ) {
             if ( larray[ i ] < Integer.MIN_VALUE ||

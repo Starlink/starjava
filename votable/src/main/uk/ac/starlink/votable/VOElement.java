@@ -162,6 +162,23 @@ public class VOElement {
     }
 
     /**
+     * Returns the parent element of this element as a VOElement.
+     * Note that the returned object is not guaranteed to be one of
+     * the elements in the VOTable DTD.  If this element is at the
+     * root of the document, <tt>null</tt> will be returned.
+     */
+    public VOElement getParent() {
+        Node pnode = el.getParentNode();
+        if ( pnode != null && pnode instanceof Element ) {
+            Source psrc = new DOMSource( (Element) pnode, systemId );
+            return VOElement.makeVOElement( psrc );
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
      * Returns the child elements of this element.  Each is returned as 
      * a VOElement or the appropriate specific VOElement subclass.
      *

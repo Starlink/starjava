@@ -6,9 +6,18 @@ import java.io.IOException;
 class CharDecoder extends Decoder {
     private char bad = ' ';
     private String badString;
+    private long[] decodedShape;
 
     public CharDecoder( long[] arraysize ) {
         super( arraysize );
+        int ndim = arraysize.length;
+        if ( ndim == 0 ) {
+            decodedShape = new long[ 0 ];
+        }
+        else {
+            decodedShape = new long[ ndim - 1 ];
+            System.arraycopy( arraysize, 0, decodedShape, 0, ndim - 1 );
+        }
     }
 
     public Class getBaseClass() {
@@ -51,7 +60,7 @@ class CharDecoder extends Decoder {
                 StringBuffer sb = new StringBuffer( sleng );
                 for ( int j = 0; j < sleng; j++ ) {
                     if ( k < ntok ) {
-                        sb.append( txt.charAt( k ) );
+                        sb.append( txt.charAt( k++ ) );
                     }
                     else {
                         sb.append( bad );
@@ -98,6 +107,10 @@ class CharDecoder extends Decoder {
         else {
             return false;
         }
+    }
+
+    public long[] getDecodedShape() {
+        return decodedShape;
     }
 }
 

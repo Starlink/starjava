@@ -1,11 +1,14 @@
 package uk.ac.starlink.votable;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import uk.ac.starlink.table.ColumnHeader;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.SequentialStarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A {@link uk.ac.starlink.table.StarTable} implementation based on a VOTable.
@@ -16,19 +19,22 @@ public class VOStarTable extends SequentialStarTable {
 
     private Table votable;
     private VOStarValueAdapter[] adapters;
+    private List params;
 
-    /* Metadata keys. */
-    private final static String ID_KEY = "ID";
-    private final static String DATATYPE_KEY = "Datatype";
-    private final static String ARRAYSIZE_KEY = "Arraysize";
-    private final static String WIDTH_KEY = "Width";
-    private final static String PRECISION_KEY = "Precision";
-    private final static String TYPE_KEY = "Type";
-    private final static List metadataKeyList =
-        Collections.unmodifiableList( Arrays.asList( new String[] {
-            ID_KEY, DATATYPE_KEY, ARRAYSIZE_KEY, WIDTH_KEY, PRECISION_KEY,
-            TYPE_KEY,
-        } ) );
+    /* Auxiliary metadata. */
+    private final static ValueInfo idInfo = new DefaultValueInfo(
+        "ID", String.class, "VOTable ID attribute" );
+    private final static ValueInfo datatypeInfo = new DefaultValueInfo(
+        "Datatype", String.class, "VOTable data type name" );
+    private final static ValueInfo widthInfo = new DefaultValueInfo(
+        "Width", Integer.class, "VOTable width attribute" );
+    private final static ValueInfo precisionInfo = new DefaultValueInfo(
+        "Precision", Double.class, "VOTable precision attribute" );
+    private final static ValueInfo typeInfo = new DefaultValueInfo(
+        "Type", String.class, "VOTable type attribute" );
+    private final static List auxDataInfos = Arrays.asList( new ValueInfo[] {
+        idInfo, datatypeInfo, widthInfo, precisionInfo, typeInfo,
+    } );
 
     /**
      * Construct a VOStarTable from a VOTable <tt>Table</tt> object.
@@ -64,52 +70,106 @@ public class VOStarTable extends SequentialStarTable {
         return votable.hasNextRow();
     }
 
-    public ColumnHeader getHeader( int icol ) {
+    public ColumnInfo getColumnInfo( int icol ) {
         Field field = votable.getField( icol );
-        ColumnHeader header = new ColumnHeader( field.getHandle() );
-        header.setUnitString( field.getUnit() );
-        header.setUCD( field.getUcd() );
-        header.setDescription( field.getDescription() );
-        header.setContentClass( adapters[ icol ].getContentClass() );
+        ColumnInfo cinfo = new ColumnInfo( getValueInfo( field ) );
 
-        /* Set up column metadata according to the attributes that the 
-         * FIELD element has. */
-        Map colmeta = header.getMetadata();
+        /* Set up auxiliary metadata for this column according to the
+         * attributes that the FIELD element has. */
+        List auxdata = cinfo.getAuxData();
+
         String id = field.getAttribute( "ID" );
         if ( id != null ) {
-            colmeta.put( ID_KEY, id );
+            auxdata.add( new DescribedValue( idInfo, id ) );
         }
 
         String datatype = field.getAttribute( "datatype" );
         if ( datatype != null ) {
-            colmeta.put( DATATYPE_KEY, datatype );
-        }
-
-        String arraysize = field.getAttribute( "arraysize" );
-        if ( arraysize != null ) {
-            colmeta.put( ARRAYSIZE_KEY, arraysize );
+            auxdata.add( new DescribedValue( datatypeInfo, datatype ) );
         }
 
         String width = field.getAttribute( "width" );
         if ( width != null ) {
-            colmeta.put( WIDTH_KEY, width );
+            try {
+                int widthval = Integer.parseInt( width );
+                auxdata.add( new DescribedValue( widthInfo,
+                                                 new Integer( widthval ) ) );
+            }
+            catch ( NumberFormatException e ) {
+            }
         }
 
         String precision = field.getAttribute( "precision" );
         if ( precision != null ) {
-            colmeta.put( PRECISION_KEY, precision );
+            try {
+                double precval = Double.parseDouble( precision );
+                auxdata.add( new DescribedValue( precisionInfo,
+                                                 new Double( precval ) ) );
+            }
+            catch ( NumberFormatException e ) {
+            }
         }
 
         String type = field.getAttribute( "type" );
         if ( type != null ) {
-            colmeta.put( TYPE_KEY, type );
+            auxdata.add( new DescribedValue( typeInfo, type ) );
         }
 
-        return header;
+        return cinfo;
     }
 
-    public List getColumnMetadataKeys() {
-        return metadataKeyList;
+    public List getParameters() {
+        if ( params == null ) {
+            params = new ArrayList();
+            String description = votable.getDescription();
+            if ( description != null ) {
+                DefaultValueInfo descInfo = 
+                    new DefaultValueInfo( "Description", String.class );
+                params.add( new DescribedValue( descInfo, description ) );
+            }
+
+            VOElement parent = votable.getParent();
+            if ( parent != null && parent.getTagName().equals( "RESOURCE" ) ) {
+                VOElement[] paramels = parent.getChildrenByName( "PARAM" );
+                for ( int i = 0; i < paramels.length; i++ ) {
+                    Param pel = (Param) paramels[ i ];
+                    DescribedValue dval = 
+                        new DescribedValue( getValueInfo( pel ) );
+                    Object val = VOStarValueAdapter.makeAdapter( pel )
+                                                   .adapt( pel.getObject() );
+                    dval.setValue( val );
+                    params.add( dval );
+                }
+            }
+        }
+        return params;
+    }
+
+    public List getColumnAuxDataInfos() {
+        return auxDataInfos;
+    }
+
+    /**
+     * Returns a ValueInfo object suitable for holding the values in a
+     * VOTable Field (or Param) object.  The datatype, array shape and
+     * other metadata in the returned object are taken from the 
+     * relevant bits of the supplied field.
+     *
+     * @param   field  the Field object for which the ValueInfo is to be
+     *          constructed
+     * @return  a ValueInfo suitable for <tt>field</tt>
+     */
+    private static ValueInfo getValueInfo( Field field ) {
+        Class clazz = VOStarValueAdapter.makeAdapter( field )
+                     .getContentClass();
+        String name = field.getHandle();
+        DefaultValueInfo info = new DefaultValueInfo( name, clazz );
+        info.setDescription( field.getDescription() );
+        info.setUnitString( field.getUnit() );
+        info.setUCD( field.getUcd() );
+        info.setShape( Decoder.longsToInts( field.getDecoder()
+                                                 .getDecodedShape() ) );
+        return info;
     }
 
 }

@@ -1,10 +1,13 @@
 package uk.ac.starlink.votable;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.List;
 import java.net.URL;
 import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.SAXException;
-import uk.ac.starlink.table.ShapedArray;
+import uk.ac.starlink.table.DescribedValue;
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.util.TestCase;
 
 public class VOTableTest extends TestCase {
@@ -38,24 +41,34 @@ public class VOTableTest extends TestCase {
         assertEquals( 4, ncol );
 
         Table tabclone = Table.makeTable( tab.getSource() );
-        RandomVOTable rtab = new RandomVOTable( tabclone );
-        assertEquals( tab.getRowCount(), rtab.getRowCount() );
-        assertEquals( tab.getColumnCount(), rtab.getColumnCount() );
+        VOStarTable stab = new VOStarTable( tabclone );
+        assertEquals( tab.getRowCount(), stab.getRowCount() );
+        assertEquals( tab.getColumnCount(), stab.getColumnCount() );
         for ( int ir = 0; ir < nrow; ir++ ) {
             assertTrue( tab.hasNextRow() );
+            assertTrue( stab.hasNext() );
             Object[] row = tab.nextRow();
             for ( int ic = 0; ic < ncol; ic++ ) {
-                assertEquals( row[ ic ].getClass(), 
-                              rtab.getValueAt( ir, ic ).getClass() );
+                if ( row[ ic ].getClass().getComponentType() == null ) {
+                    assertEquals( stab.getCell( (long) ir, ic ), row[ ic ] );
+                }
+                else if ( Array.getLength( row[ ic ] ) == 1 ) {
+                    assertEquals( stab.getCell( (long) ir, ic ), 
+                                  Array.get( row[ ic ], 0 ) );
+                }
             }
         }
         assertTrue( ! tab.hasNextRow() );
+        assertTrue( ! stab.hasNext() );
 
-        long[] as = tab.getField( 3 ).getArraysize();
-        assertArrayEquals( as, new long[] { 2, 3, -1 } );
-        ShapedArray sa0 = (ShapedArray) rtab.getValueAt( 0, 3 );
-        ShapedArray sa1 = (ShapedArray) rtab.getValueAt( 1, 3 );
-        assertArrayEquals( sa0.getDims(), new int[] { 2, 3, 2 } );
-        assertArrayEquals( sa1.getDims(), new int[] { 2, 3, 1 } );
+        DescribedValue parameter = stab.getParameterByName( param.getName() );
+        assertTrue( stab.getParameters().contains( parameter ) );
+        ValueInfo pinfo = parameter.getInfo();
+        assertEquals( param.getValue(), parameter.getValue() );
+        assertEquals( param.getName(), pinfo.getName() );
+        assertEquals( String.class, pinfo.getContentClass() );
+        assertEquals( param.getDescription(), pinfo.getDescription() );
     }
+
+    
 }
