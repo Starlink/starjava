@@ -121,17 +121,20 @@ class VOSAXDocumentBuilder implements SAXDocumentBuilder {
                 String value = atts.getValue( i );
                 String type = atts.getType( i );
                 Attr att;
-                if ( attURI != null && attURI.length() > 0 ) {
+                if ( attURI != null && attURI.length() > 0 &&
+                     attQName != null && attQName.length() > 0 ) {
                     att = doc_.createAttributeNS( attURI, attQName );
+                    el.setAttributeNodeNS( att );
                 }
                 else if ( attQName != null && attQName.length() > 0 ) {
                     att = doc_.createAttribute( attQName );
+                    el.setAttributeNode( att );
                 }
                 else {
                     att = doc_.createAttribute( attLocalName );
+                    el.setAttributeNode( att );
                 }
                 att.setValue( value );
-                el.setAttributeNodeNS( att );
 
                 /* If we have an ID attribute, store it in the DOM. */
                 if ( type.equals( "ID" ) || isVotableID( att ) ) {
