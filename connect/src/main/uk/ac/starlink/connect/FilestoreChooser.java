@@ -309,7 +309,7 @@ public class FilestoreChooser extends JPanel {
      * Ensures that the list contains the correct children for the
      * currently selected branch.
      */
-    private void refreshList() {
+    public void refreshList() {
         Branch branch = getBranch();
         Node[] children = branch == null ? new Node[ 0 ]
                                          : branch.getChildren();
