@@ -695,7 +695,7 @@ public class ControlWindow extends AuxWindow
 
         public void actionPerformed( ActionEvent evt ) {
             if ( this == readAct ) {
-                getLoader().loadRandomStarTable( window );
+                getLoader().makeVisible();
             }
             else if ( this == removeAct ) {
                 TopcatModel tcModel = getCurrentModel();
