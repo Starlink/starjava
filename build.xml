@@ -114,9 +114,6 @@
     <echo message="Executing axis target: ${what}"/>
     <ant dir="./axis" target="${what}"/>
     
-    <echo message="Executing dom4j target: ${what}"/>
-    <ant dir="./dom4j" target="${what}"/>
-    
     <echo message="Executing Jetty target: ${what}"/>
     <ant dir="./jetty" target="${what}"/>
     
@@ -141,9 +138,6 @@
     <echo message="Executing HDX target: ${what}"/> 
     <ant dir="./hdx" target="${what}"/> 
 
-    <echo message="Executing compatibility NDArray target: ${what}"/> 
-    <ant dir="./oldarray" target="${what}"/> 
-    
     <echo message="Executing NDArray target: ${what}"/> 
     <ant dir="./array" target="${what}"/> 
     
