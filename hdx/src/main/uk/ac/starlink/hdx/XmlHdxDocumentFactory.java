@@ -76,7 +76,8 @@ class XmlHdxDocumentFactory
         // breaks?  Probably not: I don't wish to think of what a SAX
         // parser would make of an NDF.
         String fn = url.getFile();
-        if (fn.substring(fn.length()-3).toLowerCase().equals("xml"))
+        if (fn.length()>3 &&
+            fn.substring(fn.length()-3).toLowerCase().equals("xml"))
             // URL appears to be an XML file, and our responsibility.
             // If there's any problem reading the XML file, readXML() will
             // throw an exception
