@@ -1090,13 +1090,26 @@
     <echo message="&lt;![CDATA[" file="${tablecopy.usage}" append="no"/>
     <java classname="uk.ac.starlink.table.TableCopy"
           failonerror="yes"
-          fork="yes"
+          fork="no"
           output="${tablecopy.usage}"
           append="yes"
           classpathref="classpath">
       <arg value="-help"/>
     </java>
     <echo message="]]&gt;" file="${tablecopy.usage}" append="yes"/>
+
+    <!-- Construct topcat usage message in XML. -->
+    <property name="topcat.usage" value="${build.docs}/topcat.usage"/>
+    <echo message="&lt;![CDATA[" file="${topcat.usage}" append="no"/>
+    <java classname="uk.ac.starlink.topcat.Driver"
+          failonerror="yes"
+          fork="no"
+          output="${topcat.usage}"
+          append="yes"
+          classpathref="classpath">
+      <arg value="-help"/>
+    </java>
+    <echo message="]]&gt;" file="${topcat.usage}" append="yes"/>
 
     <!-- Transform the user document XML to a single HTML document. -->
     <mkdir dir="${build.docs}/${user.doc}"/>
