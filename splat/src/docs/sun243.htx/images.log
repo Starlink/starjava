@@ -1,4 +1,4 @@
-This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2003.2.18)  21 MAY 2004 15:56
+This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2003.2.18)  19 JAN 2005 16:31
 **./images.tex
 (./images.tex
 LaTeX2e <2001/06/01>
@@ -21,11 +21,9 @@ File: size11.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
 \abovecaptionskip=\skip41
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
-)
-(/loc/pwdc/pdraper/java/release_branch/java/source/splat/src/docs/sun243_htx/ht
-ml.sty)
-(/loc/pwdc/pdraper/java/release_branch/java/source/splat/src/docs/sun243_htx/st
-ar2html.sty) (/usr/share/texmf/tex/latex/graphics/graphicx.sty
+) (/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/html.sty)
+(/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/star2html.sty
+) (/usr/share/texmf/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 (/usr/share/texmf/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
@@ -197,69 +195,69 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 172.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 172.
-l2hSize :tex2html_wrap_inline1361:8.25626pt::8.25626pt::9.09158pt.
+l2hSize :tex2html_wrap_inline1364:8.25626pt::8.25626pt::9.09158pt.
 [1
 
 
 
 ]
-l2hSize :displaymath1841:49.40045pt::0.0pt::451.0pt.
+l2hSize :displaymath1844:49.40045pt::0.0pt::451.0pt.
 [2
 
 
 ]
-l2hSize :tex2html_wrap_inline2094:8.25626pt::8.25626pt::14.84027pt.
+l2hSize :tex2html_wrap_inline2097:8.25626pt::8.25626pt::14.84027pt.
 [3
 
 
 ]
-l2hSize :displaymath2078:31.00029pt::0.0pt::451.0pt.
+l2hSize :displaymath2081:31.00029pt::0.0pt::451.0pt.
 [4
 
 
 ]
-l2hSize :tex2html_wrap_inline2106:7.75626pt::0.0pt::7.31345pt.
+l2hSize :tex2html_wrap_inline2109:7.75626pt::0.0pt::7.31345pt.
 [5
 
 
 ]
-l2hSize :displaymath2079:27.70619pt::0.0pt::451.0pt.
+l2hSize :displaymath2082:27.70619pt::0.0pt::451.0pt.
 [6
 
 
 ]
-l2hSize :displaymath2080:14.42545pt::0.0pt::451.0pt.
+l2hSize :displaymath2083:14.42545pt::0.0pt::451.0pt.
 [7
 
 
 ]
-l2hSize :displaymath2081:27.57591pt::0.0pt::451.0pt.
+l2hSize :displaymath2084:27.57591pt::0.0pt::451.0pt.
 [8
 
 
 ]
-l2hSize :displaymath2082:25.00023pt::0.0pt::451.0pt.
+l2hSize :displaymath2085:25.00023pt::0.0pt::451.0pt.
 [9
 
 
 ]
-l2hSize :displaymath2083:25.00023pt::0.0pt::451.0pt.
+l2hSize :displaymath2086:25.00023pt::0.0pt::451.0pt.
 [10
 
 
 ]
-l2hSize :displaymath2084:16.13333pt::0.0pt::451.0pt.
+l2hSize :displaymath2087:16.13333pt::0.0pt::451.0pt.
 [11
 
 
 ] (images.aux) ) 
 Here is how much of TeX's memory you used:
  1194 strings out of 20880
- 15042 string characters out of 196184
- 56452 words of memory out of 350001
+ 15009 string characters out of 196184
+ 56508 words of memory out of 350001
  4160 multiletter control sequences out of 10000+15000
  8944 words of font info for 26 fonts, out of 400000 for 1000
  14 hyphenation exceptions out of 10000
- 28i,5n,21p,368b,239s stack positions out of 3000i,100n,1500p,50000b,4000s
+ 28i,5n,21p,388b,239s stack positions out of 3000i,100n,1500p,50000b,4000s
 
 Output written on images.dvi (11 pages, 3708 bytes).

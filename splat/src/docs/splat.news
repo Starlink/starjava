@@ -1,28 +1,26 @@
-1 SPLAT - Spectral Display and Analysis Tool
+1 Starlink SPLAT now a tool for the Virtual Observatory
 
- This is a new release of SPLAT which is now part of the Starlink
- Java Collection and is now released under the GPL.
+   In this release Starlink SPLAT has been enhanced to access prototype
+   spectral data servers (so called SSAP servers) that are being registered on
+   the evolving virtual observatory. Using SPLAT it is now possible to make
+   queries about a region on the sky and retrieve, display and compare any
+   spectra that are available.
 
- The following changes have been made in this release.
+   Comparisons of such spectra are made possible by improvements to the
+   Starlink AST library which can transform coordinates between various
+   spectral systems (wavelength, frequency, energy and velocity) and between a
+   growing number of flux systems (currently flux per unit frequency and per
+   unit wavelength). This allows you to view various spectral from differing
+   energy domains as a spectral energy distribution.
 
-    - A bug in the astrometry reading software has been fixed. This led to the
-      application of CDELT1 and CD1_1 scales to the wavelength range of some
-      spectra (produced by IRAF), which meant that the range was underestimated
-      by a scale CDELT1.
+   Other changes of note in this release:
 
-    - You can now specify the spectrum type on the command-line using the 
-      --type option. Valid values are: "fits","hds","text","hdx","table" 
-      and "line ids".
+      - spectra can now be drawn using point markers of various kinds.
 
-    - You can now open a spectrum using a URL, so spectra stored on remote
-      servers can be downloaded and displayed.
+      - log spacing can now be switched on from a plot (rather than by finding
+        the plot configuration window).
 
-    - The handling of 2D and 3D input data has been enhanced. Previously
-      such data was just "vectorized" (that is laid out line-by-line and
-      displayed as a single spectrum ), now such data is collapsed down onto
-      the dispersion axis (if one can be determined). For 3D data each image
-      plane is collapsed in a similar fashion. You can also choose to extract
-      each line as a spectrum.
+      - a new tool for setting the data units of spectra has been introduced.
 
-Peter W. Draper (p.w.draper@durham.ac.uk)          9th October 2004
+Peter W. Draper (p.w.draper@durham.ac.uk)          19th January 2005
 

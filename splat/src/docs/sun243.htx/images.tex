@@ -1,8 +1,8 @@
 \batchmode
 \documentclass[twoside,11pt]{article}
 \makeatletter
-\input{/loc/pwdc/pdraper/java/release_branch/java/source/splat/src/docs/sun243_htx/html.sty}
-\input{/loc/pwdc/pdraper/java/release_branch/java/source/splat/src/docs/sun243_htx/star2html.sty} 
+\input{/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/html.sty}
+\input{/loc/pwdc/pdraper/java/cvs/java/source/splat/src/docs/sun243_htx/star2html.sty} 
 
 \usepackage{graphicx}
 
@@ -14,16 +14,16 @@
 \pagestyle{myheadings}
 \raggedbottom
 
-\providecommand{\stardoccategory}  {Starlink User Note}\providecommand{\stardocinitials}  {SUN}\providecommand{\stardocsource}    {sun243.3}\providecommand{\stardoccopyright}
-{Copyright \copyright\ 2001-2004 Council for the Central Laboratory of the
+\providecommand{\stardoccategory}  {Starlink User Note}\providecommand{\stardocinitials}  {SUN}\providecommand{\stardocsource}    {sun243.5}\providecommand{\stardoccopyright}
+{Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
 Research Councils}
-\providecommand{\stardocnumber}    {243.3}\providecommand{\stardocauthors}   {Peter W. Draper}\providecommand{\stardocdate}      {19 May 2004}\providecommand{\stardoctitle}     {SPLAT - A Spectral Analysis Tool}\providecommand{\stardocversion}   {2.1}\providecommand{\stardocmanual}    {User's Manual}\providecommand{\stardocabstract}  {
-\textsf{SPLAT} is an extensible analysis and display tool for extracted
-spectra.
+\providecommand{\stardocnumber}    {243.5}\providecommand{\stardocauthors}   {Peter W. Draper}\providecommand{\stardocdate}      {19 January 2005}\providecommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}\providecommand{\stardocversion}   {3.0b}\providecommand{\stardocmanual}    {User's Manual}\providecommand{\stardocabstract}  {
+\textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
+spectra that can also interact with the Virtual Observatory.
 }
-\providecommand{\stardocname}{SUN/243.3}\markboth{SUN/243.3}{SUN/243.3}
+\providecommand{\stardocname}{SUN/243.5}\markboth{SUN/243.5}{SUN/243.5}
 \setlength{\textwidth}{160mm}\setlength{\textheight}{230mm}\setlength{\topmargin}{-2mm}\setlength{\oddsidemargin}{0mm}\setlength{\evensidemargin}{0mm}\setlength{\parindent}{0mm}\setlength{\parskip}{\medskipamount}\setlength{\unitlength}{1mm}
-\providecommand{\SPLAT}{\textsf{SPLAT}}
+\providecommand{\SPLAT}{\textsf{SPLAT-VO}}
 \providecommand{\mainfigure}[1]
 {\begin{center}
  \htmladdimg{#1.gif}
@@ -168,7 +168,7 @@ spectra.
 \stepcounter{subsection}
 \stepcounter{subsection}
 {\newpage\clearpage
-\lthtmlinlinemathA{tex2html_wrap_inline1361}%
+\lthtmlinlinemathA{tex2html_wrap_inline1364}%
 $\div$%
 \lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
@@ -179,7 +179,7 @@ $\div$%
 \stepcounter{subsection}
 \stepcounter{subsection}
 {\newpage\clearpage
-\lthtmldisplayA{displaymath1841}%
+\lthtmldisplayA{displaymath1844}%
 \begin{displaymath}
  \displaystyle\sqrt{
     \displaystyle\frac{
@@ -191,13 +191,13 @@ $\div$%
 \stepcounter{subsection}
 \stepcounter{subsection}
 {\newpage\clearpage
-\lthtmlinlinemathA{tex2html_wrap_inline2094}%
+\lthtmlinlinemathA{tex2html_wrap_inline2097}%
 $\pm 1$%
 \lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2078}%
+\lthtmldisplayA{displaymath2081}%
 \begin{displaymath}
   y(r) = A * exp\left( -0.5 * \left(\frac{x-c}{\sigma}\right)^{2}\right)
  \end{displaymath}%
@@ -205,13 +205,13 @@ $\pm 1$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmlinlinemathA{tex2html_wrap_inline2106}%
+\lthtmlinlinemathA{tex2html_wrap_inline2109}%
 $\sigma$%
 \lthtmlinlinemathZ
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2079}%
+\lthtmldisplayA{displaymath2082}%
 \begin{displaymath}
   y(r) = \frac{A}{1+0.5*(\frac{x-c}{w})^{2}}
  \end{displaymath}%
@@ -219,7 +219,7 @@ $\sigma$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2080}%
+\lthtmldisplayA{displaymath2083}%
 \begin{displaymath}
  fwhm = w*2\sqrt{2}
  \end{displaymath}%
@@ -227,7 +227,7 @@ $\sigma$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2081}%
+\lthtmldisplayA{displaymath2084}%
 \begin{displaymath}
  K(a,b) = \frac{b}{\pi}\int_{-\infty}^{\infty}\frac{\mathrm{exp}(-t^{2})}{(a-t)^{2}+b^{2}}dt
  \end{displaymath}%
@@ -235,7 +235,7 @@ $\sigma$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2082}%
+\lthtmldisplayA{displaymath2085}%
 \begin{displaymath}
  a = \sqrt{\ln{2}} \, \left(\frac{x-c}{\sigma}\right)
  \end{displaymath}%
@@ -243,7 +243,7 @@ $\sigma$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2083}%
+\lthtmldisplayA{displaymath2086}%
 \begin{displaymath}
  b = \sqrt{\ln{2}} \, \left(\frac{w}{\sigma}\right)
  \end{displaymath}%
@@ -251,7 +251,7 @@ $\sigma$%
 \lthtmlcheckvsize\clearpage}
 
 {\newpage\clearpage
-\lthtmldisplayA{displaymath2084}%
+\lthtmldisplayA{displaymath2087}%
 \begin{displaymath}
  w(z) = \mathrm{exp}(-z^{2}) \, \mathrm{erfc}(-iz)
  \end{displaymath}%
@@ -261,9 +261,11 @@ $\sigma$%
 \stepcounter{subsubsection}
 \stepcounter{subsection}
 \stepcounter{section}
+\stepcounter{subsection}
 \stepcounter{section}
 \stepcounter{section}
 \stepcounter{section}
+\stepcounter{subsection}
 \stepcounter{subsection}
 
 \end{document}

@@ -132,7 +132,7 @@ public class SplatBrowser
      * Default location of window.
      */
     private static final Rectangle defaultWindowLocation =
-        new Rectangle( 10, 10, 550, 550 );
+        new Rectangle( 10, 10, 700, 550 );
 
     /**
      *  Content pane of JFrame.

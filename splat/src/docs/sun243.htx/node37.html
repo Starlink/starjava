@@ -37,7 +37,7 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
  HREF="node38.html">Handling 2 and 3D data</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html464"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+ HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html458"
  HREF="node36.html">Filter spectrum window</A>
@@ -51,7 +51,7 @@ Supported data formats
 </H1>
 
 <P>
-<I>SPLAT</I> can read and write spectra stored in a wide variety of formats, either
+<I>SPLAT-VO</I> can read and write spectra stored in a wide variety of formats, either
 stored as 1D spectra or as columns in tables. 1D spectral formats supported
 are Starlink NDF &amp; NDX, FITS and simple TEXT files. Table formats supported
 are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
@@ -60,7 +60,7 @@ when a choice can be made. Some support is available for 2 and 3D data, see
 later).
 
 <P>
-Normally <I>SPLAT</I> differentiates these types using a preset list of file
+Normally <I>SPLAT-VO</I> differentiates these types using a preset list of file
 extensions, for instance NDFs can only be stored in container files that have
 the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
 <TT>.fits</TT> or <TT>.fit</TT> and TEXT files <TT>.txt</TT> or <TT>.lis</TT>
@@ -136,7 +136,7 @@ The format of line identification catalogues is like that of simple TEXT
 spectral files, except the second column contains a string that identifies the
 line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H alpha</TT>). It is also
 possible to define the system of the coordinate values in a header section,
-see the <I>SPLAT</I> built-in catalogues for examples of this.
+see the <I>SPLAT-VO</I> built-in catalogues for examples of this.
 
 <P>
 NDFs stored within container files can be accessed, but only by entering the
@@ -149,12 +149,12 @@ An alternative to specifying the component information is to use the component
 browser window <IMG
  WIDTH="24" HEIGHT="24" ALIGN="CENTER"
  SRC="browse.gif"
- ALT="2274">, to see the contents of FITS and NDF files and
+ ALT="2289">, to see the contents of FITS and NDF files and
 choose the component to display directly.
 
 <P>
 Internally all these formats are stored as double precision
-coordinates and data values. <I>SPLAT</I> only requires that
+coordinates and data values. <I>SPLAT-VO</I> only requires that
 <I>coordinates increase or decrease monotonically</I>
 when performing any analyses.
 
@@ -186,7 +186,7 @@ when performing any analyses.
  HREF="node38.html">Handling 2 and 3D data</A>
 <BR>
 <B>Up:</B> <A NAME="tex2html464"
- HREF="sun243.html">SPLAT - A Spectral Analysis Tool</A>
+ HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
 <B> Previous:</B> <A NAME="tex2html458"
  HREF="node36.html">Filter spectrum window</A>
@@ -194,7 +194,7 @@ when performing any analyses.
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT - A Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>9 November 2004<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2004 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

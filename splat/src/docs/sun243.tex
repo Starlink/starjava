@@ -21,19 +21,19 @@
 \newcommand{\stardocinitials}  {SUN}
 \newcommand{\stardocsource}    {sun\stardocnumber}
 \newcommand{\stardoccopyright}
-{Copyright \copyright\ 2001-2004 Council for the Central Laboratory of the
+{Copyright \copyright\ 2001-2005 Council for the Central Laboratory of the
 Research Councils}
 
 % Variable part - replace [xxx] as appropriate.
-\newcommand{\stardocnumber}    {243.4}
+\newcommand{\stardocnumber}    {243.5}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {9 November 2004}
-\newcommand{\stardoctitle}     {SPLAT - A Spectral Analysis Tool}
-\newcommand{\stardocversion}   {2.2}
+\newcommand{\stardocdate}      {19 January 2005}
+\newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
+\newcommand{\stardocversion}   {3.0b}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
-\textsf{SPLAT} is an extensible analysis and display tool for extracted
-spectra.
+\textsf{SPLAT-VO} is an extensible analysis and display tool for extracted
+spectra that can also interact with the Virtual Observatory.
 }
 % ? End of document identification
 % -----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ spectra.
 % ? Document specific \newcommand or \newenvironment commands.
 
 % SPLAT.
-\newcommand{\SPLAT}{\textsf{SPLAT}}
+\newcommand{\SPLAT}{\textsf{SPLAT-VO}}
 
 % Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
 % \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
@@ -347,12 +347,15 @@ spectra.
 \section{Overview\xlabel{overview}}
 
 \SPLAT\ is a graphical tool for displaying, comparing, modifying and
-analysing astronomical spectra stored in NDF, FITS and TEXT files as
-well as the new NDX format.
-It can read in many spectra at the same time and then display these as
-line plots.
+analysing astronomical spectra stored in NDF, FITS and TEXT files as well as
+the new NDX format. It can read spectra from local disk files, download them
+over the internet, or it can interact with the Virtual Observatory and query
+servers for spectral data in a region of the sky.
+
+\SPLAT\ can handle many spectra at the same time and will display these as
+line plots or point markers.
 Each display window, of which there can be many, can be used to
-view one or several spectra at the same time.
+view one or more spectra at the same time.
 Display windows can be interactively zoomed and scrolled, centred on
 specific wavelengths, provide continuous coordinate readout, annotated,
 produce printable hardcopy and be configured in many ways.
@@ -376,7 +379,10 @@ This allows coordinates to be \textit{displayed} and \textit{aligned}
 in many different coordinate systems (wavelength, frequency, energy,
 velocity) and \textit{transformed} between these and different
 standards of rest (topocentric, heliocentric, dynamic and kinematic
-local standards of rest \etc).
+local standards of rest \etc). 
+It also uses AST to transform spectra between various flux systems, so that
+spectra from a wide variety of sources can be easily compared and used to
+produce a spectral energy distribution.
 
 % Not advertising this yet. May be big changes ahead.
 %Finally \SPLAT\ is extensible by the use of plugin code and
@@ -553,7 +559,7 @@ are being made (\ie\ which plots are displaying it). To add or remove
 a spectrum from a plot you need to click on the square shown in the
 \labelitem{Displayed} column, so that it becomes ticked or unticked. See
 in the following image that \hitext{test spectrum 2} is currently
-being displayed in \hitext{<plot1>}:
+being displayed in \hitext{<plot0>}:
 
 \mainfigure{browser4}
 
@@ -658,35 +664,42 @@ in the following figure:
 
 \subheading{Properties of current spectra}
 \begin{quote}
- In the properties area there are controls for changing how the
- currently selected spectra are displayed (a spectrum always uses the
- same display properties) and where they are displayed.
+ In the properties area there are controls for changing how the currently
+ selected spectra are displayed (a spectrum always uses the same display
+ properties) and where they are displayed.
 
- If more than one spectrum is selected then the properties shown are
- those of the first spectrum (\ie\ highest in the global
- list). However, any changes that you then make are applied to all the
- selected spectra.
+ If more than one spectrum is selected then the properties shown are those of
+ the first spectrum (\ie\ highest in the global list). However, any changes
+ that you then make are applied to all the selected spectra.
 
- If you load a table into \SPLAT\ the \labelitem{Columns:} controls
- will show the names of the columns selected. If these are incorrect
- then you can choose a different set.
+ If you load a table into \SPLAT\ the \labelitem{Columns:} controls will show
+ the names of the columns selected. If these are incorrect then you can choose
+ a different set.
+
+ The properties that you can change include the colour (press on this to get a
+ swatch of selectable colours), the composite value (that is the transparency
+ so you can see lines or points through other line or points), the line type
+ (simple connected polyline or histogram, or just a point marker). If you
+ choose to draw lines then you can set the width and style (dashed \etc). If
+ you choose to draw points then various types are available.
 
  If the selected spectra have errors then you can display error bars by
- clicking on the \labelitem{Error bars:} control. This is greyed out if
- errors are not available.
+ clicking on the \labelitem{Error bars:} control. This is greyed out if errors
+ are not available. The colour, number of sigma drawn and frequency of the
+ error bars can be changed using the other controls on this line.
+
 \end{quote}
 
 \subheading{Views of current spectra}
 \begin{quote}
- The views of the current spectra region shows the names of the plots
- that are displaying the currently selected spectra (this time if a
- plot is showing only some of the spectra, then it is highlighted in
- red). To add a spectrum or list of spectra to a plot, select their
- names in the global list and then click on the \labelitem{Displayed}
- control (normally this results in a tick appearing). If a plot is
- already displaying some of the selected spectra then you force it to
- display them all by clicking twice -- the first click removes the
- selected spectra and the second puts them all back, plus the ones not
+ The views of the current spectra region shows the names of the plots that are
+ displaying the currently selected spectra (this time if a plot is showing
+ only some of the spectra, then it is highlighted in red). To add a spectrum
+ or list of spectra to a plot, select their names in the global list and then
+ click on the \labelitem{Displayed} control (normally this results in a tick
+ appearing). If a plot is already displaying some of the selected spectra then
+ you force it to display them all by clicking twice -- the first click removes
+ the selected spectra and the second puts them all back, plus the ones not
  already shown.
 
  To make a plot visible double click on its name. This should raise and
@@ -708,6 +721,13 @@ in the following figure:
   Normally the type of a spectrum is determined using the file extension,
   but using this dialogue you can select a type.
 
+  \item[\inline{location}] Download and display a spectrum from the internet.
+  If you have a URL for a spectrum to view then use this simple dialog.
+
+  \item[\inline{ssap}] Query any known Simple Spectral Access Protocol (SSAP)
+  servers about spectra that they hold on a region of the sky and download
+  these to \SPLAT. This tool provides access to the Virtual Observatory.
+
   \item[\inline{browse}] Browse a hierarchy of files. This dialogue can be used
   like the open file dialogue to choose a file containing a spectrum, but,
   it also allows you to look inside a file for any displayable components.
@@ -725,19 +745,6 @@ in the following figure:
   save a spectrum to disk-file. There are no restrictions on which file
   format you can save to, but information may be lost for certain types
   (\ie\ TEXT format).
-
-  \item[\inline{readstack}] Read a stack of previously saved spectra
-  back from a disk-file. This is a special data format that is only
-  recognised by \SPLAT.
-
-  \item[\inline{savestack}] Write a representation of the current
-  spectra in the global list out to disk, \ie\ save the stack. This can
-  be re-read by using the read-stack item. Using this method allows you
-  to save a working set of spectra and restart an analysis
-  later. Properties such as the line colours are restored, but any
-  relationship between disk files and the spectra in the global list is
-  lost. This format is only for use with \SPLAT. Data saved in a stack
-  is compressed.
 
   \item[\inline{remove}] Remove the currently selected spectra from the
   global list. This does not modify disk files. Spectra that are only
@@ -768,6 +775,11 @@ in the following figure:
   energy and frequency or even heliocentric and topocentric rest frames
   \etc.).
 
+  \item[\inline{yunits}] Open a window to set the data units of any spectra.
+  This can be useful when just setting the units displayed in a plot, but
+  can also be used to convert spectra between flux systems when they are
+  drawn (making them correctly aligned).
+
   \item[\inline{rainbow}] Change the colour of \hitext{all} the spectra
   in the global list. Each time you press this button a new random seed
   is used to generate a different sequence of colours, so keep pressing
@@ -783,18 +795,23 @@ in the following figure:
 
 \end{itemize}
 
- Interesting menu items not found in the toolbar are a list of
- standard line position catalogues (for optical and some IR and
- submillimeter lines), these are found in
- \submenuitem{Options}{Line identifiers}.
- Others are to do with controlling the selection of the spectra and
- plots (see the \menuitem{Edit} menu, just like deleting spectra from
- the global list you can delete all the selected plots) and changing
- the `look and feel' of \SPLAT. These options are found in the
-  \submenuitem{Options}{Look and Feel} and
- \submenuitem{Options}{Colour Theme} sub-menus. Note that if you
- select the CDE/Motif look and feel you cannot change the colour and
- fonts used.
+ Interesting menu items not found in the toolbar are a list of standard line
+ position catalogues (for optical and some IR and submillimeter lines), these
+ are found in \submenuitem{Options}{Line identifiers}.  Others are to do with
+ controlling the selection of the spectra and plots (see the \menuitem{Edit}
+ menu, just like deleting spectra from the global list you can delete all the
+ selected plots) and changing the `look and feel' of \SPLAT. These options are
+ found in the \submenuitem{Options}{Look and Feel} and
+ \submenuitem{Options}{Colour Theme} sub-menus. Note that if you select the
+ CDE/Motif look and feel you cannot change the colour and fonts used.
+
+ You can also save and restore the global stack of spectra to and from
+ diskfile using a special data format that is only recognised by \SPLAT.
+ Using this method allows you to save a working set of spectra and restart an
+ analysis later. Properties such as the line colours are restored, but any
+ relationship between disk files and the spectra in the global list is
+ lost. Data saved in a stack are compressed.
+
 \end{quote}
 
 \newpage

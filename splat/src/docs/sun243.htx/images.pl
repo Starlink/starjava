@@ -34,7 +34,7 @@ $cached_env_img{$key} = q|<IMG
 
 $key = q/{displaymath}w(z)=mathrmexp(-z^2),mathrmerfc(-iz){displaymath};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="191" HEIGHT="29" BORDER="0"
+ WIDTH="186" HEIGHT="29" BORDER="0"
  SRC="img11.gif"
  ALT="\begin{displaymath}
 w(z) = \mathrm{exp}(-z^{2}) \, \mathrm{erfc}(-iz)
@@ -42,7 +42,7 @@ w(z) = \mathrm{exp}(-z^{2}) \, \mathrm{erfc}(-iz)
 
 $key = q/{displaymath}a=sqrtln2,left(fracx-csigmaright){displaymath};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="132" HEIGHT="42" BORDER="0"
+ WIDTH="133" HEIGHT="42" BORDER="0"
  SRC="img9.gif"
  ALT="\begin{displaymath}
 a = \sqrt{\ln{2}} \, \left(\frac{x-c}{\sigma}\right)
@@ -50,7 +50,7 @@ a = \sqrt{\ln{2}} \, \left(\frac{x-c}{\sigma}\right)
 
 $key = q/{displaymath}y(r)=A*expleft(-0.5*left(fracx-csigmaright)^2right){displaymath};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="251" HEIGHT="51" BORDER="0"
+ WIDTH="257" HEIGHT="51" BORDER="0"
  SRC="img4.gif"
  ALT="\begin{displaymath}
 y(r) = A * exp\left( -0.5 * \left(\frac{x-c}{\sigma}\right)^{2}\right)
@@ -66,7 +66,7 @@ y(r) = \frac{A}{1+0.5*(\frac{x-c}{w})^{2}}
 
 $key = q/{displaymath}fwhm=w*2sqrt2{displaymath};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="125" HEIGHT="26" BORDER="0"
+ WIDTH="131" HEIGHT="26" BORDER="0"
  SRC="img7.gif"
  ALT="\begin{displaymath}
 fwhm = w*2\sqrt{2}
@@ -74,13 +74,13 @@ fwhm = w*2\sqrt{2}
 
 $key = q/sigma;MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="14" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ WIDTH="16" HEIGHT="18" ALIGN="BOTTOM" BORDER="0"
  SRC="img5.gif"
  ALT="$\sigma$">|; 
 
 $key = q/{displaymath}b=sqrtln2,left(fracwsigmaright){displaymath};MSF=1.5;LFS=11;AAT/;
 $cached_env_img{$key} = q|<IMG
- WIDTH="108" HEIGHT="42" BORDER="0"
+ WIDTH="109" HEIGHT="42" BORDER="0"
  SRC="img10.gif"
  ALT="\begin{displaymath}
 b = \sqrt{\ln{2}} \, \left(\frac{w}{\sigma}\right)
