@@ -3,6 +3,8 @@ package uk.ac.starlink.jpcs;
 import java.io.*;
 import java.util.*;
 
+import uk.ac.starlink.jpcs.Utilities;
+
 /** This class serves to save Parameter values as Strings for use as 'current'
   * or 'global' Parameter values.
  */
@@ -83,9 +85,11 @@ static final String HEADING = "Starlink Application ParameterValueList";
     throws Exception {
 //System.out.println("Reading " + fileName );
       ParameterValueList retval = new ParameterValueList();
+      
+      File list = Utilities.getConfigFile( fileName );
       try {
          BufferedInputStream bis = new BufferedInputStream(
-                                    new FileInputStream( fileName ) );
+                                    new FileInputStream( list ) );
          BufferedReader br = new BufferedReader( 
                               new InputStreamReader( bis ) );
          bis.mark( 50 );
@@ -106,7 +110,7 @@ static final String HEADING = "Starlink Application ParameterValueList";
 
          } catch ( Exception e ) {
             throw new ParameterException(
-             "Invalid Parameter value file " + fileName + "\n"
+             "Invalid Parameter value file " + list.toString() + "\n"
              + e.toString() );
          }
       } catch( FileNotFoundException e ) {
@@ -123,7 +127,8 @@ static final String HEADING = "Starlink Application ParameterValueList";
  *  @throws Exception
  */
    protected void writeList( String fileName ) throws Exception {
-      FileOutputStream ostream = new FileOutputStream( fileName );
+      File list = Utilities.getConfigFile( fileName );
+      FileOutputStream ostream = new FileOutputStream( list );
       remove( "__DUMMY__" );
       store( ostream, HEADING );
       ostream.close();
