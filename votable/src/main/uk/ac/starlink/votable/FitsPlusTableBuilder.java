@@ -17,6 +17,7 @@ import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
@@ -47,6 +48,10 @@ public class FitsPlusTableBuilder implements TableBuilder {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
+    public String getFormatName() {
+        return "FITS-plus";
+    }
+
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
             throws IOException {
@@ -54,12 +59,12 @@ public class FitsPlusTableBuilder implements TableBuilder {
         /* If the data source has a position, then we're being directed
          * to a particular HDU - not for us. */
         if ( datsrc.getPosition() != null ) {
-            return null;
+            throw new TableFormatException( "Can't locate numbered HDU" );
         }
 
         /* See if this looks like a fits-plus table. */
         if ( ! isMagic( datsrc.getIntro() ) ) {
-            return null;
+            throw new TableFormatException( "Doesn't look like a FITS file" );
         }
 
         /* Get an input stream. */
@@ -96,17 +101,17 @@ public class FitsPlusTableBuilder implements TableBuilder {
             VOElement topel = (VOElement) doc.getDocumentElement();
             VOElement resel = topel.getChildByName( "RESOURCE" );
             if ( resel == null ) {
-                logger.warning( "No RESOURCE element" );
-                return null;
+                throw new TableFormatException( 
+                    "Embedded VOTable document has no RESOURCE element" );
             }
             TableElement tabel = (TableElement) resel.getChildByName( "TABLE" );
             if ( tabel == null ) {
-                logger.warning( "No TABLE element" );
-                return null;
+                throw new TableFormatException(
+                    "Embedded VOTable document has no TABLE element" );
             }
             if ( tabel.getChildByName( "DATA" ) != null ) {
-                logger.warning( "Found unexpected DATA element" );
-                return null;
+                throw new TableFormatException(
+                    "Embedded VOTable document has unexpected DATA element" );
             }
 
             /* Now get the StarTable from the next HDU. */
@@ -114,6 +119,9 @@ public class FitsPlusTableBuilder implements TableBuilder {
             StarTable starTable = FitsTableBuilder
                                  .attemptReadTable( strm, wantRandom,
                                                     datsrc, pos );
+            if ( starTable == null ) {
+                throw new TableFormatException( "No BINTABLE HDU found" );
+            }
 
             /* Turn it into a TabularData element associated it with its
              * TABLE DOM element as if the DOM builder had found the table
@@ -127,16 +135,17 @@ public class FitsPlusTableBuilder implements TableBuilder {
             return startab;
         }
         catch ( FitsException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
+            throw (TableFormatException)
+                  new TableFormatException( e.getMessage() ).initCause( e );
         }
         catch ( SAXException e ) {
-            throw (IOException) new IOException( e.getMessage() )
-                               .initCause( e );
+            throw (TableFormatException)
+                  new TableFormatException( e.getMessage() ).initCause( e );
         }
         catch ( NullPointerException e ) {
-            throw (IOException)
-                  new IOException( "Table not quite in fits-plus format" )
+            throw (TableFormatException)
+                  new TableFormatException( "Table not quite in " +
+                                            "fits-plus format" )
                  .initCause( e );
         }
     }

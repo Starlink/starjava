@@ -13,6 +13,7 @@ import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
@@ -27,6 +28,15 @@ public class VOTableBuilder implements TableBuilder {
 
     private static Pattern htmlPattern = 
         Pattern.compile( "<x?html", Pattern.CASE_INSENSITIVE );
+
+    /**
+     * Returns the string "votable".
+     * 
+     * @return  format name
+     */
+    public String getFormatName() {
+        return "VOTable";
+    }
 
     /**
      * Makes a StarTable out of a DataSource which points to a VOTable.
@@ -49,7 +59,7 @@ public class VOTableBuilder implements TableBuilder {
      */
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy storagePolicy )
-            throws IOException {
+            throws TableFormatException, IOException {
 
         /* Check if the source looks like HTML.  If it does it is almost
          * certainly not going to represent a valid VOTable, and trying
@@ -58,30 +68,25 @@ public class VOTableBuilder implements TableBuilder {
          * In this case bail out. */
         String sintro = new String( datsrc.getIntro() );
         if ( htmlPattern.matcher( sintro ).lookingAt() ) {
-            return null;
+            throw new TableFormatException( "Data looks like HTML" );
         }
 
         /* Try to get a VOTable object from this source. */
-        VOElement votable;
+        VOElement voEl;
         try {
-            votable = new VOElementFactory( storagePolicy )
-                     .makeVOElement( datsrc );
+            voEl = new VOElementFactory( storagePolicy )
+                  .makeVOElement( datsrc );
         }
 
         /* If we have got an Exception it's probably because 
          * it wasn't XML.  Return null to indicate it wasn't our kind
          * of input. */
         catch ( SAXException e ) {
-            return null;
+            throw new TableFormatException( "XML parse error (" 
+                                          + e.getMessage() + ")", e );
         }
         catch ( IOException e ) {
-            return null;
-        }
-
-        /* If we have got an IllegalArgumentException it probably wasn't
-         * a VOTable. */
-        catch ( IllegalArgumentException e ) {
-            return null;
+            throw e;
         }
 
         /* If the datasource has a position, try to use this to identify
@@ -96,37 +101,40 @@ public class VOTableBuilder implements TableBuilder {
                 itab = Integer.parseInt( pos );
             }
             catch ( NumberFormatException e ) {
-                throw new IllegalArgumentException( 
+                throw new TableFormatException( 
                     "Expecting integer for position in " +
                     datsrc + "(" +  e + ")" );
             }
             if ( itab < 0 ) {
-                throw new IllegalArgumentException(
+                throw new TableFormatException(
                     "Expecting integer >= 0 for position in " + 
                     datsrc + "(got " + itab + ")" );
             }
         }
 
-        /* Find the first TABLE element within the VOTable.  This is a
-         * short-term measure - in due course there should be some way
-         * (XPath) of indicating which TABLE we want to look at. */
-        TableElement tableEl = findTableElement( votable, itab );
-
-        /* If it's null, then we haven't found one. */
-        if ( tableEl == null ) {
-            if ( itab == 0 ) {
-                throw new IOException( 
-                    "VOTable document contained no TABLE elements" );
-            }
-            else {
-                throw new IOException(
-                    "VOTable document contained less than " + ( itab + 1 ) +
-                    " tables" );
-            }
+        /* Find the requested TABLE element within the VOTable. */
+        NodeList tables = voEl.getElementsByTagName( "TABLE" );
+        int ntab = tables.getLength();
+        if ( ntab == 0 ) {
+            throw new TableFormatException( "Document contains " 
+                                          + "no TABLE elements" );
         }
+        else if ( itab >= ntab ) {
+            throw new IOException(
+                "VOTable document contained only " + ntab + " tables" );
+        }
+        TableElement tableEl = (TableElement) tables.item( itab );
 
         /* Adapt the TABLE element to a StarTable. */
-        return new VOStarTable( tableEl );
+        StarTable st = new VOStarTable( tableEl );
+
+        /* Check it looks vaguely sensible. */
+        if ( st.getColumnCount() == 0 ) {
+            throw new TableFormatException( "TABLE contains no columns" );
+        }
+
+        /* Return the StarTable. */
+        return st;
     }
 
     /**
@@ -175,22 +183,5 @@ public class VOTableBuilder implements TableBuilder {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
-    }
-
-    /**
-     * Performs a (breadth-first) search to locate any descendents of the
-     * given VOElement which are Table elements.
-     *
-     * @param  voEl  a starting element
-     * @param  index  the index of the required table (0 is first)
-     * @return  a Table element which is the <tt>index</tt>'th TABLE 
-     *          descendent of <tt>vosrc</tt>,
-     *          or <tt>null</tt> if there isn't one
-     */
-    private static TableElement findTableElement( VOElement voEl, int index ) {
-        NodeList tables = voEl.getElementsByTagName( "TABLE" );
-        return index < tables.getLength() 
-             ? (TableElement) tables.item( index ) 
-             : null;
     }
 }

@@ -22,6 +22,7 @@ import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.util.Compression;
@@ -36,6 +37,13 @@ import uk.ac.starlink.util.IOUtils;
  * @author   Mark Taylor (Starlink)
  */
 public class FitsTableBuilder implements TableBuilder {
+
+    /**
+     * Returns "FITS".
+     */
+    public String getFormatName() {
+        return "FITS";
+    }
 
     /**
      * Creates a StarTable from a DataSource which refers to a FITS
@@ -58,7 +66,7 @@ public class FitsTableBuilder implements TableBuilder {
 
         /* Check if this looks like a FITS file. */
         if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
-            return null;
+            throw new TableFormatException( "Doesn't look like a FITS file" );
         }
 
         ArrayDataInput strm = null;
@@ -82,7 +90,7 @@ public class FitsTableBuilder implements TableBuilder {
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "Fell off end of file looking for "
-                                         + datsrc );
+                                         + "HDU " + datsrc.getPosition() );
                 }
                 if ( table != null ) {
                     table.setName( datsrc.getName() );
@@ -108,6 +116,7 @@ public class FitsTableBuilder implements TableBuilder {
                             return table;
                         }
                     }
+                    // can't get here
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "No table HDUs in " + datsrc );
@@ -115,7 +124,8 @@ public class FitsTableBuilder implements TableBuilder {
             }
         }
         catch ( FitsException e ) {
-            throw (IOException) new IOException().initCause( e );
+            throw (TableFormatException)
+                  new TableFormatException( e.getMessage() ).initCause( e );
         }
         finally {
             if ( strm != null && table == null ) {
