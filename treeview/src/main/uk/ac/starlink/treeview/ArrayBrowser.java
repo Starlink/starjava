@@ -200,8 +200,8 @@ public class ArrayBrowser extends JScrollPane {
             int rwidth = 8 +
                 Math.max( StarJTable.getCellWidth( rowHead, 0, 0 ),
                           StarJTable.getCellWidth( rowHead, nrow - 1, 0 ) );
-            rowHead.getColumnModel().getColumn( 0 )
-                   .setPreferredWidth( rwidth ); 
+            rowHead.getColumnModel().getColumn( 0 ).setPreferredWidth( rwidth );
+            rowHead.getPreferredScrollableViewportSize().width = rwidth;
         }
 
         /* If it's not 2-d, treat it as 1-d. */
