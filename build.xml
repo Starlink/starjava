@@ -410,6 +410,10 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="astrogrid/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="votable/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
