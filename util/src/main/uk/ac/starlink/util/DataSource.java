@@ -54,9 +54,8 @@ public abstract class DataSource {
      * Provides a new InputStream for this data source.
      * This method should be implemented by subclasses to provide
      * a new InputStream giving the raw content of the source each time
-     * it is called.  This class assumes that the same data will be
-     * available from the returned input stream every time it is returned
-     * by this method.
+     * it is called.  The general contract of this method is that each
+     * time it is called it will return a stream with the same content.
      *
      * @return  an InputStream containing the data of this source
      */
@@ -120,6 +119,13 @@ public abstract class DataSource {
 
     /**
      * Returns a name for this source.
+     * This name is mainly intended as a label identifying the source for use
+     * in informational messages; it is not in general intended to be used
+     * to provide an absolute reference to the source.  Thus, for instance,
+     * if the source references a file, its name might be a relative
+     * pathname or simple filename, rather than its absolute pathname.
+     * To identify the source absolutely, the {@link #getURL} method
+     * (or some suitable class-specific method) should be used.
      *
      * @return  a name
      */
@@ -131,6 +137,7 @@ public abstract class DataSource {
      * Sets the name of this source.
      *
      * @param  a name
+     * @see    #getName
      */
     public void setName( String name ) {
         this.name = name;
