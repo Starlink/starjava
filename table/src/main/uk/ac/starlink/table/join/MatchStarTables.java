@@ -146,10 +146,6 @@ public class MatchStarTables {
                     new RowPermutedStarTable( table, rowIndices[ iTable ] );
                 subTableList.add( subTable );
             }
-            JoinStarTable.FixAction[] fa = fixActs;
-            fixActs = new JoinStarTable.FixAction[ nTable + 1 ];
-            System.arraycopy( fa, 0, fixActs, 0, nTable );
-            fixActs[ nTable ] = JoinStarTable.FixAction.NO_ACTION;
         }
 
         /* If we've obtained any match scores, add a new table with a
@@ -160,6 +156,10 @@ public class MatchStarTables {
             ColumnInfo scoreInfo = new ColumnInfo( MATCH_SCORE_INFO );
             scoreTable.addColumn( ArrayColumn.makeColumn( scoreInfo, scores ) );
             subTableList.add( scoreTable );
+            JoinStarTable.FixAction[] fa = fixActs;
+            fixActs = new JoinStarTable.FixAction[ nTable + 1 ];
+            System.arraycopy( fa, 0, fixActs, 0, nTable );
+            fixActs[ nTable ] = JoinStarTable.FixAction.NO_ACTION;
         }
 
         /* Join all the subtables up to make one big one. */
