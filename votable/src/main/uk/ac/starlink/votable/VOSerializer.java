@@ -138,8 +138,8 @@ public abstract class VOSerializer {
      * @param  table   the table being serialized
      * @param  writer  destination stream
      */
-    private static void writeFields( Encoder[] encoders, StarTable table,
-                                     BufferedWriter writer )
+    private static void outputFields( Encoder[] encoders, StarTable table,
+                                      BufferedWriter writer )
             throws IOException {
         int ncol = encoders.length;
         for ( int icol = 0; icol < ncol; icol++ ) {
@@ -170,7 +170,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            writeFields( encoders, table, writer );
+            outputFields( encoders, table, writer );
         }
      
         public void writeInlineDataElement( BufferedWriter writer )
@@ -308,7 +308,7 @@ public abstract class VOSerializer {
         }
 
         public void writeFields( BufferedWriter writer ) throws IOException {
-            writeFields( encoders, table, writer );
+            outputFields( encoders, table, writer );
         }
 
         public void streamData( DataOutput out ) throws IOException {
