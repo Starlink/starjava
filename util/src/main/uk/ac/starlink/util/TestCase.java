@@ -90,7 +90,7 @@ public class TestCase extends junit.framework.TestCase {
         /* Check both objects have the same class. */
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
-                     expected.getClass(), actual.getClass() );
+                      getClassName( expected ), getClassName( actual ) );
         Class clazz = actual.getClass();
 
         /* Check both objects are arrays. */
@@ -297,7 +297,7 @@ public class TestCase extends junit.framework.TestCase {
         /* Check both objects have the same class. */
         assertEquals( combineMessages( message, 
                                        "array component class mismatch" ),
-                     expected.getClass(), actual.getClass() );
+                      getClassName( expected ), getClassName( actual ) );
         Class clazz = actual.getClass();
 
         /* Check both objects are arrays. */
@@ -1063,7 +1063,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else {
             throw new IllegalArgumentException( 
-                "Unsupported array type or not an array " + array.getClass() );
+                "Unsupported array type or not an array " + 
+                getClassName( array ) );
         }
     }
 
@@ -1157,7 +1158,8 @@ public class TestCase extends junit.framework.TestCase {
         }
         else {
             throw new IllegalArgumentException(
-                "Unsupported array type or not an array " + array.getClass() );
+                "Unsupported array type or not an array " + 
+                getClassName( array ) );
         }
     }
 
@@ -1190,6 +1192,17 @@ public class TestCase extends junit.framework.TestCase {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Returns the classname of an object.  Returns something sensible 
+     * if <tt>o</tt> is null.
+     *
+     * @param  o  object
+     * @return  name of <tt>o</tt>'s class, or "(null)"
+     */
+    private static String getClassName( Object o ) {
+        return o == null ? "(null)" : o.getClass().getName();
     }
 
     private String combineMessages( String msg, String detail ) {
