@@ -9,7 +9,6 @@ import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -414,9 +413,18 @@ public class StarTableChooser extends JPanel {
         return knownDialogs_;
     }
 
-    public JMenu makeKnownDialogsMenu() {
-        final JMenu menu = new JMenu( "Dialogues" );
-        menu.setMnemonic( KeyEvent.VK_D );
+    /**
+     * Creates a menu containing actions for popping up modal dialogues
+     * corresponding to all the known load dialogue classes
+     * (as reported by {@link #getKnownDialogs}.  Some of these may be
+     * inactive if the requisite classes are not present etc.
+     * 
+     * @param  menuName   name of the menu.  A default will be used if 
+     *                    <tt>null</tt> is supplied
+     */
+    public JMenu makeKnownDialogsMenu( String menuName ) {
+        final JMenu menu = new JMenu( menuName == null ? "DataSources"
+                                                       : menuName );
         menu.addMenuListener( new MenuListener() {
             boolean done;
             public void menuSelected( MenuEvent evt ) {
