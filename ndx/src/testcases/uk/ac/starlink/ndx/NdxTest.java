@@ -109,7 +109,7 @@ public class NdxTest extends TestCase {
         else {
             SourceReader sr = new SourceReader();
             sr.setIndent( 2 );
-            new SourceReader().writeSource( vndx.toXML(), 
+            new SourceReader().writeSource( vndx.toXML( null ), 
                                             new FileOutputStream( filename ) ); 
         }
 

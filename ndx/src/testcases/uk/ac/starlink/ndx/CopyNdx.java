@@ -39,7 +39,7 @@ public class CopyNdx {
     public void writeXML( URL inURL, OutputStream ostrm ) throws IOException {
         Ndx indx = ndxio.makeNdx( inURL, AccessMode.READ );
         try {
-            sr.writeSource( indx.toXML(), ostrm );
+            sr.writeSource( indx.toXML( null ), ostrm );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException()

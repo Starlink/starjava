@@ -3,6 +3,9 @@ package uk.ac.starlink.ndx;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -213,9 +216,10 @@ public class BridgeNdx implements Ndx {
      * any private values, so that this method can safely be inherited
      * by subclasses.
      *
+     * @param  base  URL against which others are to be relativised
      * @return  an XML Source representation of this Ndx
      */
-    public Source toXML() {
+    public Source toXML( URL base ) {
 
         /* Set up the document and root element. */
         DocumentBuilderFactory dfact = DocumentBuilderFactory.newInstance();
@@ -230,6 +234,25 @@ public class BridgeNdx implements Ndx {
         Element ndxEl = doc.createElement( "ndx" );
         doc.appendChild( ndxEl );
 
+        /* Get the base URI in a form suitable for using with URI.relativize. */
+        URI baseUri;
+        if ( base != null ) {
+            try {
+                baseUri = new URI( base.toExternalForm() );
+                String scheme = baseUri.getScheme();
+                String auth = baseUri.getAuthority();
+                String path = baseUri.getPath();
+                path = path.replaceFirst( "[^/]*$", "" );
+                baseUri = new URI( scheme, auth, path, "", "" );
+            }
+            catch ( URISyntaxException e ) {
+                baseUri = null;
+            }
+        }
+        else {
+            baseUri = null;
+        }
+
         /* Write a title element. */
         if ( hasTitle() ) {
             Element titleEl = doc.createElement( "title" );
@@ -242,8 +265,11 @@ public class BridgeNdx implements Ndx {
         Element imEl = doc.createElement( "image" );
         ndxEl.appendChild( imEl );
         if ( getImage().getURL() != null ) {
-            Node imUrl = doc.createTextNode( getImage().getURL()
-                                            .toExternalForm() );
+            URI iuri = urlToUri( getImage().getURL() );
+            if ( baseUri != null ) {
+                iuri = baseUri.relativize( iuri );
+            }
+            Node imUrl = doc.createTextNode( iuri.toString() );
             imEl.appendChild( imUrl );
         }
         else {
@@ -256,8 +282,11 @@ public class BridgeNdx implements Ndx {
             Element varEl = doc.createElement( "variance" );
             ndxEl.appendChild( varEl );
             if ( getVariance().getURL() != null ) {
-                Node varUrl = doc.createTextNode( getVariance().getURL()
-                                                 .toExternalForm() );
+                URI vuri = urlToUri( getVariance().getURL() );
+                if ( baseUri != null ) {
+                    vuri = baseUri.relativize( vuri );
+                }
+                Node varUrl = doc.createTextNode( vuri.toString() );
                 varEl.appendChild( varUrl );
             }
             else {
@@ -271,8 +300,11 @@ public class BridgeNdx implements Ndx {
             Element qualEl = doc.createElement( "quality" );
             ndxEl.appendChild( qualEl );
             if ( getQuality().getURL() != null ) {
-                Node qualUrl = doc.createTextNode( getQuality().getURL()
-                                                  .toExternalForm() );
+                URI quri = urlToUri( getQuality().getURL() );
+                if ( baseUri != null ) {
+                    quri = baseUri.relativize( quri );
+                }
+                Node qualUrl = doc.createTextNode( quri.toString() );
                 qualEl.appendChild( qualUrl );
             }
             else {
@@ -333,7 +365,8 @@ public class BridgeNdx implements Ndx {
         }
         
         /* Return the new DOM as a source. */
-        return new DOMSource( ndxEl );
+        return ( base != null ) ? new DOMSource( ndxEl, base.toExternalForm() )
+                                : new DOMSource( ndxEl );
     }
 
     /*
@@ -383,6 +416,22 @@ public class BridgeNdx implements Ndx {
         /* Otherwise, just let Document.importNode do the work. */
         else {
             return doc.importNode( inode, true );
+        }
+    }
+
+    /**
+     * Turns a URL into a URI catching the exceptions.  I don't think that
+     * an exception can actuallly result here, since a URIs are surely a
+     * superset of URLs?  So why doesn't this method (or an equivalent 
+     * constructor exist in the URI class??.
+     */
+    private static URI urlToUri( URL url ) {
+        try {
+            return new URI( url.toExternalForm() );
+        }
+        catch ( URISyntaxException e ) {
+            throw new AssertionError( "Failed to convert URL <" + url + "> "
+                                    + "to URI" );
         }
     }
 

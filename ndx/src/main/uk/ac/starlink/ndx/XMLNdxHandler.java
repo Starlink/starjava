@@ -336,7 +336,7 @@ public class XMLNdxHandler implements NdxHandler {
         /* Get an XML source representing the XML to be written. */
         Source xsrc;
         if ( ! writeArrays ) {
-            xsrc = ndx.toXML();
+            xsrc = ndx.toXML( null );
         }
         else {
             int hdu = 0;
@@ -374,7 +374,7 @@ public class XMLNdxHandler implements NdxHandler {
 
             MutableNdx ndx2 = new DefaultMutableNdx( ndx );
             ndx2.setBulkData( new ArraysBulkDataImpl( inda2, vnda2, qnda2 ) );
-            xsrc = ndx2.toXML();
+            xsrc = ndx2.toXML( xurl );
         }
 
         /* Write the XML to the XML stream. */
@@ -459,7 +459,7 @@ public class XMLNdxHandler implements NdxHandler {
         sr.setIncludeDeclaration( true );
         sr.setIndent( 2 );
         try {
-            sr.writeSource( ndx.toXML(), xstrm );
+            sr.writeSource( ndx.toXML( xurl ), xstrm );
         }
         catch ( TransformerException e ) {
             throw (IOException) new IOException( "Trouble writing XML" )

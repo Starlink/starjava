@@ -1,6 +1,7 @@
 package uk.ac.starlink.ndx;
 
 import java.io.IOException;
+import java.net.URL;
 import javax.xml.transform.Source;
 import org.w3c.dom.Element;
 import uk.ac.starlink.array.Requirements;
@@ -183,10 +184,19 @@ public interface Ndx {
      * array components (image, variance, quality) of this Ndx will only
      * be recoverable from the returned XML in the case that the 
      * {@link #isPersistent} method returns true.
+     * <p>
+     * The XML in general may contain URLs, for instance referencing the
+     * array components of the NDX.  How these are written is determined
+     * by the <tt>base</tt> parameter; URLs will be written as relative
+     * URLs relative to <tt>base</tt> if this is possible (e.g. if they
+     * share a part of their path).  If there is no common part of the
+     * path, including the case in which <tt>base</tt> is <tt>null</tt>,
+     * then an absolute reference will be written.
      *
+     * @param  base  the base URL against which URLs written within the XML
+     *           are considered relative.  If null, all are written absolute.
      * @return   an XML Source representation of this Ndx
      * @see     uk.ac.starlink.util.SourceReader
      */
-    Source toXML();
-
+    Source toXML( URL base );
 }
