@@ -11,6 +11,7 @@ import javax.swing.Action;
 import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListDataEvent;
@@ -68,6 +69,8 @@ public class OptionsListModel extends AbstractList implements ListModel {
 
     /**
      * Constructs a new ComboBoxModel backed by this list.
+     *
+     * @see  #makeComboBox
      */
     public ComboBoxModel makeComboBoxModel() {
         class ListComboBoxModel extends BasicListModel 
@@ -100,6 +103,26 @@ public class OptionsListModel extends AbstractList implements ListModel {
     }
 
     /**
+     * Makes a new JComboBox from this model.  This adds to the functionality
+     * of {@link #makeComboBoxModel} by ensuring that the box is 
+     * revalidated when new items are added to the model; otherwise the
+     * box can end up too small.
+     *
+     * @return  a combo box from which items in this model can be selected
+     */
+    public JComboBox makeComboBox() {
+        final JComboBox box = new JComboBox( makeComboBoxModel() );
+        addListDataListener( new ListDataListener() {
+            public void intervalAdded( ListDataEvent evt ) {
+                box.revalidate();
+            }
+            public void intervalRemoved( ListDataEvent evt ) {}
+            public void contentsChanged( ListDataEvent evt ) {}
+        } );
+        return box;
+    }
+
+    /**
      * Constructs a new JMenu backed by this list.
      * One entry is added to the menu for each option in this list;
      * the menu item will be labelled by the list item (using its toString
@@ -117,8 +140,8 @@ public class OptionsListModel extends AbstractList implements ListModel {
             public void intervalAdded( ListDataEvent evt ) {
                 int start = evt.getIndex0();
                 int nel = evt.getIndex1() - start + 1;
-                if ( start == options.size() ) {
-                    for ( int i = 0; i < nel; i++ ) {
+                if ( start == getItemCount() ) {
+                    for ( int i = start; i < start + nel; i++ ) {
                         add( makeJMenuItem( menuAction, i ) );
                     }
                 }
@@ -163,8 +186,8 @@ public class OptionsListModel extends AbstractList implements ListModel {
             public void intervalAdded( ListDataEvent evt ) {
                 int start = evt.getIndex0();
                 int nel = evt.getIndex1() - start + 1;
-                if ( start == options.size() ) {
-                    for ( int i = 0; i < nel; i++ ) {
+                if ( start == getItemCount() ) {
+                    for ( int i = start; i < start + nel; i++ ) {
                         addMenuItem( options.get( i ).toString() );
                     }
                 }
@@ -226,7 +249,7 @@ public class OptionsListModel extends AbstractList implements ListModel {
             super.fireContentsChanged( source, i0, i1 );
         }
         protected void fireIntervalAdded( Object source, int i0, int i1 ) {
-            super.fireContentsChanged( source, i0, i1 );
+            super.fireIntervalAdded( source, i0, i1 );
         }
         protected void fireIntervalRemoved( Object source, int i0, int i1 ) {
             super.fireIntervalRemoved( source, i0, i1 );
