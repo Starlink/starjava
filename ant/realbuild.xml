@@ -431,9 +431,11 @@
     <available property="ejb.wls.present"
                classname="weblogic.Server"
                classpathref="classpath"/>
-    <available property="junit.present"
+    <!-- Starlink always has JUnit present -->
+    <!--available property="junit.present"
                classname="junit.framework.TestCase"
-               classpathref="classpath"/>
+               classpathref="classpath"/-->
+    <property name="junit.present" value="true"/>
     <available property="commons.net.present"
                classname="org.apache.commons.net.ftp.FTPClient"
                classpathref="classpath"/>
