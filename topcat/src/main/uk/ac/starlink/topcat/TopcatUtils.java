@@ -17,6 +17,9 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  */
 public class TopcatUtils {
 
+    private static Boolean canSog_;
+    private static Boolean canExec_;
+
     /**
      * Column auxiliary metadata key identifying the uniqe column identifier
      * for use in algebraic expressions.
@@ -192,6 +195,49 @@ public class TopcatUtils {
      */
     private static Pattern suffixPattern( String baseSuffix ) {
         return Pattern.compile( "\\Q" + baseSuffix + "\\E" + "([0-9]*)$" );
+    }
+
+    /**
+     * Indicates whether there are enough classes to make SoG work at runtime.
+     *
+     * @return  true iff it's safe to use a SoG-based viewer
+     */
+    public static boolean canSog() {
+        if ( canSog_ == null ) {
+            synchronized ( TopcatUtils.class ) {
+                try {
+                    Class.forName( "uk.ac.starlink.sog.SOG" );
+                    canSog_ = Boolean.TRUE;
+                }
+                catch ( Throwable th ) {
+                    canSog_ = Boolean.FALSE;
+                }
+            }
+        }
+        return canSog_.booleanValue();
+    }
+
+    /**
+     * Indicates whether we have System.exec permission.
+     * 
+     * @return  true  if it's possible to exec
+     */
+    public static boolean canExec() {
+        if ( canExec_ == null ) {
+            synchronized ( TopcatUtils.class ) {
+                SecurityManager sman = System.getSecurityManager();
+                if ( sman != null ) {
+                    try {
+                        sman.checkExec( null );
+                    }
+                    catch ( SecurityException e ) {
+                        canExec_ = Boolean.FALSE;
+                    }
+                }
+                canExec_ = Boolean.TRUE;
+            }
+        }
+        return canExec_.booleanValue();
     }
 
 }
