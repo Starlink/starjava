@@ -78,6 +78,15 @@ public class BranchComboBox extends JComboBox {
     }
 
     /**
+     * Adds a new normal branch to the model.
+     *
+     * @param   branch  branch to add
+     */
+    public void addBranch( Branch branch ) {
+        model_.addBranch( branch );
+    }
+
+    /**
      * Adds a new branch to the model which represents a 
      * <tt>Connector</tt>.
      *
