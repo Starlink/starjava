@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     29-SEP-2000 (Peter W. Draper):
@@ -11,13 +11,17 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import java.io.File;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -55,14 +59,14 @@ import uk.ac.starlink.util.gui.BasicFileChooser;
 
 /**
  * PlotControlFrame provides a top-level wrapper for a PlotControl
- * object.
+ * object. 
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class PlotControlFrame
     extends JFrame
-    implements ItemListener
+    implements ItemListener, ActionListener
 {
     /**
      *  PlotControl object for displaying the spectra.
@@ -124,6 +128,12 @@ public class PlotControlFrame
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
+     * UI preferences.
+     */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( PlotControlFrame.class );
+
+    /**
      *  Main menubar and various menus.
      */
     protected JMenuBar menuBar = new JMenuBar();
@@ -132,9 +142,12 @@ public class PlotControlFrame
     protected JMenuItem drawMenu = new JMenuItem();
     protected JMenu analysisMenu = new JMenu();
     protected JMenu optionsMenu = new JMenu();
+    protected JMenu editMenu = new JMenu();
     protected JCheckBoxMenuItem coordinateMatching = null;
     protected JCheckBoxMenuItem errorbarAutoRanging = null;
     protected JCheckBoxMenuItem autoFitPercentiles = null;
+    protected JCheckBoxMenuItem showShortNames = null;
+    protected JMenuItem removeCurrent = null;
 
     /**
      *  Toolbar and contents.
@@ -199,16 +212,16 @@ public class PlotControlFrame
         //  Development properties.
         java.util.Properties props = System.getProperties();
         String isDevelop = props.getProperty( "splat.development" );
-        if (  isDevelop != null && isDevelop.equals( "1" )  ) { 
+        if (  isDevelop != null && isDevelop.equals( "1" )  ) {
             showDeblend = true;
         }
         else {
             showDeblend = false;
         }
-        
+
         if ( specDataComp == null ) {
             plot = new PlotControl();
-        } 
+        }
         else {
             plot = new PlotControl( specDataComp );
         }
@@ -249,7 +262,21 @@ public class PlotControlFrame
         getContentPane().add( plot, BorderLayout.CENTER );
         getContentPane().add( toolBarContainer, BorderLayout.NORTH );
         configureMenus();
-        pack();
+
+        Utilities.setFrameSize( (JFrame) this, 0, 0, prefs,
+                                "PlotControlFrame" );
+        Utilities.setComponentSize( plot.getPlot(), 0, 0, prefs, "DivaPlot" );
+
+        //  Listen for resize events so we can update the preferences.
+        addComponentListener( new ComponentAdapter() {
+                public void componentResized( ComponentEvent e )
+                {
+                    recordWindowSize();
+                }
+            });
+
+        plot.getPlot().setBaseScale();
+
         setVisible( true );
     }
 
@@ -271,6 +298,9 @@ public class PlotControlFrame
 
         //  Set up the Analysis menu.
         setupAnalysisMenu();
+
+	//  Set up the Edit ment.
+	setupEditMenu();
 
         //  Set up the Options menu.
         setupOptionsMenu();
@@ -337,8 +367,8 @@ public class PlotControlFrame
         fitWidthButton.setToolTipText( "Scale spectrum to fit visible width" );
 
         //  Add action to fit plot to window height.
-        FitHeightAction fitHeightAction  = new FitHeightAction( "Fit height",
-                                                                fitHeightImage );
+        FitHeightAction fitHeightAction  = new FitHeightAction("Fit height",
+							       fitHeightImage);
         fileMenu.add( fitHeightAction );
         fitHeightButton = toolBar.add( fitHeightAction );
         fitHeightButton.setToolTipText(
@@ -373,19 +403,19 @@ public class PlotControlFrame
         analysisMenu.setText( "Analysis" );
         menuBar.add( analysisMenu );
 
-        ImageIcon backImage = 
+        ImageIcon backImage =
             new ImageIcon( ImageHolder.class.getResource( "fitback.gif" ) );
-        ImageIcon interpImage = 
+        ImageIcon interpImage =
             new ImageIcon( ImageHolder.class.getResource("interpolate.gif") );
-        ImageIcon deblendImage = 
+        ImageIcon deblendImage =
             new ImageIcon( ImageHolder.class.getResource( "deblend.gif" ) );
-        ImageIcon lineImage = 
+        ImageIcon lineImage =
             new ImageIcon( ImageHolder.class.getResource( "fitline.gif" ) );
-        ImageIcon cutterImage = 
+        ImageIcon cutterImage =
             new ImageIcon( ImageHolder.class.getResource( "cutter.gif" ) );
-        ImageIcon regionCutterImage = 
+        ImageIcon regionCutterImage =
             new ImageIcon( ImageHolder.class.getResource("regioncutter.gif") );
-        ImageIcon filterImage = 
+        ImageIcon filterImage =
             new ImageIcon( ImageHolder.class.getResource( "filter.gif" ) );
 
         //  Add action to enable to cut out the current view of
@@ -450,6 +480,20 @@ public class PlotControlFrame
     }
 
     /**
+     * Configure the edit menu.
+     */
+    protected void setupEditMenu()
+    {
+        editMenu.setText( "Edit" );
+        menuBar.add( editMenu );
+
+	// Remove the current spectrum.
+        removeCurrent = new JMenuItem( "Remove current spectrum" );
+        editMenu.add( removeCurrent );
+        removeCurrent.addActionListener( this );
+    }
+
+    /**
      * Configure the options menu.
      */
     protected void setupOptionsMenu()
@@ -462,17 +506,36 @@ public class PlotControlFrame
         coordinateMatching = new JCheckBoxMenuItem( "Match coordinates" );
         optionsMenu.add( coordinateMatching );
         coordinateMatching.addItemListener( this );
+        boolean state =
+            prefs.getBoolean( "PlotControlFrame_coordinatematch", false );
+        coordinateMatching.setSelected( state );
 
         //  Include spacing for error bars in the auto ranging.
         errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
         optionsMenu.add( errorbarAutoRanging );
         errorbarAutoRanging.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_errorbarautoranging",
+                                  false );
+        errorbarAutoRanging.setSelected( state );
 
         //  Autofit to Y when selecting a percentile cut.
-        autoFitPercentiles = 
+        autoFitPercentiles =
             new JCheckBoxMenuItem( "Auto fit percentiles in Y" );
         optionsMenu.add( autoFitPercentiles );
         autoFitPercentiles.addItemListener( this );
+        state =
+            prefs.getBoolean( "PlotControlFrame_autofitpercentiles", false );
+        autoFitPercentiles.setSelected( state );
+
+        //  Show short names in drop down menu.
+        showShortNames =
+            new JCheckBoxMenuItem( "Short names in menu lists" );
+        optionsMenu.add( showShortNames );
+        showShortNames.addItemListener( this );
+        state = prefs.getBoolean( "PlotControlFrame_showshortnames",
+                                  LineRenderer.isShowShortNames() );
+        showShortNames.setSelected( state );
+        LineRenderer.setShowShortNames( state );
     }
 
     /**
@@ -542,12 +605,6 @@ public class PlotControlFrame
      */
     protected void printJPEGDisplay()
     {
-//         try {
-//             plot.getPlot().update(); // Force redraw.
-//         }
-//         catch (SplatException e) {
-//             //  Do nothing, it should be harmless.
-//         }
         JPEGUtilities.showJPEGChooser( plot.getPlot() );
     }
 
@@ -920,7 +977,8 @@ public class PlotControlFrame
                         filterClosed();
                     }
                 });
-        } else {
+        }
+	else {
             Utilities.raiseFrame( filterFrame );
         }
     }
@@ -993,12 +1051,13 @@ public class PlotControlFrame
     }
 
     /**
-     *  When window is closed remove configuration window too.
+     *  When window is closed remove configuration windows too.
      */
     protected void processWindowEvent( WindowEvent e )
     {
         super.processWindowEvent( e );
         if ( e.getID() == WindowEvent.WINDOW_CLOSING ) {
+            recordWindowSize();
             closeToolWindows();
         }
     }
@@ -1008,8 +1067,26 @@ public class PlotControlFrame
      */
     public void closeWindow()
     {
+        recordWindowSize();
         dispose();
         closeToolWindows();
+    }
+
+    /**
+     *  Remove the current spectrum.
+     */
+    public void removeCurrentSpectrum()
+    {
+        globalList.removeSpectrum( plot, specDataComp.getCurrentSpectrum() );
+    }
+
+    /**
+     * Record the window size into the preferences database.
+     */
+    protected void recordWindowSize()
+    {
+        Utilities.saveFrameSize( this, prefs, "PlotControlFrame" );
+        Utilities.saveComponentSize( plot.getViewport(), prefs, "DivaPlot" );
     }
 
 //
@@ -1220,19 +1297,43 @@ public class PlotControlFrame
         Object source = e.getSource();
 
         if ( source.equals( coordinateMatching ) ) {
-            specDataComp.setCoordinateMatching
-                ( coordinateMatching.isSelected() );
+            boolean state = coordinateMatching.isSelected();
+            specDataComp.setCoordinateMatching( state );
+            prefs.putBoolean( "PlotControlFrame_coordinatematch", state );
             plot.updatePlot();
             return;
         }
         if ( source.equals( errorbarAutoRanging ) ) {
-            specDataComp.setErrorbarAutoRanging
-                ( errorbarAutoRanging.isSelected() );
+            boolean state = errorbarAutoRanging.isSelected();
+            specDataComp.setErrorbarAutoRanging( state );
+            prefs.putBoolean( "PlotControlFrame_errorbarautoranging", state );
             plot.updatePlot();
             return;
         }
         if ( source.equals( autoFitPercentiles ) ) {
-            plot.setAutoFitPercentiles( autoFitPercentiles.isSelected() );
+            boolean state = autoFitPercentiles.isSelected();
+            prefs.putBoolean( "PlotControlFrame_autofitpercentiles", state );
+            plot.setAutoFitPercentiles( state );
+            return;
+        }
+        if ( source.equals( showShortNames ) ) {
+            boolean state = showShortNames.isSelected();
+            prefs.putBoolean( "PlotControlFrame_showshortnames", state );
+            LineRenderer.setShowShortNames( state );
+            return;
+        }
+    }
+
+    //
+    // ActionListener interface for menubuttons that do not require a full
+    // action.
+    //
+    public void actionPerformed( ActionEvent e )
+    {
+        Object source = e.getSource();
+
+        if ( source.equals( removeCurrent ) ) {
+            removeCurrentSpectrum();
             return;
         }
     }
