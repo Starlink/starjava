@@ -26,3 +26,10 @@ r0-3:
            that you don't now need to copy an external AST source file
            into the source directory.
 
+r0-4:
+   Date:   14-MAR-2003
+   Tagger: Mark Taylor
+   Info:   JNIAST up to V1.8-13, which means the corresponding version of
+           AST, or later, needs to be available.
+           Treeview test target fails, but treeview once installed works.
+           One directory needs to be created during install for sog.
