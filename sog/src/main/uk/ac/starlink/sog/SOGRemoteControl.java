@@ -29,7 +29,7 @@ import jsky.image.gui.ImageGraphicsHandler;
 import org.w3c.dom.Element;
 
 import uk.ac.starlink.soap.AppHttpSOAPServer;
-import uk.ac.starlink.hdx.jai.HDXImage;
+import uk.ac.starlink.jaiutil.HDXImage;
 
 /**
  * Implements the SOAP web services offered by the SOG
