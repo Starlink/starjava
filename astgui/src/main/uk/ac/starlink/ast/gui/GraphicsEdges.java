@@ -69,7 +69,7 @@ public class GraphicsEdges
     {
         clip = true;
         xFrac = 0.05;
-        yFrac = 0.0;
+        yFrac = 0.03;
         fireChanged();
     }
 
