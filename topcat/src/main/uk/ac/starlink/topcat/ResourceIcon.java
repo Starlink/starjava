@@ -67,6 +67,7 @@ public class ResourceIcon implements Icon {
         ADD = makeIcon( "Plus1.gif" ),
         REMOVE = makeIcon( "Minus1.gif" ),
         HELP = makeIcon( "Help3.gif" ),
+        DEMO = makeIcon( "demo.gif" ),
 
         /* Windows. */
         COLUMNS = makeIcon( "colmeta0.gif" ),

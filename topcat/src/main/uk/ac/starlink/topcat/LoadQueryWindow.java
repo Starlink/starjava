@@ -5,14 +5,21 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.DriverManager;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
+import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
@@ -50,6 +57,10 @@ public class LoadQueryWindow extends QueryWindow {
     private JFileChooser fileChooser;
     private StarTableNodeChooser nodeChooser;
     private SQLReadDialog sqlDialog;
+
+    public static String DEMO_LOCATION = "uk/ac/starlink/topcat/demo";
+    public static String DEMO_TABLE = "863sub.fits";
+    public static String DEMO_NODES = "demo_list";
 
     /**
      * Creates a new LoadQueryWindow.  No window is displayed at 
@@ -98,6 +109,24 @@ public class LoadQueryWindow extends QueryWindow {
         }
         controls.add( new JButton( fileAction ) );
         controls.add( new JButton( jdbcAction ) );
+
+        /* Add a tool button for demo data. */
+        Action demoAction = makeDemoAction();
+        getToolBar().add( demoAction );
+        getToolBar().addSeparator();
+
+        /* Menus. */
+        JMenu demoMenu = new JMenu( "Examples" );
+        demoMenu.setMnemonic( KeyEvent.VK_X );
+        demoMenu.add( new AbstractAction( "Load Example Table" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                String demoPath = DEMO_LOCATION + "/" + DEMO_TABLE;
+                submitLocation( getClass().getClassLoader()
+                               .getResource( demoPath ).toString() );
+            }
+        } );
+        demoMenu.add( demoAction ).setIcon( null );
+        getJMenuBar().add( demoMenu );
 
         /* Configure drag'n'drop operation. */
         TransferHandler th = new LoadWindowTransferHandler();
@@ -343,6 +372,65 @@ public class LoadQueryWindow extends QueryWindow {
             jh.setAuthenticator( guiAuth );
         }
         guiAuth.setParentComponent( parent );
+    }
+
+    /**
+     * Constructs an Action which will display TOPCAT demo data in a
+     * node chooser window.
+     *
+     * @param  a new action for demo purposes
+     */
+    private Action makeDemoAction() {
+
+        /* Get the list of resources which constitute the demo set. */
+        List demoList = new ArrayList();
+        InputStream 
+            strm = getClass().getClassLoader()
+                  .getResourceAsStream( DEMO_LOCATION + "/" + DEMO_NODES );
+        BufferedReader rdr = 
+            new BufferedReader( new InputStreamReader( strm ) );
+        try {
+            for ( String line; ( line = rdr.readLine() ) != null; ) {
+                demoList.add( DEMO_LOCATION + "/" + line );
+            }
+            rdr.close();
+        }
+        catch ( IOException e ) {
+            demoList = null;
+            e.printStackTrace( System.err );
+        }
+
+        /* Try to make a new root node based on these. */
+        Object node = null;
+        if ( demoList != null ) {
+            try {
+                node = 
+                    Class.forName( 
+                        "uk.ac.starlink.treeview.ResourceListDataNode" )
+                   .getConstructor( new Class[] { List.class } )
+                   .newInstance( new Object[] { demoList } );
+            }
+            catch ( Exception e ) {
+                e.printStackTrace( System.err );
+            }
+        }
+
+        /* Make an action which browses this hierarchy. */
+        final Object demoNode = node;
+        Action act =
+            new BasicAction( "Browse Example Hierarchy", ResourceIcon.DEMO,
+                             "Display some example tables in a browser" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    getStarTableNodeChooser().setRootNode( demoNode );
+                    nodeDialog();
+                }
+            };
+
+        /* Disable it if we never found the nodes. */
+        act.setEnabled( demoNode != null );
+
+        /* Return the completed action. */
+        return act;
     }
 
     /**
