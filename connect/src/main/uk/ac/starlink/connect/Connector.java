@@ -42,7 +42,7 @@ public interface Connector {
      * the keys returned by {@link #getKeys}, with the entry's value
      * being the value for that key.
      * Thus the values will typically be the user's name, password, etc.
-     * The values will be either <tt>String<tt> or <tt>char[]</tt> values
+     * The values will be either <tt>String</tt> or <tt>char[]</tt> values
      * or <tt>null</tt> (<tt>char[]</tt> may be used for hidden values for
      * security reasons).
      *
