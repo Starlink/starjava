@@ -1,10 +1,213 @@
+Changes from Ant 1.5.1 to Ant 1.5.2
+===================================
+
+Changes that could break older environments:
+--------------------------------------------
+* ANT_OPTS environment variable is now applied at the start of the
+  Java command line, allowing position specific parameters of some
+  JVMs, such as -classic to be specified.
+
+* ZipScanner#getIncludedFiles will now return the names of the ZipEntries
+  that have been matched instead of the name of the archive.
+
+* The <zip> task and friends have been heavily modified, almost every
+  method signature of the Zip class has changed.  If you have subclassed
+  Zip (or one of its subclasses), your class will most likely not
+  compile against the current code base.  If it still compiles, it will
+  probably not work as in Ant 1.5.1.
+
+Fixed bugs:
+-----------
+* <translate> was not ignoring comment lines.
+
+* <manifest> wouldn't update an existing manifest if only an attribute
+  of an existing section changed.
+
+* ant.bat now supports the ANT_ARGS and JAVACMD environment variables
+  again (like Ant 1.5 did).
+
+* The "plain" <junit> <formatter> could throw a NullPointerException
+  if an error occured in setUp.
+
+* <junit> will now produce output when a test times out as well.
+
+* <replace> would count some internal character replacements when
+  reporting the number of replaced tokens.
+
+* <concat> would cause an exception if a <filelist> pointed to files
+  that do not exist.
+
+* <javadoc> will now pass -source to custom doclets as well.
+
+* <cvstagdiff> would throw a NullPointException if there had been no
+  differences.
+
+* <cvschangelog> could miss today's changes.
+
+* <concat> could append newline characters between concatenated files.
+
+* <xmlvalidate> ignored the specified encoding of the files to
+  validate.
+
+* the errorsbeginat attribute of the <http> condition didn't work.
+
+* Ant will try to force loading of certain packages like com.sun.*
+  from the system classloader.  The packages are determined by the
+  version of the JVM running Ant.
+
+* Ant didn't find the runtime libraries on IBM's JDK 1.4 for Linux.
+
+* random component of temporary files is now always a positive integer.
+
+* Ant could incorrectly try to use the 1.4 regexp implementation even
+  if it isn't available if you run the JVM with -Xverify:none.
+
+* Ant would die with an exception if you used nested <reference>
+  elements in Ant and the refid attribute didn't point to an existing
+  project reference.
+
+* The <get> task can now be compiled (and Ant thus bootstrapped) using
+  Kaffee.
+
+* build.sysclasspath will now be honored by more tasks.
+
+* The signjar keystore attribute has been reverted to a String allowing
+  it to once again accept URLs. This should not affect current File based usage
+  unless you are extending the Signjar task.
+
+* <jar update="true"> would remove the original manifest.
+
+* fix up folder creation in PVCS task
+
+* <tar>'s up-to-date check didn't work for nested <(tar)fileset>s.
+
+* Corrected a problem in XMLLogger where it would not associated
+  messages with a taskdef'd task
+
+* <uptodate> now works when using attributes (i.e. not filesets) and pointing 
+  to the same file
+
+* Java task (and output system) now stores output which does not end
+  with a line feed.
+
+* splash screen wouldn't disappear when build was finished.
+
+* <exec> now supports OS/2.
+
+* <zip> and friends would only update/recreate existing archives if
+  the files to add/update have been newer than the archive.
+
+* <javadoc>'s <link> element could fail for offline="true" on some JDKs.
+
+Other changes:
+--------------
+
+* MailLogger now sets the Date header correctly.
+
+* Shipped XML parser is now Xerces 2.3.0
+
+* signjar now accepts a maxmemory attribute to allow the memory allocated to the
+  jarsigner tool to be specified. The jarsigner from the JDK's JAVA_HOME bin
+  dir is now used rather than the first jarsigner on the path.
+
+* **/.DS_Store has been added to the list of default pattern excludes.
+
+* The Created-By header in the default manifest now contains the JVM
+  vendor and version according to the jar specification. A new header,
+  Ant-Version provides the Ant version used to create the jar.
+
+* <zip> can now store Unix permissions in a way that can be
+  reconstructed by Info-Zip's unzip command.
+
+Changes from Ant 1.5.1Beta1 to 1.5.1
+====================================
+
+Fixed bugs:
+-----------
+
+* <tstamp>'s prefix attribute failed to apply to nested <format> elements.
+
+* <junitreport> created an empty junit-noframes.html if no format had
+  been specified.
+
+* <basename> would remove more than it should if the file name
+  contained more than one dot.
+
+* <filterset>s nested into <filterset>s didn't work.
+
+Other changes:
+--------------
+
+* Shipped XML parser is now Xerces 2.2.0
+
+* Filesets now support a 'file' attribute, allowing a single-file
+  fileset to be constructed without having to specify its parent
+  directory separately.
+
+* <junit> will now return the result of a call to getName instead of
+  "unknown" for Test implementations that don't extend TestCase but have
+  a public String getName() method.
+
+Changes from Ant 1.5 to 1.5.1Beta1
+==================================
+
+Fixed bugs:
+-----------
+* Date/time in CvsChangeLog was in local timezone and 12 hour format leading
+  to a problem when sorting by time. It is now UTC (GMT) and in 24-hour
+  format as per cvs 'specifications'.
+
+* CvsTagDiff now supports ampersand modules or modules that have a different
+  root directory than their name.
+
+* EjbJar threw NPEs for the Websphere element. The property 'websphere.home'
+  was not documented.
+
+* Mail example in the documentation was not correct.
+
+* Checksum was broken in the following scenario:
+  (using verifyproperty OR in a condition) AND using filesets
+  with multiple files.
+
+* The ExpandProperties filter threw NPEs when defined using
+  the <filterreader> format.
+
+* The sh wrapper script didn't work under Cygwin if ANT_HOME wasn't
+  set with a Unix style filename.
+
+* The sh wrapper script could fail if you started Ant from a directory
+  with whitespace in its name.
+
+* ant -diagnostics was not working properly when the task dependency
+  was missing and was just printing the missing dependency.
+
+* If a task got redefined via <taskdef>, it lost its child elements.
+
+* <property>'s classpathref attribute was broken.
+
+* <arg line="''" /> would result in no command line argument, will now
+  be a single empty argument.  Use <arg value="''"/> if you need the
+  quotes literally.
+
+* <replaceregexp> could append a newline character at the end of the
+  file.
+
+Other changes:
+--------------
+
+* Appendix E of Java Development with Ant (Loughran/Hatcher) was
+  contributed to the docs.
+
+* <available> will only print deprecration warnings if it is actually
+  used to change the value of a property.
+
 Changes from Ant 1.5beta3 to Ant 1.5
 ====================================
 
 Changes that could break older environments:
 --------------------------------------------
 
-* The filesetmanifest attribute added to <jar> after the 1.4.1 
+* The filesetmanifest attribute added to <jar> after the 1.4.1
   release has been removed for now.  This change may affect only
   the 1.5Beta/1.6Alpha users.  An attempt will be made to add this
   feature back into Ant 1.6.
