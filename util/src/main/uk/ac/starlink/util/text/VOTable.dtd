@@ -32,7 +32,8 @@
 <!ATTLIST PARAM
         ID   ID    #IMPLIED
         unit CDATA #IMPLIED
-        datatype (boolean | bit | unsignedByte | short | int | long | char | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
+        datatype (boolean | bit | unsignedByte | short | int | long | char
+        | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
@@ -76,7 +77,8 @@
 <!ATTLIST FIELD
         ID   ID    #IMPLIED
         unit CDATA #IMPLIED
-        datatype (boolean | bit | unsignedByte | short | int | long | char | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
+        datatype (boolean | bit | unsignedByte | short | int | long | char
+        | unicodeChar | float | double | floatComplex | doubleComplex) #REQUIRED
         precision CDATA #IMPLIED
         width CDATA #IMPLIED
         ref   IDREF #IMPLIED
