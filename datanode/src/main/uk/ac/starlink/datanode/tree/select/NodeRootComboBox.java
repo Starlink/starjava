@@ -100,14 +100,21 @@ public class NodeRootComboBox extends JComboBox {
         /* Add nodes for local filesystems. */
         File[] fileRoots = File.listRoots();
         for ( int i = 0; i < fileRoots.length; i++ ) {
-             File dir = fileRoots[ i ];
-             try {
-                 DataNode dirNode = factory_.makeDataNode( null, dir );
-                 model_.addChain( new NodeChain( dirNode ) );
-             }
-             catch ( NoSuchDataException e ) {
-                 logger_.warning( "Can't read directory " + dir + ": " + e );
-             }
+            File dir = fileRoots[ i ];
+            if ( dir.isDirectory() && dir.canRead() ) {
+                try {
+                    DataNode dirNode = factory_.makeDataNode( null, dir );
+                    model_.addChain( new NodeChain( dirNode ) );
+                }
+                catch ( NoSuchDataException e ) {
+                    logger_.warning( "Can't read directory " + dir + 
+                                     ": " + e );
+                }
+            }
+            else {
+                logger_.warning( "Local filesystem root " + dir +
+                                 " is not a readable directory" );
+            }
         }
 
         /* Add nodes for remote filestores. */
