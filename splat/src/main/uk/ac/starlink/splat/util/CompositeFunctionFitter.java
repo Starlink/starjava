@@ -23,7 +23,7 @@ public class CompositeFunctionFitter
     extends AbstractFunctionFitter
 {
     // XXX could optimise a lot of this. Use FunctionGenerator[]
-    // array, pre-allocate suba and subdyda... 
+    // array, pre-allocate suba and subdyda...
     //
     // XXX Sitting here with better things to do an obvious refactoring of the
     // Fitter and Generator classes is to make Generators for each model the
@@ -42,6 +42,11 @@ public class CompositeFunctionFitter
     protected double chiSquare = 0.0;
 
     /**
+     * Did minimisation converge before exiting?
+     */
+    protected boolean converged = false;
+
+    /**
      * Default constructor.
      */
     public CompositeFunctionFitter()
@@ -54,9 +59,7 @@ public class CompositeFunctionFitter
      */
     public void doFit( double[] x, double[] y )
     {
-        double[] w = new double[x.length];
-        Arrays.fill( w, 1.0 );
-        doFit( x, y, w );
+        doFit( x, y, null );
     }
 
     /**
@@ -74,11 +77,11 @@ public class CompositeFunctionFitter
         for ( int i = 0; i < x.length; i++ ) {
             lm.setX( i + 1, x[i] );
             lm.setY( i + 1, y[i] );
-            if ( w[i] == 0.0 ) {
+            if ( w == null || w[i] == 0.0 ) {
                 lm.setSigma( i + 1, 1.0 );
             }
             else {
-                lm.setSigma( i + 1, 1.0 / w[i] );
+                lm.setSigma( i + 1, w[i] ); //1.0 / w[i] );
             }
         }
 
@@ -94,6 +97,9 @@ public class CompositeFunctionFitter
 
         // Record estimate of goodness of fit.
         chiSquare = lm.getChisq();
+
+        // How did minimisation complete?
+        converged = lm.isConverged();
 
         //  And reset all FunctionGenerators to the new values.
         for ( int i = 0; i < params.length; i++ ) {
@@ -117,6 +123,15 @@ public class CompositeFunctionFitter
     {
         funcs.remove( generator );
     }
+
+    /**
+     * How did the minimisation complete?
+     */
+    public boolean isConverged()
+    {
+        return converged;
+    }
+
 
     /**
      * Return an Iterator over the FunctionGenerators.
@@ -235,7 +250,7 @@ public class CompositeFunctionFitter
         return params;
     }
 
-    // Set all params, does the reverse of getParams. Order depends on 
+    // Set all params, does the reverse of getParams. Order depends on
     // the FunctionGenerators in use, so not much use to anyone else.
     public void setParams( double[] params )
     {
@@ -295,7 +310,7 @@ public class CompositeFunctionFitter
 
     //
     // Evaluate the composite function given a set of full parameters. Returns
-    // the derivate of the function at the position. Part of the 
+    // the derivate of the function at the position. Part of the
     // {@link LevMarqFunc} interface.
     //
     public double eval( double x, double[] a, int na, double[] dyda )
