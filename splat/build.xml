@@ -511,6 +511,7 @@
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="Linux">
       <env key="SYSTEM" value="ix86_Linux"/>
+      <env key="STARLINK" value="${stardev}"/>
       <env key="JAVA_SYSTEM" value="linux"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
@@ -520,6 +521,7 @@
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="SunOS">
       <env key="SYSTEM" value="sun4_Solaris"/>
+      <env key="STARLINK" value="${stardev}"/>
       <env key="JAVA_SYSTEM" value="solaris"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
@@ -529,6 +531,7 @@
 
     <exec dir="${build.jni}" executable="${build.jni}/mk" os="OSF1">
       <env key="SYSTEM" value="alpha_OSF1"/>
+      <env key="STARLINK" value="${stardev}"/>
       <env key="JAVA_SYSTEM" value="alpha"/>
       <env key="JAVA_HOME" value="${java.home}/.."/>
       <env key="JAVA_SHAREABLES" value="${java.shareables}"/>
