@@ -57,12 +57,17 @@ public abstract class NdxDisplayer {
     }
 
     /**
-     * Attempts to display the given NDX using remote communication.
+     * Attempts to display the given NDX using a locally created
+     * object. If this is for use in an embedded sense then embedded
+     * should be true (in this case local created objects should
+     * expect to be not remotely controlled and not take charge of
+     * application exit).
      *
      * @param  ndx  the NDX to display
-     * @return  true iff the display was successful
+     * @param  embedded is the local object to be embedded
+     * @return  true if the display was successful
      */
-    public abstract boolean localDisplay( Ndx ndx );
+    public abstract boolean localDisplay( Ndx ndx, boolean embedded );
 
     /**
      * Indicates whether this displayer can be expected to display the
@@ -77,16 +82,22 @@ public abstract class NdxDisplayer {
     }
 
     /**
-     * Attempts to display the given NDX.  
-     * Display may be in the same or a different
-     * JVM depending on whether the remote service is available and works.
+     * Attempts to display the given NDX.
+     * Display may be in the same or a different JVM depending on
+     * whether the remote service is available and works. If the
+     * display takes place in the local JVM then the embedded
+     * parameter is used to control whether the displayer takes charge
+     * of application exit (it may also activate a full set of
+     * services, such as remote control).
      *
      * @param  ndx  the NDX to display
-     * @return  true iff the display was successful
+     * @param  embedded whether a local displayer should not assume it is
+     *                  the full application instance, or not
+     * @return  true if the display was successful
      */
-    public boolean display( Ndx ndx ) {
+    public boolean display( Ndx ndx, boolean embedded ) {
         return soapDisplay( ndx )
-            || localDisplay( ndx );
+            || localDisplay( ndx, embedded );
     }
 
     /**
@@ -175,13 +186,13 @@ public abstract class NdxDisplayer {
                     int ndim = shape.getNumDims();
                     if ( ndim == 1 ) {
                         if ( ! SplatNdxDisplayer.getInstance()
-                                                .display( ndx ) ) {
+                                                .display( ndx, false ) ) {
                             failmsg = "SPLAT failed to display";
                         }
                     }
                     else if ( ndim == 2 ) {
                         if ( ! SogNdxDisplayer.getInstance()
-                                              .display( ndx ) ) {
+                                              .display( ndx, false ) ) {
                             failmsg = "SoG failed to display";
                         }
                     }

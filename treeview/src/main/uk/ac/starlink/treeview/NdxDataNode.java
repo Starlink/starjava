@@ -502,7 +502,7 @@ public class NdxDataNode extends DefaultDataNode
                     if ( ! displayer.soapDisplay( ndx ) ) {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
-                                if ( ! displayer.localDisplay( ndx ) ) {
+                                if ( ! displayer.localDisplay( ndx, true ) ) {
                                     beep();
                                 }
                             }

@@ -4,6 +4,7 @@ import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.NDXSpecDataImpl;
 import uk.ac.starlink.splat.iface.SplatBrowser;
+import uk.ac.starlink.splat.iface.SplatBrowserMain;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -28,10 +29,10 @@ public class SplatNdxDisplayer extends NdxDisplayer {
         return instance;
     }
 
-    public boolean localDisplay( Ndx ndx ) {
+    public boolean localDisplay( Ndx ndx, boolean embedded ) {
         try {
             SpecData spectrum = new SpecData( new NDXSpecDataImpl( ndx ) );
-            SplatBrowser browser = getBrowser();
+            SplatBrowser browser = getBrowser( embedded );
             browser.addSpectrum( spectrum );
             browser.displaySpectrum( spectrum );
             return true;
@@ -41,10 +42,18 @@ public class SplatNdxDisplayer extends NdxDisplayer {
         }
     }
 
-    private synchronized SplatBrowser getBrowser() {
+    private synchronized SplatBrowser getBrowser( boolean embedded ) {
         if ( browser == null ) {
-            browser = new SplatBrowser();
+            //  Application-level initialisations for SPLAT.
+            SplatBrowserMain.guessProperties();
+
+            //  Create the browser.
+            browser = new SplatBrowser( embedded );
+
+            //  But iconize this so that we see only the plots.
+            browser.setExtendedState( browser.ICONIFIED );
         }
+        browser.setVisible( true );
         return browser;
     }
  

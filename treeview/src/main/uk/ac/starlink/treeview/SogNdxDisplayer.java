@@ -5,6 +5,7 @@ import uk.ac.starlink.jaiutil.HDXImage;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.sog.SOG;
 import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
+import uk.ac.starlink.sog.SOGNavigatorImageDisplayFrame;
 
 /**
  * NDX displayer which will display using SoG classes.
@@ -13,7 +14,7 @@ import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
  */
 public class SogNdxDisplayer extends NdxDisplayer {
 
-    private SOGNavigatorImageDisplay imageDisplay;
+    private SOG sog;
     private static SogNdxDisplayer instance;
 
     public SogNdxDisplayer() {
@@ -31,23 +32,42 @@ public class SogNdxDisplayer extends NdxDisplayer {
         return ndx.isPersistent();
     }
 
-    public boolean localDisplay( Ndx ndx ) {
+    public boolean localDisplay( Ndx ndx, boolean embedded ) {
         if ( ndx.isPersistent() ) {
             try {
-                getImageDisplay().setHDXImage( new HDXImage( ndx ) );
+                getImageDisplay( embedded ).setHDXImage( new HDXImage( ndx ) );
                 return true;
             }
             catch ( IOException e ) {
+                e.printStackTrace();
                 return false;
             }
         }
+        System.err.println( "Failed to localDisplay in SoG, NDX isn't" +
+                            " persistent" );
         return false;
     }
 
-    private synchronized SOGNavigatorImageDisplay getImageDisplay() {
-        if ( imageDisplay == null ) {
-            SOG sog = new SOG();
+    private synchronized SOGNavigatorImageDisplay 
+        getImageDisplay( boolean embedded ) {
+
+        SOGNavigatorImageDisplay imageDisplay = null;
+        if ( sog == null ) {
+            sog = new SOG();
+            sog.setDoExit( ! embedded );
             imageDisplay = (SOGNavigatorImageDisplay) sog.getImageDisplay();
+        }
+        else {
+
+            //  Get a new window each time.
+            imageDisplay = (SOGNavigatorImageDisplay) sog.getImageDisplay();
+
+            SOGNavigatorImageDisplayFrame frame =
+                (SOGNavigatorImageDisplayFrame) imageDisplay.newWindow();
+
+            imageDisplay = (SOGNavigatorImageDisplay) 
+                frame.getImageDisplayControl().getImageDisplay();
+            imageDisplay.setDoExit( ! embedded );
         }
         return imageDisplay;
     }
