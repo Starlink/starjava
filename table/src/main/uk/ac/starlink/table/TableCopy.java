@@ -34,20 +34,14 @@ public class TableCopy {
         }
         usage.append( "\n   Usage: " )
              .append( cmdname )
-             .append( " [-ofmt " );
-        boolean first = true;
+             .append( " [-ofmt <out-format>] <in-table> <out-table>\n" );
+        usage.append( "\n   Known out-formats:\n" );
         for ( Iterator it = twriter.getKnownFormats().iterator(); 
               it.hasNext(); ) {
-            if ( ! first ) { 
-                usage.append( '|' );
-            }
-            usage.append( ( (String) it.next() ).toLowerCase() );
-            first = false;
+            usage.append( "      " )
+                 .append( ( (String) it.next() ).toLowerCase() )
+                 .append( "\n" );
         }
-        usage.append( "] " )
-             .append( "in-table " )
-             .append( "out-table " )
-             .append( "\n" );
 
         /* Process the command line arguments. */
         String ofmt = null;
@@ -88,10 +82,19 @@ public class TableCopy {
         }
 
         /* Get the input table. */
-        StarTable startab = treader.makeStarTable( iloc );
+        try {
+            StarTable startab = treader.makeStarTable( iloc );
 
-        /* Write it to the requested destination. */
-        twriter.writeStarTable( startab, oloc, ofmt );
+            /* Write it to the requested destination. */
+            twriter.writeStarTable( startab, oloc, ofmt );
+
+        /* In the event of an error getting the format, write it out 
+         * without the (user-intimidating) stacktrace. */
+        }
+        catch ( UnknownTableFormatException e ) {
+            System.err.println( e.getMessage() );
+            System.exit( 1 );
+        }
     }
  
 }
