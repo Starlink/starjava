@@ -331,14 +331,9 @@ public class StarTableFactory {
             try {
                 StarTable startab = builder.makeStarTable( datsrc, wantRandom(),
                                                            getStoragePolicy() );
-                if ( startab instanceof AbstractStarTable ) {
-                    AbstractStarTable abst = (AbstractStarTable) startab;
-                    if ( abst.getName() == null ) {
-                        abst.setName( datsrc.getName() );
-                    }
-                    if ( abst.getURL() == null ) {
-                        abst.setURL( datsrc.getURL() );
-                    }
+                startab.setURL( datsrc.getURL() );
+                if ( startab.getName() == null ) {
+                    startab.setName( datsrc.getName() );
                 }
                 return startab;
             }
@@ -434,17 +429,34 @@ public class StarTableFactory {
             return makeStarTable( datsrc );
         }
         TableBuilder builder = getTableBuilder( handler );
-        StarTable startab = builder.makeStarTable( datsrc, wantRandom(),
-                                                   getStoragePolicy() );
-        if ( startab instanceof AbstractStarTable ) {
-            AbstractStarTable abst = (AbstractStarTable) startab;
-            if ( abst.getName() == null ) {
-                abst.setName( datsrc.getName() );
-            }
-            if ( abst.getURL() == null ) {
-                abst.setURL( datsrc.getURL() );
-            }
+        StarTable startab;
+        try {
+            startab = builder.makeStarTable( datsrc, wantRandom(),
+                                             getStoragePolicy() );
         }
+
+        /* If the table handler fails to load the table, rethrow the exception
+         * with additional information about the handler that failed. */
+        catch ( TableFormatException e ) {
+            String msg = "Can't open " + datsrc.getName() + " as " + 
+                         builder.getFormatName();
+            String emsg = e.getMessage();
+            if ( emsg != null && emsg.trim().length() > 0 ) {
+                msg += " (" + emsg + ")";
+            }
+            else {
+                msg += " (" + e.toString() + ")";
+            }
+            throw new TableFormatException( msg, e );
+        }
+
+        /* Doctor the table's URL and name. */
+        startab.setURL( datsrc.getURL() );
+        if ( startab.getName() == null ) {
+            startab.setName( datsrc.getName() );
+        }
+
+        /* Return the table. */
         return startab;
     }
 
