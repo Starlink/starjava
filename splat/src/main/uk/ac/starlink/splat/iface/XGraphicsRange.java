@@ -205,7 +205,6 @@ public class XGraphicsRange
             double[] wRange = new double[4];
             wRange[0] = range[0];
             wRange[1] = 0.0;
-            // TODO: should be a valid Y coordinate.
             wRange[2] = range[1];
             wRange[3] = 0.0;
             Mapping astMap = plot.getMapping();
@@ -263,8 +262,8 @@ public class XGraphicsRange
         if ( props.getWidth() == 0.0 ) {
             props.setWidth( 20.0 );
         }
-        figure = (XRangeFigure) pane.createFigure( DrawFigureFactory.XRANGE,
-                                                   props );
+        figure = (XRangeFigure) 
+            drawActions.createDrawFigure( DrawFigureFactory.XRANGE, props );
         registerFigure( figure );
     }
 
@@ -316,7 +315,6 @@ public class XGraphicsRange
     {
         //  Is this an XRangeFigure?
         if ( e.getSource() instanceof XRangeFigure ) {
-
             registerFigure( (XRangeFigure) e.getSource() );
 
             //  Remove interest in further creations.

@@ -46,7 +46,8 @@ import uk.ac.starlink.util.gui.BasicFileFilter;
  * @version $Id$
  * @see SpecCutter
  */
-public class SpecCutterFrame extends JFrame
+public class SpecCutterFrame 
+    extends JFrame
 {
     /**
      * List of spectra that we have created.
@@ -86,6 +87,11 @@ public class SpecCutterFrame extends JFrame
      * File chooser used for reading ranges from text files.
      */
     protected BasicFileChooser fileChooser = null;
+
+    /**
+     * The SpecCutter instance.
+     */
+    protected SpecCutter specCutter = SpecCutter.getInstance();
 
     /**
      * Create an instance.
@@ -267,7 +273,7 @@ public class SpecCutterFrame extends JFrame
         //  Perform the cut operation and add the spectrum to the
         //  global list.
         SpecData newSpec =
-            SpecCutter.getInstance().cutRanges( currentSpectrum, ranges );
+            specCutter.cutRanges( currentSpectrum, ranges );
         localList.add( newSpec );
     }
 
@@ -293,7 +299,7 @@ public class SpecCutterFrame extends JFrame
         //  Perform the cut operation and add the spectrum to the
         //  global list.
         SpecData newSpec =
-            SpecCutter.getInstance().deleteRanges( currentSpectrum, ranges );
+            specCutter.deleteRanges( currentSpectrum, ranges );
         localList.add( newSpec );
     }
 

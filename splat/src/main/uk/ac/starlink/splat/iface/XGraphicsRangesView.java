@@ -81,7 +81,7 @@ public class XGraphicsRangesView
     /**
      * The selection model used by the JTable.
      */
-    ListSelectionModel selectionModel = null;
+    protected ListSelectionModel selectionModel = null;
 
     /**
      * GraphicsPane that contains all the figures.

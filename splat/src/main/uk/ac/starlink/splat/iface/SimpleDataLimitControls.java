@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    26-JUL-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2001-2004 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     26-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.FlowLayout;
@@ -52,6 +53,11 @@ public class SimpleDataLimitControls
     protected DivaPlot plot = null;
 
     /**
+     * Whether the Y axis should be autoranged when a cut is applied.
+     */
+    protected boolean autofit = false;
+
+    /**
      * ComboBox for percentile cuts in Y axis.
      */
     protected JComboBox yPercentiles = new JComboBox();
@@ -62,9 +68,10 @@ public class SimpleDataLimitControls
      * @param control used to query about current limits of displayed
      *      spectrum.
      */
-    public SimpleDataLimitControls( PlotControl control ) 
+    public SimpleDataLimitControls( PlotControl control, boolean autofit )
     {
         setPlot( control );
+        setAutoFit( autofit );
         initUI();
     }
 
@@ -72,7 +79,7 @@ public class SimpleDataLimitControls
      * Create an instance. Must set the PlotControl object, before
      * making any use of this object.
      */
-    public SimpleDataLimitControls() 
+    public SimpleDataLimitControls()
     {
         initUI();
     }
@@ -100,6 +107,22 @@ public class SimpleDataLimitControls
     }
 
     /**
+     * Set if a cut will be followed by an autofit to the Y axis.
+     */
+    public void setAutoFit( boolean autofit )
+    {
+        this.autofit = autofit;
+    }
+
+    /**
+     * Get if a cut will be followed by an autofit to the Y axis.
+     */
+    public boolean isAutoFit()
+    {
+        return autofit;
+    }
+
+    /**
      * Create and initialise the user interface.
      */
     protected void initUI()
@@ -118,6 +141,7 @@ public class SimpleDataLimitControls
         yPercentiles.addItem( new Double( 95.0 ) );
         yPercentiles.addItem( new Double( 90.0 ) );
         yPercentiles.addItem( new Double( 80.0 ) );
+
         yPercentiles.addActionListener(
             new ActionListener()
             {
@@ -164,11 +188,13 @@ public class SimpleDataLimitControls
      */
     protected void updateFromDataLimits()
     {
-        //  Take care with the ChangeListener, we don't want to get
-        //  into a loop.
+        //  Take care with the ChangeListener, we don't want to get into a
+        //  loop.
         dataLimits.removeChangeListener( this );
         if ( dataLimits.isYAutoscaled() ) {
-            yPercentiles.setSelectedIndex( 0 );
+            if ( yPercentiles.getSelectedIndex() != 0 ) {
+                yPercentiles.setSelectedIndex( 0 );
+            }
         }
         dataLimits.addChangeListener( this );
     }
@@ -183,12 +209,13 @@ public class SimpleDataLimitControls
             return;
         }
 
-        //  Get the selected object. A String is used for the first
-        //  item only.
+        //  Get the selected object. A String is used for the first item only.
         Object target = yPercentiles.getSelectedItem();
         if ( target instanceof String ) {
-            dataLimits.setYAutoscaled( true );
-            updatePlot();
+            if ( ! dataLimits.isYAutoscaled() ) {
+                dataLimits.setYAutoscaled( true );
+                updatePlot();
+            }
             return;
         }
 
@@ -207,8 +234,6 @@ public class SimpleDataLimitControls
             double upper = percEngine.get( perc );
             double lower = percEngine.get( 100.0 - perc );
 
-            //  Special feature of this option is that we fit to
-            //  height always.
             dataLimits.setYAutoscaled( false );
             dataLimits.setYUpper( upper );
             dataLimits.setYLower( lower );
@@ -217,20 +242,24 @@ public class SimpleDataLimitControls
     }
 
     /**
-     * Cause the plot to redraw itself, i.e.<!-- --> apply our changes. Special case
-     * we want to do a fit to height at the same time.
+     * Cause the plot to redraw itself, that is apply our changes. Special
+     * case is if we want to do a fit to height at the same time.
      */
     protected void updatePlot()
     {
         boolean oldFitState = dataLimits.isYFit();
-        dataLimits.setYFit( true );
+        if ( autofit ) {
+            dataLimits.setYFit( true );
+        }
         try {
             control.updatePlot();
         }
         catch ( Exception e ) {
-            // Can occur during initialisation. Do nothing.
+            // Can occur during initialisation. Best to do nothing.
         }
-        dataLimits.setYFit( oldFitState );
+        if ( autofit ) {
+            dataLimits.setYFit( oldFitState );
+        }
     }
 
 //

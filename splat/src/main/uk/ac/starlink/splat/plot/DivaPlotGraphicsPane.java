@@ -68,6 +68,11 @@ public class DivaPlotGraphicsPane
     }
 
     /**
+     * Dummy Figure for setting TransformFreely state.
+     */
+    private DrawBasicFigure dummyFigure = new DrawBasicFigure();
+
+    /**
      *  Transform the positions of all figures from one graphics
      *  coordinate system to another. The first AST mapping should
      *  transform from old graphics coordinates to some intermediary
@@ -77,7 +82,7 @@ public class DivaPlotGraphicsPane
     public void astTransform( Mapping oldMapping, Mapping newMapping )
     {
         // Switch off figure resizing constraints
-        new DrawBasicFigure().setTransformFreely( true );
+        dummyFigure.setTransformFreely( true );
 
         // Create a simplified series map of the two mappings. Note
         // newMapping is inverted temporarily.
@@ -119,7 +124,7 @@ public class DivaPlotGraphicsPane
 
             figure.transform( at );
         }
-        new DrawBasicFigure().setTransformFreely( false );
+        dummyFigure.setTransformFreely( false );
         newMapping.setInvert( invert );
     }
 }

@@ -526,10 +526,10 @@ public class PolyFitFrame
             EditableSpecData newSpec = 
                 SpecDataFactory.getInstance().createEditable( name );
             if ( errors == null ) {
-                newSpec.setData( spectrum.getFrameSet(), data );
+                newSpec.setFullData( spectrum.getFrameSet(), data );
             }
             else {
-                newSpec.setData( spectrum.getFrameSet(), data, errors );
+                newSpec.setFullData( spectrum.getFrameSet(), data, errors );
             }
             globalList.add( newSpec );
 
@@ -716,8 +716,10 @@ public class PolyFitFrame
                            fitter.calcRms( newX, newY ) + "\n" );
         fitResults.append( "Coefficients\n" );
         double[] coeffs = fitter.getCoeffs();
-        for ( int i = 0; i < coeffs.length; i++ ) {
-            fitResults.append( "\t: " + coeffs[i] + "\n" );
+        if ( coeffs != null ) {
+            for ( int i = 0; i < coeffs.length; i++ ) {
+                fitResults.append( "\t: " + coeffs[i] + "\n" );
+            }
         }
     }
 

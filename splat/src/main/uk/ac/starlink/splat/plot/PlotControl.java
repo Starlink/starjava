@@ -64,6 +64,7 @@ import uk.ac.starlink.ast.gui.GraphicsEdges;
 import uk.ac.starlink.ast.gui.GraphicsHints;
 import uk.ac.starlink.ast.gui.PlotConfiguration;
 import uk.ac.starlink.ast.gui.PlotController;
+import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
 import uk.ac.starlink.splat.data.SpecDataFactory;
@@ -96,7 +97,6 @@ import uk.ac.starlink.diva.DragRegion;
  *   <li> get a continuous readout of the cursor position,
  *   <li> display a vertical hair,</li>
  *   <li> select the current spectrum and see a list of those displayed,</li>
- *
  *   <li> apply percentile cuts to the data limits.</li>
  * </ul>
  * Methods are provided for scaling about the current centre, zooming in to a
@@ -350,12 +350,19 @@ public class PlotControl
 
         //  The list of names uses a special renderer to also display
         //  the line properties.
-        nameList.setRenderer( new LineRenderer() );
-        updateNames();
+        nameList.setRenderer( new LineRenderer( nameList ) );
+
+        //  The nameList uses the SpecDataComp as its model for getting
+        //  values.
+        nameList.setModel( spectra );
+
+        //  When the current spectrum is modified we pass this on to the
+        //  global list.
+        nameList.addActionListener( this );
 
         //  JComboBox sets default size this way!
-        nameList.setPrototypeDisplayValue
-            ( "                                    " );
+        nameList.
+            setPrototypeDisplayValue( "                                    " );
 
         //  Add the SimpleDataLimitControls to quickly choose a cut on the Y
         //  range.
@@ -649,6 +656,27 @@ public class PlotControl
     }
 
     /**
+     *  Record the current centre of the region. This must be applied after
+     *  the scaling the plot is complete (doesn't usually work otherwise as
+     *  scrollbars movement is bounded).
+     */
+    protected void recordOrigin( double xc, double yc )
+    {
+        try {
+            double[] gCoords = new double[2];
+            gCoords[0] = xc;
+            gCoords[1] = yc;
+            double[][] tmp = plot.transform( gCoords, true );
+            origin = new double[2];
+            origin[0] = tmp[0][0];
+            origin[1] = tmp[1][0];
+        }
+        catch (Exception e) {
+            //  Can fail if plot isn't realized yet. Not fatal.
+        }
+    }
+
+    /**
      * Zoom plot about the current center by the given increments in the X and
      * Y scale factors.
      *
@@ -810,6 +838,8 @@ public class PlotControl
         plot.fitToHeight();
         xScale.setSelectedIndex( 0 );
         yScale.setSelectedIndex( 0 );
+        double[] centre = getCentre();
+        recordOrigin( centre[0], centre[1] );
         setScale();
     }
 
@@ -821,6 +851,8 @@ public class PlotControl
         matchViewportSize();
         plot.fitToWidth();
         xScale.setSelectedIndex( 0 );
+        double[] centre = getCentre();
+        recordOrigin( centre[0], centre[1] );
         setScale();
     }
 
@@ -832,6 +864,8 @@ public class PlotControl
         matchViewportSize();
         plot.fitToHeight();
         yScale.setSelectedIndex( 0 );
+        double[] centre = getCentre();
+        recordOrigin( centre[0], centre[1] );
         setScale();
     }
 
@@ -928,7 +962,6 @@ public class PlotControl
             printPostscript( "out.ps" );
             return;
         }
-
         try {
             PrinterJob pj = PrinterJob.getPrinterJob();
             pj.setPrintService( services[0] );
@@ -967,7 +1000,7 @@ public class PlotControl
     {
         spectra.add( spec );
         try {
-            updateThePlot();
+            updateThePlot( null );
         }
         catch (SplatException e) {
             spectra.remove( spec );
@@ -984,7 +1017,7 @@ public class PlotControl
     {
         spectra.remove( spec );
         try {
-            updateThePlot();
+            updateThePlot( null );
         }
         catch (SplatException e) {
             // Do nothing, should be none-fatal.
@@ -1000,7 +1033,7 @@ public class PlotControl
     {
         spectra.remove( index );
         try {
-            updateThePlot();
+            updateThePlot( null );
         }
         catch (SplatException e) {
             // Do nothing, should be none-fatal.
@@ -1081,6 +1114,9 @@ public class PlotControl
     {
         this.spectra = spectra;
         plot.setSpecDataComp( spectra );
+
+        // The list of spectra is used as the model for the drop-down list.
+        nameList.setModel( spectra );
     }
 
     /**
@@ -1094,16 +1130,7 @@ public class PlotControl
     public void zoomAbout( int xIncrement, int yIncrement, double x,
                            double y )
     {
-        //  Record the centre of the region. This must be applied
-        //  after the scaling is complete (doesn't usually work
-        //  otherwise as scrollbars movement is bounded).
-        double[] gCoords = new double[2];
-        gCoords[0] = x;
-        gCoords[1] = y;
-        double[][] tmp = plot.transform( gCoords, true );
-        origin = new double[2];
-        origin[0] = tmp[0][0];
-        origin[1] = tmp[1][0];
+        recordOrigin( x, y );
 
         //  Scale the plot by the increment.
         float xs = Math.max( getXScale() + xIncrement, 1.0F );
@@ -1139,16 +1166,7 @@ public class PlotControl
             double scaledWidth = region.getWidth() * ZOOMPADDING;
             double scaledHeight = region.getHeight() * ZOOMPADDING;
 
-            //  Record the centre of the region. This must be applied
-            //  after the scaling is complete (doesn't usually work
-            //  otherwise as scrollbar movement is currently bounded).
-            double[] gCoords = new double[2];
-            gCoords[0] = centreX;
-            gCoords[1] = centreY;
-            double[][] tmp = plot.transform( gCoords, true );
-            origin = new double[2];
-            origin[0] = tmp[0][0];
-            origin[1] = tmp[1][0];
+            recordOrigin( centreX, centreY );
 
             //  Get the viewport size and scale region.
             Dimension viewSize = getViewport().getExtentSize();
@@ -1244,14 +1262,49 @@ public class PlotControl
     /**
      * Update the plot. Should be called when events that require the Plot to
      * redraw itself occur (i.e. when spectra are added or removed and when
-     * the Plot configuration is changed).
+     * the Plot configuration is changed). 
+     * <p>
+     * If referenceSpec is set then any DataLimit values held by the Plot will
+     * be transformed from the coordinates of the referenceSpec to the
+     * coordinate of the current spectrum (this resets the limits to match a
+     * change in reference spectrum, that could also be a change in coordinate
+     * system).
      */
-    public void updateThePlot()
+    public void updateThePlot( SpecData referenceSpec )
         throws SplatException
     {
-        //  plot.update may throw a SplatException.
-        plot.update();
-        updateNames();
+        if ( referenceSpec != null ) {
+            try {
+                DataLimits dataLimits = plot.getDataLimits();
+                double[] range = new double[4];
+                range[0] = dataLimits.getXLower();
+                range[1] = dataLimits.getXUpper();
+                range[2] = dataLimits.getYLower();
+                range[3] = dataLimits.getYUpper();
+                range = spectra.transformRange( getCurrentSpectrum(), 
+                                                referenceSpec,
+                                                range );
+                dataLimits.setXLower( range[0] );
+                dataLimits.setXUpper( range[1] );
+                dataLimits.setYLower( range[2] );
+                dataLimits.setYUpper( range[3] );
+
+                //  If a reference spectrum has been given we need to refit to
+                //  the displayed size (the limits that apply to the graphics
+                //  coordinate have changed). Note we do not change the scale.
+                plot.staticUpdate();
+            }
+            catch (SplatException e) {
+                //  Get normal redraw.
+                referenceSpec = null;
+            }
+        }
+
+        if ( referenceSpec == null ) {
+            //  Get a normal redraw. Note plot.update may throw a
+            //  SplatException. 
+            plot.update();
+        }
 
         // Check if the X or Y data limits are supposed to match the
         // viewable surface or not.
@@ -1264,47 +1317,24 @@ public class PlotControl
     }
 
     /**
-     * Update the spectral names and lines. Need to do this when spectra are
-     * added to, and removed from, the global list. See updatePlot().
-     */
-    protected void updateNames()
-    {
-        //  Remove the action listener. This update shouldn't cause
-        //  any events to be issued.
-        nameList.removeActionListener( this );
-
-        //  Record selected spectrum for restoration.
-        SpecData currentSpectrum = getCurrentSpectrum();
-
-        //  Re-create a vector/model for this. Faster as avoids
-        //  listener updates also gets resize right.
-        Vector v = new Vector( spectra.count() );
-        for ( int i = 0; i < spectra.count(); i++ ) {
-            v.add( spectra.get( i ) );
-        }
-        ComboBoxModel model = new DefaultComboBoxModel( v );
-        nameList.setModel( model );
-
-        //  Restore selected spectrum.
-        if ( currentSpectrum != null && spectra.count() > 1 ) {
-            model.setSelectedItem( currentSpectrum );
-        }
-
-        //  Now we respond to changes in the selection.
-        nameList.addActionListener( this );
-        nameList.repaint();
-    }
-
-    /**
      * Return the current spectrum (top of the combobox of names). This method
-     * is for use in picking a spectrum from all those displayed by any
-     * associated toolboxes that can only work with one spectrum.
+     * allows toolboxes that can only work on a single spectrum to make a
+     * choice from all those displayed.
      *
      * @return the current spectrum.
      */
     public SpecData getCurrentSpectrum()
     {
-        return (SpecData) nameList.getSelectedItem();
+        return (SpecData) spectra.getCurrentSpectrum();
+    }
+
+    /**
+     * Set whether the percentile cuts also have a fit to Y scale 
+     * automatically applied.
+     */
+    public void setAutoFitPercentiles( boolean autofit )
+    {
+        simpleDataLimits.setAutoFit( autofit );
     }
 
 //
@@ -1313,15 +1343,14 @@ public class PlotControl
     /**
      * Make any adjustments needed to respond to a change in scale by the
      * Plot.
-     *
-     * @param e object describing event.
      */
     public void plotScaleChanged( PlotScaleChangedEvent e )
     {
         if ( origin != null ) {
-            //  Define the limits of the scrollbars to be somewhat
-            //  greater the Plot preferred size. This allows sloppy
-            //  edges, spiking the BoundedRangeModel...
+
+            //  Define the limits of the scrollbars to be somewhat greater the
+            //  Plot preferred size. This allows sloppy edges, spiking the
+            //  BoundedRangeModel...
             Dimension plotSize = plot.getPreferredSize();
             scroller.getHorizontalScrollBar().setMaximum( plotSize.width * 2 );
             scroller.getHorizontalScrollBar().setMinimum( -plotSize.width );
@@ -1413,7 +1442,7 @@ public class PlotControl
         int localIndex = spectra.indexOf( spectrum );
         if ( localIndex > -1 ) {
             try {
-                updateThePlot();
+                updateThePlot( null );
             }
             catch (SplatException ignored) {
                 // Do nothing, should be none-fatal.
@@ -1478,7 +1507,8 @@ public class PlotControl
 //
     /**
      * Respond to selection of a new spectrum as the current one. This makes
-     * the selected spectrum current in the global list.
+     * the selected spectrum current in the global list and forces the Plot 
+     * to undergo a re-draw.
      *
      * @param e object describing the event.
      */
@@ -1487,6 +1517,8 @@ public class PlotControl
         try {
             globalList.setCurrentSpectrum
                 ( globalList.getSpectrumIndex( getCurrentSpectrum() ) );
+            // Could change underlying coordinates/labelling etc.
+            updateThePlot( spectra.getLastCurrentSpectrum() ); 
         }
         catch ( Exception ex ) {
             // Do nothing
@@ -1499,7 +1531,7 @@ public class PlotControl
     public void updatePlot()
     {
         try {
-            updateThePlot();
+            updateThePlot( null );
         }
         catch (SplatException e) {
             e.printStackTrace();

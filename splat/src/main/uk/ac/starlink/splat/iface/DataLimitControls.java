@@ -152,11 +152,6 @@ public class DataLimitControls
     protected FloatJSlider yPercentiles = null;
 
     /**
-     * True when an AstDoubleField is already matched to its text.
-     */
-    private boolean astDoubleFieldMatched = false;
-
-    /**
      * The default title for these controls.
      */
     protected static String defaultTitle = "Axis Data Limits:";
@@ -284,20 +279,57 @@ public class DataLimitControls
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", xLower );
 
+        xLower.addActionListener( 
+           new ActionListener()
+           {
+               public void actionPerformed( ActionEvent e )
+               {
+                   matchXLower( true );
+               }
+           } );
+                    
+
         yLower = new AstDoubleField( 0.0, control, 2 );
         doc = yLower.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", yLower );
+
+        yLower.addActionListener( 
+           new ActionListener()
+           {
+               public void actionPerformed( ActionEvent e )
+               {
+                   matchYLower( true );
+               }
+           } );
 
         xUpper = new AstDoubleField( 0.0, control, 1 );
         doc = xUpper.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", xUpper );
 
+        xUpper.addActionListener( 
+           new ActionListener()
+           {
+               public void actionPerformed( ActionEvent e )
+               {
+                   matchXUpper( true );
+               }
+           } );
+
         yUpper = new AstDoubleField( 0.0, control, 2 );
         doc = yUpper.getDocument();
         doc.addDocumentListener( this );
         doc.putProperty( "AstField", yUpper );
+
+        yUpper.addActionListener( 
+           new ActionListener()
+           {
+               public void actionPerformed( ActionEvent e )
+               {
+                   matchYUpper( true );
+               }
+           } );
 
         // Percentile cuts for Y axis values.
         yPercentiles =
@@ -406,7 +438,7 @@ public class DataLimitControls
         setFromCurrent.setToolTipText
             ( "Set limits to those of whole plot (includes zoomed regions)" );
         setFromView.setToolTipText
-            ( "Set limits to those of plot view (including surrounding space)" );
+            ("Set limits to those of plot view (including surrounding space)");
     }
 
     /**
@@ -457,16 +489,14 @@ public class DataLimitControls
         xFlipped.setSelected( dataLimits.isXFlipped() );
         yFlipped.setSelected( dataLimits.isYFlipped() );
 
-        if ( ! astDoubleFieldMatched ) {
-            try {
-                xLower.setText( plot.format( 1, dataLimits.getXLower() ) );
-                xUpper.setText( plot.format( 1, dataLimits.getXUpper() ) );
-                yLower.setText( plot.format( 2, dataLimits.getYLower() ) );
-                yUpper.setText( plot.format( 2, dataLimits.getYUpper() ) );
-            }
-            catch (Exception e) {
-                System.out.println( e.getMessage() );
-            }
+        try {
+            xLower.setText( plot.format( 1, dataLimits.getXLower() ) );
+            xUpper.setText( plot.format( 1, dataLimits.getXUpper() ) );
+            yLower.setText( plot.format( 2, dataLimits.getYLower() ) );
+            yUpper.setText( plot.format( 2, dataLimits.getYUpper() ) );
+        }
+        catch (Exception e) {
+            System.out.println( e.getMessage() );
         }
 
         if ( dataLimits.isXAutoscaled() ) {
@@ -583,38 +613,67 @@ public class DataLimitControls
     }
 
     /**
-     * Match X axis lower limit.
+     * Match X axis lower limit. 
+     * If update is true then all listeners will see the changed, otherwise
+     * just the value is set and the change event is deferred.
      */
-    protected void matchXLower()
+    protected void matchXLower( boolean update )
     {
         double value = plot.unFormat( 1, xLower.getText() );
         if ( ! AstDouble.isBad( value ) ) {
-            dataLimits.setXLower( value );
+            if ( update ) {
+                dataLimits.setXLower( value );
+            }
+            else {
+                dataLimits.setXLowerValue( value );
+            }
         }
     }
 
     /**
      * Match X axis upper limit.
+     * If update is true then all listeners will see the changed, otherwise
+     * just the value is set and the change event is deferred.
      */
-    protected void matchXUpper()
+    protected void matchXUpper( boolean update )
     {
-        dataLimits.setXUpper( plot.unFormat( 1, xUpper.getText() ) );
+        if ( update ) {
+            dataLimits.setXUpper( plot.unFormat( 1, xUpper.getText() ) );
+        }
+        else {
+            dataLimits.setXUpperValue( plot.unFormat( 1, xUpper.getText() ) );
+        }
     }
 
     /**
      * Match Y axis lower limit.
+     * If update is true then all listeners will see the changed, otherwise
+     * just the value is set and the change event is deferred.
      */
-    protected void matchYLower()
+    protected void matchYLower( boolean update )
     {
-        dataLimits.setYLower( plot.unFormat( 2, yLower.getText() ) );
+        if ( update ) {
+            dataLimits.setYLower( plot.unFormat( 2, yLower.getText() ) );
+        } 
+        else {
+            dataLimits.setYLowerValue( plot.unFormat( 2, yLower.getText() ) );
+        }
     }
 
     /**
      * Match Y axis upper limit.
+     * If update is true then all listeners will see the changed, otherwise
+     * just the value is set and the change event is deferred.
      */
-    protected void matchYUpper()
+    protected void matchYUpper( boolean update )
     {
-        dataLimits.setYUpper( plot.unFormat( 2, yUpper.getText() ) );
+        if ( update ) {
+            dataLimits.setYUpper( plot.unFormat( 2, yUpper.getText() ) );
+        }
+        else {
+            dataLimits.setYUpperValue( plot.unFormat( 2, yUpper.getText() ) );
+        }
+
     }
 
     /**
@@ -748,19 +807,17 @@ public class DataLimitControls
     public void matchAstDoubleField( Object property )
     {
         AstDoubleField target = (AstDoubleField) property;
-        astDoubleFieldMatched = true; // Inhibit recusive mutation.
         if ( target == xLower ) {
-            matchXLower();
+            matchXLower( false );
         }
         else if ( target == yLower ) {
-            matchYLower();
+            matchYLower( false );
         }
         else if ( target == xUpper ) {
-            matchXUpper();
+            matchXUpper( false );
         }
         else if ( target == yUpper ) {
-            matchYUpper();
+            matchYUpper( false );
         }
-        astDoubleFieldMatched = false;
     }
 }

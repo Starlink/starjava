@@ -108,7 +108,7 @@ public class CmpFitter
             EditableSpecData memSpec = factory.createEditable( modelFile,
                                                                specData );
             double[] modelYData = fitter.evalYDataArray( x );
-            memSpec.setDataQuick( x, modelYData );
+            memSpec.setSimpleDataQuick( x, modelYData );
             SpecData initialSpec = factory.getClone( memSpec, modelFile );
             initialSpec.save();
             System.out.println( "Saved initial model as: " + modelFile );
@@ -132,7 +132,7 @@ public class CmpFitter
             for ( int i = 0; i < resids.length; i++ ) {
                 resids[i] = Math.abs( resids[i] );
             }
-            memSpec.setDataQuick( x, fitYData, resids );
+            memSpec.setSimpleDataQuick( x, fitYData, resids );
             SpecData fitSpec = factory.getClone( memSpec, fitFile );
             fitSpec.save();
             System.out.println( "Saved fit as: " + fitFile );
@@ -153,7 +153,7 @@ public class CmpFitter
                                                                    specData );
                 FunctionGenerator fg = (FunctionGenerator) i.next();
                 double[] fitYData = fg.evalYDataArray( x );
-                memSpec.setDataQuick( x, fitYData, null );
+                memSpec.setSimpleDataQuick( x, fitYData, null );
                 SpecData cmpSpec = factory.getClone( memSpec, name );
                 cmpSpec.save();
                 System.out.println( "Saved component line: " + name );

@@ -33,6 +33,8 @@ import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.EditableSpecData;
@@ -306,7 +308,8 @@ public class SimpleBinaryMaths
             }
             String name = operation + " (" + one.getShortName() + ") " + 
                           operator + " (" + two.getShortName() + ") ";
-            createNewSpectrum( name, coords, newData );
+            FrameSet frameSet = ASTJ.get1DFrameSet( one.getAst().getRef(), 1 );
+            createNewSpectrum( name, frameSet, coords, newData );
         }
     }
 
@@ -382,16 +385,17 @@ public class SimpleBinaryMaths
 
     /**
      * Create a new spectrum from two data arrays of coordinates and
-     * values and add it to the global list.
+     * values and add it to the global list. The FrameSet is used to define
+     * the coordinate system and the data units.
      */
-    protected void createNewSpectrum( String name, double[] coords, 
-                                      double[] data )
+    protected void createNewSpectrum( String name, FrameSet sourceSet, 
+                                      double[] coords, double[] data )
     {
         try {
             //  Create a memory spectrum to contain the fit.
             EditableSpecData newSpec = SpecDataFactory.getInstance()
                 .createEditable( name );
-            newSpec.setData( coords, data );
+            newSpec.setSimpleUnitData( sourceSet, coords, data );
             globalList.add( newSpec );
 
             //  Spectral lines create here are red.

@@ -155,7 +155,6 @@ public class SpecTransferHandler
     public boolean importData( JComponent comp, Transferable t )
     {
         if ( checkImportComponent( comp ) ) {
-            System.out.println( t );
             DataFlavor[] importFlavors = t.getTransferDataFlavors();
 
             //  Tables first, there are more of these that look just
@@ -176,8 +175,6 @@ public class SpecTransferHandler
 
             for ( int j = 0; j < importFlavors.length; j++ ) {
                 
-                System.out.println( importFlavors[j] );
-
                 if ( flavors[0].match( importFlavors[j] ) ) {
                     return importSpecData( comp, t );
                 }

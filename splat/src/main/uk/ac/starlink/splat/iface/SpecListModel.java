@@ -37,6 +37,11 @@ public class SpecListModel
     protected ListSelectionModel selectionModel;
 
     /**
+     * Whether to display shortnames, otherwise long names.
+     */
+    protected boolean showShortNames = true;
+
+    /**
      *  Create an instance of this class.
      */
     public SpecListModel( ListSelectionModel selectionModel ) 
@@ -63,6 +68,19 @@ public class SpecListModel
         return globalList.getSpectrum( index );
     }
 
+    /**
+     *  Whether we return the short names or long names of the
+     *  spectra, note this does not apply to setting, that only works
+     *  for short names.
+     */
+    public void setShowShortNames( boolean showShortNames )
+    {
+        if ( showShortNames != this.showShortNames ) {
+            this.showShortNames = showShortNames;
+            fireContentsChanged( this, 0, getSize() - 1 );
+        }
+    }
+
 //
 //  Implement rest of ListModel interface (listeners are free from
 //  AbstractListModel)
@@ -80,7 +98,10 @@ public class SpecListModel
      */
     public Object getElementAt( int index ) 
     {
-        return globalList.getShortName( index );
+        if ( showShortNames ) {
+            return globalList.getShortName( index );
+        }
+        return globalList.getFullName( index );
     }
 
 //

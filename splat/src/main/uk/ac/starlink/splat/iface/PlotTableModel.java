@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2003 Central Laboratory of the Research Councils
+ * Copyright (C) 2000-2004 Central Laboratory of the Research Councils
  *
  *  History:
  *     04-OCT-2000 (Peter W. Draper):
@@ -152,9 +152,12 @@ public class PlotTableModel extends AbstractTableModel
                             new ExceptionDialog( null, e );
                         }
                     }
-                } else {
+                }
+		else {
+		    // Remove.
                     for ( int i = 0; i < specIndices.length; i++ ) {
                         globalList.removeSpectrum( row, specIndices[i] );
+                        if ( specIndices == null ) break;
                     }
                 }
             }

@@ -132,7 +132,7 @@ public class SplatBrowser
      * Default location of window.
      */
     private static final Rectangle defaultWindowLocation =
-        new Rectangle( 10, 10, 550, 450 );
+        new Rectangle( 10, 10, 550, 550 );
 
     /**
      *  Content pane of JFrame and its layout manager.
@@ -179,9 +179,23 @@ public class SplatBrowser
         BorderFactory.createTitledBorder( "Properties of current spectra:" );
 
     /**
-     * Whither orientation of split
+     * Orientation of split
      */
     protected JCheckBoxMenuItem splitOrientation = null;
+
+    /**
+     * Whether to automatically choose a colour for each spectrum as loaded.
+     */
+    protected JCheckBoxMenuItem colourAsLoadedItem = null;
+    protected boolean colourAsLoaded = true;
+
+    //  Number of colours available to sample.
+    protected static final float COLOUR_SAMPLE = 1024.0F;
+
+    /**
+     * Whether to show short or full names in the global list.
+     */
+    protected JCheckBoxMenuItem showShortNamesItem = null;
 
     /**
      *  Open or save file chooser.
@@ -296,11 +310,10 @@ public class SplatBrowser
             return;
         }
 
-        //  Now add any command-line spectra. Do this after the
-        //  interface is visible and in a separate thread from
-        //  the GUI and event queue. Note this may cause the GUI to be
-        //  realized, so any additional work must be done on the event
-        //  queue.
+        //  Now add any command-line spectra. Do this after the interface is
+        //  visible and in a separate thread from the GUI and event
+        //  queue. Note this may cause the GUI to be realized, so any
+        //  additional work must be done on the event queue.
         if ( inspec != null ) {
             newFiles = new File[inspec.length];
             for ( int i = 0; i < inspec.length; i++ ) {
@@ -369,6 +382,9 @@ public class SplatBrowser
         //  Drag to a plot to display?
         specList.setDragEnabled( true );
         specList.setTransferHandler( new SpecTransferHandler() );
+
+        //  Short or full names.
+        setShowShortNames( true );
 
         //  Set up the control area.
         controlArea.setLayout( controlAreaLayout );
@@ -504,6 +520,15 @@ public class SplatBrowser
                                                      "Browse for spectra" );
         fileMenu.add( browseAction );
         toolBar.add( browseAction );
+
+        //  Add action to re-open a list of spectra if possible.
+        ImageIcon reOpenImage = 
+            new ImageIcon( ImageHolder.class.getResource( "reopen.gif" ) );
+        LocalAction reOpenAction  = new LocalAction( LocalAction.REOPEN,
+                                                   "Re-Open", reOpenImage,
+                                                   "Re-Open selected spectra");
+        fileMenu.add( reOpenAction );
+        toolBar.add( reOpenAction );
 
         //  Add action to save a spectrum
         ImageIcon saveImage = 
@@ -706,19 +731,37 @@ public class SplatBrowser
         //  Add the LookAndFeel selections.
         new SplatLookAndFeelManager( contentPane, optionsMenu );
 
+        //  Add option to choose a different colour for each spectrum as they
+        //  are loaded.
+        colourAsLoadedItem = new JCheckBoxMenuItem( "Auto-colour" );
+        ImageIcon rainbowImage = 
+            new ImageIcon( ImageHolder.class.getResource( "rainbow.gif" ) );
+        colourAsLoadedItem.setIcon( rainbowImage );
+        optionsMenu.add( colourAsLoadedItem );
+        colourAsLoadedItem.setToolTipText
+            ( "Automatically choose a colour for each spectrum as loaded" );
+        colourAsLoadedItem.addItemListener( this );
+        setColourAsLoaded( true );
+
         //  Add facility to colourise all spectra.
-        ImageIcon rainbowImage = new ImageIcon(
-            ImageHolder.class.getResource( "rainbow.gif" ) );
         LocalAction colourizeAction  =
-            new LocalAction( LocalAction.COLOURIZE, "Auto-colour spectra",
+            new LocalAction( LocalAction.COLOURIZE, "Re-auto-colour all",
                              rainbowImage,
                              "Automatically choose a colour for all spectra" );
         optionsMenu.add( colourizeAction );
         toolBar.add( colourizeAction );
 
+        //  Whether global list shows short or full names.
+        showShortNamesItem = new JCheckBoxMenuItem( "Show short names" );
+        optionsMenu.add( showShortNamesItem );
+        showShortNamesItem.setToolTipText
+            ( "Show short names in global list, otherwise long names" );
+        showShortNamesItem.addItemListener( this );
+
         //  Arrange the JSplitPane vertically or horizontally.
         splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
         optionsMenu.add( splitOrientation );
+        splitOrientation.setToolTipText( "How to split the browser window" );
         splitOrientation.addItemListener( this );
     }
 
@@ -748,6 +791,38 @@ public class SplatBrowser
         }
         contentPane.revalidate();
         prefs.putBoolean( "SplatBrowser_vsplit", selected );
+    }
+
+    /**
+     * Set whether each spectrum should be assigned an automatic colour as
+     * loaded.
+     */
+    protected void setColourAsLoaded( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = prefs.getBoolean("SplatBrowser_colourize", true);
+            colourAsLoadedItem.setSelected( state );
+        }
+        colourAsLoaded = colourAsLoadedItem.isSelected();
+        prefs.putBoolean( "SplatBrowser_colourize", colourAsLoaded );
+    }
+
+    /**
+     * Set whether each spectrum is described by its shortname in the
+     * global list, otherwise the full name is displayed.
+     */
+    protected void setShowShortNames( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = prefs.getBoolean( "SplatBrowser_showshortnames", 
+                                              true );
+            showShortNamesItem.setSelected( state );
+        }
+        boolean state = showShortNamesItem.isSelected();
+        prefs.putBoolean( "SplatBrowser_showshortnames", state );
+        ((SpecListModel)specList.getModel()).setShowShortNames( state );
     }
 
     /**
@@ -853,14 +928,15 @@ public class SplatBrowser
     }
 
     /**
-     *  Colourize, i.e.&nbsp;automatically set the colour of all spectra.
+     *  Colourize, that is automatically set the colour of all spectra.  
      *  The colours applied depend on the number of spectra shown.
      */
     protected void colourizeSpectra()
     {
         int size = globalList.specCount();
+        int rgb;
         for ( int i = 0; i < size; i++ ) {
-            int rgb = Utilities.getRandomRGB( (float) size );
+            rgb = Utilities.getRandomRGB( (float) size );
             globalList.setKnownNumberProperty(
                              (SpecData) globalList.getSpectrum( i ),
                              SpecData.LINE_COLOUR,
@@ -1122,8 +1198,8 @@ public class SplatBrowser
      */
     protected void readStackEvent()
     {
-        // Reading the stack performed by the SpecList global
-        // object. Just give it a file name to use.
+        // Reading the stack performed by the SpecList global object. Just
+        // give it a file name to use.
         initStackChooser( true );
         int result = stackChooser.showOpenDialog( this );
         if ( result == stackChooser.APPROVE_OPTION ) {
@@ -1138,7 +1214,9 @@ public class SplatBrowser
                     int count = globalList.specCount();
                     specList.setSelectionInterval( count - nread, count - 1 );
                     multiDisplaySelectedSpectra( true );
-                    specList.setSelectedIndices( currentSelection );
+                    if ( currentSelection != null ) {
+                        specList.setSelectedIndices( currentSelection );
+                    }
                 }
             }
             else {
@@ -1398,6 +1476,9 @@ public class SplatBrowser
      */
     public void addSpectrum( SpecData spectrum )
     {
+        if ( colourAsLoaded ) {
+            spectrum.setLineColour( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+        }
         globalList.add( spectrum );
 
         //  Latest list entry becomes selected.
@@ -1406,8 +1487,8 @@ public class SplatBrowser
     }
 
     /**
-     * Display all the spectra that are selected in the global list
-     * view. Each spectrum is displayed in a new plot.
+     * Display all the spectra that are selected in the global list view. 
+     * Each spectrum is displayed in a new plot.
      */
     public void displaySelectedSpectra()
     {
@@ -1446,10 +1527,9 @@ public class SplatBrowser
         }
         SplatException lastException = null;
         int failed = 0;
-        int[] plotIndices = getSelectedPlots();
+        final int[] plotIndices = getSelectedPlots();
         if ( plotIndices != null ) {
             SpecData spec = null;
-            PlotControlFrame plot = null;
             for ( int i = 0; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
                 for ( int j = 0; j < plotIndices.length; j++ ) {
@@ -1464,17 +1544,27 @@ public class SplatBrowser
                 }
             }
             if ( fit ) {
-                for ( int j = 0; j < plotIndices.length; j++ ) {
-                    if ( plotIndices[j] != -1 ) {
-                        globalList.getPlot( plotIndices[j] ).fitToWidthAndHeight();
-                    }
-                }
+                //  Do fit to width and height after realisation.
+                Runnable later = new Runnable() {
+                        public void run() 
+                        {
+                            GlobalSpecPlotList globalList = 
+                                GlobalSpecPlotList.getInstance();
+                            for ( int j = 0; j < plotIndices.length; j++ ) {
+                                if ( plotIndices[j] != -1 ) {
+                                    globalList.getPlot( plotIndices[j] )
+                                        .fitToWidthAndHeight();
+                                }
+                            }
+                        }
+                    };
+                SwingUtilities.invokeLater( later );
             }
         }
         else {
             SpecData spec = null;
             spec = globalList.getSpectrum( specIndices[0] );
-            PlotControlFrame plot = displaySpectrum( spec );
+            final PlotControlFrame plot = displaySpectrum( spec );
             for ( int i = 1; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
                 try {
@@ -1486,7 +1576,14 @@ public class SplatBrowser
                 }
             }
             if ( fit && failed < specIndices.length ) {
-                plot.getPlot().fitToWidthAndHeight();
+                //  Do fit to width and height after realisation.
+                Runnable later = new Runnable() {
+                        public void run() 
+                        {
+                            plot.getPlot().fitToWidthAndHeight();
+                        }
+                    };
+                SwingUtilities.invokeLater( later );
             }
         }
         if ( lastException != null ) {
@@ -1803,6 +1900,17 @@ public class SplatBrowser
                                            "Error creating plot",
                                            JOptionPane.ERROR_MESSAGE );
         }
+        catch ( OutOfMemoryError memErr ) {
+            //  If we run out of memory during the Plot create, try to make
+            //  sure the plot isn't shown.
+            JOptionPane.showMessageDialog( this, memErr.getMessage(),
+                                           "Error creating plot",
+                                           JOptionPane.ERROR_MESSAGE );
+            if ( plot != null ) {
+                plot.setVisible( false );
+            }
+            plot = null;
+        }
         finally {
             //  Always make sure we reset the cursor.
             resetWaitCursor();
@@ -1834,6 +1942,29 @@ public class SplatBrowser
                 }
             }
         }
+    }
+
+    /**
+     * Re-open the selected spectra. This should cause any changed contents to
+     * be propagated into any plots etc. This may not be possible if any of
+     * the spectra are not backed by a local disk file.
+     */
+    public void reOpenSelectedSpectra()
+    {
+        int[] indices = getSelectedSpectra();
+        if ( indices != null ) {
+            SpecData spec = null;
+            for ( int i = 0; i < indices.length; i++ ) {
+                spec = globalList.getSpectrum( indices[i] );
+                try {
+                    specDataFactory.reOpen( spec );
+                    globalList.notifySpecListeners( spec );
+                }
+                catch (SplatException e) {
+                    new ExceptionDialog( this, e );
+                }
+            }
+        }        
     }
 
     /**
@@ -2016,8 +2147,8 @@ public class SplatBrowser
     }
 
     /**
-     * Create a new spectrum with a number of elements (greater than
-     * 2) obtained interactively.
+     * Create a new spectrum with a number of elements (greater than 2)
+     * obtained interactively.
      */
     public void createSpectrum()
     {
@@ -2042,7 +2173,7 @@ public class SplatBrowser
                     for ( int i = 0; i < nrows; i++ ) {
                         coords[i] = (double) i + 1;
                     }
-                    newSpec.setDataQuick( coords, data );
+                    newSpec.setSimpleDataQuick( coords, data );
                     globalList.add( newSpec );
                }
                 catch (Exception e) {
@@ -2100,26 +2231,27 @@ public class SplatBrowser
         public static final int SAVE = 0;
         public static final int OPEN = 1;
         public static final int BROWSE = 2;
-        public static final int SINGLE_DISPLAY = 3;
-        public static final int MULTI_DISPLAY = 4;
-        public static final int ANIMATE_DISPLAY = 5;
-        public static final int SPEC_VIEWER = 6;
-        public static final int XCOORDTYPE_VIEWER = 7;
-        public static final int SAVE_STACK = 8;
-        public static final int READ_STACK = 9;
-        public static final int REMOVE_SPECTRA = 10;
-        public static final int SELECT_SPECTRA = 11;
-        public static final int DESELECT_SPECTRA = 12;
-        public static final int COLOURIZE = 13;
-        public static final int REMOVE_PLOTS = 14;
-        public static final int SELECT_PLOTS = 15;
-        public static final int DESELECT_PLOTS = 16;
-        public static final int BINARY_MATHS = 17;
-        public static final int UNARY_MATHS = 18;
-        public static final int COPY_SPECTRA = 19;
-        public static final int COPYSORT_SPECTRA = 20;
-        public static final int CREATE_SPECTRUM = 21;
-        public static final int EXIT = 22;
+        public static final int REOPEN = 3;
+        public static final int SINGLE_DISPLAY = 4;
+        public static final int MULTI_DISPLAY = 5;
+        public static final int ANIMATE_DISPLAY = 6;
+        public static final int SPEC_VIEWER = 7;
+        public static final int XCOORDTYPE_VIEWER = 8;
+        public static final int SAVE_STACK = 9;
+        public static final int READ_STACK = 10;
+        public static final int REMOVE_SPECTRA = 11;
+        public static final int SELECT_SPECTRA = 12;
+        public static final int DESELECT_SPECTRA = 13;
+        public static final int COLOURIZE = 14;
+        public static final int REMOVE_PLOTS = 15;
+        public static final int SELECT_PLOTS = 16;
+        public static final int DESELECT_PLOTS = 17;
+        public static final int BINARY_MATHS = 18;
+        public static final int UNARY_MATHS = 19;
+        public static final int COPY_SPECTRA = 20;
+        public static final int COPYSORT_SPECTRA = 21;
+        public static final int CREATE_SPECTRUM = 22;
+        public static final int EXIT = 23;
 
         private int type = 0;
 
@@ -2141,94 +2273,122 @@ public class SplatBrowser
 
         public void actionPerformed( ActionEvent ae ) 
         {
-            switch (type) {
+            switch ( type ) {
                case SAVE: {
                    showSaveFileChooser();
                }
                break;
+
                case OPEN: {
                    showOpenFileChooser();
                }
                break;
+
                case BROWSE: {
                    showSplatNodeChooser();
                }
                break;
+
+               case REOPEN: {
+                   reOpenSelectedSpectra();
+               }
+               break;
+
                case SINGLE_DISPLAY: {
                    displaySelectedSpectra();
                }
                break;
+
                case MULTI_DISPLAY: {
                    multiDisplaySelectedSpectra( true );
                }
                break;
+
                case ANIMATE_DISPLAY: {
                    animateSelectedSpectra();
                }
                break;
+
                case SPEC_VIEWER: {
                    viewSelectedSpectra();
                }
                break;
+
                case XCOORDTYPE_VIEWER: {
                    viewXCoordType();
                }
                break;
+
                case SAVE_STACK: {
                    saveStackEvent();
                }
                break;
+
                case READ_STACK: {
                    readStackEvent();
                }
                break;
+
                case REMOVE_SPECTRA: {
                    removeSelectedSpectra();
                }
                break;
+
                case SELECT_SPECTRA: {
                    selectAllSpectra();
                }
                break;
+
                case DESELECT_SPECTRA: {
                    deSelectAllSpectra();
                }
                break;
+
                case COLOURIZE: {
                    colourizeSpectra();
                }
                break;
+
                case REMOVE_PLOTS: {
                    removeSelectedPlots();
                }
                break;
+
                case SELECT_PLOTS: {
                    selectAllPlots();
                }
                break;
+
                case DESELECT_PLOTS: {
                    deSelectAllPlots();
                }
                break;
+
                case BINARY_MATHS: {
                    showBinaryMathsWindow();
                }
                break;
+
                case UNARY_MATHS: {
                    showUnaryMathsWindow();
                }
                break;
+
                case COPY_SPECTRA: {
                    copySelectedSpectra( false );
                }
+               break;
+
                case COPYSORT_SPECTRA: {
                    copySelectedSpectra( true );
                }
                break;
+
                case CREATE_SPECTRUM: {
                    createSpectrum();
                }
                break;
+
                case EXIT: {
                    exitApplicationEvent();
                }
@@ -2243,8 +2403,16 @@ public class SplatBrowser
     //
     public void itemStateChanged( ItemEvent e )
     {
-        //  Only used for split window request.
-        setSplitOrientation( false );
+        Object source = e.getSource();
+        if ( source.equals( splitOrientation ) ) {
+            setSplitOrientation( false );
+        }
+        else if ( source.equals( colourAsLoadedItem ) ) {
+            setColourAsLoaded( false );
+        }
+        else if ( source.equals( showShortNamesItem ) ) {
+            setShowShortNames( false );
+        }
     }
 
     //
