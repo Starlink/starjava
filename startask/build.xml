@@ -905,6 +905,8 @@ ${star.etc.pkg}
           depends="build"
           if="junit.present">
 
+  <!-- There are currently no tests. -->
+  <!--
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -916,6 +918,7 @@ ${star.etc.pkg}
       <classpath refid="tests-classpath"/>
 
     </javac>
+  !-->
 
   </target>
 
@@ -932,6 +935,8 @@ ${star.etc.pkg}
           depends="compile-tests"
           if="junit.present">
 
+ <!-- There are currently no tests. -->
+ <!--
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
@@ -954,6 +959,7 @@ ${star.etc.pkg}
       </batchtest>
 
     </junit>
+  !-->
 
   </target>
 
