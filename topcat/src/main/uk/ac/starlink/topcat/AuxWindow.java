@@ -321,6 +321,8 @@ public class AuxWindow extends JFrame {
                 "Tool for OPerations on Catalogues And Tables",
                 "TOPCAT Version " + getVersion(),
                 "STIL Version " + getSTILVersion(),
+                "SPLAT: " + ( TopcatUtils.canSplat() ? "available" : "absent" ),
+                "SoG: " + ( TopcatUtils.canSog() ? "available" : "absent" ),
                 "Copyright " + '\u00a9' + 
                 " Central Laboratory of the Research Councils",
                 "Authors: Mark Taylor (Starlink)",
