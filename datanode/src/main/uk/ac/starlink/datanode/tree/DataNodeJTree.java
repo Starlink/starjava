@@ -348,6 +348,7 @@ public class DataNodeJTree extends JTree {
                 node = factory.makeDataNode( null, branch );
                 if ( node instanceof BranchDataNode ) {
                     ((BranchDataNode) node).setConnection( connection );
+                    ((BranchDataNode) node).setPath( branch.toString() );
                 }
             }
             catch ( NoSuchDataException e ) {
