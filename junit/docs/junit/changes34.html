@@ -145,19 +145,19 @@ as the TestRunners now implement TestListener. It also allows clients to
 generate additional kinds of test run feedback.</li>
 
 <li>
-Added an <a href="javadoc/junit/extensions/ExceptionTestCase.html">ExceptionTestCase</a>
+Added an <a href="javadocs/junit/extensions/ExceptionTestCase.html">ExceptionTestCase</a>
 class. A TestCase that expects a particular exception to be thrown.</li>
 
 <li>
 Fixed TestSetup so that errors in setUp are caught and reported correctly.</li>
 
 <li>
-Assertion checks where moved from TestCase into a separate <a href="javadoc/junit/framework/Assert.html">Assert</a>
+Assertion checks where moved from TestCase into a separate <a href="javadocs/junit/framework/Assert.html">Assert</a>
 class. This enables programming by contract.</li>
 
 <li>
 Added support for protected blocks. A protected block has to implement
-the <a href="javadoc/junit/framework/Protectable.html">Protectable</a>
+the <a href="javadocs/junit/framework/Protectable.html">Protectable</a>
 interface. We used it to factor out a common template method to run tests.
 To implement your own protected block that logs thrown exceptions, pass
 a Protectable to TestResult.runProtected().</li>

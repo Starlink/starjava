@@ -30,7 +30,7 @@ to run many of them at the same time. When you need to test something,
 here is what you do:
 <ol>
 <li>
-Create an instance of <a href="../../javadoc/junit/framework/TestCase.html">TestCase</a>:</li>
+Create an instance of <a href="../javadocs/junit/framework/TestCase.html">TestCase</a>:</li>
 
 <li>
 Override the method <tt>runTest</tt>()</li>
@@ -73,11 +73,11 @@ Create a subclass of TestCase</li>
 Add an instance variable for each part of the fixture</li>
 
 <li>
-Override <a href="../../javadoc/junit/framework/TestCase.html#setUp()">setUp</a>()
+Override <a href="../javadocs/junit/framework/TestCase.html#setUp()">setUp</a>()
 to initialize the variables</li>
 
 <li>
-Override <a href="../../javadoc/junit/framework/TestCase.html#tearDown()">tearDown</a>()
+Override <a href="../javadocs/junit/framework/TestCase.html#tearDown()">tearDown</a>()
 to release any permanent resources you allocated in setUp</li>
 </ol>
 For example, to write several test cases that want to work with different
@@ -133,7 +133,7 @@ Suite</h2>
 How do you run several tests at once?
 <p>As soon as you have two tests, you'll want to run them together. You
 could run the tests one at a time yourself, but you would quickly grow
-tired of that. Instead, JUnit provides an object, <a href="../../javadoc/junit/framework/TestSuite.html">TestSuite</a>
+tired of that. Instead, JUnit provides an object, <a href="../javadocs/junit/framework/TestSuite.html">TestSuite</a>
 which runs any number of test cases together.
 <p>For example, to run a single test case, you execute:
 <pre><tt>TestResult result= (new MoneyTest("testMoneyMoneyBag")).run();</tt></pre>
@@ -152,7 +152,7 @@ the test cases. Otherwise the automatic suite extraction is the preferred
 way. It avoids you having to update the suite creation code when you add
 a new test case.
 <p>TestSuites don't only have to contain TestCases. They contain any object
-that implements the <a href="../../javadoc/junit/framework/Test.html">Test</a>
+that implements the <a href="../javadocs/junit/framework/Test.html">Test</a>
 interface. For example, you can create a TestSuite in your code and I can
 create one in mine, and we can run them together by creating a TestSuite
 that contains both:
@@ -179,8 +179,8 @@ the following code to MoneyTest:
 If a TestCase class doesn't define a suite method a TestRunner will extract
 a suite and fill it with all the methods starting with "test".
 <p>JUnit provides both a graphical and a textual version of a TestRunner
-tool. Start it by typing <tt>java</tt> <tt><a href="../../javadoc/junit/awtui/TestRunner.html">junit.awtui.TestRunner</a>
-or <a href="../../javadoc/junit/swingui/TestRunner.html">junit.swingui.TestRunner</a></tt>.
+tool. Start it by typing <tt>java</tt> <tt><a href="../javadocs/junit/awtui/TestRunner.html">junit.awtui.TestRunner</a>
+or <a href="../javadocs/junit/swingui/TestRunner.html">junit.swingui.TestRunner</a></tt>.
 The graphical user interface presents a window with:
 <ul>
 <li>
