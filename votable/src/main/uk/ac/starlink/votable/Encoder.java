@@ -303,6 +303,14 @@ abstract class Encoder {
         else if ( clazz == Character.class ) {
             final int badVal = (int) '\0';
             return new ScalarEncoder( info, "char", null ) {
+                /* For a single character take care to add the attribute
+                 * arraysize="1" - although this is implicit according to
+                 * the standard, it's often left off and assumed to be
+                 * equivalent to arraysize="*".  This makes sure there is
+                 * no ambiguity. */
+                /*anonymousConstructor*/ {
+                    attMap.put( "arraysize", "1" );
+                }
                 public void encodeToStream( Object val, DataOutput out )
                         throws IOException {
                     Character value = (Character) val;
