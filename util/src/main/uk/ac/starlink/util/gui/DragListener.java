@@ -1,4 +1,4 @@
-package uk.ac.starlink.topcat;
+package uk.ac.starlink.util.gui;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
