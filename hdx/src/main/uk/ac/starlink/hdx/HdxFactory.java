@@ -639,9 +639,8 @@ public class HdxFactory {
             baseURI = getBaseURI(context);
 
             if (baseURI == null) {
-                // last-ditch default: file URI referring to current directory
-                String currdir = new java.io.File("").getAbsolutePath();
-                baseURI = new URI("file", null, currdir+"/", null);
+                // last-ditch default: file URI referring to current directory,
+		baseURI = new java.io.File("").getAbsoluteFile().toURI();
             }
 
             if (! baseURI.isAbsolute()) {
