@@ -16,7 +16,7 @@ public class JELActivator implements Activator {
 
     private final TopcatModel tcModel_;
     private final String expression_;
-    private final RandomJELRowReader rowReader_;
+    private final TopcatJELRowReader rowReader_;
     private final CompiledExpression compEx_;
     private final Class resultType;
 
@@ -35,7 +35,7 @@ public class JELActivator implements Activator {
         /* Get a RowReader. */
         RowSubset[] subsetArray = (RowSubset[]) tcModel_.getSubsets()
                                                .toArray( new RowSubset[ 0 ] );
-        rowReader_ = new RandomJELRowReader( tcModel_.getDataModel(),
+        rowReader_ = new TopcatJELRowReader( tcModel_.getDataModel(),
                                              subsetArray );
 
         /* Compile the expression. */

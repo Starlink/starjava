@@ -36,7 +36,7 @@ public class SyntheticColumn extends ColumnData {
     private List subsets;
     private String expression;
     private CompiledExpression compEx;
-    private RandomJELRowReader rowReader;
+    private TopcatJELRowReader rowReader;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -86,7 +86,7 @@ public class SyntheticColumn extends ColumnData {
                                 ? new RowSubset[ 0 ]
                                 : (RowSubset[]) 
                                   subsets.toArray( new RowSubset[ 0 ] );
-        rowReader = new RandomJELRowReader( stable, subsetArray );
+        rowReader = new TopcatJELRowReader( stable, subsetArray );
 
         /* Compile the expression. */
         Library lib = TopcatJELUtils.getLibrary( rowReader, false );

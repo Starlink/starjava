@@ -1,16 +1,12 @@
 package uk.ac.starlink.topcat;
 
-import gnu.jel.CompiledExpression;
-import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.ttools.JELRowReader;
+import uk.ac.starlink.ttools.RandomJELRowReader;
 
 /**
- * Implements JELRowReader for a random access table.
- *
- * <p>In addition to the variables recognised by the superclass, this 
- * class also recognises named row subsets (<tt>RowSubset</tt> inclusion 
- * flag vectors):
+ * Random JELRowReader which in addition to the variables recognised 
+ * by the superclass, also recognises named row subsets 
+ * (<tt>RowSubset</tt> inclusion flag vectors):
  * <dl>
  * <dt>Row Subset _ID identifiers:
  * <dd>The character '_'
@@ -26,10 +22,8 @@ import uk.ac.starlink.ttools.JELRowReader;
  * @author   Mark Taylor (Starlink)
  * @since    8 Feb 2005
  */
-public class RandomJELRowReader extends JELRowReader {
+public class TopcatJELRowReader extends RandomJELRowReader {
 
-    private long lrow_ = -1L;
-    private final StarTable table_;
     private final RowSubset[] subsets_;
 
     /** Prefix identifying a unique subset identifier. */
@@ -44,54 +38,12 @@ public class RandomJELRowReader extends JELRowReader {
      * @throws  IllegalArgumentException  if <tt>table.isRandom()</tt>
      *          returns false
      */
-    public RandomJELRowReader( StarTable table, RowSubset[] subsets ) {
+    public TopcatJELRowReader( StarTable table, RowSubset[] subsets ) {
         super( table );
         if ( ! table.isRandom() ) {
             throw new IllegalArgumentException( "Table is not random-access" );
         }
         subsets_ = subsets == null ? new RowSubset[ 0 ] : subsets;
-        table_ = table;
-    }
-
-    /**
-     * Returns the current row for evaluations.
-     *
-     * @return  current row
-     */
-    public long getCurrentRow() {
-        return lrow_;
-    }
-
-    /**
-     * Sets the current row for evaluations.
-     *
-     * @param  lrow  current row
-     */
-    public void setCurrentRow( long lrow ) {
-        lrow_ = lrow;
-    }
-
-    /**
-     * Evaluates a given compiled expression at a given row.
-     * The returned value is wrapped up as an object if the result of
-     * the expression is a primitive.
-     *
-     * @param  compEx  compiled expression
-     */
-    public synchronized Object evaluateAtRow( CompiledExpression compEx,
-                                              long lrow ) throws Throwable {
-        setCurrentRow( lrow );
-        return evaluate( compEx );
-    }
-
-    /**
-     * Returns the cell at a given column in the current row.
-     *
-     * @param  icol  column index
-     * @return  cell at <tt>(getCurrentRow(),icol)</tt>
-     */
-    public Object getCell( int icol ) throws IOException {
-        return table_.getCell( lrow_, icol );
     }
 
     /**
@@ -161,7 +113,7 @@ public class RandomJELRowReader extends JELRowReader {
      *         <tt>RowSubset</tt> indicated at the current row
      */
     public boolean getBooleanProperty( short isub ) {
-        return subsets_[ (int) isub ].isIncluded( lrow_ );
+        return subsets_[ (int) isub ].isIncluded( getCurrentRow() );
     }
 
     /**
@@ -203,5 +155,4 @@ public class RandomJELRowReader extends JELRowReader {
         /* It's not a subset. */
         return (short) -1;
     }
-
 }

@@ -164,7 +164,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
     public MetaColumnTableModel makeTableModel() {
 
         /* ID column. */
-        MetaColumn idCol = new MetaColumn( RandomJELRowReader.SUBSET_ID_CHAR 
+        MetaColumn idCol = new MetaColumn( TopcatJELRowReader.SUBSET_ID_CHAR 
                                            + "ID", String.class ) {
             public Object getValue( int irow ) {
                 return getSubsetID( irow );
@@ -223,7 +223,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
         };
 
         /* Column ID column for column subsets. */
-        String ccname = "Column " + RandomJELRowReader.COLUMN_ID_CHAR + "ID";
+        String ccname = "Column " + TopcatJELRowReader.COLUMN_ID_CHAR + "ID";
         MetaColumn colCol = new MetaColumn( ccname, String.class ) {
             public Object getValue( int irow ) {
                 RowSubset rset = getSubset( irow );
@@ -270,7 +270,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
      * @return  subset ID string
      */
     private String getSubsetID( int irow ) {
-        return RandomJELRowReader.SUBSET_ID_CHAR + Integer.toString( irow + 1 );
+        return TopcatJELRowReader.SUBSET_ID_CHAR + Integer.toString( irow + 1 );
     }
 
     /**

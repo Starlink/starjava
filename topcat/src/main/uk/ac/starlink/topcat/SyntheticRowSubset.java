@@ -25,7 +25,7 @@ public class SyntheticRowSubset implements RowSubset {
     private List subsets;
     private String name;
     private String expression;
-    private RandomJELRowReader rowReader;
+    private TopcatJELRowReader rowReader;
     private CompiledExpression compEx;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
@@ -58,7 +58,7 @@ public class SyntheticRowSubset implements RowSubset {
                                 ? new RowSubset[ 0 ]
                                 : (RowSubset[]) 
                                   subsets.toArray( new RowSubset[ 0 ] );
-        rowReader = new RandomJELRowReader( stable, subsetArray );
+        rowReader = new TopcatJELRowReader( stable, subsetArray );
 
         /* Compile the expression. */
         Library lib = TopcatJELUtils.getLibrary( rowReader, false );

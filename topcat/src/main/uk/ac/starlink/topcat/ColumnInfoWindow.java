@@ -537,7 +537,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         ColumnInfo cinfo = new ColumnInfo( indexInfo );
         cinfo.setAuxDatum( 
             new DescribedValue( TopcatUtils.COLID_INFO, 
-                                RandomJELRowReader.COLUMN_ID_CHAR + "0" ) );
+                                TopcatJELRowReader.COLUMN_ID_CHAR + "0" ) );
         return cinfo;
     }
 

@@ -34,7 +34,7 @@ public class TopcatUtils {
      * for use in algebraic expressions.
      */
     public static final ValueInfo COLID_INFO =
-        new DefaultValueInfo( RandomJELRowReader.COLUMN_ID_CHAR + "ID",
+        new DefaultValueInfo( TopcatJELRowReader.COLUMN_ID_CHAR + "ID",
                               String.class, "Unique column ID" );
 
     /**
