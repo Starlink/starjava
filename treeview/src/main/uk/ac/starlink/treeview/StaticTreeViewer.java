@@ -538,6 +538,7 @@ public class StaticTreeViewer extends JFrame {
                 }
             };
 
+        /* Interrupt action. */
         stopAction =
             new BasicAction( "Stop expansion",
                              IconFactory.getIcon( IconFactory.STOP ),
@@ -546,6 +547,9 @@ public class StaticTreeViewer extends JFrame {
                     recursiveStopExpansion( root );
                 }
             };
+
+        /* Actions for connecting to remote virtual filestores. */
+        Action[] connectActions = jtree.getConnectionActions( nodeMaker );
 
         /* Configure a selection listener to control availability of actions
          * where this is related to what items are selected. */
@@ -582,10 +586,19 @@ public class StaticTreeViewer extends JFrame {
         mb.add( fileMenu );
         fileMenu.add( newFileAction ).setIcon( null );
         fileMenu.add( newNameAction ).setIcon( null );
+        for ( int i = 0; i < connectActions.length; i++ ) {
+            fileMenu.add( connectActions[ i ] ).setIcon( null );
+        }
         fileMenu.add( myspaceAction ).setIcon( null );
         fileMenu.add( exitAction ).setIcon( null );
         tools.add( exitAction );
         tools.add( newFileAction );
+        for ( int i = 0; i < connectActions.length; i++ ) {
+            Action conact = connectActions[ i ];
+            if ( conact.getValue( Action.SMALL_ICON ) != null ) {
+                tools.add( conact );
+            }
+        }
         tools.addSeparator();
 
         /* Add the detail geometry choices to both menu and toolbar. */
