@@ -11,11 +11,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.BitSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollBar;
@@ -258,10 +261,7 @@ public class TableViewerWindow extends TopcatViewWindow
 
             /* Arrange for the row to be visible in the middle of the 
              * scrollpane's viewport. */
-            Rectangle viewRect = jtab.getCellRect( viewRow, 0, false );
-            int yMid = viewRect.y + viewRect.height / 2;
-            JScrollBar yBar = scrollpane.getVerticalScrollBar();
-            yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
+            scrollToRow( viewRow );
         }
         selfHighlighting = false;
     }
@@ -328,6 +328,18 @@ public class TableViewerWindow extends TopcatViewWindow
             popper.add( hidecolAct );
         }
 
+        /* Action to search for a string. */
+        if ( colInfo.getContentClass() == String.class ) {
+            Action searchAct =
+                new BasicAction( "Search Column", ResourceIcon.SEARCH,
+                                 "Search for regular expression in cell" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        findRegex( tcol, jcol );
+                    }
+                };
+            popper.add( searchAct );
+        }
+
         return popper;
     }
 
@@ -390,7 +402,63 @@ public class TableViewerWindow extends TopcatViewWindow
         }
         return bits;
     }
-    
+
+    /**
+     * Pops up a window asking for a regular expression and selects the
+     * rows which match it in a given column.
+     *
+     * @param   table column for matching
+     * @param   index of the column index in the view model
+     */
+    private void findRegex( StarTableColumn tcol, int jcol ) {
+        Object[] msg = {
+             "Enter a regular expression (e.g. \".*XYZ.*\")",
+             "to select rows whose " + tcol.getColumnInfo().getName() + 
+             " value match it",
+        };
+        String regex = JOptionPane
+                      .showInputDialog( this, msg, "Search Column",
+                                        JOptionPane.QUESTION_MESSAGE );
+        ListSelectionModel selModel = jtab.getSelectionModel();
+        if ( regex != null && regex.trim().length() > 0 ) {
+            Pattern pat = Pattern.compile( regex );
+            int nfound = 0;
+            int first = -1;
+            int nrow = viewModel.getRowCount();
+            for ( int irow = 0; irow < nrow; irow++ ) {
+                Object cell = viewModel.getValueAt( irow, jcol );
+                if ( cell instanceof String ) {
+                    if ( pat.matcher( (String) cell ).matches() ) {
+                        if ( nfound == 0 ) {
+                            first = irow;
+                            selModel.clearSelection();
+                        }
+                        selModel.addSelectionInterval( irow, irow );
+                        nfound++;
+                    }
+                }
+            }
+            if ( nfound == 1 ) {
+                tcModel.highlightRow( viewModel.getBaseRow( first ) );
+            }
+            else if ( nfound > 1 ) {
+                scrollToRow( first );
+            }
+        }
+    }
+
+    /**
+     * Scrolls the JTable so that the given row is visible in the centre
+     * of the window.
+     *
+     * @param   viewRow  row index in the view model
+     */
+    private void scrollToRow( int viewRow ) {
+        Rectangle viewRect = jtab.getCellRect( viewRow, 0, false );
+        int yMid = viewRect.y + viewRect.height / 2;
+        JScrollBar yBar = scrollpane.getVerticalScrollBar();
+        yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
+    }
 
     /*
      * Implementation of TableModelListener interface.

@@ -3154,6 +3154,13 @@ introduced since the last version:
 
     </dl></p></dd>
 
+<dt>Version 1.4-1 (8 Feb 2005)</dt>
+<dd><p>
+    <ul>
+    <li>Added Search Column item to Data Window column popup menu</li>
+    </ul>
+    </p></dd>
+
 </dl>
 </p>
 
@@ -3869,6 +3876,17 @@ way to do some things with the column in question:
 <dt>&IMG.HIDE; Hide</dt>
 <dd><p>Hides the column.  It can be reinstated from the
     <ref id="ColumnInfoWindow">Columns window</ref>.
+    </p></dd>
+
+<dt>&IMG.SEARCH; Search Column</dt>
+<dd><p>For string-valued columns, this option allows you to search 
+    for values in a column.  If you select it you will be asked to enter
+    a regular expression, and then any row which matches that expression
+    in this column will be selected (highlighted).  If there's just one
+    matching column it will be <ref id="activation">activated</ref> as well.
+    The expression obeys normal regular expression syntax, so for instance
+    you'd enter "<code>.*XYZ.*</code>" to find all rows which contain 
+    the string "XYZ".
     </p></dd>
 
 </dl>
