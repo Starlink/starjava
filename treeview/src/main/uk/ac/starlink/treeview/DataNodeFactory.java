@@ -46,7 +46,6 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
  * <li> {@link PlainDataNode}
- * <li> {@link HTMLDataNode}
  * </ul>
  * The factory will churn out a <code>DataNode</code> object based on
  * the object it is given for construction, the constructors available
@@ -604,7 +603,6 @@ public class DataNodeFactory {
                 VOComponentDataNode.class,
                 FtpDirectoryDataNode.class,
                 CompressedDataNode.class,
-                HTMLDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,
             };
