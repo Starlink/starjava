@@ -68,9 +68,9 @@ class IntersectionRowIterator {
                 nleft *= interDims[ i ];
             }
             interPos = new long[ ndim ];
-            long[] absolutePos = inter.indexToPosition( 0L );
-            aOff = aShape.positionToIndex( absolutePos );
-            bOff = bShape.positionToIndex( absolutePos );
+            long[] absolutePos = inter.offsetToPosition( 0L );
+            aOff = aShape.positionToOffset( absolutePos );
+            bOff = bShape.positionToOffset( absolutePos );
         }
         else {
             nleft = 0L;

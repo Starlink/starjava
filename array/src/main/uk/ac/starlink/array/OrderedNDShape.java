@@ -108,7 +108,7 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      * contents change at each iteration.  It should not be modified
      * by clients.
      *
-     * @param   start  the first index in the pixel sequence over which to 
+     * @param   start  the first offset in the pixel sequence over which to 
      *                 iterate
      * @param   length the number of pixels over which to iterate
      * @return  an Iterator over cells
@@ -129,7 +129,7 @@ public class OrderedNDShape extends NDShape implements Cloneable {
                     }
                 }
                 else {
-                    pos = indexToPosition( start - 1L );
+                    pos = offsetToPosition( start - 1L );
                 }
             }
             private long nleft = length;
@@ -179,18 +179,18 @@ public class OrderedNDShape extends NDShape implements Cloneable {
      
 
     /**
-     * Returns the index of a pixel having given coordinates within 
+     * Returns the offset of a pixel having given coordinates within 
      * the sequence of pixels defined by this OrderedNDShape.
      * It will validate its input, and so may not be maximally efficient.
      *
      * @param   pos    a coordinate vector giving a pixel position
-     * @return  the index within the pixel sequence at which the pixel
-     *          at pos occurs
+     * @return  the offset into this shape's pixel sequence at which the pixel
+     *          at <tt>pos</tt> occurs
      * @throws  IndexOutOfBoundsException  if pos is outside this shape
      */
-    public long positionToIndex( long[] pos ) {
+    public long positionToOffset( long[] pos ) {
         boolean hasFitsOrder = order.isFitsLike();
-        long index = 0L;
+        long offset = 0L;
         long step = 1L;
         for ( int j = 0; j < ndim; j++ ) {
             int i = hasFitsOrder ? j : ( ndim - 1 - j );
@@ -198,32 +198,33 @@ public class OrderedNDShape extends NDShape implements Cloneable {
             if ( c < origin[ i ] || c >= limits[ i ] ) {
                 throw new IndexOutOfBoundsException();
             }
-            index += ( c - origin[ i ] ) * step;
+            offset += ( c - origin[ i ] ) * step;
             step *= dims[ i ];
         }
-        return index;
+        return offset;
     }
 
     /**
-     * Determines the coordinates of a pixel at a given index within the
+     * Determines the coordinates of a pixel at a given offset within the
      * pixel sequence.
      * It will validate its input, and so may not be maximally efficient.
      *
-     * @param   index  an index into the list of pixels
-     * @return  the coordinates of the pixel at index
-     * @throws  IndexOutOfBoundsException  if index is outside this shape
+     * @param   offset  an offset into the list of pixels
+     * @return  the coordinates of the pixel at <tt>offset</tt>
+     * @throws  IndexOutOfBoundsException  if <tt>offset</tt> 
+     *          is outside this shape
      */
-    public long[] indexToPosition( long index ) {
+    public long[] offsetToPosition( long offset ) {
         boolean hasFitsOrder = order.isFitsLike();
-        if ( index < 0 || index >= npix ) {
+        if ( offset < 0 || offset >= npix ) {
             throw new IndexOutOfBoundsException( 
-                "Index " + index + " out of range 0.." + npix );
+                "Offset " + offset + " out of range 0.." + npix );
         }
         long[] p = (long[]) origin.clone();
         for ( int k = 0; k < ndim; k++ ) {
             int i = hasFitsOrder ? k : ( ndim - 1 - k );
-            p[ i ] += index % dims[ i ];
-            index /= dims[ i ];
+            p[ i ] += offset % dims[ i ];
+            offset /= dims[ i ];
         }
         return p;
     }

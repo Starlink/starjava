@@ -27,7 +27,7 @@ public class ReorderingMapper implements OffsetMapper {
     }
 
     public long mapOffset( long off1 ) {
-        return oshape2.positionToIndex( oshape1.indexToPosition( off1 ) );
+        return oshape2.positionToOffset( oshape1.offsetToPosition( off1 ) );
     }
 
     public long[] mapRange( long[] range1 ) {

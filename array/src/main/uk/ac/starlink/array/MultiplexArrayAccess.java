@@ -61,11 +61,11 @@ class MultiplexArrayAccess extends DefaultArrayAccess {
     }
 
     public long[] getPosition() {
-        return arrayShape.indexToPosition( offset );
+        return arrayShape.offsetToPosition( offset );
     }
 
     public void setPosition( long[] pos ) throws IOException {
-        setOffset( arrayShape.positionToIndex( pos ) );
+        setOffset( arrayShape.positionToOffset( pos ) );
     }
 
     public void read( Object buffer, int start, int size ) throws IOException {

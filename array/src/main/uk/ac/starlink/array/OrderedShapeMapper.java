@@ -24,8 +24,8 @@ public class OrderedShapeMapper implements OffsetMapper {
     }
 
     public long mapOffset( long off1 ) {
-        long[] pos = oshape1.indexToPosition( off1 );
-        return oshape2.within( pos ) ? oshape2.positionToIndex( pos ) : -1L;
+        long[] pos = oshape1.offsetToPosition( off1 );
+        return oshape2.within( pos ) ? oshape2.positionToOffset( pos ) : -1L;
     }
 
     public long[] mapRange( long[] range1 ) {

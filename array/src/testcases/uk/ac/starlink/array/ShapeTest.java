@@ -99,6 +99,8 @@ public class ShapeTest extends TestCase {
 
     public void testNDShapeFunctions() {
         assertEquals( NDShape.toString( new long[] { 9, 8, 7 } ), "(9,8,7)" );
+        assertEquals( NDShape.toString( new long[] { 9, 8, Long.MIN_VALUE } ),
+                                        "(9,8,*)" );
 
         long[] origin = new long[] { 0, 10, 20 };
         long[] dims = new long[] { 2, 3, 4 };
@@ -149,8 +151,8 @@ public class ShapeTest extends TestCase {
                     pos1[ 0 ] = i;
                     assertTrue( it1.hasNext() );
                     assertArrayEquals( (long[]) it1.next(), pos1 );
-                    assertArrayEquals( os1.indexToPosition( n1 ), pos1 );
-                    assertEquals( n1, os1.positionToIndex( pos1 ) );
+                    assertArrayEquals( os1.offsetToPosition( n1 ), pos1 );
+                    assertEquals( n1, os1.positionToOffset( pos1 ) );
                     n1++;
                 }
             }
@@ -171,8 +173,8 @@ public class ShapeTest extends TestCase {
                     pos2[ 2 ] = k;
                     assertTrue( it2.hasNext() );
                     assertArrayEquals( (long[]) it2.next(), pos2 );
-                    assertArrayEquals( os2.indexToPosition( n2 ), pos2 );
-                    assertEquals( n2, os2.positionToIndex( pos2 ) );
+                    assertArrayEquals( os2.offsetToPosition( n2 ), pos2 );
+                    assertEquals( n2, os2.positionToOffset( pos2 ) );
                     n2++;
                 }
             }
@@ -265,22 +267,22 @@ public class ShapeTest extends TestCase {
         long[] dims = new long[] { 10, 10 };
         OrderedNDShape osh = new OrderedNDShape( origin, dims, null );
         try {
-            osh.indexToPosition( -1L );
+            osh.offsetToPosition( -1L );
             fail();
         }
         catch ( IndexOutOfBoundsException e ) {}
         try {
-            osh.indexToPosition( 10L * 10L );
+            osh.offsetToPosition( 10L * 10L );
             fail();
         }
         catch ( IndexOutOfBoundsException e ) {}
         try {
-            osh.positionToIndex( new long[] { -1L, 0L } );
+            osh.positionToOffset( new long[] { -1L, 0L } );
             fail();
         }
         catch ( IndexOutOfBoundsException e ) {}
         try {
-            osh.positionToIndex( new long[] { 10L, 0L } );
+            osh.positionToOffset( new long[] { 10L, 0L } );
             fail();
         }
         catch ( IndexOutOfBoundsException e ) {}

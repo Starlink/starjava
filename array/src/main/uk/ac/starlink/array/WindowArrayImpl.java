@@ -64,8 +64,8 @@ public class WindowArrayImpl extends WrapperArrayImpl {
         if ( intersect != null ) {
             inter = new OrderedNDShape( intersect, order );
             long np1 = inter.getNumPixels() - 1L;
-            firstIn = oshape.positionToIndex( inter.indexToPosition( 0L ) );
-            lastIn = oshape.positionToIndex( inter.indexToPosition( np1 ) );
+            firstIn = oshape.positionToOffset( inter.offsetToPosition( 0L ) );
+            lastIn = oshape.positionToOffset( inter.offsetToPosition( np1 ) );
         }
         else {
             inter = null;
@@ -161,7 +161,7 @@ public class WindowArrayImpl extends WrapperArrayImpl {
      * offset into this window array. 
      */
     private long baseOff( long off ) {
-        return baseShape.positionToIndex( oshape.indexToPosition( off ) );
+        return baseShape.positionToOffset( oshape.offsetToPosition( off ) );
     }
 
     /**
@@ -169,7 +169,7 @@ public class WindowArrayImpl extends WrapperArrayImpl {
      * a pixel which is in the base array.
      */
     private boolean inCommon( long off ) {
-        return baseShape.within( oshape.indexToPosition( off ) );
+        return baseShape.within( oshape.offsetToPosition( off ) );
     }
 
     /**
