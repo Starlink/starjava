@@ -31,16 +31,7 @@ public class VOTableDataNode extends DocumentDataNode {
 
     public VOTableDataNode( XMLDocument xdoc ) throws NoSuchDataException {
         super( xdoc );
-        String localName = xdoc.getTopLocalName();
-        String namespaceURI = xdoc.getTopNamespaceURI();
-        if ( localName != "VOTABLE" ) {
-             throw new NoSuchDataException( "Document type is " + localName +
-                                            " not VOTABLE" );
-        }
-        if ( namespaceURI != null && namespaceURI.trim().length() > 0 ) {
-             throw new NoSuchDataException( "VOTABLE namespace is " + 
-                                            namespaceURI + " not null" );
-        }
+        checkTopLocalName( "VOTABLE" );
         setIconID( IconFactory.VOTABLE );
     }
 

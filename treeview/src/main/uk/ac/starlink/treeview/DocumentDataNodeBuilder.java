@@ -41,8 +41,7 @@ public class DocumentDataNodeBuilder extends DataNodeBuilder {
         else if ( elname.equals( "ndx" ) ) {
             return new NdxDataNode( xdoc );
         }
-        else if ( elName.equals( "VOTABLE" ) && 
-                  ( elURI == null || elURI.length() == 0 ) ) {
+        else if ( elName.equals( "VOTABLE" ) ) {
             return new VOTableDataNode( xdoc );
         }
 
