@@ -291,7 +291,7 @@ public class StarTableDataNode extends DefaultDataNode
              * definitely not a text-format table.  This would end up doing
              * much more work than we want to.  We will forego the 
              * possibility of identifying tables in these free-text formats. */
-            for ( Iterator it = tabfact.getBuilders().iterator();
+            for ( Iterator it = tabfact.getDefaultBuilders().iterator();
                   it.hasNext(); ) {
                 TableBuilder builder = (TableBuilder) it.next();
                 if ( builder instanceof TextTableBuilder ||
