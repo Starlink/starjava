@@ -9,8 +9,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,6 +38,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.TransferHandler;
+import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -74,6 +79,7 @@ public class ControlWindow extends AuxWindow
     private final TopcatListener topcatWatcher = this;
     private final ListSelectionListener selectionWatcher = this;
     private final TableColumnModelListener columnWatcher = this;
+    private final WindowListener windowWatcher = new ControlWindowListener();
     private final StarTableFactory tabfact = new StarTableFactory( true );
     private final StarTableOutput taboutput = new StarTableOutput();
     private final boolean canWrite = Driver.canWrite();
@@ -110,6 +116,7 @@ public class ControlWindow extends AuxWindow
     private final Action writeAct;
     private final Action dupAct;
     private final Action mirageAct;
+    private final Action removeAct;
 
     /**
      * Constructs a new window.
@@ -162,6 +169,8 @@ public class ControlWindow extends AuxWindow
         tablesList.setTransferHandler( bothTransferHandler );
 
         /* Set up actions. */
+        removeAct = new ControlAction( "Remove Table", ResourceIcon.REMOVE,
+                                       "Forget about the current table" );
         readAct = new ControlAction( "Load Table", ResourceIcon.LOAD,
                                      "Open a new table" );
         readAct.setEnabled( canRead );
@@ -173,9 +182,9 @@ public class ControlWindow extends AuxWindow
         mirageAct = new ExportAction( "Export To Mirage", null,
                                "Launch Mirage to display the current table" );
         mirageAct.setEnabled( MirageHandler.isMirageAvailable() );
+
         hideAct = new ModelAction( "Hide Windows", ResourceIcon.HIDE,
                                    "Hide viewer windows" );
-
         viewerAct = new ModelAction( "Table Browser", ResourceIcon.VIEWER,
                                      "Display table cell data" );
         paramAct = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
@@ -197,6 +206,7 @@ public class ControlWindow extends AuxWindow
         /* Add export buttons to the toolbar. */
         configureExportSource( toolBar.add( writeAct ) );
         configureExportSource( toolBar.add( dupAct ) );
+        configureExportSource( toolBar.add( removeAct ) );
         toolBar.addSeparator();
 
         /* Add table view buttons to the toolbar. */
@@ -212,6 +222,11 @@ public class ControlWindow extends AuxWindow
 
         /* Add help information. */
         addHelp( "ControlWindow" );
+
+        /* Make closing this window equivalent to closing the application,
+         * since without it the application can't be controlled. */
+        setDefaultCloseOperation( WindowConstants.DO_NOTHING_ON_CLOSE );
+        addWindowListener( windowWatcher );
 
         /* Display the window. */
         updateInfo();
@@ -255,6 +270,19 @@ public class ControlWindow extends AuxWindow
     }
 
     /**
+     * Removes an entry from the table list.
+     *
+     * @param  model  the table entry to remove
+     */
+    public void removeTable( TopcatModel model ) {
+        if ( tablesModel.contains( model ) ) {
+            model.hideWindows();
+            tablesList.clearSelection();
+            tablesModel.removeElement( model );
+        }
+    }
+
+    /**
      * Returns the TopcatModel corresponding to the currently selected table.
      *
      * @return  selected model
@@ -263,7 +291,7 @@ public class ControlWindow extends AuxWindow
         return (TopcatModel) tablesList.getSelectedValue();
     }
 
-     /**
+    /**
      * Returns a dialog used for loading new tables.
      *
      * @return  a table load window
@@ -307,6 +335,39 @@ public class ControlWindow extends AuxWindow
      */
     public StarTableFactory getTableFactory() {
         return tabfact;
+    }
+
+    /**
+     * Shuts down TOPCAT.  According to whether or not it is running 
+     * standalone, this may invoke {@link java.lang.System#exit} itself,
+     * or it may just attempt to get rid of all the windows associated
+     * with the TOPCAT application.  In the latter case, the JVM should
+     * survive.
+     *
+     * @param   confirm  whether to seek confirmation from the user
+     * @return  whether shutdown took place.  If the user aborted the
+     *          exit, then <tt>false</tt> will be returned.  If the exit
+     *          did happen, then either <tt>true</tt> will be returned
+     *          or (standalone case) there will be no return.
+     */
+    public boolean exit( boolean confirm ) {
+        if ( ( ! confirm ) || confirm( "Shut down TOPCAT", "Confirm Exit" ) ) {
+            removeWindowListener( windowWatcher );
+            if ( Driver.isStandalone() ) {
+                System.exit( 0 );
+            }
+            else {
+                for ( Enumeration en = tablesModel.elements();
+                      en.hasMoreElements(); ) {
+                    removeTable( (TopcatModel) en.nextElement() );
+                }
+                dispose();
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
@@ -362,6 +423,7 @@ public class ControlWindow extends AuxWindow
         writeAct.setEnabled( hasModel && canWrite );
         dupAct.setEnabled( hasModel );
         mirageAct.setEnabled( hasModel );
+        removeAct.setEnabled( hasModel );
         subsetSelector.setEnabled( hasModel );
         sortSelector.setEnabled( hasModel );
         sortSenseButton.setEnabled( hasModel );
@@ -458,6 +520,13 @@ public class ControlWindow extends AuxWindow
         public void actionPerformed( ActionEvent evt ) {
             if ( this == readAct ) {
                 getLoader().loadRandomStarTable( window );
+            }
+            else if ( this == removeAct ) {
+                TopcatModel tcModel = getCurrentModel();
+                if ( confirm( "Remove table \"" + tcModel + "\" from list?",
+                              "Confirm Remove" ) ) {
+                    removeTable( tcModel );
+                }
             }
         }
     }
@@ -601,6 +670,21 @@ public class ControlWindow extends AuxWindow
             catch ( IOException e ) {
                 ErrorDialog.showError( e, "Can't randomise table", window );
                 return false;
+            }
+        }
+    }
+
+    /**
+     * Ensures that closing the control window is equivalent to shutting
+     * down the application.
+     */
+    private class ControlWindowListener extends WindowAdapter {
+        public void windowClosing( WindowEvent evt ) {
+            exit( true );
+        }
+        public void windowClosed( WindowEvent evt ) {
+            if ( ! exit( true ) ) {
+                setVisible( true );
             }
         }
     }

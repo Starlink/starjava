@@ -21,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -50,6 +51,9 @@ public class AuxWindow extends JFrame {
     private JPanel controlPanel;
     private JMenuBar menuBar;
 
+    private Action aboutAct;
+    private Action closeAct;
+    private Action exitAct;
     private Action helpAct;
 
     private static String[] about;
@@ -79,17 +83,9 @@ public class AuxWindow extends JFrame {
         fileMenu = new JMenu( "File" );
         fileMenu.setMnemonic( KeyEvent.VK_F );
         menuBar.add( fileMenu );
-        Action closeAct = new BasicAction( "Close", ResourceIcon.CLOSE,
-                                           "Close this window" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                dispose();
-            }
-        };
-        Action exitAct = new BasicAction( "Exit", "Exit the application" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                System.exit( 0 );
-            }
-        };
+        closeAct = new AuxAction( "Close", ResourceIcon.CLOSE,
+                                  "Close this window" );
+        exitAct = new AuxAction( "Exit", null, "Exit the application" );
         JMenuItem closeItem = fileMenu.add( closeAct );
         closeItem.setIcon( null );
         closeItem.setMnemonic( KeyEvent.VK_C );
@@ -144,7 +140,7 @@ public class AuxWindow extends JFrame {
         menuBar.add( helpMenu );
 
         /* Get action to activate the help browser. */
-        Action helpAct = new HelpAction( helpID );
+        helpAct = new HelpAction( helpID );
 
         /* Add it to the tool bar. */
         toolBar.add( helpAct );
@@ -158,14 +154,7 @@ public class AuxWindow extends JFrame {
         helpMenu.addSeparator();
 
         /* Add an About action. */
-        Action aboutAct = new AbstractAction( "About TOPCAT" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                JOptionPane.showMessageDialog( AuxWindow.this, getAbout(),
-                                               "About TOPCAT",
-                                               JOptionPane.INFORMATION_MESSAGE,
-                                               ResourceIcon.TOPCAT_LOGO );
-            }
-        };
+        aboutAct = new AuxAction( "About TOPCAT", null, null );
         helpMenu.add( aboutAct );
     }
 
@@ -249,9 +238,24 @@ public class AuxWindow extends JFrame {
         return controlPanel;
     }
 
+    /**
+     * Obtains simple confirmation from a user.
+     * This is just a convenience method wrapping a JOptionPane invocation.
+     *
+     * @param  message  confirmation text for user
+     * @param  title    confirmation window title
+     * @return  true  iff the user provides positive confirmation
+     */
+    public boolean confirm( String message, String title ) {
+        return JOptionPane.showConfirmDialog( this, message, title,
+                                              JOptionPane.YES_NO_OPTION )
+            == JOptionPane.YES_OPTION;
+    }
+
     public Image getIconImage() {
         return ResourceIcon.TOPCAT.getImage();
     }
+
 
     /**
      * Returns the "About" message.  It's an array of strings, one per line.
@@ -380,6 +384,31 @@ public class AuxWindow extends JFrame {
     }
 
     /**
+     * Implementation of actions for this class.
+     */
+    private class AuxAction extends BasicAction {
+
+        AuxAction( String name, Icon icon, String shortdesc ) {
+            super( name, icon, shortdesc );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( this == closeAct ) {
+                dispose();
+            }
+            else if ( this == exitAct ) {
+                ControlWindow.getInstance().exit( true );
+            }
+            else if ( this == aboutAct ) {
+                JOptionPane.showMessageDialog( AuxWindow.this, getAbout(),
+                                               "About TOPCAT",
+                                               JOptionPane.INFORMATION_MESSAGE,
+                                               ResourceIcon.TOPCAT_LOGO );
+            }
+        }
+    }
+
+    /**
      * Helper class providing an action for invoking help.
      */
     public class HelpAction extends AbstractAction {
@@ -414,7 +443,6 @@ public class AuxWindow extends JFrame {
             }
             helpWin.setID( helpID );
         }
-            
     }
 
 }

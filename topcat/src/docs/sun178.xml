@@ -1192,8 +1192,7 @@ Many or all of them contain the following buttons:
 <dl>
 
 <dt>&IMG.CLOSE; Close</dt>
-<dd><p>Closes the window.  If this is the last window open in the 
-    application, it will exit.
+<dd><p>Closes the window.
     </p></dd>
 
 <dt>&IMG.HELP; Help</dt>
@@ -1218,7 +1217,7 @@ items:
 <dl>
 <dt>Exit</dt>
 <dd><p>The <label>Exit</label> item in the <label>File</label> menu
-    will exit TOPCAT straight away regardless of what windows are open.
+    will exit TOPCAT, asking you for confirmation first.
     </p></dd>
 
 <dt>Help</dt>
@@ -1360,6 +1359,16 @@ from TOPCAT:
     rows in the current subset selection, and its natural row ordering will
     correspond to the current sort order.  See <ref id="save"/> for more
     details on exactly what constitutes the current view.
+    </p></dd>
+
+<dt>&IMG.REMOVE; Remove Table</dt>
+<dd><p>Removes the currently selected table from the table list.
+    As well as removing it from the list display on the left, 
+    this will hide all windows corresponding to that table.
+    It will not be possible to recover the table (except by reloading it).
+    This may free up some memory within the application (though it may not,
+    it depends on where the table came from).
+    You will be asked for confirmation before proceeding.
     </p></dd>
 </dl>
 </p>

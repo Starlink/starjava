@@ -520,8 +520,9 @@ public class TopcatModel {
 
     /**
      * Hides any currently visible view windows associated with this model.
+     * The windows are disposed.
      */
-    private void hideWindows() {
+    public void hideWindows() {
         for ( int i = 0; i < windowActions.length; i++ ) {
             WindowAction act = windowActions[ i ];
             act.putValue( "VISIBLE", Boolean.FALSE );
