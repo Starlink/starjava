@@ -29,6 +29,9 @@ import uk.ac.starlink.util.DataSource;
  * and discard the content of the original (STREAM or TABLEDATA) nodes
  * which contained the data from the DOM.
  *
+ * <p>The easiest way to access the data stored in a <tt>TableElement</tt>
+ * is to make it into a {@link VOStarTable}.
+ *
  * @author   Mark Taylor (Starlink)
  */
 public class TableElement extends VOElement {

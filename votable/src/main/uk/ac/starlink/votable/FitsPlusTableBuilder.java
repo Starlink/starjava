@@ -43,6 +43,7 @@ import uk.ac.starlink.util.IOUtils;
  *
  * @author   Mark Taylor (Starlink)
  * @since    27 Aug 2004
+ * @see      FitsPlusTableWriter
  */
 public class FitsPlusTableBuilder implements TableBuilder {
 

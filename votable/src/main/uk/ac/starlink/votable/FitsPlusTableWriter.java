@@ -20,10 +20,23 @@ import uk.ac.starlink.table.StarTable;
  * Unlike {@link uk.ac.starlink.fits.FitsTableWriter} however, the
  * primary extension is not left contentless, instead it gets the
  * text of a DATA-less VOTable written into it.  This VOTable describes
- * the metadata of the table.
+ * the metadata of the table, as if the DATA element contained a FITS
+ * element referencing the first extension HDU of the file.
  * Tables stored in this format have all the rich metadata associated
  * with VOTables, and benefit from the compactness of FITS tables,
  * without the considerable disdvantage of being split into two files.
+ *
+ * <p>The header cards in the primary HDU look like this:
+ * <pre>
+ *     SIMPLE  =                    T / Standard FITS format
+ *     BITPIX  =                    8 / Character data
+ *     NAXIS   =                    1 / Text string
+ *     NAXIS1  =                 nnnn / Number of characters
+ *     VOTMETA =                    T / Table metadata in VOTABLE format
+ *     EXTEND  =                    T / There are standard extensions
+ * </pre>
+ * the VOTMETA card in particular marking that this HDU contains VOTable
+ * metadata.
  *
  * @author   Mark Taylor (Starlink)
  * @since    26 Aug 2004
