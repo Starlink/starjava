@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import java.io.IOException;
 import java.net.URL;
 import javax.help.HelpSet;
 import javax.help.HelpSetException;
@@ -36,8 +37,15 @@ public class HelpTest extends TestCase {
         fact.setValidating( true );
         DefaultHandler handler = new DefaultHandler() {
             StarEntityResolver resolver = StarEntityResolver.getInstance();
-            public InputSource resolveEntity( String sysId, String pubId ) {
-                return resolver.resolveEntity( sysId, pubId );
+            public InputSource resolveEntity( String sysId, String pubId ) 
+                    throws SAXException {
+                try {
+                    return resolver.resolveEntity( sysId, pubId );
+                }
+                catch ( IOException e ) {
+                    throw (SAXException) new SAXException( e.getMessage(), e )
+                                        .initCause( e );
+                }
             }
             public void warning( SAXParseException e ) throws SAXException {
                 rethrow( e );
