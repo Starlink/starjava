@@ -27,8 +27,6 @@ public abstract class DataNodeBuilder {
 
     private Constructor constructor;
     private Class argClass;
-    public static boolean verbose = false;
-    public static PrintStream verbStream = System.err;
 
     /**
      * Determine whether this builder can be used to work on an object
