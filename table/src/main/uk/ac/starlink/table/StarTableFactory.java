@@ -332,7 +332,7 @@ public class StarTableFactory {
 
     /**
      * Indicates whether a particular set of <tt>DataFlavor</tt> ojects
-     * offered by a <tt>{@link java.awt.datatransfer.Transferable}
+     * offered by a {@link java.awt.datatransfer.Transferable}
      * is suitable for attempting to turn the <tt>Transferable</tt>
      * into a StarTable.
      * <p>
