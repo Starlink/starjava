@@ -3,6 +3,9 @@ Its version numbers track the version numbers of AST (for versions >1.4);
 thus JNIAST V1.8-13 must be built against AST V1.8-13 or higher.
 If it is not, the build may go ahead OK but the test should fail.
 
+Set the ADDLIBS environment variable to the location of the correct
+version of the AST library during build if it is not in the usual place.
+
 Partial change log:
 
 14-MAR-2003:
