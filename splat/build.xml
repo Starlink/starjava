@@ -223,6 +223,9 @@
     <!-- ASTGUI -->
     <pathelement location="${star.jar.dir}/astgui/astgui.jar"/>
 
+    <!-- TABLE -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
   </extclasspath>
 
   <!-- Generate the local build classpath. This is the most difficult
@@ -249,6 +252,7 @@
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
     <pathelement location="${star.build.dir}/pal/lib/pal/pal.jar"/>
     <pathelement location="${star.build.dir}/astgui/lib/astgui/astgui.jar"/>
+    <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -616,6 +620,7 @@
          <extension name="PAL" href="pal.jnlp"/>
          <extension name="DIVA" href="diva.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
