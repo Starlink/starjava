@@ -206,6 +206,8 @@ public class Frog extends JFrame
         gramManager.setFrog( this );
         debugManager.setFrog( this );
 
+        // turn debugging off, this is a release version
+        debugManager.setDebugFlag( false );
 
         debugManager.print( "\n" + Utilities.getReleaseName() + " V" +
                                Utilities.getReleaseVersion() );
@@ -645,7 +647,9 @@ public class Frog extends JFrame
         menuBar.add( debugMenu );
         if( debugManager.getDebugFlag() ) {
            debugMenu.setVisible( true );
-        }     
+        } else {
+           debugMenu.setVisible( false );
+        }  
                
         // TimeSeriesManager
         JMenuItem seriesManagerItem = new JMenuItem("Dump TimeSeriesManager");
@@ -949,7 +953,8 @@ public class Frog extends JFrame
               // Create a new frame.
               try {
                  JFrame frame = new JFrame();
-                 frame.setSize(930,860);
+                 //frame.setSize(930,860);
+                 frame.setSize(800,600);
                  frame.setLocation(100,100);
                  frame.getContentPane().add(helpViewer);
                  frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
