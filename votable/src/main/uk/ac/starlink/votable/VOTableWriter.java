@@ -69,9 +69,6 @@ public class VOTableWriter implements StarTableWriter {
 
     /**
      * Writes a StarTable to a given location.
-     * The <tt>location</tt> is interpreted as a filename, unless it
-     * is the string "<tt>-</tt>", in which case it is taken to 
-     * mean <tt>System.out</tt>.
      * <p>
      * Currently, an entire XML VOTable document is written,
      * and the TABLEDATA format (all table cells written inline
