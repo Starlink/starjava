@@ -2550,7 +2550,7 @@ The following ones have special significance within TOPCAT:
 <dt><code>votable.strict</code></dt>
 <dd><p>Set <code>true</code> for strict enforcement of the VOTable standard
     when parsing VOTables.  This prevents the parser from working round
-    certain common errors, such as missing an <code>arraysize</code>
+    certain common errors, such as missing <code>arraysize</code>
     attributes on FIELD/PARAM elements with <code>datatype="char"</code>.
     False by default.
     </p></dd>
@@ -3076,7 +3076,7 @@ introduced since the last version:
 </ul>
 </p></dd>
 
-<dt>Version 1.4 (Jan 2005)</dt>
+<dt>Version 1.4 (3 Feb 2005)</dt>
 <dd><p><dl>
 
     <dt>Load Dialogues</dt>
