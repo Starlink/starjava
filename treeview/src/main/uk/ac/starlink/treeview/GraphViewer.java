@@ -95,7 +95,7 @@ public class GraphViewer extends DivaPlot {
         private NDShape shape;
         private String title;
 
-        public NdxSpecDataImpl( Ndx ndx ) throws IOException {
+        public NdxSpecDataImpl( Ndx ndx ) throws IOException, SplatException {
             super( ndx.hasTitle() ? ndx.getTitle() : null );
             this.ndx = ndx;
             this.ast = Ndxs.getAst( ndx );
