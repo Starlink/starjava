@@ -32,8 +32,9 @@ Research Councils}
 \newcommand{\stardocversion}   {1.0}
 \newcommand{\stardocmanual}    {User's Manual}
 \newcommand{\stardocabstract}  {
-\textsf{FROG} is an extensible analysis and display tool for time series.
-}
+The \textsf{FROG} application is an extensible analysis and display tool for time series, and is part of the next generation Starlink software work and released under the GNU Public License (GPL). 
+
+Written in Java, it has been designed for the Web and Grid Service era as an extensible, pluggable, tool for time series analysis and display. With an integrated SOAP server the packages functionality is exposed to the user for use in their own code, and to be used remotely over the Grid, as part of the Virtual Observatory (VO).}
 % ? End of document identification
 % -----------------------------------------------------------------------------
 
@@ -179,6 +180,8 @@ Research Councils}
 
 % FROG.
 \newcommand{\FROG}{\textsf{FROG}}
+\newcommand{\SPLAT}{\textsf{SPLAT}}
+\newcommand{\PERIOD}{\textsf{PERIOD}}
 
 % Major graphic (like a screen shot). Needs ".gif" and ".eps" forms.
 % \latexhtml{\includegraphics[width=4.5in]{#1.eps}}{\htmladdimg{#1.gif}}
@@ -344,11 +347,11 @@ Research Councils}
 % ? Main text
 
 
+%-----------------------------------------------------------------------
 \section{Overview\xlabel{overview}}
 
-
 \FROG\ is a graphical tool for displaying, comparing, modifying and
-analysing time series stored in FITS and TEXT file
+analysing time series stored in FITS and TEXT file. It has been designed to provise a simple user interface for astronomers wanting to do time domain astrophysics, but still provide the powerful features found in packages like \PERIOD\ .
 
 If you have any problems with or comments to make about \FROG\, then send
 these to:
@@ -358,12 +361,13 @@ these to:
 \end{verbatim}
 \end{quote}
 
+%-----------------------------------------------------------------------
 \section{Getting started\xlabel{getting_started}}
 
-The next two sections describe how to display a time series. If you're new to \FROG\ then do take the time to read these through and try out the example commands.
+The following sections describes how to display, and carry out basic analysis of, a time series. If you're new to \FROG\ then do take the time to read this through and try out the example commands.
 
 \newpage
-\subsection{Displaying a time series}
+\subsection{Displaying a time series\xlabel{display_a_time_series}}
 
 To start \FROG\ you should just need to type the command:
 \begin{quote}
@@ -382,12 +386,9 @@ When \FROG\ appears it should look something like:
 
 This is the main \hitext{browser} window.
 
-To open your first time series select the \menuitem{Open Time Series} item in the
-\menuitem{File} menu. This will create a familiar open file dialog
-window. Just navigate to your spectrum, select it, and press
-\menuitem{Open} to proceed.
+To open your first time series select the \menuitem{Open Time Series} item in the \menuitem{File} menu. This will create an  open file dialog window. Just navigate to your spectrum, select it, and press \menuitem{Open} to proceed.
 
-Alternatively you could have supplied the spectrum you want to use on
+Alternatively you could have supplied the time series you want to use on
 the command-line:
 \begin{quote}
 \begin{verbatim}
@@ -395,10 +396,64 @@ the command-line:
 \end{verbatim}
 \end{quote}
 Which will read the time series stored in the named file. \FROG\ will read
-spectra stored in a FITS or a TEXT files.
+series stored in a FITS or a TEXT files.
+
+\subsection{Basic control of the plot view\xlabel{basic_control}}
+
+\subsection{Meta data\xlabel{meta_data}}
+
+\subsection{Making a periodogram\xlabel{making_a_periodogram}}
+
+\subsection{Folding time series data\xlabel{folding_data}}
+
+\subsection{Fitting folded data\xlabel{fitting_data}}
+
+%-----------------------------------------------------------------------
+\section{Manipulating time series\xlabel{manipulating_time_series}}
+
+\subsection{Combining individual series\xlabel{combing_time_series}}
+
+\subsection{Detrending series\xlabel{detrending_time_series}}
+
+\subsection{Basic arithmetic functions\xlabel{basic_arithmetic}}
+
+%-----------------------------------------------------------------------
+\section{More about periodograms\xlabel{more_periodograms}}
 
 
-\section{Acknowledgments}
+%-----------------------------------------------------------------------
+\section{Fake data\xlabel{fake_data}}
+
+\subsection{Faking it from scratch\xlabel{fake_from_scratch}}
+
+\subsection{Faking it from existing data\xlabel{fake_from_data}}
+
+%-----------------------------------------------------------------------
+\section{Folding and binning data\xlabel{folding_and_binning}}
+
+%-----------------------------------------------------------------------
+\section{Fitting data\xlabel{fitting_data}}
+
+%-----------------------------------------------------------------------
+\section{Annotating your plots\xlabel{annotating your plots}}
+
+\FROG\ shares a common infrastructure for graphics annotation with \SPLAT\
+
+%-----------------------------------------------------------------------
+\section{Web services\xlabel{web_services}}
+
+\subsection{Displaying a time series using web serices\xlabel{display_a_time_series_via_ws}}
+
+\subsection{Creating a Fourier Transform using web serices\xlabel{generating_an_fft_via_ws}}
+
+%-----------------------------------------------------------------------
+\section{Supported data formats\xlabel{supported_formats}}
+
+\FROG\ can read and write time series and periodograms in two formats, a simple ASCII TEXT files or from a FITS file.
+
+
+%-----------------------------------------------------------------------
+\section{Acknowledgments\xlabel{acknowledgements}}
 
 \FROG\ is written in
 \htmladdnormallinkfoot{Java}{http://java.sun.com} by
@@ -412,22 +467,21 @@ contains software from:
 \item The DIVA project
       (\htmladdnormallink{http://www.gigascale.org/diva/}
                          {http://www.gigascale.org/diva/}).
-\item The COLT distribution
-      (\htmladdnormallink{http://http://hoschek.home.cern.ch/hoschek/colt/}
-                         {http://http://hoschek.home.cern.ch/hoschek/colt/}).
+\item The Java Matrix Package (JAMA)
+      (\htmladdnormallink{http://math.nist.gov/javanumerics/jama/}
+                         {http://math.nist.gov/javanumerics/jama/}).
 \end{itemize}
 
-\section{Changes}
+%-----------------------------------------------------------------------
+\section{Changes\xlabel{changes}}
 \subsection{This release, 0.7}
-In this release \FROG\ has become part of the Starlink Java
-Collection and is now released under the GPL. 
-
-The most significant changes are:
+In this release \FROG\ has become part of the Starlink Java Collection and is now released under the GPL. The most significant changes in this release are:
 \begin{itemize}
 
-   \item It sometimes does what it says on the tin.
+   \item The addition of a web service interface.
    
-  
+   \item The addition of a graphics annotation menu.
+    
 \end{itemize}
 
 \end{document}
