@@ -89,6 +89,7 @@
   <property name="debug" value="true"/>
   <property name="deprecation" value="false"/>
   <property name="optimize" value="true"/>
+  <property name="source.version" value="1.4"/>
 
   <!-- Extra task options, if any -->
   <property name="chmod.fail" value="false"/>
@@ -97,6 +98,7 @@
   <property name="junit.fork" value="true"/>
   <property name="junit.filtertrace" value="on"/>
   <property name="junit.summary" value="no"/>
+  <property name="junit.assertions" value="-enableassertions"/>
 
   <!-- Directory containing the package source -->
   <property name="src.dir" value="${basedir}/src"/>
@@ -374,6 +376,7 @@
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
+           source="${source.version}"
            optimize="${optimize}">
 
       <classpath refid="classpath"/>
@@ -383,6 +386,7 @@
       <exclude name="**/.*"/>
       <exclude name="**/{Retired.java}"/>
       <exclude name="**/notyet/*"/>
+      <exclude name="**/notnow/*"/>
       <exclude name="**/*.html"/>
       <exclude name="**/*.properties*"/>
     </javac>
@@ -814,6 +818,7 @@
              windowtitle="${Name} API"
              doctitle="${Name}"
              defaultexcludes="yes"
+             source="${source.version}"
              classpathref="classpath">
 
       <!-- Get a list of directories that name all the potential
@@ -821,6 +826,7 @@
       <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
          <exclude name="**/notyet"/>
+         <exclude name="**/notnow"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
@@ -901,6 +907,7 @@
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
+           source="${source.version}"
            deprecation="${deprecation}" >
 
       <classpath refid="tests-classpath"/>
@@ -927,6 +934,8 @@
            fork="${junit.fork}">
 
       <classpath refid="tests-classpath"/>
+
+      <jvmarg value="${junit.assertions}"/>
 
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
@@ -959,6 +968,7 @@
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <classpath refid="tests-classpath"/>
+      <jvmarg value="${junit.assertions}"/>
       <formatter type="plain" usefile="false"/>
       <test name="${testcase}"/>
 
