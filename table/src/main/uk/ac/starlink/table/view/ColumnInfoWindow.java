@@ -27,6 +27,11 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
 
+/**
+ * A window which displays metadata about each of the columns in a table.
+ *
+ * @author   Mark Taylor (Starlink)
+ */
 public class ColumnInfoWindow extends AuxWindow {
 
     private final TableViewer tv;
@@ -35,6 +40,11 @@ public class ColumnInfoWindow extends AuxWindow {
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
 
+    /**
+     * Constructs a new ColumnInfoWindow from a TableViewer.
+     *
+     * @param  tableviewer  the viewer whose table is to be reflected here
+     */
     public ColumnInfoWindow( TableViewer tableviewer ) {
         super( "Table columns", tableviewer );
         this.tv = tableviewer;
