@@ -103,6 +103,22 @@ public class KernelFactory
      */
     public static double[] hanningKernel( int width )
     {
+        return hanHamKernel( width, 0.5, 0.5 );
+    }
+
+    /**
+     * Create Hamming kernel.
+     */
+    public static double[] hammingKernel( int width )
+    {
+        return hanHamKernel( width, 0.54, 0.46 );
+    }
+    
+    /**
+     * Hamming or Hanning-like filter with given coefficients.
+     */
+    public static double[] hanHamKernel( int width, double a, double b )
+    {
         width = getSetWidth( width );
         double[] kernel = new double[width];
         
@@ -112,8 +128,76 @@ public class KernelFactory
         //  normalize the result to 1.
         double sum = 0.0;
         for ( int j = 0; j <= centre; j++ ) {
-            kernel[j] = 0.5 - 0.5 * Math.cos( Math.PI * 2.0 * (double) j /
-                                              (double) width );
+            kernel[j] = a - b * Math.cos( Math.PI * 2.0 * (double) j /
+                                          (double) width );
+            sum += kernel[j];
+        }
+
+        //  Real sum calculated from symmetry.
+        sum = sum * 2.0 - kernel[centre];
+
+        //  Normalise first half.
+        for ( int j = 0; j <= centre; j++ ) {
+            kernel[j] /= sum;
+        }
+
+        //  Copy first half into symmetric positions.
+        for ( int j = centre + 1, k = centre - 1; j < width; j++, k-- ) {
+            kernel[j] = kernel[k];
+        }
+        return kernel;
+    }
+
+    /**
+     * Create a Welch kernel.
+     */
+    public static double[] welchKernel( int width )
+    {
+        width = getSetWidth( width );
+        double[] kernel = new double[width];
+        
+        int centre = width / 2;
+
+        //  Create the first positions up the centre. Keep sum as we need to
+        //  normalize the result to 1.
+        double sum = 0.0;
+        double part = 0.0;
+        for ( int j = 0; j <= centre; j++ ) {
+            part = ( j - centre ) / centre;
+            kernel[j] = 1.0 - ( part * part );
+            sum += kernel[j];
+        }
+
+        //  Real sum calculated from symmetry.
+        sum = sum * 2.0 - kernel[centre];
+
+        //  Normalise first half.
+        for ( int j = 0; j <= centre; j++ ) {
+            kernel[j] /= sum;
+        }
+
+        //  Copy first half into symmetric positions.
+        for ( int j = centre + 1, k = centre - 1; j < width; j++, k-- ) {
+            kernel[j] = kernel[k];
+        }
+        return kernel;
+    }
+
+    /**
+     * Create a Barlett kernel.
+     */
+    public static double[] bartlettKernel( int width )
+    {
+        width = getSetWidth( width );
+        double[] kernel = new double[width];
+        
+        int centre = width / 2;
+
+        //  Create the first positions up the centre. Keep sum as we need to
+        //  normalize the result to 1.
+        double sum = 0.0;
+        for ( int j = 0; j <= centre; j++ ) {
+            kernel[j] = 2.0 * (double) j / (double) width;
             sum += kernel[j];
         }
 

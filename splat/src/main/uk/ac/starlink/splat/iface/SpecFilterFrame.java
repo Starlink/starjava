@@ -332,6 +332,9 @@ public class SpecFilterFrame
     protected JCheckBox lorentzProfile = null;
     protected JCheckBox voigtProfile = null;
     protected JCheckBox hanningProfile = null;
+    protected JCheckBox hammingProfile = null;
+    protected JCheckBox welchProfile = null;
+    protected JCheckBox bartlettProfile = null;
     protected DecimalField profileWidth = null;
     protected DecimalField gWidth = null;
     protected DecimalField lWidth = null;
@@ -347,31 +350,53 @@ public class SpecFilterFrame
         GridBagLayouter gbl = new GridBagLayouter( panel );
 
         //  Need a profile type and some parameters. Gaussian needs a
-        //  width as does Lorentz. Voigt needs two widths. Hanning needs
-        //  neither.
+        //  width as does Lorentz. Voigt needs two widths. 
+        //  Hanning, Hamming. Welch and Barlett need neither.
 
         JLabel typeLabel = new JLabel( "Type of profile:" );
+
         gaussProfile = new JCheckBox( "Gaussian" );
         gaussProfile.setToolTipText( "Smooth using a Gaussian profile" );
+
         lorentzProfile = new JCheckBox( "Lorentzian" );
         lorentzProfile.setToolTipText( "Smooth using a Lorentzian profile" );
+
         voigtProfile = new JCheckBox( "Voigt" );
         voigtProfile.setToolTipText( "Smooth using a Voigt profile" );
 
         hanningProfile = new JCheckBox( "Hanning" );
         hanningProfile.setToolTipText( "Smooth using a Hanning filter" );
 
+        hammingProfile = new JCheckBox( "Hamming" );
+        hammingProfile.setToolTipText( "Smooth using a Hamming filter" );
+
+        welchProfile = new JCheckBox( "Welch" );
+        welchProfile.setToolTipText( "Smooth using a Welch filter" );
+
+        bartlettProfile = new JCheckBox( "Barlett" );
+        bartlettProfile.setToolTipText( "Smooth using a Barlett filter" );
+
         gbl.add( typeLabel, false );
         gbl.add( gaussProfile, false );
         gbl.add( lorentzProfile, false );
         gbl.add( voigtProfile, true );
-        gbl.add( hanningProfile, true );
+
+        gbl.add( Box.createHorizontalBox(), false );
+        gbl.add( hanningProfile, false );
+        gbl.add( hammingProfile, true );
+
+        gbl.add( Box.createHorizontalBox(), false );
+        gbl.add( welchProfile, false );
+        gbl.add( bartlettProfile, true );
 
         ButtonGroup useGroup = new ButtonGroup();
         useGroup.add( gaussProfile );
         useGroup.add( lorentzProfile );
         useGroup.add( voigtProfile );
         useGroup.add( hanningProfile );
+        useGroup.add( hammingProfile );
+        useGroup.add( welchProfile );
+        useGroup.add( bartlettProfile );
         gaussProfile.setSelected( true );
 
         // Arrange to toggle entry fields.
@@ -396,6 +421,25 @@ public class SpecFilterFrame
                     toggleProfileWidths();
                 }
             });
+
+        hammingProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+
+        welchProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+
+        bartlettProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+
 
         JLabel widthLabel = new JLabel( "Profile evaluation width:   " );
         DecimalFormat decimalFormat = new DecimalFormat();
@@ -611,9 +655,24 @@ public class SpecFilterFrame
                                        lWidth.getDoubleValue(),
                                        ranges, include );
         }
-        return filter.hanningFilter( currentSpectrum,
-                                     profileWidth.getIntValue(),
-                                     ranges, include );
+        if ( hanningProfile.isSelected() ) {
+            return filter.hanningFilter( currentSpectrum,
+                                         profileWidth.getIntValue(),
+                                         ranges, include );
+        }
+        if ( hammingProfile.isSelected() ) {
+            return filter.hammingFilter( currentSpectrum,
+                                         profileWidth.getIntValue(),
+                                         ranges, include );
+        }
+        if ( welchProfile.isSelected() ) {
+            return filter.welchFilter( currentSpectrum,
+                                       profileWidth.getIntValue(),
+                                       ranges, include );
+        }
+        return filter.bartlettFilter( currentSpectrum,
+                                      profileWidth.getIntValue(),
+                                      ranges, include );
     }
 
     /**
@@ -650,7 +709,10 @@ public class SpecFilterFrame
             lWidthLabel.setEnabled( false );
         }
         else {
-            if ( hanningProfile.isSelected() ) {
+            if ( hanningProfile.isSelected() || 
+                 hammingProfile.isSelected() ||
+                 welchProfile.isSelected() || 
+                 bartlettProfile.isSelected() ) {
                 gWidth.setEnabled( false );
                 gWidthLabel.setEnabled( false );
                 lWidth.setEnabled( false );

@@ -167,7 +167,7 @@ public class SpecFilter
     }
 
     /**
-     * Filter a spectrum or parts of a spectrum using a hanning
+     * Filter a spectrum or parts of a spectrum using a Hanning
      * weighted kernel. The new spectrum created is added to the global
      * list and a reference to it is returned (null for failure).
      *
@@ -185,6 +185,69 @@ public class SpecFilter
         EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
         double[] kernel = KernelFactory.hanningKernel( width );
         return kernelFilter( localSpec, kernel, "Hanning" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a Hamming
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width of the filter.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData hammingFilter( SpecData spectrum, int width,
+                                   double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.hammingKernel( width );
+        return kernelFilter( localSpec, kernel, "Hamming" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a Welch
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width of the filter.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData welchFilter( SpecData spectrum, int width,
+                                 double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.welchKernel( width );
+        return kernelFilter( localSpec, kernel, "Welch" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a Bartlett
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width of the filter.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData bartlettFilter( SpecData spectrum, int width,
+                                    double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.bartlettKernel( width );
+        return kernelFilter( localSpec, kernel, "Bartlett" );
     }
 
     /**
