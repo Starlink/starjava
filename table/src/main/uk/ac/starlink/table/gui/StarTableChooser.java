@@ -9,6 +9,8 @@ import java.awt.Frame;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -25,9 +27,11 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
@@ -36,6 +40,7 @@ import javax.swing.border.Border;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
+import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.ErrorDialog;
 import uk.ac.starlink.util.Loader;
@@ -43,9 +48,26 @@ import uk.ac.starlink.util.Loader;
 /**
  * Window which permits the user to select an existing {@link StarTable}
  * from file browsers or other external sources.
- * The most convenient way to use it is via the 
- * {@link #getTable} method which pops up a modal
- * dialogue and return any table selected.
+ * The most straightforward way to use this is to invoke the
+ * {@link #showTableDialog} method.  
+ *
+ * <p>As well as a text field in which the user may type the location of a
+ * table, a number of buttons are offered which pop up additional dialogues,
+ * for instance a normal file browser and a dialogue for posing an 
+ * SQL query.  This list is extensible at run time; if you wish to 
+ * provide an additional table acquisition dialogue, then you must 
+ * provide an implementation of the {@link TableLoadDialog} interface.
+ * This can be made known to the chooser either by subclassing 
+ * {@link #getDialogs} or by specifying the class name as the value
+ * of the system property with the name {@link #LOAD_DIALOGS_PROPERTY}
+ * (multiple classnames may be separated by colons).
+ * In the latter case the implementing class(es) must have a 
+ * no-arg constructor.
+ *
+ * <p>If you want to make more customised use of this component than is
+ * offered by <tt>showTableDialog</tt> it is possible, but these javadocs
+ * don't go out of their way to explain how.  Take a look at the 
+ * implementation of <tt>showTableDialog</tt>.
  * 
  * @author   Mark Taylor (Starlink)
  * @since    26 Nov 2004
@@ -53,14 +75,21 @@ import uk.ac.starlink.util.Loader;
 public class StarTableChooser extends JPanel {
 
     private final JTextField locField_;
+    private final Action locAction_;
+    private final Component[] activeComponents_;
     private StarTableFactory tableFactory_;
     private ComboBoxModel formatModel_;
     private TransferHandler transferHandler_;
-    private JDialog dialog_;
-    private StarTable selectedTable_;
     private Icon queryIcon_;
     private TableLoadDialog[] dialogs_;
+    private TableConsumer tableConsumer_;
 
+    /**
+     * Name of the system property which can be used to specify the class
+     * names of additional {@link TableLoadDialog} implementations.  
+     * Each must have a no-arg constructor.  Multiple classnames should be
+     * separated by colons.
+     */
     public static final String LOAD_DIALOGS_PROPERTY = "startable.load.dialogs";
 
     /**
@@ -68,6 +97,9 @@ public class StarTableChooser extends JPanel {
      */
     public StarTableChooser() {
         this( new StarTableFactory() );
+        SwingAuthenticator auth = new SwingAuthenticator();
+        auth.setParentComponent( this );
+        tableFactory_.getJDBCHandler().setAuthenticator( auth );
     }
 
     /**
@@ -83,6 +115,9 @@ public class StarTableChooser extends JPanel {
         actionBox.setBorder( emptyBorder );
         setLayout( new BorderLayout() );
         add( actionBox, BorderLayout.CENTER );
+
+        /* Prepare a list of components which can be enabled/disabled. */
+        List activeList = new ArrayList();
         
         /* Construct and place format selector. */
         JComponent formatBox = Box.createHorizontalBox();
@@ -91,27 +126,29 @@ public class StarTableChooser extends JPanel {
         JComboBox fcombo = new JComboBox( formatModel_ );
         fcombo.setMaximumSize( fcombo.getPreferredSize() );
         formatBox.add( fcombo );
+        activeList.add( fcombo );
         formatBox.setAlignmentX( LEFT_ALIGNMENT );
         actionBox.add( formatBox );
 
         /* Construct and place location text entry field. */
-        Action locAction = new AbstractAction( "OK" ) {
+        locAction_ = new AbstractAction( "OK" ) {
             public void actionPerformed( ActionEvent evt ) {
                 submitLocation( locField_.getText() );
             }
         };
         JComponent locBox = Box.createHorizontalBox();
         locField_ = new JTextField( 25 );
-        locField_.addActionListener( locAction );
+        locField_.addActionListener( locAction_ );
         locBox.add( new JLabel( "Location: " ) );
         locBox.add( Box.createHorizontalStrut( 5 ) );
         locBox.add( locField_ );
+        activeList.add( locField_ );
         Dimension locSize = locBox.getPreferredSize();
         locSize.width = 1024;
         locBox.setMaximumSize( locSize );
         locBox.setAlignmentX( LEFT_ALIGNMENT );
         locBox.add( Box.createHorizontalStrut( 5 ) );
-        locBox.add( new JButton( locAction ) );
+        locBox.add( new JButton( locAction_ ) );
         actionBox.add( Box.createVerticalStrut( 5 ) );
         actionBox.add( locBox );
         
@@ -120,18 +157,10 @@ public class StarTableChooser extends JPanel {
         int nopt = options.length;
         JButton[] buttons = new JButton[ options.length ];
         for ( int i = 0; i < nopt; i++ ) {
-            final TableLoadDialog tld = options[ i ];
-            Action act = new AbstractAction( tld.getName() ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    StarTable table = 
-                        tld.loadTableDialog( StarTableChooser.this, 
-                                             tableFactory_, formatModel_ );
-                        setSelectedTable( table );
-                }
-            };
-            act.putValue( Action.SHORT_DESCRIPTION, tld.getDescription() );
-            act.setEnabled( tld.isEnabled() );
-            buttons[ i ] = new JButton( act );
+            buttons[ i ] = new JButton( makeAction( options[ i ] ) );
+            if ( buttons[ i ].isEnabled() ) {
+                activeList.add( buttons[ i ] );
+            }
         }
 
         /* Position buttons. */
@@ -152,7 +181,6 @@ public class StarTableChooser extends JPanel {
         JPanel dialogLine = 
             new JPanel( new FlowLayout( FlowLayout.RIGHT, 0, 0 ) );
         dialogLine.add( dialogBox );
-     
         dialogLine.setAlignmentX( LEFT_ALIGNMENT );
         actionBox.add( Box.createVerticalStrut( 10 ) );
         actionBox.add( dialogLine );
@@ -160,6 +188,10 @@ public class StarTableChooser extends JPanel {
         /* Configure drag'n'drop operation. */
         transferHandler_ = new LoadTransferHandler();
         setTransferHandler( transferHandler_ );
+
+        /* Store list of disablable components. */
+        activeComponents_ = (Component[]) 
+                            activeList.toArray( new Component[ 0 ] );
     }
 
     /**
@@ -172,12 +204,65 @@ public class StarTableChooser extends JPanel {
      * @param  parent  the parent component, used for window positioning etc
      * @return  a selected table, or <tt>null</tt>
      */
-    public StarTable getTable( Component parent ) {
-        dialog_ = createDialog( parent );
-        selectedTable_ = null;
-        dialog_.show();
-        dialog_ = null;
-        return selectedTable_;
+    public StarTable showTableDialog( Component parent ) {
+
+        /* Create the dialogue. */
+        final JProgressBar progBar = new JProgressBar();
+        final JDialog dialog = createDialog( parent, progBar );
+
+        /* Create and install a table consumer which can return 
+         * the loaded table. */
+        final StarTable[] result = new StarTable[ 1 ];
+        final BasicTableConsumer tc = new BasicTableConsumer( dialog ) {
+            protected void setLoading( boolean isLoading ) {
+                super.setLoading( isLoading );
+                setEnabled( ! isLoading );
+                progBar.setIndeterminate( isLoading );
+            }
+            protected void tableLoaded( StarTable table ) {
+                assert table != null;
+                result[ 0 ] = table;
+                dialog.dispose();
+            }
+        };
+        setTableConsumer( tc );
+
+        /* Ensure that if the dialogue is closed for any reason (this may
+         * happen as the result of the user hitting the Cancel button)
+         * then the table consumer stops listening. */
+        dialog.addWindowListener( new WindowAdapter() {
+            public void windowClosed( WindowEvent evt ) {
+                tc.cancel();
+            }
+        } );
+
+        /* Pop up the dialogue.  Since it is modal, this will block until
+         * (a) tableLoaded is called on the TableConsumer above because
+         * a successful table load has completed or (b) the dialog is
+         * disposed with a cancel or close action of some kind. */
+        setEnabled( true );
+        dialog.show();
+        return result[ 0 ];
+    }
+
+    /**
+     * Sets the object which does something with tables that the user
+     * selects to load.
+     *
+     * @param   eater  table consumer
+     */
+    public void setTableConsumer( TableConsumer eater ) {
+        tableConsumer_ = eater;
+    }
+
+    /**
+     * Returns the object which does something with tables that the user
+     * selects to load.
+     *
+     * @return  table consumer
+     */
+    public TableConsumer getTableConsumer() {
+        return tableConsumer_;
     }
 
     /**
@@ -209,26 +294,24 @@ public class StarTableChooser extends JPanel {
         return (String) formatModel_.getSelectedItem();
     }
 
-    /**
-     * This method is invoked by the various table selection components
-     * when the user has successfully selected a table. 
-     *
-     * @param  table  table selected by the user
-     */
-    private void setSelectedTable( StarTable table ) {
-        selectedTable_ = table;
-        if ( dialog_ != null ) {
-            dialog_.dispose();
+    public void setEnabled( boolean isEnabled ) {
+        if ( isEnabled != isEnabled() ) {
+            for ( int i = 0; i < activeComponents_.length; i++ ) {
+                activeComponents_[ i ].setEnabled( isEnabled );
+            }
+            locAction_.setEnabled( isEnabled );
         }
+        super.setEnabled( isEnabled );
     }
 
     /**
      * Constructs a modal dialogue containing this window which can
-     * be presented to the user.  This method is called by {@link #getTable}.
+     * be presented to the user.
      *
      * @param   parent   parent window
+     * @param   progBar  progress bar used to indicate load progress
      */
-    public JDialog createDialog( Component parent ) {
+    public JDialog createDialog( Component parent, JProgressBar progBar ) {
 
         /* Locate parent's frame. */
         Frame frame = null;
@@ -242,7 +325,10 @@ public class StarTableChooser extends JPanel {
         /* Create a new dialogue. */
         final JDialog dialog = new JDialog( frame, "Load Table", true );
         dialog.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
-        Container pane = dialog.getContentPane();
+        Container pane = new JPanel( new BorderLayout() );
+        dialog.getContentPane().setLayout( new BorderLayout() );
+        dialog.getContentPane().add( pane, BorderLayout.CENTER );
+        dialog.getContentPane().add( progBar, BorderLayout.SOUTH );
 
         /* Place this component. */
         pane.setLayout( new BorderLayout() );
@@ -298,6 +384,28 @@ public class StarTableChooser extends JPanel {
     }
 
     /**
+     * Constructs and returns a new action suitable for invoking a
+     * TableLoadDialog within this chooser.  This is called when constructing
+     * the buttons for display.
+     *
+     * @param  tld   loader dialogue supplier
+     * @return   action which calls the <tt>showLoadDialog</tt> method of
+     *           <tt>tld</tt>
+     */
+    public Action makeAction( final TableLoadDialog tld ) {
+        Action act = new AbstractAction( tld.getName() ) {
+            public void actionPerformed( ActionEvent evt ) {
+                boolean status =
+                    tld.showLoadDialog( StarTableChooser.this, tableFactory_,
+                                        formatModel_, getTableConsumer() );
+            }
+        };
+        act.putValue( Action.SHORT_DESCRIPTION, tld.getDescription() );
+        act.setEnabled( tld.isEnabled() );
+        return act;   
+    }
+
+    /**
      * Returns a transfer handler which will accept a table dropped on it
      * as a selected one.  This handler is installed by default on this
      * window.
@@ -309,70 +417,44 @@ public class StarTableChooser extends JPanel {
     }
 
     /**
+     * Returns the file chooser widget used by this chooser.
+     * This could possibly be null if you've mucked around with the default
+     * list of <tt>TableLoadDialog</tt>s (subclassed {@link #getDialogs}).
+     *
+     * @return  file chooser
+     */
+    public JFileChooser getFileChooser() {
+        TableLoadDialog[] dialogs = getDialogs();
+        for ( int i = 0; i < dialogs.length; i++ ) {
+            if ( dialogs[ i ] instanceof FileChooserLoader ) {
+                return (JFileChooser) dialogs[ i ];
+            }
+        }
+        return null;
+    }
+
+    /**
      * Attempts to make and select a table from a location string.
      *
      * @param  location
      */
-    private void submitLocation( String location ) {
-        StarTable table =
-            attemptMakeTable( this, tableFactory_, getFormatName(), location );
-        if ( table != null ) {
-            setSelectedTable( table );
-        }
+    public void submitLocation( final String location ) {
+        final StarTableFactory factory = tableFactory_;
+        final String format = getFormatName();
+        new LoadWorker( getTableConsumer(), location ) {
+            public StarTable attemptLoad() throws IOException {
+                return factory.makeStarTable( location, format );
+            }
+        }.invoke();
     }
 
     /**
-     * Convenience method which attempts to construct a table from 
-     * a location string.  In the event of an error, the user will be
-     * politely informed.
+     * Returns the action used when the location text is submitted.
      *
-     * @param  parent  parent component
-     * @param  factory  table factory
-     * @param  format   name of table format
-     * @param  location   location of table
+     * @return  action
      */
-    public static StarTable attemptMakeTable( Component parent,
-                                              StarTableFactory factory,
-                                              String format,
-                                              String location ) {
-        try {
-            return factory.makeStarTable( location, format );
-        }
-        catch ( IOException e ) {
-            String[] msg = new String[] { "Failed to load table \"" 
-                                          + location + "\"",
-                                          e.getMessage() };
-            JOptionPane.showMessageDialog( parent, msg, "Table Load Error",
-                                           JOptionPane.ERROR_MESSAGE );
-            return null;
-        }
-    }
-
-    /**
-     * Convenience method which attempts to construct a table from 
-     * a <tt>DataSource</tt>.  In the event of an error, the user will be
-     * politely informed.
-     *
-     * @param  parent  parent component
-     * @param  factory  table factory
-     * @param  format   name of table format
-     * @param  datsrc   location of table
-     */
-    public static StarTable attemptMakeTable( Component parent,
-                                              StarTableFactory factory,
-                                              String format,
-                                              DataSource datsrc ) {
-        try {
-            return factory.makeStarTable( datsrc, format );
-        }
-        catch ( IOException e ) {
-            String[] msg = new String[] { "Failed to load table \"" 
-                                          + datsrc.getName() + "\"",
-                                          e.getMessage() };
-            JOptionPane.showMessageDialog( parent, msg, "Table Load Error",
-                                           JOptionPane.ERROR_MESSAGE );
-            return null;
-        }
+    public Action getSubmitAction() {
+        return locAction_;
     }
 
     /**
@@ -395,8 +477,7 @@ public class StarTableChooser extends JPanel {
     }
 
     /**
-     * Lazily construct an icon by getting it from JOptionPane (there's
-     * probably a better way?)
+     * Return an icon used to indicate a query dialogue.
      *
      * @return icon
      */
@@ -418,41 +499,29 @@ public class StarTableChooser extends JPanel {
              return tableFactory_.canImport( flavors );
          }
 
-         public boolean importData( JComponent comp, Transferable trans ) {
+         public boolean importData( JComponent comp, 
+                                    final Transferable trans ) {
+             final StarTableFactory factory = tableFactory_;
+             TableConsumer eater = getTableConsumer();
 
-             /* Try to obtain a StarTable from the Transferable. */
-             StarTable table;
-             Component parent = StarTableChooser.this;
+             /* The table has to be loaded in line here, i.e. on the event
+              * dispatch thread, since otherwise the weird IPC magic
+              * which provides the inputstream from the Transferable
+              * will go away.  This is unfortunate, since it might be
+              * slow, but I don't *think* there's any alternative. */
+             eater.loadStarted( "Dropped Table" );
              try {
-                 table = tableFactory_.makeStarTable( trans );
-                 if ( table == null ) {
-                     return false;
-                 }
+                 eater.loadSucceeded( factory.makeStarTable( trans ) );
+                 return true;
              }
-             catch ( IOException e ) {
-                 ErrorDialog.showError( e, "Error trying to accept " +
-                                        "dropped table", parent );
+             catch ( Throwable th ) {
+                 eater.loadFailed( th );
                  return false;
              }
-             catch ( OutOfMemoryError e ) {
-                 ErrorDialog.showError( e, "Out of memory trying to accept " +
-                                        "dropped table", parent );
-                 return false;
-             }
-
-             /* Perform any required pre-processing. */
-             if ( table == null ) {
-                 return false;
-             }
-
-             /* Do whatever needs doing with the successfully created
-              * StarTable. */
-             setSelectedTable( table );
-             return true;
         }
 
-         public int getSourceActions( JComponent comp ) {
-             return NONE;
-         }
+        public int getSourceActions( JComponent comp ) {
+            return NONE;
+        }
     }
 }

@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.swing.ComboBoxModel;
@@ -12,8 +13,11 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
- * A popup dialog which interrogates the user about an SQL query on 
+ * A table load dialogue which interrogates the user about an SQL query on 
  * a JDBC database.
+ *
+ * @author   Mark Taylor (Starlink)
+ * @since    1 Dec 2004
  */
 public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
 
@@ -36,40 +40,27 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
         return DriverManager.getDrivers().hasMoreElements();
     }
 
-    public StarTable loadTableDialog( Component parent,
-                                      StarTableFactory factory,
-                                      ComboBoxModel formatModel ) {
-        return readTableDialog( parent );
-    }
-
-    /**
-     * Pops up a modal dialog box and asks the user to open a JDBC
-     * connection resulting in a StarTable.  If there is an error the
-     * user is shown the error message and is given another chance.
-     *
-     * @param   parent  the parent component - used for window positioning
-     * @return  a StarTable as specified by the user's inputs, or
-     *          <tt>null</tt> if the user cancels the dialog
-     */
-    public StarTable readTableDialog( Component parent ) {
+    public boolean showLoadDialog( Component parent, 
+                                   final StarTableFactory factory,
+                                   ComboBoxModel formatModel,
+                                   TableConsumer eater ) {
         JDialog dialog = createDialog( parent, "Open JDBC table" );
         while ( true ) {
             dialog.show();
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
-                try {
-                    StarTable tab = 
-                        new JDBCStarTable( getConnector(), getRef() );
-                    dialog.dispose();
-                    return tab;
-                }
-                catch ( Exception e ) {
-                    ErrorDialog.showError( e, "Can't read table", dialog );
-                }
+                String qtext = getRef();
+                final String url = getFullURL();
+                new LoadWorker( eater, qtext ) {
+                    public StarTable attemptLoad() throws IOException {
+                        return factory.makeStarTable( url );
+                    }
+                }.invoke();
+                return true;
             }
             else {
                 dialog.dispose();
-                return null;
+                return false;
             }
         }
     }

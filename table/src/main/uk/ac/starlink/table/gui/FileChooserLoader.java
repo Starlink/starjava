@@ -15,12 +15,21 @@ import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
+/**
+ * Load dialog based on a normal file chooser component.
+ * 
+ * @author   Mark Taylor
+ * @since    1 Dec 2004
+ */
 public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
 
     private boolean isEnabled_;
     private final JComboBox formatSelector_;
     private final ComboBoxModel dummyModel_;
 
+    /**
+     * Constructor.
+     */
     public FileChooserLoader() {
 
         /* See if we have permissions to operate. */
@@ -70,23 +79,25 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
         return isEnabled_;
     }
 
-    public StarTable loadTableDialog( Component parent,
-                                      StarTableFactory factory,
-                                      ComboBoxModel formatModel ) {
+    public boolean showLoadDialog( Component parent, 
+                                   final StarTableFactory factory,
+                                   ComboBoxModel formatModel,
+                                   TableConsumer eater ) {
         formatSelector_.setModel( formatModel );
         formatSelector_.setMaximumSize( formatSelector_.getPreferredSize() );
-        StarTable table = null;
         while ( showOpenDialog( parent ) == APPROVE_OPTION ) {
             File file = getSelectedFile();
             if ( file != null ) {
                 try {
-                    DataSource datsrc = new FileDataSource( file );
-                    String format = (String) formatModel.getSelectedItem();
-                    table = StarTableChooser
-                           .attemptMakeTable( parent, factory, format, datsrc );
-                    if ( table != null ) {
-                        return table;
-                    }
+                    final DataSource datsrc = new FileDataSource( file );
+                    final String format = (String) 
+                                          formatModel.getSelectedItem();
+                    new LoadWorker( eater, file.toString() ) {
+                        protected StarTable attemptLoad() throws IOException {
+                            return factory.makeStarTable( datsrc, format );
+                        }
+                    }.invoke();
+                    return true;
                 }
                 catch ( IOException e ) {
                     Object msg = new String[] { 
@@ -97,6 +108,6 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
                 }
             }
         }
-        return table;
+        return false;
     }
 }
