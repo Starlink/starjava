@@ -151,7 +151,17 @@ public class XMLNdxHandler implements NdxHandler {
          * Check to see if it's an Hdx in fact.  If so, extract the
          * single Ndx child from it, carefully verifying that this is
          * in fact the case.  Throw an IOException otherwise.
+         *
+         * It is essential that we call BridgeNdx.getHdxResourceType()
+         * _before_ embarking on this chain of tests, on the
+         * off-chance that this is the first time that the BridgeNdx
+         * class has been used.  That class's initialiser is what
+         * creates and registers the Ndx type, and thus an expression like
+         *     HdxResourceType.match( <ndx> ) == BridgeNdx.getHdxResourceType()
+         * can return _false_ if the .match is invoked before
+         * BridgeNdx has the chance to register the Ndx type.
          */
+        HdxResourceType ndxType = BridgeNdx.getHdxResourceType();
         if ( HdxResourceType.match( hdxel ) == HdxResourceType.HDX ) {
             Element kid = null;
             for ( Node n = hdxel.getFirstChild();
@@ -167,8 +177,7 @@ public class XMLNdxHandler implements NdxHandler {
                     }
                     continue;
                 }
-                if ( HdxResourceType.match( (Element)n )
-                     == BridgeNdx.getHdxResourceType() ) {
+                if ( HdxResourceType.match( (Element)n ) == ndxType ) {
                     if ( kid != null )
                         // Ooops, we've already found an Ndx child
                         throw new IOException(
@@ -181,15 +190,16 @@ public class XMLNdxHandler implements NdxHandler {
                 throw new IOException
                         ( "Can't make Ndx from HDX with no Ndx children" );
             ndxel = kid;
-        } else if ( HdxResourceType.match( hdxel )
-                    == BridgeNdx.getHdxResourceType() ) {
-            // That's fine -- this should have been an <hdx>, but be nice and recover
+        } else if ( HdxResourceType.match( hdxel ) == ndxType ) {
+            /* 
+             * That's fine -- this should have been an <hdx>, but be
+             * nice and recover
+             */
             ndxel = hdxel;
         } else {
             throw new IOException
                     ( "XML element of type <" + hdxel.getTagName()
-                      + "> not <"
-                      + BridgeNdx.getHdxResourceType().xmlName() + ">" );
+                      + "> not <" + ndxType.xmlName() + ">" );
         }
         assert ndxel != null;
         
