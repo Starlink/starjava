@@ -1,0 +1,84 @@
+<html>
+<title>Axis Ant Tasks</title>
+<link href="../axis.css" rel=stylesheet type=text/css>
+<body>
+<h1>Axis Ant Tasks</h1>
+Axis comes with Ant tasks to automate aspects of the
+build process inside ant. To use these tasks, you need
+
+<ol>
+<li>
+    <A href="http://jakarta.apache.org/ant">Apache Ant 1.5.1 or later</A>
+</li>
+<li>
+    The library <tt>axis-ant.jar</tt> which contains the tasks
+</li>
+<li>
+    All the main Axis libraries
+</li>
+</ol>
+ <h3>Declaring the Tasks</h3>
+ 
+
+To declare the tasks, set up a classpath to include the axis task JAR and 
+all the dependent libraries. Including everything in the axis lib directory
+should suffice  
+<p>
+
+<pre>&lt;path id=&quot;axis.classpath&quot;&gt;
+  &lt;fileset dir="${axis.home}/build/lib"&gt;
+    &lt;include name="**/*.jar" /&gt;
+  &lt;/fileset&gt;
+&lt;/path&gt;
+</pre>
+
+Then use the <tt>&lt;taskdef&gt;</tt> declaration to declare all the tasks listed
+in a properties file inside the  <tt>axis-ant.jar</tt> file: 
+<p>
+<pre>&lt;taskdef resource=&quot;axis-tasks.properties&quot;
+  classpathref=&quot;axis.classpath&quot; /&gt;
+</pre>
+
+<h3>Creating Java files from WSDL</h3>
+
+This uses the <a href="axis-wsdl2java.html">&lt;axis-wsdl2java&gt;</a> task. 
+<p>  
+<pre>&lt;axis-wsdl2java
+  output=&quot;${generated.dir}&quot;
+  testcase=&quot;true&quot;
+  verbose=&quot;true&quot;
+  url=&quot;${local.wsdl}&quot; &gt;
+    &lt;mapping
+      namespace=&quot;http://axis.apache.org/ns/interop&quot;
+      package=&quot;interop&quot; /&gt;
+  &lt;/axis-wsdl2java&gt;
+</pre> 
+
+The mapping elements are used to list the mappings from XML namespaces to 
+Java packages; you can include as many as you need. 
+ 
+<h3>Creating WSDL files from Java</h3>
+
+This uses the <a href="axis-java2wsdl.html">&lt;axis-java2wsdl&gt;</a> task. 
+
+ 
+<h3>Talking to the admin service</h3>
+ 
+This can be done with the 
+<a href="axis-admin.html">&lt;axis-admin&gt;</a> task. 
+
+<p> 
+<pre>&lt;axis-admin
+    port="${target.port}"
+    hostname="${target.server}"
+    failonerror="true"
+    servletpath="${target.appname}/services/AdminService"
+    debug="true"
+    xmlfile="${endpoint-stub.wsdd}"
+    /&gt;
+</pre>
+ Here the target.* properties are pulled from a properties file for the 
+ system being deployed to, so a single build file can deploy to different
+ systems with ease.     
+</body>
+</html>
