@@ -5,7 +5,7 @@ package nom.tam.fits;
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
- * 
+ *
  * Many thanks to David Glowacki (U. Wisconsin) for substantial
  * improvements, enhancements and bug fixes.
  */
@@ -25,17 +25,17 @@ public class Header implements FitsElement {
       * HeaderCard's.
       */
     private HashedList  cards = new HashedList();
-    
+
     /** This iterator allows one to run through the list.
       */
     private Cursor iter = cards.iterator(0);
-    
+
     /** Offset of this Header in the FITS file */
     private long fileOffset = -1;
-    
+
     /** Number of cards in header last time it was read */
     private int oldSize;
-    
+
     /** Input descriptor last time header was read */
     private ArrayDataInput input;
 
@@ -51,7 +51,7 @@ public class Header implements FitsElement {
     {
 	read(is);
     }
-    
+
     /** Create a header and initialize it with a vector of strings.
       * @param cards Card images to be placed in the header.
       */
@@ -64,10 +64,10 @@ public class Header implements FitsElement {
 	  } else {
 	      cards.add(card.getKey(), card);
 	  }
-	  
+
       }
     }
-    
+
     /** Create a header which points to the
       * given data object.
       * @param o  The data object to be described.
@@ -76,22 +76,22 @@ public class Header implements FitsElement {
     public Header(Data o) throws FitsException {
 	o.fillHeader(this);
     }
-    
+
     /** Create the data element corresponding to the current header */
     public Data makeData() throws FitsException {
 	return FitsFactory.dataFactory(this);
     }
-    
+
     /** Find the number of cards in the header */
     public int getNumberOfCards() {
         return cards.size();
     }
-    
+
     /** Get an iterator over the header cards */
     public Cursor iterator() {
 	return cards.iterator(0);
     }
-    
+
     /** Get the offset of this header */
     public long getFileOffset() {
 	return fileOffset;
@@ -99,11 +99,11 @@ public class Header implements FitsElement {
 
     /** Calculate the unpadded size of the data segment from
       * the header information.
-      * 
+      *
       * @return the unpadded data segment size.
       */
     int trueDataSize() {
-	
+
 	if (!isValidHeader()) {
           return 0;
 	}
@@ -111,24 +111,24 @@ public class Header implements FitsElement {
 
 	int naxis  = getIntValue("NAXIS", 0);
 	int bitpix = getIntValue("BITPIX");
-	
+
 	int[] axes = new int[naxis];
 
 	for (int axis = 1; axis <= naxis; axis += 1) {
 	    axes[axis-1] = getIntValue("NAXIS"+axis, 0);
 	}
-	
+
 	boolean isGroup = getBooleanValue("GROUPS", false);
-	
+
 	int pcount = getIntValue("PCOUNT", 0);
 	int gcount = getIntValue("GCOUNT", 1);
-	
+
 	int startAxis = 0;
-	
+
 	if (isGroup && naxis > 1 && axes[0] == 0) {
 	    startAxis = 1;
 	}
-	    
+
 	int size = 1;
         for (int i=startAxis; i<naxis; i += 1) {
 	    size *= axes[i];
@@ -136,14 +136,14 @@ public class Header implements FitsElement {
 
 	size += pcount;
 	size *= gcount;
-	
+
 	// Now multiply by the number of bits per pixel and
 	// convert to bytes.
 	size *= Math.abs(getIntValue("BITPIX", 0)) / 8;
 
         return size;
     }
-    
+
     /** Return the size of the data including any needed padding.
       * @return the data segment size including any needed padding.
       */
@@ -155,12 +155,12 @@ public class Header implements FitsElement {
     public long getSize() {
 	return headerSize();
     }
-    
+
     /** Return the size of the header data including padding.
       * @return the header size including any needed padding.
       */
     int headerSize() {
-	
+
        if (!isValidHeader()) {
            return 0;
        }
@@ -174,12 +174,12 @@ public class Header implements FitsElement {
       *		<CODE>false</CODE> otherwise.
       */
     boolean isValidHeader() {
-	
+
 	if (getNumberOfCards() < 4) {
 	    return false;
 	}
 	iter = iterator();
-	
+
 	String key = ((HeaderCard)iter.next()).getKey();
 	if (!key.equals("SIMPLE") && !key.equals("XTENSION")) {
 	    return false;
@@ -199,9 +199,9 @@ public class Header implements FitsElement {
 	    return false;
 	}
 	return true;
-	
+
     }
-    
+
      /** Find the card associated with a given key.
       * If found this sets the mark to the card, otherwise it
       * unsets the mark.
@@ -280,7 +280,7 @@ public class Header implements FitsElement {
     public float getFloatValue(String key) {
         return (float) getDoubleValue(key);
     }
-    
+
     /** Get the <CODE>double</CODE> value associated with the given key.
       * @param key The header key.
       * @return The associated value or 0.0 if not found.
@@ -421,20 +421,20 @@ public class Header implements FitsElement {
 	} else {
 	    fileOffset = -1;
 	}
-	
+
 	byte[] buffer = new byte[80];
 
 	boolean firstCard = true;
 	int count = 0;
-	
+
 	while (true) {
 
 	    int len;
-	    
+
             int need=80;
-	    
+
             try {
-		
+
                 while (need > 0) {
                     len = dis.read(buffer, 80-need, need);
 		    count += 1;
@@ -444,23 +444,26 @@ public class Header implements FitsElement {
                     need -= len;
                 }
 	    } catch (EOFException e) {
-		 
+
                 // Rethrow the EOF if we are at the beginning of the header,
                 // otherwise we have a FITS error.
-		// 
-	        if (firstCard && need == 80) {
+                //
+                // PWD: the file may be too large by a small amount, say less
+                // than 80 bytes. If this is the case we treat it like an EOF?
+		//
+	        if (firstCard && need <= 80) {
 		    throw e;
 	        }
 	        throw new TruncatedFileException(e.getMessage());
 	    }
-	    
+
 	    String cbuf = new String(buffer);
 	    HeaderCard fcard = new HeaderCard(cbuf);
-	    
+
 	    if (firstCard) {
-		
+
 	        String key = fcard.getKey();
-		
+
 	        if (key == null || (!key.equals("SIMPLE") && !key.equals("XTENSION")))
 	        {
 		    throw new IOException("Not FITS format at "+fileOffset+":"+cbuf);
@@ -481,21 +484,21 @@ public class Header implements FitsElement {
 		break;  // Out of reading the header.
 	    }
 	}
-	
+
 	if (fileOffset >= 0) {
 	    oldSize = cards.size();
 	    input = dis;
 	}
 
         // Read to the end of the current FITS block.
-	// 
+	//
 	try {
 	    dis.skipBytes(FitsUtil.padding(count*80));
 	} catch (IOException e) {
 	    throw new TruncatedFileException(e.getMessage());
 	}
     }
-    
+
     /** Find the card associated with a given key.
       * @param key The header key.
       * @return <CODE>null</CODE> if the keyword could not be found;
@@ -529,7 +532,7 @@ public class Header implements FitsElement {
 	if (!cards.replaceKey(oldKey, newKey)) {
 	    throw new HeaderCardException("Duplicate key in replace");
 	}
-	
+
 	oldCard.setKey(newKey);
 
         return true;
@@ -541,7 +544,7 @@ public class Header implements FitsElement {
       * @exception FitsException if the header could not be written.
       */
     public void write (ArrayDataOutput dos) throws FitsException {
-	
+
 	fileOffset = FitsUtil.findOffset(dos);
 
 	checkBeginning();
@@ -549,14 +552,14 @@ public class Header implements FitsElement {
         if (cards.size() <= 0) {
             return;
         }
-	
-      
+
+
         Cursor iter = cards.iterator(0);
 
         try {
             while (iter.hasNext()) {
 		HeaderCard card  = (HeaderCard) iter.next();
-			
+
 		byte[] b = card.toString().getBytes();
 	        dos.write( b );
             }
@@ -575,12 +578,12 @@ public class Header implements FitsElement {
 	}
 
     }
-    
+
     /** Rewrite the header. */
     public void rewrite() throws FitsException, IOException {
-	
+
 	ArrayDataOutput dos = (ArrayDataOutput) input;
-	
+
 	if (rewriteable()) {
 	    FitsUtil.reposition(dos, fileOffset);
 	    write(dos);
@@ -589,10 +592,10 @@ public class Header implements FitsElement {
 	    throw new FitsException("Invalid attempt to rewrite Header.");
 	}
     }
-    
+
     /** Can the header be rewritten without rewriting the entire file? */
     public boolean rewriteable() {
-	
+
 	if (fileOffset >= 0  &&
 	    input instanceof ArrayDataOutput &&
 	    (cards.size() + 35)/36  == (oldSize+35)/36) {
@@ -601,7 +604,7 @@ public class Header implements FitsElement {
 	    return false;
 	}
     }
-	
+
     /** Add or replace a key with the given boolean value and comment.
       * @param key     The header key.
       * @param val     The boolean value.
@@ -615,7 +618,7 @@ public class Header implements FitsElement {
 	removeCard(key);
 	iter.add(key, new HeaderCard(key, val, comment));
     }
-    
+
     /** Add or replace a key with the given double value and comment.
       * Note that float values will be promoted to doubles.
       * @param key     The header key.
@@ -697,7 +700,7 @@ public class Header implements FitsElement {
     {
 	// Should just truncate strings, so we should never get
 	// an exception...
-      
+
 	try {
             iter.add(new HeaderCard(header, null, value));
 	} catch (HeaderCardException e) {
@@ -752,12 +755,12 @@ public class Header implements FitsElement {
 	return cards.containsKey(key);
     }
 
-	
+
 
     /** Create a header for a null image.
       */
     void nullImage() {
-	
+
 	iter = iterator();
 	try {
 	    addValue("SIMPLE", true, "Null Image Header");
@@ -767,7 +770,7 @@ public class Header implements FitsElement {
         } catch (HeaderCardException e){
 	}
     }
-    
+
 
     /** Set the SIMPLE keyword to the given value.
       * @param val The boolean value -- Should be true for FITS data.
@@ -777,8 +780,8 @@ public class Header implements FitsElement {
         deleteKey("XTENSION");
 	iter = iterator();
 	try {
-	     iter.add("SIMPLE", 
-		      new HeaderCard("SIMPLE", val, 
+	     iter.add("SIMPLE",
+		      new HeaderCard("SIMPLE", val,
 				     "Java FITS: " + new Date()));
 	} catch (HeaderCardException e) {
 	    System.err.println("Impossible exception at setSimple "+e);
@@ -793,8 +796,8 @@ public class Header implements FitsElement {
         deleteKey("XTENSION");
 	iter = iterator();
 	try {
-	     iter.add("XTENSION", 
-		      new HeaderCard("XTENSION", val, 
+	     iter.add("XTENSION",
+		      new HeaderCard("XTENSION", val,
 				     "Java FITS: " + new Date()));
 	} catch (HeaderCardException e) {
 	    System.err.println("Impossible exception at setXtension "+e);
@@ -831,20 +834,20 @@ public class Header implements FitsElement {
 	if (iter.hasNext()) {
 	    iter.next();
 	}
-	
+
 	try {
 	    iter.add("NAXIS", new HeaderCard("NAXIS", val, "Dimensionality"));
 	} catch (HeaderCardException e) {
 	    System.err.println("Impossible exception at setNaxes "+e);
         }
     }
-    
+
     /** Set the dimension for a given axis.
       * @param axis The axis being set.
       * @param dim  The dimension
       */
     public void setNaxis(int axis, int dim) {
-	
+
 	if (axis <= 0) {
 	    return;
 	}
@@ -857,9 +860,9 @@ public class Header implements FitsElement {
 	    iter.next();
 	}
 	try {
-	    iter.add("NAXIS"+axis, 
+	    iter.add("NAXIS"+axis,
 		     new HeaderCard("NAXIS"+axis, dim, null));
-	    
+
 	} catch (HeaderCardException e) {
 	    System.err.println("Impossible exception at setNaxis "+e);
 	}
@@ -870,9 +873,9 @@ public class Header implements FitsElement {
      *  do not check the values of these keywords.
      */
     void checkBeginning() throws FitsException {
-	
+
 	iter = iterator();
-	
+
 	if (!iter.hasNext()) {
 	    throw new FitsException("Empty Header");
 	}
@@ -888,25 +891,25 @@ public class Header implements FitsElement {
 	    if (value == null) {
 	        throw new FitsException("Empty XTENSION keyword");
 	    }
-	    
+
 	    isExtension = true;
-	    
+
 	    if (value.equals("BINTABLE") || value.equals("A3DTABLE") ||
 		value.equals("TABLE")) {
 		isTable = true;
 	    }
 	}
-	
+
 	cardCheck("BITPIX");
 	cardCheck("NAXIS");
-	
+
 	int nax = getIntValue("NAXIS");
 	iter.next();
-	
+
 	for (int i=1; i <= nax; i += 1) {
 	    cardCheck("NAXIS"+i);
 	}
-	
+
 	if (isExtension) {
 	    cardCheck("PCOUNT");
 	    cardCheck("GCOUNT");
@@ -915,13 +918,13 @@ public class Header implements FitsElement {
 	    }
 	}
     }
-		
-	
+
+
     /** Check if the given key is the next one available in
      *  the header.
      */
     private void cardCheck(String key) throws FitsException {
-	
+
 	if (!iter.hasNext()) {
 	    throw new FitsException("Header terminates before "+key);
 	}
@@ -931,9 +934,9 @@ public class Header implements FitsElement {
 				    "Found "+card.getKey());
 	}
     }
-		     
-    
-    
+
+
+
     /** Ensure that the header has exactly one END keyword in
       * the appropriate location.
       */
@@ -941,10 +944,10 @@ public class Header implements FitsElement {
 
 	// Ensure we have an END card only at the end of the
 	// header.
-	// 
+	//
 	iter = iterator();
 	HeaderCard card;
-	
+
 	while (iter.hasNext()) {
 	    card = (HeaderCard) iter.next();
 	    if (!card.isKeyValuePair() && card.getKey().equals("END")) {
@@ -966,9 +969,9 @@ public class Header implements FitsElement {
             ps.println((HashedList)iter.next());
         }
     }
-    
+
     /***** Deprecated methods *******/
-    
+
     /** Find the number of cards in the header
      * @deprecated see numberOfCards().  The units
      * of the size of the header may be unclear.
@@ -976,7 +979,7 @@ public class Header implements FitsElement {
     public int size () {
 	return cards.size();
     }
-    
+
     /** Get the n'th card image in the header
       * @return the card image; return <CODE>null</CODE> if the n'th card
       *		does not exist.
@@ -1025,7 +1028,7 @@ public class Header implements FitsElement {
     public void pointToData(Data o) throws FitsException {
 	o.fillHeader(this);
     }
-    
+
     /** Find the end of a set of keywords describing a column or axis
      *  (or anything else terminated by an index.  This routine leaves
      *  the header ready to add keywords after any existing keywords
@@ -1034,14 +1037,14 @@ public class Header implements FitsElement {
      */
     Cursor positionAfterIndex(String prefix, int col) {
 	String colnum = ""+col;
-	
+
 	iter.setKey(prefix+colnum);
-	
+
 	if (iter.hasNext()) {
-	
+
 	    String key;
 	    while (iter.hasNext()) {
-	    
+
 	        key = ((HeaderCard) iter.next()).getKey().trim();
 	        if (  key == null ||
 		      key.length() <= colnum.length() ||
@@ -1055,5 +1058,5 @@ public class Header implements FitsElement {
 	    }
 	}
 	return iter;
-    }	    
+    }
 }
