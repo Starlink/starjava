@@ -39,6 +39,14 @@ abstract class Offsets {
     public abstract long getLength();
 
     /**
+     * Indicates whether this offsets implementation is fixed (cheap)
+     * or variable (expensive).
+     *
+     * @return  <tt>true</tt> iff all rows have the same structure
+     */
+    public abstract boolean isFixed();
+
+    /**
      * Returns an Offsets object based on a given array of ColumnWidth
      * descriptions.
      *
@@ -89,6 +97,10 @@ abstract class Offsets {
         public long getLength() {
             return leng_;
         }
+
+        public boolean isFixed() {
+            return true;
+        }
     }
 
     /**
@@ -131,6 +143,10 @@ abstract class Offsets {
 
         public long getLength() {
             return leng_;
+        }
+
+        public boolean isFixed() {
+            return false;
         }
     }
 }

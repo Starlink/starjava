@@ -152,6 +152,8 @@ public class DiskRowStore implements RowStore {
         }
         colSizeLists_ = null;
         offsets_ = Offsets.getOffsets( colWidths, nrow_ );
+        logger_.info( "Offset type is " + ( offsets_.isFixed() ? "fixed" 
+                                                               : "variable" ) );
 
         /* Create a new StarTable instance based on the data we've cached. */
         long fileSize = offsets_.getLength();
