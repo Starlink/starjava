@@ -234,6 +234,8 @@ public class SpecDataFactory
     public SpecData get( String specspec )
         throws SplatException
     {
+        // NOTE: This method may be used by TOPCAT classes.
+
         SpecDataImpl impl = null;
 
         // Look for plain format.

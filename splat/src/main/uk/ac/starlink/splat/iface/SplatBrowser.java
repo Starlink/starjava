@@ -1860,6 +1860,10 @@ public class SplatBrowser
      */
     public PlotControlFrame displaySpectrum( String spectrum )
     {
+        // NOTE: At time of writing, TOPCAT uses this method to obtain 
+        // a PlotControlFrame under control of the SplatBrowser
+        // (but the value of the spectrum argument is unimportant).
+
         if ( addSpectrum( spectrum ) ) {
             SpecData specData =
 		globalList.getSpectrum( globalList.specCount() - 1 );

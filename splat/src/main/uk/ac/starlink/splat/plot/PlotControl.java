@@ -485,6 +485,8 @@ public class PlotControl
      */
     public DivaPlot getPlot()
     {
+        // NOTE: This method may be used by TOPCAT classes.
+
         return plot;
     }
 
@@ -1112,6 +1114,10 @@ public class PlotControl
     public void setSpecDataComp( SpecDataComp spectra )
         throws SplatException
     {
+        // NOTE: This method may be used by TOPCAT classes.
+        // At time of writing, TOPCAT calls this method, followed by 
+        // updateThePlot(null), to change the data conten of the plot.
+
         this.spectra = spectra;
         plot.setSpecDataComp( spectra );
 
@@ -1273,6 +1279,10 @@ public class PlotControl
     public void updateThePlot( SpecData referenceSpec )
         throws SplatException
     {
+        // NOTE: This method may be used by TOPCAT classes.
+        // At time of writing, TOPCAT calls this method, following 
+        // setSpecDataComp, to change the data in the plot window.
+
         if ( referenceSpec != null ) {
             try {
                 DataLimits dataLimits = plot.getDataLimits();
