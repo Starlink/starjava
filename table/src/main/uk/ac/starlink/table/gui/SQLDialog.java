@@ -145,4 +145,7 @@ public class SQLDialog extends JOptionPane {
         return getBaseURL() + ( ( ref != null ) ? ( "#" + ref ) : "" );
     }
 
+    public boolean isAvailable() {
+        return DriverManager.getDrivers().hasMoreElements();
+    }
 }

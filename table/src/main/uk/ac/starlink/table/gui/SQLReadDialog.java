@@ -36,10 +36,6 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
         return "Get table as result of an SQL query on a relational database";
     }
 
-    public boolean isAvailable() {
-        return DriverManager.getDrivers().hasMoreElements();
-    }
-
     public boolean showLoadDialog( Component parent, 
                                    final StarTableFactory factory,
                                    ComboBoxModel formatModel,
