@@ -164,7 +164,11 @@ public class TreeviewUtil {
         }
 
         /* Get the parent of this node. */
-        DataNode parent = node.getCreator().getParent();
+        CreationState creator = node.getCreator();
+        if ( creator == null ) {
+            return null;
+        }
+        DataNode parent = creator.getParent();
 
         /* Get the separator from the parent. */
         String prefix;

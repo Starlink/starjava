@@ -164,7 +164,12 @@ public abstract class FITSDataNode extends DefaultDataNode {
                         long datsize = getDataSize( hdr );
                         long hdusize = headsize + datsize;
                         for ( long nskip = datsize; nskip > 0; ) {
-                             nskip -= istrm.skip( nskip );
+                             int skipped = (int) istrm.skip( nskip );
+                             nskip -= skipped;
+                             if ( skipped == 0 ) {
+                                 istrm.readByte();
+                                 nskip--;
+                             }
                         }
                         ArrayDataMaker hdudata = 
                             getArrayData( hduStart, hdusize );
