@@ -5,8 +5,8 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
+import gnu.jel.Parser;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import uk.ac.starlink.table.ColumnData;
@@ -89,12 +89,20 @@ public class SyntheticColumn extends ColumnData {
 
         /* Compile the expression. */
         String exprsub = expression.replace( '#', '£' );
-        compEx = Evaluator.compile( exprsub, getLibrary(), resultType );
+        Library lib = JELUtils.getLibrary( rowReader );
+        compEx = Evaluator.compile( exprsub, lib, resultType );
+
+        /* Work out the type of the compiled expression. */
+        Class actualType =
+            new Parser( exprsub, lib ).parse( resultType ).resType;
+        if ( actualType.isPrimitive() ) {
+            actualType = wrapPrimitiveClass( actualType );
+        }
 
         /* Configure the column metadata correctly for this expression. */
         ColumnInfo colinfo = getColumnInfo();
         colinfo.setAuxDatum( new DescribedValue( EXPR_INFO, expression ) );
-        colinfo.setContentClass( getReturnClass( compEx ) );
+        colinfo.setContentClass( actualType );
     }
 
     public Object readValue( long lrow ) throws IOException {
@@ -114,45 +122,35 @@ public class SyntheticColumn extends ColumnData {
     }
 
     /**
-     * Returns a JEL Library suitable for expression evaluation on this
-     * column's table.
+     * Turns a primitive class into the corresponding wrapper class.
      *
-     * @return   a library
+     * @param   prim  primitive class
+     * @return  the corresponding non-primitive wrapper class
      */
-    private Library getLibrary() {
-        Class[] staticLib = new Class[] { Math.class, Integer.class, 
-                                          Float.class, Double.class };
-        Class[] dynamicLib = new Class[] { JELRowReader.class };
-        Class[] dotClasses = new Class[] { String.class, Date.class };
-        DVMap resolver = rowReader;
-        Hashtable cnmap = null;
-        return new Library( staticLib, dynamicLib, dotClasses,
-                            resolver, cnmap );
-    }
-
-    /**
-     * Gives the class of results rendered by executing the given 
-     * compiled expression.
-     *
-     * @param  compex  the compiled expression
-     * @return  the class of values got from <tt>compex.evaluate</tt> 
-     *          invocations
-     * @see   gnu.jel.CompiledExpression#getType
-     */
-    private static Class getReturnClass( CompiledExpression compex ) {
-        switch ( compex.getType() ) {
-            case 0:  return Boolean.class;
-            case 1:  return Byte.class;
-            case 2:  return Character.class;
-            case 3:  return Short.class;
-            case 4:  return Integer.class;
-            case 5:  return Long.class;
-            case 6:  return Float.class;
-            case 7:  return Double.class;
-            case 8:  return Object.class;
-            case 9:  return null;
+    private static Class wrapPrimitiveClass( Class prim ) {
+        if ( prim == boolean.class ) {
+            return Boolean.class;
         }
-        throw new AssertionError( 
-            "Unknown gnu.jel.CompiledExpression.getType() return" );
+        else if ( prim == char.class ) {
+            return Character.class;
+        }
+        else if ( prim == byte.class ) {
+            return Byte.class;
+        }
+        else if ( prim == short.class ) {
+            return Short.class;
+        }
+        else if ( prim == int.class ) {
+            return Integer.class;
+        }
+        else if ( prim == float.class ) {
+            return Float.class;
+        }
+        else if ( prim == double.class ) {
+            return Double.class;
+        }
+        else {
+            throw new IllegalArgumentException( prim + " is not primitive" ); 
+        }
     }
 }

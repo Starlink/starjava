@@ -18,14 +18,14 @@
     <tocitem target="Read" text="Loading tables" image="LOAD">
       <tocitem target="FITSRead" text="FITS"/>
       <tocitem target="VOTableRead" text="VOTable"/>
-      <tocitem target="JDBCRead" text="JDBC"/>
+      <tocitem target="JDBCRead" text="SQL"/>
       <tocitem target="WDCRead" text="WDC"/>
     </tocitem>
 
     <tocitem target="Write" text="Saving tables" image="SAVE">
       <tocitem target="FITSWrite" text="FITS"/>
       <tocitem target="VOTableWrite" text="VOTable"/>
-      <tocitem target="JDBCWrite" text="JDBC"/>
+      <tocitem target="JDBCWrite" text="SQL"/>
       <tocitem target="TextWrite" text="Text"/>
       <tocitem target="LatexWrite" text="LaTeX"/>
       <tocitem target="MirageWrite" text="Mirage"/>

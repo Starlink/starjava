@@ -5,7 +5,6 @@ import gnu.jel.CompiledExpression;
 import gnu.jel.DVMap;
 import gnu.jel.Evaluator;
 import gnu.jel.Library;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 import uk.ac.starlink.table.StarTable;
@@ -61,7 +60,8 @@ public class SyntheticRowSubset implements RowSubset {
 
         /* Compile the expression. */
         String exprsub = expression.replace( '#', '£' );
-        compEx = Evaluator.compile( exprsub, getLibrary(), boolean.class );
+        Library lib = JELUtils.getLibrary( rowReader );
+        compEx = Evaluator.compile( exprsub, lib, boolean.class );
     }
 
     public String getName() {
@@ -86,23 +86,6 @@ public class SyntheticRowSubset implements RowSubset {
                 return false;
             }
         }
-    }
-
-    /**
-     * Returns a JEL Library suitable for expression evaluation on this
-     * column's table.
-     *
-     * @return   a library
-     */
-    private Library getLibrary() {
-        Class[] staticLib = new Class[] { Math.class, Integer.class, 
-                                          Float.class, Double.class };
-        Class[] dynamicLib = new Class[] { JELRowReader.class };
-        Class[] dotClasses = new Class[] { String.class, Date.class };
-        DVMap resolver = rowReader;
-        Hashtable cnmap = null;
-        return new Library( staticLib, dynamicLib, dotClasses,
-                            resolver, cnmap );
     }
 
     public String toString() {

@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import gnu.jel.CompilationException;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,6 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.util.ErrorDialog;
@@ -33,7 +33,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
     private final OptionsListModel subsets;
     private final Map subsetCounts;
     private final PlasticStarTable dataModel;
-    private final AbstractTableModel subsetsTableModel;
+    private final MetaColumnTableModel subsetsTableModel;
     private JTable jtab;
     private JProgressBar progBar;
     private SubsetCounter activeCounter;
@@ -73,6 +73,13 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         tcm.getColumn( icol++ ).setPreferredWidth( 80 );
         tcm.getColumn( icol++ ).setPreferredWidth( 200 );
         tcm.getColumn( icol++ ).setPreferredWidth( 80 );
+
+        /* Customise the JTable's column model to provide control over
+         * which columns are displayed. */
+        MetaColumnModel metaColumnModel =
+            new MetaColumnModel( jtab.getColumnModel(), subsetsTableModel );
+        metaColumnModel.purgeEmptyColumns();
+        jtab.setColumnModel( metaColumnModel );
 
         /* Place the table into a scrollpane in this frame. */
         getMainArea().add( new SizingScrollPane( jtab ) );
@@ -136,12 +143,18 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         getToolBar().add( countAction );
         getToolBar().addSeparator();
 
-        /* Menu. */
+        /* Subsets menu. */
         JMenu subsetsMenu = new JMenu( "Subsets" );
+        subsetsMenu.setMnemonic( KeyEvent.VK_S );
         subsetsMenu.add( addAction ).setIcon( null );
         subsetsMenu.add( tocolAction ).setIcon( null );
         subsetsMenu.add( countAction ).setIcon( null );
         getJMenuBar().add( subsetsMenu );
+
+        /* Display menu. */
+        JMenu displayMenu = metaColumnModel.makeCheckBoxMenu( "Display" );
+        displayMenu.setMnemonic( KeyEvent.VK_D );
+        getJMenuBar().add( displayMenu );
 
         /* Add standard help actions. */
         addHelp( "SubsetWindow" );
@@ -157,7 +170,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
      *
      * @return  a table model with subset details
      */
-    public AbstractTableModel makeTableModel() {
+    public MetaColumnTableModel makeTableModel() {
 
         /* ID column. */
         MetaColumn idCol = new MetaColumn( "#ID", String.class ) {
@@ -217,7 +230,7 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
                 if ( rset instanceof BooleanColumnRowSubset ) {
                     ColumnInfo cinfo = ((BooleanColumnRowSubset) rset)
                                       .getColumnInfo();
-                    return tv.getColumnID( cinfo );
+                    return " " + tv.getColumnID( cinfo );
                 }
                 else {
                     return null;

@@ -167,7 +167,7 @@ public class AuxWindow extends JFrame {
                 Object[] message = new Object[] {
                     "TOPCAT",
                     "Tool for OPerations on Catalogues And Tables",
-                    "Version 0.3b",
+                    "Version 0.4-1b",
                     "Copyright " + '\u00a9' + 
                     " Central Laboratory of the Research Councils",
                     "Authors: Mark Taylor (Starlink)",

@@ -12,14 +12,16 @@ of the table's columns.  The calculated values are displayed in a
 <a href="windows.html#jtable">JTable</a> widget with a row for each 
 column in the main table, and a column for each of a number of
 statistical quantities calculated on <a href="#subsets">some or all</a> of 
-the values in the data table column corresponding to that grid row:
+the values in the data table column corresponding to that grid row.
+The following columns are shown by default: 
 
 <dl>
 <dt>Name
 <dd>The name of the column in the main table represented by this grid row.
 
 <dt>Mean
-<dd>The mean value of the good cells.
+<dd>The mean value of the good cells.  For boolean columns, this is
+    the proportion of good cells which are True.
 
 <dt>S.D.
 <dd>The standard deviation of the good cells.
@@ -35,11 +37,47 @@ the values in the data table column corresponding to that grid row:
 
 <dt>Good cells
 <dd>The number of non-blank cells.
+</dl>
+
+<p>Several additional items of statistical information are also calculated,
+but the columns displaying these are hidden by default.
+You can reveal these by using the <kbd>Display</kbd> menu:
+
+<dl>
+
+<dt>Index
+<dd>The index of the column in the main table, i.e. the order in which 
+    it appears in the main browser window.
+
+<dt>$ID
+<dd>The unique identifier label for the column in the main table.
+
+<dt>Sum
+<dd>The sum of all the values in the column.  For boolean columns this
+    is a count of the number of True values in the column.
+
+<dt>Variance
+<dd>The variance of the good cells.
+
+<dt>Row of min.
+<dd>The index of the row in the main table at which the minimum value
+    occurred.
+
+<dt>Row of max.
+<dd>The index of the row in the main table at which the maximum value
+    occurred.
 
 <dt>Bad cells
 <dd>The number of blank cells; the sum of
     this value and the Good cells value will be the same for each
     column.
+
+<dt>Cardinality
+<dd>If the column contains a small number of distinct values
+    then that number, the column's <dfn>cardinality</dfn> will be shown here.
+    If the number of values represented is large (currently &gt;50) or
+    a large proportion of the non-bad values (currently &gt;75%) then
+    no value is shown.
 
 </dl>
 

@@ -633,7 +633,11 @@ public class TableViewer extends AuxWindow
     public StarTable getApparentStarTable() {
         int ncol = columnModel.getColumnCount();
         final int nrow = viewModel.getRowCount();
-        ColumnStarTable appTable = ColumnStarTable.makeTableWithRows( nrow );
+        ColumnStarTable appTable = new ColumnStarTable( dataModel ) {
+            public long getRowCount() {
+                return (long) nrow;
+            }
+        };
         for ( int icol = 0; icol < ncol; icol++ ) {
             final int modelIndex = columnModel.getColumn( icol )
                                               .getModelIndex();

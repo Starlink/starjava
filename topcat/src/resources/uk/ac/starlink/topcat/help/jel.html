@@ -75,6 +75,48 @@ in conjunction with the ternary "<tt>?&nbsp;:</tt>" operator or
 when combining existing subsets using logical operators to create
 a new subset.
 
+<h4>Null values</h4>
+
+<p>Without taking any special steps, if a null value (blank cell) 
+is encountered
+in evaluating an expression (usually because one of the columns
+it relies on has a null value in the row in question) then the
+result of the expression is also null.
+
+<p>It is possible to exercise more control than this, but it
+requires a little bit of care,
+because the expressions work in terms of primitive values
+(numeric or boolean ones) which don't in general have a defined null
+value.  The name "null" in expressions gives you the java <tt>null</tt>
+reference, but this cannot be matched against a primitive value
+or used as the return value of a primitive expression.
+
+<p>For most purposes, the following two tips should enable you to 
+work with null values:
+
+<dl>
+<dt>Testing for null:
+<dd>To test whether a column contains a null value, prepend the 
+    string "NULL_" (use upper case) to the column name or $ID.  This 
+    will yield a boolean value which is true if the column contains
+    a blank or a floating point NaN (not-a-number) value, 
+    and false otherwise.
+
+<dt>Returning null:
+<dd>To return a null value from a numeric expression, use the name "NULL" 
+    (upper case).  To return a null value from a non-primitive expression
+    (e.g. a String column) use the name "null" (lower case).
+</dl>
+
+Null values are often used in conjunction with the ternary conditional 
+operator, "?:"; the expression
+<pre>
+   test ? tval : fval
+</pre>
+returns the value <tt>tval</tt> if the boolean expression <tt>test</tt>
+evaluates true, or <tt>fval</tt> if <tt>test</tt> evaluates false.
+See the examples below.
+
 
 <h4>Operators</h4>
 
@@ -153,6 +195,17 @@ for instance:
 <dd><pre>
     min( 1000, max( value, 0 ) )
     </pre>
+
+<dt>Converting a magic value to null
+<dd><pre>
+    jmag == 99.9 ? NULL : jmag
+    </pre>
+
+<dt>Converting a null value to a magic one
+<dd><pre>
+    NULL_jmag ? 99.9 : jmag
+    </pre>
+</dl>
 </dl>
 
 and here are some examples of boolean expressions that could be used
@@ -167,12 +220,17 @@ to define Row Subsets (or to create boolean synthetic columns):
 <dd><pre>
     CONSTELLATION.equalsIgnoreCase( "cygnus" )
     </pre>
-</dl>
 
 <dt>Combining subsets
 <dd><pre>
     ( #1 && #2 ) && ! #3
     </pre>
+
+<dt>Test for non-blank value
+<dd><pre>
+    ! NULL_ellipticity
+    </pre>
+</dl>
 
 </body>
 </html>

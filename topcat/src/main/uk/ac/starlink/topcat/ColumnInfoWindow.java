@@ -1,5 +1,6 @@
 package uk.ac.starlink.topcat;
 
+import gnu.jel.CompilationException;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -11,6 +12,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -27,6 +29,8 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.TableRowHeader;
+import uk.ac.starlink.util.ErrorDialog;
 
 /**
  * A window which displays metadata about each of the columns in a table.
@@ -38,6 +42,7 @@ public class ColumnInfoWindow extends AuxWindow {
     private final TableViewer tv;
     private final PlasticStarTable dataModel;
     private final TableColumnModel columnModel;
+    private final ViewerTableModel viewModel;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
     private AbstractTableModel metaTableModel;
@@ -52,6 +57,7 @@ public class ColumnInfoWindow extends AuxWindow {
         this.tv = tableviewer;
         this.dataModel = tv.getDataModel();
         this.columnModel = tv.getColumnModel();
+        this.viewModel = tv.getViewModel();
  
         /* Make a dummy column to hold index values. */
         indexColumnInfo = dummyIndexColumn();
@@ -60,13 +66,6 @@ public class ColumnInfoWindow extends AuxWindow {
          * the columns in the JTable this component will display.
          * Each column represents an item of metadata in the data table. */
         List metas = new ArrayList();
-
-        /* Add index column. */
-        metas.add( new MetaColumn( "Index", Long.class ) {
-            public Object getValue( int irow ) {
-                return new Long( irow );
-            }
-        } );
 
         /* Add name column. */
         metas.add( new MetaColumn( "Name", String.class ) {
@@ -92,7 +91,8 @@ public class ColumnInfoWindow extends AuxWindow {
         } );
 
         /* Add $ID column. */
-        metas.add( makeMetaColumn( PlasticStarTable.COLID_INFO ) );
+        metas.add( new ValueInfoMetaColumn( PlasticStarTable.COLID_INFO,
+                                            false ) );
 
         /* Add class column. */
         metas.add( new MetaColumn( "Class", String.class ) {
@@ -124,7 +124,33 @@ public class ColumnInfoWindow extends AuxWindow {
         } );
 
         /* Add expression column. */
-        metas.add( makeMetaColumn( SyntheticColumn.EXPR_INFO ) );
+        metas.add( new ValueInfoMetaColumn( SyntheticColumn.EXPR_INFO ) {
+            private SyntheticColumn getSyntheticColumn( int irow ) {
+                ColumnData coldata = 
+                    dataModel.getColumnData( getModelIndexFromRow( irow ) );
+                return coldata instanceof SyntheticColumn 
+                     ? (SyntheticColumn) coldata
+                     : null;
+            }
+            public boolean isEditable( int irow ) {
+                return getSyntheticColumn( irow ) != null;
+            }
+            public void setValue( int irow, Object value ) {
+                try { 
+                    getSyntheticColumn( irow )
+                   .setExpression( (String) value, null );
+                    super.setValue( irow, value );
+
+                    /* This is a blunt instrument, but no event is defined to
+                     * describe all the data in a single column changing. */
+                    viewModel.fireTableDataChanged();
+                }
+                catch ( CompilationException e ) {
+                    ErrorDialog.showError( e, "Bad expression", 
+                                           ColumnInfoWindow.this );
+                }
+            }
+        } );
            
         /* Add description column. */
         metas.add( new MetaColumn( "Description", String.class ) {
@@ -176,7 +202,7 @@ public class ColumnInfoWindow extends AuxWindow {
         
         /* Add all the remaining aux columns. */
         for ( Iterator it = auxInfos.iterator(); it.hasNext(); ) {
-            metas.add( makeMetaColumn( (ValueInfo) it.next() ) );
+            metas.add( new ValueInfoMetaColumn( (ValueInfo) it.next(), true ) );
         }
 
         /* Make a table model from the metadata columns.  This model has
@@ -197,14 +223,25 @@ public class ColumnInfoWindow extends AuxWindow {
         jtab.setRowSelectionAllowed( true );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
 
-        /* Arrange for the columns to be displayed in a compact way. */
+        /* Customise the JTable's column model to provide control over
+         * which columns are displayed. */
         MetaColumnModel metaColumnModel = 
             new MetaColumnModel( jtab.getColumnModel(), metaTableModel );
+        metaColumnModel.purgeEmptyColumns();
         jtab.setColumnModel( metaColumnModel );
 
         /* Place the table into a scrollpane in this frame. */
-        getMainArea().add( new SizingScrollPane( jtab ) );
-        setMainHeading( "Column metadata" );
+        JScrollPane scroller = new SizingScrollPane( jtab );
+        getMainArea().add( scroller );
+        setMainHeading( "Column Metadata" );
+
+        /* Set up a row header. */
+        JTable rowHead = new TableRowHeader( jtab ) {
+            public int rowNumber( int irow ) {
+                return irow;
+            }
+        };
+        scroller.setRowHeaderView( rowHead );
 
         /* Ensure that subsequent changes to the main column model are 
          * reflected in this window.  This listener implemenatation is 
@@ -295,28 +332,6 @@ public class ColumnInfoWindow extends AuxWindow {
         setVisible( true );
     }
 
-    /**
-     * Makes a MetaColumn out of a ValueInfo object.
-     */
-    private MetaColumn makeMetaColumn( ValueInfo vinfo ) {
-        final String vname = vinfo.getName();
-        final Class vclass = vinfo.getContentClass();
-        return new MetaColumn( vname, vclass ) {
-            public Object getValue( int irow ) {
-                DescribedValue auxDatum = getColumnInfo( irow )
-                                         .getAuxDatumByName( vname );
-                if ( auxDatum != null ) {
-                    Object value = auxDatum.getValue();
-                    if ( value != null && 
-                         vclass.isAssignableFrom( value.getClass() ) ) {
-                        return value;
-                    }
-                }
-                return null;
-            }
-        };
-    }
-
     private int getModelIndexFromRow( int irow ) {
         assert irow != 0;
         return getColumnFromRow( irow ).getModelIndex();
@@ -349,6 +364,71 @@ public class ColumnInfoWindow extends AuxWindow {
         return cinfo;
     }
 
+
+    /**
+     * Class which adapts a ValueInfo into a MetaColumn.
+     */
+    private class ValueInfoMetaColumn extends MetaColumn {
+
+        private ValueInfo vinfo;
+        private String vname;
+        private Class vclass;
+        private boolean isEditable;
+
+        ValueInfoMetaColumn( ValueInfo vinfo, boolean isEditable ) {
+            super( vinfo.getName(), vinfo.getContentClass() );
+            this.vinfo = vinfo;
+            this.vname = vinfo.getName();
+            this.vclass = vinfo.getContentClass();
+            this.isEditable = isEditable;
+        }
+
+        ValueInfoMetaColumn( ValueInfo vinfo ) {
+            this( vinfo, false );
+        }
+
+        private DescribedValue getAuxDatum( int irow ) {
+            return getColumnInfo( irow ).getAuxDatumByName( vname );
+        }
+
+        public Object getValue( int irow ) {
+            DescribedValue auxDatum = getAuxDatum( irow );
+            if ( auxDatum != null ) {
+                Object value = auxDatum.getValue();
+                if ( value != null && 
+                     vclass.isAssignableFrom( value.getClass() ) ) {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        public boolean isEditable( int irow ) {
+            return isEditable;
+        }
+
+        public void setValue( int irow, Object value ) {
+            DescribedValue auxDatum = getAuxDatum( irow );
+            if ( auxDatum == null ) {
+                auxDatum = new DescribedValue( vinfo );
+                getColumnInfo( irow ).getAuxData().add( auxDatum );
+            }
+            if ( value instanceof String ) {
+                auxDatum.setValue( vinfo.unformatString( (String) value ) );
+            }
+            else if ( value == null ) {
+                auxDatum.setValue( null );
+            }
+            else {
+                // ??
+            }
+        }
+    }
+
+
+    /**
+     * Class for an action which sorts on a column.
+     */
     private class SortAction extends AbstractAction {
         private boolean ascending;
 

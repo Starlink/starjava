@@ -31,6 +31,7 @@ public class PlasticStarTable extends ColumnStarTable {
      * @param  baseTable  the table to initialise this one from
      */
     public PlasticStarTable( final StarTable baseTable ) {
+        super( baseTable );
         this.baseTable = baseTable;
 
         /* Ensure that we have a random access table to use. */
@@ -43,10 +44,6 @@ public class PlasticStarTable extends ColumnStarTable {
             throw new IllegalArgumentException(
                 "Random table has negative number of rows " + nrow );
         }
-
-        /* Copy metadata. */
-        setName( baseTable.getName() );
-        setParameters( baseTable.getParameters() );
 
         /* Set up ColumnData objects for each of the columns in the
          * given StarTable. */
@@ -73,7 +70,6 @@ public class PlasticStarTable extends ColumnStarTable {
         super.addColumn( coldata );
     }
 
-    
     public void setColumn( int icol, ColumnData coldata ) {
         String colid = "$" + ( icol + 1 );
         coldata.getColumnInfo()

@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -16,6 +17,7 @@ import javax.help.HelpSet;
 import javax.help.HelpSetException;
 import javax.help.InvalidHelpSetContextException;
 import javax.help.JHelp;
+import javax.help.JHelpTOCNavigator;
 import javax.help.event.HelpModelEvent;
 import javax.help.event.HelpModelListener;
 import javax.swing.Box;
@@ -75,6 +77,9 @@ public class HelpWindow extends AuxWindow {
             jhelp = new JHelp( hset );
             jhelp.setPreferredSize( new Dimension( 700, 500 ) );
             helpComponent = jhelp;
+
+            /* Fiddle around with presentation. */
+            openTOC( jhelp );
 
             /* Add a listener which can inform about the location of
              * external URLs. */
@@ -227,6 +232,27 @@ public class HelpWindow extends AuxWindow {
         boolean isActive = url != null;
         urlHead.setEnabled( isActive );
         urlInfo.setText( isActive ? url.toString() : null );
+    }
+
+    private static void openTOC( JHelp jhelp ) {
+        JHelpTOCNavigator tocnav = null;
+        for ( Enumeration en = jhelp.getHelpNavigators();
+              en.hasMoreElements(); ) {
+            Object nav = en.nextElement();
+            if ( nav instanceof JHelpTOCNavigator ) {
+                tocnav = (JHelpTOCNavigator) nav;
+                break;
+            }
+        }
+        if ( tocnav == null ) {
+            return;  // oh well
+        }
+        HelpSet hs = jhelp.getModel().getHelpSet();
+        for ( Enumeration en = hs.getCombinedMap().getAllIDs();
+              en.hasMoreElements(); ) {
+            String id = ((javax.help.Map.ID) en.nextElement()).id;
+            tocnav.expandID( id );
+        }
     }
     
 }

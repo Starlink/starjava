@@ -16,9 +16,47 @@ import uk.ac.starlink.table.StarTable;
  * which uses this reader.
  * <p>
  * This class currently deals with columns of all the primitive types, 
- * objects of type <tt>String<tt>, and arrays of any of these.  
+ * objects of type {@link java.lang.String} or {@link java.util.Date},
+ * and arrays of any of these.  
  * Anything else is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
  * It could be extended to deal with more if necessary.
+ * <p>
+ * Expressions of the following types are understood:
+ * <dl>
+ * <dt>"null":
+ * <dd>the <tt>null</tt> value (this is not provided as part of the JEL 
+ *     engine).
+ *
+ * <dt>"$0" or "Index" (case insensitive):
+ * <dd>the 1-based index of the current row
+ *
+ * <dt>Column $ID identifiers:
+ * <dd>The letter '$' followed by the 1-based index of the column refers
+ *     to the contents of that column in the current row (as a primitive,
+ *     if applicaable).
+ * 
+ * <dt>Column names:
+ * <dd>The name of a column (case-insensitive) refers to the contents of
+ *     that column in the current row (as a primitive, if applicable) - 
+ *     this can only work if the column name is a legal java identifier.
+ * 
+ * <dt>Row Subset £ID identifiers:
+ * <dd>The letter '£' followed by the 1-based index of a defined row subset
+ *     returns true iff the current column is part of the subset.
+ *     Clients of this class are recommended to translate the '£'
+ *     currency symbol to '#' for presentation to users, as a more
+ *     familiar symbol.
+ *
+ * <dt>Row Subset names:
+ * <dd>The name of a subset (case-insensitive) returns true iff the current
+ *     column is part of the named subset.
+ *
+ * <dt>Column null-queries:
+ * <dd>The string {@link #NULL_QUERY_PREFIX} followed by a column name or 
+ *     $ID identifier (see above) returns a boolean value which is 
+ *     <tt>true</tt> iff the value in that column at the current row
+ *     is the <tt>null</tt> value.
+ * </dl>
  * 
  * @author   Mark Taylor (Starlink)
  */
@@ -28,8 +66,16 @@ public class JELRowReader extends DVMap {
     private StarTable stable;
     private List subsets;
 
+    /**
+     * The string which, when prefixed to a column ideentifier, indicates
+     * that the null-ness of the column should be queried.
+     */
+    public static final String NULL_QUERY_PREFIX = "NULL_";
+
     /* Special value identifiers. */
-    private static final byte INDEX_ID = 1;
+    private static final byte INDEX_ID = (byte) 1;
+    private static final byte NULL_VALUE_ID = (byte) 2;
+    
 
     /**
      * Constructs a new row reader for a given StarTable. 
@@ -72,12 +118,20 @@ public class JELRowReader extends DVMap {
     public String getTypeName( String name ) {
 
         /* See if it's a known special, and treat it specially if so. */
-        int ispecial = getSpecialId( name );
+        byte ispecial = getSpecialId( name );
         if ( ispecial >= 0 ) {
             switch ( ispecial ) {
                 case INDEX_ID: return "Long";
+                case NULL_VALUE_ID: return "Object";
                 default:       throw new AssertionError( "Unknown special" );
             }
+        }
+
+        /* See if it's a null indicator, and return a Boolean value type
+         * if so. */
+        int inul = getNullColumnIndex( name );
+        if ( inul >= 0 ) {
+            return "Boolean";
         }
 
         /* See if it's a known column, and get the return value type by
@@ -155,7 +209,7 @@ public class JELRowReader extends DVMap {
 
         /* See if it's a known subset, in which case it will have a 
          * boolean return type. */
-        int isub = getSubsetIndex( name );
+        short isub = getSubsetIndex( name );
         if ( isub >= 0 ) {
             return "Boolean";
         }
@@ -171,9 +225,10 @@ public class JELRowReader extends DVMap {
      * <ul>
      * <li>an <tt>Integer</tt> object (the column index) if 
      *     <tt>name</tt> appears to reference a known column 
+     * <li>a <tt>Long</tt> object if it is a null query on a known column
      * <li>a <tt>Short</tt> object (the subset index) if it appears 
      *     to reference a known row subset
-     * <li>a <tt>byte</tt> object for one of the defined "special" values
+     * <li>a <tt>Byte</tt> object for one of the defined "special" values
      * <li><tt>null</tt> otherwise
      * </ul>
      * The different integral types are only used to separate the namespaces,
@@ -184,16 +239,22 @@ public class JELRowReader extends DVMap {
      * evaluation time, so it doesn't need to be particularly fast.
      *
      * @param  name  the name of the variable-like object to evaluate
-     * @return  an Integer corresponding to column number, or a Short 
-     *          corresponding to subset number, or null
+     * @return  a numeric object corresponding to an object which we
+     *          know how to evaluate
      * @see    "JEL manual"
      */
     public Object translate( String name ) {
 
         /* See if it corresponds to a special value. */
-        int ispecial = getSpecialId( name );
+        byte ispecial = getSpecialId( name );
         if ( ispecial >= 0 ) {
-            return new Byte( (byte) ispecial );
+            return new Byte( ispecial );
+        }
+
+        /* See if it corresponds to a null indicator. */
+        int inul = getNullColumnIndex( name );
+        if ( inul > 0 ) {
+            return new Long( inul );
         }
 
         /* See if it corresponds to a column. */
@@ -203,14 +264,41 @@ public class JELRowReader extends DVMap {
         }
 
         /* See if it corresponds to a defined subset. */
-        int isub = getSubsetIndex( name ); 
+        short isub = getSubsetIndex( name ); 
         if ( isub >= 0 ) {
-            return new Short( (short) isub );
+            return new Short( isub );
         }
 
         /* It is an error if the column name doesn't exist, since the
          * variable substitution isn't going to come from anywhere else. */
         return null;
+   }
+
+   /**
+    * Returns the column index in the table model which corresponds to
+    * the column name as a null query.  If <tt>name</tt> has the form
+    * "{@link #NULL_QUERY_PREFIX}<i>column-name</i>" where 
+    * <i>column-name</i> is as 
+    * recognised by the {@link #getColumnIndex} method, then the return
+    * value will be the index of the column corresponding to 
+    * <i>column-name</i>.
+    * Otherwise (if it doesn't start with the NULL_QUERY_PREFIX string or 
+    * the <tt>name</tt> part
+    * doesn't correspond to a known column) the value -1 will be returned.
+    * <p>
+    * Note this method is only called during expression compilation,
+    * so it doesn't need to be particularly efficient.
+    *
+    * @param   name  null-query column identifier
+    * @return  column index for which <tt>name</tt> is a null-query, 
+    *          or -1
+    */
+   private int getNullColumnIndex( String name ) {
+       if ( name.startsWith( NULL_QUERY_PREFIX ) ) {
+           String colname = name.substring( NULL_QUERY_PREFIX.length() );
+           return getColumnIndex( colname );
+       }
+       return -1;
    }
 
    /**
@@ -269,14 +357,14 @@ public class JELRowReader extends DVMap {
      * @return  subset index into <tt>subsets</tt> list, or -1 if the
      *          subset was not known
      */
-    private int getSubsetIndex( String name ) {
+    private short getSubsetIndex( String name ) {
 
         /* Try the '£' + number format. */
         if ( name.charAt( 0 ) == '£' ) {
             try {
                 int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
                 if ( isub >= 0 && isub < subsets.size() ) {
-                    return isub;
+                    return (short) isub;
                 }
             }
             catch ( NumberFormatException e ) {
@@ -289,12 +377,12 @@ public class JELRowReader extends DVMap {
         for ( Iterator it = subsets.iterator(); it.hasNext(); i++ ) {
             RowSubset rset = (RowSubset) it.next();
             if ( rset.getName().equalsIgnoreCase( name ) ) {
-                return i;
+                return (short) i;
             }
         }
 
         /* It's not a subset. */
-        return -1;
+        return (short) -1;
     }
 
     /**
@@ -304,22 +392,71 @@ public class JELRowReader extends DVMap {
      * <ul>
      * <li>"$0" or "index" returns INDEX_ID, which will return the
      *     (1-based) row number
+     * <li>"null" returns the <tt>null</tt> value (this is not built in
+     *     to the JEL evaluator)
      * </ul>
      */
     private byte getSpecialId( String name ) {
         if ( name.equals( "$0" ) || name.equalsIgnoreCase( "Index" ) ) {
             return INDEX_ID;
         }
+        else if ( name.equals( "null" ) ) {
+            return NULL_VALUE_ID;
+        }
         return (byte) -1;
     }
 
     /**
-     * Returns the actual value for the special Index column.
+     * Returns the values for long-typed special variables.
+     *
+     * @param  ispecial  the identifier for the special
+     * @return the special's value
      */
     public long getLongProperty( byte ispecial ) {
         switch ( ispecial ) {
             case INDEX_ID:   return lrow + 1;
             default:         throw new AssertionError();
+        }
+    }
+
+    /**
+     * Returns the values for Object-typed special variables.
+     *
+     * @param  ispecial  the identifier for the special
+     * @return the special's value
+     */
+    public Object getObjectProperty( byte ispecial ) {
+        switch ( ispecial ) {
+            case NULL_VALUE_ID:      return null;
+            default:                 throw new AssertionError();
+        }
+    }
+
+    /**
+     * Indicates whether the cell at the current row in a given column
+     * has a blank value.  This is the case if the value is the
+     * java <tt>null</tt> reference, or if it is a Float or Double
+     * with a NaN value.
+     *
+     * @param  inul column index (as a <tt>long</tt>)
+     * @return whether the cell is null
+     */
+    public boolean getBooleanProperty( long inul ) {
+        try {
+            Object value = stable.getCell( lrow, (int) inul );
+            if ( value instanceof Float ) {
+                return ((Float) value).isNaN();
+            }
+            else if ( value instanceof Double ) {
+                return ((Double) value).isNaN();
+            }
+            else {
+                return value == null;
+            }
+        }
+        catch ( IOException e ) {
+            e.printStackTrace();
+            return true;
         }
     }
 
@@ -432,4 +569,5 @@ public class JELRowReader extends DVMap {
         return ((RowSubset) subsets.get( (int) isub ))
               .isIncluded( lrow );
     }
+
 }

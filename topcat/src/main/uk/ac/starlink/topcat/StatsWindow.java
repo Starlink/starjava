@@ -1,37 +1,38 @@
 package uk.ac.starlink.topcat;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import javax.swing.AbstractAction;
+import java.util.Set;
 import javax.swing.Action;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import uk.ac.starlink.table.RowSequence;
+import uk.ac.starlink.table.StarTable; 
 import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
  * A window which displays statistics for a RowSubset in the table.
@@ -41,18 +42,21 @@ import uk.ac.starlink.table.gui.StarJTable;
 public class StatsWindow extends AuxWindow {
 
     private TableViewer tv;
-    private PlasticStarTable dataModel;
+    private StarTable dataModel;
     private TableColumnModel columnModel;
     private OptionsListModel subsets;
     private RowSubset rset = RowSubset.ALL;
     private StatsCalculator activeCalculator;
+    private StatsCalculator lastCalc;
     private Map calcMap;
     private JTable jtab;
     private JProgressBar progBar;
     private JComboBox subSelector;
+    private AbstractTableModel statsTableModel;
+    private BitSet hideColumns = new BitSet();
 
     /**
-     * Constructs a StatsWindow to report on the statistics of data in a 
+     * Constructs a StatsWindow to report on the statistics of data in a
      * given TableViewer.  Initially, no results are displayed; call
      * the {@link #setSubset} method to show some statistics.
      *
@@ -64,21 +68,35 @@ public class StatsWindow extends AuxWindow {
         this.dataModel = tv.getDataModel();
         this.columnModel = tv.getColumnModel();
         this.subsets = tv.getSubsets();
-        JPanel mainArea = getMainArea();
 
         /* Set up a map to contain statistic sets that have been calculated. */
         calcMap = new HashMap();
 
-        /* Construct and place the JTable which will form the main display
-         * area. */
-        jtab = new JTable( new StatsTableModel( null ) );
-        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-        jtab.setColumnSelectionAllowed( false );
-        jtab.setRowSelectionAllowed( false );
-        new StatsTableModel( null ).configureJTable( jtab );
-        mainArea.add( new SizingScrollPane( jtab ) );
+        /* Construct a table model which contains the results of the
+         * current calculation. */
+        statsTableModel = makeStatsTableModel();
 
-        /* Construct and place a widget for selecting which subset to 
+        /* Construct, configure and place the JTable which will form the 
+         * main display area. */
+        jtab = new JTable( statsTableModel );
+        configureJTable( jtab );
+        getMainArea().add( new SizingScrollPane( jtab ) );
+
+        /* Customise the JTable's column model to provide control over
+         * which columns are displayed. */
+        MetaColumnModel statsColumnModel =
+            new MetaColumnModel( jtab.getColumnModel(), statsTableModel );
+        jtab.setColumnModel( statsColumnModel );
+
+        /* By default, hide some of the less useful columns. */
+        int nstat = statsColumnModel.getColumnCount();
+        for ( int i = 0; i < nstat; i++ ) {
+            if ( hideColumns.get( i ) ) {
+                statsColumnModel.removeColumn( i );
+            }
+        }
+
+        /* Construct and place a widget for selecting which subset to
          * present results for. */
         JPanel controlPanel = getControlPanel();
         subSelector = subsets.makeComboBox();
@@ -92,7 +110,7 @@ public class StatsWindow extends AuxWindow {
         controlPanel.add( new JLabel( "Subset for calculations: " ) );
         controlPanel.add( subSelector );
 
-        /* Construct and place a widget for requesting a recalculation. */
+        /* Provide a button for requesting a recalculation. */
         Action recalcAct = new BasicAction( "Recalculate", ResourceIcon.REDO,
                                             "Recalculate the statistics for " +
                                             "the current subset" ) {
@@ -105,11 +123,17 @@ public class StatsWindow extends AuxWindow {
         getToolBar().add( recalcAct );
         getToolBar().addSeparator();
 
-        /* Menus. */
+        /* Add a menu for statistics operations. */
         JMenu statsMenu = new JMenu( "Statistics" );
+        statsMenu.setMnemonic( KeyEvent.VK_S );
         statsMenu.add( new JMenuItem( recalcAct ) ).setIcon( null );
         getJMenuBar().add( statsMenu );
-  
+
+        /* Add a menu for controlling column display. */
+        JMenu displayMenu = statsColumnModel.makeCheckBoxMenu( "Display" );
+        displayMenu.setMnemonic( KeyEvent.VK_D );
+        getJMenuBar().add( displayMenu );
+
         /* Add a progress bar for table scanning. */
         progBar = placeProgressBar();
 
@@ -117,6 +141,7 @@ public class StatsWindow extends AuxWindow {
         addHelp( "StatsWindow" );
 
         /* Make the component visible. */
+        setMainHeading( "Statistics" );
         pack();
         setVisible( true );
     }
@@ -135,7 +160,7 @@ public class StatsWindow extends AuxWindow {
         this.rset = rset;
 
         /* In the below, note that this window's calculator object keeps
-         * a record of the active calculator.  Any StatsCalculator which 
+         * a record of the active calculator.  Any StatsCalculator which
          * is not the active one should be stopped in its tracks rather
          * than continuing to munch cycles.  Keeping track of them like
          * this helps to ensure that there is never more than one active
@@ -148,7 +173,7 @@ public class StatsWindow extends AuxWindow {
         }
 
         /* Ensure consistency with the subset selector. */
-        if ( rset !=  subSelector.getSelectedItem() ) {
+        if ( rset != subSelector.getSelectedItem() ) {
             subSelector.setSelectedItem( rset );
             return;
         }
@@ -159,7 +184,7 @@ public class StatsWindow extends AuxWindow {
             displayCalculations( (StatsCalculator) calcMap.get( rset ) );
         }
 
-        /* Otherwise, kick off a new thread which will perform the 
+        /* Otherwise, kick off a new thread which will perform the
          * calculations and display the results in due course. */
         else {
             activeCalculator = new StatsCalculator( rset );
@@ -169,19 +194,31 @@ public class StatsWindow extends AuxWindow {
 
     /**
      * Writes the results into the display portion of this StatsWindow.
-     * 
+     *
      * @param   stats  a StatsCalculator object which has completed
      *          its calculations
      */
     private void displayCalculations( StatsCalculator stats ) {
-        StatsTableModel model = new StatsTableModel( stats );
-        jtab.setModel( model );
-        model.configureJTable( jtab );
+
+        /* Make the new results available to the table model and notify
+         * it to update its data. */
+        boolean firstTime = lastCalc == null;
+        lastCalc = stats;
+        statsTableModel.fireTableDataChanged();
+
+        /* First time only, configure the column widths according to 
+         * contents. */
+        if ( firstTime ) {
+            StarJTable.configureColumnWidths( jtab, 200, Integer.MAX_VALUE );
+        }
+        
+
+        /* Write a heading appropriate to the subset we have the results for. */
         RowSubset rset = stats.rset;
         long nrow = stats.ngoodrow;
         String head = new StringBuffer()
             .append( "Statistics for " )
-            .append( rset == RowSubset.ALL 
+            .append( rset == RowSubset.ALL
                           ? "all rows" : ( "row subset: " + rset.getName() ) )
             .append( " (" )
             .append( nrow )
@@ -211,10 +248,259 @@ public class StatsWindow extends AuxWindow {
     }
 
     /**
+     * Do cosmetic configuration on a JTable appropriate to the kind
+     * of data we want to display.
+     *
+     * @param   jtab  the table to configure
+     */
+    private static void configureJTable( JTable jtab ) {
+        jtab.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+        jtab.setColumnSelectionAllowed( false );
+        jtab.setRowSelectionAllowed( false );
+        TableColumnModel tcm = jtab.getColumnModel();
+        TableModel tmodel = jtab.getModel();
+        StarJTable.configureColumnWidth( jtab, 200, Integer.MAX_VALUE, 0 );
+
+        for ( int icol = 0; icol < tcm.getColumnCount(); icol++ ) {
+            Class clazz = tmodel.getColumnClass( icol );
+            if ( clazz.equals( Long.class ) ) {
+                clazz = Integer.class;
+            }
+            if ( clazz.equals( Object.class ) ) { // render min/max for numbers
+                clazz = Double.class;
+            }
+            NumericCellRenderer rend = new NumericCellRenderer( clazz );
+            TableColumn tcol = tcm.getColumn( icol );
+            tcol.setCellRenderer( rend );
+            tcol.setPreferredWidth( rend.getCellWidth() );
+        }
+    }
+
+    private int getModelIndexFromRow( int irow ) {
+        return columnModel.getColumn( irow ).getModelIndex();
+    }
+
+    /**
+     * Provides the largest cardinality which is counted as valid for
+     * a given number of rows.  Any cardinality higher than this value
+     * will not be reported.  This limit is provided for two reasons:
+     * firstly for efficiency to reduce the burden of looking for a 
+     * black needle in a dark haystack <em>when it isn't there</em>,
+     * and secondly because cardinalities equal or near to the number 
+     * of good values are not very useful figures to provide, since
+     * they probably only indicate a few values which happen to be
+     * the same by chance.
+     * <p>
+     * A cardinality, by the way, is the number of distinct values 
+     * assumed by the rows in a column.
+     * <p>
+     * The implementation provided here is currently the lower of
+     * 50 or <tt>0.75*nvalue</tt>.
+     * 
+     * @param  nvalue the number of values over which the cardinality 
+     *                is to be assessed
+     * @return  the  largest number of distinct values which is to 
+     *               count as a cardinality
+     */
+    public int getCardinalityLimit( long nvalue ) {
+        return Math.min( 50, (int) Math.min( nvalue * 0.75, 
+                                             (double) Integer.MAX_VALUE ) );
+    }
+
+
+    /**
+     * Helper class which provides a TableModel view of this window's
+     * most recently completed StatsCalculator object.
+     */
+    private AbstractTableModel makeStatsTableModel() {
+
+        /* Assemble the list of statistical quantities the model knows
+         * about.  Some of the following columns are hidden by default. */
+        List metas = new ArrayList();
+
+        /* Index. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Index", Integer.class ) {
+            public Object getValue( int irow ) {
+                return new Integer( irow + 1 );
+            }
+        } );
+
+        /* $ID. */
+        hideColumns.set( metas.size() );
+        final String idName = PlasticStarTable.COLID_INFO.getName();
+        metas.add( new MetaColumn( idName, String.class ) {
+            public Object getValue( int irow ) {
+                return ((StarTableColumn) columnModel .getColumn( irow ))
+                      .getColumnInfo()
+                      .getAuxDatumByName( idName )
+                      .getValue();
+            }
+        } );
+
+        /* Name. */
+        metas.add( new MetaColumn( "Name", String.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                return dataModel.getColumnInfo( jcol ).getName();
+            }
+        } );
+
+        /* Sum. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Sum", Double.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                if ( lastCalc.isNumber[ jcol ] ) {
+                    return new Double( lastCalc.sums[ jcol ] );
+                }
+                else if ( lastCalc.isBoolean[ jcol ] ) {
+                    return new Long( lastCalc.ntrues[ jcol ] );
+                }
+                else {
+                    return null;
+                }
+            }
+        } );
+
+        /* Mean. */
+        metas.add( new MetaColumn( "Mean", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ] || lastCalc.isBoolean[ jcol ]
+                     ? new Float( lastCalc.means[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Standard Deviation. */
+        metas.add( new MetaColumn( "S.D.", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.sdevs[ jcol ] ) 
+                     : null;
+            }
+        } );
+
+        /* Variance. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Variance", Float.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.isNumber[ jcol ]
+                     ? new Float( lastCalc.vars[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Minimum. */
+        metas.add( new MetaColumn( "Minimum", Object.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.mins[ jcol ];
+            }
+        } );
+
+        /* Row for minimum. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Row of min.", Long.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if  ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.mins[ jcol ] != null
+                     ? new Long( lastCalc.imins[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Maximum. */
+        metas.add( new MetaColumn( "Maximum", Object.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.maxs[ jcol ];
+            }
+        } );
+
+        /* Row for maximum. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Row of max.", Long.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return lastCalc.maxs[ jcol ] != null
+                     ? new Long( lastCalc.imaxs[ jcol ] )
+                     : null;
+            }
+        } );
+
+        /* Count of non-null rows. */
+        metas.add( new MetaColumn( "Good cells", Long.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return new Long( lastCalc.ngoods[ jcol ] );
+            }
+        } );
+
+        /* Count of null rows. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Bad cells", Long.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                return new Long( lastCalc.nbads[ jcol ] );
+            }
+        } );
+
+        /* Cardinality. */
+        hideColumns.set( metas.size() );
+        metas.add( new MetaColumn( "Cardinality", Integer.class ) {
+            public Object getValue( int irow ) {
+                int jcol = getModelIndexFromRow( irow );
+                if ( lastCalc == null || jcol >= lastCalc.ncol ) return null;
+                int card = lastCalc.cards[ jcol ];
+                return ( lastCalc.isCardinal[ jcol ] && card > 0 )
+                     ? new Integer( card )
+                     : null;
+            }
+        } );
+
+        /* Construct a new TableModel based on these meta columns. */
+        final MetaColumnTableModel tmodel = new MetaColumnTableModel( metas ) {
+            public int getRowCount() {
+                return columnModel.getColumnCount();
+            }
+        };
+
+        /* Ensure that it responds to changes in the main column model. */
+        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
+            public void columnAdded( TableColumnModelEvent evt ) {
+                tmodel.fireTableDataChanged();
+            }
+            public void columnRemoved( TableColumnModelEvent evt ) {
+                tmodel.fireTableDataChanged();
+            }
+            public void columnMoved( TableColumnModelEvent evt ) {
+                tmodel.fireTableDataChanged();
+            }
+        } );
+
+        /* Return the new model. */
+        return tmodel;
+    }
+
+    /**
      * Helper class which performs the calculations in its own thread,
      * and displays the results in the StatsWindow when it's done.
-     * One instance of this is maintained by each StatsWindow 
-     * its <tt>run</tt> method running in a separate thread.
+     * A maximum of one active instance of this is maintained by each 
+     * StatsWindow, its <tt>run</tt> method running in a separate thread.
      */
     private class StatsCalculator extends Thread {
 
@@ -224,14 +510,21 @@ public class StatsWindow extends AuxWindow {
         long ngoodrow;
         boolean[] isNumber;
         boolean[] isComparable;
+        boolean[] isBoolean;
+        boolean[] isCardinal;
         Object[] mins;
         Object[] maxs;
+        long[] imins;
+        long[] imaxs;
         long[] ngoods;
         long[] nbads;
+        long[] ntrues;
         double[] means;
         double[] sdevs;
+        double[] vars;
         double[] sums;
         double[] sum2s;
+        int[] cards;
 
         /**
          * Constructs a calculator object which can calculate the statistics
@@ -244,11 +537,11 @@ public class StatsWindow extends AuxWindow {
         }
 
         /**
-         * Initiates calculations of the requested statistics, and 
-         * if they complete without interruption arranges for the 
+         * Initiates calculations of the requested statistics, and
+         * if they complete without interruption arranges for the
          * results to be displayed in the StatsWindow.
          * The cursor is also switched between busy and non-busy at the
-         * start and end of calculcations as long as this calculator 
+         * start and end of calculcations as long as this calculator
          * has not been superceded by another in the mean time.
          */
         public void run() {
@@ -288,7 +581,7 @@ public class StatsWindow extends AuxWindow {
          * variables of this StatsCalculator object.
          * An IOException may indicate that the thread was interrupted
          * deliberately, or that some other error occurred.  Either way,
-         * some sensible results should be returned based on the number of 
+         * some sensible results should be returned based on the number of
          * rows which have been got through so far.
          *
          * @throws  IOException if calculation is not complete
@@ -299,18 +592,26 @@ public class StatsWindow extends AuxWindow {
             /* Allocate result objects. */
             isNumber = new boolean[ ncol ];
             isComparable = new boolean[ ncol ];
+            isBoolean = new boolean[ ncol ];
+            isCardinal = new boolean[ ncol ];
             mins = new Object[ ncol ];
             maxs = new Object[ ncol ];
+            imins = new long[ ncol ];
+            imaxs = new long[ ncol ];
             ngoods = new long[ ncol ];
             nbads = new long[ ncol ];
+            ntrues = new long[ ncol ];
             means = new double[ ncol ];
             sdevs = new double[ ncol ];
+            vars = new double[ ncol ];
             sums = new double[ ncol ];
             sum2s = new double[ ncol ];
+            cards = new int[ ncol ];
 
             boolean[] badcompars = new boolean[ ncol ];
             double[] dmins = new double[ ncol ];
             double[] dmaxs = new double[ ncol ];
+            Set[] valuesets = new Set[ ncol ];
             Arrays.fill( dmins, Double.MAX_VALUE );
             Arrays.fill( dmaxs, -Double.MAX_VALUE );
 
@@ -320,17 +621,24 @@ public class StatsWindow extends AuxWindow {
                 isNumber[ icol ] = Number.class.isAssignableFrom( clazz );
                 isComparable[ icol ] = Comparable.class
                                                  .isAssignableFrom( clazz );
+                isBoolean[ icol ] = clazz.equals( Boolean.class );
+                isCardinal[ icol ] = ! clazz.equals( Boolean.class );
+                if ( isCardinal[ icol ] ) {
+                    valuesets[ icol ] = new HashSet();
+                }
             }
 
             /* Iterate over the selected rows in the table. */
             RowSequence rseq = new ProgressBarStarTable( dataModel, progBar )
                               .getRowSequence();
+            int cardlimit = getCardinalityLimit( dataModel.getRowCount() );
             IOException interruption = null;
             long lrow = 0L;
             ngoodrow = 0L;
             for ( ; rseq.hasNext(); lrow++ ) {
+                long lrow1 = lrow + 1;
 
-                /* A thread interruption may manifest itself here as an 
+                /* A thread interruption may manifest itself here as an
                  * exception (see ProgressBarStarTable).  If so, save the
                  * exception and break out. */
                 try {
@@ -353,13 +661,16 @@ public class StatsWindow extends AuxWindow {
                         }
                         else {
                             if ( isNumber[ icol ] ) {
+                                double dval = Double.NaN;
                                 if ( ! ( val instanceof Number ) ) {
-                                    System.err.println( 
+                                    System.err.println(
                                         "Error in table data: not numeric at " +
-                                        lrow + "," + icol + "(" + val + ")" );
+                                        lrow1 + "," + icol + "(" + val + ")" );
                                     good = false;
                                 }
-                                double dval = ((Number) val).doubleValue();
+                                else {
+                                    dval = ((Number) val).doubleValue();
+                                }
                                 if ( Double.isNaN( dval ) ) {
                                     good = false;
                                 }
@@ -370,10 +681,12 @@ public class StatsWindow extends AuxWindow {
                                     if ( dval < dmins[ icol ] ) {
                                         dmins[ icol ] = dval;
                                         mins[ icol ] = val;
+                                        imins[ icol ] = lrow1;
                                     }
                                     if ( dval > dmaxs[ icol ] ) {
                                         dmaxs[ icol ] = dval;
                                         maxs[ icol ] = val;
+                                        imaxs[ icol ] = lrow1;
                                     }
                                     sums[ icol ] += dval;
                                     sum2s[ icol ] += dval * dval;
@@ -383,7 +696,7 @@ public class StatsWindow extends AuxWindow {
                                 if ( ! ( val instanceof Comparable ) ) {
                                     System.err.println(
                                         "Error in table data: not Comparable " +
-                                        " at " + lrow + "," + icol + "(" +
+                                        " at " + lrow1 + "," + icol + "(" +
                                         val + ")" );
                                     good = false;
                                 }
@@ -396,17 +709,21 @@ public class StatsWindow extends AuxWindow {
                                         assert maxs[ icol ] == null;
                                         mins[ icol ] = val;
                                         maxs[ icol ] = val;
+                                        imins[ icol ] = lrow1;
+                                        imaxs[ icol ] = lrow1;
                                     }
                                     else {
                                         try {
-                                            if ( cval.compareTo( mins[ icol ] ) 
+                                            if ( cval.compareTo( mins[ icol ] )
                                                  < 0 ) {
                                                 mins[ icol ] = val;
+                                                imins[ icol ] = lrow1;
                                             }
                                             else if ( cval
                                                      .compareTo( maxs[ icol ] )
                                                       > 0 ) {
                                                 maxs[ icol ] = val;
+                                                imaxs[ icol ] = lrow1;
                                             }
                                         }
 
@@ -421,11 +738,38 @@ public class StatsWindow extends AuxWindow {
                                     }
                                 }
                             }
+                            else if ( isBoolean[ icol ] ) {
+                                if ( ! ( val instanceof Boolean ) ) {
+                                    System.err.println(
+                                        "Error in table data: not boolean at " +
+                                        lrow1 + "," + icol + "(" + val + ")" );
+                                    good = false;
+                                }
+                                else {
+                                    good = true;
+                                }
+                                if ( good ) {
+                                    boolean bval =
+                                        ((Boolean) val).booleanValue();
+                                    if ( bval ) {
+                                        ntrues[ icol ]++;
+                                    }
+                                }
+                            }
                             else {
                                 good = true;
                             }
                             if ( good ) {
                                 ngoods[ icol ]++;
+                            }
+                        }
+
+                        /* Maybe calculate the cardinalities. */
+                        if ( good && isCardinal[ icol ] ) {
+                            valuesets[ icol ].add( val );
+                            if ( valuesets[ icol ].size() > cardlimit ) {
+                                isCardinal[ icol ] = false;
+                                valuesets[ icol ] = null;
                             }
                         }
                     }
@@ -440,18 +784,38 @@ public class StatsWindow extends AuxWindow {
                 long ngood = ngoods[ icol ];
                 nbads[ icol ] = ngoodrow - ngood;
                 if ( ngood > 0 ) {
-                    double mean = sums[ icol ] / ngood;
-                    means[ icol ] = mean;
-                    double var = sum2s[ icol ] / ngood - mean * mean;
-                    sdevs[ icol ] = Math.sqrt( var );
+                    if ( isNumber[ icol ] ) {
+                        double mean = sums[ icol ] / ngood;
+                        means[ icol ] = mean;
+                        double var = sum2s[ icol ] / ngood - mean * mean;
+                        vars[ icol ] = var;
+                        sdevs[ icol ] = Math.sqrt( var );
+                    }
+                    else if ( isBoolean[ icol ] ) {
+                        means[ icol ] = (double) ntrues[ icol ] / ngood;
+                    }
+                    if ( isCardinal[ icol ] ) {
+                        int card = valuesets[ icol ].size();
+                        if ( card <= getCardinalityLimit( ngood ) ) {
+                            cards[ icol ] = card;
+                        }
+                        else {
+                            cards[ icol ] = 0;
+                            isCardinal[ icol ] = false;
+                            valuesets[ icol ] = null;
+                        }
+                    }
                 }
                 else {
                     means[ icol ] = Double.NaN;
                     sdevs[ icol ] = Double.NaN;
+                    vars[ icol ] = Double.NaN;
                 }
                 if ( badcompars[ icol ] ) {
                     mins[ icol ] = null;
                     maxs[ icol ] = null;
+                    imins[ icol ] = -1L;
+                    imaxs[ icol ] = -1L;
                 }
             }
 
@@ -461,155 +825,4 @@ public class StatsWindow extends AuxWindow {
             }
         }
     }
-
-    /**
-     * Helper class which provides a TableModel view of a StatsCalculator
-     * object.
-     */
-    private class StatsTableModel extends AbstractTableModel
-                                  implements TableColumnModelListener {
-
-        private static final int NAME_COL = 0;
-        private static final int MEAN_COL = 1;
-        private static final int SDEV_COL = 2;
-        private static final int MIN_COL = 3;
-        private static final int MAX_COL = 4;
-        private static final int NGOOD_COL = 5;
-        private static final int NBAD_COL = 6;
-        private static final int NCOL = 7;
-        private StatsCalculator calc;
-
-        /**
-         * Constructs a new StatsTableModel from a StatsCalculator
-         * <tt>calc</tt>.  The calculator should have finished its
-         * calculations (or at least been interrupted during them).
-         * A null <tt>calc</tt> may be used to represent no available data.
-         *
-         * @param  calc   the StatsCalculator
-         */
-        public StatsTableModel( StatsCalculator calc ) {
-            this.calc = calc;
-
-            /* Ensure that changes to the column model are reflected in
-             * this table. */
-            columnModel.addColumnModelListener( this );
-        }
-
-        public int getColumnCount() {
-            return NCOL;
-        }
-
-        public int getRowCount() {
-            return columnModel.getColumnCount();
-        }
-
-        public Object getValueAt( int irow, int icol ) {
-            int jcol = getModelIndexFromRow( irow );
-            if ( icol == NAME_COL ) {
-                return dataModel.getColumnInfo( jcol ).getName();
-            }
-            else if ( calc == null ) {
-                return null;
-            }
-            else if ( jcol >= calc.ncol ) {  // newly added column
-                return " ? ";
-            }
-            switch ( icol ) {
-                case NGOOD_COL:   return new Long( calc.ngoods[ jcol ] );
-                case NBAD_COL:    return new Long( calc.nbads[ jcol ] );
-                case MEAN_COL:    return calc.isNumber[ jcol ]
-                                       ? new Float( calc.means[ jcol ] )
-                                       : null;
-                case SDEV_COL:    return calc.isNumber[ jcol ]
-                                       ? new Float( calc.sdevs[ jcol ] )
-                                       : null;
-                case MIN_COL:     return calc.isComparable[ jcol ] 
-                                       ? calc.mins[ jcol ]
-                                       : null;
-                case MAX_COL:     return calc.isComparable[ jcol ]
-                                       ? calc.maxs[ jcol ]
-                                       : null;
-                default:          throw new AssertionError();
-            }
-        }
-
-        public String getColumnName( int icol ) {
-            switch ( icol ) {
-                case NAME_COL:    return "Name";
-                case NGOOD_COL:   return "Good cells";
-                case NBAD_COL:    return "Bad cells";
-                case MEAN_COL:    return "Mean";
-                case SDEV_COL:    return "S.D.";
-                case MIN_COL:     return "Minimum";
-                case MAX_COL:     return "Maximum";
-                default:          throw new AssertionError();
-            }
-        }
-
-        public Class getColumnClass( int icol ) {
-            switch ( icol ) {
-                case NAME_COL:    return String.class;
-                case NGOOD_COL:   return Long.class;
-                case NBAD_COL:    return Long.class;
-                case MEAN_COL:    return Float.class;
-                case SDEV_COL:    return Float.class;
-                case MIN_COL:     return Object.class;
-                case MAX_COL:     return Object.class;
-                default:          throw new AssertionError();
-            }
-        }
-
-        /**
-         * Performs some cosmetic configuration on a JTable which will
-         * be used to view this table model.
-         *
-         * @param   jtab   the JTable to be configured
-         */
-        public void configureJTable( JTable jtab ) {
-            TableColumnModel tcm = jtab.getColumnModel();
-            for ( int icol = 0; icol < NCOL; icol++ ) {
-                Class clazz = getColumnClass( icol );
-                if ( clazz.equals( Long.class ) ) {
-                    clazz = Integer.class;
-                }
-                else if ( clazz.equals( Object.class ) ) {
-                    clazz = Double.class;
-                }
-                NumericCellRenderer rend = new NumericCellRenderer( clazz );
-                TableColumn tcol = tcm.getColumn( icol );
-                tcol.setCellRenderer( rend );
-                int wid;
-                if ( icol == NAME_COL ) {
-                    wid = 160;
-                }
-                else {
-                    wid = rend.getCellWidth();
-                }
-                tcol.setPreferredWidth( wid );
-            } 
-        }
-
-        private int getModelIndexFromRow( int irow ) {
-            return columnModel.getColumn( irow ).getModelIndex();
-        }
-
-        /*
-         * Implementation of TableColumnModelListener interface.
-         * A more efficient implementation would be possible, but this
-         * is hardly going to be a performance bottleneck.
-         */
-        public void columnAdded( TableColumnModelEvent evt ) {
-            fireTableDataChanged();
-        }
-        public void columnRemoved( TableColumnModelEvent evt ) {
-            fireTableDataChanged();
-        }
-        public void columnMoved( TableColumnModelEvent evt ) {
-            fireTableDataChanged();
-        }
-        public void columnMarginChanged( ChangeEvent evt ) {}
-        public void columnSelectionChanged( ListSelectionEvent evt ) {}
-        
-    }
-
 }
