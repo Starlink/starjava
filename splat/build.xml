@@ -296,7 +296,8 @@
    ! this throws a <fail> and exits the build.
    !-->
   <target name="check_packages"
-          unless="runonly.install">
+          unless="runonly.install" 
+          if="fasttest">
 
     <!--  Need NDArray -->
     <available property="array.present"
@@ -509,7 +510,7 @@
         <attribute name="Main-Class"
                    value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
         <attribute name="Class-Path"
-value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar  
+value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar  
 ../astgui/astgui.jar ../ndx/ndx.jar ../array/array.jar ../tamfits/tamfits.jar 
 ../jniast/jniast.jar ../soapserver/soapserver.jar ../fits/fits.jar 
 ../hds/hds.jar"/>
@@ -985,6 +986,7 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
+      <arg value="src/etc/testdata/ramp.txt"/>
     </java>
   </target>
 
@@ -999,6 +1001,23 @@ value="bsh-1.1a18.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
    !-->
   <target name="dtd">
      <antstructure output="project.dtd"/>
+  </target>
+
+  <!-- 
+   ! Run up JSwat. Only works at Durham as pdraper...
+   !-->
+  <target name="jswat"
+          depends="compile-tests">
+
+    <path id="jswat-classpath">
+       <path refid="tests-classpath"/>
+       <pathelement 
+           location="/loc/pwdb/pdraper/java/jswat/jswat-2.10/jswat.jar"/>
+       <pathelement location="/stardev/java/jdk-1.4.0_01/lib/tools.jar"/>
+    </path> 
+    <java classname="com.bluemarsh.jswat.Main" fork="true">
+      <classpath refid="jswat-classpath"/>
+    </java>
   </target>
 
 </project>
