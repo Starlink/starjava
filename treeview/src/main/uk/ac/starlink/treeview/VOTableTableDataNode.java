@@ -7,10 +7,10 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.treeview.votable.Field;
-import uk.ac.starlink.treeview.votable.RandomVOStarTable;
-import uk.ac.starlink.treeview.votable.Table;
-import uk.ac.starlink.treeview.votable.VOTableFormatException;
+import uk.ac.starlink.votable.Field;
+import uk.ac.starlink.votable.RandomVOStarTable;
+import uk.ac.starlink.votable.Table;
+import uk.ac.starlink.votable.VOTableFormatException;
 import uk.ac.starlink.util.DOMUtils;
 
 public class VOTableTableDataNode extends VOComponentDataNode {
@@ -25,15 +25,12 @@ public class VOTableTableDataNode extends VOComponentDataNode {
         try {
             votable = Table.makeTable( new DOMSource( vocel, systemId ) );
         }
-        catch ( TransformerException e ) {
-            throw new NoSuchDataException( e );
-        }
         catch ( VOTableFormatException e ) {
             throw new NoSuchDataException( e );
         }
-        int nrows = votable.getNumRows();
+        int nrows = votable.getRowCount();
         desc = "(" 
-             + votable.getNumColumns() 
+             + votable.getColumnCount() 
              + "x" 
              + ( ( nrows > 0 ) ? "" + nrows : "?" )
              + ")";
@@ -84,7 +81,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
 
             /* Fields. */
             dv.addSubHead( "Columns" );
-            int ncol = votable.getNumColumns();
+            int ncol = votable.getColumnCount();
             for ( int i = 0; i < ncol; i++ ) {
                 Field field = votable.getField( i );
                 dv.addText( ( i + 1 ) + ": " + field.getHandle() );

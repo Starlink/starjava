@@ -80,7 +80,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="Treeview"/>
   <property name="name" value="treeview"/>
-  <property name="version" value="2.0-2"/>
+  <property name="version" value="2.0-3"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.treeview"/>
@@ -183,6 +183,9 @@
     <!-- Array -->
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
+    <!-- Table -->
+    <pathelement location="${star.jar.dir}/table/table.jar"/>
+
     <!-- JNIAST -->
     <pathelement location="${star.jar.dir}/jniast/jniast.jar"/>
 
@@ -200,6 +203,9 @@
 
     <!-- NDX -->
     <pathelement location="${star.jar.dir}/ndx/ndx.jar"/>
+
+    <!-- VOTable -->
+    <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
     <!-- Util -->
     <pathelement location="${star.jar.dir}/util/util.jar"/>
@@ -239,6 +245,8 @@
     <pathelement
        location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement
+       location="${star.build.dir}/table/lib/table/table.jar"/>
+    <pathelement
        location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement
        location="${star.build.dir}/tamfits/lib/tamfits/tamfits.jar"/>
@@ -250,6 +258,8 @@
        location="${star.build.dir}/hds/lib/hds/hds.jar"/>
     <pathelement
        location="${star.build.dir}/ndx/lib/ndx/ndx.jar"/>
+    <pathelement
+       location="${star.build.dir}/votable/lib/votable/ndx.jar"/>
     <pathelement
        location="${star.build.dir}/util/lib/util/util.jar"/>
     <pathelement
@@ -358,6 +368,12 @@
                classname="uk.ac.starlink.array.NDArray"/>
     <fail message="No Array available" unless="array.present"/>
 
+    <!-- Need Table -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    <fail message="No Table available" unless="table.present"/>
+
     <!-- Need JNIAST -->
     <available property="jniast.present"
                classpathref="classpath"
@@ -393,6 +409,12 @@
                classpathref="classpath"
                classname="uk.ac.starlink.ndx.Ndx"/>
     <fail message="No NDX available" unless="ndx.present"/>
+
+    <!-- Need VOTable -->
+    <available property="votable.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.votable.VOTable"/>
+    <fail message="No VOTable available" unless="votable.present"/>
 
     <!-- Need Util -->
     <available property="util.present"
@@ -538,7 +560,7 @@
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
         <attribute name="Class-Path"
-           value="../array/array.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar"/>
+           value="../array/array.jar ../table/table.jar ../jniast/jniast.jar ../tamfits/tamfits.jar ../fits/fits.jar ../jnihds/jnihds.jar ../hds/hds.jar ../ndx/ndx.jar ../votable/votable.jar ../util/util.jar ../jsky/jsky.jar ../jaiutil/jaiutil.jar ../splat/splat.jar ../axis/axis.jar"/>
       </manifest>
     </jar>
 
@@ -1052,6 +1074,7 @@
       <jvmarg value="${junit.assertions}"/>
 
       <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
 
@@ -1077,8 +1100,8 @@
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
 
-      <sysproperty key="hdx.home" value="${hdx.home}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
+      <sysproperty key="ant.basedir" value="${basedir}"/>
       <sysproperty key="tests-classpath.value"
                    value="${tests-classpath.value}"/>
       <classpath refid="tests-classpath"/>

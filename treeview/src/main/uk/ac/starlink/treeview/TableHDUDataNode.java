@@ -99,8 +99,8 @@ public class TableHDUDataNode extends HDUDataNode {
             dv.addKeyedItem( "HDU type", hduType );
 
             final StarTable startable = new FitsStarTable( thdu );
-            int nrows = startable.getNumRows();
-            int ncols = startable.getNumColumns();
+            int ncols = startable.getColumnCount();
+            int nrows = startable.getRowCount();
             dv.addKeyedItem( "Columns", ncols );
             dv.addKeyedItem( "Rows", nrows );
             dv.addSeparator();

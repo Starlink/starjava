@@ -30,7 +30,7 @@ public class StarTableMetamapGroup extends MetamapGroup {
     public StarTableMetamapGroup( StarTable startable ) {
 
         /* Superclass constructor. */
-        super( startable.getNumColumns() );
+        super( startable.getColumnCount() );
 
         /* Set up the natural ordering for keys. */
         List order = new ArrayList( basicOrder );
@@ -38,7 +38,7 @@ public class StarTableMetamapGroup extends MetamapGroup {
         setKeyOrder( order );
 
         /* Add the metadata for each column. */
-        int ncol = startable.getNumColumns();
+        int ncol = startable.getColumnCount();
         for ( int i = 0; i < ncol; i++ ) {
             ColumnHeader colhead = startable.getHeader( i );
             addEntry( i, INDEX_KEY, new Integer( i + 1 ) );
@@ -52,7 +52,7 @@ public class StarTableMetamapGroup extends MetamapGroup {
                                               : "<unknown UCD>";
                 addEntry( i, UCD_DESCRIPTION_KEY, desc );
             }
-            for ( Iterator it = colhead.metadata().entrySet().iterator();
+            for ( Iterator it = colhead.getMetadata().entrySet().iterator();
                   it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry) it.next();
                 addEntry( i, entry.getKey().toString(), entry.getValue() );

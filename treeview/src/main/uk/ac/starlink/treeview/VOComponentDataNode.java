@@ -21,9 +21,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import uk.ac.starlink.table.UCD;
-import uk.ac.starlink.treeview.votable.Coosys;
-import uk.ac.starlink.treeview.votable.GenericElement;
-import uk.ac.starlink.treeview.votable.Param;
+import uk.ac.starlink.votable.Param;
+import uk.ac.starlink.votable.VOElement;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.SourceReader;
 
@@ -192,22 +191,23 @@ public class VOComponentDataNode extends DefaultDataNode {
             else if ( child instanceof Element ) {
                 Element childEl = (Element) child;
                 String elname = childEl.getTagName();
+                DOMSource childSrc = new DOMSource( childEl );
                 if ( elname.equals( "DESCRIPTION" ) ) {
                     description = DOMUtils.getTextContent( childEl ).trim();
                 }
                 else if ( elname.equals( "INFO" ) ) {
-                    String infohandle = new GenericElement( childEl )
-                                       .getHandle();
+                    String infohandle = 
+                        VOElement.makeVOElement( childSrc ).getHandle();
                     String infovalue = childEl.getAttribute( "value" );
                     infonames.add( infohandle );
                     infovals.add( infovalue );
                     ninfo++;
                 }
                 else if ( elname.equals( "PARAM" ) ) {
-                    params.add( new Param( childEl ) );
+                    params.add( new Param( childSrc ) );
                 }
                 else if ( elname.equals( "COOSYS" ) ) {
-                    coosyss.add( new Coosys( childEl ) );
+                    coosyss.add( VOElement.makeVOElement( childSrc ) );
                 }
             }
         }
@@ -231,12 +231,12 @@ public class VOComponentDataNode extends DefaultDataNode {
         /* Coosys. */
         if ( coosyss.size() == 1 ) {
             dv.addSubHead( "Coordinate system" );
-            Coosys coosys = (Coosys) coosyss.get( 0 );
-            String text = coosys.getText();
+            VOElement coosys = (VOElement) coosyss.get( 0 );
+            String text = coosys.getTextContent().trim();
             String id = coosys.getID();
-            String equinox = coosys.getEquinox();
-            String epoch = coosys.getEpoch();
-            String system = coosys.getSystem();
+            String equinox = coosys.getAttribute( "equinox" );
+            String epoch = coosys.getAttribute( "epoch" );
+            String system = coosys.getAttribute( "system" );
             if ( text != null ) dv.addText( text );
             if ( id != null ) dv.addKeyedItem( "ID", id );
             if ( equinox != null ) dv.addKeyedItem( "Equinox", equinox );
@@ -341,16 +341,15 @@ public class VOComponentDataNode extends DefaultDataNode {
             int np = params.size();
             for ( int i = 0; i < np; i++ ) {
                 Param param = (Param) params.get( i );
-                Element el = param.getElement();
-                addEntry( i, ID_KEY, el.getAttribute( "ID" ) );
-                addEntry( i, UNIT_KEY, el.getAttribute( "unit" ) );
-                addEntry( i, DATATYPE_KEY, el.getAttribute( "datatype" ) );
-                addEntry( i, PRECISION_KEY, el.getAttribute( "precision" ) );
-                addEntry( i, WIDTH_KEY, el.getAttribute( "width" ) );
-                addEntry( i, NAME_KEY, el.getAttribute( "name" ) );
-                addEntry( i, UCD_KEY, el.getAttribute( "ucd" ) );
-                addEntry( i, VALUE_KEY, el.getAttribute( "value" ) );
-                addEntry( i, ARRAYSIZE_KEY, el.getAttribute( "arraysize" ) );
+                addEntry( i, ID_KEY, param.getAttribute( "ID" ) );
+                addEntry( i, UNIT_KEY, param.getAttribute( "unit" ) );
+                addEntry( i, DATATYPE_KEY, param.getAttribute( "datatype" ) );
+                addEntry( i, PRECISION_KEY, param.getAttribute( "precision" ) );
+                addEntry( i, WIDTH_KEY, param.getAttribute( "width" ) );
+                addEntry( i, NAME_KEY, param.getAttribute( "name" ) );
+                addEntry( i, UCD_KEY, param.getAttribute( "ucd" ) );
+                addEntry( i, VALUE_KEY, param.getAttribute( "value" ) );
+                addEntry( i, ARRAYSIZE_KEY, param.getAttribute( "arraysize" ) );
                 addEntry( i, DESCRIPTION_KEY, param.getDescription() );
                 if ( hasEntry( i, UCD_KEY ) ) {
                     UCD ucd = UCD.getUCD( (String) getEntry( i, UCD_KEY ) );
