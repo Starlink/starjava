@@ -226,6 +226,7 @@ public class NDFDataNode extends HDSDataNode {
     public NDFDataNode( File file ) throws NoSuchDataException {
         this( getHDSFromFile( file ) );
         setLabel( file.getName() );
+        setPath( file.getAbsolutePath() );
     }
 
     /**

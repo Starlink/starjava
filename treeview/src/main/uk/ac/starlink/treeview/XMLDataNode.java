@@ -142,6 +142,7 @@ public class XMLDataNode extends DefaultDataNode {
         this( FileDataNodeBuilder.makeDOMSource( file ) );
         this.name = file.getName();
         setLabel( name );
+        setPath( file.getAbsolutePath() );
     }
 
     public XMLDataNode( String loc ) throws NoSuchDataException {
@@ -150,8 +151,12 @@ public class XMLDataNode extends DefaultDataNode {
 
     public XMLDataNode( DataSource datsrc ) throws NoSuchDataException {
         this( SourceDataNodeBuilder.makeDOMSource( datsrc ) );
-        this.name = datsrc.getName();
+        this.name = getName( datsrc );
         setLabel( name );
+        String path = getPath( datsrc );
+        if ( path != null ) {
+            setPath( path );
+        }
     }
 
     public String getName() {

@@ -78,6 +78,7 @@ public class NdxDataNode extends DefaultDataNode {
 
     public NdxDataNode( File file ) throws NoSuchDataException {
         this( file.toString() );
+        setPath( file.getAbsolutePath() );
     }
 
     /**

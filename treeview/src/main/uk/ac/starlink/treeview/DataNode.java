@@ -163,6 +163,13 @@ public interface DataNode {
     public String getPath();
 
     /**
+     * Sets the (preferably full) pathname to this node.
+     *
+     * @param  path  pathname to this node
+     */
+    public void setPath( String path );
+
+    /**
      * Gets an <code>Icon</code> which can be used when displaying this node.
      * This should return an icon suitable for displaying in a JTree,
      * ideally about 16x16 pixels.  It should give some indication of

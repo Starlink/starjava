@@ -30,6 +30,7 @@ public class VOTableDataNode extends VOComponentDataNode {
         this( FileDataNodeBuilder.makeDOMSource( file ) );
         name = file.getName();
         setLabel( name );
+        setPath( file.getAbsolutePath() );
     }
 
     public VOTableDataNode( String string ) throws NoSuchDataException {

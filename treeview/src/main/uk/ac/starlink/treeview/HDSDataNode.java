@@ -90,6 +90,7 @@ public class HDSDataNode extends DefaultDataNode {
     public HDSDataNode( File file ) throws NoSuchDataException {
         this( getHDSFromFile( file ) );
         setLabel( file.getName() );
+        setPath( file.getAbsolutePath() );
     }
 
     /**

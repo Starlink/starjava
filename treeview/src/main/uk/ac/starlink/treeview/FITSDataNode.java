@@ -94,10 +94,8 @@ public class FITSDataNode extends DefaultDataNode {
  
         name = file.getName();
         setLabel( name );
+        setPath( file.getAbsolutePath() );
     }
-
-
-
 
     /**
      * Initialises a <code>FITSDataNode</code> from a <code>String</code>

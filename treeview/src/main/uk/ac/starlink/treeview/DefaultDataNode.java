@@ -6,8 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.awt.*;
+import java.net.URL;
 import javax.swing.*;
 import javax.swing.tree.*;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.URLDataSource;
 
 /**
  * A basic implementation of the {@link DataNode} interface.
@@ -23,9 +27,11 @@ public class DefaultDataNode implements DataNode {
 
     private static TreeCellRenderer cellRenderer;
     private static DataNodeFactory defaultChildMaker;
+    private static final String PATH_UNSET = new String( "path_not_set" );
 
     private String name;
     private String label;
+    private String path = PATH_UNSET;
     private String nodetype = "Data node";
     private DataNodeFactory childMaker;
     private JComponent fullView;
@@ -191,9 +197,16 @@ public class DefaultDataNode implements DataNode {
      * @return  the path to this node
      */
     public String getPath() {
-        StringBuffer path = new StringBuffer();
-        boolean ok = accumulatePath( this, path );
-        return ok ? path.toString() : null;
+        if ( path == PATH_UNSET ) {
+            StringBuffer pbuf = new StringBuffer();
+            boolean ok = accumulatePath( this, pbuf );
+            path = ok ? pbuf.toString() : null;
+        }
+        return path;
+    }
+
+    public void setPath( String path ) {
+        this.path = path;
     }
 
     private static boolean accumulatePath( DataNode dnode, StringBuffer path ) {
@@ -204,6 +217,13 @@ public class DefaultDataNode implements DataNode {
         }
         if ( path.length() > 0 ) {
             path.insert( 0, sep );
+        }
+        if ( dnode instanceof DefaultDataNode ) { // uuurrrggh
+            DefaultDataNode ddnode = (DefaultDataNode) dnode;
+            if ( ddnode.path != null && ddnode.path != PATH_UNSET ) {
+                path.insert( 0, ddnode.path );
+                return true;
+            }
         }
         String pathel = dnode.getPathElement();
         if ( pathel == null ) {
@@ -280,6 +300,16 @@ public class DefaultDataNode implements DataNode {
         }
     }
 
+    public static DataSource makeDataSource( File file )
+            throws NoSuchDataException {
+        try {
+            return new FileDataSource( file );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
+    }
+
     /**
      * Gets the first few bytes of a file.
      * This utility function is suitable for magic number checks.
@@ -336,5 +366,34 @@ public class DefaultDataNode implements DataNode {
             strm.reset();
         }
         return buf;
+    }
+
+    /**
+     * Returns an absolute path for the given datasource, if one is known
+     * Otherwise returns null.
+     *
+     * @param  datsrc  the data source to identify
+     * @return its absolute path, or <tt>null</tt> if not known
+     */
+    public static String getPath( DataSource datsrc ) {
+        if ( datsrc instanceof FileDataSource ) {
+            return ((FileDataSource) datsrc).getFile().getAbsolutePath();
+        }
+        else if ( datsrc instanceof URLDataSource ) {
+            return ((URLDataSource) datsrc).getURL().toString();
+        }
+        else if ( datsrc instanceof PathedDataSource ) {
+            return ((PathedDataSource) datsrc).getPath();
+        }
+        return null;
+    }
+
+    public static String getName( DataSource datsrc ) {
+        if ( datsrc instanceof FileDataSource ) {
+            return ((FileDataSource) datsrc).getFile().getName();
+        }
+        else {
+            return datsrc.getName();
+        }
     }
 }

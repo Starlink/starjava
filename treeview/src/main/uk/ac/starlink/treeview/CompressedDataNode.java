@@ -22,11 +22,13 @@ public class CompressedDataNode extends DefaultDataNode {
     private final String name;
 
     public CompressedDataNode( File file ) throws NoSuchDataException {
-        this( new FileDataSource( file ) );
+        this( makeDataSource( file ) );
+        setPath( file.getAbsolutePath() );
     }
 
     public CompressedDataNode( URL url ) throws NoSuchDataException {
         this( new URLDataSource( url ) );
+        setPath( url.toString() );
     }
 
     public CompressedDataNode( String name ) throws NoSuchDataException {
@@ -45,8 +47,12 @@ public class CompressedDataNode extends DefaultDataNode {
             throw new NoSuchDataException( 
                 "Data source uses no known compression format" );
         }
-        this.name = datsrc.getName();
+        this.name = getName( datsrc );
         setLabel( name );
+        String path = getPath( datsrc );
+        if ( path != null ) {
+            setPath( path );
+        }
     }
 
     public String getName() {
@@ -90,7 +96,8 @@ public class CompressedDataNode extends DefaultDataNode {
                 else {
                     dv.addPane( "Hex dump", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
-                            return new TextViewer( datsrc.getInputStream() );
+                            return new HexDumper( datsrc.getInputStream(), 
+                                                  datsrc.getLength() );
                         }
                     } );
                 }
