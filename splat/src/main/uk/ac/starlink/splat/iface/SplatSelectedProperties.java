@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -72,6 +73,7 @@ public class SplatSelectedProperties
     protected JButton errorsColour = new JButton();
     protected JButton lineColour = new JButton();
     protected JCheckBox errors = new JCheckBox();
+    protected JComboBox errorScale = new JComboBox();
     protected JComboBox coordColumn = new JComboBox();
     protected JComboBox dataColumn = new JComboBox();
     protected JComboBox errorColumn = new JComboBox();
@@ -208,21 +210,28 @@ public class SplatSelectedProperties
 
         //  Set up the errorbar display control.
         layouter.add( "Error bars:", false );
-        JPanel colourPanel = new JPanel( new GridLayout() );
-        layouter.add( colourPanel, false );
-        colourPanel.add( errors );
+        JPanel errorControls = new JPanel();
+        layouter.add( errorControls, false );
+        errorControls.add( errors );
 
         errors.setToolTipText
             ( "Enabled if errors available, ticked to display error bars" );
         errors.addActionListener( this );
 
         //  Add additional button for setting the error bar colour.
-        colourPanel.add( errorsColour );
-        layouter.eatLine();
-        errorsColour.setToolTipText( "Choose a colour for error bars" );
         errorsColour.setIcon( errorsColourIcon );
+        errorControls.add( errorsColour );
 
+        errorsColour.setToolTipText( "Choose a colour for error bars" );
         errorsColour.addActionListener( this );
+
+        //  Number of sigma plotted for error bars.
+        for ( int i = 1; i < 6; i++ ) {
+            errorScale.addItem( new Integer( i ) );
+        }
+        errorScale.setToolTipText("Set number of sigma shown for error bars");
+        errorScale.addActionListener( this );
+        errorControls.add( errorScale );
 
         layouter.eatSpare();
 
@@ -277,6 +286,9 @@ public class SplatSelectedProperties
                 errorsColourIcon.setMainColour
                     ( new Color( (int)spec.getErrorColour() ) );
                 errorsColour.repaint();
+
+                //  Error bar nsigma.
+                errorScale.setSelectedIndex( (int)spec.getErrorNSigma()-1 );
 
                 //  Update the column names.
                 String[] names = spec.getColumnNames();
@@ -470,6 +482,20 @@ public class SplatSelectedProperties
     }
 
     /**
+     *  Change the number of sigma plotted for the selected spectra.
+     */
+    protected void updateErrorScale()
+    {
+        if ( inhibitChanges ) return;
+
+        int[] indices = specList.getSelectedIndices();
+        if ( indices.length > 0 && indices[0] > -1 ) {
+            Integer nsigma = (Integer) errorScale.getSelectedItem();
+            applyProperty( indices, SpecData.ERROR_NSIGMA, nsigma );
+        }
+    }
+
+    /**
      *  Set the column used for the coordinate values.
      */
     protected void updateCoordColumn()
@@ -605,6 +631,10 @@ public class SplatSelectedProperties
         if ( source.equals( errorsColour ) ) {
             updateErrorColour();
             return;
+        }
+
+        if ( source.equals( errorScale ) ) {
+            updateErrorScale();
         }
     }
 }

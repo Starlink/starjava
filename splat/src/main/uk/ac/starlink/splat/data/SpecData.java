@@ -63,7 +63,7 @@ import uk.ac.starlink.ast.grf.DefaultGrfState;
  *
  * Each object records a series of properties that define how the spectrum
  * should be rendered (i.e. line colour, thickness, style, plotting style,
- * whether to show an errors as bars etc.). These are stored in any serialized
+ * whether to show any errors as bars etc.). These are stored in any serialized
  * versions of this class. Rendering using the Grf object primitives is
  * performed by this class for spectra and error bars. <p>
  *
@@ -238,6 +238,11 @@ public class SpecData
      */
     public final static int ERROR_COLOUR = 5;
 
+    /**
+     * Set or query the number of sigma error bars are drawn at.
+     */
+    public final static int ERROR_NSIGMA = 6;
+
     //
     //  Symbolic contants defining the possible plotting styles.
     //
@@ -385,6 +390,11 @@ public class SpecData
      * The colour used to drawn error bars.
      */
     protected double errorColour = (double) Color.red.getRGB();
+
+    /**
+     * The number of sigma any error bars are drawn at.
+     */
+    protected int errorNSigma = 1;
 
     /**
      * The spectrum plot style.
@@ -918,6 +928,27 @@ public class SpecData
         return errorColour;
     }
 
+    /**
+     * Set the number of sigma error bars are drawn at.
+     *
+     * @param nsigma the number of sigma
+     */
+    public void setErrorNSigma( int nsigma )
+    {
+        this.errorNSigma = nsigma;
+    }
+
+
+    /**
+     * Get the number of sigma error bars are drawn at.
+     *
+     * @return the number of sigma.
+     */
+    public double getErrorNSigma()
+    {
+        return errorNSigma;
+    }
+
 
     /**
      * Set the type of spectral lines that are drawn (these can be polylines
@@ -987,6 +1018,11 @@ public class SpecData
                 setErrorColour( value.intValue() );
                 break;
             }
+            case ERROR_NSIGMA:
+            {
+                setErrorNSigma( value.intValue() );
+            }
+
         }
     }
 
@@ -1394,7 +1430,7 @@ public class SpecData
 
     /**
      * Draw error bars. These are quite simple lines above and below positions
-     * by half a standard deviation, with a serif at each end.
+     * by number of standard deviations, with a serif at each end.
      *
      * @param grf DefaultGrf object that can be drawn into using AST
      *            primitives.
@@ -1411,7 +1447,7 @@ public class SpecData
             double half = 0.0;
             for ( int i = 0; i < xPos.length; i++ ) {
                 if ( yErr[i] != SpecData.BAD ) {
-                    half = yErr[i] * 0.5;
+                    half = yErr[i] * errorNSigma;
                     xypos[0] = xPos[i];
                     xypos[1] = yPos[i] - half;
                     xypos[2] = xPos[i];
