@@ -98,14 +98,19 @@ public class TableRowHeader extends JTable {
             public int getPreferredWidth() {
                 JTable tab = TableRowHeader.this;
                 int nrow = masterTable.getRowCount();
-                int first = StarJTable.getCellWidth( tab, 0, 0 );
-                int last = StarJTable.getCellWidth( tab, nrow - 1, 0);
-                int guess = tab.getCellRenderer( 0, 0 )
-                               .getTableCellRendererComponent( tab, 
-                                    new Integer( nrow + 1 ) + "  ",
-                                    false, false, 0, 0 )
-                               .getPreferredSize().width;
-                return 8 + Math.max( Math.max( first, last ), guess );
+                if ( nrow > 0 ) {
+                    int first = StarJTable.getCellWidth( tab, 0, 0 );
+                    int last = StarJTable.getCellWidth( tab, nrow - 1, 0);
+                    int guess = tab.getCellRenderer( 0, 0 )
+                                   .getTableCellRendererComponent( tab, 
+                                        new Integer( nrow + 1 ) + "  ",
+                                        false, false, 0, 0 )
+                                   .getPreferredSize().width;
+                    return 8 + Math.max( Math.max( first, last ), guess );
+                }
+                else {
+                    return 64; // no rows - make something up
+                }
             }
         };
 
