@@ -32,6 +32,7 @@ public class VOTableTest extends TestCase {
 
         VOElement defs = vot.getChildByName( "DEFINITIONS" );
         VOElement coosys = defs.getChildByName( "COOSYS" );
+        assertTrue( coosys.hasAttribute( "equinox" ) );
         assertEquals( "2000.", coosys.getAttribute( "equinox" ) );
         assertEquals( "myJ2000", coosys.getID() );
         assertEquals( "", coosys.getAttribute( "nope" ) );
