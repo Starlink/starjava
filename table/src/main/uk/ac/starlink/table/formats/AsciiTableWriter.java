@@ -8,7 +8,7 @@ import uk.ac.starlink.table.ValueInfo;
 /**
  * A StarTableWriter which outputs text to a simple format machine-readable
  * text file.  This format is suitable for reading using 
- * {@link TextStarTable} and {@link TextTableBuilder}.
+ * {@link AsciiStarTable} and {@link AsciiTableBuilder}.
  *
  * @author   Mark Taylor (Starlink)
  * @since    29 Mar 2004

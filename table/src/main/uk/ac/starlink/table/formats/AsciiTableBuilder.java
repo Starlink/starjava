@@ -9,16 +9,16 @@ import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * A table builder which reads tables in simple text format.
+ * A table builder which reads tables in simple ASCII format.
  * The detailed format of input file which is understood is documented
- * fully in the {@link TextStarTable} class.
+ * fully in the {@link AsciiStarTable} class.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextTableBuilder implements TableBuilder {
+public class AsciiTableBuilder implements TableBuilder {
 
     public String getFormatName() {
-        return "text";
+        return "ASCII";
     }
 
     public boolean canImport( DataFlavor flavor ) {
@@ -28,6 +28,6 @@ public class TextTableBuilder implements TableBuilder {
     public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
                                     StoragePolicy policy )
             throws TableFormatException, IOException {
-        return new TextStarTable( datsrc );
+        return new AsciiStarTable( datsrc );
     }
 }

@@ -47,20 +47,20 @@ import uk.ac.starlink.util.DataSource;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextStarTable extends StreamStarTable {
+public class AsciiStarTable extends StreamStarTable {
 
     private List comments_;
     private boolean dataStarted_;
 
     /**
-     * Constructs a new TextStarTable from a datasource.
+     * Constructs a new AsciiStarTable from a datasource.
      *
      * @param  datsrc  the data source containing the table text
      * @throws TableFormatException  if the input stream doesn't appear to
-     *         form a text-format table
+     *         form a ASCII-format table
      * @throws IOException if some I/O error occurs
      */
-    public TextStarTable( DataSource datsrc )
+    public AsciiStarTable( DataSource datsrc )
             throws TableFormatException, IOException {
         super( datsrc );
     }
