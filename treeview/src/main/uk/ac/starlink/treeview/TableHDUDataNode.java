@@ -110,11 +110,11 @@ public class TableHDUDataNode extends HDUDataNode {
             dv.addSeparator();
             dv.addKeyedItem( "HDU type", hduType );
             dv.addKeyedItem( "Number of header cards",
-                             Integer.toString( header.getNumberOfCards() ) );
+                             header.getNumberOfCards() );
             int nrows = tdata.getNRows();
             int ncols = tdata.getNCols();
-            dv.addKeyedItem( "Columns", ncols + "" );
-            dv.addKeyedItem( "Rows", nrows + "" );
+            dv.addKeyedItem( "Columns", ncols );
+            dv.addKeyedItem( "Rows", nrows );
             dv.addSubHead( "Columns" );
             for ( int i = 0; i < ncols; i++ ) {
                 String fmt;
@@ -124,8 +124,7 @@ public class TableHDUDataNode extends HDUDataNode {
                 catch ( FitsException e ) {
                     fmt = e.getMessage();
                 }
-                dv.addKeyedItem( "Column " + ( i + 1 ), 
-                                 columns[ i ].toString() );
+                dv.addKeyedItem( "Column " + ( i + 1 ), columns[ i ] );
             }
             dv.addPane( "Header cards", new ComponentMaker() {
                 public JComponent getComponent() {
