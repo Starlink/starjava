@@ -57,12 +57,23 @@ import uk.ac.starlink.util.Loader;
  * SQL query.  This list is extensible at run time; if you wish to 
  * provide an additional table acquisition dialogue, then you must 
  * provide an implementation of the {@link TableLoadDialog} interface.
- * This can be made known to the chooser either by subclassing 
- * {@link #getDialogs} or by specifying the class name as the value
+ * This can be made known to the chooser either by modifying its
+ * dialogue list using {@link #getDialogs} or {@link #setDialogs},
+ * or by specifying the class name as the value
  * of the system property with the name {@link #LOAD_DIALOGS_PROPERTY}
  * (multiple classnames may be separated by colons).
  * In the latter case the implementing class(es) must have a 
  * no-arg constructor.
+ *
+ * <p>By default, if the required classes are present, the following 
+ * handlers are installed:
+ * <ul>
+ * <li> {@link FileChooserLoader}
+ * <li> {@link NodeLoader}
+ * <li> {@link SQLReadDialog}
+ * <li> {@link uk.ac.starlink.astrogrid.MyspaceTableLoadDialog}
+ *      (requires AXIS and AstroGrid CDK)
+ * </ul>
  *
  * <p>If you want to make more customised use of this component than is
  * offered by <tt>showTableDialog</tt> it is possible, but these javadocs
@@ -81,14 +92,14 @@ public class StarTableChooser extends JPanel {
     private ComboBoxModel formatModel_;
     private TransferHandler transferHandler_;
     private Icon queryIcon_;
-    private TableLoadDialog[] dialogs_;
+    private List dialogs_;
     private TableConsumer tableConsumer_;
 
     /**
      * List of classnames for {@link TableLoadDialog} 
      * implementations used by default.
      */
-    public final static String[] DIALOG_CLASSES = new String[] {
+    private static String[] defaultDialogClasses = new String[] {
         FileChooserLoader.class.getName(),
         NodeLoader.class.getName(),
         SQLReadDialog.class.getName(),
@@ -164,11 +175,12 @@ public class StarTableChooser extends JPanel {
         actionBox.add( locBox );
         
         /* Create buttons for each of the pluggable dialog options. */
-        TableLoadDialog[] options = getDialogs();
-        int nopt = options.length;
-        JButton[] buttons = new JButton[ options.length ];
+        List options = getDialogs();
+        int nopt = options.size();
+        JButton[] buttons = new JButton[ nopt ];
         for ( int i = 0; i < nopt; i++ ) {
-            buttons[ i ] = new JButton( makeAction( options[ i ] ) );
+            TableLoadDialog tld = (TableLoadDialog) options.get( i );
+            buttons[ i ] = new JButton( makeAction( tld ) );
             if ( buttons[ i ].isEnabled() ) {
                 activeList.add( buttons[ i ] );
             }
@@ -382,19 +394,19 @@ public class StarTableChooser extends JPanel {
     }
 
     /**
-     * Returns a list of all the known dialogs which can be used to 
+     * Returns a list of all the known sub-dialogs which can be invoked to 
      * load a table.  Each of these will be represented by a button
      * in the chooser window.  Subclasses can override this to 
      * provide their own.
      *
-     * @return   options for loading tables
+     * @return   a list of {@link TableLoadDialog} objects
      */
-    public TableLoadDialog[] getDialogs() {
+    public List getDialogs() {
         if ( dialogs_ == null ) {
             List dlist = new ArrayList();
-            for ( int i = 0; i < DIALOG_CLASSES.length; i++ ) {
+            for ( int i = 0; i < defaultDialogClasses.length; i++ ) {
                 TableLoadDialog tld = (TableLoadDialog)
-                    Loader.getClassInstance( DIALOG_CLASSES[ i ],
+                    Loader.getClassInstance( defaultDialogClasses[ i ],
                                              TableLoadDialog.class );
                 if ( tld != null ) {
                     dlist.add( tld );
@@ -402,10 +414,18 @@ public class StarTableChooser extends JPanel {
             }
             dlist.addAll( Loader.getClassInstances( LOAD_DIALOGS_PROPERTY, 
                                                     TableLoadDialog.class ) );
-            dialogs_ = (TableLoadDialog[]) 
-                       dlist.toArray( new TableLoadDialog[ 0 ] );
+            dialogs_ = dlist;
         }
         return dialogs_;
+    }
+
+    /**
+     * Sets the list of sub-dialogs which can be invoked to select tables.
+     *
+     * @param  dialogs  array of table load dialogs
+     */
+    public void setDialogs( TableLoadDialog[] dialogs ) {
+        this.dialogs_ = new ArrayList( Arrays.asList( dialogs ) );
     }
 
     /**
@@ -449,10 +469,10 @@ public class StarTableChooser extends JPanel {
      * @return  file chooser
      */
     public JFileChooser getFileChooser() {
-        TableLoadDialog[] dialogs = getDialogs();
-        for ( int i = 0; i < dialogs.length; i++ ) {
-            if ( dialogs[ i ] instanceof FileChooserLoader ) {
-                return (JFileChooser) dialogs[ i ];
+        for ( Iterator it = getDialogs().iterator(); it.hasNext(); ) {
+            TableLoadDialog tld = (TableLoadDialog) it.next();
+            if ( tld instanceof FileChooserLoader ) {
+                return (JFileChooser) tld;
             }
         }
         return null;
