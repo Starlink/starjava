@@ -7,6 +7,11 @@
  */
 package uk.ac.starlink.splat.iface;
 
+//
+// Not used as couldn't get the realization of the widget to happen
+// reliably. See SplashWindow instead.
+//
+
 /**
  * Class that creates an instance of the SPLAT splash screen shown
  * during startup. This is just the AboutFrame wrapped to be a plain
