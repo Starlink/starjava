@@ -19,7 +19,7 @@ import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 
-import uk.ac.starlink.topcat.TableViewer;
+import uk.ac.starlink.topcat.ControlWindow;
 
 import uk.ac.starlink.frog.Frog;
 import uk.ac.starlink.frog.data.TimeSeries;
@@ -755,13 +755,12 @@ public class PlotControlFrame extends JInternalFrame
         
         iColInfo = new ColumnInfo( "Index", Integer.class, "Row index" );
         xColInfo = new ColumnInfo( "Time", Double.class, "Time Axis" );
+        yColInfo = new ColumnInfo( "Data", Double.class, "Data Value" );
         
         if( series.isInMags() ) {
-           yColInfo = 
-             new ColumnInfo( "Data", Double.class, "Data Value / magnitudes" );
+           yColInfo.setUnitString( "magnitudes" );
         } else {
-           yColInfo = 
-             new ColumnInfo( "Data", Double.class, "Data Value / flux" );  
+           yColInfo.setUnitString( "flux" );
         }
 
         // grab data
@@ -824,7 +823,7 @@ public class PlotControlFrame extends JInternalFrame
         }
         
         // spawn the table viewer
-        new TableViewer( sTable, null );
+        ControlWindow.getInstance().addTable( sTable, "time series", true );
   
      }  
        

@@ -17,7 +17,7 @@ import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
 
-import uk.ac.starlink.topcat.TableViewer;
+import uk.ac.starlink.topcat.ControlWindow;
 
 import uk.ac.starlink.frog.data.Gram;
 import uk.ac.starlink.frog.data.GramComp;
@@ -756,7 +756,7 @@ public class GramControlFrame extends JInternalFrame
         sTable.addColumn( yCol );
         
         // spawn the table viewer
-        new TableViewer( sTable, null );
+        ControlWindow.getInstance().addTable( sTable, "time series", true ); 
   
      }      
 
