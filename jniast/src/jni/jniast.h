@@ -42,27 +42,29 @@ typedef union {
    void *ptr;                /* Generic pointer */
    jlong jlong;              /* Java value as in 'private long pointer' */
    AstChannel *Channel;      /* Pointer to C AstChannel struct */
-   AstFitsChan *FitsChan;    /* Pointer to C AstFitsChan struct */
-   AstObject *AstObject;     /* Pointer to C AstObject struct */
-   AstMapping *Mapping;      /* Pointer to C AstMapping struct */
-   AstFrame *Frame;          /* Pointer to C AstFrame struct */
-   AstFrameSet *FrameSet;    /* Pointer to C AstFrameSet struct */
    AstCmpFrame *CmpFrame;    /* Pointer to C AstCmpFrame struct */
-   AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstCmpMap *CmpMap;        /* Pointer to C AstCmpMap struct */
    AstDSBSpecFrame *DSBSpecFrame; /* Pointer to C AstDSBSpecFrame struct */
+   AstFitsChan *FitsChan;    /* Pointer to C AstFitsChan struct */
    AstFluxFrame *FluxFrame;  /* Pointer to C FluxFrame struct */
-   AstSpecFluxFrame *SpecFluxFrame; /* Pointer to C AstSpecFluxFrame struct */
+   AstFrame *Frame;          /* Pointer to C AstFrame struct */
+   AstFrameSet *FrameSet;    /* Pointer to C AstFrameSet struct */
    AstGrismMap *GrismMap;    /* Pointer to C AstGrismMap struct */
    AstIntraMap *IntraMap;    /* Pointer to C AstIntraMap struct */
    AstLutMap *LutMap;        /* Pointer to C AstLutMap struct */
+   AstMapping *Mapping;      /* Pointer to C AstMapping struct */
    AstMathMap *MathMap;      /* Pointer to C AstMathMap struct */
    AstMatrixMap *MatrixMap;  /* Pointer to C AstMatrixMap struct */
+   AstObject *AstObject;     /* Pointer to C AstObject struct */
    AstPcdMap *PcdMap;        /* Pointer to C AstPcdMap struct */
    AstPermMap *PermMap;      /* Pointer to C AstPermMap struct */
+   AstPlot *Plot;            /* Pointer to C AstPlot struct */
    AstPolyMap *PolyMap;      /* Pointer to C AstPolyMap struct */
+   AstRateMap *RateMap;      /* Pointer to C AstRateMap struct */
    AstShiftMap *ShiftMap;    /* Pointer to C AstGrismMap struct */
+   AstSkyFrame *SkyFrame;    /* Pointer to C AstSkyFrame struct */
    AstSlaMap *SlaMap;        /* Pointer to C AstSlaMap struct */
+   AstSpecFluxFrame *SpecFluxFrame; /* Pointer to C AstSpecFluxFrame struct */
    AstSpecFrame *SpecFrame;  /* Pointer to C AstSpecFrame struct */
    AstSpecMap *SpecMap;      /* Pointer to C AstSpecMap struct */
    AstSphMap *SphMap;        /* Pointer to C AstSphMap struct */
@@ -71,7 +73,6 @@ typedef union {
    AstWcsMap *WcsMap;        /* Pointer to C AstWcsMap struct */
    AstWinMap *WinMap;        /* Pointer to C AstWinMap struct */
    AstZoomMap *ZoomMap;      /* Pointer to C AstZoomMap struct */
-   AstPlot *Plot;            /* Pointer to C AstPlot struct */
 } AstPointer;
 
 

@@ -511,6 +511,10 @@
       <param name="pj.cfile" value="polymap.c"/>
     </antcall>
     <antcall target="perl_to_java">
+      <param name="pj.class" value="RateMap"/>
+      <param name="pj.cfile" value="ratemap.c"/>
+    </antcall>
+    <antcall target="perl_to_java">
       <param name="pj.class" value="ShiftMap"/>
       <param name="pj.cfile" value="shiftmap.c"/>
     </antcall>
@@ -767,6 +771,7 @@
       <class name="${package.name}.PermMap"/>
       <class name="${package.name}.Plot"/>
       <class name="${package.name}.PolyMap"/>
+      <class name="${package.name}.RateMap"/>
       <class name="${package.name}.ShiftMap"/>
       <class name="${package.name}.SkyFrame"/>
       <class name="${package.name}.SlaMap"/>

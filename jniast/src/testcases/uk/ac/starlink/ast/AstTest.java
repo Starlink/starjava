@@ -616,6 +616,11 @@ public class AstTest extends TestCase {
         assertEquals( UnitMap.class, unit.simplify().getClass() );
     }
 
+    public void testRateMap() {
+        RateMap rmap = new RateMap( new UnitMap( 1 ), 1, 1 );
+        assertEquals( 1.0, rmap.tran1( 1, new double[] { 109. }, true )[ 0 ] );
+    }
+
     public void testTranMap() {
         MathMap fmap = new MathMap( 1, 1, new String[] { "f=i*2.0" },
                                           new String[] { "i" } );

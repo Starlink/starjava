@@ -99,6 +99,7 @@ C_ROUTINES = \
    PermMap.c \
    Plot.c \
    PolyMap.c \
+   RateMap.c \
    SkyFrame.c \
    SlaMap.c \
    ShiftMap.c \
