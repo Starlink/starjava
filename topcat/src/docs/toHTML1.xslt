@@ -461,10 +461,10 @@
   <xsl:template mode="sectype" match="sect|subsect|subsubsect|subsubsubsect">
     <xsl:choose>
       <xsl:when test="ancestor::appendices">
-        <xsl:text>appendix</xsl:text>
+        <xsl:text>Appendix</xsl:text>
       </xsl:when>
       <xsl:when test="ancestor-or-self::sect">
-        <xsl:text>section</xsl:text>
+        <xsl:text>Section</xsl:text>
       </xsl:when>
       <xsl:otherwise>
         <xsl:text>item??</xsl:text>
