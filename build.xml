@@ -5,7 +5,7 @@
  !
  !   This file describes how to build the Starlink java system from a
  !   source release. It requires Apache ANT and a Java Development Kit.
- ! 
+ !
  !   The main targets are:
  !
  !      build          -> compiles the system
@@ -93,7 +93,7 @@
   <property name="support.docs" value="${support.dir}/docs"/>
   <property name="support.etc" value="${support.dir}/etc"/>
 
-  <!-- 
+  <!--
    !  ======================================
    !  Execute all ANT in all sub-directories
    !  ======================================
@@ -107,19 +107,16 @@
 
     <echo message="Executing JUnit target: ${what}"/>
     <ant dir="./junit" target="${what}"/>
-    
+
     <echo message="Executing tamfits target: ${what}"/>
     <ant dir="./tamfits" target="${what}"/>
-    
+
     <echo message="Executing axis target: ${what}"/>
     <ant dir="./axis" target="${what}"/>
-    
+
     <echo message="Executing Jetty target: ${what}"/>
     <ant dir="./jetty" target="${what}"/>
-    
-    <echo message="Executing JSky target: ${what}"/>
-    <ant dir="./jsky" target="${what}"/>
-    
+
     <echo message="Executing UTIL target: ${what}"/>
     <ant dir="./util" target="${what}"/>
 
@@ -131,48 +128,51 @@
 
     <echo message="Executing ASTGUI target: ${what}"/>
     <ant dir="./astgui" target="${what}"/>
-      
-    <echo message="Executing JNIHDS target: ${what}"/> 
-    <ant dir="./jnihds" target="${what}"/> 
-    
-    <echo message="Executing HDX target: ${what}"/> 
-    <ant dir="./hdx" target="${what}"/> 
 
-    <echo message="Executing NDArray target: ${what}"/> 
-    <ant dir="./array" target="${what}"/> 
-    
-    <echo message="Executing NDX target: ${what}"/> 
-    <ant dir="./ndx" target="${what}"/> 
-    
+    <echo message="Executing JNIHDS target: ${what}"/>
+    <ant dir="./jnihds" target="${what}"/>
+
+    <echo message="Executing HDX target: ${what}"/>
+    <ant dir="./hdx" target="${what}"/>
+
+    <echo message="Executing NDArray target: ${what}"/>
+    <ant dir="./array" target="${what}"/>
+
+    <echo message="Executing NDX target: ${what}"/>
+    <ant dir="./ndx" target="${what}"/>
+
     <echo message="Executing Table target: ${what}"/>
     <ant dir="./table" target="${what}"/>
 
     <echo message="Executing NDTools target: ${what}"/>
     <ant dir="./ndtools" target="${what}"/>
 
-    <echo message="Executing HDS target: ${what}"/> 
-    <ant dir="./hds" target="${what}"/> 
-    
-    <echo message="Executing FITS target: ${what}"/> 
-    <ant dir="./fits" target="${what}"/> 
+    <echo message="Executing HDS target: ${what}"/>
+    <ant dir="./hds" target="${what}"/>
 
-    <echo message="Executing DIVA target: ${what}"/> 
-    <ant dir="./diva" target="${what}"/> 
+    <echo message="Executing FITS target: ${what}"/>
+    <ant dir="./fits" target="${what}"/>
+
+    <echo message="Executing DIVA target: ${what}"/>
+    <ant dir="./diva" target="${what}"/>
+
+    <echo message="Executing JSky target: ${what}"/>
+    <ant dir="./jsky" target="${what}"/>
 
     <echo message="Executing Pal target: ${what}"/>
     <ant dir="./pal" target="${what}"/>
 
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
-    
+
     <echo message="Executing JAIUtil target: ${what}"/>
     <ant dir="./jaiutil" target="${what}"/>
-    
-    <echo message="Executing SOAPSERVER target: ${what}"/> 
-    <ant dir="./soapserver" target="${what}"/> 
-    
-    <echo message="Executing SOG target: ${what}"/> 
-    <ant dir="./sog" target="${what}"/> 
+
+    <echo message="Executing SOAPSERVER target: ${what}"/>
+    <ant dir="./soapserver" target="${what}"/>
+
+    <echo message="Executing SOG target: ${what}"/>
+    <ant dir="./sog" target="${what}"/>
 
     <echo message="Executing SPLAT target: ${what}"/>
     <ant dir="./splat" target="${what}"/>
@@ -185,18 +185,18 @@
 
     <echo message="Executing Treeview target: ${what}"/>
     <ant dir="./treeview" target="${what}"/>
-    
+
     <echo message="Executing Coco target: ${what}"/>
     <ant dir="./coco" target="${what}"/>
-    
+
     <echo message="Executing RV target: ${what}"/>
     <ant dir="./rv" target="${what}"/>
-    
+
     <echo message="Executing FROG target: ${what}"/>
-    <ant dir="./frog" target="${what}"/>    
-    
+    <ant dir="./frog" target="${what}"/>
+
   </target>
-  
+
   <!--
    !   =================
    !   Prepare the build
@@ -218,13 +218,13 @@
       </replacetokens>
     </filterchain>
   </target>
-  
+
   <!--
    !   ==================
    !   Build all packages
    !   ==================
    !-->
-  <target name="build" depends="prepare" 
+  <target name="build" depends="prepare"
           description="--> compiles all packages">
 
      <antcall target="call_package_ant">
@@ -251,7 +251,7 @@
    !   Install into the "Starlink" tree
    !   ================================
    !-->
-  <target name="install" depends="prepare" 
+  <target name="install" depends="prepare"
           description="--> install into Starlink tree">
 
      <antcall target="call_package_ant">
@@ -265,7 +265,7 @@
    !   De-install from the "Starlink" tree
    !   ===================================
    !-->
-  <target name="deinstall" depends="prepare" 
+  <target name="deinstall" depends="prepare"
           description="--> undo the install target">
 
      <antcall target="call_package_ant">
@@ -282,7 +282,7 @@
    !  Create the documentation in each package.
    !
    !-->
-  <target name="javadocs" depends="prepare" 
+  <target name="javadocs" depends="prepare"
           description="--> generate the java documentation">
 
      <antcall target="call_package_ant">
@@ -298,7 +298,7 @@
    !
    !  Creates the complete javadocs for all local source packages.
    !-->
-  <target name="javadocs-full" depends="prepare" 
+  <target name="javadocs-full" depends="prepare"
           description="--> generate the complete java documentation">
 
      <!-- First make the all the java source available in a suitable
@@ -326,7 +326,7 @@
               version="true"
               locale="en"
               windowtitle="${FullName} API"
-              doctitle="${FullName}" 
+              doctitle="${FullName}"
               protected="true"
               classpathref="classpath"
               source="1.4">
@@ -339,7 +339,7 @@
        !   modified to remove the "{package}/build/java" part could be
        !   created then this would be unnecessary (TODO: look into
        !   this and maybe create a special type).
-       !--> 
+       !-->
       <packageset dir="util/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
@@ -422,7 +422,7 @@
       <group title="JSky API" packages="jsky.*"/>
 
       <!-- Link to the full Java API at SUNs website -->
-      <link offline="true" href="${javaapi.url}" 
+      <link offline="true" href="${javaapi.url}"
             packagelistLoc="${javaapi.lis}"/>
 
       <!-- TODO: link to static third party docs, need fixed relative
@@ -441,7 +441,7 @@
    !   Create the export distributions
    !   ===============================
    !-->
-  <target name="export" depends="prepare" 
+  <target name="export" depends="prepare"
           description="--> create all export archives">
 
      <antcall target="call_package_ant">
@@ -484,7 +484,7 @@
           depends="deinstall,clean"
           description="--> exports monolithic source archive">
 
-    <!-- Export an archive of the whole source tree including all the 
+    <!-- Export an archive of the whole source tree including all the
      !   package structure and build machinery -->
     <zip destfile="${star.archive.dir}/${archive.name}-sources.zip">
       <zipfileset dir="${star.dir}" prefix="${archive.top}">
@@ -512,14 +512,14 @@
     <copy todir="${source.tree.dir}">
       <fileset dir="${star.build.dir}"
                includes="*/src/main/uk/ac/starlink/**/*.java"/>
-      <fileset dir="${star.build.dir}" 
+      <fileset dir="${star.build.dir}"
                includes="*/build/java/uk/ac/starlink/**"/>
       <mapper type="regexp" from="(uk/ac/starlink/.*)" to="\1"/>
     </copy>
     <copy todir="${source.tree.dir}" file="${support.etc}/${licence.file}"/>
 
     <!-- Construct a zip file from the scratch directory. -->
-    <zip destfile="${star.archive.dir}/${archive.name}-src.zip" 
+    <zip destfile="${star.archive.dir}/${archive.name}-src.zip"
          basedir="${source.tree.dir}"/>
 
     <!-- Tidy up by deleting the scratch directory -->
@@ -536,7 +536,7 @@
           depends="install"
           description="--> exports monolithic runtime distributions">
 
-    <tar destfile="${star.archive.dir}/${archive.name}.tar.gz" 
+    <tar destfile="${star.archive.dir}/${archive.name}.tar.gz"
          longfile="gnu" compression="gzip">
       <tarfileset dir="${support.etc}" includes="${licence.file}"
                                             prefix="${archive.top}"
@@ -556,17 +556,17 @@
     </tar>
 
     <zip destfile="${star.archive.dir}/${archive.name}.zip">
-      <zipfileset dir="${support.etc}" includes="${licence.file}" 
+      <zipfileset dir="${support.etc}" includes="${licence.file}"
                                             prefix="${archive.top}"/>
       <zipfileset dir="${star.install}/bin" prefix="${archive.top}bin"/>
       <zipfileset dir="${star.install}/etc" prefix="${archive.top}etc"/>
-      <zipfileset dir="${star.install}/lib" prefix="${archive.top}lib" 
+      <zipfileset dir="${star.install}/lib" prefix="${archive.top}lib"
                   excludes="${os.arch}/**"/>
     </zip>
 
-    <tar destfile="${star.archive.dir}/${archive.jni.name}.tar.gz" 
+    <tar destfile="${star.archive.dir}/${archive.jni.name}.tar.gz"
          compression="gzip" longfile="gnu">
-      <tarfileset dir="${star.install}/lib/${os.arch}" 
+      <tarfileset dir="${star.install}/lib/${os.arch}"
                   username="${tar.user}"
                   group="${tar.group}"
                   prefix="${archive.top}lib/${os.arch}"/>
@@ -582,7 +582,7 @@
           depends="javadocs-full"
           description="--> exports monolithic javadocs archive">
     <zip destfile="${star.archive.dir}/${archive.name}-docs.zip">
-      <zipfileset dir="${support.etc}" includes="${licence.file}" 
+      <zipfileset dir="${support.etc}" includes="${licence.file}"
                                              prefix="${archive.top}"/>
       <zipfileset dir="${docs.dir}/javadocs" prefix="${archive.top}javadocs"/>
     </zip>
@@ -594,7 +594,7 @@
    !   Run the testcases
    !   =================
    !-->
-  <target name="test" depends="prepare" 
+  <target name="test" depends="prepare"
           description="--> run all the test targets">
 
      <antcall target="call_package_ant">
