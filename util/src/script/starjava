@@ -58,6 +58,8 @@
 #        Added logging configuration
 #     21-APR-2004 (BC):
 #        Added support for Power Macintosh
+#     21-OCT-2004 (PWD):
+#        Added support fot Cygwin.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -110,6 +112,9 @@ case "`uname -m`" in
        ;;
    Power*)
        arch=ppc
+       ;;
+   CYGWIN*)
+       arch=x86
        ;;
    *)
        arch="`uname -m`"
