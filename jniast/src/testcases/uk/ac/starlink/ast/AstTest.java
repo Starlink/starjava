@@ -339,9 +339,9 @@ public class AstTest extends TestCase {
         dsb.setIf( 23. );
         assertEquals( 23., dsb.getIf() );
 
-        assertEquals( "usb", dsb.getSideBand().toLowerCase() );
-        dsb.setSideBand( "lsb" );
         assertEquals( "lsb", dsb.getSideBand().toLowerCase() );
+        dsb.setSideBand( "usb" );
+        assertEquals( "usb", dsb.getSideBand().toLowerCase() );
         try {
             dsb.setSideBand( "sideways" );
             fail();
