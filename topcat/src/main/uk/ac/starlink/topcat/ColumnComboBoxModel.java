@@ -37,7 +37,8 @@ public class ColumnComboBoxModel extends AbstractListModel
     private static ListCellRenderer colRenderer_ = new ColumnCellRenderer();
 
     public static final StarTableColumn NO_COLUMN =
-        new StarTableColumn( new ColumnInfo( "" ) );
+        new StarTableColumn( new ColumnInfo( "" ), -1 );
+    
 
     /**
      * Constructs a new ComboBoxModel based on a given column model,
