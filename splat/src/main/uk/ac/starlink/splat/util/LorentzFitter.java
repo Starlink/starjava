@@ -11,38 +11,33 @@ package uk.ac.starlink.splat.util;
  * LorentzFitter fits a lorentzian to a set of data points using a
  * non-linear weighted least squares fit (non-linear is required for
  * centering).  The relevant formula is:
- *
+ * <pre>
  *    y(radius) = scale / ( 1.0 + 0.5 * ( radius / width )**2 )
-*
- * with FWHM = width * 2.0 * sqrt(2.0),
- * and radius = wavelength - centre of peak.
- *
+ * </pre>
+ * with <code>FWHM = width * 2.0 * sqrt(2.0)</code>,
+ * and <code>radius = wavelength - centre</code> of peak.
+ * <p>
  * To use this class create an instance with the data to be
  * fitted. Interpolated positions can then be obtained using the
- * evalArray() and evalPoint() methods. A chi squared residual to the
- * fit can be obtained from the getChi() method.
+ * {@link #evalYDataArray} and {@link #evalYData} methods. 
+ * A chi squared residual to the fit can be obtained from the 
+ * {@link #getChi} method.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class LorentzFitter
-    extends FunctionFitter
-    implements LevMarqFunc
+    extends AbstractFunctionFitter
 {
     /**
-     * The scale factor.
+     * The parameters of this function.
      */
-    protected double scale = 1.0;
+    protected double[] params = new double[3];
 
-    /**
-     * The width.
-     */
-    protected double width = 1.0;
-
-    /**
-     * The centre.
-     */
-    protected double centre = 0.0;
+    // Access to parameters.
+    public static final int SCALE = 0;
+    public static final int CENTRE = 1;
+    public static final int WIDTH = 2;
 
     /**
      * The chi square of the fit.
@@ -66,9 +61,9 @@ public class LorentzFitter
     public LorentzFitter( double[] x, double[] y, double scale,
                           double centre, double width )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.width = width;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[WIDTH] = width;
 
         // Default weights are 1.0.
         double[] w = new double[x.length];
@@ -91,9 +86,9 @@ public class LorentzFitter
     public LorentzFitter( double[] x, double[] y, double[] w,
                           double scale, double centre, double width )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.width = width;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[WIDTH] = width;
         doFit( x, y, w );
     }
 
@@ -117,20 +112,20 @@ public class LorentzFitter
         }
 
         //  Set the initial guesses.
-        lm.setParam( 1, scale );
-        lm.setParam( 2, centre );
-        lm.setParam( 3, width );
+        lm.setParam( 1, params[SCALE] );
+        lm.setParam( 2, params[CENTRE] );
+        lm.setParam( 3, params[WIDTH] );
 
-        //  And mimimise.
+        //  And minimise.
         lm.fitData();
 
         //  Record estimate of goodness of fit.
         chiSquare = lm.getChisq();
 
         //  And the fit parameters.
-        scale = lm.getParam( 1 );
-        centre = lm.getParam( 2 );
-        width = lm.getParam( 3 );
+        params[SCALE] = lm.getParam( 1 );
+        params[CENTRE] = lm.getParam( 2 );
+        params[WIDTH] = lm.getParam( 3 );
     }
 
     /**
@@ -147,7 +142,7 @@ public class LorentzFitter
      */
     public double getCentre()
     {
-        return centre;
+        return params[CENTRE];
     }
 
     /**
@@ -155,7 +150,7 @@ public class LorentzFitter
      */
     public double getScale()
     {
-        return scale;
+        return params[SCALE];
     }
 
     /**
@@ -163,7 +158,7 @@ public class LorentzFitter
      */
     public double getWidth()
     {
-        return width;
+        return params[WIDTH];
     }
 
     /**
@@ -171,7 +166,8 @@ public class LorentzFitter
      */
     public double getFlux()
     {
-        return Math.PI * 0.5 * scale * width * 2.0 * Math.sqrt( 2.0 );
+        return Math.PI * 0.5 * params[SCALE] * params[WIDTH] * 
+               2.0 * Math.sqrt( 2.0 );
     }
 
     /**
@@ -180,10 +176,31 @@ public class LorentzFitter
      * @param x X position at which to evaluate.
      * @return value at X
      */
-    public double evalPoint( double x )
+    public double evalYData( double x )
     {
-        double radius = Math.abs( x - centre );
-        return scale / ( 1.0 + 0.5 * ( radius * radius ) / ( width * width ) );
+        double radius = Math.abs( x - params[CENTRE] );
+        return params[SCALE] / 
+            ( 1.0 + 0.5 * (radius*radius) / (params[WIDTH]*params[WIDTH]) );
+    }
+
+    // Return the number of parameters that are used.
+    public int getNumParams()
+    {
+        return params.length;
+    }
+
+    // Get the parameters.
+    public double[] getParams()
+    {
+        return params;
+    }
+
+    // Set the parameters.
+    public void setParams( double[] params )
+    {
+        this.params[0] = params[0];
+        this.params[1] = params[1];
+        this.params[2] = params[2];
     }
 
 // 

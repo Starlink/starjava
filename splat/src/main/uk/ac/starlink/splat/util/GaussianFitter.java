@@ -11,35 +11,30 @@ package uk.ac.starlink.splat.util;
  * GaussianFitter fits a gaussian to a set of data points using a
  * non-linear weighted least squares fit (non-linear is required for
  * centering).  The relevant formula is:
- *
+ * <pre>
  *    y(radius) = scale * exp( -0.5 * ((radius-centre)/sigma)**2 )
- *
+ * </pre>
  * To use this class create an instance with the data to be
  * fitted. Interpolated positions can then be obtained using the
- * evalArray() and evalPoint() methods. A chi squared residual to the
- * fit can be obtained from the getChi() method.
+ * {@link #evalYDataArray} and {@link #evalYData} methods.
+ * A chi squared residual to the fit can be obtained from the
+ * {@link #getChi} method.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
-public class GaussianFitter 
-    extends FunctionFitter 
-    implements LevMarqFunc
+public class GaussianFitter
+    extends AbstractFunctionFitter
 {
     /**
-     * The scale factor.
+     * The parameters of this function.
      */
-    protected double scale = 1.0;
+    protected double[] params = new double[3];
 
-    /**
-     * The full width half maximum term.
-     */
-    protected double sigma = 1.0;
-
-    /**
-     * The centre.
-     */
-    protected double centre = 0.0;
+    // Access to parameters.
+    public static final int SCALE = 0;
+    public static final int CENTRE = 1;
+    public static final int SIGMA = 2;
 
     /**
      * The chi square of the fit.
@@ -68,9 +63,9 @@ public class GaussianFitter
         for (int i = 0; i < x.length; i++ ) {
             w[i] = 1.0;
         }
-        this.scale = scale;
-        this.centre = centre;
-        this.sigma = sigma;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[SIGMA] = sigma;
         doFit( x, y, w );
     }
 
@@ -87,9 +82,9 @@ public class GaussianFitter
     public GaussianFitter( double[] x, double[] y, double[] w,
                            double scale, double centre, double sigma )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.sigma = sigma;
+        params[SCALE] = scale;
+        params[CENTRE] = centre;
+        params[SIGMA] = sigma;
         doFit( x, y, w );
     }
 
@@ -117,9 +112,9 @@ public class GaussianFitter
         }
 
         //  Set the initial guesses.
-        lm.setParam( 1, scale );
-        lm.setParam( 2, centre );
-        lm.setParam( 3, sigma );
+        lm.setParam( 1, params[SCALE] );
+        lm.setParam( 2, params[CENTRE] );
+        lm.setParam( 3, params[SIGMA] );
 
         //  And mimimise.
         lm.fitData();
@@ -128,9 +123,9 @@ public class GaussianFitter
         chiSquare = lm.getChisq();
 
         //  And the fit parameters.
-        scale = lm.getParam( 1 );
-        centre = lm.getParam( 2 );
-        sigma = lm.getParam( 3 );
+        params[SCALE] = lm.getParam( 1 );
+        params[CENTRE] = lm.getParam( 2 );
+        params[SIGMA] = lm.getParam( 3 );
     }
 
     /**
@@ -142,19 +137,19 @@ public class GaussianFitter
     }
 
     /**
-     * Get centre of fit.
-     */
-    public double getCentre()
-    {
-        return centre;
-    }
-
-    /**
      * Get the scale height of fit.
      */
     public double getScale()
     {
-        return scale;
+        return params[SCALE];
+    }
+
+    /**
+     * Get centre of fit.
+     */
+    public double getCentre()
+    {
+        return params[CENTRE];
     }
 
     /**
@@ -162,7 +157,7 @@ public class GaussianFitter
      */
     public double getSigma()
     {
-        return sigma;
+        return params[SIGMA];
     }
 
     /**
@@ -175,7 +170,7 @@ public class GaussianFitter
         //  Note "1.0/sigma*sqrt(2*pi)" is the area of a normalised
         //  (i.e. flux of 1) gaussian, which our scale includes, so we
         //  need to remove this term from scale to get the flux.
-        return scale * sigma * Math.sqrt( 2.0 * Math.PI );
+        return params[SCALE] * params[SIGMA] * Math.sqrt( 2.0 * Math.PI );
     }
 
     /**
@@ -184,19 +179,39 @@ public class GaussianFitter
      * @param x X position at which to evaluate.
      * @return value at X
      */
-    public double evalPoint( double x ) {
-        double rbys = Math.abs( x - centre ) / sigma;
-        return scale * Math.exp( -0.5 * rbys * rbys );
+    public double evalYData( double x )
+    {
+        double rbys = Math.abs( x - params[CENTRE] ) / params[SIGMA];
+        return params[SCALE] * Math.exp( -0.5 * rbys * rbys );
+    }
+
+    // Return the number of parameters used to describe this function.
+    public int getNumParams()
+    {
+        return params.length;
+    }
+
+    // Get the parameters.
+    public double[] getParams()
+    {
+        return params;
+    }
+
+    // Set the parameters.
+    public void setParams( double[] params )
+    {
+        this.params[0] = params[0];
+        this.params[1] = params[1];
+        this.params[2] = params[2];
     }
 
     //
-    // Implementation of the LevMargFunc interface.
+    // Implementation of the LevMarqFunc interface.
     //
-    /**
-     * Evaluate the gaussian given a set of model parameters. Also
-     * evaluates the partial derivates of the current fit.
-     *
-     */
+
+    // Evaluate the gaussian given a set of model parameters. Also
+    // evaluates the partial derivates of the current fit.
+    //
     public double eval( double x, double[] a, int na, double[] dyda )
     {
         //  Calculate the value of the exponential term used in the
@@ -219,4 +234,3 @@ public class GaussianFitter
         return y;
     }
 }
-

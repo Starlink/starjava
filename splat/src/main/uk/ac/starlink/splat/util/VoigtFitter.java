@@ -14,40 +14,30 @@ package uk.ac.starlink.splat.util;
  *
  * To use this class create an instance with the data to be
  * fitted. Interpolated positions can then be obtained using the
- * evalArray() and evalPoint() methods. A chi squared residual to the
- * fit can be obtained from the getChi() method.
+ * evalYDataArray() and evalYData() methods. A chi squared residual to
+ * the fit can be obtained from the getChi() method.
  *
  * @author Peter W. Draper
  * @version $Id$
  */
 public class VoigtFitter 
-    extends FunctionFitter 
-    implements LevMarqFunc
+    extends AbstractFunctionFitter
 {
     /**
-     * The scale factor.
+     * The function parameters.
      */
-    protected double scale = 1.0;
+    protected double[] params = new double[4];
+
+    // Access to parameters.
+    public static final int SCALE = 0;
+    public static final int GWIDTH = 1;
+    public static final int LWIDTH = 2;
+    public static final int CENTRE = 3;
 
     /**
      * The peak height of error function (scale factor for scale).
      */
     protected double peak = 1.0;
-
-    /**
-     * The gaussian width.
-     */
-    protected double gwidth = 1.0;
-
-    /**
-     * The lorentzian width.
-     */
-    protected double lwidth = 1.0;
-
-    /**
-     * The centre.
-     */
-    protected double centre = 0.0;
 
     /**
      * The chi square of the fit.
@@ -72,10 +62,11 @@ public class VoigtFitter
     public VoigtFitter( double[] x, double[] y, double scale,
                         double centre, double gwidth, double lwidth )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.gwidth = gwidth;
-        this.lwidth = lwidth;
+        params[SCALE] = scale;
+        params[GWIDTH] = gwidth;
+        params[LWIDTH] = lwidth;
+        params[CENTRE] = centre;
+        peak = 1.0;
 
         // Default weights are 1.0.
         double[] w = new double[x.length];
@@ -100,10 +91,11 @@ public class VoigtFitter
                         double scale, double centre, double gwidth,
                         double lwidth )
     {
-        this.scale = scale;
-        this.centre = centre;
-        this.gwidth = gwidth;
-        this.lwidth = lwidth;
+        params[SCALE] = scale;
+        params[GWIDTH] = gwidth;
+        params[LWIDTH] = lwidth;
+        params[CENTRE] = centre;
+        peak = 1.0;
         doFit( x, y, w );
     }
 
@@ -127,10 +119,10 @@ public class VoigtFitter
         }
 
         //  Set the initial guesses.
-        lm.setParam( 1, scale );
-        lm.setParam( 2, gwidth );
-        lm.setParam( 3, lwidth );
-        lm.setParam( 4, centre );
+        lm.setParam( 1, params[SCALE] );
+        lm.setParam( 2, params[GWIDTH] );
+        lm.setParam( 3, params[LWIDTH] );
+        lm.setParam( 4, params[CENTRE] );
 
         //  Each solution is scaled by a re-normalisation factor
         //  (i.e. so that error function peak is 1).
@@ -148,7 +140,7 @@ public class VoigtFitter
      */
     public double getCentre()
     {
-        return centre;
+        return params[CENTRE];
     }
 
     /**
@@ -156,7 +148,7 @@ public class VoigtFitter
      */
     public double getScale()
     {
-        return scale;
+        return params[SCALE];
     }
 
     /**
@@ -164,7 +156,7 @@ public class VoigtFitter
      */
     public double getGWidth()
     {
-        return gwidth;
+        return params[GWIDTH];
     }
 
     /**
@@ -172,7 +164,7 @@ public class VoigtFitter
      */
     public double getLWidth()
     {
-        return lwidth;
+        return params[LWIDTH];
     }
 
     /**
@@ -190,7 +182,7 @@ public class VoigtFitter
     protected void setPeak()
     {
         peak = 1.0;
-        peak = scale / evalPoint( centre );
+        peak = params[SCALE] / evalYData( params[CENTRE] );
     }
 
     /**
@@ -207,7 +199,7 @@ public class VoigtFitter
      * @param x array of X positions at which to evaluate.
      * @return array of values at given X's.
      */
-    public double[] evalArray( double[] x )
+    public double[] evalYDataArray( double[] x )
     {
         double[] y = new double[x.length];
         double[] dyda = new double[5];
@@ -223,10 +215,31 @@ public class VoigtFitter
      * @param x X position at which to evaluate.
      * @return value at X
      */
-    public double evalPoint( double x )
+    public double evalYData( double x )
     {
         double[] dyda = new double[5];
         return fullEvalPoint( x, dyda );
+    }
+
+    // Return the number of parameters used by this function.
+    public int getNumParams()
+    {
+        return params.length;
+    }
+
+    // Get the parameters.
+    public double[] getParams()
+    {
+        return params;
+    }
+
+    // Set the parameters.
+    public void setParams( double[] params )
+    {
+        this.params[0] = params[0];
+        this.params[1] = params[1];
+        this.params[2] = params[2];
+        this.params[3] = params[3];
     }
 
     /**
@@ -259,10 +272,10 @@ public class VoigtFitter
         final double ovrtpi = 0.564189584;  // 1/sqrt(PI)
         final double ovrt2 = 0.707106781;   // 1/sqrt(2)
 
-        double btem = ovrt2 / gwidth;
+        double btem = ovrt2 / params[GWIDTH];
         double atem = ovrtpi * btem;
-        double xx = ( wavex - centre ) * btem;
-        double yy = 0.5 * lwidth * btem;
+        double xx = ( wavex - params[CENTRE] ) * btem;
+        double yy = 0.5 * params[LWIDTH] * btem;
 
         //  Evaluate voigt function, w[0] = real part, w[1] = imaginary.
         double w[] = voigt( xx, yy );
@@ -277,7 +290,7 @@ public class VoigtFitter
         // parameterised forms.
         double dwrdx = 2.0 * ( yy * w[1] - xx * w[0] );
         double dwrdy = 2.0 * ( xx * w[1] + yy * w[0] - ovrtpi );
-        if ( scale < 0.0 ) {
+        if ( params[SCALE] < 0.0 ) {
             dwrdx *= -1.0;
             dwrdy *= -1.0;
         }
@@ -285,7 +298,7 @@ public class VoigtFitter
         //  Partials wrt to scale, gaussian width, lorentzian width
         //  and position.
         dyda[1] = dyda[0];
-        dyda[2] = -atem * ( w[0] + dwrdx * xx + dwrdy * yy ) / gwidth;
+        dyda[2] = -atem * ( w[0] + dwrdx * xx + dwrdy * yy ) / params[GWIDTH];
         dyda[3] = 0.5 * ctem * dwrdy;
         dyda[4] = -dwrdx * ctem;
 
@@ -301,10 +314,10 @@ public class VoigtFitter
      */
     public double eval( double x, double[] a, int na, double[] dyda )
     {
-        scale = a[1];
-        gwidth = a[2];
-        lwidth = a[3];
-        centre = a[4];
+        params[SCALE] = a[1];
+        params[GWIDTH] = a[2];
+        params[LWIDTH] = a[3];
+        params[CENTRE] = a[4];
         
         //  Each solution is uniquely scaled by a re-normalisation factor
         //  (i.e. so that peak is 1).
