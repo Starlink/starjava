@@ -89,6 +89,16 @@ public class DataLimitControls
     protected JCheckBox yFit = new JCheckBox();
 
     /**
+     * Check box for whether X axis range should be shown flipped.
+     */
+    protected JCheckBox xFlipped = new JCheckBox();
+
+    /**
+     * Check box for whether Y axis range should be shown flipped.
+     */
+    protected JCheckBox yFlipped = new JCheckBox();
+
+    /**
      * Entry widget for lower limit of the X axis.
      */
     protected AstDoubleField xLower = null;
@@ -222,6 +232,24 @@ public class DataLimitControls
                 }
             } );
 
+        //  Whether ranges should be shown flipped.
+        xFlipped.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    matchXFlipped();
+                }
+            } );
+        yFlipped.addActionListener(
+            new ActionListener()
+            {
+                public void actionPerformed( ActionEvent e )
+                {
+                    matchYFlipped();
+                }
+            } );
+
         //  Limits as AstDoubles...
         xLower = new AstDoubleField( 0.0, control, 1 );
         Document doc = xLower.getDocument();
@@ -279,13 +307,15 @@ public class DataLimitControls
         //  Add labels for all fields.
         addLabel( "Autoscale X:", 0 );
         addLabel( "Fit X range:", 1 );
-        addLabel( "Lower X:", 2 );
-        addLabel( "Upper X:", 3 );
-        addLabel( "Autoscale Y:", 4 );
-        addLabel( "Fit Y range:", 5 );
-        addLabel( "Lower Y:", 6 );
-        addLabel( "Upper Y:", 7 );
-        addLabel( "Y auto cut:", 8 );
+        addLabel( "Flip X axis:", 2 );
+        addLabel( "Lower X:", 3 );
+        addLabel( "Upper X:", 4 );
+        addLabel( "Autoscale Y:", 5 );
+        addLabel( "Fit Y range:", 6 );
+        addLabel( "Flip Y axis:", 7 );
+        addLabel( "Lower Y:", 8 );
+        addLabel( "Upper Y:", 9 );
+        addLabel( "Y auto cut:", 10 );
 
         gbc.insets = new Insets( 0, 0, 0, 0 );
         gbc.anchor = GridBagConstraints.WEST;
@@ -306,6 +336,11 @@ public class DataLimitControls
         gbc.gridy = row++;
         add( xFit, gbc );
 
+        //  Flip X.
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridy = row++;
+        add( xFlipped, gbc );
+
         //  X limits.
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = row++;
@@ -322,6 +357,11 @@ public class DataLimitControls
         gbc.fill = GridBagConstraints.NONE;
         gbc.gridy = row++;
         add( yFit, gbc );
+
+        //  Flip Y.
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridy = row++;
+        add( yFlipped, gbc );
 
         //  Y limits.
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -359,10 +399,12 @@ public class DataLimitControls
         //  Set tooltips.
         xAutoscaled.setToolTipText( "Autoscale X axis to fit all data" );
         xFit.setToolTipText( "Fit X axis limts to viewable surface" );
+        xFlipped.setToolTipText( "Flip X axis to run right to left" );
         xLower.setToolTipText( "Lower limit of X axis (axis units)" );
         xUpper.setToolTipText( "Upper limit of X axis (axis units)" );
         yAutoscaled.setToolTipText( "Autoscale Y axis to fit all data" );
         yFit.setToolTipText( "Fit Y axis limits to viewable surface" );
+        yFlipped.setToolTipText( "Flip Y axis to run top to bottom" );
         yLower.setToolTipText( "Lower limit of Y axis (axis units)" );
         yUpper.setToolTipText( "Upper limit of Y axis (axis units)" );
         yPercentiles.setToolTipText( "Percentile auto limits for data " +
@@ -503,6 +545,22 @@ public class DataLimitControls
     protected void matchYFit()
     {
         dataLimits.setYFit( yFit.isSelected() );
+    }
+
+    /**
+     * Match X axis flipped state.
+     */
+    protected void matchXFlipped()
+    {
+        dataLimits.setXFlipped( xFlipped.isSelected() );
+    }
+
+    /**
+     * Match Y axis flipped state.
+     */
+    protected void matchYFlipped()
+    {
+        dataLimits.setYFlipped( yFlipped.isSelected() );
     }
 
     /**

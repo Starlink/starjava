@@ -44,6 +44,16 @@ public class DataLimits extends AbstractPlotControlsModel
     protected boolean yAutoscaled;
 
     /**
+     * Whether the displayed range should be flipped along any X axis.
+     */
+    protected boolean xFlipped;
+
+    /**
+     * Whether the displayed range should be flipped along any Y axis.
+     */
+    protected boolean yFlipped;
+
+    /**
      * Lower limit of the X axis.
      */
     protected double xLower;
@@ -84,6 +94,8 @@ public class DataLimits extends AbstractPlotControlsModel
         yUpper = 0.0;
         xFit = false;
         yFit = false;
+        xFlipped = false;
+        yFlipped = false;
         fireChanged();
     }
 
@@ -118,6 +130,41 @@ public class DataLimits extends AbstractPlotControlsModel
     public void setYAutoscaled( boolean yAutoscaled )
     {
         this.yAutoscaled = yAutoscaled;
+        fireChanged();
+    }
+
+
+    /**
+     * See if the X axis should be flipped.
+     */
+    public boolean isXFlipped()
+    {
+        return xFlipped;
+    }
+
+    /**
+     * See if the Y axis should be flipped.
+     */
+    public boolean isYFlipped()
+    {
+        return yFlipped;
+    }
+
+    /**
+     * Set if the X axis should be flipped.
+     */
+    public void setXFlipped( boolean xFlipped )
+    {
+        this.xFlipped = xFlipped;
+        fireChanged();
+    }
+
+    /**
+     * Set if the Y axis should be flipped.
+     */
+    public void setYFlipped( boolean yFlipped )
+    {
+        this.yFlipped = yFlipped;
         fireChanged();
     }
 
@@ -244,6 +291,8 @@ public class DataLimits extends AbstractPlotControlsModel
     {
         addChildElement( rootElement, "xAutoscaled", xAutoscaled );
         addChildElement( rootElement, "yAutoscaled", yAutoscaled );
+        addChildElement( rootElement, "xFlipped", xFlipped );
+        addChildElement( rootElement, "yFlipped", yFlipped );
         addChildElement( rootElement, "xLower", xLower );
         addChildElement( rootElement, "yLower", yLower );
         addChildElement( rootElement, "xUpper", xUpper );
@@ -264,6 +313,14 @@ public class DataLimits extends AbstractPlotControlsModel
         }
         if ( name.equals( "yAutoscaled" ) ) {
             setYAutoscaled( booleanFromString( value ) );
+            return;
+        }
+        if ( name.equals( "xFlipped" ) ) {
+            setXFlipped( booleanFromString( value ) );
+            return;
+        }
+        if ( name.equals( "yFlipped" ) ) {
+            setYFlipped( booleanFromString( value ) );
             return;
         }
         if ( name.equals( "xLower" ) ) {

@@ -338,8 +338,8 @@ public class DivaPlot
                 }
             };
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_LEFT,
-            KeyEvent.SHIFT_MASK ),
-            leftAction );
+                                                   KeyEvent.SHIFT_MASK ),
+                           leftAction );
 
         Action rightAction =
             new AbstractAction( "moveRight" )
@@ -350,8 +350,8 @@ public class DivaPlot
                 }
             };
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_RIGHT,
-            KeyEvent.SHIFT_MASK ),
-            rightAction );
+                                                   KeyEvent.SHIFT_MASK ),
+                           rightAction );
 
         //  The space-bar (with control, alt and shift modifiers)
         //  makes the interactive readouts show the interpolated
@@ -366,16 +366,16 @@ public class DivaPlot
                 }
             };
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 ),
-            spaceAction );
+                           spaceAction );
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE,
-            KeyEvent.CTRL_MASK ),
-            spaceAction );
+                                                   KeyEvent.CTRL_MASK ),
+                           spaceAction );
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE,
-            KeyEvent.META_MASK ),
-            spaceAction );
+                                                   KeyEvent.META_MASK ),
+                           spaceAction );
         addKeyBoardAction( KeyStroke.getKeyStroke( KeyEvent.VK_SPACE,
-            KeyEvent.SHIFT_MASK ),
-            spaceAction );
+                                                   KeyEvent.SHIFT_MASK ),
+                           spaceAction );
     }
 
     /**
@@ -470,10 +470,22 @@ public class DivaPlot
 
         //  Define the size of the box used to draw the spectra
         //  (physical coordinates, i.e. the current frame).
-        baseBox[0] = xMin;
-        baseBox[1] = yMin;
-        baseBox[2] = xMax;
-        baseBox[3] = yMax;
+        if ( dataLimits.isXFlipped() ) {
+            baseBox[0] = xMax;
+            baseBox[2] = xMin;
+        } 
+        else {
+            baseBox[0] = xMin;
+            baseBox[2] = xMax;
+        }
+        if ( dataLimits.isYFlipped() ) {
+            baseBox[1] = yMax;
+            baseBox[3] = yMin;
+        }
+        else {
+            baseBox[1] = yMin;
+            baseBox[3] = yMax;
+        }
 
         //  The base scales are defined to fit the data content into
         //  the plotting area. Do this once so that scales remain same
@@ -570,8 +582,8 @@ public class DivaPlot
     }
 
     /**
-     * Fit spectrum to the displayed height. Follow this with a setScale( x, 1
-     * ), to update the display.
+     * Fit spectrum to the displayed height. Follow this with a 
+     * setScale( x, 1 ), to update the display.
      */
     public void fitToHeight()
     {
@@ -591,8 +603,8 @@ public class DivaPlot
         //  (use center of a BorderLayout, probably with a
         //  JScrollPane, if expecting to resize after creation).
         setPreferredSize
-            ( new Dimension( (int) ( baseXScale * xScale * ( xMax - xMin ) ),
-            (int) ( baseYScale * yScale * ( yMax - yMin ) ) ) );
+            (new Dimension( (int)( baseXScale * xScale * ( xMax - xMin ) ),
+                            (int)( baseYScale * yScale * ( yMax - yMin ) ) ) );
     }
 
     /**
@@ -685,10 +697,24 @@ public class DivaPlot
         if ( graphicsEdges != null ) {
             if ( graphicsEdges.isClipped() ) {
                 limits = new double[4];
-                limits[0] = xMin;
-                limits[1] = yMin;
-                limits[2] = xMax;
-                limits[3] = yMax;
+                if ( dataLimits.isXFlipped() ) {
+                    limits[0] = xMax;
+                    limits[2] = xMin;
+                } 
+                else {
+                    limits[0] = xMin;
+                    limits[2] = xMax;
+                }
+                if ( dataLimits.isYFlipped() ) {
+                    limits[1] = yMax;
+                    limits[3] = yMin;
+                }
+                else {
+                    limits[1] = yMin;
+                    limits[3] = yMax;
+                }
+
+
             }
         }
         spectra.drawSpec( javaGrf, astJ.getPlot(), limits );
