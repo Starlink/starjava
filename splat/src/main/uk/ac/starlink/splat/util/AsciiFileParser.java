@@ -216,9 +216,7 @@ public class AsciiFileParser
         if ( value != null ) {
             return Integer.parseInt( value );
         }
-        else {
-            return 0;
-        }
+        return 0;
     }
 
     /**
@@ -235,9 +233,25 @@ public class AsciiFileParser
         if ( value != null ) {
             return Double.parseDouble( value );
         }
-        else {
-            return 0.0;
+        return 0.0;
+    }
+
+    /**
+     * Get the boolean value of a field. Any string starting with "t" or "T"
+     * is considered true, otherwise the value is false.
+     *
+     * @param row the row index of the field required.
+     * @param column the column index of the field required.
+     *
+     * @return true or false
+     */
+    public boolean getBooleanField( int row, int column )
+    {
+        String value = getStringField( row, column );
+        if ( value.charAt(0) == 't' || value.charAt(0) == 'T' ) {
+            return true;
         }
+        return false;
     }
 
     /**
