@@ -315,26 +315,33 @@ public class LoadQueryWindow extends QueryWindow {
          }
 
          public boolean importData( JComponent comp, Transferable trans ) {
-             StarTable table = tableFactory.makeStarTable( trans );
-             if ( table == null ) {
-                 return false;
-             }
-             else {
 
-                 /* Perform any required pre-processing. */
-                 table = doctorTable( table );
+             /* Try to obtain a StarTable from the Transferable. */
+             StarTable table; 
+             try {
+                 table = tableFactory.makeStarTable( trans );
                  if ( table == null ) {
                      return false;
                  }
-
-                 /* Do whatever needs doing with the successfully created
-                  * StarTable. */
-                 performLoading( table );
-
-                 /* We're finished. */
-                 dispose();
-                 return true;
              }
+             catch ( IOException e ) {
+                 e.printStackTrace();
+                 return false;
+             }
+
+             /* Perform any required pre-processing. */
+             table = doctorTable( table );
+             if ( table == null ) {
+                 return false;
+             }
+
+             /* Do whatever needs doing with the successfully created
+              * StarTable. */
+             performLoading( table );
+
+             /* We're finished. */
+             dispose();
+             return true;
          }
 
          public int getSourceActions( JComponent comp ) {

@@ -221,19 +221,30 @@ public class TableViewer extends AuxWindow
                 return tabfact.canImport( flavors );
             }
             public boolean importData( JComponent comp, Transferable trans ) {
-                StarTable st = tabfact.makeStarTable( trans );
-                if ( st != null ) {
-                    try {
-                        new TableViewer( Tables.randomTable( st ),
-                                         TableViewer.this );
-                        return true;
-                    }
-                    catch ( IOException e ) {
-                        ErrorDialog.showError( e, "Can't randomise table", 
-                                               TableViewer.this );
+
+                /* Try to get a StarTable from the Transferable. */
+                StarTable st;
+                try {
+                    st = tabfact.makeStarTable( trans );
+                    if ( st == null ) {
+                        return false;
                     }
                 }
-                return false;
+                catch ( IOException e ) {
+                    ErrorDialog.showError( e, "Drop operation failed", 
+                                           TableViewer.this );
+                    return false;
+                }
+                try {
+                    new TableViewer( Tables.randomTable( st ),
+                                     TableViewer.this );
+                    return true;
+                }
+                catch ( IOException e ) {
+                    ErrorDialog.showError( e, "Can't randomise table", 
+                                           TableViewer.this );
+                    return false;
+                }
             }
         };
 
