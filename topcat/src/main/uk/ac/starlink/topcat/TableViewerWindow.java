@@ -51,6 +51,7 @@ public class TableViewerWindow extends TopcatViewWindow
     private final ViewerTableModel viewModel;
     private final TableColumnModel columnModel;
     private final OptionsListModel subsets;
+    private final ColumnList columnList;
 
     private JTable jtab;
     private TableRowHeader rowHead;
@@ -80,6 +81,7 @@ public class TableViewerWindow extends TopcatViewWindow
         this.viewModel = tcModel.getViewModel();
         this.columnModel = tcModel.getColumnModel();
         this.subsets = tcModel.getSubsets();
+        this.columnList = tcModel.getColumnList();
 
         /* Set up the JTable. */
         jtab = new JTable(); 
@@ -273,38 +275,57 @@ public class TableViewerWindow extends TopcatViewWindow
      */
     private JPopupMenu columnPopup( final int jcol ) {
         JPopupMenu popper = new JPopupMenu();
+        final StarTableColumn tcol = 
+            (StarTableColumn) columnModel.getColumn( jcol );
+        ColumnInfo colInfo = tcol.getColumnInfo();
+        String colName = colInfo.getName();
+        final Component parent = this;
 
-        if ( jcol >= 0 ) {
-            Action deleteAct = new AbstractAction( "Hide" ) {
+        /* Action to replace current column. */
+        Action replacecolAct =
+            new BasicAction( "Replace Column", ResourceIcon.MODIFY,
+                             "Replace " + colName + 
+                             " with new synthetic column" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    columnModel.removeColumn( columnModel.getColumn( jcol ) );
+                    SyntheticColumnQueryWindow
+                       .replaceColumnDialog( tcModel, tcol, parent );
                 }
             };
-            popper.add( deleteAct );
+        popper.add( replacecolAct );
+
+        /* Action to append a new column here. */
+        Action addcolAct = 
+            new BasicAction( "New Synthetic Column", ResourceIcon.ADD,
+                             "Add new synthetic column after " + colName ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    new SyntheticColumnQueryWindow( tcModel, jcol + 1, parent );
+                }
+            };
+        popper.add( addcolAct );
+
+        /* Actions to sort on current column. */
+        if ( jcol >= 0 ) {
+            if ( Comparable.class
+                           .isAssignableFrom( colInfo.getContentClass() ) ) {
+                popper.add( tcModel
+                           .getSortAction( new SortOrder( tcol ), true ) );
+                popper.add( tcModel
+                           .getSortAction( new SortOrder( tcol ), false ) );
+            }
         }
 
-        Action addcolAct = new AbstractAction( "Synthetic column" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                Component parent = TableViewerWindow.this;
-                new SyntheticColumnQueryWindow( tcModel, jcol + 1, parent );
-            }
-        };
-        popper.add( addcolAct );
+        /* Action to hide the current column. */
         if ( jcol >= 0 ) {
-            StarTableColumn stcol = 
-                (StarTableColumn) columnModel.getColumn( jcol );
-            ColumnInfo colinfo = stcol.getColumnInfo();
-            if ( Comparable.class
-                           .isAssignableFrom( colinfo.getContentClass() ) ) {
-                popper.add( tcModel
-                           .getSortAction( new SortOrder( stcol ), true ) );
-                popper.add( tcModel
-                           .getSortAction( new SortOrder( stcol ), false ) );
-            }
+            Action hidecolAct = 
+                new BasicAction( "Hide Column", ResourceIcon.HIDE,
+                                 "Hide column " + colName + " from view" ) {
+                    public void actionPerformed( ActionEvent evt ) {
+                        columnModel.removeColumn( tcol );
+                    }
+                };
+            popper.add( hidecolAct );
         }
-        else {
-            popper.add( tcModel.getUnsortAction() );
-        }
+
         return popper;
     }
 
@@ -397,7 +418,6 @@ public class TableViewerWindow extends TopcatViewWindow
     public void columnMarginChanged( ChangeEvent evt ) {}
     public void columnMoved( TableColumnModelEvent evt ) {}
     public void columnSelectionChanged( ListSelectionEvent evt ) {}
-
 
 
     /** 

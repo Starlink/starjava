@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ListSelectionModel;
@@ -31,6 +32,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.UCD;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.TableRowHeader;
 
 /**
@@ -46,11 +48,15 @@ public class ColumnInfoWindow extends TopcatViewWindow {
     private final ViewerTableModel viewModel;
     private final ColumnList columnList;
     private final Action addcolAct;
+    private final Action replacecolAct;
     private final Action hidecolAct;
     private final Action revealcolAct;
     private ColumnInfo indexColumnInfo;
     private JTable jtab;
     private AbstractTableModel metaTableModel;
+
+    private static final Logger logger = 
+        Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a new ColumnInfoWindow.
@@ -103,26 +109,13 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 return irow > 0;
             }
             public void setValue( int irow, Object value ) {
-                String name = (String) value;
-                getColumnInfo( irow ).setName( name );
-                TableColumn tcol = getColumnFromRow( irow );
-                tcol.setHeaderValue( name );
-
-                /* This apparent NOP is required to force the TableColumnModel
-                 * to notify its listeners (importantly the main data JTable)
-                 * that the column name (headerValue) has changed; there 
-                 * doesn't appear to be an event specifically for this. */
-                for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
-                    if ( columnModel.getColumn( i ) == tcol ) {
-                        columnModel.moveColumn( i, i );
-                    }
-                }
+                tcModel.renameColumn( getColumnFromRow( irow ), 
+                                      (String) value );
             }
         } );
 
         /* Add $ID column. */
-        metas.add( new ValueInfoMetaColumn( PlasticStarTable.COLID_INFO,
-                                            false ) );
+        metas.add( new ValueInfoMetaColumn( TopcatUtils.COLID_INFO, false ) );
 
         /* Add class column. */
         metas.add( new MetaColumn( "Class", String.class ) {
@@ -187,7 +180,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         } );
 
         /* Add expression column. */
-        metas.add( new ValueInfoMetaColumn( PlasticStarTable.EXPR_INFO ) {
+        metas.add( new ValueInfoMetaColumn( TopcatUtils.EXPR_INFO ) {
             private SyntheticColumn getSyntheticColumn( int irow ) {
                 ColumnData coldata = 
                     dataModel.getColumnData( getModelIndexFromRow( irow ) );
@@ -226,45 +219,20 @@ public class ColumnInfoWindow extends TopcatViewWindow {
             }
         } );
            
-        /* Add description column. 
-         * Synthetic and normal (non-synthetic) columns are handled a bit 
-         * differently.  For normal columns, the value displayed is the
-         * column's Description attribute itself (ColumnInfo.getDescription).
-         * For synthetic columns it's the BASE_DESCRIPTION auxiliary
-         * metadata item; the Description attribute contains that plus
-         * the current expression in brackets. */
+        /* Add description column.  Note this actually views/sets the
+         * 'base description', which is like the description but for
+         * synthetic columns doesn't include the expression text.
+         * Access to base description is defined in the TopcatUtils class. */
         metas.add( new MetaColumn( "Description", String.class ) {
             public Object getValue( int irow ) {
-                ColumnInfo colinfo = getColumnInfo( irow );
-                DescribedValue basedescValue = getBaseDescription( irow );
-                return basedescValue == null 
-                     ? colinfo.getDescription()
-                     : basedescValue.getValue();
+                return TopcatUtils.getBaseDescription( getColumnInfo( irow ) );
             }
             public boolean isEditable( int irow ) {
                 return irow > 0;
             }
             public void setValue( int irow, Object value ) {
                 String sval = (String) value;
-                ColumnInfo colinfo = getColumnInfo( irow );
-                DescribedValue basedescValue = getBaseDescription( irow );
-                if ( basedescValue == null ) {
-                    colinfo.setDescription( sval );
-                }
-                else {
-                    basedescValue.setValue( sval );
-                    colinfo.setDescription( sval + " (" 
-                                          + getExpression( irow ).getValue()
-                                          + ")" );
-                }
-            }
-            private DescribedValue getBaseDescription( int irow ) {
-                return getColumnInfo( irow )
-                      .getAuxDatum( PlasticStarTable.BASE_DESCRIPTION_INFO );
-            }
-            private DescribedValue getExpression( int irow ) {
-                return getColumnInfo( irow )
-                      .getAuxDatum( PlasticStarTable.EXPR_INFO );
+                TopcatUtils.setBaseDescription( getColumnInfo( irow ), sval );
             }
         } );
 
@@ -299,9 +267,11 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         /* Get the list of aux metadata columns. */
         List auxInfos = new ArrayList( dataModel.getColumnAuxDataInfos() );
 
-        /* Remove any from this list which we have already added explicitly. */
-        auxInfos.remove( PlasticStarTable.EXPR_INFO );
-        auxInfos.remove( PlasticStarTable.COLID_INFO );
+        /* Remove any from this list which we have already added explicitly
+         * or otherwise don't want to show up. */
+        auxInfos.remove( TopcatUtils.EXPR_INFO );
+        auxInfos.remove( TopcatUtils.BASE_DESCRIPTION_INFO );
+        auxInfos.remove( TopcatUtils.COLID_INFO );
         
         /* Add all the remaining aux columns. */
         for ( Iterator it = auxInfos.iterator(); it.hasNext(); ) {
@@ -368,12 +338,16 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                                           ResourceIcon.ADD,
                                           "Add a new column defined " +
                                           "algebraically from existing ones" );
-        hidecolAct = new ColumnInfoAction( "Hide selected column(s)",
+        replacecolAct = new ColumnInfoAction( "Replace Column With Synthetic",
+                                              ResourceIcon.MODIFY,
+                                              "Replace the selected column " +
+                                              "with a new one based on it" );
+        hidecolAct = new ColumnInfoAction( "Hide Selected Column(s)",
                                            ResourceIcon.HIDE,
                                            "Hide all selected columns" );
-        revealcolAct = new ColumnInfoAction( "Reveal selected column(s)",
+        revealcolAct = new ColumnInfoAction( "Reveal Selected Column(s)",
                                              ResourceIcon.REVEAL,
-                                             "Reveal all selected columns" );
+                                             "Reveal All Selected columns" );
         final Action sortupAct = new SortAction( true );
         final Action sortdownAct = new SortAction( false );
 
@@ -381,6 +355,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         JMenu colMenu = new JMenu( "Columns" );
         colMenu.setMnemonic( KeyEvent.VK_C );
         colMenu.add( addcolAct );
+        colMenu.add( replacecolAct );
         colMenu.add( hidecolAct );
         colMenu.add( revealcolAct );
         colMenu.add( sortupAct );
@@ -402,6 +377,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 revealcolAct.setEnabled( hasSelection );
                 sortupAct.setEnabled( hasUniqueSelection );
                 sortdownAct.setEnabled( hasUniqueSelection );
+                replacecolAct.setEnabled( hasUniqueSelection );
             }
         };
         ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -410,6 +386,7 @@ public class ColumnInfoWindow extends TopcatViewWindow {
 
         /* Add actions to the toolbar. */
         getToolBar().add( addcolAct );
+        getToolBar().add( replacecolAct );
         getToolBar().add( hidecolAct );
         getToolBar().add( revealcolAct );
         getToolBar().addSeparator();
@@ -466,11 +443,9 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         ValueInfo indexInfo = new DefaultValueInfo( "Index", Long.class,
                                                     "Table row index" );
         ColumnInfo cinfo = new ColumnInfo( indexInfo );
-        cinfo.setAuxDatum( new DescribedValue( PlasticStarTable.COLID_INFO,
-                                               "$0" ) );
+        cinfo.setAuxDatum( new DescribedValue( TopcatUtils.COLID_INFO, "$0" ) );
         return cinfo;
     }
-
 
     /**
      * Class which adapts a ValueInfo into a MetaColumn.
@@ -539,8 +514,11 @@ public class ColumnInfoWindow extends TopcatViewWindow {
         }
 
         public void actionPerformed( ActionEvent evt ) {
+            Component parent = ColumnInfoWindow.this;
+
+            /* Add a new column: pop up a dialogue window which will 
+             * result in a new column being added when the user OKs it. */
             if ( this == addcolAct ) {
-                Component parent = ColumnInfoWindow.this;
                 int[] selrows = jtab.getSelectedRows();
                 int insertPos;
                 if ( selrows.length > 0 ) {
@@ -552,6 +530,26 @@ public class ColumnInfoWindow extends TopcatViewWindow {
                 }
                 new SyntheticColumnQueryWindow( tcModel, insertPos, parent );
             }
+
+            /* Replace a column by another one.  This creates and pops up 
+             * a new column-creation dialogue window, and initialises it
+             * with the same information that the old one had.
+             * When the user OKs it, the new column will be inserted in the
+             * column model and the old one will be hidden. */
+            else if ( this == replacecolAct ) {
+                if ( jtab.getSelectedRowCount() == 1 ) {
+                    int selrow = jtab.getSelectedRow();
+                    StarTableColumn tcol = 
+                        (StarTableColumn) getColumnFromRow( selrow );
+                    SyntheticColumnQueryWindow
+                        .replaceColumnDialog( tcModel, tcol, parent );
+                }
+                else {
+                    logger.warning( "Replace column enabled erroneously" );
+                }
+            }
+
+            /* Hide/Reveal a column. */
             else if ( this == hidecolAct || this == revealcolAct ) {
                 boolean active = ( this == revealcolAct );
                 int[] selected = jtab.getSelectedRows();
