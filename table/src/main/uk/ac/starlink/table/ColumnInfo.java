@@ -41,6 +41,19 @@ public class ColumnInfo extends DefaultValueInfo {
     }
 
     /**
+     * Constructs a new <tt>ColumnInfo</tt> object with a given name,
+     * class and description.
+     *
+     * @param  name  the name applying to described values
+     * @param  contentClass  the class of which described values should be
+     *         instances
+     * @param  description  a textual description of the described values
+     */
+    public ColumnInfo( String name, Class contentClass, String description ) {
+        this( new DefaultValueInfo( name, contentClass, description ) );
+    }
+
+    /**
      * Constructs a <tt>ColumnInfo</tt> object which is a 
      * copy of an existing one.
      *

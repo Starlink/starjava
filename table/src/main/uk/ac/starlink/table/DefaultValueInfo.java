@@ -151,8 +151,13 @@ public class DefaultValueInfo implements ValueInfo {
      * Sets the java class of objects contained in this column.
      *
      * @param  contentClass  the class of items in this column
+     * @throws  IllegalArgumentException if <tt>contentClass</tt> is primitive
      */
     public void setContentClass( Class contentClass ) {
+        if ( contentClass.isPrimitive() ) {
+            throw new IllegalArgumentException( 
+                "Primitive content class " + contentClass + " not permitted" );
+        }
         this.contentClass = contentClass;
     }
 

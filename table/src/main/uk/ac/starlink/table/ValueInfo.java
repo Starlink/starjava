@@ -66,6 +66,19 @@ public interface ValueInfo {
      * return one of the primitive class objects (<tt>int.class</tt> et al.);
      * the appropriate wrapper classes must be used instead 
      * (<tt>Integer.class</tt> etc).
+     * <p>
+     * The class returned should not under normal circumstances be an
+     * array of arrays; to express multidimensionality of arrays you
+     * should store an array of non-array objects or of primitives and
+     * provide shape information via the <tt>getShape</tt> method.
+     * There is nothing to stop you describing arrays of arrays with a 
+     * <tt>ValueInfo</tt>, but some other elements of the tables 
+     * infrastructure and applications may work on the assumption that
+     * such objects are not present.
+     * <p>
+     * Note that to store sets of more than 2<sup>31</sup> items it
+     * will be necessary to use some custom object, since java arrays
+     * are indexed by type <tt>int</tt>.
      *
      * @return  the java class
      */
