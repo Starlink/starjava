@@ -423,7 +423,7 @@
          <include name="**"/>
       </packageset>
 
-      <packageset dir="ttools/build/java" defaultexcludes"yes">
+      <packageset dir="ttools/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
