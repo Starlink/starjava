@@ -33,17 +33,14 @@ public class Utilities
      */
     public static String getReleaseVersion()
     {
-        return "0.1";
+        return "1.0-2";
     }
 
     /**
      * The full description of this program when released!
      */
     public static String getFullDescription(){
-        //return "JSPEC: A Spectral Display and Analysis Tool";
-        //return "ASDAT: A Spectral Display and Analysis Tool";
-        //return "GAFS: Graphical Analysis For Spectroscopy Tool";
-        return "SPLAT: A Spectral Analysis Tool";
+        return getReleaseName() + ": A Spectral Analysis Tool";
     }
 
     /**
@@ -51,9 +48,6 @@ public class Utilities
      */
     public static String getReleaseName()
     {
-        //return "JSPEC";
-        //return "ASDAT";
-        //return "GAFS";
         return "SPLAT";
     }
 
@@ -64,10 +58,7 @@ public class Utilities
      */
     public static String getTitle( String postfix )
     {
-        //return "JSPEC: " + postfix;
-        //return "ASDAT: " + postfix;
-        //return "GAFS: " + postfix;
-        return "SPLAT: " + postfix;
+        return getReleaseName() + ": " + postfix;
     }
 
 //

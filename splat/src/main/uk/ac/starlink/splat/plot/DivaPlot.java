@@ -717,6 +717,10 @@ public class DivaPlot
 
             //  Inform any listeners that the Plot has been scaled.
             fireScaled();
+
+            //  Drawn at least once, so OK to track mouse events. XXX
+            //  still a few seen AST errors about null pointer..
+            readyToTrack = true;
         }
 
         //  Use antialiasing for either the text, lines and text, or
@@ -880,7 +884,7 @@ public class DivaPlot
             {
                 public void mouseMoved( MouseEvent e )
                 {
-                    if ( spectra.count() == 0 ) {
+                    if ( spectra.count() == 0 || ! readyToTrack ) {
                         return;
                     }
                     String[] xypos = spectra.formatLookup( e.getX(),
@@ -899,8 +903,8 @@ public class DivaPlot
 
         //  TODO: re-implement this using a listener scheme.
     }
-
     private MouseMotionTracker tracker = null;
+    private boolean readyToTrack = false;
 
     /**
      * Convert a formatted coordinate into a floating point value.

@@ -243,21 +243,23 @@ public class NDFSpecDataImpl extends SpecDataImpl
         //  Create the NDF. Use a copy if source is an NDF.
         if ( source.getDataFormat().equals( "NDF" ) ) {
             theNDF = ((NDFSpecDataImpl)source.getSpecDataImpl()).getTempCopy();
-        } else {
+        } 
+        else {
             theNDF = NDFJ.get1DTempDouble( source.size() );
 
             //  If not an NDF, but does offer FITS headers, then we
             //  need to copy these.
             if (source.getSpecDataImpl() instanceof FITSHeaderSource) {
                 Header headers = ((FITSHeaderSource)source.getSpecDataImpl()).getFitsHeaders();
-
-                Cursor iter = headers.iterator();
-                String[] cards = new String[headers.getNumberOfCards()];
-                int i = 0;
-                while ( iter.hasNext() ) {
-                    cards[i++] = ((HeaderCard) iter.next()).toString();
+                if ( headers != null ) {
+                   Cursor iter = headers.iterator();
+                   String[] cards = new String[headers.getNumberOfCards()];
+                   int i = 0;
+                   while ( iter.hasNext() ) {
+                       cards[i++] = ((HeaderCard) iter.next()).toString();
+                   }
+                   theNDF.createFitsExtension( cards );
                 }
-                theNDF.createFitsExtension( cards );
             }
         }
 
@@ -265,7 +267,8 @@ public class NDFSpecDataImpl extends SpecDataImpl
         theNDF.set1DDouble( "data", source.getYData() );
         if ( source.getYDataErrors() != null ) {
             theNDF.set1DDouble( "error", source.getYDataErrors() );
-        } else {
+        } 
+        else {
             //  TODO: clear any existing variance component.
         }
 

@@ -885,8 +885,20 @@ public class SpecData
         throws SplatException
     {
         //  Get the spectrum data counts and errors (can be null).
-        yPos = impl.getData();
-        yErr = impl.getDataErrors();
+        try {
+            yPos = impl.getData();
+            yErr = impl.getDataErrors();
+        }
+        catch (RuntimeException e) {
+            // None specific errors, like no data...
+            throw new SplatException( "Failed to read data: " + 
+                                      e.getMessage() );
+        }
+
+        // Check we have some data.
+        if ( yPos == null ) { 
+            throw new SplatException( "Spectrum does not contain any data" );
+        }
 
         //  Now get the data value range.
         double yMin = Double.MAX_VALUE;

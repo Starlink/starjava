@@ -692,7 +692,16 @@ public class SplatBrowser extends JFrame
         int result = fileChooser.showSaveDialog( this );
         if ( result == fileChooser.APPROVE_OPTION ) {
             File destFile = fileChooser.getSelectedFile();
-            threadSaveSpectrum( indices[0], destFile.getPath() );
+            if ( destFile != null ) {
+               threadSaveSpectrum( indices[0], destFile.getPath() );
+            }
+            else {
+                //  This occasionally happens (1.4), not sure why...
+                JOptionPane.showMessageDialog( this, 
+                                               "No spectrum selected", 
+                                               "No write", 
+                                               JOptionPane.WARNING_MESSAGE );
+            }
         }
     }
 

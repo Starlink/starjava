@@ -1,7 +1,3 @@
-/*
- *  history 08-MAR-2002 Changed to nom.tam.fits version 0.93
- */
-
 package uk.ac.starlink.splat.data;
 
 import java.io.FileOutputStream;
@@ -32,6 +28,7 @@ import uk.ac.starlink.splat.util.SplatException;
  * @since 01-SEP-2000
  * @see "The Bridge Design Pattern"
  *
+ * @history 08-MAR-2002 Changed to nom.tam.fits version 0.93
  */
 public class FITSSpecDataImpl extends SpecDataImpl
     implements FITSHeaderSource
@@ -109,6 +106,8 @@ public class FITSSpecDataImpl extends SpecDataImpl
      */
     public String getShortName()
     {
+        //  Note in order to be save this should not exceed
+        //  MAX_HEADER_VALUE characters.
         return shortName;
     }
 
@@ -247,6 +246,11 @@ public class FITSSpecDataImpl extends SpecDataImpl
     protected FrameSet astref = null;
 
     /**
+     * Maxiumum number of characters in a header string.
+     */
+    protected static int MAX_HEADER_VALUE = 68;
+
+    /**
      * Finalise object. Free any resources associated with member
      * variables.
      */
@@ -348,7 +352,12 @@ public class FITSSpecDataImpl extends SpecDataImpl
             }
 
             //  Set the object keyword to the shortname.
-            hiter.add( "OBJECT", new HeaderCard( "OBJECT", shortName,
+            String validName = shortName;
+            if ( shortName.length() > MAX_HEADER_VALUE ) {
+                validName = shortName.substring( shortName.length() - 
+                                                 MAX_HEADER_VALUE );
+            }
+            hiter.add( "OBJECT", new HeaderCard( "OBJECT", validName,
                                                  "Symbolic name" ) );
 
             //  Save the AST description of the coordinates.

@@ -29,6 +29,12 @@ import java.awt.print.PrinterJob;
 import java.text.DecimalFormat;
 import java.util.Vector;
 
+import javax.print.PrintService;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.JobName;
+import javax.print.attribute.standard.MediaSizeName;
+import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -56,6 +62,7 @@ import uk.ac.starlink.splat.iface.SpecChangedEvent;
 import uk.ac.starlink.splat.iface.SpecListener;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * A PlotControl object consists of a Plot inside a scrolled pane and various
@@ -178,6 +185,11 @@ public class PlotControl
      * Quick selection of data limits.
      */
     protected SimpleDataLimitControls dataLimits = null;
+
+    /**
+     * Page selection for printing.
+     */
+    protected PrintRequestAttributeSet pageSet = null;
 
     /**
      * Create a PlotControl, adding spectra later.
@@ -590,10 +602,7 @@ public class PlotControl
             double[] centre = getCentre();
             zoomAbout( 0, 0, centre[0], centre[1] );
         }
-        else {
-            setScale();
-            //  Centre already pending, so just do it.
-        }
+        setScale();
     }
 
     /**
@@ -792,7 +801,8 @@ public class PlotControl
     }
 
     /**
-     * Update the displayed coordinates (implementation from PlotMouseMotion).
+     * Update the displayed coordinates (implementation from
+     * MouseMotionTracker).
      *
      * @param x the X coordinate value to show.
      * @param y the Y coordinate value to show.
@@ -809,28 +819,35 @@ public class PlotControl
     public void print()
     {
         PrinterJob pj = PrinterJob.getPrinterJob();
+        PrintService[] services = PrinterJob.lookupPrintServices(); 
+        if ( services.length > 0 ) {
 
-        //  Get the page format that the user requires. Default to
-        //  landscape. Note doesn't seem to be anyway of changing the
-        //  default to A4. The documenation suggests that this is
-        //  locale specific, but I couldn't get that to make a
-        //  difference either.
-        PageFormat dpf = new PageFormat();
-        dpf.setOrientation( PageFormat.LANDSCAPE );
-        PageFormat pf = pj.pageDialog( dpf );
+            //  Create the default PrintRequestAttributeSet if not done
+            //  already. If created then first print request will ask
+            //  for the page settings to be verified.
+            boolean pageVerify = false;
+            if ( pageSet == null ) {
+                //  Make the default landscape A4.
+                pageSet = new HashPrintRequestAttributeSet();
+                pageSet.add( OrientationRequested.LANDSCAPE );
+                pageSet.add( MediaSizeName.ISO_A4 );
+                pageSet.add
+                    ( new JobName( Utilities.getTitle("printer job"),null ) );
+                pageVerify = true;
+            }
 
-        //  If the default PageFormat object has been modified then we
-        //  can proceed. It is unmodified if the cancel option was
-        //  chosen.
-        if ( dpf != pf ) {
-            pj.setPrintable( plot, pf );
-            if ( pj.printDialog() ) {
-                try {
-                    pj.print();
+            try {
+                pj.setPrintService( services[0] );
+                pj.setPrintable( plot );
+                if ( pageVerify ) {
+                    pj.pageDialog( pageSet );
                 }
-                catch ( PrinterException e ) {
-                    e.printStackTrace();
+                if ( pj.printDialog( pageSet ) ) {
+                    pj.print( pageSet );
                 }
+            }
+            catch ( PrinterException e ) {
+                e.printStackTrace();
             }
         }
     }
@@ -956,7 +973,7 @@ public class PlotControl
                            double y )
     {
         //  Record the centre of the region. This must be applied
-        //  after the scaling is complete (doesn't usual work
+        //  after the scaling is complete (doesn't usually work
         //  otherwise as scrollbars movement is bounded).
         double[] gCoords = new double[2];
         gCoords[0] = x;
@@ -1001,7 +1018,7 @@ public class PlotControl
             double scaledHeight = region.getHeight() * ZOOMPADDING;
 
             //  Record the centre of the region. This must be applied
-            //  after the scaling is complete (doesn't usual work
+            //  after the scaling is complete (doesn't usually work
             //  otherwise as scrollbar movement is currently bounded).
             double[] gCoords = new double[2];
             gCoords[0] = centreX;
