@@ -32,14 +32,20 @@ public class ProgressBarStarTable extends WrapperStarTable {
     }
 
     public RowSequence getRowSequence() throws IOException {
+        long nrow = getRowCount();
+        final long every = nrow > 0 ? nrow / 200L : 256; 
         return new WrapperRowSequence( baseTable.getRowSequence() ) {
+            long counter;
             Runnable updater = new Runnable() {
                 public void run() {
                     progBar.setValue( (int) getRowIndex() );
                 }
             };
             public void next() throws IOException {
-                SwingUtilities.invokeLater( updater );
+                if ( --counter < 0 ) {
+                    SwingUtilities.invokeLater( updater );
+                    counter = every;
+                }
                 super.next();
                 boolean stop = Thread.interrupted();
                 if ( stop || ! hasNext() ) {
