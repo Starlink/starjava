@@ -86,20 +86,17 @@ public class RegistryTableLoadDialog extends BasicTableLoadDialog {
                         resources = query.performQuery();
                     }
                     catch ( RemoteException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
+                        throw asIOException( e );
                     }
                     catch ( ServiceException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
+                        throw asIOException( e );
                     }
                     BeanStarTable st; 
                     try {
                         st = new BeanStarTable( SimpleResource.class );
                     }
                     catch ( IntrospectionException e ) {
-                        throw (IOException) new IOException( e.getMessage() )
-                                           .initCause( e );
+                        throw asIOException( e );
                     }
                     DescribedValue[] metadata = query.getMetadata();
                     for ( int i = 0; i < metadata.length; i++ ) {

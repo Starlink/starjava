@@ -197,6 +197,26 @@ public abstract class BasicTableLoadDialog extends JPanel
     }
 
     /**
+     * Converts an exception to an IOException, probably by wrapping it
+     * in one.  This utility method can be used for wrapping up an 
+     * exception of some other kind if it needs to be thrown in 
+     * <code>TableSupplier.getTable</code>.
+     *
+     * @param  th  base throwable
+     * @return   IOException based on <code>th</code>
+     */
+    public static IOException asIOException( Throwable th ) {
+        if ( th instanceof IOException ) {
+            return (IOException) th;
+        }
+        String msg = th.getMessage();
+        if ( msg != null ) {
+            msg = th.getClass().getName();
+        }
+        return (IOException) new IOException( msg ).initCause( th );
+    }
+
+    /**
      * Defines an object which can attempt to load a particular table.
      */
     public interface TableSupplier {
