@@ -47,6 +47,11 @@ public class Coords {
     public static String radiansToDms( double rad, int secFig ) {
         double degrees = radiansToDegrees( rad );
         int sign = degrees >= 0 ? +1 : -1;
+        double round = 0.5 / 60.0 / 60.0 * sign;
+        for ( int i = 0; i < secFig; i++ ) {
+            round *= 0.1; 
+        }
+        degrees += round;
         degrees *= sign;
         int d = (int) degrees;
         double minutes = ( degrees - d ) * 60.0;
@@ -76,8 +81,13 @@ public class Coords {
      */
     public static String radiansToHms( double rad, int secFig ) {
         double degrees = radiansToDegrees( rad );
+        int sign = degrees >= 0 ? +1 : -1;
         double hours = degrees / 15.0;
-        int sign = hours >= 0 ? +1 : -1;
+        double round = 0.5 / 60.0 / 60.0 * sign;
+        for ( int i = 0; i < secFig; i++ ) {
+            round *= 0.1;
+        }
+        hours += round;
         hours *= sign;
         int h = (int) hours;
         double minutes = ( hours - h ) * 60.0;
@@ -528,7 +538,8 @@ public class Coords {
         }
 
         /**
-         * Formats a sexagesimal angle.
+         * Formats a sexagesimal angle.  Note all parts are truncated;
+         * no rounding up is performed.
          *
          * @param   positive  true  iff the angle is &gt;=0
          * @param   f1   non-negative first part (degrees or hours) 
@@ -556,7 +567,7 @@ public class Coords {
             if ( dp3 > 0 ) {
                 buf[ pos++ ] = '.';
                 for ( int i = 0; i < dp3; i++ ) {
-                    f3 = f3 * 10.0 + ( i == dp3 - 1 ? 0.5 : 0.0 );
+                    f3 = f3 * 10.0;
                     buf[ pos++ ] = digits0[ ( (int) f3 ) % 10 ];
                 }
                 int p = pos;
