@@ -1,0 +1,6 @@
+The archive file jasper-combined.jar is a replacement for two 
+archive files from the original distribution: jasper-runtime.jar 
+and jasper-compiler.jar.  Since these contained at least one class 
+in common (org.apache.jasper.compiler.Localizer) they caused problems
+elsewhere in the build system.  The combined archive is the union
+of the two original ones.
