@@ -28,6 +28,7 @@ public class VOTableDataNode extends DocumentDataNode {
 
     private String name;
     private VOElement vocel;
+    private static VOElementFactory vofact = new VOElementFactory();
 
     public VOTableDataNode( XMLDocument xdoc ) throws NoSuchDataException {
         super( xdoc );
@@ -53,7 +54,7 @@ public class VOTableDataNode extends DocumentDataNode {
 
     private VOElement getVOElement() throws IOException, SAXException {
         if ( vocel == null ) {
-            vocel = VOElementFactory.makeVOElement( getDocument() );
+            vocel = vofact.makeVOElement( getDocument() );
         }
         return vocel;
     }

@@ -50,11 +50,12 @@ public class VOComponentDataNode extends DefaultDataNode
     private Object parentObj;
     private TableElement[] tables;
     private StarTable startable;
+    private static VOElementFactory vofact = new VOElementFactory();
 
     public VOComponentDataNode( Source xsrc ) throws NoSuchDataException {
         Node domNode;
         try {
-            vocel = VOElementFactory.makeVOElement( xsrc );
+            vocel = vofact.makeVOElement( xsrc );
         }
         catch ( SAXException e ) {
             throw new NoSuchDataException( e );
@@ -218,7 +219,7 @@ public class VOComponentDataNode extends DefaultDataNode
                     description = DOMUtils.getTextContent( childEl ).trim();
                 }
                 else if ( elname.equals( "INFO" ) ) {
-                    String infohandle = VOElementFactory
+                    String infohandle = vofact
                                        .makeVOElement( childEl, systemId )
                                        .getHandle();
                     String infovalue = childEl.getAttribute( "value" );
@@ -227,10 +228,10 @@ public class VOComponentDataNode extends DefaultDataNode
                     ninfo++;
                 }
                 else if ( elname.equals( "PARAM" ) ) {
-                    params.add( new ParamElement( childEl, systemId ) );
+                    params.add( new ParamElement( childEl, systemId, vofact ) );
                 }
                 else if ( elname.equals( "COOSYS" ) ) {
-                    coosyss.add( VOElementFactory
+                    coosyss.add( vofact
                                 .makeVOElement( childEl, systemId ) );
                 }
             }
