@@ -2620,14 +2620,14 @@ important bits of its functionality:
 <p>The following users, testers and programmers have supplied useful
 comments (apologies for any missed out):
 <ul>
-<li>Clive Page (AstroGrid, Leicester)</li>
-<li>David Giaretta (Starlink, RAL)</li>
 <li>Malcolm Currie (Starlink, RAL)</li>
+<li>David Giaretta (Starlink, RAL)</li>
+<li>Clive Page (AstroGrid, Leicester)</li>
 <li>Clive Davenhall (Royal Observatory Edinburgh)</li>
-<li>Peter Draper (Starlink, Durham)</li>
-<li>Alasdair Allan (Starlink, Exeter)</li>
 <li>Tim Jenness (JACH)</li>
 <li>Mike Read (ROE)</li>
+<li>Peter Draper (Starlink, Durham)</li>
+<li>Alasdair Allan (Starlink, Exeter)</li>
 <li>Roy Platon (RAL)</li>
 <li>Norman Gray (Starlink, Glasgow)</li>
 <li>Jonathan Irwin (Cambridge)</li>
@@ -2729,7 +2729,8 @@ The main improvements are as follows:
         (distance between points)</li>
     <li>Units can be selected RA/Dec columns and match errors 
         (so it doesn't need to be all in radians)</li>
-    <li>New match types (anistropic Cartesian, Sky+X, Sky+XY)</li>
+    <li>New match types suitable for multivariate matching 
+        (anistropic Cartesian, Sky+X, Sky+XY)</li>
     </ul>
     </p></dd>
 
