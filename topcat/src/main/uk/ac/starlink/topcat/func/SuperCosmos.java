@@ -17,8 +17,7 @@ import uk.ac.starlink.util.FileDataSource;
  * Specialist display functions for use with the SuperCOSMOS survey.
  * These functions display cutout images from the various 
  * archives hosted at the SuperCOSMOS Sky Surveys
- * (<a href="http://www-wfau.roe.ac.uk/sss/"
- *     >http://www-wfau.roe.ac.uk/sss/</a>).
+ * (<a href="http://www-wfau.roe.ac.uk/sss/">http://www-wfau.roe.ac.uk/sss/</a>).
  * In most cases these cover the whole of the southern sky.
  *
  * @author   Mark Taylor (Starlink)
@@ -35,6 +34,8 @@ public class SuperCosmos {
     private static final Band UKST_I = new Band( 3, "UK Schmidt Infrared" );
     private static final Band ESO_R = new Band( 4, "ESO Red" );
     private static final Band POSS_E = new Band( 5, "Palomar E" );
+    private static final Band BLUE = new Band( "blue", "Blue" );
+    private static final Band RED = new Band( "red", "Red" );
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.topcat.func" );
@@ -43,6 +44,57 @@ public class SuperCosmos {
      * Private constructor prevents instantiation.
      */
     private SuperCosmos() {
+    }
+
+    /**
+     * Displays a cutout image in one of the available bands from
+     * the SuperCOSMOS Sky Surveys.
+     * The displayed image is square, and <code>pixels</code> pixels in
+     * the X and Y dimensions.  Pixels are approximately 0.67 arcsec square.
+     *
+     * @param  ra  right ascension of image centre in radians
+     * @param  dec  declination of image centre in radians
+     * @param  pixels  dimension of the displayed image
+     * @return  short log message
+     */
+    public static String sssCutout( double ra, double dec, int pixels ) {
+        return sssCutout( ra, dec, pixels, null );
+    }
+
+    /**
+     * Displays a cutout image of default size in one of the available
+     * bands from the SuperCOSMOS Sky Surveys.
+     *
+     * @param  ra  right ascension of image centre in radians
+     * @param  dec  declination of image centre in radians
+     * @return  short log message
+     */
+    public static String sssCutout( double ra, double dec ) {
+        return sssCutout( ra, dec, 128 );
+    }
+
+    /**
+     * Displays a cutout image of default size from one of the blue-band 
+     * surveys from SuperCOSMOS.
+     *
+     * @param  ra  right ascension of image centre in radians
+     * @param  dec  declination of image centre in radians
+     * @return  short log message
+     */
+    public static String sssCutoutBlue( double ra, double dec ) {
+        return sssCutout( ra, dec, 128, BLUE );
+    }
+
+    /**
+     * Displays a cutout image of default size from one of the red-band 
+     * surveys from SuperCOSMOS.
+     *
+     * @param  ra  right ascension of image centre in radians
+     * @param  dec  declination of image centre in radians
+     * @return  short log message
+     */
+    public static String sssCutoutRed( double ra, double dec ) {
+        return sssCutout( ra, dec, 128, RED );
     }
 
     /**
@@ -147,7 +199,7 @@ public class SuperCosmos {
     private static String sssCutout( double ra, double dec, int pixels,
                                      Band waveband ) {
         int irange = (int) ( pixels * 100.0 / 90.0 );
-        double range = pixels / 100.0;
+        double range = irange / 100.0;
         return sssCutout( ra, dec, "image/x-gfits", range, range, waveband );
     }
 
@@ -170,8 +222,10 @@ public class SuperCosmos {
             .addArgument( "dec", Coords.radiansToDms( dec, 4 ).trim() )
             .addArgument( "mime-type", mimeType )
             .addArgument( "x", x )
-            .addArgument( "y", y )
-            .addArgument( "waveband", waveband.id_ );
+            .addArgument( "y", y );
+        if ( waveband != null ) {
+            query.addArgument( "waveband", waveband.id_ );
+        }
         new Thread() {
             public void run() {
                 try {
@@ -180,8 +234,7 @@ public class SuperCosmos {
                     if ( FitsConstants.isMagic( datsrc.getIntro() ) ) {
                         SwingUtilities.invokeLater( new Runnable() {
                             public void run() {
-                                Sog.sog( file.toString() );
-                                file.delete();
+                                Image.displayImage( file.toString() );
                             }
                         } );
                     }
@@ -204,9 +257,13 @@ public class SuperCosmos {
      * Enumeration class for known wavebands.
      */
     private static class Band {
-        final int id_;
+        final String id_;
         final String name_;
         Band( int id, String name ) {
+            id_ = Integer.toString( id );
+            name_ = name;
+        }
+        Band( String id, String name ) {
             id_ = id;
             name_ = name;
         }
