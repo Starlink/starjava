@@ -320,7 +320,18 @@
    ! this throws a <fail> and exits the build.
    !-->
   <target name="check_packages"
+          depends="really_check_packages"
           unless="runonly.install">
+
+    <!-- Need JUnit for testcases, not essential -->
+    <available property="junit.present"
+               classpathref="classpath"
+               classname="junit.framework.TestCase"/>
+  </target>
+
+
+  <target name="really_check_packages"
+          if="but_its_too_slow">
 
     <!-- Need Array -->
     <available property="array.present"
@@ -393,11 +404,6 @@
                classpathref="classpath"
                classname="org.apache.axis.Message"/>
     <fail message="No Axis available" unless="axis.present"/>
-
-    <!-- Need JUnit for testcases, not essential -->
-    <available property="junit.present"
-               classpathref="classpath"
-               classname="junit.framework.TestCase"/>
 
   </target>
 
@@ -1016,7 +1022,7 @@
 
       <batchtest>
         <fileset dir="${tests.dir}">
-          <include name="**/JUnit*"/>
+          <include name="**/*Test*"/>
         </fileset>
       </batchtest>
 
