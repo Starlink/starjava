@@ -229,9 +229,19 @@ public class FieldElement extends VOElement {
          * What is meant is almost always an N-character string though. */
         if ( ( "char".equals( datatype ) || 
                "unicodeChar".equals( datatype ) ) &&
-             arraysize.length == 0 &&
-             ! strict_ ) {
-            arraysize = new long[] { -1L };
+             arraysize.length == 0 ) {
+            if ( strict_ ) {
+                logger_.info( getHandle()
+                            + " - unspecified arraysize implies single"
+                            + " character for "
+                            + datatype + " datatype (strict)" );
+            }
+            else {
+                arraysize = new long[] { -1L };
+                logger_.warning( getHandle()
+                               + " - assuming unspecified arraysize='*' for "
+                               + datatype + " datatype (non-strict)" );
+            }
         }
 
         /* Create a decoder. */
