@@ -27,6 +27,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 /**
@@ -84,7 +85,7 @@ public class BasicFontChooser
     /**
      * Display of the currently selected font.
      */
-    protected JLabel fontDisplay = new JLabel();
+    protected JTextField fontDisplay = new JTextField();
 
     /**
      * Accept and exit button.
@@ -131,7 +132,7 @@ public class BasicFontChooser
      * Construct an instance, setting the parent, window title and
      * whether the dialog is modal.
      */
-    public BasicFontChooser( Frame owner, String title, boolean modal)
+    public BasicFontChooser( Frame owner, String title, boolean modal )
     {
         super( owner, title, modal );
         startup();
@@ -149,7 +150,7 @@ public class BasicFontChooser
         catch(Exception e) {
             e.printStackTrace();
         }
-        this.accepted = false;
+        accepted = false;
 
         //  Set the initial font.
         fontBox.setSelectedItem( currentFont );
@@ -163,33 +164,33 @@ public class BasicFontChooser
     private void initUI() throws Exception
     {
         //  Get the dialog content pane and set the layout manager.
-        contentPane = (JPanel) this.getContentPane();
+        contentPane = (JPanel) getContentPane();
         contentPane.setLayout( new GridBagLayout() );
 
         //  Set dialog size.
-        this.setSize( new Dimension( 400, 300 ) );
+        setSize( new Dimension( 500, 150 ) );
 
-        fontLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        fontLabel.setHorizontalAlignment( SwingConstants.CENTER );
         fontLabel.setText( "Font" );
 
-        sizeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        sizeLabel.setHorizontalAlignment( SwingConstants.CENTER );
         sizeLabel.setText( "Size" );
 
-        styleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        styleLabel.setHorizontalAlignment( SwingConstants.CENTER );
         styleLabel.setText( "Style" );
 
-        fontDisplay.setBackground( Color.white );
-        fontDisplay.setBorder( BorderFactory.createRaisedBevelBorder() );
         fontDisplay.setToolTipText( "Selected font" );
-        fontDisplay.setHorizontalAlignment(SwingConstants.CENTER);
+        fontDisplay.setHorizontalAlignment( SwingConstants.CENTER );
         fontDisplay.setText( "the quick brown fox" );
 
         //  Add all components to the content pane.
-        GridBagConstraints gbc =
-            new GridBagConstraints( 0, 0, 1, 1, 1.0, 0.0,
-                                    GridBagConstraints.CENTER,
-                                    GridBagConstraints.HORIZONTAL,
-                                    new Insets(0, 0, 0, 0), 0, 0 );
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets( 2, 0, 0, 2 );
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.0;
 
         contentPane.add( fontLabel, gbc );
 
@@ -211,7 +212,7 @@ public class BasicFontChooser
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.gridwidth = 4;
+        gbc.gridwidth = 3;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
@@ -220,8 +221,6 @@ public class BasicFontChooser
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
         gbc.fill = GridBagConstraints.NONE;
         contentPane.add( okButton, gbc );
 
