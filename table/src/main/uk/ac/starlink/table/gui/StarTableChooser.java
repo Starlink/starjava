@@ -85,6 +85,17 @@ public class StarTableChooser extends JPanel {
     private TableConsumer tableConsumer_;
 
     /**
+     * List of classnames for {@link TableLoadDialog} 
+     * implementations used by default.
+     */
+    public final static String[] DIALOG_CLASSES = new String[] {
+        FileChooserLoader.class.getName(),
+        NodeLoader.class.getName(),
+        SQLReadDialog.class.getName(),
+        "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
+    };
+
+    /**
      * Name of the system property which can be used to specify the class
      * names of additional {@link TableLoadDialog} implementations.  
      * Each must have a no-arg constructor.  Multiple classnames should be
@@ -380,18 +391,14 @@ public class StarTableChooser extends JPanel {
      */
     public TableLoadDialog[] getDialogs() {
         if ( dialogs_ == null ) {
-            List dlist = new ArrayList( Arrays.asList( new TableLoadDialog[] {
-                new FileChooserLoader(),
-                new NodeLoader(),
-                new SQLReadDialog(),
-            } ) );
-            TableLoadDialog myspaceLoader = 
-                (TableLoadDialog)
-                Loader.getClassInstance( 
-                    "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
-                    TableLoadDialog.class );
-            if ( myspaceLoader != null ) {
-                dlist.add( myspaceLoader );
+            List dlist = new ArrayList();
+            for ( int i = 0; i < DIALOG_CLASSES.length; i++ ) {
+                TableLoadDialog tld = (TableLoadDialog)
+                    Loader.getClassInstance( DIALOG_CLASSES[ i ],
+                                             TableLoadDialog.class );
+                if ( tld != null ) {
+                    dlist.add( tld );
+                }
             }
             dlist.addAll( Loader.getClassInstances( LOAD_DIALOGS_PROPERTY, 
                                                     TableLoadDialog.class ) );
