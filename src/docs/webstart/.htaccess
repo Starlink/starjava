@@ -1,0 +1,2 @@
+AddType application/x-java-jnlp-file    .jnlp
+AddType application/x-java-archive-diff .jardiff

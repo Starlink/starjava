@@ -1,0 +1,46 @@
+
+  Setting up webstart
+  -------------------
+
+Do a fresh checkout.
+
+Build and install ANT.
+
+Decide where you want to serve the system from and define the
+necessary webstart.codebase. Here's my ~/.stardev.properties from
+Durham:
+
+   star.dir=/loc/pwdc/pdraper/scratch/stardev
+   star.archive.dir=/loc/pwdc/pdraper/scratch/stardev/archives
+   stardev=/star
+   perl=/star/Perl/bin/perl
+   webstart.codebase=http://star-www.dur.ac.uk/~pdraper/starjavac
+   webstart.signer=Peter W. Draper
+
+Build the system and install.
+
+Sign ANT (from source directory):
+
+  % ant sign_ant
+
+make the installation "lib" directory your codebase on your server
+(if server follows softlinks that's easy). If your server doesn't
+know about the JNLP mime type try adding a .htaccess file:
+
+  % cat ~/public_html/.htaccess
+AddType application/x-java-jnlp-file    .jnlp
+AddType application/x-java-archive-diff .jardiff
+
+
+Try to run up an application:
+
+  % javaws http://star-www.dur.ac.uk/~pdraper/starjavac/splat.jnlp
+
+Make a web page with all the applications present and some notes about
+installing webstart (and what applications are supported on what
+OSes).
+
+For more complex uses, see the README (source/docs/webstart), build
+files or ask me.
+
+Peter W. Draper 14-NOV-2003.
