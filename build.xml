@@ -12,7 +12,7 @@
  !      javadocs       -> creates packages API documentation
  !      javadocs-full  -> creates the complete API documentation
  !      install        -> installs the system and documentation
- !      install        -> deinstalls the system
+ !      deinstall      -> deinstalls the system
  !      clean          -> cleans up the build
  !      export         -> create full export distributions of packages
  !      export-full    -> exports all monolithic archives
