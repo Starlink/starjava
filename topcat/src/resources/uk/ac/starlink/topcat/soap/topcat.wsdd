@@ -27,7 +27,11 @@
     <parameter name="sendMultiRefs" value="false"/>
   </globalConfiguration>
 
-  <service name="TopcatSOAPServices" provider="java:RPC">
+  <!-- The streaming="on" attribute here probably has no effect at AXIS 1.1,
+   !   but I'm led to believe that at AXIS 1.2 it causes the XML in the
+   !   SOAP message to get streamed using SAX rather than all read into a
+   !   DOM and replayed - this will make it possible to pass large tables. -->
+  <service name="TopcatSOAPServices" provider="java:RPC" streaming="on">
 
     <!-- <requestFlow><handler type="loghandler"/></requestFlow>   -->
     <!-- <responseFlow><handler type="loghandler"/></responseFlow> -->
