@@ -1,5 +1,9 @@
 /*
- * Copyright (C) 2002 Central Laboratory of the Research Councils
+ * Copyright (C) 2002-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     18-MAY-2002 (Peter W. Draper):
+ *       Original version.
  */
 package uk.ac.starlink.jaiutil;
 
@@ -19,9 +23,6 @@ import uk.ac.starlink.array.Requirements;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see Plot 
- * @see PlotConfigurator
- * @since 18-MAY-2002
  */
 public abstract class NDArrayData
 {
@@ -82,6 +83,10 @@ public abstract class NDArrayData
     public NDArrayData( NDArray nda, int[] axes ) 
         throws IOException
     {
+        Requirements req = 
+            new Requirements( AccessMode.READ ).setRandom( true );
+        nda = NDArrays.toRequiredArray( nda, req );
+
 	this.tiler = nda.getAccess();
 	naxis = axes.length;
 	this.width = axes[naxis-2];
@@ -146,7 +151,8 @@ public abstract class NDArrayData
     /** 
      * Fill the given tile with the appropriate image data 
      */
-    public abstract Raster getTile( Raster tile ) 
+    public abstract Raster getTile( Raster tile, int subsample, 
+                                    int width, int height ) 
         throws IOException;
 
     /** 

@@ -104,7 +104,7 @@ public class HDXImage
     /**
      * Index of the current NDX.
      */
-    protected int ndxIndex = 0;
+    protected int ndxIndex = -1;
 
     /**
      * Current metadata.
@@ -143,7 +143,7 @@ public class HDXImage
     protected static int previewSize = 152;
 
     /**
-     * True if the image is empty (such as the primary extension)
+     * True if the image is empty?
      */
     protected boolean empty = false;
 
@@ -283,6 +283,15 @@ public class HDXImage
         if ( ndxs == null || num >= ndxs.size() ) {
             throw new IOException( "Cannot select NDX (" + num + ")" );
         }
+        if ( num == ndxIndex ) {
+            return;   // Nothing to do.
+        }
+
+        //  If an NDArray is open already, should close it before
+        //  proceeding.
+        if ( ndArray != null ) {
+            ndArray.getAccess().close();
+        }
 
         // Access the NDX and realize one of its components (TODO:
         // support more than data) as an NDArray. Use a MaskedImage to
@@ -292,35 +301,19 @@ public class HDXImage
         Requirements req = new Requirements();
         ndArray = Ndxs.getMaskedImage( ndx, req );
 
-        // Set variables required by the base class for tiling
+        // Check basics of array.
         long[] axes = ndArray.getShape().getDims();
         if ( axes.length <= 1 ) {
             width = 0;
             height = 0;
+            empty = true;
             throw new IOException( "Dimensionality of NDX should be 2" );
         }
-        width = (int) axes[axes.length-2];
-        height = (int) axes[axes.length-1];
 
         // Initialize an object to do data type specific operations
-        if ( width != 0 && height != 0 ) {
-
-            // try to choose a reasonable tile size
-            tileWidth = defaultTileWidth;
-            if ( width / tileWidth <=  1 ) {
-                tileWidth = width;
-            }
-
-            tileHeight = defaultTileHeight;
-            if ( height / tileHeight <=  1 ) {
-                tileHeight = height;
-            }
-            initData();
-
-            //  Choose appropriate sample and color models.
-            sampleModel = initSampleModel( tileWidth, tileHeight );
-            colorModel = initColorModel();
-        }
+        scale = 1.0F;
+        subsample = 1;
+        initData();
     }
 
     /**
@@ -440,7 +433,7 @@ public class HDXImage
         }
         catch( IOException e ) {
             e.printStackTrace();
-            throw new RuntimeException( e.toString() );
+            throw new RuntimeException( e );
         }
         if ( raster == null ) {
             return null;
@@ -516,8 +509,43 @@ public class HDXImage
                                                ndArray.getType() );
             }
         }
+        initImage();
     }
 
+    // Initialize the image dimensions, colormodel, samplemodel, and
+    // tile size.
+    private void initImage()
+        throws IOException
+    {
+        long[] axes = ndArray.getShape().getDims();
+        width = (int) axes[axes.length-2];
+        height = (int) axes[axes.length-1];
+
+        if ( width != 0 && height != 0 ) {
+
+            // handle zoom out here for performance reasons
+            if ( subsample != 1 ) {
+                width /= subsample;
+                height /= subsample;
+            }
+
+            // try to choose a reasonable tile size
+            tileWidth = defaultTileWidth;
+            if ( width / tileWidth <=  1 ) {
+                tileWidth = width;
+            }
+
+            tileHeight = defaultTileHeight;
+            if ( height / tileHeight <=  1 ) {
+                tileHeight = height;
+            }
+
+            //  Choose appropriate sample and color models.
+            sampleModel = initSampleModel( tileWidth, tileHeight );
+            colorModel = initColorModel();
+        }
+    }
+    
     /**
      * Generate and return the given tile (required by the
      * RenderedImage interface). Note that tileX and tileY are indices
@@ -553,11 +581,11 @@ public class HDXImage
     protected Raster fillTile( Raster tile )
     {
         try {
-            ndArrayData.getTile( tile );
+            ndArrayData.getTile( tile, subsample, width, height );
         }
         catch( Exception e ) {
             e.printStackTrace();
-            throw new RuntimeException( e.toString() );
+            throw new RuntimeException( e );
         }
         return tile;
     }
@@ -588,5 +616,78 @@ public class HDXImage
     public Ndx getCurrentNDX()
     {
         return (Ndx) ndxs.get( ndxIndex );
+    }
+
+    //
+    // Optimization of zooming in. This follows same methods in
+    // FITSImage, and may indicate the need for a common
+    // class/framework to underpin this.
+    //
+
+    // The current scale factor (zooming out is handled here for
+    // performance reasons). Zooming in still needs to be done by the
+    // image widget.
+    private float scale = 1.0F;
+
+    // The increment to use when accessing the image data if scale is
+    // less than 1. A value of 1 means no scaling is done.
+    private int subsample = 1;
+
+    /**
+     * Set the scale (zoom factor) for the image and return true if a
+     * new image was generated.
+     * <p>
+     * Note that <em>zooming out</em> is handled here for performance
+     * reasons, to avoid having to read in whole tiles, only to
+     * discard most of the data later. <em>Zooming in</em> should be
+     * handled in the image viewer widget at the end of the image
+     * processing chain.
+     *
+     * @param scale the scale factor (a value of less than 1.0 means
+     *              the image is zoomed out and is handled specially here)
+     *
+     * @return true if the new scale value caused a new image to be
+     *              generated, requiring an image update in the viewer
+     *              widget.
+     */
+    public boolean setScale( float scale )
+        throws IOException
+    {
+        boolean needsUpdate = false;
+        if ( scale > 1 ) {
+            scale = 1;
+        }
+        if ( scale != this.scale ) {
+            needsUpdate = true;
+            this.scale = scale;
+            if ( scale < 1 ) {
+                subsample = Math.round( 1.0F / scale );
+            }
+            else {
+                subsample = 1;
+            }
+            tileCache.flush();
+            initImage();
+        }
+        return needsUpdate;
+    }
+
+    /**
+     * Return the current scale factor (zooming out is handled here
+     * for performance reasons). Zooming in still needs to be done by
+     * the image widget.
+     */
+    public float getScale()
+    {
+        return scale;
+    }
+
+    /**
+     * Return the increment to use when accessing the image data if
+     * scale is less than 1. A value of 1 means no scaling is done.
+     */
+    public int getSubsample()
+    {
+        return subsample;
     }
 }
