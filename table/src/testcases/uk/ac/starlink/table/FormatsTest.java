@@ -33,6 +33,7 @@ public class FormatsTest extends TestCase {
         new DefaultValueInfo( "Matrix", int[].class, "2xN matrix" );
     private static final DefaultValueInfo SIZE_INFO =
         new DefaultValueInfo( "Size", Double.class, null );
+    private StarTableOutput sto = new StarTableOutput();
 
     static {
         MATRIX_INFO.setShape( new int[] { 2, -1 } );
@@ -179,7 +180,7 @@ public class FormatsTest extends TestCase {
                 fmt = fmt.substring( 0, 4 );
             }
             File loc = getTempFile( "t" + ( ++i ) + "." + fmt );
-            handler.writeStarTable( table, loc.toString() );
+            handler.writeStarTable( table, loc.toString(), sto );
 
             if ( handler instanceof FitsTableWriter ) {
                 DataSource datsrc = new FileDataSource( loc );
@@ -246,7 +247,7 @@ public class FormatsTest extends TestCase {
         StarTable t1 = table;
         writer.setDoctypeDeclaration( 
             "<!DOCTYPE VOTABLE SYSTEM 'some/where/VOTable.dtd'>" );
-        writer.writeStarTable( t1, loc.toString() );
+        writer.writeStarTable( t1, loc.toString(), sto );
         assertValidXML( new InputSource( loc.toString() ) );
         StarTable t2 = new StarTableFactory()
                       .makeStarTable( loc.toString() );
@@ -264,7 +265,7 @@ public class FormatsTest extends TestCase {
         new File( tmpBase + "-data.bin" ).deleteOnExit();
         writer.setDoctypeDeclaration( 
             "<!DOCTYPE VOTABLE SYSTEM 'http://nowhere/VOTable.dtd'>" );
-        writer.writeStarTable( t1, tmpFile.toString() );
+        writer.writeStarTable( t1, tmpFile.toString(), sto );
         assertValidXML( new InputSource( tmpFile.toString() ) );
 
         tmpFile.delete();
@@ -336,7 +337,7 @@ public class FormatsTest extends TestCase {
         StarTableWriter writer = new FitsTableWriter();
         File loc = getTempFile( "t.fits" );
         StarTable t1 = table;
-        writer.writeStarTable( t1, loc.toString() );
+        writer.writeStarTable( t1, loc.toString(), sto );
         StarTable t2 = new StarTableFactory()
                       .makeStarTable( loc.toString() );
         assertTrue( t2 instanceof BintableStarTable );
