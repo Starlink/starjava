@@ -64,6 +64,7 @@ public class TopcatModel {
     private final int id;
     private String location;
     private String label;
+    private Activator activator;
 
     private TableViewerWindow viewerWindow;
     private ParameterWindow paramWindow;
@@ -71,6 +72,7 @@ public class TopcatModel {
     private StatsWindow statsWindow;
     private SubsetWindow subsetWindow;
     private PlotWindow plotWindow;
+    private ActivationQueryWindow activationWindow;
 
     private Action newsubsetAct;
     private Action unsortAct;
@@ -80,6 +82,7 @@ public class TopcatModel {
     private TopcatWindowAction statsAct;
     private TopcatWindowAction subsetAct;
     private TopcatWindowAction plotAct;
+    private TopcatWindowAction activationAct;
     private TopcatWindowAction[] windowActions;
 
     private static int instanceCount = 0;
@@ -152,6 +155,9 @@ public class TopcatModel {
             }
         }
 
+        /* Set up a dummy row activator. */
+        activator = Activator.NOP;
+
         /* Create and configure window actions. */
         viewerAct = new TopcatWindowAction( 
                            "Table browser", ResourceIcon.VIEWER,
@@ -180,6 +186,9 @@ public class TopcatModel {
                                         "Define a new row subset" );
         unsortAct = new ModelAction( "Unsort", null,
                                      "Use Unsorted Order" );
+        activationAct = new TopcatWindowAction( 
+                           "Set Activation Action", null,
+                           "Set what happens when a row/point is clicked on" );
 
         /* Set up the listeners. */
         listeners = new ArrayList();
@@ -234,6 +243,29 @@ public class TopcatModel {
             /* Notify listeners. */
             fireModelChanged( TopcatListener.LABEL );
         }
+    }
+
+    /**
+     * Sets the row activator object.
+     *
+     * @param  activator  activator to use
+     */
+    public void setActivator( Activator activator ) {
+        if ( ! equalObject( activator, this.activator ) ) {
+            this.activator = activator;
+
+            /* Notify listeners. */
+            fireModelChanged( TopcatListener.ACTIVATOR );
+        }
+    }
+
+    /**
+     * Returns the row activator object.
+     *
+     * @return   activator
+     */
+    public Activator getActivator() {
+        return activator;
     }
 
     /**
@@ -411,6 +443,12 @@ public class TopcatModel {
         if ( viewerWindow != null ) {
             viewerWindow.highlightRow( lrow );
         }
+        if ( activator != null ) {
+            String msg = activator.activateRow( lrow );
+            if ( msg != null && msg.trim().length() > 0 ) {
+                System.out.println( msg );
+            }
+        }
     }
 
     /**
@@ -491,6 +529,17 @@ public class TopcatModel {
      */
     public Action getUnsortAction() {
         return unsortAct;
+    }
+
+    /**
+     * Gets an action which will allow the user to choose what happens
+     * if a row is activated.  This probably results in a dialog box
+     * or something.
+     *
+     * @return  activation configuration action
+     */
+    public Action getActivationAction() {
+        return activationAct;
     }
 
     /**
@@ -856,6 +905,9 @@ public class TopcatModel {
             else if ( this == plotAct ) {
                 return plotWindow != null;
             }
+            else if ( this == activationAct ) {
+                return activationWindow != null;
+            }
             else {
                 throw new AssertionError();
             }
@@ -898,6 +950,13 @@ public class TopcatModel {
                     plotWindow = new PlotWindow( tcModel, parent );
                 }
                 return plotWindow;
+            }
+            else if ( this == activationAct ) {
+                if ( ! hasWindow() ) {
+                    activationWindow = 
+                        new ActivationQueryWindow( tcModel, parent );
+                }
+                return activationWindow;
             }
             else {
                 throw new AssertionError();
