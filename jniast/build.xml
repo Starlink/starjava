@@ -177,7 +177,7 @@
   <!-- Non-standard files -->
   <property name="perl" value="/stardev/Perl/bin/perl"/>
   <property name="ast.archive" value="${src.ast}/ast_source.tar"/>
-  <property name="ast.fac.err" value="${build.ast}/fac_1521_err"/>
+  <property name="ast.fac.err" value="fac_1521_err"/>
   <property name="shared.object" value="lib${name}.so"/>
   <property name="link.script" value="${name}_libraries"/>
 
@@ -425,6 +425,7 @@
    !   space, and to make it immediately available to locally build
    !   packages  -->
   <target name="build_jni" depends="assemble_jni">
+    <echo message="If C compilation fails you may have the wrong AST version - see README"/>
     <antcall target="execute_mk_script">
       <param name="mk.action" value="shared"/>
     </antcall>
@@ -661,7 +662,7 @@
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-java"/>
-      <arg file="${ast.fac.err}"/>
+      <arg file="${build.ast}/${ast.fac.err}"/>
     </exec>
  
   </target>
@@ -688,7 +689,7 @@
           failonerror="yes">
       <arg file="${src.perl}/AstException.pl"/>
       <arg value="-c"/>
-      <arg file="${ast.fac.err}"/>
+      <arg file="${build.ast}/${ast.fac.err}"/>
     </exec>
 
     <javah classpath="${build.classes}" destdir="${build.jni}" verbose="yes">
@@ -728,10 +729,14 @@
    !-->
   <target name="get_ast_source">
     <available file="${ast.archive}" property="got.ast.archive"/>
-    <fail unless="got.ast.archive"
-     message="No file ${ast.archive}. Get it from an AST source distribution."/>
     <mkdir dir="${build.ast}"/>
-    <untar src="${ast.archive}" dest="${build.ast}"/>
+    <untar src="${ast.archive}" dest="${build.ast}">
+      <patternset>
+        <include name="*.c"/>
+        <include name="grf.h"/>
+        <include name="${ast.fac.err}"/>
+      </patternset>
+    </untar>
   </target>
 
   <!--

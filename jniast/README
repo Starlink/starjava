@@ -7,7 +7,7 @@ The location of the installed AST package and other supporting packages
 (in this case, just SLALIB) are given by the 'stardev' and 'stardev.add'
 properties which can be set, as usual in the build file or in your
 .stardev.properties file or on the command line.  These are used a bit
-the STARLINK and ADDLIBS environment variables in traditional 
+like the STARLINK and ADDLIBS environment variables in traditional 
 Starlink mk files; the stardev property should normally be set to 
 /star or /stardev (top of a normal starlink installation) and stardev.add
 may be set to the top of a tree in which selected preferred (presumably
