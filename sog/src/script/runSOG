@@ -9,7 +9,6 @@ echo "Starting SOG"
 
 #  Find where this script is located, this is SOG_DIR, unless SOG_DIR
 #  is already set. 
-
 if test -z "$SOG_DIR"; then
    SOG_DIR=`dirname $0`
 fi
@@ -21,14 +20,6 @@ if test ! -f "$appjar"; then
    echo "Failed to locate the SOG application. Please define SOG_DIR"
    exit
 fi
-
-#  Make sure that we get the installed shareable libraries.
-if test -z "$LD_LIBRARY_PATH"; then
-   LD_LIBRARY_PATH=${SOG_DIR}/../../lib
-else
-   LD_LIBRARY_PATH=${SOG_DIR}/../../lib:${LD_LIBRARY_PATH}
-fi
-export LD_LIBRARY_PATH
 
 #  Setup any defines that are required. User defines are set in
 #  SOG_DEFINES.
@@ -53,5 +44,4 @@ else
 fi
 
 #  Run up SOG.
-echo "$starjava $defines -jar $appjar -port $SOG_PORT $*"
 $starjava $defines -jar $appjar -port $SOG_PORT $*
