@@ -76,9 +76,8 @@
   <property name="what" value="build"/>
 
   <!-- Directory for the complete java documentation -->
-  <property name="dist.dir" value="${basedir}"/>
-  <property name="dist.docs" value="${dist.dir}/docs"/>
-  <property name="dist.javadocs" value="${dist.docs}/javadocs"/>
+  <property name="docs.dir" value="${basedir}/docs"/>
+  <property name="docs.javadocs" value="${docs.dir}/javadocs"/>
 
   <!-- 
    !  ======================================
@@ -268,9 +267,9 @@
        </fileset>
      </path>
 
-     <mkdir dir="${dist.javadocs}"/>
+     <mkdir dir="${docs.javadocs}"/>
      <javadoc useexternalfile="yes"
-              destdir="${dist.javadocs}"
+              destdir="${docs.javadocs}"
               author="true"
               version="true"
               locale="en"
