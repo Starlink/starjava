@@ -24,7 +24,7 @@ import javax.swing.JLabel;
  * A typical usage pattern is:
  * <pre>
  *    GridBagLayouter layouter = new GridBagLayouter( pane, GridBagLayouter.SCHEME3 );
- *    layouter.add( new JLabel( "Label:" ) , false );
+ *    layouter.add( "Label:", false );
  *    layouter.add( new JComponent(), true );         // End of this line
  *    ... more components ...
  *    layouter.eatSpare();                            // End of all components
