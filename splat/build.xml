@@ -195,6 +195,9 @@
     <!-- NDArray-->
     <pathelement location="${star.jar.dir}/array/array.jar"/>
 
+    <!-- DIVA -->
+    <pathelement location="${star.jar.dir}/diva/diva.jar"/>
+
     <!-- HDX -->
     <pathelement location="${star.jar.dir}/hdx/hdx.jar"/>
 
@@ -226,6 +229,7 @@
     <pathelement location="${star.build.dir}/array/lib/array/array.jar"/>
     <pathelement location="${star.build.dir}/jniast/lib/jniast/jniast.jar"/>
     <pathelement location="${star.build.dir}/hdx/lib/hdx/hdx.jar"/>
+    <pathelement location="${star.build.dir}/diva/lib/diva/diva.jar"/>
     <pathelement location="${star.build.dir}/soapserver/lib/soapserver/soapserver.jar"/>
     <pathelement location="${star.build.dir}/pal/lib/pal/pal.jar"/>
   </extclasspath>
