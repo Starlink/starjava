@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -138,6 +139,33 @@ public class FormatsTest extends TestCase {
         assertTrue( t2.isRandom() );
         checkStarTable( t2 );
         assertTableEquals( table, t2 );
+    }
+
+    public void testFactory() {
+        String[] defaultFormats = new String[] {
+            "FITS-plus",
+            "FITS",
+            "VOTable",
+            "ASCII",
+        };
+        String[] knownFormats = new String[] {
+            "FITS-plus",
+            "FITS",
+            "VOTable",
+            "ASCII",
+            "CSV",
+            "WDC",
+        };
+        StarTableFactory factory = new StarTableFactory();
+        assertEquals( Arrays.asList( knownFormats ),
+                      factory.getKnownFormats() );
+        List factDefaultBuilders = new ArrayList();
+        for ( Iterator it = factory.getDefaultBuilders().iterator();
+              it.hasNext(); ) {
+            String fname = ((TableBuilder) it.next()).getFormatName();
+            factDefaultBuilders.add( fname );
+        }
+        assertEquals( Arrays.asList( defaultFormats ), factDefaultBuilders );
     }
 
     public void testOutput() throws IOException {
