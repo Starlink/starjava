@@ -715,7 +715,7 @@ public class AstAxes
             setYWidth( doubleFromString( value ) );
             return;
         }
-        System.err.println( "AstAxes: unknown configuration property:" +
+        System.err.println( "AstAxes: unknown configuration property: " +
             name + " (" + value + ")" );
     }
 }

@@ -875,12 +875,15 @@ public class AstTicks
 
         if ( name.equals( "logSpacingSet" ) ) {
             setLogSpacingSet( booleanFromString( value ) );
+            return;
         }
         if ( name.equals( "xLogSpacing" ) ) {
             setXLogSpacing( booleanFromString( value ) );
+            return;
         }
         if ( name.equals( "yLogSpacing" ) ) {
             setYLogSpacing( booleanFromString( value ) );
+            return;
         }
 
         if ( name.equals( "xLogGap" ) ) {
@@ -949,7 +952,7 @@ public class AstTicks
             return;
         }
 
-        System.err.println( "AstTicks: unknown configuration property:" +
+        System.err.println( "AstTicks: unknown configuration property: " +
             name + " (" + value + ")" );
     }
 }
