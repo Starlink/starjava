@@ -50,7 +50,12 @@ public class MetaDataPopup extends JInternalFrame
      * PlotControlFrame object containing the TimeSeries of interest.
      */
      PlotControlFrame popupFrame = null;
-            
+                      
+    /**
+     * TextArea for information
+     */   
+     JTextArea textArea =  new JTextArea();
+                
     /**
      * Create an instance of the dialog and proceed to do arithmetic
      *
@@ -81,7 +86,7 @@ public class MetaDataPopup extends JInternalFrame
        addInternalFrameListener( new DialogListener() );  
          
        // grab Frog object  
-       Frog frame = seriesManager.getFrog();
+       Frog frame = debugManager.getFrog();
              
        // grab location and position window
        Dimension popupSize = getSize();
@@ -95,65 +100,15 @@ public class MetaDataPopup extends JInternalFrame
        
        // create the main panel
        // ---------------------
-       
-       // Frame Name
-       JLabel seriesLabel = new JLabel( "<html>&nbsp;Time Series&nbsp<html>" );
-       seriesLabel.setBorder( BorderFactory.createEtchedBorder() );
-       
-       JLabel seriesValue = new JLabel( "<html>&nbsp;" + 
-                       seriesManager.getKey(popupFrame)  +"&nbsp<html>" );
-       seriesValue.setBorder( BorderFactory.createEtchedBorder() );
           
-          
-       // Series Name        
-       JLabel nameLabel = new JLabel( "<html>&nbsp;Name&nbsp<html>" );
-       nameLabel.setBorder( BorderFactory.createEtchedBorder() );
-       
-       JLabel nameValue = new JLabel( "<html>&nbsp;" + 
-                       popupSeries.getFullName()  +"&nbsp<html>" );
-       nameValue.setBorder( BorderFactory.createEtchedBorder() );               
-               
-       // if folded
-       JLabel ephemLabel = null;
-       JLabel ephemValue = null;
-       
-       if( popupSeries.getType() == TimeSeries.FOLDED ||
-           popupSeries.getType() == TimeSeries.BINFOLDED ) {
-              Ephemeris ephem = popupSeries.getEphemeris();
-              ephemLabel = new JLabel( "<html>&nbsp;Ephemeris&nbsp<html>" );
-              ephemLabel.setBorder( BorderFactory.createEtchedBorder() );
-              ephemValue = new JLabel( "<html>&nbsp;" + ephem.getZeroPoint() + 
-                " + " + ephem.getPeriod() + " x E&nbsp<html>" );
-              ephemValue.setBorder( BorderFactory.createEtchedBorder() ); 
-       }
-       
-       // if fitted
-       JLabel fitLabel = null;
-       JLabel fitValue = null;
-       boolean fitted = false;
-       
-       for( int k = 0; k < popupComp.count(); k++ ) {
-       
-          if ( popupComp.get(k).getType() == TimeSeries.SINCOSFIT ) {
-          
-             SinFit sinFit = popupComp.get(k).getSinFit();
-             
-             fitLabel = 
-                 new JLabel( 
-                    "<html>&nbsp;sin(&nbsp;) + cos(&nbsp;) fit&nbsp<html>" );
-             fitLabel.setBorder( BorderFactory.createEtchedBorder() );
-             
-             fitValue = new JLabel( 
-               "<html>&nbsp;" + sinFit.toString() +"&nbsp<html>" );
-             fitValue.setBorder( BorderFactory.createEtchedBorder() ); 
-          
-             // flag it
-             fitted = true;
-             
-          }              
-       
-       }                     
-
+       // setup the scroll pane
+       textArea.setColumns(40);
+       textArea.setRows(10);
+       JScrollPane scrollPane = new JScrollPane( textArea,
+                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+       textArea.setEditable(false);
+ 
        // Stuff them into the main panel
        // ------------------------------
 
@@ -167,51 +122,9 @@ public class MetaDataPopup extends JInternalFrame
        // create the main panel
        mainPanel.setLayout( new GridBagLayout() );
        
-       // frame name
        constraints.gridx = 0;  
-       constraints.gridy = 0;  
-       mainPanel.add( seriesLabel, constraints );
-       
-       constraints.gridx = 1;  
        constraints.gridy = 0;        
-       mainPanel.add( seriesValue, constraints );
-       
-       // series name
-       constraints.gridx = 0;  
-       constraints.gridy = 1;  
-       mainPanel.add( nameLabel, constraints );
-       
-       constraints.gridx = 1;  
-       constraints.gridy = 1;        
-       mainPanel.add( nameValue, constraints );  
-
-       // if folded       
-       if( popupSeries.getType() == TimeSeries.FOLDED ||
-           popupSeries.getType() == TimeSeries.BINFOLDED ) { 
-
-          constraints.gridx = 0;  
-          constraints.gridy = 2;  
-          mainPanel.add( ephemLabel, constraints );
-       
-          constraints.gridx = 1;  
-          constraints.gridy = 2;        
-          mainPanel.add( ephemValue, constraints );  
-  
-       }
-       
-       // if fitted      
-       if( fitted ) { 
-
-          constraints.gridx = 0;  
-          constraints.gridy = 3;  
-          mainPanel.add( fitLabel, constraints );
-       
-          constraints.gridx = 1;  
-          constraints.gridy = 3;        
-          mainPanel.add( fitValue, constraints );  
-  
-       }      
-                      
+       mainPanel.add( scrollPane, constraints );                      
        // create the button panels
        JPanel buttonPanel = new JPanel( new BorderLayout() );
        JPanel buttons = new JPanel( new BorderLayout() );
@@ -238,7 +151,96 @@ public class MetaDataPopup extends JInternalFrame
        
        contentPane.add(mainPanel, BorderLayout.NORTH );
        contentPane.add(buttonPanel, BorderLayout.SOUTH );
+              
+       // Add information to textArea
+       // ---------------------------
+          
+       // General Information    
+       textArea.append("Full Name   = " +  popupSeries.getFullName()+ "\n" );
+       textArea.append("Short Name   = " + popupSeries.getShortName()+ "\n" );
+       textArea.append("Series Type  = " + popupSeries.getType()+ "\n" );
+       textArea.append("Has Errors?  = " + popupSeries.haveYDataErrors()+ "\n");
+       textArea.append("Draw Errors? = " + popupSeries.isDrawErrorBars()+ "\n"); 
+       textArea.append("Data Points  = " + popupSeries.size()+ "\n"  );
+       textArea.append("Data Format  = " + popupSeries.getDataFormat()+ "\n" );
+       textArea.append("Plot Style   = " + popupSeries.getPlotStyle()+ "\n"  );
+       textArea.append("Mark Style   = " + popupSeries.getMarkStyle()+ "\n"  );
+       textArea.append("Mark Size    = " + popupSeries.getMarkSize()+ "\n"  ); 
+       if( popupFrame.getPlot().getPlot().getDataLimits().isPlotInMags() ) {
+          textArea.append( "yFlipped     = true\n");
+       } else {
+          textArea.append( "yFlipped     = false\n");
+       } 
+                      
+       // Frame Name
+       // Time Series  seriesManager.getKey(popupFrame)
+ 
+       // Series Name        
+       // Name popupSeries.getFullName()          
+       debugManager.print("             Appending name..." );
+       textArea.append( popupSeries.getFullName() + "\n" );
+          
+       // Folded Information
+       //
+       //   popupSeries.getType() == TimeSeries.FOLDED ||
+       //   popupSeries.getType() == TimeSeries.BINFOLDED 
        
+       // Ephemeris ephem = popupSeries.getEphemeris();
+       
+       if ( popupSeries.getType() == TimeSeries.FOLDED ||
+            popupSeries.getType() == TimeSeries.BINFOLDED  ) {
+            
+            debugManager.print("             Appending folding info..." );
+            Ephemeris ephem = popupSeries.getEphemeris();
+            textArea.append( 
+               ephem.getZeroPoint() +  " + " + ephem.getPeriod() + " x E\n" );
+
+       }
+        
+       // Fitting information
+       //
+       //   thisSeries.getType() == TimeSeries.SINCOSFIT
+       
+       // SinFit sinFit = thisSeries.getSinFit();
+       debugManager.print( "             TimeSeriesComp object has " + 
+                           popupComp.count() + " TimeSeries objects" ); 
+                           
+       for( int k = 0; k <= (popupComp.count()-1); k++ ) {
+          debugManager.print("             Looking for fits..." );          
+          
+          TimeSeries thisSeries = popupComp.get(k);
+          debugManager.print( "               Series " + k +
+                              " is of type " + thisSeries.getType() ); 
+          
+          if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
+             SinFit sinFit = thisSeries.getSinFit(); 
+             String equation = "Fit to data sin( ) + cos( ) = ";
+             textArea.append( equation + sinFit.toString() + "\n" );
+          }
+       }
+       
+       /*
+        * This was in the code, but seemed to give in exception in 
+        * all cases except when the TimeSeries was a SINCOSFIT. I
+        * don't understand whats going on here, have I modified the
+        * code so I don't need to do this anymore? Very odd!
+        *
+        * for( int k = 0; k < popupComp.count(); k++ ) {
+        *   
+        *    TimeSeries thisSeries = popupComp.get(k);
+        *    if ( thisSeries.getType() == TimeSeries.SINCOSFIT ) {
+        *   
+        *      SinFit sinFit = thisSeries.getSinFit();
+        *      
+        *      String equation = "Fit to data sin( ) + cos( ) = ";
+        *      textArea.append( equation + sinFit.toString() + "\n" );
+        *    }              
+        *
+        * }
+        *                     
+        */
+        
+       // Pack now avoiding problems with the scrollbar?
        pack();
 
     }

@@ -12,6 +12,7 @@ import java.lang.Math;
 
 import uk.ac.starlink.frog.Frog;
 import uk.ac.starlink.frog.iface.PlotControlFrame;
+import uk.ac.starlink.frog.iface.MetaDataPopup;
 import uk.ac.starlink.frog.data.TimeSeriesManager;
 import uk.ac.starlink.frog.data.MEMTimeSeriesImpl;
 import uk.ac.starlink.frog.data.TimeSeriesComp;
@@ -769,7 +770,7 @@ public class FoldSeriesDialog extends JInternalFrame
                             if ( fitData ) {
                                fitFoldedSeries();
                             }   
-                            
+                            displayMetaData(); 
                         }
                         catch (Exception error) {
                             error.printStackTrace();
@@ -944,8 +945,32 @@ public class FoldSeriesDialog extends JInternalFrame
         currFrame.getPlot().updatePlot();
         
         debugManager.print("           Fitted: " + fit.toString() );
-
+     }
+    
+    
+   /**
+     * Display the meta-data popup abotu the series
+     */ 
+    protected void displayMetaData( ) 
+    {    
+        debugManager.print( "           void displayMetaData( )" );
+        
+        int seriesID = seriesManager.getCurrentID();
+        String frameKey = "Time Series " + seriesID;
+        debugManager.print("             Time Series " + seriesID );
+    
+        PlotControlFrame currFrame = seriesManager.getFrame( frameKey );   
+         
+        // display some meta data
+        MetaDataPopup meta = new MetaDataPopup( currFrame );
+        Frog frame = debugManager.getFrog();
+        JDesktopPane desktop = frame.getDesktop();
+        desktop.add(meta);
+        meta.show();          
+        debugManager.print("             Displaying popup..." );
     }
+    
+    
     /**
      * Set the main cursor to indicate waiting for some action to
      * complete and lock the interface by trapping all mouse events.

@@ -925,8 +925,8 @@ public class TimeSeries
     /**
      * Set the type of the series data.
      *
-     * @param type either UNCLASSIFIED, TIMESERIES, FOLDED, BINFOLDED or
-     *                    FITTOSERIES
+     * @param type either UNCLASSIFIED, TIMESERIES, FOLDED, BINFOLDED,
+     *                    FITTOSERIES, etc.
      */
     public void setType( int type )
     {
@@ -937,8 +937,8 @@ public class TimeSeries
     /**
      * Get the type of the series data.
      *
-     * @return type either UNCLASSIFIED, TIMESERIES, FOLDED, BINFOLDED or
-     *                    FITTOSERIES
+     * @return type either UNCLASSIFIED, TIMESERIES, FOLDED, BINFOLDED,
+     *                     FITTOSERIES, etc
      */
     public int getType()
     {
