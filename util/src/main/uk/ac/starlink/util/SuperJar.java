@@ -51,14 +51,18 @@ public class SuperJar {
      * <pre>
      *    SuperJar [-o outjar] [[-x exclude] -x exclude]..] jarfile [jarfile ..]
      * </pre>
+     *
      * <p>The <tt>-o</tt> flag may optionally be supplied to provide the
      * name of the output jar file.  Otherwise it will be given a default
      * name (superjar.jar).
+     *
      * <p>The <tt>-x</tt> flag may be supplied one or more times to define
      * jarfiles which should not be included, even if they are referenced
      * in the manifest's Class-Path entry of a jar file which is included.
-     * The <tt>exclude</tt> argument thus defined is the name (without
-     * path) of the jar file to be excluded.
+     * The <tt>exclude</tt> argument thus defined is the name, optionally
+     * with one or more prepended path elements of the jar file to be 
+     * excluded (e.g. axis.jar or axis/axis.jar would both work).
+     *
      * <p>The <tt>jarfile</tt> argument(s) will be combined to form
      * the output file, all their contents and those of the jar files
      * referenced in their Class-Path manifest entries will be used.
@@ -187,7 +191,7 @@ public class SuperJar {
             String[] cpents = classpath.trim().split( " +" );
             for ( int i = 0; i < cpents.length; i++ ) {
                 File jf = new File( dir, cpents[ i ] );
-                if ( excludes.contains( jf.getName() ) ) {
+                if ( exclude( jf ) ) {
                     logStrm.println( levelPrefix( level ) 
                                    + "        Excluding: " + jf );
                 }
@@ -196,6 +200,23 @@ public class SuperJar {
                 }
             }
         }
+    }
+
+    /**
+     * Whether to exclude a given jar file from the list.
+     *
+     * @param   file to test
+     */
+    private static boolean exclude( File file ) throws IOException {
+        String cname = file.getCanonicalPath();
+        for ( Iterator it = excludes.iterator(); it.hasNext(); ) {
+            String excl = (String) it.next();
+            if ( cname.equals( excl ) ||
+                 cname.endsWith( File.separator + excl ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
