@@ -146,9 +146,9 @@
   </target>
 
   <!--
-   !   =======================
-   !   Create the HDX jar file
-   !   =======================
+   !   ===========================
+   !   Create the package jar file
+   !   ===========================
    !
    !  Nothing to do.
    !-->
@@ -337,6 +337,9 @@
     <listdelete>
       <filelist dir="/" files="${files}"/>
     </listdelete>
+
+    <delete file="${install.log}"/>
+
   </target>
 
   <!--
