@@ -9,11 +9,34 @@ public class DelegatingAttr extends DelegatingNode implements Attr {
 
     private final Attr base_;
     private final DelegatingDocument doc_;
+    private Boolean isId_;
 
+    /**
+     * Constructor.
+     *
+     * @param   base  base node
+     * @param   doc   owner document
+     */
     protected DelegatingAttr( Attr base, DelegatingDocument doc ) {
         super( base, doc );
         base_ = base;
         doc_ = doc;
+    }
+
+    /**
+     * Constructs a DelegatingAttr with information about whether it is
+     * an ID-type attribute or not.  This information is only used at
+     * DOM Level 3 (J2SE1.5), when it is used as the result of the 
+     * <code>isId()</code> method.
+     *
+     * @param   base  base node
+     * @param   doc   owner document
+     * @param   isId  whether it will be an ID type attribute
+     */
+    protected DelegatingAttr( Attr base, DelegatingDocument doc,
+                              boolean isId ) {
+        this( base, doc );
+        isId_ = Boolean.valueOf( isId );
     }
 
     //
@@ -53,6 +76,7 @@ public class DelegatingAttr extends DelegatingNode implements Attr {
 //DOM3     }
 //DOM3 
 //DOM3     public boolean isId() {
-//DOM3         return base_.isId();
+//DOM3         return isId == null ? base_.isId()
+//DOM3                             : isId_.booleanValue();
 //DOM3     }
 }

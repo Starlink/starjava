@@ -2,10 +2,12 @@ package uk.ac.starlink.votable;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.votable.dom.DelegatingAttr;
 import uk.ac.starlink.votable.dom.DelegatingDocument;
 import uk.ac.starlink.votable.dom.DelegatingElement;
 import uk.ac.starlink.votable.dom.DelegatingNode;
@@ -136,5 +138,11 @@ public class VODocument extends DelegatingDocument {
         else {
             return new VOElement( node, this );
         }
+    }
+
+    protected DelegatingAttr createDelegatingAttr( Attr baseNode ) {
+        return "ID".equals( baseNode.getName() )
+             ? super.createDelegatingAttr( baseNode, true )
+             : super.createDelegatingAttr( baseNode );
     }
 }

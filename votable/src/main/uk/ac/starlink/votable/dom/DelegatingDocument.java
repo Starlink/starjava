@@ -181,6 +181,23 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 
     /**
      * Creates a new node in this document that delegates to an object
+     * of class {@link org.w3c.dom.Attr} and knows whether it is an
+     * ID-type attribute or not.  This is not called by any method of
+     * this class, but can be used by subclass implementations of
+     * {@link #createDelegatingAttr(org.w3c.dom.Attr)}.
+     * 
+     * @param   baseNode  delegate node
+     * @param   isId  true if this node knows it is an ID, false if it knows
+     *          it isn't
+     * @return  new node in this model based on <tt>baseNode</tt>
+     */
+    protected DelegatingAttr createDelegatingAttr( Attr baseNode,
+                                                   boolean isId ) {
+        return new DelegatingAttr( baseNode, this, isId );
+    }
+
+    /**
+     * Creates a new node in this document that delegates to an object
      * of class {@link org.w3c.dom.CDATASection}
      * in the base model.  This may be overridden to create specialised
      * node types.
