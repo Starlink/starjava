@@ -179,8 +179,8 @@ public class IconFactory {
             case XML_DTD:        iname = "xml_dtd.gif";              break;
             case NDX:            iname = "fuzz3.gif";                break;
             case HDX_CONTAINER:  iname = "box7.gif";                 break;
-            case TARFILE:        iname = "squishdir2.gif";           break;
-            case TARENTRY:       iname = "squishfile2.gif";          break;
+            case TARFILE:        iname = "tarchive1.gif";            break;
+            case TARENTRY:       iname = "tarentry1.gif";            break;
             case VOTABLE:        iname = "telescope2.gif";           break;
             case VOCOMPONENT:    iname = "smallbox1.gif";            break;
             case SPLAT:          iname = "multidisplay.gif";         break;

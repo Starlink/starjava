@@ -122,8 +122,12 @@ class HelpDetailViewer extends DetailViewer {
             addKnownIcon( IconFactory.VOCOMPONENT, "Component within VOTable" );
 
             ta.addSeparator();
-            addKnownIcon( IconFactory.ZIPENTRY, "ZIP archive normal file" );
-            addKnownIcon( IconFactory.ZIPFILE, "ZIP archive directory" );
+            addKnownIcon( IconFactory.ZIPFILE, "ZIP archive" );
+            addKnownIcon( IconFactory.ZIPENTRY, "ZIP archive entry" );
+
+            ta.addSeparator();
+            addKnownIcon( IconFactory.TARFILE, "TAR archive" );
+            addKnownIcon( IconFactory.TARENTRY, "TAR archive entry" );
 
             ta.addSeparator();
             addKnownIcon( IconFactory.ERROR, "An error which has occurred" );

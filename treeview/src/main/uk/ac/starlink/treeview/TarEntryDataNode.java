@@ -95,7 +95,9 @@ public class TarEntryDataNode extends DefaultDataNode {
             if ( entry.getSize() > 0 ) {
                 StreamCheck schk;
                 try {
-                    schk = new StreamCheck( getContentStream() );
+                    InputStream tis = getContentStream();
+                    schk = new StreamCheck( tis );
+                    tis.close();
                 }
                 catch ( IOException e ) {
                     schk = null;

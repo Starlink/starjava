@@ -22,7 +22,7 @@ import uk.ac.starlink.util.SourceReader;
  * The available applications are provided as final static members 
  * (also instances) of this class.
  */
-class ApplicationInvoker {
+public class ApplicationInvoker {
 
     private String name;
     private String displayNDXMethod;

@@ -1000,7 +1000,7 @@ public class StaticTreeViewer extends JFrame {
         final DataNode dn = getDataNodeFromTreePath( tpath );
         final CreationState creator = dn.getCreator();
         JPopupMenu popper = new JPopupMenu(); 
-        if ( creator != null ) {
+        if ( creator != null && creator.getObject() != null ) {
             final DataNodeBuilder origbuilder = creator.getBuilder();
             final Object cobj = creator.getObject();
 
