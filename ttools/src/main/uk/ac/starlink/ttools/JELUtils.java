@@ -1,7 +1,9 @@
 package uk.ac.starlink.ttools;
 
+import gnu.jel.CompilationException;
 import gnu.jel.DVMap;
 import gnu.jel.Library;
+import gnu.jel.Parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -102,4 +104,74 @@ public class JELUtils {
         return staticClasses_;
     }
 
+    /**
+     * Gives the return type of an expression.
+     * This also has the effect of testing that an expression is legal.
+     *
+     * @param   lib   JEL library
+     * @param   expr  string representation of the expression
+     * @return  class which evaluation of <tt>expr</tt> using <tt>lib</tt>
+     *          will return
+     * @throws  CompilationExpression  if <tt>expr</tt> cannot be compiled
+     */
+    public static Class getExpressionType( Library lib, String expr )
+             throws CompilationException {
+         return new Parser( expr, lib ).parse( null ).resType;
+    }
+
+    /**
+     * Checks that an expression is legal and returns a particular class.
+     *
+     * @param  lib    JEL library
+     * @param  expr   string representation of the expression
+     * @param  clazz  return type required from <tt>expr</tt>
+     * @throws  CompilationException  if <tt>expr</tt> cannot be compiled
+     *          or will return a type other than <tt>clazz</tt> 
+     *          (or one of its subtypes)
+     */
+    public static void checkExpressionType( Library lib, String expr,
+                                            Class clazz )
+             throws CompilationException {
+         new Parser( expr, lib ).parse( clazz );
+    }
+
+    /**
+     * Returns a non-primitive version of a given class.
+     * If <tt>clazz</tt> is a non-primitive type, it will be returned,
+     * otherwise the wrapper class corresponding to the primitive type
+     * of <tt>clazz</tt> will be returned 
+     * (e.g. <tt>Integer</tt> for <tt>int</tt>).
+     *
+     * @param   clazz   input class
+     * @return  non-primitive class matching <tt>clazz</tt>
+     */
+    public static Class getWrapperType( Class clazz ) {
+        if ( clazz.equals( boolean.class ) ) {
+            return Boolean.class;
+        }
+        else if ( clazz.equals( char.class ) ) {
+            return Character.class;
+        }
+        else if ( clazz.equals( byte.class ) ) {
+            return Byte.class;
+        }
+        else if ( clazz.equals( short.class ) ) {
+            return Short.class;
+        }
+        else if ( clazz.equals( int.class ) ) {
+            return Integer.class;
+        }
+        else if ( clazz.equals( long.class ) ) {
+            return Long.class;
+        }
+        else if ( clazz.equals( float.class ) ) {
+            return Float.class;
+        }
+        else if ( clazz.equals( double.class ) ) {
+            return Double.class;
+        }
+        else {
+            return clazz;
+        }
+    }
 }
