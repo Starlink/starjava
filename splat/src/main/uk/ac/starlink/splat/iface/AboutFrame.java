@@ -7,6 +7,7 @@
  */
 package uk.ac.starlink.splat.iface;
 
+import java.awt.MediaTracker;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -46,28 +47,35 @@ import uk.ac.starlink.splat.util.Utilities;
 public class AboutFrame extends JDialog
     implements ActionListener
 {
-    protected JButton okButton = new JButton();
-    protected static ImageIcon splatImage =
-        new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
+    // XXX Serious hack, use an image in attempt to avoid partial
+    // redraws for V2 release. Please fix!!!!
 
-    protected String description =
-        "<html>" +
-           "<h2 align=center> <font color=red>" +
-              Utilities.getFullDescription() + 
-           "</font></h2>" +
-           "<p align=center>Version: " + 
-              Utilities.getReleaseVersion() + 
-           "</p>" +
-           "<p align=center> " + 
-              Utilities.getCopyright() + 
-           "</p>" +
-           "<p align=center> Authors:<i> " + 
-              Utilities.getAuthors() + 
-           "</i></p>" +
-           "<p align=center> Licensing:<i> " + 
-              Utilities.getLicense() + 
-           "</i></p>" +
-        "</html>";
+    protected JButton okButton = new JButton();
+    //protected static ImageIcon splatImage =
+    //    new ImageIcon( ImageHolder.class.getResource( "hsplat.gif" ) );
+    protected static ImageIcon splatImage =
+        new ImageIcon( ImageHolder.class.getResource( "splash.gif" ) );
+
+//     protected String description =
+//         "<body> <html>" +
+//            "<h2 align=center> <font color=red>" +
+//               Utilities.getFullDescription() +
+//            "</font></h2>" +
+//         "</html></body>";
+
+//     protected String subdescription =
+//         "<body> <html>" +
+//            "<p align=center>Version: " +
+//               Utilities.getReleaseVersion() +
+//            "<br><br>" +
+//               Utilities.getCopyright() +
+//            "<br><br> Authors:<i> " +
+//               Utilities.getAuthors() +
+//            "</i>" +
+//            "<br><br> Licensing:<i> " +
+//               Utilities.getLicense() +
+//            "</i></p>" +
+//         "</html></body>";
 
     /**
      * Create an instance. Use the getAction() method not this.
@@ -80,7 +88,7 @@ public class AboutFrame extends JDialog
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 360, 300 ) );
+            setSize( new Dimension( 450, 300 ) );
         }
         catch( Exception e ) {
             e.printStackTrace();
@@ -90,7 +98,8 @@ public class AboutFrame extends JDialog
     /**
      * Initialize the user interface components.
      */
-    protected void initUI() throws Exception
+    protected void initUI()
+        throws Exception
     {
         setTitle( "About " + Utilities.getReleaseName() );
         JPanel mainPane = (JPanel) getContentPane();
@@ -98,22 +107,41 @@ public class AboutFrame extends JDialog
         mainPane.setLayout( new BorderLayout() );
         mainPane.setBorder( BorderFactory.createEtchedBorder() );
 
-        JEditorPane htmlArea = new JEditorPane();
+//         JPanel topPanel = new JPanel();
+//         JEditorPane htmlArea = new JEditorPane();
+//         JEditorPane subHtmlArea = new JEditorPane();
+
+        // Wait for image to load, the first time...
+        MediaTracker mt = new MediaTracker( this );
+        mt.addImage( splatImage.getImage(), 0 );
+        try {
+            mt.waitForAll();
+        } 
+        catch ( Exception e ) {
+            // Do nothing.
+        }
         JLabel image = new JLabel();
 
-        htmlArea.setContentType( "text/html" );
-        htmlArea.setBackground( image.getBackground() );
-        htmlArea.setText( description );
-        htmlArea.setEditable( false );
+//         htmlArea.setContentType( "text/html" );
+//         htmlArea.setBackground( image.getBackground() );
+//         htmlArea.setText( description );
+//         htmlArea.setEditable( false );
+
+//         subHtmlArea.setContentType( "text/html" );
+//         subHtmlArea.setBackground( image.getBackground() );
+//         subHtmlArea.setText( subdescription );
+//         subHtmlArea.setEditable( false );
 
         image.setIcon( splatImage );
-        image.setVerticalAlignment( SwingConstants.TOP );
+//         topPanel.add( image );
+//         topPanel.add( htmlArea );
 
         okButton.setText( "OK" );
         okButton.addActionListener( this );
 
-        mainPane.add( image, BorderLayout.WEST );
-        mainPane.add( htmlArea, BorderLayout.CENTER );
+//         mainPane.add( topPanel, BorderLayout.NORTH );
+//         mainPane.add( subHtmlArea, BorderLayout.CENTER );
+        mainPane.add( image, BorderLayout.NORTH );
 
         JPanel southPane = new JPanel();
         mainPane.add( southPane, BorderLayout.SOUTH );
@@ -122,7 +150,6 @@ public class AboutFrame extends JDialog
         southPane.add( okButton );
         southPane.add( Box.createHorizontalGlue() );
     }
-
 
     /**
      * Looks out for window closing events.
@@ -134,7 +161,6 @@ public class AboutFrame extends JDialog
         }
         super.processWindowEvent( e );
     }
-
 
     /**
      * Close the window.

@@ -80,7 +80,7 @@ public abstract class ColumnGenerator
      *                          "sigma", "50.0" }}
      * </pre>
      */
-    protected static String[][] templates = null;
+    protected String[][] templates = null;
 
     /**
      * Index of the current template.

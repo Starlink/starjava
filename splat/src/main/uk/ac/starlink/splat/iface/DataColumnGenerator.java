@@ -106,8 +106,9 @@ public class DataColumnGenerator
      */
     public void addHelp( JMenuBar menuBar )
     {
-        HelpFrame.createHelpMenu( "data-generator", "Help on window",
-                                  menuBar, null );
+        // XXX Next time do help for this window.
+        //HelpFrame.createHelpMenu( "data-generator", "Help on window",
+        //                          menuBar, null );
     }
 
     /**

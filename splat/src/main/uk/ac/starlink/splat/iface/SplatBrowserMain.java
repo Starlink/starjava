@@ -53,6 +53,8 @@ public class SplatBrowserMain
             SwingUtilities.invokeAndWait( new Runnable() {
                     public void run()
                     {
+                        // Sometimes this appears as an empty window!
+                        splashFrame.repaint();
                         splashFrame.setVisible( true );
                         splashFrame.repaint();
                     }

@@ -54,8 +54,9 @@ public class CoordinateGeneratorFrame
     {
         this.coordinateGenerator = coordinateGenerator;
         initUI();
-        HelpFrame.createHelpMenu( "coordinate-generator", "Help on window",
-                                  menuBar, null );
+        // XXX next time do help for this window.
+        //HelpFrame.createHelpMenu( "coordinate-generator", "Help on window",
+        //                          menuBar, null );
         setSize( new Dimension( 450, 400 ) );
         setTitle( Utilities.getTitle( "Modify/generate coordinates" ) );
         setVisible( true );

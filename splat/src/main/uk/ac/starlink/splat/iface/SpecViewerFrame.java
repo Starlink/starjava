@@ -173,7 +173,7 @@ public class SpecViewerFrame
         //  Display and allow the change of the readonly status.
         readOnly = new JCheckBox( "Readonly" );
         topPanel.add( readOnly, BorderLayout.SOUTH );
-        topPanel.setToolTipText( "If spectrum is readonly, toggle to "+
+        readOnly.setToolTipText( "If spectrum is readonly, toggle to "+
                                  "get a writeable copy" );
 
         //  Respond to modifications (may make a copy).

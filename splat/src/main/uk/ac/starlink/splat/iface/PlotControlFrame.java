@@ -436,7 +436,11 @@ public class PlotControlFrame
                                                 plot.getPlotConfiguration(),
                                                 Utilities.getApplicationName(),
                                                 "PlotConfigs.xml" );
-
+            
+            //  Add the SPLAT on-line help.
+            HelpFrame.createHelpMenu( "config-window", "Help on window",
+                                      configFrame.getJMenuBar(), null );
+            
             //  Add controls for the extra facilities provided by the
             //  DivaPlot.
             DivaPlot divaPlot = plot.getPlot();

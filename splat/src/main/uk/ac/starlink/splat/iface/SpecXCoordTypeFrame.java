@@ -467,7 +467,7 @@ public class SpecXCoordTypeFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Control spectral attributes" ) );
+        setTitle( Utilities.getTitle( "Coordinate system attributes" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
         Utilities.setFrameLocation( this, null, prefs, "SpecXCoordTypeFrame" );
         pack();

@@ -84,8 +84,9 @@ public class ErrorColumnGenerator
      */
     public void addHelp( JMenuBar menuBar )
     {
-        HelpFrame.createHelpMenu( "error-generator", "Help on window",
-                                  menuBar, null );
+        // XXXX Next time do help for this window.
+        //HelpFrame.createHelpMenu( "error-generator", "Help on window",
+        //                          menuBar, null );
     }
 
     /**
