@@ -43,6 +43,7 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import uk.ac.starlink.connect.FilestoreChooser;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
@@ -86,8 +87,6 @@ import uk.ac.starlink.util.Loader;
  *      (Obtain a list of SIAP services)
  * <li> {@link uk.ac.starlink.vo.RegistryTableLoadDialog}
  *      (Get the result of a registry query as a table of resources)
- * <li> {@link uk.ac.starlink.astrogrid.MyspaceTableLoadDialog}
- *      (Browse MySpace for tables)
  * </ul>
  * these can be installed if desired as explained above.
  *
@@ -108,7 +107,7 @@ public class StarTableChooser extends JPanel {
     private TableLoadDialog[] knownDialogs_;
     private final Component[] activeComponents_;
     private StarTableFactory tableFactory_;
-    private ComboBoxModel formatModel_;
+    private JComboBox formatSelector_;
     private TransferHandler transferHandler_;
     private Icon queryIcon_;
     private TableConsumer tableConsumer_;
@@ -121,7 +120,7 @@ public class StarTableChooser extends JPanel {
      * implementations used by default.
      */
     public static String[] STANDARD_DIALOG_CLASSES = new String[] {
-        FileChooserLoader.class.getName(),
+        FilestoreTableLoadDialog.class.getName(),
     };
 
     /**
@@ -176,10 +175,8 @@ public class StarTableChooser extends JPanel {
     public StarTableChooser( StarTableFactory factory, 
                              TableLoadDialog[] dialogs,
                              String[] extraDialogNames ) {
-        tableFactory_ = factory;
         dialogs_ = dialogs;
         extraDialogNames_ = extraDialogNames;
-        formatModel_ = makeFormatBoxModel( factory );
         Border emptyBorder = BorderFactory.createEmptyBorder( 5, 5, 5, 5 );
         Box actionBox = Box.createVerticalBox();
         actionBox.setBorder( emptyBorder );
@@ -193,12 +190,16 @@ public class StarTableChooser extends JPanel {
         JComponent formatBox = Box.createHorizontalBox();
         formatBox.add( new JLabel( "Format: " ) );
         formatBox.add( Box.createHorizontalStrut( 5 ) );
-        JComboBox fcombo = new JComboBox( formatModel_ );
-        fcombo.setMaximumSize( fcombo.getPreferredSize() );
-        formatBox.add( fcombo );
-        activeList.add( fcombo );
+        formatSelector_ = new JComboBox() {
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
+        };
+        formatBox.add( formatSelector_ );
+        activeList.add( formatSelector_ );
         formatBox.setAlignmentX( LEFT_ALIGNMENT );
         actionBox.add( formatBox );
+        setStarTableFactory( factory );
 
         /* Construct and place location text entry field. */
         locAction_ = new AbstractAction( "OK" ) {
@@ -364,6 +365,36 @@ public class StarTableChooser extends JPanel {
      */
     public void setStarTableFactory( StarTableFactory factory ) {
         tableFactory_ = factory;
+        formatSelector_.setModel( makeFormatBoxModel( factory ) );
+    }
+
+    /**
+     * Returns the FilestoreChooser used by this loader, if any.
+     *
+     * @return   filestore chooser
+     */
+    FilestoreChooser getFilestoreChooser() {
+        for ( int i = 0; i < dialogs_.length; i++ ) {
+            if ( dialogs_[ i ] instanceof FilestoreTableLoadDialog ) {
+                return ((FilestoreTableLoadDialog) dialogs_[ i ]).getChooser();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Sets the configuration of this loader to match that of a
+     * saver widget.  This will typically involve things like making 
+     * sure they are viewing the same directory.
+     *
+     * @param  saver  saver
+     */
+    public void configureFromSaver( StarTableSaver saver ) {
+        FilestoreChooser loadChooser = getFilestoreChooser();
+        FilestoreChooser saveChooser = saver.getFilestoreChooser();
+        if ( loadChooser != null && saveChooser != null ) {
+            loadChooser.setModel( saveChooser.getModel() );
+        }
     }
 
     /**
@@ -372,7 +403,7 @@ public class StarTableChooser extends JPanel {
      * @return  the selected format name (or <tt>null</tt>)
      */
     public String getFormatName() {
-        return (String) formatModel_.getSelectedItem();
+        return (String) formatSelector_.getSelectedItem();
     }
 
     /**
@@ -530,7 +561,8 @@ public class StarTableChooser extends JPanel {
             public void actionPerformed( ActionEvent evt ) {
                 boolean status =
                     tld.showLoadDialog( StarTableChooser.this, tableFactory_,
-                                        formatModel_, getTableConsumer() );
+                                        formatSelector_.getModel(),
+                                        getTableConsumer() );
             }
         };
         act.putValue( Action.SHORT_DESCRIPTION, tld.getDescription() );
@@ -547,21 +579,6 @@ public class StarTableChooser extends JPanel {
      */
     public TransferHandler getTableImportTransferHandler() {
         return transferHandler_;
-    }
-
-    /**
-     * Returns the file chooser widget used by this chooser.
-     *
-     * @return  file chooser
-     */
-    public JFileChooser getFileChooser() {
-        for ( int i = 0; i < dialogs_.length; i++ ) {
-            TableLoadDialog tld = dialogs_[ i ];
-            if ( tld instanceof FileChooserLoader ) {
-                return (JFileChooser) tld;
-            }
-        }
-        return null;
     }
 
     /**
@@ -598,18 +615,11 @@ public class StarTableChooser extends JPanel {
      * @return   an array of {@link TableLoadDialog} objects
      */
     public static TableLoadDialog[] makeDefaultLoadDialogs() {
-        List dlist = new ArrayList();
-        for ( int i = 0; i < STANDARD_DIALOG_CLASSES.length; i++ ) {
-            TableLoadDialog tld = (TableLoadDialog)
-                Loader.getClassInstance( STANDARD_DIALOG_CLASSES[ i ],
-                                         TableLoadDialog.class );
-            if ( tld != null ) {
-                dlist.add( tld );
-            }
-        }
-        dlist.addAll( Loader.getClassInstances( LOAD_DIALOGS_PROPERTY, 
-                                                TableLoadDialog.class ) );
-        return (TableLoadDialog[]) dlist.toArray( new TableLoadDialog[ 0 ] );
+        return (TableLoadDialog[]) 
+               Loader.getClassInstances( STANDARD_DIALOG_CLASSES,
+                                         LOAD_DIALOGS_PROPERTY, 
+                                         TableLoadDialog.class )
+              .toArray( new TableLoadDialog[ 0 ] );
     }
 
     /**
