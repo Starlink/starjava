@@ -31,12 +31,11 @@ on doing processing.
 STIL's idea of a table is rich enough to include table and column
 metadata, and table cells which contain scalar or single- or multi-dimensional
 array data of numerical, string or other types.
+This is well suited to astronomical data, though it can be of use
+in other fields as well.
 
 <p>STIL comes with a large range of supported input and output formats,
 but can be extended to cope with new ones.
-
-<p>STIL has been designed with astronomical tables in mind,
-but could be used for processing of tabular data from other fields.
 
 
 <hr>
@@ -48,9 +47,13 @@ The table I/O has the following features:
 <li>Pluggable architecture allows addition of new formats
 <li>Any-to-any format conversion is trivial
 <li>Access to large tables is possible (not constrained by memory)
+<li>Additional methods for VOTable manipulation
+<li>Full javadocs and programmer's overview documentation
 </ul>
 
-<p>STIL includes sophisticated VOTable I/O facilities which can,
+<p>STIL includes sophisticated 
+<strong><a href="http://cdsweb.u-strasbg.fr/doc/VOTable/">VOTable</a> 
+I/O facilities</strong> which can,
 if desired, be used largely independently of the rest of the package.
 As well as the general features listed above this has the following features:
 <ul>
@@ -90,7 +93,7 @@ and the following for table output:
 
 There are two main sources of documentation for STIL:
 <ul>
-<li>The main programmer's overview document is SUN/unassigned, available as:
+<li>The main programmer's overview document is SUN/252, available as:
   <ul>
   <li><a href="sun252.html">Single HTML document</a>
   <li><a href="sun252/index.html">Multi-page HTML document</a>
@@ -108,11 +111,16 @@ There are two main sources of documentation for STIL:
 
 You can get STIL in one of the following ways:
 <ul>
-<li>Download the entire Starlink java set, of which STIL forms part
+<li>Get the <a href="http://www.starlink.ac.uk/Download/"/>Starlink CD</a>
+    (ISO image) containing all Starlink software
+<li>Download the 
+    <a href="http://www.star.bris.ac.uk/~mbt/treeview/install.html">entire
+    Starlink java set</a>, of which STIL forms part
 <li>Download <a href="http://www.starlink.ac.uk/topcat/">TOPCAT</a> 
     (all the STIL libraries are contained in the TOPCAT installation)
-<li>Down load the standalone jar file <a href="stil.jar"/>stil.jar</a>
+<li>Download the standalone jar file <a href="stil.jar"/>stil.jar</a>
 </ul>
+CVS access to the source code repository may be possible too.
 
 <p>The source code is also available:
 <ul>
@@ -133,7 +141,7 @@ etc, contact me.
 
 <li>Email: <a href="mailto:m.b.taylor@bristol.ac.uk">m.b.taylor@bristol.ac.uk</a
 >
-<li>STIL WWW page: <a href="http://www.ast.bristol.ac.uk/topcat/">http://www.ast.bristol.ac.uk/~mbt/stil/</a>
+<li>STIL WWW page: <a href="http://www.star.bristol.ac.uk/topcat/">http://www.star.bristol.ac.uk/~mbt/stil/</a>
 <li>Starlink: <a href="http://www.starlink.ac.uk/">http://www.starlink.ac.uk/</a>
 </ul>
 

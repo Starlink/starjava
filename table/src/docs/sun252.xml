@@ -20,7 +20,7 @@
 
 <contactlist>
 <contact>STIL web page:
-         <webref url="http://www.ast.bris.ac.uk/~mbt/stil/"/></contact>
+         <webref url="http://www.star.bris.ac.uk/~mbt/stil/"/></contact>
 <contact>Author email:
          <webref url="mailto:m.b.taylor@bristol.ac.uk"
                  >m.b.taylor@bristol.ac.uk</webref></contact>
@@ -36,7 +36,8 @@
 <px>STIL is a set of Java class libraries which allow input,
 manipulation and output of tabular data.
 As well as an abstract and format-independent definition of what 
-constitutes a table, it provides a number of format-specific
+constitutes a table, and an extensible framework for "pull-model"
+table processing, it provides a number of format-specific
 handlers which know how to serialize/deserialize tables; 
 amongst others handlers are provided for the VOTable and FITS formats.
 The framework for interaction between the core table manipulation
@@ -60,9 +61,7 @@ the format-independent parts of the library.
 and manipulation of tables.  It has been developed for use with
 astronomical tables, though it could be used for any kind of
 tabular data.
-Contrary to the name (StarGenericTables didn't sound very catchy),
-STIL is not restricted to manipulation of VOTables, and 
-has in fact no 'native' table format.  What it has is 
+It has no "native" external table format.  What it has is 
 a model of what a table looks like, 
 a set of java classes for manipulating such tables, 
 an extensible framework for table I/O, 
@@ -92,7 +91,7 @@ which has the following:
 <li>Some per-table metadata (parameters)</li>
 <li>A number of columns</li>
 <li>Some per-column metadata</li>
-<li>A number of rows, each containing one object per column</li>
+<li>A number of rows, each containing one entry per column</li>
 </ul>
 This model is embodied in the
 <javadoc class="uk.ac.starlink.table.StarTable"/> interface,
@@ -158,6 +157,8 @@ A <code>ColumnInfo</code> contains information about the
 <javadoc class="uk.ac.starlink.table.ValueInfo"
          member="getName()">name</javadoc>,
 <javadoc class="uk.ac.starlink.table.ValueInfo"
+         member="getUnitString()">units</javadoc>,
+<javadoc class="uk.ac.starlink.table.ValueInfo"
          member="getUCD()">UCD</javadoc>,
 <javadoc class="uk.ac.starlink.table.ValueInfo"
          member="getContentClass()">class</javadoc>
@@ -172,7 +173,8 @@ under various circumstances.
          member="getContentClass()"/> method, 
 is of particular importance.  Every object in the column described
 by that metadata should be an instance of the 
-<javadoc class="java.lang.Class" docset="&coredocs;"/> it returns
+<javadoc class="java.lang.Class" docset="&coredocs;"/> 
+<code>getContentClass</code>returns
 (or of one of its subtypes), or <code>null</code>.
 There is nothing in the tables infrastructure which can enforce
 this, but a table which doesn't follow this rule is considered broken,
@@ -206,9 +208,10 @@ and an array by an array of primitives
  <code>boolean[]</code> etc).
 Non-primitive-like objects 
 (of which <code>String</code> is the most important example)
-should be represented by their own class (scalar) or an array 
-of their own class (arrays).
-Note that it is <em>not</em> recommended to use multidimensional arrays;
+should be represented by their own class (for scalars) or an array 
+of their own class (for arrays).
+Note that it is <em>not</em> recommended to use multidimensional arrays
+(i.e. arrays of arrays like <code>int[][]</code>);
 a 1-dimensional java array should be used, and information about
 the dimensionality should be stored in the <code>ColumnInfo</code>'s 
 shape attribute.
@@ -249,14 +252,15 @@ obtaining the cell data.
 
 <p>It is always possible to access a table's data sequentially,
 that is starting with the first row and reading forward a row at
-a time to the last row.  It may or many not be possible to tell
+a time to the last row; it may or may not be possible to tell
 (using <javadoc class="uk.ac.starlink.table.StarTable" member="getRowCount()"/>)
-how many rows there are in this case.
-To do this, use the
+how many rows there are.
+To perform sequential access, use the
 <javadoc class="uk.ac.starlink.table.StarTable" member="getRowSequence()"/>
 method to get a
 <javadoc class="uk.ac.starlink.table.RowSequence"/> object,
-which is an iterator (though not an <javadoc class="java.util.Iterator"/>)
+which is an iterator 
+(though not an <javadoc docset="&coredocs;" class="java.util.Iterator"/>)
 over the rows in the table.
 The <code>RowSequence</code>'s 
 <javadoc class="uk.ac.starlink.table.RowSequence" member="next()"/>
@@ -444,7 +448,7 @@ formats.  It does this using a set of handlers each of which knows
 about turning an external table into a java 
 <javadoc class="uk.ac.starlink.table.StarTable"/> object 
 or turning a <code>StarTable</code> object into an external table.
-These "external tables" will typically files on a local disk,
+Such an "external table" will typically be a file on a local disk,
 but might also be a URL pointing to a file on a remote host, 
 or an SQL query on a remote database, or something else.
 </p>
@@ -465,7 +469,7 @@ stands, you can do one or both of the following:
 <dl>
 <dt>Write a new input handler:</dt>
 <dd><p>Implement the <javadoc class="uk.ac.starlink.table.TableBuilder"/>
-    interface to takes a stream of data and return a
+    interface to take a stream of data and return a
     <code>StarTable</code> object.
     Install it in a 
     <javadoc class="uk.ac.starlink.table.StarTableFactory"/>, which 
@@ -477,23 +481,17 @@ stands, you can do one or both of the following:
 </p></dd>
 
 <dt>Write a new output handler:</dt>
-<dd><p>Implement the <javadoc class="uk.ac.stalrink.table.StarTableWriter"/>
+<dd><p>Implement the <javadoc class="uk.ac.starlink.table.StarTableWriter"/>
     interface to take a <code>StarTable</code> and write it to a given
     destination.
     Install it in a 
     <javadoc class="uk.ac.starlink.table.StarTableOutput"/>, which 
     will be then be able to write tables in this format as well as others.
     Such a <code>StarTableWriter</code>
-    can also be used to write tables by code which wants to write 
+    can also be used directly to write tables by code which wants to write 
     data in that particular format.
 </p></dd>
 </dl>
-Having written these you can register them with the generic input or
-output handler
-(<javadoc class="uk.ac.starlink.table.StarTableFactory"/> or
- <javadoc class="uk.ac.starlink.table.StarTableOutput"/> respectively)
-and the genreric I/O facilities will work with these just the same
-as for the pre-supplied formats.
 This document does not currently offer a tutorial on writing new table I/O
 handlers; read the javadocs for the relevant classes.
 </p>
@@ -503,7 +501,7 @@ handlers; read the javadocs for the relevant classes.
 <subsect id="genericInput">
 <subhead><title>Generic Table Input</title></subhead>
 
-<p>Obtaining a table from an generic-format external source is done using a 
+<p>Obtaining a table from a generic-format external source is done using a 
 <javadoc class="uk.ac.starlink.table.StarTableFactory"/>.
 The job of this class is to keep track of which input handlers are
 registered and to offer an input stream to each of them in turn,
@@ -516,7 +514,7 @@ If no StarTable can be created (for instance because the file named doesn't
 exist, or because it is not in any of the supported formats)
 then some sort of <code>IOException</code> will be thrown.
 Note that if the target stream is compressed in one of the supported 
-formats (gzip, bzip2, Unix compress) this will be dealt with automatically
+formats (gzip, bzip2, Unix compress) it will get uncompressed automatically
 (the work for this is done by the 
 <javadoc class="uk.ac.starlink.util.DataSource"/> class).
 </p>
@@ -534,47 +532,23 @@ but note it does <em>not</em> guarantee that tables generated by the factory
 will be random-access; see <ref id="randomTable"/> for that.
 </p>
 
-<p>Here is a straightforward example showing how to read a table file:
+<p>Here is a trivial example showing how to read a table file:
 <verbatim>
     public StarTable loadTable( File name ) throws IOException {
         return new StarTableFactory().makeStarTable( file.toString() );
     }
 </verbatim>
-</p>
-
-<p><code>StarTableFactory</code> also makes it very easy to provide
-some drag and drop functionality within Swing.  If you set up a
-<javadoc class="javax.swing.TransferHandler" docset="&coredocs;"/>
-like this:
+If you want to ensure that the table you get provides random access,
+(see <ref id="tableData"/>
+you should do something like this:
 <verbatim>
-    class TableTransferHandler extends TransferHandler {
+    public StarTable loadRandomTable( File name ) throws IOException {
         StarTableFactory factory = new StarTableFactory();
-
-        public boolean canImport( JComponent comp, DataFlavor[] flavors ) {
-            return factory.canImport( flavors );
-        }
-
-        public boolean importData( JComponent comp, Transferable dropped ) {
-            try {
-                StarTable table = factory.makeStarTable( dropped );
-                processDroppedTable( table );
-                return true;
-            }
-            catch ( IOException e ) {
-                e.printStackTrace();
-                return false;
-            }
-        }
+        factory.setWantRandom( true );
+        StarTable table = factory.makeStarTable( tile.toString() );
+        return Tables.randomTable( table );
     }
 </verbatim>
-and install it in a Swing component using
-<javadoc class="javax.swing.JComponent"
-         member="setTransferHandler(javax.swing.TransferHandler)"
-         docset="&coredocs;"/>
-then any time a StarTable is dragged 
-(e.g. from <webref url="http://www.starlink.ac.uk/treeview">Treeview</webref>)
-and dropped into that component,
-the <code>processDroppedTable</code> method will be called on it.
 </p>
 
 <p>If you want detailed control over which kinds of tables can be loaded,
@@ -583,22 +557,6 @@ set the exact list of handlers that it uses for table resolution.
 Alternatively, you can always bypass <code>StarTableFactory</code> 
 and use a particular <javadoc class="uk.ac.starlink.table.TableBuilder"/>
 directly.
-</p>
-
-<p>A couple of graphical components are supplied which allow you
-to browse and select tables.
-The first, <javadoc class="uk.ac.starlink.table.gui.StarTableChooser"/>,
-is very much like a 
-<javadoc class="javax.swing.JFileChooser" docset="&coredocs;"/>,
-but it handles turning selected items into a <code>StarTable</code> for you.
-The second, <javadoc class="uk.ac.starlink.table.gui.StarTableNodeChooser"/>,
-is more sophisticated and allows hierarchical browsing of nodes 
-beyond the directory/file level - for instance you can see the
-hierarchical structure of RESOURCE and TABLE elements in a VOTable document
-and pick the TABLE element that you are interested in.
-It uses the same classes as the 
-<webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref> 
-application to achieve this.
 </p>
 
 </subsect>
@@ -638,15 +596,6 @@ in, you could just as easily use the relevant
 (in this case <javadoc class="uk.ac.starlink.fits.FitsTableWriter"/>).
 However, doing it with a <code>StarTableOutput</code>
 allows users to be offered the choice of which format to use.
-</p>
-
-<p>A graphical component, 
-<javadoc class="uk.ac.starlink.table.gui.StarTableSaver"/>
-can be used in GUI applications.  This resembles, and does a similar
-job to, a <javadoc class="javax.swing.JFileChooser" docset="&coredocs;"/>,
-but additionally allows the user to select what output format 
-is wanted from a list of those which the 
-<code>StarTableOutput</code> knows about.
 </p>
 
 </subsect>
@@ -1179,12 +1128,6 @@ If the username and/or password are required for the query but are
 not specified in the query string, they will be prompted for.
 </p>
 
-<p>For GUI applications, the graphical component
-<javadoc class="uk.ac.starlink.table.gui.SQLReadDialog"/> is available
-to permit users to enter the particulars of an SQL request,
-including their username and password.
-</p>
-
 <p>Note that the StarTable does not represent the JDBC table itself,
 but a query on table.  You can get a StarTable representing the
 whole JDBC table with a query like <code>SELECT * from table-name</code>,
@@ -1215,16 +1158,189 @@ which would write a new table called "newtab" in the MySQL database
 "astro1" on the local host with the access privileges of user mbt.
 </p>
 
-<p>For GUI applications, the graphical component
-<javadoc class="uk.ac.starlink.table.gui.SQLWriteDialog"/> is available
-to permit users to enter the particulars of an SQL destination table,
-including their username and password.
-</p>
-
 </subsubsect>
 
 </subsect>
 
+</sect>
+
+<sect>
+<subhead><title>GUI Support</title></subhead>
+
+<p>STIL provides a number of facilities to make life easier if you 
+are writing table-aware applications which use a graphical user interface.
+Most, but not all, of these live in the 
+<javadoc class="uk.ac.starlink.table.gui."/> package.
+</p>
+
+<subsect>
+<subhead><title>Drag and Drop</title></subhead>
+
+<p>Facilities are provided in the generic I/O classes to make 
+drag and drop of tables very straightforward.
+Dragging is done by clicking down a mouse button on some visual
+component (the "drag source") and moving the mouse until it is
+over a second component (the "drop target") at which point the
+button is released.
+The hard work is done by Swing's 
+<webref url="http://java.sun.com/j2se/1.4.1/docs/guide/dragndrop/index.html"
+        >Drag and Drop</webref> facilities;
+STIL provides interfaces between this system and its own generic I/O
+facilities so that you can add table transfer into your graphical 
+applications with a minimum of effort.
+A table is transferred from the drag source to the drop target
+by serializing it as an inline VOTable; in this way all the 
+data and metadata are transferred without any reference to local
+files or other resources, so that it will work between
+different JVMs or different hosts just as well as between different
+parts of the same application.
+</p>
+
+<p>Dragging and dropping are handled separately but in either
+case, you will need to construct a new 
+<javadoc class="javax.swing.TransferHandler" docset="&coredocs;"
+         >javax.swing.TransferHandler</javadoc>
+object (subclassing <code>TransferHandler</code> itself and overriding
+some methods as below) and install it on the Swing 
+<code>JComponent</code> which is to
+do be the drag source/drop target using its
+<javadoc class="javax.swing.JComponent"
+         member="setTransferHandler(javax.swing.TransferHandler)"
+         docset="&coredocs;"/> method.
+</p>
+
+<p>To allow a Swing component to accept tables that are dropped onto it,
+implement <code>TransferHandler</code>'s 
+<code>canImport</code> and <code>importData</code>
+methods like this:
+<verbatim>
+    class TableDragTransferHandler extends TransferHandler {
+        StarTableFactory factory = new StarTableFactory();
+
+        public boolean canImport( JComponent comp, DataFlavor[] flavors ) {
+            return factory.canImport( flavors );
+        }
+
+        public boolean importData( JComponent comp, Transferable dropped ) {
+            try {
+                StarTable table = factory.makeStarTable( dropped );
+                processDroppedTable( table );
+                return true;
+            }
+            catch ( IOException e ) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+    }
+</verbatim>
+Then any time a table is dropped on that window, the 
+<code>processDroppedTable</code> method will be called on it.
+</p>
+
+<p>To allow tables to be dragged off of a component, implement
+the <code>createTransferable</code> method like this
+<verbatim>
+    class TableDropTransferHandler extends TransferHandler {
+        StarTableOutput writer = new StarTableOutput();
+
+        public int createTransferable( JComponent comp ) {
+            StarTable table = getMyTable();
+            writer.transferStarTable( table );
+        }
+    }
+</verbatim>
+(you may want to override <code>getSourceActions</code> and
+<code>getVisualRepresentation</code> as well).
+For some Swing components 
+(see the
+<webref url="http://java.sun.com/j2se/1.4.1/docs/guide/swing/1.4/dnd.html"
+        >Swing data transfer documentation</webref>
+for a list), 
+this is all that is required.
+For others, you will need to arrange to recognise the drag gesture
+and trigger the <code>TransferHandler</code>'s 
+<javadoc class="javax.swing.TransferHandler"
+         member="exportAsDrag(javax.swing.JComponent,
+                              java.awt.event.InputEvent,
+                              int)"
+         docset="&coredocs;"/> method as well;
+you can use a <javadoc class="uk.ac.starlink.util.gui.DragListener"/> 
+for this or see its source code for an example of how to do it.
+</p>
+
+<p>If you incorporate one or other of these capabilities into your
+application, it will be able to exchange tables with any other
+application that does the same.  
+<webref url="http://www.starlink.ac.uk/topcat/">TOPCAT</webref>
+is an example; you can drag tables off the 'save' toolbar button
+or drag them onto the 'load' button.
+</p>
+
+
+</subsect>
+
+<subsect>
+<subhead><title>Table Chooser Components</title></subhead>
+
+<p>Some components exist to make it easier to load or save tables:
+<dl>
+
+<dt><javadoc class="uk.ac.starlink.table.gui.StarTableChooser"/></dt>
+<dd><p>This is for loading tables, and is very much like a
+<javadoc class="javax.swing.JFileChooser" docset="&coredocs;"/>,
+but it handles turning selected items into a <code>StarTable</code> for you.
+</p></dd>
+
+<dt><javadoc class="uk.ac.starlink.table.gui.StarTableNodeChooser"/></dt>
+<dd><p>This loads tables as well, and looks similar to the application,
+but it presents a more sophisticated interface to the user.
+It allows hierarchical browsing of nodes
+beyond the directory/file level - for instance you can see the
+hierarchical structure of RESOURCE and TABLE elements in a VOTable document,
+or the list of HDUs in a FITS file,
+and pick the TABLE element that you are interested in.
+It uses the same classes as the 
+<webref url="http://www.starlink.ac.uk/treeview/">Treeview</webref> 
+application to achieve this.
+</p></dd>
+
+<dt><javadoc class="uk.ac.starlink.table.gui.StarTableSaver"/></dt>
+<dd><p>This also resembles a <code>javax.swing.JFileChooser</code>,
+but is used for saving tables.
+As well as allowing the user to browse the filesystem and select a
+filename, it also allows him/her to select the output file format in
+from the list of those which the <code>StarTableOutput</code> 
+knows about.
+</p></dd>
+
+</dl>
+</p>
+
+</subsect>
+
+<subsect>
+<subhead><title>SQL Database Interaction</title></subhead>
+
+<p>As explained in <ref id="jdbc"/>,
+tables can be read from and written to SQL databases using the 
+JDBC framework.  Since quite a lot of information has to be
+specified to indicate the details of the table source/destination
+(driver name, server host, database name, table name, user authentication
+information...) in most cases this requires rather user-unfriendly
+URLs to be entered.
+For graphical applications, special dialogue components are supplied
+which makes this much easier for the user.  These contain
+one box per piece of information, so that the user does not need
+to remember or understand the JDBC-driver-specific URL.
+There are two of these:
+<javadoc class="uk.ac.starlink.table.gui.SQLReadDialog"/> for reading
+tables and 
+<javadoc class="uk.ac.starlink.table.gui.SQLWriteDialog"/>
+for writing them.
+</p>
+
+</subsect>
 </sect>
 
 <sect>
@@ -1502,6 +1618,7 @@ It has the following features:
 <li>Reads all VOTable data formats</li>
 <li>Writes all VOTable data formats</li>
 <li>Full access to document structure</li>
+<li>Full handling of array types</li>
 <li>Flexible table output</li>
 <li>Hybrid (SAX/DOM) parsing</li>
 <li>Large tables</li>

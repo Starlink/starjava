@@ -109,7 +109,7 @@
           <xsl:apply-templates/>
         </xsl:when>
         <xsl:otherwise>
-          section
+          <xsl:text>section </xsl:text>
           <xsl:apply-templates mode="ref" select="id(@id)"/>
         </xsl:otherwise>
       </xsl:choose>
