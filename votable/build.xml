@@ -67,7 +67,8 @@
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
-  <property name="javaapi.url" value="http://java.sun.com/j2se/1.4/docs/api/"/>
+  <property name="javaapi.url" 
+            value="http://java.sun.com/j2se/${java.specification.version}/docs/api/"/>
   <property name="javaapi.lis" value="${star.build.dir}/src/docs/javaapi/"/>
 
   <!--
