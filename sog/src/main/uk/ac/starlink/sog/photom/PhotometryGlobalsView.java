@@ -68,8 +68,7 @@ public class PhotometryGlobalsView
      */
     public PhotometryGlobalsView()
     {
-        model = new PhotometryGlobals();
-        initUI();
+        this( new PhotometryGlobals() );
     }
 
     /**
@@ -77,8 +76,9 @@ public class PhotometryGlobalsView
      */
     public PhotometryGlobalsView( PhotometryGlobals model )
     {
-        this.model = model;
+        super();
         initUI();
+        setPhotometryGlobals( model );
     }
 
     /**

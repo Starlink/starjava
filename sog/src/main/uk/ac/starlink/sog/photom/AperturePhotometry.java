@@ -59,10 +59,10 @@ public class AperturePhotometry
     /** The main image display window */
     private SOGNavigatorImageDisplay imageDisplay;
 
-    /** Create a list for storing references to the apertures */
+    /** List for storing references to the apertures */
     private PhotomList photomList = new PhotomList();
 
-    /** Create a model for storing global parameters */
+    /** Model for storing global parameters */
     private PhotometryGlobals globals = new PhotometryGlobals();
 
     /** The SOGCanvasDraw being used by the image */
@@ -81,6 +81,8 @@ public class AperturePhotometry
         super();
         this.parent = parent;
         this.imageDisplay = imageDisplay;
+
+        
 
         setLayout( new BorderLayout() );
 
@@ -227,17 +229,17 @@ public class AperturePhotometry
                 updateFigureList();
             }
         }
-        else {
+        else if ( source instanceof AnnulusFigure ) {
             CanvasFigure figure = (CanvasFigure) source;
             AnnulusPhotom annulusPhotom = null;
             if ( creationStarted ) {
                 figure.addCanvasFigureListener( this );
-
+                
                 //  Create a AnnulusPhotom object as the model to the
                 //  figure values.
                 annulusPhotom = new AnnulusPhotom();
                 photomList.add( annulusPhotom );
-
+                
                 //  Make Figure manageable.
                 figureList.add( figure );
                 figure.setClientData( annulusPhotom );
@@ -246,7 +248,7 @@ public class AperturePhotometry
             else {
                 annulusPhotom = extractAperture( (AnnulusFigure) figure );
             }
-
+            
             // Figure moved so re-size the model.
             matchModelToFigure( (AnnulusFigure) figure, annulusPhotom,
                                 true );

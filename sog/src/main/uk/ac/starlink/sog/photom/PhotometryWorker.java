@@ -43,13 +43,54 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class PhotometryWorker
 {
+    /**
+     * Create an instance and establish the end-point that will be
+     * used to access the photometry service. The default is 
+     * "http://localhost:8083/services/PhotomWSServices", which
+     * assumes the an instance of {@link PhotomWS} is running on the
+     * local machine with the default port. If set the system property
+     * "photom.webservice" will be used instead.
+     */
     public PhotometryWorker()
     {
-        // Nothing to do.
+        establishEndpoint();
     }
 
+    /** The current end point for the photometry web-service */
     private static URL endpoint = null;
 
+    /** The default end point for the photometry web-service */
+    private static String defaultEndpoint = 
+        "http://localhost:8083/services/PhotomWSServices";
+
+    /**
+     * Establish the photometry service end-point. Set to the default,
+     * unless "photom.webservice" is set and is a valid URL. 
+     * TODO: start using a discovery service and WSDL files...
+     */
+    protected void establishEndpoint()
+    {
+        String userEndpoint = System.getProperty( "photom.webservice" );
+        endpoint = null;
+        if ( userEndpoint != null ) {
+            try {
+                endpoint = new URL( userEndpoint );
+            }
+            catch (MalformedURLException e) {
+                e.printStackTrace();
+                endpoint = null;
+            }
+        }
+        if ( endpoint == null ) {
+            // Use the default endpoint.
+            try {
+                endpoint = new URL( defaultEndpoint );
+            }
+            catch (MalformedURLException e) {
+                // Never happens, default is a valid URL.
+            }
+        }
+    }
 
     /**
      * Do the photometry calculations.
@@ -64,21 +105,6 @@ public class PhotometryWorker
         if ( ! ndx.isPersistent() ) {
             throw new ServiceException(
                 "Virtual NDX " + ndx + " cannot be displayed externally" );
-        }
-
-        //  Get the services end-point. TODO: work this out from a
-        //  WSDL file and maybe make the resource realisable...
-        if ( endpoint == null ) {
-            try {
-                endpoint =
-                  new URL( "http://localhost:8083/services/PhotomWSServices" );
-
-//                endpoint =
-//                  new URL( "http://starpc1:8083/services/PhotomWSServices" );
-            }
-            catch (Exception e) {
-                // Never happens...
-            }
         }
 
         //  Get an Element that contains the full NDX.
