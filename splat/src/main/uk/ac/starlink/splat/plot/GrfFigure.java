@@ -43,7 +43,11 @@ public class GrfFigure
     public void paint( Graphics2D g )
     {
         if ( isVisible() ) {
-            plot.redrawAll( g );
+            if ( ! plot.redrawAll( g ) ) {
+                //  Allow a redraw on one failure, this should rescale the
+                //  plot.
+                plot.redrawAll( g );
+            }
         }
     }
 

@@ -483,7 +483,7 @@ public class DivaPlot
         astJ = spectra.getAst();
         astJ.setGraphic( javaGrf );
 
-        //  Set the data limits for plotting.
+        //  Set the data limits for plotting. Throws a SplatException.
         setDataLimits();
 
         //  Define the size of the box used to draw the spectra
@@ -787,17 +787,18 @@ public class DivaPlot
      *
      * @param g Graphics object
      */
-    public void redrawAll( Graphics2D g )
+    public boolean redrawAll( Graphics2D g )
     {
         //  No spectra or not realized then nothing to do yet.
         if ( spectra.count() == 0 || getPreferredSize().width == 0
              || ! isVisible() ) {
-            return;
+            return true;
         }
 
         //  If we fail in the next section, then we should be ready to redraw
         //  it all next time, so remember if this was requested.
         boolean wasScaled = xyScaled;
+        boolean ok = true;
 
         try {
             //  Restore the correct DefaultGrf object to the AST interface.
@@ -909,6 +910,7 @@ public class DivaPlot
             System.out.println( e.getMessage() );
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
+                ok = false;
             }
         }
         catch (Throwable t) {
@@ -916,8 +918,10 @@ public class DivaPlot
             t.printStackTrace();
             if ( wasScaled && !xyScaled ) {
                 xyScaled = true;
+                ok = false;
             }
         }
+        return ok;
     }
 
     /**
