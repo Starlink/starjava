@@ -446,6 +446,7 @@
         <token key="VERSION" value="${version}"/>
         <token key="DATE" value="${TODAY}"/>
         <token key="TIME" value="${TSTAMP}"/>
+        <token key="BUILT_BY" value="${user.name}"/>
       </replacetokens>
     </filterchain>
 
@@ -488,11 +489,15 @@
     </javac>
 
     <!-- Copy extra files that should live with packages classes
-     !   (i.e. are discovered using "getResource()"). -->
+     !   (i.e. are discovered using "getResource()"). 
+     !   Some of these must be filtered (for keyword substitution),
+     !   and others must not be.  -->
     <copy todir="${build.classes}">
-      <fileset dir="${src.dir}/resources">
-        <include name="**"/>
-      </fileset>
+      <filterchain refid="filters"/>
+      <fileset dir="${src.dir}/resources" excludes="${unfiltered.files}"/>
+    </copy>
+    <copy todir="${build.classes}">
+      <fileset dir="${src.dir}/resources" includes="${unfiltered.files}"/>
     </copy>
 
     <!-- Local third party jars, if any. Copy straight into
@@ -528,6 +533,7 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <jar destfile="${dist.lib.pkg}/${name}.jar"
          basedir="${build.classes}">
+      <exclude name="**/.*"/>
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class" value="uk.ac.starlink.treeview.Driver"/>
@@ -536,7 +542,9 @@
       </manifest>
     </jar>
 
-    <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${java.dir}"/>
+    <zip destfile="${dist.lib.pkg}/${name}_src.zip" 
+         basedir="${java.dir}"
+         excludes="**/.*"/>
 
   </target>
 
@@ -572,13 +580,10 @@
       <fileset dir="${script.dir}/" />
     </copy>
 
-    <!-- Copy extra documentation, note doesn't include javadocs these
-     !   are generated from the source-->
-<!--
-    <copy todir="${dist.docs.pkg}">
-      <fileset dir="${src.docs}"/>
+    <!-- Copy auxiliary files. -->
+    <copy todir="${dist.etc.pkg}">
+      <fileset dir="${src.dir}/etc"/>
     </copy>
--->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
@@ -678,6 +683,7 @@
     <mkdir dir="${star.archive.dir}"/>
 
     <zip destfile="${star.archive.dir}/${archive.name}.zip">
+      <exclude name="**/.*"/>
 
       <!-- All releases have the documentation and build file -->
       <zipfileset dir="${dist.docs}" prefix="${name}/docs"/>
@@ -705,6 +711,7 @@
     <!-- Note: creating a tar file with empty directories doesn't
      !   work, so the directory structure may be incomplete -->
     <tar longfile="gnu" destfile="${archive.name}.tar">
+      <exclude name="**/.*"/>
 
       <!-- All releases have the documentation and build file -->
       <tarfileset dir="${dist.docs}" prefix="${name}/docs"/>
@@ -830,6 +837,15 @@
     <echo file="${install.log}" append="true">${star.docs.pkg}
 </echo>
 
+    <loggedcopy todir="${star.etc}"
+                logfile="${install.log}"
+                overwrite="${install.overwrite}"
+                logfileAppend="true">
+      <fileset dir="${dist.etc}" excludes="**/Origins"/>
+    </loggedcopy>
+    <echo file="${install.log}" append="true">${star.etc.pkg}
+</echo>
+
   </target>
 
   <!--
@@ -920,8 +936,7 @@
        !   java packages -->
       <packageset dir="${java.dir}" defaultexcludes="yes">
          <include name="**"/>
-         <exclude name="**/notyet"/>
-         <exclude name="**/notnow"/>
+         <exclude name="**/.*"/>
       </packageset>
 
       <!-- Link to the full Java API at SUNs website -->
@@ -983,6 +998,7 @@
     <copy todir="${build.java}">
       <fileset dir="${java.dir}" defaultexcludes="yes">
           <exclude name="**/README"/>
+          <exclude name="**/.*"/>
       </fileset>
     </copy>
 
