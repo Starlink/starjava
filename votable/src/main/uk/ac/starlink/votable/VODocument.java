@@ -54,7 +54,7 @@ public class VODocument extends DelegatingDocument {
      *         this DOM (sometimes used for resolving URLs) - may be null
      * @param  strict  whether to enforce the VOTable standard strictly
      *         or in some cases do what is probably meant 
-     *         ({@see VOElementFactory#setStrict})
+     *         (see {@link VOElementFactory#setStrict})
      */
     public VODocument( String systemId, boolean strict ) {
         super( systemId );
