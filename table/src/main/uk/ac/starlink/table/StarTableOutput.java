@@ -26,6 +26,7 @@ import uk.ac.starlink.table.jdbc.JDBCHandler;
  * <li> {@link uk.ac.starlink.fits.FitsTableWriter}
  * <li> {@link uk.ac.starlink.votable.VOTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.TextTableWriter}
+ * <li> {@link uk.ac.starlink.table.formats.AsciiTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.HTMLTableWriter}
  * <li> {@link uk.ac.starlink.table.formats.LatexTableWriter}
  * <li> {@link uk.ac.starlink.mirage.MirageTableWriter}
@@ -42,6 +43,7 @@ public class StarTableOutput {
         "uk.ac.starlink.fits.FitsTableWriter",
         "uk.ac.starlink.votable.VOTableWriter",
         "uk.ac.starlink.table.formats.TextTableWriter",
+        "uk.ac.starlink.table.formats.AsciiTableWriter",
         "uk.ac.starlink.table.formats.HTMLTableWriter",
         "uk.ac.starlink.table.formats.LatexTableWriter",
         "uk.ac.starlink.mirage.MirageTableWriter",

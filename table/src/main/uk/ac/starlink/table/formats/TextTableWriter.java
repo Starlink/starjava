@@ -10,6 +10,7 @@ import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A StarTableWriter which outputs text to a human-readable text file.
@@ -117,13 +118,7 @@ public class TextTableWriter implements StarTableWriter {
         }
  
         /* Print headings. */
-        String[] heads = new String[ ncol ];
-        for ( int i = 0; i < ncol; i++ ) {
-            heads[ i ] = cinfos[ i ].getName();
-        }
-        printSeparator( strm, cwidths );
-        printLine( strm, cwidths, heads );
-        printSeparator( strm, cwidths );
+        printColumnHeads( strm, cwidths, cinfos );
 
         /* Print data. */
         for ( RowSequence rseq = startab.getRowSequence(); rseq.hasNext(); ) {
@@ -131,7 +126,7 @@ public class TextTableWriter implements StarTableWriter {
             Object[] row = rseq.getRow();
             String[] data = new String[ ncol ];
             for ( int i = 0; i < ncol; i++ ) {
-                data[ i ] = cinfos[ i ].formatValue( row[ i ], cwidths[ i ] );
+                data[ i ] = formatValue( row[ i ], cinfos[ i ], cwidths[ i ] );
             }
             printLine( strm, cwidths, data );
         }
@@ -163,6 +158,12 @@ public class TextTableWriter implements StarTableWriter {
         return writeParams;
     }
 
+    /**
+     * Returns an output stream to use for a given specified location string.
+     *
+     * @param  location  location spec
+     * @return  output stream to write to
+     */
     private OutputStream getStream( String location ) throws IOException {
         if ( location.equals( "-" ) ) {
             return new BufferedOutputStream( System.out );
@@ -172,7 +173,28 @@ public class TextTableWriter implements StarTableWriter {
         }
     }
 
-    private void printSeparator( OutputStream strm, int[] colwidths )
+    /**
+     * Formats a data value for output.
+     *
+     * @param  val  the value
+     * @param  vinfo  the metadata object describing <tt>val</tt>'s type
+     * @param  width  maximum preferred width into which the value should
+     *         be formatted
+     * @return  formatted string meaning <tt>value</tt>, preferably no longer
+     *          than <tt>width</tt> characters
+     */
+    protected String formatValue( Object val, ValueInfo vinfo, int width ) {
+        return vinfo.formatValue( val, width );
+    }
+
+    /**
+     * Outputs a decorative separator line, of the sort you might find
+     * between the column headings and the table data.
+     *
+     * @param  strm   stream to write into
+     * @param  colwidths  column widths in characters
+     */
+    protected void printSeparator( OutputStream strm, int[] colwidths )
             throws IOException {
         for ( int i = 0; i < colwidths.length; i++ ) {
             strm.write( '+' );
@@ -186,7 +208,34 @@ public class TextTableWriter implements StarTableWriter {
         strm.write( '\n' );
     }
 
-    private void printLine( OutputStream strm, int[] colwidths, String[] data ) 
+    /**
+     * Outputs headings for the table columns.
+     *
+     * @param   strm  stream to write into
+     * @param   colwidths   column widths in characters
+     * @param   data   array of column headings
+     */
+    protected void printColumnHeads( OutputStream strm, int[] colwidths,
+                                     ColumnInfo[] cinfos ) throws IOException {
+        int ncol = cinfos.length;
+        String[] heads = new String[ ncol ];
+        for ( int i = 0; i < ncol; i++ ) {
+            heads[ i ] = cinfos[ i ].getName();
+        }
+        printSeparator( strm, colwidths );
+        printLine( strm, colwidths, heads );
+        printSeparator( strm, colwidths );
+    }
+
+    /**
+     * Outputs a line of table data.
+     *
+     * @param  strm  stream to write into
+     * @param  colwidths  column widths in characters
+     * @param  data  array of strings to be output, one per column
+     */
+    protected void printLine( OutputStream strm, int[] colwidths,
+                              String[] data ) 
             throws IOException {
         for ( int i = 0; i < colwidths.length; i++ ) {
             strm.write( '|' );
@@ -206,12 +255,19 @@ public class TextTableWriter implements StarTableWriter {
         strm.write( '\n' );
     }
 
-    private void printParam( OutputStream strm, String name, String value )
+    /**
+     * Outputs a parameter and its value.
+     *
+     * @param   strm  stream to write into
+     * @param   name  parameter name
+     * @param   value  formatted parameter value
+     */
+    protected void printParam( OutputStream strm, String name, String value )
             throws IOException {
-        strm.write( name.getBytes() );
+        strm.write( getBytes( name ) );
         strm.write( ':' );
         strm.write( ' ' );
-        strm.write( value.getBytes() );
+        strm.write( getBytes( value ) );
         strm.write( '\n' );
     }
 
@@ -220,7 +276,7 @@ public class TextTableWriter implements StarTableWriter {
      *
      * @param  str  string to decode
      */
-    private static byte[] getBytes( String str ) {
+    protected static byte[] getBytes( String str ) {
 
         /* The decoding here is not that respectable (doesn't properly
          * handle Unicode), but it makes a big performance difference,
