@@ -247,7 +247,7 @@ public class StarTableChooser extends JPanel {
 
     
     /**
-     * Synonym for {@link showTableDialog(java.awt.Component)}.
+     * Synonym for {@link #showTableDialog(java.awt.Component)}.
      *
      * @deprecated  use <tt>showTableDialog</tt> instead
      */
@@ -385,6 +385,14 @@ public class StarTableChooser extends JPanel {
                 new NodeLoader(),
                 new SQLReadDialog(),
             } ) );
+            TableLoadDialog myspaceLoader = 
+                (TableLoadDialog)
+                Loader.getClassInstance( 
+                    "uk.ac.starlink.astrogrid.MyspaceTableLoadDialog",
+                    TableLoadDialog.class );
+            if ( myspaceLoader != null ) {
+                dlist.add( myspaceLoader );
+            }
             dlist.addAll( Loader.getClassInstances( LOAD_DIALOGS_PROPERTY, 
                                                     TableLoadDialog.class ) );
             dialogs_ = (TableLoadDialog[]) 
