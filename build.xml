@@ -55,7 +55,7 @@
   <property name="javadocs.required" value="false"/>
 
   <!-- Directory that any archives should be placed into. The local
-   !   directort by default -->
+   !   directory by default -->
   <property name="star.archive.dir" value="${basedir}"/>
 
   <!-- URL and package-list for linking against full Java docs -->
@@ -146,6 +146,9 @@
     <echo message="Executing NDX target: ${what}"/> 
     <ant dir="./ndx" target="${what}"/> 
     
+    <echo message="Executing Table target: ${what}"/>
+    <ant dir="./table" target="${what}"/>
+
     <echo message="Executing NDTools target: ${what}"/>
     <ant dir="./ndtools" target="${what}"/>
 
@@ -154,6 +157,9 @@
     
     <echo message="Executing FITS target: ${what}"/> 
     <ant dir="./fits" target="${what}"/> 
+
+    <echo message="Executing VOTable target: ${what}"/>
+    <ant dir="./votable" target="${what}"/>
     
     <echo message="Executing HDX target: ${what}"/> 
     <ant dir="./hdx" target="${what}"/> 
@@ -346,11 +352,19 @@
          <include name="**"/>
       </packageset>
 
+      <packageset dir="table/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
       <packageset dir="hds/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
       <packageset dir="fits/build/java" defaultexcludes="yes">
+         <include name="**"/>
+      </packageset>
+
+      <packageset dir="votable/build/java" defaultexcludes="yes">
          <include name="**"/>
       </packageset>
 
