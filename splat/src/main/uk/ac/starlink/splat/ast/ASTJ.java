@@ -787,9 +787,8 @@ public class ASTJ
         Frame f2 = new Frame( 1 );
         Frame frame2 = new CmpFrame( f1, f2 );
 
-        // Clear digits and format, unless set in the input
-        // frameset. These can make a mess of SkyFrame formatting
-        // otherwise.
+        // Clear digits and format, unless set in the input frameset. These
+        // can make a mess of SkyFrame formatting otherwise.
         if ( ! cfrm.test( "Format(" + axis + ")" ) ) {
             frame2.clear( "format(1)" );
         }
@@ -830,21 +829,20 @@ public class ASTJ
     }
 
     /**
-     * Extract a spectral axis from the current FrameSet. The return
-     * is a SpecFrame if any reason to create one can be deduced. If
-     * the selected axis of the current frame is a SpecFrame, then
-     * that is returned. Otherwise a search is made for a SpecFrame.
-     * Next an attempt to create a SpecFrame is created using
-     * various heuristics (from sample code provided by David Berry,
-     * these use guesses from the available units). As a last resort
-     * the original Frame is returned, if this is supposed to be a
-     * SpecFrame then the user will need to set this manually.
+     * Extract a spectral axis from the current FrameSet. The return is a
+     * SpecFrame if any reason to create one can be deduced. If the selected
+     * axis of the current frame is a SpecFrame, then that is returned.
+     * Otherwise a search is made for a SpecFrame.  Next an attempt to create
+     * a SpecFrame is created using various heuristics (from sample code
+     * provided by David Berry, these use guesses from the available
+     * units). As a last resort the original Frame is returned, if this is
+     * supposed to be a SpecFrame then the user will need to set this
+     * manually.
      * <p>
-     * Finally if a SpecFrame is created then an attempt to attach
-     * this to the current FrameSet will be made. This makes the
-     * SpecFrame available immediately in future and correctly updates
-     * the FrameSet when it is written out in any way.
-     *
+     * Finally if a SpecFrame is created then an attempt to attach this to the
+     * current FrameSet will be made. This makes the SpecFrame available
+     * immediately in future and correctly updates the FrameSet when it is
+     * written out in any way.
      */
     public Frame getSpectralAxisFrame( int axis )
     {
@@ -870,10 +868,10 @@ public class ASTJ
             return randomGuess;
         }
 
-        // Take a guess at creating a spectral axis from the picked
-        // axis.
+        // Take a guess at creating a spectral axis from the picked axis.
         String label = picked.getC( "Label(1)" );
         label = label.toLowerCase();
+        boolean goodLabel = true;
 
         if ( label.indexOf( "wave" ) != -1 ) {
             // Wavelength.
@@ -919,16 +917,38 @@ public class ASTJ
             result.setC( "System", "Beta" );
         }
         else {
-            // Label not recognized. Check the units by applying them
-            // to some likely systems. Need to actually use it to
-            // cause a check, hence to findFrame calls.
-            String unit = picked.getC( "Unit(1)" );
+            // Label not recognized.
+            goodLabel = false;
+        }
+
+        // If the label was recognised, we need to check any units. If this
+        // fails then we do not create a SpecFrame. If the label hasn't been
+        // recognised then try a guess based on any units.
+        // Note that we to actually use a frame to cause a check of the
+        // validity of the units, hence calls to findFrame.
+        String unit = picked.getC( "Unit(1)" );
+        SpecFrame simpleSpecFrame = new SpecFrame();
+        if ( goodLabel ) {
+            if ( unit != null && ( ! unit.equals( "" ) ) ) {
+                try {
+                    result.setC( "Unit", unit );
+                    result.findFrame( simpleSpecFrame, "" );
+                }
+                catch (AstException e) {
+                    // Units do not match system. Use the default frame.
+                    return picked;
+                }
+            }
+        }
+        else {
+            // The label was not recognised. Try to derive a SpecFrame from
+            // any units that are around.
+            // Check the units by applying them to some likely systems.
             if ( unit == null || unit.equals( "" ) ) {
                 // No units, so return the default original frame.
                 return picked;
             }
             else {
-                SpecFrame simpleSpecFrame = new SpecFrame();
                 try {
                     result.setC( "System", "Wave" );
                     result.setC( "Unit", unit );
@@ -947,10 +967,8 @@ public class ASTJ
                             result.findFrame( simpleSpecFrame, "" );
                         }
                         catch (AstException e2) {
-
-                            // Default is the original frame. User will
-                            // have to set any SpecFrame attributes
-                            // interactively.
+                            // Default is the original frame. User will have
+                            // to set any SpecFrame attributes interactively.
                             return picked;
                         }
                     }
