@@ -24,7 +24,7 @@ public class TextTableWriter implements StarTableWriter {
     /**
      * Number of columns sampled to find column width.
      */
-    private int sampledRows = 10;
+    private int sampledRows = 100;
 
     /**
      * Returns "text";
@@ -59,6 +59,7 @@ public class TextTableWriter implements StarTableWriter {
             cwidths[ i ] = cinfos[ i ].getName().length();
         }
 
+        boolean allRowsSampled = false;
         for ( RowSequence rseq = startab.getRowSequence(); 
               rseq.hasNext() && rseq.getRowIndex() < sampledRows; ) {
             rseq.next();
@@ -68,6 +69,22 @@ public class TextTableWriter implements StarTableWriter {
                                   .formatValue( row[ i ], maxWidth );
                 if ( formatted.length() > cwidths[ i ] ) {
                     cwidths[ i ] = formatted.length();
+                }
+            }
+            if ( ! rseq.hasNext() ) {
+                allRowsSampled = true;
+            }
+        }
+
+        if ( ! allRowsSampled ) {
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                cwidths[ icol ] += 2;
+                ColumnInfo cinfo = cinfos[ icol ];
+                if ( cinfo.getContentClass().equals( String.class ) ) {
+                    int nchar = cinfo.getElementSize();
+                    if ( nchar > 0 ) {
+                        cwidths[ icol ] = nchar;
+                    }
                 }
             }
         }
