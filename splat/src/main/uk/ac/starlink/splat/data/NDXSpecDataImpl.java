@@ -216,20 +216,16 @@ public class NDXSpecDataImpl
      */
     public String getProperty( String key )
     {
-        //  NDX offers title. 
-        if ( key.equalsIgnoreCase( "title" ) ) {
+        //  NDX offers title, label and units for to describe the data.
+        if ( key.equalsIgnoreCase( "title" ) && ndx.hasTitle() ) {
             return ndx.getTitle();
         }
-
-        //Should offer label and units sometime.
-        /*
-        if ( key.equalsIgnoreCase( "label" ) ) {
-            return ndx.getTitle();
+        if ( key.equalsIgnoreCase( "label" ) && ndx.hasLabel() ) {
+            return ndx.getLabel();
         }
-        if ( key.equalsIgnoreCase( "unit" ) ) {
-            return ndx.getTitle();
+        if ( key.equalsIgnoreCase( "units" ) && ndx.hasUnits() ) {
+            return ndx.getUnits();
         }
-        */
         return "";
     }
 
