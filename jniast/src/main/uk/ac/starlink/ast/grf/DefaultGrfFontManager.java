@@ -1,9 +1,10 @@
-// Copyright (C) 2000-2002 Central Laboratory of the Research Councils
-
-// History:
-//    28-SEP-2000 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2000-2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    28-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.grf;
 
 import java.awt.Font;

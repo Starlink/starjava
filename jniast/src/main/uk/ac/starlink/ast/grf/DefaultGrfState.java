@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    31-MAY-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     31-MAY-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.grf;
 
 import java.awt.Color;
@@ -23,7 +24,7 @@ public class DefaultGrfState implements Cloneable
     private double width = 1.0;
     private double size = 1.0;
     private double font = 0;
-    private double colour = Color.black.getRGB();
+    private double colour = DefaultGrf.encodeColor( Color.black );
     private Rectangle clip = null;
     private double alpha = 1.0;
 

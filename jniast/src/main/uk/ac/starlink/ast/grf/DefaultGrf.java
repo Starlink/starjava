@@ -1,10 +1,10 @@
-// Copyright (C) 2000-2002 Central Laboratory of the Research Councils
-
-// History:
-//    30-JUN-2000 (Peter W. Draper):
-//       Original version.
-
-
+/*
+ * Copyright (C) 2000-2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    30-JUN-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.grf;
 
 import java.awt.AlphaComposite;
@@ -46,15 +46,18 @@ import uk.ac.starlink.ast.AstObject;
  * Although if you're using a Plot, then you should use its paint
  * method (which will eventually call this paint method).
  * <p>
- * Colours are defined using the Color.getRGB() method, i.e. all colours can
- * be represented by a unique integer. To reconstruct the colour use
- * the Color(int RGB) constructor.
+ * Standard {@link Color} objects are encoded to an integer using
+ * {@link DefaultGrf.encodeColour} method,
+ * so that all colours can be represented by a unique integer
+ * for passing through the Grf interface. To reconstruct a Color use the
+ * {@link DefaultGrf.decodeColour} method.
  * <p>
  * In addition to the standard Grf interface this implementation also
  * offers a set of additional public methods that can be used
- * directly. For instance a set of double precision methods (for
- * efficiency) and methods to control the fonts that are used (see the
- * addFont, deleteFont methods).
+ * directly. For instance a set of double precision methods are
+ * available for extra efficiency (the standard Grf interface only
+ * works with floats) and methods are provided that control the fonts
+ * that are used (see the addFont, deleteFont methods).
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -191,7 +194,7 @@ public class DefaultGrf
     /**
      * Draw the complete current graphics context onto a Graphics2D
      * object. This method should be called whenever the JComponent
-     * that we are drawing to needs repainting. 
+     * that we are drawing to needs repainting.
      *
      * @param g2 the Graphics2D object to repaint.
      */
@@ -220,8 +223,8 @@ public class DefaultGrf
     public void polyline( double[] x, double[] y )
     {
         if ( component != null ) {
-            DefaultGrfContainer g = 
-                new DefaultGrfContainer( DefaultGrfContainer.LINE, x, y, 
+            DefaultGrfContainer g =
+                new DefaultGrfContainer( DefaultGrfContainer.LINE, x, y,
                                          gstate );
             context.add( g );
         }
@@ -240,7 +243,7 @@ public class DefaultGrf
     public void marker( double[] x, double[] y, int type )
     {
         if ( component != null ) {
-            DefaultGrfContainer g = 
+            DefaultGrfContainer g =
                 new DefaultGrfContainer( DefaultGrfContainer.MARK,
                                          x, y, type, gstate );
             context.add( g );
@@ -271,18 +274,18 @@ public class DefaultGrf
      *            world coordinates. If necessary the supplied value
      *            should be negated to ensure that positive values
      *            always refer to displacements from left to right on
-     *            the screen. 
+     *            the screen.
      * @param upy The y component of the up-vector for the text, in graphics
      *            world coordinates. If necessary the supplied value
      *            should be negated to ensure that positive values
      *            always refer to displacements from bottom to top on
-     *            the screen. 
+     *            the screen.
      */
     public void text( String text, double x, double y, String just,
                       double upx, double upy )
     {
         if ( component != null ) {
-            DefaultGrfContainer g = 
+            DefaultGrfContainer g =
                 textProperties( text, x, y, just, upx, upy );
             context.add( g );
         }
@@ -347,7 +350,7 @@ public class DefaultGrf
         //  Record the text properties and return them.
         return new DefaultGrfContainer( DefaultGrfContainer.TEXT,
                                         text, anchor[0], anchor[1],
-                                        angle, bounds, gstate ); 
+                                        angle, bounds, gstate );
     }
 
 
@@ -401,7 +404,7 @@ public class DefaultGrf
                                 double upx, double upy )
     {
         if ( component != null ) {
-            DefaultGrfContainer cont = 
+            DefaultGrfContainer cont =
                 textProperties( text, x, y, just, upx, upy );
             return cont.getBBox();
         }
@@ -501,8 +504,8 @@ public class DefaultGrf
         }
         else if ( attr == GRF__COLOUR ) {
 
-            //  If required retrieve the current colour index (Color.getRGB),
-            //  and set a new colour index.
+            //  If required retrieve the current colour index, and set
+            //  a new colour index.
             oldValue = gstate.getColour();
             if ( value != BAD ) {
                 gstate.setColour( value );
@@ -645,9 +648,9 @@ public class DefaultGrf
             case 'C':
                 switch ( localJust[1] ) {
                     case 'C':
-                        anchor[0] = x - w * 0.5 * Math.cos( angle ) - 
+                        anchor[0] = x - w * 0.5 * Math.cos( angle ) -
                                         h * 0.5 * Math.sin( angle );
-                        anchor[1] = y - w * 0.5 * Math.sin( angle ) + 
+                        anchor[1] = y - w * 0.5 * Math.sin( angle ) +
                                         h * 0.5 * Math.cos( angle );
                         break;
                     case 'L':
@@ -655,9 +658,9 @@ public class DefaultGrf
                         anchor[1] = y + h * 0.5 * Math.cos( angle );
                         break;
                     case 'R':
-                        anchor[0] = x - w * Math.cos( angle ) - 
+                        anchor[0] = x - w * Math.cos( angle ) -
                                         h * 0.5 * Math.sin( angle );
-                        anchor[1] = y - w * Math.sin( angle ) + 
+                        anchor[1] = y - w * Math.sin( angle ) +
                                         h * 0.5 * Math.cos( angle );
                         break;
                 }
@@ -665,9 +668,9 @@ public class DefaultGrf
             case 'T':
                 switch ( localJust[1] ) {
                     case 'C':
-                        anchor[0] = x - w * 0.5 * Math.cos( angle ) - 
+                        anchor[0] = x - w * 0.5 * Math.cos( angle ) -
                                         h * Math.sin( angle );
-                        anchor[1] = y - w * 0.5 * Math.sin( angle ) + 
+                        anchor[1] = y - w * 0.5 * Math.sin( angle ) +
                                         h * Math.cos( angle );
                         break;
                     case 'L':
@@ -675,9 +678,9 @@ public class DefaultGrf
                         anchor[1] = y + h * Math.cos( angle );
                         break;
                     case 'R':
-                        anchor[0] = x - w * Math.cos( angle ) - 
+                        anchor[0] = x - w * Math.cos( angle ) -
                                         h * Math.sin( angle );
-                        anchor[1] = y - w * Math.sin( angle ) + 
+                        anchor[1] = y - w * Math.sin( angle ) +
                                         h * Math.cos( angle );
                         break;
                 }
@@ -910,7 +913,7 @@ public class DefaultGrf
                                        BasicStroke.JOIN_ROUND, 10.0f,
                                        new float[]{3, 3, 6, 3}, 0 );
         }
-        
+
         //  If not a known type, just return a default Stroke.
         return new BasicStroke( width );
     }
@@ -1040,6 +1043,39 @@ public class DefaultGrf
         return bounds;
     }
 
+    /**
+     * Encode a Color to a unique integer value that can be used in
+     * the Grf interface.
+     *
+     * @param colour the Color to encode.
+     * @return the integer representation.
+     */
+    public static int encodeColor( Color colour )
+    {
+        int result = colour.getRGB();
+        if ( result == -1 ) {
+            //  White is a special case. The AST Grf internals see a
+            //  -1 value as a flag to not use a colour. This may give
+            //  us problems with alpha-blending...
+            result = 0;
+        }
+        return result;
+    }
+
+    /**
+     *  Decode a colour encoded as an integer using encodeColor.
+     *
+     *  @param value the integer that represents a colour.
+     *  @return a Color object.
+     */
+    public static Color decodeColor( int value )
+    {
+        if ( value == 0 ) {
+            value = -1; // White is a special case.
+        }
+        return new Color( value );
+    }
+
     //
     // Grf implementation. Mostly pinched from the old JNIAST SplatGrf
     // by Mark Taylor.
@@ -1092,7 +1128,7 @@ public class DefaultGrf
      *
      * <dl>
      * <dt>attr=GRF__STYLE
-     * <dd>line style - one of 
+     * <dd>line style - one of
      *    <ul>
      *    <li>PLAIN
      *    <li>DASH
@@ -1110,16 +1146,19 @@ public class DefaultGrf
      *     by the {@link DefaultGrfFontManager} class.
      * <dt>attr=GRF__COLOUR
      * <dd>integer interpreted as a 32-bit alpha-red-green-blue value,
-     *     as per the result of a {@link java.awt.Color#getRGB} call.
-     *     Thus bits 0-23 of the integer represent the red green and blue
-     *     intensities in the usual way, and bits 24-31 represent the
-     *     alpha value (<code>0xff</code> means opaque and 
-     *     <code>0x00</code> means transparent).
+     *     as per the result of a {@link encodeColor} call.
+     *     <p>
+     *     Normally bits 0-23 of the integer represent the red green
+     *     and blue intensities in the usual way, and bits 24-31
+     *     represent the alpha value (<code>0xff</code> means opaque and
+     *     <code>0x00</code> means transparent), the exception being
+     *     the value opaque white which is 0x00000000.
+     *     <p>
      *     Note this means that a 24-bit colour value along the lines
      *     <code>0xc0c0c0</code> would give you a completely transparent
-     *     colour - probably not what you want.  To specify normal 
+     *     colour - probably not what you want.  To specify normal
      *     (opaque) grey, you should use <code>0xffc0c0c0</code> or
-     *     equivalantly <code>Color.LIGHT_GRAY.getRGB()</code>.
+     *     equivalantly <code>encodeColor(Color.LIGHT_GRAY)</code>.
      *     </ul>
      * </dl>
      * <p>
@@ -1128,15 +1167,17 @@ public class DefaultGrf
     {
         if ( attr == GRF__COLOUR ) {
 
-            // Treat the colour attribute specially - instead of just 
+            // Treat the colour attribute specially - instead of just
             // forwarding the call to the attribute method, we split the
             // value into an RGB part (bits 0-23) which gets forwarded to
             // atribute(GRF__COLOUR,,) and an alpha part (bits 24-31) which
-            // get forwarded to attribute(GRF__ALPHA,,).
+            // get forwarded to attribute(GRF__ALPHA,,). Remember to
+            // deal with opaque white special case too.
             double retrgb;
             double retalpha;
             if ( value != AstObject.AST__BAD ) {
                 int ivalue = (int) value;
+                if ( ivalue == 0 ) ivalue = -1;  // Opaque white.
                 double rgb = (double) ( ivalue & 0x00ffffff );
                 int opaque = ( ivalue & 0xff000000 ) >>> 24;
                 double alpha = ( opaque / 255.0 );
@@ -1148,7 +1189,11 @@ public class DefaultGrf
                 retalpha = attribute( GRF__ALPHA, AstObject.AST__BAD, prim );
             }
             int retopaque = (int) ( ( retalpha ) * 255.9 );
-            return (double) ( ( retopaque << 24 ) | ( (int) retrgb ) );
+            double result = (double)( ( retopaque << 24 ) | ( (int) retrgb ) );
+            if ( result == -1.0 ) {
+                result = 0.0;                      // Opaque white
+            }
+            return result;
         }
         else {
             return attribute( attr, value, prim );

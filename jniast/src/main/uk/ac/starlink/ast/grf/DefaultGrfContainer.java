@@ -1,9 +1,10 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    31-MAY-2002 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2002 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    31-MAY-2002 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.ast.grf;
 
 /**
