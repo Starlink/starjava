@@ -2,7 +2,10 @@
 
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                xmlns:fo="http://www.w3.org/1999/XSL/Format"
+                xmlns:java="http://xml.apache.org/xalan/java"
+                xmlns:String="xalan://java.lang.String"
+                exclude-result-prefixes="java String">
 
   <xsl:output version="1.0"
             method="xml"
@@ -268,13 +271,13 @@
 
   <xsl:template match="verbatim">
     <fo:block xsl:use-attribute-sets="verbatim">
-      <xsl:apply-templates />
+      <xsl:call-template name="trimVerb"/>
     </fo:block>
   </xsl:template>
 
   <xsl:template match="blockcode">
     <fo:block xsl:use-attribute-sets="verbatim">
-      <xsl:apply-templates select="text()"/>
+      <xsl:call-template name="trimVerb"/>
     </fo:block>
   </xsl:template>
 
@@ -732,7 +735,6 @@
     <xsl:attribute name="white-space-collapse">false</xsl:attribute>
     <xsl:attribute name="wrap-option">no-wrap</xsl:attribute>
     <xsl:attribute name="text-align">start</xsl:attribute>
-    <xsl:attribute name="text-indent">1em</xsl:attribute>
     <xsl:attribute name="space-before">0.6em</xsl:attribute>
     <xsl:attribute name="space-after">0.6em</xsl:attribute>
   </xsl:attribute-set>
@@ -783,7 +785,32 @@
     <xsl:attribute name="leader-length">100%</xsl:attribute>
   </xsl:attribute-set>
 
-
+  <!-- Function to trim leading and trailing carriage returns from text
+   !   content.  This is what you want to do to the content of a preformatted
+   !   (verbatim) block - without this if your XML input looks like
+   !      <verbatim>
+   !         blah blah
+   !      </verbatim>
+   !   you're actually formatting "\n   blah blah \n", and those carriage
+   !   returns add vertical space inside the block since you've told it not
+   !   to ignore whitespace (well the leading one does in fop, anyway).
+   !   If we're not running Xalan (the replaceFirst function here is not
+   !   available) all that happens is that the trimming isn't done, so it
+   !   just ends up like this template wasn't invoked. -->
+  <xsl:template name="trimVerb">
+    <xsl:choose>
+      <xsl:when test="function-available('String:replaceFirst')">
+        <xsl:variable name="s1"
+                      select="String:replaceFirst(string(text()),'^ *\n', '')"/>
+        <xsl:variable name="s2"
+                      select="String:replaceFirst(string($s1), '\n *\z', '')"/>
+        <xsl:value-of select="$s2"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 
 
 
