@@ -13,6 +13,8 @@ import java.util.Vector;
 import javax.swing.ProgressMonitor;
 import javax.swing.Timer;
 
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
@@ -62,7 +64,7 @@ public class SpectrumIO
     protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
-     * The list of spectra to load. These are characterised as TypedSpectra
+     * The list of spectra to load. These are characterised as Props
      * instances.
      */
     private Vector queue = new Vector();
@@ -92,7 +94,7 @@ public class SpectrumIO
     /**
      * Last spectrum.
      */
-    private TypedSpectrum lastSpectrum = null;
+    private Props lastSpectrum = null;
 
     /**
      * Step to push ProgressMonitor into displaying more often (there's a need
@@ -138,14 +140,32 @@ public class SpectrumIO
     }
 
     /**
+     * Load an array of spectra whose specifications are contained in the
+     * elements of the props array. If the loading process takes a "long"
+     * time then a ProgressMonitor dialog with be displayed, which can also be
+     * cancelled (which causes the next spectrum not to be loaded, the
+     * currently loaded spectrum will complete).
+     */
+    public void load( SplatBrowser browser, boolean display, Props[] props )
+    {
+        queue.clear();
+        for ( int i = 0; i < props.length; i++ ) {
+            queue.add( props[i] );
+        }
+        this.browser = browser;
+        this.display = display;
+        loadSpectra();
+    }
+
+    /**
      * Set the spectra to load, all have the same data type.
      */
     protected synchronized void setSpectra( String[] spectra, int type )
     {
-        this.queue.clear();
+        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                this.queue.add( new TypedSpectrum( spectra[i], type, null ) );
+                queue.add( new Props( spectra[i], type, null ) );
             }
         }
     }
@@ -156,11 +176,10 @@ public class SpectrumIO
      */
     protected synchronized void setSpectra( String[] spectra, int[] types )
     {
-        this.queue.clear();
+        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                this.queue.add( new TypedSpectrum( spectra[i], types[i], 
-                                                   null ) );
+                queue.add( new Props( spectra[i], types[i], null ) );
             }
         }
     }
@@ -172,11 +191,10 @@ public class SpectrumIO
     protected synchronized void setSpectra( String[] spectra, int[] types,
                                             String[] shortNames )
     {
-        this.queue.clear();
+        queue.clear();
         if ( spectra != null ) {
             for ( int i = 0; i < spectra.length; i++ ) {
-                this.queue.add( new TypedSpectrum( spectra[i], types[i], 
-                                                   shortNames[i] ) );
+                queue.add( new Props( spectra[i], types[i], shortNames[i] ) );
             }
         }
     }
@@ -185,10 +203,10 @@ public class SpectrumIO
     /**
      * Get the next spectrum to load. Returns null when none left.
      */
-    protected synchronized TypedSpectrum getSpectrum()
+    protected synchronized Props getSpectrum()
     {
         try {
-            lastSpectrum = (TypedSpectrum) queue.remove( 0 );
+            lastSpectrum = (Props) queue.remove( 0 );
         }
         catch (ArrayIndexOutOfBoundsException e) {
             lastSpectrum = null;
@@ -286,12 +304,9 @@ public class SpectrumIO
         SplatException lastException = null;
 
         // Add all spectra to the browser until the queue is empty.
-        TypedSpectrum ts = null;
         while( ! queue.isEmpty() ) {
             try {
-                ts = getSpectrum();
-                browser.tryAddSpectrum( ts.getSpectrum(), ts.getType(), 
-                                        ts.getShortName() );
+                browser.tryAddSpectrum( getSpectrum() );
                 validFiles++;
             }
             catch (SplatException e) {
@@ -422,29 +437,157 @@ public class SpectrumIO
         }
     }
 
-    //  Simple container class for a spectrum and it associated type.
-    static class TypedSpectrum
+    /**
+     * Container class for describing the properties of a spectrum to be
+     * loaded. The only required value is the spectrum specification (name,
+     * URL etc.). The others cover a pre-defined type, a shortname, the data
+     * and spectral coordinate units (ideally as strings understood by AST)
+     * and the columns to be used for data and coordinates, if the spectrum 
+     * is a table.
+     */
+    public static class Props
     {
-        String spectrum;
-        int type;
-        String shortName;
-        TypedSpectrum( String spectrum, int type, String shortName )
+        protected String spectrum;
+        protected int type;
+        protected String shortName;
+        protected String dataUnits;
+        protected String coordUnits;
+        protected String dataColumn;
+        protected String coordColumn;
+
+        public Props( String spectrum )
+        {
+            this( spectrum, SpecDataFactory.DEFAULT, null, null, null, 
+                  null, null ); 
+        }
+
+        public Props( String spectrum, int type, String shortName )
+        {
+            this( spectrum, type, shortName, null, null, null, null );
+        }
+
+        public Props( String spectrum, int type, String shortName,
+                          String dataUnits, String coordUnits, 
+                          String dataColumn, String coordColumn )
         {
             this.spectrum = spectrum;
             this.type = type;
             this.shortName = shortName;
+            this.dataUnits = dataUnits;
+            this.coordUnits = coordUnits;
+            this.dataColumn = dataColumn;
+            this.coordColumn = coordColumn;
         }
-        String getSpectrum()
+
+        public String getSpectrum()
         {
             return spectrum;
         }
-        int getType()
+
+        public void setSpectrum( String spectrum )
+        {
+            this.spectrum = spectrum;
+        }
+
+        public int getType()
         {
             return type;
         }
-        String getShortName()
+
+        public void setType( int type )
+        {
+            this.type = type;
+        }
+
+
+        public String getShortName()
         {
             return shortName;
+        }
+
+        public void setShortName( String shortName )
+        {
+            this.shortName = shortName;
+        }
+
+        public String getDataUnits()
+        {
+            return dataUnits;
+        }
+
+        public void setDataUnits( String dataUnits )
+        {
+            this.dataUnits = dataUnits;
+        }
+
+        public String getCoordUnits()
+        {
+            return coordUnits;
+        }
+
+        public void setCoordUnits( String coordUnits )
+        {
+            this.coordUnits = coordUnits ;
+        }
+
+        public String getDataColumn()
+        {
+            return dataColumn;
+        }
+
+        public void setDataColumn( String dataColumn )
+        {
+            this.dataColumn = dataColumn;
+        }
+
+        public String getCoordColumn()
+        {
+            return coordColumn;
+        }
+
+        public void setCoordColumn( String coordColumn )
+        {
+            this.coordColumn = coordColumn;
+        }
+
+        /**
+         * Apply the tranmutable properties of this object to a SpecData
+         * instance. This does not include the spectrum specification, or data
+         * type, these must be used to open the spectrum.
+         */
+        public void apply( SpecData spectrum )
+        {
+            if ( shortName != null && shortName.length() != 0 ) {
+                spectrum.setShortName( shortName );
+            }
+            if ( dataUnits != null && dataUnits.length() != 0 ) {
+                spectrum.setDataUnits( dataUnits );
+            }
+            if ( coordUnits != null && coordUnits.length() != 0 ) {
+                //  Bit tricky, set the units of the FrameSet used for drawing
+                //  and the underlying frame produced from the data. Still
+                //  might be lost if the spectrum is reloaded from disk file.
+                FrameSet frameSet = spectrum.getFrameSet();
+                frameSet.setUnit( 1, coordUnits );
+                frameSet = spectrum.getAst().getRef();
+                frameSet.setUnit( 1, coordUnits );
+            }
+            if ( dataColumn != null && dataColumn.length() != 0 ) {
+                try {
+                    spectrum.setYDataColumnName( dataColumn );
+                }
+                catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
+            if ( coordColumn != null && coordColumn.length() != 0 ) {
+                try {
+                    spectrum.setXDataColumnName( coordColumn );
+                }
+                catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
