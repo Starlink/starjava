@@ -39,7 +39,8 @@ import org.w3c.dom.Node;
  * <p>
  * The transformer object used in the case that transformations are
  * required may be accessed or set to permit some customisation of
- * the way the transformation is done.
+ * the way the transformation is done.  Some convenience methods are
+ * provided for doing these settings as well.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -72,22 +73,9 @@ public class SourceReader {
             }
 
             /* Configure some properties to generally useful values. */
-            try {
-                transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-                transformer.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, 
-                                               "yes" );
-                transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
-            }
-            catch ( IllegalArgumentException e ) {
-                // no action - the above properties ought to be configurable,
-                // but if not we can sensibly continue.
-            }
-
-            /* Attempt to set the indent; if we don't have an Apache
-             * transformer this may have no effect, but at worst it is
-             * harmless. */
-            transformer.setOutputProperty( 
-                "{http://xml.apache.org/xslt}indent-amount", "2" );
+            transformer.setOutputProperty( OutputKeys.METHOD, "xml" );
+            setIndent( -1 );
+            setIncludeDeclaration( true );
         }
         return transformer;
     }
@@ -220,6 +208,69 @@ public class SourceReader {
         }
     }
 
+    /**
+     * Tries to set the indent level used by the <tt>writeSource</tt> methods.
+     * This method modifies the output properties of the the 
+     * current transformer to affect the way it does the transformation
+     * (so will be undone by a subsequent <tt>setTransformer</tt>).
+     * If the supplied <tt>indent</tt> value is &gt;=0 then the transformer 
+     * may add whitespace when producing the XML output; it will be encouraged
+     * to prettyprint the XML using <tt>indent</tt> spaces to indicate
+     * element nesting, though whether this is actually done depends on
+     * which parser is actually being used by JAXP.
+     * If <tt>indent&lt;0</tt> then no whitespace will be added when
+     * outputting XML.
+     * <p>
+     * By default, no whitespace is added.
+     * <p>
+     * For convenience the method returns this <tt>SourceReader</tt> 
+     * is returned.
+     *
+     * @param  indent  indicates if and how whitespace should be added by
+     *                 <tt>writeSource</tt> methods
+     * @return  this <tt>SourceReader</tt>
+     */
+    public SourceReader setIndent( int indent ) {
+        Transformer trans = getTransformer();
+        if ( indent >= 0 ) {
+            trans.setOutputProperty( OutputKeys.INDENT, "yes" );
+
+            /* Attempt to set the indent; if we don't have an Apache
+             * transformer this may have no effect, but at worst it is
+             * harmless. */
+            trans.setOutputProperty( 
+                "{http://xml.apache.org/xslt}indent-amount", 
+                Integer.toString( indent ) );
+        }
+        else {
+            trans.setOutputProperty( OutputKeys.INDENT, "no" );
+        }
+        return this;
+    }
+
+    /**
+     * Sets whether the <tt>writeSource</tt> methods will output an XML
+     * declaration at the start of the XML output.
+     * This method modifies the output properties of the the 
+     * current transformer to affect the way it does the transformation
+     * (so will be undone by a subsequent <tt>setTransformer</tt>).
+     * <p>
+     * By default, the declaration is included
+     * <p>
+     * For convenience the method returns this <tt>SourceReader</tt> 
+     * is returned.
+     *
+     * @param  flag  <tt>true</tt> if the <tt>writeSource</tt> methods 
+     *               are to output an XML declaration,
+     *               <tt>false</tt> if they are not to
+     * @return  this <tt>SourceReader</tt>
+     */
+    public SourceReader setIncludeDeclaration( boolean flag ) {
+        Transformer trans = getTransformer();
+        trans.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION,
+                                 flag ? "no" : "yes" );
+        return this;
+    }
 
     /**
      * Performs the transformation, catching TransformerExceptions and
