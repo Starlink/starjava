@@ -205,6 +205,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
                                                 rset.getName(), 
                                                 value.toString() );
                     subsets.set( irow, newSet );
+                    tcModel.getViewModel().fireTableDataChanged();
                 }
                 catch ( CompilationException e ) {
                     ErrorDialog.showError( e, "Error in expression " + value,
@@ -415,9 +416,14 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
             };
 
             /* Iterate over all the rows in the table. */
+            long every = nrow / 200L;
+            long counter = 0;
             for ( currentRow = 0; currentRow < nrow && ! interrupted();
                   currentRow++ ) {
-                SwingUtilities.invokeLater( updater );
+                if ( --counter < 0 ) {
+                    SwingUtilities.invokeLater( updater );
+                    counter = every;
+                }
                 for ( int i = 0; i < nrset; i++ ) {
                     RowSubset rset = rsets[ i ];
                     if ( rset.isIncluded( currentRow ) ) {
@@ -425,6 +431,7 @@ public class SubsetWindow extends TopcatViewWindow implements ListDataListener {
                     }
                 }
             }
+            SwingUtilities.invokeLater( updater );
 
             /* If we finished without being interrupted, act on the results
              * we calculated. */
