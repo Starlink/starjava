@@ -91,8 +91,8 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
-     * Returns the mapping from base table rows to the rows visible
-     * in this model.
+     * Returns the mapping from row index visible in this model to 
+     * row index in the base table.
      *
      * @return  row mapping; may be <tt>null</tt> to indicate a unit map
      */
@@ -101,8 +101,10 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
-     * Sets the mapping from base table rows to the rows visible
-     * in this model.
+     * Sets the mapping from row index visible in this model to 
+     * row index in the base table.
+     *
+     * @param  row mapping; may be <tt>null</tt> to indicate a unit map
      */
     public void setRowMap( int[] rowMap ) {
         this.rowMap = rowMap;
@@ -163,11 +165,45 @@ public class ViewerTableModel extends AbstractTableModel {
                               : rowMap.length;
     }
 
+    /**
+     * Returns the index of the data model row corresponding 
+     * to a given row in this view model.
+     *
+     * @param   irow  index of the row in this view model
+     * @return  index of the row in the base table
+     */
+    public long getBaseRow( int irow ) {
+        return ( rowMap == null ) ? (long) irow
+                                  : (long) rowMap[ irow ];
+    }
+
+    /**
+     * Returns the index at which a given table row appears in this view model.
+     * If the given table row doesn't appear in the view model 
+     * (it's not included in the current subset) then -1 is returned.
+     *
+     * @param  lrow  index of the row in the base table
+     * @return  index of the row in this view model, or -1
+     */
+    public int getViewRow( long lrow ) {
+        if ( rowMap == null ) {
+            return (int) lrow;
+        }
+        else {
+            int nr = rowMap.length;
+            int irow = AbstractStarTable.checkedLongToInt( lrow );
+            for ( int i = 0; i < nr; i++ ) {
+                if ( rowMap[ i ] == irow ) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
+
     public Object getValueAt( int irow, int icol ) {
-        long lrow = ( rowMap == null ) ? (long) irow
-                                       : (long) rowMap[ irow ];
         try {
-            return startable.getCell( lrow, icol );
+            return startable.getCell( getBaseRow( irow ), icol );
         }
         catch ( IOException e ) {
             e.printStackTrace();
@@ -181,8 +217,6 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     public void setValueAt( Object val, int irow, int icol ) {
-        long lrow = ( rowMap == null ) ? (long) irow
-                                       : (long) rowMap[ irow ];
 
         /* Check if this column is writable or not.  If it is not, then
          * we will have to replace it with a column which is writable,
@@ -199,7 +233,8 @@ public class ViewerTableModel extends AbstractTableModel {
          * cell. */
         assert startable.getColumnData( icol ).isWritable();
         try {
-            startable.getColumnData( icol ).storeValue( lrow, val );
+            startable.getColumnData( icol )
+                     .storeValue( getBaseRow( irow ), val );
         }
         catch ( IOException e ) {
             e.printStackTrace();
