@@ -14,7 +14,7 @@ import javax.xml.transform.dom.DOMSource;
 import uk.ac.starlink.util.DataSource;
 
 /**
- * A DataNodebuilder which tries to build a DataNode froma DataSource object.
+ * A DataNodebuilder which tries to build a DataNode from a DataSource object.
  * It examines the file and may invoke a constructor of a DataNode 
  * subclass if it knows of one which is likely to be suitable.
  * It will only try constructors which might have a chance.
@@ -67,10 +67,11 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         DataSource datsrc = (DataSource) obj;
 
         /* Get the magic number. */
-        byte[] magic = new byte[ 300 ];
+        byte[] magic;
         int minsize;
         try {
-            minsize = datsrc.getMagic( magic );
+            magic = datsrc.getIntro();
+            minsize = magic.length;
         }
         catch ( IOException e ) {
             throw new NoSuchDataException( e );
@@ -110,9 +111,7 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
         /* See whether it is worth the effort. */
         try {
-            byte[] magic = new byte[ 100 ];
-            datsrc.getMagic( magic );
-            if ( ! XMLDataNode.isMagic( magic ) ) {
+            if ( ! XMLDataNode.isMagic( datsrc.getIntro() ) ) {
                 throw new NoSuchDataException( "Doesn't look like XML" );
             }
         }
@@ -144,7 +143,7 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
         /* Parse the XML file. */
         Document doc;
         try {
-            InputStream strm = datsrc.getInputStream();
+            InputStream strm = datsrc.getHybridInputStream();
             doc = parser.parse( strm );
             strm.close();
         }

@@ -45,9 +45,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
         try {
 
             /* Check magic number. */
-            byte[] buf = new byte[ 20 ];
-            datsrc.getMagic( buf );
-            if ( ! isMagic( buf ) ) {
+            if ( ! isMagic( datsrc.getIntro() ) ) {
                 throw new NoSuchDataException( "Wrong magic number for FITS" );
             }
 

@@ -89,8 +89,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             }
 
             /* Get the magic number. */
-            byte[] magic = new byte[ 300 ];
-            int nGot = datsrc.getMagic( magic );
+            byte[] magic = datsrc.getIntro();
 
             /* If it's a FITS file, make it an NDX (if it looks like it
              * was created as one) or a FITS node. */

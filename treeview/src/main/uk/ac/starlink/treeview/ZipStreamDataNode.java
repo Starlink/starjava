@@ -25,7 +25,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
      * Constructs a ZipStreamDataNode from a DataSource object.
      */
     public ZipStreamDataNode( DataSource datsrc ) throws NoSuchDataException {
-        super( datsrc.getName(), getMagic( datsrc ) );
+        super( datsrc );
         this.datsrc = datsrc;
     }
 
@@ -57,7 +57,6 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
 
         /* Return an iterator which makes DataNodes from each entry. */
         return new Iterator() {
-            byte[] magbuf = new byte[ 512 ];
             public Object next() {
 
                 /* Get the next entry at the requested level. */
@@ -121,7 +120,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                                     return false;
                                 }
                             } );
-                        ssrc.getMagic( magbuf );
+                        ssrc.getIntro();
                         ssrc.setProvisionalStream( null );
                         ssrc.close();
                         childSrc = ssrc;
@@ -190,16 +189,4 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
         return new ZipInputStream( datsrc.getInputStream() );
     }
 
-    private static byte[] getMagic( DataSource datsrc )
-            throws NoSuchDataException {
-        try {
-            byte[] magic = new byte[ 8 ];
-            datsrc.getMagic( magic );
-            return magic;
-        }
-        catch ( IOException e ) {
-            throw new NoSuchDataException( e );
-        }
-    }
-    
 }

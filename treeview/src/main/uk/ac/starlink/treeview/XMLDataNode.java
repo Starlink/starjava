@@ -3,7 +3,9 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,6 +46,9 @@ public class XMLDataNode extends DefaultDataNode {
     private Icon icon;
 
     public static final int MAX_LINES = 12;
+    public static final String[] MAGICS = new String[] { "<!", "<?" };
+    public static final String[] ENCODINGS = 
+        new String[] { "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE" };
 
     private static final String NAME_KEY = "Name";
     private static final String SID_KEY = "System ID";
@@ -329,8 +334,64 @@ public class XMLDataNode extends DefaultDataNode {
      * @return  <tt>true</tt> iff this looks like an XML file  
      */
     public static boolean isMagic( byte[] magic ) {
-        return DataSource.getXMLEncoding( magic ) != null;
+        return getEncoding( magic ) != null;
     }
+
+
+    /**
+     * Returns what appears to be the encoding of the XML stream which 
+     * starts with a given magic number.  This is based on how we expect
+     * an XML stream to start in terms of Unicode characters (one of the
+     * strings {@link #MAGICS}).  The result will be one of the 
+     * encoding names listed in {@link #ENCODINGS}, or <tt>null</tt> if
+     * it doesn't look like the start of an XML stream in any of these
+     * encodings.
+     *
+     * @param   magic  buffer containing the first few bytes of the stream
+     * @return  name of a supported encoding in which this looks like XML
+     */
+    public static String getEncoding( byte[] magic ) {
+        for ( int i = 0; i < ENCODINGS.length; i++ ) {
+
+            /* Decode the magic number into a Unicode string. */
+            String encoding = ENCODINGS[ i ];
+            String test;
+            if ( Charset.isSupported( encoding ) ) {
+                try {
+                    test = new String( magic, encoding );
+                }
+                catch ( UnsupportedEncodingException e ) {
+                    throw new AssertionError( "Encoding " + encoding 
+                                            + " not supported??" );
+                }
+            }
+            else {  // bit surprising
+                System.err.println( "Unsupported charset: " + encoding );
+                break;
+            }
+ 
+            /* See if the decoded string looks like any of the possible starts
+             * of an XML document. */
+            for ( int j = 0; j < MAGICS.length; j++ ) {
+                if ( test.startsWith( MAGICS[ j ] ) ) {
+
+                    /* If it is HTML then take this to mean it's NOT XML - 
+                     * it is most likely to be not well-formed. */
+                    if ( test.indexOf( "HTML" ) > 0 ||
+                         test.indexOf( "html" ) > 0 ) {
+                        return null;
+                    }
+                    else {
+                        return encoding;
+                    }
+                }
+            }
+        }
+
+        /* No matches, it's not XML then. */
+        return null;
+    }
+
 
     private static String contentSummary( String pre, String data, 
                                           String post ) {

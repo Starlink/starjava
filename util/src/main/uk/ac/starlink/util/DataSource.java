@@ -3,20 +3,13 @@ package uk.ac.starlink.util;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.zip.InflaterInputStream;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 /**
  * Represents a stream-like source of data.
@@ -33,53 +26,51 @@ import org.xml.sax.SAXException;
  * <p>
  * As well as providing the facility for several different objects to
  * get their own copy of the underlying input stream, this class also
- * handles decompression of the stream and provides a method for
- * reading the magic number.
+ * handles decompression of the stream.
  * Compression types are as understood by the associated {@link Compression}
  * class.
+ * <p>
+ * For efficiency, a buffer of the bytes at the start of the stream
+ * called the 'intro buffer'
+ * is recorded the first time that the stream is read.  This can then
+ * be used for magic number queries cheaply, without having to open
+ * a new input stream.  In the case that the whole input stream 
+ * is shorter than the intro buffer, the underlying input stream 
+ * never has to be read again.
  * <p>
  * Any implementation which implements {@link #getRawInputStream} in such
  * a way as to return different byte sequences on different occasions
  * may lead to unpredictable behaviour from this class.
  *
  * @author   Mark Taylor (Starlink)
+ * @see   Compression
  */
 public abstract class DataSource {
 
-    private byte[] magic;
-    private int magicNbyte;
-    private int eofPos;
+    private int introLimit;
+    private byte[] intro;
     private InputStream strm;
     private Compression compress;
-    private Boolean isASCII;
-    private Boolean isEmpty;
-    private Boolean isHTML;
-    private Boolean isXML;
     private String name;
     private String position;
-    private Document dom;
-    private boolean hasParsed;
-    private DocumentBuilder parser;
 
-    private static String[] xmlEncodings;
-    private static String[] xmlMagics;
+    public static final int DEFAULT_INTRO_LIMIT = 512;
 
-    /* Initialise member variables. */
-    { clearState(); }
+    /**
+     * Constructs a DataSource with a given size of intro buffer.
+     *
+     * @param  introSize  the maximum number of bytes in the intro buffer
+     */
+    public DataSource( int introLimit ) {
+        setIntroLimit( introLimit );
+    }
 
-    /** The number of bytes read by the {@link #characterise} method. */
-    private static final int TESTED_BYTES = 256;
-
-    /** Maximum line length for stream considered as ASCII. **/
-    private static final int MAX_LINE_LENGTH = 240;
-
-    /** Default list of XML magic numbers. */
-    private static final String[] XML_MAGICS =
-        new String[] { "<!", "<?", };
-
-    /** Default list of XML supported encodings. */
-    private static final String[] XML_ENCODINGS =
-        new String[] { "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE", };
+    /**
+     * Constructs a DataSource with a default size of intro buffer.
+     */
+    public DataSource() {
+        this( DEFAULT_INTRO_LIMIT );
+    }
 
     /**
      * Provides a new InputStream for this data source.
@@ -98,7 +89,7 @@ public abstract class DataSource {
      * returned by this method should provide a stream with the
      * same content as the {@link #getRawInputStream} method of this
      * data source.  If no such URL exists or is known, then <tt>null</tt>
-     * should be returned.  
+     * should be returned.
      * <p>
      * If this source has a non-null position value, it will be appended
      * to the main part of the URL after a '#' character (as the URL's
@@ -109,7 +100,32 @@ public abstract class DataSource {
     abstract public URL getURL();
 
     /**
-     * Returns the length in bytes of the stream returned by 
+     * Returns the maximum length of the intro buffer.
+     *
+     * @return  maximum length of the intro buffer
+     */
+    public int getIntroLimit() {
+        return introLimit;
+    }
+
+    /**
+     * Sets the maximum size of the intro buffer to a new value.
+     * Setting the intro limit to a new value will discard any state
+     * which this source has, so for reasons of efficiency it's not 
+     * a good idea to call this method except immediately after the 
+     * source has been constructed and before any reads have taken place.
+     *
+     * @param   limit  the new maximum length of the intro buffer
+     */
+    public void setIntroLimit( int limit ) {
+        if ( limit != introLimit ) {
+            clearState();
+        }
+        this.introLimit = limit;
+    }
+
+    /**
+     * Returns the length in bytes of the stream returned by
      * <tt>getRawInputStream</tt>, if known.  If the length is not known
      * then -1 should be returned.
      * The implementation of this method in <tt>DataSource</tt> returns -1;
@@ -135,11 +151,11 @@ public abstract class DataSource {
 
         /* If we know the length because we have read off the end, return
          * that value. */
-        if ( eofPos < Integer.MAX_VALUE ) {
-            return (long) eofPos;
+        if ( intro != null && intro.length < introLimit ) {
+            return (long) intro.length;
         }
 
-        /* If the raw length is known and there is no compression we can 
+        /* If the raw length is known and there is no compression we can
          * return that value.  Otherwise, we just have to say we don't know. */
         long rawleng = getRawLength();
         if ( rawleng < 0L ||
@@ -153,7 +169,7 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns a name for this source.
+     * Returns a name for this source. 
      * This name is mainly intended as a label identifying the source for use
      * in informational messages; it is not in general intended to be used
      * to provide an absolute reference to the source.  Thus, for instance,
@@ -182,7 +198,7 @@ public abstract class DataSource {
 
     /**
      * Returns the position associated with this source.
-     * It is a string giving an indication of the part of the stream 
+     * It is a string giving an indication of the part of the stream
      * which is of interest.  Its interpretation is up to the application.
      *
      * @return  the position string, or <tt>null</tt>
@@ -193,7 +209,7 @@ public abstract class DataSource {
 
     /**
      * Sets the position associated with this source.
-     * It is a strin giving an indication of the part of the stream
+     * It is a string giving an indication of the part of the stream
      * which is of interest.  Its interpretation is up to the application.
      *
      * @param  the new posisition (may be <tt>null</tt>)
@@ -203,8 +219,8 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns a System ID for this DataSource; this is a string 
-     * representation of a file name or URL, as used by 
+     * Returns a System ID for this DataSource; this is a string
+     * representation of a file name or URL, as used by
      * {@link javax.xml.transform.Source} and friends.
      * The return value may be <tt>null</tt> if none is known.
      * This does not contain any reference to the position.
@@ -225,31 +241,116 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns an object which will handle any required decompression 
+     * Does the first read of the raw input stream to determine the
+     * compression and fill up the intro buffer.  Following a call to this
+     * method, the <tt>intro</tt> and <tt>compression</tt> members
+     * will be set correctly (and are guaranteed not null).
+     */
+    private synchronized void initialise() throws IOException {
+
+        /* Get a version of the raw (i.e. possibly compressed) input stream. */
+        InputStream rawStrm = getRawInputStream();
+
+        /* If we don't already know the compression type, work it out. */
+        if ( compress == null ) {
+
+            /* Ensure we can do mark/reset on this stream. */
+            if ( ! rawStrm.markSupported() ) {
+                rawStrm = new BufferedInputStream( rawStrm );
+            }
+
+            /* Read enough bytes to determine compression. */
+            int nReq = Compression.MAGIC_SIZE;
+            rawStrm.mark( nReq );
+            byte[] rawbuf = new byte[ nReq ];
+            int nGot = rawStrm.read( rawbuf );
+            compress = ( nGot == nReq ) ? Compression.getCompression( rawbuf )
+                                        : Compression.NONE;
+
+            /* Reset the stream. */
+            rawStrm.reset();
+        }
+
+        /* Get a new stream which is the uncompressed version of the raw one. */
+        InputStream introStrm = compress.decompress( rawStrm );
+
+        /* Ensure we can do mark/reset on it. */
+        if ( ! introStrm.markSupported() ) {
+            introStrm = new BufferedInputStream( introStrm );
+        }
+
+        /* Read bytes into a buffer up to a maximum of introLimit. */
+        // Note that a 'Resetting to invalid mark' IOException encountered
+        // here may result from an InputStream which doesn't support
+        // marks but claims it does (markSupported returns true).
+        // Sun's J2SE1.4.0 implementation of GZIPInputStream, amongst
+        // others, features this bug.
+        introStrm.mark( introLimit );
+        byte[] buf = new byte[ introLimit ];
+        int leng = 0;
+        for ( int b; ( b = introStrm.read() ) >= 0 && leng < introLimit;
+              leng++ ) {
+            buf[ leng ] = (byte) b;
+        }
+
+        /* Set the intro buffer from the result. */
+        if ( leng == introLimit ) {
+            intro = buf;
+        }
+        else {
+            intro = new byte[ leng ];
+            System.arraycopy( buf, 0, intro, 0, leng );
+        }
+
+        /* If we have the whole content in the intro buffer, we can 
+         * discard the stream since we know all the content. */
+        if ( intro.length < introLimit ) {
+            introStrm.close();
+        }
+
+        /* Otherwise reset it and store it for later use. */
+        else {
+            introStrm.reset();
+            strm = introStrm;
+        }
+    }
+
+    /**
+     * Returns an object which will handle any required decompression
      * for this stream.  A raw data stream is read and its magic number
      * (first few bytes) matched against known patterns to determine
      * if any known compression method is in use.
-     * If no known compression is being used, the value 
+     * If no known compression is being used, the value
      * <tt>Compression.NONE</tt> is returned.
      *
      * @return  a Compression object encoding this stream
      */
     public synchronized Compression getCompression() throws IOException {
         if ( compress == null ) {
-            assert strm == null;
-            InputStream raw = getRawInputStream();
-            if ( ! markSupported( raw ) ) {
-                raw = new BufferedInputStream( raw );
-            }
-            int nReq = Compression.MAGIC_SIZE;
-            raw.mark( nReq );
-            byte[] rawbuf = new byte[ nReq ];
-            int nGot = raw.read( rawbuf );
-            raw.reset();
-            compress = Compression.getCompression( rawbuf );
-            this.strm = compress.decompress( raw );
+            initialise();
         }
         return compress;
+    }
+
+    /**
+     * Returns the intro buffer, first reading it if this hasn't been
+     * done before.  The intro buffer will contain the first few bytes
+     * of the decompressed stream.  The number of bytes it contains
+     * (the size of the returned byte[] array) will be the smaller of
+     * <tt>introLimit</tt> and the length of the underlying uncompressed
+     * stream.
+     * <p>
+     * The returned buffer is the original not a copy - don't change its
+     * contents!
+     *
+     * @return  the first few bytes of the uncompressed stream, up to a 
+     *          limit of <tt>introLimit</tt>
+     */
+    public synchronized byte[] getIntro() throws IOException {
+        if ( intro == null ) {
+            initialise();
+        }
+        return intro;
     }
 
     /**
@@ -261,11 +362,11 @@ public abstract class DataSource {
      * in particular <tt>setCompression(Compression.NONE)</tt> can
      * be used to force direct examination of the underlying stream
      * without decompression, even if the underlying stream is in fact
-     * compressed.  
+     * compressed.
      * <p>
      * The effects of setting a compression to a mode (other than NONE)
-     * which does not match the actual compression mode of the 
-     * underlying stream are undefined, so this method should be used 
+     * which does not match the actual compression mode of the
+     * underlying stream are undefined, so this method should be used
      * with care.
      *
      * @param  compress  the compression mode encoding the underlying
@@ -279,9 +380,9 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns a DataSource representing the same underlying stream, 
+     * Returns a DataSource representing the same underlying stream,
      * but with a forced compression mode <tt>compress</tt>.
-     * The returned <tt>DataSource</tt> object may be the same object 
+     * The returned <tt>DataSource</tt> object may be the same object
      * as this one, but 
      * if it has a different compression mode from <tt>compress</tt>
      * a new one will be created.  As with {@link #setCompression},
@@ -296,7 +397,7 @@ public abstract class DataSource {
      */
     public synchronized DataSource forceCompression( Compression compress ) {
 
-        if ( this.compress == null ) {
+        if ( this.compress == null ) { 
             clearState();
             this.compress = compress;
             return this;
@@ -328,10 +429,10 @@ public abstract class DataSource {
      * Returns an InputStream containing the whole of this DataSource.
      * If compression is detected in the underlying stream, it will be
      * decompressed.
-     * The returned stream should be closed by the user when no 
+     * The returned stream should be closed by the user when no
      * longer required.
      *
-     * @return  an input stream that reads from the beginning of the 
+     * @return  an input stream that reads from the beginning of the
      *          underlying data source, decompressing it if appropriate
      */
     public synchronized InputStream getInputStream() throws IOException {
@@ -339,20 +440,15 @@ public abstract class DataSource {
         /* If we have already read up to the end of the stream, we can
          * return a stream based on our copy of it.  This is likely to
          * be cheaper than the alternatives. */
-        if ( eofPos < Integer.MAX_VALUE ) {
-            assert magic.length == eofPos;
-            return new ByteArrayInputStream( magic );
+        if ( getIntro().length < introLimit ) {
+            return new ByteArrayInputStream( intro );
         }
-
-        /* Find out what compression we are using.  This may have the
-         * side effect of getting us a stream. */
-        Compression compress = getCompression();
 
         /* Return either an existing stream, or a decompressed version of
          * a new raw stream got from the implementation. */
-        InputStream result = ( strm == null ) 
-                             ? compress.decompress( getRawInputStream() ) 
-                             : strm;
+        InputStream result = ( strm == null )
+                           ? getCompression().decompress( getRawInputStream() )
+                           : strm;
 
         /* Make sure that we don't try to use the stream we've just returned
          * at a later date. */
@@ -363,334 +459,38 @@ public abstract class DataSource {
     }
 
     /**
-     * Returns an input stream which appears just the same as the 
-     * one returned by {@link #getInputStream}, but only incurs the 
+     * Returns an input stream which appears just the same as the
+     * one returned by {@link #getInputStream}, but only incurs the
      * expense of obtaining an actual input stream (by calling
      * {@link #getRawInputStream} if more bytes are read than the
      * cached magic number.  This is an efficient way to read if you
      * need an InputStream but may only end up reading the first
      * few bytes of it.
      *
-     * @return  an input stream that reads from the beginning of the 
+     * @return  an input stream that reads from the beginning of the
      *          underlying data source, decompressing it if appropriate
      */
     public synchronized InputStream getHybridInputStream() throws IOException {
 
-         /* If we already read up to the end of the stream, just return
-          * a stream based on our copy of it. */
-         if ( eofPos < Integer.MAX_VALUE ) {
-             assert magic.length == eofPos;
-             return new ByteArrayInputStream( magic );
-         }
+        /* If we have already read up to the end of the stream, just
+         * return a stream based on our copy of it. */
+        if ( getIntro().length < introLimit ) {
+            return new ByteArrayInputStream( intro );
+        }    
 
-         /* If we haven't read any magic number, just call getInputStream. */
-         else if ( magic == null ) {
-             return getInputStream();
-         }
-
-         /* Otherwise, construct a new stream composed of the magic part
-          * and a normal part starting from the position corresponding to
-          * the end of the magic part (which will not get used if it's 
-          * not required. */
-         else {
-             InputStream magicStream = new ByteArrayInputStream( magic );
-             InputStream remainderStream = new SkipInputStream( magic.length );
-             return new SequenceInputStream( magicStream, remainderStream );
-         }
-    }
-
-    /**
-     * Writes the first few bytes of this DataSource into a supplied buffer.
-     * The supplied buffer will be filled up with data 
-     * (so <tt>buffer.length</tt> bytes will be read) if there are
-     * enough bytes in the source.  Bytes beyond this number will be
-     * left alone.  Any known compression in the underlying data source
-     * is taken care of.
-     * <p>
-     * Bytes read by this method are remembered by this DataSource for
-     * future use, so that multiple cheap calls of this method may 
-     * be made as long as the length of <tt>buffer</tt> does not increase
-     * on successive calls.  Furthermore, if the end of the stream 
-     * is reached (because <tt>buffer.length</tt> exceeds the length of
-     * the, possibly decompressed, stream) then this object will know
-     * all the bytes in this stream and no subsequent calls to 
-     * {@link #getRawInputStream} will be made.  Unless 
-     * {@link #clearState} is called of course.
-     *
-     * @param  buffer  a buffer into which the start of this source should
-     *                 be written.
-     * @return the number of bytes actually written into <tt>buffer</tt>
-     *         (may be less than <tt>buffer.length</tt> if this source
-     *         contains fewer bytes)
-     */
-    public synchronized int getMagic( byte[] buffer ) throws IOException {
-
-        /* See how many bytes have been requested. */
-        int nReq = Math.min( buffer.length, eofPos );
-        int nGot;
-
-        /* Handle the case in which we need to read from the stream. */
-        if ( nReq > magic.length ) {
-
-            /* Get a new stream if we don't have one ready. */
-            if ( strm == null ) {
-                strm = getInputStream();
-            }
-
-            /* Make sure we can do mark/reset on it. */
-            if ( ! markSupported( strm ) ) {
-                strm = new BufferedInputStream( strm );
-            }
-
-            /* Mark it, read enough bytes into the supplied buffer, 
-             * and reset to the start. */
-            // Note that a 'Resetting to invalid mark' IOException encountered
-            // here may result from an InputStream which doesn't support
-            // marks but claims it does (markSupported returns true).
-            // Sun's J2SE1.4.0 implementation of GZIPInputStream, amongst
-            // others, features this bug.
-            strm.mark( nReq );
-            nGot = strm.read( buffer, 0, nReq );
-            if ( nGot == -1 ) {
-                nGot = 0;
-            }
-            strm.reset();
-
-            /* Record whether the file is empty or not. */
-            if ( nGot == 0 ) {
-                isEmpty = Boolean.TRUE;
-                isASCII = Boolean.FALSE;
-                isHTML = Boolean.FALSE;
-                isXML = Boolean.FALSE;
-            }
-            else {
-                isEmpty = Boolean.FALSE;
-            }
-
-            /* If we fell off the end of the stream, remember where it was. */
-            if ( nGot < nReq ) {
-                eofPos = nGot;
-
-                /* In this case we can also discard any stream we have,
-                 * since we won't need it again - we can just use the
-                 * copy in the magic buffer if we need to read it again. */
-                close();
-            }
-
-            /* Keep a copy of the bytes that we read. */
-            magic = new byte[ nGot ];
-            System.arraycopy( buffer, 0, magic, 0, nGot );
-        }
-
-        /* We have already read these bytes; supply the data from the copy 
-         * we kept. */
+        /* Otherwise, construct a new stream composed of the magic part
+         * and a normal part starting from the position corresponding to
+         * the end of the magic part (which will not get used if it's
+         * not required. */
         else {
-            assert nReq <= magic.length;
-            nGot = nReq;
-            System.arraycopy( magic, 0, buffer, 0, nGot );
-        }
-
-        /* Return the number of bytes actually supplied. */
-        return nGot;
-    }
-
-    /**
-     * Indicates whether the content of the source appears to be printable 
-     * ASCII text or not.  A best guess is applied by looking at the
-     * first few characters and seeing whether they contain any 
-     * bytes which look like they are not printable, or if the lines
-     * are very long; if neither obtains, it's assumed ASCII.
-     * This is somewhat contrary to the internationalised/Unicode spirit 
-     * of Java but I don't know how to write a suitably general 
-     * method to determine whether data is printable or not.
-     *
-     * @return   true if the stream looks like it probably contains 
-     *           printable ASCII data
-     */
-    public synchronized boolean isASCII() throws IOException {
-        if ( isASCII == null ) {
-            characterise();
-        }
-        return isASCII.booleanValue();
-    }
-
-    /**
-     * Indicates whether there are any bytes in the stream.
-     *
-     * @return  <tt>true</tt> iff there are any bytes in the source
-     */
-    public synchronized boolean isEmpty() throws IOException {
-        if ( isEmpty == null ) {
-            characterise();
-        }
-        return isEmpty.booleanValue();
-    }
-
-    /**
-     * Indicates whether this source looks like it contains HTML. 
-     * This is just done by looking (case-insensitively) for the UTF-8 
-     * sequence "&lt;HTML" near the start of the stream.
-     *
-     * @return  <tt>true</tt> iff the source looks like it contains HTML
-     */
-    public synchronized boolean isHTML() throws IOException {
-        if ( isHTML == null ) {
-            characterise();
-        }
-        return isHTML.booleanValue();
-    }
-
-    /**
-     * Indicates whether this source looks like it contains XML.
-     * This is just done by calling the {@link #getXMLEncoding} method
-     * on the first few bytes of the stream (a <tt>null</tt> encoding
-     * indicates that it doesn't appear to be XML).
-     * This method is therefore intended to be a cheap rather than 
-     * a reliable indication.  To find out reliably, use the 
-     * {@link #getDOM} method.
-     *
-     * @return  <tt>true</tt> iff the source looks like it contains XML
-     * @see  #getXMLEncoding
-     */
-    public synchronized boolean isXML() throws IOException {
-        if ( isXML == null ) {
-            characterise();
-        }
-        return isXML.booleanValue();
-    }
-
-    /**
-     * Attempts to return a DOM Document read from the stream represented
-     * by this source.  If the stream causes parsing errors (because it
-     * is not conforming XML), then <tt>null</tt> will be returned 
-     * without error.  Once this method has been called once, subsequent
-     * calls will return the same DOM, so the parsing is not performed
-     * more than once.  It is therefore not a good idea to modify the
-     * returned DOM unless you know that there will be no subsequent
-     * users of this <tt>DataSource</tt>.  The parsing is done by the
-     * parser returned by the {@link #getParser} method at the time
-     * of the initial parse.  If you have more complicated parsing
-     * requirements than this you can either change this object's parser
-     * or parse the input stream yourself.
-     *
-     * @return  the DOM represented by this source, or <tt>null</tt> if
-     *          it cannot be parsed as XML
-     * @throws  IOException if some error occurs accessing the stream
-     * @see  #getParser
-     * @see  #setParser
-     */
-    public synchronized Document getDOM() throws IOException {
-
-        /* Only do the parse this time if we haven't already done it. */
-        if ( ! hasParsed ) {
-            InputStream strm = getHybridInputStream();
-            try {
-                dom = getParser().parse( strm, getSystemId() );
-            }
-            catch ( SAXException e ) {
-                dom = null;
-            }
-            finally {
-                strm.close();
-            }
-            hasParsed = true;
-        }
-        return dom;
-    }
-
-    /**
-     * Returns the parser which will be used by the {@link #getDOM} method.
-     *
-     * @return  the XML parser
-     */
-    public DocumentBuilder getParser() {
-        if ( parser == null ) {
-            DocumentBuilderFactory pfact = DocumentBuilderFactory.newInstance();
-            try {
-                parser = pfact.newDocumentBuilder();
-            }
-            catch ( ParserConfigurationException e ) {
-                throw new RuntimeException( 
-                              "Failed to configure default parser", e );
-            }
-        }
-        return parser;
-    }
-
-    /**
-     * Sets the parser which will be used by the {@link #getDOM} method.
-     *
-     * @param   parser  the XML parser to use
-     */
-    public void setParser( DocumentBuilder parser ) {
-        this.parser = parser;
-    }
-
-    /**
-     * Grabs a few bytes from the start of the stream and makes some 
-     * guesses about the general nature of the stream on the basis of these.
-     */
-    private void characterise() throws IOException {
-        byte[] buf = new byte[ TESTED_BYTES ];
-        int nGot = getMagic( buf );
-        isEmpty = Boolean.valueOf( nGot == 0 );
-        if ( isEmpty.booleanValue() ) {
-            isASCII = Boolean.FALSE;
-            isHTML = Boolean.FALSE;
-            isXML = Boolean.FALSE;
-        }
-        else {
-            int lleng = 0;
-            boolean hasLongLines = false;
-            boolean hasUnprintables = false;
-            boolean hasHTMLElement = false;
-            for ( int i = 0; i < nGot; i++ ) {
-                boolean isret = false;
-                boolean isctl = false;
-                int bval = buf[ i ];
-                switch ( bval ) {
-                    case '\n':
-                    case '\r':
-                        lleng = 0;
-                        // no break here is intentional
-                    case '\t':
-                    case '\f':
-                    case (byte) 169:  // copyright symbol
-                    case (byte) 163:  // pound sign
-                        isctl = true;
-                        break;
-                    case '<':
-                        if ( nGot - i > 10 && ! hasHTMLElement ) {
-                            int j = i;
-                            if ( ( buf[ ++j ] == 'h' || buf[ j ] == 'H' ) &&
-                                 ( buf[ ++j ] == 't' || buf[ j ] == 'T' ) &&
-                                 ( buf[ ++j ] == 'm' || buf[ j ] == 'M' ) &&
-                                 ( buf[ ++j ] == 'l' || buf[ j ] == 'L' ) ) {
-                                hasHTMLElement = true;
-                            }
-                        }
-                        break;
-                    default:
-                        // no action
-                }
-                lleng++;
-                if ( lleng > MAX_LINE_LENGTH ) {
-                    hasLongLines = true;
-                }
-                if ( ( bval > 126 || bval  < 32 ) && ! isctl ) {
-                    hasUnprintables = true;
-                }
-            }
-            isASCII = Boolean.valueOf( ( ! hasLongLines ) && 
-                                      ( ! hasUnprintables ) );
-            isHTML = Boolean.valueOf( ( ! hasUnprintables ) && hasHTMLElement );
-            isXML = Boolean.valueOf( ( getXMLEncoding( buf ) != null ) &&
-                                     ( ! isHTML.booleanValue() ) );
+            InputStream introStream = new ByteArrayInputStream( intro );
+            InputStream remainderStream = new SkipInputStream( intro.length );
+            return new SequenceInputStream( introStream, remainderStream );
         }
     }
 
     /**
-     * Closes any open streams owned and not yet dispatched by this 
+     * Closes any open streams owned and not yet dispatched by this
      * DataSource.  Should be called if this object is no longer required,
      * or if it may not be required for some while.  Calling this method
      * does not prevent any other method being called on this object
@@ -730,132 +530,13 @@ public abstract class DataSource {
     }
 
     /**
-     * Intialises all knowledge of this object about itself.
+     * Initialises all knowledge of this object about itself.
      */
-    protected synchronized void clearState() {
+    private void clearState() {
         close();
-        magic = new byte[ 0 ];
-        magicNbyte = -1;
-        eofPos = Integer.MAX_VALUE;
+        intro = null;
         strm = null;
         compress = null;
-        isASCII = null;
-        isEmpty = null;
-        isHTML = null;
-        isXML = null;
-        dom = null;
-        hasParsed = false;
-    }
-
-    /**
-     * Returns what appears to be the encoding of the XML stream which
-     * starts with a given magic number.  This is based on how we expect
-     * an XML stream to start in terms of Unicode characters (one of the
-     * strings {@link #getXMLMagics}).  The result will be one of the
-     * encoding names listed in {@link #getXMLEncodings}, or <tt>null</tt> if
-     * it doesn't look like the start of an XML stream in any of these
-     * encodings.
-     *
-     * @param   magic  buffer containing the first few bytes of the stream
-     * @return  name of a supported encoding in which this looks like XML,
-     *          or <tt>null</tt> if it doesn't look like XML
-     */
-    public static String getXMLEncoding( byte[] magic ) {
-        String[] encodings = getXMLEncodings();
-        String[] magics = getXMLMagics();
-        for ( int i = 0; i < encodings.length; i++ ) {
-
-            /* Decode the magic number into a Unicode string. */
-            String encoding = encodings[ i ];
-            String test;
-            if ( Charset.isSupported( encoding ) ) {
-                try {
-                    test = new String( magic, encoding );
-                }
-                catch ( UnsupportedEncodingException e ) {
-                    throw new AssertionError( "Encoding " + encoding
-                                            + " not supported??" );
-                }
-            }
-            else {  // bit surprising
-                System.err.println( "Unsupported charset: " + encoding );
-                break;
-            }
-
-            /* See if the decoded string looks like any of the possible starts
-             * of an XML document. */
-            for ( int j = 0; j < magics.length; j++ ) {
-                if ( test.startsWith( magics[ j ] ) ) {
-
-                    /* If it is HTML then take this to mean it's NOT XML -
-                     * it is most likely to be not well-formed. */
-                    if ( test.indexOf( "HTML" ) > 0 ||
-                         test.indexOf( "html" ) > 0 ) {
-                        return null;
-                    }
-                    else {
-                        return encoding;
-                    }
-                }
-            }
-        }
-
-        /* No matches, it's probably not XML then. */
-        return null;
-    }
-
-    /**
-     * Returns the list of XML encodings which will be tested to see if
-     * a source looks like XML.
-     *
-     * @return  an array of supported XML encodings to be tested for
-     * @see #getXMLEncoding
-     */
-    public static String[] getXMLEncodings() {
-        if ( xmlEncodings == null ) {
-            xmlEncodings = new String[] {
-                "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE",
-            };
-        }
-        return xmlEncodings;
-    }
-
-    /**
-     * Sets the list of supported XML encodings which will be tested to
-     * see if a source looks like XML.
-     * 
-     * @param  encodings  an array of supported XML encodings to be tested for
-     * @see #getXMLEncoding
-     */
-    public static void setXMLEncodings( String[] encodings ) {
-        xmlEncodings = encodings;
-    }
-
-    /**
-     * Returns the list of XML magic numbers which will be tested to see if
-     * a source looks like XML.
-     *
-     * @return  an array of magic numbers
-     * @see #getXMLEncoding
-     */
-    public static String[] getXMLMagics() {
-        if ( xmlMagics == null ) {
-            xmlMagics = new String[] {
-                "<!", "<?",
-            };
-        }
-        return xmlMagics;
-    }
-
-    /**
-     * Returns the list of XML magic numbers which will be tested to see if
-     * a source looks like XML.
-     *
-     * @param  magics  an array of magic numbers
-     * @see  #getXMLEncoding
-     */
-    public static void setXMLMagics( String[] magics ) {
-        xmlMagics = magics;
     }
 
     /**
@@ -895,7 +576,7 @@ public abstract class DataSource {
         if ( file.exists() ) {
             return new FileDataSource( file, position );
         }
- 
+
         /* Otherwise, see if we can make sense of it as a URL. */
         try {
             URL url = new URL( loc );
@@ -905,24 +586,6 @@ public abstract class DataSource {
             throw new FileNotFoundException( "Not extant file or valid URL: "
                                            + name );
         }
-    }
-
-    /**
-     * Indicates whether a given stream supports the mark/reset functionality
-     * of <tt>InputStream</tt>s.  This ought to be just the same as
-     * calling {@link java.io.InputStream#markSupported}, but there is
-     * bug in Sun's Java 1.4.1 implementation such that InflaterInputStream
-     * and its subclasses (including GZIPInputStream) return <tt>true</tt>
-     * from <tt>markSupported</tt> but do not correctly support this
-     * functionality.  This bug is #4812237, reported by mbt 
-     * in February 2003.
-     *
-     * @param  strm  the stream to test
-     * @return  <tt>true</tt> iff the stream supports marks
-     */
-    public static boolean markSupported( InputStream strm ) {
-        return strm.markSupported() 
-            && ! ( strm instanceof InflaterInputStream );
     }
 
     /**

@@ -35,9 +35,9 @@ public class TarStreamDataNode extends DefaultDataNode {
      */
     public TarStreamDataNode( DataSource datsrc ) throws NoSuchDataException {
         this.datsrc = datsrc;
-        byte[] magic = new byte[ 300 ];
+        byte[] magic;
         try {
-            int nmag = datsrc.getMagic( magic );
+            magic = datsrc.getIntro();
         }
         catch ( IOException e ) {
             throw new NoSuchDataException( e );
@@ -97,8 +97,6 @@ public class TarStreamDataNode extends DefaultDataNode {
 
         /* Return an iterator which makes DataNodes from each entry. */
         return new Iterator() {
-
-            byte[] magbuf = new byte[ 512 ];
 
             public boolean hasNext() {
                 return tentIt.hasNext();
@@ -195,7 +193,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                          * childMaker below will not need to do any more
                          * reads on the input (and hence will not need to
                          * call the expensive getEntryInputStream). */
-                        ssrc.getMagic( magbuf );
+                        ssrc.getIntro();
 
                         /* Now prevent the provisional source from using
                          * the TarInputStream any more so that subsequent

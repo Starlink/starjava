@@ -76,7 +76,7 @@ public class CompressedDataNode extends DefaultDataNode {
                 dv.addKeyedItem( "Decompressed size", cookLeng );
             }
             try {
-                if ( datsrc.isASCII() ) {
+                if ( TreeviewUtil.isASCII( datsrc.getIntro() ) ) {
                     dv.addPane( "Text view", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( datsrc.getInputStream() );

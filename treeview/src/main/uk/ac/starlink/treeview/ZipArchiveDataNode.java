@@ -30,16 +30,21 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
      * Constructs a ZipArchiveDataNode.
      *
      * @param  name  the name of the node
-     * @param  magic  a byte array at least 4 elements long containing the
-     *         first few bytes of the zip file, used to check whether
-     *         this looks like a zip archive or not
+     * @param  datsrc a data source corresponding to the archive; this is
+     *         used for checking the magic number to see whether it looks
+     *         like a zip archive or not
      */
-    protected ZipArchiveDataNode( String name, byte[] magic ) 
+    protected ZipArchiveDataNode( DataSource datsrc ) 
             throws NoSuchDataException {
-        this.name = name;
+        this.name = datsrc.getName();
         setLabel( name );
-        if ( ! isMagic( magic ) ) {
-            throw new NoSuchDataException( "Wrong magic number for zip" );
+        try {
+            if ( ! isMagic( datsrc.getIntro() ) ) {
+                throw new NoSuchDataException( "Wrong magic number for zip" );
+            }
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( "Can't see if it's zip", e );
         }
     }
 
@@ -72,13 +77,14 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
      * Tests whether the presented byte array looks like the start of a
      * Zip archive.
      *
-     * @param  magic  a byte array of at least 4 elements containing the
+     * @param  magic  a byte array containing the
      *         first few bytes of a source which might be a zip
      * @return true iff <tt>magic</tt> represents the magic number of a 
      *         zip archive
      */
     public static boolean isMagic( byte[] magic ) {
-        return (char) magic[ 0 ] == 'P'
+        return magic.length > 4
+            && (char) magic[ 0 ] == 'P'
             && (char) magic[ 1 ] == 'K'
             && magic[ 2 ] == 3
             && magic[ 3 ] == 4;

@@ -32,10 +32,20 @@ public class DataSourceTest extends TestCase {
     }
 
     public void setUp() throws IOException {
-        pSrc = new PlainDataSource();
-        gSrc = new GzipDataSource();
-        bSrc = new Bzip2DataSource();
-        allSources = new DataSource[] { pSrc, bSrc, gSrc, };
+        pSrc = new PlainDataSource( DataSource.DEFAULT_INTRO_LIMIT );
+        gSrc = new GzipDataSource( DataSource.DEFAULT_INTRO_LIMIT );
+        bSrc = new Bzip2DataSource( DataSource.DEFAULT_INTRO_LIMIT );
+        int lo = 15;
+        int hi = 1024 * 1024;
+        allSources = new DataSource[] { 
+            pSrc, bSrc, gSrc,
+            new PlainDataSource( lo ),
+            new PlainDataSource( hi ),
+            new GzipDataSource( lo ),
+            new GzipDataSource( hi ),
+            new Bzip2DataSource( lo ),
+            new Bzip2DataSource( hi ),
+        };
         // try {
         //  outputTestStreams( new File( "/mbt/data/treeview/compress" ) );
         // }
@@ -50,22 +60,20 @@ public class DataSourceTest extends TestCase {
         assertEquals( Compression.GZIP, gSrc.getCompression() );
         assertEquals( Compression.BZIP2, bSrc.getCompression() );
 
-        int nMagic = 23;
-        byte[] pMagic = new byte[ nMagic ];
-        byte[] gMagic = new byte[ nMagic ];
-        byte[] bMagic = new byte[ nMagic ];
-        assertEquals( nMagic, pSrc.getMagic( pMagic ) );
-        assertEquals( nMagic, gSrc.getMagic( gMagic ) );
-        assertEquals( nMagic, bSrc.getMagic( bMagic ) );
-        assertArrayEquals( pMagic, gMagic );
-        assertArrayEquals( pMagic, bMagic );
+        byte[] pIntro = pSrc.getIntro();
+        byte[] gIntro = gSrc.getIntro();
+        byte[] bIntro = bSrc.getIntro();
+        assertArrayEquals( pIntro, gIntro );
+        assertArrayEquals( pIntro, bIntro );
     }
 
-    public void testMagic() throws IOException {
+    public void testIntro() throws IOException {
         for ( int i = 0; i < allSources.length; i++ ) {
             DataSource src = allSources[ i ];
+            byte[] intro = src.getIntro();
+            assertTrue( intro.length <= src.getIntroLimit() );
             byte[] buf = new byte[ magic.length ];
-            assertEquals( magic.length, src.getMagic( buf ) );
+            System.arraycopy( intro, 0, buf, 0, buf.length );
             assertArrayEquals( magic, buf );
         }
     }
@@ -86,7 +94,6 @@ public class DataSourceTest extends TestCase {
         for ( int i = 0; i < allSources.length; i++ ) {
             DataSource src = allSources[ i ];
             byte[] buf = new byte[ leng ];
-            assertEquals( leng, src.getMagic( buf ) );
             assertArrayEquals( fillBuffer( src.getInputStream() ),
                                fillBuffer( src.getHybridInputStream() ) );
             assertArrayEquals( fillBuffer( src.getInputStream() ),
@@ -94,25 +101,16 @@ public class DataSourceTest extends TestCase {
         }
     }
 
-    public void testFlags() throws IOException {
-        for ( int i = 0; i < allSources.length; i++ ) {
-            DataSource src = allSources[ i ];
-            assertTrue( ! src.isASCII() );
-            assertTrue( ! src.isEmpty() );
-            assertTrue( ! src.isHTML() );
-        }
-    }
-
     public void testCombo1() throws IOException {
-        testFlags();
-        testMagic();
+        testIntro();
         testStream();
         testData();
-        testFlags();
-        testMagic();
+        testIntro();
+        testStream();
+        testHybridStream();
         testStream();
         testStream();
-        testStream();
+        testHybridStream();
     }
 
     private static byte[] fillBuffer1( InputStream istrm ) throws IOException {
@@ -142,6 +140,9 @@ public class DataSourceTest extends TestCase {
     }
 
     private static class PlainDataSource extends DataSource {
+        public PlainDataSource( int introLimit ) {
+            super( introLimit );
+        }
         protected InputStream getRawInputStream() throws IOException {
             return getPlainStream();
         }
@@ -155,7 +156,8 @@ public class DataSourceTest extends TestCase {
 
     private static class GzipDataSource extends DataSource {
         private byte[] zbuf;
-        private GzipDataSource() throws IOException {
+        private GzipDataSource( int introLimit ) throws IOException {
+            super( introLimit );
             ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
             OutputStream zstrm = new GZIPOutputStream( bstrm );
             InputStream istrm = getPlainStream();
@@ -181,7 +183,8 @@ public class DataSourceTest extends TestCase {
 
     private static class Bzip2DataSource extends DataSource {
         private byte[] zbuf;
-        private Bzip2DataSource() throws IOException {
+        private Bzip2DataSource( int introLimit ) throws IOException {
+            super( introLimit );
             ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
             bstrm.write( (byte) 'B' );
             bstrm.write( (byte) 'Z' );

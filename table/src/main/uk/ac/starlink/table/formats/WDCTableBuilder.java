@@ -23,9 +23,7 @@ public class WDCTableBuilder implements TableBuilder {
 
         /* If it doesn't start how we expect WDC text to start, bail
          * out straight away. */
-        byte[] buffer = new byte[ 80 ];
-        datsrc.getMagic( buffer );
-        String start = new String( buffer );
+        String start = new String( datsrc.getIntro() );
         if ( ! start.startsWith( "Column formats and units" ) ) {
             return null;
         }

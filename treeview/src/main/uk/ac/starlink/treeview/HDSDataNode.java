@@ -387,7 +387,8 @@ public class HDSDataNode extends DefaultDataNode {
     }
 
     public static boolean isMagic( byte[] magic ) {
-        return (char) magic[ 0 ] == 'S'
+        return magic.length > 3
+            && (char) magic[ 0 ] == 'S'
             && (char) magic[ 1 ] == 'D'
             && (char) magic[ 2 ] == 'S';
     }

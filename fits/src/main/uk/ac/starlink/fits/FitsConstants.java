@@ -124,18 +124,14 @@ public class FitsConstants {
      * Its contents is checked against the FITS 'magic number', which is
      * the ASCII string "<tt>SIMPLE&nbsp&nbsp;=</tt>".
      *
-     * @param   buffer  a byte buffer of at least 9 elements containing
+     * @param   buffer  a byte buffer containing
      *          the start of a file to test
      * @return  <tt>true</tt> iff the bytes in <tt>buffer</tt> look like 
      *          the start of a FITS file
-     * @throws  IllegalArgumentException  if <tt>buffer</tt> is too short
      */
     public static boolean isMagic( byte[] buffer ) {
-        if ( buffer.length < 9 ) {
-            throw new IllegalArgumentException(
-                "Supplied buffer must be at least 9 elements long" );
-        }
-        return (char) buffer[ 0 ] == 'S' &&
+        return buffer.length >= 9 &&
+               (char) buffer[ 0 ] == 'S' &&
                (char) buffer[ 1 ] == 'I' &&
                (char) buffer[ 2 ] == 'M' &&
                (char) buffer[ 3 ] == 'P' &&

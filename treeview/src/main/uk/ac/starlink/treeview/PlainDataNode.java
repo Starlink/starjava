@@ -69,8 +69,9 @@ public class PlainDataNode extends DefaultDataNode {
             if ( size >= 0 ) {
                 dv.addKeyedItem( "Size", size );
             }
-            if ( ! datsrc.isEmpty() ) {
-                if ( datsrc.isASCII() ) {
+            byte[] intro = datsrc.getIntro();
+            if ( intro.length > 0 ) {
+                if ( TreeviewUtil.isASCII( datsrc.getIntro() ) ) {
                     dv.addPane( "Text view", new ComponentMaker() {
                         public JComponent getComponent() throws IOException {
                             return new TextViewer( datsrc.getInputStream() );

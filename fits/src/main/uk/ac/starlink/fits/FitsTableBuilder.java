@@ -45,9 +45,7 @@ public class FitsTableBuilder implements TableBuilder {
     public StarTable makeStarTable( DataSource datsrc ) throws IOException {
 
         /* Check if this looks like a FITS file. */
-        byte[] buffer = new byte[ 80 ]; 
-        datsrc.getMagic( buffer );        
-        if ( ! FitsConstants.isMagic( buffer ) ) {
+        if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
             return null;
         }
 

@@ -12,6 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.swing.JComponent;
 import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
 
 /**
  * A DataNode representing a zip archive stored in a file.
@@ -33,7 +34,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
      *               which the node is to be created
      */
     public ZipFileDataNode( File file ) throws NoSuchDataException {
-        super( file.getName(), getMagic( file ) );
+        super( getDataSource( file ) );
         try {
             zfile = new ZipFile( file );
         }
@@ -138,9 +139,14 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
         return fullView;
     }
 
-    private static byte[] getMagic( File file ) throws NoSuchDataException {
+    private static DataSource getDataSource( File file )
+            throws NoSuchDataException {
         try {
-            return startBytes( file, 8 );
+            DataSource datsrc = new FileDataSource( file );
+            datsrc.setIntroLimit( 12 );  // enough for zip magic number
+            datsrc.getIntro();
+            datsrc.close();
+            return datsrc;
         }
         catch ( IOException e ) {
             throw new NoSuchDataException( e );

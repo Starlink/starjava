@@ -205,19 +205,25 @@ public class FileDataNode extends DefaultDataNode {
             if ( file.canRead() && ! file.isDirectory() ) {
                 try {
 
-                    /* Use a DataSource to characterise it, making sure that it
-                     * doesn't try to decompress the thing. */
-                    DataSource datsrc = new FileDataSource( file )
-                                       .forceCompression( Compression.NONE );
-                    boolean isText = datsrc.isASCII();
-                    boolean isHTML = datsrc.isHTML();
-                    datsrc.close();
+                    /* See if it looks like ASCII. */
+                    InputStream strm = new FileInputStream( file );
+                    int nTest = 512;
+                    byte[] buf = new byte[ nTest ];
+                    int nGot = strm.read( buf );
+                    strm.close();
+                    if ( nGot < nTest ) {
+                        byte[] buf1 = new byte[ nGot ];
+                        System.arraycopy( buf, 0, buf1, 0, nGot );
+                        buf = buf1;
+                    }
+                    byte[] buf1 = new byte[ nGot ];
+                    boolean isText = TreeviewUtil.isASCII( buf );
 
                 //  HTML viewing does work but there are problems with it; 
                 //  for one thing I can't make the HTML load asynchronously.
                 //  If I do have HTML viewing, I'm not sure if it should be 
                 //  here or (more likely) an HTMLDataNode.
-                //  if ( isHTML ) {
+                //  if ( datsrc.isHTML() ) {
                 //      dv.addPane( "HTML view", new ComponentMaker() {
                 //          public JComponent getComponent()
                 //                  throws IOException {
