@@ -205,7 +205,7 @@ public class SplatBrowser
     /**
      *  Names of files that are passed to other threads for loading.
      */
-    protected File[] newFiles = null;
+    protected String[] newFiles = null;
 
     /**
      *  Whether files loaded in other threads should also be displayed
@@ -320,9 +320,9 @@ public class SplatBrowser
         //  queue. Note this may cause the GUI to be realized, so any
         //  additional work must be done on the event queue.
         if ( inspec != null ) {
-            newFiles = new File[inspec.length];
+            newFiles = new String[inspec.length];
             for ( int i = 0; i < inspec.length; i++ ) {
-                newFiles[i] = new File( inspec[i] );
+                newFiles[i] = inspec[i];
             }
             displayNewFiles = true;
             SwingUtilities.invokeLater( new Runnable() {
@@ -973,10 +973,14 @@ public class SplatBrowser
         initFileChooser( true );
         int result = fileChooser.showOpenDialog( this );
         if ( result == fileChooser.APPROVE_OPTION ) {
-            newFiles = fileChooser.getSelectedFiles();
-            if ( newFiles.length == 0 ) {
-                newFiles = new File[1];
-                newFiles[0] = fileChooser.getSelectedFile();
+            File[] selectedFiles = fileChooser.getSelectedFiles();
+            if ( selectedFiles.length == 0 ) {
+                selectedFiles = new File[1];
+                selectedFiles[0] = fileChooser.getSelectedFile();
+            }
+            newFiles = new String[selectedFiles.length];
+            for ( int i = 0; i < selectedFiles.length; i++ ) {
+                newFiles[i] = selectedFiles[i].getPath();
             }
 
             //  If the user requested that opened spectra are also
@@ -1286,8 +1290,8 @@ public class SplatBrowser
         }
         String result = locationChooser.showDialog( locationChooser );
         if ( result != null ) {
-            newFiles = new File[1];
-            newFiles[0] = new File( result );
+            newFiles = new String[1];
+            newFiles[0] = result;
             threadLoadChosenSpectra();
         }
     }
@@ -1328,7 +1332,7 @@ public class SplatBrowser
                     public void actionPerformed( ActionEvent e ) {
                         progressMonitor.setProgress( filesDone );
                         if ( filesDone < newFiles.length ) {
-                            progressMonitor.setNote( newFiles[filesDone].getPath() );
+                            progressMonitor.setNote( newFiles[filesDone] );
                         }
                     }
                 });
@@ -1430,7 +1434,7 @@ public class SplatBrowser
         filesDone = 0;
         int validFiles = 0;
         for ( int i = 0; i < newFiles.length; i++ ) {
-            if ( addSpectrum( newFiles[i].getPath(), openUsertypeIndex ) ) {
+            if ( addSpectrum( newFiles[i], openUsertypeIndex ) ) {
                 validFiles++;
             }
             filesDone++;
