@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.logging.Logger;
 import javax.xml.rpc.ServiceException;
 import org.us_vo.www.Registry;
 import org.us_vo.www.RegistryLocator;
@@ -17,8 +18,13 @@ import org.us_vo.www.SimpleResource;
  * @since    21 Dec 2004
  */
 public class RegistryInterrogator {
+
     private RegistrySoap registry_;
     private URL url_;
+
+    private static Boolean available_;
+    private static final Logger logger_ = 
+        Logger.getLogger( "uk.ac.starlink.vo" );
 
     /** Default registry URL. */
     public static final URL DEFAULT_URL; 
@@ -64,15 +70,16 @@ public class RegistryInterrogator {
     }
 
     /**
-     * Executes a query on this registry.
+     * Executes a query on this registry.  If the specified query string
+     * is null, every record in the registry will be returned.
      *
-     * @param  query  query text
+     * @param  query  query text or <tt>null</tt>
      */
     public SimpleResource[] getResources( String query )
             throws RemoteException, ServiceException {
-        return getRegistry()
-              .queryRegistry( query )
-              .getSimpleResource();
+        return query == null
+             ? getRegistry().dumpRegistry().getSimpleResource()
+             : getRegistry().queryRegistry( query ).getSimpleResource();
     }
 
     /**
@@ -96,6 +103,28 @@ public class RegistryInterrogator {
             throw (IOException) new IOException( e.getMessage() )
                                .initCause( e );
         }
+    }
+
+    /**
+     * Returns true if the classes required for operation of the registry
+     * are present and correct.
+     *
+     * @return  usability status of registry-related classes
+     */
+    public static boolean isAvailable() {
+        if ( available_ == null ) {
+            try {
+                Class c = RegistryInterrogator.class;
+                c.forName( "net.ivoa.www.xml.VORegistry.v0_3.Registry" );
+                c.forName( "org.us_vo.www.Registry" );
+                available_ = Boolean.TRUE;
+            }
+            catch ( Throwable th ) {
+                logger_.info( "WSDL classes unavailable" + " (" + th + ")" );
+                available_ = Boolean.FALSE;
+            }
+        }
+        return available_.booleanValue();
     }
 
 }
