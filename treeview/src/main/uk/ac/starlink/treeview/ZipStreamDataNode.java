@@ -103,9 +103,9 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
 
                         /* Make a DataSource which will use our zstream now,
                          * but a new ZipInputStream later. */
-                        ProvisionalDataSource psrc = 
-                            new ProvisionalDataSource( pathHead + subname,
-                                                       zent.getSize() ) {
+                        SwitchDataSource ssrc = 
+                            new SwitchDataSource( pathHead + subname,
+                                                  zent.getSize() ) {
                                 public InputStream getBackupRawInputStream()
                                         throws IOException {
                                     InputStream strm = 
@@ -113,8 +113,8 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                                     return strm;
                                 }
                             };
-                        psrc.setName( subname );
-                        psrc.setProvisionalStream(
+                        ssrc.setName( subname );
+                        ssrc.setProvisionalStream(
                             new FilterInputStream( zstream ) {
                                 public void close() throws IOException {
                                     zstream.closeEntry();
@@ -123,10 +123,10 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                                     return false;
                                 }
                             } );
-                        psrc.getMagic( magbuf );
-                        psrc.setProvisionalStream( null );
-                        psrc.close();
-                        childSrc = psrc;
+                        ssrc.getMagic( magbuf );
+                        ssrc.setProvisionalStream( null );
+                        ssrc.close();
+                        childSrc = ssrc;
                     }
                     catch ( IOException e ) {
                         return childMaker.makeErrorDataNode( parent, e );

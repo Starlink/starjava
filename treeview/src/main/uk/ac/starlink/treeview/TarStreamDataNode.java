@@ -175,9 +175,9 @@ public class TarStreamDataNode extends DefaultDataNode {
 
                         /* Make a DataSource out of it which will, for now,
                          * use the TarInputStream for its raw data. */
-                        ProvisionalDataSource psrc = 
-                            new ProvisionalDataSource( pathHead + subname,
-                                                       tent.getSize() ) {
+                        SwitchDataSource ssrc = 
+                            new SwitchDataSource( pathHead + subname,
+                                                  tent.getSize() ) {
                                 public InputStream getBackupRawInputStream()
                                         throws IOException {
                                     InputStream strm = 
@@ -199,8 +199,8 @@ public class TarStreamDataNode extends DefaultDataNode {
                                     return strm;
                                 }
                             };
-                        psrc.setName( subname );
-                        psrc.setProvisionalStream( 
+                        ssrc.setName( subname );
+                        ssrc.setProvisionalStream( 
                             new FilterInputStream( tstream ) {
                                 public void close() {
                                     // do not close TarInputStream
@@ -214,7 +214,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                          * childMaker below will not need to do any more
                          * reads on the input (and hence will not need to
                          * call the expensive getEntryInputStream). */
-                        psrc.getMagic( magbuf );
+                        ssrc.getMagic( magbuf );
 
                         /* Now prevent the provisional source from using
                          * the TarInputStream any more so that subsequent
@@ -222,11 +222,11 @@ public class TarStreamDataNode extends DefaultDataNode {
                          * stream if they in fact do need a stream. 
                          * The TarInputStream is still available for 
                          * further use within this child iterator. */
-                        psrc.setProvisionalStream( null );
-                        psrc.close();
+                        ssrc.setProvisionalStream( null );
+                        ssrc.close();
 
                         /* We have our source. */
-                        childSrc = psrc;
+                        childSrc = ssrc;
                     }
                     catch ( IOException e ) {
                         return childMaker.makeErrorDataNode( parent, e );

@@ -13,20 +13,20 @@ import java.io.InputStream;
  * This rather specialised class is used by archive nodes like
  * TarStreamDataNode and ZipStreamDataNode.
  */
-abstract class ProvisionalDataSource extends PathedDataSource {
+abstract class SwitchDataSource extends PathedDataSource {
 
     private InputStream provisionalStream;
     private long rawLength = -1L;
     private String path;
 
     /**
-     * Constructs a ProvisionalDataSource with a given path and known size.
+     * Constructs a SwitchDataSource with a given path and known size.
      *
      * @param  path  the full path of the source if known (may be null)
      * @param  rawLength  the length of the raw source in bytes 
      *         (may be -1 if not known)
      */
-    public ProvisionalDataSource( String path, long rawLength ) {
+    public SwitchDataSource( String path, long rawLength ) {
         this.path = path;
         this.rawLength = rawLength;
     }
