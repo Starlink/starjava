@@ -1,9 +1,9 @@
 The table package currently contains the GUI application which can
-view tables - basically, a wrapper around JTable display which 
-uses the facility of the StarTable package for data access.
+read, view and save tables - basically, a wrapper around JTable 
+display which uses the facility of the StarTable package for data access.
 
 The application is currently installed as the script java/bin/startab
-(by all means suggest a better name)
+(suggestions for a better name are encouraged)
 which will work on unix installations.  To get it to work on MS
 operating systems you could try invoking (e.g. click on) the 
 lib/table/table.jar jarfile (but see below).
