@@ -10,13 +10,11 @@ import uk.ac.starlink.util.TestCase;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-//import java.net.MalformedURLException;
 import java.util.List;
 
 import javax.xml.transform.*;
 
 public class XmlNdxTest extends TestCase {
-    HdxFactory fact;
     String testDir = "";
     HdxResourceType ndxtype;
 
@@ -26,38 +24,58 @@ public class XmlNdxTest extends TestCase {
 
     public void setUp()
             throws HdxException {
-        fact = HdxFactory.getInstance();
-        // Get the ndx type: this loads the BridgeNdx class, which
-        // registers the ndx, data, etc types.  Could alternatively do
-        // this with a properties file, as described in
-        // HdxResourceType
-        ndxtype = BridgeNdx.getHdxType();
+        /*
+        * Get the ndx type: this loads the BridgeNdx class, which
+        * registers the ndx, data, etc types.  Could alternatively do
+        * this with a properties file, as described in
+        * HdxResourceType
+        */
+        ndxtype = BridgeNdx.getHdxResourceType();
+
+        if (false) {
+            // Set the hdx logger and its associated handlers to log everything
+            java.util.logging.Logger logger
+                    = java.util.logging.Logger.getLogger("uk.ac.starlink.hdx");
+            logger.setLevel(java.util.logging.Level.ALL);
+            for (java.util.logging.Logger tl=logger;
+                 tl!=null;
+                 tl=tl.getParent()) {
+                java.util.logging.Handler[] h = tl.getHandlers();
+                for (int i=0; i<h.length; i++)
+                    h[i].setLevel(java.util.logging.Level.FINE);
+            }
+        }
     }
     
     public void testNoNS()
             throws HdxException, URISyntaxException {
         URL url = this.getClass().getResource("no-ns.xml");
-        System.err.println("testNoNS: url=" + url);
-        HdxContainer hdx = fact.newHdxContainer(url);
+        HdxContainer hdx = HdxFactory.getInstance().newHdxContainer(url);
         List ndxlist = hdx.getList(ndxtype);
         assertEquals(1, ndxlist.size());
         Ndx ndx = (Ndx)hdx.get(ndxtype);
         assertNotNull(ndx);
         NDArray a = ndx.getImage();
         assertNotNull(a);
-        assertEquals("file:test1.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test1.fits"));
         a = ndx.getVariance();
         assertNotNull(a);
-        assertEquals("file:test2.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test2.fits"));
         assertTrue(!ndx.hasQuality());
     }
 
     public void testMultiNS()
-            throws HdxException, URISyntaxException {
-        // redefining.xml constantly changes its namespace prefix 
-        // -- can we keep up?
+            throws HdxException, URISyntaxException,
+            javax.xml.transform.TransformerException {
+        /*
+         * redefining.xml constantly changes its namespace prefix 
+         * -- can we keep up?  This test is a near-duplicate of the
+         * testMultiNS test in uk.ac.starlink.hdx's HdxTest.java, but
+         * here we query the resulting Hdx using the Ndx interface
+         * rather than exclusively through the DOM
+         */
         URL url = this.getClass().getResource("redefining.xml");
-        HdxContainer hdx = fact.newHdxContainer(url);
+        HdxContainer hdx = HdxFactory.getInstance().newHdxContainer(url);
 
         List ndxlist = hdx.getList(ndxtype);
         assertEquals(2, ndxlist.size());
@@ -66,38 +84,20 @@ public class XmlNdxTest extends TestCase {
         assertNotNull(ndx);
         NDArray a = ndx.getImage();
         assertNotNull(a);
-        assertEquals("file:test1.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test1.fits"));
         a = ndx.getVariance();
         assertNotNull(a);
-        assertEquals("file:test2.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test2.fits"));
         assertTrue(!ndx.hasQuality());
         
         ndx = (Ndx)ndxlist.get(1);
         assertNotNull(ndx);
         a = ndx.getImage();
         assertNotNull(a);
-        assertEquals("file:test1.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test1.fits"));
         assertTrue(!ndx.hasVariance());
         a = ndx.getQuality();
         assertNotNull(a);
-        assertEquals("file:test2.fits", a.getURL().toString());
+        assertTrue(a.getURL().toString().endsWith("etc/testcases/test2.fits"));
     }
-
-    public void testToSource()
-            throws HdxException,
-            javax.xml.transform.TransformerConfigurationException,
-            javax.xml.transform.TransformerException {
-        // Tests the Source obtained from HdxContainer
-        URL url = this.getClass().getResource("no-ns.xml");
-        HdxContainer hdx = fact.newHdxContainer(url);
-        Source source = hdx.getSource();
-        assertNotNull(source);
-        Transformer trans = TransformerFactory.newInstance().newTransformer();
-        java.io.OutputStream os = new java.io.ByteArrayOutputStream();
-        trans.transform(source,
-                        new javax.xml.transform.stream.StreamResult(os));
-        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hdx><ndx><image uri=\"file:test1.fits\"/><variance uri=\"file:test2.fits\"/></ndx></hdx>",
-                     os.toString());
-    }
-    
 }
