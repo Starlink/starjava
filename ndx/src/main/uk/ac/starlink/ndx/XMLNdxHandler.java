@@ -2,6 +2,7 @@ package uk.ac.starlink.ndx;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,8 +120,14 @@ public class XMLNdxHandler implements NdxHandler {
                 context = new URL( cxt );
             }
             catch ( MalformedURLException e ) {
-                logger.info( "Malformed SystemID found for stream: " + cxt );
-                context = null;
+                try {
+                    context = new File( cxt ).toURL();
+                }
+                catch ( MalformedURLException e2 ) {
+                    logger.info( "Malformed SystemID found for stream: "
+                               + cxt );
+                    context = null;
+                }
             }
         }
 
