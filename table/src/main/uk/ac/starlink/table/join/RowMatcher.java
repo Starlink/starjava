@@ -253,6 +253,8 @@ public class RowMatcher {
         /* For each table, identify which bin each row falls into, and
          * place it in a map keyed by that bin. */
         Map rowMap = new HashMap();
+        long nBin = 0;
+        long nRow = 0;
         for ( int itab = 0; itab < nTable; itab++ ) {
             indicator.startStage( "Binning rows for table " + ( itab + 1 ) );
             StarTable table = tables[ itab ];
@@ -272,9 +274,13 @@ public class RowMatcher {
                 }
                 lrow++;
                 indicator.setLevel( lrow / nrow );
+                nBin += nkey;
+                nRow++;
             }
             indicator.endStage();
         }
+        indicator.logMessage( "Average bin count per row: " +
+                              (float) ( nBin / (double) nRow ) );
 
         /* Replace the value at each bin with a RowLink, since they count
          * as equal if they have the same contents, which means they 
