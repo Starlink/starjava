@@ -18,20 +18,21 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.Reference;
+import org.apache.tools.ant.util.JavaEnvUtils;
 
 /**
- * Create a path-like structure to contain all the given jar files and
- * those that are specified as bundled optional packages in their
- * manifests. This generates a path that is equivalent to the path
- * used by the extension mechanism classloader when using the given
- * list of jar files.
+ * Create a path-like structure to contain all the given jar files and those
+ * that are specified as bundled optional packages in their manifests. This
+ * generates a path that is equivalent to the path used by the extension
+ * mechanism classloader when using the given list of jar files.
  * <p>
- * The list of jar files can be given as either a reference to a
- * path-like structure, or by using embedded path elements.
+ * In Java 1.5 this function should no longer be needed as the compiler does
+ * this job for us (but seems to have problems with circular dependencies), so
+ * this function becomes a simple path-like structure. Eventually all use of
+ * this type should be deprecated and replaced with a normal path.
  * <p>
- * Note that the java compiler (javac) does not perform this tracking 
- * down of bundled jar files (it's just done by the JVM), so this type
- * is of particular use when compiling.
+ * The list of jar files can be given as either a reference to a path-like
+ * structure, or by using embedded path elements.
  *
  * @author Peter W. Draper
  * @since $Id$
@@ -44,9 +45,9 @@ public class ExtClasspath extends Path
     protected Path resultPath;
     protected Reference ref;
 
-    // List of download jar files. Need to avoid referencing same more
-    // than once as this will lead to infitnite recursion (may fail
-    // later as this is a circular dependency).
+    // List of download jar files. Need to avoid referencing same more than
+    // once as this will lead to infinite recursion (may fail later as this is
+    // a circular dependency).
     private Vector jarsDone = new Vector();
 
     public ExtClasspath( Project p )
@@ -66,18 +67,26 @@ public class ExtClasspath extends Path
      */
     public String[] list()
     {
-        //  Extend any jar files to include their bundled optional
-        //  references and in turn any references in these new jars
-        //  files until path is complete and all bundled optional jars
-        //  have been located and then proceed as normal.
-        String[] jars = super.list();
-        for ( int i = 0; i < jars.length; i++ ) {
-            File jarFile = project.resolveFile( jars[i] );
-            if ( jarFile.exists() ) {
-                if ( "jar".equals( getExtension( jarFile ) ) ) {
-                    addDownloads( jarFile );
+        //  Java 1.5 doesn't need this and we don't support JDKs before 1.4,
+        //  so if not 1.4 nothing to do.
+        if ( JavaEnvUtils.isJavaVersion( JavaEnvUtils.JAVA_1_4 ) ) {
+
+            //  Extend any jar files to include their bundled optional
+            //  references and in turn any references in these new jars files
+            //  until path is complete and all bundled optional jars have been
+            //  located and then proceed as normal.
+            String[] jars = super.list();
+            for ( int i = 0; i < jars.length; i++ ) {
+                File jarFile = project.resolveFile( jars[i] );
+                if ( jarFile.exists() ) {
+                    if ( "jar".equals( getExtension( jarFile ) ) ) {
+                        addDownloads( jarFile );
+                    }
                 }
             }
+        }
+        else {
+            log( "[extclasspath] not required for this compiler", Project.MSG_VERBOSE );
         }
         return super.list();
     }
@@ -97,30 +106,27 @@ public class ExtClasspath extends Path
             for ( int j = 0; j < s.length; j++ ) {
                 newJarFile = new File( jarBase, s[j] );
                 try {
-                    //  May be expensive, but needed for cyclical
-                    //  dependencies that may be spoofed by relative
-                    //  names.
+                    //  May be expensive, but needed for cyclical dependencies
+                    //  that may be spoofed by relative names.
                     newJarFile = newJarFile.getCanonicalFile();
                 }
                 catch (IOException e) {
-                    // Cannot resolve name so just use non-canonical
-                    // form.
+                    // Cannot resolve name so just use non-canonical form.
                     e.printStackTrace();
                 }
 
-                //  Add this Jar file if it exists on disk and hasn't
-                //  been seen already. Visit its extension jar files
-                //  too.
+                //  Add this Jar file if it exists on disk and hasn't been
+                //  seen already. Visit its extension jar files too.
                 if ( newJarFile.exists() ) {
                     if ( "jar".equals( getExtension( newJarFile ) ) ) {
 
-                        //  Note this should compare canonical name
-                        //  against those visited already.
+                        //  Note this should compare canonical name against
+                        //  those visited already.
                         if ( jarsDone.indexOf( newJarFile ) == -1 ) {
                             setLocation( newJarFile );
 
-                            // Mark this as done now, before visiting
-                            // its extensions.
+                            // Mark this as done now, before visiting its
+                            // extensions.
                             jarsDone.add( newJarFile );
                             addDownloads( newJarFile );
                             log( "[extclasspath] adding " + newJarFile + 
@@ -149,13 +155,12 @@ public class ExtClasspath extends Path
     }
 
     /**
-     * Extract any bundled optional packages from a jar file's
-     * manifest and return them as an array of Strings.
+     * Extract any bundled optional packages from a jar file's manifest and
+     * return them as an array of Strings.
      */
     protected String[] getDownloads( File jarFile )
     {
         ArrayList results = new ArrayList();
-
         JarFile jarFileFile = null;
         Manifest manifest = null;
         try {
