@@ -62,6 +62,7 @@ public class TableColumnChooser
 
         errorPatterns = new ArrayList();
         addErrorPattern( "error.*" );
+        addErrorPattern( "sigma.*" );
         addErrorPattern( "stddev.*" );
     }
 
