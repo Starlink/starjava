@@ -248,6 +248,7 @@ public class VOStarTable extends AbstractStarTable {
         info.setUCD( field.getUcd() );
         info.setShape( Decoder.longsToInts( field.getDecoder()
                                                  .getDecodedShape() ) );
+        info.setElementSize( field.getDecoder().getElementSize() );
         return info;
     }
 

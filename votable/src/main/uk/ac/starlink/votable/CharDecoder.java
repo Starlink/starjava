@@ -6,17 +6,20 @@ import java.io.IOException;
 class CharDecoder extends Decoder {
     private char bad = ' ';
     private String badString;
-    private long[] decodedShape;
+    private final long[] decodedShape;
+    private final int maxChars;
 
     public CharDecoder( long[] arraysize ) {
         super( arraysize );
         int ndim = arraysize.length;
         if ( ndim == 0 ) {
             decodedShape = new long[ 0 ];
+            maxChars = 1;
         }
         else {
             decodedShape = new long[ ndim - 1 ];
             System.arraycopy( arraysize, 1, decodedShape, 0, ndim - 1 );
+            maxChars = arraysize[ 0 ] > 0 ? ( (int) arraysize[ 0 ] ) : -1;
         }
     }
 
@@ -66,7 +69,14 @@ class CharDecoder extends Decoder {
                         sb.append( bad );
                     }
                 }
-                result[ i ] = sb.toString();
+
+                int ntrim = 0;
+                for ( int j = sb.length() - 1; j >= 0; j-- ) {
+                    if ( sb.charAt( j ) == ' ' ) {
+                        ntrim++;
+                    }
+                }
+                result[ i ] = sb.substring( 0, sb.length() - ntrim );
             }
             return result;
         }
@@ -111,6 +121,10 @@ class CharDecoder extends Decoder {
 
     public long[] getDecodedShape() {
         return decodedShape;
+    }
+
+    public int getElementSize() {
+        return maxChars;
     }
 }
 

@@ -156,6 +156,20 @@ abstract class Decoder {
     }
 
     /**
+     * Gets the 'element size' of items returned by this decoder.
+     * This has the same meaning as 
+     * {@link uk.ac.starlink.table.ValueInfo#getElementSize};
+     * the Decoder implementation returns -1, but character-type decoders
+     * override this.
+     *
+     * @return   notional size of each element an array of values decoded
+     *           by this object, or -1 if unknown
+     */
+    public int getElementSize() {
+        return -1;
+    }
+
+    /**
      * Turns a primitive numeric array into an object suitable for
      * returning as the result of a cell query.
      * <p>The current implementation just returns the array itself;
