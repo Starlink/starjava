@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,12 @@ import javax.swing.JComponent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+import uk.ac.starlink.treeview.votable.Coosys;
 import uk.ac.starlink.treeview.votable.GenericElement;
 import uk.ac.starlink.treeview.votable.Param;
 import uk.ac.starlink.util.DOMUtils;
@@ -106,7 +107,13 @@ public class VOComponentDataNode extends DefaultDataNode {
     }
 
     public boolean allowsChildren() {
-        return true;
+        String tagname = vocel.getTagName();
+        if ( tagname.equals( "DEFINITIONS" ) ) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
 
     public Iterator getChildIterator() {
@@ -158,7 +165,8 @@ public class VOComponentDataNode extends DefaultDataNode {
         String description = null;
         List infonames = new ArrayList();
         List infovals = new ArrayList();
-        List params = new ArrayList();
+        final List params = new ArrayList();
+        final List coosyss = new ArrayList();
         int ninfo = 0;
         for ( Node child = el.getFirstChild(); child != null;
               child = child.getNextSibling() ) {
@@ -173,14 +181,18 @@ public class VOComponentDataNode extends DefaultDataNode {
                     description = DOMUtils.getTextContent( childEl ).trim();
                 }
                 else if ( elname.equals( "INFO" ) ) {
-                    String infohandle = new GenericElement( el ).getHandle();
-                    String infovalue = el.getAttribute( "value" );
+                    String infohandle = new GenericElement( childEl )
+                                       .getHandle();
+                    String infovalue = childEl.getAttribute( "value" );
                     infonames.add( infohandle );
                     infovals.add( infovalue );
                     ninfo++;
                 }
                 else if ( elname.equals( "PARAM" ) ) {
                     params.add( new Param( childEl ) );
+                }
+                else if ( elname.equals( "COOSYS" ) ) {
+                    coosyss.add( new Coosys( childEl ) );
                 }
             }
         }
@@ -199,6 +211,22 @@ public class VOComponentDataNode extends DefaultDataNode {
         if ( description != null && description.length() > 0 ) {
             dv.addSubHead( "Description" );
             dv.addText( description );
+        }
+
+        /* Coosys. */
+        if ( coosyss.size() == 1 ) {
+            dv.addSubHead( "Coordinate system" );
+            Coosys coosys = (Coosys) coosyss.get( 0 );
+            String text = coosys.getText();
+            String id = coosys.getID();
+            String equinox = coosys.getEquinox();
+            String epoch = coosys.getEpoch();
+            String system = coosys.getSystem();
+            if ( text != null ) dv.addText( text );
+            if ( id != null ) dv.addKeyedItem( "ID", id );
+            if ( equinox != null ) dv.addKeyedItem( "Equinox", equinox );
+            if ( epoch != null ) dv.addKeyedItem( "Epoch", epoch );
+            if ( system != null ) dv.addKeyedItem( "System", system );
         }
 
         /* Infos. */
@@ -222,6 +250,11 @@ public class VOComponentDataNode extends DefaultDataNode {
                 }
                 dv.addKeyedItem( param.getHandle(), val );
             }
+            dv.addPane( "Params", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new MetaTable( new ParamMetamapGroup( params ) );
+                }
+            } );
         }
 
         /* XML view. */
@@ -238,13 +271,13 @@ public class VOComponentDataNode extends DefaultDataNode {
         return dfact;
     }
 
- 
+
     /**
      * Takes a given node and returns it, or the first of its siblings which
      * is of interest to this class.  To count as useful, it must be an
      * Element, and must not have the of one of the generic VOTable 
      * components which are treated internally.
-     * These are currently INFO, PARAM and DESCRIPTION.
+     * These are currently INFO, PARAM, DESCRIPTION and COOSYS.
      */
     private static Node firstUsefulSibling( Node sib ) {
         if ( sib == null ) {
@@ -256,9 +289,51 @@ public class VOComponentDataNode extends DefaultDataNode {
         String elname = ((Element) sib).getTagName();
         if ( elname.equals( "DESCRIPTION" ) ||
              elname.equals( "INFO" ) ||
-             elname.equals( "PARAM" ) ) {
+             elname.equals( "PARAM" ) ||
+             elname.equals( "COOSYS" ) ) {
             return firstUsefulSibling( sib.getNextSibling() );
         }
         return sib;
+    }
+
+   
+    /**
+     * Private helper class which builds a MetamapGroup from a list of Params.
+     */
+    private static class ParamMetamapGroup extends MetamapGroup {
+
+        private static final String NAME_KEY = "Name";
+        private static final String ID_KEY = "ID";
+        private static final String VALUE_KEY = "Value";
+        private static final String UNIT_KEY = "Units";
+        private static final String UCD_KEY = "UCD";
+        private static final String DATATYPE_KEY = "Datatype";
+        private static final String PRECISION_KEY = "Precision";
+        private static final String WIDTH_KEY = "Width";
+        private static final String ARRAYSIZE_KEY = "Arraysize";
+
+        private static List keyOrder = Arrays.asList( new String[] {
+            NAME_KEY, ID_KEY, VALUE_KEY, UNIT_KEY, UCD_KEY, 
+            DATATYPE_KEY, PRECISION_KEY, WIDTH_KEY, ARRAYSIZE_KEY,
+        } );
+
+        public ParamMetamapGroup( List params ) {
+            super( params.size() );
+            setKeyOrder( keyOrder );
+            int np = params.size();
+            for ( int i = 0; i < np; i++ ) {
+                Param param = (Param) params.get( i );
+                Element el = param.getElement();
+                addEntry( i, ID_KEY, el.getAttribute( "ID" ) );
+                addEntry( i, UNIT_KEY, el.getAttribute( "unit" ) );
+                addEntry( i, DATATYPE_KEY, el.getAttribute( "datatype" ) );
+                addEntry( i, PRECISION_KEY, el.getAttribute( "precision" ) );
+                addEntry( i, WIDTH_KEY, el.getAttribute( "width" ) );
+                addEntry( i, NAME_KEY, el.getAttribute( "name" ) );
+                addEntry( i, UCD_KEY, el.getAttribute( "ucd" ) );
+                addEntry( i, VALUE_KEY, el.getAttribute( "value" ) );
+                addEntry( i, ARRAYSIZE_KEY, el.getAttribute( "arraysize" ) );
+            }
+        }
     }
 }
