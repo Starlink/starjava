@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import uk.ac.starlink.table.ArrayColumn;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
@@ -39,6 +41,14 @@ public class MatchStarTables {
         new DefaultValueInfo( "MatchCount", Integer.class,
                               "Number of rows in internal match group" );
 
+    /**
+     * Defines the characteristics of a table column which represents the
+     * match score of a given RowLink.
+     */
+    public static final ValueInfo MATCH_SCORE_INFO =
+        new DefaultValueInfo( "MatchScore", Double.class,
+                              "Proximity of rows in match (0 is closest)" );
+
 
     /**
      * Constructs a table made out of a set of constituent tables
@@ -63,11 +73,15 @@ public class MatchStarTables {
      * @param   tables  array of constituent tables
      * @param   rowLinks   set of RowLink objects which define which rows
      *          in one table are associated with which rows in the others
+     * @param   matchScores  may supply a mapping from items in the
+     *          <tt>rowLinks</tt> list to match scores - if so a
+     *          MatchScore column will be added to the resulting table
      * @param   fixActs  actions to take for deduplicating column names
      *          (array of the same length as <tt>tables</tt>)
      */
     public static StarTable makeJoinTable( StarTable[] tables,
                                            Collection rowLinks,
+                                           Map matchScores,
                                            JoinStarTable.FixAction[] fixActs ) {
 
         /* Set up index map arrays for each of the constituent tables. */
@@ -81,6 +95,17 @@ public class MatchStarTables {
             }
         }
 
+        /* Initialise an array of score values if required. */
+        double[] scores;
+        if ( matchScores != null && ! matchScores.isEmpty() ) {
+            scores = new double[ nRow ];
+            Arrays.fill( scores, Double.NaN );
+        }
+        else {
+            scores = null;
+        }
+        int nScore = 0;
+
         /* Populate the index maps from the RowLink list. */
         int iLink = 0;
         for ( Iterator it = rowLinks.iterator(); it.hasNext(); ) {
@@ -93,11 +118,26 @@ public class MatchStarTables {
                     rowIndices[ iTable ][ iLink ] = ref.getRowIndex();
                 }
             }
+
+            /* If there is a score associated with this row, store it. */
+            Number score = matchScores != null 
+                         ? (Number) matchScores.get( link ) 
+                         : null;
+            if ( score != null ) {
+                double dscore = score.doubleValue();
+                if ( ! Double.isNaN( dscore ) ) {
+                    scores[ iLink ] = dscore;
+                    nScore++;
+                }
+            }
+
             iLink++;
         }
         assert iLink == nRow;
 
-        /* Construct a new table from all the joined up ones. */
+        /* Construct a new table with reordered rows for each of the 
+         * input tables; the N'th row of each one corresponds to the
+         * N'th RowLink. */
         List subTableList = new ArrayList();
         for ( int iTable = 0; iTable < nTable; iTable++ ) {
             StarTable table = tables[ iTable ];
@@ -106,7 +146,23 @@ public class MatchStarTables {
                     new RowPermutedStarTable( table, rowIndices[ iTable ] );
                 subTableList.add( subTable );
             }
+            JoinStarTable.FixAction[] fa = fixActs;
+            fixActs = new JoinStarTable.FixAction[ nTable + 1 ];
+            System.arraycopy( fa, 0, fixActs, 0, nTable );
+            fixActs[ nTable ] = JoinStarTable.FixAction.NO_ACTION;
         }
+
+        /* If we've obtained any match scores, add a new table with a
+         * column detailing these too. */
+        if ( nScore > 0 ) {
+            ColumnStarTable scoreTable = 
+                ColumnStarTable.makeTableWithRows( nRow );
+            ColumnInfo scoreInfo = new ColumnInfo( MATCH_SCORE_INFO );
+            scoreTable.addColumn( ArrayColumn.makeColumn( scoreInfo, scores ) );
+            subTableList.add( scoreTable );
+        }
+
+        /* Join all the subtables up to make one big one. */
         StarTable[] subTables = 
             (StarTable[]) subTableList.toArray( new StarTable[ 0 ] );
         JoinStarTable joined = new JoinStarTable( subTables, fixActs );
