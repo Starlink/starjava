@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
@@ -25,24 +27,32 @@ import javax.swing.table.TableModel;
  *     JScrollPane scrollpane = new JScrollPane( jtab );
  *     scrollpane.setRowHeaderView( new TableRowHeader( jtab ) );
  * </pre>
+ * This header will register itself as a listener on the master table's
+ * model so that it can respond to changes.
+ * In the event that the master JTable's model changes during the lifetime of
+ * this header table, then {@link #modelChanged} should be called.
  *
  * @author   Mark Taylor (Starlink)
  * @see      javax.swing.JScrollPane
  */
 public class TableRowHeader extends JTable {
 
-    private JTable table;
+    private JTable masterTable;
+    private AbstractTableModel rowModel;
+    private TableModel masterModel;
+    private TableModelListener listener;
 
     /**
      * Construct a new TableRowHeader.
      */
-    public TableRowHeader( JTable tabl ) {
-        this.table = tabl;
+    public TableRowHeader( JTable table ) {
+        this.masterTable = table;
+        this.masterModel = masterTable.getModel();
 
         /* Set the model. */
-        setModel( new AbstractTableModel() {
+        rowModel = new AbstractTableModel() {
             public int getRowCount() {
-                return table.getRowCount();
+                return masterTable.getRowCount();
             }
             public int getColumnCount() {
                 return 1;
@@ -50,12 +60,28 @@ public class TableRowHeader extends JTable {
             public Object getValueAt( int irow, int icol ) {
                 return new Integer( rowNumber( irow ) ) + "  ";
             }
-        } );
+        };
+        setModel( rowModel );
+
+        /* Set up a listener on the master table which will trigger change
+         * events on this table when the master model changes. */
+        listener = new TableModelListener() {
+            public void tableChanged( TableModelEvent evt ) {
+                TableModel mmodel = masterTable.getModel();
+                if ( mmodel != masterModel ) {
+                    masterModel.removeTableModelListener( this );
+                    masterModel = mmodel;
+                    masterModel.addTableModelListener( this );
+                }
+                rowModel.fireTableDataChanged();
+            }
+        };
+        masterModel.addTableModelListener( listener );
 
         /* Configure to be uninteresting as a JTable. */
         setTableHeader( null );
         setAutoResizeMode( AUTO_RESIZE_OFF );
-        setPreferredScrollableViewportSize( table.getPreferredSize() );
+        setPreferredScrollableViewportSize( masterTable.getPreferredSize() );
         setColumnSelectionAllowed( false );
         setRowSelectionAllowed( false );
 
@@ -71,7 +97,7 @@ public class TableRowHeader extends JTable {
         TableColumn col = new TableColumn( 0, 64, rend, null ) {
             public int getPreferredWidth() {
                 JTable tab = TableRowHeader.this;
-                int nrow = table.getRowCount();
+                int nrow = masterTable.getRowCount();
                 int first = StarJTable.getCellWidth( tab, 0, 0 );
                 int last = StarJTable.getCellWidth( tab, nrow - 1, 0);
                 int guess = tab.getCellRenderer( 0, 0 )
@@ -91,6 +117,14 @@ public class TableRowHeader extends JTable {
 
     public Dimension getPreferredScrollableViewportSize() {
         return getPreferredSize();
+    }
+
+    /**
+     * This method should be called to notify this header that the 
+     * master table's TableModel has been changed.
+     */
+    public void modelChanged() {
+        listener.tableChanged( null );
     }
 
     /**
