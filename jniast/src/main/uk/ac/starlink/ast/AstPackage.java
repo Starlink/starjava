@@ -1,5 +1,6 @@
 package uk.ac.starlink.ast;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -37,9 +38,8 @@ public class AstPackage {
             }
             catch ( LinkageError e ) {
                 loaded = Boolean.FALSE;
-                logger.warning( 
-                    "JNIAST native library not on java.library.path " +
-                    "- no WCS processing" );
+                logger.log( Level.INFO, e.toString(), e );
+                logger.warning( "JNIAST load failed - no WCS processing" );
 
             }
         }
