@@ -4,7 +4,10 @@ import java.io.IOException;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.ValueInfo;
 
 /**
  * A StarTable which is initialised from an existing table but can have
@@ -14,6 +17,9 @@ import uk.ac.starlink.table.StarTable;
 public class PlasticStarTable extends ColumnStarTable {
 
     private long nrow;
+
+    public static final ValueInfo COLID_INFO = 
+        new DefaultValueInfo( "$ID", String.class, "Unique column ID" );
 
     /**
      * Constructs a <tt>PlasticStarTable</tt> based on an existing 
@@ -56,6 +62,13 @@ public class PlasticStarTable extends ColumnStarTable {
 
     public long getRowCount() {
         return nrow;
+    }
+
+    public void addColumn( ColumnData coldata ) {
+        String colid = "$" + ( getColumnCount() + 1 );
+        coldata.getColumnInfo()
+               .setAuxDatum( new DescribedValue( COLID_INFO, colid ) );
+        super.addColumn( coldata );
     }
 }
 

@@ -7,6 +7,7 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -31,14 +32,13 @@ import uk.ac.starlink.table.ValueInfo;
 public class SyntheticColumn extends ColumnData {
 
     private StarTable stable;
+    private List subsets;
     private String expression;
     private CompiledExpression compEx;
     private JELRowReader rowReader;
     private Object[] args;
 
-    private static Library library;
-
-    private final static ValueInfo exprInfo = 
+    public final static ValueInfo EXPR_INFO = 
         new DefaultValueInfo( "Expression", String.class, 
                               "Algebraic expression for column value" );
 
@@ -49,17 +49,20 @@ public class SyntheticColumn extends ColumnData {
      * @param  vinfo  template for the new column
      * @param  stable the StarTable which supplies the other columns 
      *         which can appear in the expression
+     * @param  subsets  a List of {@link RowSubset} objects which may be
+     *         referenced by name or number in the expression
      * @param  expression  algebraic expression for the value of this
      *         column
      * @param  resultType  a Class for the result, presumably one of the
      *         primitive wrapper types or String.class.  If <tt>null</tt>
      *         a suitable class is chosen automatically.
      */
-    public SyntheticColumn( ValueInfo vinfo, StarTable stable, 
+    public SyntheticColumn( ValueInfo vinfo, StarTable stable, List subsets,
                             String expression, Class resultType )
             throws CompilationException {
         super( vinfo );
         this.stable = stable;
+        this.subsets = subsets;
         setExpression( expression, resultType );
     }
 
@@ -78,17 +81,18 @@ public class SyntheticColumn extends ColumnData {
     public void setExpression( String expression, Class resultType ) 
             throws CompilationException {
 
-        /* Make sure we have an up-to-date RowReader (recent changes in the
-         * table model may have invalidated it). */
-        rowReader = new JELRowReader( stable );
+        /* Get an up-to-date RowReader (an old one may not be aware of recent
+         * changes to the StarTable or subset list). */
+        rowReader = new JELRowReader( stable, subsets );
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        compEx = Evaluator.compile( expression, getLibrary(), resultType );
+        String exprsub = expression.replace( '#', '£' );
+        compEx = Evaluator.compile( exprsub, getLibrary(), resultType );
 
         /* Configure the column metadata correctly for this expression. */
         ColumnInfo colinfo = getColumnInfo();
-        colinfo.setAuxDatum( new DescribedValue( exprInfo, expression ) );
+        colinfo.setAuxDatum( new DescribedValue( EXPR_INFO, expression ) );
         colinfo.setContentClass( getReturnClass( compEx ) );
     }
 
@@ -120,9 +124,8 @@ public class SyntheticColumn extends ColumnData {
         Class[] dotClasses = new Class[] { String.class };
         DVMap resolver = rowReader;
         Hashtable cnmap = null;
-        library = new Library( staticLib, dynamicLib, dotClasses,
-                               resolver, cnmap );
-        return library;
+        return new Library( staticLib, dynamicLib, dotClasses,
+                            resolver, cnmap );
     }
 
     /**

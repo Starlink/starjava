@@ -14,6 +14,9 @@ public interface RowSubset {
         public String getName() {
             return "All";
         }
+        public String getExpression() {
+            return "true";
+        }
         public boolean isIncluded( long lrow ) {
             return true;
         }
@@ -26,6 +29,9 @@ public interface RowSubset {
         public String getName() {
             return "None";
         }
+        public String getExpression() {
+            return "false";
+        }
         public boolean isIncluded( long lrow ) {
             return false;
         }
@@ -34,9 +40,16 @@ public interface RowSubset {
     /**
      * The name of this subset.
      *
-     * @param name
+     * @return name
      */
     String getName();
+
+    /**
+     * A string representation of the expression represented by this subset.
+     *
+     * @return  expression
+     */
+    String getExpression();
 
     /**
      * Indicates whether a given row is in the subset or not.

@@ -2,18 +2,21 @@ package uk.ac.starlink.table.view;
 
 import gnu.jel.DVMap;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * An object which is able to read cell values by column name.
+ * An object which is able to read cell values by column name or number and 
+ * <tt>RowSubset</tt> inclusion flags by subset name or number.
  * The values are got from the reader's current row, which is set
  * using the {@link #setRow} method.  Think about thread safety when
  * calling <tt>setRow</tt> and subsequently evaluating an expression
  * which uses this reader.
  * <p>
- * This class currently deals with all the primitive types, objects
- * of type <tt>String<tt>, and arrays of any of these.  Anything else
- * is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
+ * This class currently deals with columns of all the primitive types, 
+ * objects of type <tt>String<tt>, and arrays of any of these.  
+ * Anything else is treated as an <tt>Object</tt> or <tt>Object[]</tt>.
  * It could be extended to deal with more if necessary.
  * 
  * @author   Mark Taylor (Starlink)
@@ -22,18 +25,22 @@ public class JELRowReader extends DVMap {
 
     private long lrow;
     private StarTable stable;
+    private List subsets;
 
     /**
      * Constructs a new row reader for a given StarTable. 
      * Note that this reader cannot become aware of changes to the 
-     * column model used by this model; in the event of changes to the
-     * column usage in the table this object should be discarded and
-     * a new one created.
+     * columns of the table or to the subset list; in the event of 
+     * such changes this object should be dicarded and and a new one
+     * used for any new expressions.
      *
-     * @param  stabld  the StarTable this reader will read from
+     * @param  stable  the StarTable this reader will read from
+     * @param  subsets  the list of {@link RowSubset} objects which 
+     *                  this reader will recognise
      */
-    public JELRowReader( StarTable stable ) {
+    public JELRowReader( StarTable stable, List subsets ) {
         this.stable = stable;
+        this.subsets = subsets;
     }
 
     /**
@@ -48,7 +55,20 @@ public class JELRowReader extends DVMap {
         this.lrow = lrow;
     }
 
+    /**
+     * Returns the type name of the quantity which is referenced in 
+     * expressions with a given name.  The significance of this return
+     * value is that it appears in the names of the 
+     * corresponding <tt>getXXXProperty</tt> methods in this class.
+     *
+     * @param   name  the variable name
+     * @return  the corresponding method name fragment
+     * @see   JEL manual
+     */
     public String getTypeName( String name ) {
+
+        /* See if it's a known column, and get the return value type by
+         * looking at the column info if so. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
             Class clazz = stable.getColumnInfo( icol ).getContentClass();
@@ -113,24 +133,53 @@ public class JELRowReader extends DVMap {
                 return "Object";
             }
         }
-        else {
-            return null;
+
+        /* See if it's a known subset, in which case it will have a 
+         * boolean return type. */
+        int isub = getSubsetIndex( name );
+        if ( isub >= 0 ) {
+            return "Boolean";
         }
+
+        /* If we haven't got it yet, we don't know what it is. */
+        return null;
     }
 
+    /**
+     * Turns a column specification into a constant object which can be
+     * used at evaluation time to reference a particular quantity to
+     * evaluate.  Currently this routine returns an <tt>Integer</tt> object if
+     * <tt>name</tt> appears to reference a known column and a <tt>Short</tt>
+     * if it appears to reference a known row subset (and null otherwise).
+     * The two integral types are only used to separate the namespaces,
+     * (and Short is bound to be big enough), there is no other significance
+     * in these types.
+     * <p>
+     * This method is only called at expression compilation time, not
+     * evaluation time, so it doesn't need to be particularly fast.
+     *
+     * @param  name  the name of the variable-like object to evaluate
+     * @return  an Integer corresponding to column number, or a Short 
+     *          corresponding to subset number, or null
+     * @see    JEL manual
+     */
     public Object translate( String name ) {
 
-        /* Doesn't have to be fast - only called at compile time. */
+        /* See if it corresponds to a column. */
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
             return new Integer( icol );
         }
 
+        /* See if it corresponds to a defined subset. */
+        int isub = getSubsetIndex( name ); 
+        if ( isub >= 0 ) {
+            return new Short( (short) isub );
+        }
+
         /* It is an error if the column name doesn't exist, since the
          * variable substitution isn't going to come from anywhere else. */
-        else {
-            return null;
-        }
+        return null;
    }
 
    /**
@@ -156,8 +205,46 @@ public class JELRowReader extends DVMap {
         }
         if ( name.charAt( 0 ) == '$' ) {
             try {
-                int icol1 = Integer.parseInt( name.substring( 1 ) );
-                return icol1 - 1;
+                int icol = Integer.parseInt( name.substring( 1 ) ) - 1;
+                if ( icol >= 0 && icol < stable.getColumnCount() ) {
+                    return icol;
+                }
+            }
+            catch ( NumberFormatException e ) {
+                // no good
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns the index into the subsets list which corresponds to a given
+     * subset name.  The current formats are
+     * <ul>
+     * <li> subset name (case insensitive, first occurrence used)
+     * <li> "£"+(index+1) (so first subset in list would be "£1")
+     * </ul>
+     * Note this method is only called during expression compilation,
+     * so it doesn't need to be particularly efficient.
+     *
+     * @param  name  subset identifier
+     * @return  subset index into <tt>subsets</tt> list, or -1 if the
+     *          subset was not known
+     */
+    private int getSubsetIndex( String name ) {
+        int i = 0;
+        for ( Iterator it = subsets.iterator(); it.hasNext(); i++ ) {
+            RowSubset rset = (RowSubset) it.next();
+            if ( rset.getName().equalsIgnoreCase( name ) ) {
+                return i;
+            }
+        }
+        if ( name.charAt( 0 ) == '£' ) {
+            try {
+                int isub = Integer.parseInt( name.substring( 1 ) ) - 1;
+                if ( isub >= 0 && isub < subsets.size() ) {
+                    return isub;
+                }
             }
             catch ( NumberFormatException e ) {
                 // no good
@@ -183,7 +270,7 @@ public class JELRowReader extends DVMap {
     }
 
     /*
-     * Methods for returning the actual values.  
+     * Methods for returning the actual column values.  
      * These must be of the form 'getXXXProperty(int)', where XXX is one
      * of the strings returned by the getTypeName method.
      */
@@ -256,5 +343,17 @@ public class JELRowReader extends DVMap {
     public Object[] getObjectArrayProperty( int icol ) {
         return (Object[]) getValue( icol );
     }
-    
+
+    /**
+     * Returns the actual subset value for the current row and a given
+     * column.  
+     *
+     * @param  isub  index of the subset to evaluate at the current row
+     * @return result of the <tt>isIncluded</tt> method of the 
+     *         <tt>RowSubset</tt> indicated at the current row
+     */
+    public boolean getBooleanProperty( short isub ) {
+        return ((RowSubset) subsets.get( (int) isub ))
+              .isIncluded( lrow );
+    }
 }

@@ -23,8 +23,6 @@ public class ColumnInfoWindow extends AuxWindow {
     private PlasticStarTable dataModel;
     private TableColumnModel columnModel;
 
-    private static final String COLID_KEY = "$ID";
-
     public ColumnInfoWindow( PlasticStarTable dataModel, 
                              TableColumnModel columnModel, Component parent ) {
         super( "Table Columns", dataModel, parent );
@@ -72,7 +70,7 @@ public class ColumnInfoWindow extends AuxWindow {
 
         /* Set up a MapGroup to handle the column metadata in this table. */
         ValueInfoMapGroup mg = new ValueInfoMapGroup();
-        mg.getKeyOrder().add( 1, COLID_KEY );
+        mg.getKeyOrder().add( 1, PlasticStarTable.COLID_INFO.getName() );
         mg.addColumnAuxDataKeys( dataModel );
 
         /* Add the metadata for each of the columns. */
@@ -83,7 +81,6 @@ public class ColumnInfoWindow extends AuxWindow {
              Map map = ValueInfoMapGroup
                       .makeMap( dataModel.getColumnInfo( modelIndex ) );
              map.put( ValueInfoMapGroup.INDEX_KEY, new Integer( index ) );
-             map.put( COLID_KEY, "$" + ( modelIndex + 1 ) );
              mg.addMap( map );
         }
            

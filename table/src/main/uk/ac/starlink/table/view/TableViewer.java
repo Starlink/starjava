@@ -82,8 +82,9 @@ public class TableViewer extends JFrame {
      */
     private TableColumnModel columnModel;
   
+    private List subsets;
     private JTable jtab;
-    private JTable rowHead;
+    private TableRowHeader rowHead;
     private JScrollPane scrollpane;
     private Action exitAct;
     private Action closeAct;
@@ -96,6 +97,7 @@ public class TableViewer extends JFrame {
     private Action paramAct;
     private Action colinfoAct;
     private Action unsortAct;
+    private Action newsubsetAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -147,6 +149,10 @@ public class TableViewer extends JFrame {
         };
         scrollpane.setRowHeaderView( rowHead );
 
+        /* Initialise subsets list. */
+        subsets = new ArrayList();
+        subsets.add( RowSubset.ALL );
+
         /* Create and configure actions. */
         exitAct = new ViewerAction( "Exit", 0,
                                     "Exit the application" );
@@ -171,6 +177,9 @@ public class TableViewer extends JFrame {
                                        "Display column metadata" );
         unsortAct = new ViewerAction( "Unsort", 0,
                                       "Display in original order" );
+
+        newsubsetAct = new ViewerAction( "New subset", 0,
+                                         "Define a new row subset" );
 
         /* Configure the table. */
         if ( startab != null ) {
@@ -212,6 +221,11 @@ public class TableViewer extends JFrame {
         mb.add( metaMenu );
         metaMenu.add( paramAct ).setIcon( null );
         metaMenu.add( colinfoAct ).setIcon( null );
+
+        /* Subset menu. */
+        JMenu subsetMenu = new JMenu( "Subsets" );
+        mb.add( subsetMenu );
+        subsetMenu.add( newsubsetAct ).setIcon( null );
 
         /* Configure a listener for column popup menus. */
         MouseListener mousey = new MouseAdapter() {
@@ -268,6 +282,7 @@ public class TableViewer extends JFrame {
             /* Configure the JTable with a new TableModel. */
             viewModel = new ViewerTableModel( dataModel );
             jtab.setModel( viewModel );
+            rowHead.modelChanged();
 
             /* Configure the JTable with a new TableColumnModel */
             columnModel = new DefaultTableColumnModel();
@@ -343,6 +358,25 @@ public class TableViewer extends JFrame {
     }
 
     /**
+     * Adds a new row subset to the list which this viewer knows about.
+     *
+     * @param  rset  the new row subset
+     */
+    public void addSubset( RowSubset rset ) {
+        subsets.add( rset );
+    }
+
+    /**
+     * Applies a given RowSubset to the current viewer, so that only 
+     * rows in this set will be visible in the table viewer window.
+     *
+     * @param  rset  the row subset to use
+     */
+    public void applySubset( RowSubset rset ) {
+        viewModel.setSubset( rset );
+    }
+
+    /**
      * Returns a StarTable representing the table data as displayed by
      * this viewer.  This may differ from the original StarTable object
      * held by it in a number of ways; it may have a different row order,
@@ -410,12 +444,11 @@ public class TableViewer extends JFrame {
     /**
      * Change the order that the table rows are displayed in.
      *
-     * @param  rowMap  new table model to table view row mapping.
-     *         May be null to indicate natural order.
+     * @param  order  new order in which visible rows should be seeen;
+     *         may be null to indicate natural order.
      */
-    private void permuteRows( int[] order ) {
+    private void setOrder( int[] order ) {
         viewModel.setOrder( order );
-        rowHead.tableChanged( new TableModelEvent( rowHead.getModel() ) );
     }
 
     /**
@@ -467,8 +500,8 @@ public class TableViewer extends JFrame {
         Action addcolAct = new AbstractAction( "New column" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = TableViewer.this;
-                ColumnData coldata = new ColumnDialog( dataModel )
-                                    .getColumnDialog( parent );
+                ColumnData coldata = new ColumnDialog( dataModel, subsets )
+                                    .obtainColumn( parent );
                 if ( coldata != null ) {
                     appendColumn( coldata, jcol + 1 );
                 }
@@ -574,8 +607,19 @@ public class TableViewer extends JFrame {
                                                 parent ) );
             }
 
+            /* Set the row order back to normal. */
             else if ( this == unsortAct ) {
-                permuteRows( null );
+                setOrder( null );
+            }
+
+            /* Define a new subset. */
+            else if ( this == newsubsetAct ) {
+                RowSubset rset = new SubsetDialog( dataModel, subsets )
+                                .obtainSubset( parent );
+                if ( rset != null ) {
+                    addSubset( rset );
+                    applySubset( rset );
+                }
             }
 
             /* Shouldn't happen. */
@@ -613,7 +657,7 @@ public class TableViewer extends JFrame {
 
         public void actionPerformed( ActionEvent evt ) {
             try {
-                permuteRows( getSortOrder( icol, ascending ) );
+                setOrder( getSortOrder( icol, ascending ) );
             }
             catch ( IOException e ) {
                 e.printStackTrace();

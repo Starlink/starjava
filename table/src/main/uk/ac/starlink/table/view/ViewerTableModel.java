@@ -49,6 +49,7 @@ public class ViewerTableModel extends AbstractTableModel {
      * Configures this view to view the rows of the base model in a
      * given order.  The supplied order array should be a 1:1 mapping
      * of rows in the base table to the order in which they will be viewed.
+     * This method triggers a suitable <tt>TableModelEvent</tt> to listeners.
      *
      * @param  order  mapping of rows in the table view, or <tt>null</tt>
      *         to indicate natural ordering
@@ -59,11 +60,13 @@ public class ViewerTableModel extends AbstractTableModel {
         }
         this.rowMap = getRowMap( order, rset, getTableRowCount() );
         this.order = order;
+        fireTableDataChanged();
     }
 
     /**
      * Configures this view to view only a subset of the rows of the base
      * model.
+     * This method triggers a suitable <tt>TableModelEvent</tt> to listeners.
      *
      * @param   rset  RowSubset object indicating inclusion in subset of
      *          rows to be viewed
@@ -71,6 +74,7 @@ public class ViewerTableModel extends AbstractTableModel {
     public void setSubset( RowSubset rset ) {
         this.rowMap = getRowMap( order, rset, getTableRowCount() );
         this.rset = rset;
+        fireTableDataChanged();
     }
 
     /**
@@ -103,8 +107,9 @@ public class ViewerTableModel extends AbstractTableModel {
             int j = 0;
             if ( order != null ) {
                 for ( int i = 0; i < nrow; i++ ) {
-                    if ( rset.isIncluded( i ) ) {
-                        rmap[ j++ ] = order[ i ];
+                    int k = order[ i ];
+                    if ( rset.isIncluded( k ) ) {
+                        rmap[ j++ ] = k;
                     }
                 }
             }

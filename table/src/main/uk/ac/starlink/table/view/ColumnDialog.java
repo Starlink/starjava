@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.view;
 
 import java.awt.Component;
+import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -19,13 +20,15 @@ import uk.ac.starlink.table.gui.LabelledComponentStack;
 public class ColumnDialog extends JOptionPane {
 
     private StarTable stable;
+    private List subsets;
     private JTextField nameField;
     private JTextField unitField;
     private JTextField descriptionField;
     private JTextField expressionField;
 
-    public ColumnDialog( StarTable stable ) {
+    public ColumnDialog( StarTable stable, List subsets ) {
         this.stable = stable;
+        this.subsets = subsets;
 
         /* JOptionPane configuration. */
         LabelledComponentStack stack = new LabelledComponentStack();
@@ -94,8 +97,9 @@ public class ColumnDialog extends JOptionPane {
      * @return  a new ColumnData object constructed from the user's responses,
      *          or <tt>null</tt> if the user bailed out
      */
-    public ColumnData getColumnDialog( Component parent ) {
+    public ColumnData obtainColumn( Component parent ) {
         JDialog dialog = createDialog( parent, "Create new column" );
+        dialog.setResizable( true );
         while ( true ) {
             dialog.show();
             if ( getValue() instanceof Integer &&
@@ -111,8 +115,8 @@ public class ColumnDialog extends JOptionPane {
                     info.setUnitString( unit );
                 }
                 try {
-                    ColumnData col = 
-                        new SyntheticColumn( info, stable, expr, null );
+                    ColumnData col = new SyntheticColumn( info, stable,
+                                                          subsets, expr, null );
                     dialog.dispose();
                     return col;
                 }
