@@ -207,8 +207,8 @@ public class FitsTableWriter implements StarTableWriter {
                                 for ( int i = 0; i < ndim - 1; i++ ) {
                                     nel *= shape[ i ];
                                 }
-                                shape[ ndim - 1 ] = 
-                                    ( maxElements[ icol ] + nel - 1 ) / nel;
+                                shape[ ndim - 1 ] = Math.max( 1,
+                                    ( maxElements[ icol ] + nel - 1 ) / nel );
                             }
                         }
                         else if ( clazz.getComponentType() != null ) {
@@ -217,12 +217,12 @@ public class FitsTableWriter implements StarTableWriter {
                                 for ( int i = 0; i < ndim - 1; i++ ) {
                                     nel *= shape[ i ];
                                 }
-                                shape[ ndim - 1 ] =
-                                    ( maxElements[ icol ] + nel - 1 ) / nel;
+                                shape[ ndim - 1 ] = Math.max( 1, 
+                                    ( maxElements[ icol ] + nel - 1 ) / nel );
                             }
                         }
                         else if ( clazz.equals( String.class ) ) {
-                            shape[ 0 ] = maxChars[ icol ];
+                            shape[ 0 ] = Math.max( 1, maxChars[ icol ] );
                         }
                     }
                 }
