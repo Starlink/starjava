@@ -167,15 +167,11 @@ public class TupleSelector extends JPanel {
                                                            ValueInfo argInfo ) {
 
         /* Make the model. */
-        final Class clazz = argInfo.getContentClass();
         TableColumnModel columnModel = tcModel.getColumnModel();
         RestrictedColumnComboBoxModel model =
-            new RestrictedColumnComboBoxModel( columnModel,
-                                               argInfo.isNullable() ) {
-                public boolean acceptColumn( ColumnInfo cinfo ) {
-                    return clazz.isAssignableFrom( cinfo.getContentClass() );
-                }
-            };
+            RestrictedColumnComboBoxModel
+           .makeClassColumnComboBoxModel( columnModel, argInfo.isNullable(),
+                                          argInfo.getContentClass() );
 
         /* Have a guess what will be a good value for the initial
          * selection.  There is scope for doing this better. */
