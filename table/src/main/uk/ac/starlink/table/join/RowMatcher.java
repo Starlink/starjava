@@ -645,6 +645,18 @@ public class RowMatcher {
     private void eliminateMultipleRowEntries( Map pairScores ) 
             throws InterruptedException {
 
+        /* Struct for grouping a pair of matched rows and the matching score 
+         * associated with them. */
+        class ScoredPair {
+            final RowLink pair;
+            final double score;
+            ScoredPair( RowLink pair, double score ) {
+                assert pair.size() == 2;
+                this.pair = pair;
+                this.score = score;
+            }
+        }
+
         /* Set up a map to keep track of the best score so far keyed by
          * RowRef. */
         Map bestRowScores = new HashMap();
@@ -665,23 +677,38 @@ public class RowMatcher {
             /* Get the next pair and its score. */
             Map.Entry entry = (Map.Entry) it.next();
             RowLink pair = (RowLink) entry.getKey();
-            Number score = (Number) entry.getValue();
             assert pair.size() == 2;
-            assert score != null;
-            double scoreVal = score.doubleValue();
+            Number scoreNum = (Number) entry.getValue();
+            assert scoreNum != null;
+            double scoreVal = scoreNum.doubleValue();
+            ScoredPair score = new ScoredPair( pair, scoreNum.doubleValue() );
             RowRef ref1 = pair.getRef( 0 );
             RowRef ref2 = pair.getRef( 1 );
             assert ref1.getTableIndex() == 0;
             assert ref2.getTableIndex() == 1;
-            Number score1 = (Number) bestRowScores.get( ref1 );
-            Number score2 = (Number) bestRowScores.get( ref2 );
+            ScoredPair score1 = (ScoredPair) bestRowScores.get( ref1 );
+            ScoredPair score2 = (ScoredPair) bestRowScores.get( ref2 );
 
             /* If neither row in this pair has been seen before, or we 
              * have a better match this time than previous appearances,
              * copy this entry across to the output set. */
-            if ( ( score1 == null || scoreVal < score1.doubleValue() ) &&
-                 ( score2 == null || scoreVal < score2.doubleValue() ) ) {
-                outPairs.put( pair, score );
+            if ( ( score1 == null || scoreVal < score1.score ) &&
+                 ( score2 == null || scoreVal < score2.score ) ) {
+
+                /* If a pair associated with either of these rows has been
+                 * entered before now, remove it from the output set. */
+                if ( score1 != null ) {
+                    outPairs.remove( score1.pair );
+                }
+                if ( score2 != null ) {
+                    outPairs.remove( score2.pair );
+                }
+
+                /* Copy the current pair into the output set. */
+                outPairs.put( pair, scoreNum );
+                
+                /* Record the current pair indexed under both its constituent
+                 * rows. */
                 bestRowScores.put( ref1, score );
                 bestRowScores.put( ref2, score );
             }
@@ -883,4 +910,5 @@ public class RowMatcher {
     private int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
     }
+
 }
