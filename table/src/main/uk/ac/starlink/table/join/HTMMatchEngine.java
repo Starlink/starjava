@@ -55,7 +55,7 @@ public class HTMMatchEngine implements MatchEngine {
      * as a multiple of the size of the separation.  It can be used as
      * a tuning parameter.  It must be &gt;1.
      */
-    public final static double MESH_SCALE = 3.0;
+    public final static double MESH_SCALE = 1;
 
     /**
      * Constructs a new match engine which considers two points 
@@ -81,7 +81,7 @@ public class HTMMatchEngine implements MatchEngine {
 
         /* Construct an HTM index with mesh elements of a size suitable
          * for the requested resolution. */
-        assert MESH_SCALE > 1.0;
+        // assert MESH_SCALE > ??; not sure what is the maximum sensible value
         try {
             this.htm = new HTMindexImp( Math.toDegrees( separation ) 
                                         * MESH_SCALE ); 
@@ -182,11 +182,54 @@ public class HTMMatchEngine implements MatchEngine {
                                         double ra2, double dec2 ) {
 
         // this formula isn't too good for small angles!
-        return Math.acos( ( Math.sin( dec1 ) * Math.sin( dec2 ) +
-                            Math.cos( dec1 ) * Math.cos( dec2 ) )
-                        * Math.cos( ra1 - ra2 ) );
+        return haversineSeparationFormula( ra1, dec1, ra2, dec2 );
+    }
 
-        // Should probably use 'haversine' formula.  What is it?
+    /**
+     * Law of cosines for spherical trigonometry.
+     * This is ill-conditioned for small angles (the cases we are generally
+     * interested in here.  So don't use it!
+     *
+     * @deprecated  Ill-conditioned for small angles
+     * @param   ra1  right ascension of point 1 in radians
+     * @param   dec1 declination of point 1 in radians
+     * @param   ra2  right ascension of point 2 in radians
+     * @param   dec2 declination of point 2 in radians
+     * @return  angular separation of point 1 and point 2 in radians
+     */
+    private double cosineSeparationFormula( double ra1, double dec1,
+                                            double ra2, double dec2 ) {
+        return Math.acos( Math.sin( dec1 ) * Math.sin( dec2 ) +
+                          Math.cos( dec1 ) * Math.cos( dec2 ) 
+                                           * Math.cos( ra1 - ra2 ) );
+    }
+
+    
+    /**
+     * Haversine formula for spherical trigonometry.
+     * This does not have the numerical instabilities of the cosine formula
+     * at small angles. 
+     * <p>
+     * This implementation derives from Bob Chamberlain's contribution
+     * to the comp.infosystems.gis FAQ; he cites
+     * R.W.Sinnott, "Virtues of the Haversine", Sky and Telescope vol.68,
+     * no.2, 1984, p159.
+     * 
+     * @param   ra1  right ascension of point 1 in radians
+     * @param   dec1 declination of point 1 in radians
+     * @param   ra2  right ascension of point 2 in radians
+     * @param   dec2 declination of point 2 in radians
+     * @return  angular separation of point 1 and point 2 in radians
+     * @see  <http://www.census.gov/geo/www/gis-faq.txt>
+     */
+    private double haversineSeparationFormula( double ra1, double dec1,
+                                               double ra2, double dec2 ) {
+        double sd2 = Math.sin( 0.5 * ( dec2 - dec1 ) );
+        double sr2 = Math.sin( 0.5 * ( ra2 - ra1 ) );
+        double a = sd2 * sd2 + 
+                   sr2 * sr2 * Math.cos( dec1 ) * Math.cos( dec2 );
+        return a < 1.0 ? 2.0 * Math.asin( Math.sqrt( a ) )
+                       : Math.PI;
     }
 
     /**
