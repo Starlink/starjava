@@ -185,6 +185,9 @@
     <echo message="Executing VOTable target: ${what}"/>
     <ant dir="./votable" target="${what}"/>
 
+    <echo message="Executing VO target: ${what}"/>
+    <ant dir="./vo" target="${what}"/>
+
     <echo message="Executing JAIUtil target: ${what}"/>
     <ant dir="./jaiutil" target="${what}"/>
 
@@ -416,6 +419,10 @@
 
       <packageset dir="votable/build/java" defaultexcludes="yes">
          <include name="**"/>
+      </packageset>
+
+      <packageset dir="vo/build/java" defaultexcludes="yes">
+         <exclude name="net/ivoa/www/**"/>
       </packageset>
 
       <packageset dir="hdx/build/java" defaultexcludes="yes">
