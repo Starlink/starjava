@@ -407,6 +407,10 @@ public class AstTest extends TestCase {
         plot.clip( 2, new double[] { 1e4, 1e4 }, new double[] { 4e4, 4e4 } );
         plot.setCurrent( 2 );
 
+        // line with no style
+        plot.curve( new double[] { 1.5e4, 3.5e4 },
+                    new double[] { 3.5e4, 1.5e4 } );
+
         // curve
         plot.setWidth( "curves", 10 );
         plot.setColour( "curves", 0xff0000ff );
