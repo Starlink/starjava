@@ -67,7 +67,7 @@ public class RowMatcher {
     }
 
     /**
-     * Returns a list of RowLink objects corresponding to a match 
+     * Returns a set of RowLink objects corresponding to a match 
      * between this matcher's two tables performed with its match engine.
      * Each element in the returned list basically corresponds to a matched 
      * pair with one entry from each of the input tables, however using
@@ -76,13 +76,20 @@ public class RowMatcher {
      * Each input table row appears in no more than one RowLink in the
      * returned list.
      *
+     * <p>The returned value is a RowLink-&gt;Number mapping;
+     * where the value is not null, it represents the match score 
+     * corresponding to the link.
+     * Being a Map, this isn't ordered, but the natural ordering of the
+     * keys does give you a sensible ordering of rows for the output
+     * table.
+     *
      * @param  req1  whether an entry from the first table must be present
      *         in each element of the result
      * @param  req2  whether an entry from the second table must be present
      *         in each element of the result
-     * @return  list of {@link RowLink}s describing matched groups
+     * @return  {@link RowLink}-&gt;{@link java.lang.Number} mapping
      */
-    public List findPairMatches( boolean req1, boolean req2 )
+    public Map findPairMatches( boolean req1, boolean req2 )
             throws IOException, InterruptedException {
         checkRandom();
 
@@ -107,27 +114,29 @@ public class RowMatcher {
          * (this isn't necessary for the result to make sense, but it's 
          * probably what the caller is expecting). */
         eliminateMultipleRowEntries( pairScores );
-        Collection pairs = new HashSet( pairScores.keySet() );
-        pairScores = null;
 
         /* We now have a set of links corresponding to all the matches
          * with one entry for each of two or more of the input tables.
          * In the case that we want to output some links with unmatched
-         * parts, add new singleton row links as necessary. */
-        Set singles1 = req1 ? null : missingSingles( pairs, 0 );
-        Set singles2 = req2 ? null : missingSingles( pairs, 1 );
-        if ( singles1 != null ) {
-            pairs.addAll( singles1 );
+         * parts, add new singleton row links as necessary. 
+         * They are added without scores, since they don't represent 
+         * actual matches. */
+        Set singles = new HashSet();
+        if ( req1 ) {
+            singles.addAll( missingSingles( pairScores.keySet(), 0 ) );
         }
-        if ( singles2 != null ) {
-            pairs.addAll( singles2 );
+        if ( req2 ) {
+            singles.addAll( missingSingles( pairScores.keySet(), 1 ) );
         }
+        for ( Iterator it = singles.iterator(); it.hasNext(); ) {
+            pairScores.put( it.next(), null );
+            it.remove();
+        }
+        assert singles.isEmpty();
 
-        /* Sort and return. */
-        List pairList = new ArrayList( pairs );
-        Collections.sort( pairList );
+        /* Return. */
         endMatch();
-        return pairList;
+        return pairScores;
     }
 
     /**
@@ -306,8 +315,8 @@ public class RowMatcher {
     /**
      * Identifies all the pairs of equivalent rows from a set of RowLinks
      * between rows from two specified tables.
-     * The returned object is a {@link RowLink}->{@link java.lang.Number} map,
-     * in which the keys represent pairs of matching rows, 
+     * The returned object is a {@link RowLink}-&gt;{@link java.lang.Number}
+     * map, in which the keys represent pairs of matching rows, 
      * and the values are their match scores, as obtained from 
      * {@link MatchEngine#matchScore}.
      *
