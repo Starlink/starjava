@@ -56,12 +56,12 @@ public class FitsTableWriter implements StarTableWriter {
      * @return  format name
      */
     public String getFormatName() {
-        return "FITS";
+        return "fits-basic";
     }
 
     /**
      * Returns true if <tt>location</tt> ends with something like ".fit"
-     * or ".fits".
+     * or ".fits" or ".fts".
      *
      * @param  location  filename
      * @return true if it sounds like a fits file
@@ -70,7 +70,7 @@ public class FitsTableWriter implements StarTableWriter {
         int dotPos = location.lastIndexOf( '.' );
         if ( dotPos > 0 ) {
             String exten = location.substring( dotPos + 1 ).toLowerCase();
-            if ( exten.startsWith( "fit" ) ) {
+            if ( exten.startsWith( "fit" ) || exten.equals( "fts" ) ) {
                 return true;
             }
         }
@@ -91,7 +91,7 @@ public class FitsTableWriter implements StarTableWriter {
         FitsTableSerializer serializer = new FitsTableSerializer( startab );
         try {
             strm = getOutputStream( location );
-            FitsConstants.writeEmptyPrimary( strm );
+            writePrimary( startab, strm );
             serializer.writeHeader( strm );
             serializer.writeData( strm );
         }
@@ -100,6 +100,21 @@ public class FitsTableWriter implements StarTableWriter {
                 strm.close();
             }
         }
+    }
+
+    /**
+     * Called from {@link #writeStarTable} to write headers prior to the
+     * BINTABLE header which contains the table proper.
+     * The default implementation writes an empty primary HDU;
+     * subclasses may write one or more headers, though the first one
+     * should be a legal primary FITS HDU.
+     *
+     * @param  startab  the table which will be written into the next HDU
+     * @param  strm     the stream down which it will be written
+     */
+    protected void writePrimary( StarTable startab, DataOutputStream strm )
+            throws IOException {
+        FitsConstants.writeEmptyPrimary( strm );
     }
 
     /**
