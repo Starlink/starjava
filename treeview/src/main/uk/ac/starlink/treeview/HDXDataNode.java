@@ -79,6 +79,13 @@ public class HDXDataNode extends DefaultDataNode {
         catch ( HdxException e ) {
             throw new NoSuchDataException( e );
         }
+
+        /* Obviously an assertion error shouldn't happen here - but currently
+         * (2 Oct 2003) it does, so put this workaround in.  I think it's 
+         * only likely to happen for something which is not an HDX anyway. */
+        catch ( AssertionError e ) {
+            throw new NoSuchDataException( e );
+        }
         if ( hdx == null ) {
             throw new NoSuchDataException( "No unique HDX in source" );
         }
