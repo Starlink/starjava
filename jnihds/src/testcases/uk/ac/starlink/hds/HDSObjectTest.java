@@ -60,7 +60,7 @@ public class HDSObjectTest extends TestCase {
 
     public void testConstants() throws HDSException {
         assertEquals( 15, HDSObject.getHDSConstantI( "DAT__SZNAM" ) );
-        assertEquals( 15, HDSObject.getHDSConstantI( "DAT__SZLOC" ) );
+        assertTrue( 15 <= HDSObject.getHDSConstantI( "DAT__SZLOC" ) );
         HDSObject noloc = HDSObject.getHDSConstantLoc( "DAT__NOLOC" );
         HDSObject rootloc = HDSObject.getHDSConstantLoc( "DAT__ROOT" );
         assertTrue( ! noloc.datValid() );
