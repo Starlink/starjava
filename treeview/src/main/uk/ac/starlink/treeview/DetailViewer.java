@@ -1,12 +1,21 @@
 package uk.ac.starlink.treeview;
 
-import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.event.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.font.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.io.Writer;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * Allows display of the details of a node.  This class provides
@@ -18,9 +27,8 @@ import java.awt.font.*;
  */
 public class DetailViewer {
 
-    private StyledDocument doc;
     private final JTabbedPane tabbed;
-    private JTextPane over;
+    private StyledTextArea over;
 
     public DetailViewer() {
 
@@ -46,68 +54,21 @@ public class DetailViewer {
             }
         };
 
-        /* The following magic gets a JTextPane which will not wrap lines. */
-        over = new JTextPane() {
-            public boolean getScrollableTracksViewportWidth() {
-                return ( getSize().width < getParent().getSize().width );
-            }
-            public void setSize( Dimension d ) {
-                if ( d.width < getParent().getSize().width ) {
-                    d.width = getParent().getSize().width;
-                }
-                super.setSize( d );
-            }
-        };
- 
-        doc = new DefaultStyledDocument();
-        over.setDocument( doc );
-
-        over.setEditable( false );
-        Style defStyle = StyleContext.getDefaultStyleContext()
-                                     .getStyle( StyleContext.DEFAULT_STYLE );
-
-        /* Set up some styles. */
-        Style normalStyle = over.addStyle( "normal", defStyle );
-        StyleConstants.setFontFamily( normalStyle, "Bitstream Charter" );
-
-        Style titleStyle = over.addStyle( "title", normalStyle );
-        StyleConstants.setUnderline( titleStyle, true );
-        StyleConstants.setFontSize( titleStyle, 
-                                    StyleConstants
-                                   .getFontSize( titleStyle ) + 2 );
-
-        Style screedStyle = over.addStyle( "screed", normalStyle );
-        StyleConstants.setFontFamily( screedStyle, "Monospaced" );
-
-        Style nameStyle = over.addStyle( "itemname", normalStyle );
-        StyleConstants.setBold( nameStyle, true );
-
-        Style valueStyle = over.addStyle( "itemvalue", normalStyle );
-
-        Style headStyle = over.addStyle( "heading", normalStyle );
-        StyleConstants.setUnderline( headStyle, true );
-
-        Style errorBodyStyle = over.addStyle( "errorbody", normalStyle );
-        StyleConstants.setItalic( errorBodyStyle, true );
-
-        Style errorHeadStyle = over.addStyle( "errorhead", errorBodyStyle );
-        StyleConstants.setBold( errorHeadStyle, true );
-
-        /* Add the overview to the tabbed pane. */
+        /* Get the main overview pane and add it as the first item. */
+        over = new StyledTextArea();
         addPane( "Overview", over );
     }
 
     public DetailViewer( DataNode node ) {
         this();
-        Style iconStyle = over.addStyle( "icon", over.getStyle( "title" ) );
-        StyleConstants.setIcon( iconStyle, node.getIcon() );
-        append( "icon", " " );
-        addTitle( node.getLabel() ); 
+        over.addIcon( node.getIcon() );
+        over.addSpace();
+        over.addTitle( node.getLabel() ); 
         String name = node.getName();
         if ( name.trim() != "" ) {
-           addKeyedItem( "Name", node.getName() );
+            over.addKeyedItem( "Name", node.getName() );
         }
-        addKeyedItem( "Node type", node.getNodeType() );
+        over.addKeyedItem( "Node type", node.getNodeType() );
     }
 
     public JComponent getComponent() {
@@ -187,18 +148,14 @@ public class DetailViewer {
             }
         }
         if ( acts != null && nact > 0 ) {
-            addSeparator();
-            addTitle( "External programs" );
-            Style buttstyle = over.addStyle( "button", 
-                                             over.getStyle( "title" ) );
+            over.addSeparator();
+            over.addTitle( "External programs" );
             for ( int i = 0; i < acts.length; i++ ) {
                 if ( acts[ i ] != null ) {
                     Action act = acts[ i ];
-                    JButton butt = new JButton( act );
-                    StyleConstants.setComponent( buttstyle, butt );
-                    append( "button", " " );
+                    over.addButton( act );
                     if ( i < acts.length - 1 ) {
-                        append( "default", "   " );
+                        over.addSpace();
                     }
                 }
             }
@@ -206,34 +163,27 @@ public class DetailViewer {
     }
 
     public void addTitle( String title ) {
-        append( "title", title + "\n" );
-        addSeparator();
+        over.addTitle( title );
     }
 
     public void addSubHead( String text ) {
-        addSeparator();
-        append( "heading", text + "\n" );
+        over.addSubHead( text );
     }
 
     public void addKeyedItem( String name, String value ) {
-        append( "itemname", name + ":  " );
-        append( "itemvalue", value + "\n" );
+        over.addKeyedItem( name, value );
     }
 
     public void logError( Throwable th ) {
-        append( "normal", "\n" );
-        append( "errorhead", "Error:  " );
-        append( "errorbody", th.getMessage() );
-        append( "normal", "\n" );
-        th.printStackTrace();
+        over.logError( th );
     }
 
     public void addSeparator() {
-        append( "normal", "\n" );
+        over.addSeparator();
     }
 
     public void addText( String text ) {
-        append( "screed", text + "\n" );
+        over.addText( text );
     }
 
     /** 
@@ -244,7 +194,7 @@ public class DetailViewer {
      *                    the detail viewer
      */
     public Writer lineAppender() {
-        return limitedLineAppender( 0 );
+        return over.limitedLineAppender( 0 );
     }
 
     /**
@@ -257,52 +207,8 @@ public class DetailViewer {
      * @return            a Writer object via which text can be inserted into 
      *                    the detail viewer
      */
-    public Writer limitedLineAppender( final int maxLines ) {
-        return new Writer() {
-            private int nline = 0;
-            public void write( char[] cbuf, int off, int len ) {
-                String buf = new String( cbuf, off, len );
-                boolean truncate = false;
-                int pos = 0;
-                if ( maxLines > 0 ) {
-                    while ( ( pos = buf.indexOf( '\n', pos ) + 1 ) > 0 ) {
-                        nline++;
-                        if ( nline >= maxLines && pos < buf.length() ) {
-                            buf = buf.substring( 0, pos );
-                            truncate = true;
-                        }
-                    }
-                }
-                append( "screed", buf );
-                if ( truncate ) {
-                    append( "screed", "   ...." );
-                }
-            }
-            public void flush() {}
-            public void close() {}
-        };
+    public Writer limitedLineAppender( int maxLines ) {
+        return over.limitedLineAppender( maxLines );
     }
 
-    public JTextArea addTextArea() {
-        JTextArea ta = new JTextArea();
-        ta.setLineWrap( false );
-        JScrollPane sp = new JScrollPane( ta );
-        Style componentStyle = over.addStyle( "component", 
-                                              over.getStyle( "normal" ) );
-        StyleConstants.setComponent( componentStyle, sp );
-        append( "normal", "\n" );
-        append( "component", " " );
-        append( "normal", "\n" );
-        over.setCaretPosition( 0 );
-        return ta;
-    }
-
-    private void append( String sname, String text ) {
-        try{
-            doc.insertString( doc.getLength(), text, over.getStyle( sname ) );
-        }
-        catch ( BadLocationException e ) {
-            throw new IllegalStateException( e.toString() );
-        }
-    }
 }
