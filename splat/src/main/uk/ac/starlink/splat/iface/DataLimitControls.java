@@ -392,13 +392,13 @@ public class DataLimitControls
         xAutoscaled.setToolTipText( "Autoscale X axis to fit all data" );
         xFit.setToolTipText( "Fit X axis limts to viewable surface" );
         xFlipped.setToolTipText( "Flip X axis to run right to left" );
-        xLog.setToolTipText( "Use log scale for X axis" );
+        xLog.setToolTipText( "Use log scaling for X axis" );
         xLower.setToolTipText( "Lower limit of X axis (axis units)" );
         xUpper.setToolTipText( "Upper limit of X axis (axis units)" );
         yAutoscaled.setToolTipText( "Autoscale Y axis to fit all data" );
         yFit.setToolTipText( "Fit Y axis limits to viewable surface" );
         yFlipped.setToolTipText( "Flip Y axis to run top to bottom" );
-        yLog.setToolTipText( "Use log scale for Y axis" );
+        yLog.setToolTipText( "Use log scaling for Y axis" );
         yLower.setToolTipText( "Lower limit of Y axis (axis units)" );
         yUpper.setToolTipText( "Upper limit of Y axis (axis units)" );
         yPercentiles.setToolTipText( "Percentile auto limits for data " +
