@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import javax.swing.BorderFactory;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -222,6 +223,16 @@ public class StarTableCellRenderer extends DefaultTableCellRenderer {
      */
     public void setBadValue( Object badValue ) {
         this.badValue = badValue;
+    }
+
+    /**
+     * Surrounds the text with a little bit of padding prior to calling
+     * the superclass (JLabel) implementation.
+     *
+     * @param   text  the cell text
+     */
+    public void setText( String text ) {
+        super.setText( ( text == null ) ? null : ( ' ' + text + ' ' ) );
     }
 
     /**
