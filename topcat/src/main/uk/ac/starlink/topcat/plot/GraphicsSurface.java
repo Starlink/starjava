@@ -29,7 +29,7 @@ public interface GraphicsSurface {
     /**
      * Returns the clip region in which points may be plotted.
      * The returned shape should be the sort which can be passed to
-     * {@link java.awt.graphics#setClip(java.awt.Shape)} - i.e. probably
+     * {@link java.awt.Graphics#setClip(java.awt.Shape)} - i.e. probably
      * a <tt>Rectangle</tt>.
      *
      * @return   clip region representing data zone

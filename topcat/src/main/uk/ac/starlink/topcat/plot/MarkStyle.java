@@ -308,7 +308,7 @@ public abstract class MarkStyle {
      * Returns a marker style which just plots a single point.
      * 
      * @param  color  colour
-     * @returnn  marker style
+     * @return  marker style
      */
     public static MarkStyle pointStyle( Color color ) {
         return new ConvenienceMarkStyle( color, new Integer( 23 ), 1 ) {
