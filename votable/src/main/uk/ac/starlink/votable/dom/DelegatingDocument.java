@@ -342,7 +342,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
     /**
      * Returns a NamedNodeMap which will dispense nodes in this document.
      *
-     * @param  baseList  node map which dispenses nodes in the base document
+     * @param  baseMap  node map which dispenses nodes in the base document
      * @return  equivalent of <tt>baseMap</tt> in this document
      */
     protected NamedNodeMap 

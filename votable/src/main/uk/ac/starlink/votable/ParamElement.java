@@ -26,7 +26,7 @@ public class ParamElement extends FieldElement {
      * Returns the value of the <tt>value</tt> attribute,
      * or an empty string if it has none.
      *
-     * @param  the value string
+     * @return  the value string
      */
     public String getValue() {
         return getAttribute( "value" );

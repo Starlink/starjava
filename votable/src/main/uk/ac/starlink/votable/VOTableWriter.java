@@ -310,7 +310,7 @@ public class VOTableWriter implements StarTableWriter {
      * Returns true for filenames with the extension ".xml", ".vot" or
      * ".votable";
      *
-     * @param  name of the file 
+     * @param  filename  name of the file 
      * @return  true if <tt>filename</tt> looks like the home of a VOTable
      */
     public boolean looksLikeFile( String filename ) {
@@ -342,7 +342,7 @@ public class VOTableWriter implements StarTableWriter {
     /**
      * Sets the format in which the table data will be output.
      *
-     * @param  bulk data format
+     * @param  format  bulk data format
      */
     public void setDataFormat( DataFormat format ) {
         this.dataFormat = format;
@@ -384,7 +384,7 @@ public class VOTableWriter implements StarTableWriter {
      * at the head of any document written.
      * By default this is the value of {@link #DEFAULT_XML_DECLARATION}.
      *
-     * @param  new XML declaration
+     * @param  xmlDecl  new XML declaration
      */
     public void setXMLDeclaration( String xmlDecl ) {
         this.xmlDeclaration = xmlDecl;

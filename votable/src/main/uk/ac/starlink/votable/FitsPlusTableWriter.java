@@ -210,7 +210,7 @@ public class FitsPlusTableWriter extends FitsTableWriter {
      * but with different format names: one is "fits" and the other is
      * "fits-plus".
      *
-     * @param  table writers
+     * @return  table writers
      */
     public static StarTableWriter[] getStarTableWriters() {
         FitsPlusTableWriter w1 = new FitsPlusTableWriter();
