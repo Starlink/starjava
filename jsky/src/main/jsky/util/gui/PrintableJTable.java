@@ -205,7 +205,7 @@ public class PrintableJTable extends JTable implements Printable {
      *
      * @exception	PrinterException	thrown if any print-related errors occur
      **/
-    public void print() throws PrinterException {
+    public boolean print() throws PrinterException {
         PrinterJob job = PrinterJob.getPrinterJob();
         job.setJobName(fTitle != null ? fTitle.getText() : "Table Contents");
 
@@ -218,7 +218,9 @@ public class PrintableJTable extends JTable implements Printable {
         }
         catch (Exception e) {
             DialogUtil.error(e);
+            return false;
         }
+        return true;
     }
 
     /**
