@@ -373,9 +373,11 @@
 
     <!-- Copy extra files that should live with packages classes
      !   (i.e. are discovered using "getResource()"). -->
+<!-- 
     <copy todir="${build.classes}">
       <fileset dir="${src.dir}/resources"/>
     </copy>
+  -->
 
   </target>
 
