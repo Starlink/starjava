@@ -156,7 +156,7 @@ public class VOTable extends VOElement {
     public VOTable( DataSource datsrc, boolean validate )
             throws IOException, SAXException {
         this( new DOMSource( getParser( validate )
-                            .parse( datsrc.getInputStream() ),
+                            .parse( datsrc.getHybridInputStream() ),
                              datsrc.getSystemId() ) );
     }
 
