@@ -61,7 +61,7 @@
   <property name="star.install" value="${star.dir}"/>
 
   <!-- Directory that contains the Starlink jar tree -->
-  <property name="star.jar.dir" value="${star.dir}/lib"/>
+  <property name="star.jar.dir" value="${star.install}/lib"/>
 
   <!-- Directory that contains the locally built sources (usually
    !   /star/java/source for full distribution) -->
