@@ -22,27 +22,55 @@ import uk.ac.starlink.util.DataSource;
  * <p>
  * Here are the rules:
  * <ul>
- * <li>Each table row is represented by a single text line
- * <li>Lines are terminated by one or more line termination characters
- *     ('\r' or '\n')
- * <li>Anything after a '#' character on a line is ignored
- *     (except for optional heading line)
- * <li>Blank lines are ignored
+ * <li>Bytes in the file are interpreted as ASCII characters
+ *     (UTF-8-encoded Unicode)</li>
+ * <li>Each table row is represented by a single line of text</li>
+ * <li>Lines are terminated by one or more contiguous line termination
+ *     characters: line feed (0x0A) or carriage return (0x0D)</li>
  * <li>Within a line, fields are separated by one or more whitespace
- *     characters (space or tab)
- * <li>A field is either a sequence of non-whitespace characters or a
- *     sequence of characters between two matching quote characters
- *     (single (') or double (") quotes) - spaces are therefore allowed
- *     in quoted fields.
- * <li>In a quoted field any character preceded by a backslash is
- *     interpreted literally, so it is possible to insert quotes into
- *     a quoted string
- * <li>An empty string (two adjacent quotes) represents a null element
- * <li>All lines must contain exactly the same number of fields
- * <li>An optional heading line may be included: if the last comment line
- *     (line starting with a '#' before the first data line) contains the
- *     same number of fields as the columns in the table, these fields
- *     are interpreted as the headings (names) of the columns
+ *     characters: space (" ") or tab (0x09)</li>
+ * <li>A field is either an unquoted sequence of non-whitespace characters,
+ *     or a sequence of non-newline characters between matching quote
+ *     characters: either single quotes (') or double quotes (") - 
+ *     spaces are therefore allowed in quoted fields.</li>
+ * <li>Within a quoted field, whitespace characters are permitted and are
+ *     treated literally</li>
+ * <li>Within a quoted field, any character preceded by a backslash character
+ *     ("\") is treated literally.  This allows quote characters to appear
+ *     within a quoted string.</li>
+ * <li>An empty quoted string (two adjacent quotes) represents 
+ *     the null value</li>
+ * <li>All data lines must contain the same number of fields (this is the
+ *     number of columns in the table)</li>
+ * <li>The data type of a column is guessed according to the fields that
+ *     appear in the table.  If all the fields in one column can be parsed
+ *     as integers (or null values), then that column will turn into an
+ *     integer-type column.  The types that are tried, in order of
+ *     preference, are: 
+ *        <code>Boolean</code>,
+ *        <code>Short</code>
+ *        <code>Integer</code>,
+ *        <code>Float</code>,
+ *        <code>Double</code>,
+ *        <code>Long</code>,  
+ *        <code>String</code>
+ *     </li>
+ * <li>Empty lines are ignored</li>
+ * <li>Anything after a hash character "#" (except one in a quoted string)
+ *     on a line is ignored as far as table data goes.  
+ *     However, lines which start with a "#" at the start of the table 
+ *     (before any data lines) will be interpreted as metadata as follows:
+ *     <ul>
+ *     <li>The last "#"-starting line before the first data line may contain
+ *         the column names.  If it has the same number of fields as
+ *         there are columns in the table, each field will be taken to be
+ *         the title of the corresponding column.  Otherwise, it will be
+ *         taken as a normal comment line.</li>
+ *     <li>Any comment lines before the first data line not covered by the
+ *         above will be concatenated to form the "description" parameter
+ *         of the table.</li>
+ *     </ul>    
+ *     </li>    
  * </ul>
  *
  * @author   Mark Taylor (Starlink)
