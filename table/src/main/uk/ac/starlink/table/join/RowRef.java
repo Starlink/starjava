@@ -1,66 +1,56 @@
 package uk.ac.starlink.table.join;
 
-import java.io.IOException;
-import uk.ac.starlink.table.StarTable;
-
 /**
  * Represents a reference to a table row.
- * This class really just exists to encapsulate the combination of a 
- * {@link StarTable} and a <tt>long</tt> referencing a row of that table.
+ * This class really just exists to encapsulate the combination of an
+ * <tt>int</tt> index referencing a table
+ * and a <tt>long</tt> referencing a row of that table.
  * Importantly though, it implements <tt>equals</tt>, <tt>hashCode</tt>
  * and the <tt>Comparable</tt> interface in such a way as to make it
  * suitable for use as keys in a SortedSet.
+ * The sort order defined sorts lowest table index first, then lowest
+ * row index.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class RowRef implements Comparable {
-    private final StarTable table;
-    private final long lrow;
- 
+    private final int iTable;
+    private final long lRow;
+
     /**
      * Constructs a new RowRef from a table and a row index.
      *
-     * @param  table  StarTable
-     * @param  lrow   row index
+     * @param  iTable table index
+     * @param  lRow   row index
      */
-    public RowRef( StarTable table, long lrow ) {
-        this.table = table;
-        this.lrow = lrow;
+    public RowRef( int iTable, long lRow ) {
+        this.iTable = iTable;
+        this.lRow = lRow;
     }
 
     /**
-     * Returns the StarTable referenced by this object.
+     * Returns the table index.
      *
-     * @return  table
+     * @return  table index
      */
-    public StarTable getTable() {
-        return table;
+    public int getTableIndex() {
+        return iTable;
     }
 
     /**
-     * Returns the row index referenced by this object.
+     * Returns the row index;
      *
-     * @return   row index
+     * @return  row index
      */
     public long getRowIndex() {
-        return lrow;
-    }
-
-    /**
-     * Invokes {@link uk.ac.starlink.table.StarTable#getRow} and returns
-     * the result.  Doesn't cache the value.
-     *
-     * @return   row data referenced by this object
-     */
-    public Object[] getRow() throws IOException {
-        return table.getRow( lrow );
+        return lRow;
     }
 
     public boolean equals( Object o ) {
         if ( o instanceof RowRef ) {
             RowRef other = (RowRef) o;
-            return other.lrow == lrow
-                && other.table == table;
+            return other.lRow == lRow
+                && other.iTable == iTable;
         }
         else {
             return false;
@@ -69,18 +59,18 @@ public class RowRef implements Comparable {
 
     public int hashCode() {
         int result = 37;
-        result = 23 * result + (int) lrow;
-        result = 23 * result + System.identityHashCode( table );
+        result = 23 * result + iTable;
+        result = 23 * result + (int) lRow;
         return result;
     }
 
     public int compareTo( Object o ) {
         RowRef other = (RowRef) o;
-        if ( this.table != other.table ) {
-            return this.hashCode() < other.hashCode() ? -1 : 1;
+        if ( this.iTable != other.iTable ) {
+            return this.iTable < other.iTable ? -1 : +1;
         }
-        else if ( this.lrow != other.lrow ) {
-            return this.lrow < other.lrow ? -1 : 1;
+        else if ( this.lRow != other.lRow ) {
+            return this.lRow < other.lRow ? -1 : +1;
         }
         else {
             return 0;

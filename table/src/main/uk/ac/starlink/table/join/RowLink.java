@@ -2,30 +2,26 @@ package uk.ac.starlink.table.join;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
- * Represents a set of table rows which are linked (usually this means 
- * that they are considered to reference the same object).
- * No external order may be imposed on the row references, so that any 
- * <tt>RowLink</tt> object linking the same set of rows is considered 
- * equal to any other.  This makes RowLink instances suitable for use
- * as keys in hashes that should not contain duplicate entries for 
+ * Represents an ordered set of {@link RowRef}s 
+ * which are considered in some way linked to each other.
+ * Although it doesn't implement the {@link java.util.SortedSet} interface
+ * (being immutable this wouldn't gain you much) its spirit is that of
+ * a sorted set - its <tt>equals</tt> and <tt>hashCode</tt> methods 
+ * are implemented such that two <tt>RowLink</tt>s which contain
+ * equivalent groups of <tt>RowRef</tt> objects are considered the same.
+ * This makes RowLink instances suitable for use
+ * as keys in hashes that should not contain duplicate entries for
  * duplicate links.
- *
- * <p>You could argue this class should implement the
- * {@link java.util.SortedSet} interface (it's a set of RowRefs), but since
- * it's immutable you couldn't do much extra with it anyway.
+ * The <tt>getRef</tt> method returns <tt>RowRef</tt>s
+ * in their natural order.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class RowLink {
+public class RowLink implements Comparable {
 
     private final RowRef[] rowRefs;
-    private final SortedSet rowRefSet;
     private Integer hashCode;
 
     /**
@@ -45,22 +41,27 @@ public class RowLink {
      * @param  rows  array of row references
      */
     public RowLink( RowRef[] rows ) {
-        this.rowRefs = rows;
+        this.rowRefs = (RowRef[]) rows.clone();
         Arrays.sort( rowRefs );
-        rowRefSet =
-            Collections
-           .unmodifiableSortedSet( new TreeSet( Arrays.asList( rowRefs ) ) );
     }
 
     /**
-     * Returns an unmodifiable sorted set of the {@link RowRef} objects linked
-     * by this object.  The sort order is the natural order of the
-     * <tt>RowRef</tt>s it contains. 
+     * Convenience constructor to construct a singleton RowLink.
      *
-     * @return   unmodifiable sorted set of <tt>RowRef</tt> objects
+     * @param  row  sole row
      */
-    public SortedSet getRowRefs() {
-        return rowRefSet;
+    public RowLink( RowRef row ) {
+        this.rowRefs = new RowRef[] { row };
+    }
+
+    /**
+     * Convenience constructor to construct a 2-row RowLink.
+     *
+     * @param  rowA  one row
+     * @param  rowB  the other row
+     */
+    public RowLink( RowRef rowA, RowRef rowB ) {
+        this( new RowRef[] { rowA, rowB } );
     }
 
     /**
@@ -73,31 +74,94 @@ public class RowLink {
     }
 
     /**
-     * Assesses equality.  Two <tt>RowLink</tt> objects are equal if they 
-     * contain equivalent sets of <tt>RowRef</tt>s.  Note they don't 
-     * necessarily have to be the same class, though they will both have
-     * to be instances of <tt>RowLink</tt> or one of its subclasses.
+     * Returns the <tt>i</tt><sup>th</sup> row ref in this link.
+     *
+     * @param  i  index
+     * @return  RowRef at <tt>i</tt>
      */
-    public boolean equals( Object o ) {
-        return ( o instanceof RowLink ) 
-               ? getRowRefs().equals( ((RowLink) o).getRowRefs() )
-               : false;
+    public RowRef getRef( int i ) {
+        return rowRefs[ i ];
     }
 
     /**
-     * Returns a hash code which is consistent with the 
+     * Assesses equality.  Two <tt>RowLink</tt> objects are equal if they
+     * contain equivalent sets of <tt>RowRef</tt>s.
+     */
+    public boolean equals( Object o ) {
+        if ( o instanceof RowLink ) {
+            RowLink other = (RowLink) o;
+            if ( this.size() == other.size() ) {
+                int nref = size();
+                for ( int i = 0; i < nref; i++ ) {
+                    if ( ! this.getRef( i ).equals( other.getRef( i ) ) ) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns a hash code which is consistent with the
      * <tt>equals</tt> method.  Since <tt>RowLink</tt>s are immutable,
      * this is only calculated once, for efficiency.
      */
     public int hashCode() {
         if ( hashCode == null ) {
             int result = 37;
-            int n = size();
-            for ( int i = 0; i < n; i++ ) {
-                result = 23 * result + rowRefs[ i ].hashCode();
+            for ( int i = 0; i < size(); i++ ) {
+                result = 23 * result + getRef( i ).hashCode();
             }
             hashCode = new Integer( result );
         }
         return hashCode.intValue();
+    }
+
+    /**
+     * Comparison order compares first table (if present in both objects)
+     * first, etc.
+     */
+    public int compareTo( Object o ) {
+        RowLink other = (RowLink) o;
+        int nTable = 
+            Math.max( other.getRef( other.size() - 1 ).getTableIndex() + 1,
+                      this.getRef( this.size() - 1 ).getTableIndex() + 1 );
+        long[] thisRowIndices = getRowIndices( this, nTable );
+        long[] otherRowIndices = getRowIndices( other, nTable );
+        for ( int i = 0; i < nTable; i++ ) {
+            if ( thisRowIndices[ i ] < otherRowIndices[ i ] ) {
+                return -1;
+            }
+            else if ( thisRowIndices[ i ] > otherRowIndices[ i ] ) {
+                return +1;
+            }
+        }
+        return new Integer( this.hashCode() )
+              .compareTo( new Integer( other.hashCode() ) );
+    }
+
+    /**
+     * Utility method used by compareTo.
+     */
+    private static long[] getRowIndices( RowLink link, int nTable ) {
+        long[] rowIndices = new long[ nTable ];
+        Arrays.fill( rowIndices, Long.MAX_VALUE );
+        int nref = link.size();
+        for ( int i = 0; i < nref; i++ ) {
+            RowRef ref = link.getRef( i );
+            int iTable = ref.getTableIndex();
+            long iRow = ref.getRowIndex();
+            if ( iRow < rowIndices[ iTable ] ) {
+                rowIndices[ iTable ] = iRow;
+            }
+        }
+        return rowIndices;
     }
 }
