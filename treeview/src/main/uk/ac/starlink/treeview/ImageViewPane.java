@@ -124,6 +124,11 @@ public class ImageViewPane extends JPanel {
              * conainer which has no LayoutManager, doing placement manually
              * so they line up properly (tried to do this with an OverlayLayout
              * but couldn't get it to work). */
+            /* There is a problem with placing the Plot window over the
+             * image display window: since the image display window is 
+             * underneath its choice of cursor is not shown by the AWT.
+             * I don't know how to get round this, though some complicated
+             * fiddling with glassPanes might help. */
             JPanel holder = new JPanel();
             holder.setOpaque( false );
             holder.setLayout( null );
