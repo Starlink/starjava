@@ -129,4 +129,31 @@ public class URLUtils {
         ae.initCause( e );
         return ae;
     }
+
+    /**
+     * Turns a URL into a URI catching the exceptions.
+     *
+     * <p>It seems very unlikely that an exception can actuallly
+     * result here, since a URIs are surely a superset of URLs?  So
+     * why doesn't this method (or an equivalent constructor) exist in
+     * the URI class?  Anyway, if there <em>is</em> any problem
+     * creating the URI, we throw an assertion error, because the
+     * world is surely out of joint.  That is, this method always
+     * succeeds.
+     *
+     * @param url a URL to be converted.  If this is null, then the method returns null
+     * @return the input URL as a URI, or null if the input was null
+     * @throws AssertionError if there is any problem converting the URL
+     */
+    public static URI urlToUri( URL url ) {
+        if (url == null)
+            return null;
+        try {
+            return new URI( url.toExternalForm() );
+        }
+        catch ( java.net.URISyntaxException e ) {
+            throw new AssertionError( "Failed to convert URL <" + url + "> "
+                                      + "to URI" );
+        }
+    }
 }
