@@ -90,6 +90,19 @@ public class GridBagLayouter
      */
     public final static int SCHEME4 = 4;
 
+    /**
+     * Simple row by row layout. Everything packed to the left,
+     * labels left justified, no fills. Typical usage:
+     * <pre>
+     * label        
+     * [input component] [input component]
+     * label        
+     * [input component] [input component]
+     *    ....
+     * </pre>
+     */
+    public final static int SCHEME5 = 5;
+
     /** 
      * The container we're packing 
      */
@@ -185,6 +198,9 @@ public class GridBagLayouter
             break;
             case SCHEME4: {
                 addScheme4( component, complete );
+            }
+            case SCHEME5: {
+                addScheme5( component, complete );
             }
             break;
         }
@@ -300,6 +316,18 @@ public class GridBagLayouter
     }
 
     /**
+     * Add a component using SCHEME5.
+     */
+    private void addScheme5( Component component, boolean complete )
+    {
+        setForNonLabel();
+        container.add( component, gbc );
+        if ( complete ) {
+            eatLine();
+        }
+    }
+
+    /**
      * Add a control using given GridBagContraints. This does not use
      * any of the builtin schemes.
      */
@@ -315,22 +343,23 @@ public class GridBagLayouter
     {
         gbc.insets = insets;
         switch (scheme) {
-            case SCHEME1:
-            case SCHEME3:
-            case SCHEME4: {
-                gbc.anchor = GridBagConstraints.WEST;
-                gbc.fill = GridBagConstraints.NONE;
-                gbc.gridwidth = 1;
-                gbc.weightx = 0.0;
-            }
-            break;
-            case SCHEME2: {
-                gbc.anchor = GridBagConstraints.EAST;
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-                gbc.gridwidth = 1;
-                gbc.weightx = 0.0;
-            }
-            break;
+           case SCHEME1:
+           case SCHEME3:
+           case SCHEME4:
+           case SCHEME5:{
+               gbc.anchor = GridBagConstraints.WEST;
+               gbc.fill = GridBagConstraints.NONE;
+               gbc.gridwidth = 1;
+               gbc.weightx = 0.0;
+           }
+           break;
+           case SCHEME2: {
+               gbc.anchor = GridBagConstraints.EAST;
+               gbc.fill = GridBagConstraints.HORIZONTAL;
+               gbc.gridwidth = 1;
+               gbc.weightx = 0.0;
+           }
+           break;
         }
     }
 
@@ -347,7 +376,8 @@ public class GridBagLayouter
                gbc.anchor = GridBagConstraints.EAST;
             }
             break;
-            case SCHEME2: {
+            case SCHEME2: 
+            case SCHEME5: {
                 gbc.anchor = GridBagConstraints.WEST;
             }
             break;
@@ -396,5 +426,4 @@ public class GridBagLayouter
     {
         return container;
     }
-
 }
