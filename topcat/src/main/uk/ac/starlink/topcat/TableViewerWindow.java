@@ -59,7 +59,6 @@ public class TableViewerWindow extends TopcatViewWindow
     private JTable jtab;
     private TableRowHeader rowHead;
     private JScrollPane scrollpane;
-    private JProgressBar progBar;
     private Action includeAct;
     private Action excludeAct;
     private boolean selfHighlighting;
@@ -98,9 +97,6 @@ public class TableViewerWindow extends TopcatViewWindow
         scrollpane = new SizingScrollPane( jtab );
         getMainArea().add( scrollpane, BorderLayout.CENTER );
 
-        /* Place a progress bar. */
-        progBar = placeProgressBar();
-    
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
             public int rowNumber( int irow ) {
