@@ -221,9 +221,6 @@ public class SpecCoordinatesFrame
      */
     //protected static Map stdDependOn = null;
 
-    /** Switch for inhibiting the propagation of changes */
-    protected boolean inhibitChanges = false;
-
     /**
      * Initialization of AST system and units information.
      */
@@ -971,7 +968,6 @@ public class SpecCoordinatesFrame
                               String restfreq, String sourcevrf,
                               String sourcevel, String epoch )
     {
-        inhibitChanges = true;
         String value = null;
 
         if ( system != null ) {
@@ -1019,7 +1015,6 @@ public class SpecCoordinatesFrame
         if ( epoch != null ) {
             dateObs.setText( epoch );
         }
-        inhibitChanges = false;
     }
 
     private String checkAttr( FrameSet frameSet, String value, String attr )
