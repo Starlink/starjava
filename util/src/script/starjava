@@ -106,6 +106,9 @@ case "`uname -m`" in
    sun4*)
        arch=sparc
        ;;
+   Power*)
+       arch=ppc
+       ;;
    *)
        arch="`uname -m`"
        ;;
