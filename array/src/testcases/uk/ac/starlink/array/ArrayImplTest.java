@@ -333,6 +333,18 @@ public class ArrayImplTest extends TestCase {
                     float val = ((float[]) array)[ pos ];
                     return isBad( array, pos ) ? null : new Float( val );
                 }
+                public BadHandler.ArrayHandler arrayHandler( final Object ar ) {
+                    return new BadHandler.ArrayHandler() {
+                        float[] array = (float[]) ar;
+                        public boolean isBad( int pos ) {
+                            float val = array[ pos ];
+                            return Float.floatToRawIntBits( val ) == pattern;
+                        }
+                        public void putBad( int pos ) {
+                            array[ pos ] = badval;
+                        }
+                    };
+                }
             };
         }
         else if ( type.equals( Type.DOUBLE ) ) {
@@ -367,6 +379,18 @@ public class ArrayImplTest extends TestCase {
                 public Number makeNumber( Object array, int pos ) {
                     double val = ((double[]) array)[ pos ];
                     return isBad( array, pos ) ? null : new Double( val );
+                }
+                public BadHandler.ArrayHandler arrayHandler( final Object ar ) {
+                    return new BadHandler.ArrayHandler() {
+                        double[] array = (double[]) ar;
+                        public boolean isBad( int pos ) {
+                            double val = array[ pos ];
+                            return Double.doubleToRawLongBits( val ) == pattern;
+                        }
+                        public void putBad( int pos ) {
+                            array[ pos ] = badval;
+                        }
+                    };
                 }
             };
         }

@@ -46,6 +46,8 @@ public abstract class BadHandler {
      *                 bad values
      * @param  length  the number of elements of array to write bad values to
      *
+     * @throws ClassCastException  if array is not an array of primitives with
+     *                             type matching the type of this handler
      * @throws IndexOutOfBoundsException  if access outside the bounds of the
      *                                    array is attempted
      */
@@ -59,6 +61,8 @@ public abstract class BadHandler {
      *                 Type with at least pos-1 elements
      * @param  pos     the position at which to write the bad value
      *
+     * @throws ClassCastException  if array is not an array of primitives with
+     *                             type matching the type of this handler
      * @throws IndexOutOfBoundsException  if access outside the bounds of the
      *                                    array is attempted
      */
@@ -80,6 +84,46 @@ public abstract class BadHandler {
      *                                    array is attempted
      */
     abstract public Number makeNumber( Object array, int pos );
+
+    /**
+     * Returns an <tt>ArrayHandler</tt> object for testing/setting bad values
+     * in a given primitive array according to the bad value handling
+     * rules of this <tt>BadHandler</tt>.  The same functionality can
+     * be achieved by use of the {@link #isBad} and {@link #putBad(Object,int)}
+     * methods of this class, but using an <tt>ArrayHandler</tt> can avoid
+     * repeated typecasts and provide better performance.
+     *
+     * @throws  ClassCastException  if array is not an array of primitives with
+     *                              type matching the type of this handler
+     */
+    abstract public ArrayHandler arrayHandler( Object array );
+
+    /**
+     * Class provided for testing and setting bad values in a given 
+     * primitive array.  An object of this class is returned by the
+     * {@link #arrayHandler} method.
+     */
+    public static interface ArrayHandler {
+
+        /**
+         * Indicates whether an element of this ArrayHandler's primitive 
+         * array is bad.
+         * 
+         * @param  pos    the position in array of the pixel to be tested.
+         * @throws IndexOutOfBoundsException  if pos is outside the bounds 
+         *                                    of the array
+         */
+        public boolean isBad( int pos );
+
+        /**
+         * Writes a single bad value into this ArrayHandler's array.
+         *
+         * @param  pos     the position at which to write the bad value
+         * @throws IndexOutOfBoundsException  if access outside the 
+         *                 bounds of the array is attempted
+         */
+        public void putBad( int pos );
+    }
 
     private final Number badValue;
     private final Type type;
@@ -155,6 +199,17 @@ public abstract class BadHandler {
                         byte val = ((byte[]) array)[ pos ];
                         return ( val == byteBad ) ? null : new Byte( val );
                     }
+                    public final ArrayHandler arrayHandler( final Object arr ) {
+                        return new ArrayHandler() {
+                            byte[] array = (byte[]) arr;
+                            public boolean isBad( int pos ) {
+                                return array[ pos ] == byteBad;
+                            }
+                            public void putBad( int pos ) {
+                                array[ pos ] = byteBad;
+                            }
+                        };
+                    }
                 };
             }
         } 
@@ -180,6 +235,17 @@ public abstract class BadHandler {
                         short val = ((short[]) array)[ pos ];
                         return ( val == shortBad ) ? null : new Short( val );
                     }
+                    public final ArrayHandler arrayHandler( final Object arr ) {
+                        return new ArrayHandler() {
+                            short[] array = (short[]) arr;
+                            public boolean isBad( int pos ) {
+                                return array[ pos ] == shortBad;
+                            }
+                            public void putBad( int pos ) {
+                                array[ pos ] = shortBad;
+                            }
+                        };
+                    }
                 };
             }
         }
@@ -204,6 +270,17 @@ public abstract class BadHandler {
                     public final Number makeNumber( Object array, int pos ) {
                         int val = ((int[]) array)[ pos ];
                         return ( val == intBad ) ? null : new Integer( val );
+                    }
+                    public final ArrayHandler arrayHandler( final Object arr ) {
+                        return new ArrayHandler() {
+                            int[] array = (int[]) arr;
+                            public boolean isBad( int pos ) {
+                                return array[ pos ] == intBad;
+                            }
+                            public void putBad( int pos ) {
+                                array[ pos ] = intBad;
+                            }
+                        };
                     }
                 };
             }
@@ -232,6 +309,18 @@ public abstract class BadHandler {
                         return ( val == floatBad || Float.isNaN( val ) ) 
                             ? null : new Float( val );
                     }
+                    public final ArrayHandler arrayHandler( final Object arr ) {
+                        return new ArrayHandler() {
+                            float[] array = (float[]) arr;
+                            public boolean isBad( int pos ) {
+                                float val = array[ pos ];
+                                return val == floatBad || Float.isNaN( val );
+                            }
+                            public void putBad( int pos ) {
+                                array[ pos ] = floatBad;
+                            }
+                        };
+                    }
                 };
             }
         }
@@ -258,6 +347,18 @@ public abstract class BadHandler {
                         double val = ((double[]) array)[ pos ];
                         return ( val == doubleBad || Double.isNaN( val ) )
                             ? null : new Double( val );
+                    }
+                    public final ArrayHandler arrayHandler( final Object arr ) {
+                        return new ArrayHandler() {
+                            double[] array = (double[]) arr;
+                            public boolean isBad( int pos ) {
+                                double val = array[ pos ];
+                                return val == doubleBad || Double.isNaN( val );
+                            }
+                            public void putBad( int pos ) {
+                                array[ pos ] = doubleBad;
+                            }
+                        };
                     }
                 };
             }
@@ -353,6 +454,13 @@ public abstract class BadHandler {
         }
     }
 
+    private static abstract class NullArrayHandler implements ArrayHandler {
+        final public boolean isBad( int pos ) {
+            return false;
+        }
+        abstract public void putBad( int pos );
+    }
+
     private static final BadHandler BYTE_NULL_HANDLER = 
         new NullHandler( Type.BYTE ) {
             private final byte byteBad = 
@@ -365,6 +473,14 @@ public abstract class BadHandler {
             }
             public final Number makeNumber( Object array, int pos ) {
                 return new Byte( ((byte[]) array)[ pos ] );
+            }
+            public final ArrayHandler arrayHandler( final Object arr ) {
+                return new NullArrayHandler() {
+                    byte[] array = (byte[]) arr;
+                    public void putBad( int pos ) {
+                        array[ pos ] = byteBad;
+                    }
+                };
             }
         };
     private static final BadHandler SHORT_NULL_HANDLER = 
@@ -380,6 +496,14 @@ public abstract class BadHandler {
             public final Number makeNumber( Object array, int pos ) {
                 return new Short( ((short[]) array)[ pos ] );
             }
+            public final ArrayHandler arrayHandler( final Object arr ) {
+                return new NullArrayHandler() {
+                    short[] array = (short[]) arr;
+                    public void putBad( int pos ) {
+                        array[ pos ] = shortBad;
+                    }
+                };
+            }
         };
     private static final BadHandler INT_NULL_HANDLER = 
         new NullHandler( Type.INT ) {
@@ -393,6 +517,14 @@ public abstract class BadHandler {
             }
             public final Number makeNumber( Object array, int pos ) {
                 return new Integer( ((int[]) array)[ pos ] );
+            }
+            public final ArrayHandler arrayHandler( final Object arr ) {
+                return new NullArrayHandler() {
+                    int[] array = (int[]) arr;
+                    public void putBad( int pos ) {
+                        array[ pos ] = intBad;
+                    }
+                };
             }
         };
     private static final BadHandler FLOAT_DEFAULT_HANDLER =
@@ -413,6 +545,18 @@ public abstract class BadHandler {
                 float val = ((float[]) array)[ pos ];
                 return Float.isNaN( val ) ? null : new Float( val );
             }
+            public final ArrayHandler arrayHandler( final Object arr ) {
+                return new ArrayHandler() {
+                    float[] array = (float[]) arr;
+                    public boolean isBad( int pos ) {
+                        float val = array[ pos ];
+                        return Float.isNaN( val );
+                    }
+                    public void putBad( int pos ) {
+                        array[ pos ] = floatBad;
+                    }
+                };
+            }
         };
     private static final BadHandler DOUBLE_DEFAULT_HANDLER = 
         new BadHandler( Type.DOUBLE, Type.DOUBLE.defaultBadValue() ) {
@@ -431,6 +575,18 @@ public abstract class BadHandler {
             public final Number makeNumber( Object array, int pos ) {
                 double val = ((double[]) array)[ pos ];
                 return Double.isNaN( val ) ? null : new Double( val );
+            }
+            public final ArrayHandler arrayHandler( final Object arr ) {
+                return new ArrayHandler() {
+                    double[] array = (double[]) arr;
+                    public boolean isBad( int pos ) {
+                        double val = array[ pos ];
+                        return Double.isNaN( val );
+                    }
+                    public void putBad( int pos ) {
+                        array[ pos ] = doubleBad;
+                    }
+                };
             }
         };
 
