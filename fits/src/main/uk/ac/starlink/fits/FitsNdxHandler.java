@@ -2,6 +2,7 @@ package uk.ac.starlink.fits;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,6 +12,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -79,6 +81,7 @@ public class FitsNdxHandler implements NdxHandler {
 
     private List extensions = 
         new ArrayList( FitsConstants.defaultFitsExtensions() );
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Private sole constructor.
@@ -296,6 +299,10 @@ public class FitsNdxHandler implements NdxHandler {
         ArrayDataOutput strm;
         if ( container.getProtocol().equals( "file" ) ) {
             String filename = container.getPath();
+            if ( new File( filename ).delete() ) {
+                logger.warning( "Deleted existing file " + filename +
+                                " prior to rewriting" );
+            }
             strm = new BufferedFile( filename, "rw" );
         }
         else {

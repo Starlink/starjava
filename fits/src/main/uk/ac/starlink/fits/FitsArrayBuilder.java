@@ -75,7 +75,7 @@ public class FitsArrayBuilder implements ArrayBuilder {
 
     private List extensions = 
         new ArrayList( FitsConstants.defaultFitsExtensions() );
-    private static Logger logger = Logger.getLogger( "uk.ac.starlink.array" );
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.fits" );
 
     /**
      * Private sole constructor.

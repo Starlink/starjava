@@ -39,7 +39,7 @@ public class FitsNDArrayTest extends TestCase {
                              new long[] { xdim--, ydim++ } );
 
             try {
-                URL badurl = new URL( container, "#" + ( hdu + 1 ) );
+                URL badurl = new URL( container, "#" + 10 );
                 fact.makeNewNDArray( badurl, shape, type );
                 fail();
             }

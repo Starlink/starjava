@@ -283,7 +283,6 @@ class WritableFitsArrayImpl implements ArrayImpl {
                 }
                 logger.warning( "Writing " + num + " times " + " BLANK " +
                                 "value to skipped pixels in FITS output" );
-  try{throw new Exception();}catch( Exception e ) {e.printStackTrace();}
                 ChunkIterator cIt = new ChunkIterator( num );
                 Object buffer = type.newArray( cIt.getSize() );
                 handler.putBad( buffer, 0, cIt.getSize() );
