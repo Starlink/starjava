@@ -115,31 +115,37 @@ public class ImageHDUDataNode extends HDUDataNode {
                 dataType = null;
         }
 
-        try {
-            final Iterator hdrIt = hdr.iterator();
-            Iterator lineIt = new Iterator() {
-                public boolean hasNext() {
-                    return hdrIt.hasNext();
+        if ( Driver.hasAST ) {
+            try {
+                final Iterator hdrIt = hdr.iterator();
+                Iterator lineIt = new Iterator() {
+                    public boolean hasNext() {
+                        return hdrIt.hasNext();
+                    }
+                    public Object next() {
+                        return hdrIt.next().toString();
+                    }
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+                FitsChan chan = new FitsChan( lineIt );
+                wcsEncoding = chan.getEncoding();
+                AstObject aobj = chan.read();
+                if ( aobj != null && aobj instanceof FrameSet ) {
+                    wcs = (FrameSet) aobj;
                 }
-                public Object next() {
-                    return hdrIt.next().toString();
+                else {
+                    wcsEncoding = null;
+                    wcs = null;
                 }
-                public void remove() {
-                    throw new UnsupportedOperationException();
-                }
-            };
-            FitsChan chan = new FitsChan( lineIt );
-            wcsEncoding = chan.getEncoding();
-            AstObject aobj = chan.read();
-            if ( aobj != null && aobj instanceof FrameSet ) {
-                wcs = (FrameSet) aobj;
             }
-            else {
+            catch ( AstException e ) {
                 wcsEncoding = null;
                 wcs = null;
             }
         }
-        catch ( AstException e ) {
+        else {
             wcsEncoding = null;
             wcs = null;
         }

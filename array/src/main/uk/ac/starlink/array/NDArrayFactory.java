@@ -2,6 +2,7 @@ package uk.ac.starlink.array;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,7 +53,8 @@ public class NDArrayFactory {
         try {
             Class clazz = Class.forName( className );
             Method meth = clazz.getMethod( "getInstance", noParams );
-            ArrayBuilder builder = (ArrayBuilder) meth.invoke( null, noArgs );
+            ArrayBuilder builder = 
+                (ArrayBuilder) meth.invoke( null, noArgs );
             builders.add( builder );
             // logger.info( className + " registered" );
         }
@@ -60,9 +62,30 @@ public class NDArrayFactory {
             logger.warning( className + 
                             " not found - can't register" );
         }
+
+        catch ( InvocationTargetException e ) {
+
+            /* A LinkageError probably means that the native libraries are
+             * not available.  In this case, try to invoke the 
+             * HDSPackage.isAvailable method to do logging in a standard way.
+             * If that doesn't work though, log it directly. */
+            if ( e.getTargetException() instanceof LinkageError ) {
+                try {
+                    Class.forName( "uk.ac.starlink.hds.HDSPackage" )
+                         .getMethod( "isAvailable", noParams )
+                         .invoke( null, noArgs );
+                }
+                catch ( Exception e2 ) {
+                    logger.warning( className + " " + e2 +
+                                    " - can't register" );
+                }
+            }
+            else {
+                logger.warning( className + " " + e + " - can't register" );
+            }
+        }
         catch ( Exception e ) {
-            logger.warning( "Failed to register " + className + 
-                            ": - " + e );
+            logger.warning( className + e + " - can't register" );
         }
 
         /* Attempt to add a FitsArrayBuilder if the class is available. */

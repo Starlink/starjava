@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Channel;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ndx.NdxImpl;
@@ -96,7 +97,7 @@ class NDFNdxImpl implements NdxImpl {
     }
 
     public boolean hasWCS() {
-        return wcsArray() != null;
+        return AstPackage.isAvailable() && wcsArray() != null;
     }
 
     public Object getWCS() {

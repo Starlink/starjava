@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSPackage;
 import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
@@ -47,9 +49,16 @@ public class NDFNdxHandler implements NdxHandler {
      * Returns an NDFNdxHandler.
      *
      * @return   the sole instance of this class
+     * @throws   LinkageError  if the JNIHDS package is not available
      */
     public static NDFNdxHandler getInstance() {
-        return instance;
+        if ( HDSPackage.isAvailable() ) {
+            return instance;
+        }
+        else {
+            throw (LinkageError) new LinkageError( "Native code for the JNIHDS "
+                                                 + "package is not installed" );
+        }
     }
 
     public Ndx makeNdx( URL url, AccessMode mode ) throws IOException {

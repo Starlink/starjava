@@ -161,6 +161,9 @@ public class WCSDataNode extends DefaultDataNode {
 
     private static FrameSet getWcsFromHds( HDSObject hobj ) 
             throws NoSuchDataException {
+        if ( ! Driver.hasAST ) {
+            throw new NoSuchDataException( "AST native library not installed" );
+        }
         try {
             if ( hobj.datStruc() && hobj.datShape().length == 0 ) {
                 HDSObject data = hobj.datFind( "DATA" );

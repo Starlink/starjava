@@ -33,6 +33,7 @@ public class AstTest extends TestCase {
     }
 
     protected void setUp() throws IOException {
+        assertTrue( AstPackage.isAvailable() );
         if ( basicWcs == null ) {
             InputStream strm = getClass()
                               .getClassLoader()

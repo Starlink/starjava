@@ -25,6 +25,7 @@ import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.array.TypeConverter;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.hds.HDSPackage;
 import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.util.SourceReader;
 
@@ -46,6 +47,7 @@ public class NdxTest extends TestCase {
         ndxname = System.getProperty( "java.io.tmpdir" )
                 + File.separatorChar
                 + "vndx";
+        assertTrue( "JNIHDS shared library", HDSPackage.isAvailable() );
         remoteNDX = 
             new URL( "http://andromeda.star.bris.ac.uk/~mbt/data/m31.sdf" );
         rname = System.getProperty( "java.io.tmpdir" )

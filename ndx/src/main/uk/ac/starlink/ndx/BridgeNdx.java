@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Requirements;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Mapping;
@@ -119,7 +120,8 @@ public class BridgeNdx implements Ndx {
 
     public boolean hasWCS() {
         if ( hasWCS == null ) {
-            hasWCS = Boolean.valueOf( impl.hasWCS() );
+            hasWCS = Boolean.valueOf( AstPackage.isAvailable() &&
+                                      impl.hasWCS() );
         }
         return hasWCS.booleanValue();
     }

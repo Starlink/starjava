@@ -129,7 +129,7 @@ public class NDFDataNode extends HDSDataNode {
             }
 
             /* Try to find a WCS component that looks right. */
-            if ( ndfobj.datThere( "WCS" ) ) {
+            if ( Driver.hasAST && ndfobj.datThere( "WCS" ) ) {
                 try {
                     wcsComponent = new WCSDataNode( ndfobj.datFind( "WCS" ) );
 

@@ -27,6 +27,7 @@ public class HDSObjectTest extends TestCase {
     }
 
     protected void setUp() throws HDSException, IOException {
+        assertTrue( HDSPackage.isAvailable() );
         if ( top == null ) {
             String tmpdir = System.getProperty( "java.io.tmpdir" );
             containerName = tmpdir + File.separatorChar + "test_ndf";

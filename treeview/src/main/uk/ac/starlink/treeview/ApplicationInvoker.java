@@ -57,7 +57,7 @@ class ApplicationInvoker {
         try {
 
             /* Configure SOG. */
-            if ( name.equals( "SOG" ) ) {
+            if ( name.equals( "SOG" ) && Driver.hasAST ) {
                 endpoint = new URL( 
                     "http://localhost:8082/services/SOGRemoteServices" );
                 String sogdir = System.getProperty( SOGDIR_PROPERTY );
@@ -79,7 +79,7 @@ class ApplicationInvoker {
             }
 
             /* Configure SPLAT. */
-            else if ( name.equals( "SPLAT" ) ) {
+            else if ( name.equals( "SPLAT" ) && Driver.hasAST ) {
                 endpoint = new URL( 
                     "http://localhost:8081/services/SplatSOAPServices" );
                 String splatdir = System.getProperty( SPLATDIR_PROPERTY );

@@ -11,6 +11,8 @@ import uk.ac.starlink.array.BridgeNDArray;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.HDSPackage;
 
 /**
  * Turns URLs which reference HDS array resources into NDArray objects. 
@@ -50,9 +52,16 @@ public class HDSArrayBuilder implements ArrayBuilder {
      * Returns an HDSArrayBuilder.
      *
      * @return   the sole instance of this class
+     * @throws   LinkageError  if the JNIHDS package is not available
      */
     public static HDSArrayBuilder getInstance() {
-        return instance;
+        if ( HDSPackage.isAvailable() ) {
+            return instance;
+        }
+        else {
+            throw (LinkageError) new LinkageError( "Native code for the JNIHDS "
+                                                 + "package is not installed" );
+        }
     }
 
     public NDArray makeNDArray( URL url, AccessMode mode ) throws IOException {
