@@ -2,6 +2,7 @@ package uk.ac.starlink.connect;
 
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.event.ItemEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -51,6 +52,10 @@ public class BranchComboBox extends JComboBox {
     public void setModel( ComboBoxModel model ) {
         model_ = (BranchComboBoxModel) model;
         super.setModel( model );
+        Object selected = model.getSelectedItem();
+        int state = selected == null ? ItemEvent.DESELECTED
+                                     : ItemEvent.SELECTED;
+        fireItemStateChanged( new ItemEvent( this, 0, selected, state ) );
     }
 
     /**
@@ -426,8 +431,7 @@ public class BranchComboBox extends JComboBox {
 
         public String getName() {
             Connection conn = getConnection();
-            return conn == null ? connAct_.getConnector().getName()
-                                : conn.getRoot().getName();
+            return connAct_.getConnector().getName();
         }
 
         public Branch getParent() {
