@@ -14,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Mapping;
@@ -1095,12 +1096,18 @@ public class SpecData
             //  axis. The coordinates are chosen to run along the
             //  sigaxis (if input data has more than one dimension)
             //  and may be a distance, rather than absolute coordinate.
+            FrameSet specref = null;
             try {
-                FrameSet specref =
-                    ast.makeSpectral( sigaxis, 0, yPos.length,
-                                      impl.getProperty( "label" ),
-                                      impl.getProperty( "units" ),
-                                      false );
+                specref = ast.makeSpectral( sigaxis, 0, yPos.length,
+                                            impl.getProperty( "label" ),
+                                            impl.getProperty( "units" ),
+                                            false );
+            } 
+            catch (AstException e) {
+                throw new SplatException( "Failed to find a valid spectral " +
+                                          "coordinate system", e );
+            }
+            try {
                 astJ = new ASTJ( specref );
 
                 //  Get the mapping for the X axis and check that it is
