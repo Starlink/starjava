@@ -106,7 +106,7 @@ public class FitsPlusTableWriter extends FitsTableWriter {
         /* Output preamble. */
         writer.write( "<?xml version='1.0' encoding='" + XML_ENCODING + "'?>" );
         writer.newLine();
-        writer.write( "<VOTABLE version='1.0'>" );
+        writer.write( "<VOTABLE version='1.1'>" );
         writer.newLine();
         writer.write( "<!--" );
         writer.newLine();
@@ -127,6 +127,11 @@ public class FitsPlusTableWriter extends FitsTableWriter {
         String tname = table.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
             writer.write( voser.formatAttribute( "name", tname.trim() ) );
+        }
+        long nrow = table.getRowCount();
+        if ( nrow > 0 ) {
+            writer.write( voser.formatAttribute( "nrows", 
+                                                 Long.toString( nrow ) ) );
         }
         writer.write( ">" );
         writer.newLine();
