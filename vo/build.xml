@@ -475,7 +475,7 @@
           description="-> acquires web service definition java source files">
 
     <mkdir dir="${build.java}"/>
-    <setproxy proxyport="${http.proxyPort}" proxyHost="${http.proxyHost}"/>
+    <setproxy proxyport="${http.proxyPort}" proxyhost="${http.proxyHost}"/>
     <axis-wsdl2java output="${build.java}"
                     url="http://nvo.stsci.edu/voregistry/registry.asmx?WSDL"/>
   </target>
