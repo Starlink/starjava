@@ -82,7 +82,15 @@ public class WrapperStarTable implements StarTable {
     public DescribedValue getParameterByName( String parname ) {
         return baseTable.getParameterByName( parname );
     }
-    
+
+    public void setParameter( DescribedValue dval ) {
+        DescribedValue old = getParameterByName( dval.getInfo().getName() );
+        if ( old != null ) {
+            baseTable.getParameters().remove( old );
+        }
+        baseTable.getParameters().add( dval );
+    } 
+
     public ColumnInfo getColumnInfo( int icol ) {
         return baseTable.getColumnInfo( icol );
     }

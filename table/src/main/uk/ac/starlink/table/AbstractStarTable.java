@@ -82,6 +82,14 @@ public abstract class AbstractStarTable implements StarTable {
         this.parameters = parameters;
     }
 
+    public void setParameter( DescribedValue dval ) {
+        DescribedValue old = getParameterByName( dval.getInfo().getName() );
+        if ( old != null ) {
+            parameters.remove( old );
+        }
+        parameters.add( dval );
+    }
+
     public String getName() {
         return name;
     }

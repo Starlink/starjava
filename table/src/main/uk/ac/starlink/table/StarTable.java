@@ -105,6 +105,16 @@ public interface StarTable {
     DescribedValue getParameterByName( String parname );
 
     /**
+     * Adds the given DescribedValue to the list of parameter metadata objects
+     * associated with this table.  If an item in the parameter list with
+     * the same name as the supplied value already exists, it is removed
+     * from the list.
+     *
+     * @param  dval  the new parameter datum to add
+     */
+    void setParameter( DescribedValue dval );
+
+    /**
      * Returns the object describing the data in a given column.
      *
      * @param   icol  the column for which header information is required
