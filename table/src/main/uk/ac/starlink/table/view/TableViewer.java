@@ -3,6 +3,7 @@ package uk.ac.starlink.table.view;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -25,6 +26,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -70,6 +72,10 @@ public class TableViewer extends JFrame {
     private JTable jtab;
     private TableRowHeader rowHead;
     private JScrollPane scrollpane;
+    private JProgressBar progBar;
+    private ColumnInfoWindow colinfoWindow;
+    private ParameterWindow paramWindow;
+    private StatsWindow statsWindow;
     private Action exitAct;
     private Action closeAct;
     private Action newAct;
@@ -79,6 +85,7 @@ public class TableViewer extends JFrame {
     private Action plotAct;
     private Action paramAct;
     private Action colinfoAct;
+    private Action statsAct;
     private Action unsortAct;
     private Action newsubsetAct;
     private Action nosubsetAct;
@@ -127,6 +134,8 @@ public class TableViewer extends JFrame {
         jtab.setRowSelectionAllowed( true );
         scrollpane = new SizingScrollPane( jtab );
         getContentPane().add( scrollpane, BorderLayout.CENTER );
+        progBar = new JProgressBar( JProgressBar.HORIZONTAL );
+        getContentPane().add( progBar, BorderLayout.SOUTH );
 
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
@@ -160,7 +169,9 @@ public class TableViewer extends JFrame {
         paramAct = new ViewerAction( "Table parameters", 0,
                                      "Display table metadata" );
         colinfoAct = new ViewerAction( "Column metadata", 0,
-                                       "Display column metadata" );
+                                       "Display metadata for each column" );
+        statsAct = new ViewerAction( "Column statistics", 0,
+                                     "Display statistics for each column" );
         unsortAct = new ViewerAction( "Unsort", 0,
                                       "Display in original order" );
 
@@ -209,6 +220,7 @@ public class TableViewer extends JFrame {
         mb.add( winMenu );
         winMenu.add( paramAct );
         winMenu.add( colinfoAct );
+        winMenu.add( statsAct );
         winMenu.add( plotAct );
 
         /* Subset menu. */
@@ -239,7 +251,10 @@ public class TableViewer extends JFrame {
             private void maybeShowPopup( MouseEvent evt ) {
                 if ( evt.isPopupTrigger() ) {
                     int jcol = jtab.columnAtPoint( evt.getPoint() );
-                    if ( jcol >= 0 ) {
+                    if ( evt.getComponent() == rowHead ) {
+                        jcol = -1;
+                    }
+                    if ( jcol >= -1 ) {
                         JPopupMenu popper = columnPopup( jcol );
                         if ( popper != null ) {
                             popper.show( evt.getComponent(),
@@ -251,6 +266,7 @@ public class TableViewer extends JFrame {
         };
         jtab.addMouseListener( mousey );
         jtab.getTableHeader().addMouseListener( mousey );
+        rowHead.addMouseListener( mousey );
 
         /* Configure a listener for row selection events. */
         final ListSelectionModel selectionModel = jtab.getSelectionModel();
@@ -531,11 +547,7 @@ public class TableViewer extends JFrame {
     public StarTable getApparentStarTable() {
         int ncol = columnModel.getColumnCount();
         final int nrow = viewModel.getRowCount();
-        ColumnStarTable appTable = new ColumnStarTable() {
-            public long getRowCount() {
-                return nrow;
-            }
-        };
+        ColumnStarTable appTable = ColumnStarTable.makeTableWithRows( nrow );
         for ( int icol = 0; icol < ncol; icol++ ) {
             final int modelIndex = columnModel.getColumn( icol )
                                               .getModelIndex();
@@ -626,19 +638,23 @@ public class TableViewer extends JFrame {
     }
 
     /**
-     * Returns a popup menu for a given column.
+     * Returns a popup menu for a given column.  If the dummy column 
+     * index -1 is used, a popup suitable for the row header column
+     * will be returned.
      *
      * @param  jcol the data model column to which the menu applies
      */
     private JPopupMenu columnPopup( final int jcol ) {
         JPopupMenu popper = new JPopupMenu();
 
-        Action deleteAct = new AbstractAction( "Delete" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                columnModel.removeColumn( columnModel.getColumn( jcol ) );
-            }
-        };
-        popper.add( deleteAct );
+        if ( jcol >= 0 ) {
+            Action deleteAct = new AbstractAction( "Delete" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    columnModel.removeColumn( columnModel.getColumn( jcol ) );
+                }
+            };
+            popper.add( deleteAct );
+        }
 
         Action addcolAct = new AbstractAction( "New column" ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -651,11 +667,17 @@ public class TableViewer extends JFrame {
         };
         popper.add( addcolAct );
 
-        int icol = columnModel.getColumn( jcol ).getModelIndex();
-        if ( Comparable.class.isAssignableFrom( dataModel.getColumnInfo( icol )
-                                               .getContentClass() ) ) {
-            popper.add( new SortAction( icol, true ) );
-            popper.add( new SortAction( icol, false ) );
+        if ( jcol >= 0 ) {
+            int icol = columnModel.getColumn( jcol ).getModelIndex();
+            if ( Comparable.class
+                           .isAssignableFrom( dataModel.getColumnInfo( icol )
+                                                       .getContentClass() ) ) {
+                popper.add( new SortAction( icol, true ) );
+                popper.add( new SortAction( icol, false ) );
+            }
+        }
+        else {
+            popper.add( unsortAct );
         }
 
         return popper;
@@ -705,14 +727,16 @@ public class TableViewer extends JFrame {
             /* Save the table to a file. */
             else if ( this == saveAct ) {
                 assert dataModel != null;  // action would be disabled 
-                getSaver().saveTable( getApparentStarTable(), parent );
+                StarTable saveTable = getApparentStarTable();
+                getSaver().saveTable( saveTable, parent );
             }
 
             /* Launch Mirage. */
             else if ( this == mirageAct ) {
                 assert MirageHandler.isMirageAvailable();
                 try {
-                    MirageHandler.invokeMirage( getApparentStarTable(), null );
+                    StarTable mirageTable = getApparentStarTable();
+                    MirageHandler.invokeMirage( mirageTable, null );
                 }
                 catch ( Exception e ) {
                     JOptionPane.showMessageDialog( parent, e.toString(),
@@ -723,17 +747,43 @@ public class TableViewer extends JFrame {
 
             /* Open a plot window. */
             else if ( this == plotAct ) {
-               new PlotWindow( dataModel, columnModel, subsets, parent );
+                new PlotWindow( tv );
             }
 
             /* Display table parameters. */
             else if ( this == paramAct ) {
-               new ParameterWindow( dataModel, columnModel, parent );
+                if ( paramWindow == null ) {
+                    paramWindow = new ParameterWindow( dataModel, columnModel,
+                                                       parent );
+                }
+                else {
+                    paramWindow.setState( Frame.NORMAL );
+                    paramWindow.show();
+                }
             }
 
             /* Display column parameters. */
             else if ( this == colinfoAct ) {
-                new ColumnInfoWindow( tv );
+                if ( colinfoWindow == null ) {
+                    colinfoWindow = new ColumnInfoWindow( tv );
+                }
+                else {
+                    colinfoWindow.setState( Frame.NORMAL );
+                    colinfoWindow.show();
+                }
+            }
+
+            /* Display column statistics. */
+            else if ( this == statsAct ) {
+                if ( statsWindow == null ) {
+                    statsWindow = new StatsWindow( tv );
+                    statsWindow.setSubset( viewModel.getSubset() );
+                }
+                else {
+                    statsWindow.setSubset( viewModel.getSubset() );
+                    statsWindow.setState( Frame.NORMAL );
+                    statsWindow.show();
+                }
             }
 
             /* Set the row order back to normal. */

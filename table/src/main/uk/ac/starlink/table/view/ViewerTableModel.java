@@ -80,6 +80,17 @@ public class ViewerTableModel extends AbstractTableModel {
     }
 
     /**
+     * Returns the RowSubset currently used by the viewer model.
+     * If the subset is actually <tt>null</tt> the return value will
+     * be <tt>RowSubset.ALL</tt>, which has equivalent behaviour.
+     *
+     * @return the row subset
+     */
+    public RowSubset getSubset() {
+        return ( rset == null ) ? RowSubset.ALL : rset;
+    }
+
+    /**
      * Returns the mapping from base table rows to the columns visible
      * in this model.
      *

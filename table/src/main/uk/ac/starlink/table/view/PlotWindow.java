@@ -32,6 +32,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
@@ -59,8 +60,9 @@ import uk.ac.starlink.table.gui.StarTableColumn;
  */
 public class PlotWindow extends AuxWindow implements ActionListener {
 
-    private StarTable stable;
-    private TableColumnModel tcmodel;
+    private TableViewer tv;
+    private StarTable dataModel;
+    private TableColumnModel columnModel;
     private OptionsListModel subsets;
     private JComboBox xColBox;
     private JComboBox yColBox;
@@ -68,6 +70,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private JCheckBox yLogBox;
     private ListSelectionModel subSelModel;
     private JPanel plotPanel;
+    private JProgressBar progBar;
     private JFileChooser printSaver;
     private PlotState lastState;
     private PlotBox lastPlot;
@@ -78,22 +81,21 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
     private static final double MILLISECONDS_PER_YEAR 
                               = 365.25 * 24 * 60 * 60 * 1000;
+    private static final ActionEvent FORCE_REPLOT = 
+        new ActionEvent( new Object(), 0, null );
 
     /**
      * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
      * <tt>TableColumnModel</tt>.
      *
-     * @param   stable  the StarTable which to plot columns
-     * @param   tcmodel  the TableColumnModel
-     * @param   subsets the list of known row subsets
-     * @param   parent  the parent component
+     * @param   tableviewer  the viewer whose data are to be plotted
      */
-    public PlotWindow( StarTable stable, TableColumnModel tcmodel,
-                       final OptionsListModel subsets, Component parent ) {
-        super( "Table Plotter", stable, parent );
-        this.stable = stable;
-        this.tcmodel = tcmodel;
-        this.subsets = subsets;
+    public PlotWindow( TableViewer tableviewer ) {
+        super( "Table Plotter", tableviewer );
+        this.tv = tableviewer;
+        this.dataModel = tv.getDataModel();
+        this.columnModel = tv.getColumnModel();
+        this.subsets = tv.getSubsets();
 
         /* Do some window setup. */
         setSize( 400, 400 );
@@ -114,8 +116,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         xColBox = new JComboBox();
         yColBox = new JComboBox();
         int nok = 0;
-        for ( int i = 0; i < tcmodel.getColumnCount(); i++ ) {
-            StarTableColumn tcol = (StarTableColumn) tcmodel.getColumn( i );
+        for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
+            StarTableColumn tcol = (StarTableColumn) columnModel.getColumn( i );
             ColumnInfo cinfo = tcol.getColumnInfo();
             int index = tcol.getModelIndex();
             if ( Number.class.isAssignableFrom( cinfo.getContentClass() ) ||
@@ -152,12 +154,12 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Arrange for new columns to be reflected in this window,
          * by adding them to the plot column selection boxes.  Don't bother 
          * changing things if a column is removed or moved though. */
-        tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
+        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
-                TableColumnModel tcmodel = PlotWindow.this.tcmodel;
-                assert tcmodel == evt.getSource();
-                StarTableColumn added = (StarTableColumn)
-                                        tcmodel.getColumn( evt.getToIndex() );
+                TableColumnModel columnModel = PlotWindow.this.columnModel;
+                assert columnModel == evt.getSource();
+                StarTableColumn added = 
+                    (StarTableColumn) columnModel.getColumn( evt.getToIndex() );
                 int index = added.getModelIndex();
                 ColumnInfo cinfo = added.getColumnInfo();
                 if ( Number.class
@@ -212,7 +214,22 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Get a menu for selecting row subsets to plot. */
         CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
         subSelModel = subMenu.getSelectionModel();
-        subSelModel.addSelectionInterval( 0, subMenu.getEntryCount() - 1 );
+
+        /* Initialise its selections so that both ALL and the current subset,
+         * of the viewer, if any, are plotted. */
+        subSelModel.addSelectionInterval( 0, 0 );  // ALL
+        int nrsets = subsets.size();
+        RowSubset currentSet = tv.getViewModel().getSubset();
+        if ( currentSet != RowSubset.ALL ) {
+            for ( int i = 1; i < nrsets; i++ ) {
+                if ( subsets.get( i ) == currentSet ) {
+                    subSelModel.addSelectionInterval( i, i );
+                }
+            }
+        }
+
+        /* Ensure that the plot will respond to the subset selection being
+         * changed. */
         subSelModel.addListSelectionListener( new ListSelectionListener() {
             public void valueChanged( ListSelectionEvent evt ) {
                 PlotWindow.this.actionPerformed( null );
@@ -244,11 +261,16 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         plotPanel = new JPanel( new BorderLayout() );
 
         /* Arrange the components in the top level window. */
-        Container cp = getContentPane();
-        cp.add( plotPanel, BorderLayout.CENTER );
-        cp.add( configPanel, BorderLayout.SOUTH );
+        JPanel mainArea = new JPanel( new BorderLayout() );
+        mainArea.add( plotPanel, BorderLayout.CENTER );
+        mainArea.add( configPanel, BorderLayout.SOUTH );
+        getContentPane().add( mainArea, BorderLayout.CENTER );
 
-        /* Set up actions for showing the grid. */
+        /* Add a progress bar. */
+        progBar = new JProgressBar( JProgressBar.HORIZONTAL );
+        getContentPane().add( progBar, BorderLayout.SOUTH );
+
+        /* Action for showing the grid. */
         final ButtonModel gridModel = new DefaultButtonModel();
         gridModel.setSelected( showGrid );
         gridModel.addItemListener( new ItemListener() {
@@ -267,14 +289,15 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         };
 
-        /* Construct a new menu for general plot operations. */
-        JMenu plotMenu = new JMenu( "Plot" );
-        plotMenu.add( new BasicAction( "Fit to points",
-                                         "Resize plot to show all points" ) {
+        /* Action for resizing the plot. */
+        Action resizeAction = new BasicAction( "Fit to points",
+                                           "Resize plot to show all points" ) {
             public void actionPerformed( ActionEvent evt ) {
                 lastPlot.fillPlot();
             }
-        } );
+        };
+
+        /* Menu item for selecting marker types. */
         JMenu markMenu = new JMenu( "Marker type" );
         String[] markStyles = 
             new String[] { "points", "dots", "various", "pixels" };
@@ -289,12 +312,23 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             markMenu.add( item );
             bgroup.add( item );
         }
-        plotMenu.add( markMenu );
 
+        /* Action for repdrawing the current plot. */
+        Action replotAction = new BasicAction( "Replot",
+                                 "Redraw the plot with current table data" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                PlotWindow.this.actionPerformed( FORCE_REPLOT );
+            }
+        };
+
+        /* Construct a new menu for general plot operations. */
+        JMenu plotMenu = new JMenu( "Plot" );
+        plotMenu.add( resizeAction );
+        plotMenu.add( replotAction );
         JMenuItem gridItem = new JCheckBoxMenuItem( gridAction );
         gridItem.setModel( gridModel );
         plotMenu.add( gridItem );
-
+        plotMenu.add( markMenu );
         getJMenuBar().add( plotMenu );
 
         /* Construct a new menu for subset operations. */
@@ -315,7 +349,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         getJMenuBar().add( subsetMenu );
 
         /* Do the plotting. */
-        actionPerformed( null );
+        actionPerformed( FORCE_REPLOT );
 
         /* Render this component visible. */
         pack();
@@ -355,7 +389,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             setMarkStyle( plot, markStyle );
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
-            long nrow = stable.getRowCount();
+            long nrow = dataModel.getRowCount();
             long ngood = 0;
             long nerror = 0;
             plottedRows.clear();
@@ -369,8 +403,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 }
                 if ( any ) {
                     try {
-                        Object xval = stable.getCell( lrow, xcol );
-                        Object yval = stable.getCell( lrow, ycol );
+                        Object xval = dataModel.getCell( lrow, xcol );
+                        Object yval = dataModel.getCell( lrow, ycol );
                         double x = doubleValue( xval );
                         double y = doubleValue( yval );
                         if ( ! Double.isNaN( x ) && ! Double.isNaN( y ) ) {
@@ -401,7 +435,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Generic configuration. */
-        plotbox.setTitle( stable.getName() );
+        plotbox.setTitle( dataModel.getName() );
 
         /* Axis labels. */
         String xName = xColumn.getName();
@@ -449,7 +483,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private BitSet calcVisibleRows() {
         int xcol = lastState.xCol.index;
         int ycol = lastState.yCol.index;
-        int nrow = (int) stable.getRowCount();
+        int nrow = (int) dataModel.getRowCount();
         double[] xr = plot.getXRange();
         double[] yr = plot.getYRange();
         double x0 = xr[ 0 ];
@@ -461,8 +495,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             for ( int irow = 0; irow < nrow; irow++ ) {
                 long lrow = (long) irow;
                 if ( plottedRows.get( irow ) ) {
-                    Object xval = stable.getCell( lrow, xcol );
-                    Object yval = stable.getCell( lrow, ycol );
+                    Object xval = dataModel.getCell( lrow, xcol );
+                    Object yval = dataModel.getCell( lrow, ycol );
                     double x = doubleValue( xval );
                     double y = doubleValue( yval );
                     if ( x >= x0 && x <= x1 && y >= y0 && y <= y1 ) {
@@ -509,7 +543,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         /* Action is only required if the requested state of the plot has
          * changed since last time we plotted it. */
         PlotState state = getPlotState();
-        if ( ! state.equals( lastState ) ) {
+        if ( ! state.equals( lastState ) || evt == FORCE_REPLOT ) {
 
             /* Construct a new Plot object for the requested PlotState. */
             plot = makePlot( state );

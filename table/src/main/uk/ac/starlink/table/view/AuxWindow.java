@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.view;
 
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.SwingUtilities;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -23,6 +25,8 @@ import uk.ac.starlink.table.StarTable;
 class AuxWindow extends JFrame {
 
     protected JMenu fileMenu;
+
+    private static final Cursor busyCursor = new Cursor( Cursor.WAIT_CURSOR );
 
     /**
      * Constructs an AuxWindow based on a <tt>StarTable</tt>.
@@ -101,6 +105,10 @@ class AuxWindow extends JFrame {
         pos.x += 40;
         pos.y += 40;
         second.setLocation( pos );
+    }
+
+    public void setBusy( boolean busy ) {
+        setCursor( busy ? busyCursor : null );
     }
 
 }
