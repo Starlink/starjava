@@ -248,7 +248,7 @@ public class TarStreamDataNode extends DefaultDataNode {
      *          whose names begin with <tt>level</tt>.  They appear in the
      *          list in the same order as they appear in the archive
      */
-    private List getEntriesAtLevel( String level ) throws IOException {
+    protected List getEntriesAtLevel( String level ) throws IOException {
         Set realDirs = new HashSet();
         Set impliedDirs = new TreeSet();
         List levEnts = new ArrayList();

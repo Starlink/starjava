@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -176,7 +177,20 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
         /* Turn it into a DOMSource. */
         DOMSource domsrc = new DOMSource( doc );
-        domsrc.setSystemId( datsrc.getName() );
+        String sysid;
+        URL url = datsrc.getURL();
+        if ( url != null ) {
+            if ( url.getProtocol().equals( "file" ) ) {
+                sysid = url.getPath();
+            }
+            else {
+                sysid = url.toString();
+            }
+        }
+        else {
+            sysid = datsrc.getName();
+        }
+        domsrc.setSystemId( sysid );
         return domsrc;
     }
 

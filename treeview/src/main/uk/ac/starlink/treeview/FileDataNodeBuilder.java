@@ -79,6 +79,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* Make a DataSource from the file. */
             datsrc = new FileDataSource( file );
+            datsrc.setName( file.getName() );
 
             /* If there is compression, pass it to the handler for streams. */
             Compression compress = datsrc.getCompression();
@@ -193,6 +194,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             throws NoSuchDataException {
         try {
             FileDataSource datsrc = new FileDataSource( file );
+            datsrc.setName( file.getName() );
             return SourceDataNodeBuilder.makeDOMSource( datsrc );
         }
         catch ( IOException e ) {

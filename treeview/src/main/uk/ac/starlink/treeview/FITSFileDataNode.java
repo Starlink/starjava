@@ -58,7 +58,9 @@ public class FITSFileDataNode extends FITSDataNode {
     public static FileDataSource makeFileDataSource( File file ) 
             throws NoSuchDataException {
         try {
-            return new FileDataSource( file );
+            FileDataSource fdatsrc = new FileDataSource( file );
+            fdatsrc.setName( file.getName() );
+            return fdatsrc;
         }
         catch ( IOException e ) {
             throw new NoSuchDataException( e );

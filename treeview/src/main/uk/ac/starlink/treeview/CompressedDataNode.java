@@ -83,14 +83,12 @@ public class CompressedDataNode extends DefaultDataNode {
                         }
                     } );
                 }
-                else {
-                    dv.addPane( "Hex dump", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            return new HexDumper( datsrc.getInputStream(), 
-                                                  datsrc.getLength() );
-                        }
-                    } );
-                }
+                dv.addPane( "Hex dump", new ComponentMaker() {
+                    public JComponent getComponent() throws IOException {
+                        return new HexDumper( datsrc.getInputStream(), 
+                                              datsrc.getLength() );
+                    }
+                } );
             }
             catch ( final IOException e ) {
                 dv.addPane( "Error reading data", new ComponentMaker() {

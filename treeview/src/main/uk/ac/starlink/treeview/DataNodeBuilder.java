@@ -235,6 +235,7 @@ public abstract class DataNodeBuilder {
                     DataSource datsrc = null;
                     try {
                         datsrc = new FileDataSource( file );
+                        datsrc.setName( file.getName() );
                         return configureNode( sourceBuilder.buildNode( datsrc ),
                                               datsrc );
                     }

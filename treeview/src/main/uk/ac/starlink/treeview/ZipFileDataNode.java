@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.swing.JComponent;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -22,6 +23,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
     private ZipFile zfile;
     private File file;
     private List entries;
+    private JComponent fullView;
 
     /**
      * Initialises a <code>ZipFileDataNode</code> from a
@@ -123,6 +125,17 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
             }
         };
  
+    }
+
+    public JComponent getFullView() {
+        if ( fullView == null ) {
+            DetailViewer dv = new DetailViewer( this );
+            fullView = dv.getComponent();
+            dv.addSeparator();
+            dv.addKeyedItem( "Length", file.length() );
+            dv.addKeyedItem( "Number of entries", zfile.size() );
+        }
+        return fullView;
     }
 
     private static byte[] getMagic( File file ) throws NoSuchDataException {

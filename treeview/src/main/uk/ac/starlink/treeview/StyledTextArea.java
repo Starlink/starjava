@@ -89,7 +89,7 @@ public class StyledTextArea extends JTextPane {
     }
 
     public void addKeyedItem( String name, String value ) {
-        append( "itemname", name + ":  " );
+        append( "itemname", name + ":\u00a0\u00a0" );
         append( "itemvalue", value + "\n" );
     }
 

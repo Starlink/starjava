@@ -196,6 +196,13 @@ public class FileDataNode extends DefaultDataNode {
             dv.addKeyedItem( "Read access", file.canRead() ? "yes" : "no" );
             dv.addKeyedItem( "Write access", file.canWrite() ? "yes" : "no" );
 
+            /* If it's a directory, comment on the files it contains. */
+            File[] entries = file.listFiles();
+            if ( entries != null ) {
+                dv.addSeparator();
+                dv.addKeyedItem( "Number of files", entries.length );
+            }
+
             /* If it looks like a text file, add the option to view the
              * content. */
             if ( file.canRead() && ! file.isDirectory() ) {
@@ -229,16 +236,13 @@ public class FileDataNode extends DefaultDataNode {
                             }
                         } );
                     }
-                    else {
-                        dv.addPane( "Hex dump", new ComponentMaker() {
-                            public JComponent getComponent()
-                                    throws IOException {
-                                RandomAccessFile raf =
-                                    new RandomAccessFile( file, "r" );
-                                return new HexDumper( raf );
-                            }
-                        } );
-                    }
+                    dv.addPane( "Hex dump", new ComponentMaker() {
+                        public JComponent getComponent() throws IOException {
+                            RandomAccessFile raf =
+                                new RandomAccessFile( file, "r" );
+                            return new HexDumper( raf );
+                        }
+                    } );
                 }
                 catch ( final IOException e ) {
                     dv.addPane( "Error reading file", new ComponentMaker() {
