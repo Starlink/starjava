@@ -40,6 +40,10 @@ public abstract class FileNode implements Node {
                               : new FileBranch( parent );
     }
 
+    public File getFile() {
+        return file_;
+    }
+
     public boolean equals( Object other ) {
         if ( other.getClass().equals( getClass() ) ) {
             return file_.equals( ((FileNode) other).file_ );
