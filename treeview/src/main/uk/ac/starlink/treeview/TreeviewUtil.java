@@ -1,5 +1,9 @@
 package uk.ac.starlink.treeview;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Logger;
 import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.hds.HDSPackage;
@@ -121,5 +125,84 @@ public class TreeviewUtil {
 
     public static void setGUI( boolean hasGUI ) {
         TreeviewUtil.hasGUI = Boolean.valueOf( hasGUI );
+    }
+
+    public static String getNodePath( DataNode node ) {
+        List pathList = accumulatePath( node, new ArrayList() );
+        if ( pathList != null ) {
+            StringBuffer pathBuf = new StringBuffer();
+            Collections.reverse( pathList );
+            for ( Iterator it = pathList.iterator(); it.hasNext(); ) {
+                pathBuf.append( (String) it.next() );
+            }
+            return pathBuf.toString();
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Recursively accumulates the path of a given datanode into a 
+     * list of elements.  The path is returned, or <tt>null</tt> if
+     * a full path is not available.
+     *
+     * @param  node  the data node whose path is to be accumulated 
+     *               into the <tt>path</tt> list
+     * @param  path  a list of path elements; the first element is
+     *               furthest away from the root
+     * @return  the complete path for <tt>node</tt> as a list of Strings; 
+     *          the root is the last element.  <tt>null</tt> if no path
+     *          can be found
+     */
+    public static List accumulatePath( DataNode node, List path ) {
+
+        /* Get the contribution from this node. */
+        String pathEl = node.getPathElement();
+        if ( pathEl == null ) {
+            return null;
+        }
+
+        /* Get the parent of this node. */
+        DataNode parent = node.getCreator().getParent();
+
+        /* Get the separator from the parent. */
+        String prefix;
+        if ( parent == null ) {
+            prefix = "";
+        }
+        else {
+            String sep = parent.getPathSeparator();
+            if ( sep == null ) {
+                return null;
+            }
+            else {
+                prefix = sep;
+            }
+        }
+
+        /* Add the contribution from this element to the path. */
+        path.add( prefix + pathEl );
+
+        /* Return the completed path or recurse. */
+        return parent == null ? path : accumulatePath( parent, path );
+    }
+
+    /**
+     * Returns a short string representation of a DataNode.  This is
+     * suitable for use as the string used in rendering the node in the tree.
+     *
+     * @return   a string summarising the node
+     */
+    public static String toString( DataNode node ) {
+        String result = node.getLabel().trim();
+        String desc = node.getDescription();
+        if ( desc != null ) {
+            desc = desc.trim();
+            if ( desc.length() > 0 ) {
+                result += "  " + desc;
+            }
+        }
+        return result;
     }
 }

@@ -37,7 +37,6 @@ public class FileDataNode extends DefaultDataNode {
     private JPanel viewPanel;
     private File file;
     private File parentFile;
-    private JComponent fullView;
     private static Map knowndirs = new HashMap();
 
     /**
@@ -62,7 +61,6 @@ public class FileDataNode extends DefaultDataNode {
         catch ( IOException e ) {
             this.parentFile = null;
         }
-        setPath( file.getAbsolutePath() );
         setIconID( file.isDirectory() ? IconFactory.DIRECTORY 
                                       : IconFactory.FILE );
     }
@@ -100,10 +98,6 @@ public class FileDataNode extends DefaultDataNode {
                 throw new UnsupportedOperationException();
             }
         };
-    }
-
-    public boolean hasParentObject() {
-        return parentFile != null;
     }
 
     public Object getParentObject() {
@@ -182,84 +176,76 @@ public class FileDataNode extends DefaultDataNode {
         return here;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Size", file.length() );
+        dv.addKeyedItem( "Last modified", 
+                          new Date( file.lastModified() ).toString() );
+        dv.addKeyedItem( "Read access", file.canRead() ? "yes" : "no" );
+        dv.addKeyedItem( "Write access", file.canWrite() ? "yes" : "no" );
+        dv.addKeyedItem( "Absolute path", file.getAbsolutePath() );
+
+        /* If it's a directory, comment on the files it contains. */
+        File[] entries = file.listFiles();
+        if ( entries != null ) {
             dv.addSeparator();
-            dv.addKeyedItem( "Size", file.length() );
-            dv.addKeyedItem( "Last modified", 
-                              new Date( file.lastModified() ).toString() );
-            dv.addKeyedItem( "Read access", file.canRead() ? "yes" : "no" );
-            dv.addKeyedItem( "Write access", file.canWrite() ? "yes" : "no" );
+            dv.addKeyedItem( "Number of files", entries.length );
+        }
 
-            /* If it's a directory, comment on the files it contains. */
-            File[] entries = file.listFiles();
-            if ( entries != null ) {
-                dv.addSeparator();
-                dv.addKeyedItem( "Number of files", entries.length );
-            }
+        /* If it looks like a text file, add the option to view the
+         * content. */
+        if ( file.canRead() && ! file.isDirectory() ) {
+            try {
 
-            /* If it looks like a text file, add the option to view the
-             * content. */
-            if ( file.canRead() && ! file.isDirectory() ) {
-                try {
-
-                    /* See if it looks like ASCII. */
-                    InputStream strm = new FileInputStream( file );
-                    int nTest = 512;
-                    byte[] buf = new byte[ nTest ];
-                    int nGot = strm.read( buf );
-                    strm.close();
-                    if ( nGot < nTest ) {
-                        byte[] buf1 = new byte[ nGot ];
-                        System.arraycopy( buf, 0, buf1, 0, nGot );
-                        buf = buf1;
-                    }
+                /* See if it looks like ASCII. */
+                InputStream strm = new FileInputStream( file );
+                int nTest = 512;
+                byte[] buf = new byte[ nTest ];
+                int nGot = strm.read( buf );
+                strm.close();
+                if ( nGot < nTest ) {
                     byte[] buf1 = new byte[ nGot ];
-                    boolean isText = TreeviewUtil.isASCII( buf );
+                    System.arraycopy( buf, 0, buf1, 0, nGot );
+                    buf = buf1;
+                }
+                byte[] buf1 = new byte[ nGot ];
+                boolean isText = TreeviewUtil.isASCII( buf );
 
-                //  HTML viewing does work but there are problems with it; 
-                //  for one thing I can't make the HTML load asynchronously.
-                //  If I do have HTML viewing, I'm not sure if it should be 
-                //  here or (more likely) an HTMLDataNode.
-                //  if ( datsrc.isHTML() ) {
-                //      dv.addPane( "HTML view", new ComponentMaker() {
-                //          public JComponent getComponent()
-                //                  throws IOException {
-                //              return new HTMLViewer( file );
-                //          }
-                //      } );
-                //  }
-                    if ( isText ) {
-                        dv.addPane( "File text", new ComponentMaker() {
-                            public JComponent getComponent()
-                                    throws IOException {
-                                return new TextViewer( new FileReader( file ) );
-                            }
-                        } );
-                    }
-                    dv.addPane( "Hex dump", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            RandomAccessFile raf =
+            //  HTML viewing does work but there are problems with it; 
+            //  for one thing I can't make the HTML load asynchronously.
+            //  If I do have HTML viewing, I'm not sure if it should be 
+            //  here or (more likely) an HTMLDataNode.
+            //  if ( datsrc.isHTML() ) {
+            //      dv.addPane( "HTML view", new ComponentMaker() {
+            //          public JComponent getComponent()
+            //                  throws IOException {
+            //              return new HTMLViewer( file );
+            //          }
+            //      } );
+            //  }
+                if ( isText ) {
+                    dv.addPane( "File text", new ComponentMaker() {
+                        public JComponent getComponent()
+                                throws IOException {
+                            return new TextViewer( new FileReader( file ) );
+                        }
+                    } );
+                }
+                dv.addPane( "Hex dump", new ComponentMaker() {
+                    public JComponent getComponent() throws IOException {
+                        RandomAccessFile raf =
                                 new RandomAccessFile( file, "r" );
-                            return new HexDumper( raf );
-                        }
-                    } );
-                }
-                catch ( final IOException e ) {
-                    dv.addPane( "Error reading file", new ComponentMaker() {
-                        public JComponent getComponent() {
-                            return new TextViewer( e );
-                        }
-                    } );
-                }
+                        return new HexDumper( raf );
+                    }
+                } );
+            }
+            catch ( final IOException e ) {
+                dv.addPane( "Error reading file", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TextViewer( e );
+                    }
+                } );
             }
         }
-        return fullView;
     }
 
     /**

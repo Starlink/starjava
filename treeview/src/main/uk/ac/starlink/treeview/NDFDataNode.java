@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.ast.CmpMap;
@@ -40,7 +39,6 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
     private HDSObject ndfobj;
     private NDShape shape;
     private FrameSet wcs;
-    private JComponent fullView;
     private DataNodeFactory axisChildMaker;
     private DataNodeFactory ndfChildMaker;
     private Ndx ndx;
@@ -217,7 +215,6 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
     public NDFDataNode( File file ) throws NoSuchDataException {
         this( getHDSFromFile( file ) );
         setLabel( file.getName() );
-        setPath( file.getAbsolutePath() );
     }
 
     /**
@@ -332,80 +329,65 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
         return "NDF data structure";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
+        int ndim = shape.getNumDims();
+        if ( title != null ) {
+            dv.addKeyedItem( "Title", title );
+        }
+        if ( label != null ) {
+            dv.addKeyedItem( "Label", label );
+        }
+        if ( units != null ) {
+            dv.addKeyedItem( "Units", units );
+        }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            dv.addSeparator();
-            int ndim = shape.getNumDims();
-            if ( title != null ) {
-                dv.addKeyedItem( "Title", title );
-            }
-            if ( label != null ) {
-                dv.addKeyedItem( "Label", label );
-            }
-            if ( units != null ) {
-                dv.addKeyedItem( "Units", units );
-            }
+        dv.addSeparator();
+        dv.addKeyedItem( "Dimensionality", ndim );
+        dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
+        dv.addKeyedItem( "Dimensions", NDShape.toString( shape.getDims() ) );
+        dv.addKeyedItem( "Pixel bounds",
+                         NDArrayDataNode.boundsString( shape ) );
 
-            dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", ndim );
-            dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
-            dv.addKeyedItem( "Dimensions",
-                             NDShape.toString( shape.getDims() ) );
-            dv.addKeyedItem( "Pixel bounds",
-                             NDArrayDataNode.boundsString( shape ) );
-
-            describeArrayInDetailViewer( dv, "Data component", 
-                                             dataArray );
-            describeArrayInDetailViewer( dv, "Variance component", 
-                                             varianceArray );
-            describeArrayInDetailViewer( dv, "Quality component", 
-                                             qualityArray );
-            if ( qualityArray != null ) {
-                dv.addKeyedItem( "Badbits flag", 
-                                 Byte.toString( qualityBadbits ) + 
-                                 " (binary " +
-                                 Integer.toBinaryString( qualityBadbits ) + 
-                                 ")" );
-            }
-            if ( wcsComponent != null ) {
-                int cur = wcs.getCurrent();
-                dv.addSubHead( "World Coordinate Systems" );
-                dv.addKeyedItem( "Number of frames", wcs.getNframe() );
-                dv.addKeyedItem( "Current frame",
-                                 Integer.toString( cur ) + " (" + 
-                                 wcs.getFrame( cur ).getDomain() + ")" );
-            }
-            if ( extensions != null ) {
-                dv.addSubHead( "Extensions" );
-                try {
-                    for ( int i = 0; i < extensions.datNcomp(); i++ ) {
-                        HDSObject ext = extensions.datIndex( i + 1 );
-                        dv.addText( ext.datName() );
-                    }
-                }
-                catch ( HDSException e ) {
-                    dv.addText( e.toString() );
-                }
-            }
-
+        describeArrayInDetailViewer( dv, "Data component", dataArray );
+        describeArrayInDetailViewer( dv, "Variance component", varianceArray );
+        describeArrayInDetailViewer( dv, "Quality component", qualityArray );
+        if ( qualityArray != null ) {
+            dv.addKeyedItem( "Badbits flag", 
+                             Byte.toString( qualityBadbits ) + 
+                             " (binary " +
+                             Integer.toBinaryString( qualityBadbits ) + 
+                             ")" );
+        }
+        if ( wcsComponent != null ) {
+            int cur = wcs.getCurrent();
+            dv.addSubHead( "World Coordinate Systems" );
+            dv.addKeyedItem( "Number of frames", wcs.getNframe() );
+            dv.addKeyedItem( "Current frame",
+                             Integer.toString( cur ) + " (" + 
+                             wcs.getFrame( cur ).getDomain() + ")" );
+        }
+        if ( extensions != null ) {
+            dv.addSubHead( "Extensions" );
             try {
-                NdxDataNode.addDataViews( dv, getNdx() );
+                for ( int i = 0; i < extensions.datNcomp(); i++ ) {
+                    HDSObject ext = extensions.datIndex( i + 1 );
+                    dv.addText( ext.datName() );
+                }
             }
             catch ( HDSException e ) {
-                dv.logError( e );
+                dv.addText( e.toString() );
             }
-            catch ( IOException e ) {
-                dv.logError( e );
-            }
-
-            fullView = dv.getComponent();
         }
-        return fullView;
+
+        try {
+            NdxDataNode.addDataViews( dv, getNdx() );
+        }
+        catch ( HDSException e ) {
+            dv.logError( e );
+        }
+        catch ( IOException e ) {
+            dv.logError( e );
+        }
     }
 
     public void customiseTransferable( DataNodeTransferable trans ) {
@@ -446,7 +428,7 @@ public class NDFDataNode extends HDSDataNode implements Draggable {
             ndfChildMaker = new DataNodeFactory( getChildMaker() );
             ndfChildMaker.removeNodeClass( NDFDataNode.class );
         }
-        return makeChild( childObj, this, ndfChildMaker );
+        return ndfChildMaker.makeChildNode( this, childObj );
     }
 
     private DataNodeFactory getAxisChildMaker() {

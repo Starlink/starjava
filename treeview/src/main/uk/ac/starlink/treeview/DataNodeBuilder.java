@@ -13,7 +13,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
-import org.w3c.dom.Node;
 import uk.ac.starlink.util.Compression;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
@@ -148,8 +147,7 @@ public abstract class DataNodeBuilder {
                     try {
                         Source xmlsrc = SourceDataNodeBuilder
                                        .makeDOMSource( datsrc );
-                        return configureNode( xmlBuilder.buildNode( xmlsrc ),
-                                              datsrc );
+                        return xmlBuilder.buildNode( xmlsrc );
                     }
                     catch ( NoSuchDataException e ) {
                         datsrc.close();
@@ -184,8 +182,7 @@ public abstract class DataNodeBuilder {
                         if ( datsrc instanceof FileDataSource &&
                              clazz.equals( FileDataNode.class ) ) {
                             File file = ((FileDataSource) datsrc).getFile();
-                            return configureNode( fileBuilder.buildNode( file ),
-                                                  file );
+                            return fileBuilder.buildNode( file );
                         }
 
                         /* Treat it as a file if possible. */
@@ -195,8 +192,7 @@ public abstract class DataNodeBuilder {
                             Compression compress = datsrc.getCompression();
                             if ( datsrc.getCompression() == Compression.NONE ) {
                                 datsrc.close();
-                                return configureNode( fileBuilder
-                                                     .buildNode( file ), file );
+                                return fileBuilder.buildNode( file );
                             }
                             else if ( sourceBuilder == null ) {
                                 datsrc.close();
@@ -209,9 +205,7 @@ public abstract class DataNodeBuilder {
                         /* Not a file. */
                         if ( sourceBuilder != null ) {
                             try {
-                                return configureNode( sourceBuilder
-                                                     .buildNode( datsrc ),
-                                                      datsrc );
+                                return sourceBuilder.buildNode( datsrc );
                             }
                             catch ( NoSuchDataException e ) {
                                 datsrc.close();
@@ -250,8 +244,7 @@ public abstract class DataNodeBuilder {
                     try {
                         datsrc = new FileDataSource( file );
                         datsrc.setName( file.getName() );
-                        return configureNode( sourceBuilder.buildNode( datsrc ),
-                                              datsrc );
+                        return sourceBuilder.buildNode( datsrc );
                     }
                     catch ( IOException e ) {
                         if ( datsrc != null ) {
@@ -277,8 +270,7 @@ public abstract class DataNodeBuilder {
                     DataSource datsrc = (DataSource) obj;
                     if ( datsrc instanceof FileDataSource ) {
                         File file = ((FileDataSource) datsrc).getFile();
-                        return configureNode( fileBuilder.buildNode( file ),
-                                              file );
+                        return fileBuilder.buildNode( file );
                     }
                     else {
                         throw new NoSuchDataException( 
@@ -291,83 +283,6 @@ public abstract class DataNodeBuilder {
         }
 
         return (DataNodeBuilder[]) builders.toArray( new DataNodeBuilder[ 0 ] );
-    }
-
-    /**
-     * Configures a datanode with some additional information if its
-     * source is known.  This step is not essential, but can provide
-     * the opportunity for more functionality in the viewer.
-     *
-     * @param  node  the DataNode to configure
-     * @param  obj  the object on which <tt>node</tt> is based
-     * @return  the original object <tt>obj</tt>, with the additional
-     *          configuration, is returned for convenience
-     */
-    public static DataNode configureNode( DataNode node, Object obj ) {
-
-        Object parent = null;
-        String label = null;
-        String path = null;
-
-        if ( obj instanceof FileDataSource ) {
-            File file = ((FileDataSource) obj).getFile();
-            return configureNode( node, file );
-        }
-
-        else if ( obj instanceof File ) {
-            File file = (File) obj;
-            path = file.getAbsolutePath();
-            label = file.getName();
-            parent = file.getAbsoluteFile().getParent();
-        }
- 
-        else if ( obj instanceof URLDataSource ) {
-            path = ((URLDataSource) obj).getURL().toString();
-        }
-
-        else if ( obj instanceof PathedDataSource ) {
-            path = ((PathedDataSource) obj).getPath();
-        }
-
-        else if ( obj instanceof DOMSource ) {
-            DOMSource dsrc = (DOMSource) obj;
-            String sysid = dsrc.getSystemId();
-            Node pnode = dsrc.getNode().getParentNode();
-            if ( pnode != null ) {
-                parent = new DOMSource( pnode, sysid ); 
-            }
-            else if ( sysid != null && sysid.trim().length() > 0 ) {
-                parent = sysid;
-            }
-        }
-
-        /* Get a suitable label from a source name if we have one.  The format
-         * of a DataSource name is not defined, but it may be some sort of
-         * path - try to pick the last element of it. */
-        if ( label == null && obj instanceof DataSource ) {
-            String name = ((DataSource) obj).getName();
-            if ( name != null ) {
-                Matcher match = Pattern.compile( "([^ /\\\\:]+)$" )
-                                       .matcher( name );
-                if ( match.matches() ) {
-                    label = match.group( 1 );
-                }
-            }
-        }
-
-        /* Do the actual configuration. */
-        if ( parent != null ) {
-            node.setParentObject( parent );
-        }
-        if ( path != null ) {
-            node.setPath( path );
-        }
-        if ( label != null ) {
-            node.setLabel( label );
-        }
-
-        /* Return the original object. */
-        return node;
     }
 
 }

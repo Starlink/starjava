@@ -13,7 +13,7 @@ public class VODataNodeBuilder extends DataNodeBuilder {
         return Source.class.isAssignableFrom( objClass );
     }
 
-    public DataNode buildNode( Object obj ) {
+    public DataNode buildNode( Object obj ) throws NoSuchDataException {
         if ( obj instanceof Source ) {
             Node domNode;
             Source xsrc;
@@ -28,28 +28,25 @@ public class VODataNodeBuilder extends DataNodeBuilder {
                     xsrc.setSystemId( ((Source) obj).getSystemId() );
                 }
                 catch ( TransformerException e ) {
-                    return null;
+                    throw new NoSuchDataException( "Error parsing XML source",
+                                                   e );
                 }
             }
-            try {
-                if ( domNode instanceof Element ) {
-                    String elname = ((Element) domNode).getTagName();
-                    if ( elname.equals( "VOTABLE" ) ) {
-                        return new VOTableDataNode( xsrc );
-                    }
-                    else if ( elname.equals( "TABLE" ) ) {
-                        return new VOTableTableDataNode( xsrc );
-                    }
-                    else {
-                        return new VOComponentDataNode( xsrc );
-                    }
+            if ( domNode instanceof Element ) {
+                String elname = ((Element) domNode).getTagName();
+                if ( elname.equals( "VOTABLE" ) ) {
+                    return new VOTableDataNode( xsrc );
+                }
+                else if ( elname.equals( "TABLE" ) ) {
+                    return new VOTableTableDataNode( xsrc );
                 }
                 else {
-                    return null;
+                    return new VOComponentDataNode( xsrc );
                 }
             }
-            catch ( NoSuchDataException e ) {
-                return null;
+            else {
+                throw new NoSuchDataException( "Node " + domNode + 
+                                               " is not of type Element" );
             }
         }
         else {

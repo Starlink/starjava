@@ -18,7 +18,6 @@ public class PlainDataNode extends DefaultDataNode {
 
     private DataSource datsrc;
     private String name;
-    private JComponent fullView;
     private Boolean isText;
 
     public PlainDataNode( DataSource datsrc ) throws NoSuchDataException {
@@ -48,18 +47,7 @@ public class PlainDataNode extends DefaultDataNode {
         return name;
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            addDataViews( dv, datsrc );
-        }
-        return fullView;
-    }
-
-    public static void addDataViews( DetailViewer dv, 
-                                     final DataSource datsrc ) {
+    public void configureDetail( DetailViewer dv ) {
         try {
             long size = datsrc.getLength();
             if ( size >= 0 ) {

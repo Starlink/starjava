@@ -17,7 +17,7 @@ import uk.ac.starlink.util.SourceReader;
 /**
  * A component which presents textual data in a monospaced font.
  */
-class TextViewer extends JTextArea {
+public class TextViewer extends JTextArea {
 
     private Writer appender = new Writer() {
         public void write( char[] cbuf, int off, int len ) {

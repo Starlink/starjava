@@ -184,7 +184,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         if ( oldRoot == root ||
              oldRoot != null && root != null && 
              ("" + oldRoot).equals( "" + root ) &&
-             ("" + oldRoot.getPath()).equals( "" + root.getPath() ) ) {
+             ("" + TreeviewUtil.getNodePath( oldRoot ))
+            .equals( "" + TreeviewUtil.getNodePath( root ) ) ) {
             return;
         }
 
@@ -192,7 +193,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
          * This causes fewer threading problems than changing the root
          * node of the existing model. */
         jtree.setModel( new DataNodeTreeModel( root ) );
-        upAction.setEnabled( root.hasParentObject() );
+        upAction.setEnabled( root.getParentObject() != null );
         jtree.expandPath( new TreePath( root ) );
         rootSelector.setBottomNode( root );
     }
@@ -332,9 +333,9 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new BasicAction( "Up", IconFactory.getIcon( IconFactory.UP ), 
                              "Move root up one level" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    DataNode root = getRoot();
-                    if ( root.hasParentObject() ) {
-                        setRootObject( root.getParentObject() );
+                    Object parentObj = getRoot().getParentObject();
+                    if ( parentObj != null ) {
+                        setRootObject( parentObj );
                     }
                 }
             };

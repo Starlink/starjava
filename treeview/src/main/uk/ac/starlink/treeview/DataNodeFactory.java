@@ -1,5 +1,7 @@
 package uk.ac.starlink.treeview;
 
+import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -7,6 +9,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.xml.transform.dom.DOMSource;
+import org.w3c.dom.Node;
+import uk.ac.starlink.util.DataSource;
+import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.URLDataSource;
 
 /**
  * Factory class for constructing {@link DataNode} objects.
@@ -72,12 +81,15 @@ import java.util.logging.Logger;
  */
 public class DataNodeFactory {
 
+    /* Instance members - make sure these are cloned in the copy constructor. */
+    boolean debug;
     private List builders;
     private Set shunnedClasses;
 
     private static List defaultClassList;
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.treeview" );
+    private static Pattern pathPattern = Pattern.compile( "([^ /\\\\:]+)$" );
 
     /**
      * Constructs a new factory with a default list of node builders.
@@ -106,6 +118,7 @@ public class DataNodeFactory {
     public DataNodeFactory( DataNodeFactory orig ) {
         builders = new ArrayList( orig.builders );
         shunnedClasses = new HashSet( orig.shunnedClasses );
+        debug = orig.debug;
     }
 
     /**
@@ -211,20 +224,57 @@ public class DataNodeFactory {
         List tried = new ArrayList();
         DataNode newNode = null;
         DataNodeBuilder successfulBuilder = null;
+        StringBuffer trace = null;
+        if ( debug ) {
+            trace = new StringBuffer()
+                   .append( "Object: " )
+                   .append( obj )
+                   .append( '\n' )
+                   .append( "Class: " )
+                   .append( objClass.getName() )
+                   .append( '\n' );
+        }
         for ( Iterator it = builders.iterator(); 
               it.hasNext() && newNode == null; ) {
             DataNodeBuilder builder = (DataNodeBuilder) it.next();
             if ( builder.suitable( objClass ) ) {
+                if ( debug ) {
+                    trace.append( "\nBuilder: " )
+                         .append( builder )
+                         .append( '\n' );
+                }
                 tried.add( builder );
                 try {
                     DataNode node = builder.buildNode( obj );
                     if ( ! shunnedClasses.contains( node.getClass() ) ) {
                         newNode = node;
+                        if ( debug ) {
+                            trace.append( "   SUCCESS (" )
+                                 .append( newNode.getClass().getName() )
+                                 .append( ")\n" );
+                        }
                         successfulBuilder = builder;
                     } 
+                    else {
+                        if ( debug ) {
+                            trace.append( "   Class " )
+                                 .append( node.getClass().getName() )
+                                 .append( " shunned.\n" );
+                        }
+                    }
                 }
                 catch ( NoSuchDataException e ) {
-                    // try the next one
+                    if ( debug ) {
+                        trace.append( "   " )
+                             .append( e.getMessage() )
+                             .append( '\n' );
+                        StackTraceElement[] frames = e.getStackTrace();
+                        for ( int i = 0; i < frames.length; i++ ) {
+                            trace.append( "      " ) 
+                                 .append( frames[ i ] )
+                                 .append( "\n" );
+                        }
+                    }
                 }
             }
         }
@@ -251,11 +301,92 @@ public class DataNodeFactory {
          * configuration before returning it to the caller. */
         assert newNode != null;
         assert successfulBuilder != null;
-        newNode.setCreator( new CreationState( this, successfulBuilder, 
-                                               parent, obj ) );
-        newNode.setChildMaker( parent == null ? new DataNodeFactory()
-                                              : parent.getChildMaker() );
-        return DataNodeBuilder.configureNode( newNode, obj );
+        configureDataNode( newNode, parent, obj );
+        CreationState creator = newNode.getCreator();
+        creator.setFactory( this );
+        creator.setBuilder( successfulBuilder );
+        if ( debug ) {
+            creator.setFactoryTrace( trace.toString() );
+        }
+        return newNode;
+    }
+
+    /**
+     * Performs some of the desirable configuration on a new DataNode which
+     * is about to get inserted into the tree.  This method is called
+     * by {@link #makeDataNode} and in most cases should
+     * not be called by nodes creating children.  However, if a node
+     * is creating children other than using <tt>makeDataNode</tt>
+     * (for instance because their constructors are not suitable for
+     * the generic node creation system on which this class is based)
+     * then this method should be called on the new child before it is
+     * returned from the child iterator.  Configuring new-born nodes
+     * using this method is not essential, but it is likely to ensure
+     * that the node is as far as possible a well-behaved member of
+     * the node tree; not doing it can lead to some impairment of
+     * functionality for the nodes in question.
+     *
+     * @param   the new node to configure
+     * @param   parentNode   <tt>node</tt>'s parent data node 
+     *          (may be <tt>null</tt>) if it's at the top of the tree)
+     * @param   the object on which <tt>node</tt> is based 
+     *          (may be <tt>null</tt>) if nothing suitable applies
+     */
+    public void configureDataNode( DataNode node, DataNode parentNode, 
+                                   Object obj ) {
+
+        /* Inherit child node creation factory from parent. */
+        node.setChildMaker( parentNode == null ? new DataNodeFactory()
+                                               : parentNode.getChildMaker() );
+
+        /* Set up information about how the node was created. */
+        node.setCreator( new CreationState( parentNode, obj ) );
+
+        /* Try to determine some additional information about the node
+         * based on some generic base object types. */
+        Object parentObj = null;
+        String label = null;
+        if ( obj instanceof FileDataSource ) {
+            File file = ((FileDataSource) obj).getFile();
+            label = file.getName();
+            parentObj = file.getAbsoluteFile().getParent();
+        }
+        else if ( obj instanceof File ) {
+            File file = (File) obj;
+            label = file.getName();
+            parentObj = file.getAbsoluteFile().getParent();
+        }
+        else if ( obj instanceof DOMSource ) {
+            DOMSource dsrc = (DOMSource) obj;
+            String sysid = dsrc.getSystemId();
+            Node pnode = dsrc.getNode().getParentNode();
+            if ( pnode != null ) {
+                parentObj = new DOMSource( pnode, sysid );
+            }
+            else if ( sysid != null && sysid.trim().length() > 0 ) {
+                parentObj = sysid;
+            }
+        }
+            
+        /* Get a suitable label from a source name if we have one.  The format
+         * of a DataSource name is not defined, but it may be some sort of
+         * path - try to pick the last element of it. */
+        if ( label == null && obj instanceof DataSource ) {
+            String name = ((DataSource) obj).getName();
+            if ( name != null ) {
+                Matcher match = pathPattern.matcher( name );
+                if ( match.lookingAt() ) {
+                    label = match.group( 1 );
+                }
+            }
+        }
+
+        if ( parentObj != null && node.getParentObject() == null ) {
+            node.setParentObject( parentObj );
+        }
+        if ( label != null && node.getLabel() == null ) {
+            node.setLabel( label );
+        }
     }
 
     /**
@@ -274,6 +405,27 @@ public class DataNodeFactory {
         }
         catch ( NoSuchDataException e ) {
             return new ErrorDataNode( th );
+        }
+    }
+
+    /**
+     * Convenience method which invokes {@link #makeDataNode} but does not
+     * throw a <tt>NoSuchDataException</tt>.  If the node construction
+     * fails, then {@link #makeErrorDataNode} will be called to construct
+     * the node for return instead.
+     *
+     * @param  parent  the DataNode whose child the new node will be in
+     *          the node hierarchy.  May be <tt>null</tt> for a hierarchy root
+     * @param  obj  an object which is to be turned into a DataNode by 
+     *          one of the builders
+     * @return  a new DataNode object based on <tt>obj</tt>
+     */
+    public DataNode makeChildNode( DataNode parent, Object obj ) {
+        try {
+            return makeDataNode( parent, obj );
+        }
+        catch ( NoSuchDataException e ) {
+            return makeErrorDataNode( parent, e );
         }
     }
 

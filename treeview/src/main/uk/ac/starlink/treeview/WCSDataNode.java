@@ -27,7 +27,6 @@ import uk.ac.starlink.util.SourceReader;
  */
 public class WCSDataNode extends DefaultDataNode {
 
-    private JComponent fullView;
     private FrameSet wcs;
     private String description;
 
@@ -78,12 +77,13 @@ public class WCSDataNode extends DefaultDataNode {
     public Iterator getChildIterator() {
         List children = new ArrayList();
         int nframe = wcs.getNframe();
+        DataNodeFactory childMaker = new DataNodeFactory( getChildMaker() );
+        childMaker.setPreferredClass( FrameDataNode.class );
         for ( int i = 1; i <= nframe; i++ ) {
+            DataNode dnode;
             try {
-                children.add( new FrameDataNode( wcs.getFrame( i ) ) );
-            }
-            catch ( NoSuchDataException e ) {
-                children.add( makeErrorChild( e ) );
+                children.add( childMaker.makeChildNode( this, 
+                                                        wcs.getFrame( i ) ) );
             }
             catch ( AstException e ) {
                 children.add( makeErrorChild( e ) );
@@ -108,53 +108,44 @@ public class WCSDataNode extends DefaultDataNode {
         return "World Coordinate System data";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            int nframe = wcs.getNframe();
-            int current = wcs.getCurrent();
-            int base = wcs.getBase();
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of frames", nframe );
-            dv.addKeyedItem( "Base frame", 
-                             Integer.toString( base )
-                             + " (\"" + wcs.getFrame( base ).getDomain()
-                             + "\")" );
-            dv.addKeyedItem( "Current frame", 
-                             Integer.toString( current )
-                             + " (\"" + wcs.getFrame( current ).getDomain()
-                             + "\")" );
-        
-            dv.addSubHead( "Frames" );
-            for ( int i = 1; i < nframe + 1; i++ ) {
-                uk.ac.starlink.ast.Frame frm = wcs.getFrame( i );
-                String dom = frm.getDomain();
-                dv.addText( "  " + i + ":  " 
-                          + dom 
-                          + ( ( i == current ) ? "    *" : "" ) );
-            }
-            dv.addPane( "Text view", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new AstTextShower( wcs );
-                }
-            } );
-            dv.addPane( "XML view", new ComponentMaker() {
-                public JComponent getComponent() throws TransformerException {
-                    Element el = new XAstWriter().makeElement( wcs, null );
-                    return new TextViewer( new DOMSource( el ) );
-                }
-            } );
-            dv.addPane( "FITS view", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new AstFITSShower( wcs );
-                }
-            } );
+    public void configureDetail( DetailViewer dv ) {
+        int nframe = wcs.getNframe();
+        int current = wcs.getCurrent();
+        int base = wcs.getBase();
+        dv.addKeyedItem( "Number of frames", nframe );
+        dv.addKeyedItem( "Base frame", 
+                         Integer.toString( base )
+                         + " (\"" + wcs.getFrame( base ).getDomain()
+                         + "\")" );
+        dv.addKeyedItem( "Current frame", 
+                         Integer.toString( current )
+                         + " (\"" + wcs.getFrame( current ).getDomain()
+                         + "\")" );
+    
+        dv.addSubHead( "Frames" );
+        for ( int i = 1; i < nframe + 1; i++ ) {
+            uk.ac.starlink.ast.Frame frm = wcs.getFrame( i );
+            String dom = frm.getDomain();
+            dv.addText( "  " + i + ":  " 
+                      + dom 
+                      + ( ( i == current ) ? "    *" : "" ) );
         }
-        return fullView;
+        dv.addPane( "Text view", new ComponentMaker() {
+            public JComponent getComponent() {
+                return new AstTextShower( wcs );
+            }
+        } );
+        dv.addPane( "XML view", new ComponentMaker() {
+            public JComponent getComponent() throws TransformerException {
+                Element el = new XAstWriter().makeElement( wcs, null );
+                return new TextViewer( new DOMSource( el ) );
+            }
+        } );
+        dv.addPane( "FITS view", new ComponentMaker() {
+            public JComponent getComponent() {
+                return new AstFITSShower( wcs );
+            }
+        } );
     }
 
     public FrameSet getWcs() {

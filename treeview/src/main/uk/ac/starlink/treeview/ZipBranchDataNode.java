@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.zip.ZipEntry;
-import javax.swing.JComponent;
 
 public class ZipBranchDataNode extends DefaultDataNode {
 
@@ -12,7 +11,6 @@ public class ZipBranchDataNode extends DefaultDataNode {
     private final ZipEntry zipentry;
     private final String path;
     private String name;
-    private JComponent fullView;
 
     /**
      * Constructs a ZipBranchDataNode from a ZipEntry and ZipArchive.
@@ -36,6 +34,10 @@ public class ZipBranchDataNode extends DefaultDataNode {
     }
 
     public String getName() {
+        return name;
+    }
+
+    public String getPathElement() {
         return name;
     }
 
@@ -64,20 +66,14 @@ public class ZipBranchDataNode extends DefaultDataNode {
         }
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            try {
-                int nent = ziparchivenode.getEntriesAtLevel( path ).size();
-                dv.addSeparator();
-                dv.addKeyedItem( "Number of entries", nent );
-            }
-            catch ( IOException e ) {
-                // too bad
-            }
+    public void configureDetail( DetailViewer dv ) {
+        try {
+            int nent = ziparchivenode.getEntriesAtLevel( path ).size();
+            dv.addKeyedItem( "Number of entries", nent );
         }
-        return fullView;
+        catch ( IOException e ) {
+            // too bad
+        }
     }
 
 }

@@ -47,7 +47,6 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
         final ZipArchiveDataNode zadn = this;
         final DataNodeFactory childMaker = getChildMaker();
         final int lleng = level.length();
-        final String pathHead = getPath() + getPathSeparator() + level;
 
         /* Get an iterator over all the ZipEntries at the requested level. */
         final Iterator zentIt = getEntriesAtLevel( level ).iterator();
@@ -67,7 +66,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                 /* If it is a directory, make a ZipBranchDataNode from it. */
                 if ( zent.isDirectory() ) {
                     DataNode dnode = new ZipBranchDataNode( zadn, zent );
-                    dnode.setCreator( new CreationState( parent ) );
+                    getChildMaker().configureDataNode( dnode, parent, null );
                     dnode.setLabel( subname );
                     return dnode;
                 }
@@ -76,7 +75,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                  * DataNodeFactory to make something appropriate from it. */
                 else {
 
-                    /* See the similar TarStreamDataNode impelementation for
+                    /* See the similar TarStreamDataNode implementation for
                      * further comments on the following steps. */
                     DataSource childSrc;
                     try {
@@ -96,7 +95,8 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                                                           " not found" );
                             }
                             catch ( AssertionError e ) {
-                                DataNode node = makeErrorChild( e, parent );
+                                DataNode node = getChildMaker()
+                                               .makeErrorDataNode( parent, e );
                                 node.setLabel( subname );
                                 return node;
                             }
@@ -105,8 +105,7 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                         /* Make a DataSource which will use our zstream now,
                          * but a new ZipInputStream later. */
                         SwitchDataSource ssrc = 
-                            new SwitchDataSource( pathHead + subname,
-                                                  zent.getSize() ) {
+                            new SwitchDataSource( zent.getSize() ) {
                                 public InputStream getBackupRawInputStream()
                                         throws IOException {
                                     InputStream strm = 
@@ -133,7 +132,8 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                         childSrc = ssrc;
                     }
                     catch ( IOException e ) {
-                        return makeErrorChild( e, parent );
+                        return getChildMaker()
+                              .makeErrorDataNode( parent, e );
                     }
 
                     /* If we are at the end of the children, close the zip 
@@ -148,7 +148,10 @@ public class ZipStreamDataNode extends ZipArchiveDataNode {
                     }
  
                     /* Construct the node as normal from its source. */
-                    return makeChild( childSrc, parent, getChildMaker() );
+                    DataNode node = getChildMaker()
+                                   .makeChildNode( parent, childSrc );
+                    node.setLabel( subname );
+                    return node;
                 }
             }
             public boolean hasNext() {

@@ -33,6 +33,11 @@ public class DetailViewer {
     private final JTabbedPane tabbed;
     protected StyledTextArea over;
 
+    /**
+     * Constructs a blank DetailViewer, with just a heading name.
+     *
+     * @param  overName  the name used for the main (overview) panel
+     */
     public DetailViewer( String overName ) {
 
         /* Construct a tabbed pane.  We have to jump through a few hoops
@@ -62,8 +67,16 @@ public class DetailViewer {
         addPane( overName, over );
     }
 
+    /**
+     * Constructs a DetailViewer which contains basic information
+     * (name, node type etc) for a given DataNode.
+     *
+     * @param  node  the DataNode to which this viewer relates
+     */
     public DetailViewer( DataNode node ) {
         this( "Overview" );
+
+        /* Add the items which apply to all nodes. */
         over.addIcon( node.getIcon() );
         over.addSpace();
         over.addTitle( node.getLabel() ); 
@@ -72,7 +85,7 @@ public class DetailViewer {
             over.addKeyedItem( "Name", node.getName() );
         }
         over.addKeyedItem( "Node type", node.getNodeType() );
-        String path = node.getPath();
+        String path = TreeviewUtil.getNodePath( node );
         if ( path != null ) {
             over.addKeyedItem( "Path", path );
         }
@@ -306,5 +319,4 @@ public class DetailViewer {
     public Writer limitedLineAppender( int maxLines ) {
         return over.limitedLineAppender( maxLines );
     }
-
 }

@@ -1,8 +1,7 @@
 package uk.ac.starlink.treeview;
 
-import java.util.*;
-import javax.swing.*;
-import javax.swing.tree.*;
+import java.util.Iterator;
+import javax.swing.Icon;
 
 /** 
  * This interface represents a node suitable for use in a tree viewer.
@@ -10,8 +9,8 @@ import javax.swing.tree.*;
  * or more children - the node must be able to supply its own children
  * on request.  From a GUI point of view it supplies 
  * methods which can be used to represent the node, such as a name, 
- * an icon and perhaps a JComponent displaying fuller information about
- * itself.
+ * an icon and an opportunity to do custom configuration of an
+ * object which provides more detailed (graphical) description of the node.
  *
  * Implementing classes will normally also supply one or more constructors
  * based on other classes (for instance <code>String</code>, 
@@ -30,13 +29,6 @@ import javax.swing.tree.*;
  */
 public interface DataNode {
 
-    /** 
-     * DataNode representing the notional root of node space.
-     * Any node whose parent is <tt>ROOT</tt> name which meaningful without
-     * further qualification.
-     */
-    public static final DataNode ROOT = new DefaultDataNode();
-
     /**
      * Indicates whether the node can in principle have child nodes.
      * Note this does not actually mean that it has any children.
@@ -44,7 +36,7 @@ public interface DataNode {
      * @return   <code>true</code> if the node is of a type which can have
      *           child nodes, <code>false</code> otherwise
      */
-    public boolean allowsChildren();
+    boolean allowsChildren();
 
     /**
      * Sets a label for this object.  This is like a name but is not
@@ -53,7 +45,7 @@ public interface DataNode {
      *
      * @param  label  the label to be given to this object
      */
-    public void setLabel( String label );
+    void setLabel( String label );
 
     /**
      * Gets an Iterator over the children of the object, each of which 
@@ -82,29 +74,18 @@ public interface DataNode {
      *          object for which <code>allowsChildren</code> returns 
      *          <code>false</code>.
      */
-    public Iterator getChildIterator();
-
-    /**
-     * Indicates whether this node has an object it can call a parent.
-     * This is regardless of its position in the tree - it should not 
-     * keep track of how it was created to be able to answer yes to this.
-     *
-     * @return   true iff this node can present a parent object
-     * @see   #getParentObject
-     */
-    public boolean hasParentObject();
+    Iterator getChildIterator();
 
     /**
      * Returns an object which is in some sense the parent of the one
      * this node is based on.  The parent is <em>not</em> a <tt>DataNode</tt>,
      * it is something which may get fed to a <tt>DataNodeFactory</tt> 
-     * to create <tt>DataNode</tt>.
-     * This method should only be called if the {@link #hasParentObject}
-     * returns <tt>true</tt>.
+     * to create <tt>DataNode</tt>.  If no such object exists, which 
+     * may well be the case, <tt>null</tt> should be returned.
      *
-     * @return  an object which is the parent of this one
+     * @return  an object which is the parent of this one, or <tt>null</tt>
      */
-    public Object getParentObject();
+    Object getParentObject();
 
     /**
      * Sets the object which is in some sense the parent of the one
@@ -114,7 +95,7 @@ public interface DataNode {
      * 
      * @param parentObj  an object which is the parent of this one
      */
-    public void setParentObject( Object parentObj );
+    void setParentObject( Object parentObj );
 
     /**
      * Gets the label of this object.  This ought to return the same value
@@ -123,7 +104,7 @@ public interface DataNode {
      *
      * @return  the label of the object
      */
-    public String getLabel();
+    String getLabel();
 
     /**
      * Gets the name of this object.  This is an intrinsic property of the
@@ -131,7 +112,7 @@ public interface DataNode {
      *
      * @return  the name of the object
      */
-    public String getName();
+    String getName();
 
     /**
      * Returns a short string indicating what kind of node this is.
@@ -142,7 +123,7 @@ public interface DataNode {
      * @return  an abbreviated description of the type of this 
      *          <code>DataNode</code>
      */
-    public String getNodeTLA();
+    String getNodeTLA();
 
     /**
      * Returns a short sentence indicating what kind of node this is.
@@ -151,7 +132,7 @@ public interface DataNode {
      * 
      * @return  a short description of the type of this <code>DataNode</code>
      */
-    public String getNodeType();
+    String getNodeType();
 
     /**
      * Gets a concise description of this object.  The form of the
@@ -166,23 +147,7 @@ public interface DataNode {
      *
      * @return  a short string describing this object
      */
-    public String getDescription();
-
-    /**
-     * Gets a (preferably full) pathname to this node.
-     * May return <tt>null</tt> if the pathname is not defined or cannot
-     * be determined.
-     *
-     * @return   pathname to this node
-     */
-    public String getPath();
-
-    /**
-     * Sets the (preferably full) pathname to this node.
-     *
-     * @param  path  pathname to this node
-     */
-    public void setPath( String path );
+    String getDescription();
 
     /**
      * Gets an <code>Icon</code> which can be used when displaying this node.
@@ -198,7 +163,7 @@ public interface DataNode {
      *
      * @return  an <code>Icon</code> for display
      */
-    public Icon getIcon();
+    Icon getIcon();
 
     /**
      * Gets the contribution of this node to a pathname.
@@ -209,7 +174,7 @@ public interface DataNode {
      *
      * @return   pathname name of this node
      */
-    public String getPathElement();
+    String getPathElement();
 
     /**
      * Gets the delimiter string which separates the name of this node from
@@ -220,36 +185,27 @@ public interface DataNode {
      *
      * @return  short delimiter string
      */
-    public String getPathSeparator();
+    String getPathSeparator();
 
     /**
-     * Indicates whether there is a more detailed view of this object available.
-     *
-     * @return  <code>true</code> if a call to <code>getFullView</code> 
-     *          may be made to return a <code>JComponent</code> representing
-     *          the data in the underlying object, <code>false</code> 
-     *          otherwise.
+     * Configures a DetailViewer object to show additional details
+     * associated with this node.  Implementing classes should 
+     * call various methods on the given <tt>DetailViewer<tt> object
+     * to customise it to contain information about the node in question.
+     * This will
+     * consist of populating the main panel with basic and compact
+     * information about this node, and possibly adding further tabbed
+     * panes giving alternative views of the data attached to the node.
+     * See the documentation for {@link DetailViewer} for more information.
+     * <p>
+     * Nodes which don't have much to say about themselves may implement
+     * this method as a no-op, though it will generally be a good idea
+     * to invoke the superclass's implementation if there is a superclass.
+     * 
+     * @param   dv  the detail viewer which this node is given an opportunity
+     *          to configure
      */
-    public boolean hasFullView();
-
-    /**
-     * If the <code>hasFullView</code> method returns <code>true</code>,
-     * this method returns a <code>JComponent</code> giving a full view 
-     * representing this object.
-     * This complements the (one-line) representation used by the 
-     * tree cell renderer (which in turn probably
-     * calls <code>getName</code> and <code>getDescription</code>).
-     * The returned JComponent will be displayed in a viewport of
-     * limited size, so should be packed in a JScrollPane if it is
-     * likely to be large.
-     * Behaviour is undefined if this method is called when 
-     * <code>hasFullView</code> returns false.
-     *
-     * @return  a <code>JComponent</code> which gives a detailed, but not 
-     *          arbitrarily large, representation of the underlying data.
-     *          May be <code>null</code>.
-     */
-    public JComponent getFullView();
+    void configureDetail( DetailViewer dv );
 
     /**
      * Sets the factory which should in general be used to generate 
@@ -268,7 +224,7 @@ public interface DataNode {
      *
      * @param  factory  the factory to use for generating children
      */
-    public void setChildMaker( DataNodeFactory factory );
+    void setChildMaker( DataNodeFactory factory );
 
     /**
      * Gets the factory which should in general be used to generate 
@@ -276,7 +232,7 @@ public interface DataNode {
      *
      * @return  the factory used for generating children
      */
-    public DataNodeFactory getChildMaker();
+    DataNodeFactory getChildMaker();
 
     /**
      * Stores information about how this node was created.
@@ -284,7 +240,7 @@ public interface DataNode {
      * @param  state  an object encapsulating the means by which this node
      *                was created
      */
-    public void setCreator( CreationState state );
+    void setCreator( CreationState state );
 
     /**
      * Retrieves information about how this node was created.
@@ -292,5 +248,5 @@ public interface DataNode {
      * @return  an object encapsulating the means by which this node was
      *          created.  May be null if no information is available
      */
-    public CreationState getCreator();
+    CreationState getCreator();
 }

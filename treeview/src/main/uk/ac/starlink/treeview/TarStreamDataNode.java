@@ -77,7 +77,6 @@ public class TarStreamDataNode extends DefaultDataNode {
         final TarStreamDataNode tsdn = this;
         final DataNodeFactory childMaker = getChildMaker();
         final int lleng = level.length();
-        final String pathHead = getPath() + getPathSeparator() + level;
         final TarInputStream tstream;
 
         /* Get an iterator over all the TarEntries at the requested level. */
@@ -87,7 +86,8 @@ public class TarStreamDataNode extends DefaultDataNode {
             tstream = getTarInputStream();
         }
         catch ( IOException e ) {
-            return Collections.singleton( makeErrorChild( e, parent ) )
+            return Collections.singleton( getChildMaker()
+                                         .makeErrorDataNode( parent, e ) )
                               .iterator();
         }
 
@@ -108,7 +108,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                 /* If it is a directory, make a TarBranchDataNode from it. */
                 if ( tent.isDirectory() ) {
                     DataNode dnode = new TarBranchDataNode( tsdn, tent );
-                    dnode.setCreator( new CreationState( parent ) );
+                    getChildMaker().configureDataNode( dnode, parent, null );
                     dnode.setLabel( subname );
                     return dnode;
                 }
@@ -146,7 +146,8 @@ public class TarStreamDataNode extends DefaultDataNode {
                                                         + tname );
                             }
                             catch ( AssertionError e ) {
-                                DataNode node = makeErrorChild( e, parent );
+                                DataNode node = getChildMaker()
+                                               .makeErrorDataNode( parent, e );
                                 node.setLabel( tname );
                                 return node;
                             }
@@ -155,8 +156,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                         /* Make a DataSource out of it which will, for now,
                          * use the TarInputStream for its raw data. */
                         SwitchDataSource ssrc = 
-                            new SwitchDataSource( pathHead + subname,
-                                                  tent.getSize() ) {
+                            new SwitchDataSource( tent.getSize() ) {
                                 public InputStream getBackupRawInputStream()
                                         throws IOException {
                                     InputStream strm = 
@@ -214,7 +214,7 @@ public class TarStreamDataNode extends DefaultDataNode {
                         childSrc = ssrc;
                     }
                     catch ( IOException e ) {
-                        return makeErrorChild( e, parent );
+                        return getChildMaker().makeErrorDataNode( parent, e );
                     }
 
                     /* If we are at the end of the children, close the 
@@ -229,7 +229,10 @@ public class TarStreamDataNode extends DefaultDataNode {
                     }
 
                     /* Construct the node as normal from its source. */
-                    return makeChild( childSrc, parent, getChildMaker() );
+                    DataNode node = getChildMaker()
+                                   .makeChildNode( parent, childSrc );
+                    node.setLabel( subname );
+                    return node;
                 }
             }
             public void remove() {

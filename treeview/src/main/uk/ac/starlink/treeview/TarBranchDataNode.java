@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import java.util.Iterator;
-import javax.swing.JComponent;
 import org.apache.tools.tar.TarEntry;
 
 public class TarBranchDataNode extends DefaultDataNode {
@@ -10,7 +9,6 @@ public class TarBranchDataNode extends DefaultDataNode {
     private TarStreamDataNode archivenode;
     private String path;
     private String name;
-    private JComponent fullView;
 
     /**
      * Constructs a TarBranchDataNode from a TarEntry and TarStreamArchive.
@@ -35,6 +33,10 @@ public class TarBranchDataNode extends DefaultDataNode {
         return name;
     }
 
+    public String getPathElement() {
+        return name;
+    }
+
     public String getPathSeparator() {
         return "/";
     }
@@ -55,20 +57,14 @@ public class TarBranchDataNode extends DefaultDataNode {
         return archivenode.getChildIteratorAtLevel( path, this );
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            try {
-                int nent = archivenode.getEntriesAtLevel( path ).size();
-                dv.addSeparator();
-                dv.addKeyedItem( "Number of entries", nent );
-            }
-            catch ( IOException e ) {
-                // oh well
-            }
+    public void configureDetail( DetailViewer dv ) {
+        try {
+            int nent = archivenode.getEntriesAtLevel( path ).size();
+            dv.addKeyedItem( "Number of entries", nent );
         }
-        return fullView;
+        catch ( IOException e ) {
+            // oh well
+        }
     }
 
 }

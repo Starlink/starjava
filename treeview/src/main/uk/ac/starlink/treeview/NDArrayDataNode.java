@@ -20,7 +20,6 @@ import uk.ac.starlink.ndx.Ndx;
 public class NDArrayDataNode extends DefaultDataNode {
 
     private NDArray nda;
-    private JComponent fullView;
     private String name;
 
     public NDArrayDataNode( NDArray nda ) {
@@ -56,40 +55,29 @@ public class NDArrayDataNode extends DefaultDataNode {
         return "N-Dimensional Array";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            dv.addKeyedItem( "URL", nda.getURL() );
-            fullView = dv.getComponent();
-            OrderedNDShape oshape = nda.getShape();
-            int ndim = oshape.getNumDims();
-            dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", ndim );
-            dv.addKeyedItem( "Origin",
-                             NDShape.toString( oshape.getOrigin() ) );
-            dv.addKeyedItem( "Dimensions", 
-                             NDShape.toString( oshape.getDims() ) );
-            dv.addKeyedItem( "Pixel bounds", boundsString( oshape ) );
-            dv.addKeyedItem( "Ordering", oshape.getOrder() );
-            dv.addSeparator();
-            dv.addKeyedItem( "Type", nda.getType() );
-            Number bh = nda.getBadHandler().getBadValue();
-            if ( bh != null ) {
-                dv.addKeyedItem( "Bad value", bh );
-            }
-
-            try {
-                addDataViews( dv, nda, null );
-            }
-            catch ( IOException e ) {
-                dv.logError( e );
-            }
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "URL", nda.getURL() );
+        OrderedNDShape oshape = nda.getShape();
+        int ndim = oshape.getNumDims();
+        dv.addSeparator();
+        dv.addKeyedItem( "Dimensionality", ndim );
+        dv.addKeyedItem( "Origin", NDShape.toString( oshape.getOrigin() ) );
+        dv.addKeyedItem( "Dimensions", NDShape.toString( oshape.getDims() ) );
+        dv.addKeyedItem( "Pixel bounds", boundsString( oshape ) );
+        dv.addKeyedItem( "Ordering", oshape.getOrder() );
+        dv.addSeparator();
+        dv.addKeyedItem( "Type", nda.getType() );
+        Number bh = nda.getBadHandler().getBadValue();
+        if ( bh != null ) {
+            dv.addKeyedItem( "Bad value", bh );
         }
-        return fullView;
+
+        try {
+            addDataViews( dv, nda, null );
+        }
+        catch ( IOException e ) {
+            dv.logError( e );
+        }
     }
 
     public static String boundsString( NDShape shape ) {

@@ -79,27 +79,27 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
 
         /* Zip stream? */
         if ( ZipArchiveDataNode.isMagic( magic ) ) {
-            return configureNode( new ZipStreamDataNode( datsrc ), datsrc );
+            return new ZipStreamDataNode( datsrc );
         }
 
         /* FITS stream? */
         if ( FITSDataNode.isMagic( magic ) ) {
-            return configureNode( new FITSStreamDataNode( datsrc ), datsrc );
+            return new FITSStreamDataNode( datsrc );
         }
 
         /* Tar stream? */
         if ( TarStreamDataNode.isMagic( magic ) ) {
-            return configureNode( new TarStreamDataNode( datsrc ), datsrc );
+            return new TarStreamDataNode( datsrc );
         }
 
         /* If it's an XML stream delegate to the XMLbuilder. */
         if ( XMLDataNode.isMagic( magic ) ) {
             DOMSource xsrc = makeDOMSource( datsrc );
-            return configureNode( xmlBuilder.buildNode( xsrc ), datsrc );
+            return xmlBuilder.buildNode( xsrc );
         }
 
         /* Don't know what it is. */
-        throw new NoSuchDataException( this + ": don't know" );
+        throw new NoSuchDataException( "No recognised magic number" );
     }
 
     public String toString() {

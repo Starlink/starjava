@@ -25,6 +25,7 @@ public class Driver {
 
     public static void main( String[] args ) {
         boolean textView = false;
+        boolean textPath = false;
         short orient = StaticTreeViewer.DETAIL_BESIDE;
 
         /* Ensure that global preferences are installed. */
@@ -77,8 +78,9 @@ public class Driver {
         /* Construct the usage message. */
         String usageMsg = 
               "Usage: " + cmdName +
-            "\n         [-demo] [-text] [-strict] [-debug] [-split(x|y|0)]" +
-            "\n         ";
+            "\n         [-demo] [-text [-path]] [-strict] [-debug] " +
+                       "[-split(x|y|0)]" +
+            "\n        ";
         Iterator flagIt = nodeTypeFlags.keySet().iterator();
         while ( flagIt.hasNext() ) {
             usageMsg += " [" + flagIt.next().toString() + "]";
@@ -94,7 +96,7 @@ public class Driver {
         }
 
         /* Construct the factory which will build the requested DataNodes. */
-        DataNodeFactory nodeFactory = new DataNodeFactory();
+        final DataNodeFactory nodeFactory = new DataNodeFactory();
 
         /* Process arguments. */
         int iarg;
@@ -106,6 +108,9 @@ public class Driver {
             if ( arg.charAt( 0 ) == '-' ) {
                 if ( arg.equals( "-text" ) ) {
                     textView = true;
+                }
+                else if ( arg.equals( "-path" ) ) {
+                    textPath = true;
                 }
                 else if ( arg.equals( "-splitx" ) ) {
                     orient = StaticTreeViewer.DETAIL_BESIDE;
@@ -121,7 +126,7 @@ public class Driver {
                     nodeFactory.getBuilders().removeAll( builders );
                 }
                 else if ( arg.equals( "-debug" ) ) {
-   System.err.println( "debug" );
+                    nodeFactory.debug = true;
                 }
                 else if ( arg.equals( "-demo" ) ) {
                     try {
@@ -157,6 +162,13 @@ public class Driver {
             topNodes.add( makeDataNode( nodeFactory, dfltarg ) );
         }
 
+        /* Make sure that the top-level nodes have the correct custom
+         * child node creation factory. */
+        for ( Iterator it = topNodes.iterator(); it.hasNext(); ) {
+            DataNode node = (DataNode) it.next();
+            node.setChildMaker( nodeFactory );
+        }
+
         /* Construct root as a DefaultDataNode able also to bear children. */
         DataNode root = new DefaultDataNode() {
             public boolean allowsChildren() {
@@ -165,12 +177,15 @@ public class Driver {
             public Iterator getChildIterator() {
                 return topNodes.iterator();
             }
+            public DataNodeFactory getChildMaker() {
+                return nodeFactory;
+            }
         };
 
         /* View the tree. */
         if ( textView ) {
             TreeviewUtil.setGUI( false );
-            viewAsText( root );
+            viewAsText( root, textPath );
         }
         else {
             TreeviewUtil.setGUI( true );
@@ -191,8 +206,8 @@ public class Driver {
         tv.setVisible( true );
     }
 
-    public static void viewAsText( DataNode root ) {
-        TreeWriter tw = new TreeWriter( System.out );
+    public static void viewAsText( DataNode root, boolean showPath ) {
+        TreeWriter tw = new TreeWriter( System.out, showPath );
         tw.write( root );
     }
 
@@ -203,7 +218,7 @@ public class Driver {
     private static DataNode makeDataNode( DataNodeFactory nodeFactory, 
                                           String nodename ) {
         try {
-            DataNode node = nodeFactory.makeDataNode( DataNode.ROOT, nodename );
+            DataNode node = nodeFactory.makeDataNode( null, nodename );
             node.setLabel( nodename );
             return node;
         }

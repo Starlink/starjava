@@ -37,7 +37,6 @@ public class HDSDataNode extends DefaultDataNode {
     private OrderedNDShape shape;   // null for scalar
     private String type;
     private boolean isStruct;
-    private JComponent fullView;
     private String name;
     private Buffer niobuf;
     private String path;
@@ -96,7 +95,6 @@ public class HDSDataNode extends DefaultDataNode {
     public HDSDataNode( File file ) throws NoSuchDataException {
         this( getHDSFromFile( file ) );
         setLabel( file.getName() );
-        setPath( file.getAbsolutePath() );
     }
 
     /**
@@ -239,10 +237,6 @@ public class HDSDataNode extends DefaultDataNode {
         }
     }
 
-    public boolean hasParentObject() {
-        return hparent != null;
-    }
-
     public Object getParentObject() {
         return hparent;
     }
@@ -276,8 +270,8 @@ public class HDSDataNode extends DefaultDataNode {
         return descrip.toString();
     }
 
-    public String getPath() {
-        return path;
+    public String getPathElement() {
+        return name;
     }
 
     public String getPathSeparator() {
@@ -301,82 +295,72 @@ public class HDSDataNode extends DefaultDataNode {
         return "HDS data structure";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
+        if ( isStruct ) {
+            dv.addKeyedItem( "Structure type", type );
+        }
+        else {
+            dv.addKeyedItem( "Data type", type );
+        }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
+        /* It's an array of some kind. */
+        if ( shape != null ) {
+            long[] dims = shape.getDims();
+            dv.addKeyedItem( "Dimensions", dims.length );
+            StringBuffer sdims = new StringBuffer();
+            for ( int i = 0; i < dims.length; i++ ) {
+                if ( i > 0 ) {
+                    sdims.append( " x " );
+                }
+                sdims.append( dims[ i ] );
+            }
+            dv.addKeyedItem( "Shape", sdims );
+        }
+
+        /* It's a scalar. */
+        if ( shape == null && ! isStruct ) {
             dv.addSeparator();
-            if ( isStruct ) {
-                dv.addKeyedItem( "Structure type", type );
+            String value;
+            try {
+                value = hobj.datGet0c();
             }
-            else {
-                dv.addKeyedItem( "Data type", type );
+            catch ( HDSException e ) {
+                value = e.getMessage();
             }
+            dv.addKeyedItem( "Value", value );
+        }
 
-            /* It's an array of some kind. */
-            if ( shape != null ) {
-                long[] dims = shape.getDims();
-                dv.addKeyedItem( "Dimensions", dims.length );
-                StringBuffer sdims = new StringBuffer();
-                for ( int i = 0; i < dims.length; i++ ) {
-                    if ( i > 0 ) {
-                        sdims.append( " x " );
-                    }
-                    sdims.append( dims[ i ] );
+        /* Is it a primitive array? */
+        if ( shape != null && ! isStruct ) {
+            try {
+
+                /* If it's a numeric primitive array, turn it into an 
+                 * NDArray and let NDArrayDataNode do the work. */
+                if ( HDSType.fromName( type ) != null ) {
+                    NDArray nda = HDSArrayBuilder.getInstance()
+                                 .makeNDArray( new ArrayStructure( hobj ),
+                                               AccessMode.READ );
+                    NDArrayDataNode.addDataViews( dv, nda, null );
                 }
-                dv.addKeyedItem( "Shape", sdims );
+
+                /* If it's non-numeric, present a view of its data. */
+                else {
+                    dv.addScalingPane( "Array data", new ComponentMaker() {
+                        public JComponent getComponent() 
+                                throws HDSException {
+                            ArrayStructure ary = new ArrayStructure( hobj );
+                            return new ArrayBrowser( ary );
+                        }
+                    } );
+                }
             }
-
-            /* It's a scalar. */
-            if ( shape == null && ! isStruct ) {
-                dv.addSeparator();
-                String value;
-                try {
-                    value = hobj.datGet0c();
-                }
-                catch ( HDSException e ) {
-                    value = e.getMessage();
-                }
-                dv.addKeyedItem( "Value", value );
+            catch ( HDSException e ) {
+                dv.logError( e );
             }
-
-            /* Is it a primitive array? */
-            if ( shape != null && ! isStruct ) {
-                try {
-
-                    /* If it's a numeric primitive array, turn it into an 
-                     * NDArray and let NDArrayDataNode do the work. */
-                    if ( HDSType.fromName( type ) != null ) {
-                        NDArray nda = HDSArrayBuilder.getInstance()
-                                     .makeNDArray( new ArrayStructure( hobj ),
-                                                   AccessMode.READ );
-                        NDArrayDataNode.addDataViews( dv, nda, null );
-                    }
-
-                    /* If it's non-numeric, present a view of its data. */
-                    else {
-                        dv.addScalingPane( "Array data", new ComponentMaker() {
-                            public JComponent getComponent() 
-                                    throws HDSException {
-                                ArrayStructure ary = new ArrayStructure( hobj );
-                                return new ArrayBrowser( ary );
-                            }
-                        } );
-                    }
-                }
-                catch ( HDSException e ) {
-                    dv.logError( e );
-                }
-                catch ( IOException e ) {
-                    dv.logError( e );
-                }
+            catch ( IOException e ) {
+                dv.logError( e );
             }
         }
-        return fullView;
     }
 
     public static boolean isMagic( byte[] magic ) {

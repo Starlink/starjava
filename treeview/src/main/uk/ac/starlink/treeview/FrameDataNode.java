@@ -19,7 +19,6 @@ import uk.ac.starlink.ast.xml.XAstWriter;
 public class FrameDataNode extends DefaultDataNode {
     private Frame frame;
     private String description;
-    private JComponent fullView;
     private String name;
     private boolean sky;
     private boolean spec;
@@ -76,50 +75,41 @@ public class FrameDataNode extends DefaultDataNode {
         return name;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            int naxes = frame.getNaxes();
-            addItem( dv, "Naxes" );
-            addItem( dv, "Domain" );
-            addItem( dv, "Title" );
-            if ( sky ) {
-                addItem( dv, "Epoch" );
-                addItem( dv, "Equinox" );
-                addItem( dv, "Projection" );
-                addItem( dv, "System" );
-            }
-            for ( int i = 1; i <= naxes; i++ ) {
-                dv.addSubHead( "Axis " + i );
-                addAxisItem( dv, "Label", i );
-                addAxisItem( dv, "Symbol", i );
-                addAxisItem( dv, "Unit", i );
-                addAxisItem( dv, "Digits", i );
-                addAxisItem( dv, "Direction", i );
-                addAxisItem( dv, "Format", i );
-            }
-            dv.addPane( "Text view",
-                        new ComponentMaker() {
-                            public JComponent getComponent() {
-                                return new AstTextShower( frame );
-                            }
-                        } );
-            dv.addPane( "XML view",
-                        new ComponentMaker() {
-                            public JComponent getComponent() 
-                                    throws TransformerException {
-                                Element el = new XAstWriter()
-                                            .makeElement( frame, null );
-                                return new TextViewer( new DOMSource( el ) );
-                            }
-                        } );
+    public void configureDetail( DetailViewer dv ) {
+        int naxes = frame.getNaxes();
+        addItem( dv, "Naxes" );
+        addItem( dv, "Domain" );
+        addItem( dv, "Title" );
+        if ( sky ) {
+            addItem( dv, "Epoch" );
+            addItem( dv, "Equinox" );
+            addItem( dv, "Projection" );
+            addItem( dv, "System" );
         }
-        return fullView;
+        for ( int i = 1; i <= naxes; i++ ) {
+            dv.addSubHead( "Axis " + i );
+            addAxisItem( dv, "Label", i );
+            addAxisItem( dv, "Symbol", i );
+            addAxisItem( dv, "Unit", i );
+            addAxisItem( dv, "Digits", i );
+            addAxisItem( dv, "Direction", i );
+            addAxisItem( dv, "Format", i );
+        }
+        dv.addPane( "Text view",
+                    new ComponentMaker() {
+                        public JComponent getComponent() {
+                            return new AstTextShower( frame );
+                        }
+                    } );
+        dv.addPane( "XML view",
+                    new ComponentMaker() {
+                        public JComponent getComponent() 
+                                throws TransformerException {
+                            Element el = new XAstWriter()
+                                        .makeElement( frame, null );
+                            return new TextViewer( new DOMSource( el ) );
+                        }
+                    } );
     }
 
     private void addItem( DetailViewer dv, String attrib ) {

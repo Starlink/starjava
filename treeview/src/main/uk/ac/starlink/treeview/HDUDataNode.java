@@ -18,11 +18,11 @@ import uk.ac.starlink.fits.FitsConstants;
  */
 public class HDUDataNode extends DefaultDataNode {
 
-    private JComponent fullview;
     private String description;
     private Header header;
     private String hduType;
     private FITSDataNode.ArrayDataMaker hdudata;
+    private int hduIndex;
 
     /**
      * Initialises a <code>HDUDataNode</code> from a <code>Header</code>
@@ -84,29 +84,19 @@ public class HDUDataNode extends DefaultDataNode {
         return false;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullview == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullview = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of header cards",
-                             header.getNumberOfCards() );
-            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-            dv.addKeyedItem( "Blocks of data", 
-                             FitsConstants.getDataSize( header ) / 2880 );
-            dv.addSeparator();
-            dv.addKeyedItem( "HDU type", hduType );
-            dv.addPane( "Header cards", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TextViewer( header.iterator() );
-                }
-            } );
-        }
-        return fullview;
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Number of header cards",
+                         header.getNumberOfCards() );
+        dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
+        dv.addKeyedItem( "Blocks of data", 
+                         FitsConstants.getDataSize( header ) / 2880 );
+        dv.addSeparator();
+        dv.addKeyedItem( "HDU type", hduType );
+        dv.addPane( "Header cards", new ComponentMaker() {
+            public JComponent getComponent() {
+                return new TextViewer( header.iterator() );
+            }
+        } );
     }
 
     public String getDescription() {
@@ -119,6 +109,18 @@ public class HDUDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return "FITS header+data unit";
+    }
+
+    public String getPathSeparator() {
+        return ".";
+    }
+
+    public String getPathElement() {
+        return Integer.toString( hduIndex );
+    }
+
+    void setHDUIndex( int hduIndex ) {
+        this.hduIndex = hduIndex;
     }
 
     protected String getHduType() {

@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.io.File;
 import java.util.Iterator;
-import javax.swing.JComponent;
 
 /**
  * A DataNode implementation which displays Treeview's known demo data
@@ -16,12 +15,11 @@ public class DemoDataNode extends FileDataNode {
         "uk.ac.starlink.treeview.demodir";
 
     private String name = "Demonstration data";
-    private JComponent fullView;
 
     public DemoDataNode() throws NoSuchDataException {
         super( getDemoDir() );
         setLabel( name );
-        setCreator( new CreationState( DataNode.ROOT ) );
+        setCreator( new CreationState( null, null ) );
         setIconID( IconFactory.DEMO );
     }
 
@@ -34,11 +32,11 @@ public class DemoDataNode extends FileDataNode {
     }
 
     public String getPathSeparator() {
-        return ": ";
+        return ":";
     }
 
-    public boolean hasParentObject() {
-        return false;
+    public Object getParentObject() {
+        return null;
     }
 
     public String getNodeTLA() {
@@ -71,19 +69,14 @@ public class DemoDataNode extends FileDataNode {
         };
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addPane( "Information", 
-                        new HTMLDocComponentMaker( "demo.html" ) );
+    public void configureDetail( DetailViewer dv ) {
+        super.configureDetail( dv );
+        dv.addPane( "Information", 
+                    new HTMLDocComponentMaker( "demo.html" ) );
 
-            /* Display the info panel not the overview immediately to make it
-             * very clear to users what is going on. */
-            dv.setSelectedIndex( 1 );
-        }
-        return fullView;
+        /* Display the info panel not the overview immediately to make it
+         * very clear to users what is going on. */
+        dv.setSelectedIndex( 1 );
     }
 
     private static File getDemoDir() throws NoSuchDataException {

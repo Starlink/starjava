@@ -51,6 +51,7 @@ public class TableNodeChooser extends TreeNodeChooser {
         maker.removeNodeClass( HDSDataNode.class );
         maker.removeNodeClass( NDArrayDataNode.class );
         maker.removeNodeClass( NdxDataNode.class );
+        maker.removeNodeClass( HDXDataNode.class );
         super.setRoot( root );
     }
 

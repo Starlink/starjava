@@ -20,7 +20,6 @@ import uk.ac.starlink.util.SourceReader;
 public class VOTableDataNode extends VOComponentDataNode {
 
     private String name;
-    private JComponent fullView;
 
     public VOTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "VOTABLE" );
@@ -39,8 +38,8 @@ public class VOTableDataNode extends VOComponentDataNode {
         return true;
     }
 
-    public boolean hasFullView() {
-        return true;
+    public String getPathSeparator() {
+        return "#";
     }
 
 }

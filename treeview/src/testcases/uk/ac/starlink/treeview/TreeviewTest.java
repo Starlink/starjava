@@ -22,8 +22,17 @@ import uk.ac.starlink.util.TestCase;
  */
 public class TreeviewTest extends TestCase {
 
-    /** Name of the file giving the correct output of 'treeview -demo -text'. */
+    /**
+     *  Name of the file giving the correct output of command:
+     *      treeview -demo -text
+     */
     public static String DEMOTXT_FILE = "demotxt.cmp";
+
+    /** 
+     * Name of the file giving the correct output of command:
+     *     treeview -demo -text -path | awk '{print $NF}'
+     */
+    public static String DEMOPATH_FILE = "demopath.cmp";
 
     private String[] args;
 
@@ -67,20 +76,35 @@ public class TreeviewTest extends TestCase {
             getLines( new ByteArrayInputStream( bytes ) );
         String[] lines2 = 
             getLines( getClass().getResourceAsStream( DEMOTXT_FILE ) );
-        try {
-            assertArrayEquals( lines1, lines2 );
+        String msg = "diffing " + DEMOTXT_FILE + " and " +
+                     "`treeview -demo -text`";
+        assertArrayEquals( msg, lines2, lines1 );
+    }
+
+    public void testTextPaths() throws IOException {
+        if ( args != null ) {
+            return;
         }
-        catch ( AssertionFailedError e ) {
-            System.out.println( 
-                "Regression test failed; treeview -demo -text did not match " 
-              + DEMOTXT_FILE );
-            System.out.println(
-                "Result of treeview -demo -text from this test was: " );
-            for ( int i = 0; i < lines1.length; i++ ) {
-                 System.out.println( lines1[ i ] );
-            }
-            throw e;
+        PrintStream sysout = System.out;
+        ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
+        PrintStream ostrm = new PrintStream( bstrm );
+        System.setOut( ostrm );
+        Driver.main( new String[] { "-text", "-path", "-demo" } );
+        ostrm.close();
+        System.setOut( sysout );
+
+        byte[] bytes = bstrm.toByteArray();
+        String[] lines1 = 
+            getLines( new ByteArrayInputStream( bytes ) );
+        for ( int i = 0; i < lines1.length; i++ ) {
+            String line = lines1[ i ];
+            lines1[ i ] = line.substring( line.lastIndexOf( ' ' ) + 1 );
         }
+        String[] lines2 =
+            getLines( getClass().getResourceAsStream( DEMOPATH_FILE ) );
+        String msg = "diffing " + DEMOPATH_FILE + " and " + 
+                     "`treeview -demo -text -path | awk '{print $NF}'`";
+        assertArrayEquals( msg, lines2, lines1 );
     }
 
     private String[] getLines( InputStream strm ) throws IOException {

@@ -17,7 +17,6 @@ public class HistoryDataNode extends DefaultDataNode {
     private HDSObject histobj;
     private HDSObject records;
     private int nrec;
-    private JComponent fullView;
     private String name;
     private String created;
 
@@ -93,26 +92,17 @@ public class HistoryDataNode extends DefaultDataNode {
         return false;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Records", nrec );
-            if ( created != null ) {
-                dv.addKeyedItem( "Created", created );
-            }
-            dv.addPane( "History records", new ComponentMaker() {
-                public JComponent getComponent() throws HDSException {
-                    MetamapGroup mmg = new HistoryMetamapGroup( records, nrec );
-                    return new MetaTable( mmg );
-                }
-            } );
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Records", nrec );
+        if ( created != null ) {
+            dv.addKeyedItem( "Created", created );
         }
-        return fullView;
+        dv.addPane( "History records", new ComponentMaker() {
+            public JComponent getComponent() throws HDSException {
+                MetamapGroup mmg = new HistoryMetamapGroup( records, nrec );
+                return new MetaTable( mmg );
+            }
+        } );
     }
 
     private static class HistoryMetamapGroup extends MetamapGroup {

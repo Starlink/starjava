@@ -30,8 +30,8 @@
         + [HDS] AXIS  (1)  <AXIS>
           + [HDS] AXIS(1)  <AXIS>
             + [HDS] DATA_ARRAY  <ARRAY>
-              - [ARY] DATA  (1+356)  <_REAL>
-              - [ARY] ORIGIN  (1+1)  <_INTEGER>
+              - [HDS] DATA  (356)  <_REAL>
+              - [HDS] ORIGIN  (1)  <_INTEGER>
             - [HDS] LABEL  <_CHAR*132>"Wavelength"
         + [HDS] MORE  <EXT>
           - [HDS] FITS  (3)  <_CHAR*80>
@@ -104,26 +104,20 @@
             - [COM]   <!-- Extension content not yet impl...
           + [ELE] <CCDPACK>  type="CCDPACK_EXT"
             - [COM]   <!-- Extension content not yet impl...
-      + [NDF] rdata2.sdf  (6+114,1+128)
-        - [HDS] TITLE  <_CHAR*19>"Output from FLATCOR"
-        + [ARY] DATA_ARRAY  (6+114,1+128)  <_REAL>
-          - [HDS] DATA  (114,128)  <_REAL>
-          - [HDS] ORIGIN  (2)  <_INTEGER>
-        + [ARY] VARIANCE  (6+114,1+128)  <_REAL>
-          - [HDS] DATA  (114,128)  <_REAL>
-          - [HDS] ORIGIN  (2)  <_INTEGER>
-        + [WCS] WCS  5 frames; current domain "CCD_REG"
+      + [NDX] rdata2.sdf  (6+114,1+128)
+        - [SCA] Title  <string>"Output from FLATCOR"
+        - [NDA] image  (6+114,1+128)  <float>
+        - [NDA] variance  (6+114,1+128)  <float>
+        + [WCS] WCS  4 frames; current domain "CCD_REG"
           - [FRM] GRID  (2 axes) "2-d coordinate system"
           - [FRM] PIXEL  (2 axes) "2-d coordinate system"
-          - [FRM] AXIS  (2 axes) "2-d coordinate system"
           - [FRM] CCD_GEN  (2 axes) "Alignment of CCDGENERATE test data"
           - [FRM] CCD_REG  (2 axes) "Alignment by REGISTER"
-        + [HDS] MORE  <EXT>
-          - [HDS] FITS  (16)  <_CHAR*80>
-          + [HDS] CCDPACK  <CCDPACK_EXT>
-            - [HDS] DEBIAS  <_CHAR*24>"Thu Oct 10 10:21:03 2002"
-            - [HDS] FLATCOR  <_CHAR*24>"Thu Oct 10 10:21:05 2002"
-            - [HDS] CURRENT_LIST  <_CHAR*18>"reduced_data2.off"
+        + [ELE] <etc>
+          + [ELE] <FITS>  type="_CHAR*80"
+            - [COM]   <!-- Extension content not yet impl...
+          + [ELE] <CCDPACK>  type="CCDPACK_EXT"
+            - [COM]   <!-- Extension content not yet impl...
       + [NDX] rdata2.xml  (6+114,1+128)
         - [SCA] Title  <string>"Output from FLATCOR"
         - [NDA] image  (6+114,1+128)  <float>

@@ -6,42 +6,50 @@ package uk.ac.starlink.treeview;
  * {@link DataNodeFactory#makeDataNode} or similar.
  */
 public class CreationState {
-    private final DataNodeFactory fact;
-    private final DataNodeBuilder builder;
+
     private final DataNode parent;
     private final Object obj;
+    private DataNodeFactory fact;
+    private DataNodeBuilder builder;
+    private String trace;
 
     /**
-     * Constructs a CreationState object with all the relevant information.
+     * Constructs a CreationState object.
      */
-    public CreationState( DataNodeFactory fact, DataNodeBuilder builder,
-                          DataNode parent, Object obj ) {
-        this.fact = fact;
-        this.builder = builder;
+    public CreationState( DataNode parent, Object obj ) {
         this.parent = parent;
         this.obj = obj;
     }
 
-    /**
-     * Constructs a CreationState object from only its parent. 
-     * This will provide a limited amount of functionality - the alterego
-     * menu won't work.
-     */
-    public CreationState( DataNode parent ) {
-        this( null, null, parent, null );
+    public DataNode getParent() {
+        return parent;
+    }
+
+    public Object getObject() {
+        return obj;
+    }
+
+    public void setBuilder( DataNodeBuilder builder ) {
+        this.builder = builder;
     }
     public DataNodeBuilder getBuilder() {
         return builder;
     }
+
+    public void setFactory( DataNodeFactory fact ) { 
+        this.fact = fact;
+    }
     public DataNodeFactory getFactory() {
         return fact;
     }
-    public DataNode getParent() {
-        return parent;
+
+    public void setFactoryTrace( String trace ) {
+        this.trace = trace;
     }
-    public Object getObject() {
-        return obj;
+    public String getFactoryTrace() {
+        return trace;
     }
+
     public String toString() {
         return "Factory: " + fact + ";  " 
              + "Builder: " + builder + ";  "

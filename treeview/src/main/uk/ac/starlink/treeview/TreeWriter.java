@@ -12,22 +12,28 @@ import java.io.*;
  */
 public class TreeWriter {
     PrintStream stream;
+    boolean showPath;
 
     /**
-     * Construct a <code>TreeWriter</code> which writes to a given stream.
+     * Construct a <code>TreeWriter</code> which writes to a given stream,
+     * optionally recording the full path of each node.
      *
      * @param  stream  the <code>PrintStream</code> to which the tree
      *                 will be written.
+     * @param  showPath  whether the path of each node is to be appended
+     *                   to the output
      */
-    public TreeWriter( PrintStream stream ) {
+    public TreeWriter( PrintStream stream, boolean showPath ) {
         this.stream = stream;
+        this.showPath = showPath;
     }
 
     /**
-     * Construct a <code>TreeWriter</code> which writes to standard output.
+     * Construct a <code>TreeWriter</code> which writes to standard output,
+     * without paths.
      */
     public TreeWriter() {
-        this( System.out );
+        this( System.out, false );
     }
  
     private void outLine( String line ) {
@@ -61,9 +67,20 @@ public class TreeWriter {
             hasChildren = cIt.hasNext();
         }
         if ( level > 0 ) {
-            outLine( indent( level, hasChildren ) +
-                        "[" + ( node.getNodeTLA() + "   " ).substring( 0, 3 ) +
-                        "] " + node );
+            StringBuffer line = new StringBuffer()
+                .append( indent( level, hasChildren ) )
+                .append( '[' )
+                .append( ( node.getNodeTLA() + "   " ).substring( 0, 3 ) )
+                .append( "] " )
+                .append( node );
+            if ( showPath ) {
+                String path = TreeviewUtil.getNodePath( node );
+                if ( path != null ) {
+                    line.append( "      " )
+                        .append( path );
+                }
+            }
+            outLine( line.toString() );
         }
         if ( hasChildren ) {
             while ( cIt.hasNext() ) {

@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
@@ -27,7 +26,6 @@ public class ARYDataNode extends HDSDataNode {
      * than the ARY library.
      */
     private ArrayStructure aryobj;
-    private JComponent fullView;
     private NDShape shape;
     private DataNodeFactory customChildMaker;
 
@@ -108,38 +106,28 @@ public class ARYDataNode extends HDSDataNode {
         customChildMaker = null;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Dimensionality", shape.getNumDims() );
-            dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
-            dv.addKeyedItem( "Dimensions", 
-                             NDShape.toString( shape.getDims() ) );
-            dv.addKeyedItem( "Pixel bounds", 
-                             NDArrayDataNode.boundsString( shape ) );
-            dv.addSeparator();
-            dv.addKeyedItem( "Type", aryobj.getType() );
-            dv.addSeparator();
-            dv.addKeyedItem( "Storage variant", aryobj.getStorage() );
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Dimensionality", shape.getNumDims() );
+        dv.addKeyedItem( "Origin", NDShape.toString( shape.getOrigin() ) );
+        dv.addKeyedItem( "Dimensions", NDShape.toString( shape.getDims() ) );
+        dv.addKeyedItem( "Pixel bounds", 
+                         NDArrayDataNode.boundsString( shape ) );
+        dv.addSeparator();
+        dv.addKeyedItem( "Type", aryobj.getType() );
+        dv.addSeparator();
+        dv.addKeyedItem( "Storage variant", aryobj.getStorage() );
 
-            try {
-                NDArray nda = HDSArrayBuilder.getInstance()
-                             .makeNDArray( aryobj, AccessMode.READ );
-                NDArrayDataNode.addDataViews( dv, nda, null );
-            }
-            catch ( HDSException e ) {
-                dv.logError( e );
-            }
-            catch ( IOException e ) {
-                dv.logError( e );
-            }
+        try {
+            NDArray nda = HDSArrayBuilder.getInstance()
+                         .makeNDArray( aryobj, AccessMode.READ );
+            NDArrayDataNode.addDataViews( dv, nda, null );
         }
-        return fullView;
+        catch ( HDSException e ) {
+            dv.logError( e );
+        }
+        catch ( IOException e ) {
+            dv.logError( e );
+        }
     }
 
 }

@@ -11,11 +11,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
@@ -73,6 +76,7 @@ public class StaticTreeViewer extends JFrame {
     private double splitHloc;
     private double splitVloc;
     private DataNodeFactory nodeMaker = new DataNodeFactory();
+    private Map detailMap = new WeakHashMap();
     private Action helpAction;
     private Action collapseAction;
     private Action expandAction;
@@ -580,7 +584,7 @@ public class StaticTreeViewer extends JFrame {
             }
             boolean inRoot = ( tp.getPathCount() == 2 );
             deleteAction.setEnabled( inRoot );
-            upAction.setEnabled( inRoot && selNode.hasParentObject() );
+            upAction.setEnabled( inRoot && selNode.getParentObject() != null );
             copyTopAction.setEnabled( ! inRoot );
         }
         else {
@@ -673,15 +677,15 @@ public class StaticTreeViewer extends JFrame {
     }
 
     private void replaceWithParent( DataNode node ) {
-        assert node.hasParentObject(); // otherwise action disabled
         Object parentObj = node.getParentObject();
+        assert parentObj != null; // otherwise action disabled
         DataNode parentNode;
         boolean error = false;
         try {
             parentNode = nodeMaker.makeDataNode( root, parentObj );
         }
         catch ( NoSuchDataException e ) {
-            parentNode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+            parentNode = nodeMaker.makeErrorDataNode( null, e );
             error = true;
         }
         replaceNode( node, parentNode );
@@ -721,13 +725,7 @@ public class StaticTreeViewer extends JFrame {
         int retval = fileChooser.showOpenDialog( this );
         if ( retval == JFileChooser.APPROVE_OPTION ) {
             File file = fileChooser.getSelectedFile();
-            DataNode node;
-            try {
-                node = nodeMaker.makeDataNode( DataNode.ROOT, file );
-            }
-            catch ( NoSuchDataException e ) {
-                node = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
-            }
+            DataNode node = nodeMaker.makeChildNode( null, file );
             node.setLabel( file.getAbsolutePath() );
             appendNodeToRoot( node );
         }
@@ -739,13 +737,7 @@ public class StaticTreeViewer extends JFrame {
         if ( name == null || name.trim().length() == 0 ) {
             return;
         }
-        DataNode dnode;
-        try {
-            dnode = nodeMaker.makeDataNode( DataNode.ROOT, name );
-        }
-        catch ( NoSuchDataException e ) {
-            dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
-        }
+        DataNode dnode = nodeMaker.makeChildNode( null, name );
         dnode.setLabel( name );
         appendNodeToRoot( dnode );
     }
@@ -760,7 +752,7 @@ public class StaticTreeViewer extends JFrame {
                 demoNode = (DemoDataNode) dnode;
             }
             catch ( NoSuchDataException e ) {
-                dnode = nodeMaker.makeErrorDataNode( DataNode.ROOT, e );
+                dnode = nodeMaker.makeErrorDataNode( null, e );
             }
         }
 
@@ -990,8 +982,9 @@ public class StaticTreeViewer extends JFrame {
                     }
                     else {
                         newdn.setLabel( dn.getLabel() );
-                        CreationState creat =
-                            new CreationState( cfact, builder, parent, cobj );
+                        CreationState creat = new CreationState( parent, cobj );
+                        creat.setFactory( cfact );
+                        creat.setBuilder( builder );
                         newdn.setCreator( creat );
                         String text = newdn.getNodeTLA() + ": "
                                     + newdn.toString();
@@ -1071,6 +1064,68 @@ public class StaticTreeViewer extends JFrame {
         return (JComponent) detailHolder.getView();
     }
 
+
+    /**
+     * Returns the component which displays the detailed information
+     * about a given data node.
+     *
+     * @param  node  the data node to describe
+     * @return  the component which contains the detailed description
+     */
+    private JComponent getDetail( DataNode node ) {
+        if ( ! detailMap.containsKey( node ) ) {
+            detailMap.put( node, makeDetail( node ) );
+        }
+        return (JComponent) detailMap.get( node );
+    }
+
+    /**
+     * Constructs the component which displays the detailed information
+     * about a given data node.  These components are cached in a 
+     * WeakHashMap, so that if the nodes to whom they belong are disposed
+     * of, they can be discarded by the garbage collector.
+     *
+     * @param  node  the data node to describe
+     * @return  the component which contains the detailed description
+     */
+    private JComponent makeDetail( DataNode node ) {
+
+        /* Construct a viewer containing basic information about the node. */
+        DetailViewer dv = new DetailViewer( node );
+        dv.addSeparator();
+
+        /* Allow the node to customise the viewer according to
+         * its own knowledge of itself. */
+        node.configureDetail( dv );
+
+        /* Add debugging information if it is available. */
+        CreationState creator = node.getCreator();
+        if ( creator != null ) {
+            final String trace = creator.getFactoryTrace();
+            if ( trace != null ) {
+                dv.addPane( "Construction trace", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        return new TextViewer( new StringReader( trace ) );
+                    }
+                } );
+            }
+            DataNodeFactory factory = creator.getFactory();
+            if ( factory != null && factory.debug ) {
+                dv.addSubHead( "Debug" );
+                dv.addKeyedItem( "Node class", node.getClass().getName() );
+                dv.addKeyedItem( "Parent node", creator.getParent() );
+                dv.addKeyedItem( "Object", creator.getObject() );
+                dv.addKeyedItem( "Object class", 
+                                 creator.getObject().getClass().getName() );
+                dv.addKeyedItem( "Builder", creator.getBuilder() );
+            }
+        }
+
+        /* Return the component for display. */
+        return dv.getComponent();
+    }
+              
+
     /**
      * Helper class which handles getting detail components for selected nodes
      * and placing them in the detail panel.
@@ -1125,7 +1180,7 @@ public class StaticTreeViewer extends JFrame {
                  * it to be used in the event-dispatch thread. */
                 else {
                     workingNode = requestNode;
-                    completeDetail = requestNode.getFullView();
+                    completeDetail = getDetail( requestNode );
                     workingNode = null;
                     completeNode = requestNode;
                     SwingUtilities.invokeLater( new Runnable() {

@@ -36,7 +36,6 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
     private StarTable startable;
     private String name;
     private String description;
-    private JComponent fullView;
 
     private static StarTableFactory tabfact;
 
@@ -80,13 +79,8 @@ public class StarTableDataNode extends DefaultDataNode implements Draggable {
         return "StarTable";
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            addDataViews( dv, startable );
-        }
-        return fullView;
+    public void configureDetail( DetailViewer dv ) {
+        addDataViews( dv, startable );
     }
 
     public static void addDataViews( DetailViewer dv, 

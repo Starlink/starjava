@@ -25,7 +25,6 @@ public class FITSFileDataNode extends FITSDataNode {
             throws NoSuchDataException {
         super( fdatsrc );
         file = fdatsrc.getFile();
-        setPath( file.getAbsolutePath() );
         name = file.getName();
         setLabel( name );
     }

@@ -34,7 +34,7 @@ public class DataNodeTreeCellRenderer extends DefaultTreeCellRenderer {
         if ( value instanceof DataNode ) {
             DataNode node = (DataNode) value;
             setIcon( node.getIcon() );
-            String text = node.toString();
+            String text = TreeviewUtil.toString( node );
             if ( text.trim().length() == 0 ) {
                 text = "...";
             }

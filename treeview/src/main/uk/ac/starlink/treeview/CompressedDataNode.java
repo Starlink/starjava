@@ -17,7 +17,6 @@ public class CompressedDataNode extends DefaultDataNode {
 
     private final DataSource datsrc;
     private final Compression compress;
-    private JComponent fullView;
     private final String name;
 
     public CompressedDataNode( DataSource datsrc ) throws NoSuchDataException {
@@ -57,43 +56,37 @@ public class CompressedDataNode extends DefaultDataNode {
         return name;
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Compression format", compress );
-            long rawLeng = datsrc.getRawLength();
-            long cookLeng = datsrc.getLength();
-            if ( rawLeng >= 0 ) {
-                dv.addKeyedItem( "Compressed size", rawLeng );
-            }
-            if ( cookLeng >= 0 ) {
-                dv.addKeyedItem( "Decompressed size", cookLeng );
-            }
-            try {
-                if ( TreeviewUtil.isASCII( datsrc.getIntro() ) ) {
-                    dv.addPane( "Text view", new ComponentMaker() {
-                        public JComponent getComponent() throws IOException {
-                            return new TextViewer( datsrc.getInputStream() );
-                        }
-                    } );
-                }
-                dv.addPane( "Hex dump", new ComponentMaker() {
-                    public JComponent getComponent() throws IOException {
-                        return new HexDumper( datsrc.getInputStream(), 
-                                              datsrc.getLength() );
-                    }
-                } );
-            }
-            catch ( final IOException e ) {
-                dv.addPane( "Error reading data", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TextViewer( e );
-                    }
-                } );
-            }
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Compression format", compress );
+        long rawLeng = datsrc.getRawLength();
+        long cookLeng = datsrc.getLength();
+        if ( rawLeng >= 0 ) {
+            dv.addKeyedItem( "Compressed size", rawLeng );
         }
-        return fullView;
+        if ( cookLeng >= 0 ) {
+            dv.addKeyedItem( "Decompressed size", cookLeng );
+        }
+        try {
+            if ( TreeviewUtil.isASCII( datsrc.getIntro() ) ) {
+                dv.addPane( "Text view", new ComponentMaker() {
+                    public JComponent getComponent() throws IOException {
+                        return new TextViewer( datsrc.getInputStream() );
+                    }
+                } );
+            }
+            dv.addPane( "Hex dump", new ComponentMaker() {
+                public JComponent getComponent() throws IOException {
+                    return new HexDumper( datsrc.getInputStream(), 
+                                          datsrc.getLength() );
+                }
+            } );
+        }
+        catch ( final IOException e ) {
+            dv.addPane( "Error reading data", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new TextViewer( e );
+                }
+            } );
+        }
     }
 }

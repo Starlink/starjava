@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.swing.JComponent;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
 
@@ -24,7 +23,6 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
     private ZipFile zfile;
     private File file;
     private List entries;
-    private JComponent fullView;
 
     /**
      * Initialises a <code>ZipFileDataNode</code> from a
@@ -43,10 +41,6 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
         }
         this.file = file;
         setLabel( file.getName() );
-    }
-
-    public boolean hasParentObject() {
-        return file.getAbsoluteFile().getParentFile() != null;
     }
 
     public Object getParentObject() {
@@ -70,7 +64,6 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
         final ZipArchiveDataNode zadn = this;
         final DataNodeFactory childMaker = getChildMaker();
         final int lleng = level.length();
-        final String pathHead = getPath() + getPathSeparator() + level;
 
         /* Get an iterator over all the ZipEntries at the requested level. */
         final Iterator zentIt = getEntriesAtLevel( level ).iterator();
@@ -86,7 +79,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
                 /* If it is a directory, make a ZipBranchDataNode from it. */
                 if ( zent.isDirectory() ) {
                     DataNode dnode = new ZipBranchDataNode( zadn, zent );
-                    dnode.setCreator( new CreationState( parent ) );
+                    getChildMaker().configureDataNode( dnode, parent, null );
                     dnode.setLabel( subname );
                     return dnode;
                 }
@@ -94,10 +87,7 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
                 /* If it's a file, turn it into a DataSource pass it to
                  * the DataNodeFactory. */
                 else {
-                    DataSource datsrc = new PathedDataSource() {
-                        public String getPath() {
-                            return pathHead + subname;
-                        }
+                    DataSource datsrc = new DataSource() {
                         public long getRawLength() {
                             return zent.getSize();
                         }
@@ -110,7 +100,9 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
                         }
                     };
                     datsrc.setName( subname );
-                    return makeChild( datsrc, parent, childMaker );
+                    DataNode node = childMaker.makeChildNode( parent, datsrc );
+                    node.setLabel( subname );
+                    return node;
                 }
             }
             public boolean hasNext() {
@@ -123,15 +115,9 @@ public class ZipFileDataNode extends ZipArchiveDataNode {
  
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Length", file.length() );
-            dv.addKeyedItem( "Number of entries", zfile.size() );
-        }
-        return fullView;
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Length", file.length() );
+        dv.addKeyedItem( "Number of entries", zfile.size() );
     }
 
     private static DataSource getDataSource( File file )

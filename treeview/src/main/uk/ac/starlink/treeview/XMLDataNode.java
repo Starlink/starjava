@@ -39,8 +39,9 @@ public class XMLDataNode extends DefaultDataNode {
     private final String type;
     private final String description;
     private final boolean allowsChildren;
+    private String sep;
+    private String pathEl;
     private String name;
-    private JComponent fullView;
 
     public static final int MAX_LINES = 12;
     public static final String[] MAGICS = new String[] { "<!", "<?" };
@@ -62,6 +63,8 @@ public class XMLDataNode extends DefaultDataNode {
         this.systemId = xsrc.getSystemId();
 
         name = domNode.getNodeName();
+        pathEl = domNode.getNodeName();
+        sep = ".";
         short iconId;
         switch ( domNode.getNodeType() ) {
 
@@ -73,6 +76,7 @@ public class XMLDataNode extends DefaultDataNode {
                 name = '<' + ((Document) domNode)
                             .getDocumentElement().getTagName() + '>';
                 description = "";
+                sep = "#";
                 break;
 
             case Node.ELEMENT_NODE:
@@ -138,6 +142,9 @@ public class XMLDataNode extends DefaultDataNode {
                 description = "";
                 break;
         }
+        if ( pathEl.charAt( 0 ) == '#' ) {
+            pathEl = '[' + pathEl.substring( 1 ) + ']';
+        }
         setLabel( name );
         setIconID( iconId );
     }
@@ -155,11 +162,16 @@ public class XMLDataNode extends DefaultDataNode {
     }
 
     public String getPathElement() {
-        return domNode.getNodeName();
+        if ( domNode.getNodeType() == Node.DOCUMENT_NODE ) {
+            return getLabel();
+        }
+        else {
+            return pathEl;
+        }
     }
 
     public String getPathSeparator() {
-        return "/";
+        return sep;
     }
 
     public String getDescription() {
@@ -196,123 +208,114 @@ public class XMLDataNode extends DefaultDataNode {
         };
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-
-            /* Write system ID if there is one. */
-            if ( systemId != null && systemId.trim().length() > 0 ) {
-                dv.addKeyedItem( "System ID", systemId );
-            }
-
-            /* If we are an element with attributes, write them. */
-            if ( domNode instanceof Element ) {
-                Element el = (Element) domNode;
-                if ( el.hasAttributes() ) {
-
-                    /* Assemble a list sorted by attribute name. */
-                    NamedNodeMap atts = el.getAttributes();
-                    int natt = atts.getLength();
-                    SortedMap amap = new TreeMap();
-                    for ( int i = 0; i < natt; i++ ) {
-                        Attr att = (Attr) atts.item( i );
-                        String aname = att.getName();
-                        String aval = att.getValue();
-                        if ( ! att.getSpecified() ) {
-                            aval += " (auto value)";
-                        }
-                        amap.put( aname, aval );
-                    }
-
-                    /* Output the sorted attributes. */
-                    dv.addSubHead( "Attributes" );
-                    for ( Iterator it = amap.entrySet().iterator();
-                          it.hasNext(); ) {
-                        Map.Entry entry = (Map.Entry) it.next();
-                        dv.addKeyedItem( (String) entry.getKey(),
-                                         (String) entry.getValue() );
-                    }
-                }
-            }
-
-            /* DTD specific things. */
-            if ( domNode instanceof DocumentType ) {
-                DocumentType dtd = (DocumentType) domNode;
-
-                /* Identifiers. */
-                dv.addKeyedItem( "System ID", dtd.getSystemId() );
-                dv.addKeyedItem( "Public ID", dtd.getPublicId() );
-
-                /* Internal subset. */
-                final String isubset = dtd.getInternalSubset();
-                if ( isubset != null && isubset.trim().length() > 0 ) {
-                    dv.addPane( "Internal subset", new ComponentMaker() {
-                        public JComponent getComponent() 
-                                throws TransformerException {
-                            Source ssrc = 
-                                new StreamSource( new StringReader( isubset ) );
-                            ssrc.setSystemId( systemId );
-                            return new TextViewer( ssrc );
-                        }
-                    } );
-                }
-
-                /* Entities. */
-                final NamedNodeMap entities = dtd.getEntities();
-                final int nent = entities.getLength();
-                if ( nent > 0 ) {
-                    dv.addPane( "Entities", new ComponentMaker() {
-                        public JComponent getComponent() {
-                            MetamapGroup mmg = new MetamapGroup( nent );
-                            for ( int i = 0; i < nent; i++ ) {
-                                Entity ent = (Entity) entities.item( i );
-                                mmg.addEntry( i, NAME_KEY, ent.getNodeName() );
-                                mmg.addEntry( i, SID_KEY, ent.getSystemId() );
-                                mmg.addEntry( i, PID_KEY, ent.getPublicId() );
-                                mmg.addEntry( i, NOTATION_KEY, 
-                                              ent.getNotationName() );
-                            }
-                            mmg.setKeyOrder( Arrays.asList( new String[] {
-                                NAME_KEY, SID_KEY, PID_KEY, NOTATION_KEY,
-                            } ) );
-                            return new MetaTable( mmg );
-                        }
-                    } );
-                }
-
-                /* Notations. */
-                final NamedNodeMap notations = dtd.getNotations();
-                final int nnot = notations.getLength();
-                if ( nnot > 0 ) {
-                    dv.addPane( "Notations", new ComponentMaker() {
-                        public JComponent getComponent() {
-                            MetamapGroup mmg = new MetamapGroup( nnot );
-                            for ( int i = 0; i < nnot; i++ ) {
-                                Notation not = (Notation) notations.item( i );
-                                String systemId = not.getSystemId();
-                                String publicId = not.getPublicId();
-                                mmg.addEntry( i, NAME_KEY, not.getNodeName() );
-                                mmg.addEntry( i, SID_KEY, not.getSystemId() );
-                                mmg.addEntry( i, PID_KEY, not.getPublicId() );
-                            }
-                            mmg.setKeyOrder( Arrays.asList( new String[] {
-                                NAME_KEY, SID_KEY, PID_KEY,
-                            } ) );
-                            return new MetaTable( mmg );
-                        }
-                    } );
-                }
-            }
-
-            /* Generic XML info. */
-            addXMLViews( dv, domNode );
+        /* Write system ID if there is one. */
+        if ( systemId != null && systemId.trim().length() > 0 ) {
+            dv.addKeyedItem( "System ID", systemId );
         }
-        return fullView;
+
+        /* If we are an element with attributes, write them. */
+        if ( domNode instanceof Element ) {
+            Element el = (Element) domNode;
+            if ( el.hasAttributes() ) {
+
+                /* Assemble a list sorted by attribute name. */
+                NamedNodeMap atts = el.getAttributes();
+                int natt = atts.getLength();
+                SortedMap amap = new TreeMap();
+                for ( int i = 0; i < natt; i++ ) {
+                    Attr att = (Attr) atts.item( i );
+                    String aname = att.getName();
+                    String aval = att.getValue();
+                    if ( ! att.getSpecified() ) {
+                        aval += " (auto value)";
+                    }
+                    amap.put( aname, aval );
+                }
+
+                /* Output the sorted attributes. */
+                dv.addSubHead( "Attributes" );
+                for ( Iterator it = amap.entrySet().iterator();
+                      it.hasNext(); ) {
+                    Map.Entry entry = (Map.Entry) it.next();
+                    dv.addKeyedItem( (String) entry.getKey(),
+                                     (String) entry.getValue() );
+                }
+            }
+        }
+
+        /* DTD specific things. */
+        if ( domNode instanceof DocumentType ) {
+            DocumentType dtd = (DocumentType) domNode;
+
+            /* Identifiers. */
+            dv.addKeyedItem( "System ID", dtd.getSystemId() );
+            dv.addKeyedItem( "Public ID", dtd.getPublicId() );
+
+            /* Internal subset. */
+            final String isubset = dtd.getInternalSubset();
+            if ( isubset != null && isubset.trim().length() > 0 ) {
+                dv.addPane( "Internal subset", new ComponentMaker() {
+                    public JComponent getComponent() 
+                            throws TransformerException {
+                        Source ssrc = 
+                            new StreamSource( new StringReader( isubset ) );
+                        ssrc.setSystemId( systemId );
+                        return new TextViewer( ssrc );
+                    }
+                } );
+            }
+
+            /* Entities. */
+            final NamedNodeMap entities = dtd.getEntities();
+            final int nent = entities.getLength();
+            if ( nent > 0 ) {
+                dv.addPane( "Entities", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        MetamapGroup mmg = new MetamapGroup( nent );
+                        for ( int i = 0; i < nent; i++ ) {
+                            Entity ent = (Entity) entities.item( i );
+                            mmg.addEntry( i, NAME_KEY, ent.getNodeName() );
+                            mmg.addEntry( i, SID_KEY, ent.getSystemId() );
+                            mmg.addEntry( i, PID_KEY, ent.getPublicId() );
+                            mmg.addEntry( i, NOTATION_KEY, 
+                                          ent.getNotationName() );
+                        }
+                        mmg.setKeyOrder( Arrays.asList( new String[] {
+                            NAME_KEY, SID_KEY, PID_KEY, NOTATION_KEY,
+                        } ) );
+                        return new MetaTable( mmg );
+                    }
+                } );
+            }
+
+            /* Notations. */
+            final NamedNodeMap notations = dtd.getNotations();
+            final int nnot = notations.getLength();
+            if ( nnot > 0 ) {
+                dv.addPane( "Notations", new ComponentMaker() {
+                    public JComponent getComponent() {
+                        MetamapGroup mmg = new MetamapGroup( nnot );
+                        for ( int i = 0; i < nnot; i++ ) {
+                            Notation not = (Notation) notations.item( i );
+                            String systemId = not.getSystemId();
+                            String publicId = not.getPublicId();
+                            mmg.addEntry( i, NAME_KEY, not.getNodeName() );
+                            mmg.addEntry( i, SID_KEY, not.getSystemId() );
+                            mmg.addEntry( i, PID_KEY, not.getPublicId() );
+                        }
+                        mmg.setKeyOrder( Arrays.asList( new String[] {
+                            NAME_KEY, SID_KEY, PID_KEY,
+                        } ) );
+                        return new MetaTable( mmg );
+                    }
+                } );
+            }
+        }
+
+        /* Generic XML info. */
+        addXMLViews( dv, domNode );
     }
 
 
@@ -368,8 +371,8 @@ public class XMLDataNode extends DefaultDataNode {
 
                     /* If it is HTML then take this to mean it's NOT XML - 
                      * it is most likely to be not well-formed. */
-                    if ( test.indexOf( "HTML" ) > 0 ||
-                         test.indexOf( "html" ) > 0 ) {
+                    if ( test.indexOf( "<HTML" ) > 0 ||
+                         test.indexOf( "<html" ) > 0 ) {
                         return null;
                     }
                     else {

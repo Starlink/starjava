@@ -53,17 +53,17 @@ public class XMLDataNodeBuilder extends DataNodeBuilder {
         /* If this suggests that it is a DataNode that we know about, 
          * pass it to the appropriate constructor. */
         if ( elname.equals( "hdx" ) ) {
-            return configureNode( new HDXDataNode( xsrc ), xsrc );
+            return new HDXDataNode( xsrc );
         }
         else if ( elname.equals( "ndx" ) ) {
-            return configureNode( new NdxDataNode( xsrc ), xsrc );
+            return new NdxDataNode( xsrc );
         }
         else if ( elName.equals( "VOTABLE" ) ) {
-            return configureNode( new VOTableDataNode( xsrc ), xsrc );
+            return new VOTableDataNode( xsrc );
         }
 
         /* Otherwise, just make plain XML out of it. */
-        return configureNode( new XMLDataNode( xsrc ), xsrc );
+        return new XMLDataNode( xsrc );
     }
 
     public String toString() {

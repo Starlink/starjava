@@ -28,7 +28,6 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
     private String hduType;
     private TableData tdata;
     private String description;
-    private JComponent fullview;
     private Header header;
     private FITSDataNode.ArrayDataMaker hdudata;
     private StarTable starTable;
@@ -120,44 +119,28 @@ public class TableHDUDataNode extends HDUDataNode implements Draggable {
         return false;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
+        super.configureDetail( dv );
 
-    public JComponent getFullView() {
-        if ( fullview == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullview = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of header cards",
-                             header.getNumberOfCards() );
-            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-            dv.addKeyedItem( "Blocks of data", 
-                             FitsConstants.getDataSize( header ) / 2880 );
-            dv.addSeparator();
-            dv.addKeyedItem( "HDU type", hduType );
+        /* Make the table. */
+        try {
+            /* Show the header cards. */
+            dv.addPane( "Header cards", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new TextViewer( header.iterator() );
+                }
+            } );
 
-            /* Make the table. */
-            try {
-                /* Show the header cards. */
-                dv.addPane( "Header cards", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TextViewer( header.iterator() );
-                    }
-                } );
-
-                /* Do table-specific display. */
-                StarTableDataNode.addDataViews( dv, getStarTable() );
-            }
-            catch ( final IOException e ) {
-                dv.addPane( "Error reading table", new ComponentMaker() {
-                     public JComponent getComponent() {
-                         return new TextViewer( e );
-                     }
-                } );
-            }
+            /* Do table-specific display. */
+            StarTableDataNode.addDataViews( dv, getStarTable() );
         }
-        return fullview;
+        catch ( final IOException e ) {
+            dv.addPane( "Error reading table", new ComponentMaker() {
+                 public JComponent getComponent() {
+                     return new TextViewer( e );
+                 }
+            } );
+        }
     }
 
     public void customiseTransferable( DataNodeTransferable trans ) 

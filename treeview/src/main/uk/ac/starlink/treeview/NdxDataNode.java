@@ -55,7 +55,6 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
     private Ndx ndx;
     private String name;
     private String desc;
-    private JComponent fullView;
     private URL url;
 
     /**
@@ -90,7 +89,6 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
 
     public NdxDataNode( File file ) throws NoSuchDataException {
         this( file.toString() );
-        setPath( file.getAbsolutePath() );
     }
 
     /**
@@ -168,7 +166,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         if ( ndx.hasTitle() ) {
             DataNode tit;
             tit = new ScalarDataNode( "Title", "string", ndx.getTitle() );
-            tit.setCreator( new CreationState( this ) );
+            getChildMaker().configureDataNode( tit, this, null );
             children.add( tit );
         }
 
@@ -193,7 +191,7 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
             DataNode bb = 
                 new ScalarDataNode( "BadBits", "int", 
                                     "0x" + Integer.toHexString( badbits ) );
-            bb.setCreator( new CreationState( this ) );
+            getChildMaker().configureDataNode( bb, this, null );
             children.add( bb );
         }
     
@@ -234,39 +232,28 @@ public class NdxDataNode extends DefaultDataNode implements Draggable {
         return ".";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            if ( ndx.hasTitle() ) {
-                dv.addKeyedItem( "Title", ndx.getTitle() );
-            }
-
-            dv.addPane( "HDX view", new ComponentMaker() {
-                public JComponent getComponent()
-                        throws TransformerException, HdxException {
-                    URI uri = URLUtils.urlToUri( url );
-                    Source src = HdxFactory
-                                .getInstance()
-                                .newHdxContainer( ndx.getHdxFacade() )
-                                .getSource( uri );
-                    return new TextViewer( src );
-                }
-            } );
-
-            try {
-                addDataViews( dv, ndx );
-            }
-            catch ( IOException e ) {
-                dv.logError( e );
-            }
+    public void configureDetail( DetailViewer dv ) {
+        if ( ndx.hasTitle() ) {
+            dv.addKeyedItem( "Title", ndx.getTitle() );
         }
-        return fullView;
+
+        dv.addPane( "HDX view", new ComponentMaker() {
+            public JComponent getComponent()
+                    throws TransformerException, HdxException {
+            URI uri = URLUtils.urlToUri( url );
+            Source src = HdxFactory.getInstance()
+                                   .newHdxContainer( ndx.getHdxFacade() )
+                                   .getSource( uri );
+                return new TextViewer( src );
+            }
+        } );
+
+        try {
+            addDataViews( dv, ndx );
+        }
+        catch ( IOException e ) {
+            dv.logError( e );
+        }
     }
 
     /**

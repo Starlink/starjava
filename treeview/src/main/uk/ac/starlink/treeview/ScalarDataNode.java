@@ -1,7 +1,5 @@
 package uk.ac.starlink.treeview;
 
-import javax.swing.JComponent;
-
 /**
  * Simple DataNode for representing scalar values.
  */
@@ -10,7 +8,6 @@ public class ScalarDataNode extends DefaultDataNode {
     private String desc;
     private String type;
     private String value;
-    private JComponent fullView;
     private static final String QUOTE = "\"";
     
     /**
@@ -45,19 +42,10 @@ public class ScalarDataNode extends DefaultDataNode {
         return "Scalar";
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            if ( type != null ) {
-               dv.addKeyedItem( "Type", type );
-            }
-            dv.addKeyedItem( "Value", value );
+    public void configureDetail( DetailViewer dv ) {
+        if ( type != null ) {
+           dv.addKeyedItem( "Type", type );
         }
-        return fullView;
+        dv.addKeyedItem( "Value", value );
     }
 }

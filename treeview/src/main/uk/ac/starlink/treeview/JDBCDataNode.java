@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
-import javax.swing.JComponent;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.jdbc.JDBCStarTable;
 
@@ -14,7 +13,6 @@ import uk.ac.starlink.table.jdbc.JDBCStarTable;
 public class JDBCDataNode extends StarTableDataNode {
 
     private JDBCStarTable jdbcTable;
-    private JComponent fullView;
 
     public JDBCDataNode( String url ) throws NoSuchDataException {
         this( makeJDBCTable( url ) );
@@ -39,37 +37,28 @@ public class JDBCDataNode extends StarTableDataNode {
         return "JDBC table";
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
+    public void configureDetail( DetailViewer dv ) {
 
-            /* JDBC specifics. */
-            dv.addSubHead( "Database connection" );
-            try {
-                DatabaseMetaData dbmeta = jdbcTable.getConnection()
-                                                   .getMetaData();
-                dv.addKeyedItem( "SQL query", jdbcTable.getSql() );
-                dv.addKeyedItem( "URL", dbmeta.getURL() );
-                dv.addKeyedItem( "User", dbmeta.getUserName() );
-                dv.addKeyedItem( "Database name",
-                                 dbmeta.getDatabaseProductName() );
-                dv.addKeyedItem( "Database version",
-                                 dbmeta.getDatabaseProductVersion() );
-                dv.addKeyedItem( "Driver name",
-                                 dbmeta.getDriverName() );
-                dv.addKeyedItem( "Driver version",
-                                 dbmeta.getDriverVersion() );
-            }
-            catch ( SQLException e ) {
-                dv.logError( e );
-            }
-
-            /* Generic table stuff. */
-            dv.addSeparator();
-            addDataViews( dv, jdbcTable );
+        /* JDBC specifics. */
+        dv.addSubHead( "Database connection" );
+        try {
+            DatabaseMetaData dbmeta = jdbcTable.getConnection().getMetaData();
+            dv.addKeyedItem( "SQL query", jdbcTable.getSql() );
+            dv.addKeyedItem( "URL", dbmeta.getURL() );
+            dv.addKeyedItem( "User", dbmeta.getUserName() );
+            dv.addKeyedItem( "Database name", dbmeta.getDatabaseProductName() );
+            dv.addKeyedItem( "Database version", dbmeta
+                                                .getDatabaseProductVersion() );
+            dv.addKeyedItem( "Driver name", dbmeta.getDriverName() );
+            dv.addKeyedItem( "Driver version", dbmeta.getDriverVersion() );
         }
-        return fullView;
+        catch ( SQLException e ) {
+            dv.logError( e );
+        }
+
+        /* Generic table stuff. */
+        dv.addSeparator();
+        addDataViews( dv, jdbcTable );
     }
 
     private static JDBCStarTable makeJDBCTable( String url )

@@ -38,7 +38,6 @@ public class ImageHDUDataNode extends HDUDataNode {
     private String name;
     private String description;
     private String hduType;
-    private JComponent fullview;
     private Header header;
     private NDShape shape;
     private final String dataType;
@@ -189,68 +188,48 @@ public class ImageHDUDataNode extends HDUDataNode {
         return children.iterator();
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
+        super.configureDetail( dv );
+        dv.addSeparator();
+        if ( shape != null ) {
+            dv.addKeyedItem( "Shape", NDShape.toString( shape.getDims() ) );
+        }
+        if ( dataType != null ) {
+            dv.addKeyedItem( "Pixel type", dataType ); 
+        }
+        if ( blank != null ) {
+            dv.addKeyedItem( "Blank value", blank );
+        }
 
-    public JComponent getFullView() {
-        if ( fullview == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullview = dv.getComponent();
-            dv.addSeparator();
-            dv.addKeyedItem( "Number of header cards", 
-                             header.getNumberOfCards() );
-            dv.addKeyedItem( "Blocks in header", header.getSize() / 2880 );
-            dv.addKeyedItem( "Blocks of data", 
-                             FitsConstants.getDataSize( header ) / 2880 );
-            dv.addSeparator();
-            dv.addKeyedItem( "HDU type", hduType );
-            if ( shape != null ) {
-                dv.addKeyedItem( "Shape", NDShape.toString( shape.getDims() ) );
-            }
-            if ( dataType != null ) {
-                dv.addKeyedItem( "Pixel type", dataType ); 
-            }
-            if ( blank != null ) {
-                dv.addKeyedItem( "Blank value", blank );
-            }
-
-            if ( wcs != null ) {
-                dv.addSubHead( "World coordinate system" );
-                dv.addKeyedItem( "Encoding", wcsEncoding );
-                uk.ac.starlink.ast.Frame frm = 
-                    wcs.getFrame( FrameSet.AST__CURRENT );
-                dv.addKeyedItem( "Naxes", frm.getNaxes() );
-                if ( frm instanceof SkyFrame ) {
-                    SkyFrame sfrm = (SkyFrame) frm;
-                    dv.addKeyedItem( "Epoch", sfrm.getEpoch() );
-                    dv.addKeyedItem( "Equinox", sfrm.getEquinox() );
-                    dv.addKeyedItem( "Projection", sfrm.getProjection() );
-                    dv.addKeyedItem( "System", sfrm.getSystem() );
-                }
-            }
-            dv.addPane( "Header cards", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TextViewer( header.iterator() );
-                }
-            } );
-            if ( shape != null ) {
-                try {
-                    ArrayDataInput data = hdudata.getArrayData();
-                    NDArray nda = FitsArrayBuilder.getInstance()
-                                 .makeNDArray( data, AccessMode.READ );
-                    if ( ! nda.getShape().equals( shape ) ) {
-                        nda = new BridgeNDArray( 
-                                      new MouldArrayImpl( nda, shape ) );
-                    }
-                    NDArrayDataNode.addDataViews( dv, nda, wcs );
-                }
-                catch ( IOException e ) {
-                    dv.logError( e );
-                }
+        if ( wcs != null ) {
+            dv.addSubHead( "World coordinate system" );
+            dv.addKeyedItem( "Encoding", wcsEncoding );
+            uk.ac.starlink.ast.Frame frm = 
+                wcs.getFrame( FrameSet.AST__CURRENT );
+            dv.addKeyedItem( "Naxes", frm.getNaxes() );
+            if ( frm instanceof SkyFrame ) {
+                SkyFrame sfrm = (SkyFrame) frm;
+                dv.addKeyedItem( "Epoch", sfrm.getEpoch() );
+                dv.addKeyedItem( "Equinox", sfrm.getEquinox() );
+                dv.addKeyedItem( "Projection", sfrm.getProjection() );
+                dv.addKeyedItem( "System", sfrm.getSystem() );
             }
         }
-        return fullview;
+        if ( shape != null ) {
+            try {
+                ArrayDataInput data = hdudata.getArrayData();
+                NDArray nda = FitsArrayBuilder.getInstance()
+                             .makeNDArray( data, AccessMode.READ );
+                if ( ! nda.getShape().equals( shape ) ) {
+                    nda = new BridgeNDArray( 
+                                  new MouldArrayImpl( nda, shape ) );
+                }
+                NDArrayDataNode.addDataViews( dv, nda, wcs );
+            }
+            catch ( IOException e ) {
+                dv.logError( e );
+            }
+        }
     }
 
     public String getDescription() {

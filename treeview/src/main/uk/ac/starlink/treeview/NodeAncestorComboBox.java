@@ -48,8 +48,8 @@ public class NodeAncestorComboBox extends JComboBox {
         List ancestorList = new ArrayList();
         DataNode next = node;
         ancestorList.add( next );
-        while ( next.hasParentObject() ) {
-            Object parentObj = next.getParentObject();
+        for ( Object parentObj; 
+              ( parentObj = next.getParentObject() ) != null; ) {
             try {
                 next = nodeMaker.makeDataNode( null, parentObj );
                 ancestorList.add( next );

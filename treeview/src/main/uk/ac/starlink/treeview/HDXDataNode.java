@@ -30,7 +30,6 @@ public class HDXDataNode extends DefaultDataNode {
     private final HdxContainer hdx;
     private URI baseUri;
     private String systemId;
-    private JComponent fullView;
     private String name;
     private Element hdxel;
 
@@ -140,7 +139,6 @@ public class HDXDataNode extends DefaultDataNode {
      */
     public HDXDataNode( File file ) throws NoSuchDataException {
         this( file.toString() );
-        setPath( file.getAbsolutePath() );
     }
 
 
@@ -199,21 +197,15 @@ public class HDXDataNode extends DefaultDataNode {
         return dfact;
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-            if ( baseUri != null ) {
-                dv.addKeyedItem( "Base URI", baseUri );
-            }
-            dv.addPane( "XML view", new ComponentMaker() {
-                public JComponent getComponent() {
-                    return new TextViewer( new DOMSource( hdxel ) );
-                }
-            } );
+    public void configureDetail( DetailViewer dv ) {
+        if ( baseUri != null ) {
+            dv.addKeyedItem( "Base URI", baseUri );
         }
-        return fullView;
+        dv.addPane( "XML view", new ComponentMaker() {
+            public JComponent getComponent() {
+                return new TextViewer( new DOMSource( hdxel ) );
+            }
+        } );
     }
 
 

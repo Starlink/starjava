@@ -24,7 +24,6 @@ public class VOTableTableDataNode extends VOComponentDataNode
 
     private Table votable;
     private StarTable startable;
-    private JComponent fullView;
     private String desc;
     private DOMSource domsrc;
 
@@ -62,40 +61,30 @@ public class VOTableTableDataNode extends VOComponentDataNode
         return false;
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
+    public void configureDetail( DetailViewer dv ) {
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addSeparator();
-
-            /* DATA element implementation. */
-            Element dat = DOMUtils.getChildElementByName( vocel, "DATA" );
-            if ( dat != null ) {
-                Element imp = 
+        /* DATA element implementation. */
+        Element dat = DOMUtils.getChildElementByName( vocel, "DATA" );
+        if ( dat != null ) {
+            Element imp = 
                     DOMUtils.getFirstElementSibling( dat.getFirstChild() );
-                if ( imp != null ) {
-                    dv.addKeyedItem( "Data implementation", imp.getTagName() );
-                }
-            }
-
-            /* Generic items. */
-            addVOComponentViews( dv, vocel, systemId );
-            try {
-                StarTableDataNode.addDataViews( dv, getStarTable() );
-            }
-            catch ( final IOException e ) {
-                dv.addPane( "Error reading table", new ComponentMaker() {
-                    public JComponent getComponent() {
-                        return new TextViewer( e );
-                    }
-                } );
+            if ( imp != null ) {
+                dv.addKeyedItem( "Data implementation", imp.getTagName() );
             }
         }
-        return fullView;
+
+        /* Generic items. */
+        addVOComponentViews( dv, vocel, systemId );
+        try {
+            StarTableDataNode.addDataViews( dv, getStarTable() );
+        }
+        catch ( final IOException e ) {
+            dv.addPane( "Error reading table", new ComponentMaker() {
+                public JComponent getComponent() {
+                    return new TextViewer( e );
+                }
+            } );
+        }
     }
 
     public void customiseTransferable( DataNodeTransferable trans )

@@ -2,7 +2,6 @@ package uk.ac.starlink.treeview;
 
 import java.util.Iterator;
 import javax.swing.Icon;
-import javax.swing.JComponent;
 
 /**
  * DataNode object which acts as a clone of an existing node.
@@ -34,10 +33,6 @@ public class DuplicateDataNode implements DataNode {
         return base.getChildIterator();
     }
 
-    public boolean hasParentObject() {
-        return base.hasParentObject();
-    }
-
     public Object getParentObject() {
         return base.getParentObject();
     }
@@ -66,14 +61,6 @@ public class DuplicateDataNode implements DataNode {
         return base.getDescription();
     }
 
-    public String getPath() {
-        return base.getPath();
-    }
-
-    public void setPath( String path ) {
-        base.setPath( path );
-    } 
-
     public Icon getIcon() {
         return base.getIcon();
     }
@@ -86,12 +73,8 @@ public class DuplicateDataNode implements DataNode {
         return base.getPathSeparator();
     }
 
-    public boolean hasFullView() {
-        return base.hasFullView();
-    }
-
-    public JComponent getFullView() {
-        return base.getFullView();
+    public void configureDetail( DetailViewer dv ) {
+        base.configureDetail( dv );
     }
 
     public void setChildMaker( DataNodeFactory fact ) {

@@ -2,6 +2,7 @@ package uk.ac.starlink.treeview;
 
 import java.io.IOException;
 import java.io.InputStream;
+import uk.ac.starlink.util.DataSource;
 
 /**
  * DataSource which can supply a given 'provisional' stream when it has one,
@@ -13,21 +14,18 @@ import java.io.InputStream;
  * This rather specialised class is used by archive nodes like
  * TarStreamDataNode and ZipStreamDataNode.
  */
-abstract class SwitchDataSource extends PathedDataSource {
+abstract class SwitchDataSource extends DataSource {
 
     private InputStream provisionalStream;
     private long rawLength = -1L;
-    private String path;
 
     /**
-     * Constructs a SwitchDataSource with a given path and known size.
+     * Constructs a SwitchDataSource with a known size.
      *
-     * @param  path  the full path of the source if known (may be null)
      * @param  rawLength  the length of the raw source in bytes 
      *         (may be -1 if not known)
      */
-    public SwitchDataSource( String path, long rawLength ) {
-        this.path = path;
+    public SwitchDataSource( long rawLength ) {
         this.rawLength = rawLength;
     }
 
@@ -51,10 +49,6 @@ abstract class SwitchDataSource extends PathedDataSource {
      */
     public void setProvisionalStream( InputStream strm ) {
         this.provisionalStream = strm;
-    }
-
-    public String getPath() {
-        return path;
     }
 
     public long getRawLength() {

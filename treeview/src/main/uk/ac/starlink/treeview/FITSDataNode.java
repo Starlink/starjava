@@ -192,6 +192,9 @@ public abstract class FITSDataNode extends DefaultDataNode {
                         }
                         dnode.setLabel( ( nchild == 0 ) ? "Primary HDU"
                                                         : "HDU " + nchild );
+                        if ( dnode instanceof HDUDataNode ) {
+                            ((HDUDataNode) dnode).setHDUIndex( nchild );
+                        }
                     }
                     catch ( NoSuchDataException e ) {
                         dnode = makeErrorChild( e );
@@ -201,8 +204,7 @@ public abstract class FITSDataNode extends DefaultDataNode {
                     }
 
                     /* Remember parentage of the new node. */
-                    dnode.setParentObject( datsrc );
-                    dnode.setCreator( new CreationState( parent ) );
+                    getChildMaker().configureDataNode( dnode, parent, null );
 
                     /* Read the next header. */
                     nchild++;

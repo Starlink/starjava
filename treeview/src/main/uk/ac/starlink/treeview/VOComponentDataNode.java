@@ -40,7 +40,7 @@ public class VOComponentDataNode extends DefaultDataNode {
     protected final Element vocel;
     protected final String systemId;
     private String name;
-    private JComponent fullView;
+    private Object parentObj;
 
     public VOComponentDataNode( Source xsrc ) throws NoSuchDataException {
         Node domNode;
@@ -80,6 +80,9 @@ public class VOComponentDataNode extends DefaultDataNode {
         else {
             name = vocel.getTagName();
         }
+
+        parentObj = new DOMSource( vocel.getParentNode(), systemId );
+
         setLabel( name );
         setIconID( IconFactory.VOCOMPONENT );
     }
@@ -105,11 +108,24 @@ public class VOComponentDataNode extends DefaultDataNode {
     }
 
     public String getPathSeparator() {
-        return "/";
+        return ".";
+    }
+
+    public Object getParentObject() {
+        return parentObj;
     }
 
     public String getDescription() {
         return "";
+    }
+
+    public DataNodeFactory getChildMaker() {
+        DataNodeFactory dfact = super.getChildMaker();
+        if ( ! ( dfact.getBuilders().get( 0 ) instanceof VODataNodeBuilder ) ) {
+            dfact = new DataNodeFactory( dfact );
+            dfact.getBuilders().add( 0, new VODataNodeBuilder() );
+        }
+        return dfact;
     }
 
     public boolean allowsChildren() {
@@ -136,6 +152,7 @@ public class VOComponentDataNode extends DefaultDataNode {
                 next = firstUsefulSibling( nd.getNextSibling() );
                 try {
                     Source xsrc = new DOMSource( nd, systemId );
+                    DataNode child = makeChild( xsrc );
                     return makeChild( xsrc );
                 }
                 catch ( Exception e ) {
@@ -148,18 +165,9 @@ public class VOComponentDataNode extends DefaultDataNode {
         };
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addKeyedItem( "Element name", vocel.getTagName() );
-            addVOComponentViews( dv, vocel, systemId );
-        }
-        return fullView;
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Element name", vocel.getTagName() );
+        addVOComponentViews( dv, vocel, systemId );
     }
 
     public static void addVOComponentViews( DetailViewer dv, final Element el,
@@ -205,7 +213,6 @@ public class VOComponentDataNode extends DefaultDataNode {
 
         /* System ID. */
         if ( systemId != null && systemId.trim().length() > 0 ) {
-            dv.addSeparator();
             dv.addKeyedItem( "System ID", systemId );
         }
 
@@ -217,6 +224,7 @@ public class VOComponentDataNode extends DefaultDataNode {
                 dv.addKeyedItem( (String) att.getKey(),
                                  (String) att.getValue() );
             }
+            dv.addSeparator();
         }
 
         /* Description. */
@@ -277,13 +285,6 @@ public class VOComponentDataNode extends DefaultDataNode {
             }
         } );
     }
-
-    public DataNodeFactory getChildMaker() {
-        DataNodeFactory dfact = new DataNodeFactory( super.getChildMaker() );
-        dfact.getBuilders().add( 0, new VODataNodeBuilder() );
-        return dfact;
-    }
-
 
     /**
      * Takes a given node and returns it, or the first of its siblings which

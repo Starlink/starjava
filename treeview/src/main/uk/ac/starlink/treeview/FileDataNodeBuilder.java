@@ -72,7 +72,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
         /* See if it's a directory. */
         if ( file.isDirectory() ) {
-            return configureNode( new FileDataNode( file ), file );
+            return new FileDataNode( file );
         }
 
         DataSource datsrc = null;
@@ -85,7 +85,7 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
             /* If there is compression, pass it to the handler for streams. */
             Compression compress = datsrc.getCompression();
             if ( datsrc.getCompression() != Compression.NONE ) {
-                return configureNode( sourceBuilder.buildNode( datsrc ), file );
+                return sourceBuilder.buildNode( datsrc );
             }
 
             /* Get the magic number. */
@@ -100,11 +100,10 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                     istrm = new BufferedDataInputStream( strm1 );
                     Header hdr = new Header( istrm );
                     if ( hdr.containsKey( "NDX_XML" ) ) {
-                        return configureNode( new NdxDataNode( file ), file );
+                        return new NdxDataNode( file );
                     }
                     else {
-                        return configureNode( new FITSFileDataNode( file ), 
-                                              file );
+                        return new FITSFileDataNode( file );
                     }
                 }
                 catch ( FitsException e ) {
@@ -124,10 +123,10 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
                 try {
                     hobj = new HDSReference( file ).getObject( "READ" );
                     try {
-                        return configureNode( new NDFDataNode( hobj ), file );
+                        return new NDFDataNode( hobj );
                     }
                     catch ( NoSuchDataException e ) {
-                        return configureNode( new HDSDataNode( hobj ), file );
+                        return new HDSDataNode( hobj );
                     }
                 }
                 catch ( HDSException e ) {
@@ -137,27 +136,25 @@ public class FileDataNodeBuilder extends DataNodeBuilder {
 
             /* Zip/jar file? */
             if ( ZipArchiveDataNode.isMagic( magic ) ) {
-                return configureNode( new ZipFileDataNode( file ), file );
+                return new ZipFileDataNode( file );
             }
 
             /* Tar file? */
             if ( TarStreamDataNode.isMagic( magic ) ) {
-                return configureNode( new TarStreamDataNode( datsrc ), file );
+                return new TarStreamDataNode( datsrc );
             }
 
             /* If it's an XML file delegate it to the XML builder. */
             if ( XMLDataNode.isMagic( magic ) ) {
                 DOMSource xsrc = makeDOMSource( file );
-                return configureNode( xmlBuilder.buildNode( xsrc ), file );
+                return xmlBuilder.buildNode( xsrc );
             }
 
             /* We don't know what it is. */
-            throw new NoSuchDataException( this + ": don't know" );
+            throw new NoSuchDataException( "No recognised magic number" );
         }
 
-        /* IOException means some interesting I/O condition occurred.  
-         * This shouldn't happen often - log to the user but return null
-         * to allow other builders to have a go. */
+        /* IOException means some interesting I/O condition occurred.  */
         catch ( IOException e ) {
             throw new NoSuchDataException( e );
         }

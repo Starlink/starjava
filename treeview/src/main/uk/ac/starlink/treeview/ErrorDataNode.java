@@ -5,7 +5,6 @@ import javax.swing.JComponent;
 
 public class ErrorDataNode extends DefaultDataNode {
     private Throwable thrown;
-    private JComponent fullView;
 
     public ErrorDataNode( Throwable th ) {
         super( th.getClass().getName() );
@@ -25,22 +24,17 @@ public class ErrorDataNode extends DefaultDataNode {
         return "(" + thrown.getMessage() + ")";
     }
 
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-            dv.addKeyedItem( "Throwable class", thrown.getClass().getName() );
-            dv.addKeyedItem( "Message", thrown.getMessage() );
-            dv.addPane( "Stack trace", new ComponentMaker() {
-                public JComponent getComponent() {
-                    TextViewer tv = new TextViewer();
-                    PrintWriter pw = new PrintWriter( tv.getAppender() );
-                    thrown.printStackTrace( pw );
-                    return tv;
-                }
-            } );
-        }
-        return fullView;
+    public void configureDetail( DetailViewer dv ) {
+        dv.addKeyedItem( "Throwable class", thrown.getClass().getName() );
+        dv.addKeyedItem( "Message", thrown.getMessage() );
+        dv.addPane( "Stack trace", new ComponentMaker() {
+            public JComponent getComponent() {
+                TextViewer tv = new TextViewer();
+                PrintWriter pw = new PrintWriter( tv.getAppender() );
+                thrown.printStackTrace( pw );
+                return tv;
+            }
+        } );
     }
 
 }

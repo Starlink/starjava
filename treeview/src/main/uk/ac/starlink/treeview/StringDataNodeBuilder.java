@@ -47,7 +47,7 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
         /* If it looks like a JDBC URL, pass it to StarTable. */
         if ( string.startsWith( "jdbc:" ) ) {
             try {
-                return configureNode( new JDBCDataNode( string ), string );
+                return new JDBCDataNode( string );
             }
             catch ( NoSuchDataException e ) {
                 // oh well.
@@ -69,8 +69,8 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
             // so it's not a URL
         }
 
-        /* No more ideas - return null. */
-        throw new NoSuchDataException( this + ": don't know" );
+        /* No more ideas. */
+        throw new NoSuchDataException( "Not obvious what kind of node" );
     }
           
 

@@ -1,13 +1,12 @@
 package uk.ac.starlink.treeview;
 
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.tree.*;
+import java.util.Iterator;
+import javax.swing.Icon;
 import uk.ac.starlink.util.DataSource;
 
 /**
@@ -22,14 +21,12 @@ import uk.ac.starlink.util.DataSource;
 public class DefaultDataNode implements DataNode {
 
     private static DataNodeFactory defaultChildMaker;
-    private static final String PATH_UNSET = new String( "path_not_set" );
 
     private String name;
     private String label;
-    private String path = PATH_UNSET;
+    private String desc;
     private String nodetype = "Data node";
     private DataNodeFactory childMaker;
-    private JComponent fullView;
     private CreationState creator;
     private Object parentObject;
     private short iconID = IconFactory.NO_ICON;
@@ -51,25 +48,25 @@ public class DefaultDataNode implements DataNode {
         setLabel( ( name == null ) ? "null" : name );
     }
 
+    /**
+     * The <tt>DefaultDataNode</tt> implementation of this method returns 
+     * <tt>false</tt>.
+     */
     public boolean allowsChildren() {
         return false;
     }
 
+    /**
+     * The <tt>DefaultDataNode</tt> implementation of this method throws
+     * <tt>UnsupportedOperationException</tt> 
+     * ({@link #allowsChildren} is false).
+     */
     public Iterator getChildIterator() {
-        return null;
-    }
-
-    public boolean hasParentObject() {
-        return parentObject != null;
+        throw new UnsupportedOperationException();
     }
 
     public Object getParentObject() {
-        if ( hasParentObject() ) {
-            return parentObject;
-        }
-        else {
-            throw new UnsupportedOperationException();
-        }
+        return parentObject;
     }
 
     public void setParentObject( Object parent ) {
@@ -81,19 +78,36 @@ public class DefaultDataNode implements DataNode {
     }
 
     public String getLabel() {
-        return label;
+        if ( label != null ) {
+            return label;
+        }
+        else if ( name != null ) {
+            return name;
+        }
+        else {
+            return "<unnamed>";
+        }
     }
 
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the value which will be returned by {@link #getDescription}.
+     *
+     * @param  desc  the description string
+     */
+    public void setDescription( String desc ) {
+        this.desc = desc;
+    }
+
     public String getDescription() {
-        return null;
+        return desc;
     }
 
     /**
-     * Returns the string "...".
+     * The <tt>DefaultDataNode</tt> implementation returns the string "...".
      *
      * @return  "..."
      */
@@ -106,18 +120,7 @@ public class DefaultDataNode implements DataNode {
     }
 
     public String toString() {
-        if ( getLabel() == null ) {
-            System.err.println( super.toString() + " has null label ?!?" );
-        }
-        String result = getLabel().trim();
-        String desc = getDescription();
-        if ( desc != null ) {
-            desc = desc.trim();
-            if ( desc.length() > 0 ) {
-                result += "  " + desc;
-            }
-        }
-        return result;
+        return TreeviewUtil.toString( this );
     }
 
     /**
@@ -147,24 +150,29 @@ public class DefaultDataNode implements DataNode {
         }
     }
 
+    /**
+     * Returns a default separator string.
+     *
+     * @return "."
+     */
     public String getPathSeparator() {
         return ".";
     }
 
+    /**
+     * The <tt>DefaultDataNode</tt> implementation 
+     * returns the label as a default path element.
+     *
+     * @return  the node's label
+     */
     public String getPathElement() {
-        return getName();
+        return getLabel();
     }
 
-    public boolean hasFullView() {
-        return true;
-    }
-
-    public JComponent getFullView() {
-        if ( fullView == null ) {
-            DetailViewer dv = new DetailViewer( this );
-            fullView = dv.getComponent();
-        }
-        return fullView;
+    /**
+     * No custom configuration is performed.
+     */
+    public void configureDetail( DetailViewer dv ) {
     }
 
     public void setChildMaker( DataNodeFactory factory ) {
@@ -183,59 +191,30 @@ public class DefaultDataNode implements DataNode {
 
     /**
      * Uses the node's childMaker to turn objects into data nodes.
-     * Nodes should if possible construct their children using this method
-     * or one of the other <tt>makeChild</tt> methods.
-     * invoking it in their getChildIterator implementation.  It may not
-     * be possible to do so if the children cannot be constructed by
-     * a DataNodeFactory, for instance if they do not have one-argument
-     * constructors.
+     * This convenience method just calls 
+     * <tt>getChildMaker().makeChildNode(this,childObj)</tt>.
+     * In general, nodes should use this method to construct their
+     * children.
      *
      * @param  childObj  the object which forms the basis for a child
      *         data node
+     * @see    DataNodeFactory#makeDataNode
      */
     public DataNode makeChild( Object childObj ) {
-        return makeChild( childObj, this, getChildMaker() );
-    }
-
-    /**
-     * Uses a custom node factory and given parent to turn objects 
-     * into data nodes.
-     * Nodes may construct their children using this method if they
-     * need to use a node factory other than the inherited one or
-     * a parent other than themselves for the purpose.
-     *
-     * @param  childObj  the object which forms the basis for a child
-     *         data node
-     * @param  factory  the custom node factory
-     */
-    public DataNode makeChild( Object childObj, DataNode parent, 
-                               DataNodeFactory factory ) {
-        try {
-            return factory.makeDataNode( parent, childObj );
-        }
-        catch ( NoSuchDataException e ) {
-            return getChildMaker().makeErrorDataNode( parent, e );
-        }
+        return getChildMaker().makeChildNode( this, childObj );
     }
 
     /**
      * Constructs an error data node from a throwable.  This method can
      * be used to create a error which is the child of this node.
+     * This convenience method just calls 
+     * <tt>getChildMaker().makeErrorDataNode(this,th)</tt>
      *
      * @param  th  the throwable on which the data node will be based
+     * @see   DataNodeFactory#makeErrorDataNode
      */
     public DataNode makeErrorChild( Throwable th ) {
         return getChildMaker().makeErrorDataNode( this, th );
-    }
-
-    /**
-     * Constructs an error data node from a throwable with given parentage.
-     *
-     * @param  th  the throwable on which the data node will be based
-     * @param  parent  the parent of the new error data node
-     */
-    public DataNode makeErrorChild( Throwable th, DataNode parent ) {
-        return getChildMaker().makeErrorDataNode( parent, th );
     }
 
     public void setCreator( CreationState state ) {
@@ -244,60 +223,6 @@ public class DefaultDataNode implements DataNode {
 
     public CreationState getCreator() {
         return creator;
-    }
-
-    /**
-     * Returns the path from the top of the tree of DataNodes to a given
-     * node.  This may be overridden by subclasses which know how to
-     * determine their absolute pathname, but for those that don't this
-     * implementation will probably give a sensible result.
-     *
-     * @return  the path to this node
-     */
-    public String getPath() {
-        if ( path == PATH_UNSET ) {
-            StringBuffer pbuf = new StringBuffer();
-            boolean ok = accumulatePath( this, pbuf );
-            path = ok ? pbuf.toString() : null;
-        }
-        return path;
-    }
-
-    public void setPath( String path ) {
-        this.path = path;
-    }
-
-    private static boolean accumulatePath( DataNode dnode, StringBuffer path ) {
-        CreationState creator = dnode.getCreator();
-        String sep = dnode.getPathSeparator();
-        if ( sep == null ) {
-            return false;
-        }
-        if ( path.length() > 0 ) {
-            path.insert( 0, sep );
-        }
-        if ( dnode instanceof DefaultDataNode ) { // uuurrrggh
-            DefaultDataNode ddnode = (DefaultDataNode) dnode;
-            if ( ddnode.path != null && ddnode.path != PATH_UNSET ) {
-                path.insert( 0, ddnode.path );
-                return true;
-            }
-        }
-        String pathel = dnode.getPathElement();
-        if ( pathel == null ) {
-            return false;
-        }
-        path.insert( 0, pathel );
-        DataNode parent = ( creator == null ) ? null : creator.getParent();
-        if ( parent == null ) {
-            return false;
-        }
-        else if ( parent == DataNode.ROOT ) {
-            return true;
-        }
-        else {
-            return accumulatePath( parent, path );
-        }
     }
 
     /**
