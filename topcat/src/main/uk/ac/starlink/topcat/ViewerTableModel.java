@@ -238,6 +238,10 @@ public class ViewerTableModel extends AbstractTableModel {
         catch ( IOException e ) {
             e.printStackTrace();
         }
+
+        /* Since there may be synthetic columns, message the table view
+         * that any cell in the current row may have changed. */
+        fireTableRowsUpdated( irow, irow );
     }
 
     /**
