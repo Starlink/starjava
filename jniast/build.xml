@@ -278,9 +278,14 @@
           unless="runonly.install">
 
     <!-- Need JUnit for testcases, not essential -->
-    <available property="junit.present"
-               classpathref="tests-classpath"
-               classname="junit.framework.TestCase"/>
+    <condition property="testframework.present">
+      <and>
+        <available classpathref="tests-classpath"
+                   classname="junit.framework.TestCase"/>
+        <available classpathref="tests-classpath"
+                   classname="uk.ac.starlink.util.TestCase"/>
+      </and>
+    </condition>
 
   </target>
 
@@ -1001,7 +1006,7 @@
       <filelist dir="/" files="${files}"/>
     </listdelete>
 
-    <delete file="${install.log}"/>
+    <delete file="${install.log}" failonerror="false"/>
 
   </target>
 
@@ -1063,7 +1068,7 @@
    !-->
   <target name="compile-tests"
           depends="build"
-          if="junit.present">
+          if="testframework.present">
     <mkdir dir="${build.tests}"/>
 
     <javac srcdir="${tests.dir}"
@@ -1084,8 +1089,10 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="compile-tests"
-          if="junit.present">
+          depends="compile-tests">
+
+    <fail unless="testframework.present"
+          message="Test framework is not present"/>
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
@@ -1113,6 +1120,9 @@
           if="testcase"
           depends="compile-tests"
           description="-> runs the single unit test defined in the testcase property">
+
+    <fail unless="testframework.present"
+          message="Test framework is not present"/>
 
     <junit printsummary="${junit.summary}"
           haltonfailure="yes"

@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.DoubleBuffer;
 import java.util.Arrays;
-import uk.ac.starlink.TestCase;
+import uk.ac.starlink.util.TestCase;
 
 public class HDSObjectTest extends TestCase {
 

@@ -12,7 +12,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import uk.ac.starlink.TestCase;
+import uk.ac.starlink.util.TestCase;
 import uk.ac.starlink.ast.grf.DefaultGrf;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
 
