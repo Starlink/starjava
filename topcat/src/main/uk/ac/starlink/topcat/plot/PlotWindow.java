@@ -67,8 +67,10 @@ import uk.ac.starlink.topcat.OptionsListModel;
 import uk.ac.starlink.topcat.ResourceIcon;
 import uk.ac.starlink.topcat.RestrictedColumnComboBoxModel;
 import uk.ac.starlink.topcat.RowSubset;
+import uk.ac.starlink.topcat.TableViewerWindow;
 import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
+import uk.ac.starlink.topcat.ViewerTableModel;
 import uk.ac.starlink.util.ErrorDialog;
 
 /**
@@ -558,7 +560,10 @@ public class PlotWindow extends TopcatViewWindow
      * @param   ip   row index for the point to be activated
      */
     private void activatePoint( int ip ) {
-        System.out.println( "    row index: " + ip );
+        TableViewerWindow viewer = 
+            (TableViewerWindow) tcModel_.getViewerAction().getWindow( this );
+        viewer.makeVisible();
+        viewer.highlightRow( (long) ip );
     }
 
     /**
