@@ -101,11 +101,19 @@ public class VOTableWriter implements StarTableWriter {
     }
 
     /**
+     * Writes a StarTable to a given stream; must be inline.
+     * Same as <code>writeStarTable(startab,out,null)</code>
+     *
+     * @param   startab  the table to write
+     * @param   out  the stream down which to write the table
+     */
+    public void writeStarTable( StarTable startab, OutputStream out ) 
+            throws IOException {
+        writeStarTable( startab, out, null );
+    }
+
+    /**
      * Writes a StarTable to a given stream.
-     * <p>
-     * Currently, an entire XML VOTable document is written,
-     * and the TABLEDATA format (all table cells written inline
-     * as separate XML elements) is used.
      *
      * @param   startab  the table to write
      * @param   out  the stream down which to write the table
