@@ -72,9 +72,8 @@ public class NameParser
             throw new SplatException( "Cannot make sense of " +
                                       "specification: " + specspec );
         }
-
-        //  First check if specification is just a local file.
         pathParser.setPath( specspec );
+
         if ( ! pathParser.exists() ) {
 
             //  A line identifier file, with type ".ids" isn't understood by
@@ -84,18 +83,21 @@ public class NameParser
                 isLineIdentifier = true;
             }
             else {
-                // Name could be specified as a URL and still be local.
+                // Name could be specified as a URL and still be local. It
+                // might also not exist on purpose (file to be created). This
+                // latter case is covered when the scheme comes out as "file".
                 File testFile = null;
+                boolean localFile = false;
                 try {
                     URI uri = URLUtils.urlToUri( url );
                     testFile = new File( uri );
+                    localFile = uri.getScheme().equals( "file" );
                 }
                 catch ( Exception e ) {
                     //  Not serious yet, just means uri isn't a filename,
                     //  unless it's local that's always true.
                 }
-
-                if ( testFile != null && testFile.exists() ) {
+                if ( testFile != null && localFile ) {
                     try {
                         pathParser.setPath( testFile.getCanonicalPath() );
                     }
@@ -105,7 +107,7 @@ public class NameParser
                 }
                 else {
                     //  Must take URL to specify a remote resource.
-                    isRemote = true;
+                    isRemote = true && ! localFile;
                     
                     //  Parse the path part of the URL to get format etc.
                     urlPathParser.setPath( url.getPath() );
