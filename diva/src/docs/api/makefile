@@ -1,17 +1,18 @@
 #
-# $Id: makefile,v 1.3 1999/10/23 17:35:28 johnr Exp $
+# $Id: makefile,v 1.5 2001/11/27 09:12:25 johnr Exp $
 #
 # Makefile for diva APIs
 #
 DIVA  = ../..
 include $(DIVA)/diva.mk
 
-# Set the classpath to include the tools jar file
-CLASSPATH = "$(DIVA)/..$(CLASSPATHSEPARATOR)$(DIVA)/lib/aelfred.jar$(CLASSPATHSEPARATOR)$(JAVAHOME)/lib/tools.jar"
+## Add the tools jar file to the classpath
+#CP = "$(CLASSPATH)$(CLASSPATHSEPARATOR)$(JAVAHOME)/lib/tools.jar"
+CP = $(CLASSPATH)$
 
 # Build the API docs. Javadoc flags are defined in diva/diva.mk
 install:
-	$(JAVADOC) -version -classpath $(CLASSPATH) $(JAVADOC_FLAGS) \
+	$(JAVADOC) -version -classpath $(CP) $(JAVADOC_FLAGS) \
 	 	$(PACKAGES) \
 		$(UNRELEASED_PACKAGES)
 
