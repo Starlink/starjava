@@ -157,6 +157,16 @@ public abstract class Interpolator
     }
 
     /**
+     * Return if the Interpolator is full, i.e. will ignore or refuse any
+     * further vectices.
+     */
+    public boolean isFull()
+    {
+        //  By default Interpolators just grow.
+        return false;
+    }
+
+    /**
      * Get the X coordinates.
      *
      * @return the X coordinate array. Note this is not a copy, if you
