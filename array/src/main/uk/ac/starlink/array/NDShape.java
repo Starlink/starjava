@@ -470,6 +470,10 @@ public class NDShape implements Cloneable {
             throw new IllegalArgumentException(
                 "Origin and dimsension arrays have different lengths" );
         }
+        if ( dims.length == 0 ) {
+            throw new IllegalArgumentException(
+                "Zero-dimensional shape not permitted" );
+        }
         for ( int i = 0; i < origin.length; i++ ) {
             if ( dims[ i ] < 1 ) {
                 throw new IllegalArgumentException(
