@@ -69,6 +69,20 @@ public class SelectTextField
     }
 
     /**
+     * Create an instance with initial text field and using the
+     * pre-configured instance of SelectCharacters.
+     *
+     * @param text default text for the text field.
+     */
+    public SelectTextField( String text, SelectCharacters charChooser ) 
+    {
+        initUI();
+        setText( text );
+        this.charChooser = charChooser;
+        charChooser.addListener( this );
+    }
+
+    /**
      * Initialise the user interface.
      */
     protected void initUI() 
@@ -128,7 +142,6 @@ public class SelectTextField
             charChooser.setDisplayFont( getTextFont() );
             charChooser.setVisible( true );
         }
-
     }
 
     /**
@@ -213,6 +226,14 @@ public class SelectTextField
     {
         textField.setToolTipText( tip );
         super.setToolTipText( tip );
+    }
+
+    /**
+     * Set the number of columns displayed by the JTextField.
+     */
+    public void setColumns( int columns )
+    {
+        textField.setColumns( columns );
     }
 
 //
