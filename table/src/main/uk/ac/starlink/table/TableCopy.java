@@ -36,7 +36,7 @@ public class TableCopy {
             if ( ! first ) { 
                 usage.append( '|' );
             }
-            usage.append( (String) it.next() );
+            usage.append( ( (String) it.next() ).toLowerCase() );
             first = false;
         }
         usage.append( "] " )
