@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     12-MAR-2003 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.AWTEvent;
@@ -6,15 +13,21 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -22,6 +35,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -50,6 +64,7 @@ import uk.ac.starlink.splat.util.RemoteServer;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.SplatSOAPServer;
+import uk.ac.starlink.splat.util.ExceptionDialog;
 
 /**
  * This is the main class for the SPLAT program. It creates the
@@ -85,13 +100,27 @@ import uk.ac.starlink.splat.util.SplatSOAPServer;
  * @since $Date$
  * @since 25-SEP-2000
  */
-public class SplatBrowser extends JFrame
+public class SplatBrowser 
+    extends JFrame
+            implements ItemListener
 {
     /**
      *  The global list of spectra and plots.
      */
     protected GlobalSpecPlotList
         globalList = GlobalSpecPlotList.getReference();
+
+    /**
+     * UI preferences.
+     */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( SplatBrowser.class );
+
+    /**
+     * Default location of window.
+     */
+    private static final Rectangle defaultWindowLocation = 
+        new Rectangle( 10, 10, 550, 450 );
 
     /**
      *  Content pane of JFrame and its layout manager.
@@ -136,6 +165,11 @@ public class SplatBrowser extends JFrame
     protected SplatPlotTable plotTable =  new SplatPlotTable( specList );
     protected TitledBorder selectedPropertiesTitle =
         BorderFactory.createTitledBorder( "Properties of current spectra:" );
+    
+    /**
+     * Whither orientation of split
+     */
+    protected JCheckBoxMenuItem splitOrientation = null;
 
     /**
      *  Open or save file chooser.
@@ -185,11 +219,6 @@ public class SplatBrowser extends JFrame
      * Spectrum viewer frames.
      */
     protected ArrayList specViewerFrames = null;
-
-    /**
-     * The look and feel, plus metal themes manager.
-     */
-    protected SplatLookAndFeelManager splatLookAndFeelManager = null;
 
     /**
      *  Create a browser with no existing spectra.
@@ -247,10 +276,11 @@ public class SplatBrowser extends JFrame
         updateProgressMonitor( "init interface" );
 
         //  Set up the content pane and window size.
-        contentPane = (JPanel) this.getContentPane();
+        contentPane = (JPanel) getContentPane();
         contentPane.setLayout( mainLayout );
-        this.setSize( new Dimension( 550, 450 ) );
-        this.setTitle( Utilities.getFullDescription() );
+        Utilities.setFrameLocation( (JFrame) this, defaultWindowLocation, 
+                                    prefs, "SplatBrowser" );
+        setTitle( Utilities.getFullDescription() );
 
         //  Set up menus and toolbar.
         updateProgressMonitor( "menus" );
@@ -283,6 +313,10 @@ public class SplatBrowser extends JFrame
                 }
             });
 
+        //  Drag to a plot to display?
+        specList.setDragEnabled( true );
+        specList.setTransferHandler( new SpecTransferHandler() );
+
         //  Set up the control area.
         controlArea.setLayout( controlAreaLayout );
         controlArea.setBorder( BorderFactory.createEmptyBorder( 4, 4, 4, 4 ) );
@@ -291,6 +325,7 @@ public class SplatBrowser extends JFrame
         //  Set up split pane.
         updateProgressMonitor( "split screen" );
         splitPane.setOneTouchExpandable( true );
+        setSplitOrientation( true );
         specList.setSize( new Dimension( 190, 0 ) );
         splitPane.setDividerLocation( 200 );
 
@@ -321,7 +356,7 @@ public class SplatBrowser extends JFrame
         progressMaximum = intervals - 1;
         progressMonitor = new ProgressMonitor( this, title, "", 0,
                                                progressMaximum );
-        progressMonitor.setMillisToDecideToPopup( 2000 );
+        progressMonitor.setMillisToDecideToPopup( 500 );
         progressMonitor.setMillisToPopup( 250 );
     }
 
@@ -499,6 +534,14 @@ public class SplatBrowser extends JFrame
                              "Copy selected spectra", null,
                              "Make memory copies of all selected spectra" );
         editMenu.add( copySelectedSpectraAction );
+
+        //  Add an action to create a new spectrum. The size is
+        //  obtained from a dialog.
+        LocalAction createSpectrumAction =
+            new LocalAction( LocalAction.CREATE_SPECTRUM,
+                             "Create new spectrum", null,
+                             "Create a new spectrum with unset elements" );
+        editMenu.add( createSpectrumAction );
     }
 
     /**
@@ -526,8 +569,7 @@ public class SplatBrowser extends JFrame
             new ImageIcon(ImageHolder.class.getResource("multidisplay.gif"));
         LocalAction multiDisplayAction =
             new LocalAction( LocalAction.MULTI_DISPLAY,
-                             "Display/add to plot",
-                             multiDisplayImage,
+                             "Display/add to plot", multiDisplayImage,
             "Display selected spectra in one plot or add to selected plots");
         viewMenu.add( multiDisplayAction );
         toolBar.add( multiDisplayAction );
@@ -538,9 +580,8 @@ public class SplatBrowser extends JFrame
             new ImageIcon(ImageHolder.class.getResource("animate.gif"));
         LocalAction animateAction =
             new LocalAction( LocalAction.ANIMATE_DISPLAY,
-                             "Animate spectra",
-                             animateImage,
-            "Display selected spectra in a single plot, one at a time");
+                             "Animate spectra", animateImage,
+                             "Animate selected spectra by displaying one at a time" );
         viewMenu.add( animateAction );
         toolBar.add( animateAction );
 
@@ -548,8 +589,8 @@ public class SplatBrowser extends JFrame
         ImageIcon viewerImage =
             new ImageIcon(ImageHolder.class.getResource("table.gif"));
         LocalAction viewerAction =
-            new LocalAction( LocalAction.SPEC_VIEWER, "View spectra values",
-                             viewerImage,
+            new LocalAction( LocalAction.SPEC_VIEWER, 
+                             "View/modify spectra values", viewerImage,
                              "View/modify the values of the selected spectra");
         viewMenu.add( viewerAction );
         toolBar.add( viewerAction );
@@ -565,7 +606,7 @@ public class SplatBrowser extends JFrame
         menuBar.add( optionsMenu );
 
         //  Add the LookAndFeel selections.
-        splatLookAndFeelManager =
+        SplatLookAndFeelManager splatLookAndFeelManager =
             new SplatLookAndFeelManager( contentPane, optionsMenu );
 
         //  Add facility to colourise all spectra.
@@ -577,7 +618,32 @@ public class SplatBrowser extends JFrame
                              "Automatically choose a colour for all spectra" );
         optionsMenu.add( colourizeAction );
         toolBar.add( colourizeAction );
+
+        //  Arrange the JSplitPane vertically or horizontally.
+        splitOrientation = new JCheckBoxMenuItem( "Vertical split" );
+        optionsMenu.add( splitOrientation );
+        splitOrientation.addItemListener( this );
     }
+
+    /**
+     * Set the vertical or horizontal split.
+     */
+    protected void setSplitOrientation( boolean init )
+    {
+        if ( init ) {
+            //  Restore state of button from Preferences.
+            boolean state = prefs.getBoolean( "SplatBrowser_vsplit", true );
+            splitOrientation.setSelected( state );
+        }
+        boolean selected = splitOrientation.isSelected();
+        if ( selected ) {
+            splitPane.setOrientation( JSplitPane.HORIZONTAL_SPLIT );
+        }
+        else {
+            splitPane.setOrientation( JSplitPane.VERTICAL_SPLIT );
+        }
+        prefs.putBoolean( "SplatBrowser_vsplit", selected );
+    }        
 
     /**
      * Create the Operations menu and populate it with appropriate actions.
@@ -1575,11 +1641,51 @@ public class SplatBrowser extends JFrame
         // unaryMathsFrame = null;
     }
 
+    /** 
+     * Create a new spectrum with a number of elements (greater than
+     * 2) obtained interactively.
+     */
+    public void createSpectrum()
+    {
+        Number number =
+            DecimalDialog.showDialog( this, "Create new spectrum",
+                                      "Number of rows in spectrum",
+                                      new DecimalFormat(),
+                                      new Integer( 100 ) );
+        if ( number != null ) {
+            int nrows = number.intValue();
+            if ( nrows > 0 ) {
+                if ( nrows < 2 ) nrows = 2;
+                EditableSpecData newSpec = null;
+                String name = "Blank spectrum";
+                try {
+                    newSpec = SpecDataFactory.getReference()
+                        .createEditable(name);
+ 
+                    //  Add the coords and data.
+                    double[] coords = new double[nrows];
+                    double[] data = new double[nrows];
+                    Arrays.fill( data, SpecData.BAD );
+                    for ( int i = 0; i < nrows; i++ ) {
+                        coords[i] = (double) i + 1;
+                    }
+                    newSpec.setDataQuick( coords, data );
+                    globalList.add( newSpec );
+               }
+                catch (Exception e) {
+                    new ExceptionDialog( this, e );
+                    return;
+                }
+            }
+        }
+    }
+
     /**
      * A request to exit the application has been received.
      */
     protected void exitApplicationEvent()
     {
+        Utilities.saveFrameLocation( this, prefs, "SplatBrowser" );
         System.exit( 0 );
     }
 
@@ -1621,7 +1727,8 @@ public class SplatBrowser extends JFrame
         public static final int BINARY_MATHS = 15;
         public static final int UNARY_MATHS = 16;
         public static final int COPY_SPECTRA = 17;
-        public static final int EXIT = 18;
+        public static final int CREATE_SPECTRUM = 18;
+        public static final int EXIT = 19;
 
         private int type = 0;
 
@@ -1714,11 +1821,25 @@ public class SplatBrowser extends JFrame
                    copySelectedSpectra();
                }
                break;
+               case CREATE_SPECTRUM: {
+                   createSpectrum();
+               }
+               break;
                case EXIT: {
                    exitApplicationEvent();
                }
                break;
             }
         }
+    }
+
+    //
+    // Implement ItemListener interface. This is used for menus items
+    // that do not require the full capabilities of an Action.
+    //
+    public void itemStateChanged( ItemEvent e ) 
+    {
+        //  Just the split positioning at present.
+        setSplitOrientation( false );
     }
 }

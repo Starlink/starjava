@@ -201,7 +201,7 @@ public class SimpleBinaryMaths extends JFrame
         // Add an action to close the window (appears in File menu
         // and action bar).
         image =
-            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         LocalAction closeAction = new LocalAction( "Close", image, 
                                                    "Close window" );
         fileMenu.add( closeAction );

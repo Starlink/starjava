@@ -314,7 +314,7 @@ public class PolyFitFrame extends JFrame
 
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+            ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon readImage = new ImageIcon(
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon saveImage = new ImageIcon(

@@ -1,9 +1,18 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     29-SEP-2000 (Peter W. Draper):
+ *        Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -12,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -36,11 +46,10 @@ import uk.ac.starlink.splat.util.Utilities;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @since $Date$
- * @since 29-SEP-2000, original version
- * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  */
-public class PlotControlFrame extends JFrame
+public class PlotControlFrame 
+    extends JFrame
+    implements ItemListener
 {
     /**
      *  PlotControl object for displaying the spectra.
@@ -100,8 +109,10 @@ public class PlotControlFrame extends JFrame
     protected JMenu helpMenu = new JMenu();
     protected JMenuItem windowHelp = new JMenuItem();
     protected JMenu analysisMenu = new JMenu();
+    protected JMenu optionsMenu = new JMenu();
     protected JMenuItem polyFitMenu = new JMenuItem();
     protected JMenuItem lineFitMenu = new JMenuItem();
+    protected JCheckBoxMenuItem coordinateMatching = null;
 
     /**
      *  Toolbar and contents.
@@ -215,6 +226,9 @@ public class PlotControlFrame extends JFrame
         //  Set up the Analysis menu.
         setupAnalysisMenu();
 
+        //  Set up the Options menu.
+        setupOptionsMenu();
+
         //  Set up the help menu.
         setupHelpMenu();
     }
@@ -232,7 +246,7 @@ public class PlotControlFrame extends JFrame
         ImageIcon printJPEGImage = new ImageIcon(
             ImageHolder.class.getResource( "jpeg.gif" ) );
         ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+            ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon fitWidthImage = new ImageIcon(
             ImageHolder.class.getResource( "fitwidth.gif" ) );
         ImageIcon fitHeightImage = new ImageIcon(
@@ -353,6 +367,22 @@ public class PlotControlFrame extends JFrame
         filterButton.setToolTipText(
                      "Apply a filter to the current spectrum" );
     }
+
+    /**
+     * Configure the options menu.
+     */
+    protected void setupOptionsMenu()
+    {
+        optionsMenu.setText( "Options" );
+        menuBar.add( optionsMenu );
+
+        //  Arrange to carefully align coordinates when asked
+        //  (expensive otherwise).
+        coordinateMatching = new JCheckBoxMenuItem( "Match coordinates" );
+        optionsMenu.add( coordinateMatching );
+        coordinateMatching.addItemListener( this );
+    }
+
 
     /**
      * Configure the help menu.
@@ -690,6 +720,7 @@ public class PlotControlFrame extends JFrame
         closePanner();
         closeCutter();
         closeFilter();
+        plot.release();
     }
 
     /**
@@ -878,5 +909,17 @@ public class PlotControlFrame extends JFrame
         public void actionPerformed( ActionEvent ae ) {
             lineFit();
         }
+    }
+
+    //
+    // Implement ItemListener interface. This is used for menus items
+    // that do not require the full capabilities of an Action
+    // (i.e. don't need an icon and don't also appear in the toolbar).
+    //
+    public void itemStateChanged( ItemEvent e ) 
+    {
+        //  Just the coordinate matching at present.
+        specDataComp.setCoordinateMatching( coordinateMatching.isSelected() );
+        plot.updatePlot();
     }
 }

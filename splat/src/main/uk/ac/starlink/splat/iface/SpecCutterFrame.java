@@ -5,7 +5,7 @@
  *     15-JUN-2001 (Peter W. Draper):
  *       Original version.
  *     28-JAN-2003 (Peter W. Draper):
- *       Added delete facilities.
+ *       Added remove facilities.
  */
 package uk.ac.starlink.splat.iface;
 
@@ -56,11 +56,6 @@ public class SpecCutterFrame extends JFrame
      * Content pane of frame.
      */
     protected JPanel contentPane = null;
-
-    /**
-     * Action buttons container.
-     */
-    protected JPanel actionBar = new JPanel();
 
     /**
      *  Menubar and various menus and items that it contains.
@@ -140,21 +135,28 @@ public class SpecCutterFrame extends JFrame
         //  Add the menuBar.
         setJMenuBar( menuBar );
 
-        //  Action bar uses a BoxLayout and is placed at the south.
-        actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
-        actionBar.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
+        //  Action bars use BoxLayout and are placed at the south.
+        JPanel actionBar = new JPanel( new BorderLayout() );
+        JPanel actionBar1 = new JPanel();
+        JPanel actionBar2 = new JPanel();
+        actionBar.add( actionBar1, BorderLayout.NORTH );
+        actionBar.add( actionBar2, BorderLayout.SOUTH );
+        actionBar1.setLayout( new BoxLayout( actionBar1, BoxLayout.X_AXIS ) );
+        actionBar2.setLayout( new BoxLayout( actionBar2, BoxLayout.X_AXIS ) );
+        actionBar1.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
+        actionBar2.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
         contentPane.add( actionBar, BorderLayout.SOUTH );
 
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+            ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon readImage = new ImageIcon(
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon resetImage = new ImageIcon(
             ImageHolder.class.getResource( "reset.gif" ) );
         ImageIcon cutterImage = new ImageIcon(
             ImageHolder.class.getResource( "cutter.gif" ) );
-        ImageIcon deleteImage = new ImageIcon(
+        ImageIcon removeImage = new ImageIcon(
             ImageHolder.class.getResource( "erase.gif" ) );
         ImageIcon helpImage = new ImageIcon(
             ImageHolder.class.getResource( "help.gif" ) );
@@ -172,54 +174,60 @@ public class SpecCutterFrame extends JFrame
             new CutAction( "Cut", cutterImage );
         fileMenu.add( cutAction );
         JButton cutButton = new JButton( cutAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( cutButton );
-        cutButton.setToolTipText( "Cut out all regions" );
+        actionBar1.add( Box.createGlue() );
+        actionBar1.add( cutButton );
+        cutButton.setToolTipText
+            ( "Cut out all regions from the current spectrum" );
 
         //  Add action to cut out the selected regions.
         CutSelectedAction cutSelectedAction =
             new CutSelectedAction( "Cut Selected", cutterImage );
         fileMenu.add( cutSelectedAction );
         JButton cutSelectedButton = new JButton( cutSelectedAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( cutSelectedButton );
-        cutSelectedButton.setToolTipText( "Cut out the selected regions" );
+        actionBar1.add( Box.createGlue() );
+        actionBar1.add( cutSelectedButton );
+        cutSelectedButton.setToolTipText
+            ( "Cut out the selected regions from the current spectrum" );
 
-        //  Add action to delete all regions.
-        DeleteAction deleteAction =
-            new DeleteAction( "Delete", deleteImage );
-        fileMenu.add( deleteAction );
-        JButton deleteButton = new JButton( deleteAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( deleteButton );
-        deleteButton.setToolTipText( "Delete all regions" );
+        //  Add action to remove all regions.
+        RemoveAction removeAction =
+            new RemoveAction( "Remove", removeImage );
+        fileMenu.add( removeAction );
+        JButton removeButton = new JButton( removeAction );
+        actionBar1.add( Box.createGlue() );
+        actionBar1.add( removeButton );
+        removeButton.setToolTipText
+            ( "Remove all regions from the current spectrum" );
 
-        //  Add action to just delete the selected regions.
-        DeleteSelectedAction deleteSelectedAction =
-            new DeleteSelectedAction( "Delete Selected", deleteImage );
-        fileMenu.add( deleteSelectedAction );
-        JButton deleteSelectedButton = new JButton( deleteSelectedAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( deleteSelectedButton );
-        deleteSelectedButton.setToolTipText( "Delete the selected regions" );
+        //  Add action to just remove the selected regions.
+        RemoveSelectedAction removeSelectedAction =
+            new RemoveSelectedAction( "Remove Selected", removeImage );
+        fileMenu.add( removeSelectedAction );
+        JButton removeSelectedButton = new JButton( removeSelectedAction );
+        actionBar1.add( Box.createGlue() );
+        actionBar1.add( removeSelectedButton );
+        removeSelectedButton.setToolTipText
+            ( "Remove the selected regions from the current spectrum" );
+
+        actionBar1.add( Box.createGlue() );
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
         fileMenu.add( resetAction );
         JButton resetButton = new JButton( resetAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( resetButton );
+        actionBar2.add( Box.createGlue() );
+        actionBar2.add( resetButton );
         resetButton.setToolTipText( "Clear all produced spectra and ranges" );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
         fileMenu.add( closeAction );
         JButton closeButton = new JButton( closeAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( closeButton );
+        actionBar2.add( Box.createGlue() );
+        actionBar2.add( closeButton );
         closeButton.setToolTipText( "Close window" );
 
-        actionBar.add( Box.createGlue() );
+        actionBar2.add( Box.createGlue() );
 
         //  Add the help menu.
         HelpFrame.createHelpMenu( "cutter-window", "Help on window",
@@ -231,9 +239,9 @@ public class SpecCutterFrame extends JFrame
      */
     protected void initFrame()
     {
-        setTitle( Utilities.getTitle( "Cut/Delete regions from a spectrum" ) );
+        setTitle( Utilities.getTitle( "Cut/Remove regions from a spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 500, 300 ) );
+        setSize( new Dimension( 550, 300 ) );
         setVisible( true );
     }
 
@@ -264,12 +272,12 @@ public class SpecCutterFrame extends JFrame
     }
 
     /**
-     *  Do the delete, to either all the ranges or just the selected
+     *  Do the remove, to either all the ranges or just the selected
      *  ones.
      *
-     *  @param selected true if we should just delete selected ranges.
+     *  @param selected true if we should just remove selected ranges.
      */
-    public void delete( boolean selected )
+    public void remove( boolean selected )
     {
         //  Extract all ranges and obtain current spectrum.
         SpecData currentSpectrum = plot.getCurrentSpectrum();
@@ -417,28 +425,28 @@ public class SpecCutterFrame extends JFrame
     }
 
     /**
-     * Delete action. Deletes all ranges.
+     * Remove action. Removes all ranges.
      */
-    protected class DeleteAction extends AbstractAction
+    protected class RemoveAction extends AbstractAction
     {
-        public DeleteAction( String name, Icon icon ) {
+        public RemoveAction( String name, Icon icon ) {
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            delete( false );
+            remove( false );
         }
     }
 
     /**
-     * Delete selected action. Performs delete of selected ranges.
+     * Remove selected action. Performs remove of selected ranges.
      */
-    protected class DeleteSelectedAction extends AbstractAction
+    protected class RemoveSelectedAction extends AbstractAction
     {
-        public DeleteSelectedAction( String name, Icon icon ) {
+        public RemoveSelectedAction( String name, Icon icon ) {
             super( name, icon );
         }
         public void actionPerformed( ActionEvent ae ) {
-            delete( true );
+            remove( true );
         }
     }
 

@@ -107,7 +107,7 @@ public class HelpFrame extends JFrame
 
         //  Add an action to close the window.
         ImageIcon closeImage =
-            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         CloseAction closeAction = new CloseAction( "Close", closeImage );
         fileMenu.add( closeAction );
         JButton closeButton = new JButton( closeAction );

@@ -343,7 +343,7 @@ public class LineFitFrame extends JFrame implements PlotListener
                                             labelInsets.top ) );
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+            ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon readImage = new ImageIcon(
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon saveImage = new ImageIcon(

@@ -1,22 +1,29 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     29-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import javax.swing.AbstractListModel;
 import javax.swing.ListSelectionModel;
+
+import uk.ac.starlink.splat.data.SpecData;
 
 /**
  * SplatListModel is an implementation of the ListModel interface for
  * mediating between the GlobalSpecPlotList object and the main view of
  * available spectra.
  *
- * @since $Date$
- * @since 29-SEP-2000
  * @version $Id$
  * @author Peter W. Draper
  * @copyright Copyright (C) 2000 Central Laboratory of the Research Councils
  *
  */
-public class SpecListModel extends AbstractListModel 
+public class SpecListModel 
+    extends AbstractListModel 
     implements SpecListener 
 {
     /**
@@ -24,7 +31,8 @@ public class SpecListModel extends AbstractListModel
      * interface to all information about spectra availability (and
      * views etc). 
      */
-    GlobalSpecPlotList globalList = GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = 
+        GlobalSpecPlotList.getReference();
 
     /**
      * Reference to the ListSelectionModel that is used for the JList.
@@ -50,6 +58,13 @@ public class SpecListModel extends AbstractListModel
         super.finalize();
     }
 
+    /**
+     *  Return the spectrum at a given position.
+     */
+    public SpecData getSpectrum( int index ) 
+    {
+        return globalList.getSpectrum( index );
+    }
 
 //
 //  Implement rest of ListModel interface (listeners are free from
@@ -95,11 +110,13 @@ public class SpecListModel extends AbstractListModel
     }
 
     /**
-     *  React to a spectrum being changed. Do nothing.
+     *  React to a spectrum being changed. Could be the short name so
+     *  we need to update.
      */
     public void spectrumChanged( SpecChangedEvent e ) 
     {
-        //  Do nothing.
+        int index = e.getIndex();
+        fireContentsChanged( this, index, index );
     }
 
     /**

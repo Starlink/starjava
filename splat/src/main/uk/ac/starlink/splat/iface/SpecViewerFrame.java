@@ -65,6 +65,9 @@ public class SpecViewerFrame
     implements ItemListener, SpecListener, ColumnGeneratorListener,
                CoordinateGeneratorListener
 {
+    //
+    // TODO: add cut and paste of spectra.
+    //
     /**
      * Spectrum we're viewing.
      */
@@ -179,7 +182,7 @@ public class SpecViewerFrame
         // Add an action to close the window (appears in File menu
         // and action bar).
         ImageIcon image =
-            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         CloseAction closeAction = new CloseAction( "Close", image,
                                                    "Close window" );
         closeButton = new JButton( closeAction );

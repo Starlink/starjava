@@ -1,45 +1,65 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     1-JAN-2003 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.AsciiFileParser;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.ast.gui.DecimalField;
 
 /**
  * Provides a toolbox with number of ways to filter a spectrum.
  * The result becomes a new memory spectrum on the global list.
  *
- * @since $Date$
- * @since 15-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  * @see SpecFilter
  */
-public class SpecFilterFrame extends JFrame
+public class SpecFilterFrame
+    extends JFrame
 {
     /**
      * List of spectra that we have created.
@@ -55,6 +75,11 @@ public class SpecFilterFrame extends JFrame
      * Action buttons container.
      */
     protected JPanel actionBar = new JPanel();
+
+    /**
+     * Selection for filtering inside ranges or outside.
+     */
+    protected JCheckBox includeRanges = null;
 
     /**
      *  Menubar and various menus and items that it contains.
@@ -75,6 +100,21 @@ public class SpecFilterFrame extends JFrame
      *  is used.
      */
     protected XGraphicsRangesView rangeList = null;
+
+    /**
+     * The JTabbedPane for filters.
+     */
+    protected JTabbedPane tabbedPane = null;
+
+    /**
+     * The average filter width.
+     */
+    protected DecimalField averageWidth = null;
+
+    /**
+     * The median filter width.
+     */
+    protected DecimalField medianWidth = null;
 
     /**
      *  Reference to GlobalSpecPlotList object.
@@ -126,8 +166,9 @@ public class SpecFilterFrame extends JFrame
     protected void initBasicUI()
     {
         //  The layout is a BorderLayout with the complex controls
-        //  being held in a tabbed area in the centre and the action
-        //  bar held in the south area.
+        //  being held in a split pane area in the centre and the action
+        //  bar held in the south area. The split pane holds the
+        //  regions and filter choices.
         contentPane.setLayout( new BorderLayout() );
 
         //  Add the menuBar.
@@ -140,7 +181,7 @@ public class SpecFilterFrame extends JFrame
 
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
-            ImageHolder.class.getResource( "exit.gif" ) );
+            ImageHolder.class.getResource( "close.gif" ) );
         ImageIcon readImage = new ImageIcon(
             ImageHolder.class.getResource( "read.gif" ) );
         ImageIcon resetImage = new ImageIcon(
@@ -165,16 +206,8 @@ public class SpecFilterFrame extends JFrame
         JButton filterButton = new JButton( filterAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( filterButton );
-        filterButton.setToolTipText( "Filter all regions" );
-
-        //  Add action to filter the selected regions.
-        FilterSelectedAction filterSelectedAction =
-            new FilterSelectedAction( "Filter Selected", filterImage );
-        fileMenu.add( filterSelectedAction );
-        JButton filterSelectedButton = new JButton( filterSelectedAction );
-        actionBar.add( Box.createGlue() );
-        actionBar.add( filterSelectedButton );
-        filterSelectedButton.setToolTipText( "Filter the selected regions" );
+        filterButton.setToolTipText
+            ( "Apply the filter to the current spectrum" );
 
         //  Add action to reset all values.
         ResetAction resetAction = new ResetAction( "Reset", resetImage );
@@ -182,7 +215,7 @@ public class SpecFilterFrame extends JFrame
         JButton resetButton = new JButton( resetAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( resetButton );
-        resetButton.setToolTipText( "Clear all associated spectra and ranges" );
+        resetButton.setToolTipText( "Clear all filtered spectra and ranges" );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
@@ -206,23 +239,257 @@ public class SpecFilterFrame extends JFrame
     {
         setTitle( Utilities.getTitle( "Filter regions of a spectrum" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        setSize( new Dimension( 500, 300 ) );
+        setSize( new Dimension( 750, 300 ) );
         setVisible( true );
     }
 
     /**
-     * Initialise the control area. This contains three tabs, the type
-     * of filtering to apply, the parameters related to the chosen
-     * type, and the regions (if any) of the spectrum to process.
+     * Initialise the control area. This contains a split pane with
+     * the filters on the left and ranges on the right.
      */
     protected void initControlArea()
     {
-        JTabbedPane tabbedPane = new JTabbedPane();
-        
-        tabbedPane.addTab( "Filter Type", new JPanel() );
-        tabbedPane.addTab( "Parameters", new JPanel() );
-        tabbedPane.addTab( "Regions", new JPanel() );
-        contentPane.add( tabbedPane, BorderLayout.CENTER );
+        JSplitPane splitPane = new JSplitPane();
+        splitPane.setOneTouchExpandable( true );
+
+        tabbedPane = new JTabbedPane();
+        splitPane.setLeftComponent( tabbedPane );
+        splitPane.setRightComponent( initRegionUI() );
+
+        initAverageUI();
+        initMedianUI();
+        initProfilesUI();
+        initSpectrumUI();
+
+        contentPane.add( splitPane, BorderLayout.CENTER );
+    }
+
+    /**
+     * Add controls for the windowed average filter.
+     */
+    protected void initAverageUI()
+    {
+        JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+
+        //  Just need to get the window size and whether to use any
+        //  regions or not.
+        JLabel widthLabel = new JLabel( "Window width:   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        averageWidth = new DecimalField( 5, 5, decimalFormat );
+        averageWidth.setToolTipText( "Width of region to average over" );
+
+        panel.add( widthLabel );
+        panel.add( averageWidth );
+
+        tabbedPane.addTab( "Average", panel );
+    }
+
+    /**
+     * Add controls for the windowed median filter.
+     */
+    protected void initMedianUI()
+    {
+        JPanel panel = new JPanel( new FlowLayout( FlowLayout.LEFT ) );
+
+        //  Just need to get the window size and whether to use any
+        //  regions or not.
+        JLabel widthLabel = new JLabel( "Window width:   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        medianWidth = new DecimalField( 5, 5, decimalFormat );
+        medianWidth.setToolTipText( "Width of region to median over" );
+
+        panel.add( widthLabel );
+        panel.add( medianWidth );
+
+        tabbedPane.addTab( "Median", panel );
+    }
+
+    //  Controls needed for setting and getting the state of the
+    //  profiles pane.
+    protected JCheckBox gaussProfile = null;
+    protected JCheckBox lorentzProfile = null;
+    protected JCheckBox voigtProfile = null;
+    protected DecimalField profileWidth = null;
+    protected DecimalField gWidth = null;
+    protected DecimalField lWidth = null;
+    protected JLabel gWidthLabel = null;
+    protected JLabel lWidthLabel = null;
+
+    /**
+     * Add controls for filtering using one of the standard profiles.
+     */
+    protected void initProfilesUI()
+    {
+        JPanel panel = new JPanel( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        //  Need a profile type and some parameters. Gaussian needs a
+        //  width as does Lorentz. Voigt needs two widths.
+
+        JLabel typeLabel = new JLabel( "Type of profile:" );
+        gaussProfile = new JCheckBox( "Gaussian" );
+        gaussProfile.setToolTipText( "Smooth using a Gaussian profile" );
+        lorentzProfile = new JCheckBox( "Lorentzian" );
+        lorentzProfile.setToolTipText( "Smooth using a Lorentzian profile" );
+        voigtProfile = new JCheckBox( "Voigt" );
+        voigtProfile.setToolTipText( "Smooth using a Voigt profile" );
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( typeLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( gaussProfile, gbc );
+        panel.add( lorentzProfile, gbc );
+        panel.add( voigtProfile, gbc );
+        eatLine( panel, gbc );
+
+        ButtonGroup useGroup = new ButtonGroup();
+        useGroup.add( gaussProfile );
+        useGroup.add( lorentzProfile );
+        useGroup.add( voigtProfile );
+        gaussProfile.setSelected( true );
+
+        // Arrange to toggle entry fields.
+        gaussProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+        lorentzProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+        voigtProfile.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent e ) {
+                    toggleProfileWidths();
+                }
+            });
+
+        JLabel widthLabel = new JLabel( "Profile evaluation width:   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        profileWidth = new DecimalField( 50.0, 5, decimalFormat );
+        profileWidth.setToolTipText( "Width used to evaluate profile " +
+                                     "(should be at least several widths)" );
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( widthLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( profileWidth, gbc );
+        eatLine( panel, gbc );
+
+        gWidthLabel = new JLabel( "Gaussian FWHM/width:   " );
+        decimalFormat = new DecimalFormat();
+        gWidth = new DecimalField( 5, 5, decimalFormat );
+        gWidth.setToolTipText( "FWHM of gaussian or gaussian width" );
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( gWidthLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( gWidth, gbc );
+        eatLine( panel, gbc );
+
+        lWidthLabel = new JLabel( "Lorentzian width:   " );
+        decimalFormat = new DecimalFormat();
+        lWidth = new DecimalField( 5, 5, decimalFormat );
+        lWidth.setToolTipText( "The Lorentzian width" );
+
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( lWidthLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( lWidth, gbc );
+        eatLine( panel, gbc );
+
+        eatSpare( panel, gbc );
+        toggleProfileWidths();
+
+        tabbedPane.addTab( "Profile", panel );
+    }
+
+    /**
+     * Eat to end of current line using GridBagLayout.
+     */
+    private void eatLine( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add( Box.createHorizontalGlue(), gbc );
+    }
+
+    /**
+     * East spare space at bottom of panel using GridBagLayout.
+     */
+    private void eatSpare( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
+        gbc.weightx = 0.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH    ;
+        panel.add( Box.createVerticalGlue(), gbc );
+    }
+
+    // Controls needed for selecting a spectrum.
+    protected JList globalView = null;
+
+    /**
+     * Add controls for filtering using another spectrum.
+     */
+    protected void initSpectrumUI()
+    {
+        JPanel panel = new JPanel( new BorderLayout() );
+
+        //  Just a need a view of the global list of spectra.
+        globalView = new JList();
+        JScrollPane globalScroller = new JScrollPane( globalView );
+        TitledBorder globalViewTitle =
+            BorderFactory.createTitledBorder( "Global list of spectra:" );
+        globalScroller.setBorder( globalViewTitle );
+        panel.add( globalScroller, BorderLayout.CENTER );
+
+        //  Set the JList model to show the spectra (SplatListModel
+        //  interacts with the global list).
+        globalView.setModel
+            ( new SpecListModel( globalView.getSelectionModel() ) );
+
+        //  Only allow the selection of one item at a time.
+        globalView.setSelectionMode
+            ( ListSelectionModel.SINGLE_INTERVAL_SELECTION );
+
+        tabbedPane.addTab( "Spectrum", panel );
+    }
+
+
+    /**
+     * Add controls for selecting regions, if required.
+     */
+    protected JPanel initRegionUI()
+    {
+        JPanel panel = new JPanel( new BorderLayout() );
+
+        // Are ranges include or exclude?
+        includeRanges = new JCheckBox( "Filter inside ranges" );
+        includeRanges.setSelected( false );
+        includeRanges.setToolTipText
+            ( "Apply filter to interior of ranges, otherwise exclude" +
+              " ranges from filtering" );
+        panel.add( includeRanges, BorderLayout.NORTH );
+
+        rangeList = new XGraphicsRangesView( plot.getPlot() );
+        panel.add( rangeList, BorderLayout.CENTER );
+        return panel;
     }
 
     /**
@@ -238,19 +505,126 @@ public class SpecFilterFrame extends JFrame
         if ( currentSpectrum == null ) {
             return; // No spectrum available, so do nothing.
         }
-
-        //double[] ranges = rangeList.getRanges( selected );
-        //if ( ranges.length == 0 ) {
-        //return; // No ranges, so nothing to do.
-        //}
+        double[] ranges = rangeList.getRanges( selected );
+        boolean include = includeRanges.isSelected();
 
         //  Perform the filter operation and add the spectrum to the
         //  global list.
-        //SpecData newSpec =
-        //    SpecFilter.getReference().filter( currentSpectrum, ranges );
-        SpecData newSpec =
-            SpecFilter.getReference().filter( currentSpectrum, plot );
+        SpecData newSpec = null;
+        SpecFilter filter = SpecFilter.getReference();
+        switch ( tabbedPane.getSelectedIndex() ) {
+            case 0: {
+                // Average.
+                newSpec = filter.averageFilter( currentSpectrum,
+                                                averageWidth.getIntValue(),
+                                                ranges, include );
+            }
+            break;
+            case 1: {
+                // Median
+                newSpec = filter.medianFilter( currentSpectrum,
+                                               medianWidth.getIntValue(),
+                                               ranges, include );
+            }
+            break;
+            case 2: {
+                // Profile
+                newSpec = applyCurrentProfile( currentSpectrum, filter,
+                                               ranges, include );
+            }
+            break;
+            case 3: {
+                // Another spectrum.
+                newSpec = applySpectrumProfile( currentSpectrum, filter, 
+                                                ranges, include );
+            }
+            break;
+            default: {
+               // No filter type selected.
+                JOptionPane.showMessageDialog
+                    ( this, "Select a filter type pane", "No type selected",
+                      JOptionPane.ERROR_MESSAGE );
+                return;
+            }
+        }
         localList.add( newSpec );
+
+        // XXX and plot?
+    }
+
+    /**
+     * Use the current profiles choices to filter a given spectrum.
+     */
+    protected SpecData applyCurrentProfile( SpecData currentSpectrum,
+                                            SpecFilter filter,
+                                            double[] ranges, 
+                                            boolean include  )
+    {
+        if ( gaussProfile.isSelected() ) {
+            return filter.gaussianFilter( currentSpectrum,
+                                          profileWidth.getIntValue(),
+                                          gWidth.getDoubleValue(),
+                                          ranges, include );
+        }
+        if ( lorentzProfile.isSelected() ) {
+            return filter.lorentzFilter( currentSpectrum,
+                                         profileWidth.getIntValue(),
+                                         lWidth.getDoubleValue(),
+                                         ranges, include );
+        }
+        return filter.voigtFilter( currentSpectrum,
+                                   profileWidth.getIntValue(),
+                                   gWidth.getDoubleValue(),
+                                   lWidth.getDoubleValue(),
+                                   ranges, include );
+    }
+
+    /**
+     * Use another spectrum to filter the current spectrum.
+     */
+    protected SpecData applySpectrumProfile( SpecData currentSpectrum,
+                                             SpecFilter filter,
+                                             double[] ranges,
+                                             boolean include )
+    {
+        int index = globalView.getSelectedIndex();
+        if ( index > -1 ) {
+            return filter.specKernelFilter( currentSpectrum,  
+                                            globalList.getSpectrum(index ),
+                                            ranges, include );
+        }
+        JOptionPane.showMessageDialog
+            ( this, "You need to select a spectrum", "No spectrum selected",
+              JOptionPane.ERROR_MESSAGE );
+        return null;
+    }
+
+    /**
+     * Toggle the width entry fields for profiles according the currently
+     * selected profile.
+     */
+    protected void toggleProfileWidths()
+    {
+        if ( gaussProfile.isSelected() ) {
+            gWidth.setEnabled( true );
+            gWidthLabel.setText( "Gaussian FWHM:    " );
+            gWidthLabel.setEnabled( true );
+            lWidth.setEnabled( false );
+            lWidthLabel.setEnabled( false );
+        }
+        else {
+            lWidth.setEnabled( true );
+            lWidthLabel.setEnabled( true );
+            gWidthLabel.setText( "Gaussian width:    " );
+            if ( lorentzProfile.isSelected() ) {
+                gWidth.setEnabled( false );
+                gWidthLabel.setEnabled( false );
+            }
+            else {
+                gWidth.setEnabled( true );
+                gWidthLabel.setEnabled( true );
+            }
+        }
     }
 
     /**
@@ -258,7 +632,7 @@ public class SpecFilterFrame extends JFrame
      */
     protected void closeWindowEvent()
     {
-        //rangeList.deleteAllRanges();
+        rangeList.deleteAllRanges();
         this.dispose();
     }
 
@@ -282,7 +656,7 @@ public class SpecFilterFrame extends JFrame
         deleteSpectra();
 
         //  Remove any graphics and ranges.
-        //rangeList.deleteAllRanges();
+        rangeList.deleteAllRanges();
     }
 
     /**
@@ -364,19 +738,6 @@ public class SpecFilterFrame extends JFrame
         }
         public void actionPerformed( ActionEvent ae ) {
             filter( false );
-        }
-    }
-
-    /**
-     * Filter selected action. Performs filter of only selected ranges.
-     */
-    protected class FilterSelectedAction extends AbstractAction
-    {
-        public FilterSelectedAction( String name, Icon icon ) {
-            super( name, icon );
-        }
-        public void actionPerformed( ActionEvent ae ) {
-            filter( true );
         }
     }
 

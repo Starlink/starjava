@@ -191,14 +191,16 @@ public class XGraphicsRangesView
         JButton addButton = new JButton( addAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( addButton );
-        addButton.setToolTipText( "Select a region of spectrum and add to list" );
+        addButton.setToolTipText
+            ( "Select a region of spectrum and add to list" );
 
         //  Add action for "delete" button.
         DeleteAction deleteAction = new DeleteAction( "Delete", deleteImage );
         JButton deleteButton = new JButton( deleteAction );
         actionBar.add( Box.createGlue() );
         actionBar.add( deleteButton );
-        deleteButton.setToolTipText( "Delete the selected regions" );
+        deleteButton.setToolTipText
+            ( "Delete the selected regions from list" );
         actionBar.add( Box.createGlue() );
 
         //  Add components.

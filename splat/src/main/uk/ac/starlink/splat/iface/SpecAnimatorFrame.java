@@ -1,19 +1,22 @@
-// Copyright (C) 2002 Central Laboratory of the Research Councils
-
-// History:
-//    07-JUL-2001 (Peter W. Draper):
-//       Original version.
-
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *    07-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
@@ -75,6 +78,12 @@ public class SpecAnimatorFrame
         GlobalSpecPlotList.getReference();
 
     /**
+     * UI preferences.
+     */
+    protected static Preferences prefs = 
+        Preferences.userNodeForPackage( SpecAnimatorFrame.class );
+
+    /**
      * JList that displays the global list of spectra.
      */
     protected JList specList = new JList();
@@ -127,7 +136,6 @@ public class SpecAnimatorFrame
     /**
      * Control panels.
      */
-    protected JPanel controlPanel = new JPanel();
     protected JPanel animationPanel = new JPanel();
     protected JPanel capturePanel = new JPanel();
 
@@ -210,7 +218,7 @@ public class SpecAnimatorFrame
         TitledBorder listTitle =
             BorderFactory.createTitledBorder( "Global list of spectra:" );
         scroller.setBorder( listTitle );
-        contentPane.add( scroller, BorderLayout.NORTH );
+        contentPane.add( scroller, BorderLayout.CENTER );
 
         //  The JList model is the global list of spectra.
         specList.setModel( new SpecListModel( specList.getSelectionModel() ) );
@@ -219,9 +227,12 @@ public class SpecAnimatorFrame
         specList.setSelectionInterval( 0, globalList.specCount() - 1 );
 
         // Action bar uses a BoxLayout and is placed at the south.
+        JPanel controlsPanel = new JPanel( new BorderLayout() );
+        contentPane.add( controlsPanel, BorderLayout.SOUTH );
+
         actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
         actionBar.setBorder( BorderFactory.createEmptyBorder( 3, 3, 3, 3 ) );
-        contentPane.add( actionBar, BorderLayout.SOUTH );
+        controlsPanel.add( actionBar, BorderLayout.SOUTH );
 
         // Add an action to close the window (appears in File menu
         // and action bar).
@@ -243,10 +254,8 @@ public class SpecAnimatorFrame
         capturePanel.setBorder
             ( BorderFactory.createTitledBorder( "Capture controls" ) );
 
-        contentPane.add( controlPanel, BorderLayout.CENTER );
-        controlPanel.setLayout( new BorderLayout() );
-        controlPanel.add( animationPanel, BorderLayout.NORTH );
-        controlPanel.add( capturePanel, BorderLayout.SOUTH );
+        controlsPanel.add( animationPanel, BorderLayout.NORTH );
+        controlsPanel.add( capturePanel, BorderLayout.CENTER );
 
         initAnimationControls();
         initCaptureControls();
@@ -259,7 +268,7 @@ public class SpecAnimatorFrame
     {
         setTitle( Utilities.getTitle( "Animate spectra" ) );
         setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
-        pack();
+        Utilities.setFrameLocation( this, null, prefs, "SpecAnimator" );
         setVisible( true );
     }
 
@@ -282,7 +291,8 @@ public class SpecAnimatorFrame
         animationPanel.add( delayLabel, gbc );
 
         DecimalFormat decimalFormat = new DecimalFormat();
-        delayField = new DecimalField( 1.0, 5, decimalFormat );
+        double delay = prefs.getDouble( "SpecAnimator_delay", 1.0 );
+        delayField = new DecimalField( delay, 5, decimalFormat );
         delayField.setToolTipText( "Delay before displaying the next " +
                                    "spectrum (seconds, press return to" +
                                    " apply immediately)" );
@@ -292,8 +302,12 @@ public class SpecAnimatorFrame
                 public void actionPerformed( ActionEvent e )
                 {
                     matchTimer();
+                    prefs.putDouble( "SpecAnimator_delay", 
+                                     delayField.getDoubleValue() );
                 }
             } );
+        matchTimer();
+
         gbc.anchor = GridBagConstraints.WEST;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -313,16 +327,20 @@ public class SpecAnimatorFrame
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
         animationPanel.add( loopCheckBox, gbc );
-        loopCheckBox.setToolTipText
-            ( "Loop animation until stop is pressed" );
+        loopCheckBox.setToolTipText( "Loop animation until stop is pressed" );
+        boolean state = prefs.getBoolean( "SpecAnimator_loopforever", false );
+        loopCheckBox.setSelected( state );
         loopCheckBox.addActionListener(
             new ActionListener()
             {
                 public void actionPerformed( ActionEvent e )
                 {
                     matchLoop();
+                    prefs.putBoolean( "SpecAnimator_loopforever", 
+                                      loopCheckBox.isSelected() );
                 }
             } );
+        matchLoop();
 
         // The target plot for displaying the spectra in. This is the
         // global list, but with special entry of "Create", which
@@ -359,7 +377,7 @@ public class SpecAnimatorFrame
             new ScaleAction( AUTO, "Auto", "Make each spectrum fit the" +
                              " display area" );
         JRadioButton autoScale = new JRadioButton( autoAction );
-        autoScale.setSelected( true );
+
         scaleGroup.add( autoScale );
         gbc.anchor = GridBagConstraints.EAST;
         animationPanel.add( autoScale, gbc );
@@ -378,6 +396,17 @@ public class SpecAnimatorFrame
         scaleGroup.add( freeScale );
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         animationPanel.add( freeScale, gbc );
+
+        int iselect = prefs.getInt( "SpecAnimator_scaling_option", AUTO );
+        if ( iselect == AUTO ) {
+            autoScale.setSelected( true );
+        }
+        else if ( iselect == FIXED ) {
+            fixScale.setSelected( true );
+        }
+        else {
+            freeScale.setSelected( true );
+        }
 
         // Add the field to display the spectrum name.
         JLabel nameLabel = new JLabel( "Current spectrum:" );
@@ -483,6 +512,7 @@ public class SpecAnimatorFrame
     protected void closeWindowEvent()
     {
         stop();
+        Utilities.saveFrameLocation( this, prefs, "SpecAnimator" );
         dispose();
     }
 
@@ -711,7 +741,7 @@ public class SpecAnimatorFrame
     }
 
     private final static ImageIcon closeImage =
-        new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+        new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
 
     /**
      * Inner class defining Action for closing window.
@@ -801,6 +831,7 @@ public class SpecAnimatorFrame
         public void actionPerformed( ActionEvent ae )
         {
             toggleScale( type );
+            prefs.putInt( "SpecAnimator_scaling_option", type );
         }
     }
 

@@ -10,13 +10,16 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -30,9 +33,9 @@ import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.Utilities;
 
 
 /**
@@ -41,7 +44,7 @@ import uk.ac.starlink.splat.util.SplatException;
  * transformation (offset and scale) and general one (based on
  * MathMap).
  * <p>
- * A general transformation are assumed not invertable and
+ * A general transformation is assumed not invertable and
  * mean that their AST mappings will be replaced by a look-up-table.
  * If this choice is popular this decision may be re-visited.
  *
@@ -76,6 +79,22 @@ public class CoordinateGenerator
      */
     protected DecimalField offset = null;
 
+    // Known expression templates.
+    protected static String[][] templates = {
+        { "Redshift (z)", "coord*(z+1)",
+                      "z", "0.0" },
+        { "Redshift (v km/s)", "coord*(1.0+v/c)",
+                               "c", "299792.458",
+                               "v", "0.0" },
+        { "Blueshift (z)", "coord/(z+1)",
+                       "z", "0.0" },
+        { "Blueshift (v km/s)", "coord/(1.0+v/c)",
+                                "c", "299792.458",
+                                "v", "0.0" },
+         { "Log (natural)", "log(coord)" },
+        { "Log (base 10)", "log10(coord)" },
+    };
+
     /**
      * Create an instance.
      */
@@ -101,6 +120,16 @@ public class CoordinateGenerator
         addLinear( tabbedPane );
         addGeneral( tabbedPane );
         add( tabbedPane, BorderLayout.CENTER );
+    }
+
+    /**
+     * Add any pre-defined functions to a given menu.
+     */
+    public void addPreDefined( JMenu function )
+    {
+        for ( int i = 0; i < templates.length; i++ ) {
+            function.add( new TemplateAction( i ) );
+        }
     }
 
     /**
@@ -201,6 +230,8 @@ public class CoordinateGenerator
 
     /**
      * Add a page of controls for the general transformation option.
+     *
+     * TODO: add log as known general transform.
      */
     protected void addGeneral( JTabbedPane pane )
     {
@@ -338,8 +369,6 @@ public class CoordinateGenerator
             // New coordinates. Use mapping to base coordinates.
             frameSet.addFrame( FrameSet.AST__BASE, winMap, frame );
         }
-        frame.annul();
-        winMap.annul();
 
         //  Reset spectrum to use these coordinates.
         listener.changeFrameSet( frameSet );
@@ -423,5 +452,65 @@ public class CoordinateGenerator
             e.printStackTrace();
         }
         return null;
+    }
+    
+    /**
+     * Inner class defining Action for showing a template.
+     */
+    protected class TemplateAction extends AbstractAction
+    {
+        private int index = 0;
+        public TemplateAction( int index )
+        {
+            super( templates[index][0] );
+            putValue( SHORT_DESCRIPTION, templates[index][1] );
+            this.index = index;
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            applyTemplate( index );
+        }
+    }
+
+    /**
+     * Clear the values.
+     */
+    protected void clearValues()
+    {
+        mainValue.setText( "" );
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
+            itemValues[i].setText( "" );
+        }
+    }
+
+    /**
+     * Clear the names.
+     */
+    protected void clearNames()
+    {
+        for ( int i = 0; i < NAMECOUNT; i++ ) {
+            itemNames[i].setText( "" );
+        }
+    }
+
+    /**
+     * Set the fields to values of a template.
+     */
+    protected void applyTemplate( int index )
+    {
+        clearValues();
+        clearNames();
+
+        mainValue.setText( templates[index][1] );
+        int i = 0;
+        for ( int j = 2; j < templates[index].length; j += 2 ) {
+            itemNames[i].setText( templates[index][j] );
+            itemValues[i].setText( templates[index][j+1] );
+            i++;
+        }
     }
 }

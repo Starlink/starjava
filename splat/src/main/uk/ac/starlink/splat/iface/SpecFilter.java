@@ -1,22 +1,27 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     1-JAN-2003 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
-
 
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.AverageFilter;
+import uk.ac.starlink.splat.util.MedianFilter;
+import uk.ac.starlink.splat.util.KernelFilter;
+import uk.ac.starlink.splat.util.KernelFactory;
+import uk.ac.starlink.splat.util.Sort;
 
 /**
  * Filter of sections of a spectrum. It creates a new spectrum that is
  * added to the global list.
  *
- * @since $Date$
- * @since 14-JUN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see SpecData, "The Singleton Design Pattern".
  */
 public class SpecFilter
 {
@@ -24,17 +29,18 @@ public class SpecFilter
      * Count of all spectra created. Used to generate unique names for
      * new spectra.
      */
-    private static int count = 0;
+    protected static int count = 0;
 
     /**
      * Create the single class instance.
      */
-    private static final SpecFilter instance = new SpecFilter();
+    protected static final SpecFilter instance = new SpecFilter();
 
     /**
-     *  The global list of spectra and plots.
+     * The global list of spectra and plots.
      */
-    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList =
+        GlobalSpecPlotList.getReference();
 
     /**
      * Return reference to the only allowed instance of this class.
@@ -45,38 +51,175 @@ public class SpecFilter
     }
 
     /**
-     * Filter the current view of a spectrum. Returns true for
-     * success.  The new spectrum created is added to the globallist
-     * and a reference to it is returned (null for failure). The new
-     * spectrum is memory resident and has shortname:
-     * <pre>
-     *   "Filter <i> of <spectrum.getShortName()>"
-     * </pre>
-     * Where <i> is replaced by a unique integer and
-     * <spectrum.getShortName()> by the short name of the spectrum.
+     * Filter a spectrum or parts of a spectrum using a windowed
+     * average filter. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
      *
      * @param spectrum the spectrum to filter.
-     * @param plot the displaying PlotControl (used to get range of
-     *             spectrum that is being viewed).
+     * @param width the window size for averaging.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
      *
-     * @return the new spectrum.
+     * @return the new spectrum, null if fails.
      */
-    public SpecData filter( SpecData spectrum, PlotControl plot )
+    public SpecData averageFilter( SpecData spectrum, int width,
+                                   double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        AverageFilter filter = new AverageFilter( localSpec.getYData(),
+                                                  width );
+        return updateSpectrum( localSpec, filter.eval(),
+                               makeName( "Average", spectrum ) );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a windowed
+     * median filter. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the window size for estimated local median.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData medianFilter( SpecData spectrum, int width,
+                                  double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        MedianFilter filter = new MedianFilter( localSpec.getYData(),
+                                                width );
+        return updateSpectrum( localSpec, filter.eval(),
+                               makeName( "Median", spectrum ) );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a gaussian
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width to apply the gaussian weighting
+     * @param fwhm the full width half maximum for the gaussian.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData gaussianFilter( SpecData spectrum, int width,
+                                    double fwhm, double[] ranges,
+                                    boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.gaussianKernel( width, fwhm );
+        return kernelFilter( localSpec, kernel, "Gaussian" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a lorentzian
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width to apply the gaussian weighting
+     * @param lwidth the full width for the lorentzian.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData lorentzFilter( SpecData spectrum, int width,
+                                   double lwidth, double[] ranges,
+                                   boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.lorentzKernel( width, lwidth );
+        return kernelFilter( localSpec, kernel, "Lorentz" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a voigt
+     * weighted kernel. The new spectrum created is added to the global
+     * list and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param width the width to apply the gaussian weighting.
+     * @param gwidth the width for the gaussian part.
+     * @param lwidth the width for the lorentzian part.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData voigtFilter( SpecData spectrum, int width,
+                                 double gwidth, double lwidth,
+                                 double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        double[] kernel = KernelFactory.voigtKernel( width, gwidth, lwidth );
+        return kernelFilter( localSpec, kernel, "Voigt" );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using another spectrum
+     * as a source of a weighted kernel. The new spectrum created is
+     * added to the global list and a reference to it is returned
+     * (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param kernelSpec the spectrum whose data component is a
+     *                   weighting kernel.
+     * @param ranges a series of coordinate ranges to include or
+     *        exclude (null for none).
+     * @param include true if the ranges should be included.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    public SpecData specKernelFilter( SpecData spectrum, SpecData kernelSpec,
+                                      double[] ranges, boolean include )
+    {
+        EditableSpecData localSpec = applyRanges( spectrum, ranges, include );
+        return kernelFilter( localSpec, kernelSpec.getYData(),
+                             kernelSpec.getShortName() );
+    }
+
+    /**
+     * Filter a spectrum or parts of a spectrum using a weighted
+     * kernel. The modified spectrum is added to the global list
+     * and a reference to it is returned (null for failure).
+     *
+     * @param spectrum the spectrum to filter.
+     * @param kernel the weighting kernel.
+     * @param name short name for the spectrum.
+     *
+     * @return the new spectrum, null if fails.
+     */
+    protected SpecData kernelFilter( EditableSpecData spectrum,
+                                     double[] kernel, String name )
+    {
+        KernelFilter filter = new KernelFilter( spectrum.getYData(),
+                                                kernel );
+        return updateSpectrum( spectrum, filter.eval(), name );
+    }
+
+    /**
+     * Update a spectrum with a new data component. Also gives it 
+     * a hopefully useful name.
+     */
+    protected SpecData updateSpectrum( EditableSpecData newSpec,
+                                       double[] newData,
+                                       String newName )
     {
         try {
-            AverageFilter averageFilter =
-                new AverageFilter( spectrum.getYData(), 100 );
-
-            double[] newdata = averageFilter.eval();
-
-            EditableSpecData newSpec = SpecDataFactory.getReference().
-                createEditable( makeName( spectrum ) );
-
-            newSpec.setData( spectrum.getXData(), newdata );
-
-            globalList.add( newSpec );
+            newSpec.setDataQuick( newSpec.getFrameSet(), newData );
+            newSpec.setShortName( newName );
             return newSpec;
-
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -85,136 +228,51 @@ public class SpecFilter
     }
 
     /**
-     * Cut out a range of coordinates from the spectrum, creating a
-     * new single spectrum from the extracted data. The new spectrum
-     * is added to the global list and a reference to it is returned
-     * (null for failure of any kind). The new spectrum is memory
-     * resident and has shortname:
-     * <pre>
-     *   "Cut <i> of <spectrum.getShortName()>"
-     * </pre>
-     * Where <i> is replaced by a unique integer and
-     * <spectrum.getShortName()> by the short name of the spectrum.
+     *  Generate a name for the cut spectrum.
      *
-     * @param spectrum the spectrum to cut.
-     * @param ranges the physical coordinate ranges of the regions
-     *               that are to be extracted. These should be in
-     *               pairs. The extracted values are sorted in
-     *               increasing coordinate and any overlap regions are
-     *               merged.
-     *
-     * @return the new spectrum created from the viewable cut.
-     * @see #sortAndMerge
+     *  @param ident an identifying prefix for name (defaults to Filter).
+     *  @param spectrum the spectrum to be cut.
      */
-    public SpecData cutView( SpecData spectrum, double[] ranges )
+    protected String makeName( String ident, SpecData spectrum )
     {
-        //  Sort and merge the ranges.
-        double[] cleanRanges = sortAndMerge( ranges );
+        String name = "Filter " + (++count) + " of " + spectrum.getShortName();
+        if ( ident != null ) {
+            name = ident + " " + name;
+        }
+        return name;
+    }
+
+    /**
+     * Apply any range cuts or deletes to a spectrum and return a new
+     * spectrum. If no changes are needed than return an editable copy
+     * of the original spectrum.
+     */
+    protected EditableSpecData applyRanges( SpecData spectrum, 
+                                            double[] ranges, boolean include )
+    {
         try {
-            //  Extract the new spectrum.
-            SpecData newSpectrum = spectrum.getSect(makeName(spectrum),
-                                                    cleanRanges );
-            globalList.add( newSpectrum );
-            return newSpectrum;
-        } catch (Exception e) {
+            EditableSpecData newSpec = null;
+            if ( ranges != null && ranges.length != 0 ) {
+                SpecCutter cutter = SpecCutter.getReference();
+                if ( include ) {
+                    newSpec = (EditableSpecData) cutter.cutRanges( spectrum,
+                                                                   ranges );
+                }
+                else {
+                    newSpec = (EditableSpecData) cutter.deleteRanges( spectrum,
+                                                                      ranges );
+                }
+            }
+            else {
+                newSpec = SpecDataFactory.getReference().
+                    createEditable( "Dummy", spectrum );
+                globalList.add( newSpec );
+            }
+            return newSpec;
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
         return null;
-    }
-
-    /**
-     *  Generate a name for the cut spectrum.
-     *
-     *  @param spectrum the spectrum to be cut.
-     */
-    private String makeName( SpecData spectrum )
-    {
-        return "Filter " + (++count) + " of " + spectrum.getShortName();
-    }
-
-    /**
-     * Sort a list of ranges into increasing order and merge any
-     * overlapped ranges into single ranges (do this to make sure that
-     * ranges define a monotonic set).
-     *
-     * @param ranges the ranges that require sorting and merging.
-     * @return the sorted and merged set of ranges.
-     */
-    public double[] sortAndMerge( double[] ranges )
-    {
-        //  Short number of ranges expected so nothing clever
-        //  required, but we do need to retain the lower-upper bounds
-        //  pairing for a proper merge when overlapped, cannot just
-        //  sort the array and go with that.
-        double[] sorted = (double[]) ranges.clone();
-
-        //  Sort array using an insertion sort.
-        //  ==========
-        double xl = 0.0;
-        double xh = 0.0;
-        int j = 0;
-        boolean bigger = false;
-        for ( int i = 2; i < sorted.length; i+=2 ) {
-
-            //  Store the current value (the bottom).
-            xl = sorted[i];
-            xh = sorted[i+1];
-
-            //  Look at all values above this one on the stack.
-            bigger = false;
-            for ( j = i - 2; j >= 0; j-=2 ) {
-                if ( xl > sorted[j] ) {
-                    bigger = true;
-                    break;
-                }
-
-                //  Move values up one to make room for next value
-                //  (x or ranges[j] which ever greater).
-                sorted[j+2] = sorted[j];
-                sorted[j+3] = sorted[j+1];
-            }
-            if ( ! bigger ) {
-                //  Nothing bigger so put this one on the top.
-                j = -2;
-            }
-
-            //  Insert val below first value greater than it, or put on
-            //  top if none bigger.
-            sorted[j+2] = xl;
-            sorted[j+3] = xh;
-        }
-
-        //  Sort completed so now merge any overlapped ranges into
-        //  single ranges.
-        double[] merged = new double[sorted.length];
-        int n = 0;
-        merged[0] = sorted[0];
-        merged[1] = sorted[1];
-        for ( int i = 2; i < merged.length; i+=2 ) {
-
-            if ( merged[n+1] > sorted[i] ) {
-                //  Current range end overlaps beginning of next
-                //  range, so copy end of next range to be end of this
-                //  range.
-                merged[n+1] = sorted[i+1];
-            } else {
-
-                //  No overlap so just copy range.
-                n+=2;
-                merged[n] = sorted[i];
-                merged[n+1] = sorted[i+1];
-            }
-        }
-        n+=2;
-
-        if ( n != sorted.length ) {
-
-            //  Had some overlaps so trim off unnecessary end.
-            double[] trimmed = new double[n];
-            System.arraycopy( merged, 0, trimmed, 0, n );
-            merged = trimmed;
-        }
-
-        return merged;
     }
 }

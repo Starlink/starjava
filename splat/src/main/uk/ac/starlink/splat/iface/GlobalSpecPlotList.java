@@ -109,7 +109,7 @@ public class GlobalSpecPlotList
     public void setShortName( int index, String name ) 
     {
         specList.setShortName( index, name );
-        fireSpectrumAdded( index );
+        fireSpectrumChanged( index );
     }
 
     /**
@@ -348,7 +348,6 @@ public class GlobalSpecPlotList
             }
         }
     }
-
 
     /**
      * Send a SpecChangedEvent object specifying that a spectrum has

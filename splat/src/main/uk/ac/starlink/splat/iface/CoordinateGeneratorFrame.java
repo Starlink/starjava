@@ -69,7 +69,7 @@ public class CoordinateGeneratorFrame
         // Add an action to close the window (appears in File menu
         // and action bar).
         ImageIcon image =
-            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         CloseAction closeAction = new CloseAction( "Close", image,
                                                    "Close window" );
         JButton closeButton = new JButton( closeAction );
@@ -97,6 +97,11 @@ public class CoordinateGeneratorFrame
         JMenu fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
         fileMenu.add( closeAction );
+
+        //  Menu of useful pre-defined functions.
+        JMenu functions = new JMenu( "Functions" );
+        menuBar.add( functions );
+        coordinateGenerator.addPreDefined( functions );
 
         //  Finally add components to main window.
         getContentPane().add( coordinateGenerator, BorderLayout.CENTER );

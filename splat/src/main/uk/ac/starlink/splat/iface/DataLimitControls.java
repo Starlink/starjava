@@ -466,15 +466,15 @@ public class DataLimitControls
         }
 
         if ( dataLimits.isXAutoscaled() ) {
-            xLower.disable();
-            xUpper.disable();
-            xFit.disable();
+            xLower.setEnabled( false );
+            xUpper.setEnabled( false );
+            xFit.setEnabled( false );
         }
         if ( dataLimits.isYAutoscaled() ) {
-            yLower.disable();
-            yUpper.disable();
-            yPercentiles.disable();
-            yFit.disable();
+            yLower.setEnabled( false );
+            yUpper.setEnabled( false );
+            yPercentiles.setEnabled( false );
+            yFit.setEnabled( false );
         }
         dataLimits.addChangeListener( this );
     }
@@ -506,14 +506,14 @@ public class DataLimitControls
     {
         dataLimits.setXAutoscaled( xAutoscaled.isSelected() );
         if ( dataLimits.isXAutoscaled() ) {
-            xLower.disable();
-            xUpper.disable();
-            xFit.disable();
+            xLower.setEnabled( false );
+            xUpper.setEnabled( false );
+            xFit.setEnabled( false );
         }
         else {
-            xLower.enable();
-            xUpper.enable();
-            xFit.enable();
+            xLower.setEnabled( true );
+            xUpper.setEnabled( true );
+            xFit.setEnabled( true );
         }
         repaint();
     }
@@ -525,16 +525,16 @@ public class DataLimitControls
     {
         dataLimits.setYAutoscaled( yAutoscaled.isSelected() );
         if ( dataLimits.isYAutoscaled() ) {
-            yLower.disable();
-            yUpper.disable();
-            yPercentiles.disable();
-            yFit.disable();
+            yLower.setEnabled( false );
+            yUpper.setEnabled( false );
+            yPercentiles.setEnabled( false );
+            yFit.setEnabled( false );
         }
         else {
-            yLower.enable();
-            yUpper.enable();
-            yPercentiles.enable();
-            yFit.enable();
+            yLower.setEnabled( true );
+            yUpper.setEnabled( true );
+            yPercentiles.setEnabled( true );
+            yFit.setEnabled( true );
         }
         repaint();
     }

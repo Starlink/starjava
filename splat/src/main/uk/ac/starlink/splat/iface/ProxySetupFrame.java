@@ -214,7 +214,7 @@ public class ProxySetupFrame extends JFrame
 
         //  Add an action to close the window.
         ImageIcon cancelImage =
-            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+            new ImageIcon( ImageHolder.class.getResource( "close.gif" ) );
         CancelAction cancelAction = new CancelAction( "Cancel", cancelImage );
         fileMenu.add( cancelAction );
         cancelButton.setAction( cancelAction );

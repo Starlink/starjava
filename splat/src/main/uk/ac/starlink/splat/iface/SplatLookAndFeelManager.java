@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     20-JUL-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Frame;
@@ -5,6 +12,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.Constructor;
+import java.util.prefs.Preferences;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
@@ -34,11 +42,8 @@ import uk.ac.starlink.splat.iface.themes.SandStoneTheme;
  * <p>
  * All changes are propagated to the whole application.
  *
- * @since $Date$
- * @since 20-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  */
 public class SplatLookAndFeelManager implements ActionListener
 {
@@ -47,6 +52,12 @@ public class SplatLookAndFeelManager implements ActionListener
      */
     protected String defaultLook =
        UIManager.getCrossPlatformLookAndFeelClassName();
+
+    /**
+     * UI preferences.
+     */
+    protected static Preferences prefs =
+        Preferences.userNodeForPackage( SplatLookAndFeelManager.class );
 
     /**
      * The menu to populate with look and feels options and the
@@ -63,15 +74,15 @@ public class SplatLookAndFeelManager implements ActionListener
      * Mapping of metal theme names to classes.
      */
     protected Object[][] themeMapping = {
-        {"Default" , DefaultMetalTheme.class},
-        {"Aqua", AquaTheme.class},
-        {"Ruby", RubyTheme.class},
-        {"Emerald", EmeraldTheme.class},
-        {"Contrast", ContrastTheme.class},
-        {"Charcoal", CharcoalTheme.class},
-        {"Low vision", BigContrastMetalTheme.class},
-        {"Presentation", PresentationTheme.class},
-        {"SandStone", SandStoneTheme.class}
+        { "Default" , DefaultMetalTheme.class },
+        { "Aqua", AquaTheme.class },
+        { "Ruby", RubyTheme.class },
+        { "Emerald", EmeraldTheme.class },
+        { "Contrast", ContrastTheme.class },
+        { "Charcoal", CharcoalTheme.class },
+        { "Low vision", BigContrastMetalTheme.class },
+        { "Presentation", PresentationTheme.class },
+        { "SandStone", SandStoneTheme.class }
     };
 
     /**
@@ -93,6 +104,16 @@ public class SplatLookAndFeelManager implements ActionListener
         this.parentWindow = SwingUtilities.getWindowAncestor( parent );
         addLookAndFeels();
         addThemes();
+
+        //  Restore users last default look and theme.
+        String lastLook = prefs.get( "SplatLookAndFeelManager_look", defaultLook );
+        String lastTheme = prefs.get( "SplatLookAndFeelManager_theme", "Default" );
+        if ( ! defaultLook.equals( lastLook ) || 
+             ! "Default".equals( lastTheme ) ) {
+            defaultLook = lastLook;
+            setThemeFromName( lastTheme  );
+            updateLookAndFeel();
+        }
     }
 
     /**
@@ -136,9 +157,9 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         if( defaultLook != look ) {
             defaultLook = look;
-            themeMenu.setEnabled(
-               look == "javax.swing.plaf.metal.MetalLookAndFeel" );
+            themeMenu.setEnabled( look == "javax.swing.plaf.metal.MetalLookAndFeel" );
             updateLookAndFeel();
+            prefs.put( "SplatLookAndFeelManager_look", defaultLook );
         }
     }
 
@@ -183,10 +204,31 @@ public class SplatLookAndFeelManager implements ActionListener
      * @param theme the builtin theme to apply (only works with Metal look
      *              and feel).
      */
-    public void setTheme( DefaultMetalTheme theme )
+    protected void setTheme( DefaultMetalTheme theme )
     {
         MetalLookAndFeel.setCurrentTheme( theme );
         updateLookAndFeel();
+    }
+
+    /**
+     * Set the colour theme using a symbolic name (in themeMapping).
+     */
+    public void setThemeFromName( String name )
+    {
+        for ( int i = 0; i < themeMapping.length; i++ ) {
+            if ( name.equals( themeMapping[i][0] ) ) {
+                try {
+                    Constructor ct = ((Class)themeMapping[i][1]).getConstructor(null);
+                    setTheme( (DefaultMetalTheme)ct.newInstance(null) );
+                    prefs.put( "SplatLookAndFeelManager_theme", name );
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    // Do nothing, it's just a colour scheme!
+                }
+                break;
+            }
+        }
     }
 
     /**
@@ -226,18 +268,6 @@ public class SplatLookAndFeelManager implements ActionListener
     {
         JMenuItem item = (JMenuItem) e.getSource();
         String name = item.getText();
-        for ( int i = 0; i < themeMapping.length; i++ ) {
-            if ( name.equals( themeMapping[i][0] ) ) {
-                try {
-                    Constructor ct = ((Class)themeMapping[i][1]).getConstructor(null);
-                    setTheme( (DefaultMetalTheme)ct.newInstance(null) );
-                }
-                catch (Exception ex) {
-                    ex.printStackTrace();
-                    // Do nothing, it's just a colour!
-                }
-                break;
-            }
-        }
+        setThemeFromName( item.getText() );
     }
 }

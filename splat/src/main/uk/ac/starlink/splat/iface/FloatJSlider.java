@@ -144,9 +144,9 @@ public class FloatJSlider extends JPanel
      */
     public void enable()
     {
-        slider.enable();
+        slider.setEnabled( true );
         if ( showTextField ) {
-            valueField.enable();
+            valueField.setEnabled( true );
         }
     }
 
@@ -155,9 +155,9 @@ public class FloatJSlider extends JPanel
      */
     public void disable()
     {
-        slider.disable();
+        slider.setEnabled( false );
         if ( showTextField ) {
-            valueField.disable();
+            valueField.setEnabled( false );
         }
     }
 
