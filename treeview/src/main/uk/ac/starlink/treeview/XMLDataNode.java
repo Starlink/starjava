@@ -3,7 +3,9 @@ package uk.ac.starlink.treeview;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,6 +46,9 @@ public class XMLDataNode extends DefaultDataNode {
     private Icon icon;
 
     public static final int MAX_LINES = 12;
+    public static final String[] MAGICS = new String[] { "<!", "<?" };
+    public static final String[] ENCODINGS = 
+        new String[] { "UTF-8", "UTF-16", "UTF-16BE", "UTF-16LE" };
 
     private static final String NAME_KEY = "Name";
     private static final String SID_KEY = "System ID";
@@ -327,88 +332,58 @@ public class XMLDataNode extends DefaultDataNode {
      * This tests for the likely start of an XML file.  It's just a guess
      * though - it can come up with false positives and (worse) false
      * negatives.
+     *
+     * @param   magic  buffer containing the first few bytes of the stream
+     * @return  <tt>true</tt> iff this looks like an XML file  
      */
     public static boolean isMagic( byte[] magic ) {
-       int pos;
-
-       /* UTF-8. */
-       pos = 0;
-       byte c;
-       if ( magic.length > 2 && 
-            magic[ pos++ ] == (byte) '<' && ( magic[ pos ] == (byte) '?' || 
-                                              magic[ pos ] == (byte) '!' ) ) {
-           return true;
-       }
-
-       /* Big-endian UCS-2. */
-       pos = 0;
-       if ( magic.length > 6 &&
-            magic[ pos++ ] == 0xfe && magic[ pos++ ] == 0xff &&
-            magic[ pos++ ] == 0x00 && magic[ pos++ ] == '<' &&
-            magic[ pos++ ] == 0x00 && ( magic[ pos ] == (byte) '?' ||
-                                        magic[ pos ] == (byte) '!' ) ) {
-           return true;
-       }
-
-       /* Little-endian UCS-2. */
-       pos = 0;
-       if ( magic.length > 6 &&
-            magic[ pos++ ] == 0xff && magic[ pos++ ] == 0xfe &&
-            magic[ pos++ ] == (byte) '<' && magic[ pos++ ] == 0x00 &&
-            ( magic[ pos ] == (byte) '?' ||
-              magic[ pos++ ] == (byte) '!' ) && magic[ pos++ ] == 0x00 ) {
-           return true;
-       }
-
-       /* Nope. */
-       return false;
-   }
+        return getEncoding( magic ) != null;
+    }
 
 
     /**
-     * This tests for the XML declaration.  Unfortunately, it's not always
-     * there.
+     * Returns what appears to be the encoding of the XML stream which 
+     * starts with a given magic number.  This is based on how we expect
+     * an XML stream to start in terms of Unicode characters (one of the
+     * strings {@link #MAGICS}).  The result will be one of the 
+     * encoding names listed in {@link #ENCODINGS}, or <tt>null</tt> if
+     * it doesn't look like the start of an XML stream in any of these
+     * encodings.
+     *
+     * @param   magic  buffer containing the first few bytes of the stream
+     * @return  name of a supported encoding in which this looks like XML
      */
-    public static boolean isMagic2( byte[] magic ) {
-        int pos;
+    public static String getEncoding( byte[] magic ) {
+        for ( int i = 0; i < ENCODINGS.length; i++ ) {
 
-        /* UTF-8. */
-        pos = 0;
-        if ( magic.length > 5 && 
-             magic[ pos++ ] == (byte) '<' &&
-             magic[ pos++ ] == (byte) '?' &&
-             magic[ pos++ ] == (byte) 'x' &&
-             magic[ pos++ ] == (byte) 'm' &&
-             magic[ pos++ ] == (byte) 'l' ) {
-            return true;
+            /* Decode the magic number into a Unicode string. */
+            String encoding = ENCODINGS[ i ];
+            String test;
+            if ( Charset.isSupported( encoding ) ) {
+                try {
+                    test = new String( magic, encoding );
+                }
+                catch ( UnsupportedEncodingException e ) {
+                    throw new AssertionError( "Encoding " + encoding 
+                                            + " not supported??" );
+                }
+            }
+            else {  // bit surprising
+                System.err.println( "Unsupported charset: " + encoding );
+                break;
+            }
+ 
+            /* See if the decoded string looks like any of the possible starts
+             * of an XML document. */
+            for ( int j = 0; j < MAGICS.length; j++ ) {
+                if ( test.startsWith( MAGICS[ j ] ) ) {
+                    return encoding;
+                }
+            }
         }
 
-        /* Big endian UCS-2. */
-        pos = 0;
-        if ( magic.length > 12 &&
-             magic[ pos++ ] == 0xfe && magic[ pos++ ] == 0xff &&
-             magic[ pos++ ] == 0x00 && magic[ pos++ ] == (byte) '<' &&
-             magic[ pos++ ] == 0x00 && magic[ pos++ ] == (byte) '?' &&
-             magic[ pos++ ] == 0x00 && magic[ pos++ ] == (byte) 'x' &&
-             magic[ pos++ ] == 0x00 && magic[ pos++ ] == (byte) 'm' &&
-             magic[ pos++ ] == 0x00 && magic[ pos++ ] == (byte) 'l' ) {
-            return true;
-        }
-
-        /* Little endian UCS-2. */
-        pos = 0;
-        if ( magic.length > 12 && 
-             magic[ pos++ ] == 0xff && magic[ pos++ ] == 0xfe &&
-             magic[ pos++ ] == (byte) '<' && magic[ pos++ ] == 0x00 &&
-             magic[ pos++ ] == (byte) '?' && magic[ pos++ ] == 0x00 &&
-             magic[ pos++ ] == (byte) 'x' && magic[ pos++ ] == 0x00 &&
-             magic[ pos++ ] == (byte) 'm' && magic[ pos++ ] == 0x00 &&
-             magic[ pos++ ] == (byte) 'l' && magic[ pos++ ] == 0x00 ) {
-            return true;
-        }
-
-        /* Nope. */
-        return false;
+        /* No matches, it's not XML then. */
+        return null;
     }
 
 
