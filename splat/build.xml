@@ -135,6 +135,7 @@
   <!-- Directories to receive the various build components -->
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.java" value="${build.dir}/java"/>
   <property name="build.tests" value="${build.dir}/testcases"/>
   <property name="build.tests.javadocs" value="${build.dir}/javadocs.test/"/>
   <property name="build.jni" value="${build.dir}/jni"/>
@@ -965,23 +966,27 @@ jsci_core.jar jsci_wavelet.jar ../astgui/astgui.jar ../ndx/ndx.jar
    !   Creates the API documentation java sources
    !   ==========================================
    !
-   !  Does nothing.
+   !  Just copies the sources into the correct place.
    !-->
-  <target name="javadoc-sources"
-          description="-> does nothing">
-  </target>
+    <target name="javadoc-sources"
+          description="-> make source files for release API documentation">
+     <mkdir dir="${build.java}"/>
 
+    <!-- Copy and/or generate the source to be included when creating
+     !   the full Starlink API javadocs-->
 
-  <!-- Pattern for javadoc-sources when enabled -->
-  <!-- Exclude broken and test files etc. from the document -->
-  <!--<fileset dir="${java.dir}" defaultexcludes="yes">
+    <copy todir="${build.java}">
+      <fileset dir="${java.dir}" defaultexcludes="yes">
         <include name="**/*.java"/>
         <exclude name="**/retired_code/*"/>
         <exclude name="**/*Test*"/>
         <exclude name="**/ExtractNDFWCS2XML.java"/>
         <exclude name="**/FITS.java"/>
         <exclude name="**/*Holder.java"/>
-      </fileset>-->
+      </fileset>
+    </copy>
+
+  </target>
 
   <!--
    !   =================
