@@ -12,7 +12,8 @@ import java.io.File;
 
 /**
  * Extends the delete task so that it can also accepts a simple
- * FileList of names.
+ * FileList of names to delete. These can include files and
+ * directories.
  *
  * @author Peter W. Draper
  * @version $Id$
@@ -43,15 +44,16 @@ public class ListDelete extends Delete
     public void execute() throws BuildException
     {
         if ( filelist != null ) {
+
+            // Loop over all files in the list.
             String[] files = filelist.getFiles( project );
+
             for ( int i = 0; i < files.length; i++ ) {
                 File file = new File( files[i] );
 
                 if ( file.exists() ) {
                     if ( file.isDirectory() ) {
-                        log( "Directory " + file.getAbsolutePath()
-                             + " cannot be removed using the file attribute.  "
-                             + "Use dir instead.");
+                        removeDir( file );
                     }
                     else {
                         log( "Deleting: " + file.getAbsolutePath(),
@@ -59,7 +61,7 @@ public class ListDelete extends Delete
 
                         if ( ! file.delete() ) {
                             String message = "Unable to delete file "
-                                + file.getAbsolutePath();
+                                             + file.getAbsolutePath();
                             if ( isFailOnError() ) {
                                 throw new BuildException( message );
                             }
@@ -72,8 +74,7 @@ public class ListDelete extends Delete
                 }
                 else {
                     log( "Could not find file " + file.getAbsolutePath()
-                         + " to delete.",
-                         Project.MSG_VERBOSE );
+                         + " to delete.", Project.MSG_VERBOSE );
                 }
             }
         }
