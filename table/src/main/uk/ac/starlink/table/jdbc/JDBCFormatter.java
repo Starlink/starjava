@@ -114,8 +114,18 @@ public class JDBCFormatter {
             for ( int icol = 0; icol < ncol; icol++ ) {
                 if ( sqlTypes[ icol ] != Types.NULL ) {
                     pix++;
-                    // pstmt.setObject( pix, row[ icol ], sqlTypes[ icol ] );
-                    pstmt.setObject( pix, row[ icol ] );
+                    Object val = row[ icol ];
+                    if ( val instanceof Float && 
+                         Float.isNaN( ((Float) val).floatValue() ) ||
+                         val instanceof Double &&
+                         Double.isNaN( ((Double) val).doubleValue() ) ) {
+                        pstmt.setObject( pix, "NULL" );
+                    }
+                    else {
+                        // pstmt.setObject( pix, row[ icol ],
+                        //                  sqlTypes[ icol ] );
+                        pstmt.setObject( pix, row[ icol ] );
+                    }
                 }
             }
             pstmt.executeUpdate();
