@@ -34,6 +34,7 @@ import java.net.URL;
  * and will throw AssertionErrors if this turns out not to be the case.
  * 
  * @author   Mark Taylor (Starlink)
+ * @author   Norman Gray (Starlink)
  */
 public class URLUtils {
 
@@ -53,7 +54,7 @@ public class URLUtils {
 
     /**
      * Obtains a URL from a string.  If the String has the form of a URL,
-     * it turned directly into a URL.  If it does not, it is treated as
+     * it is turned directly into a URL.  If it does not, it is treated as
      * a filename, and turned into a file-protocol URL.  In the latter
      * case a relative or absolute filename may be used.  If it is 
      * null or a blank string (or something else equally un-filename like?)
@@ -72,7 +73,8 @@ public class URLUtils {
         catch ( MalformedURLException e ) {
             try {
                 URI uri = new File( location ).toURI();
-                return new URL( uri.toString() );
+                return uri.toURL();
+                //return new URL( uri.toString() );
             }
             catch ( MalformedURLException e2 ) {
                 throw protestFileProtocolIsLegal( e2 );
@@ -142,32 +144,63 @@ public class URLUtils {
     }
 
     /**
-     * Turns a URL into a URI catching the exceptions.
+     * Turns a URL into a URI.
      *
-     * <p>It seems very unlikely that an exception can actuallly
-     * result here, since a URIs are surely a superset of URLs?  So
-     * why doesn't this method (or an equivalent constructor) exist in
-     * the URI class?  Anyway, if there <em>is</em> any problem
-     * creating the URI, we throw an assertion error, because the
-     * world is surely out of joint.  That is, this method always
-     * succeeds.
+     * <p>Since URIs are syntactically and semantically a superset of
+     * URLs, this conversion should not cause any errors.  If,
+     * however, the input URL is malformed in rather extreme ways,
+     * then the URI construction will fail.  These ways include (but
+     * are not necesssarily limited to) the features discussed in
+     * {@link java.net.URI#URI(String,String,String,String,String)},
+     * namely that a scheme is present, but with a relative path, or
+     * that it has a registry-based authority part.
      *
-     * @param url a URL to be converted.  If this is null, then the method returns null
+     * <p>Because of the way the class does the conversion, the method
+     * will itself resolve some malformations of URLs.  You should not rely
+     * on this, however, firstly because the method might in principle
+     * change, but mostly because you should avoid creating such
+     * malformed URLs in the first place.
+     *
+     * <p>The most common source of malformed URLs is that of
+     * <code>file</code> URLs which have inadequately escaped
+     * (windows) drive letters or spaces in the name: such URLs should
+     * be constructed using the {@link java.net.File#toURI} or {@link
+     * java.net.File#toURL} methods.  Such URLs will be escaped by
+     * this method.
+     *
+     * @param url a URL to be converted.  If this is null, then the
+     *        method returns null 
      * @return the input URL as a URI, or null if the input was null
-     * @throws AssertionError if there is any problem converting the URL
+     * @throws MalformedURLException if the URI cannot be constructed
+     *        because the input URL turns out to be malformed
      */
-    public static URI urlToUri( URL url ) {
+    public static URI urlToUri( URL url ) 
+            throws MalformedURLException {
+        /*
+         * Weaknesses: this method doesn't cope with URIs which have
+         * a scheme plus a relative path, or registry-based authorities.
+         * Ought it to?  In the absence of specific use-cases,
+         * probably not, but we should note that this might be
+         * reasonable and be prepared to revisit it.
+         */
+
         if (url == null)
             return null;
+
         try {
-            // Check for any spaces in the url. These are not permitted in URIs.
-	    String str = url.toExternalForm();
-	    String esc = str.replaceAll( " ", "%20" );
-            return new URI( esc );
-        }
-        catch ( java.net.URISyntaxException e ) {
-            throw new AssertionError( "Failed to convert URL <" + url + "> "
-                                      + "to URI" );
+            return new URI(url.getProtocol(),
+                           url.getAuthority(),
+                           url.getPath(),
+                           url.getQuery(),
+                           url.getRef() // ie, fragment
+                           );
+        } catch (java.net.URISyntaxException e) {
+            // The input URL was malformed, so indicate that
+            MalformedURLException newEx
+                    = new MalformedURLException("URL " + url
+                                                + " was malformed");
+            newEx.initCause(e);
+            throw newEx;
         }
     }
 }
