@@ -716,8 +716,10 @@ public class PolyFitFrame
                            fitter.calcRms( newX, newY ) + "\n" );
         fitResults.append( "Coefficients\n" );
         double[] coeffs = fitter.getCoeffs();
-        for ( int i = 0; i < coeffs.length; i++ ) {
-            fitResults.append( "\t: " + coeffs[i] + "\n" );
+        if ( coeffs != null ) {
+            for ( int i = 0; i < coeffs.length; i++ ) {
+                fitResults.append( "\t: " + coeffs[i] + "\n" );
+            }
         }
     }
 
