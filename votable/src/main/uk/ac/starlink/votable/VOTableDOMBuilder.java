@@ -52,22 +52,24 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
     private final ContentHandler basicHandler;
     private final ContentHandler defaultHandler;
+    private final StoragePolicy storagePolicy;
+    private final VOElementFactory factory;
     private final static Map tableDataMap = new WeakHashMap();
     private String systemId;
     private Element tableEl;
     private List fieldList;
-    private StoragePolicy storagePolicy;
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Constructs a new builder.
      */
-    public VOTableDOMBuilder() {
+    public VOTableDOMBuilder( StoragePolicy storagePolicy ) {
         basicHandler = new BasicContentHandler();
         defaultHandler = new DefaultContentHandler();
+        factory = new VOElementFactory( storagePolicy );
+        this.storagePolicy = storagePolicy;
         setCustomHandler( basicHandler );
-        setStoragePolicy( StoragePolicy.getDefaultPolicy() );
     }
 
     /**
@@ -112,32 +114,12 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     }
 
     /**
-     * Sets the StoragePolicy used for storage of table data that 
-     * has to be associated with the DOM.
-     *
-     * @param  policy  the new storage policy
-     */
-    public void setStoragePolicy( StoragePolicy policy ) {
-        this.storagePolicy = policy;
-    }
-
-    /**
-     * Returns the StoragePolicy used for storage of table data that
-     * has to be associated with the DOM.
-     *
-     * @return  current storage policy
-     */
-    public StoragePolicy getStoragePolicy() {
-        return storagePolicy;
-    }
-
-    /**
      * Returns an unconfigured RowStore which can cache table data.
      *
      * @return  row store
      */
     private RowStore makeRowStore() {
-        return getStoragePolicy().makeRowStore();
+        return storagePolicy.makeRowStore();
     }
 
     /**
@@ -160,7 +142,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 return -1;
             }
         };
-        return getStoragePolicy().makeConfiguredRowStore( dummyTable );
+        return storagePolicy.makeConfiguredRowStore( dummyTable );
     }
 
     /**
@@ -186,7 +168,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             }
             else if ( fieldList != null && "FIELD".equals( tagName ) ) {
                 fieldList.add( new FieldElement( (Element) getNewestNode(),
-                                                 systemId ) );
+                                                 systemId, factory ) );
             }
             else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler() );
@@ -359,7 +341,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             DataSource datsrc = DataSource.makeDataSource( url );
             datsrc.setPosition( extnum );
             StarTable startab = new FitsTableBuilder()
-                               .makeStarTable( datsrc, false );
+                               .makeStarTable( datsrc, false, storagePolicy );
             TabularData tdata = new TableBodies.StarTableTabularData( startab );
             storeData( tableEl, tdata );
         }

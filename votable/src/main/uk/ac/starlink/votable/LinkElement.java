@@ -11,8 +11,9 @@ import org.w3c.dom.Element;
  */
 public class LinkElement extends VOElement {
 
-    public LinkElement( Element el, String systemId ) {
-        super( el, systemId, "LINK" );
+    public LinkElement( Element el, String systemId, 
+                        VOElementFactory factory ) {
+        super( el, systemId, "LINK", factory );
     }
 
     /**

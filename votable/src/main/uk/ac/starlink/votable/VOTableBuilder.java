@@ -11,6 +11,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
@@ -39,8 +40,15 @@ public class VOTableBuilder implements TableBuilder {
      * allow XPath expressions.
      *
      * @param  datsrc  the location of the VOTable document to use
+     * @param  wantRandom  whether, preferentially, a random access table
+     *         should be returned (doesn't guarantee that it will be random)
+     * @param  storagePolicy  a StoragePolicy object which may be used to
+     *         supply scratch storage if the builder needs it
+     * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
+     *          if this handler can't handle it
      */
-    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom,
+                                    StoragePolicy storagePolicy )
             throws IOException {
 
         /* Check if the source looks like HTML.  If it does it is almost
@@ -56,7 +64,8 @@ public class VOTableBuilder implements TableBuilder {
         /* Try to get a VOTable object from this source. */
         VOElement votable;
         try {
-            votable = VOElementFactory.makeVOElement( datsrc );
+            votable = new VOElementFactory( storagePolicy )
+                     .makeVOElement( datsrc );
         }
 
         /* If we have got an Exception it's probably because 

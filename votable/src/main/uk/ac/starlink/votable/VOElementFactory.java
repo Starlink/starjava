@@ -21,12 +21,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.StarEntityResolver;
 
 /**
- * Provides static methods for constructing VOElements from a variety
+ * Provides methods for constructing VOElements from a variety
  * of sources.  A VOElement can be made either from an existing 
  * DOM {@link org.w3c.dom.Element} or from some non-DOM source such
  * as a file, input stream, or SAX stream.  
@@ -60,6 +61,48 @@ import uk.ac.starlink.util.StarEntityResolver;
 public class VOElementFactory {
 
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
+    private StoragePolicy storagePolicy;
+
+    /**
+     * Constructs a new VOElementFactory with a given storage policy.
+     * The StoragePolicy object is used to determine how row data which 
+     * is found within the DOM will be cached.
+     *
+     * @param  policy  storage policy
+     */
+    public VOElementFactory( StoragePolicy policy ) {
+        setStoragePolicy( policy );
+    }
+
+    /**
+     * Constructs a new VOElementFactory with the default storage policy.
+     *
+     * @see   uk.ac.starlink.table.StoragePolicy#getDefaultPolicy
+     */
+    public VOElementFactory() {
+        this( StoragePolicy.getDefaultPolicy() );
+    }
+
+    /**
+     * Returns the storage policy currently in effect.
+     * This is used to determine how row data found in the DOM will be 
+     * stored.
+     *
+     * @return  current storage policy
+     */
+    public StoragePolicy getStoragePolicy() {
+        return storagePolicy;
+    }
+
+    /**
+     * Sets the storage policy.
+     * This determines how row data found in the DOM will be stored.
+     *
+     * @param  policy  new storage policy
+     */
+    public void setStoragePolicy( StoragePolicy policy ) {
+        this.storagePolicy = policy;
+    }
 
     /**
      * Returns a new VOElement based on a given DOM element.
@@ -70,7 +113,7 @@ public class VOElementFactory {
      * @param  el  DOM element on which the new object will be based
      * @param  systemId  the location of the document
      */
-    public static VOElement makeVOElement( Element el, String systemId ) {
+    public VOElement makeVOElement( Element el, String systemId ) {
 
         /* Get the tag name. */
         String name = el.getTagName();
@@ -78,22 +121,22 @@ public class VOElementFactory {
         /* And build an appropriate element from the (possibly transformed)
          * source. */
         if ( name.equals( "FIELD" ) ) {
-            return new FieldElement( el, systemId );
+            return new FieldElement( el, systemId, this );
         }
         else if ( name.equals( "PARAM" ) ) {
-            return new ParamElement( el, systemId );
+            return new ParamElement( el, systemId, this );
         }
         else if ( name.equals( "LINK" ) ) {
-            return new LinkElement( el, systemId );
+            return new LinkElement( el, systemId, this );
         }
         else if ( name.equals( "VALUES" ) ) {
-            return new ValuesElement( el, systemId );
+            return new ValuesElement( el, systemId, this );
         }
         else if ( name.equals( "TABLE" ) ) {
-            return new TableElement( el, systemId );
+            return new TableElement( el, systemId, this );
         }
         else {
-            return new VOElement( el, systemId );
+            return new VOElement( el, systemId, this );
         }
     }
 
@@ -103,7 +146,7 @@ public class VOElementFactory {
      * @param   dsrc   DOM source representing an Element or Document node
      * @return  VOElement based on <tt>dsrc</tt>
      */
-    public static VOElement makeVOElement( DOMSource dsrc ) {
+    public VOElement makeVOElement( DOMSource dsrc ) {
         Node node = dsrc.getNode();
         Element el;
         if ( node instanceof Element ) {
@@ -131,7 +174,7 @@ public class VOElementFactory {
      * @throws  IOException  if <tt>xsrc</tt> is not a DOM source
      *          and there is an I/O error transforming to a DOM
      */
-    public static VOElement makeVOElement( Source xsrc )
+    public VOElement makeVOElement( Source xsrc )
             throws SAXException, IOException {
         return makeVOElement( transformToDOM( xsrc, false ) );
     }
@@ -146,7 +189,7 @@ public class VOElementFactory {
      * @param  systemId  the location of the document
      * @return  VOElement based on <tt>doc</tt>
      */
-    public static VOElement makeVOElement( Document doc, String systemId ) {
+    public VOElement makeVOElement( Document doc, String systemId ) {
         return makeVOElement( doc.getDocumentElement(), systemId );
     }
 
@@ -161,7 +204,7 @@ public class VOElementFactory {
      * @param  systemId  the location of the document
      * @return  new VOElement
      */
-    public static VOElement makeVOElement( InputStream strm, String systemId )
+    public VOElement makeVOElement( InputStream strm, String systemId )
             throws SAXException, IOException {
         InputSource insrc = new InputSource( strm );
         insrc.setSystemId( systemId );
@@ -177,7 +220,7 @@ public class VOElementFactory {
      * @param  uri  location of the document
      * @return  new VOElement
      */
-    public static VOElement makeVOElement( String uri ) 
+    public VOElement makeVOElement( String uri ) 
             throws SAXException, IOException {
         Source saxsrc = new SAXSource( new InputSource( uri ) );
         saxsrc.setSystemId( uri );
@@ -191,7 +234,7 @@ public class VOElementFactory {
      * @param  url  location of the document
      * @return  new VOElement
      */
-    public static VOElement makeVOElement( URL url )
+    public VOElement makeVOElement( URL url )
             throws SAXException, IOException {
         return makeVOElement( url.toExternalForm() );
     }
@@ -203,7 +246,7 @@ public class VOElementFactory {
      * @param  file  file containing XML document
      * @return  new VOElement
      */
-    public static VOElement makeVOElement( File file )
+    public VOElement makeVOElement( File file )
             throws SAXException, IOException {
         return makeVOElement( file.toURI().toString() );
     }
@@ -215,7 +258,7 @@ public class VOElementFactory {
      * @param  datsrc  data source containing XML
      * @return  new VOElement
      */
-    public static VOElement makeVOElement( DataSource datsrc )
+    public VOElement makeVOElement( DataSource datsrc )
             throws SAXException, IOException {
         return makeVOElement( datsrc.getHybridInputStream(), 
                               datsrc.getSystemId() );
@@ -237,7 +280,7 @@ public class VOElementFactory {
      *          is not already a DOMSource)
      * @return  a DOMSource representing the XML document held by <tt>xsrc</tt>
      */
-    public static DOMSource transformToDOM( Source xsrc, boolean validate )
+    public DOMSource transformToDOM( Source xsrc, boolean validate )
             throws SAXException, IOException {
 
         /* If it's a DOM source already, no problem. */
@@ -372,11 +415,11 @@ public class VOElementFactory {
      *         error handling etc
      * @param  insource  input source containing the stream of XML
      */
-    private static Document parseToDOM( XMLReader parser, InputSource insource )
+    private Document parseToDOM( XMLReader parser, InputSource insource )
             throws IOException, SAXException {
 
         /* Parse using a custom handler. */
-        VOTableDOMBuilder db = new VOTableDOMBuilder();
+        VOTableDOMBuilder db = new VOTableDOMBuilder( getStoragePolicy() );
         parser.setContentHandler( db );
         parser.parse( insource );
 

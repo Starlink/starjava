@@ -11,8 +11,9 @@ public class ParamElement extends FieldElement {
 
     private Object valueObject;
 
-    public ParamElement( Element el, String systemId ) {
-        super( el, systemId, "PARAM" );
+    public ParamElement( Element el, String systemId,
+                         VOElementFactory factory ) {
+        super( el, systemId, "PARAM", factory );
     }
 
     /**

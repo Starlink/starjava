@@ -26,6 +26,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.PipeReaderThread;
@@ -227,6 +228,8 @@ class TableStreamer extends CustomDOMBuilder {
 
         Element tableEl = (Element) getNewestNode();
         List fieldList = new ArrayList();
+        VOElementFactory factory = 
+            new VOElementFactory( StoragePolicy.DISCARD );
         FieldElement[] fields;
         Decoder[] decoders;
 
@@ -247,11 +250,12 @@ class TableStreamer extends CustomDOMBuilder {
                 for ( int icol = 0; icol < ncol; icol++ ) {
                     fields[ icol ] = 
                         new FieldElement( (Element) fieldList.get( icol ),
-                                          systemId );
+                                          systemId, factory );
                     decoders[ icol ] = fields[ icol ].getDecoder();
                 }
                 StarTable startable = 
-                    new VOStarTable( new TableElement( tableEl, systemId ) ) {
+                    new VOStarTable( new TableElement( tableEl, systemId,
+                                                       factory ) ) {
                         public long getRowCount() {
                             return -1L;
                         }

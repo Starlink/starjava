@@ -23,12 +23,14 @@ public class FieldElement extends VOElement {
 
     static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
-    public FieldElement( Element el, String systemId ) {
-        this( el, systemId, "FIELD" );
+    public FieldElement( Element el, String systemId, 
+                         VOElementFactory factory ) {
+        this( el, systemId, "FIELD", factory );
     }
 
-    FieldElement( Element el, String systemId, String tagname ) {
-        super( el, systemId, tagname );
+    FieldElement( Element el, String systemId, String tagname,
+                  VOElementFactory factory ) {
+        super( el, systemId, tagname, factory );
 
         /* Get datatype. */
         datatype = getAttribute( "datatype" );

@@ -48,8 +48,9 @@ public class TableElement extends VOElement {
      * @param   el  TABLE element
      * @param   systemId  document system ID
      */
-    public TableElement( Element el, String systemId ) {
-        super( el, systemId, "TABLE" );
+    public TableElement( Element el, String systemId,
+                         VOElementFactory factory ) {
+        super( el, systemId, "TABLE", factory );
 
         /* Deal with known metadata children. */
         List fieldList = new ArrayList();
@@ -60,10 +61,12 @@ public class TableElement extends VOElement {
                 Element childEl = (Element) ch;
                 String elname = childEl.getTagName();
                 if ( elname.equals( "FIELD" ) ) {
-                    fieldList.add( new FieldElement( childEl, systemId ) );
+                    fieldList.add( new FieldElement( childEl, systemId,
+                                                     getFactory() ) );
                 }
                 if ( elname.equals( "LINK" ) ) {
-                    linkList.add( new LinkElement( childEl, systemId ) );
+                    linkList.add( new LinkElement( childEl, systemId,
+                                                   getFactory() ) );
                 }
             }
         }
@@ -73,7 +76,7 @@ public class TableElement extends VOElement {
         /* Obtain and store the data access object. */ 
         TabularData td;
         try {
-            td = getTabularData( el, fields, getSystemId() );
+            td = getTabularData( el, fields, getSystemId(), getFactory() );
         }
         catch ( IOException e ) {
             int ncol = fields.length;
@@ -136,11 +139,13 @@ public class TableElement extends VOElement {
      * @param  tableEl  DOM TABLE element
      * @param  fields   array of the fields in the table
      * @param  systemId  sytem identifier of the document
+     * @param  factory   element factory
      * @return  data access object for the table in <tt>tableEl</tt>
      */
     private static TabularData getTabularData( Element tableEl,
                                                FieldElement[] fields,
-                                               String systemId )
+                                               String systemId,
+                                               VOElementFactory factory )
             throws IOException {
         int ncol = fields.length;
         final Decoder[] decoders = new Decoder[ ncol ];
@@ -225,8 +230,9 @@ public class TableElement extends VOElement {
                 datsrc.setName( "STREAM" );
             }
             datsrc.setPosition( extnum );
-            StarTable startab = new FitsTableBuilder()
-                               .makeStarTable( datsrc, false );
+            StarTable startab = 
+                new FitsTableBuilder()
+               .makeStarTable( datsrc, false, factory.getStoragePolicy() );
             if ( startab == null ) {
                 throw new IOException( 
                     "STREAM element does not contain a FITS table" );

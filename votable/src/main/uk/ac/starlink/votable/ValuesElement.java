@@ -25,8 +25,9 @@ public class ValuesElement extends VOElement {
      * @param  el  a VALUES element
      * @param  systemId  document system ID
      */
-    public ValuesElement( Element el, String systemId ) {
-        super( el, systemId, "VALUES" );
+    public ValuesElement( Element el, String systemId,
+                          VOElementFactory factory ) {
+        super( el, systemId, "VALUES", factory );
         blank = getAttribute( "null" );
         type = getAttribute( "type" );
         isInvalid = getAttribute( "invalid" ) == "yes";

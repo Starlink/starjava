@@ -48,6 +48,7 @@ public class VOElement {
 
     private final Element el;
     private final String systemId;
+    private final VOElementFactory factory;
     private URL context;
     private String id;
     private String name;
@@ -63,10 +64,12 @@ public class VOElement {
      *
      * @param  el  DOM element on which the new object will be based
      * @param  systemId  the location of the document
+     * @param  factory   factory used for creating children
      */
-    public VOElement( Element el, String systemId ) {
+    public VOElement( Element el, String systemId, VOElementFactory factory ) {
         this.el = el;
         this.systemId = systemId;
+        this.factory = factory;
         this.context = URLUtils.makeURL( systemId );
 
         /* Store items which are generic to most/all VOTable elements. */
@@ -89,11 +92,13 @@ public class VOElement {
      * @param  el  DOM element on which the new object will be based
      * @param  systemId  the location of the document
      * @param  tagname  the name that <tt>el</tt> is required to have
+     * @param  factory   factory for creating children
      * @throws  IllegalArgumentException  if <tt>el</tt>
      *          has a name other than <tt>tagname</tt>
      */
-    protected VOElement( Element el, String systemId, String tagname ) {
-        this( el, systemId );
+    protected VOElement( Element el, String systemId, String tagname,
+                         VOElementFactory factory ) {
+        this( el, systemId, factory );
         if ( ! getTagName().equals( tagname ) ) {
             throw new IllegalArgumentException(
                 "Unsuitable element: " + getTagName() + " != " + tagname );
@@ -173,7 +178,7 @@ public class VOElement {
     public VOElement getParent() {
         Node pnode = el.getParentNode();
         if ( pnode != null && pnode instanceof Element ) {
-            return VOElementFactory.makeVOElement( (Element) pnode, systemId );
+            return factory.makeVOElement( (Element) pnode, systemId );
         }
         else {
             return null;
@@ -191,8 +196,7 @@ public class VOElement {
         for ( Node ch = el.getFirstChild(); ch != null;
               ch = ch.getNextSibling() ) {
             if ( ch instanceof Element ) {
-                children.add( VOElementFactory
-                             .makeVOElement( (Element) ch, systemId ) );
+                children.add( factory.makeVOElement( (Element) ch, systemId ) );
             }
         }
         return (VOElement[]) children.toArray( new VOElement[ 0 ] );
@@ -213,8 +217,7 @@ public class VOElement {
               ch = ch.getNextSibling() ) {
             if ( ch instanceof Element &&
                  ((Element) ch).getTagName().equals( tagname ) ) {
-                children.add( VOElementFactory
-                             .makeVOElement( (Element) ch, systemId ) );
+                children.add( factory.makeVOElement( (Element) ch, systemId ) );
             }
         }
         return (VOElement[]) children.toArray( new VOElement[ 0 ] );
@@ -235,7 +238,7 @@ public class VOElement {
               ch = ch.getNextSibling() ) {
             if ( ch instanceof Element &&
                  ((Element) ch).getTagName().equals( tagname ) ) {
-                return VOElementFactory.makeVOElement( (Element) ch, systemId );
+                return factory.makeVOElement( (Element) ch, systemId );
             }
         }
         return null;
@@ -257,7 +260,7 @@ public class VOElement {
         for ( int i = 0; i < nnode; i++ ) {
             Element node = (Element) nodes.item( i );
             assert node.getTagName().equals( tagname );
-            selected[ i ] = VOElementFactory.makeVOElement( node, systemId );
+            selected[ i ] = factory.makeVOElement( node, systemId );
         }
         return selected;
     }
@@ -360,6 +363,15 @@ public class VOElement {
      */
     public String getTextContent() {
         return DOMUtils.getTextContent( el );
+    }
+
+    /**
+     * Returns the factory which this object uses to create new VOElements.
+     *
+     * @return  element factory
+     */
+    public VOElementFactory getFactory() {
+        return factory;
     }
 
     /**
