@@ -138,7 +138,8 @@ public class MirageFormatter {
             System.err.println( usage );
             System.exit( 1 );
         }
-        StarTable tab = new StarTableFactory().makeStarTable( args[ 0 ] );
+        StarTable tab = new StarTableFactory( false )
+                       .makeStarTable( args[ 0 ] );
         if ( tab == null ) {
             System.err.println( "No known table " + args[ 0 ] );
             System.exit( 1 );

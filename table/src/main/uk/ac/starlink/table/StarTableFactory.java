@@ -32,6 +32,15 @@ import uk.ac.starlink.util.URLDataSource;
  * <li> {@link uk.ac.starlink.table.formats.WDCTableBuilder}
  * <li> {@link uk.ac.starlink.table.formats.TextTableBuilder}
  * </ul>
+ * <p>
+ * The factory has a flag <tt>wantRandom</tt> which determines 
+ * whether random-access tables are
+ * preferred results of the <tt>makeStarTable</tt> methods.
+ * Setting this flag to <tt>true</tt> does <em>not</em> guarantee
+ * that returned tables will have random access 
+ * (the {@link Tables#randomTable} method should be used for that),
+ * but this flag is passed to builders as a hint in case they know
+ * how to make either random or non-random tables.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -39,6 +48,8 @@ public class StarTableFactory {
 
     private List builders;
     private JDBCHandler jdbcHandler;
+    private boolean wantRandom;
+
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.fits.FitsTableBuilder",
@@ -48,9 +59,22 @@ public class StarTableFactory {
     };
 
     /**
-     * Constructs a StarTableFactory with a default list of builders.
+     * Constructs a StarTableFactory with a default list of builders
+     * which will not preferentially construct random-access tables.
      */
     public StarTableFactory() {
+        this( false );
+    }
+
+    /**
+     * Constructs a StarTableFactory with a default list of builders
+     * specifying whether it should preferentially construct random-access
+     * tables.
+     *
+     * @param   wantRandom  whether random-access tables are preferred
+     */
+    public StarTableFactory( boolean wantRandom ) {
+        this.wantRandom = wantRandom;
         builders = new ArrayList( 2 );
 
         /* Attempt to add default handlers if they are available. */
@@ -97,6 +121,27 @@ public class StarTableFactory {
     }
 
     /**
+     * Sets whether random-access tables are by preference 
+     * created by this factory.
+     *
+     * @param  wantRandom  whether, preferentially, this factory should
+     *         create random-access tables
+     */
+    public void setWantRandom( boolean wantRandom ) {
+        this.wantRandom = wantRandom;
+    }
+
+    /**
+     * Returns the <tt>wantRandom</tt> flag.
+     *
+     * @return  whether, preferentially, this factory should create 
+     *          random-access tables
+     */
+    public boolean wantRandom() {
+        return wantRandom;
+    }
+
+    /**
      * Constructs a readable <tt>StarTable</tt> from a <tt>DataSource</tt> 
      * object.  
      *
@@ -110,7 +155,7 @@ public class StarTableFactory {
     public StarTable makeStarTable( DataSource datsrc ) throws IOException {
         for ( Iterator it = builders.iterator(); it.hasNext(); ) {
             TableBuilder builder = (TableBuilder) it.next();
-            StarTable startab = builder.makeStarTable( datsrc );
+            StarTable startab = builder.makeStarTable( datsrc, wantRandom );
             if ( startab != null ) {
                 if ( startab instanceof AbstractStarTable ) {
                     AbstractStarTable abst = (AbstractStarTable) startab;
@@ -159,7 +204,7 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( String location ) throws IOException {
         if ( location.startsWith( "jdbc:" ) ) {
-            return getJDBCHandler().makeStarTable( location );
+            return getJDBCHandler().makeStarTable( location, wantRandom );
         }
         else {
             return makeStarTable( DataSource.makeDataSource( location ) );
@@ -262,7 +307,8 @@ public class StarTableFactory {
                                 return null;
                             }
                         };
-                        StarTable startab = builder.makeStarTable( datsrc );
+                        StarTable startab =
+                            builder.makeStarTable( datsrc, wantRandom );
                         if ( startab != null ) {
                             return startab;
                         }

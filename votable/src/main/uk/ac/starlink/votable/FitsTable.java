@@ -88,7 +88,7 @@ class FitsTable extends Table {
 
             /* Make a FitsStarTable from the data source. */
             StarTable starTable =
-                new FitsTableBuilder().makeStarTable( datsrc );
+                new FitsTableBuilder().makeStarTable( datsrc, false );
 
             /* Construct a table object from the startable. */
             Source xsrc = new DOMSource( tableEl, systemId );

@@ -70,7 +70,8 @@ public class JDBCDataNode extends StarTableDataNode {
         else {
             try {
                 return (JDBCStarTable) 
-                       getTableFactory().getJDBCHandler().makeStarTable( url );
+                       getTableFactory().getJDBCHandler()
+                                        .makeStarTable( url, false );
             }
             catch ( IOException e ) {
                 throw new NoSuchDataException( e );

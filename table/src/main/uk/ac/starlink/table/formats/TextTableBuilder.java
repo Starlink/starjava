@@ -20,7 +20,8 @@ public class TextTableBuilder implements TableBuilder {
         return false;
     }
 
-    public StarTable makeStarTable( DataSource datsrc ) throws IOException {
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+            throws IOException {
         return new TextStarTable( datsrc.getInputStream() );
     }
 }

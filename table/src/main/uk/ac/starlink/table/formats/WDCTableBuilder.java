@@ -19,7 +19,8 @@ import uk.ac.starlink.util.DataSource;
  */
 public class WDCTableBuilder implements TableBuilder {
 
-    public StarTable makeStarTable( DataSource datsrc ) throws IOException {
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+            throws IOException {
 
         /* If it doesn't start how we expect WDC text to start, bail
          * out straight away. */

@@ -38,7 +38,8 @@ public class VOTableBuilder implements TableBuilder {
      *
      * @param  datsrc  the location of the VOTable document to use
      */
-    public StarTable makeStarTable( DataSource datsrc ) throws IOException {
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom )
+            throws IOException {
 
         /* Check if the source looks like HTML.  If it does it is almost
          * certainly not going to represent a valid VOTable, and trying

@@ -118,7 +118,7 @@ public class TableViewer extends AuxWindow
     private boolean canWrite = true;
 
     private static boolean standalone = false;
-    private static StarTableFactory tabfact = new StarTableFactory();
+    private static StarTableFactory tabfact = new StarTableFactory( true );
     private static StarTableOutput taboutput = new StarTableOutput();
     private static LoadQueryWindow loadWindow;
     private static StarTableSaver saver;

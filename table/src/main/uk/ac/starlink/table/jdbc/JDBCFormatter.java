@@ -192,7 +192,8 @@ public class JDBCFormatter {
         String inTable = args[ 0 ];
         String jdbcUrl = args[ 1 ];
         String tableName = args[ 2 ];
-        StarTable intab = new StarTableFactory().makeStarTable( inTable );
+        StarTable intab = new StarTableFactory( false )
+                         .makeStarTable( inTable );
         try {
             Connection conn = DriverManager.getConnection( jdbcUrl );
             new JDBCFormatter( conn ).createJDBCTable( intab, tableName );

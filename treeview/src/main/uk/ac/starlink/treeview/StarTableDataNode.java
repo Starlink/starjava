@@ -259,7 +259,7 @@ public class StarTableDataNode extends DefaultDataNode
 
     public static StarTableFactory getTableFactory() {
         if ( tabfact == null ) {
-            tabfact = new StarTableFactory() {
+            tabfact = new StarTableFactory( false ) {
                 public JDBCHandler getJDBCHandler() {
                     JDBCHandler handler = super.getJDBCHandler();
 
@@ -275,7 +275,7 @@ public class StarTableDataNode extends DefaultDataNode
                 }
             };
 
-            /* Remove some of the more generic tablel builders from this
+            /* Remove some of the more generic table builders from this
              * factory.  TextTableBuilder, for instance, tries to build
              * a table from pretty much any stream, and eventually fails
              * only after it's read enough to make sure that it's 

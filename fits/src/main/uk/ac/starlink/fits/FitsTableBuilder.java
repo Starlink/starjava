@@ -39,10 +39,12 @@ public class FitsTableBuilder implements TableBuilder {
      * HDU this one can't hold a table).  If there is no position,
      * the first HDU which does hold a table is used.
      *
-     * @param  datsrc  the source of the fits table data
+     * @param  datsrc  the source of the FITS table data
+     * @param  wantRandom  whether a random-access table is preferred
      * @return  a new StarTable based on <tt>datsrc</tt>
      */
-    public StarTable makeStarTable( DataSource datsrc ) throws IOException {
+    public StarTable makeStarTable( DataSource datsrc, boolean wantRandom ) 
+            throws IOException {
 
         /* Check if this looks like a FITS file. */
         if ( ! FitsConstants.isMagic( datsrc.getIntro() ) ) {
@@ -63,7 +65,7 @@ public class FitsTableBuilder implements TableBuilder {
              * as a table. */
             if ( datsrc.getPosition() != null ) {
                 try {
-                    table = attemptReadTable( strm, pos );
+                    table = attemptReadTable( strm, wantRandom, datsrc, pos );
                 }
                 catch ( EOFException e ) {
                     throw new IOException( "Fell off end of file looking for "
@@ -82,7 +84,8 @@ public class FitsTableBuilder implements TableBuilder {
             else {
                 try {
                     while ( true ) {
-                        table = attemptReadTable( strm, pos );
+                        table = attemptReadTable( strm, wantRandom,
+                                                  datsrc, pos );
                         if ( table != null ) {
                             return table;
                         }
@@ -122,13 +125,18 @@ public class FitsTableBuilder implements TableBuilder {
      * 
      * @param  strm  stream to read from, positioned at the start of an HDU
      *         (before the header)
-     * @param  pos  a 1-element array holding the current position in 
-     *         the stream - it's an array so it can be updated by 
-     *         this routine (sorry)
+     * @param  wantRandom  whether a random-access table is preferred
+     * @param  datsrc  a DataSource which can supply the data 
+     *         in <tt>strm</tt>
+     * @param  pos  a 1-element array holding the position in <tt>datsrc</tt>
+     *         at which <tt>strm</tt> is positioned -
+     *         it's an array so it can be updated by this routine (sorry)
      * @return   a StarTable made from the HDU at the start of <tt>strm</tt>
      *           or null
      */
-    public static StarTable attemptReadTable( ArrayDataInput strm, long[] pos )
+    public static StarTable attemptReadTable( ArrayDataInput strm,
+                                              boolean wantRandom, 
+                                              DataSource datsrc, long[] pos )
             throws FitsException, IOException {
 
         /* Read the header. */
@@ -143,13 +151,14 @@ public class FitsTableBuilder implements TableBuilder {
                 return BintableStarTable
                       .makeRandomStarTable( hdr, (RandomAccess) strm );
             }
-            else {
+            else if ( wantRandom ) {
                 return BintableStarTable
                       .makeRandomStarTable( hdr, (DataInput) strm );
             }
-
-            // return BintableStarTable
-            //       .makeSequentialStarTable( hdr, datsrc, pos[ 0 ] );
+            else {
+                return BintableStarTable
+                      .makeSequentialStarTable( hdr, datsrc, pos[ 0 ] );
+            }
 
             // BinaryTable tdata = new BinaryTable( hdr );
             // tdata.read( strm );

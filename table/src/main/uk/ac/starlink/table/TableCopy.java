@@ -24,7 +24,7 @@ public class TableCopy {
 
         /* Get the factory objects. */
         StarTableOutput twriter = new StarTableOutput();
-        StarTableFactory treader = new StarTableFactory();
+        StarTableFactory treader = new StarTableFactory( false );
 
         /* Construct the usage message. */
         StringBuffer usage = new StringBuffer();

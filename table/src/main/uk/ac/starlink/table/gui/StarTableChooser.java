@@ -45,7 +45,8 @@ public class StarTableChooser extends JOptionPane {
     /**
      * Constructs a <tt>StarTableChooser</tt>.
      */
-    public StarTableChooser() {
+    public StarTableChooser( StarTableFactory tabfact ) {
+        this.tabfact = tabfact;
 
         /* Set up the field for entering a table location. */
         LabelledComponentStack locPanel = new LabelledComponentStack();
@@ -93,9 +94,6 @@ public class StarTableChooser extends JOptionPane {
      * @return  the factory
      */
     public StarTableFactory getStarTableFactory() {
-        if ( tabfact == null ) {
-            tabfact = new StarTableFactory();
-        }
         return tabfact;
     }
 

@@ -57,7 +57,8 @@ public class MirageDriver {
         /* If invoked with no command line arguments (direct from jar file?) 
          * use a dialog box to get a table. */
         if ( args.length == 0 ) {
-            StarTableChooser chooser = new StarTableChooser();
+            StarTableChooser chooser = 
+                new StarTableChooser( new StarTableFactory( false ) );
             table = chooser.getTable( null );    
             if ( table == null ) {
                 System.err.println( "No table selected" );
@@ -123,7 +124,8 @@ public class MirageDriver {
 
             /* Get a StarTable from the supplied name. */
             try {
-                table = new StarTableFactory().makeStarTable( tableName );
+                table = new StarTableFactory( false )
+                       .makeStarTable( tableName );
             }
             catch ( IOException e ) {
                 System.err.println( e );

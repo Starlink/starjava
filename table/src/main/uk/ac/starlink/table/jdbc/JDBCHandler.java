@@ -47,7 +47,8 @@ public class JDBCHandler {
         this.auth = auth;
     }
 
-    public StarTable makeStarTable( String spec ) throws IOException {
+    public StarTable makeStarTable( String spec, boolean wantRandom )
+            throws IOException {
 
         /* Reject if it doesn't look like a JDBC URL. */
         if ( ! spec.startsWith( "jdbc:" ) ) {
@@ -78,7 +79,21 @@ public class JDBCHandler {
                     }
                 }
             };
-            return new JDBCStarTable( connector, frag );
+            try {
+                return new JDBCStarTable( connector, frag, wantRandom );
+            }
+
+            /* The open may fail if we've asked for a random one due to 
+             * server restrictions - in this case try getting a sequential
+             * one instead. */
+            catch ( SQLException e ) {
+                if ( wantRandom ) {
+                    return new JDBCStarTable( connector, frag, false );
+                }
+                else {
+                    throw e;
+                }
+            }
         }
         catch ( SQLException e ) {
             StringBuffer sbuf = new StringBuffer()

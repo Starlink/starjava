@@ -20,12 +20,21 @@ public interface TableBuilder {
      * If this builder thinks it should be able to handle the source
      * but an error occurs during processing, an <tt>IOException</tt>
      * can be thrown.
+     * <p>
+     * The <tt>wantRandom</tt> parameter is used to indicate whether,
+     * ideally, a random-access table should be returned.  There is no
+     * requirement for the builder to honour this request, but if
+     * it knows how to make both random and non-random tables, it can
+     * use this flag to decide which to return.
      *
      * @param  datsrc  the DataSource containing the table resource
+     * @param  wantRandom  whether, preferentially, a random access table
+     *         should be returned
      * @return  a StarTable made out of <tt>datsrc</tt>, or <tt>null</tt>
      *          if this handler can't handle it
      */
-    StarTable makeStarTable( DataSource datsrc ) throws IOException;
+    StarTable makeStarTable( DataSource datsrc, boolean wantRandom ) 
+            throws IOException;
 
     /**
      * Indicates whether this builder is able to turn a resource of
