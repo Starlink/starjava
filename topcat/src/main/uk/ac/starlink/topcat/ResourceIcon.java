@@ -59,6 +59,8 @@ public class ResourceIcon implements Icon {
         PRINT = new ResourceIcon( "Print24.gif" ),
         COPY = new ResourceIcon( "Copy24.gif" ),
         REDO = new ResourceIcon( "Redo24.gif" ),
+        ADD = new ResourceIcon( "Plus1.gif" ),
+        REMOVE = new ResourceIcon( "Minus1.gif" ),
         HELP = new ResourceIcon( "Help3.gif" ),
 
         /* Windows. */
@@ -67,6 +69,7 @@ public class ResourceIcon implements Icon {
         PLOT = new ResourceIcon( "plot0.gif" ),
         PARAMS = new ResourceIcon( "tablemeta0.gif" ),
         VIEWER = new ResourceIcon( "browser1.gif" ),
+        SUBSETS = new ResourceIcon( "venn2.gif" ),
 
         /* Specific actions. */
         UNSORT = DO_WHAT,
@@ -75,6 +78,14 @@ public class ResourceIcon implements Icon {
         RESIZE = new ResourceIcon( "4way3.gif" ),
         GRID_ON = new ResourceIcon( "gridon.gif" ),
         GRID_OFF = new ResourceIcon( "gridoff.gif" ),
+        TO_COLUMN = new ResourceIcon( "Column.gif" ),
+
+        FORWARD = new ResourceIcon( "Forward24.gif" ),
+        BACKWARD = new ResourceIcon( "Back24.gif" ),
+        PAGE_SETUP = new ResourceIcon( "PageSetup24.gif" ),
+
+        /* Metal. */
+        QUERY = new ResourceIcon( "query_message.gif" ),
 
         /* Dummy terminator. */
         dummy = DO_WHAT;
