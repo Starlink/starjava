@@ -89,7 +89,8 @@ public class NodeDescendantsTest extends TestCase {
         assertTrue(r instanceof Node);
         assertEquals("n3", ((Node)r).getNodeName());
 
-        // Test degenerate cases
+        // Test degenerate cases:
+        // Node with no children...
         i = 0;
         input = StringToDom("<lonely/>");
         for (Iterator ni = new NodeDescendants(input).iterator();
@@ -100,9 +101,12 @@ public class NodeDescendantsTest extends TestCase {
         assertEquals(1, i);
         
         i = 0;
+        // A NodeDescendants created with a null argument should 
+        // have no children... 
         for (Iterator ni = new NodeDescendants(null).iterator();
-             ni.hasNext(); )
-            assertTrue(false);        
+             ni.hasNext(); ) {
+            fail("null NodeDescendants has no children");
+        }
     }
 
     private Element StringToDom(String s) 
