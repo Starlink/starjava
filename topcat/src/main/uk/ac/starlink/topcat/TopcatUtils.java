@@ -1,7 +1,9 @@
 package uk.ac.starlink.topcat;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import uk.ac.starlink.ast.AstPackage;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -18,7 +20,9 @@ import uk.ac.starlink.table.gui.StarTableColumn;
 public class TopcatUtils {
 
     private static Boolean canSog_;
+    private static Boolean canSplat_;
     private static Boolean canExec_;
+    private static Logger logger_ = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Column auxiliary metadata key identifying the uniqe column identifier
@@ -49,7 +53,7 @@ public class TopcatUtils {
      * doesn't contain a respresentation of the algebraic expression.
      *
      * @param  column info
-     * @return  basic description of <tt>colinfo</tt>
+     * @return  base description of <tt>colinfo</tt>
      */
     public static String getBaseDescription( ColumnInfo info ) {
         DescribedValue descValue = info.getAuxDatum( BASE_DESCRIPTION_INFO );
@@ -64,13 +68,13 @@ public class TopcatUtils {
     }
 
     /**
-     * Sets the 'basic description' of a column info.  This sets the
-     * future result of calls to {@link #getBasicDescription} and also
+     * Sets the 'base description' of a column info.  This sets the
+     * future result of calls to {@link #getBaseDescription} and also
      * the description string itself
      * ({@link uk.ac.starlink.table.ColumnInfo#getDescription}).
      *
      * @param  info  column info to modify
-     * @param  desc  basic description string (don't include expression text)
+     * @param  desc  base description string (don't include expression text)
      */
     public static void setBaseDescription( ColumnInfo info, String desc ) {
         DescribedValue descValue = info.getAuxDatum( BASE_DESCRIPTION_INFO );
@@ -210,11 +214,33 @@ public class TopcatUtils {
                     canSog_ = Boolean.TRUE;
                 }
                 catch ( Throwable th ) {
+                    logger_.warning( "No SoG: " + th );
                     canSog_ = Boolean.FALSE;
                 }
             }
         }
         return canSog_.booleanValue();
+    }
+
+    public static boolean canSplat() {
+        if ( canSplat_ == null ) {
+            synchronized ( TopcatUtils.class ) {
+                try {
+                    Class.forName( "uk.ac.starlink.splat.data.SpecData" );
+                    if ( AstPackage.isAvailable() ) {
+                        canSplat_ = Boolean.TRUE;
+                    }
+                    else {
+                        canSplat_ = Boolean.FALSE;
+                    }
+                }
+                catch ( Throwable th ) {
+                    logger_.warning( "No SPLAT: " + th );
+                    canSplat_ = Boolean.FALSE;
+                }
+            }
+        }
+        return canSplat_.booleanValue();
     }
 
     /**
