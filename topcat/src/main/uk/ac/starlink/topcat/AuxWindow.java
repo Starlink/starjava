@@ -147,14 +147,19 @@ public class AuxWindow extends JFrame {
         helpMenu.setMnemonic( KeyEvent.VK_H );
         menuBar.add( helpMenu );
 
-        /* Try to add an item to activate the help browser. */
-        Action helpAct = getHelpAction( helpID );
-        if ( helpAct != null ) {
-            toolBar.add( helpAct );
-            toolBar.addSeparator();
-            helpMenu.add( helpAct ).setIcon( null );
-            helpMenu.addSeparator();
+        /* Get action to activate the help browser. */
+        Action helpAct = new HelpAction( helpID );
+
+        /* Add it to the tool bar. */
+        toolBar.add( helpAct );
+        toolBar.addSeparator();
+
+        /* Add one or two items to the help menu. */
+        if ( helpID != null ) {
+            helpMenu.add( new HelpAction( null ) ).setIcon( null );
         }
+        helpMenu.add( helpAct ).setIcon( null );
+        helpMenu.addSeparator();
 
         /* Add an About action. */
         Action aboutAct = new AbstractAction( "About TOPCAT" ) {
@@ -162,7 +167,7 @@ public class AuxWindow extends JFrame {
                 Object[] message = new Object[] {
                     "TOPCAT",
                     "Tool for OPerations on Catalogues And Tables",
-                    "Version 0.2a",
+                    "Version 0.3b",
                     "Copyright " + '\u00a9' + 
                     " Central Laboratory of the Research Councils",
                     "Authors: Mark Taylor (Starlink)",
@@ -174,34 +179,6 @@ public class AuxWindow extends JFrame {
             }
         };
         helpMenu.add( aboutAct );
-    }
-
-    /**
-     * Returns the action which will activate the help browser.
-     * <p>
-     * An ID can be supplied to indicate the page which should be shown.
-     * This may be <tt>null</tt> if no change in the help page should be made.
-     *
-     * @param   helpID   the ID of the help item for this window
-     * @return  help action - may be null if there is a problem setting it up
-     */
-    public Action getHelpAction( final String helpID ) {
-        if ( helpAct == null ) {
-            helpAct = new BasicAction( "Help browser", ResourceIcon.HELP,
-                                       "Display help browser" ) {
-                HelpWindow helpwin;
-                public void actionPerformed( ActionEvent evt ) {
-                    if ( helpwin == null ) {
-                        helpwin = HelpWindow.getInstance( AuxWindow.this );
-                    }
-                    else {
-                        helpwin.makeVisible();
-                    }
-                    helpwin.setID( helpID );
-                }
-            };
-        }
-        return helpAct;
     }
 
     /**
@@ -328,6 +305,44 @@ public class AuxWindow extends JFrame {
         pos.x += 60;
         pos.y += 60;
         second.setLocation( pos );
+    }
+
+    /**
+     * Helper class providing an action for invoking help.
+     */
+    public class HelpAction extends AbstractAction {
+
+        private String helpID;
+        private HelpWindow helpWin;
+
+        /**
+         * Constructs a new help window for a given helpID.
+         * If helpID is non-null, the corresponding topic will be displayed
+         * in the browser when the action is invoked.  If it's null,
+         * the browser will come up as is.
+         *
+         * @param  helpID  help id string
+         */
+        public HelpAction( String helpID ) {
+            this.helpID = helpID;
+            putValue( SMALL_ICON, ResourceIcon.HELP );
+            putValue( NAME, helpID == null ? "Help" : "Help for window" );
+            putValue( SHORT_DESCRIPTION, 
+                      helpID == null 
+                          ? "Display help browser" 
+                          : "Display help for this window in browser" );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            if ( helpWin == null ) {
+                helpWin = HelpWindow.getInstance( AuxWindow.this );
+            }
+            else {
+                helpWin.makeVisible();
+            }
+            helpWin.setID( helpID );
+        }
+            
     }
 
 }

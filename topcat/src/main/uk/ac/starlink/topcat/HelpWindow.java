@@ -3,7 +3,6 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -76,11 +75,6 @@ public class HelpWindow extends AuxWindow {
             jhelp = new JHelp( hset );
             jhelp.setPreferredSize( new Dimension( 700, 500 ) );
             helpComponent = jhelp;
-            Font oldFont = jhelp.getFont();
-            // Font font = new Font( "SansSerif", oldFont.getStyle(), 
-            //                                    oldFont.getSize() );
-            Font font = new Font( "SansSerif", Font.PLAIN, 12 );
-            jhelp.setFont( font );
 
             /* Add a listener which can inform about the location of
              * external URLs. */
