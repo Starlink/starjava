@@ -14,6 +14,8 @@ import javax.swing.ProgressMonitor;
 import javax.swing.Timer;
 
 import uk.ac.starlink.splat.data.SpecDataFactory;
+import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.SplatException;
 
 /**
  * Load a list of spectra into the {@link SplatBrowser}, or save a spectrum
@@ -231,15 +233,40 @@ public class SpectrumIO
         if ( queue.isEmpty() ) return;
 
         int validFiles = 0;
+        int failedFiles = 0;
         int initialsize = queue.size();
         filesDone = 0;
+        StringBuffer failures = null;
+        SplatException lastException = null;
 
         // Add all spectra to the browser until the queue is empty.
         while( ! queue.isEmpty() ) {
-            if ( browser.addSpectrum( getSpectrum(), usertype ) ) {
+            try {
+                browser.tryAddSpectrum( getSpectrum(), usertype );
                 validFiles++;
             }
+            catch (SplatException e) {
+                if ( failures == null ) {
+                    failures = new StringBuffer();
+                }
+                failures.append( e.getMessage() + "\n" );
+                failedFiles++;
+                lastException = e;
+            }
             filesDone++;
+        }
+        
+        //  Report any failures. If there is just one make usual report.
+        if ( failures != null ) {
+            String message = null;
+            if ( failedFiles == 1 ) {
+                message = lastException.getMessage();
+            }
+            else {
+                message = "Failed to open " + failedFiles + " spectra";
+                lastException = new SplatException( failures.toString() );
+            }
+            new ExceptionDialog( browser, message, lastException );
         }
 
         //  And now display them if we can.

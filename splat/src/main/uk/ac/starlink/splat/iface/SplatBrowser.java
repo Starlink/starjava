@@ -1452,10 +1452,10 @@ public class SplatBrowser
         getGlassPane().setVisible( false );
     }
 
-
     /**
      * Add a new spectrum, with a possibly pre-defined type, to the
-     * global list. This becomes the current spectrum.
+     * global list. This becomes the current spectrum. Any errors are reported
+     * using an {@link ExceptionDialog}.
      *
      *  @param name the name (i.e. file specification) of the spectrum
      *              to add.
@@ -1469,14 +1469,32 @@ public class SplatBrowser
     public boolean addSpectrum( String name, int usertype )
     {
         try {
-            SpecData spectrum = specDataFactory.get( name, usertype );
-            addSpectrum( spectrum );
+            tryAddSpectrum( name, usertype );
             return true;
         }
         catch ( SplatException e ) {
             new ExceptionDialog( this, e );
         }
         return false;
+    }
+
+    /**
+     * Add a new spectrum, with a possibly pre-defined type, to the
+     * global list. This becomes the current spectrum. If an error occurs a
+     * {@link SplatException} is thrown.
+     *
+     *  @param name the name (i.e. file specification) of the spectrum
+     *              to add.
+     *  @param usertype index of the type of spectrum, 0 for default
+     *                  based on file extension, otherwise this is an
+     *                  index of the knownTypes array in
+     *                  {@link SpecDataFactory}.
+     */
+    public void tryAddSpectrum( String name, int usertype )
+        throws SplatException
+    {
+        SpecData spectrum = specDataFactory.get( name, usertype );
+        addSpectrum( spectrum );
     }
 
     /**
