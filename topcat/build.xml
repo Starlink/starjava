@@ -641,8 +641,8 @@
          <extension name="DATANODE" href="datanode.jnlp"/>
          <extension name="UTIL" href="util.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
-         <extension name="TTOOLS-PARTS" href="ttools-parts.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
+         <extension name="TTOOLS" href="ttools.jnlp"/>
          <extension name="MIRAGE" href="mirage.jnlp"/>
        </resources>
        <component_desc/>
