@@ -272,6 +272,22 @@ public abstract class AbstractPlotControlsModel
     }
 
     /**
+     * Convert a long to a String.
+     */
+    protected String longToString( long value )
+    {
+        return PrimitiveXMLEncodeDecode.longToString( value );
+    }
+
+    /**
+     * Convert a String back to a long.
+     */
+    protected long longFromString( String value )
+    {
+        return PrimitiveXMLEncodeDecode.longFromString( value );
+    }
+
+    /**
      * Convert a Color object to a string.
      */
     protected String colorToString( Color value )
