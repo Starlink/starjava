@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -19,7 +20,12 @@ import org.xml.sax.SAXParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.ac.starlink.fits.FitsTableBuilder;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.RowListStarTable;
+import uk.ac.starlink.table.RowStore;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.PipeReaderThread;
@@ -50,6 +56,9 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
     private String systemId;
     private Element tableEl;
     private List fieldList;
+    private StoragePolicy storagePolicy;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.votable" );
 
     /**
      * Constructs a new builder.
@@ -58,6 +67,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         basicHandler = new BasicContentHandler();
         defaultHandler = new DefaultContentHandler();
         setCustomHandler( basicHandler );
+        setStoragePolicy( StoragePolicy.getDefaultPolicy() );
     }
 
     /**
@@ -95,13 +105,63 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         int ncol = fieldList.size();
         Decoder[] decoders = new Decoder[ ncol ];
         for ( int icol = 0; icol < ncol; icol++ ) {
-            decoders[ icol ] = 
-                new FieldElement( (Element) fieldList.get( icol ), systemId )
-               .getDecoder();
+            decoders[ icol ] = ((FieldElement) fieldList.get( icol ))
+                              .getDecoder();
         }
         return decoders;
     }
 
+    /**
+     * Sets the StoragePolicy used for storage of table data that 
+     * has to be associated with the DOM.
+     *
+     * @param  policy  the new storage policy
+     */
+    public void setStoragePolicy( StoragePolicy policy ) {
+        this.storagePolicy = policy;
+    }
+
+    /**
+     * Returns the StoragePolicy used for storage of table data that
+     * has to be associated with the DOM.
+     *
+     * @return  current storage policy
+     */
+    public StoragePolicy getStoragePolicy() {
+        return storagePolicy;
+    }
+
+    /**
+     * Returns an unconfigured RowStore which can cache table data.
+     *
+     * @return  row store
+     */
+    private RowStore makeRowStore() {
+        return getStoragePolicy().makeRowStore();
+    }
+
+    /**
+     * Returns a RowStore whose <tt>acceptMetadata</tt> method has been
+     * called, rendering it ready to accept rows from the the current
+     * table element.
+     *
+     * @return  configured row store
+     */
+    private RowStore makeConfiguredRowStore() {
+        int ncol = fieldList.size();
+        ColumnInfo[] colinfos = new ColumnInfo[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            FieldElement field = (FieldElement) fieldList.get( icol );
+            colinfos[ icol ] = 
+                new ColumnInfo( VOStarTable.getValueInfo( field ) );
+        }
+        StarTable dummyTable = new RowListStarTable( colinfos ) {
+            public long getRowCount() {
+                return -1;
+            }
+        };
+        return getStoragePolicy().makeConfiguredRowStore( dummyTable );
+    }
 
     /**
      * Marshalling handler - watches for elements which we know how to
@@ -125,7 +185,8 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 fieldList = new ArrayList();
             }
             else if ( fieldList != null && "FIELD".equals( tagName ) ) {
-                fieldList.add( getNewestNode() );
+                fieldList.add( new FieldElement( (Element) getNewestNode(),
+                                                 systemId ) );
             }
             else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler() );
@@ -188,12 +249,12 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
         Object[] row;
         int icol;
         boolean inCell;
-        List rows = new ArrayList();
+        RowStore rowStore;
 
         TabledataHandler() {
             decoders = getDecoders();
             ncol = decoders.length;
-            rows = new ArrayList();
+            rowStore = makeConfiguredRowStore();
             cell = new StringBuffer();
             Element tabledataEl = (Element) getNewestNode();
             String comment = "Invisible data nodes were parsed directly";
@@ -237,17 +298,27 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 inCell = false;
             }
             else if ( "TR".equals( tagName ) ) {
-                rows.add( row );
+                try {
+                    rowStore.acceptRow( row );
+                }
+                catch ( IOException e ) {
+                    throw new SAXParseException( "Error writing to row store",
+                                                 getLocator(), e );
+                }
             }
             if ( "TABLEDATA".equals( tagName ) ) {
                 defaultHandler.endElement( namespaceURI, localName, qName );
                 setCustomHandler( basicHandler );
-                Class[] classes = new Class[ ncol ];
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    classes[ icol ] = decoders[ icol ].getContentClass();
+                try {
+                    rowStore.endRows();
+                }
+                catch ( IOException e ) {
+                    throw new SAXParseException( "Error terminating row store",
+                                                 getLocator(), e );
                 }
                 TabularData tdata = 
-                    new TableBodies.RowListTabularData( classes, rows );
+                    new TableBodies.StarTableTabularData( rowStore
+                                                         .getStarTable() );
                 storeData( tableEl, tdata );
             }
         }
@@ -311,14 +382,14 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
         final PipeReaderThread reader;
         final Writer out;
-        final List rows;
+        final RowStore rowStore;
 
         public InlineBinaryStreamHandler() throws IOException {
 
             /* Set up a thread which will read from the other end of the pipe
              * and write it into a row list. */
-            rows = new ArrayList();
             final Decoder[] decoders = getDecoders();
+            rowStore = makeConfiguredRowStore();
             reader = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
@@ -327,13 +398,13 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                         new BinaryRowStepper( decoders, in, "base64" );
                     Object[] row;
                     while ( ( row = rstep.nextRow() ) != null ) {
-                        rows.add( row );
+                        rowStore.acceptRow( row );
                     }
                 }
             };
 
             /* Set up a pipe we can write encountered characters into. */
-            OutputStream b64out = reader.getOutputStream();;
+            OutputStream b64out = reader.getOutputStream();
             out = new OutputStreamWriter( new BufferedOutputStream( b64out ) );
 
             /* Begin the read. */
@@ -372,6 +443,7 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 try {
                     out.close();
                     reader.finishReading();
+                    rowStore.endRows();
                 }
                 catch ( IOException e ) {
                     throw (SAXException)
@@ -381,14 +453,9 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
 
                 /* If OK so far, associate a TabularData object based on
                  * the data we've read with this table. */
-                Decoder[] decoders = getDecoders();
-                int ncol = decoders.length;
-                Class[] classes = new Class[ ncol ];
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    classes[ icol ] = decoders[ icol ].getContentClass();
-                }
-                TabularData tdata =
-                    new TableBodies.RowListTabularData( classes, rows );
+                TabularData tdata = 
+                    new TableBodies.StarTableTabularData( rowStore
+                                                         .getStarTable() );
                 storeData( tableEl, tdata );
             }
         }
@@ -398,13 +465,11 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
      * Custom handler for a STREAM child of a FITS element which has
      * data base64-encoded inline.
      */
-    class InlineFITSStreamHandler extends NullContentHandler 
-                                  implements TableSink {
+    class InlineFITSStreamHandler extends NullContentHandler {
 
         final PipeReaderThread reader;
         final Writer out;
-        List rows;
-        Class[] classes;
+        final RowStore rowStore;
 
         public InlineFITSStreamHandler( String extnum ) throws IOException {
             if ( extnum != null && ! extnum.matches( "[0-9]+" ) ) {
@@ -414,12 +479,13 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
             /* Set up a thread which will read from the other end of the pipe
              * and write it into a row list. */
             final String ihdu = extnum;
+            rowStore = makeRowStore();
             reader = new PipeReaderThread() {
                 protected void doReading( InputStream datain )
                         throws IOException {
                     InputStream in = new Base64InputStream(
                                          new BufferedInputStream( datain ) );
-                    TableSink sink = InlineFITSStreamHandler.this;
+                    TableSink sink = rowStore;
                     new FitsTableBuilder().streamStarTable( in, sink, ihdu );
                 }
             };
@@ -474,25 +540,10 @@ class VOTableDOMBuilder extends CustomDOMBuilder {
                 /* If OK so far, associate a TabularData object based on
                  * the data we've read with this table. */
                 TabularData tdata = 
-                    new TableBodies.RowListTabularData( classes, rows );
+                    new TableBodies.StarTableTabularData( rowStore
+                                                         .getStarTable() );
                 storeData( tableEl, tdata );
             }
-        }
-
-        public void acceptMetadata( StarTable meta ) {
-            int ncol = meta.getColumnCount();
-            rows = new ArrayList( Math.max( (int) meta.getRowCount(), 1 ) );
-            classes = new Class[ ncol ];
-            for ( int icol = 0; icol < ncol; icol++ ) {
-                classes[ icol ] = meta.getColumnInfo( icol ).getContentClass();
-            }
-        }
-
-        public void acceptRow( Object[] row ) {
-            rows.add( row );
-        }
-
-        public void endRows() {
         }
     }
 }
