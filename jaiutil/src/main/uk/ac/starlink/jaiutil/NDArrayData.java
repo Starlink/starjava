@@ -113,6 +113,12 @@ public abstract class NDArrayData
                throw new RuntimeException( "Unsupported number of axes" );
 	}
 
+        //  Add in any origin information.
+        long[] origins = tiler.getShape().getOrigin();
+        for ( int i = 0; i < origins.length; i++ ) {
+            corners[i] += origins[i] - 1;
+        }
+
 	//  The dimensions of the arguments to tiler.getTile() are
         //  dependent on NAXIS.
         try {
@@ -134,5 +140,5 @@ public abstract class NDArrayData
      * size in the given raster tile.
      */
     public abstract Raster getPreviewImage( Raster tile, int factor )
-        throws IOException; 
+        throws IOException;
 }
