@@ -98,7 +98,7 @@ public class VOTableWriter implements StarTableWriter {
                 out.print( formatAttribute( "value", valtext ) );
                 if ( content.length() > 0 ) {
                     out.println( ">" );
-                    out.println( formatText( content ) );
+                    out.println( content );
                     out.println( "</PARAM>" );
                 }
                 else {
@@ -134,7 +134,7 @@ public class VOTableWriter implements StarTableWriter {
             out.print( formatAttributes( encoder.getFieldAttributes() ) );
             if ( content.length() > 0 ) {
                 out.println( ">" );
-                out.println( formatText( content ) );
+                out.println( content );
                 out.println( "</FIELD>" );
             }
             else {
@@ -243,7 +243,7 @@ public class VOTableWriter implements StarTableWriter {
      * @param   text  the input text
      * @return  <tt>text</tt> but with XML special characters escaped
      */
-    private static String formatText( String text ) {
+    static String formatText( String text ) {
         int leng = text.length();
         StringBuffer sbuf = new StringBuffer( leng );
         for ( int i = 0; i < leng; i++ ) {
