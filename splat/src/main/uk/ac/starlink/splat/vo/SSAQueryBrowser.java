@@ -158,6 +158,13 @@ public class SSAQueryBrowser
     /** The current name resolver */
     protected SkycatCatalog resolverCatalogue = null;
 
+    /** The options menu */
+    protected JMenu optionsMenu = null;
+
+    /** The proxy server dialog */
+    protected ProxySetupFrame proxyWindow = null;
+
+    /** Make sure the proxy environment is setup */
     static {
         ProxySetup.getInstance().restore();
     }
@@ -204,6 +211,13 @@ public class SSAQueryBrowser
         //  Create the File menu.
         fileMenu = new JMenu( "File" );
         menuBar.add( fileMenu );
+
+        //  Create the options menu.
+        optionsMenu = new JMenu( "Options" );
+        menuBar.add( optionsMenu );
+
+        ProxyAction proxyAction = new ProxyAction( "Configure proxy..." );
+        optionsMenu.add( proxyAction );
 
         //  Add an action to close the window.
         CloseAction closeAction = new CloseAction( "Close", closeImage );
@@ -861,6 +875,18 @@ public class SSAQueryBrowser
     }
 
     /**
+     * Set the proxy server and port.
+     */
+    protected void showProxy()
+    {
+        if ( proxyWindow == null ) {
+            ProxySetupFrame.restore( null );
+            proxyWindow = new ProxySetupFrame();
+        }
+        proxyWindow.show();
+    }
+
+    /**
      *  Close the window.
      */
     protected void closeWindowEvent()
@@ -971,5 +997,23 @@ public class SSAQueryBrowser
             resolverCatalogue = resolver;
         }
     }
+
+    //
+    //  Action to display the proxy dialog.
+    //
+    protected class ProxyAction
+        extends AbstractAction
+    {
+        public ProxyAction( String name )
+        {
+            super( name );
+        }
+        public void actionPerformed( ActionEvent ae )
+        {
+            showProxy();
+        }
+    }
+
+
 }
 
