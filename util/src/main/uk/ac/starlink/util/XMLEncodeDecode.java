@@ -1,10 +1,13 @@
+/*
+ * Copyright (C) 2001 Central Laboratory of the Research Councils 
+ */
 package uk.ac.starlink.util;
 
 import org.w3c.dom.Element;
 
 /**
  * Interface for objects that can encode and decode their internal
- * configuration within the content of an {@link Element}.
+ * configuration within the content of an {@link org.w3c.dom.Element}.
  * <p>
  * Once encoded into an Element such objects can be represented as
  * simple XML and either transmitted and re-created in some other
@@ -20,7 +23,6 @@ import org.w3c.dom.Element;
  * @since 26-JUL-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils 
  */
 public interface XMLEncodeDecode
 {
