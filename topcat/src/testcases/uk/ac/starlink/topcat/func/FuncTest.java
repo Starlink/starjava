@@ -37,10 +37,6 @@ public class FuncTest extends TestCase {
     }
 
     public void testConversions() {
-        assertEquals( "00023", Conversions.padWithZeros( 23, 5 ) );
-        assertEquals( "23", Conversions.padWithZeros( 23, 2 ) );
-        assertEquals( "23", Conversions.padWithZeros( 23, 1 ) );
-
         assertEquals( (byte) 99, Conversions.parseByte( "99" ) );
         try {
             Conversions.parseByte( "999" );
@@ -151,6 +147,10 @@ public class FuncTest extends TestCase {
     }
 
     public void testStrings() {
+        assertEquals( "00023", Strings.padWithZeros( 23, 5 ) );
+        assertEquals( "23", Strings.padWithZeros( 23, 2 ) );
+        assertEquals( "23", Strings.padWithZeros( 23, 1 ) );
+
         assertEquals( "starlink", Strings.concat( "star", "link" ) );
         assertEquals( "star", Strings.concat( "star", null ) );
         assertEquals( "link", Strings.concat( "", "link" ) );
