@@ -1,5 +1,9 @@
 package uk.ac.starlink.util;
 
+import java.awt.Font;
+import java.awt.Color;
+import java.awt.AlphaComposite;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +17,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import uk.ac.starlink.util.gui.AWTXMLEncodeAndDecode;
 
 public class XMLUtilTest extends TestCase 
 {
@@ -47,7 +52,10 @@ public class XMLUtilTest extends TestCase
         double  value2 = Double.MAX_VALUE;
         int     value3 = Integer.MIN_VALUE;
         boolean value4 = false;
-        
+        Font    value5 = new Font( "SansSerif", Font.BOLD, 32 );
+        Color   value6 = Color.red;
+        AlphaComposite value7 = 
+            AlphaComposite.getInstance( AlphaComposite.SRC_ATOP, 0.7999F );
 
         TestXMLEncodeAndDecode()
         {
@@ -59,7 +67,10 @@ public class XMLUtilTest extends TestCase
             if ( value1.equals( comparison.value1 ) &&
                  ( Double.compare( value2, comparison.value2 ) == 0 ) &&
                  value3 == comparison.value3 &&
-                 value4 == comparison.value4 ) {
+                 value4 == comparison.value4 &&
+                 value5.equals( comparison.value5 ) &&
+                 value6.equals( comparison.value6 ) &&
+                 value7.equals( comparison.value7 ) ) {
                 return true;
             }
             return false;
@@ -71,6 +82,12 @@ public class XMLUtilTest extends TestCase
             addChildElement( rootElement, "name2", value2 );
             addChildElement( rootElement, "name3", value3 );
             addChildElement( rootElement, "name4", value4 );
+            AWTXMLEncodeAndDecode.addChildElement( rootElement,
+                                                   "name5", value5 );
+            AWTXMLEncodeAndDecode.addChildElement( rootElement,
+                                                   "name6", value6 );
+            AWTXMLEncodeAndDecode.addChildElement( rootElement, 
+                                                   "name7", value7 );
         }
 
         public String getTagName() 
@@ -94,6 +111,18 @@ public class XMLUtilTest extends TestCase
             }
             if ( name.equals( "name4" ) ) {
                 value4 = booleanFromString( value );
+                return;
+            }
+            if ( name.equals( "name5" ) ) {
+                value5 = AWTXMLEncodeAndDecode.fontFromString( value );
+                return;
+            }
+            if ( name.equals( "name6" ) ) {
+                value6 = AWTXMLEncodeAndDecode.colorFromString( value );
+                return;
+            }
+            if ( name.equals( "name7" ) ) {
+                value7 = AWTXMLEncodeAndDecode.compositeFromString( value );
                 return;
             }
             throw new RuntimeException( "unknown name: "+name+" ("+value+")");
