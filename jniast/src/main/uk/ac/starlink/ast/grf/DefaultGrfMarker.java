@@ -55,30 +55,39 @@ public class DefaultGrfMarker
     public final static int DIAMOND = 5;
 
     /**
-     * Use a triangle marker.
+     * Use a pointing up triangle marker.
      */
-    public final static int TRIANGLE = 6;
+    public final static int UPTRIANGLE = 6;
+
+    /**
+     * Use a pointing down triangle marker.
+     */
+    public final static int DOWNTRIANGLE = 7;
 
     /**
      * Use a filled square marker.
      */
-
-    public final static int FILLEDSQUARE = 7;
+    public final static int FILLEDSQUARE = 8;
 
     /**
      * Use a filled circle marker.
      */
-    public final static int FILLEDCIRCLE = 8;
+    public final static int FILLEDCIRCLE = 9;
 
     /**
      * Use a filled diamond marker.
      */
-    public final static int FILLEDDIAMOND = 9;
+    public final static int FILLEDDIAMOND = 10;
 
     /**
-     * Use a filled triangle marker.
+     * Use a filled pointing up triangle marker.
      */
-    public final static int FILLEDTRIANGLE = 10;
+    public final static int FILLEDUPTRIANGLE = 11;
+
+    /**
+     * Use a filled pointing down triangle marker.
+     */
+    public final static int FILLEDDOWNTRIANGLE = 12;;
 
     /**
      * Descriptions of the various types of markers. This is indexed by the
@@ -97,6 +106,7 @@ public class DefaultGrfMarker
         "filled diamond",
         "filled triangle"
     };
+
 
     /**
      * Draw a marker at a given position.
@@ -130,8 +140,11 @@ public class DefaultGrfMarker
             case DIAMOND:
                 drawDiamond( g2, x, y, size, false );
                 break;
-            case TRIANGLE:
-                drawTriangle( g2, x, y, size, false );
+            case UPTRIANGLE:
+                drawTriangle( g2, x, y, size, true, false );
+                break;
+            case DOWNTRIANGLE:
+                drawTriangle( g2, x, y, size, false, false );
                 break;
             case FILLEDSQUARE:
                 drawSquare( g2, x, y, size, true );
@@ -142,14 +155,18 @@ public class DefaultGrfMarker
             case FILLEDDIAMOND:
                 drawDiamond( g2, x, y, size, true );
                 break;
-            case FILLEDTRIANGLE:
-                drawTriangle( g2, x, y, size, true );
+            case FILLEDUPTRIANGLE:
+                drawTriangle( g2, x, y, size, true, true );
+                break;
+            case FILLEDDOWNTRIANGLE:
+                drawTriangle( g2, x, y, size, false, true );
                 break;
             default:
                 drawCircle( g2, x, y, size, true );
                 break;
         }
     }
+
 
     /**
      * Get a user presentable description of a marker.
@@ -161,6 +178,7 @@ public class DefaultGrfMarker
     {
         return descriptions[type];
     }
+
 
     /**
      * Draw a dot, should be a point really, but is a filled square.
@@ -242,15 +260,15 @@ public class DefaultGrfMarker
                                        double size, boolean filled )
     {
         double half = size * 0.5;
-        GeneralPath diamond = new GeneralPath();
-        diamond.moveTo( (float) ( x - half ), (float) y );
-        diamond.lineTo( (float) x, (float) ( y - half ) );
-        diamond.lineTo( (float) ( x + half ), (float) y );
-        diamond.lineTo( (float) x, (float) ( y + half ) );
-        diamond.lineTo( (float) ( x - half ), (float) y );
-        g2.draw( diamond );
+        GeneralPath path = new GeneralPath();
+        path.moveTo( (float) ( x - half ), (float) y );
+        path.lineTo( (float) x, (float) ( y - half ) );
+        path.lineTo( (float) ( x + half ), (float) y );
+        path.lineTo( (float) x, (float) ( y + half ) );
+        path.lineTo( (float) ( x - half ), (float) y );
+        g2.draw( path );
         if ( filled ) {
-            g2.fill( diamond );
+            g2.fill( path );
         }
     }
 
@@ -259,17 +277,26 @@ public class DefaultGrfMarker
      * Draw a triangle
      */
     protected static void drawTriangle( Graphics2D g2, double x, double y,
-                                        double size, boolean filled )
+                                        double size, boolean up, 
+                                        boolean filled )
     {
         double half = size * 0.5;
-        GeneralPath diamond = new GeneralPath();
-        diamond.moveTo( (float) ( x - half ), (float) ( y - half ) );
-        diamond.lineTo( (float) ( x + half ), (float) ( y - half ) );
-        diamond.lineTo( (float) x, (float) ( y + half ) );
-        diamond.lineTo( (float) ( x - half ), (float) ( y - half ) );
-        g2.draw( diamond );
+        GeneralPath path = new GeneralPath();
+        if ( up ) {
+            path.moveTo( (float) ( x - half ), (float) ( y - half ) );
+            path.lineTo( (float) ( x + half ), (float) ( y - half ) );
+            path.lineTo( (float) x, (float) ( y + half ) );
+            path.lineTo( (float) ( x - half ), (float) ( y - half ) );
+        }
+        else {
+            path.moveTo( (float) ( x - half ), (float) ( y + half ) );
+            path.lineTo( (float) ( x + half ), (float) ( y + half ) );
+            path.lineTo( (float) x, (float) ( y - half ) );
+            path.lineTo( (float) ( x - half ), (float) ( y + half ) );
+        }
+        g2.draw( path );
         if ( filled ) {
-            g2.fill( diamond );
+            g2.fill( path );
         }
     }
 }
