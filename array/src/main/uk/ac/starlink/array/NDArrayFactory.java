@@ -1,7 +1,9 @@
 package uk.ac.starlink.array;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -176,4 +178,81 @@ public class NDArrayFactory {
             throws IOException {
         return makeNewNDArray( url, template.getShape(), template.getType() );
     }
+
+    /**
+     * Constructs a readable NDArray from a location representing an 
+     * existing resource.
+     * This convenience method just turns the location into a URL and calls 
+     * {@link #makeNDArray(URL,AccessMode)}.
+     *
+     * @param  location  the location of the resource.  If it cannot be
+     *         parsed as a URL, it will be treated as a filename
+     * @param   mode the mode with which it should be accessed
+     * @return   a readable NDArray object view of the data at
+     *           <tt>location</tt>, or null if one could not be found
+     * @throws   IOException  if there is any I/O error
+     */
+    public NDArray makeNDArray( String location, AccessMode mode ) 
+            throws IOException {
+        return makeNDArray( getUrl( location ), mode );
+    }
+
+    /**
+     * Constructs a new NDArray to which data can be written given a location
+     * and the array characteristics.
+     * This convenience method just turns the location into a URL and calls
+     * {@link #makeNewNDArray(URL,NDShape,Type)}
+     *
+     * @param  location  the location of the resource.  If it cannot be
+     *         parsed as a URL, it will be treated as a filename
+     * @param  shape   the shape of the new array
+     * @param  type    a Type object indicating the type of data in the array
+     * @return   a new writable NDArray object at the given location,
+     *           or null if none could be constructed because none of
+     *           the handlers recognised the URL
+     * @throws IOException  if an I/O error occurs
+     */
+    public NDArray makeNewNDArray( String location, NDShape shape, Type type )
+            throws IOException {
+        return makeNewNDArray( getUrl( location ), shape, type );
+    }
+
+    /**
+     * Constructs a new NDArray to which data can be written given a location
+     * and another template NDArray.
+     * This convenience method just turns the location into a URL and calls
+     * {@link #makeNewNDArray(URL,NDArray)}.
+     *
+     * @param  location  the location of the resource.  If it cannot be
+     *         parsed as a URL, it will be treated as a filename
+     * @param  template  an NDArray whose characteristics are to be
+     *                   copied when the new one is created
+     * @return   a new writable NDArray object at the given location
+     * @throws IOException  if an I/O error occurs
+     */
+    public NDArray makeNewNDArray( String location, NDArray template )
+            throws IOException {
+        return makeNewNDArray( getUrl( location ), template );
+    }
+ 
+    private static URL getUrl( String location ) throws FileNotFoundException {
+        URL url;
+        try {
+            url = new URL( location );
+        }
+        catch ( MalformedURLException e ) {
+            try {
+                URL context = new URL( "file:." );
+                url = new URL( context, location );
+            }
+            catch ( MalformedURLException e1 ) {
+                String msg = "'" + location + "' doesn't look like a filename";
+                throw (FileNotFoundException) new FileNotFoundException( msg )
+                                             .initCause( e1 );
+            }
+        }
+        return url;
+    }
+
+ 
 }
