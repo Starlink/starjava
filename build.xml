@@ -86,6 +86,9 @@
     !-->
   <target name="call_package_ant">
 
+     <echo message="Executing JUnit target: ${what}"/>
+     <ant dir="./junit" target="${what}"/>
+
      <echo message="Executing axis target: ${what}"/>
      <ant dir="./axis" target="${what}"/>
 
