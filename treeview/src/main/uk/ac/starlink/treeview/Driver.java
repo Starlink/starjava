@@ -255,14 +255,20 @@ public class Driver {
             props.setProperty( cmdnameProp, "treeview" );
         }
 
-        File sdir = Loader.starjavaDirectory();
-        if ( sdir != null ) {
-            String stardir = sdir.toString() + sc;
-            String demodirProp = prefix + "demodir";
-            if ( ! props.containsKey( demodirProp ) ) {
-                props.setProperty( demodirProp, stardir + "etc" + sc + 
-                                                "treeview" + sc + "demo" );
+        try {
+            File sdir = Loader.starjavaDirectory();
+            if ( sdir != null ) {
+                String stardir = sdir.toString() + sc;
+                String demodirProp = prefix + "demodir";
+                if ( ! props.containsKey( demodirProp ) ) {
+                    props.setProperty( demodirProp, stardir + "etc" + sc + 
+                                       "treeview" + sc + "demo" );
+                }
             }
+        } catch (Exception e) {
+            //  Not fatal, but happens when using webstart (should
+            //  move these files into a jar and use getResource()).
+            System.err.println( "Failed to locate Treeview etc. directory" );
         }
     }
 
