@@ -22,6 +22,7 @@ public class CombinedMatchEngine implements MatchEngine {
     private final int[] tupleSizes;
     private final int[] tupleStarts;
     private final int nPart;
+    private String name;
 
     // Some work arrays for holding subtuples - benchmarking shows that
     // there actually is a bottleneck if you create new empty arrays
@@ -57,6 +58,17 @@ public class CombinedMatchEngine implements MatchEngine {
             work1[ i ] = new Object[ tupleSizes[ i ] ];
             work2[ i ] = new Object[ tupleSizes[ i ] ];
         }
+
+        /* Set the name. */
+        StringBuffer buf = new StringBuffer( "(" );
+        for ( int i = 0; i < nPart; i++ ) {
+            if ( i > 0 ) {
+                buf.append( ", " );
+            }
+            buf.append( engines[ i ].toString() );
+        }
+        buf.append( ")" );
+        name = buf.toString();
     }
 
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
@@ -147,15 +159,11 @@ public class CombinedMatchEngine implements MatchEngine {
         return (DescribedValue[]) params.toArray( new DescribedValue[ 0 ] );
     }
 
+    public void setName( String name ) {
+        this.name = name;
+    }
+
     public String toString() {
-        StringBuffer buf = new StringBuffer( "(" );
-        for ( int i = 0; i < nPart; i++ ) {
-            if ( i > 0 ) {
-                buf.append( ", " );
-            }
-            buf.append( engines[ i ].toString() );
-        }
-        buf.append( ")" );
-        return buf.toString();
+        return name;
     }
 }
