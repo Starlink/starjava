@@ -38,7 +38,7 @@ import javax.swing.event.ChangeListener;
 import org.w3c.dom.Element;
 
 import uk.ac.starlink.ast.Plot;                   // For documentation
-import uk.ac.starlink.ast.gui.images.ImageHolder;
+import uk.ac.starlink.util.images.ImageHolder;
 import uk.ac.starlink.util.gui.StoreControlFrame;
 import uk.ac.starlink.util.gui.StoreSource;
 
