@@ -40,9 +40,10 @@ public class DrawPolygonFigure
      * fill and linewidth.
      */
     public DrawPolygonFigure( Polygon2D poly, Paint fill, Paint outline, 
-                              float lineWidth )
+                              float lineWidth, AlphaComposite composite )
     {
         super( poly, fill, outline, lineWidth );
+        setComposite( composite );
     }
 
     /**

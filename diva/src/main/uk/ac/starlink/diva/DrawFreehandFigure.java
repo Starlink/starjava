@@ -41,9 +41,11 @@ public class DrawFreehandFigure
      * Create a new polyline using the given polyline shape, colour
      * and linewidth.
      */
-    public DrawFreehandFigure ( Polyline2D poly, Paint fill, float lineWidth )
+    public DrawFreehandFigure ( Polyline2D poly, Paint fill, float lineWidth,
+                                AlphaComposite composite )
     {
         super( poly, fill, lineWidth );
+        setComposite( composite );
     }
 
     /**

@@ -39,9 +39,11 @@ public class DrawPolylineFigure
      * Create a new polyline using the given polyline shape, colour
      * and linewidth.
      */
-    public DrawPolylineFigure( Polyline2D poly, Paint fill, float lineWidth )
+    public DrawPolylineFigure( Polyline2D poly, Paint fill, float lineWidth,
+                               AlphaComposite composite )
     {
         super( poly, fill, lineWidth );
+        setComposite( composite );
     }
 
     /**

@@ -43,20 +43,23 @@ public class InterpolatedCurveFigure
     }
 
     /**
-     * Copy constructor, but using the given shape, colour and linewidth.
+     * Copy constructor, but using the given shape, colour, linewidth and
+     * composite.
      */
     public InterpolatedCurveFigure( InterpolatedCurve2D curve, 
-                                    Paint fill, float lineWidth )
+                                    Paint outline, float lineWidth,
+                                    AlphaComposite composite )
     {
-        super( curve, fill, lineWidth );
+        super( curve, outline, lineWidth );
         this.curve = curve;
+        setComposite( composite );
     }
 
     /**
      * Create a new instance with the given origin and colour.
      */
     public InterpolatedCurveFigure( Interpolator interpolator, 
-                                    double x, double y, Paint fill )
+                                    double x, double y, Paint outline )
     {
         super( null );
         curve = createInterpolatedCurve( interpolator, x, y );
@@ -67,14 +70,14 @@ public class InterpolatedCurveFigure
      * Create a new instance with the given origin, colour and linewidth.
      */
     public InterpolatedCurveFigure( Interpolator interpolator,
-                                    double x, double y, Paint fill, 
+                                    double x, double y, Paint outline, 
                                     float lineWidth, AlphaComposite composite )
     {
         super( null );
         curve = createInterpolatedCurve( interpolator, x, y );
         setShape( curve );
         setLineWidth( lineWidth );
-        setStrokePaint( fill );
+        setStrokePaint( outline );
         setComposite( composite );
     }
 
