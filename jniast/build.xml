@@ -416,6 +416,9 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="ppc"/>
     </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="amd64"/>
+    </antcall>
   </target>
 
   <!-- Architecture-specific JNI jar file unpacker -->
@@ -866,6 +869,9 @@
        <!-- SUN Linux -->
        <resources os="Linux" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
+       </resources>
+       <resources os="Linux" arch="amd64">
+         <nativelib href="amd64/${name}_libs.jar"/>
        </resources>
 
        <!-- IBM Linux -->

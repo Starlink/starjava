@@ -382,10 +382,13 @@
     <antcall target="unpack_jni_arch">
       <param name="unpack.arch" value="x86"/>
     </antcall>
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="ppc"/>
+    </antcall> 
+    <antcall target="unpack_jni_arch">
+      <param name="unpack.arch" value="amd64"/>
+    </antcall>
 
-     <antcall target="unpack_jni_arch">
-       <param name="unpack.arch" value="ppc"/>
-     </antcall> 
 
     <!-- In case the current architecture is not one of those named above,
      !   make sure that gets done too. -->
@@ -624,6 +627,10 @@
        <resources os="Linux" arch="i386">
          <nativelib href="i386/${name}_libs.jar"/>
        </resources>
+       <resources os="Linux" arch="amd64">
+         <nativelib href="amd64/${name}_libs.jar"/>
+       </resources>
+
 
        <!-- IBM Linux -->
        <resources os="Linux" arch="x86">
