@@ -1,14 +1,17 @@
 package uk.ac.starlink.fits;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import nom.tam.fits.BasicHDU;
+import nom.tam.fits.FitsUtil;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.fits.TruncatedFileException;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.Cursor;
 import uk.ac.starlink.array.Type;
 
 /**
@@ -136,6 +139,98 @@ public class FitsConstants {
                (char) buffer[ 6 ] == ' ' &&
                (char) buffer[ 7 ] == ' ' &&
                (char) buffer[ 8 ] == '=';
+    }
+
+    /**
+     * Populates a header from an input stream, reporting its length in bytes.
+     * This does the same as {@link nom.tam.fits.Header#read}, but
+     * it returns the number of bytes read from the input stream in order
+     * to populate the header (including any padding bytes).  There is
+     * no way to retrieve this information from the <tt>Header</tt> class
+     * in general; though {@link nom.tam.fits.Header#getSize} 
+     * will sometimes give you the right answer, in the case of 
+     * duplicated header keywords it can give an underestimate.
+     * This could be seen as a bug in <tt>nom.tam.fits</tt> classes,
+     * but there may be code somewhere which relies on that behaviour.
+     * <p>
+     * You can make a Header from scratch by doing
+     * <pre>
+     *     Header hdr = new Header();
+     *     int headsize = read( hdr, strm );
+     * </pre>
+     * This method also differs from the <tt>Header</tt> implementation
+     * in that it does not print warnings to standard output about
+     * duplicate keywords.
+     *
+     * @param  dis  the input stream supplying the data
+     * @param  hdr   the header to populate
+     * @return  the number of bytes in the FITS blocks which comprise the
+     *          header content
+     * @see  nom.tam.fits.Header#read
+     */
+    /* The implementation is mostly copied from the Header class itself. */
+    public static int readHeader( Header hdr, ArrayDataInput strm ) 
+            throws TruncatedFileException, IOException {
+        Cursor iter = hdr.iterator();
+        byte[] buffer = new byte[ 80 ];
+        boolean firstCard = true;
+        int count = 0;
+        while ( true ) {
+            int len;
+            int need = 80;
+            try {
+                while ( need > 0 ) {
+                    len = strm.read( buffer, 80 - need, need );
+                    count++;
+                    if ( len == 0 ) {
+                        throw new TruncatedFileException();
+                    }
+                    need -= len;
+                }
+            }
+            catch ( EOFException e ) {
+                if ( firstCard && need == 80 ) {
+                    throw e;
+                }
+                throw new TruncatedFileException( e.getMessage() );
+            }
+
+            String cbuf = new String( buffer );
+            HeaderCard fcard = new HeaderCard( cbuf );
+            if ( firstCard ) {
+                String key = fcard.getKey();
+                if ( key == null || 
+                    ( !key.equals( "SIMPLE" ) && !key.equals( "XTENSION" ) ) ) {
+                    throw new IOException( "Not FITS format" );
+                }
+                firstCard = false;
+            }
+            String key = fcard.getKey();
+
+            /* Add the card. */
+            if ( fcard != null ) {
+                if ( fcard.isKeyValuePair() ) {
+                    iter.add( fcard.getKey(), fcard );
+                }
+                else {
+                    iter.add( fcard );
+                }
+            }
+
+            if ( cbuf.substring( 0, 8 ).equals( "END     ") ) {
+                break;
+            }
+        }
+
+        int pad = FitsUtil.padding( count * 80 );
+        try {
+            strm.skipBytes( pad );
+        }
+        catch ( IOException e ) {
+            throw new TruncatedFileException( e.getMessage() );
+        }
+
+        return pad + count * 80;
     }
 
     /**
