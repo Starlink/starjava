@@ -1164,6 +1164,28 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
+     * Fills a given array with a pattern of values taken from another one.
+     * <tt>destArray</tt> is filled up with copies of <tt>sourceArray</tt>.
+     * <tt>destArray</tt> and <tt>sourceArray</tt> must be arrays of the
+     * same class (but can be different lengths of course).
+     *
+     * @param  destArray    array to be filled with items
+     * @param  sourceArray  array containing source items
+     */
+    public void fillCycle( Object destArray, Object sourceArray ) {
+        Class clazz = destArray.getClass();
+        if ( ! clazz.isArray() || ! clazz.equals( sourceArray.getClass() ) ) {
+            throw new IllegalArgumentException();
+        }
+        int nsrc = Array.getLength( sourceArray );
+        int ndst = Array.getLength( destArray );
+        for ( int start = 0; start < ndst; start += nsrc ) {
+            System.arraycopy( sourceArray, 0, destArray, start,
+                              Math.min( nsrc, ndst - start ) );
+        }
+    }
+
+    /**
      * Tests whether or not a display, keyboard and mouse can in fact
      * be supported in this environment.   This differs from the
      * {@link java.awt.GraphicsEnvironment#isHeadless} method in that
