@@ -33,7 +33,7 @@ public class CartesianMatchEngine implements MatchEngine {
      * the size of the matching error in each dimension.  It can be
      * used as a tuning parameter.  It must be &gt;=1.
      */
-    public final static double CELL_SCALE = 5.0;
+    public final static double CELL_SCALE = 2.0;
 
     /**
      * Constructs a matcher which matches points in an
