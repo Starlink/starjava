@@ -1,4 +1,4 @@
-/** 
+/**
  * CocoPanel.java
  * Provides a Swing GUI to run COCO
  *
@@ -12,7 +12,7 @@
  This uses the Pal (Positional Astronomy Library).
  </p>
  **/
- 
+
 package uk.ac.starlink.coco;
 
 import java.io.*;
@@ -30,12 +30,12 @@ import uk.ac.starlink.pal.*;
 // import uk.ac.starlink.util.*;
 
 /**
- */    
+ */
 public class CocoPanel extends JPanel implements ActionListener {
 
 /*  the Coco Class Library */
     private CoordinateConversion coco;
-    
+
 /*
  * Debug settings
  */
@@ -144,7 +144,7 @@ public class CocoPanel extends JPanel implements ActionListener {
 /**
  * The constuctor to set up the executable
  * @param title The task name
- */            
+ */
     CocoPanel( Container pane ) {
         task = "Applet";
         coco = new CoordinateConversion();
@@ -154,8 +154,8 @@ public class CocoPanel extends JPanel implements ActionListener {
 
 /**
  * Repaint the Window
- * @param gc The frame in which to draw 
- */            
+ * @param gc The frame in which to draw
+ */
     public void paintComponent ( Graphics gc ) {
     super.paintComponent( gc );
         gc.setColor( BACKGROUND );
@@ -186,13 +186,13 @@ public class CocoPanel extends JPanel implements ActionListener {
         this.setVisible(true);
 
         return;
-        
+
     }
 
     private void initPanel( Container pane ) {
         String SPACE = " ";
         JLabel BLANK = new JLabel(SPACE);
- 
+
         trace( "initPanel: " + task );
         pane.setLayout( new GridBagLayout() );
 
@@ -530,7 +530,7 @@ public class CocoPanel extends JPanel implements ActionListener {
             trace( "Check Box Event: " + arg );
             JCheckBox box = (JCheckBox) source;
             webservice = box.isSelected();
- 
+
             if ( webservice ) trace( "web service selected" );
             else              trace( "web service not selected" );
             Pane.validate();
@@ -558,10 +558,30 @@ public class CocoPanel extends JPanel implements ActionListener {
 //                    answer = "Exception raised: " + e;
 //                }
 //            } else {
-                CoordinateConversion coco = 
+                CoordinateConversion coco =
                           new CoordinateConversion( code_in, code_out );
-                if ( equinox_in != null ) coco.setInEpoch( equinox_in );
-                if ( equinox_out != null ) coco.setOutEpoch( equinox_out );
+
+                String text = inEquinox.getText().trim();
+                if( text != null && text.length() > 0 ) equinox_in = text;
+
+                text = outEquinox.getText().trim();
+                if( text != null && text.length() > 0 ) equinox_out = text;
+
+                String epoch_in = inEpoch.getText();
+                if( epoch_in == null || epoch_in.length() == 0 ) {
+                  epoch_in = equinox_in;
+                }
+
+                String epoch_out = outEpoch.getText();
+                if( epoch_out == null || epoch_out.length() == 0 ) {
+                  epoch_out = equinox_out;
+                }
+
+                if ( equinox_in != null ) coco.setInEquinox( equinox_in );
+                if ( equinox_out != null ) coco.setOutEquinox( equinox_out );
+                if ( epoch_in != null ) coco.setInEpoch( epoch_in );
+                if ( epoch_out != null ) coco.setOutEpoch( epoch_out );
+
                 if ( resolution != '\0' ) coco.setPrecision( resolution );
                 if ( units != '\0' ) coco.setUnits( units );
                 AngleDR r =  coco.validate( coords );
@@ -592,7 +612,7 @@ public class CocoPanel extends JPanel implements ActionListener {
                  trace( task + " killed");
                  System.exit(0);
             }
-        } else 
+        } else
 
 // Change to Coordinate field
         if ( source instanceof JTextField ) {

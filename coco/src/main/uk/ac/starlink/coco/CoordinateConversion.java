@@ -25,7 +25,7 @@ import javax.swing.*;
 
 /* pal (Positional Astronomy Library) */
 import uk.ac.starlink.pal.*;
-   
+
 /**
  * Converts Coordinates between various systems.
  */
@@ -35,11 +35,11 @@ public class CoordinateConversion
 
 /*  the Starlink Astronometry Class Library */
     private Pal pal;
-    
+
 /*
  * Debug settings
  */
-    private final boolean DEBUG = false;
+    private final boolean DEBUG = true;
 
 /*
  * Maths Constants
@@ -81,7 +81,7 @@ public class CoordinateConversion
 
 /**
  * Start a new instance of the CoordinateConversion Loads the Pal Library.
- */            
+ */
     public CoordinateConversion(  ) {
         setup();
     }
@@ -89,7 +89,7 @@ public class CoordinateConversion
  * The main constuctor, loads the Pal Library.
  * @param in The input system code
  * @param out The Output System code
- */            
+ */
     public CoordinateConversion( char in, char out ) {
         insys = Character.toUpperCase(in);
         outsys = Character.toUpperCase(out);
@@ -97,7 +97,7 @@ public class CoordinateConversion
     }
 
     private void setup () {
-        printDebug( "Conversion of Celestial Coordinates (" + Version + ")" );
+        printDebug( "setup: Conversion of Celestial Coordinates (" + Version + ")" );
         pal = new Pal();
     }
 
@@ -105,7 +105,7 @@ public class CoordinateConversion
  * Convert the coordinates
  * @param data The Coordinates to convert
  * @return The converted coordinates as a string
- */            
+ */
     public String convert ( String data ) {
         StringTokenizer s = new StringTokenizer( data );
         String answer = null;
@@ -149,7 +149,7 @@ public class CoordinateConversion
  * <dt>G</dt> <dd>Galactic coordinates [l, b], IAU 1958 system</dd>
  * </dl>
  * </p>
- */            
+ */
     public void setInSystem ( char in ) {
         insys = Character.toUpperCase( in );
         switch ( insys ) {
@@ -170,8 +170,8 @@ public class CoordinateConversion
 
 /**
  * Set the input Epoch.
- * @param ep The epoch, eg. 1984.53 or 1983 2 26.4 
- */            
+ * @param ep The epoch, eg. 1984.53 or 1983 2 26.4
+ */
     public void setInEpoch ( String ep ) {
         if ( ep == null ) return;
         inJB = Character.toUpperCase( ep.charAt(0) );
@@ -185,8 +185,8 @@ public class CoordinateConversion
 
 /**
  * Set the input Equinox.
- * @param ep The epoch, eg. 1950 (optional B or J prefix) 
- */            
+ * @param ep The epoch, eg. 1950 (optional B or J prefix)
+ */
     public void setInEquinox ( String eq ) {
         if ( eq == null ) return;
         inJBeq = Character.toUpperCase( eq.charAt(0) );
@@ -233,8 +233,8 @@ public class CoordinateConversion
 
 /**
  * Set the output Epoch.
- * @param ep The epoch, eg. 1984.53 or 1983 2 26.4 
- */            
+ * @param ep The epoch, eg. 1984.53 or 1983 2 26.4
+ */
     public void setOutEpoch ( String ep ) {
         if ( ep == null ) return;
         outJB = Character.toUpperCase( ep.charAt(0) );
@@ -246,8 +246,8 @@ public class CoordinateConversion
 
 /**
  * Set the output Equinox.
- * @param ep The epoch, eg. 1950 (optional B or J prefix) 
- */            
+ * @param ep The epoch, eg. 1950 (optional B or J prefix)
+ */
     public void setOutEquinox ( String eq ) {
         if ( eq == null ) return;
         outJBeq = Character.toUpperCase( eq.charAt(0) );
@@ -259,20 +259,20 @@ public class CoordinateConversion
 
 /**
  * Set High precision results.
- */            
-    public void setHigh ( ) { setPrecision ('H'); } 
+ */
+    public void setHigh ( ) { setPrecision ('H'); }
 /**
  * Set Medium precision results.
- */            
-    public void setMedium ( ) { setPrecision ('M'); } 
+ */
+    public void setMedium ( ) { setPrecision ('M'); }
 /**
  * Set Low precision results.
- */            
-    public void setLow ( ) { setPrecision ('L'); } 
+ */
+    public void setLow ( ) { setPrecision ('L'); }
 /**
  * Set the precision.
- * @param prec Precision of results, either 'H', 'M' (default) or 'L' 
- */            
+ * @param prec Precision of results, either 'H', 'M' (default) or 'L'
+ */
     public void setPrecision ( String prec ) {
         setUnits( prec.charAt(0) );
     }
@@ -298,7 +298,7 @@ public class CoordinateConversion
                 prpx = 3; prrv = 1;
                 pr1 = 5; pr2 = 4;
                 break;
-        } 
+        }
         nfep.setMinimumFractionDigits( prep );
         nfep.setMaximumFractionDigits( prep );
         nfep.setGroupingUsed( false );
@@ -318,16 +318,16 @@ public class CoordinateConversion
 
 /**
  * Set input and output angles to degrees format.
- */            
+ */
     public void setDegrees ( ) { setUnits('D'); }
 /**
  * Set input and output angles to hours format ( ie H M S ).
- */            
+ */
     public void setHours ( ) { setUnits('H'); }
 /**
  * Set the RA mode.
  * @param unit The RA Mode, either 'D' or 'H' (default).
- */            
+ */
     public void setUnits ( String unit ) {
         setUnits( unit.charAt(0) );
     }
@@ -345,14 +345,14 @@ public class CoordinateConversion
  * Validate a coordinate string.
  * @param value The coordinate string.
  * @return The angle in the FK5 system (null if invalid)
- */            
+ */
     public AngleDR validate( String value ) {
         String text = null;
         AngleDR ra, rb, rw;
         double a, b, w;
-        printDebug( "Validate Coord: " + value);
-        printDebug( "System in: " + insys + " " + inJB + inequinox );
-        printDebug( "System out: " + outsys + " " + outJB + outequinox );
+        printDebug( "validate: Coord: " + value);
+        printDebug( "   System in: " + insys + " " + inJBeq + inequinox );
+        printDebug( "   System out: " + outsys + " " + outJBeq + outequinox );
         if ( value.equals( "" ) ) {
             answer = null;
             return null;
@@ -378,19 +378,19 @@ public class CoordinateConversion
                 int j = pal.Status;
                 d[i] = f;
                 if ( i == 6 || i == 7 )
-                    if ( val.getChar() == '"' ) { 
+                    if ( val.getChar() == '"' ) {
                         j = -2; val.incrChar();
                     }
                 jf[i] = j;
                 if ( j > 1 ) {
-                    printDebug( "Flag " + i + " = " + j );
+                    printDebug( "   Flag " + i + " = " + j );
                     return null;
                 }
                 else if ( j != 1 ) {
                     count = i+1;
                 }
             }
-            printDebug ( "Number of fields = " + count );
+            printDebug ( "   Number of fields = " + count );
             if ( count < 2 ) return null;
             if ( count == 2 ) {
                 jf[5] = 0;
@@ -419,13 +419,13 @@ public class CoordinateConversion
                 jf[5] = 0;
                 count = 6;
             }
-            printDebug( "Coarse Validity Check" );
-        
+            printDebug( "   Coarse Validity Check" );
+
 /* Coarse Validity check */
-            if ( jf[0] != 0 || jf[1] != 0 || jf[2] != 0 || 
-                 jf[3] > 0 || jf[4] != 0 || jf[5] != 0 ||count == 7 || 
+            if ( jf[0] != 0 || jf[1] != 0 || jf[2] != 0 ||
+                 jf[3] > 0 || jf[4] != 0 || jf[5] != 0 ||count == 7 ||
                  Math.abs( d[6] ) >= 15.0 || Math.abs( d[7] ) >= 15.0 ||
-                 jf[8] < 0 || d[8] >= 1.0 || Math.abs( d[9] ) >= 200.0 || 
+                 jf[8] < 0 || d[8] >= 1.0 || Math.abs( d[9] ) >= 200.0 ||
                  ( insys == 'A' && count > 6 ) ) return null;
 
             a = ( 60.0 * (60.0*d[0] + d[1] ) + d[2] ) * S2R;
@@ -444,7 +444,7 @@ public class CoordinateConversion
                 da = pal.Drange( ra.getAlpha() );
                 db = ra.getDelta() - b;
             } else {
-                printDebug( "Angle > 15.0" );
+                printDebug( "   Angle > 15.0" );
                 if ( Math.cos(a) * Math.abs(da) / AS2R >= 15.0 ) return null;
             }
         } else {
@@ -459,7 +459,7 @@ public class CoordinateConversion
             if ( Math.abs( w ) > 90.0 ) return null;
         }
 /* Check nothing left in record */
-        printDebug ( "Check end of String " + val.getPos() + " " +
+        printDebug ( "   Check end of String " + val.getPos() + " " +
                       val.length() );
         if ( val.getPos() < val.length() ) return null;
 
@@ -477,7 +477,7 @@ public class CoordinateConversion
  * Normalize the input angle to FK5.
  * @param ra The angle in specified input system.
  * @return The angle in the FK5 system
- */            
+ */
     public AngleDR normalize( AngleDR ra ) {
 /*        Report & convert to J2000 FK5 at specified epoch */
         double aw = ra.getAlpha();
@@ -491,13 +491,16 @@ public class CoordinateConversion
         double eqj = pal.Epco( 'J', inJBeq, inequinox );
         String system;
         AngleDR rw, rb;
-        printDebug ("Convert: Angle ra =" + ra );
+        printDebug ("normalize: Angle ra =" + ra );
+        printDebug ("   inepoch = " + inepoch );
+        printDebug ("   outepoch = " + outepoch );
+        printDebug ("   inquinox = " + inequinox );
 
         if ( insys == '4' ) {
             system = "FK4";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   input system = " + system );
             if ( hours ) {
-                printDebug ("Hours");
+                printDebug ("   Hours");
                 palTime ifA = pal.Dr2tf( aw );
                 palTime ifB = pal.Dr2af( bw );
                 WRITE( "  = " + ifA.toString( pra ) + " " +
@@ -510,31 +513,31 @@ public class CoordinateConversion
                     WRITE( nf.format( da/S2R ) + " " + nf2.format( db/AS2R ) );
                 }
             } else {
-                printDebug ("Degrees");
+                printDebug ("   Degrees");
                 WRITE( " =   " + nf.format(r2d(aw)) + " " + nf2.format(bw/D2R) + " " +
                        inJB + nfep.format(inepoch) + " " +
                        inJBeq + nfep.format(inequinox) + " " + system );
             }
             if ( jz != 1 ) {
 /* Proper motion supplied */
-                printDebug ("Proper Motion");
+                printDebug ("   Proper Motion");
                 rw = pal.Pm( ra, dd, px, rv, epb, epb1 );
-                ra = pal.Subet( rw, epb );
-                ra = pal.Preces( system, epb, 1950.0, ra );
+                ra = pal.Subet( rw, eqb );
+                ra = pal.Preces( system, eqb, 1950.0, ra );
                 rw = pal.Addet( ra, 1950.0 );
                 ra = pal.Fk45z( rw, epb1 );
             } else {
-                rb = pal.Subet( ra, epb );
-                ra = pal.Preces( system, epb, 1950.0, rb );
+                rb = pal.Subet( ra, eqb );
+                ra = pal.Preces( system, eqb, 1950.0, rb );
                 rb = pal.Addet( ra, 1950.0 );
-                ra = pal.Fk45z( rb, eqb );
-            }                
+                ra = pal.Fk45z( rb, epb );
+            }
 
         } else if ( insys == 'B' ) {
             system = "FK4 (no E-terms)";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   Input system = " + system );
             if ( hours ) {
-                printDebug ("Hours");
+                printDebug ("   Hours");
                 palTime ifA = pal.Dr2tf( aw );
                 palTime ifB = pal.Dr2af( bw );
                 WRITE( "  = " + ifA.toString( pra ) + " " +
@@ -547,31 +550,31 @@ public class CoordinateConversion
                     WRITE( nf.format( da/S2R ) + " " + nf2.format( db/AS2R ) );
                 }
             } else {
-                printDebug ("Degrees");
+                printDebug ("   Degrees");
                 WRITE( " =   " + nf.format(r2d( aw)) + " " + nf2.format(bw/D2R) + " " +
                        inJB + nfep.format(inepoch) + " " +
                        inJBeq + nfep.format(inequinox) + " " + system );
             }
             if ( jz != 1 ) {
 /* Proper motion supplied */
-                printDebug ("Proper Motion");
+                printDebug ("   Proper Motion");
                 rw = pal.Pm(ra, dd, px, rv, epb, epb1);
 //                ra = pal.Subet( rw, epb );
-                ra = pal.Preces("FK4", epb, 1950.0, rw );
+                ra = pal.Preces("FK4", eqb, 1950.0, rw );
                 rw = pal.Addet( ra, 1950.0 );
                 ra = pal.Fk45z( rw, epb1 );
             } else {
 //                rb = pal.Subet( ra, epb );
-                rw = pal.Preces("FK4", epb, 1950.0, ra );
+                rw = pal.Preces("FK4", eqb, 1950.0, ra );
                 rb = pal.Addet( rw, 1950.0 );
-                ra = pal.Fk45z( rb, eqb );
-            }                
+                ra = pal.Fk45z( rb, epb );
+            }
 
         } else if ( insys == '5' ) {
             system = "FK5";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   Input system = " + system );
             if ( hours ) {
-                printDebug ("Hours");
+                printDebug ("   Hours");
                 palTime ifA = pal.Dr2tf( aw );
                 palTime ifB = pal.Dr2af( bw );
                 WRITE( "  = " + ifA.toString( pra ) + " " +
@@ -584,13 +587,13 @@ public class CoordinateConversion
                     WRITE( nf.format( da/S2R ) + " " + nf2.format( db/AS2R ) );
                 }
             } else {
-                printDebug ("Degrees");
+                printDebug ("   Degrees");
                 WRITE( " =   " + nf.format(r2d(aw)) + " " + nf2.format(bw/D2R)
                        + " " + inJB + nfep.format(inepoch) + " " +
                        inJBeq + nfep.format(inequinox) + " " + system );
             }
 /* Proper motion initial to final epoch */
-            printDebug ("Proper Motion");
+            printDebug ("   Proper Motion");
             epj = pal.Epco( 'J', inJB, inepoch );
             eqj = pal.Epco( 'J', inJBeq, inequinox );
             rw = pal.Pm( ra, dd, px, rv, epj, epj1 );
@@ -598,7 +601,7 @@ public class CoordinateConversion
 
         } else if ( insys == 'A' ) {
             system = "geocentric apparent";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   Input system = " + system );
             mjDate ifD = null;
             double mjd = pal.Epj2d( epj );
             try {
@@ -608,22 +611,22 @@ public class CoordinateConversion
             palTime ifA = pal.Dr2tf( aw );
             palTime ifB = pal.Dr2af( bw );
             if ( hours ) {
-                printDebug ("Hours");
+                printDebug ("   Hours");
                 WRITE( "  = " + ifA.toString( pra ) + " " +
                        ifB.printSign( ) + ifB.toString( prb ) + " " +
                        ifD.toString( prrv ) + " " + system );
             } else {
-                printDebug ("Degrees");
+                printDebug ("   Degrees");
                 WRITE( " =   " + nf.format(r2d(aw)) + " " + nf2.format(bw/D2R)
                        + " " + ifD.toString( prrv ) + " " + system );
             }
 /* Convert to J2000 FK5 */
-            printDebug ( "Convert to J2000 FK5: " + ra + mjd );
+            printDebug ( "   Convert to J2000 FK5: " + ra + mjd );
             ra = pal.Amp( ra, mjd, 2000.0 );
-            printDebug ( "Result " + ra );
+            printDebug ( "   Result " + ra );
         } else if ( insys == 'E' ) {
             system = "ecliptic";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   Input system = " + system );
             WRITE( "  = " + nf.format(r2d(aw)) + " " + nf2.format(bw/D2R) +
                    " " + inJB + nfep.format(inepoch) + " " + system );
 /* Convert to J2000 FK5 */
@@ -631,7 +634,7 @@ public class CoordinateConversion
             ra = pal.Ecleq( ra, dw );
         } else {
             system = "galactic (II)";
-            printDebug ( "Input system = " + system );
+            printDebug ( "   Input system = " + system );
             WRITE( "  = " + nf.format(r2d(aw)) + " " + nf2.format(bw/D2R) +
                    " " + inJB + nfep.format(inepoch) + " " + system );
 /* Convert to J2000 FK5 */
@@ -646,60 +649,68 @@ public class CoordinateConversion
  * Convert the angle into the output system.
  * @param ra The angle in the FK5 system.
  * @return The coordinates in the requested output system
- */            
+ */
     public String convert( AngleDR ra )
     {
         if ( ra == null ) return "No Coordinate specified";
-        double epj = pal.Epco('J', outJBeq, outepoch);
-        double epb = pal.Epco('B', outJBeq, outepoch);
+        double epb = pal.Epco('B', outJB, outepoch);
+        double epj = pal.Epco('J', outJB, outepoch);
+        double eqb = pal.Epco('B', outJBeq, outequinox);
+        double eqj = pal.Epco('J', outJBeq, outequinox);
+
+
 /*        Convert to B1950 FK4 without proper motion */
         String system;
         AngleDR rw;
         Stardata sd= pal.Fk54z( ra, epb );
-        printDebug ( "Angle = " + ra );
+        printDebug ( "convert: Angle = " + ra );
+        printDebug ( "   inepoch = " + inepoch );
+        printDebug ( "   outepoch = " + outepoch );
+        printDebug ( "   outequinox = " + outequinox );
+
 
 /*        Convert from J2000 FK5 to output system & report */
         if ( outsys == '4' ) {
             system = "FK4";
-            printDebug ("Output system = " + system);
+            printDebug ("   Output system = " + system);
 /* Remove E-terms */
             ra = pal.Subet( sd.getAngle(), 1950.0 );
 /* Precess to final epoch */
-            rw = pal.Preces( "FK4", 1950.0, epb, ra );
+            rw = pal.Preces( "FK4", 1950.0, eqb, ra );
 /* Add E-terms */
-            ra = pal.Addet( rw, epb );
+            ra = pal.Addet( rw, eqb );
         } else if ( outsys == 'B' ) {
             system = "FK4 (no E-terms)";
-            printDebug ("Output system = " + system);
+            printDebug ("   Output system = " + system);
 /* Remove E-terms */
             rw = pal.Subet( sd.getAngle(), 1950.0 );
 /* Precess to final epoch */
-            ra = pal.Preces( "FK4", 1950.0, epb, rw );
+            ra = pal.Preces( "FK4", 1950.0, eqb, rw );
         } else if ( outsys == '5' ) {
             system = "FK5";
-            printDebug ("Output system = " + system);
+            printDebug ("   Output system = " + system);
 /*        Convert to J2000 FK5 to output system & report */
-            ra = pal.Preces( "FK5", 2000.0, epj, ra );
+            ra = pal.Preces( "FK5", 2000.0, eqj, ra );
         } else if ( outsys == 'A' ) {
             system = "geocentric apparent";
-            printDebug ("Ouput system = " + system);
+            printDebug ("   Ouput system = " + system);
             double pm[] = { 0.0, 0.0 };
             sd = new Stardata( ra, pm, px, 0.0 );
-            ra = pal.Map( sd, 2000.0, pal.Epj2d( epj ) ); 
+            ra = pal.Map( sd, 2000.0, pal.Epj2d( epj ) );
         } else if ( outsys == 'E' ) {
             system = "ecliptic";
-            printDebug ("Output system = " + system);
+            printDebug ("   Output system = " + system);
             ra = pal.Eqecl( ra, pal.Epj2d( epj ) );
         } else if ( outsys == 'G' ) {
 /*           Galactic */
             system = "galactic (II)";
-            printDebug ("Output system = " + system);
+            printDebug ("   Output system = " + system);
             Galactic g = pal.Eqgal( ra );
             ra = new AngleDR ( g.getLongitude(), g.getLatitude() );
         } else
             return "Unknown Output System";
 
-        printDebug ( "Angle = " + ra );
+        printDebug ( "   Angle = " + ra );
         if ( hours ) {
             palTime ifA = pal.Dr2tf( ra.getAlpha() );
             palTime ifB = pal.Dr2af( ra.getDelta() );
