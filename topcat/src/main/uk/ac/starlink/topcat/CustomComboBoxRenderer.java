@@ -17,24 +17,25 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
  *
  * @author   Mark Taylor (Starlink)
  */
-public abstract class CustomComboBoxRenderer implements ListCellRenderer {
+public class CustomComboBoxRenderer implements ListCellRenderer {
 
     /* Should I be getting this from the PLAF somehow? */
-    private static ListCellRenderer baseRenderer = new BasicComboBoxRenderer();
-    private Object nullRep;
+    private static ListCellRenderer baseRenderer_ = new BasicComboBoxRenderer();
+    private Object nullRep_;
 
     public Component getListCellRendererComponent( JList list, Object value,
                                                    int index,
                                                    boolean isSelected,
                                                    boolean hasFocus ) {
         Object rep;
+        Object nullRep = getNullRepresentation();
         if ( value == null && nullRep != null ) {
             rep = nullRep;
         }
         else {
             rep = mapValue( value );
         }
-        return baseRenderer
+        return baseRenderer_
               .getListCellRendererComponent( list, rep, index,
                                              isSelected, hasFocus );
     }
@@ -48,7 +49,16 @@ public abstract class CustomComboBoxRenderer implements ListCellRenderer {
      * @param  nullRep  null representation
      */
     public void setNullRepresentation( Object nullRep ) {
-        this.nullRep = nullRep;
+        nullRep_ = nullRep;
+    }
+
+    /**
+     * Returns the representation for the <tt>null</tt> value.
+     *
+     * @param  null representation
+     */
+    public Object getNullRepresentation() {
+        return nullRep_;
     }
 
     /**
@@ -58,8 +68,12 @@ public abstract class CustomComboBoxRenderer implements ListCellRenderer {
      * more suitable than the result of <tt>value</tt>'s <tt>toString</tt>
      * method.
      *
+     * <p>The default implementation just returns the value itself
+     *
      * @param  value  value to map
      * @return  value to map it into (probably a string)
      */
-    protected abstract Object mapValue( Object value );
+    protected Object mapValue( Object value ) {
+        return value;
+    }
 }
