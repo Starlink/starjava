@@ -26,6 +26,8 @@
 #        Adapted for JNIAST.
 #     29-JAN-2002 (MBT):
 #        Adapted for JNIHDS.
+#     26-NOV-2002 (MBT):
+#        Now strips leading -L from ADDLIBS elements.
 #     {enter_further_changes_here}
 
 #  Bugs:
@@ -43,7 +45,7 @@
 
 library_path=""
 if test "$ADDLIBS" != ""; then
-   library_path="$ADDLIBS "
+   library_path="`echo ' '$ADDLIBS|sed 's/ -L/ /g'` "
 fi
 #if test "$LD_LIBRARY_PATH" != ""; then
 #   library_path="${library_path}`echo $LD_LIBRARY_PATH| sed 's/:/ /g'` "
