@@ -20,6 +20,9 @@ public interface RowSubset {
         public boolean isIncluded( long lrow ) {
             return true;
         }
+        public String toString() {
+            return getName();
+        }
     };
 
     /**
@@ -34,6 +37,9 @@ public interface RowSubset {
         }
         public boolean isIncluded( long lrow ) {
             return false;
+        }
+        public String toString() {
+            return getName();
         }
     };
 

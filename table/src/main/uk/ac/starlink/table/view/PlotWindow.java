@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     private JComboBox yColBox;
     private JCheckBox xLogBox;
     private JCheckBox yLogBox;
+    private JComboBox subCombo;
     private JPanel plotPanel;
     private PlotState lastState;
 
@@ -49,10 +51,11 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      *
      * @param   stable  the StarTable which to plot columns
      * @param   tcmodel  the TableColumnModel
+     * @param   subsets the list of known row subsets
      * @param   parent  the parent component
      */
     public PlotWindow( StarTable stable, TableColumnModel tcmodel,
-                       Component parent ) {
+                       OptionsListModel subsets, Component parent ) {
         super( "Table Plotter", stable, parent );
         this.stable = stable;
         this.tcmodel = tcmodel;
@@ -130,6 +133,18 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
 
+        /* Construct a component for a row subset selectors. */
+        JPanel sConfig = new JPanel();
+        sConfig.setBorder( BorderFactory
+                          .createTitledBorder( lineBorder, "Row subset" ) );
+        subCombo = new JComboBox( subsets.makeComboBoxModel() );
+        subCombo.setPreferredSize( 
+            new Dimension( 110, subCombo.getPreferredSize().height ) );
+        subCombo.setSelectedItem( RowSubset.ALL );
+        subCombo.addActionListener( this );
+        sConfig.add( subCombo );
+        configPanel.add( sConfig );
+
   //  The plot is not currently live - this would require a listener
   //  on the startable itself.  It may not really be desirable.
   //  Could want a replot button though.
@@ -178,6 +193,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         int ycol = state.yCol.index;
         ColumnInfo xColumn = state.xCol.info;
         ColumnInfo yColumn = state.yCol.info;
+        RowSubset rset = state.subset;
         PlotBox plotbox;
         if ( state.type.equals( "Scatter" ) ) {
             Plot plot = new Plot();
@@ -189,25 +205,27 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             long ngood = 0;
             long nerror = 0;
             for ( long lrow = 0; lrow < nrow; lrow++ ) {
-                try {
-                    Object xval = stable.getCell( lrow, xcol );
-                    Object yval = stable.getCell( lrow, ycol );
-                    if ( xval instanceof Number &&
-                         yval instanceof Number ) {
-                        double x = ((Number) xval).doubleValue();
-                        double y = ((Number) yval).doubleValue();
-                        if ( state.xLog && x <= 0.0 ||
-                             state.yLog && y <= 0.0 ) {
-                            // can't take log of negative value
+                if ( rset == null || rset.isIncluded( lrow ) ) {
+                    try {
+                        Object xval = stable.getCell( lrow, xcol );
+                        Object yval = stable.getCell( lrow, ycol );
+                        if ( xval instanceof Number &&
+                             yval instanceof Number ) {
+                            double x = ((Number) xval).doubleValue();
+                            double y = ((Number) yval).doubleValue();
+                            if ( state.xLog && x <= 0.0 ||
+                                 state.yLog && y <= 0.0 ) {
+                                // can't take log of negative value
+                            }
+                            else {
+                                plot.addPoint( 0, x, y, state.plotline );
+                            }
+                            ngood++;
                         }
-                        else {
-                            plot.addPoint( 0, x, y, state.plotline );
-                        }
-                        ngood++;
                     }
-                }
-                catch ( IOException e ) {
-                    nerror++;
+                    catch ( IOException e ) {
+                        nerror++;
+                    }
                 }
             }
         }
@@ -285,6 +303,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         state.yCol = (ColumnEntry) yColBox.getSelectedItem();
         state.xLog = xLogBox.isSelected();
         state.yLog = yLogBox.isSelected();
+        state.subset = (RowSubset) subCombo.getSelectedItem();
         state.plotline = false;
         state.type = "Scatter";
         return state;
@@ -305,6 +324,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         ColumnEntry yCol;
         boolean xLog;
         boolean yLog;
+        RowSubset subset;
         boolean plotline;
         String type;
 
@@ -316,6 +336,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                     && yCol.equals( other.yCol )
                     && xLog == other.xLog
                     && yLog == other.yLog
+                    && subset.equals( other.subset )
                     && plotline == other.plotline
                     && type.equals( other.type );
             }
@@ -337,6 +358,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 .append( "," )
                 .append( "yLog=" )
                 .append( yLog )
+                .append( "," )
+                .append( "subset=" )
+                .append( subset )
                 .append( "," )
                 .append( "plotline=" )
                 .append( plotline )

@@ -82,13 +82,12 @@ public class TableViewer extends JFrame {
      */
     private TableColumnModel columnModel;
   
-    private List subsets;
+    private OptionsListModel subsets;
     private JTable jtab;
     private TableRowHeader rowHead;
     private JScrollPane scrollpane;
     private Action exitAct;
     private Action closeAct;
-    private Action openAct;
     private Action newAct;
     private Action saveAct;
     private Action dupAct;
@@ -98,6 +97,7 @@ public class TableViewer extends JFrame {
     private Action colinfoAct;
     private Action unsortAct;
     private Action newsubsetAct;
+    private Action nosubsetAct;
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
@@ -150,7 +150,7 @@ public class TableViewer extends JFrame {
         scrollpane.setRowHeaderView( rowHead );
 
         /* Initialise subsets list. */
-        subsets = new ArrayList();
+        subsets = new OptionsListModel();
         subsets.add( RowSubset.ALL );
 
         /* Create and configure actions. */
@@ -160,8 +160,6 @@ public class TableViewer extends JFrame {
                                      "Close this viewer" );
         newAct = new ViewerAction( "New", 0,
                                    "Open a new viewer window" );
-        openAct = new ViewerAction( "Open", 0,
-                                    "Open a new table in this viewer" );
         saveAct = new ViewerAction( "Save", 0,
                                     "Write out this table" );
         dupAct = new ViewerAction( "Duplicate", 0,
@@ -180,6 +178,8 @@ public class TableViewer extends JFrame {
 
         newsubsetAct = new ViewerAction( "New subset", 0,
                                          "Define a new row subset" );
+        nosubsetAct = new ViewerAction( "View all rows", 0,
+                                        "Don't use any row subsetting" );
 
         /* Configure the table. */
         if ( startab != null ) {
@@ -199,7 +199,6 @@ public class TableViewer extends JFrame {
         mb.add( fileMenu );
         fileMenu.add( newAct ).setIcon( null );
         fileMenu.add( dupAct ).setIcon( null );
-        fileMenu.add( openAct ).setIcon( null );
         fileMenu.add( saveAct ).setIcon( null );
         fileMenu.add( closeAct ).setIcon( null );
         fileMenu.add( exitAct ).setIcon( null );
@@ -225,6 +224,16 @@ public class TableViewer extends JFrame {
         /* Subset menu. */
         JMenu subsetMenu = new JMenu( "Subsets" );
         mb.add( subsetMenu );
+        subsetMenu.add( nosubsetAct ).setIcon( null );
+        Action applysubsetAct = new AbstractAction() {
+            public void actionPerformed( ActionEvent evt ) {
+                int index = evt.getID();
+                applySubset( (RowSubset) subsets.get( index ) );
+            }
+        };
+        JMenu applysubsetMenu = 
+            subsets.makeJMenu( "Apply subset", applysubsetAct );
+        subsetMenu.add( applysubsetMenu );
         subsetMenu.add( newsubsetAct ).setIcon( null );
 
         /* Configure a listener for column popup menus. */
@@ -292,7 +301,7 @@ public class TableViewer extends JFrame {
                 columnModel.addColumn( tcol );
             }
             jtab.setColumnModel( columnModel );
-          
+
             /* Set the view up right. */
             scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
             StarJTable.configureColumnWidths( jtab, MAX_COLUMN_WIDTH,
@@ -546,14 +555,6 @@ public class TableViewer extends JFrame {
                 dispose();
             }
 
-            /* Open a table from a file. */
-            else if ( this == openAct ) {
-                StarTable st = getChooser().getRandomTable( parent );
-                if ( st != null ) {
-                    setStarTable( st );
-                }
-            }
-
             /* Open a new table viewer window. */
             else if ( this == newAct ) {
                 StarTable st = getChooser().getRandomTable( parent );
@@ -590,7 +591,8 @@ public class TableViewer extends JFrame {
             /* Open a plot window. */
             else if ( this == plotAct ) {
                 wtracker
-               .register( new PlotWindow( dataModel, columnModel, parent ) );
+               .register( new PlotWindow( dataModel, columnModel, subsets, 
+                                          parent ) );
             }
 
             /* Display table parameters. */
@@ -620,6 +622,11 @@ public class TableViewer extends JFrame {
                     addSubset( rset );
                     applySubset( rset );
                 }
+            }
+
+            /* Use null subset. */
+            else if ( this == nosubsetAct ) {
+                applySubset( RowSubset.ALL );
             }
 
             /* Shouldn't happen. */

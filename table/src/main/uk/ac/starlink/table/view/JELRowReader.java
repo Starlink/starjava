@@ -63,7 +63,7 @@ public class JELRowReader extends DVMap {
      *
      * @param   name  the variable name
      * @return  the corresponding method name fragment
-     * @see   JEL manual
+     * @see   "JEL manual"
      */
     public String getTypeName( String name ) {
 
@@ -161,7 +161,7 @@ public class JELRowReader extends DVMap {
      * @param  name  the name of the variable-like object to evaluate
      * @return  an Integer corresponding to column number, or a Short 
      *          corresponding to subset number, or null
-     * @see    JEL manual
+     * @see    "JEL manual"
      */
     public Object translate( String name ) {
 

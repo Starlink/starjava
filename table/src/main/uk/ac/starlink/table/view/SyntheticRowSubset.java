@@ -104,7 +104,7 @@ public class SyntheticRowSubset implements RowSubset {
     }
 
     public String toString() {
-        return name + " (" + expression + ")";
+        return getName();
     }
 
 }
