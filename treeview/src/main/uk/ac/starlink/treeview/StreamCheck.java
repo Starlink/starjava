@@ -14,6 +14,7 @@ public class StreamCheck {
 
     private boolean isEmpty = false;
     private boolean isText = false;
+    private boolean isHTML = false;
 
 
     /**
@@ -40,6 +41,9 @@ public class StreamCheck {
         else {
             int lleng = 0;
             isText = true;
+            boolean hasLongLines = false;
+            boolean hasUnprintables = false;
+            boolean hasHTMLElement = false;
             for ( int i = 0; i < nbyte; i++ ) {
                 boolean isret = false;
                 boolean isctl = false;
@@ -51,21 +55,35 @@ public class StreamCheck {
                         // no break here is intentional
                     case '\t':
                     case '\f':
-                    // case -87:         // copyright symbol
                     case (byte) 169:  // copyright symbol
                     case (byte) 163:  // pound sign
                         isctl = true;
+                        break;
+                    case '<':
+                        if ( nbyte - i > 10 && ! hasHTMLElement ) {
+                            int j = i;
+                            if ( ( buf[ ++j ] == 'h' || buf[ j ] == 'H' ) &&
+                                 ( buf[ ++j ] == 't' || buf[ j ] == 'T' ) &&
+                                 ( buf[ ++j ] == 'm' || buf[ j ] == 'M' ) &&
+                                 ( buf[ ++j ] == 'l' || buf[ j ] == 'L' ) ) {
+                                hasHTMLElement = true;
+                            }
+                        }
+                        break;
+                    default:
+                        // no action
                 }
                 lleng++;
                 if ( lleng > MAX_LINE_LENGTH ) {
-                    isText = false;
-                    break;
+                    hasLongLines = true;
                 }
                 if ( ( bval > 126 || bval  < 32 ) && ! isctl ) {
                     isText = false;
-                    break;
+                    hasUnprintables = true;
                 }
             }
+            isText = ( ! hasLongLines ) && ( ! hasUnprintables );
+            isHTML = ( ! hasUnprintables ) && hasHTMLElement;
         }
 
         /* Tidy up. */
@@ -103,6 +121,10 @@ public class StreamCheck {
      */
     public boolean isEmpty() {
         return isEmpty;
+    }
+
+    public boolean isHTML() {
+        return isHTML;
     }
 
 }
