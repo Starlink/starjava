@@ -168,4 +168,49 @@ public abstract class ArrayColumn extends ColumnData {
             return new ObjectArrayColumn( base, (Object[]) data );
         }
     }
+
+    /**
+     * Constructs a new ArrayColumn based on a given data array.
+     * This convenience method results in a column with no metadata other
+     * than the column name and its data type.  The data type is inferred
+     * from the type of the array object supplied.
+     *
+     * @param  name  the name of the new column
+     * @param  data  an array of primitives or objects which will form
+     *         the storage for this column
+     */
+    public static ArrayColumn makeColumn( String name, Object data ) {
+        Class contentClass = data.getClass().getComponentType();
+        if ( contentClass.isPrimitive() ) {
+            if ( contentClass == byte.class ) {
+                contentClass = Integer.class;
+            }
+            else if ( contentClass == short.class ) {
+                contentClass = Short.class;
+            }
+            else if ( contentClass == int.class ) {
+                contentClass = Integer.class;
+            }
+            else if ( contentClass == long.class ) {
+                contentClass = Long.class;
+            }
+            else if ( contentClass == float.class ) {
+                contentClass = Float.class;
+            }
+            else if ( contentClass == double.class ) {
+                contentClass = Double.class;
+            }
+            else if ( contentClass == char.class ) {
+                contentClass = Character.class;
+            }
+            else if ( contentClass == boolean.class ) {
+                contentClass = Boolean.class;
+            }
+            else {
+                throw new AssertionError( "Unknonwn primitive type?? " +
+                                          contentClass );
+            }
+        }
+        return makeColumn( new ColumnInfo( name, contentClass, null ), data );
+    }
 }
