@@ -54,14 +54,14 @@ import org.mortbay.xml.XmlConfiguration;
  * @version $Id$
  * @since 22-MAY-2002
  */
-public class AppHttpSOAPServer 
+public class AppHttpSOAPServer
     extends HttpServer
 {
     /**
      * Resource name of the configuration file. This is local (to this
      * class) and cannot be overridden.
      */
-    private URL configFile = 
+    private URL configFile =
         AppHttpSOAPServer.class.getResource( "jetty.xml" );
 
     /**
@@ -84,7 +84,7 @@ public class AppHttpSOAPServer
      * @param portNum the requested port on which to establish the HTTP
      *                services, this may not be the port actually used.
      */
-    public AppHttpSOAPServer( int portNum ) 
+    public AppHttpSOAPServer( int portNum )
         throws IOException
     {
         //  Define the port number.
@@ -142,7 +142,7 @@ public class AppHttpSOAPServer
         //  use a HttpServer, but use a Server instead (and move over to the
         //  full Jetty servlet-based system).
         soapContext.setConfigurationClassNames( new String[] {
-            "org.mortbay.jetty.servlet.XMLConfiguration", 
+            "org.mortbay.jetty.servlet.XMLConfiguration",
             "org.mortbay.jetty.servlet.JettyWebConfiguration" } );
 
         //  Set the Axis war file.
@@ -175,22 +175,22 @@ public class AppHttpSOAPServer
             System.setProperty( "http.proxyHost", "" );
         }
         try {
-            String endpoint = 
+            String endpoint =
                 "http://localhost:" + portNum + "/services/AdminService";
-            
+
             Service service = new Service();
             Call call = (Call) service.createCall();
-            
+
             call.setTargetEndpointAddress( new java.net.URL( endpoint ) );
             call.setOperationName( "AdminService" );
-            
+
             Vector result = null;
             InputStream input = deployURL.openStream();
             Object[] params = new Object[] { new SOAPBodyElement(input) };
             result = (Vector) call.invoke( params );
-            
+
             input.close();
-            
+
             SOAPBodyElement body = (SOAPBodyElement) result.elementAt(0);
             log.info( body.toString() );
         }
@@ -213,37 +213,37 @@ public class AppHttpSOAPServer
     protected void setDefaultPort( int portNum )
     {
         int startPort = portNum;
-        int usingPort = startPort;           
-        for( int i = startPort; i < startPort+1000; i++ ) {
-                   
-           // check port 
-           boolean open = true;
-           try {
-              Socket tempSocket = new Socket( "localhost", i );
-              tempSocket.close();
-           } 
-           catch (Exception any) {
-              // Fails if not already in use, which is good.
-              open = false;
-           }
-           
-           if( !open) {
-              usingPort = i;
-              break;
-           }
-        }   
+        int usingPort = startPort;
+        for ( int i = startPort; i < startPort+1000; i++ ) {
+
+            // check port
+            boolean open = true;
+            try {
+                Socket tempSocket = new Socket( "localhost", i );
+                tempSocket.close();
+            }
+            catch (Exception any) {
+                // Fails if not already in use, which is good.
+                open = false;
+            }
+
+            if( !open) {
+                usingPort = i;
+                break;
+            }
+        }
         System.setProperty( "jetty.port", Integer.toString( usingPort ) );
         this.portNum = usingPort;
     }
-    
+
     /**
      * Return the port number being used. This may differ from the port number
      * asked for.
      */
-    public int getPort( ) 
+    public int getPort( )
     {
        return portNum;
-    }   
+    }
 
     /* ------------------------------------------------------------ */
     public static void main(String[] arg)
