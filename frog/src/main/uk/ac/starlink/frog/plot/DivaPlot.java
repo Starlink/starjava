@@ -775,16 +775,19 @@ public class DivaPlot
             if ( config != null ) {
                 if ( graphicsEdges != null ) {
                     astJ.astPlot( this, baseBox,
-                                  graphicsEdges.getXFrac(),
-                                  graphicsEdges.getYFrac(),
+                                  graphicsEdges.getXLeft(),
+                                  graphicsEdges.getXRight(),
+                                  graphicsEdges.getYTop(),
+                                  graphicsEdges.getYBottom(),
                                   config.getAst() );
                 }
                 else {
-                    astJ.astPlot( this, baseBox, 0.05, 0.00, config.getAst() );
+                    astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.03, 
+                                  config.getAst() );
                 }
             }
             else {
-                astJ.astPlot( this, baseBox, 0.05, 0.0, "" );
+                astJ.astPlot( this, baseBox, 0.05, 0.00, 0.03, 0.03, "" );
             }
 
             // The plot must use our Grf implementation.

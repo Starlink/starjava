@@ -800,6 +800,11 @@ public class GramControl extends JPanel
     {
         plot.setBackground( color );
     }
+
+    public Color getPlotColour()
+    {
+        return getBackground();
+    }
     
     public Frame getPlotCurrentFrame()
     {

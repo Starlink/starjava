@@ -801,6 +801,11 @@ public class PlotControl extends JPanel
         plot.setBackground( color );
     }
     
+    public Color getPlotColour()
+    {
+        return getBackground();
+    }
+    
     public Frame getPlotCurrentFrame()
     {
         // Use the FrameSet of the current series.
