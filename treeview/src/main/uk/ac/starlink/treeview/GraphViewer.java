@@ -12,7 +12,7 @@ import javax.swing.event.AncestorEvent;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataComp;
-import uk.ac.starlink.splat.data.SpecDataImpl;
+import uk.ac.starlink.splat.data.AbstractSpecDataImpl;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.array.AccessMode;
@@ -86,7 +86,7 @@ public class GraphViewer extends DivaPlot {
     //  }
 
     
-    private static class NdxSpecDataImpl extends SpecDataImpl {
+    private static class NdxSpecDataImpl extends AbstractSpecDataImpl {
 
         private Ndx ndx;
         private FrameSet ast;
