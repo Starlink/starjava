@@ -51,6 +51,7 @@ import uk.ac.starlink.ndx.MutableNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxImpl;
+import uk.ac.starlink.ndx.XMLNdxHandler;
 import uk.ac.starlink.util.SourceReader;
 
 /**
@@ -108,127 +109,97 @@ public class FitsNdxHandler implements NdxHandler {
             return null;
         }
 
-        /* Try to get an image NDArray at this URL. */
-        FitsArrayBuilder fab = FitsArrayBuilder.getInstance();
-        final NDArray image = fab.makeNDArray( url, mode );
-
         /* Get the header block. */
-        Header hdr = ((ReadableFitsArrayImpl) ((BridgeNDArray) image).getImpl())
-                    .getHeader();
-
-        /* Get the title. */
-        final String title;
-        if ( hdr.containsKey( FitsConstants.NDX_TITLE ) ) {
-            title = hdr.getStringValue( FitsConstants.NDX_TITLE )
-                       .replaceAll( "''", "'" );
-        }
-        else {
-            title = null;
-        }
-
-        /* Get the bad bits mask. */
-        final byte badbits;
-        if ( hdr.containsKey( FitsConstants.NDX_BADBITS ) ) {
-            badbits = (byte) hdr.getIntValue( FitsConstants.NDX_TITLE );
-        }
-        else {
-            badbits = (byte) 0;
-        }
-
-        /* Get the variance array. */
-        final NDArray variance;
-        if ( hdr.containsKey( FitsConstants.NDX_VARIANCE ) ) {
-            String loc = hdr.getStringValue( FitsConstants.NDX_VARIANCE );
-            URL vurl = new URL( url, loc );
-            variance = fab.makeNDArray( vurl, mode );
-        }
-        else {
-            variance = null;
-        }
-
-        /* Get the quality array. */
-        final NDArray quality;
-        if ( hdr.containsKey( FitsConstants.NDX_QUALITY ) ) {
-            String loc = hdr.getStringValue( FitsConstants.NDX_QUALITY );
-            URL qurl = new URL( url, loc );
-            quality = fab.makeNDArray( qurl, mode );
-        }
-        else {
-            quality = null;
-        }
-
-        /* Get the WCS information. */
-        final FrameSet wcs;
-        final Iterator cardIt = hdr.iterator();
-        Iterator lineIt = new Iterator() {
-            public boolean hasNext() { return cardIt.hasNext(); }
-            public Object next() { return cardIt.next().toString(); }
-            public void remove() { throw new UnsupportedOperationException(); }
-        };
-        FitsChan fchan = new FitsChan( lineIt );
-        AstObject aobj;
+        FitsArrayBuilder fab = FitsArrayBuilder.getInstance();
+        ArrayDataInput strm = fab.getReadableStream( url, AccessMode.READ );
+        Header hdr;
         try {
-            aobj = fchan.read();
+            hdr = Header.readHeader( strm );
         }
-        catch ( AstException e ) {
-            aobj = null;
+        catch ( FitsException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
-        if ( aobj instanceof FrameSet ) {
-            wcs = (FrameSet) aobj;
-        }
-        else {
-            wcs = null;
+        strm.close();
+
+        /* If there is XML information here, read it to construct the NDX. */
+        if ( hdr.containsKey( FitsConstants.NDX_XML ) ) {
+            String loc = hdr.getStringValue( FitsConstants.NDX_XML );
+            URL xurl = new URL( url, loc );
+            ArrayDataInput xstrm =
+                fab.getReadableStream( xurl, AccessMode.READ );
+            try {
+                Header xhdr = new Header( xstrm );
+                AsciiTable tab = new AsciiTable( xhdr );
+                tab.read( xstrm );
+                String[] cellval = (String[]) tab.getElement( 0, 0 );
+                String xdat = cellval[ 0 ];
+                Source xsrc = new StreamSource( new StringReader( xdat ),
+                                                xurl.toString() );
+
+                /* Construct the NDX from the XML description found. */
+                Ndx ndx = XMLNdxHandler.getInstance().makeNdx( xsrc, mode );
+
+                /* Check that the image URL from the resultant NDX matches
+                 * the one we were first given.  Issue a warning if not. */
+                URL iurl = ndx.getImage().getURL();
+                FitsURL fiurl = FitsURL.parseURL( iurl, extensions );
+                if ( ! fiurl.equals( furl ) ) {
+                    logger.warning( "URL of image does not match URL of NDX: "
+                                  + "<" + iurl + "> != <" + url + ">" );
+                }
+
+                /* In any case, return the NDX. */
+                return ndx;
+            }
+            catch ( FitsException e ) {
+                throw (IOException) new IOException( e.getMessage() )
+                                   .initCause( e );
+            }
         }
 
-        /* Get the extensions object. */
-        final Node etc;
-        if ( hdr.containsKey( FitsConstants.NDX_ETC ) ) {
-            String loc = hdr.getStringValue( FitsConstants.NDX_ETC );
-            URL xurl = new URL( url, loc );
-            ArrayDataInput strm =
-                fab.getReadableStream( xurl, AccessMode.READ );
-            if ( strm != null ) {
-                try {
-                    Header xhdr = new Header( strm );
-                    AsciiTable tab = new AsciiTable( xhdr );
-                    tab.read( strm );
-                    String[] cellval = (String[]) tab.getElement( 0, 0 );
-                    String xdat = cellval[ 0 ];
-                    Source xsrc = 
-                        new StreamSource( new StringReader( xdat ) );
-                    etc = new SourceReader().getDOM( xsrc );
+        /* Otherwise, construct a default NDX based only on this data array. */
+        /* Try to get an image NDArray at this URL. */
+        else {
+            final NDArray image = fab.makeNDArray( url, mode );
+
+            /* Get the WCS information. */
+            final FrameSet wcs;
+            final Iterator cardIt = hdr.iterator();
+            Iterator lineIt = new Iterator() {
+                public boolean hasNext() { 
+                    return cardIt.hasNext();
                 }
-                catch ( FitsException e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
+                public Object next() {
+                    return cardIt.next().toString();
                 }
-                catch ( TransformerException e ) {
-                    throw (IOException) new IOException( e.getMessage() )
-                                       .initCause( e );
+                public void remove() { 
+                    throw new UnsupportedOperationException();
                 }
+            };
+            FitsChan fchan = new FitsChan( lineIt );
+            AstObject aobj;
+            try {
+                aobj = fchan.read();
+            }
+            catch ( AstException e ) {
+                aobj = null;
+            }
+            if ( aobj instanceof FrameSet ) {
+                wcs = (FrameSet) aobj;
             }
             else {
-                etc = null;
+                wcs = null;
             }
-        }
-        else {
-            etc = null;
-        }
 
-        /* Create and return a new Ndx. */
-        NdxImpl impl = new NdxImpl() {
-            public byte getBadBits() { return badbits; }
-            public boolean hasEtc() { return etc != null; }
-            public Source getEtc() { return new DOMSource( etc ); }
-            public boolean hasTitle() { return title != null; }
-            public String getTitle() { return title; }
-            public boolean hasWCS() { return wcs != null; }
-            public Object getWCS() { return wcs; }
-            public BulkDataImpl getBulkData() { 
-                return new ArraysBulkDataImpl( image, variance, quality );
+            /* Return an NDX based on the image array and WCS we have got. */
+            MutableNdx ndx = new DefaultMutableNdx(
+                new ArraysBulkDataImpl( image, null, null ) );
+            if ( wcs != null ) {
+                ndx.setWCS( wcs );
             }
-        };
-        return new BridgeNdx( impl );
+            return ndx;
+        }
     }
 
     public boolean makeBlankNdx( URL url, Ndx template ) throws IOException {
@@ -256,46 +227,31 @@ public class FitsNdxHandler implements NdxHandler {
         }
 
         /* Construct Header object containing information about this NDX. */
-        int nhdu = 1;
+        int nhdu = 0;
+        int ihdu;
+        int vhdu = 0;
+        int qhdu = 0;
+        int xhdu;
         HeaderCard[] cards;
         try {
             List cardlist = new ArrayList();
 
             cardlist.add( commentCard( "DATA component of NDX structure" ) );
-            if ( ndx.hasTitle() ) {
-                String title = ndx.getTitle();
-                title = title.replaceAll( "'", "''" );
-                String comm = "NDX title";
-                int maxleng = 80 - 15 - comm.length();
-                if ( title.length() > maxleng ) {
-                    title = title.substring( 0, maxleng - 2 ) + "..";
-                }
-                cardlist.add( new HeaderCard( FitsConstants.NDX_TITLE, 
-                                              title, comm ) );
-            }
-            int badbits = ndx.getBadBits();
-            if ( badbits != 0 ) {
-                cardlist.add( new HeaderCard( FitsConstants.NDX_BADBITS, 
-                                              badbits, "NDX bad bits mask" ) );
-            }
+
+            /* Work out what additional HDUs will go where. */
+            ihdu = ++nhdu;
             if ( ndx.hasVariance() ) {
-                nhdu++;
-                cardlist.add( 
-                    new HeaderCard( FitsConstants.NDX_VARIANCE, "#" + nhdu,
-                                    "Location of NDX Variance array" ) );
+                vhdu = ++nhdu;
             }
             if ( ndx.hasQuality() ) {
-                nhdu++;
-                cardlist.add( 
-                    new HeaderCard( FitsConstants.NDX_QUALITY, "#" + nhdu,
-                                    "Location of NDX Quality array" ) );
+                qhdu = ++nhdu;
             }
-            if ( ndx.hasEtc() ) {
-                nhdu++;
-                cardlist.add(
-                    new HeaderCard( FitsConstants.NDX_ETC, "#" + nhdu,
-                                    "Location of NDX extensions block" ) );
-            }
+            xhdu = ++nhdu;
+
+            /* Write a header indicating where the XML HDU can be found. */
+            cardlist.add( 
+                new HeaderCard( FitsConstants.NDX_XML, "#" + xhdu,
+                                "Location of NDX XML representation" ) );
 
             /* Write the WCS into the FITS headers. */
             FitsChan fchan = new FitsChan();
@@ -344,9 +300,18 @@ public class FitsNdxHandler implements NdxHandler {
         ArrayImpl iimpl = 
             new WritableFitsArrayImpl( im.getShape(), itype, ibadval,
                                        strm, true, cards );
-        NDArrays.copy( im, new BridgeNDArray( iimpl ) ); 
+        URL iurl;
+        try {
+            iurl = new URL( url, "#" + ihdu );
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError( e );
+        }
+        NDArray inda = new BridgeNDArray( iimpl, iurl );
+        NDArrays.copy( im, inda ); 
 
         /* Write the variance array if there is one. */
+        NDArray vnda = null;
         if ( ndx.hasVariance() ) {
             NDArray var = ndx.getVariance();
             Type vtype = var.getType();
@@ -358,10 +323,19 @@ public class FitsNdxHandler implements NdxHandler {
             ArrayImpl vimpl = 
                 new WritableFitsArrayImpl( var.getShape(), vtype, vbadval, 
                                            strm, false, vcards );
-            NDArrays.copy( var, new BridgeNDArray( vimpl ) );
+            URL vurl;
+            try {
+                vurl = new URL( url, "#" + vhdu );
+            }
+            catch ( MalformedURLException e ) {
+                throw new AssertionError( e );
+            }
+            vnda = new BridgeNDArray( vimpl, vurl );
+            NDArrays.copy( var, vnda );
         }
 
         /* Write the quality array if there is one. */
+        NDArray qnda = null;
         if ( ndx.hasQuality() ) {
             NDArray qual = ndx.getQuality();
             HeaderCard[] qcards = new HeaderCard[] { 
@@ -370,47 +344,59 @@ public class FitsNdxHandler implements NdxHandler {
             ArrayImpl qimpl =
                 new WritableFitsArrayImpl( qual.getShape(), qtype, null,
                                            strm, false, qcards );
-            NDArrays.copy( qual, new BridgeNDArray( qimpl ) );
+            URL qurl;
+            try {
+                qurl = new URL( url, "#" + qhdu );
+            }
+            catch ( MalformedURLException e ) {
+                throw new AssertionError( e );
+            }
+            qnda = new BridgeNDArray( qimpl, qurl );
+            NDArrays.copy( qual, qnda );
         }
 
-        /* Write the Etc as bytes in an ASCII table extension. */
-        if ( ndx.hasEtc() ) {
-            try {
-                ByteArrayOutputStream bufos = new ByteArrayOutputStream();
-                new SourceReader().writeSource( ndx.getEtc(), bufos );
-                byte[] bytes = bufos.toByteArray();
-                int nchar = bytes.length;
-                AddableHeader hdr = new AddableHeader();
-                hdr.addValue( "XTENSION", "TABLE", "ASCII table extension" );
-                hdr.addValue( "BITPIX", 8, "Character values" );
-                hdr.addValue( "NAXIS", 2, "Two-dimensional table" );
-                hdr.addValue( "NAXIS1", nchar,
-                              "Number of characters in sole row" );
-                hdr.addValue( "NAXIS2", 1, "Single row" );
-                hdr.addValue( "PCOUNT", 0, "No additional parameters" );
-                hdr.addValue( "GCOUNT", 1, "Single table" );
-                hdr.addValue( "TFIELDS", 1, "Single field" );
-                hdr.addValue( "TBCOL1", 1, "Sole field starts at first column" );
-                hdr.addValue( "TFORM1", "A" + nchar, "Text field" );
-                hdr.addValue( "TTYPE1", "XML representation of NDX extensions",
-                              "Field header" );
-                hdr.insertComment( "XML text encoded as table entry" );
-                hdr.addLine( FitsConstants.END_CARD );
-                hdr.write( strm );
-                strm.write( bytes );
-                int over = nchar % FitsConstants.FITS_BLOCK;
-                if ( over > 0 ) {
-                    strm.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
-                }
+        /* Construct an Ndx object which matches the one we were given
+         * but references its array components at the URLs we have just
+         * written them to. */
+        MutableNdx ondx = new DefaultMutableNdx( ndx );
+        ondx.setBulkData( new ArraysBulkDataImpl( inda, vnda, qnda ) );
+
+        /* Write the XML as bytes in an ASCII table extension. */
+        try {
+            ByteArrayOutputStream bufos = new ByteArrayOutputStream();
+            new SourceReader().writeSource( ondx.toXML( url ), bufos );
+            byte[] bytes = bufos.toByteArray();
+            int nchar = bytes.length;
+            AddableHeader hdr = new AddableHeader();
+            hdr.addValue( "XTENSION", "TABLE", "ASCII table extension" );
+            hdr.addValue( "BITPIX", 8, "Character values" );
+            hdr.addValue( "NAXIS", 2, "Two-dimensional table" );
+            hdr.addValue( "NAXIS1", nchar,
+                          "Number of characters in sole row" );
+            hdr.addValue( "NAXIS2", 1, "Single row" );
+            hdr.addValue( "PCOUNT", 0, "No additional parameters" );
+            hdr.addValue( "GCOUNT", 1, "Single table" );
+            hdr.addValue( "TFIELDS", 1, "Single field" );
+            hdr.addValue( "TBCOL1", 1, "Sole field starts at first column" );
+            hdr.addValue( "TFORM1", "A" + nchar, "Text field" );
+            hdr.addValue( "TTYPE1", "XML representation of NDX extensions",
+                          "Field header" );
+            hdr.insertComment( "XML text encoded as table entry" );
+            hdr.addLine( FitsConstants.END_CARD );
+            hdr.write( strm );
+            strm.write( bytes );
+            int over = nchar % FitsConstants.FITS_BLOCK;
+            if ( over > 0 ) {
+                strm.write( new byte[ FitsConstants.FITS_BLOCK - over ] );
             }
-            catch ( FitsException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
-            catch ( TransformerException e ) {
-                throw (IOException) new IOException( e.getMessage() )
-                                   .initCause( e );
-            }
+        }
+        catch ( FitsException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
+        }
+        catch ( TransformerException e ) {
+            throw (IOException) new IOException( e.getMessage() )
+                               .initCause( e );
         }
 
         strm.close();

@@ -105,4 +105,18 @@ class FitsURL {
         return container + "#" + hdu;
     }
 
+    public boolean equals( Object other ) {
+        if ( ! ( other instanceof FitsURL ) ) {
+            return false;
+        }
+        FitsURL fother = (FitsURL) other;
+        if ( fother.hdu != hdu ) {
+            return false;
+        }
+        if ( ! fother.container.toString().equals( container.toString() ) ) {
+            return false;
+        }
+        return true;
+    }
+
 }

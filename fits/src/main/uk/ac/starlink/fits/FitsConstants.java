@@ -43,20 +43,8 @@ public class FitsConstants {
     /** Prefix for NDX-related FITS header cards. */
     public static final String NDX_PREFIX = "NDX_";
 
-    /** FITS header card for location (relative URL) of Variance NDArray. */
-    public static final String NDX_VARIANCE = NDX_PREFIX + "VAR";
-
-    /** FITS header card for location (relative URL) of Quality NDArray. */
-    public static final String NDX_QUALITY = NDX_PREFIX + "QUA";
-
-    /** FITS header card for value of bad bits mask. */
-    public static final String NDX_BADBITS = NDX_PREFIX + "BBT";
-
-    /** FITS header card for location (relative URL) of ETC character array. */
-    public static final String NDX_ETC = NDX_PREFIX + "ETC";
-
-    /** FITS header card for value of title string. */
-    public static final String NDX_TITLE = NDX_PREFIX + "TIT";
+    /** FITS header card for location (relative URL) of XML representation. */
+    public static final String NDX_XML = "NDX_XML";
 
     /** Default encoding used for writing WCS into FITS headers. */
     public static final String WCS_ENCODING = "FITS-WCS";
