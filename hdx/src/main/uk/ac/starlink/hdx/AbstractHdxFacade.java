@@ -109,9 +109,9 @@ public abstract class AbstractHdxFacade implements HdxFacade {
      */
     public Source getSource(URI base) 
             throws HdxException {
-        return (base != null)
-                ? new DOMSource(getDOM(base), base.toString())
-                : new DOMSource(getDOM(base));
+        return (base == null)
+                ? new DOMSource(getDOM(null))
+                : new DOMSource(getDOM(base), base.toString());
     }
 
     /**
