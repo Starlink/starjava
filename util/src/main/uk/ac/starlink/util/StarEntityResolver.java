@@ -94,7 +94,15 @@ public class StarEntityResolver implements EntityResolver {
             return "text/VOTable.dtd";
         }
 
-        /* VOTable schema. */
+        /* VOTable 1.1 schema. */
+        if ( systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.1" ) ||
+             systemId.equals( "http://www.ivoa.net/xml/VOTable/v1.1/" ) ||
+             systemId.startsWith( "http://www.ivoa.net/xml/VOTable/v1.1" )
+             && systemId.endsWith( ".xsd" ) ) {
+            return "text/VOTable1.1.xsd";
+        }
+
+        /* VOTable 1.0 schema. */
         if ( systemId.endsWith( "VOTable.xsd" ) ) {
             return "text/VOTable.xsd";
         }
