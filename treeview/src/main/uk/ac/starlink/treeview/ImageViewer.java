@@ -32,7 +32,8 @@ class ImageViewer extends JPanel {
      * @throws  IOException  if there is an error in data access
      */
     public ImageViewer( NDArray nda, FrameSet wcs ) throws IOException {
-        this( new NDArrayImage( nda ), nda.getShape().getOrigin(), wcs );
+        this( new NDArrayImage( nda ), nda.getShape().getOrigin(),
+              nda.getBadHandler().getBadValue(), wcs );
     }
 
 
@@ -43,10 +44,16 @@ class ImageViewer extends JPanel {
      * @param  im      a RenderedImage on which to base the display
      * @param  origin  a 2-element array giving the pixel coords of the 
      *                 data origin
+     * @param  badval  magic bad value as a Number
      * @param  wcs     an AST frameset containing coordinate information.
      *                 May be null
      */
-    private ImageViewer( RenderedImage im, long[] origin, FrameSet wcs ) {
+    private ImageViewer( RenderedImage im, long[] origin, Number badValue, 
+                         FrameSet wcs ) {
+
+        /* Get the bad value as a double. */
+        final double badval = ( badValue == null ) ? Double.NaN 
+                                                   : badValue.doubleValue();
 
         /* Turn it into a PlanarImage and do more setup. */
         PlanarImage pim = PlanarImage.wrapRenderedImage( im );
@@ -122,7 +129,11 @@ class ImageViewer extends JPanel {
         int tx = Math.min( pim.getTileWidth(), pim.getWidth() );
         int ty = Math.min( pim.getTileHeight(), pim.getHeight() );
         Rectangle2D.Double sample = new Rectangle2D.Double( 0.0, 0.0, tx, ty );
-        final ImageProcessor ip = new ImageProcessor( pim, sample );
+        final ImageProcessor ip = new ImageProcessor( pim, sample ) {
+            {  
+                setBlank( badval );
+            }
+        };
         ip.setReverseY( true );
         boolean done = false;
         for ( int ix = 0; ix < pim.getWidth() / tx && ! done; ix++ ) {

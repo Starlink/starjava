@@ -44,34 +44,7 @@ public class NDArrayImage extends SimpleRenderedImage {
             throw new IllegalArgumentException( "NDArray " + nda + " not 2-d" );
         }
 
-        /* Get an NDArray which has suitable bad value characteristics.
-         * Although JSky knows a bit about BLANK values, it will only
-         * countenance them from FITSImages as far as I can tell.
-         * This means that for proper bad value handling we need to
-         * present the data as a floating point type with Float.NaNs 
-         * representing bad values.  This means we can't use the basic
-         * NDArray and have to wrap it in a type converter - inefficient.
-         * Should maybe find a way round. */
-        Type type = nda.getType();
-        Number badval = nda.getBadHandler().getBadValue();
-        boolean usable = 
-            ( badval == null ) ||
-            ( type == Type.FLOAT && Float.isNaN( badval.floatValue() ) );
-        usable = usable && ( type != Type.DOUBLE );
-        if ( ! usable ) {
-            Requirements req = 
-                new Requirements( AccessMode.READ )
-               .setType( Type.FLOAT )
-               .setBadHandler( Type.FLOAT.defaultBadHandler() )
-               .setRandom( true );
-            try {
-                nda = NDArrays.toRequiredArray( nda, req );
-            }
-            catch ( IOException e ) {
-                // oh well - better an NDArray with incorrect bad values
-                // than no NDArray at all.  Proceed with the old one.
-            }
-        }
+        /* Store an accessor. */
         acc = nda.getAccess();
 
         /* Store NDArray geometry. */
