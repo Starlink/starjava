@@ -29,7 +29,7 @@ import org.w3c.dom.NodeList;
  * This implementation also provides default implementations of
  * {@link ChangeListener} methods that allow an extending class to
  * provide services for registering, responding and issuing
- * {@link ChangeEvents}.
+ * {@link ChangeEvent}s.
  *
  * @author Peter W. Draper
  * @version $Id$

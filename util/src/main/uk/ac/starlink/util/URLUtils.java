@@ -164,8 +164,8 @@ public class URLUtils {
      * <p>The most common source of malformed URLs is that of
      * <code>file</code> URLs which have inadequately escaped
      * (windows) drive letters or spaces in the name: such URLs should
-     * be constructed using the {@link java.net.File#toURI} or {@link
-     * java.net.File#toURL} methods.  Such URLs will be escaped by
+     * be constructed using the {@link java.io.File#toURI} or {@link
+     * java.io.File#toURL} methods.  Such URLs will be escaped by
      * this method.
      *
      * @param url a URL to be converted.  If this is null, then the
