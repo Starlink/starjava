@@ -133,49 +133,10 @@ public class NDFDataNode extends HDSDataNode
                     DataNode wcsnode = makeNDFChild( ndfobj.datFind( "WCS" ) );
                     if ( wcsnode instanceof WCSDataNode ) {
                         wcsComponent = (WCSDataNode) wcsnode;
+                        wcs = wcsComponent.getWcs();
                     }
                     else {
                         throw new NoSuchDataException( "Not a WCSDataNode" );
-                    }
-
-                    /* The WCS component stored in the HDSObject requires some
-                     * doctoring, since its PIXEL and AXIS Frames are not
-                     * trustworthy (under normal circumstances these would be
-                     * ignored and regenerated during a call to NDF_GTWCS). */
-                    wcs = wcsComponent.getWcs();
-
-                    /* Remap a PIXEL Frame correctly using the GRID Frame 
-                     * and the origin offset. */
-                    int ndim = shape.getNumDims();
-                    double[] ina = new double[ ndim ];
-                    double[] inb = new double[ ndim ];
-                    double[] outa = new double[ ndim ];
-                    double[] outb = new double[ ndim ];
-                    long[] origin = shape.getOrigin();
-                    for ( int i = 0; i < ndim; i++ ) {
-                        ina[ i ] = 0.0;
-                        inb[ i ] = 1.0;
-                        outa[ i ] = ina[ i ] + origin[ i ] - 1.5;
-                        outb[ i ] = inb[ i ] + origin[ i ] - 1.5;
-                    }
-                    Mapping pmap = 
-                        new CmpMap( wcs.getMapping( PIXEL_FRAME, GRID_FRAME ),
-                                    new WinMap( ndim, ina, inb, outa, outb ),
-                                    true )
-                           .simplify();
-                    wcs.remapFrame( PIXEL_FRAME, pmap );
-
-                    /* It would probably be quite hard to come up with a
-                     * correctly mapped AXIS Frame, so for now we just copy
-                     * it from the PIXEL frame.  If there are no AXIS 
-                     * components in the NDF this will be correct; 
-                     * otherwise, just note for now that it is broken. */
-                    Mapping amap = wcs.getMapping( AXIS_FRAME, PIXEL_FRAME );
-                    wcs.remapFrame( AXIS_FRAME, amap );
-                    if ( axes != null ) {
-                        uk.ac.starlink.ast.Frame afrm = 
-                            wcs.getFrame( AXIS_FRAME );
-                        afrm.setDomain( afrm.getDomain() + "-BROKEN" );
                     }
                 }
                 catch ( Exception e ) {
