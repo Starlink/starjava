@@ -16,7 +16,7 @@ import java.util.List;
  * <ol>
  * <li>Call {@link #addPoint} for each point that you wish to register
  * <li>Call {@link #ready} to indicate that all the points are in place
- * <li>Call {@link #getPoints} (or other interrogation methods?) to enquire
+ * <li>Call {@link #getNearbyPoints} (or other interrogation methods) to enquire
  *     about where some of the points are
  * </ol>
  *
@@ -44,7 +44,7 @@ public class PointRegistry {
      * Indicates that all the plotted points have been added and we're
      * ready to accept interrogation.
      * Any call to {@link #addPoint} must be done <em>before</em> this
-     * call; any call to {@link #getPoints} must be done <em>after</em> it.
+     * call; any call to interrogation methods must be done <em>after</em> it.
      */
     public void ready() {
         points_ = (IdentifiedPoint[]) 

@@ -50,8 +50,7 @@ public abstract class MarkStyleProfile {
      * Returns a marker style corresponding to a particular index.
      * The same index will always give the same style (or one equivalent
      * in the sense of <tt>equals</tt>), but for indices beyond 
-     * a certain value ({@link #getStyleCount}) the markers may wrap
-     * around.
+     * a certain value the markers may wrap around.
      *
      * @param  index  code for the requested style
      * @return  style for code <tt>index</tt>
