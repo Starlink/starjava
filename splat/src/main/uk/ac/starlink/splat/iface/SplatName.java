@@ -38,8 +38,7 @@ public class SplatName
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-                                    GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     // UI components
     protected JLabel shortNameLabel = new JLabel();
@@ -76,14 +75,14 @@ public class SplatName
      */
     protected void initUI()
     {
-        GridBagLayouter layouter = 
+        GridBagLayouter layouter =
             new GridBagLayouter( this, GridBagLayouter.SCHEME3 );
 
         // Short name label
         shortNameLabel.setAlignmentY( (float) 0.0 );
         shortNameLabel.setText( "Short name:" );
         layouter.add( shortNameLabel, false );
-        
+
         layouter.add( Box.createHorizontalStrut( 5 ), false );
 
         // Short name field

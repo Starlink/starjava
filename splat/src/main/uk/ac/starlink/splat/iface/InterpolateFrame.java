@@ -149,8 +149,7 @@ public class InterpolateFrame
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Create an instance.
@@ -524,7 +523,7 @@ public class InterpolateFrame
     {
         try {
             EditableSpecData newSpec = 
-                SpecDataFactory.getReference().createEditable( name );
+                SpecDataFactory.getInstance().createEditable( name );
             if ( errors == null ) {
                 newSpec.setData( spectrum.getFrameSet(), data );
             }

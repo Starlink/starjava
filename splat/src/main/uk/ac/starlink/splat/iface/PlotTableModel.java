@@ -28,8 +28,7 @@ public class PlotTableModel extends AbstractTableModel
      * Reference to the GlobalSpecPlotList object. This is an
      * interface to all information about plot and spectra availability.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Indices of the current spectra.

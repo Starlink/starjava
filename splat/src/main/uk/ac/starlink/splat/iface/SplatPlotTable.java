@@ -65,8 +65,7 @@ public class SplatPlotTable
     /**
      *  Reference to global GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      *  Create an instance.

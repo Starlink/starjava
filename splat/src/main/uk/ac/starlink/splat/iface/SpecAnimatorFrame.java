@@ -74,8 +74,7 @@ public class SpecAnimatorFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.
@@ -828,7 +827,7 @@ public class SpecAnimatorFrame
          * Reference to the GlobalSpecPlotList object. This is an interface to
          * all information about plot and spectra availability.
          */
-        GlobalSpecPlotList globalList = GlobalSpecPlotList.getReference();
+        GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
         /**
          * The selected item (a plot or the "Create" string).

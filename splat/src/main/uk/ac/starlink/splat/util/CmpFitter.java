@@ -65,7 +65,7 @@ public class CmpFitter
     private static final int GAUSSIAN = 0;
     private static final int LORENTZIAN = 1;
     private static final int VOIGT = 2;
-    protected SpecDataFactory factory = SpecDataFactory.getReference();
+    protected SpecDataFactory factory = SpecDataFactory.getInstance();
     /**
      * Perform the fit of a composite spectrum to a given spectrum.
      *

@@ -40,13 +40,12 @@ public class SpecFilter
     /**
      * The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Return reference to the only allowed instance of this class.
      */
-    public static SpecFilter getReference()
+    public static SpecFilter getInstance()
     {
         return instance;
     }
@@ -281,7 +280,7 @@ public class SpecFilter
         try {
             EditableSpecData newSpec = null;
             if ( ranges != null && ranges.length != 0 ) {
-                SpecCutter cutter = SpecCutter.getReference();
+                SpecCutter cutter = SpecCutter.getInstance();
                 if ( include ) {
                     newSpec = (EditableSpecData) cutter.cutRanges( spectrum,
                                                                    ranges );
@@ -292,7 +291,7 @@ public class SpecFilter
                 }
             }
             else {
-                newSpec = SpecDataFactory.getReference().
+                newSpec = SpecDataFactory.getInstance().
                     createEditable( spectrum.getShortName(), spectrum );
                 globalList.add( newSpec );
             }

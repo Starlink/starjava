@@ -29,8 +29,7 @@ public class SpecListModel
      * interface to all information about spectra availability (and
      * views etc). 
      */
-    protected GlobalSpecPlotList globalList = 
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Reference to the ListSelectionModel that is used for the JList.

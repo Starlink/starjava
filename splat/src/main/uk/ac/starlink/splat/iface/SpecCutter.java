@@ -39,12 +39,12 @@ public class SpecCutter
     /**
      *  The global list of spectra and plots.
      */
-    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getReference();
+    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Return reference to the only allowed instance of this class.
      */
-    public static SpecCutter getReference()
+    public static SpecCutter getInstance()
     {
         return instance;
     }

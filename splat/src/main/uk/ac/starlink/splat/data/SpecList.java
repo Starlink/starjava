@@ -51,7 +51,7 @@ public class SpecList implements Serializable
     /**
      *  Return reference to the only allowed instance of this class.
      */
-    public static SpecList getReference()
+    public static SpecList getInstance()
     {
         return instance;
     }
@@ -310,7 +310,7 @@ public class SpecList implements Serializable
             ObjectInputStream in = new ObjectInputStream( buffer );
             SpecList specList = (SpecList) in.readObject();
             in.close();
-            GlobalSpecPlotList gList = GlobalSpecPlotList.getReference();
+            GlobalSpecPlotList gList = GlobalSpecPlotList.getInstance();
             for ( int i = 0; i < specList.specCount(); i++ ) {
                 SpecData specData = specList.get( i );
                 gList.add( specList.get( i ) ); //  TODO: need to add to

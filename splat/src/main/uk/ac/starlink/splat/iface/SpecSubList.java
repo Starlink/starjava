@@ -29,8 +29,7 @@ public class SpecSubList
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Create an instance of this class.

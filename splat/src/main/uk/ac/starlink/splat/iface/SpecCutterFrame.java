@@ -80,8 +80,7 @@ public class SpecCutterFrame extends JFrame
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * File chooser used for reading ranges from text files.
@@ -268,7 +267,7 @@ public class SpecCutterFrame extends JFrame
         //  Perform the cut operation and add the spectrum to the
         //  global list.
         SpecData newSpec =
-            SpecCutter.getReference().cutRanges( currentSpectrum, ranges );
+            SpecCutter.getInstance().cutRanges( currentSpectrum, ranges );
         localList.add( newSpec );
     }
 
@@ -294,7 +293,7 @@ public class SpecCutterFrame extends JFrame
         //  Perform the cut operation and add the spectrum to the
         //  global list.
         SpecData newSpec =
-            SpecCutter.getReference().deleteRanges( currentSpectrum, ranges );
+            SpecCutter.getInstance().deleteRanges( currentSpectrum, ranges );
         localList.add( newSpec );
     }
 

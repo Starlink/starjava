@@ -137,8 +137,7 @@ public class PlotControl
     /**
      * The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList = 
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Scrolled pane that contains the Plot.
@@ -258,7 +257,7 @@ public class PlotControl
         throws SplatException
     {
         //  Check spectrum exists.
-        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecDataFactory factory = SpecDataFactory.getInstance();
         SpecData source = factory.get( file );
         if ( source == null ) {
             System.err.println( "Spectrum '" + file + "' cannot be found" );

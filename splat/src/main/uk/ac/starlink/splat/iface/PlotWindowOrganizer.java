@@ -29,8 +29,7 @@ public class PlotWindowOrganizer
     /**
      *  The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList
-        globalList = GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Create an instance.

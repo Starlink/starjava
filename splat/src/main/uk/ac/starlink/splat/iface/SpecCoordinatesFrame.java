@@ -68,8 +68,7 @@ public class SpecXCoordTypeFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    private GlobalSpecPlotList
-        globalList = GlobalSpecPlotList.getReference();
+    private GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * UI preferences.

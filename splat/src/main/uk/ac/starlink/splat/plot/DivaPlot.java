@@ -232,7 +232,7 @@ public class DivaPlot
     {
         super();
         initConfig();
-        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecDataFactory factory = SpecDataFactory.getInstance();
         SpecDataComp spectrum;
         SpecData specData;
         specData = factory.get( file );

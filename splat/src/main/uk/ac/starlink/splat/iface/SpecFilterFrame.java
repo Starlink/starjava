@@ -125,8 +125,7 @@ public class SpecFilterFrame
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * File chooser used for reading ranges from text files.
@@ -512,7 +511,7 @@ public class SpecFilterFrame
         //  Perform the filter operation and add the spectrum to the
         //  global list.
         SpecData newSpec = null;
-        SpecFilter filter = SpecFilter.getReference();
+        SpecFilter filter = SpecFilter.getInstance();
         switch ( tabbedPane.getSelectedIndex() ) {
             case 0: {
                 // Average.

@@ -117,8 +117,7 @@ public class PlotControlFrame
     /**
      *  The global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      *  Main menubar and various menus.
@@ -815,8 +814,8 @@ public class PlotControlFrame
      */
     public void cutView()
     {
-        SpecCutter.getReference().cutView( plot.getCurrentSpectrum(),
-                                           getPlot() );
+        SpecCutter.getInstance().cutView( plot.getCurrentSpectrum(),
+                                          getPlot() );
     }
 
     /**

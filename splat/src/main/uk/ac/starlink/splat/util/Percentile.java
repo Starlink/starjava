@@ -205,7 +205,7 @@ public class Percentile
     //  Test routine.
     public static void main( String[] args ) 
     {
-        SpecDataFactory factory = SpecDataFactory.getReference();
+        SpecDataFactory factory = SpecDataFactory.getInstance();
         try {
             SpecData spec = factory.get( "../testdata/spectrum.sdf" );
             double[] array = spec.getYData();

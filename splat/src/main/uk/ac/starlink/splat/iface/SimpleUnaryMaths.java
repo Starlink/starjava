@@ -70,8 +70,7 @@ public class SimpleUnaryMaths
     /**
      * Reference to global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * View of all the spectra.
@@ -357,8 +356,8 @@ public class SimpleUnaryMaths
     {
         try {
             //  Create a memory spectrum to contain the fit.
-            EditableSpecData newSpec = SpecDataFactory.getReference().
-                createEditable( name );
+            EditableSpecData newSpec = SpecDataFactory.getInstance()
+                .createEditable( name );
         
             if ( errors != null ) {
                 newSpec.setData( coords, data, errors );

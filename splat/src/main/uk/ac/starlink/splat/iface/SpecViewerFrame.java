@@ -91,8 +91,7 @@ public class SpecViewerFrame
     /**
      * Reference to global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * Table of values.
@@ -900,8 +899,8 @@ public class SpecViewerFrame
                         EditableSpecData newSpec = null;
                         String name = "Copy of: " + specData.getShortName();
                         try {
-                            newSpec = SpecDataFactory.getReference().
-                                createEditable( name, specData );
+                            newSpec = SpecDataFactory.getInstance()
+                                .createEditable( name, specData );
                             globalList.add( newSpec );
                             setSpecData( newSpec );
                         }

@@ -127,7 +127,7 @@ public class RemoteServer extends Thread
         try {
             interp.eval( "import uk.ac.starlink.splat.iface.SplatBrowser" );
             interp.eval( "import uk.ac.starlink.splat.iface.GlobalSpecPlotList" );
-            interp.set( "globallist", GlobalSpecPlotList.getReference() );
+            interp.set( "globallist", GlobalSpecPlotList.getInstance() );
         } 
         catch (Exception e) {
             // Do nothing, although this failure would be exceptional.

@@ -70,8 +70,7 @@ public class SimpleBinaryMaths
     /**
      * Reference to global list of spectra and plots.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      * First view of spectra.
@@ -390,8 +389,8 @@ public class SimpleBinaryMaths
     {
         try {
             //  Create a memory spectrum to contain the fit.
-            EditableSpecData newSpec = SpecDataFactory.getReference().
-                createEditable( name );
+            EditableSpecData newSpec = SpecDataFactory.getInstance()
+                .createEditable( name );
             newSpec.setData( coords, data );
             globalList.add( newSpec );
 

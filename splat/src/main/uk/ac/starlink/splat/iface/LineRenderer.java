@@ -37,8 +37,7 @@ public class LineRenderer
     /**
      * The global list of spectra and plots.
      */
-    GlobalSpecPlotList globalList = GlobalSpecPlotList.getReference();
-
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     public LineRenderer() 
     {

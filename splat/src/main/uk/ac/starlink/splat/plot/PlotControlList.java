@@ -42,7 +42,7 @@ public class PlotControlList
     /**
      *  Return reference to the only allowed instance of this class.
      */
-    public static PlotControlList getReference()
+    public static PlotControlList getInstance()
     {
         return instance;
     }

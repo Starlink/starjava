@@ -147,8 +147,7 @@ public class LineFitFrame
     /**
      *  Reference to GlobalSpecPlotList object.
      */
-    protected GlobalSpecPlotList globalList =
-        GlobalSpecPlotList.getReference();
+    protected GlobalSpecPlotList globalList = GlobalSpecPlotList.getInstance();
 
     /**
      *  Ranges of data that are to be fitted.
@@ -1108,7 +1107,7 @@ public class LineFitFrame
             boolean created = false;
             if ( constantSpectrum == null ) {
                 constantSpectrum = 
-                    SpecDataFactory.getReference().createEditable( "dummy" );
+                    SpecDataFactory.getInstance().createEditable( "dummy" );
                 created = true;
             }
 
@@ -1144,8 +1143,8 @@ public class LineFitFrame
     {
         //  Create a memory spectrum to contain the fit.
         try {
-            EditableSpecData lineSpec = SpecDataFactory.getReference().
-                createEditable( name );
+            EditableSpecData lineSpec = SpecDataFactory.getInstance()
+                .createEditable( name );
             lineSpec.setData( coords, data );
             lineSpec.setType( SpecData.LINEFIT );
             lineSpec.setUseInAutoRanging( false );

@@ -50,7 +50,7 @@ public class GlobalSpecPlotList
      *
      *  @return reference to the only instance of this class.
      */
-    public static GlobalSpecPlotList getReference()
+    public static GlobalSpecPlotList getInstance()
     {
         return instance;
     }
@@ -58,12 +58,12 @@ public class GlobalSpecPlotList
     /**
      *  Reference to the SpecList object.
      */
-    protected SpecList specList = SpecList.getReference();
+    protected SpecList specList = SpecList.getInstance();
 
     /**
      *  Reference to the PlotControl object.
      */
-    protected PlotControlList plotList = PlotControlList.getReference();
+    protected PlotControlList plotList = PlotControlList.getInstance();
 
 //
 //  Spectra changes interface.
@@ -118,7 +118,7 @@ public class GlobalSpecPlotList
 
     /**
      *  See if a spectrum is already known by a specification 
-     *  (i.e.<!-- --> filename).
+     *  (usually the filename).
      *
      *  @param name name to check.
      *
