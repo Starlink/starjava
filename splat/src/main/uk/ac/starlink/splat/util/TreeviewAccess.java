@@ -36,7 +36,8 @@ public class TreeviewAccess
     {
         // Do the initialisations.
         try {
-            iconFactory = Class.forName("uk.ac.starlink.treeview.IconFactory");
+            iconFactory = 
+                this.getClass().forName("uk.ac.starlink.treeview.IconFactory");
             available = true;
         }
         catch ( ClassNotFoundException e ) {
