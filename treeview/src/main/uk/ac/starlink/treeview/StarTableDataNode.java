@@ -21,7 +21,7 @@ import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.Tables;
-import uk.ac.starlink.table.formats.TextTableBuilder;
+import uk.ac.starlink.table.formats.AsciiTableBuilder;
 import uk.ac.starlink.table.formats.WDCTableBuilder;
 import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
@@ -285,7 +285,7 @@ public class StarTableDataNode extends DefaultDataNode
             };
 
             /* Remove some of the more generic table builders from this
-             * factory.  TextTableBuilder, for instance, tries to build
+             * factory.  AsciiTableBuilder, for instance, tries to build
              * a table from pretty much any stream, and eventually fails
              * only after it's read enough to make sure that it's 
              * definitely not a text-format table.  This would end up doing
@@ -294,7 +294,7 @@ public class StarTableDataNode extends DefaultDataNode
             for ( Iterator it = tabfact.getDefaultBuilders().iterator();
                   it.hasNext(); ) {
                 TableBuilder builder = (TableBuilder) it.next();
-                if ( builder instanceof TextTableBuilder ||
+                if ( builder instanceof AsciiTableBuilder ||
                      builder instanceof WDCTableBuilder ) {
                     it.remove();
                 }
