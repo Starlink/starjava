@@ -405,6 +405,11 @@ class NDFNdxImpl implements NdxImpl {
         NDArray vnda = null;
         NDArray qnda = null;
 
+        /* Check we are being asked about a structure. */
+        if ( ! ndf.datStruc() ) {
+            throw new IllegalArgumentException( "Not a structure" );
+        }
+
         /* In the below we subvert the HDSReference class a bit; we need to
          * use its string handling properties on URLs which are not file:
          * protocol ones, which it wouldn't allow.  So pretend they are
