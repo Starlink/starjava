@@ -492,7 +492,7 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  Add a known spectrum to a plot.
+     *  Add a spectrum to a known plot.
      *
      *  @param plotIndex index of the plot to add spectrum to.
      *  @param spectrum the spectrum to add.
@@ -505,7 +505,20 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  Add a known spectrum to a plot.
+     *  Add a list of spectra to a plot.
+     *
+     *  @param plotIndex index of the plot to add spectra to.
+     *  @param spectra the spectra to add.
+     */
+    public void addSpectra( int plotIndex, SpecData spectra[] )
+        throws SplatException
+    {
+        ((PlotControl)plotList.get( plotIndex )).addSpectra( spectra );
+        firePlotChanged( plotIndex );
+    }
+
+    /**
+     *  Add a spectrum to a plot.
      *
      *  @param plot the plot to add spectrum to.
      *  @param spectrum the spectrum to add.
@@ -514,6 +527,20 @@ public class GlobalSpecPlotList
         throws SplatException
     {
         plot.addSpectrum( spectrum );
+        int index = plotList.indexOf( plot );
+        firePlotChanged( index );
+    }
+
+    /**
+     *  Add a list of spectra to a plot.
+     *
+     *  @param plot the plot to add spectra to.
+     *  @param spectra the spectra to add.
+     */
+    public void addSpectra( PlotControl plot, SpecData spectra[] )
+        throws SplatException
+    {
+        plot.addSpectra( spectra );
         int index = plotList.indexOf( plot );
         firePlotChanged( index );
     }
@@ -534,7 +561,25 @@ public class GlobalSpecPlotList
     }
 
     /**
-     *  Add a known spectrum to a plot.
+     *  Add a list of known spectra to a plot.
+     *
+     *  @param plot the plot to add the spectra to.
+     *  @param specIndices global indices of the spectra.
+     */
+    public void addSpectra( PlotControl plot, int specIndices[] )
+        throws SplatException
+    {
+        SpecData spectra[] = new SpecData[specIndices.length];
+        for ( int i = 0; i < specIndices.length; i++ ) {
+            spectra[i] = getSpectrum( specIndices[i] );
+        }
+        plot.addSpectra( spectra );
+        int index = plotList.indexOf( plot );
+        firePlotChanged( index );
+    }
+
+    /**
+     *  Add a known spectrum to a known plot.
      *
      *  @param plotIndex global index of the plot to add the spectrum to.
      *  @param specIndex global index of the spectrum.
@@ -545,6 +590,24 @@ public class GlobalSpecPlotList
         SpecData spectrum = getSpectrum( specIndex );
         PlotControl plot = getPlot( plotIndex );
         plot.addSpectrum( spectrum );
+        firePlotChanged( plotIndex );
+    }
+
+    /**
+     *  Add a list of known spectra to a known plot.
+     *
+     *  @param plotIndex global index of the plot to add the spectra to.
+     *  @param specIndices global indices of the spectra.
+     */
+    public void addSpectra( int plotIndex, int specIndices[] )
+        throws SplatException
+    {
+        SpecData spectra[] = new SpecData[specIndices.length];
+        for ( int i = 0; i < specIndices.length; i++ ) {
+            spectra[i] = getSpectrum( specIndices[i] );
+        }
+        PlotControl plot = getPlot( plotIndex );
+        plot.addSpectra( spectra );
         firePlotChanged( plotIndex );
     }
 
