@@ -782,27 +782,19 @@
     <mkdir dir="${dist.lib.pkg}"/>
     <zip destfile="${dist.lib.pkg}/${name}_src.zip" basedir="${build.java}"/>
 
-    <!-- Make a jar file of the shareable library. This is used if
-     !   webstart enabled -->
-    <jar destfile="${dist.lib.arch}/${name}_libs.jar"
-         basedir="${dist.lib.arch}" excludes="**/*.jar">
-      <manifest>
-        <attribute name="Built-By" value="${user.name}"/>
-      </manifest>
-    </jar>
+    <!-- Architecture dependent jar files (shareable libraries for
+     !   webstart) -->
+    <copy todir="${dist.lib}">
+       <fileset dir="${src.jars.dir}" includes="**/*.jar **/*.zip"/>
+    </copy>
 
     <!-- Sign all jar files -->
-    <signjar jar="${dist.lib.pkg}/${name}.jar"
-             alias="${webstart.alias}"
+    <signjar alias="${webstart.alias}"
              keystore="${webstart.keystore}"
              keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
-
-    <signjar jar="${dist.lib.arch}/${name}_libs.jar"
-             alias="${webstart.alias}"
-             keystore="${webstart.keystore}"
-             keypass="${webstart.keypass}"
-             storepass="${webstart.storepass}"/>
+             storepass="${webstart.storepass}">
+      <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
+    </signjar>
 
   </target>
 
@@ -858,6 +850,36 @@
 
        <component_desc/>
     </jnlp>
+  </target>
+
+  <!-- 
+   !  ===================================
+   !  Create a shareable library jar file
+   !  ===================================
+   ! 
+   !  This target creates a jar file that contains the shareable
+   !  library for the current architecture. It is intended for use 
+   !  by webstart applications. Copies of this jar file should be
+   !  periodically committed to CVS (in the "src/lib/${arch} directory)
+   !  so that a webstart install can support all the known operating
+   !  systems. 
+   !-->
+  <target name="webstart_jar"
+          depends="build">
+
+    <jar destfile="${dist.lib.arch}/${name}_libs.jar"
+         basedir="${dist.lib.arch}" excludes="**/*.jar">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+
+    <signjar jar="${dist.lib.arch}/${name}_libs.jar"
+             alias="${webstart.alias}"
+             keystore="${webstart.keystore}"
+             keypass="${webstart.keypass}"
+             storepass="${webstart.storepass}"/>
+
   </target>
 
   <!--
