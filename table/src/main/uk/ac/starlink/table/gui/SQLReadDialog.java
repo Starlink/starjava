@@ -36,7 +36,7 @@ public class SQLReadDialog extends SQLDialog implements TableLoadDialog {
         return "Get table as result of an SQL query on a relational database";
     }
 
-    public boolean isEnabled() {
+    public boolean isAvailable() {
         return DriverManager.getDrivers().hasMoreElements();
     }
 

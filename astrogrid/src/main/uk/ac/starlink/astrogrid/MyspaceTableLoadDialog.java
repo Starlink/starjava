@@ -11,7 +11,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.astrogrid.store.tree.Node;
 import org.astrogrid.store.tree.TreeClient;
@@ -39,7 +38,7 @@ public class MyspaceTableLoadDialog extends MyspaceSelector
     private TableConsumer eater_;
     private ComboBoxModel dummyModel_;
     private Boolean success_;
-    private static Boolean isEnabled_;
+    private static Boolean isAvailable_;
 
     private static Logger logger_ = 
         Logger.getLogger( "uk.ac.starlink.astrogrid" );
@@ -67,15 +66,15 @@ public class MyspaceTableLoadDialog extends MyspaceSelector
         return "Load table from files in MySpace";
     }
 
-    public boolean isEnabled() {
-        if ( isEnabled_ == null ) {
+    public boolean isAvailable() {
+        if ( isAvailable_ == null ) {
             String msg = getFailureMessage();
             if ( msg != null ) {
                 logger_.info( msg + " - no MySpace" );
             }
-            isEnabled_ = Boolean.valueOf( msg == null );
+            isAvailable_ = Boolean.valueOf( msg == null );
         }
-        return isEnabled_.booleanValue();
+        return isAvailable_.booleanValue();
     }
 
     public boolean showLoadDialog( Component parent, 

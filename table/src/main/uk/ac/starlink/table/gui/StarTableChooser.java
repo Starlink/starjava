@@ -446,7 +446,7 @@ public class StarTableChooser extends JPanel {
             }
         };
         act.putValue( Action.SHORT_DESCRIPTION, tld.getDescription() );
-        act.setEnabled( tld.isEnabled() );
+        act.setEnabled( tld.isAvailable() );
         return act;   
     }
 

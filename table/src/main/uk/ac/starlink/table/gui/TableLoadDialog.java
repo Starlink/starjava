@@ -30,6 +30,16 @@ public interface TableLoadDialog {
      * is so that the table loading, which may be time-consuming,
      * can be done in a thread other than the event dispatch thread
      * on which this method will have been called.
+     * The {@link LoadWorker} class is provided to assist with this;
+     * the usual idiom for performing the load from the event dispatch
+     * thread within the implementation of this method looks like this:
+     * <pre>
+     *     new LoadWorker( tableConsumer, tableId ) {
+     *         protected StarTable attemptLoad() throws IOException {
+     *             return tableFactory.makeStarTable( ... );
+     *         }
+     *     }.invoke();
+     * </pre>
      *
      * <p>Error conditions during the course of the user interaction by 
      * this method should in general be dealt with by informing the user
@@ -83,5 +93,5 @@ public interface TableLoadDialog {
      *
      * @return  true iff this dialog can be used
      */
-    boolean isEnabled();
+    boolean isAvailable();
 }

@@ -31,7 +31,7 @@ public class NodeLoader implements TableLoadDialog {
         return "Load table using treeview-type browser";
     }
 
-    public boolean isEnabled() {
+    public boolean isAvailable() {
         return nodeChooser_ != null;
     }
 

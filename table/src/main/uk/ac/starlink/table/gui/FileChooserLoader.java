@@ -23,7 +23,7 @@ import uk.ac.starlink.util.FileDataSource;
  */
 public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
 
-    private boolean isEnabled_;
+    private boolean isAvailable_;
     private final JComboBox formatSelector_;
     private final ComboBoxModel dummyModel_;
 
@@ -38,10 +38,10 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
             if ( manager != null ) {
                 manager.checkRead( getCurrentDirectory().toString() );
             }
-            isEnabled_ = true;
+            isAvailable_ = true;
         }
         catch ( SecurityException e ) {
-            isEnabled_ = false;
+            isAvailable_ = false;
         }
 
         /* Customise chooser. */
@@ -75,8 +75,8 @@ public class FileChooserLoader extends JFileChooser implements TableLoadDialog {
         return "Load table from files on the local filesystem";
     }
 
-    public boolean isEnabled() {
-        return isEnabled_;
+    public boolean isAvailable() {
+        return isAvailable_;
     }
 
     public boolean showLoadDialog( Component parent, 
