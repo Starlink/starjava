@@ -904,12 +904,15 @@
           if="testframework.present">
     <mkdir dir="${build.tests}"/>
 
+ <!-- There are currently no tests. -->
+ <!--
     <javac srcdir="${tests.dir}"
            destdir="${build.tests}"
            debug="${debug}"
            deprecation="${deprecation}" >
       <classpath refid="tests-classpath"/>
     </javac>
+ -->
   </target>
 
   <!--
@@ -924,6 +927,8 @@
   <target name="run-tests"
           depends="compile-tests">
 
+ <!-- There are currently no tests -->
+ <!--
     <fail unless="testframework.present"
           message="Test framework is not present"/>
 
@@ -949,6 +954,7 @@
       </batchtest>
 
     </junit>
+ -->
   </target>
 
   <target name="run-single-test"
