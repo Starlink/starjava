@@ -36,19 +36,6 @@ public abstract class DataNodeBuilder {
     public abstract DataNode buildNode( Object obj );
 
     /**
-     * Returns the subclass of DataNode whose instance would be built
-     * if <tt>buildNode</tt> were called on a given object.
-     * This is a best guess, and is allowed to be inaccurate (though best not).
-     * In particular, it does not guarantee that such an object <i>will</i>
-     * be created; a NoSuchDataException might get thrown instead.
-     *
-     * @param   obj  an object which could be presented to <tt>buildNode</tt>
-     * @return  the class of object which would be created, if any
-     */
-    public abstract Class builtType( Object obj );
-
-
-    /**
      * Returns an array of DataNodeBuilder objects which are all the
      * ones that can be found by reflection in the supplied class.
      *
@@ -76,13 +63,11 @@ public abstract class DataNodeBuilder {
                 final Class argClass = argTypes[ 0 ];
                 DataNodeBuilder builder = new DataNodeBuilder() {
                     public String toString() {
-                        return constructor.toString();
+                        return constructor.getName() 
+                             + "(" + argClass.getName() + ")";
                     }
                     public boolean suitable( Class objClass ) {
                         return argClass.isAssignableFrom( objClass );
-                    }
-                    public Class builtType( Object obj ) {
-                        return constructor.getDeclaringClass();
                     }
                     public DataNode buildNode( Object obj ) {
                         Object[] args = new Object[] { obj };
