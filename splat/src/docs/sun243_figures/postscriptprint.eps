@@ -1,0 +1,360 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: (ImageMagick)
+%%Title: (postscriptprint.eps)
+%%CreationDate: (Thu May 20 15:29:31 2004)
+%%BoundingBox: 0 0 24 24
+%%DocumentData: Clean7Bit
+%%LanguageLevel: 1
+%%Pages: 1
+%%EndComments
+
+%%BeginDefaults
+%%EndDefaults
+
+%%BeginProlog
+%
+% Display a color image.  The image is displayed in color on
+% Postscript viewers or printers that support color, otherwise
+% it is displayed as grayscale.
+%
+/DirectClassPacket
+{
+  %
+  % Get a DirectClass packet.
+  %
+  % Parameters:
+  %   red.
+  %   green.
+  %   blue.
+  %   length: number of pixels minus one of this color (optional).
+  %
+  currentfile color_packet readhexstring pop pop
+  compression 0 eq
+  {
+    /number_pixels 3 def
+  }
+  {
+    currentfile byte readhexstring pop 0 get
+    /number_pixels exch 1 add 3 mul def
+  } ifelse
+  0 3 number_pixels 1 sub
+  {
+    pixels exch color_packet putinterval
+  } for
+  pixels 0 number_pixels getinterval
+} bind def
+
+/DirectClassImage
+{
+  %
+  % Display a DirectClass image.
+  %
+  systemdict /colorimage known
+  {
+    columns rows 8
+    [
+      columns 0 0
+      rows neg 0 rows
+    ]
+    { DirectClassPacket } false 3 colorimage
+  }
+  {
+    %
+    % No colorimage operator;  convert to grayscale.
+    %
+    columns rows 8
+    [
+      columns 0 0
+      rows neg 0 rows
+    ]
+    { GrayDirectClassPacket } image
+  } ifelse
+} bind def
+
+/GrayDirectClassPacket
+{
+  %
+  % Get a DirectClass packet;  convert to grayscale.
+  %
+  % Parameters:
+  %   red
+  %   green
+  %   blue
+  %   length: number of pixels minus one of this color (optional).
+  %
+  currentfile color_packet readhexstring pop pop
+  color_packet 0 get 0.299 mul
+  color_packet 1 get 0.587 mul add
+  color_packet 2 get 0.114 mul add
+  cvi
+  /gray_packet exch def
+  compression 0 eq
+  {
+    /number_pixels 1 def
+  }
+  {
+    currentfile byte readhexstring pop 0 get
+    /number_pixels exch 1 add def
+  } ifelse
+  0 1 number_pixels 1 sub
+  {
+    pixels exch gray_packet put
+  } for
+  pixels 0 number_pixels getinterval
+} bind def
+
+/GrayPseudoClassPacket
+{
+  %
+  % Get a PseudoClass packet;  convert to grayscale.
+  %
+  % Parameters:
+  %   index: index into the colormap.
+  %   length: number of pixels minus one of this color (optional).
+  %
+  currentfile byte readhexstring pop 0 get
+  /offset exch 3 mul def
+  /color_packet colormap offset 3 getinterval def
+  color_packet 0 get 0.299 mul
+  color_packet 1 get 0.587 mul add
+  color_packet 2 get 0.114 mul add
+  cvi
+  /gray_packet exch def
+  compression 0 eq
+  {
+    /number_pixels 1 def
+  }
+  {
+    currentfile byte readhexstring pop 0 get
+    /number_pixels exch 1 add def
+  } ifelse
+  0 1 number_pixels 1 sub
+  {
+    pixels exch gray_packet put
+  } for
+  pixels 0 number_pixels getinterval
+} bind def
+
+/PseudoClassPacket
+{
+  %
+  % Get a PseudoClass packet.
+  %
+  % Parameters:
+  %   index: index into the colormap.
+  %   length: number of pixels minus one of this color (optional).
+  %
+  currentfile byte readhexstring pop 0 get
+  /offset exch 3 mul def
+  /color_packet colormap offset 3 getinterval def
+  compression 0 eq
+  {
+    /number_pixels 3 def
+  }
+  {
+    currentfile byte readhexstring pop 0 get
+    /number_pixels exch 1 add 3 mul def
+  } ifelse
+  0 3 number_pixels 1 sub
+  {
+    pixels exch color_packet putinterval
+  } for
+  pixels 0 number_pixels getinterval
+} bind def
+
+/PseudoClassImage
+{
+  %
+  % Display a PseudoClass image.
+  %
+  % Parameters:
+  %   class: 0-PseudoClass or 1-Grayscale.
+  %
+  currentfile buffer readline pop
+  token pop /class exch def pop
+  class 0 gt
+  {
+    currentfile buffer readline pop
+    token pop /depth exch def pop
+    /grays columns 8 add depth sub depth mul 8 idiv string def
+    columns rows depth
+    [
+      columns 0 0
+      rows neg 0 rows
+    ]
+    { currentfile grays readhexstring pop } image
+  }
+  {
+    %
+    % Parameters:
+    %   colors: number of colors in the colormap.
+    %   colormap: red, green, blue color packets.
+    %
+    currentfile buffer readline pop
+    token pop /colors exch def pop
+    /colors colors 3 mul def
+    /colormap colors string def
+    currentfile colormap readhexstring pop pop
+    systemdict /colorimage known
+    {
+      columns rows 8
+      [
+        columns 0 0
+        rows neg 0 rows
+      ]
+      { PseudoClassPacket } false 3 colorimage
+    }
+    {
+      %
+      % No colorimage operator;  convert to grayscale.
+      %
+      columns rows 8
+      [
+        columns 0 0
+        rows neg 0 rows
+      ]
+      { GrayPseudoClassPacket } image
+    } ifelse
+  } ifelse
+} bind def
+
+/DisplayImage
+{
+  %
+  % Display a DirectClass or PseudoClass image.
+  %
+  % Parameters:
+  %   x & y translation.
+  %   x & y scale.
+  %   label pointsize.
+  %   image label.
+  %   image columns & rows.
+  %   class: 0-DirectClass or 1-PseudoClass.
+  %   compression: 0-none or 1-RunlengthEncoded.
+  %   hex color packets.
+  %
+  gsave
+  /buffer 512 string def
+  /byte 1 string def
+  /color_packet 3 string def
+  /pixels 768 string def
+
+  currentfile buffer readline pop
+  token pop /x exch def
+  token pop /y exch def pop
+  x y translate
+  currentfile buffer readline pop
+  token pop /x exch def
+  token pop /y exch def pop
+  currentfile buffer readline pop
+  token pop /pointsize exch def pop
+  /Times-Roman findfont pointsize scalefont setfont
+  x y scale
+  currentfile buffer readline pop
+  token pop /columns exch def
+  token pop /rows exch def pop
+  currentfile buffer readline pop
+  token pop /class exch def pop
+  currentfile buffer readline pop
+  token pop /compression exch def pop
+  class 0 gt { PseudoClassImage } { DirectClassImage } ifelse
+  grestore
+} bind def
+%%EndProlog
+%%Page:  1 1
+%%PageBoundingBox: 0 0 24 24
+userdict begin
+DisplayImage
+0 0
+24 24
+12.000000
+24 24
+1
+0
+0
+64
+ffffff
+ffff00
+e7e7e7
+e7e6e7
+e7e6e6
+e6e7e7
+dcdcdc
+dcdcdb
+dbdbdc
+dbdaff
+dadaff
+dad9ff
+d7d6fd
+d5d4fb
+d3d2f8
+d1d1f7
+cecef4
+cdccf2
+ccccff
+cccccc
+cbcbf1
+cac9ef
+c8c7ed
+c5c5ec
+c1c1e5
+c1c0e5
+c1bfe5
+c0c0e5
+c0bfe5
+bfbfe6
+bebee4
+bebde4
+bdbde3
+bdbce2
+bcbbe2
+bcbbe1
+babae0
+b9b9df
+b8b8de
+b7b7dd
+b4b4da
+b3b3d9
+b2b2b2
+b1b1b1
+b1b1b0
+b1b0d6
+b0b0b0
+aeaed4
+acacd2
+abaad0
+a8a8cd
+a5a5cc
+a3a3ca
+a0a0c7
+a0a0a0
+9a9ac1
+9999bf
+999999
+33cc00
+000000
+ffffff
+ffffff
+ffffff
+ffffff
+3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f
+3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3b3b3b3b3b3b3b3b3b3b3f3f3f3f3f3f3f3f3f
+3f3f3f3f3f3b000000000000003b3b003f3f3f3f3f3f3f3f3f3f3f3f3f3b00273827371d
+3b12003b003f3f3f3f3f3f3f3f3f3f3f3f3b003b3b3b3b2d3b3b3b3b003f3f3f3f3f3f3f
+3f3f3f3f3f3b003b381d3b0c3b093b123b003f3f3f3f3f3f3f3f3f3f3f3b003b272f3b18
+3b3b093b3b003f3f3f3f3f3f3f3f3f3f3f3b003b3b3b1a091a3b3b173b3b003f3f3f3f3f
+3f3f3f3f3f3b003b101a09183b1d3b35273b003f3f3f3f3f3f3f3f3f3f3b003b1d091a09
+3b3b3b27383b003f3f3f3f3f3f3f3f3f3f3b001d091a091d15332738273b003f3f3f3f3f
+3f3f3f3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3f3f3f3f3f3f3b000000000000000000
+00000000000000003b3f3f3f3f3f3b0039133913391336062a022a01013a3a133b003f3f
+3f3f3b00133913391336062a022a0201013a3a393b003f3f3f3f3b003939393939393939
+39393939393939133b003f3f3f3f3b00130000000000000000000000000000393b003f3f
+3f3f3b00391336062a022a022a063613391339133b003f3f3f3f3b001336062a022a022a
+06361339133913393b003f3f3f3f3f3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b003f3f3f
+3f3f3f3f000000000000000000000000000000003f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f
+3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f
+
+end
+%%PageTrailer
+%%Trailer
+%%EOF
