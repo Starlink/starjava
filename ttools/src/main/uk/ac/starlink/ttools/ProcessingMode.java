@@ -6,7 +6,7 @@ import java.util.List;
 import uk.ac.starlink.table.StarTable;
 
 /**
- * Interface defining the final element of a table processing stream -
+ * Interface defining the final element of a table processing pipeline -
  * the one which disposes of the table in some way.
  *
  * @author   Mark Taylor (Starlink)
