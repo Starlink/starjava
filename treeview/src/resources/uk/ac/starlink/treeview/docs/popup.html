@@ -1,0 +1,33 @@
+<html>
+<body>
+<h2>Popup "Alter-ego" menus</h2>
+
+<p>For most of the nodes displayed in the tree you can obtain a 
+popup "alter-ego" menu.  How you do this is platform-dependent,
+but you will typically click with the right mouse button 
+on the name of the node.
+
+<p>Here is an example of the menu you might get from a Starlink NDF file:
+<div>
+<img src="popup.gif"></img>
+</div>
+The top line says 'Reload' and shows the same icon that the node
+already has (indicating an NDF structure).  If you pick this option,
+Treeview will reload the file as an NDF; the purpose of this is so
+that you can update the state of a node in the tree if the file
+it represents has changed since it was first reveealed.
+Reloading a node which represents a directory in this way will
+refresh it with the files in the directory at the time the reload is done.
+
+<p>The other lines give different icons and different kinds of 
+nodes which it can be viewed as.  An NDF can be seen as an HDS 
+structure, or as a Starlink NDX structure, or simply as a normal
+plain file in the directory structure.  So if you pick the bottom
+line on the menu, the NDF icon will disappear from the tree to
+be replaced by a plain icon representing a file, and you will only
+be able to see its size and last modified date.  You can popup
+a menu on this node in turn and change it back into an NDF or 
+into one of the other selections you are given.
+
+</body>
+</html>

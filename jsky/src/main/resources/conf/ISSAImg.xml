@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//JSky//DTD for Catalog Access//EN" "AstroCat.dtd">
+<!--
+  This document describes the query arguments and access method for an astronomical catalog.
+-->
+
+
+ <catalog 
+   id="ISSAImg@OASIS" 
+   name="ISSA Image Service" 
+   description="Accessed via the NASA/IPAC Infrared Science Archive"
+   type="imagesvr"
+   protocol="http"
+   host="irsa.ipac.caltech.edu"
+   path="/cgi-bin/Oasis/ISSAImg/nph-issaimg">
+   <params>
+     <param 
+       id="objstr" 
+       name="Object or location"
+       description="Object name or coordinate string (fairly free-form)."
+       type="radec"/>
+     <param 
+       id="size" 
+       name="Size"
+       units="deg"
+       description="Cropped image size"
+       type="size"/>
+     <param 
+       id="band" 
+       name="Band"
+       description="2MASS band (J, H, or K)"
+       value="12">
+       <options>
+         <option name="12" value="1"/>
+         <option name="25" value="2"/>
+	 <option name="60" value="3"/>
+	 <option name="100" value="4"/>
+       </options>
+     </param>
+   </params>
+ </catalog>
+

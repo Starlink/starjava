@@ -1,0 +1,744 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     06-FEB-2003 (Peter W. Draper):
+ *       Original version.
+ */
+package uk.ac.starlink.splat.iface;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.text.DecimalFormat;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.border.TitledBorder;
+
+import uk.ac.starlink.ast.gui.DecimalField;
+import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.ast.MathMap;
+
+/**
+ * Provides facilities for generating new column values for the data
+ * parts of a spectrum (the values and errors). The basic features are
+ * mappings from the current values using a simple transformation
+ * (offset and scale), or replacement by some special noise function:
+ * rand, gaussian, poisson, or finally some general mathematical
+ * transformation.
+ * <p>
+ * These facilities are provided by the AST MathMap class.
+ *
+ * @author Peter W. Draper
+ * @version $Id$
+ */
+public class DataColumnGenerator
+    extends JFrame
+    implements ChangeListener
+{
+    /**
+     * The spectrum we're about to modify.
+     */
+    protected SpecData specData = null;
+
+    /**
+     * The listener for our change events. XXX extend for more than one.
+     */
+    protected DataColumnGeneratorListener listener = null;
+
+    /**
+     * Content pane of frame.
+     */
+    protected JPanel contentPane = null;
+
+    /**
+     * Actions tool bar.
+     */
+    protected JPanel windowActionBar = new JPanel();
+
+    /**
+     * Close window action button.
+     */
+    protected JButton closeButton = null;
+    protected JButton applyButton = null;
+
+    /**
+     * Menubar and various menus and items that it contains.
+     */
+    protected JMenuBar menuBar = new JMenuBar();
+    protected JMenu fileMenu = new JMenu();
+    protected JMenu helpMenu = new JMenu();
+    protected JMenuItem helpMenuAbout = new JMenuItem();
+
+    /**
+     * The Tabbed pane.
+     */
+    protected JTabbedPane tabbedPane = null;
+
+    /**
+     * Create an instance.
+     */
+    public DataColumnGenerator( SpecData specData,
+                                DataColumnGeneratorListener listener )
+    {
+        contentPane = (JPanel) getContentPane();
+        initUI();
+        HelpFrame.createHelpMenu( "generator", "Help on window",
+                                  menuBar, null );
+        setSize( new Dimension( 450, 350 ) );
+        setTitle( Utilities.getTitle( "Generate column data values" ) );
+        setListener( listener );
+
+        //  Set the SpecData we're taking values from. Note this must
+        //  happen after the interface is generated.
+        setSpecData( specData );
+        setVisible( true );
+    }
+
+    /**
+     * Initialise the user interface.
+     */
+    protected void initUI()
+    {
+        // Main area is a JTabbedPane
+        tabbedPane = new JTabbedPane();
+        addSimple( tabbedPane );
+        addSpecial( tabbedPane );
+        addGeneral( tabbedPane ); 
+
+        // Add an action to close the window (appears in File menu
+        // and action bar).
+        ImageIcon image =
+            new ImageIcon( ImageHolder.class.getResource( "exit.gif" ) );
+        CloseAction closeAction = new CloseAction( "Close", image,
+                                                   "Close window" );
+        closeButton = new JButton( closeAction );
+
+        // Add an action to apply the current generator.
+        image = new ImageIcon( ImageHolder.class.getResource( "accept.gif" ) );
+        ApplyAction applyAction = new ApplyAction( "Apply", image,
+                                                   "Apply current generator" );
+        applyButton = new JButton( applyAction );
+
+
+        windowActionBar.setLayout( new BoxLayout( windowActionBar,
+                                                  BoxLayout.X_AXIS ) );
+        windowActionBar.setBorder( BorderFactory.createEmptyBorder(3,3,3,3) );
+        windowActionBar.add( Box.createGlue() );
+        windowActionBar.add( applyButton );
+        windowActionBar.add( Box.createGlue() );
+        windowActionBar.add( closeButton );
+        windowActionBar.add( Box.createGlue() );
+
+        // Set the the menuBar.
+        setJMenuBar( menuBar );
+
+        // Create and populate the File menu.
+        fileMenu.setText( "File" );
+        menuBar.add( fileMenu );
+        fileMenu.add( closeAction );
+
+        //  Finally add components to main window.
+        contentPane.add( tabbedPane, BorderLayout.CENTER );
+        contentPane.add( windowActionBar, BorderLayout.SOUTH );
+    }
+
+    /**
+     * Set the spectrum we're working on.
+     */
+    public void setSpecData( SpecData specData )
+    {
+        this.specData = specData;
+
+        // Simple page, set data we can operate on.
+        simpleUseData.setEnabled( true );
+        simpleUseErrors.setEnabled( true );
+        if ( ! specData.haveYDataErrors() ) {
+            if ( specialUseErrors.isSelected() ) {
+                simpleUseData.setSelected( true );
+            }
+            simpleUseErrors.setEnabled( false );
+        }
+        
+        // Special page, same reasoning.
+        specialUseData.setEnabled( true );
+        specialUseErrors.setEnabled( true );
+        if ( ! specData.haveYDataErrors() ) {
+            if ( specialUseErrors.isSelected() ) {
+                specialUseData.setSelected( true );
+            }
+            specialUseErrors.setEnabled( false );
+        }
+    }
+
+    /**
+     * Set the listener for our results.
+     */
+    public void setListener( DataColumnGeneratorListener listener )
+    {
+        this.listener = listener;
+    }
+
+    protected JRadioButton simpleUseData = null;
+    protected JRadioButton simpleUseErrors = null;
+    protected JCheckBox isVariance = null;
+    protected DecimalField scaleFactor = null;
+    protected DecimalField zeroPoint = null;
+
+    /**
+     * Create a page of controls for performing a simple
+     * transformation of the existing data and/or error values.
+     */
+    protected void addSimple( JTabbedPane pane )
+    {
+        JPanel panel = new JPanel();
+
+        // Configuration
+        simpleUseData = new JRadioButton( "Use data as source" );
+        simpleUseErrors = new JRadioButton( "Use errors as source" );
+        ButtonGroup simpleDataGroup = new ButtonGroup();
+        simpleDataGroup.add( simpleUseData );
+        simpleDataGroup.add( simpleUseErrors );
+
+        simpleUseData.setToolTipText
+            ( "Result is transformation of the data values from the spectrum");
+        simpleUseErrors.setToolTipText
+            ( "Result is transformation of the data errors from the spectrum");
+
+        isVariance = new JCheckBox( "Result is variance" );
+        isVariance.setSelected( false );
+
+        isVariance.setToolTipText( "Result is a variance not " +
+            "standard deviation (variance=data for poisson stats)" );
+
+        JLabel scaleFactorLabel = new JLabel( "Scale Factor:   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        scaleFactor = new DecimalField( 1.0, 5, decimalFormat );
+
+        scaleFactor.setToolTipText( "Scale part of data*scale+zero" );
+
+        JLabel zeroPointLabel = new JLabel( "Zero Point:   " );
+        decimalFormat = new DecimalFormat();
+        zeroPoint = new DecimalField( 0.0, 5, decimalFormat );
+
+        zeroPoint.setToolTipText( "Zero part of data*scale+zero" );
+
+        //  Layout
+        panel.setLayout( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+        panel.add( simpleUseData, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( simpleUseErrors, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( isVariance, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( scaleFactorLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( scaleFactor, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( zeroPointLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( zeroPoint, gbc );
+        eatLine( panel, gbc );
+
+        //  Eat remaining space to keep packed at top.
+        eatSpare( panel, gbc );
+
+        panel.setBorder( BorderFactory.createTitledBorder
+                         ( "Simple transformation of existing data" ) );
+
+        pane.add( "Simple", panel );
+        simpleUseData.setSelected( true );
+    }
+
+    protected JRadioButton specialUseData = null;
+    protected JRadioButton specialUseErrors = null;
+    protected JRadioButton specialUseNeither = null;
+    protected DecimalField specialMean = null;
+    protected DecimalField specialSigma = null;
+    protected DecimalField specialLower = null;
+    protected DecimalField specialUpper = null;
+    protected JRadioButton specialGauss = null;
+    protected JRadioButton specialPoisson = null;
+    protected JRadioButton specialRandom = null;
+    protected JLabel specialMeanLabel = null;
+    protected JLabel specialSigmaLabel = null;
+    protected JLabel specialLowerLabel = null;
+    protected JLabel specialUpperLabel = null;
+
+    /**
+     * Create a page of controls for performing useful special
+     * functions in a convenient manner (these can also be used by the
+     * general functions too). The special functions only work on a
+     * constant and maybe added, or not to the data or errors.
+     */
+    protected void addSpecial( JTabbedPane pane )
+    {
+        JPanel panel = new JPanel();
+
+        // Configuration
+        specialPoisson = new JRadioButton( "Poisson distribution" );
+        specialGauss = new JRadioButton( "Gaussian distribution" );
+        specialRandom = new JRadioButton( "Random distribution" );
+
+        ButtonGroup specialFunctionGroup = new ButtonGroup();
+        specialFunctionGroup.add( specialPoisson );
+        specialFunctionGroup.add( specialGauss );
+        specialFunctionGroup.add( specialRandom );
+
+        specialPoisson.addChangeListener( this );
+        specialGauss.addChangeListener( this );
+        specialRandom.addChangeListener( this );
+
+        specialUseData = new JRadioButton( "Add to data values" );
+        specialUseErrors = new JRadioButton( "Add to error values" );
+        specialUseNeither = new JRadioButton( "Add to nothing" );
+        ButtonGroup specialDataGroup = new ButtonGroup();
+        specialDataGroup.add( specialUseData );
+        specialDataGroup.add( specialUseErrors );
+        specialDataGroup.add( specialUseNeither );
+
+        specialUseData.setToolTipText
+            ( "Add data values to special function result" );
+        specialUseErrors.setToolTipText
+            ( "Add data errors to special function result" );
+        specialUseNeither.setToolTipText
+            ( "Just use special function result as new column" );
+
+        specialMeanLabel = new JLabel( "Mean value:   " );
+        DecimalFormat decimalFormat = new DecimalFormat();
+        specialMean = new DecimalField( 1.0, 5, decimalFormat );
+        specialMean.setToolTipText
+            ( "Mean value used by special function" );
+
+        specialSigmaLabel = new JLabel( "Standard deviation:   " );
+        decimalFormat = new DecimalFormat();
+        specialSigma = new DecimalField( 1.0, 5, decimalFormat );
+        specialSigma.setToolTipText
+            ( "Standard deviation used by special function" );
+
+        specialLowerLabel = new JLabel( "Lower limit:   " );
+        decimalFormat = new DecimalFormat();
+        specialLower = new DecimalField( 0.0, 5, decimalFormat );
+        specialLower.setToolTipText
+            ( "Lower limit of range for random numbers" );
+
+        specialUpperLabel = new JLabel( "Upper limit:   " );
+        decimalFormat = new DecimalFormat();
+        specialUpper = new DecimalField( 10.0, 5, decimalFormat );
+        specialUpper.setToolTipText
+            ( "Upper limit of range for random number" );
+
+        //  Layout
+        panel.setLayout( new GridBagLayout() );
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+        panel.add( specialPoisson, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+        panel.add( specialGauss, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+        panel.add( specialRandom, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.gridwidth = 1;
+        panel.add( specialUseData, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( specialUseErrors, gbc );
+        panel.add( specialUseNeither, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( specialMeanLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( specialMean, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( specialSigmaLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( specialSigma, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( specialLowerLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( specialLower, gbc );
+        eatLine( panel, gbc );
+
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.0;
+        panel.add( specialUpperLabel, gbc );
+        gbc.anchor = GridBagConstraints.WEST;
+        panel.add( specialUpper, gbc );
+        eatLine( panel, gbc );
+
+        //  Eat remaining space to keep packed at top.
+        eatSpare( panel, gbc );
+
+        panel.setBorder( BorderFactory.createTitledBorder
+                         ( "Special functions" ) );
+
+        pane.add( "Special", panel );
+        specialPoisson.setSelected( true );
+        specialUseNeither.setSelected( true );
+    }
+
+    /**
+     * Create a page of controls for generating data using a general
+     * transformation. The form of these is determined by what an
+     * AstMathMap will process. The available input columns are
+     * "coords", "data" and "errors".
+     */
+    protected void addGeneral( JTabbedPane pane )
+    {
+        JPanel panel = new JPanel();
+        
+        // The controls are simple, here, just allow free-form
+        // statements that should be functions of the available
+        // names.
+        
+        panel.setBorder( BorderFactory.createTitledBorder
+                         ( "General functions" ) );
+
+        pane.add( "General", panel );
+
+    }
+
+    /**
+     * Eat to end of current line using GridBagLayout.
+     */
+    private void eatLine( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add( Box.createHorizontalGlue(), gbc );
+    }
+
+    /**
+     * East spare space at bottom of panel using GridBagLayout.
+     */
+    private void eatSpare( JPanel panel, GridBagConstraints gbc )
+    {
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
+        gbc.weightx = 0.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH    ;
+        panel.add( Box.createVerticalGlue(), gbc );
+    }
+
+    /**
+     *  Close the window.
+     */
+    protected void closeWindow()
+    {
+        this.dispose();
+    }
+
+    /**
+     * Inner class defining Action for closing a window.
+     */
+    protected class CloseAction extends AbstractAction
+    {
+        public CloseAction( String name, Icon icon, String shortHelp )
+        {
+            super( name, icon  );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            closeWindow();
+        }
+    }
+
+    /**
+     * Inner class defining Action for applying the current generator,
+     */
+    protected class ApplyAction extends AbstractAction
+    {
+        public ApplyAction( String name, Icon icon, String shortHelp )
+        {
+            super( name, icon  );
+            putValue( SHORT_DESCRIPTION, shortHelp );
+        }
+
+        /**
+         * Respond to actions from the buttons.
+         */
+        public void actionPerformed( ActionEvent ae )
+        {
+            applyGenerator();
+        }
+    }
+
+    /**
+     * Use the setup of the currently selected page of controls to
+     * generate some data.
+     */
+    protected void applyGenerator()
+    {
+        //  Get current page
+        switch ( tabbedPane.getSelectedIndex() ) {
+            case 0: {
+                // Simple
+                generateSimple();
+            }
+            break;
+            case 1: {
+                // Special
+                generateSpecial();
+            }
+            break;
+            case 2: {
+                // General
+                generateGeneral();
+            }
+            break;
+        }
+    }
+
+    /**
+     * Generate data for simple controls.
+     */
+    protected void generateSimple()
+    {
+        double[] data = null;
+        if ( simpleUseData.isSelected() ) {
+            data = specData.getYData();
+        }
+        else {
+            data = specData.getYDataErrors();
+        }
+        double[] newdata = new double[data.length];
+        double scale = scaleFactor.getDoubleValue();
+        double zero = zeroPoint.getDoubleValue();
+        boolean variance = isVariance.isSelected();
+
+        if ( variance ) {
+            for ( int i = 0; i < data.length; i++ ) {
+                newdata[i] = Math.sqrt( data[i] * scale + zero );
+            }
+        }
+        else {
+            for ( int i = 0; i < data.length; i++ ) {
+                newdata[i] = data[i] * scale + zero;
+            }
+        }
+        listener.acceptGeneratedColumn( newdata );
+    }
+
+    /**
+     * Generate data for special controls.
+     */
+    protected void generateSpecial()
+    {
+        boolean useData = specialUseData.isSelected();
+        boolean useErrors = specialUseErrors.isSelected();
+
+        String[] fwd = new String[1];
+        if ( specialPoisson.isSelected() ) {
+            double mean = specialMean.getDoubleValue();
+            if ( useData ) {
+                fwd[0] = "y=value+poisson(" + mean + ")";
+            }
+            else if ( useErrors ) {
+                fwd[0] = "y=error+poisson(" + mean + ")";
+            }
+            else {
+                fwd[0] = "y=poisson(" + mean + ")";
+            }
+        }
+        else if ( specialGauss.isSelected() ) {
+            double mean = specialMean.getDoubleValue();
+            double sigma = specialSigma.getDoubleValue();
+            if ( useData ) {
+                fwd[0] = "y=value+gauss(" + mean + "," + sigma + ")";
+            }
+            else if ( useErrors ) {
+                fwd[0] = "y=error+gauss(" + mean + "," + sigma + ")";
+            }
+            else {
+                fwd[0] = "y=gauss(" + mean + "," + sigma + ")";
+            }
+        }
+        else if ( specialRandom.isSelected() ) {
+            double lower = specialLower.getDoubleValue();
+            double upper = specialUpper.getDoubleValue();
+            if ( useData ) {
+                fwd[0] = "y=value+rand(" + lower + "," + upper + ")";
+            }
+            else if ( useErrors ) {
+                fwd[0] = "y=error+rand(" + lower + "," + upper + ")";
+            }
+            else {
+                fwd[0] = "y=rand(" + lower + "," + upper + ")";
+            }
+        }
+        double[] newdata = doAstMathMap( fwd );
+        listener.acceptGeneratedColumn( newdata );
+    }
+
+    /**
+     * Generate data for general controls.
+     */
+    protected void generateGeneral()
+    {
+    }
+
+    /**
+     * Apply a general transformation to any of the possible data
+     * sources.
+     */
+    protected double[] doAstMathMap( String[] fwd )
+    {
+        //  Possible input coordinates... (XXX index).
+        String inv[] = { "coord", "value", "error" };
+
+        double[] coord = specData.getXData();
+        double[] value = specData.getYData();
+        double[] error = specData.getYDataErrors();
+
+        //  Generate index vector if needed (cached, look for index token?).
+        //  ....
+
+        //  Create the MathMap with coord, value and error mapping to
+        //  newvalue.
+        MathMap map = new MathMap( 3, 1, fwd, inv );
+
+        //  Do the transform.
+        double[][] in = new double[3][];
+        in[0] = coord;
+        in[1] = value;
+        in[2] = ( error == null ) ? error : value;
+
+        double[][] result = map.tranP( value.length, 3, in, true, 1 );
+        return result[0];
+    }
+
+    //
+    // ChangeListener interface. Some selections change the state of
+    // the interface.
+    //
+    public void stateChanged( ChangeEvent e )
+    {
+        System.out.println( "stateChanged" );
+        Object source = e.getSource();
+        if ( source instanceof JRadioButton ) {
+            JRadioButton j = (JRadioButton) source;
+            if ( j == specialPoisson ) {
+                specialMean.setEnabled( true );
+                specialMeanLabel.setEnabled( true );
+
+                specialSigma.setEnabled( false );
+                specialSigmaLabel.setEnabled( false );
+
+                specialLower.setEnabled( false );
+                specialLowerLabel.setEnabled( false );
+
+                specialUpper.setEnabled( false );
+                specialUpperLabel.setEnabled( false );
+            }
+            else if ( j == specialGauss ) {
+                specialMean.setEnabled( true );
+                specialMeanLabel.setEnabled( true );
+
+                specialSigma.setEnabled( true );
+                specialSigmaLabel.setEnabled( true );
+
+                specialLower.setEnabled( false );
+                specialLowerLabel.setEnabled( false );
+
+                specialUpper.setEnabled( false );
+                specialUpperLabel.setEnabled( false );
+            }
+            else if ( j == specialRandom ) {
+                specialMean.setEnabled( false );
+                specialMeanLabel.setEnabled( false );
+
+                specialSigma.setEnabled( false );
+                specialSigmaLabel.setEnabled( false );
+
+                specialLower.setEnabled( true );
+                specialLowerLabel.setEnabled( true );
+
+                specialUpper.setEnabled( true );
+                specialUpperLabel.setEnabled( true );
+            }
+        }
+    }
+}

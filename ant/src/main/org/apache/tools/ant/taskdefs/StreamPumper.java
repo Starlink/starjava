@@ -104,9 +104,16 @@ public class StreamPumper implements Runnable {
         try {
             while ((length = is.read(buf)) > 0) {
                 os.write(buf, 0, length);
-                try {
-                    Thread.sleep(SLEEP);
-                } catch (InterruptedException e) {}
+
+                //  PWD: removed as this is very slow for large files.
+                //  since the read above blocks until IO is available
+                //  I'm not sure why we also need to sleep (perhaps
+                //  this is needed to see an interrupt on some OSes?).
+                //  If need to put back increase buffer size and
+                //  decrease the sleep time.
+                //try {
+                //    Thread.sleep(SLEEP);
+                //} catch (InterruptedException e) {}
             }
         } catch (Exception e) {
             // ignore

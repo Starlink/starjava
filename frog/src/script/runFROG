@@ -1,0 +1,78 @@
+#!/bin/sh
+#  N.B. the previous line should be blank. 
+#  But not if you want to exec it from Java!
+#+
+#  Name:
+#     runFROG
+
+#  Purpose:
+#     Start the main FROG application.
+
+#  Description:
+#     This script defines the environment necessary to start the FROG
+#     program. FROG should be installed in a standard place, the 
+#     main directory of which (i.e. the one containing this file) should
+#     be identified by the environment variable FROG_DIR. Any arguments
+#     to this script should be the names of any time series to add to the 
+#     stack and then display.
+
+#  Type of Module:
+#     Shell script.
+
+#  Copyright:
+#     Copyright (C) 2001-2002 Central Laboratory of the Research Councils
+
+#  Authors:
+#     AA: Alasdair Allan (Starlink, University of Exeter)
+#     PWD: P.W. Draper (Starlink, Durham University)
+#     {enter_new_authors_here}
+
+#  History:
+#     26-NOV-2002 (AA):
+#        Modified for FROG
+#     01-AUG-2002 (PWD):
+#        Original version.
+#     {enter_further_changes_here}
+
+#  Bugs:
+#     {note_any_bugs_here}
+
+#-
+echo "Starting frog"
+
+#  Locate this script or FROG_DIR to find our jar files etc.
+if test -z "$FROG_DIR"; then
+   FROG_DIR=`dirname $0`
+fi
+echo "FROG_DIR = $FROG_DIR"
+
+# Set the amount of memory that we use for the heap. Increase this
+# if you start getting out of memory errors. Decrease it for smaller 
+# footprint machines.
+if test -z "$frog_MAXMEM"; then
+   frog_MAXMEM=128m
+fi
+
+# Make sure that we get the installed shareable library.
+if test -z "$LD_LIBRARY_PATH"; then
+   LD_LIBRARY_PATH=${FROG_DIR}/../../lib
+else
+   LD_LIBRARY_PATH=${FROG_DIR}/../../lib:${LD_LIBRARY_PATH}
+fi
+export LD_LIBRARY_PATH
+
+#  Locate the application jar file. This is relative to this script or
+#  FROG_DIR.
+
+appjar="$FROG_DIR/../../lib/frog/frog.jar"
+if test ! -f "$appjar"; then
+   echo "Failed to locate the frog application. Please define FROG_DIR"
+   exit
+fi
+
+# Run up the main application. Uses the JVM located by the starjava
+# script
+$FROG_DIR/starjava -mx$frog_MAXMEM $defines \
+                    -jar $appjar \
+                     ${1+"$@"}
+exit

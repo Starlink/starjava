@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!-- Ant build file for toy 'Hello World' java package. -->
+
+<project name="hello" default="build" basedir=".">
+
+  <property name="package.name" value="hello"/>
+
+  <target name="build" 
+          description="-> builds the package and export files">
+
+    <javac srcdir="${basedir}"
+           destdir="${basedir}"/>
+
+    <jar destfile="${package.name}.jar" 
+         basedir="${basedir}">
+      <exclude name="**/.*"/>
+      <exclude name="*.jar"/>
+      <exclude name="*.zip"/>
+      <exclude name="build.xml"/>
+      <manifest>
+        <attribute name="Main-Class" value="uk.ac.starlink.hello.HelloWorld"/>
+      </manifest>
+    </jar>
+
+    <zip destfile="${package.name}_src.zip"
+         basedir="${basedir}">
+      <exclude name="**/.*"/>
+      <exclude name="**/*.class"/>
+      <exclude name="*.jar"/>
+      <exclude name="*.zip"/>
+    </zip>
+    
+  </target>
+
+  <target name="test" 
+          depends="build"
+          description="-> Runs a test of the package">
+    <java fork="true" jar="${package.name}.jar"/>
+  </target>
+
+  <target name="clean"
+          description="-> Removes all built and intermediate files">
+    <delete>
+      <fileset dir="${basedir}">
+        <include name="**/*.class"/>
+        <include name="${package.name}.jar"/>
+        <include name="${package.name}_src.zip"/>
+      </fileset>
+    </delete>
+  </target>
+
+</project>

@@ -1,0 +1,48 @@
+1 SPLAT - a new Spectral Display and Analysis Tool
+
+ SPLAT is a new graphical tool for displaying, comparing and analysing
+ astronomical spectra stored in NDF, FITS and TEXT files. 
+
+ SPLAT can read in many spectra at the same time and then display these
+ as line plots. Each display window (of which there can be many) can
+ be used to view one or several spectra at the same time. Display
+ windows can  be interactively zoomed and scrolled, centered on
+ specific wavelengths, provide continuous coordinate readout, produce
+ printable hardcopy and be configured in many ways. They also provide
+ the basis for interactive analysis facilities. All of these functions
+ are displayed in a visually rich format.
+
+ Currently only an example set of serious analysis facilities are
+ available. These allow the fitting of a polynomial to selected parts
+ of a spectrum and the fitting of Gaussian, Lorentzian and Voigt
+ profiles to emission and absorption lines. Other useful facilities
+ are the ability to "animate" and perform simple mathematical
+ operations on spectra. It is expected that more facilities will be
+ provided in future releases.
+
+ Finally SPLAT is extensible by the use of plugin code and
+ command-line scripts, and can be remotely controlled through a
+ socket-based mechanism.
+
+ To display a spectrum in SPLAT try the following command:
+
+      % splat [spectrum]
+
+  from the C-shell. Further descriptions and help are available in the
+  on-line help system or in Starlink User Note number 243 (SUN/243):
+
+      % showme sun243
+
+  If you have any comments or problems with SPLAT then mail:
+
+      splat@star.rl.ac.uk
+
+  Peter W. Draper (p.w.draper@durham.ac.uk)
+
+  21st December 2001.
+
+
+  ----
+
+  Next version: fixed bug saving spectra to disk files (FITS-FITS, NDF-FITS).
+                updated nom.tam.fits to 0.93

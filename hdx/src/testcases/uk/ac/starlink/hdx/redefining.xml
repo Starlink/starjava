@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<!-- testing:constantly redefining namespaces -->
+
+<rubbish>
+  <ns1:ndx xmlns:ns1='http://www.starlink.ac.uk/HDX'>
+    <ns2:image xmlns:ns2='http://www.starlink.ac.uk/HDX'>
+      file:test1.fits
+    </ns2:image>
+    <ns3:variance
+      ns3:uri='file:test2.fits'
+      xmlns:ns3='http://www.starlink.ac.uk/HDX' />
+  </ns1:ndx>
+
+  <something>
+    <stuff
+      ns4:hdxname='ndx'
+      xmlns:ns4='http://www.starlink.ac.uk/HDX'>
+      <cheesy
+	ns5:hdxname='image'
+	ns5:uri="file:test3.fits"
+	xmlns:ns5='http://www.starlink.ac.uk/HDX'>
+	chewing-gum
+      </cheesy>
+      <wotsit xmlns:ns6='http://www.starlink.ac.uk/HDX'>
+	<thingy ns6:hdxname='quality' ns6:otheratt='comment'>
+	  file:test4.fits
+	</thingy>
+      </wotsit>
+    </stuff>
+  </something>
+
+  <!-- This shouldn't appear, since it's not in the correct namespace -->
+  <ndx>
+    <image uri="nothing"/>
+  </ndx>
+
+  <!-- ...but this one should -->
+  <ndx xmlns="http://www.starlink.ac.uk/HDX">
+    <image uri="test10.fits"/>
+    <variance>
+      test11.fits
+    </variance>
+  </ndx>
+</rubbish>

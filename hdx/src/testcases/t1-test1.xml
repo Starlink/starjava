@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<!-- No namespace declarations at all.  This should probably NOT be
+     acceptable, since if you add the default namespace declaration,
+     then the uri attribute on the variance element suddenly stops
+     being in the same namespace as the other elements, almost
+     certainly changing the semantics. -->
+
+<hdx>
+<ndx>
+<data>file:test1.fits</data>
+<variance uri="file:test2.fits"
+  >file:test3.fits</variance>
+<!--
+<data>http://www.starlink.rl.ac.uk/stuff/n1.fits</data>
+<variance uri="http://www.starlink.rl.ac.uk/stuff/n2.fits"
+  >http://www.starlink.rl.ac.uk/stuff/n3.fits</variance>
+-->
+</ndx>
+</hdx>

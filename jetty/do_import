@@ -1,0 +1,9 @@
+#!/bin/sh -xv
+
+# Import the Jetty docs directory. May want to track these as third
+# party changes. 
+CVS_RSH=ssh
+export CVS_RSH
+cd docs
+cvs  -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
+   import -ko -I! -m "Jetty docs" java/source/jetty/docs Jetty Jetty_Docs_V1

@@ -1,0 +1,77 @@
+/*
+*+
+*  Name:
+*     SlaMap.c
+
+*  Purpose:
+*     JNI implementations of native methods of SlaMap class.
+
+*  Language:
+*     ANSI C.
+
+*  Authors:
+*     MBT: Mark Taylor (Starlink)
+
+*  History:
+*     3-OCT-2001 (MBT):
+*        Original version.
+*-
+*/
+
+/* Header files. */
+#include <stdlib.h>
+#include "jni.h"
+#include "ast.h"
+#include "jniast.h"
+#include "uk_ac_starlink_ast_SlaMap.h"
+
+
+/* Instance methods. */
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_construct(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jint flags            /* Flags */
+) {
+   AstPointer pointer;
+
+   ASTCALL(
+      pointer.SlaMap = astSlaMap( (int) flags, "" );
+   );
+   jniastSetPointerField( env, this, pointer );
+}
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_SlaMap_add(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jCvt,         /* Conversion type string */
+   jdoubleArray jArgs    /* Extra arguments */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *cvt;
+   const double *args;
+
+   if ( jniastCheckNotNull( env, jCvt ) ) {
+      cvt = jniastGetUTF( env, jCvt );
+      if ( jArgs != NULL ) {
+         args = (const double *) 
+                (*env)->GetDoubleArrayElements( env, jArgs, NULL );
+      }
+      else {
+         args = NULL;
+      }
+
+      ASTCALL(
+         astSlaAdd( pointer.SlaMap, cvt, args );
+      )
+
+      jniastReleaseUTF( env, jCvt, cvt );
+      ALWAYS(
+         if ( args != NULL ) {
+            (*env)->ReleaseDoubleArrayElements( env, jArgs, (jdouble *) args, 
+                                                JNI_ABORT );
+         }
+      )
+   }
+}
+/* $Id$ */

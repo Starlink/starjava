@@ -1,0 +1,88 @@
+
+#  N.B. the previous line should be blank.
+#+
+#  Name:
+#     frog_libraries
+
+#  Purpose:
+#     Generate a list of libraries, by full pathname, that are
+#     required for linking the FROG shareable library.
+
+#  Type of Module:
+#     Shell script.
+
+#  Copyright:
+#     Copyright (C) 2001 Central Laboratory of the Research Councils
+
+#  Authors:
+#     AA: Alasdair Allan (Starlink, University of Exeter)
+#     PWD: P.W. Draper (Starlink, Durham University)
+#     {enter_new_authors_here}
+
+#  History:
+#     26-NOV-2002 (AA):
+#        Modified for FROG build.
+#     24-OCT-2001 (PWD):
+#        Original version.
+#     {enter_further_changes_here}
+
+#  Bugs:
+#     {note_any_bugs_here}
+
+#-
+
+#.
+
+#  Get a list of the necessary libraries.
+
+link_libs=`` 
+
+#  Set the list of directories we will search for the libraries.
+#  If this in ADDLIBS first followed by any directories in 
+#  $STARLINK/lib or /star/lib. Decided against LD_LIBRARY_PATH
+#  as this contains things like "/usr/lib" which we don't want to pick
+#  up any libraries from.
+
+library_path=""
+if test "$ADDLIBS" != ""; then
+   library_path="$ADDLIBS "
+fi
+#if test "$LD_LIBRARY_PATH" != ""; then
+#   library_path="${library_path}`echo $LD_LIBRARY_PATH| sed 's/:/ /g'` "
+#fi
+if test "$STARLINK" != ""; then
+   library_path="${library_path}${STARLINK}/lib"
+else
+   library_path="${library_path}/star/lib"
+fi
+
+#  Ok, now create the actual list. The main problem is that libraries
+#  are identified using the "-l" form, whereas we need the full names
+#  to extract the ".o" files. The list also contains a reference to
+#  the AST libraries that we need to remove.
+
+list=""
+for f in $link_libs ""; do
+   case "$f" in
+      -l*grf*)
+         ;;
+      -l*ast*)
+         ;;
+      -l*) 
+         libname="`echo $f | sed 's:-l:lib:'`.a"
+         if test "$libname" != ""; then
+            for d in $library_path; do
+               if test -r $d/$libname; then
+                  list="${list}$d/$libname "
+                  break
+               fi
+            done
+         fi
+         ;;
+   esac
+done
+
+#  Return the list of libraries.
+echo $list
+
+#  End of script.

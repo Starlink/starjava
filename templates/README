@@ -1,0 +1,18 @@
+This set of directories is intended to contain template files for 
+the various types of packages. Currently these are just build files
+for application, class library and third-party libraries.
+
+Start with these when adding a new package. The least complete
+(i.e. most likely to change) is the application build file. This
+doesn't support the full range of features (mostly the additional
+files that are carried around, like javahelp). 
+
+If you need to add JNI support (but you shouldn't), then check out 
+the packages that do this already (SPLAT, JNIAST and JNIHDS).
+
+Also if you don't see a feature in the templates, then look at the
+more complete examples in the full packages.
+
+Peter W. Draper.
+
+17-Jul-2002

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Test script to test all of the target units.
+# 
+# $Id: logtest,v 1.1 2001/01/22 20:30:15 gillies Exp $
+
+TOP=../..
+. ${TOP}/conf/config.sh
+
+CLASS=jsky.util.Logger
+
+exec java ${JVMFLAGS} -cp ${CLASSPATH} ${CLASS} ${@+"$@"}

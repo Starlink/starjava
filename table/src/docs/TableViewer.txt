@@ -1,0 +1,69 @@
+The table package currently contains the GUI application which can
+read, view and save tables - basically, a wrapper around JTable 
+display which uses the facility of the StarTable package for data access.
+
+The application is currently installed as the script java/bin/startab
+(suggestions for a better name are encouraged)
+which will work on unix installations.  To get it to work on MS
+operating systems you could try invoking (e.g. click on) the 
+lib/table/table.jar jarfile (but see below).
+
+This will work as it stands for FITS tables and VOTables.
+For JDBC tables, some JDBC setup must be done outside of the application.
+Obviously, you need a database to connect to and a JDBC driver for starters.
+You also need to register the drivers with the DriverManager and
+ensure that java knows where to load the relevant classes.
+
+I do this by:
+ 
+  (a)  adding the following line to my "~/starjava.properties" file:
+
+          jdbc.drivers=com.mysql.jdbc.Driver
+
+  (b)  ensuring that the mysql-connector-java-3.0.6-stable-bin.jar file
+       which contains that class is included in my CLASSPATH environment
+       variable.
+
+Since your CLASSPATH variable is ignored when you invoke a jar file
+directly (java -jar or clicking on it in MS Windows), 
+I don't currently know how you could use JDBC in the table
+viewer by invoking the jar file directly.  This may mean that a 
+custom script is required on MS operating systems (I don't know how
+to write it a generic one).
+
+Table locations can be specified in the load/save dialogs, or on the
+command line.  A URL-like format is used in which characters after 
+a "#" character specify a sublocation in the file (or whatever it is).
+The format is:
+
+   JDBC:
+      <URL-for-JDBC-connection>#<sql-query-text>
+
+
+   FITS:
+      <URL-or-filename-of-FITS-file>[#<hdu-index>]
+         - primary HDU is 0, first extension is 1
+         - if #<hdu-index> is absent it picks up the first table extension
+         
+
+   VOTable:
+      <URL-or-filename-of-VOTable-document>[#<table-index>]
+         - tables are indexed in a breadth-first way, first table found is 0;
+         - if #<table-index> is absent it picks up the first TABLE element
+         - eventually <table-index> ought to be replaced by an XPath query
+ 
+
+File load/save dialogs specially for JDBC and file tables are provided
+which should make life easier.
+
+So you can start the viewer up, for instance, with:
+
+    java/bin/startab http://www.star.bris.ac.uk/~mbt/data/tables.fit#1 \
+                     http://www.star.bris.ac.uk/~mbt/data/fitsjob.xml.gz \
+                     /home/data/table.fits \
+                     jdbc:mysql://localhost/astro1#"SELECT * FROM swaa"
+
+(the first two of these are URLs which actually exist - the others
+are examples, obviously).
+
+          

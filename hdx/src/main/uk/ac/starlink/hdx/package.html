@@ -1,0 +1,341 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<!--
+
+  $Id$
+
+-->
+</head>
+<body>
+Provides the structuring for the HDX system.
+
+<p>This is the package which defines the structure of the HDX system,
+registers new types, and is responsible for managing the 
+implementations of the various factories required.</p>
+
+<p>HDX is defined as a DOM.  This does not mean that an HDX object
+necessarily <em>is</em> a DOM -- it could be represented as a Source,
+as a SAX stream, or ultimately not in an XML form at all -- however,
+it is defined using DOM terminology, and all operations on it are
+representable in those terms.</p>
+
+<p>An HDX is a DOM {@link org.w3c.dom.Document} node,
+which has a document element of type <code>&lt;hdx&gt;</code>, which
+in turn contains other elements of <a href="#hdxtypes" >registered
+types</a>.  HDX does not define or constrain these other types
+(instead providing facilities for <a href="#newtypes" >defining
+them</a>), other than to require that they be defined in DOM terms.
+<!--
+The structure and semantics of these other types are defined using DOM
+terminology, and they are always representable as a DOM, and are
+navigable, manipulable, and in some cases modifiable, using that
+DOM.-->
+</p>
+
+<p>The types are not generally processable using the DOM, however, and
+so they must be transformed into a Java object before work can be done
+on them.  This transformation may involve significant (one-time) work,
+if the object has to be assembled from information in the DOM, or it
+may be trivial, if the DOM in fact mirrors some underlying object.
+During processing, the object will generally be manipulated using some
+interface defined as part of the resulting Java object's
+specification.</p>
+
+<h2 name="hdxtypes">HDX types</h2>
+
+<p>All important elements in the HDX DOM correspond to types
+registered with the HDX system.  Only those elements which correspond
+to registered types can be constructed as Java objects.  However, not
+all elements must be registered -- elements which are embedded within
+important types, and which do not have to be children of the
+<code>&lt;hdx&gt;</code> element, do not have to be registered or have
+handlers.</p>
+
+<p>Types are registered by creating an instance of class
+{@link uk.ac.starlink.hdx.HdxResourceType}, using the static method
+{@link uk.ac.starlink.hdx.HdxResourceType#newHdxResourceType newHdxResourceType}.
+See <a href="#newtypes" >below</a> for an example.</p>
+
+<h2>Important classes and interfaces</h2>
+
+<p>The two core classes in the Hdx package are:</p>
+<dl>
+
+<dt>{@link uk.ac.starlink.hdx.HdxResourceType}</dt>
+<dd>Instances of this define the types known to Hdx.  These instances
+encapsulate type information, including the methods which check
+type-validity of Hdx objects.</dd>
+
+<dt>{@link uk.ac.starlink.hdx.HdxFactory}</dt>
+<dd>This is the gateway to the Hdx system.  This class marshalls the various
+factories responsible for creating objects and the DOM representations 
+of them, and is responsible for normalising and validating files which
+purport to be Hdx instances.</dd>
+</dl>
+
+<p>The most important interfaces are:
+
+<dl>
+<dt>{@link uk.ac.starlink.hdx.HdxContainer}</dt>
+<dd>This is the type which represents an Hdx object
+as a whole.  The first stage of processing a data object is to turn it
+from its original form -- a FITS or XML file, perhaps, or an object on
+the network -- into a <code>HdxContainer</code>.  <code>HdxFactory</code> is
+what achieves this, possibly with the background help of an
+<code>HdxDocumentFactory</code>.</dd>
+
+<dt>{@link uk.ac.starlink.hdx.HdxFacade}</dt>
+<dd>This is how a Java class represents itself to the DOM world.  See
+below.</dd>
+
+</dl>
+
+<p>The most important interfaces <em>for implementors</em> are:
+
+<dl>
+<dt>{@link uk.ac.starlink.hdx.HdxDocumentFactory}</dt>
+
+<dd>Implementations of <code>HdxDocumentFactory</code> are what
+constructs <code>HdxContainer</code>s from URIs and URLs.  A class
+which is able to construct 
+a DOM from a particular class of URL -- such as a URL pointing to a
+FITS file, for example -- registers a <code>HdxDocumentFactory</code>
+instance with <code>HdxFactory</code>'s {@link
+uk.ac.starlink.hdx.HdxFactory#registerHdxDocumentFactory
+registerHdxDocumentFactory}: when <code>HdxFactory</code> is asked to
+construct a DOM by a call to its {@link
+uk.ac.starlink.hdx.HdxFactory#newHdxContainer newHdxContainer} methods,
+it works through the list of registered factories until one of them
+successfully constructs the DOM.  The methods of this interface are
+not called directly by client code, but are implemented by those
+adding new file formats (such as FITS or HDS, say) to the Hdx system.</dd>
+
+<dt>{@link uk.ac.starlink.hdx.HdxResourceFactory}</dt>
+<dd>Implementations of the
+<code>HdxResourceFactory</code> type are responsible for exposing a DOM 
+element as a Java object.  The methods of this interface are not
+called directly by client code, but are implemented by those adding
+new types (such as Weather, say) to the Hdx system.</dd>
+
+<dt>{@link uk.ac.starlink.hdx.HdxFacade}</dt>
+<dd>This is the interface through which a Java object makes itself
+visible in DOM/Source terms.  Interfaces such as {@link
+uk.ac.starlink.ndx.Ndx} or {@link uk.ac.starlink.array.NDArray} have a
+<code>getHdxFacade</code> method.  This can be incorporated into a DOM
+based on {@link uk.ac.starlink.hdx.HdxDocument} by using that class's extension method
+{@link uk.ac.starlink.hdx.HdxDocument#createElement(HdxFacade)}: the
+resulting element behaves exactly like a <code>org.w3c.dom</code>
+element, except that all its DOM-building (and optionally
+DOM-mutating) methods are handled by the <code>HdxFacade</code>, which
+knows exactly the state of the underlying object, and which can <em>return</em>
+the underlying object particularly easily.</dd>
+
+</dl>
+
+<p>The <code>HdxContainer</code>interface is used by most code which
+wants to use Hdx objects.  The two factory interfaces are <em>not</em>
+used by client code, but exist in order to be implemented by those
+extending the system.</p>
+
+<h2 a name="namespaces">Namespaces</h2>
+
+<p>Hdx objects may be synthesized from binary data files such as HDS
+or FITS files, or else they may be extracted from the DOMs constructed from
+XML files.  If the thing (Element or URI) passed to method 
+{@link uk.ac.starlink.hdx.HdxFactory#newHdxContainer newHdxContainer}
+corresponds to a registered Hdx type and it is in no namespace, then
+the input DOM is processed as you might expect.</p>
+
+<p>The factory can also process elements in a more sophisticated way.
+If the element passed to <code>newHdxContainer</code> does not
+correspond to a registered type, or it is in the Hdx namespace, then
+the method will examine <em>only</em> those elements and attributes in
+the Hdx namespace
+(see W3C <a href="http://www.w3.org/TR/REC-xml-names/" >namespaces
+spec</a>).  This means that the Hdx information is able to be carried
+inside another unrelated XML file, invisible to a namespace-aware
+processor examinging only the `background' XML.</p>
+
+<p>The Hdx namespace is defined to be
+<code>http://www.starlink.ac.uk/HDX</code>, which string is accessible 
+as
+{@link uk.ac.starlink.hdx.HdxResourceType#HDX_NAMESPACE}.  The Hdx DOM
+which is constructed from such an input element contains only the
+Hdx-registered elements, in no namespace, so that users of the DOM do
+not have to worry about the occasionally subtle details of namespace
+processing.  Thus the XML file</p>
+
+<pre>
+    &lt;rubbish xmlns:x="http://www.starlink.ac.uk/HDX">
+      &lt;x:hdx>
+        &lt;x:ndx>
+          &lt;x:data uri="file:/tmp/mydata.sdf"/>
+        &lt;/x:ndx>
+      &lt;/x:hdx>
+    &lt;/rubbish>
+</pre>
+
+<p>is transformed into the simpler DOM</p>
+
+<pre>
+    &lt;hdx>
+      &lt;ndx>
+        &lt;data uri="file:/tmp/mydata.sdf"/>
+      &lt;/ndx>
+    &lt;/hdx>
+</pre>
+
+<p>Changes made to the attributes in this transformed DOM are
+reflected in the original DOM.</p>
+
+<p>Further transformations happen when a DOM is imported into
+Hdx.  Firstly, the attribute `<code>name</code>' in the Hdx namespace 
+is transformed into an element with that name.  Secondly, if an
+Hdx type has a `hoist' attribute defined (see
+{@link uk.ac.starlink.hdx.HdxResourceType#setHoistAttribute setHoistAttribute}),
+then any text content of the element will be hoisted up to form the
+content of that hoist attribute.  Finally, if the Hdx DOM which
+results from this does not have <code>&lt;hdx&gt;</code> as its top
+element, but instead an element which is a valid child of
+<code>&lt;hdx&gt;</code>, then it is inserted into a
+<code>&lt;hdx&gt;</code> element.  Thus</p>
+
+<pre>
+    &lt;mystructure>
+      &lt;mypointer x:name="ndx" xmlns:x="http://www.starlink.ac.uk/HDX">
+        mydata.sdf
+      &lt;/mypointer>
+    &lt;/mystructure>
+</pre>
+
+<p>is transformed into</p>
+
+<pre>
+    &lt;hdx>
+      &lt;ndx uri="mydata.sdf"/>
+    &lt;/hdx>
+</pre>
+
+<p>and processed accordingly.</p>
+
+<p>If you are <em>particularly</em> familiar with the W3C Namespaces
+spec, then you will have objected that the `<code>uri</code>'
+attribute in the first example was formally in <em>no</em> namespace,
+and should not therefore have been processed.  This is true, but it is
+so unhelpfully counter-intuitive that as a special case, the
+normalisation process described here processes such no-namespace
+attributes in the Hdx namespace <em>if</em> the element is itself in
+the Hdx namespace, as is the case in the example above.</p>
+
+<h2>Usage: reading XML and other files</h2>
+
+<p>Use
+<code>{@link uk.ac.starlink.hdx.HdxFactory}.{@link uk.ac.starlink.hdx.HdxFactory#getInstance getInstance()}.{@link uk.ac.starlink.hdx.HdxFactory#newHdxContainer(java.net.URI)
+newHdxContainer(URI)}</code> to extract HDX objects from URIs, and
+method
+{@link uk.ac.starlink.hdx.HdxFactory#newHdxContainer(org.w3c.dom.Element) newHdxContainer(Element)}
+to extract Hdx objects from DOMs, using the namespace mechanism
+described <a href="#namespaces">above</a>.</p>
+
+<h2 name="newtypes">Usage: defining new types</h2>
+
+<p>To define a new type, you must create a new
+{@link uk.ac.starlink.hdx.HdxResourceType}, using method
+{@link uk.ac.starlink.hdx.HdxResourceType#newHdxResourceType}, and then act
+on the resulting object to register validators and constructors.  For
+example, the (very simple) definition of the
+{@link uk.ac.starlink.hdx.HdxResourceType#TITLE} object consists of:</p>
+
+<pre>
+     TITLE = HdxResourceType.newHdxResourceType("title");
+     TITLE.setHoistAttribute("value");
+     TITLE.setElementValidator(new ElementValidator() {
+         public boolean validateElement(Element el) {
+             // A TITLE element is valid if it has an attribute "value"
+             return HdxResourceType.match(el) == TITLE
+                 && el.hasAttribute(TITLE.getHoistAttribute());
+         }
+     });
+</pre>
+<p>The hoist attribute means that, as described in the <a
+href="#namespaces">namespaces</a> section above, the element
+<code>&lt;title&gt;My title&lt;/title&gt;</code> is equivalent to the
+normalised form <code>&lt;title value="My title"/&gt;</code>.</p>
+
+<p>The {@link uk.ac.starlink.hdx.HdxResourceType#HDX} type has a somewhat more
+complicated validator, plus the assertion</p>
+
+<pre>
+     HDX.setConstructedClass("uk.ac.starlink.hdx.HdxContainer");
+</pre>
+
+<p>that constructed (Java) objects must be instances of the
+{@link uk.ac.starlink.hdx.HdxContainer} interface.</p>
+
+<p>This creation and registration code is located in the static
+initialiser of a suitable class.  This registration is therefore
+performed whenever this class is loaded and initialised.  That happens
+whenever an object of that class is created, or a static method
+invoked.  The class may also be loaded explicitly by declaring some
+properties, as described in {@link uk.ac.starlink.hdx.HdxResourceType}.</p>
+
+<p>New types may be declared in their own package, or in the package
+<code>uk.ac.starlink.hdx.extension</code>; non-Starlink types should
+<em>not</em> be declared in the <code>uk.ac.starlink.hdx</code>
+package, nor in any other package with prefix <code>uk.ac.starlink</code>.</p>
+
+<p>For an example of a simple class, see the sample class
+<code>SimpleWeather.java</code>, included in the distribution.</p>
+
+<h2>Usage: adding new file formats</h2>
+
+<p>To add a new file format which can be given a DOM interface, you
+must create a class which implements {@link
+uk.ac.starlink.hdx.HdxDocumentFactory}, which turns a URL into a DOM
+Document.</p>
+
+<p>Such extending classes are registered with the Hdx system using
+{@link uk.ac.starlink.hdx.HdxFactory#registerHdxDocumentFactory}, by a mechanism which is
+described in the {@link uk.ac.starlink.hdx.HdxFactory} class documentation.</p>
+
+<p>These factories can be arbitrarily clever.  They can either create
+a simple DOM and wait for the work of reading the file to be done by
+the constructors registered with the type using
+{@link uk.ac.starlink.hdx.HdxResourceType#registerHdxResourceFactory}, or else the factory can construct the
+object, using a class which implements the {@link uk.ac.starlink.hdx.HdxFacade}
+interface, and then create an Element which uses that facade using
+{@link uk.ac.starlink.hdx.HdxDocument#createElement(HdxFacade)}.  For
+further details about this route, including an example, see the {@link
+uk.ac.starlink.hdx.HdxDocumentFactory} documentation.</p>
+
+<p>That covers construction of a complete Hdx DOM from a URI.
+However, you should also handle, if appropriate, a reference to your
+new file format from within a DOM.  In the case of the Ndx type, that
+can be done with a construction such as</p>
+
+<pre>
+     ndxType.registerHdxResourceFactory(new HdxResourceFactory() {
+         public Object getObject(Element el)
+                 throws HdxException {
+             return new BridgeNdx(new DomNdxImpl(el));
+         }
+     });
+</pre>
+
+<p>where <code>ndxType</code> is the <code>HdxResourceType</code>
+object which this initialiser has obtained either from
+<code>HdxResourceType.match("ndx")</code> or, preferably, from its
+initialisation of the Ndx type using <code>newHdxResourceType</code>.
+The class <code>DomNdxImpl</code> is a class which is private to the
+Ndx package.</p>
+
+<h2>Related Documentation</h2>
+
+<p>See the 
+<a href="http://www.starlink.ac.uk" >Starlink web pages</a>.
+
+<!-- Put @see and @since tags down here. -->
+
+</body>
+</html>
