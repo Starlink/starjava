@@ -7,11 +7,11 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.io.IOException;
 import java.util.Hashtable;
-import javax.swing.table.TableModel;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.DefaultValueInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
@@ -30,7 +30,7 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class SyntheticColumn extends ColumnData {
 
-    private ExtendedStarTableModel stmodel;
+    private StarTable stable;
     private String expression;
     private CompiledExpression compEx;
     private JELRowReader rowReader;
@@ -47,7 +47,7 @@ public class SyntheticColumn extends ColumnData {
      * applied to a table.
      *
      * @param  vinfo  template for the new column
-     * @param  stmodel the table model which supplies the other columns 
+     * @param  stable the StarTable which supplies the other columns 
      *         which can appear in the expression
      * @param  expression  algebraic expression for the value of this
      *         column
@@ -55,11 +55,11 @@ public class SyntheticColumn extends ColumnData {
      *         primitive wrapper types or String.class.  If <tt>null</tt>
      *         a suitable class is chosen automatically.
      */
-    public SyntheticColumn( ValueInfo vinfo, ExtendedStarTableModel stmodel, 
+    public SyntheticColumn( ValueInfo vinfo, StarTable stable, 
                             String expression, Class resultType )
             throws CompilationException {
         super( vinfo );
-        this.stmodel = stmodel;
+        this.stable = stable;
         setExpression( expression, resultType );
     }
 
@@ -80,7 +80,7 @@ public class SyntheticColumn extends ColumnData {
 
         /* Make sure we have an up-to-date RowReader (recent changes in the
          * table model may have invalidated it). */
-        rowReader = new JELRowReader( stmodel );
+        rowReader = new JELRowReader( stable );
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
@@ -115,7 +115,7 @@ public class SyntheticColumn extends ColumnData {
      * @return   a library
      */
     private Library getLibrary() {
-        Class[] staticLib = new Class[] { Math.class };
+        Class[] staticLib = new Class[] { Math.class, Float.class };
         Class[] dynamicLib = new Class[] { JELRowReader.class };
         Class[] dotClasses = new Class[] { String.class };
         DVMap resolver = rowReader;

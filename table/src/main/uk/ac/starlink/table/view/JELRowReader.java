@@ -2,7 +2,7 @@ package uk.ac.starlink.table.view;
 
 import gnu.jel.DVMap;
 import java.io.IOException;
-import javax.swing.table.TableModel;
+import uk.ac.starlink.table.StarTable;
 
 /**
  * An object which is able to read cell values by column name.
@@ -21,25 +21,25 @@ import javax.swing.table.TableModel;
 public class JELRowReader extends DVMap {
 
     private long lrow;
-    private ExtendedStarTableModel stmodel;
+    private StarTable stable;
 
     /**
-     * Constructs a new row reader for a given TableModel. 
+     * Constructs a new row reader for a given StarTable. 
      * Note that this reader cannot become aware of changes to the 
      * column model used by this model; in the event of changes to the
      * column usage in the table this object should be discarded and
      * a new one created.
      *
-     * @param  stmodel  the table model this reader will read from
+     * @param  stabld  the StarTable this reader will read from
      */
-    public JELRowReader( ExtendedStarTableModel stmodel ) {
-        this.stmodel = stmodel;
+    public JELRowReader( StarTable stable ) {
+        this.stable = stable;
     }
 
     /**
      * Sets the table row to which property evaluations will refer.
      * Note that this row refers to the row in the underlying columns in
-     * the ExtendedStarTableModel, rather than the row of the model 
+     * the StarTable, rather than the row of the model 
      * view itself, which may be under the influence of a row permutation.
      *
      * @param  lrow  the row index
@@ -51,7 +51,7 @@ public class JELRowReader extends DVMap {
     public String getTypeName( String name ) {
         int icol = getColumnIndex( name );
         if ( icol >= 0 ) {
-            Class clazz = stmodel.getColumnClass( icol );
+            Class clazz = stable.getColumnInfo( icol ).getContentClass();
             if ( clazz.equals( Boolean.class ) ) {
                 return "Boolean";
             }
@@ -148,8 +148,9 @@ public class JELRowReader extends DVMap {
     * @return  column index, or -1 if the column was not known
     */
    private int getColumnIndex( String name ) {
-        for ( int icol = 0; icol < stmodel.getColumnCount(); icol++ ) {
-            if ( stmodel.getColumnName( icol ).equalsIgnoreCase( name ) ) {
+        for ( int icol = 0; icol < stable.getColumnCount(); icol++ ) {
+            if ( stable.getColumnInfo( icol ).getName()
+                       .equalsIgnoreCase( name ) ) {
                 return icol;
             }
         }
@@ -173,7 +174,7 @@ public class JELRowReader extends DVMap {
      */
     private Object getValue( int icol ) {
         try {
-            return stmodel.getColumnData( icol ).readValue( lrow );
+            return stable.getCell( lrow, icol );
         }
         catch( IOException e ) {
             e.printStackTrace();

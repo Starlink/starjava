@@ -9,7 +9,7 @@ import uk.ac.starlink.table.ColumnInfo;
  * This simple extension to <tt>TableColumn</tt> provides a constructor
  * and an accessor which reference the 
  * {@link uk.ac.starlink.table.ColumnInfo} object 
- * associated with a table colum.  The renderers and column headings etc
+ * associated with a table column.  The renderers and column headings etc
  * used by this column are based by default on the characteristics of
  * the associated <tt>ColumnInfo</tt>.
  *

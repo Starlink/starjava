@@ -12,8 +12,6 @@ import uk.ac.starlink.table.ValueInfoMapGroup;
 import uk.ac.starlink.table.gui.MapGroupTableModel;
 import uk.ac.starlink.table.gui.MultilineJTable;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -22,16 +20,16 @@ import uk.ac.starlink.util.MapGroup;
 public class ColumnInfoWindow extends AuxWindow {
 
     private JTable jtab;
-    private TableColumnModel tcmodel;
-    private ExtendedStarTableModel stmodel;
+    private PlasticStarTable dataModel;
+    private TableColumnModel columnModel;
 
     private static final String COLID_KEY = "$ID";
 
-    public ColumnInfoWindow( ExtendedStarTableModel stmodel, 
-                             TableColumnModel tcmodel, Component parent ) {
-        super( "Table Columns", stmodel, parent );
-        this.tcmodel = tcmodel;
-        this.stmodel = stmodel;
+    public ColumnInfoWindow( PlasticStarTable dataModel, 
+                             TableColumnModel columnModel, Component parent ) {
+        super( "Table Columns", dataModel, parent );
+        this.dataModel = dataModel;
+        this.columnModel = columnModel;
 
         /* Construct a JTable and place it in this component. */
         jtab = new MultilineJTable();
@@ -49,7 +47,7 @@ public class ColumnInfoWindow extends AuxWindow {
          * in this window.  A more efficient implementation would be 
          * possible if each separate event (column add/move/remove) were
          * dealt with specially, but it's not worth the additional effort. */
-        tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
+        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 reconfigure();
             }
@@ -75,18 +73,17 @@ public class ColumnInfoWindow extends AuxWindow {
         /* Set up a MapGroup to handle the column metadata in this table. */
         ValueInfoMapGroup mg = new ValueInfoMapGroup();
         mg.getKeyOrder().add( 1, COLID_KEY );
-        StarTable apptab = TableViewer.getApparentStarTable( tcmodel, stmodel );
-        mg.addColumnAuxDataKeys( apptab );
+        mg.addColumnAuxDataKeys( dataModel );
 
         /* Add the metadata for each of the columns. */
-        int ncol = tcmodel.getColumnCount();
+        int ncol = columnModel.getColumnCount();
         for ( int i = 0; i < ncol; i++ ) {
-             StarTableColumn tcol = (StarTableColumn) tcmodel.getColumn( i );
              int index = i + 1;
-             int id = tcol.getModelIndex() + 1;
-             Map map = ValueInfoMapGroup.makeMap( tcol.getColumnInfo() );
+             int modelIndex = columnModel.getColumn( i ).getModelIndex();
+             Map map = ValueInfoMapGroup
+                      .makeMap( dataModel.getColumnInfo( modelIndex ) );
              map.put( ValueInfoMapGroup.INDEX_KEY, new Integer( index ) );
-             map.put( COLID_KEY, "$" + id );
+             map.put( COLID_KEY, "$" + ( modelIndex + 1 ) );
              mg.addMap( map );
         }
            

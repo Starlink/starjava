@@ -24,7 +24,6 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.table.gui.StarTableModel;
 
 /**
  * Top level window which presents plots derived from a <tt>StarTable</tt>.
@@ -35,7 +34,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
  */
 public class PlotWindow extends AuxWindow implements ActionListener {
 
-    private ExtendedStarTableModel stmodel;
+    private StarTable stable;
     private TableColumnModel tcmodel;
     private JComboBox xColBox;
     private JComboBox yColBox;
@@ -48,14 +47,14 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * Constructs a PlotWindow for a given <tt>TableModel</tt> and 
      * <tt>TableColumnModel</tt>.
      *
-     * @param   stmodel  the StarTableModel from which to plot columns
-     * @param   tcmodel  the TableColumn
+     * @param   stable  the StarTable which to plot columns
+     * @param   tcmodel  the TableColumnModel
      * @param   parent  the parent component
      */
-    public PlotWindow( ExtendedStarTableModel stmodel, TableColumnModel tcmodel,
+    public PlotWindow( StarTable stable, TableColumnModel tcmodel,
                        Component parent ) {
-        super( "Table Plotter", stmodel, parent );
-        this.stmodel = stmodel;
+        super( "Table Plotter", stable, parent );
+        this.stable = stable;
         this.tcmodel = tcmodel;
 
         /* Do some window setup. */
@@ -131,22 +130,26 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
 
-        /* Arrange for changes in relevant parts of the table data itself 
-         * to cause a replot (this liveness of the plot should perhaps
-         * be optional for performance reasons and just so that you know
-         * where you are? */
-        stmodel.addTableModelListener( new TableModelListener() {
-            public void tableChanged( TableModelEvent evt ) {
-                int icol = evt.getColumn();
-                if ( evt.getFirstRow() == TableModelEvent.HEADER_ROW ||
-                     icol == TableModelEvent.ALL_COLUMNS ||
-                     icol == lastState.xCol.index ||
-                     icol == lastState.yCol.index ) {
-                    lastState = null;
-                    actionPerformed( null );
-                }
-            }
-        } );
+  //  The plot is not currently live - this would require a listener
+  //  on the startable itself.  It may not really be desirable.
+  //  Could want a replot button though.
+  //
+  //    /* Arrange for changes in relevant parts of the table data itself 
+  //     * to cause a replot (this liveness of the plot should perhaps
+  //     * be optional for performance reasons and just so that you know
+  //     * where you are? */
+  //    stmodel.addTableModelListener( new TableModelListener() {
+  //        public void tableChanged( TableModelEvent evt ) {
+  //            int icol = evt.getColumn();
+  //            if ( evt.getFirstRow() == TableModelEvent.HEADER_ROW ||
+  //                 icol == TableModelEvent.ALL_COLUMNS ||
+  //                 icol == lastState.xCol.index ||
+  //                 icol == lastState.yCol.index ) {
+  //                lastState = null;
+  //                actionPerformed( null );
+  //            }
+  //        }
+  //    } );
       
         /* Construct a panel which will hold the plot itself. */
         plotPanel = new JPanel( new BorderLayout() );
@@ -182,23 +185,29 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             plot.setMarksStyle( "dots", 0 );
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
-            int nrow = stmodel.getRowCount();
-            int ngood = 0;
-            for ( int irow = 0; irow < nrow; irow++ ) {
-                Object xval = stmodel.getValueAt( irow, xcol );
-                Object yval = stmodel.getValueAt( irow, ycol );
-                if ( xval instanceof Number &&
-                     yval instanceof Number ) {
-                    double x = ((Number) xval).doubleValue();
-                    double y = ((Number) yval).doubleValue();
-                    if ( state.xLog && x <= 0.0 ||
-                         state.yLog && y <= 0.0 ) {
-                        // can't take log of negative value
+            long nrow = stable.getRowCount();
+            long ngood = 0;
+            long nerror = 0;
+            for ( long lrow = 0; lrow < nrow; lrow++ ) {
+                try {
+                    Object xval = stable.getCell( lrow, xcol );
+                    Object yval = stable.getCell( lrow, ycol );
+                    if ( xval instanceof Number &&
+                         yval instanceof Number ) {
+                        double x = ((Number) xval).doubleValue();
+                        double y = ((Number) yval).doubleValue();
+                        if ( state.xLog && x <= 0.0 ||
+                             state.yLog && y <= 0.0 ) {
+                            // can't take log of negative value
+                        }
+                        else {
+                            plot.addPoint( 0, x, y, state.plotline );
+                        }
+                        ngood++;
                     }
-                    else {
-                        plot.addPoint( 0, x, y, state.plotline );
-                    }
-                    ngood++;
+                }
+                catch ( IOException e ) {
+                    nerror++;
                 }
             }
         }
@@ -207,7 +216,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         }
 
         /* Generic configuration. */
-        plotbox.setTitle( stmodel.getStarTable().getName() );
+        plotbox.setTitle( stable.getName() );
 
         /* Axis labels. */
         String xName = xColumn.getName();

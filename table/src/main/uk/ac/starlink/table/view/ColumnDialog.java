@@ -8,8 +8,8 @@ import javax.swing.JTextField;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.DefaultValueInfo;
 import uk.ac.starlink.table.ValueInfo;
+import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.gui.LabelledComponentStack;
-import uk.ac.starlink.table.gui.StarTableModel;
 
 /**
  * Widget to ask the user how he would like to add a new column.
@@ -18,14 +18,14 @@ import uk.ac.starlink.table.gui.StarTableModel;
  */
 public class ColumnDialog extends JOptionPane {
 
-    private ExtendedStarTableModel stmodel;
+    private StarTable stable;
     private JTextField nameField;
     private JTextField unitField;
     private JTextField descriptionField;
     private JTextField expressionField;
 
-    public ColumnDialog( ExtendedStarTableModel stmodel ) {
-        this.stmodel = stmodel;
+    public ColumnDialog( StarTable stable ) {
+        this.stable = stable;
 
         /* JOptionPane configuration. */
         LabelledComponentStack stack = new LabelledComponentStack();
@@ -112,7 +112,7 @@ public class ColumnDialog extends JOptionPane {
                 }
                 try {
                     ColumnData col = 
-                        new SyntheticColumn( info, stmodel, expr, null );
+                        new SyntheticColumn( info, stable, expr, null );
                     dialog.dispose();
                     return col;
                 }

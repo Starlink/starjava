@@ -18,7 +18,6 @@ import uk.ac.starlink.table.ValueInfoMapGroup;
 import uk.ac.starlink.table.gui.MapGroupTableModel;
 import uk.ac.starlink.table.gui.MultilineJTable;
 import uk.ac.starlink.table.gui.StarJTable;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.MapGroup;
 
 /**
@@ -27,7 +26,7 @@ import uk.ac.starlink.util.MapGroup;
  */
 public class ParameterWindow extends AuxWindow {
 
-    private StarTableModel stmodel;
+    private StarTable stable;
     private TableColumnModel tcmodel;
     private AbstractTableModel pmodel;
     private int colsIndex;
@@ -36,18 +35,17 @@ public class ParameterWindow extends AuxWindow {
     private Map colsMap;
     private Map rowsMap;
 
-    public ParameterWindow( StarTableModel stmodel, TableColumnModel tcmodel,
+    public ParameterWindow( StarTable stable, TableColumnModel tcmodel,
                             Component parent ) {
-        super( "Table Parameters", stmodel, parent );
-        this.stmodel = stmodel;
+        super( "Table Parameters", stable, parent );
+        this.stable = stable;
         this.tcmodel = tcmodel;
-        StarTable startab = stmodel.getStarTable();
 
         /* Construct a MapGroup to hold per-table metadata. */
         mg = new ValueInfoMapGroup();
 
         /* Add table name if applicable. */
-        String name = startab.getName();
+        String name = stable.getName();
         if ( name != null ) {
             Map nameMap = new HashMap();
             nameMap.put( ValueInfoMapGroup.NAME_KEY, "Table name" );
@@ -56,7 +54,7 @@ public class ParameterWindow extends AuxWindow {
         }
 
         /* Add table URL if applicable. */
-        URL url = startab.getURL();
+        URL url = stable.getURL();
         if ( url != null ) {
             Map urlMap = new HashMap();
             urlMap.put( ValueInfoMapGroup.NAME_KEY, "URL" );
@@ -65,19 +63,19 @@ public class ParameterWindow extends AuxWindow {
         }
 
         /* Add table shape. */
-        int ncol = startab.getColumnCount();
+        int ncol = stable.getColumnCount();
         colsMap = new HashMap();
         colsMap.put( ValueInfoMapGroup.NAME_KEY, "Column count" );
         colsIndex = mg.getMaps().size();
         mg.addMap( colsMap );
-        long nrow = startab.getRowCount();
+        long nrow = stable.getRowCount();
         rowsMap = new HashMap();
         rowsMap.put( ValueInfoMapGroup.NAME_KEY, "Row count" );
         rowsIndex = mg.getMaps().size();
         mg.addMap( rowsMap );
 
         /* Add the actual table parameters as such. */
-        for ( Iterator it = startab.getParameters().iterator(); 
+        for ( Iterator it = stable.getParameters().iterator(); 
               it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
             mg.addDescribedValue( param );
@@ -90,18 +88,18 @@ public class ParameterWindow extends AuxWindow {
         jtab.setColumnSelectionAllowed( false );
         jtab.setRowSelectionAllowed( false );
         StarJTable.configureColumnWidths( jtab, 20000, 100 );
-        
 
         /* Place the table into a scrollpane in this frame. */
         getContentPane().add( new SizingScrollPane( jtab ) );
 
         /* Ensure that subsequent changes to the table shape are reflected
          * in this window. */
-        stmodel.addTableModelListener( new TableModelListener() {
-            public void tableChanged( TableModelEvent evt ) {
-                configureRowCount();
-            }
-        } );
+ //     stmodel.addTableModelListener( new TableModelListener() {
+ //         public void tableChanged( TableModelEvent evt ) {
+ //             configureRowCount();
+ //         }
+ //     } );
+
         tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 configureColumnCount();
@@ -131,7 +129,7 @@ public class ParameterWindow extends AuxWindow {
         assert rowsMap == mg.getMaps().get( rowsIndex );
         assert rowsMap.get( ValueInfoMapGroup.NAME_KEY )
                       .equals( "Row count" );
-        int nrow = stmodel.getRowCount();
+        long nrow = stable.getRowCount();
         rowsMap.put( ValueInfoMapGroup.VALUE_KEY, 
                      ( nrow >= 0 ) ? (Object) new Long( nrow )
                                    : (Object) "?" );

@@ -34,15 +34,14 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.AbstractStarTable;
 import uk.ac.starlink.table.ColumnData;
-import uk.ac.starlink.table.ColumnPermutedStarTable;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableFactory;
 import uk.ac.starlink.table.StarTableOutput;
 import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarTableChooser;
 import uk.ac.starlink.table.gui.StarTableColumn;
-import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.table.gui.StarTableSaver;
 import uk.ac.starlink.table.gui.TableRowHeader;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -60,17 +59,30 @@ import uk.ac.starlink.util.Loader;
 public class TableViewer extends JFrame {
 
     /**
-     * State about the data is stored primarily in this StarTableModel.
-     * The point of this is that the model can be
-     * passed to other windows which can add listeners if they wish
-     * to track changes in the data as they occur.  Passing the StarTable
-     * object itself around is no good for this since it does not have
-     * all the necessary machinery of listeners and event handling.
+     * Container for the data held by this viewer.  This model is not 
+     * affected by changes to the data view such as the order of the results 
+     * presented in the viewer.  It can have columns added to it but
+     * not removed.
      */
-    private ExtendedStarTableModel stmodel;
-    private TableColumnModel tcmodel;
+    private PlasticStarTable dataModel;
 
-    private StarJTable jtab;
+    /**
+     * The table model used by this viewer's JTable for table display. 
+     * This is based on dataModel, but can be reordered and configured
+     * to display only a subset of the rows and so on.
+     */
+    private ViewerTableModel viewModel;
+
+    /**
+     * The table column model used by this viewer's JTable for table display.
+     * This can be manipulated either programmatically or as a consequence
+     * of user interaction with the JTable (dragging columns around)
+     * to modify the mapping of columns visible in this viewer to 
+     * columns in the dataModel.
+     */
+    private TableColumnModel columnModel;
+  
+    private JTable jtab;
     private JTable rowHead;
     private JScrollPane scrollpane;
     private Action exitAct;
@@ -87,14 +99,14 @@ public class TableViewer extends JFrame {
 
     private static StarTableFactory tabfact = new StarTableFactory();
     private static StarTableOutput taboutput = new StarTableOutput();
+    private static WindowTracker wtracker = new WindowTracker();
     private static StarTableChooser chooser;
     private static StarTableSaver saver;
-    private static List instances = new ArrayList();
-    private static WindowTracker wtracker = new WindowTracker();
-    private static final String DEFAULT_TITLE = "Table Viewer";
 
+    private static final String DEFAULT_TITLE = "Table Viewer";
     private static int MAX_COLUMN_WIDTH = 300;
     private static int MAX_SAMPLE_ROWS = 20;
+
     /**
      * Constructs a new TableViewer not initially viewing any table.
      *
@@ -105,7 +117,6 @@ public class TableViewer extends JFrame {
     public TableViewer( Window sibling ) {
         this( null, sibling );
     }
-            
  
     /**
      * Constructs a new TableViewer to view a given table.
@@ -122,7 +133,7 @@ public class TableViewer extends JFrame {
         /* Do basic setup. */
         super();
         AuxWindow.positionAfter( sibling, this );
-        jtab = new StarJTable( false );
+        jtab = new JTable();
         jtab.setColumnSelectionAllowed( true );
         scrollpane = new SizingScrollPane( jtab );
         getContentPane().add( scrollpane, BorderLayout.CENTER );
@@ -130,7 +141,7 @@ public class TableViewer extends JFrame {
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
             public int rowNumber( int irow ) {
-                int[] rowMap = stmodel.getRowPermutation();
+                int[] rowMap = viewModel.getRowMap();
                 return ( ( rowMap == null ) ? irow : rowMap[ irow ] ) + 1;
             }
         };
@@ -249,28 +260,35 @@ public class TableViewer extends JFrame {
                     "Can't use non-random table" );
             }
 
-            /* Construct a TableModel which will contain the StarTable,
+            /* Construct a data model based on the StarTable which will
              * and also allow some additional functionality such as 
-             * row permutation and column addition. */
-            stmodel = new ExtendedStarTableModel( startab );
+             * column addition. */
+            dataModel = new PlasticStarTable( startab );
 
-            /* Construct a corresponding TableColumnModel. */
-            tcmodel = new DefaultTableColumnModel();
-            for ( int icol = 0; icol < startab.getColumnCount(); icol++ ) {
-                ColumnInfo cinfo = startab.getColumnInfo( icol );
-                tcmodel.addColumn( new StarTableColumn( cinfo, icol ) );
+            /* Configure the JTable with a new TableModel. */
+            viewModel = new ViewerTableModel( dataModel );
+            jtab.setModel( viewModel );
+
+            /* Configure the JTable with a new TableColumnModel */
+            columnModel = new DefaultTableColumnModel();
+            for ( int icol = 0; icol < dataModel.getColumnCount(); icol++ ) {
+                ColumnInfo cinfo = dataModel.getColumnInfo( icol );
+                TableColumn tcol = new StarTableColumn( cinfo, icol );
+                columnModel.addColumn( tcol );
             }
-
-            /* Configure the JTable. */
-            jtab.setModel( stmodel );
-            jtab.setColumnModel( tcmodel );
+            jtab.setColumnModel( columnModel );
+          
+            /* Set the view up right. */
             scrollpane.getViewport().setViewPosition( new Point( 0, 0 ) );
-            jtab.configureColumnWidths( MAX_COLUMN_WIDTH, MAX_SAMPLE_ROWS );
+            StarJTable.configureColumnWidths( jtab, MAX_COLUMN_WIDTH,
+                                              MAX_SAMPLE_ROWS );
         }
         else {
-            jtab.setStarTable( null, false );
-            stmodel = null;
-            tcmodel = null;
+            jtab.setColumnModel( null );
+            jtab.setModel( null );
+            dataModel = null;
+            viewModel = null;
+            columnModel = null;
         }
         setTitle( AuxWindow.makeTitle( DEFAULT_TITLE, startab ) );
         configureActions();
@@ -278,7 +296,7 @@ public class TableViewer extends JFrame {
 
     /**
      * Appends a new column to the existing table at a given column index.
-     * This method appends a column to the TableModel, fixes the 
+     * This method appends a column to the dataModel, fixes the 
      * TableColumnModel to put it in at the right place, and 
      * ensures that everybody is notified about what has gone on.
      *
@@ -289,20 +307,20 @@ public class TableViewer extends JFrame {
 
         /* Check that we are not trying to add the column beyond the end of
          * the table. */
-        if ( colIndex > tcmodel.getColumnCount() ) {
+        if ( colIndex > dataModel.getColumnCount() ) {
             throw new IllegalArgumentException();
         }
 
         /* Add the column to the table model itself. */
-        stmodel.addColumn( col );
+        dataModel.addColumn( col );
 
         /* Add the new column to the column model. */
-        TableColumn tc = new StarTableColumn( col.getColumnInfo(),
-                                              stmodel.getColumnCount() - 1 );
-        tcmodel.addColumn( tc );
+        int modelIndex = dataModel.getColumnCount() - 1;
+        TableColumn tc = new StarTableColumn( col.getColumnInfo(), modelIndex );
+        columnModel.addColumn( tc );
 
         /* Move the new column to the requested position. */
-        tcmodel.moveColumn( tcmodel.getColumnCount() - 1, colIndex );
+        columnModel.moveColumn( columnModel.getColumnCount() - 1, colIndex );
 
         /* Set its width. */
         StarJTable.configureColumnWidth( jtab, MAX_COLUMN_WIDTH,
@@ -311,13 +329,13 @@ public class TableViewer extends JFrame {
 
     /**
      * Returns a label for a given column.  This will normally be the
-     * column's name, but if it doesn't have one, it may be a number or
-     * something.
+     * column's name, but if it doesn't have one, it may be assigned a
+     * number or something.
      *
-     * @param  icol  the index of the column in this viewer's TableModel 
+     * @param  icol  the index of the column in this viewer's dataModel 
      */
     public String getColumnLabel( int icol ) {
-        String name = stmodel.getColumnName( icol );
+        String name = dataModel.getColumnInfo( icol ).getName();
         if ( name == null || name.toString().trim().length() == 0 ) {
             name = "$" + icol;
         }
@@ -334,28 +352,25 @@ public class TableViewer extends JFrame {
      *          to be showing
      */
     public StarTable getApparentStarTable() {
-        return getApparentStarTable( tcmodel, stmodel );
-    }
-
-    /**
-     * Returns a StarTable representing the table data as displayed by a
-     * given TableColumnModel and StarTableModel.  The columns may differ
-     * from those in the model, as determined by the column model.
-     *
-     * @param  tcmodel  the column model
-     * @param  stmodel  the table model
-     * @return  a StarTable representing what <tt>tcmodel</tt> and 
-     *          <tt>stmodel</tt> appear to display
-     */
-    public static StarTable getApparentStarTable( TableColumnModel tcmodel,
-                                              ExtendedStarTableModel stmodel ) {
-        int ncol1 = tcmodel.getColumnCount();
-        int[] colmap = new int[ ncol1 ];
-        for ( int i = 0; i < ncol1; i++ ) {
-            colmap[ i ] = tcmodel.getColumn( i ).getModelIndex();
+        int ncol = columnModel.getColumnCount();
+        final int nrow = viewModel.getRowCount();
+        ColumnStarTable appTable = new ColumnStarTable() {
+            public long getRowCount() {
+                return nrow;
+            }
+        };
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            final int modelIndex = columnModel.getColumn( icol )
+                                              .getModelIndex();
+            ColumnInfo colinfo = dataModel.getColumnInfo( modelIndex );
+            ColumnData coldata = new ColumnData( colinfo ) {
+                public Object readValue( long lrow ) {
+                    return viewModel.getValueAt( (int) lrow, modelIndex );
+                }
+            };
+            appTable.addColumn( coldata );
         }
-        return new ColumnPermutedStarTable( stmodel.getApparentStarTable(), 
-                                            colmap );
+        return appTable;
     }
 
     /**
@@ -398,8 +413,8 @@ public class TableViewer extends JFrame {
      * @param  rowMap  new table model to table view row mapping.
      *         May be null to indicate natural order.
      */
-    private void permuteRows( int[] rowMap ) {
-        stmodel.permuteRows( rowMap );
+    private void permuteRows( int[] order ) {
+        viewModel.setOrder( order );
         rowHead.tableChanged( new TableModelEvent( rowHead.getModel() ) );
     }
 
@@ -429,7 +444,7 @@ public class TableViewer extends JFrame {
      * of the viewer changes.
      */
     private void configureActions() {
-        boolean hasTable = stmodel != null;
+        boolean hasTable = dataModel != null;
         saveAct.setEnabled( hasTable );
         dupAct.setEnabled( hasTable );
     }
@@ -437,14 +452,14 @@ public class TableViewer extends JFrame {
     /**
      * Returns a popup menu for a given column.
      *
-     * @param  icol the model column to which the menu applies
+     * @param  jcol the data model column to which the menu applies
      */
     private JPopupMenu columnPopup( final int jcol ) {
         JPopupMenu popper = new JPopupMenu();
 
         Action deleteAct = new AbstractAction( "Delete" ) {
             public void actionPerformed( ActionEvent evt ) {
-                tcmodel.removeColumn( tcmodel.getColumn( jcol ) );
+                columnModel.removeColumn( columnModel.getColumn( jcol ) );
             }
         };
         popper.add( deleteAct );
@@ -452,7 +467,7 @@ public class TableViewer extends JFrame {
         Action addcolAct = new AbstractAction( "New column" ) {
             public void actionPerformed( ActionEvent evt ) {
                 Component parent = TableViewer.this;
-                ColumnData coldata = new ColumnDialog( stmodel )
+                ColumnData coldata = new ColumnDialog( dataModel )
                                     .getColumnDialog( parent );
                 if ( coldata != null ) {
                     appendColumn( coldata, jcol + 1 );
@@ -461,8 +476,8 @@ public class TableViewer extends JFrame {
         };
         popper.add( addcolAct );
 
-        int icol = tcmodel.getColumn( jcol ).getModelIndex();
-        if ( Comparable.class.isAssignableFrom( stmodel.getColumnInfo( icol )
+        int icol = columnModel.getColumn( jcol ).getModelIndex();
+        if ( Comparable.class.isAssignableFrom( dataModel.getColumnInfo( icol )
                                                .getContentClass() ) ) {
             popper.add( new SortAction( icol, true ) );
             popper.add( new SortAction( icol, false ) );
@@ -516,13 +531,13 @@ public class TableViewer extends JFrame {
 
             /* Open the same table in a new viewer. */
             else if ( this == dupAct ) {
-                assert stmodel != null;  // action would be disabled 
+                assert dataModel != null;  // action would be disabled 
                 new TableViewer( getApparentStarTable(), parent );
             }
 
             /* Save the table to a file. */
             else if ( this == saveAct ) {
-                assert stmodel != null;  // action would be disabled 
+                assert dataModel != null;  // action would be disabled 
                 getSaver().saveTable( getApparentStarTable(), parent );
             }
 
@@ -542,19 +557,21 @@ public class TableViewer extends JFrame {
             /* Open a plot window. */
             else if ( this == plotAct ) {
                 wtracker
-               .register( new PlotWindow( stmodel, tcmodel, parent ) );
+               .register( new PlotWindow( dataModel, columnModel, parent ) );
             }
 
             /* Display table parameters. */
             else if ( this == paramAct ) {
                 wtracker
-               .register( new ParameterWindow( stmodel, tcmodel, parent ) );
+               .register( new ParameterWindow( dataModel, columnModel, 
+                                               parent ) );
             }
 
             /* Display column parameters. */
             else if ( this == colinfoAct ) {
                 wtracker
-               .register( new ColumnInfoWindow( stmodel, tcmodel, parent ) );
+               .register( new ColumnInfoWindow( dataModel, columnModel, 
+                                                parent ) );
             }
 
             else if ( this == unsortAct ) {
@@ -572,8 +589,7 @@ public class TableViewer extends JFrame {
     /**
      * Class defining an Action which does table sorting.  The sort is
      * effected by creating a mapping between model rows and (sorted)
-     * view rows, and installing this into this viewer's 
-     * ExtendedStarTableModel.
+     * view rows, and installing this into this viewer's data model.
      */
     private class SortAction extends AbstractAction {
         private int icol;
@@ -636,8 +652,9 @@ public class TableViewer extends JFrame {
         }
 
         /* Construct a list of all the elements in the given column. */
-        int nrow = AbstractStarTable.checkedLongToInt( stmodel.getRowCount() );
-        ColumnData coldata = stmodel.getColumnData( icol );
+        int nrow = AbstractStarTable
+                  .checkedLongToInt( dataModel.getRowCount() );
+        ColumnData coldata = dataModel.getColumnData( icol );
         Item[] items = new Item[ nrow ];
         for ( int i = 0; i < nrow; i++ ) {
             Item item = new Item();
