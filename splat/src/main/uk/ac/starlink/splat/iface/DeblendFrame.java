@@ -246,7 +246,7 @@ public class DeblendFrame
             "should normally be a fit (*)";
         backgroundSpectraLabel.setToolTipText( tipText );
 
-        backgroundSpectra.setRenderer( new LineRenderer() );
+        backgroundSpectra.setRenderer( new LineRenderer( backgroundSpectra ) );
         layouter.add( backgroundSpectra, true );
         backgroundSpectra.setToolTipText( tipText );
 
