@@ -1,0 +1,487 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Remote control and command-line display tools</TITLE>
+<META NAME="description" CONTENT="Remote control and command-line display tools">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html145"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html143"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html139"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html146"
+ HREF="node6.html">API documentation</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html144"
+ HREF="node3.html">Extending SPLAT</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html140"
+ HREF="node4.html">Plugins</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00032000000000000000">
+Remote control and command-line display tools</A>
+</H2>
+
+<P>
+Using remote control you can pass commands to <I>SPLAT</I> to make it do
+simple things like display a spectrum and add a spectrum to a plot. In
+fact this is such a useful idea that there are two commands already
+available. These are:
+
+<UL><LI><TT>splatdisp</TT>
+
+<LI><TT>splatdispmany</TT>
+
+</UL>
+The first command takes the name of a spectrum and adds it to a plot,
+if a plot identifier is given (this is the <TT>n</TT> in any names
+like <TT>&lt;plotn&gt;</TT> that you see), or just displays it in a new
+plot. The second command takes a list of spectra and displays them all
+in a new plot. Either of these scripts should serve as suitable
+starting points for any scripts that you'd like to develop (assuming
+you want to write these in BeanShell).
+
+<P>
+Remote control is accessed using a <TT>ServerSocket</TT> that listens
+on a randomly chosen port of the machine that <I>SPLAT</I> is running
+on. Behind the <TT>ServerSocket</TT> the BeanShell is used to
+interpret any commands, so much of what you can do via remote control
+is the same as described in the plugins section.
+
+<P>
+The port number used by <I>SPLAT</I> is written into the file
+<TT>$HOME/.splat/.remote</TT>, which can only be read by the
+owner. The file contains three fields:
+<DL COMPACT>
+<DT>1.
+<DD>the machine internet address
+<DT>2.
+<DD>the port number
+<DT>3.
+<DD>a security cookie
+</DL>
+When you connect through a port the first message you send should be
+the security cookie. If this isn't given or an invalid value is given
+then the port is immediately closed. After this is acknowledged you
+may go on to give BeanShell commands, as strings, for <I>SPLAT</I> to
+interpret.
+
+<P>
+A couple of useful examples are shown now. The first makes an existing
+plot zoom itself to a given X factor and then center itself on a
+given wavelength. The second changes the drawing colour of a spectrum.
+
+<P>
+<DIV ALIGN="CENTER">
+  <IMG
+ WIDTH="199" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img2.gif"
+ ALT="\fbox{Example zoom and centre}">
+</DIV>
+
+<PRE>
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    zoomandcentre
+ *
+ * Purpose:
+ *    Zoom a SPLAT plot and maybe centre it on a wavelength
+ *
+ * Usage:
+ *    zoomandcentre plot_number x_scale [wavelength]
+ *
+ * Description:
+ *    This command zooms a plot to the given X scale factor and
+ *    then, optionally, centres it on a given wavelength.
+ *
+ * Notes:
+ *    This actually reduces to wrapping the following lines
+ *    of BeanShell that are evaluated in the remote interpreter:
+ *
+ *       plotIndex = globallist.getPlotIndex( plotNumber );
+ *       plot = globallist.getPlot( plotIndex );
+ *       plot.setXScale( scale );
+ *       plot.setScale();
+ *       plot.centreOnXCoordinate( wavelength );
+ *
+ *    Where plotNumber, scale and wavelength are the command-line
+ *    arguments to this script.
+ *
+ * Language:
+ *    BeanShell (Java-based scripting language).
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: zoomandcentre plot_number x_scale [wavelength]" );
+    exit();
+}
+
+//  Import any classes that we need from SPLAT.
+import uk.ac.starlink.splat.util.RemoteUtilities;
+
+/**
+ * Open up the connection to SPLAT, this does not return if fails.
+ */
+openConnection()
+{
+    //  Read the contact details for the current SPLAT instance. These are
+    //  the machine name, the server port and the authentication cookie.
+    Object[] contactDetails = RemoteUtilities.readContactFile();
+
+    //  See if SPLAT is around and listening.
+    if ( contactDetails == null ||
+         ! RemoteUtilities.isListening( contactDetails ) ) {
+        print( "Failed to connect to SPLAT" );
+        exit();
+    }
+    return contactDetails;
+}
+
+/**
+ * Convert the plot identifier into a global index. Also
+ * assigns the PlotControl object to the plot variable in the remote
+ * interpreter.
+ */
+getPlot( plotNumber )
+{
+    // Ask global list for the proper index of the plot. Assigns the
+    // result to the variable "plotIndex" in the remote interpreter.
+    result = sendCommand
+        ( "plotIndex = globallist.getPlotIndex(" + plotNumber + ");"  );
+
+    //  If we get back a "-1" then the plot doesn't exist.
+    if ( "-1".equals( result ) ) {
+        print( "Failed to find plot (" + plotNumber + ")" );
+        exit();
+    }
+    else {
+        // Plot exists, so get the actual object and assign this to
+        // the plot variable.
+        result = sendCommand( "plot = globallist.getPlot( plotIndex );" );
+    }
+}
+
+/**
+ * Send the command to scale in X.
+ */
+setScale( scale )
+{
+    result = sendCommand( "plot.setXScale(" + scale + ");" );
+    result = sendCommand( "plot.setScale();" );
+}
+
+/**
+ * Send the command to centre on a given wavelength.
+ */
+setCentre( wavelength )
+{
+    result = sendCommand
+        ( "plot.centreOnXCoordinate( \"" + wavelength + "\");" );
+}
+
+/**
+ * Send a command to SPLAT.
+ */
+sendCommand( command )
+{
+    try {
+        print( command );
+        result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
+    }
+    catch ( Exception e ) {
+        print( "Failed to send command to SPLAT");
+        print( e.getMessage() );
+    }
+    print( "Result = " + result );
+    return result;
+}
+
+//  Check number of command-line arguments match our expectation.
+if ( bsh.args.length &gt; 3 || bsh.args.length &lt; 2 ) {
+   usage();
+}
+
+//  Contact SPLAT. If successful the contact details are returned.
+Object[] contactDetails = openConnection();
+
+//  Make the translation from plot identifier to plot object.
+getPlot( bsh.args[0] );
+
+//  Send the scale command.
+setScale( bsh.args[1] );
+
+//  Send the centre command.
+if ( bsh.args.length == 3  ) {
+  setCentre( bsh.args[2] );
+}
+exit();
+</PRE>
+
+<P>
+This example (and the following one) is written in BeanShell. Note how
+the script is wrapped as a bourne shell script by the command on the
+second line. The <TT>splatsh</TT> shell arranges to run this script
+using the BeanShell interpreter and also makes sure that 
+<I>SPLAT</I> classes are available on the CLASSPATH.
+
+<P>
+The procedural details of the script are quite simple, it consists of
+connect to <I>SPLAT</I>, get a handle to the plot, and then issue
+the commands that perform the scale and optional centering of the
+plot.
+
+<P>
+The most important point to notice is that fully qualified BeanShell
+commands are sent to <I>SPLAT</I> and these are interpreted remotely, not
+in the local script. Also note that the return from a remote command
+is a stringifed (<I>i.e.</I> <TT>toString()</TT>) version of the result. This
+isn't generally very useful, except for getting status information and
+the actual object references <I>etc.</I> that are created should be retained
+in the remote interpreter (the remote interpreter is persistent and
+can be relied on for at least the duration of the connection).
+
+<P>
+Note also that the <TT>globallist</TT> variable is a special reference set
+within the remote interpreter. This provides access to the object that
+contains a list of all the spectra and plots currently activated in
+<I>SPLAT</I>. The type of this object is <TT>GlobalSpecPlotList</TT>. The
+full public API to <TT>GlobalSpecPlotList</TT> is shown later in this
+document.
+
+<P>
+The example is available as the command <TT>zoomandcentre</TT> in
+<TT>$SPLAT_DIR</TT>.
+
+<P>
+<DIV ALIGN="CENTER">
+  <IMG
+ WIDTH="150" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img3.gif"
+ ALT="\fbox{Example set colour}">
+</DIV>
+
+<PRE>
+//${SPLAT_DIR}/splatsh $0 ${1+"$@"}; exit;
+// Note first line is blank, do not remove it as this starts "sh", which
+// runs the next line, which runs splatsh on this file. This header
+// section is ignored as it is a beanshell comment, that "sh" never sees.
+
+/**
+ * Name:
+ *    setcolour
+ *
+ * Purpose:
+ *    Set the colour of a spectrum loaded into SPLAT.
+ *
+ * Usage:
+ *    setcolour short_name colour
+ *
+ * Description:
+ *    This command contacts SPLAT and asks it to set the colour
+ *    of a spectrum that it is displaying.
+ *
+ *    The possible colours are black, blue, cyan, darkGray,
+ *    gray, green, lightGray, magenta, orange, pink, red, white and
+ *    yellow. Alternatively you can also give an hexidecimal #RRGGBB
+ *    integer.
+ *
+ * Language:
+ *    BeanShell (Java-based scripting language).
+ */
+
+/**
+ * Print the usage message and exit.
+ */
+usage ()
+{
+    print( "Usage: setcolour short_name colour" );
+    exit();
+}
+
+//  Import any classes that we need from SPLAT.
+import uk.ac.starlink.splat.util.RemoteUtilities;
+
+/**
+ * Open up the connection to SPLAT, this does not return if fails.
+ */
+openConnection()
+{
+    //  Read the contact details for the current SPLAT instance. These are
+    //  the machine name, the server port and the authentication cookie.
+    Object[] contactDetails = RemoteUtilities.readContactFile();
+
+    //  See if SPLAT is around and listening.
+    if ( contactDetails == null ||
+         ! RemoteUtilities.isListening( contactDetails ) ) {
+        print( "Failed to connect to SPLAT" );
+        exit();
+    }
+    return contactDetails;
+}
+
+/**
+ * Send a command to SPLAT.
+ */
+sendCommand( command )
+{
+    try {
+        result = RemoteUtilities.sendRemoteCommand( contactDetails, command );
+    }
+    catch ( Exception e ) {
+        print( "Failed to send command to SPLAT");
+        print( e.getMessage() );
+    }
+    return result;
+}
+
+/**
+ * Convert the spectrum short name into a reference to the SpecData
+ * object. This is assigned to the variable "spectrum" in the remote
+ * interpreter.
+ */
+getSpectrum( shortName )
+{
+    result = sendCommand
+        ( "specIndex = globallist.getSpectrumIndex(\"" + shortName + "\");" );
+
+    //  If we get back a "-1" then the spectrum doesn't exist.
+    if ( "-1".equals( result ) ) {
+        print( "Failed to find spectrum: " + shortName );
+        exit();
+    }
+    result = sendCommand
+        ( "spectrum = globallist.getSpectrum( specIndex );" );
+}
+
+/**
+ * Set the spectrum colour. Must be a java.awt.Color.&lt;name&gt; static method
+ * or an RGB integer.
+ */
+setColour( colour )
+{
+    try {
+        newColour = eval( "Color." + colour );
+    }
+    catch (Exception e) {
+        //  Failed try an integer.
+        try {
+            newColour = Color.decode( colour );
+        }
+        catch (Exception ee) {
+            print( "Failed to interpret '" + colour + "' as a colour");
+            exit();
+        }
+    }
+
+    //  Convert colour into an RGB integer and issue command to change
+    //  it.
+    iColour = newColour.getRGB();
+    sendCommand( "globallist.setKnownNumberProperty( spectrum, " +
+                 "spectrum.LINE_COLOUR, new Integer(" + iColour + ") )" );
+
+}
+
+//  Check number of command-line arguments match our expectation.
+if ( bsh.args.length != 2 ) {
+   usage();
+}
+
+//  Contact SPLAT. If successful the contact details are returned.
+Object[] contactDetails = openConnection();
+
+//  Make sure our spectrum exists and make a reference to it.
+getSpectrum( bsh.args[0] );
+
+//  Apply the colour.
+setColour( bsh.args[1] );
+
+exit();
+</PRE>
+
+<P>
+Again this example is found in <TT>$SPLAT_DIR</TT>, together with a
+more extended one called <TT>setproperty</TT>, which also allows you
+to set the line thickness, type and style, as well as whether to
+display error bars.
+
+<P>
+<TT>$SPLAT_DIR</TT> also contains several command-line scripts that
+only make use of <I>SPLAT</I> classes. These are, <TT>fitgauss</TT>,
+<TT>fitgauss2</TT> and <TT>linepositions</TT>, which as you might
+expect fit gaussians to lines and just locate accurate line positions
+from a initial list. If you need a generally useful similar script
+that brings <I>SPLAT</I> functionality to the command-line, then contact
+the support programmer. Writing one yourself is probably not possible
+at present (mainly because of the need to know more than is outlined
+in this document about the internal API structure).
+
+<P>
+
+<P>
+<BR> <HR>
+<A NAME="tex2html145"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html143"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html139"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html146"
+ HREF="node6.html">API documentation</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html144"
+ HREF="node3.html">Extending SPLAT</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html140"
+ HREF="node4.html">Plugins</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

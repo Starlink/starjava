@@ -1,0 +1,847 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>SpecData</TITLE>
+<META NAME="description" CONTENT="SpecData">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="next" HREF="node10.html">
+<LINK REL="previous" HREF="node8.html">
+<LINK REL="up" HREF="node7.html">
+<LINK REL="next" HREF="node10.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html200"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html198"
+ HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html192"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html201"
+ HREF="node10.html">SpecDataFactory</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html199"
+ HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html193"
+ HREF="node8.html">MEMSpecDataImpl</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00041200000000000000"></A><A NAME="l1"></A>
+<BR>
+SpecData
+</H3>
+   
+<P>
+
+<IMG
+ WIDTH="686" HEIGHT="38" ALIGN="MIDDLE" BORDER="0"
+ SRC="img5.gif"
+ ALT="\fbox{\parbox{\textwidth}{
+\textit{public
+class SpecData implements SpecDataAccess, AnalyticSpectrum, java.io.Serializable}
+}}">
+
+<P>
+SpecData defines an interface for general access to spectral
+ datasets of differing fundamental data types and is the main data
+ model used in SPLAT.
+
+<P>
+It uses a derived class of SpecDataImpl to a supported data format
+ (i.e. FITS, NDF and text files) to give generalised access to:
+
+<UL><LI> the spectrum data
+   
+
+<LI> the associated data errors
+   
+
+<LI> the coordinate of any data point
+   
+
+<LI> the spectrum properties (i.e. related values)
+ 
+
+</UL>
+
+<P>
+It should always be used when dealing with spectral data to avoid
+ any specialised knowledge of the data format.
+
+<P>
+Missing data, or gaps in the spectrum, are indicated using the
+ special value SpecData.BAD. Generally useful code should always
+ test for this in the data values (otherwise you'll see numeric
+ problems as BAD is the lowest possible double value).
+
+<P>
+Matching of data values between this spectrum and anothers
+ coordinates can currently be done using the evalYData and
+ evalYDataArray method of the AnalyticSpectrum interface (but note
+ that at present this uses a simple interpolation scheme, so
+ shouldn't be used for analysis, except when the interpolated
+ spectrum is an analytic one, such as a polynomial).
+
+<P>
+Each object records a series of properties that define how the
+ spectrum should be rendered (i.e. line colour, thickness, style,
+ plotting style, whether to show an errors as bars etc.). These are
+ stored in any serialized versions of this class. Rendering using
+ the Grf object primitives is performed by this class for spectra
+ and error bars.
+
+<P>
+Facilities to store the association between this spectrum and the
+ various plots that it is currently associated with are also provided
+ (but see the SpecList or GlobalSpecPlotList classes for ways to
+ structure the control of many spectra, or many spectra and many
+ plots).
+
+<P>
+General utilities for converting coordinates and looking up values
+ are provided, as are methods for specialised functions like
+ formatting and unformatting values. This allows you to avoid
+ understanding what is returned as a value from a user
+ interaction as formatting and unformatting match the units of the
+ spectral axes (which can therefore be in esoteric units, like RA
+ or Dec).
+
+<P>
+<B><FONT SIZE="+1">Fields</FONT></B>
+<BR>
+   <HR>
+
+<P>
+<TT>public static final double <B>BAD</B></TT>
+
+<UL><LI>Value of BAD (missing) data.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>LINE_THICKNESS</B></TT>
+
+<UL><LI>Set or query line thickness.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>LINE_STYLE</B></TT>
+
+<UL><LI>Set or query line drawing style.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>LINE_COLOUR</B></TT>
+
+<UL><LI>Set or query line colour.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>PLOT_STYLE</B></TT>
+
+<UL><LI>Set or query line drawing style.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>LINE_ALPHA_BLEND</B></TT>
+
+<UL><LI>Set or query alpha blending fraction.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>ERROR_COLOUR</B></TT>
+
+<UL><LI>Set or query error bar colour.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>POLYLINE</B></TT>
+
+<UL><LI>Use polyline plotting style.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>HISTOGRAM</B></TT>
+
+<UL><LI>Use histogram plotting style.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>UNCLASSIFIED</B></TT>
+
+<UL><LI>Spectrum is unclassified.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>TARGET</B></TT>
+
+<UL><LI>Spectrum is a target (observation).
+   
+</UL>
+
+<P>
+<TT>public static final int <B>ARC</B></TT>
+
+<UL><LI>Spectrum is an arc.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>SKY</B></TT>
+
+<UL><LI>Spectrum is a twilight sky exposure.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>POLYNOMIAL</B></TT>
+
+<UL><LI>Spectrum is a polynomial.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>LINEFIT</B></TT>
+
+<UL><LI>Spectrum is a line fit.
+   
+</UL>
+
+<P>
+<TT>public static final int <B>USERTYPE</B></TT>
+
+<UL><LI>Spectrum is a user defined type.
+   
+</UL>
+
+<P>
+
+<P>
+<B><FONT SIZE="+1">Constructors</FONT></B>
+<BR>
+   <HR>
+<TT>public <B>SpecData</B>(<TT>SpecDataImpl</TT> <B>impl</B>)<A NAME="l27"></A><A NAME="l28"></A></TT>
+<BLOCKQUOTE>Create an instance using the data in a given SpecDataImpl
+ object.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>impl</B></STRONG>
+<DD>an concrete implementation of a SpecDataImpl
+             class that is accessing spectral data in of
+             some format.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+
+<P>
+<B><FONT SIZE="+1">Methods</FONT></B>
+<BR>
+   <HR>
+<TT>public void <B>addPlot</B>(<TT>Plot</TT> <B>plot</B>)<A NAME="l29"></A><A NAME="l30"></A></TT>
+<BLOCKQUOTE>Add a Plot reference to the list of known views of this
+ spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>reference to a Plot
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>bound</B>(<TT>double</TT> <B>xcoord</B>)<A NAME="l31"></A><A NAME="l32"></A></TT>
+<BLOCKQUOTE>Locate the indices of the two coordinates that lie closest to a
+ given coordinate. In the case of an exact match then both
+ indices are returned as the same value.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>xcoord</B></STRONG>
+<DD>the coordinate value to bound.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns array of two integers, the lower and upper indices. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>drawSpec</B>(<TT>Grf</TT> <B>grf</B>, <TT>long</TT> <B>plot</B>, <TT>double[]</TT> <B>limits</B>)<A NAME="l33"></A><A NAME="l34"></A></TT>
+<BLOCKQUOTE>Draw the spectrum onto the given widget using a suitable AST
+ GRF object.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>grf</B></STRONG>
+<DD>Grf object that can be drawn into using AST
+            primitives.
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>reference to AstPlot defining transformation from
+             physical coordinates into graphics coordinates.
+   <DT><STRONG><B>limits</B></STRONG>
+<DD>limits of the region to draw in physical
+               coordinates (e.g. user defined ranges), used to
+               clip graphics.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>evalYData</B>(<TT>double</TT> <B>x</B>)<A NAME="l35"></A><A NAME="l36"></A></TT>
+<BLOCKQUOTE>Return the value of the spectrum at an arbitrary X position.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>x</B></STRONG>
+<DD>the coordiante at which to evaluate this spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns data value of this spectrum at the given coordinate. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>evalYDataArray</B>(<TT>double[]</TT> <B>x</B>)<A NAME="l37"></A><A NAME="l38"></A></TT>
+<BLOCKQUOTE>Return the value of the spectrum evaluated at series of
+ arbitrary X positions.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>x</B></STRONG>
+<DD>the coordiantes at which to evaluate this spectrum.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns data values of this spectrum at the given coordinates. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>format</B>(<TT>int</TT> <B>axis</B>, <TT>long</TT> <B>plot</B>, <TT>double</TT> <B>value</B>)<A NAME="l39"></A><A NAME="l40"></A></TT>
+<BLOCKQUOTE>Convert a coordinate value into a formatted String suitable for
+ a given axis (could be celestial coordinates for example).
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>axis</B></STRONG>
+<DD>the axis to use for formatting rules.
+   <DT><STRONG><B>value</B></STRONG>
+<DD>the value.
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>AST plot that defines the coordinate formats.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the formatted value. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>formatInterpolatedLookup</B>(<TT>int</TT> <B>xg</B>, <TT>long</TT> <B>plot</B>)<A NAME="l41"></A><A NAME="l42"></A></TT>
+<BLOCKQUOTE>Return interpolated physical values (i.e. wavelength and data
+ value) that correspond to a graphics X coordinate.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xg</B></STRONG>
+<DD>X graphics coordinate
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>AST plot needed to transform graphics position
+            into physical coordinates
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the physical coordinate and value. These are
+ linearly interpolated. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>formatLookup</B>(<TT>int</TT> <B>xg</B>, <TT>long</TT> <B>plot</B>)<A NAME="l43"></A><A NAME="l44"></A></TT>
+<BLOCKQUOTE>Lookup the physical values (i.e. wavelength and data value)
+ that correspond to a graphics X coordinate. Value is returned
+ as formatted strings for the selected axis (could be sky
+ coordinates for instance).
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xg</B></STRONG>
+<DD>X graphics coordinate
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>AST plot needed to transform graphics position
+             into physical coordinates
+  </DL>
+
+</UL>
+
+<UL><LI>Returns array of two Strings, the formatted wavelength and
+         data values 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getAlphaBlend</B>()<A NAME="l45"></A><A NAME="l46"></A></TT>
+<BLOCKQUOTE>Get the alpha blending fraction.
+
+<UL><LI>Returns the current alpha blending fraction. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public ASTJ <B>getAst</B>()<A NAME="l47"></A><A NAME="l48"></A></TT>
+<BLOCKQUOTE>Get reference to ASTJ object set up to specify coordinate
+ transformations.
+
+<UL><LI>Returns ASTJ object describing axis transformations. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getDataFormat</B>()<A NAME="l49"></A><A NAME="l50"></A></TT>
+<BLOCKQUOTE>Return the data format as a suitable name.
+
+<UL><LI>Returns the data format as a simple string (FITS, NDF, etc.). 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getErrorColour</B>()<A NAME="l51"></A><A NAME="l52"></A></TT>
+<BLOCKQUOTE>Get the colour used when drawing error bars.
+
+<UL><LI>Returns the error bar colour (an RGB integer). 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getFullName</B>()<A NAME="l53"></A><A NAME="l54"></A></TT>
+<BLOCKQUOTE>Get the full name for spectrum (cannot edit, this is usually
+ the filename).
+
+<UL><LI>Returns the full name. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getFullRange</B>()<A NAME="l55"></A><A NAME="l56"></A></TT>
+<BLOCKQUOTE>Get the data ranges in the X and Y axes with standard
+ deviation.
+
+<UL><LI>Returns reference to array of 4 values, xlow, xhigh, ylow, yhigh. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getLineColour</B>()<A NAME="l57"></A><A NAME="l58"></A></TT>
+<BLOCKQUOTE>Get the colour of the line to be used when plotting the
+ spectrum.
+
+<UL><LI>Returns the line colour (an RGB integer). 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getLineStyle</B>()<A NAME="l59"></A><A NAME="l60"></A></TT>
+<BLOCKQUOTE>Get the line type to be used when plotting the spectrum.
+ The meaning of this value is not defined.
+
+<UL><LI>Returns the line style in use. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getLineThickness</B>()<A NAME="l61"></A><A NAME="l62"></A></TT>
+<BLOCKQUOTE>Get the width of the line to be used when plotting the
+ spectrum. The meaning of this value isn't defined.
+
+<UL><LI>Returns the line thickness. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getPlotStyle</B>()<A NAME="l63"></A><A NAME="l64"></A></TT>
+<BLOCKQUOTE>Get the value of plotStyle.
+
+<UL><LI>Returns the current plotting type (SpecData.POLYLINE or
+            HISTOGRAM). 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getRange</B>()<A NAME="l65"></A><A NAME="l66"></A></TT>
+<BLOCKQUOTE>Get the data ranges in the X and Y axes. Does not include data
+ errors.
+
+<UL><LI>Returns reference to array of 4 values, xlow, xhigh, ylow, yhigh. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public SpecData <B>getSect</B>(<TT>String</TT> <B>name</B>, <TT>double[]</TT> <B>ranges</B>)<A NAME="l67"></A><A NAME="l68"></A></TT>
+<BLOCKQUOTE>Create a new spectrum by extracting sections of this spectrum.
+ The section extents are defined in physical coordinates.
+ Each section will not contain any values that lie outside of
+ its physical coordinate range.
+
+<P>
+The spectrum created here is not added to any lists or created
+ with any configuration other than the default values (i.e. you
+ must do this part yourself) and is only keep in memory.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>name</B></STRONG>
+<DD>short name for the spectrum.
+   <DT><STRONG><B>ranges</B></STRONG>
+<DD>an array of pairs of physical coordinates. These
+               define the extents of the ranges to extract.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns a spectrum that contains data only from the given
+         ranges. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public String <B>getShortName</B>()<A NAME="l69"></A><A NAME="l70"></A></TT>
+<BLOCKQUOTE>Get a symbolic name for spectrum.
+
+<UL><LI>Returns the short name. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public SpecDataImpl <B>getSpecDataImpl</B>()<A NAME="l71"></A><A NAME="l72"></A></TT>
+<BLOCKQUOTE>Return the SpecDataImpl object so that it can expose very data
+ specific methods (if needed, you really shouldn't use this).
+
+<UL><LI>Returns SpecDataImpl object defining the data access used by
+         this instance. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>getType</B>()<A NAME="l73"></A><A NAME="l74"></A></TT>
+<BLOCKQUOTE>Get the type of the spectral data.
+
+<UL><LI>Returns type either UNCLASSIFIED, TARGET, ARC, SKY, POLYNOMIAL or
+                     LINEFIT or USERTYPE. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getXData</B>()<A NAME="l75"></A><A NAME="l76"></A></TT>
+<BLOCKQUOTE>Get references to spectrum X data (i.e. the coordinates).
+
+<UL><LI>Returns reference to spectrum X data. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getYData</B>()<A NAME="l77"></A><A NAME="l78"></A></TT>
+<BLOCKQUOTE>Get references to spectrum Y data (i.e. the data values).
+
+<UL><LI>Returns reference to spectrum Y data. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>getYDataErrors</B>()<A NAME="l79"></A><A NAME="l80"></A></TT>
+<BLOCKQUOTE>Get references to spectrum Y data errors (i.e. the data
+ errors).
+
+<UL><LI>Returns reference to spectrum Y data errors. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>haveYDataErrors</B>()<A NAME="l81"></A><A NAME="l82"></A></TT>
+<BLOCKQUOTE>Return if data errors are available.
+
+<UL><LI>Returns true if Y data has errors. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>isDrawErrorBars</B>()<A NAME="l83"></A><A NAME="l84"></A></TT>
+<BLOCKQUOTE>Find out if we're drawing error bars.
+
+<UL><LI>Returns true if we're drawing error bars. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public boolean <B>isUseInAutoRanging</B>()<A NAME="l85"></A><A NAME="l86"></A></TT>
+<BLOCKQUOTE>Find out if we should be used when determining an auto-range.
+
+<UL><LI>Returns whether this spectrum is used when auto-ranging. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>lookup</B>(<TT>int</TT> <B>xg</B>, <TT>long</TT> <B>plot</B>)<A NAME="l87"></A><A NAME="l88"></A></TT>
+<BLOCKQUOTE>Lookup the physical values (i.e. wavelength and data value)
+ that correspond to a graphics X coordinate.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>xg</B></STRONG>
+<DD>X graphics coordinate
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>AST plot needed to transform graphics position
+             into physical coordinates
+  </DL>
+
+</UL>
+
+<UL><LI>Returns array of two doubles. The wavelength and data values. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>plotCount</B>()<A NAME="l89"></A><A NAME="l90"></A></TT>
+<BLOCKQUOTE>Get the number of plots currently using this spectrum.
+
+<UL><LI>Returns number of plot currently using this spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removePlot</B>(<TT>int</TT> <B>index</B>)<A NAME="l91"></A><A NAME="l92"></A></TT>
+<BLOCKQUOTE>Remove a Plot reference.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>index</B></STRONG>
+<DD>of the Plot
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>removePlot</B>(<TT>Plot</TT> <B>plot</B>)<A NAME="l93"></A><A NAME="l94"></A></TT>
+<BLOCKQUOTE>Remove a Plot reference.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>plot</B></STRONG>
+<DD>reference to a Plot
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>save</B>()<A NAME="l95"></A><A NAME="l96"></A></TT>
+<BLOCKQUOTE>Save the spectrum to disk (if supported). Uses the current
+ state of the spectrum (i.e. any file names etc.) to decide how
+ to do this.
+
+<UL><LI>Exceptions
+
+<UL><LI>
+<BR><TT>SplatException</TT> - thown if an error occurs during save.
+  
+</UL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setAlphaBlend</B>(<TT>double</TT> <B>alphaBlend</B>)<A NAME="l97"></A><A NAME="l98"></A></TT>
+<BLOCKQUOTE>Set the alpha blending fraction of the line used plot the spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>alphaBlend</B></STRONG>
+<DD>the alpha belanding fraction (0.0 to 1.0).
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setDrawErrorBars</B>(<TT>boolean</TT> <B>state</B>)<A NAME="l99"></A><A NAME="l100"></A></TT>
+<BLOCKQUOTE>Set whether the spectrum should have its errors drawn as error
+ bars, or not. If no errors are available then this is always
+ false.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>state</B></STRONG>
+<DD>true to draw error bars, if possible.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setErrorColour</B>(<TT>int</TT> <B>errorColour</B>)<A NAME="l101"></A><A NAME="l102"></A></TT>
+<BLOCKQUOTE>Set the colour index to be used when drawing error bars.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>errorColour</B></STRONG>
+<DD>the colour as an RGB integer.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setKnownNumberProperty</B>(<TT>int</TT> <B>what</B>, <TT>Number</TT> <B>value</B>)<A NAME="l103"></A><A NAME="l104"></A></TT>
+<BLOCKQUOTE>Set a known numeric spectral property.
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>what</B></STRONG>
+<DD>either LINE_THICKNESS, LINE_STYLE, LINE_COLOUR,
+<BR>
+PLOT_STYLE, LINE_ALPHA_BLEND or ERROR_COLOUR.
+   <DT><STRONG><B>value</B></STRONG>
+<DD>container for numeric value. These depend on
+              property being set.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setLineColour</B>(<TT>int</TT> <B>lineColour</B>)<A NAME="l105"></A><A NAME="l106"></A></TT>
+<BLOCKQUOTE>Set the colour index to be used when plotting the spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>lineColour</B></STRONG>
+<DD>the colour as an RGB integer.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setLineStyle</B>(<TT>double</TT> <B>lineStyle</B>)<A NAME="l107"></A><A NAME="l108"></A></TT>
+<BLOCKQUOTE>Set the style of the line used to plot the spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>lineStyle</B></STRONG>
+<DD>the line style to be used when plotting.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setLineThickness</B>(<TT>double</TT> <B>lineThickness</B>)<A NAME="l109"></A><A NAME="l110"></A></TT>
+<BLOCKQUOTE>Set the thickness of the line used to plot the spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>lineThickness</B></STRONG>
+<DD>the line width to be used when plotting.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setPlotStyle</B>(<TT>int</TT> <B>style</B>)<A NAME="l111"></A><A NAME="l112"></A></TT>
+<BLOCKQUOTE>Set the type of spectral lines that are drawn (these can be
+ polylines or histogram-like, simple markers are a possibility
+ for a future implementation). The value should be one of the
+ symbolic constants "POLYLINE" and "HISTOGRAM".
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>style</B></STRONG>
+<DD>one of the symbolic contants SpecData.POLYLINE or
+             HISTOGRAM.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setShortName</B>(<TT>String</TT> <B>shortName</B>)<A NAME="l113"></A><A NAME="l114"></A></TT>
+<BLOCKQUOTE>Change the symbolic name of a spectrum.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>shortName</B></STRONG>
+<DD>new short name for the spectrum.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setType</B>(<TT>int</TT> <B>type</B>)<A NAME="l115"></A><A NAME="l116"></A></TT>
+<BLOCKQUOTE>Set the type of the spectral data.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>type</B></STRONG>
+<DD>either UNCLASSIFIED, TARGET, ARC, SKY, POLYNOMIAL or
+                    LINEFIT or USERTYPE.
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public void <B>setUseInAutoRanging</B>(<TT>boolean</TT> <B>state</B>)<A NAME="l117"></A><A NAME="l118"></A></TT>
+<BLOCKQUOTE>Set whether the spectrum should be used when deriving
+ auto-ranged values.
+
+<UL><LI>Parameter
+  <DL>
+<DT><STRONG><B>state</B></STRONG>
+<DD>if true then this spectrum should be used when
+             determining data limits (artificial spectra could
+             have unreasonable ranges when extrapolated).
+  </DL>
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public int <B>size</B>()<A NAME="l119"></A><A NAME="l120"></A></TT>
+<BLOCKQUOTE>Get the size of the spectrum.
+
+<UL><LI>Returns number of coordinate positions in spectrum. 
+
+</UL></BLOCKQUOTE>
+<P>
+<TT>public double <B>unFormat</B>(<TT>int</TT> <B>axis</B>, <TT>long</TT> <B>plot</B>, <TT>String</TT> <B>value</B>)<A NAME="l121"></A><A NAME="l122"></A></TT>
+<BLOCKQUOTE>Convert a formatted coordinate string into a double precision
+ value (could be celestial coordinates for example).
+
+<UL><LI>Parameters
+  <DL>
+<DT><STRONG><B>axis</B></STRONG>
+<DD>the axis to use for formatting rules.
+   <DT><STRONG><B>plot</B></STRONG>
+<DD>AST plot that defines the coordinate formats.
+   <DT><STRONG><B>value</B></STRONG>
+<DD>the formatted value.
+  </DL>
+
+</UL>
+
+<UL><LI>Returns the unformatted value. 
+
+</UL></BLOCKQUOTE>
+<P>
+<BR> <HR>
+<A NAME="tex2html200"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html198"
+ HREF="node7.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html192"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html201"
+ HREF="node10.html">SpecDataFactory</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html199"
+ HREF="node7.html">Package uk.ac.starlink.splat.data</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html193"
+ HREF="node8.html">MEMSpecDataImpl</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

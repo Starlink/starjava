@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Class Loading in Java</TITLE>
+<META NAME="description" CONTENT="Class Loading in Java">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="previous" HREF="node78.html">
+<LINK REL="up" HREF="node75.html">
+<LINK REL="next" HREF="node80.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html987"
+ HREF="node80.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html985"
+ HREF="node75.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html981"
+ HREF="node78.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html988"
+ HREF="node80.html">Acknowledgments</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html986"
+ HREF="node75.html">Class Path Management</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html982"
+ HREF="node78.html">Reloading Classes</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000512400000000000000">
+Class Loading in Java</A>
+</H3>
+
+<P>
+A fundamental Java security proposition is that classes may only be
+loaded through a class loader once and that classes loaded through
+different class loaders live in different name spaces.  By different
+name spaces I mean that they are not considered to be of the same
+type, even if they came from the very same class file.
+
+<P>
+You can think of this in the following way: When you load classes
+through a new class loader imagine that every class name is prefixed
+with the identifier `FromClassLoaderXXX' and that all internal
+references to other classes loaded through that class loader are
+similarly rewritten.  Now if you attempt to pass a reference to a
+class instance loaded through another class loader to one of your
+newly loaded objects, it will not recognize it as the same type of
+class.
+
+<P>
+BeanShell works with objects dynamically through the reflection API,
+so your scripts will not have a problem recognizing reloaded class
+objects.  However any objects which have you already created might not
+like them.
+
+<P>
+<BR> <HR>
+<A NAME="tex2html987"
+ HREF="node80.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html985"
+ HREF="node75.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html981"
+ HREF="node78.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html988"
+ HREF="node80.html">Acknowledgments</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html986"
+ HREF="node75.html">Class Path Management</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html982"
+ HREF="node78.html">Reloading Classes</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

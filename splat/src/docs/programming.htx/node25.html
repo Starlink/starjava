@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>BeanShell Commands</TITLE>
+<META NAME="description" CONTENT="BeanShell Commands">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="next" HREF="node60.html">
+<LINK REL="previous" HREF="node23.html">
+<LINK REL="up" HREF="node19.html">
+<LINK REL="next" HREF="node26.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html414"
+ HREF="node26.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html412"
+ HREF="node19.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html406"
+ HREF="node24.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html415"
+ HREF="node26.html">print()</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html413"
+ HREF="node19.html">BeanShell User's Manual</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html407"
+ HREF="node24.html">Inner Class Style</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00055000000000000000">
+BeanShell Commands</A>
+</H2>
+
+<P>
+BeanShell comes with a bunch of commands to make your life easier.
+These are, for the most part, just very short bsh scripts, supplied in the
+bsh.jar file.
+
+<P>
+<TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT">Command</TD>
+<TD ALIGN="LEFT">Usage</TD>
+</TR>
+<TR><TD ALIGN="LEFT">addClassPath</TD>
+<TD ALIGN="LEFT">void addClassPath( string | URL )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">bg</TD>
+<TD ALIGN="LEFT">Thread bg( String script )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">browseClass</TD>
+<TD ALIGN="LEFT">browseClass( String | Object | Class )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">cat</TD>
+<TD ALIGN="LEFT">void cat( String filename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">cd</TD>
+<TD ALIGN="LEFT">void cd( String dirname )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">classBrowser</TD>
+<TD ALIGN="LEFT">void classBrowser()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">debug</TD>
+<TD ALIGN="LEFT">void debug()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">dir</TD>
+<TD ALIGN="LEFT">void dir( String dirname )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">error</TD>
+<TD ALIGN="LEFT">void error( string )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">eval</TD>
+<TD ALIGN="LEFT">Object eval( String expression )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">exec</TD>
+<TD ALIGN="LEFT">exec( String process )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">exit</TD>
+<TD ALIGN="LEFT">void exit()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">extend</TD>
+<TD ALIGN="LEFT">This extend( This object )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">frame</TD>
+<TD ALIGN="LEFT">JFrame | JInternalFrame frame( Component component )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">getClass</TD>
+<TD ALIGN="LEFT">Class getClass( String )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">getClassPath</TD>
+<TD ALIGN="LEFT">URL [] getClassPath()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">getResource</TD>
+<TD ALIGN="LEFT">URL getResource( String path )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">javap</TD>
+<TD ALIGN="LEFT">void javap( String | Object | Class )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">load</TD>
+<TD ALIGN="LEFT">Object load( String filename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">object</TD>
+<TD ALIGN="LEFT">This object()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">pathToFile</TD>
+<TD ALIGN="LEFT">File pathToFile( String filename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">print</TD>
+<TD ALIGN="LEFT">void print( arg )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">pwd</TD>
+<TD ALIGN="LEFT">void pwd()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">reloadClasses</TD>
+<TD ALIGN="LEFT">void reloadClasses( [ package name ] )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">rm</TD>
+<TD ALIGN="LEFT">void rm( String pathname )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">run</TD>
+<TD ALIGN="LEFT">This run( String script )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">save</TD>
+<TD ALIGN="LEFT">void save( Component component, String filename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">server</TD>
+<TD ALIGN="LEFT">void server( int port )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">setClassPath</TD>
+<TD ALIGN="LEFT">void setClassPath( URL [] )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">setFont</TD>
+<TD ALIGN="LEFT">Font setFont( Component comp, int ptsize )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">show</TD>
+<TD ALIGN="LEFT">void show()</TD>
+</TR>
+<TR><TD ALIGN="LEFT">source</TD>
+<TD ALIGN="LEFT">void source( String filename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">super</TD>
+<TD ALIGN="LEFT">This super( String scopename )</TD>
+</TR>
+<TR><TD ALIGN="LEFT">unset</TD>
+<TD ALIGN="LEFT">void unset(String name)</TD>
+</TR>
+</TABLE>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"></A>
+
+<UL>
+<LI><A NAME="tex2html416"
+ HREF="node26.html">print()</A>
+<LI><A NAME="tex2html417"
+ HREF="node27.html">show()</A>
+<LI><A NAME="tex2html418"
+ HREF="node28.html">Frame | JFrame | JInternalFrame frame( Component component )</A>
+<LI><A NAME="tex2html419"
+ HREF="node29.html">Object load( String filename )</A>
+<LI><A NAME="tex2html420"
+ HREF="node30.html">void save( Component component, String filename )</A>
+<LI><A NAME="tex2html421"
+ HREF="node31.html">void cat( String filename )</A>
+<LI><A NAME="tex2html422"
+ HREF="node32.html">exec( String process )</A>
+<LI><A NAME="tex2html423"
+ HREF="node33.html">void pwd()</A>
+<LI><A NAME="tex2html424"
+ HREF="node34.html">void rm( String pathname )</A>
+<LI><A NAME="tex2html425"
+ HREF="node35.html">void unset(String name)</A>
+<LI><A NAME="tex2html426"
+ HREF="node36.html">void cd( String dirname )</A>
+<LI><A NAME="tex2html427"
+ HREF="node37.html">void dir( String dirname )</A>
+<LI><A NAME="tex2html428"
+ HREF="node38.html">File pathToFile( String filename )</A>
+<LI><A NAME="tex2html429"
+ HREF="node39.html">void source( String filename )</A>
+<LI><A NAME="tex2html430"
+ HREF="node40.html">Object eval( String expression )</A>
+<LI><A NAME="tex2html431"
+ HREF="node41.html">void server( int port )</A>
+<LI><A NAME="tex2html432"
+ HREF="node42.html">void debug()</A>
+<LI><A NAME="tex2html433"
+ HREF="node43.html">void exit()</A>
+<LI><A NAME="tex2html434"
+ HREF="node44.html">URL getResource( String path )</A>
+<LI><A NAME="tex2html435"
+ HREF="node45.html">Font setFont( Component comp, int ptsize )</A>
+<LI><A NAME="tex2html436"
+ HREF="node46.html">This run( String script )</A>
+<LI><A NAME="tex2html437"
+ HREF="node47.html">Thread bg( String script )</A>
+<LI><A NAME="tex2html438"
+ HREF="node48.html">This object()</A>
+<LI><A NAME="tex2html439"
+ HREF="node49.html">This extend( This object )</A>
+<LI><A NAME="tex2html440"
+ HREF="node50.html">This super( String scopename )</A>
+<LI><A NAME="tex2html441"
+ HREF="node51.html">void addClassPath( string | URL )</A>
+<LI><A NAME="tex2html442"
+ HREF="node52.html">void setClassPath( URL [] )</A>
+<LI><A NAME="tex2html443"
+ HREF="node53.html">void reloadClasses( [ package name ] )</A>
+<LI><A NAME="tex2html444"
+ HREF="node54.html">void browseClass( String | Object | Class )</A>
+<LI><A NAME="tex2html445"
+ HREF="node55.html">void classBrowser()</A>
+<LI><A NAME="tex2html446"
+ HREF="node56.html">void error( string )</A>
+<LI><A NAME="tex2html447"
+ HREF="node57.html">URL [] getClassPath()</A>
+<LI><A NAME="tex2html448"
+ HREF="node58.html">void javap( String | Object | Class )</A>
+<LI><A NAME="tex2html449"
+ HREF="node59.html">Class getClass( String )</A>
+</UL>
+<!--End of Table of Child-Links-->
+<BR> <HR>
+<A NAME="tex2html414"
+ HREF="node26.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html412"
+ HREF="node19.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html406"
+ HREF="node24.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html415"
+ HREF="node26.html">print()</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html413"
+ HREF="node19.html">BeanShell User's Manual</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html407"
+ HREF="node24.html">Inner Class Style</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>

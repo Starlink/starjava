@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--Converted with LaTeX2HTML 98.2 beta6 (August 14th, 1998)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Changing the Class Path</TITLE>
+<META NAME="description" CONTENT="Changing the Class Path">
+<META NAME="keywords" CONTENT="programming">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<LINK REL="STYLESHEET" HREF="programming.css">
+<LINK REL="next" HREF="node77.html">
+<LINK REL="previous" HREF="node75.html">
+<LINK REL="up" HREF="node75.html">
+<LINK REL="next" HREF="node77.html">
+</HEAD>
+<BODY >
+<BR> <HR>
+<A NAME="tex2html959"
+ HREF="node77.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html957"
+ HREF="node75.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html951"
+ HREF="node75.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html960"
+ HREF="node77.html">Auto-Importing from the Classpath</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html958"
+ HREF="node75.html">Class Path Management</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html952"
+ HREF="node75.html">Class Path Management</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000512100000000000000">
+Changing the Class Path</A>
+</H3>
+
+<P>
+<B>addClassPath( URL | path )</B>
+
+<P>
+Add the specified directory or archive to the classpath.  Archives may
+be located by URL, allowing them to be loaded over the network.
+
+<P>
+Examples:
+<BLOCKQUOTE>
+<PRE>
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+</PRE>
+</BLOCKQUOTE>
+
+<P>
+Note that if you add class path that overlaps with the existing Java
+user classpath then the new path will effectively reload the classes
+in that area.
+
+<P>
+<B>setClassPath( URL [] )</B>
+
+<P>
+Change the entire classpath to the specified array of directories
+and/or archives.
+
+<P>
+This command has some important side effects.  It effectively causes
+all classes to be reloaded (including any in the Java user class path
+at startup).  Please see `Class Reloading' below for further details.
+
+<P>
+<B>Note:</B> setClassPath() cannot currently be used to make the classpath
+smaller than the Java user path at startup.
+
+<P>
+<BR> <HR>
+<A NAME="tex2html959"
+ HREF="node77.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html957"
+ HREF="node75.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html951"
+ HREF="node75.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="programming.html#stardoccontents"><IMG
+ WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
+ SRC="contents_motif.gif"
+ ALT="134"></A>
+<BR>
+<B> Next:</B> <A NAME="tex2html960"
+ HREF="node77.html">Auto-Importing from the Classpath</A>
+<BR>
+<B>Up:</B> <A NAME="tex2html958"
+ HREF="node75.html">Class Path Management</A>
+<BR>
+<B> Previous:</B> <A NAME="tex2html952"
+ HREF="node75.html">Class Path Management</A>
+<BR> <HR> <P>
+
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>SPLAT - A Spectral Analysis Tool<BR>Starlink Document programming<BR>Peter W. Draper<BR>21 December 2001<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001 Council for the Central Laboratory of the
+
+Research Councils<BR></I>
+</ADDRESS>
+</BODY>
+</HTML>
