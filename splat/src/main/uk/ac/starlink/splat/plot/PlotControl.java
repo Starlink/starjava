@@ -333,7 +333,7 @@ public class PlotControl
 
         // Add the list of spectra that we're displaying.
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets( 3, 3, 3, 3 );
+        gbc.insets = new Insets( 0, 3, 3, 0 );
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.EAST;
         gbc.weightx = 0.0;
@@ -352,6 +352,11 @@ public class PlotControl
         //  the line properties.
         nameList.setRenderer( new LineRenderer() );
         updateNames();
+
+        //  JComboBox sets default size this way!
+        nameList.setPrototypeDisplayValue
+            ( "AqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqA" );
+
 
         //  Add the SimpleDataLimitControls to quickly choose a cut on the Y
         //  range.
