@@ -120,8 +120,6 @@ public class PlotWindow extends TopcatViewWindow
     private static final Object GIF = "GIF";
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
-    private static final ListCellRenderer colRenderer_ = 
-        new ColumnCellRenderer();
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -847,7 +845,7 @@ public class PlotWindow extends TopcatViewWindow
         JComboBox box = new JComboBox( boxModel );
 
         /* Give it a suitable renderer. */
-        box.setRenderer( colRenderer_ );
+        box.setRenderer( new ColumnCellRenderer( box ) );
         return box;
     }
 
