@@ -1449,7 +1449,6 @@ public class SplatBrowser
         int[] plotIndices = getSelectedPlots();
         if ( plotIndices != null ) {
             SpecData spec = null;
-            PlotControlFrame plot = null;
             for ( int i = 0; i < specIndices.length; i++ ) {
                 spec = globalList.getSpectrum( specIndices[i] );
                 for ( int j = 0; j < plotIndices.length; j++ ) {
@@ -1802,6 +1801,17 @@ public class SplatBrowser
             JOptionPane.showMessageDialog( this, e.getMessage(),
                                            "Error creating plot",
                                            JOptionPane.ERROR_MESSAGE );
+        }
+        catch ( OutOfMemoryError memErr ) {
+            //  If we run out of memory during the Plot create, try to make
+            //  sure the plot isn't shown.
+            JOptionPane.showMessageDialog( this, memErr.getMessage(),
+                                           "Error creating plot",
+                                           JOptionPane.ERROR_MESSAGE );
+            if ( plot != null ) {
+                plot.setVisible( false );
+            }
+            plot = null;
         }
         finally {
             //  Always make sure we reset the cursor.

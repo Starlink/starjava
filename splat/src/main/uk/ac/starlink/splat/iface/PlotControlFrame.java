@@ -203,13 +203,13 @@ public class PlotControlFrame
         else {
             showDeblend = false;
         }
-
+        
         if ( specDataComp == null ) {
             plot = new PlotControl();
         } 
         else {
             plot = new PlotControl( specDataComp );
-        }
+            }
         this.specDataComp = plot.getSpecDataComp();
         initUI( title );
     }
