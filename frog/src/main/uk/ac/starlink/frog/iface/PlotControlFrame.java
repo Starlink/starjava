@@ -1,6 +1,8 @@
 package uk.ac.starlink.frog.iface;
 
 import java.io.File;
+import java.lang.Double;
+import java.lang.Integer;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -12,6 +14,11 @@ import uk.ac.starlink.ast.gui.GraphicsHintsControls;
 import uk.ac.starlink.ast.gui.GraphicsEdgesControls;
 import uk.ac.starlink.ast.gui.ComponentColourControls;
 import uk.ac.starlink.ast.grf.DefaultGrfMarker;
+
+import uk.ac.starlink.table.ArrayColumn;
+import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.ColumnStarTable;
+import uk.ac.starlink.table.view.TableViewer;
 
 import uk.ac.starlink.frog.data.TimeSeries;
 import uk.ac.starlink.frog.data.TimeSeriesComp;
@@ -210,7 +217,7 @@ public class PlotControlFrame extends JInternalFrame
         fileMenu.addSeparator();
         
         // Meta Data
-        JMenuItem dataItem = new JMenuItem("Data Status");
+        JMenuItem dataItem = new JMenuItem("Meta Data");
         dataItem.addActionListener( new ActionListener() {
            public void actionPerformed(ActionEvent e) { 
 
@@ -219,6 +226,17 @@ public class PlotControlFrame extends JInternalFrame
            }
         }); 
         fileMenu.add(dataItem);          
+
+        JMenuItem tableItem = new JMenuItem("View Data");
+        tableItem.addActionListener( new ActionListener() {
+           public void actionPerformed(ActionEvent e) { 
+
+               debugManager.print( "Creating TableViewer Popup...");
+               doTableViewer( );     
+           }
+        }); 
+        fileMenu.add(tableItem);       
+
 
         // separator
         fileMenu.addSeparator();
@@ -644,7 +662,96 @@ public class PlotControlFrame extends JInternalFrame
         seriesManager.getFrog().getDesktop().add(meta);
         meta.show();
      }
-    
+
+    /**
+     * Spawn a TableViewer popup
+     *
+     */
+     protected void doTableViewer( ) 
+     {
+     
+        TimeSeries series = seriesManager.getSeries(this).getSeries();
+     
+        ColumnInfo iColInfo = null;
+        ColumnInfo xColInfo = null;
+        ColumnInfo yColInfo = null;
+        ColumnInfo eColInfo = null;
+        
+        iColInfo = new ColumnInfo( "Index", Integer.class, "Row index" );
+        xColInfo = new ColumnInfo( "Time", Double.class, "Time Axis" );
+        
+        if( series.isInMags() ) {
+           yColInfo = 
+             new ColumnInfo( "Data", Double.class, "Data Value / magnitudes" );
+        } else {
+           yColInfo = 
+             new ColumnInfo( "Data", Double.class, "Data Value / flux" );  
+        }
+
+        // grab data
+        double xRef[] = series.getXData();
+        double yRef[] = series.getYData();
+         
+        // grab the error if the exist
+        double errRef[] = null;
+        if( series.haveYDataErrors() ) {
+           errRef = series.getYDataErrors();
+           eColInfo = new ColumnInfo( "Error", Double.class, "Data Error" );
+        }   
+         
+        // copy the arrays, this sucks as it double the memory requirement
+        // or the application at a stroke, but we currently have only
+        // references to the data held in the currentSeries object.
+        double xData[] = (double[]) xRef.clone();
+        double yData[] = (double[]) yRef.clone();
+
+        double errors[] = null;
+        if( series.haveYDataErrors() ) {
+           errors = (double[]) errRef.clone();
+        }   
+
+        // make row index
+        int iData[] = new int[xData.length];
+        for ( int i = 0; i < xData.length; i++ ) {
+            iData[i] = i;
+        }
+              
+        // you can add some more column metadata here by calling ColumnInfo
+        // methods if you've got more to say about these columns
+
+        ArrayColumn iCol = ArrayColumn.makeColumn( iColInfo, iData );
+        ArrayColumn xCol = ArrayColumn.makeColumn( xColInfo, xData );
+        ArrayColumn yCol = ArrayColumn.makeColumn( yColInfo, yData );
+ 
+        ArrayColumn eCol = null;
+        if( series.haveYDataErrors() ) {
+           eCol = ArrayColumn.makeColumn( eColInfo, errors );
+        }   
+
+        final int nRows = xData.length;
+        ColumnStarTable sTable = new ColumnStarTable() {
+            public long getRowCount() {
+                return (long) nRows;
+            }
+        };
+
+        sTable.setName( seriesManager.getKey( this ) );
+
+        // you can add some more table metadata here by calling 
+        // AbstractStarTable methods on st if you've got more to say
+
+        sTable.addColumn( iCol );
+        sTable.addColumn( xCol );
+        sTable.addColumn( yCol );
+        if( series.haveYDataErrors() ) {
+           sTable.addColumn( eCol );
+        }
+        
+        // spawn the table viewer
+        new TableViewer( sTable, seriesManager.getFrog() );
+  
+     }  
+       
     /**
      * Spawn a FoldSeriesDialog popup
      *
