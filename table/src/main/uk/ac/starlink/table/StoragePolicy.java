@@ -6,15 +6,28 @@ import uk.ac.starlink.table.jdbc.JDBCStarTable;
 import uk.ac.starlink.table.storage.ListRowStore;
 import uk.ac.starlink.table.storage.DiscardRowStore;
 import uk.ac.starlink.table.storage.DiskRowStore;
+import uk.ac.starlink.util.Loader;
 
 /**
- * Defines how bulk data will be stored.
+ * Defines storage methods for bulk data.
  * If the table handling system needs to cache bulk data somewhere,
  * for instance because it is reading a table from a stream but needs
  * to make it available for random access, it will use a StoragePolicy
- * object to work out how to do it.
- * The selection and behaviour of the default storage policy will
- * depend on system properties, security context, and possibly other things.
+ * object to work out how to do it. 
+ *
+ * <p>Code which has no preferences about how to store data can obtain
+ * an instance of this class using the {@link #getDefaultPolicy} method.
+ * The initial value of this may be selected by setting the 
+ * <tt>tables.storage</tt> system property; currently recognised values
+ * are the strings "<tt>disk</tt>", "<tt>memory</tt>" and "<tt>discard</tt>".
+ * You may also use the name of a class which extends <tt>StoragePolicy</tt>
+ * and has a no-arg constructor, in which case one of these will be
+ * instantiated and used.
+ *
+ * <p>Code which wants to store data in a particular way may use one of
+ * the predefined policies {@link #PREFER_MEMORY}, {@link #PREFER_DISK}
+ * or {@link #DISCARD}, or may implement their own policy by extending
+ * this class.
  * If you want more control, you can always create instances of the 
  * public {@link RowStore} implementations directly.
  *
@@ -56,10 +69,24 @@ public abstract class StoragePolicy {
                 defaultInstance_ = DISCARD;
             }
             else {
-                defaultInstance_ = PREFER_MEMORY;
+                StoragePolicy named =
+                    (StoragePolicy) 
+                    Loader.getClassInstance( pref, StoragePolicy.class );
+                defaultInstance_ = named != null 
+                                 ? named
+                                 : (StoragePolicy) PREFER_MEMORY;
             }
         }
         return defaultInstance_;
+    }
+
+    /**
+     * Sets the default storage policy used for this JVM.
+     *
+     * @param  policy  new default storage policy
+     */
+    public static void setDefaultPolicy( StoragePolicy policy ) {
+        defaultInstance_ = policy;
     }
 
     /**
