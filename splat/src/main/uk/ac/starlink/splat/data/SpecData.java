@@ -306,10 +306,10 @@ public class SpecData
     protected double[] fullRange = new double[4];
 
     /**
-     * Reference to ASTJ object that contains coordinates associated with the
-     * spectrum. Marked "transient" as much of this state information is
-     * stored in AST structures, so cannot be restored from a serialized
-     * stream.
+     * Reference to ASTJ object that contains an AST FrameSet that wraps
+     * the spectrum FrameSet so that it can be plotted (i.e. makes it
+     * suitably two dimensional). Marked "transient" it should always be
+     * re-generated when a spectrum is loaded.
      */
     protected transient ASTJ astJ = null;
 
@@ -412,7 +412,8 @@ public class SpecData
 
 
     /**
-     * Get references to spectrum X data (i.e. the coordinates).
+     * Get references to spectrum X data (i.e. the coordinates as a
+     * single array).
      *
      * @return reference to spectrum X data.
      */
@@ -545,7 +546,7 @@ public class SpecData
         }
 
         //  And create the memory spectrum.
-        return createNewSpectrum( name, newData, newCoords, newErrors );
+        return createNewSpectrum( name, newCoords, newData, newErrors );
     }
 
     /**
@@ -587,18 +588,15 @@ public class SpecData
             return null;
         }
 
-        //  Start copying remain data. The size of result spectrum is
+        //  Copy remaining data. The size of result spectrum is
         //  the current size, minus the number of positions that will
         //  be erased, plus one per range to hold the BAD value to
         //  form the break.
-        int nkeep = xPos.length - ndelete + nRanges;
-        System.out.println( "nkeep = " + nkeep );
+        int nkeep = xPos.length - ndelete + nRanges;;
         double[] newCoords = new double[nkeep];
         double[] newData = new double[nkeep];
         int length = 0;
         for ( int i = 0, j = 0, k = 0; i < xPos.length; i++ ) {
-            System.out.println( i + ", " + j + ", " + k );
-            System.out.println( lower[j] + ": " + upper[j] );
             if ( i >= lower[j] && i <= upper[j] ) {
                 //  Arrived within a range, so mark one mid-range
                 //  position BAD (so show the break) and skip to the
@@ -608,8 +606,7 @@ public class SpecData
                 k++;
                 if ( j + 1 == nRanges ) {
                     //  No more ranges, so just complete the copy.
-                    for ( int l = upper[j]; l < xPos.length; l++ ) {
-                        System.out.println( k + ", " + l );
+                    for ( int l = upper[j] + 1; l < xPos.length; l++ ) {
                         if ( k < nkeep ) {
                             newCoords[k] = xPos[l];
                             newData[k] = yPos[l];
@@ -619,6 +616,7 @@ public class SpecData
                     i = xPos.length;
                     break;
                 }
+                i = upper[j];
                 j++;
             }
             else {
@@ -632,39 +630,42 @@ public class SpecData
         double[] newErrors = null;
         if ( haveYDataErrors() ) {
             newErrors = new double[nkeep];
-
             for ( int i = 0, j = 0, k = 0; i < xPos.length; i++ ) {
-                if ( i > lower[j] && i < upper[j] ) {
-                    //  Arrived within a range, so mark one mid-range
-                    //  position BAD (so show the break) and skip to the
-                    //  end. Set for next valid range.
-                    newErrors[k] = BAD;
+                if ( i >= lower[j] && i <= upper[j] ) {
+                    newErrors[k] =  BAD;
                     k++;
-                    j++;
-                    if ( j == nRanges ) {
-                        //  No more ranges, so just complete the copy.
-                        for ( int l = i; l < xPos.length; l++ ) {
-                            newErrors[k++] = yErr[l];
+                    if ( j + 1 == nRanges ) {
+                        for ( int l = upper[j] + 1; l < xPos.length; l++ ) {
+                            if ( k < nkeep ) {
+                                newErrors[k] = yErr[l];
+                            }
+                            k++;
                         }
+                        i = xPos.length;
                         break;
                     }
+                    i = upper[j];
+                    j++;
                 }
                 else {
-                    newErrors[k++] = yErr[i];
+                    newErrors[k] = yErr[i];
+                    k++;
                 }
             }
         }
 
         //  And create the memory spectrum.
-        return createNewSpectrum( name, newData, newCoords, newErrors );
+        return createNewSpectrum( name, newCoords, newData, newErrors );
     }
 
     /**
-     * Create a new (memory-resident) spectrum from the given data
+     * Create a new (memory-resident) spectrum from the given data and
+     * coordinates (looses WCS as new coords are assumed no longer
+     * directly related, i.e. indices of data do not map to proper
+     * coordinates using the WCS).
      */
-    protected SpecData createNewSpectrum( String name, double[] data,
-                                          double[] coords, 
-                                          double[] errors )
+    protected SpecData createNewSpectrum( String name, double[] coords,
+                                          double[] data, double[] errors )
     {
         EditableSpecData newSpec = null;
         try {
@@ -706,16 +707,28 @@ public class SpecData
 
 
     /**
-     * Get reference to ASTJ object set up to specify coordinate
-     * transformations.
+     * Get reference to ASTJ object set up to specify the
+     * transformations for plotting coordinates against data values.
      *
-     * @return ASTJ object describing axis transformations.
+     * @return ASTJ object describing plottable axis transformations.
      */
     public ASTJ getAst()
     {
         return astJ;
     }
 
+    /**
+     * Get reference to the FrameSet that is used by the
+     * SpecDataImpl. Note this may not be 1D. It is made available
+     * mainly for creating copies of SpecData (the ASTJ FrameSet is
+     * not suitable for writing to disk file). Do not confuse this
+     * with the {@link getAst()} FrameSet, it is the original dataset
+     * FrameSet.
+     */
+    public FrameSet getFrameSet()
+    {
+        return impl.getAst();
+    }
 
     /**
      * Get the size of the spectrum.
@@ -1019,8 +1032,8 @@ public class SpecData
      * in use and establishes the minimum and maximum ranges for both
      * coordinates (X, i.e. the wavelength and Y, i.e. data count).
      *
-     * @exception SplatException thrown if coordinate are not invertable (i.e.
-     *      not monotonic).
+     * @exception SplatException thrown if coordinate are not invertable
+     *                           (i.e. not monotonic).
      */
     protected void readData()
         throws SplatException
@@ -1062,7 +1075,7 @@ public class SpecData
         }
 
         //  Get the AST component (this should define the wavelength
-        //  axis coordinates)
+        //  axis coordinates, somehow).
         FrameSet astref = impl.getAst();
         if ( astref == null ) {
             System.err.println( "spectrum has no coordinate information" );
@@ -1102,7 +1115,7 @@ public class SpecData
             //  coordinates through to graphics coordinates when
             //  actually drawing the spectrum).
             double[] tPos = ASTJ.astTran1( oned, xPos, true );
-            ASTJ.astAnnul( oned );
+            //ASTJ.astAnnul( oned );
             xPos = tPos;
             tPos = null;
 
@@ -1117,11 +1130,11 @@ public class SpecData
     public void setRange()
     {
         double xMin = Double.MAX_VALUE;
-        double xMax = Double.MIN_VALUE;
-        double yMin = Double.MAX_VALUE;
-        double yMax = Double.MIN_VALUE;
-        double fullYMin = Double.MAX_VALUE;
-        double fullYMax = Double.MIN_VALUE;
+        double xMax = -Double.MAX_VALUE;
+        double yMin = xMin;
+        double yMax = xMax;
+        double fullYMin = xMin;
+        double fullYMax = xMax;
         if ( yErr != null ) {
             for ( int i = 0; i < yPos.length; i++ ) {
                 if ( yPos[i] != SpecData.BAD ) {
@@ -1130,9 +1143,9 @@ public class SpecData
                     yMin = Math.min( yMin, yPos[i] );
                     yMax = Math.max( yMax, yPos[i] );
 
-                    fullYMin = Math.min( fullYMin, 
+                    fullYMin = Math.min( fullYMin,
                                          yPos[i] - ( yErr[i] * 0.5 ) );
-                    fullYMax = Math.max( fullYMax, 
+                    fullYMax = Math.max( fullYMax,
                                          yPos[i] + ( yErr[i] * 0.5 ) );
                 }
             }
@@ -1147,8 +1160,10 @@ public class SpecData
                 }
             }
         }
-        if ( xMin == Double.MAX_VALUE || xMax == Double.MIN_VALUE ) {
+        if ( xMin == Double.MAX_VALUE ) {
             xMin = 0.0;
+        }
+        if ( xMax == -Double.MAX_VALUE ) {
             xMax = 0.0;
         }
 
@@ -1157,7 +1172,7 @@ public class SpecData
         range[1] = xMax;
         range[2] = yMin;
         range[3] = yMax;
-        
+
         fullRange[0] = xMin;
         fullRange[1] = xMax;
         if ( yErr != null ) {
@@ -1168,12 +1183,12 @@ public class SpecData
             fullRange[2] = yMin;
             fullRange[3] = yMax;
         }
-        
-        //  Add slack so that error bars do not abut the edges.
+
+        //  Add slack so that error bars do not abutt the edges.
         double slack = ( fullRange[3] - fullRange[2] ) * SLACK;
         fullRange[2] = fullRange[2] - slack;
         fullRange[3] = fullRange[3] + slack;
-    }        
+    }
 
     /**
      * Draw the spectrum onto the given widget using a suitable AST GRF
@@ -1448,19 +1463,22 @@ public class SpecData
         int bounds[] = new int[2];
         int low = 0;
         int high = xPos.length - 1;
-
+        boolean increases = ( xPos[low] < xPos[high] );
+            
         // Check off scale.
-        if ( xcoord < xPos[low] ) {
+        if ( ( increases && xcoord < xPos[low] ) || 
+             ( ! increases && xcoord > xPos[low] ) ) {
             high = low;
         }
-        else if ( xcoord > xPos[high] ) {
+        else if ( ( increases && xcoord > xPos[high] ) || 
+                  ( ! increases && xcoord < xPos[high] ) ) {
             low = high;
         }
         else {
             //  Use a binary search as values should be sorted to increase
             //  in either direction (wavelength, pixel coordinates etc.).
             int mid = 0;
-            if ( xPos[0] < xPos[high] ) {
+            if ( increases ) {
                 while ( low < high - 1 ) {
                     mid = ( low + high ) / 2;
                     if ( xcoord < xPos[mid] ) {

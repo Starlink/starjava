@@ -9,9 +9,9 @@
 package uk.ac.starlink.splat.data;
 
 import javax.swing.undo.AbstractUndoableEdit;
-import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
 
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.util.SplatException;
@@ -133,6 +133,20 @@ public class EditableSpecData
     }
 
     /**
+     * Change the complete spectrum data and WCS. Copies all data.
+     *
+     * @param frameSet a FrameSet for the WCS of this data
+     * @param data the spectrum data values.
+     */
+    public void setData( FrameSet frameSet, double[] data )
+        throws SplatException
+    {
+        constructColumnAndFrameSetUndo( data, null, false );
+        editableImpl.setData( frameSet, data );
+        readData();
+    }
+
+    /**
      * Change the complete spectrum data. Doesn't copy data, just
      * keeps references.
      *
@@ -148,6 +162,21 @@ public class EditableSpecData
         }
         constructColumnUndo( coords, data, null, true );
         editableImpl.setDataQuick( coords, data );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data and WCS. Doesn't copy data, just
+     * keeps references.
+     *
+     * @param frameSet a FrameSet for the WCS of this data
+     * @param data the spectrum data values.
+     */
+    public void setDataQuick( FrameSet frameSet, double[] data )
+        throws SplatException
+    {
+        constructColumnAndFrameSetUndo( data, null, true );
+        editableImpl.setDataQuick( frameSet, data );
         readData();
     }
 
@@ -173,6 +202,25 @@ public class EditableSpecData
     }
 
     /**
+     * Change the complete spectrum data and WCS. Copies all data.
+     *
+     * @param frameSet a FrameSet for the WCS of this data
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    public void setData( FrameSet frameSet, double[] data, double[] errors )
+        throws SplatException
+    {
+        if ( ( errors == null ) || ( data.length != errors.length ) ) {
+            throw new SplatException( "Data and errors must have " +
+                                      "the same number of values" );
+        }
+        constructColumnAndFrameSetUndo( data, errors, false );
+        editableImpl.setData( frameSet, data, errors );
+        readData();
+    }
+
+    /**
      * Change the complete spectrum data. Doesn't copy data.
      *
      * @param coords the spectrum coordinates, one per data value.
@@ -189,6 +237,26 @@ public class EditableSpecData
         }
         constructColumnUndo( coords, data, errors, true );
         editableImpl.setDataQuick( coords, data, errors );
+        readData();
+    }
+
+    /**
+     * Change the complete spectrum data and WCS. Doesn't copy data.
+     *
+     * @param frameSet a FrameSet for the WCS of this data
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    public void setDataQuick( FrameSet frameSet, double[] data,
+                              double[] errors )
+        throws SplatException
+    {
+        if ( ( errors != null ) && ( data.length != errors.length ) ) {
+            throw new SplatException( "Data and errors must have " +
+                                      "the same number of values" );
+        }
+        constructColumnAndFrameSetUndo( data, errors, true );
+        editableImpl.setDataQuick( frameSet, data, errors );
         readData();
     }
 
@@ -223,15 +291,6 @@ public class EditableSpecData
         constructCellUndo( EditCell.ECOLUMN, index );
         editableImpl.setYDataErrorValue( index, value );
         readData();
-    }
-
-    /**
-     * Get access to the FrameSet of the original data set (should be
-     * 1 dimensional).
-     */
-    public FrameSet getFrameSet()
-    {
-        return impl.getAst();
     }
 
     /**
@@ -313,7 +372,7 @@ public class EditableSpecData
                     data = makeCopy( data );
                 }
             }
-            
+
             errors = specData.getYDataErrors();
             if ( needCopy && newErrors != null ) {
                 if ( errors != newErrors & errors != null ) {
@@ -436,16 +495,122 @@ public class EditableSpecData
                 e.printStackTrace();
             }
         }
+    }
 
-        public void die()
+    /**
+     * If required constructor a undoable object to restore the
+     * current state of the data columns and FrameSet (coordinates are
+     * re-generated from this).
+     */
+    protected void constructColumnAndFrameSetUndo( double[] data,
+                                                   double[] errors,
+                                                   boolean needCopy )
+    {
+        if ( undoable && undoManager != null ) {
+            undoableEdit = new EditColumnAndFrameSet( this, data, errors, 
+                                                      needCopy );
+            undoManager.addEdit( undoableEdit );
+        }
+    }
+
+    /**
+     * Simulatenous edit of data and FrameSet inner class, extends
+     * AbstractUndoableEdit to provide an implementation of
+     * UndoableEdit that can be stored in the UndoManager.
+     */
+    protected class EditColumnAndFrameSet
+        extends AbstractUndoableEdit
+    {
+        private EditableSpecData specData = null;
+        private FrameSet frameSet = null;
+        private double[] data = null;
+        private double[] errors = null;
+
+        /**
+         * Constructor.
+         *
+         * @param specData the specData object about to be modified
+         * @param newData the data values about to applied (only used
+         *                if needCopy is true).
+         * @param newErrors the data errors about to applied. If null
+         *                  then errors are assumed to be not currently
+         *                  present, otherwise they will not be used in
+         *                  needCopy is false).
+         */
+        public EditColumnAndFrameSet( EditableSpecData specData,
+                                      double[] newData, double[] newErrors,
+                                      boolean needCopy )
         {
-            super.die();
+            super();
+            this.specData = specData;
+
+            // Take clone of existing FrameSet so that annuls
+            // elsewhere are OK.
+            this.frameSet = (FrameSet) specData.getFrameSet().clone();
+
+            data = specData.getYData();
+            if ( needCopy && newData != null ) {
+                if ( data != newData ) {
+                    data = makeCopy( data );
+                }
+            }
+
+            errors = specData.getYDataErrors();
+            if ( needCopy && newErrors != null ) {
+                if ( errors != newErrors & errors != null ) {
+                    errors = makeCopy( errors );
+                }
+            }
+        }
+
+        public void undo()
+            throws CannotUndoException
+        {
+            super.undo();
+            switchBack();
+        }
+
+        public void redo()
+            throws CannotUndoException
+        {
+            super.redo();
+            switchBack();
+        }
+
+        public String getPresentationName()
+        {
+            return "EditableSpecData.EditColumnAndFrameSet";
+        }
+
+        protected void switchBack()
+        {
+            //  Replace data from storage. This routine also takes
+            //  references to the existing data so that the next
+            //  undo/redo backs out of this change.
+            double[] newData = data;
+            data = specData.getYData();
+
+            double[] newErrors = errors;
+            errors = specData.getYDataErrors();
+
+            FrameSet targetFrameSet = frameSet;
+            frameSet = (FrameSet) specData.getFrameSet().clone();
+
             try {
-                frameSet.annul();
+                specData.undoable = false;
+                specData.setDataQuick( targetFrameSet, newData, newErrors );
+                specData.undoable = true;
             }
-            catch (Exception e) {
-                //  Failure not critical.
+            catch (SplatException e) {
+                e.printStackTrace();
             }
+        }
+
+        protected double[] makeCopy( double[] from )
+        {
+            double[] to = new double[from.length];
+            System.arraycopy( from, 0, to, 0, from.length );
+            return to;
         }
     }
 

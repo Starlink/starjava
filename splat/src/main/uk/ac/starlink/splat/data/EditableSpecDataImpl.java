@@ -52,12 +52,32 @@ public abstract class EditableSpecDataImpl
         throws SplatException;
 
     /**
+     * Change the spectrum data and WCS. Takes a copy of all data.
+     *
+     * @param frameSet the FrameSet to be used for generating
+     *                 coordinates.
+     * @param data the spectrum data values.
+     */
+    abstract public void setData( FrameSet frameSet, double[] data )
+        throws SplatException;
+
+    /**
      * Change the complete spectrum data. Original data is not copied.
      *
      * @param coords the spectrum coordinates, one per data value.
      * @param data the spectrum data values.
      */
     abstract public void setDataQuick( double[] coords, double[] data )
+        throws SplatException;
+
+    /**
+     * Change the spectrum data and WCS. Original data is not copied.
+     *
+     * @param frameSet the FrameSet to be used for generating
+     *                 coordinates.
+     * @param data the spectrum data values.
+     */
+    abstract public void setDataQuick( FrameSet frameSet, double[] data )
         throws SplatException;
 
     /**
@@ -72,6 +92,18 @@ public abstract class EditableSpecDataImpl
         throws SplatException;
 
     /**
+     * Change the spectrum data and WCS. Takes a copy of all data.
+     *
+     * @param frameSet the FrameSet to be used for generating
+     *                 coordinates.
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    abstract public void setData( FrameSet frameSet, double[] data, 
+                                  double[] errors )
+        throws SplatException;
+
+    /**
      * Change the complete spectrum data. Original data is not copied.
      *
      * @param coords the spectrum coordinates, one per data value.
@@ -79,6 +111,18 @@ public abstract class EditableSpecDataImpl
      * @param errors the errors of the spectrum data values.
      */
     abstract public void setDataQuick( double[] coords, double[] data, 
+                                       double[] errors )
+        throws SplatException;
+
+    /**
+     * Change the complete spectrum data. Original data is not copied.
+     *
+     * @param frameSet the FrameSet to be used for generating
+     *                 coordinates.
+     * @param data the spectrum data values.
+     * @param errors the errors of the spectrum data values.
+     */
+    abstract public void setDataQuick( FrameSet frameSet, double[] data, 
                                        double[] errors )
         throws SplatException;
 
@@ -109,4 +153,3 @@ public abstract class EditableSpecDataImpl
     abstract public void setAst( FrameSet frameSet )
         throws SplatException;
 }
-

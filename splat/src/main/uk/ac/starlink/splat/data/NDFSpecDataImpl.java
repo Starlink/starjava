@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     01-SEP-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.data;
 
 import nom.tam.fits.Header;
@@ -6,7 +13,6 @@ import nom.tam.util.Cursor;
 
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.ast.LutMap;
 import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SplatException;
@@ -17,7 +23,6 @@ import uk.ac.starlink.splat.util.SplatException;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @since 01-SEP-2000
  * @see "The Bridge Design Pattern"
  */
 public class NDFSpecDataImpl extends SpecDataImpl
@@ -245,20 +250,41 @@ public class NDFSpecDataImpl extends SpecDataImpl
             theNDF = ((NDFSpecDataImpl)source.getSpecDataImpl()).getTempCopy();
         } 
         else {
-            theNDF = NDFJ.get1DTempDouble( source.size() );
+            //  Look for a backing source that may be an NDF sometime
+            //  back (only really works for EditableSpecData).
+            SpecDataImpl parent = null;
 
-            //  If not an NDF, but does offer FITS headers, then we
-            //  need to copy these.
-            if (source.getSpecDataImpl() instanceof FITSHeaderSource) {
-                Header headers = ((FITSHeaderSource)source.getSpecDataImpl()).getFitsHeaders();
-                if ( headers != null ) {
-                   Cursor iter = headers.iterator();
-                   String[] cards = new String[headers.getNumberOfCards()];
-                   int i = 0;
-                   while ( iter.hasNext() ) {
-                       cards[i++] = ((HeaderCard) iter.next()).toString();
-                   }
-                   theNDF.createFitsExtension( cards );
+            // Search all parents of parents etc., until we get an
+            // NDF. Protect against circular loops by limiting look-back.
+            parent = source.getSpecDataImpl().getParentImpl();
+            if ( parent != null && ! ( parent instanceof NDFSpecDataImpl ) ) {
+                for ( int i = 0; i < 1000; i++ ) {
+                    parent = parent.getParentImpl();
+                    if ( parent == null ) break;
+                    if ( parent instanceof NDFSpecDataImpl ) break;
+                }
+            }
+            if ( parent != null && ! ( parent instanceof NDFSpecDataImpl ) ) {
+                theNDF = ((NDFSpecDataImpl)parent).getTempCopy();
+            }
+            else {
+                theNDF = NDFJ.get1DTempDouble( source.size() );
+            }
+        }
+
+        //  If source offer FITS headers, then we need to copy these.
+        if ( source.getSpecDataImpl().isFITSHeaderSource() ) {
+            Header headers = 
+                ((FITSHeaderSource)source.getSpecDataImpl()).getFitsHeaders();
+            if ( headers != null ) {
+                Cursor iter = headers.iterator();
+                String[] cards = new String[headers.getNumberOfCards()];
+                int i = 0;
+                while ( iter.hasNext() ) {
+                    cards[i++] = ((HeaderCard) iter.next()).toString();
+                }
+                if ( i > 0 ) {
+                    theNDF.createFitsExtension( cards );
                 }
             }
         }
@@ -277,7 +303,9 @@ public class NDFSpecDataImpl extends SpecDataImpl
             theNDF.setCharComp( "Title", source.getShortName() );
         }
 
-        //  Set the AST component? Not written to NDF until saved.
-        theNDF.setAst( source.getAst().getRef() );
+        //  Set the AST component, note we get this from the
+        //  implementation not the SpecData (otherwise get DATAPLOT
+        //  parts)? Not written to NDF until saved.
+        theNDF.setAst( source.getFrameSet() );
     }
 }

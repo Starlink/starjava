@@ -125,7 +125,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
      */
     public FrameSet getAst()
     {
-        if ( cloned ) {
+        if ( cloned || astref != null ) {
             return astref;
         } else {
             return createAstSet();
@@ -256,9 +256,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
      */
     protected void finalize() throws Throwable
     {
-        if ( astref != null ) {
-            astref.annul();
-        }
+        astref = null;
         fitsref = null;
         hdurefs = null;
         shortName = null;
@@ -381,6 +379,9 @@ public class FITSSpecDataImpl extends SpecDataImpl
         coords = null;
         errors = null;
         clonedHeader = null;
+
+        //  So open properly.
+        openForRead( fullName );
     }
 
     /**
@@ -420,7 +421,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
                 //  Don't replace existing cards when native.
                 while ( ok ) {
                     buffer = chan.nextCard();
-                    if ( ! "".equals( buffer ) ) {
+                    if ( buffer != null && ! "".equals( buffer ) ) {
                         iter.add( new HeaderCard( buffer ) );
                     }
                     else {
@@ -436,7 +437,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
                 HeaderCard card;
                 while ( ok ) {
                     buffer = chan.nextCard();
-                    if ( ! "".equals( buffer ) ) {
+                    if ( buffer != null && ! "".equals( buffer ) ) {
                         card = new HeaderCard( buffer );
                         key = card.getKey();
 
@@ -611,11 +612,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
         }
         chan.rewind();
 
-        //  Now get the ASTFrameSet. Remembering to free any previous
-        //  copies (from other HDUs).
-        if ( astref != null ) {
-            astref.annul();
-        }
+        //  Now get the ASTFrameSet.
         astref = chan.read();
         if ( astref == null ) {
 
@@ -637,7 +634,7 @@ public class FITSSpecDataImpl extends SpecDataImpl
     {
         Frame frame = new Frame( 1 );
         FrameSet frameset = new FrameSet( frame );
-        frame.annul();
+        //frame.annul();
         return frameset;
     }
 
@@ -675,12 +672,13 @@ public class FITSSpecDataImpl extends SpecDataImpl
         data = source.getYData();
         coords = source.getXData();
         errors = source.getYDataErrors();
-        astref = source.getAst().getRef();
+        astref = source.getFrameSet();
 
         //  If the source spectrum provides access to a set of FITS
         //  headers then we should preserve them.
-        if ( source.getSpecDataImpl() instanceof FITSHeaderSource ) {
-            clonedHeader = ((FITSHeaderSource) source.getSpecDataImpl()).getFitsHeaders();
+        if ( source.getSpecDataImpl().isFITSHeaderSource() ) {
+            clonedHeader = 
+                ((FITSHeaderSource) source.getSpecDataImpl()).getFitsHeaders();
         }
     }
 

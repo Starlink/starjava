@@ -73,7 +73,7 @@ public class TXTSpecDataImpl extends SpecDataImpl
         data = source.getYData();
         coords = source.getXData();
         errors = source.getYDataErrors();
-        astref = source.getAst().getRef();
+        astref = source.getFrameSet();
     }
 
     /**
@@ -202,9 +202,7 @@ public class TXTSpecDataImpl extends SpecDataImpl
      */
     protected void finalize() throws Throwable
     {
-        if ( astref != null ) {
-            astref.annul();
-        }
+        astref = null;
         coords = null;
         data = null;
         errors = null;
@@ -368,11 +366,6 @@ public class TXTSpecDataImpl extends SpecDataImpl
         //  Now create a frameset and add all these to it.
         astref = new FrameSet( baseframe );
         astref.addFrame( 1, lutmap, currentframe );
-
-        //  Free intermediary products.
-        baseframe.annul();
-        currentframe.annul();
-        lutmap.annul();
     }
 
     /**
