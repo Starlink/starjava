@@ -16,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.EntityResolver;
@@ -38,12 +39,18 @@ import uk.ac.starlink.util.URLUtils;
  * the data from a single TABLE element, copying its metadata and data
  * to a given TableSink.
  * <p>
- * It builds a minimal DOM, consisting of not much more than the 
- * requested TABLE element, its FIELDs, and its parents.  
- * In particular, no DOM node corresponding to the DATA element of the
- * required TABLE is constructed, and neither are any nodes representing
- * non-requested TABLEs.  This should result in a very lean DOM, hence
- * very low memory usage.
+ * It builds a minimal DOM, consisting of the non-data bearing parts,
+ * and ignoring any DATA element until it comes to the one in the table
+ * it's after.  It then streams the data of this element to the sink
+ * it's been given, and when it reaches the end of that DATA element,
+ * it quits, discarding the partial DOM it has built.  The DOM that
+ * gets constructed should therefore be pretty lean, hence very low
+ * memory usage.
+ * <p>
+ * A previous version of this class skipped all elements until it
+ * found the TABLE element it was looking for.  This is a bit too
+ * drastic - other parts of the DOM may be required in case the
+ * required TABLE references them using by ID using <tt>ref</tt> attributes.
  *
  * @author   Mark Taylor
  */
@@ -147,14 +154,12 @@ class TableStreamer extends CustomDOMBuilder {
 
     /**
      * Handler which is active initially, and when the DOM is to be built
-     * selectively as usual.
+     * selectively as usual.  It basically performs default DOM-building
+     * actions except if it encounters a DATA element, whose content 
+     * it arranges either to ignore or to stream from, according to 
+     * whether it's from the requested table.
      */
     class BasicContentHandler extends DefaultContentHandler {
-
-        /** These parts of the DOM will be built as normal. */
-        private List normalNodes = Arrays.asList( new String[] {
-            "VOTABLE", "RESOURCE", "PARAM", "INFO",
-        } );
 
         public void startDocument() throws SAXException {
             super.startDocument();
@@ -162,33 +167,44 @@ class TableStreamer extends CustomDOMBuilder {
         }
 
         public void startElement( String namespaceURI, String localName,
-                                  String qName, Attributes atts ) 
+                                  String qName, Attributes atts )
                 throws SAXException {
+            super.startElement( namespaceURI, localName, qName, atts );
             String tagName = getTagName( namespaceURI, localName, qName );
 
-            /* If it's the start of a legitimate parent of a TABLE, build
-             * the DOM node as usual. */
-            if ( normalNodes.contains( tagName ) ) {
-                super.startElement( namespaceURI, localName, qName, atts );
-            }
+            /* DATA element. */
+            if ( "DATA".equals( tagName ) ) {
 
-            /* If it's the start of the table we're after, hand over to the
-             * table processing handler. */
-            else if ( "TABLE".equals( tagName ) && 
-                      skipTables-- == 0 ) {
-                super.startElement( namespaceURI, localName, qName, atts );
-                setCustomHandler( new TableContentHandler() );
-            }
+                /* If it's not the table we're after, ignore it. */
+                if ( skipTables != 0 ) {
+                    setCustomHandler( new IgnoreContentHandler( tagName ) );
+                }
 
-            /* Otherwise ignore everything until the end of this element. */
-            else {
-                setCustomHandler( new IgnoreContentHandler( tagName ) );
+                /* If it is the table we're after, try to set a custom content 
+                 * handler which will stream its data. */
+                else {
+                    Node parent = getNewestNode().getParentNode();
+                    if ( parent instanceof TableElement ) {
+                        TableElement tableEl = (TableElement) parent;
+                        setCustomHandler( new DataContentHandler( tableEl ) );
+                    }
+                    else {
+                        logger.warning( "DATA element is not TABLE child" );
+                        setCustomHandler( new IgnoreContentHandler( tagName ) );
+                    }
+                }
             }
         }
 
-        public void endElement( String namespaceURI, String localName, 
+        public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
             super.endElement( namespaceURI, localName, qName );
+            String tagName = getTagName( namespaceURI, localName, qName );
+
+            /* If it's a TABLE element, keep count of ones we've seen so far. */
+            if ( "TABLE".equals( tagName ) ) {
+                skipTables--;
+            }
         }
 
         /* If we've reached the end of the document and this handler is 
@@ -214,99 +230,115 @@ class TableStreamer extends CustomDOMBuilder {
             level++;
         }
         public void endElement( String namespaceURI, String localName,
-                                String qName ) {
+                                String qName ) 
+                throws SAXException {
             if ( --level == 0 ) {
                 assert tagName
                       .equals( getTagName( namespaceURI, localName, qName ) );
+                basicHandler.endElement( namespaceURI, localName, qName );
                 setCustomHandler( basicHandler );
             }
         }
     }
 
     /**
-     * Handler which writes the current TABLE element to a sink.
-     * Should be installed just after a TABLE has been started.
+     * Handler which writes the content of a DATA element to a sink.
      */
-    class TableContentHandler extends DefaultContentHandler {
+    class DataContentHandler extends DefaultContentHandler {
 
-        TableElement tableEl = (TableElement) getNewestNode();
         FieldElement[] fields;
         Decoder[] decoders;
+        String mode;
+        String extnum;
 
-        public void startElement( String namespaceURI, String localName,
-                                  String qName, Attributes atts ) 
+        /**
+         * Constructs a new handler.
+         *
+         * @param  tableEl  TABLE element within which this DATA element has
+         *         been found
+         */
+        public DataContentHandler( TableElement tableEl ) 
                 throws SAXException {
 
-            /* If it's a DATA element, this signals the end of the FIELDS.
-             * Acquire and submit the StarTable representing table metadata
-             * and then invoke the superclass method to add the DOM element.
-             * Need to do it in this order so the Table constructor sees
-             * a TABLE element with no DATA. */
-            String tagName = getTagName( namespaceURI, localName, qName );
-            if ( "DATA".equals( tagName ) ) {
-                FieldElement[] fields = tableEl.getFields();
-                int ncol = fields.length;
-                decoders = new Decoder[ ncol ];
-                for ( int icol = 0; icol < ncol; icol++ ) {
-                    decoders[ icol ] = fields[ icol ].getDecoder();
-                }
-                StarTable startable;
-                try {
-
-                    /* If the table doesn't think it has any rows, it's 
-                     * probably mistaken (they just haven't been added to
-                     * the DOM yet) - so in this case force it to report
-                     * an unknown number instead. */
-                    startable = new VOStarTable( tableEl ) {
-                        public long getRowCount() {
-                            long nrow = super.getRowCount();
-                            return nrow > 0L ? nrow : -1L;
-                        }
-                    };
-                }
-                catch ( IOException e ) {
-                    throw new SAXParseException( e.getMessage(), getLocator(),
-                                                 e );
-                }
-                try {
-                    sink.acceptMetadata( startable );
-                }
-                catch ( TableFormatException e ) {
-                    throw new SAXParseException( e.getMessage(), getLocator(),
-                                                 e );
-                }
-                super.startElement( namespaceURI, localName, qName, atts );
-                return;
+            /* Set up the fields and decoders for this table. */
+            fields = tableEl.getFields();
+            int ncol = fields.length;
+            decoders = new Decoder[ ncol ];
+            for ( int i = 0; i < ncol; i++ ) {
+                decoders[ i ] = fields[ i ].getDecoder();
             }
 
-            /* Otherwise, call the superclass method to add this node to 
-             * the DOM, and then do node-specific processing. */
-            super.startElement( namespaceURI, localName, qName, atts );
-            Element el = (Element) getNewestNode();
-            if ( "TABLEDATA".equals( tagName ) ) {
+            /* Remove the DATA element from the TABLE.  This will ensure that
+             * the metadata StarTable acts like it's empty. */
+            Node dataEl = getNewestNode();
+            assert dataEl.getNodeName().equals( "DATA" );
+            tableEl.removeChild( dataEl );
+
+            /* Construct a metadata table and use it to prime the sink. */
+            StarTable meta;
+            try {
+
+                /* If the table doesn't think it has any rows, it's just
+                 * because it thinks it has no DATA (we have withdrawn it) -
+                 * so in this case force it to report an unknown number
+                 * instead. */
+                meta = new VOStarTable( tableEl ) {
+                    public long getRowCount() {
+                        long nrow = super.getRowCount();
+                        return nrow > 0L ? nrow : -1L;
+                    }
+                };
+            }
+            catch ( IOException e ) {
+                throw new AssertionError();
+            }
+            try {
+                sink.acceptMetadata( meta );
+            }
+            catch ( TableFormatException e ) {
+                throw new SAXParseException( e.getMessage(), getLocator(), e );
+            }
+        }
+
+        public void startElement( String namespaceURI, String localName,
+                                  String qName, Attributes atts )
+                throws SAXException {
+            String tagName = getTagName( namespaceURI, localName, qName );
+
+            /* FITS element - remember we're expecting a FITS stream. */
+            if ( "FITS".equals( tagName ) ) {
+                mode = "FITS";
+                extnum = getAttribute( atts, "extnum" );
+            }
+
+            /* BINARY element - remember we're expecting a BINARY stream. */
+            else if ( "BINARY".equals( tagName ) ) {
+                mode = "BINARY";
+            }
+
+            /* TABLEDATA element - install new handler to read TR/TD 
+             * elements.*/
+            else if ( "TABLEDATA".equals( tagName ) ) {
                 setCustomHandler( new TabledataHandler( decoders ) );
             }
+
+            /* STREAM element - get ready to stream rows. */
             else if ( "STREAM".equals( tagName ) ) {
-                Element parent = (Element) el.getParentNode();
-                String parentName = parent.getTagName();
-                if ( ! parentName.equals( "BINARY" ) && 
-                     ! parentName.equals( "FITS" ) ) {
-                    throw new SAXParseException( "STREAM has unknown parent " +
-                                                 parentName, getLocator() );
+
+                /* Check we are ready for FITS or BINARY streamed data. */
+                if ( ! "FITS".equals( mode ) && ! "BINARY".equals( mode ) ) {
+                    throw new SAXParseException( 
+                        "STREAM is not BINARY or FITS!", getLocator() );
                 }
                 String href = getAttribute( atts, "href" );
                 String encoding = getAttribute( atts, "encoding" );
-                final String extnum = parentName.equals( "FITS" )
-                             && parent.hasAttribute( "extnum" )
-                                    ? parent.getAttribute( "extnum" )
-                                    : null;
 
                 /* If the stream has externally referenced data, get a 
                  * corresponding RowStepper and copy rows to the sink. */
                 if ( href != null ) {
                     try {
                         URL url = URLUtils.makeURL( systemId, href );
-                        if ( parentName.equals( "BINARY" ) ) {
+                        if ( mode.equals( "BINARY" ) ) {
                             RowStepper rstep =
                                 new BinaryRowStepper( decoders,
                                                       url.openStream(), 
@@ -316,11 +348,13 @@ class TableStreamer extends CustomDOMBuilder {
                                 sink.acceptRow( row );
                             }
                         }
-                        else {
-                            assert parentName.equals( "FITS" );
+                        else if ( mode.equals( "FITS" ) ) {
                             new FitsTableBuilder()
                                .streamStarTable( url.openStream(), 
                                                  sink, extnum );
+                        }
+                        else {
+                            assert false;
                         }
                     }
                     catch ( IOException e ) {
@@ -340,7 +374,7 @@ class TableStreamer extends CustomDOMBuilder {
                 else {
                     try {
                         PipeReaderThread reader;
-                        if ( parentName.equals( "BINARY" ) ) {
+                        if ( mode.equals( "BINARY" ) ) {
                             reader = new PipeReaderThread() {
                                 protected void doReading( InputStream datain )
                                         throws IOException {
@@ -357,7 +391,7 @@ class TableStreamer extends CustomDOMBuilder {
                             };
                         }
                         else {
-                            assert parentName.equals( "FITS" );
+                            assert mode.equals( "FITS" );
                             reader = new PipeReaderThread() {
                                 protected void doReading( InputStream datain )
                                         throws IOException {
@@ -387,9 +421,15 @@ class TableStreamer extends CustomDOMBuilder {
 
         public void endElement( String namespaceURI, String localName,
                                 String qName ) throws SAXException {
-            super.endElement( namespaceURI, localName, qName );
             String tagName = getTagName( namespaceURI, localName, qName );
-            if ( "TABLE".equals( tagName ) ) {
+            if ( "FITS".equals( tagName ) ) {
+                extnum = null;
+                mode = null;
+            }
+            else if ( "BINARY".equals( tagName ) ) {
+                mode = null;
+            }
+            else if ( "DATA".equals( tagName ) ) {
                 finished();
             }
         }
