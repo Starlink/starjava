@@ -295,7 +295,8 @@ JNIEXPORT jdoubleArray JNICALL Java_uk_ac_starlink_ast_Mapping_tranN(
    /* Perform validation of things which may cause trouble before getting
     * caught by the more exhaustive validation of the AST routine. */
    if ( ncoord_in == 0 ) {
-      jniastThrowException( env, "tranN: illegal ncoord_in == 0" );
+      jniastThrowIllegalArgumentException( env, 
+                                           "tranN: illegal ncoord_in == 0" );
    }
    else if ( jniastCheckArrayLength( env, jIn, ncoord_in * npoint ) ) {
   
@@ -590,8 +591,8 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
            (*env)->GetArrayLength( env, jUbnd ) < ndim_out || \
            (*env)->GetArrayLength( env, jLbnd_out ) < ndim_out || \
            (*env)->GetArrayLength( env, jUbnd_out ) < ndim_out ) { \
-         jniastThrowException( env, "resample" #Xletter ": " \
-                               "bound arrays too short" ); \
+         jniastThrowIllegalArgumentException( env, "resample" #Xletter ": " \
+                                              "bound arrays too short" ); \
       } \
       else { \
          int i; \
@@ -609,8 +610,9 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_Mapping_resample##Xletter( \
                 (*env)->GetArrayLength( env, jIn_var ) < nin ) || \
               ( out_var != NULL && \
                 (*env)->GetArrayLength( env, jOut_var ) < nout ) ) { \
-            jniastThrowException( env, "resample" #Xletter ": " \
-                                  "data/variance arrays too short" ); \
+            jniastThrowIllegalArgumentException( env, "resample" #Xletter ": " \
+                                                 "data/variance arrays " \
+                                                 "too short" ); \
          } \
       } \
    } \

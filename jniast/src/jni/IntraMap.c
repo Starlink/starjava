@@ -111,8 +111,9 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_IntraMap_construct(
                                              nin, nout );
       }
       if ( canmap == JNI_FALSE && ! (*env)->ExceptionCheck( env ) ) {
-         jniastThrowException( env, "Transformer will not map %d -> %d "
-                                    "coordinates", nin, nout );
+         jniastThrowIllegalArgumentException( env, "Transformer will not map "
+                                              " %d -> %d coordinates",
+                                              nin, nout );
       }
       else if ( ! (*env)->ExceptionCheck( env ) ) {
 

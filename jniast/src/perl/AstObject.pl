@@ -107,6 +107,7 @@ print <<'__EOT__';
      *
      * @param  constname  the name of the constant ("AST__<i>something</i>")
      * @return the value of <code>constname</code>
+     * @throws IllegalArgumentException  if no constant by that name exists
      */
     static native int getAstConstantI( String constname );
 
@@ -116,6 +117,7 @@ print <<'__EOT__';
      *
      * @param  constname  the name of the constant ("AST__<i>something</i>")
      * @return the value of <code>constname</code>
+     * @throws IllegalArgumentException  if no constant by that name exists
      */
     static native double getAstConstantD( String constname );
 

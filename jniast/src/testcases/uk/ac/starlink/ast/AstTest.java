@@ -508,16 +508,21 @@ public class AstTest extends TestCase {
             AstObject.getAstConstantI( absentConstName );
             assertTrue( false );
         }
-        catch ( Error e ) {
+        catch ( IllegalArgumentException e ) {
             assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
         }
         try {
             AstObject.getAstConstantD( absentConstName );
             assertTrue( false );
         }
-        catch ( Error e ) {
+        catch ( IllegalArgumentException e ) {
             assertTrue( e.getMessage().indexOf( absentConstName ) > 0 );
         }
+    }
+
+    public void testException() {
+        AstException e1 = new AstException( "t", AstException.AST__UK1ER );
+        AstException e2 = new AstException( "t", AstException.AST__BADUN );
     }
 
     public static Test suite() {

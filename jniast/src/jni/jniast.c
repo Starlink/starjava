@@ -37,12 +37,14 @@ static jclass AstObjectClass;
 static jclass IntraMapClass = NULL;
 static jclass NoClassDefFoundErrorClass;
 static jclass NullPointerExceptionClass;
+static jclass IllegalArgumentExceptionClass;
 static jclass RuntimeExceptionClass;
 static jclass OutOfMemoryErrorClass;
 static jclass SystemClass;
 static jfieldID AstPointerID;
 static jfieldID IntraMapIntraFlagFieldID;
 static jmethodID AstObjectConstructorID;
+static jmethodID IllegalArgumentExceptionConstructorID;
 static jmethodID SystemGcMethodID;
 
 
@@ -96,6 +98,8 @@ void jniastInitialize( JNIEnv *env ) {
         (*env)->FindClass( env, "java/lang/NullPointerException" ) ) ) &&
    ( RuntimeExceptionClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/RuntimeException" ) ) ) &&
+   ( IllegalArgumentExceptionClass = (jclass) (*env)->NewGlobalRef( env,
+        (*env)->FindClass( env, "java/lang/IllegalArgumentException" ) ) ) &&
    ( ErrorClass = (jclass) (*env)->NewGlobalRef( env,
         (*env)->FindClass( env, "java/lang/Error" ) ) ) &&
    ( NoClassDefFoundErrorClass = (jclass) (*env)->NewGlobalRef( env,
@@ -119,8 +123,11 @@ void jniastInitialize( JNIEnv *env ) {
    ( ClassGetNameMethodID =
         (*env)->GetMethodID( env, classclass, "getName",
                              "()Ljava/lang/String;" ) ) &&
+   ( IllegalArgumentExceptionConstructorID =
+        (*env)->GetMethodID( env, IllegalArgumentExceptionClass, "<init>", 
+                             "(Ljava/lang/String;)V" ) ) &&
    ( ErrorConstructorID =
-        (*env)->GetMethodID( env, ErrorClass, "<init>", 
+        (*env)->GetMethodID( env, ErrorClass, "<init>",
                              "(Ljava/lang/String;)V" ) ) &&
    ( AstObjectConstructorID =
         (*env)->GetMethodID( env, AstObjectClass, "<init>", 
@@ -549,6 +556,35 @@ void jniastThrowException( JNIEnv *env, const char *fmt, ... ) {
    throwTypedThrowable( env, AstExceptionClass, fmt, ap );
    va_end( ap );
 
+}
+
+void jniastThrowIllegalArgumentException( JNIEnv *env, const char *fmt, ... ) {
+/*
+*+
+*  Name:
+*     jniastThrowIllegalArgumentException
+
+*  Purpose:
+*     Throws an IllegalArgumentException.
+
+*  Description:
+*     Throws an IllegalArgumentExceptoin, providing for a printf-like syntax.
+
+*  Arguments:
+*     env = JNIEnv *
+*        Pointer to the JNI interface.
+*     fmt = const char *
+*        A printf-like format string.
+*     ...
+*        Printf-like optional extra arguments as required according to
+*        fmt.
+*-
+*/
+   va_list ap;
+
+   va_start( ap, fmt );
+   throwTypedThrowable( env, IllegalArgumentExceptionClass, fmt, ap );
+   va_end( ap );
 }
 
 void jniastThrowError( JNIEnv *env, const char *fmt, ... ) {

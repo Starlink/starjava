@@ -137,8 +137,8 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantI(
    }
    jniastReleaseUTF( env, jName, name );
    if ( ! success ) {
-      jniastThrowError( env, 
-                        "There is no AST int constant called \"%s\"", namcopy );
+      jniastThrowIllegalArgumentException( env, 
+            "There is no AST int constant called \"%s\"", namcopy );
 
    }
    return result;
@@ -171,9 +171,8 @@ JNIEXPORT jdouble JNICALL Java_uk_ac_starlink_ast_AstObject_getAstConstantD(
    }
    jniastReleaseUTF( env, jName, name );
    if ( ! success ) {
-      jniastThrowError( env, 
-                        "There is no AST double constant called \"%s\"", 
-                        namcopy );
+      jniastThrowIllegalArgumentException( env, 
+            "There is no AST double constant called \"%s\"", namcopy );
    }
    return result;
 }

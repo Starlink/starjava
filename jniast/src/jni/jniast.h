@@ -82,6 +82,7 @@ jmethodID ErrorConstructorID;
 /* Utility function prototypes. */
 void jniastInitialize( JNIEnv *env );
 void jniastThrowError( JNIEnv *env, const char *fmt, ... );
+void jniastThrowIllegalArgumentException( JNIEnv *env, const char *fmt, ... );
 void jniastThrowException( JNIEnv *env, const char *fmt, ... );
 void jniastClearErrMsg();
 const char *jniastGetErrMsg();

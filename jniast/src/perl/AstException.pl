@@ -140,6 +140,13 @@ public class $ClassName extends RuntimeException {
         return status;
     }
 
+    /**
+     * Gets the error value for a named constant.
+     *
+     * \@param  name of the error constant
+     * \@return error number
+     * \@throws IllegalArgumentException  if no error of that name exists
+     */
     private native static int $MethodName( String ident );
 
     /**
@@ -175,9 +182,16 @@ while ( <MESSGEN> ) {
       print( "      else TRY_CONST(${fac}__${label})\n" );
    }
    else {
+      my( $varname ) = "${fac}__${label}";
       print( "   /** Status constant for error \"$text\" */\n" );
-      print( "   public static final int ${fac}__${label} = " .
-             "${MethodName}( \"${fac}__${label}\" );\n" );
+      print( "   public static final int $varname;\n" );
+      print( "   static {\n" );
+      print( "       try { $varname = ${MethodName}( \"$varname\" ); }\n" );
+      print( "       catch( IllegalArgumentException e ) {\n" );
+      print( "           throw new LinkageError(\n" );
+      print( "                \"Unknown AST error constant $varname\" );\n" );
+      print( "       }\n" );
+      print( "   }\n" );
    }
 }
 
@@ -188,8 +202,7 @@ if ( $Typeflag eq "-c" ) {
    if ( ! success ) printf( "no such constant %s\\n", ident );
    (*env)->ReleaseStringUTFChars( env, jIdent, ident );
    if ( ! success ) {
-      (*env)->ThrowNew( env, (*env)->FindClass( env, "java/lang/Error" ),
-                        "No such constant" );
+      jniastThrowIllegalArgumentException( env, "No such constant" );
    }
    return result;
 }
