@@ -435,7 +435,9 @@ public class SplatBrowser
     }
 
     /**
-     * Set the ndAction value to match a string description.
+     * Set the ndAction value to match a string description. Strings are
+     * case-insensitive versions of "collapse", "expand" and "vectorize".
+     * These can be truncated, as long as they remain unique.
      */
     private void setNDAction( String ndAction )
     {
@@ -1452,23 +1454,17 @@ public class SplatBrowser
     }
 
     /**
-     * Load and display a list of spectra with possible type information. The
-     * names and types are given as arrays. Uses a thread to load the files so
-     * that we do not block the UI.
+     * Load and display a list of spectra with some pre-defined properties
+     * that should be applied to the spectra immediately after loading. 
+     * Uses a thread to load the files so that we do not block the UI.
      *
-     * @param spectra the specifications for each spectrum to be loaded and
-     *                displayed. 
-     * @param types the types of the spectra, if null the the usual rules are
-     *              used 
-     * @param shortNames short names for the spectra, if null then the usual
-     *                   rules are used.
+     * @param props properties of the spectra to be loaded, including names.
      */
-    public void threadLoadSpectra( String[] spectra, int[] types, 
-                                   String[] shortNames )
+    public void threadLoadSpectra( SpectrumIO.Props[] props )
     {
-        if ( spectra.length == 0 ) return;
+        if ( props.length == 0 ) return;
         SpectrumIO sio = SpectrumIO.getInstance();
-        sio.load( this, spectra, true, types, shortNames );
+        sio.load( this, true, props );
     }
 
     /**
@@ -1553,27 +1549,21 @@ public class SplatBrowser
     }
 
     /**
-     * Add a new spectrum, with a possibly pre-defined type and short name, to
-     * the global list. This becomes the current spectrum. If an error occurs
-     * a {@link SplatException} is thrown.
+     * Add a new spectrum, with a possibly pre-defined set of characteristics
+     * as defined in a {@link SpectrumIO.Props} instance.  If successful this
+     * becomes the current spectrum. If an error occurs a {@link
+     * SplatException} is thrown.
      *
-     *  @param name the name (i.e. file specification) of the spectrum
-     *              to add.
-     *  @param usertype index of the type of spectrum, 0 for default
-     *                  based on file extension, otherwise this is an
-     *                  index of the knownTypes array in
-     *                  {@link SpecDataFactory}.
-     *  @param shortName a short name for the spectrum, if null a one will be
-     *                   generated as usual.
+     *  @param props a container class for the spectrum properties, including
+     *               the specification (i.e. file name etc.) of the spectrum
      */
-    public void tryAddSpectrum( String name, int usertype, String shortName )
+    public void tryAddSpectrum( SpectrumIO.Props props )
         throws SplatException
     {
-        SpecData spectrum = specDataFactory.get( name, usertype );
+        SpecData spectrum = specDataFactory.get( props.getSpectrum(), 
+                                                 props.getType() );
         addSpectrum( spectrum );
-        if ( shortName != null && shortName.length() != 0 ) {
-            spectrum.setShortName( shortName );
-        }
+        props.apply( spectrum );
     }
 
     /**
