@@ -243,7 +243,7 @@ public class FigureProps
         setWidth( 1.0 );
         setHeight( 1.0 );
         setOutline( Color.black );
-        setFill( Color.blue );
+        setFill( null );
         setInterpolator( null );
         setThickness( 1.0 );
         setText( null );
@@ -307,7 +307,7 @@ public class FigureProps
     {
         this.type = -1;
         for ( int i = 0; i < DrawFigureFactory.NUM_FIGURES; i++ ) {
-            if ( DrawFigureFactory.shortNames[i].equals( type ) ) {
+            if ( DrawFigureFactory.SHORTNAMES[i].equals( type ) ) {
                 this.type = i;
                 return;
             }
@@ -633,7 +633,7 @@ public class FigureProps
         //  Type as symbolic name.
         String shortName = "unknown";
         if ( type != -1 ) {
-            shortName = DrawFigureFactory.shortNames[type];
+            shortName = DrawFigureFactory.SHORTNAMES[type];
         }
         PrimitiveXMLEncodeDecode.addChildElement( rootElement, "type",
                                                   shortName );
@@ -886,7 +886,6 @@ public class FigureProps
             double[] array = new double[size];
             for ( int i = 0; i < size; i++ ) {
                 array[i] = dis.readDouble();
-                System.out.println( "Read: " + array[i] );
             }
             dis.close();
             b64is.close();
@@ -912,7 +911,6 @@ public class FigureProps
             DataOutputStream dos = new DataOutputStream( b64os );
             int size = array.length;
             for ( int i = 0; i < size; i++ ) {
-                System.out.println( "Encoding: " + array[i] );
                 dos.writeDouble( array[i] );
             }
             b64os.endBase64();
