@@ -223,7 +223,7 @@ public class SpecTransferHandler
                             added++;
                         }
                         catch (SplatException e) {
-                            // Not a good time to do anything.
+                            // Not a good time to do anything. Which is bad...
                             e.printStackTrace();
                         }
                     }
