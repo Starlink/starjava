@@ -137,6 +137,18 @@ public class SourceDataNodeBuilder extends DataNodeBuilder {
     public static DOMSource makeDOMSource( DataSource datsrc ) 
             throws NoSuchDataException {
 
+        /* See whether it is worth the effort. */
+        try {
+            byte[] magic = new byte[ 100 ];
+            datsrc.getMagic( magic );
+            if ( ! XMLDataNode.isMagic( magic ) ) {
+                throw new NoSuchDataException( "Doesn't look like XML" );
+            }
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
+
         /* Get a DocumentBuilder. */
         DocumentBuilderFactory dbfact = DocumentBuilderFactory.newInstance();
         dbfact.setValidating( false );
