@@ -1,13 +1,12 @@
 package uk.ac.starlink.fits;
 
-import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StarTableOutput;
+import uk.ac.starlink.table.StreamStarTableWriter;
 
 /**
  * Handles writing of a StarTable in FITS binary format.
@@ -48,7 +47,7 @@ import uk.ac.starlink.table.StarTableWriter;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class FitsTableWriter implements StarTableWriter {
+public class FitsTableWriter extends StreamStarTableWriter {
 
     /**
      * Returns "FITS".
@@ -85,21 +84,14 @@ public class FitsTableWriter implements StarTableWriter {
      * @param  startab  the table to write
      * @param  location  the filename to write to
      */
-    public void writeStarTable( StarTable startab, String location )
+    public void writeStarTable( StarTable startab, OutputStream out )
             throws IOException {
-        DataOutputStream strm = null;
+        DataOutputStream strm = new DataOutputStream( out );
         FitsTableSerializer serializer = new FitsTableSerializer( startab );
-        try {
-            strm = getOutputStream( location );
-            writePrimary( startab, strm );
-            serializer.writeHeader( strm );
-            serializer.writeData( strm );
-        }
-        finally {
-            if ( strm != null ) {
-                strm.close();
-            }
-        }
+        writePrimary( startab, strm );
+        serializer.writeHeader( strm );
+        serializer.writeData( strm );
+        strm.flush();
     }
 
     /**
@@ -115,62 +107,5 @@ public class FitsTableWriter implements StarTableWriter {
     protected void writePrimary( StarTable startab, DataOutputStream strm )
             throws IOException {
         FitsConstants.writeEmptyPrimary( strm );
-    }
-
-    /**
-     * Returns a stream ready to accept a table HDU.
-     * Currently just opens a new file at <tt>location</tt> and
-     * writes a dummy primary header to it.
-     */
-    private static DataOutputStream getOutputStream( String location )
-            throws IOException {
-
-        /* Interpret the name "-" as standard output. */
-        DataOutputStream strm;
-        File tmpFile = null;
-        if ( location.equals( "-" ) ) {
-            strm =
-                new DataOutputStream( new BufferedOutputStream( System.out ) );
-        }
-
-        /* Otherwise, it's a filename. */
-        else {
-
-            /* Check that the file does not already exist.  If it does,
-             * ensure that we are not actually overwriting the data in place.
-             * This is for the case in which the original file has been,
-             * and is still, mapped into memory (MappedFile) and
-             * overwriting it would mess up all the data.  This would happen,
-             * for instance, in the case that you try to save a table
-             * from TOPCAT under the same name that you loaded it as.
-             * Since the details of file mapping behaviour are dependent
-             * on the OS, the following strategy can't be guaranteed to
-             * work, but it's a fair bet under unix. */
-            File file = new File( location );
-            if ( file.exists() ) {
-                tmpFile = new File( file.getPath() + ".bak" );
-                if ( ! file.renameTo( tmpFile ) ) {
-                    throw new IOException( "Failed to rename " + file +
-                                           " -> " + tmpFile );
-                }
-            }
-            final File tmpFile1 = tmpFile;
-            OutputStream ostrm =
-                new BufferedOutputStream( new FileOutputStream( location ) );
-            strm = new DataOutputStream( ostrm ) {
-                public void close() throws IOException {
-                    super.close();
-                    if ( tmpFile1 != null ) {
-                        tmpFile1.delete();
-                    }
-                }
-            };
-        }
-
-        /* Return the stream. */
-        if ( tmpFile != null ) {
-            tmpFile.deleteOnExit();
-        }
-        return strm;
     }
 }
