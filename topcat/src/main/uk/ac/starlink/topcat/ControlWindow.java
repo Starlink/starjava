@@ -67,7 +67,7 @@ import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableSaveChooser;
 import uk.ac.starlink.topcat.join.MatchWindow;
 import uk.ac.starlink.util.gui.DragListener;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Main window providing user control of the TOPCAT application.
@@ -967,8 +967,7 @@ public class ControlWindow extends AuxWindow
                     MirageHandler.invokeMirage( table, null );
                 }
                 catch ( Exception e ) {
-                    ErrorDialog.showError( e, "Error launching Mirage", 
-                                           window );
+                    ErrorDialog.showError( window, "Mirage Error", e );
                 }
             }
         }
@@ -1013,7 +1012,8 @@ public class ControlWindow extends AuxWindow
                 }
             }
             catch ( IOException e ) {
-                ErrorDialog.showError( e, "Drop operation failed", window );
+                ErrorDialog.showError( window, "Drop Error", e,
+                                       "Table drop operation failed" );
                 return false;
             }
             try {
@@ -1024,7 +1024,8 @@ public class ControlWindow extends AuxWindow
                 return true;
             }
             catch ( IOException e ) {
-                ErrorDialog.showError( e, "Can't randomise table", window );
+                ErrorDialog.showError( window, "I/O Error", e,
+                                       "Can't randomise table" );
                 return false;
             }
         }

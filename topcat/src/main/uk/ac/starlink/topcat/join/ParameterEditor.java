@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.ValueInfo;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Graphical component which can edit in place a DescribedValue.
@@ -104,9 +104,9 @@ public class ParameterEditor extends JComponent
         }
         catch ( RuntimeException e ) {
             field_.setText( converter.formatValue( dval_.getValue(), 16 ) );
-            ErrorDialog.showError( e, "Illegal value \"" + text + "\"" +
-                                      " for parameter " + dval_.getInfo(),
-                                   this );
+            String msg = "Illegal value \"" + text + "\" for parameter " +
+                         dval_.getInfo();
+            ErrorDialog.showError( this, "Value Error", e, msg );
         }
     }
 

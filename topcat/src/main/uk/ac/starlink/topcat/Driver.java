@@ -25,7 +25,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLDataSource;
@@ -317,9 +317,9 @@ public class Driver {
                                                JOptionPane.ERROR_MESSAGE );
                         }
                         else {
-                            ErrorDialog.showError( e,
-                                                   "Can't open table " + name,
-                                                   getControlWindow() );
+                            ErrorDialog.showError( getControlWindow(),
+                                                   "Load Error", e,
+                                                   "Can't open table " + name );
                         }
                     }
                 } );

@@ -79,7 +79,7 @@ import uk.ac.starlink.topcat.TopcatModel;
 import uk.ac.starlink.topcat.TopcatViewWindow;
 import uk.ac.starlink.topcat.ViewerTableModel;
 import uk.ac.starlink.topcat.WindowAction;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Top level window which presents plots derived from a <tt>StarTable</tt>.
@@ -987,8 +987,7 @@ public class PlotWindow extends TopcatViewWindow
                     }
                 }
                 catch ( IOException e ) {
-                    ErrorDialog.showError( e, "Error writing to file",
-                                           PlotWindow.this );
+                    ErrorDialog.showError( PlotWindow.this, "Write Error", e );
                 }
                 finally {
                     if ( ostrm != null ) {

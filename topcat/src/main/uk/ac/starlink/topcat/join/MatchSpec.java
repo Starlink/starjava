@@ -10,7 +10,7 @@ import uk.ac.starlink.table.JoinStarTable;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.join.ProgressIndicator;
-import uk.ac.starlink.util.ErrorDialog;
+import uk.ac.starlink.util.gui.ErrorDialog;
 
 /**
  * Abstract class defining general characteristics of a component which
@@ -74,7 +74,7 @@ public abstract class MatchSpec extends JPanel {
      * @param  parent  window controlling the invocation
      */
     public void matchFailure( Throwable th, Component parent ) {
-        ErrorDialog.showError( th, "Match failed", parent );
+        ErrorDialog.showError( parent, "Match Error", th );
     }
 
     /**
