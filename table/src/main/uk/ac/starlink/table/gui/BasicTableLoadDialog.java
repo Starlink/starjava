@@ -7,11 +7,13 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
@@ -27,6 +29,12 @@ import uk.ac.starlink.table.StarTableFactory;
  * trying to load a table based on the current state of the component.
  * All the issues about threading are taken care of by the implementation
  * of this class.
+ *
+ * <p>Subclasses are encouraged to override the 
+ * {@link javax.swing.JComponent#setEnabled} method to en/disable 
+ * child components which ought not to be active while a load is actually
+ * taking place.  The overriding implementation ought to call
+ * <tt>super.setEnabled</tt>.
  *
  * @author   Mark Taylor (Starlink)
  * @since    23 Dec 2004
@@ -137,7 +145,9 @@ public abstract class BasicTableLoadDialog extends JPanel
         JComponent controlPanel = Box.createHorizontalBox();
         controlPanel.add( Box.createHorizontalGlue() );
         controlPanel.add( new JButton( cancelAction_ ) );
+        controlPanel.add( Box.createHorizontalStrut( 5 ) );
         controlPanel.add( new JButton( okAction_ ) );
+        controlPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
 
         /* Create the dialogue containing this component. */
         JDialog dialog = new JDialog( frame, getName(), true );
@@ -167,6 +177,24 @@ public abstract class BasicTableLoadDialog extends JPanel
      */
     protected abstract TableSupplier getTableSupplier()
             throws IllegalStateException;
+
+    /**
+     * Returns the action associated with hitting the OK dialogue button.
+     *
+     * @return  OK action
+     */
+    protected Action getOkAction() {
+        return okAction_;
+    }
+
+    /**
+     * Returns the action associated with hitting the Cancel dialogue button.
+     *
+     * @return  Cancel action
+     */
+    protected Action getCancelAction() {
+        return cancelAction_;
+    }
 
     /**
      * Defines an object which can attempt to load a particular table.
@@ -239,7 +267,16 @@ public abstract class BasicTableLoadDialog extends JPanel
         if ( dialog_ == null ) {
             return;
         }
-        final TableSupplier supplier = getTableSupplier();
+        final TableSupplier supplier;
+        try { 
+            supplier = getTableSupplier();
+        }
+        catch ( RuntimeException e ) {
+            JOptionPane.showMessageDialog( dialog_, e.getMessage(), 
+                                           "Dialogue Error", 
+                                           JOptionPane.ERROR_MESSAGE );
+            return;
+        }
         final StarTableFactory factory = factory_;
         final String format = formatModel_.getSelectedItem().toString();
         setBusy( true );
