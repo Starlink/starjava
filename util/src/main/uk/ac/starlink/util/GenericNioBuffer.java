@@ -30,7 +30,8 @@ public class GenericNioBuffer {
         abstract Class getElementClass();
     }
 
-    private Accessor acc;
+    private final Accessor acc;
+    private final Buffer buf;
 
 
     /**
@@ -40,6 +41,7 @@ public class GenericNioBuffer {
      * @param   buf  the NIO buffer
      */
     public GenericNioBuffer( final Buffer buf ) {
+        this.buf = buf;
         if ( buf instanceof ByteBuffer ) {
             acc = new Accessor() {
                 ByteBuffer buffer = (ByteBuffer) buf;
@@ -174,6 +176,15 @@ public class GenericNioBuffer {
             throw new IllegalArgumentException(
                 "Buffer " + buf + " is of unsupported type" ); 
         }
+    }
+
+    /**
+     * Returns the buffer object on which this generic buffer is based.
+     *
+     * @return  the buffer set at construction
+     */
+    public Buffer getBuffer() {
+        return buf;
     }
 
     /**
