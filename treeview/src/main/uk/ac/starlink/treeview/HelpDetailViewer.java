@@ -55,12 +55,12 @@ class HelpDetailViewer extends DetailViewer {
         addKeyedItem( "WWW", "http://www.starlink.ac.uk/treeview/" );
         addKeyedItem( "Email", "m.b.taylor@bristol.ac.uk" );
 
-        /* Add some HTML-based help panes. */
+        /* Add extra help panels. */
         addPane( "Basic use", new HTMLDocComponentMaker( "basic.html" ) );
         addPane( "Buttons", new HTMLDocComponentMaker( "buttons.html" ) );
-
-        /* Add information about node types. */
         addPane( "Node types", new NodeTypePane( "Node types" ) );
+        addPane( "Invocation", new HTMLDocComponentMaker( "invocation.html" ) );
+        addPane( "Alter-egos", new HTMLDocComponentMaker( "popup.html" ) );
 
         /* Set the pane which is viewed by default to be the "Basic use" one. */
         setSelectedIndex( 1 );
@@ -125,6 +125,9 @@ class HelpDetailViewer extends DetailViewer {
             ta.addSeparator();
             addKnownIcon( IconFactory.ZIPENTRY, "ZIP archive normal file" );
             addKnownIcon( IconFactory.ZIPFILE, "ZIP archive directory" );
+
+            ta.addSeparator();
+            addKnownIcon( IconFactory.ERROR, "An error which has occurred" );
 
             return ta;
         }

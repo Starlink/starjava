@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.Icon;
 
 /**
  * Does symbolic preprocessing on HTML files.
@@ -34,7 +35,7 @@ class HTMLProcessor {
      * Takes an HTML file from one place and puts it, plus any icons that
      * it uses, into another.
      * <pre>
-     *    Usage: HTMLProcessor input-file output-file.
+     *    Usage: HTMLProcessor input-file output-file-or-dir.
      * </pre>
      */
     public static void main( String[] args ) throws IOException {
@@ -42,6 +43,9 @@ class HTMLProcessor {
         /* Get args. */
         File infile = new File( args[ 0 ] );
         File outfile = new File( args[ 1 ] );
+        if ( outfile.isDirectory() ) {
+            outfile = new File( outfile, infile.getName() );
+        }
 
         /* Slurp in input file. */
         StringBuffer inbuf = new StringBuffer( (int) infile.length() );
@@ -53,12 +57,19 @@ class HTMLProcessor {
 
         /* Go through file looking for expressions to substitute. */
         Set symbols = new HashSet();
-        Matcher match = Pattern.compile( "(IconFactory\\.)([A-Z0-9_]+)" )
+        Matcher match = Pattern.compile( 
+            "(\\ssrc=[\"']?)IconFactory\\.([A-Z0-9_]+)([\"']?)" )
                                .matcher( inbuf );
         StringBuffer outbuf = new StringBuffer( inbuf.length() );
         while ( match.find() ) {
-            match.appendReplacement( outbuf, makeOutLocFromSymbol( "$2" ) );
-            symbols.add( match.group( 2 ) );
+            String symbol = match.group( 2 );
+            Icon ic = makeIcon( symbol );
+            String dimspec = " width='" + ic.getIconWidth() + "'"
+                           + " height='" + ic.getIconHeight() + "'";
+            String replace = dimspec + " $1" 
+                           + makeOutLocFromSymbol( symbol ) + "$3";
+            match.appendReplacement( outbuf, replace );
+            symbols.add( symbol );
         }
         match.appendTail( outbuf );
 
@@ -103,6 +114,20 @@ class HTMLProcessor {
             short id = field.getShort( null );
             URL iconURL = IconFactory.getInstance().getIconURL( id );
             return iconURL.openStream();
+        }
+        catch ( NoSuchFieldException e ) {
+            throw new IllegalArgumentException( symbol );
+        }
+        catch ( IllegalAccessException e ) {
+            throw new IllegalArgumentException( symbol );
+        }
+    }
+
+    private static Icon makeIcon( String symbol ) {
+        try {
+            Field field = IconFactory.class.getField( symbol );
+            short id = field.getShort( null );
+            return IconFactory.getInstance().getIcon( id );
         }
         catch ( NoSuchFieldException e ) {
             throw new IllegalArgumentException( symbol );

@@ -145,7 +145,7 @@ public class IconFactory {
             case SCALAR:         iname = "ball.black.gif";           break;
             case STRUCTURE:      iname = "closed.gif";               break;
             case FILE:           iname = "Tree.leafIcon";            break;
-            case DIRECTORY:      iname = "Tree.closedIcon";          break;
+            case DIRECTORY:      iname = "dir4.gif";                 break;
             case NDF:            iname = "star_gold.gif";            break;
             case ZIPFILE:        iname = "squishdir2.gif";           break;
             case ZIPENTRY:       iname = "squishfile2.gif";          break;
