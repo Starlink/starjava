@@ -50,7 +50,7 @@ public class DocumentDataNode extends DefaultDataNode {
         topLocalName_ = xdoc.getTopLocalName();
         topNamespaceURI_ = xdoc.getTopNamespaceURI();
         topAttributes_ = xdoc.getTopAttributes();
-        setName( "<" + topAttributes_ + ">" );
+        setName( xdoc.getName() );
         setIconID( IconFactory.XML_DOCUMENT );
     }
 

@@ -189,6 +189,10 @@ public class XMLDocument {
         return publicId;
     }
 
+    public String getName() {
+        return datsrc.getName();
+    }
+
     /**
      * Performs a parse on the data source represented by this object 
      * and returns the resulting DOM.  Note that this object does <em>not</em>
