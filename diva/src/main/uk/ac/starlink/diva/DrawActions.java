@@ -275,62 +275,17 @@ public class DrawActions
     protected DrawFigureFactory figureFactory = 
         DrawFigureFactory.getReference();
 
-    /** Action to use to delete the selected figure. */
-    protected AbstractAction deleteSelectedAction =
-        new AbstractAction( "Delete selected" )
-        {
-            public void actionPerformed( ActionEvent evt )
-            {
-                deleteSelected();
-            }
-        };
 
-    /** Action to use to remove all figures. */
-    protected AbstractAction clearAction =
-        new AbstractAction( "Remove all" )
-        {
-            public void actionPerformed( ActionEvent evt )
-            {
-                clear();
-            }
-        };
-
-    /** Action to use to toggle the visibility of all figures. */
-    protected AbstractAction hideGraphicsAction =
-        new AbstractAction( "Hide figures" )
-        {
-            public void actionPerformed( ActionEvent evt )
-            {
-                hideGraphics();
-            }
-        };
-
-    /** Action to raise selected Figures  */
-    protected AbstractAction raiseSelectedAction =
-        new AbstractAction( "Raise selected" )
-        {
-            public void actionPerformed( ActionEvent evt )
-            {
-                raiseSelected();
-            }
-        };
-
-    /** Action to lower selected Figures  */
-    protected AbstractAction lowerSelectedAction =
-        new AbstractAction( "Lower selected" )
-        {
-            public void actionPerformed( ActionEvent evt )
-            {
-                lowerSelected();
-            }
-        };
+    /** FigureStore instance */
+    protected FigureStore store = null;
 
     /**
      * Create an instance for use with a specified Draw
      *
      * @param canvas on which graphics will be drawn.
+     * @param store used to save and restore graphics, null for none.
      */
-    public DrawActions( Draw canvas )
+    public DrawActions( Draw canvas, FigureStore store )
     {
         this.canvas = canvas;
         graphics = canvas.getGraphicsPane();
@@ -371,6 +326,8 @@ public class DrawActions
         for ( int i = 0; i < n; i++ ) {
             fontActions.add( new FontAction( (Font) fonts.get( i ) ) );
         }
+
+        setFigureStore( store );
     }
 
     /**
@@ -1249,7 +1206,98 @@ public class DrawActions
         return decorator;
     }
 
+    /**
+     * Interact with the object for saving and restoring figures from
+     * an XML store of some kind. The simple action here communicates
+     * that the user wants to interact, we just supply a reference so
+     * that this system may interact with various components.
+     */
+    protected void saveRestore()
+    {
+        if ( store != null ) {
+            store.setDrawActions( this );
+            store.activate();
+        }
+    }
+
+    /**
+     * Set the {@link FigureStore}.
+     */
+    public void setFigureStore( FigureStore store )
+    {
+        this.store = store;
+        saveRestoreAction.setEnabled( store != null );
+    }
+
+    /**
+     * Get the {@link FigureStore}.
+     */
+    public FigureStore getFigureStore()
+    {
+        return store;
+    }
+
     // -- Local Action classes --
+
+    /** Action to use to delete the selected figure. */
+    protected AbstractAction deleteSelectedAction =
+        new AbstractAction( "Delete selected" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                deleteSelected();
+            }
+        };
+
+    /** Action to use to remove all figures. */
+    protected AbstractAction clearAction =
+        new AbstractAction( "Remove all" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                clear();
+            }
+        };
+
+    /** Action to use to toggle the visibility of all figures. */
+    protected AbstractAction hideGraphicsAction =
+        new AbstractAction( "Hide figures" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                hideGraphics();
+            }
+        };
+
+    /** Action to raise selected Figures  */
+    protected AbstractAction raiseSelectedAction =
+        new AbstractAction( "Raise selected" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                raiseSelected();
+            }
+        };
+
+    /** Action to lower selected Figures  */
+    protected AbstractAction lowerSelectedAction =
+        new AbstractAction( "Lower selected" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                lowerSelected();
+            }
+        };
+
+    /** Action to save or restore the figures */
+    protected AbstractAction saveRestoreAction =
+        new AbstractAction( "Save/restore figures" )
+        {
+            public void actionPerformed( ActionEvent evt )
+            {
+                saveRestore();
+            }
+        };
 
     /** Local base class for creating menu/toolbar actions. */
     abstract class GraphicsAction

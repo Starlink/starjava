@@ -38,7 +38,7 @@ public class TestDrawActions
     public static void main( String[] args )
     {
         TestDrawActions canvas = new TestDrawActions();
-        DrawActions drawActions = new DrawActions( canvas );
+        DrawActions drawActions = new DrawActions( canvas, null );
         JFrame frame = new JFrame( "TestDrawActions" );
         frame.setSize( new Dimension( 200, 200 ) );
         frame.getContentPane().setLayout( new BorderLayout() );

@@ -50,8 +50,11 @@ public class DrawGraphicsMenu
     protected JRadioButtonMenuItem[] drawingModeMenuItems =
         new JRadioButtonMenuItem[DrawActions.NUM_DRAWING_MODES];
 
-    /** Save Graphics Menu item */
-    protected JMenuItem saveGraphicsMenuItem;
+    /** Save and restore graphics menu item */
+    protected JMenuItem saveRestoreGraphicsMenuItem;
+
+    /** The FigureStore used to save and restore figures. */
+    protected FigureStore store = null;
 
     /** Create a menu with graphics related items */
     public DrawGraphicsMenu( DrawActions drawActions )
@@ -74,8 +77,7 @@ public class DrawGraphicsMenu
         addSeparator();
         add( new JCheckBoxMenuItem( drawActions.hideGraphicsAction ) );
         addSeparator();
-        saveGraphicsMenuItem = createSaveGraphicsWithImageMenuItem();
-        add( saveGraphicsMenuItem );
+        add( drawActions.saveRestoreAction );
     }
 
     /** Create the "Drawing Mode" menu */
@@ -141,7 +143,7 @@ public class DrawGraphicsMenu
 
     JMenu outlineMenu = null;
 
-    /** 
+    /**
      * Create or update the "Outline" menu. If set is true assume last
      * entry has just been added and make it current.
      */
@@ -184,9 +186,9 @@ public class DrawGraphicsMenu
 
     JMenu fillMenu = null;
 
-    /** 
+    /**
      * Create or update the "Fill" menu, if set is true assume last
-     * entry has just been added and make it current. 
+     * entry has just been added and make it current.
      */
     protected JMenu updateFillMenu( boolean set )
     {
@@ -322,19 +324,5 @@ public class DrawGraphicsMenu
         }
         menu.getItem( 0 ).setSelected( true );
         return menu;
-    }
-
-    /** Create and return the "Save Graphics With Image" menu item. */
-    protected JMenuItem createSaveGraphicsWithImageMenuItem()
-    {
-        JMenuItem menuItem = new JMenuItem( "Save graphics" );
-        menuItem.addActionListener( new ActionListener()
-        {
-            public void actionPerformed( ActionEvent ae )
-            {
-                System.out.println( "Save graphics somehow!!" );
-            }
-        } );
-        return menuItem;
     }
 }
