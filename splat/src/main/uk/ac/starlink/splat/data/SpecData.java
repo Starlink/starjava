@@ -1027,15 +1027,16 @@ public class SpecData
 
 
     /**
-     * Read the data from the spectrum into local arrays. This also
-     * initialises a suitable AST frameset to describe the coordinate system
-     * in use and establishes the minimum and maximum ranges for both
-     * coordinates (X, i.e. the wavelength and Y, i.e. data count).
+     * Read the data from the spectrum into local arrays. 
+     * This also initialises a suitable AST frameset to describe 
+     * the coordinate system in use and establishes the minimum and 
+     * maximum ranges for both coordinates (X, i.e. the wavelength 
+     * and Y, i.e. data count).
      *
-     * @exception SplatException thrown if coordinate are not invertable
+     * @exception SplatException thrown if coordinates are not invertable
      *                           (i.e. not monotonic).
      */
-    protected void readData()
+    public void readData()
         throws SplatException
     {
         //  Get the spectrum data counts and errors (can be null).
@@ -1053,7 +1054,11 @@ public class SpecData
         if ( yPos == null ) {
             throw new SplatException( "Spectrum does not contain any data" );
         }
-
+        initialiseAst();
+    }
+    public void initialiseAst()
+        throws SplatException
+    {
         //  Create the init "wavelength" positions as simple
         //  increasing vector (this places them at centre of pixels).
         xPos = new double[yPos.length];
@@ -1078,10 +1083,9 @@ public class SpecData
         //  axis coordinates, somehow).
         FrameSet astref = impl.getAst();
         if ( astref == null ) {
-            System.err.println( "spectrum has no coordinate information" );
+            throw new SplatException("spectrum has no coordinate information");
         }
         else {
-
             //  Create the required ASTJ object to manipulate the AST
             //  frameset.
             ASTJ ast = new ASTJ( astref );
@@ -1092,7 +1096,7 @@ public class SpecData
             //  sigaxis (if input data has more than one dimension)
             //  and may be a distance, rather than absolute coordinate.
             try {
-                FrameSet specref = 
+                FrameSet specref =
                     ast.makeSpectral( sigaxis, 0, yPos.length,
                                       impl.getProperty( "label" ),
                                       impl.getProperty( "units" ),
@@ -1119,7 +1123,7 @@ public class SpecData
                 double[] tPos = ASTJ.astTran1( oned, xPos, true );
                 xPos = tPos;
                 tPos = null;
-                
+
                 //  Set the axis range.
                 setRange();
             }
@@ -1469,13 +1473,13 @@ public class SpecData
         int low = 0;
         int high = xPos.length - 1;
         boolean increases = ( xPos[low] < xPos[high] );
-            
+
         // Check off scale.
-        if ( ( increases && xcoord < xPos[low] ) || 
+        if ( ( increases && xcoord < xPos[low] ) ||
              ( ! increases && xcoord > xPos[low] ) ) {
             high = low;
         }
-        else if ( ( increases && xcoord > xPos[high] ) || 
+        else if ( ( increases && xcoord > xPos[high] ) ||
                   ( ! increases && xcoord < xPos[high] ) ) {
             low = high;
         }

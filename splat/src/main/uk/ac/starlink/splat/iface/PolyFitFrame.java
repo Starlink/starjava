@@ -1,11 +1,15 @@
+/*
+ * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     06-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
@@ -30,10 +34,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
 
+import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
-import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.PolynomialFitter;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -49,12 +54,9 @@ import uk.ac.starlink.splat.util.Utilities;
  * therefore necessary that the user disposes of it when it is really
  * no longer required.
  *
- * @since $Date$
- * @since 06-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
- * @see PolynomialFitter
+ * @see #PolynomialFitter
  */
 public class PolyFitFrame extends JFrame
 {
@@ -178,20 +180,15 @@ public class PolyFitFrame extends JFrame
     {
         //  This all goes in a JPanel in the center that has a
         //  GridBagLayout.
-        JPanel centre = new JPanel( new GridBagLayout() );
+        JPanel centre = new JPanel();
+        GridBagLayouter layouter = 
+            new GridBagLayouter( centre, GridBagLayouter.SCHEME4 ); 
         contentPane.add( centre, BorderLayout.CENTER );
-        GridBagConstraints gbc = new GridBagConstraints();
 
         //  Add degree control.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = 1;
-        gbc.insets = new Insets( 10, 5, 5, 10 );
-
-        centre.add( new JLabel( "Degree of polynomial:" ), gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        centre.add( degreeBox, gbc );
+        layouter.add( new JLabel( "Degree of polynomial:" ), false );
+        layouter.add( degreeBox, false );
+        layouter.add( Box.createHorizontalBox(), true );
         degreeBox.setToolTipText(
            "Degree of the polynomial (1=constant, 2=straight-line etc.)" );
 
@@ -201,33 +198,15 @@ public class PolyFitFrame extends JFrame
         }
 
         //  Decide if we should use errors (if available) during fit.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = 1;
-        gbc.insets = new Insets( 10, 5, 5, 10 );
-
-        centre.add( new JLabel( "Use errors as weights:" ), gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        centre.add( errorsBox, gbc );
+        layouter.add( new JLabel( "Use errors as weights:" ), false );
+        layouter.add( errorsBox, true );
         errorsBox.setToolTipText( "Use errors to weight fit, if available" );
 
         //  Decide if we should generate and display a subtracted
-        //  version of the spectrum.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = 1;
-        gbc.insets = new Insets( 10, 5, 5, 10 );
-
-        centre.add( new JLabel( "Subtract fit from spectrum:" ), gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-
-        //  There are three options, do not, subtract background from
-        //  spectrum and subtract spectrum from background
-        //  (emission-v-absorption).
+        //  version of the spectrum.  There are three options, do not,
+        //  subtract background from spectrum and subtract spectrum
+        //  from background (emission-v-absorption).
         JPanel subtractBox = new JPanel();
-
         subtractNothing.setText( "No" );
         subtractNothing.setToolTipText( "Do not subtract fit from spectrum" );
         subtractBox.add( subtractNothing );
@@ -244,19 +223,14 @@ public class PolyFitFrame extends JFrame
         subtractGroup.add( subtractNothing );
         subtractGroup.add( subtractFromBelow );
         subtractGroup.add( subtractFromAbove );
-
-        centre.add( subtractBox, gbc );
         subtractNothing.setSelected( true );
 
-        //  List of regions of spectrum to fit.
-        rangeList = new XGraphicsRangesView(plot.getPlot().getPlot());
+        layouter.add( new JLabel( "Subtract fit from spectrum:" ), false );
+        layouter.add( subtractBox, true );
 
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        centre.add( rangeList, gbc );
+        //  List of regions of spectrum to fit.
+        rangeList = new XGraphicsRangesView( plot.getPlot().getPlot() );
+        layouter.add( rangeList, true );
 
         //  Add an area to show the results of the fit (coefficients
         //  and quality of fit).
@@ -265,12 +239,7 @@ public class PolyFitFrame extends JFrame
         fitResultsPane.getViewport().add( fitResults );
         fitContainer.add( fitResultsPane, BorderLayout.CENTER );
 
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        centre.add( fitContainer, gbc );
+        layouter.add( fitContainer, true );
     }
 
     /**

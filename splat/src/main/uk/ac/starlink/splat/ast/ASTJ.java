@@ -855,13 +855,19 @@ public class ASTJ
     /**
      * Extract a spectral axis from the current FrameSet. The return
      * is a SpecFrame if any reason to create one can be deduced. If
-     * the selected axis of the current frame is a SpecFrame, then 
+     * the selected axis of the current frame is a SpecFrame, then
      * that is returned. Otherwise a search is made for a SpecFrame.
      * Next an attempt to create a SpecFrame is created using
-     * various heuristics (from sample code provided by David Berry, 
+     * various heuristics (from sample code provided by David Berry,
      * these use guesses from the available units). Finally the original
      * Frame is returned, if this is supposed to be a SpecFrame then
      * the user will need to set this manually.
+     * <p>
+     * Finally if a SpecFrame is created then an attempt to attach
+     * this to the current FrameSet will be made. This makes the
+     * SpecFrame available immediately in future and correctly updates
+     * the FrameSet when it is written out in any way.
+     *
      */
     public Frame getSpectralAxisFrame( int axis )
     {
@@ -940,33 +946,85 @@ public class ASTJ
             // to some likely systems. Need to actually use it to
             // cause a check, hence to findFrame calls.
             String unit = picked.getC( "Unit(1)" );
-            SpecFrame simpleSpecFrame = new SpecFrame();
-            try {
-                result.setC( "System", "Wave" );
-                result.setC( "Unit", unit );  
-                result.findFrame( simpleSpecFrame, "" );
+            if ( unit == null || unit.equals( "" ) ) { 
+                // No units, so return the default original frame.
+                return picked;
             }
-            catch (AstException e) {
+            else {
+                SpecFrame simpleSpecFrame = new SpecFrame();
                 try {
-                    result.setC( "System", "Freq" );
+                    result.setC( "System", "Wave" );
                     result.setC( "Unit", unit );
                     result.findFrame( simpleSpecFrame, "" );
                 }
-                catch (AstException e1) {
+                catch (AstException e) {
                     try {
-                        result.setC( "System", "Vopt" );
+                        result.setC( "System", "Freq" );
                         result.setC( "Unit", unit );
                         result.findFrame( simpleSpecFrame, "" );
                     }
-                    catch (AstException e2) {
-
-                        // Default is the original frame. User will
-                        // have to set any SpecFrame attributes
-                        // interactively.
-                        return picked;
+                    catch (AstException e1) {
+                        try {
+                            result.setC( "System", "Vopt" );
+                            result.setC( "Unit", unit );
+                            result.findFrame( simpleSpecFrame, "" );
+                        }
+                        catch (AstException e2) {
+                            
+                            // Default is the original frame. User will
+                            // have to set any SpecFrame attributes
+                            // interactively.
+                            return picked;
+                        }
                     }
                 }
             }
+        }
+            
+        //  Created a SpecFrame, also need to attach this to the
+        //  current FrameSet.
+        Frame cfrm = astRef.getFrame( FrameSet.AST__CURRENT );
+        int nax = cfrm.getI( "Naxes" );
+        if ( nax == 1 ) {
+            astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( 1 ), result );
+        }
+        else {
+            //  Need to pick out axes and add in our SpecFrame.
+            iaxes = new int[ nax - 1 ];
+            Frame newFrame = null;
+            if ( axis > 1 ) {
+                // SpecFrame somewhere in middle or at top.
+                int i = 1;
+                for ( i = 1; i < axis; i++ ) {
+                    iaxes[ i - 1 ] = i;
+                }
+                Frame part1 = astRef.pickAxes( i, iaxes, null );
+                newFrame = new CmpFrame( part1, result );
+                if ( axis < nax ) {
+                    // Not at top, more needed to get to end.
+                    int j = 1;
+                    for ( i = axis + 1; i <= nax; i++, j++ ) {
+                        iaxes[ j - 1 ] = i;
+                    }
+                    Frame part3 = astRef.pickAxes( j - 1, iaxes, null );
+                    newFrame = new CmpFrame( newFrame, part3 );
+                }
+            }
+            else {
+                // SpecFrame is first.
+                int i = 1;
+                for ( i = 2; i <= nax; i++ ) {
+                    iaxes[i-1] = i;
+                }
+                Frame part2 = astRef.pickAxes( i-1, iaxes, null );
+                newFrame = new CmpFrame( result, part2 );
+            }
+            System.out.println( "Adding SpecFrame to data node" );
+            astRef.show();
+            astRef.addFrame( FrameSet.AST__CURRENT, new UnitMap( nax ), 
+                             newFrame );
+            System.out.println( "Added SpecFrame to data node" );
+            astRef.show();
         }
         return result;
     }

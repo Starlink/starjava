@@ -10,8 +10,6 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.PlotControl;
 import uk.ac.starlink.splat.util.AsciiFileParser;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.Utilities;
 import uk.ac.starlink.ast.gui.DecimalField;
 
@@ -320,8 +319,8 @@ public class SpecFilterFrame
      */
     protected void initProfilesUI()
     {
-        JPanel panel = new JPanel( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
+        JPanel panel = new JPanel();
+        GridBagLayouter layouter = new GridBagLayouter( panel );
 
         //  Need a profile type and some parameters. Gaussian needs a
         //  width as does Lorentz. Voigt needs two widths.
@@ -334,16 +333,10 @@ public class SpecFilterFrame
         voigtProfile = new JCheckBox( "Voigt" );
         voigtProfile.setToolTipText( "Smooth using a Voigt profile" );
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( typeLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( gaussProfile, gbc );
-        panel.add( lorentzProfile, gbc );
-        panel.add( voigtProfile, gbc );
-        eatLine( panel, gbc );
+        layouter.add( typeLabel, false );
+        layouter.add( gaussProfile, false );
+        layouter.add( lorentzProfile, false );
+        layouter.add( voigtProfile, true );
 
         ButtonGroup useGroup = new ButtonGroup();
         useGroup.add( gaussProfile );
@@ -374,71 +367,28 @@ public class SpecFilterFrame
         profileWidth.setToolTipText( "Width used to evaluate profile " +
                                      "(should be at least several widths)" );
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( widthLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( profileWidth, gbc );
-        eatLine( panel, gbc );
+        layouter.add( widthLabel, false );
+        layouter.add( profileWidth, true );
 
         gWidthLabel = new JLabel( "Gaussian FWHM/width:   " );
         decimalFormat = new DecimalFormat();
         gWidth = new DecimalField( 5, 5, decimalFormat );
         gWidth.setToolTipText( "FWHM of gaussian or gaussian width" );
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( gWidthLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( gWidth, gbc );
-        eatLine( panel, gbc );
+        layouter.add( gWidthLabel, false );
+        layouter.add( gWidth, true );
 
         lWidthLabel = new JLabel( "Lorentzian width:   " );
         decimalFormat = new DecimalFormat();
         lWidth = new DecimalField( 5, 5, decimalFormat );
         lWidth.setToolTipText( "The Lorentzian width" );
 
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( lWidthLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( lWidth, gbc );
-        eatLine( panel, gbc );
-
-        eatSpare( panel, gbc );
+        layouter.add( lWidthLabel, false );
+        layouter.add( lWidth, true );
+        layouter.eatSpare();
         toggleProfileWidths();
 
         tabbedPane.addTab( "Profile", panel );
-    }
-
-    /**
-     * Eat to end of current line using GridBagLayout.
-     */
-    private void eatLine( JPanel panel, GridBagConstraints gbc )
-    {
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        panel.add( Box.createHorizontalGlue(), gbc );
-    }
-
-    /**
-     * East spare space at bottom of panel using GridBagLayout.
-     */
-    private void eatSpare( JPanel panel, GridBagConstraints gbc )
-    {
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.gridheight = GridBagConstraints.REMAINDER;
-        gbc.weightx = 0.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH    ;
-        panel.add( Box.createVerticalGlue(), gbc );
     }
 
     // Controls needed for selecting a spectrum.

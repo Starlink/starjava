@@ -513,7 +513,7 @@
 value="bsh-1.2b7.jar colt.jar diva.jar jdom.jar jhall.jar splat_help.jar
 ../astgui/astgui.jar ../ndx/ndx.jar ../hdx/hdx.jar ../array/array.jar ../tamfits/tamfits.jar
 ../jniast/jniast.jar ../soapserver/soapserver.jar ../fits/fits.jar
-../hds/hds.jar"/>
+../hds/hds.jar ../treeview/treeview.jar ../pal/pal.jar"/>
       </manifest>
     </jar>
   </target>

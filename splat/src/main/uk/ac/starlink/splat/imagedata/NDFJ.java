@@ -580,8 +580,7 @@ public class NDFJ implements Serializable
 
     /**
      * Set reference to an AST FrameSet that describes the NDF
-     * coordinate systems (not read from NDF). This differs from
-     * setWcs in that the FrameSet is not written to the NDF.
+     * coordinate systems (not read from NDF). 
      *
      * @param newwcs AST FrameSet
      */

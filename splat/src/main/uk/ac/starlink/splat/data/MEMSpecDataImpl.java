@@ -64,8 +64,14 @@ public class MEMSpecDataImpl
 
         //  Use the AST system from the spectrum, rather than creating
         //  our own.
-        setData( spectrum.getFrameSet(), spectrum.getYData(),
-                 spectrum.getYDataErrors() );
+        setAstCopy( spectrum.getFrameSet() );
+        copyData( spectrum.getXData(), spectrum.getYData(), 
+                  spectrum.getYDataErrors() );
+
+        //  Was: but this fails to create coords when using a not
+        //  editable copy.
+        //setData( spectrum.getFrameSet(), spectrum.getYData(),
+        //         spectrum.getYDataErrors() );
 
         //  Record any source of header information.
         if ( spectrum.getSpecDataImpl().isFITSHeaderSource() )
@@ -211,11 +217,12 @@ public class MEMSpecDataImpl
     protected void createAst()
     {
         //  Create two simple frames, one for the indices of the data
-        //  counts and one for the coordinates (wavelength).
+        //  counts and one for the coordinates. Note we no longer
+        //  label these as known.
         Frame baseframe = new Frame( 1 );
-        baseframe.set( "Label(1)=Data Counts" );
+        baseframe.set( "Label(1)=Data count" );
         Frame currentframe = new Frame( 1 );
-        currentframe.set( "Label(1)=Wavelength" );
+        currentframe.set( "Label(1)=X coordinate" );
 
         //  Create an AST lutmap that relates the index of the data
         //  counts to the coordinates.
@@ -487,7 +494,7 @@ public class MEMSpecDataImpl
         if ( frameSet != astref ) {
             astref = frameSet;
 
-            //  Coordinates are now invalid.
+            //  Coordinates are now invalid and need re-generating.
             coords = null;
         }
     }

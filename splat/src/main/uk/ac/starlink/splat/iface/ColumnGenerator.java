@@ -10,8 +10,6 @@ package uk.ac.starlink.splat.iface;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.text.DecimalFormat;
 
 import javax.swing.AbstractAction;
@@ -32,13 +30,14 @@ import javax.swing.JTextArea;
 import javax.swing.border.TitledBorder;
 import javax.swing.SwingConstants;
 
+import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.ast.MathMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
-import uk.ac.starlink.splat.util.Utilities;
-import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
-import uk.ac.starlink.ast.MathMap;
-import uk.ac.starlink.ast.AstException;
+import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.GridBagLayouter;
+import uk.ac.starlink.splat.util.Utilities;
 
 /**
  * Provides basic facilities for generating new data column values for
@@ -193,54 +192,22 @@ public abstract class ColumnGenerator
         }
 
         //  Layout
-        panel.setLayout( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
+        GridBagLayouter layouter = 
+            new GridBagLayouter( panel, GridBagLayouter.SCHEME2 );
 
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.15;
-        gbc.gridwidth = 1;
-        panel.add( mainName, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.0;
-        panel.add( new JLabel( " = " ), gbc );
-        gbc.weightx = 0.85;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        panel.add( mainValue, gbc );
+        layouter.add( mainName, false );
+        layouter.add( new JLabel( " = " ), false );
+        layouter.add( mainValue, true );
 
         for ( int i = 0; i < NAMECOUNT; i++ ) {
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.weightx = 0.15;
-            gbc.gridwidth = 1;
-            panel.add( itemNames[i], gbc );
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 0.0;
-            panel.add( new JLabel( " = " ), gbc );
-            gbc.weightx = 0.85;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            panel.add( itemValues[i], gbc );
+            layouter.add( itemNames[i], false );
+            layouter.add( new JLabel( " = " ), false );
+            layouter.add( itemValues[i], true );
         }
-
-        //  Eat remaining space to keep packed at top.
-        eatSpare( panel, gbc );
+        layouter.eatSpare();
 
         panel.setBorder( BorderFactory.createTitledBorder
                          ( "Symbolic transformation:" ) );
-    }
-
-    /**
-     * East spare space at bottom of panel using GridBagLayout.
-     */
-    private void eatSpare( JPanel panel, GridBagConstraints gbc )
-    {
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.gridheight = GridBagConstraints.REMAINDER;
-        gbc.weightx = 0.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH    ;
-        panel.add( Box.createVerticalGlue(), gbc );
     }
 
     /**

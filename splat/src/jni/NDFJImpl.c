@@ -48,6 +48,7 @@ static void CountSink( const char *line )
  *  ChanEnv, ChanArray and ChanCounter first */
 static JNIEnv *ChanEnv = NULL;
 static jobjectArray ChanArray = NULL;
+static char utfBuffer[200]; /* Use static buffer so we can release Java UTF */
 
 static void ArraySink( const char *line )
 {
@@ -59,19 +60,22 @@ static void ArraySink( const char *line )
 
 /* Routine for reading a line from a Java array of Strings, define
  * ChanEnv, AstArray and SinkCounter first */
-static const char *ArraySource()
+static const char *ArraySource( void )
 {
    jobject jstr;
    char *str = NULL;
    jsize length;
+
    length = (*ChanEnv)->GetArrayLength( ChanEnv, ChanArray );
    if ( ChanCounter < length ) {
       jstr = (*ChanEnv)->GetObjectArrayElement( ChanEnv, ChanArray,
                                                 ChanCounter );
-      str = (char *) (*ChanEnv)->GetStringChars( ChanEnv, jstr, NULL );
+      str = (char *) (*ChanEnv)->GetStringUTFChars( ChanEnv, jstr, NULL );
+      strncpy( utfBuffer, str, 200 );
+      (*ChanEnv)->ReleaseStringUTFChars( ChanEnv, jstr, str );
    }
    ChanCounter++;
-   return str;
+   return utfBuffer;
 }
 
 /*
@@ -622,7 +626,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAstArray
     ChanCounter = 0;
     ChanArray = jarray;
     chan = astChannel( ArraySource, NULL, "" );
-    astSet( chan, "Full=-1 Comment=0" );
     iwcs = (AstFrameSet*) astRead( chan );
     astAnnul( chan );
 
@@ -702,6 +705,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nSetAst
     base = astGetFrame( iwcs, AST__BASE );
     astSet( base, "Domain=Grid" );
     astAnnul( base );
+    astShow( iwcs );
 
     /*  Set the NDF WCS */
     ndfPtwcs( iwcs, indf, &status );
@@ -964,7 +968,7 @@ JNIEXPORT jint JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nGet1DNewDouble
     place = (int) jplace;
 
     /*  Set the size of the NDF */
-    lbnd[0] = 0;
+    lbnd[0] = 1;
     ubnd[0] = (int) jsize;
 
     /*  Establish local status and stop NDF from issuing errors */
@@ -1309,7 +1313,6 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nReleaseFitsHead
 {
     /* Local variables */
     FitsHeader *fits;
-    int status = SAI__OK;
 
     /*  Import the FITS header structure */
     fits = *(FitsHeader **) &jfits;
@@ -1336,7 +1339,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nReleaseFitsHead
  *     jcards = array of card Strings
  *
  */
-JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCreateFitsExtension
+JNIEXPORT 
+    void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCreateFitsExtension
     (JNIEnv *env, jclass class, jint jindf, jobjectArray jcards )
 {
     /*  Local variables */
@@ -1361,6 +1365,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_splat_imagedata_NDFJ_nCreateFitsExten
     ncards = (int) (*env)->GetArrayLength( env, jcards );
 
     /*  Create the new extension */
+    ndfXdel( indf, "FITS", &status );
     dim[0] = ncards;
     ndfXnew( indf, "FITS", "_CHAR*80", 1, dim, loc, &status );
     datMapv( loc, "_CHAR*80", "WRITE", (void **) &ptr, &ncards, &status );

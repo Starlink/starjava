@@ -16,11 +16,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
+import uk.ac.starlink.ast.Frame;
+import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.ast.LutMap;
+import uk.ac.starlink.ast.Mapping;
+import uk.ac.starlink.ast.SpecFrame;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
-
 
 /**
  * A LineIDSpecDataImpl that provides facilities for reading text files
@@ -32,11 +40,17 @@ import uk.ac.starlink.splat.util.Utilities;
  * then these are the wavelength and label, if three or more
  * then the second column should be position of the label and the
  * third the label.
+ * <P.
+ * An optional feature is support for a header section that defines
+ * useful elements, such as the AST attributes of the coordinates and
+ * a name for the content. The header section starts at the first line
+ * with #BEGIN and ends on the line #END. The attributes are simple
+ * comment lines in between of the form "# name value".
  *  <p>
  * Whitespace separators are the space character, the tab character,
  * the newline character, the carriage-return character, and the
  * form-feed character. Any comments in the file must start in the
- * first column and be indicated by the characters "!", "#" or "*". 
+ * first column and be indicated by the characters "!", "#" or "*".
  * Blank lines are also permitted.
  *  <p>
  * Since the actual storage for text files is memory resident this
@@ -90,7 +104,7 @@ public class LineIDTXTSpecDataImpl
     /**
      * Save the state to disk-file.
      */
-    public void save() 
+    public void save()
         throws SplatException
     {
         saveToFile( fullName );
@@ -99,11 +113,15 @@ public class LineIDTXTSpecDataImpl
 //
 // Implementation specific methods and variables.
 //
-
     /**
      * Reference to the file.
      */
     protected File file = null;
+
+    /**
+     * Map of any attributes read from file.
+     */
+    protected Map attributes = null;
 
     /**
      * Open an existing text file and read the contents.
@@ -156,15 +174,57 @@ public class LineIDTXTSpecDataImpl
         try {
             f = new FileInputStream( file );
             r = new BufferedReader( new InputStreamReader( f ) );
-        } 
+        }
         catch ( Exception e ) {
             throw new SplatException( e );
         }
 
+        // Look for a header section.
+        int nhead = 0;
+        StringTokenizer st = null;
+        String raw = null;
+        try {
+            raw = r.readLine();
+            if ( "#BEGIN".equals( raw ) ) {
+                attributes = new LinkedHashMap();
+                //  Default set for laboratory lines.
+                attributes.put( "StdOfRest", "Topocentric" );
+                attributes.put( "SourceVRF", "Topocentric" );
+                attributes.put( "SourceVel", "0.0" );
+                nhead++;
+
+                while ( ( raw = r.readLine() ) != null ) {
+                    if ( "#END".equals( raw ) ) {
+                        nhead++;
+                        break;
+                    }
+
+                    // Skip blank lines and other comment lines.
+                    if ( raw.length() == 0 || raw.charAt(0) == '!'
+                         || raw.charAt(0) == '*' ) {
+                        continue;
+                    }
+                    st = new StringTokenizer( raw );
+                    st.nextToken(); // Skip comment
+                    attributes.put( st.nextToken(), st.nextToken() );
+                    nhead++;
+                }
+                if ( nhead == 0 ) attributes = null;
+            }
+            else {
+                // Rewind.
+                r.close();
+                f.close();
+                f = new FileInputStream( file );
+                r = new BufferedReader( new InputStreamReader( f ) );
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
         //  First pass of file. Read file input until end of file
         //  occurs.
-        String raw = null;
-        StringTokenizer st = null;
         int count = 0;
         int nlines = 0;
         int nwords = 0;
@@ -199,6 +259,12 @@ public class LineIDTXTSpecDataImpl
 
             haveDataPositions = ( nwords == 3 );
 
+            // Skip any header section. Not really needed as comments.
+            if ( nhead > 0 ) {
+                for ( int i = 0; i < nhead; i++ ) {
+                    r.readLine();
+                }
+            }
             while ( ( raw = r.readLine() ) != null ) {
 
                 //  Skip blank and comment lines.
@@ -226,7 +292,7 @@ public class LineIDTXTSpecDataImpl
             try {
                 r.close();
                 f.close();
-            } 
+            }
             catch ( Exception ex ) {
                 ex.printStackTrace();
             }
@@ -237,13 +303,18 @@ public class LineIDTXTSpecDataImpl
 
         //  Create the AST frameset that describes the data-coordinate
         //  relationship.
-        createAst();
+        if ( attributes == null ) {
+            createAst();
+        }
+        else {
+            createSpecFrameAst();
+        }
 
         // Close input file.
         try {
             r.close();
             f.close();
-        } 
+        }
         catch (Exception e) {
             //  Do nothing.
         }
@@ -263,16 +334,23 @@ public class LineIDTXTSpecDataImpl
         try {
             f = new FileOutputStream( file );
             r = new BufferedWriter( new OutputStreamWriter( f ) );
-        } 
+        }
         catch ( Exception e ) {
             throw new SplatException( e );
         }
 
-
         // Add a header to the file.
         try {
+            r.write( "#BEGIN\n" );
             r.write( "# File created by " +Utilities.getReleaseName()+ "\n" );
-        } 
+            r.write( "# name " + shortName );
+            writeAstAtt( r, "System" );
+            writeAstAtt( r, "Unit" );
+            writeAstAtt( r, "StdOfRest" );
+            writeAstAtt( r, "SourceVRF" );
+            writeAstAtt( r, "SourceVel" );
+            r.write( "#END\n" );
+        }
         catch (Exception e) {
             e.printStackTrace();
         }
@@ -280,8 +358,8 @@ public class LineIDTXTSpecDataImpl
         // Now write the data.
         for ( int i = 0; i < data.length; i++ ) {
             try {
-                r.write( coords[i] + " " + data[i] + " " + labels[i] );
-            } 
+                r.write( coords[i] + " " + data[i] + " " + labels[i] + "\n" );
+            }
             catch (Exception e) {
                 e.printStackTrace();
             }
@@ -291,10 +369,64 @@ public class LineIDTXTSpecDataImpl
             r.newLine();
             r.close();
             f.close();
-        } 
+        }
         catch (Exception e) {
             //  Do nothing.
         }
     }
-}
 
+    private void writeAstAtt( BufferedWriter r, String attr )
+        throws Exception
+    {
+        String value = astref.getC( attr );
+        if ( value != null && ! "".equals( value ) ) {
+            r.write( "# " + attr + " " + value + "\n" );
+        }
+    }
+
+    /**
+     * Create an AST frameset that relates the spectrum coordinate to
+     * data values positions. This is straight-forward and just
+     * creates a look-up-table to map the given coordinates to grid
+     * positions. The lookup table mapping is simplified as this
+     * should cause any linear transformations to be replaced with a
+     * WinMap. This version also creates a SpecFrame and configures it
+     * with attributes obtained from the file header section.
+     */
+    protected void createSpecFrameAst()
+    {
+        //  Create two simple frames, one for the indices of the data
+        //  counts and one for the coordinates. Note we no longer
+        //  label these as known.
+        Frame baseframe = new Frame( 1 );
+        baseframe.set( "Label(1)=Data count" );
+        SpecFrame currentframe = new SpecFrame();
+
+        // Set all the attributes.
+        Set entrySet = attributes.entrySet();
+        Iterator i = entrySet.iterator();
+        while ( i.hasNext() ) {
+            Map.Entry entry = (Map.Entry) i.next();
+            String key = (String) entry.getKey();
+            String value = (String) entry.getValue();
+            if ( ! "name".equals( key ) ) {
+                currentframe.setC( key, value );
+            }
+            else {
+                shortName = value;
+            }
+        }
+
+        //  Create an AST lutmap that relates the index of the data
+        //  counts to the coordinates.
+        if ( coords == null ) {
+            createCoords();
+        }
+        LutMap lutmap = new LutMap( coords, 1.0, 1.0 );
+        Mapping simple = lutmap.simplify();
+
+        //  Now create a frameset and add all these to it.
+        astref = new FrameSet( baseframe );
+        astref.addFrame( 1, simple, currentframe );
+    }
+}

@@ -9,12 +9,13 @@ package uk.ac.starlink.splat.data;
 
 import java.util.ArrayList;
 
-import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.Grf;
 import uk.ac.starlink.ast.Plot;
+import uk.ac.starlink.ast.SpecFrame;
+import uk.ac.starlink.splat.ast.ASTJ;
 import uk.ac.starlink.splat.util.SplatException;
 
 /**
@@ -410,10 +411,10 @@ public class SpecDataComp
         double[] result = range;
         try {
             //  Try to align the plotting FrameSets of the SpecData. Only
-            //  need to do this between DATAPLOT domains. ?? Will this
-            //  work with CmpFrame containing one SpecFrame?
+            //  need to do this between DATAPLOT domains.
             FrameSet to = target.getAst().getRef();
             FrameSet fr = source.getAst().getRef();
+            String stdofrest = null;
             FrameSet aligned = fr.convert( to, "DATAPLOT" );
             if ( aligned == null ) {
                 throw new SplatException( "Failed to aligned coordinates" +
@@ -516,13 +517,28 @@ public class SpecDataComp
     public Plot alignPlots( Plot plot, SpecData source )
         throws SplatException
     {
-        Plot result = (Plot)plot.copy();
+        Plot result = (Plot) plot.copy();
 
         //  Try to align the plot FrameSet and the SpecData. Only
         //  need to do this between DATAPLOT domains.
         Frame to = result.getFrame( FrameSet.AST__CURRENT );
         Frame from = source.getAst().getRef().getFrame(FrameSet.AST__CURRENT);
-        FrameSet aligned = to.convert( from, "DATAPLOT" );
+
+        // If spectrum is a LineID then we should attempt to transform
+        // it into the system of main spectrum (this aligns if a
+        // source velocity is set).
+        int iaxes[] = { 1 };
+        Frame picked = to.pickAxes( 1, iaxes, null );
+        FrameSet aligned = null;
+        if (source instanceof LineIDSpecData && picked instanceof SpecFrame) {
+            String stdofrest = to.getC( "StdOfRest" );
+            to.set( "StdOfRest=Source" );
+            aligned = from.convert( to, "DATAPLOT" );
+            to.set( "StdOfRest=" + stdofrest );
+        }
+        else {
+            aligned = to.convert( from, "DATAPLOT" );
+        }
         if ( aligned == null ) {
             throw new SplatException( "Failed to align coordinates" +
                                       " while transforming between plots");

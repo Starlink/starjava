@@ -8,8 +8,6 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 
@@ -34,6 +32,7 @@ import uk.ac.starlink.ast.WinMap;
 import uk.ac.starlink.ast.gui.DecimalField;
 import uk.ac.starlink.splat.data.EditableSpecData;
 import uk.ac.starlink.splat.util.ExceptionDialog;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -183,38 +182,14 @@ public class CoordinateGenerator
         offset.setToolTipText( "Offset for new coordinates" );
 
         //  Layout
-        panel.setLayout( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
-
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        gbc.gridwidth = 1;
-        panel.add( useCoords, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( useIndices, gbc );
-        eatLine( panel, gbc );
-
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( scaleLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( scale, gbc );
-        eatLine( panel, gbc );
-
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        panel.add( offsetLabel, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        panel.add( offset, gbc );
-        eatLine( panel, gbc );
-
-        //  Eat remaining space to keep packed at top.
-        eatSpare( panel, gbc );
+        GridBagLayouter layouter = new GridBagLayouter( panel );
+        layouter.add( useCoords, false );
+        layouter.add( useIndices, true );
+        layouter.add( scaleLabel, false );
+        layouter.add( scale, true );
+        layouter.add( offsetLabel, false );
+        layouter.add( offset, true );
+        layouter.eatSpare();
 
         panel.setBorder( BorderFactory.createTitledBorder
                          ("Linear transformation of coordinate or indices" ));
@@ -249,67 +224,24 @@ public class CoordinateGenerator
         }
 
         //  Layout
-        panel.setLayout( new GridBagLayout() );
-        GridBagConstraints gbc = new GridBagConstraints();
+        GridBagLayouter layouter = 
+            new GridBagLayouter( panel, GridBagLayouter.SCHEME2 );
 
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.15;
-        gbc.gridwidth = 1;
-        panel.add( mainName, gbc );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0.0;
-        panel.add( new JLabel( " = " ), gbc );
-        gbc.weightx = 0.85;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        panel.add( mainValue, gbc );
+        layouter.add( mainName, false );
+        layouter.add( new JLabel( " = " ), false );
+        layouter.add( mainValue, true );
 
         for ( int i = 0; i < NAMECOUNT; i++ ) {
-            gbc.anchor = GridBagConstraints.EAST;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            gbc.weightx = 0.15;
-            gbc.gridwidth = 1;
-            panel.add( itemNames[i], gbc );
-            gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 0.0;
-            panel.add( new JLabel( " = " ), gbc );
-            gbc.weightx = 0.85;
-            gbc.gridwidth = GridBagConstraints.REMAINDER;
-            panel.add( itemValues[i], gbc );
+            layouter.add( itemNames[i], false );
+            layouter.add( new JLabel( " = " ), false );
+            layouter.add( itemValues[i], true );
         }
-
-        //  Eat remaining space to keep packed at top.
-        eatSpare( panel, gbc );
+        layouter.eatSpare();
 
         panel.setBorder( BorderFactory.createTitledBorder
                          ( "Symbolic transformation:" ) );
 
         pane.add( "General", panel );
-    }
-
-    /**
-     * Eat to end of current line using GridBagLayout.
-     */
-    private void eatLine( JPanel panel, GridBagConstraints gbc )
-    {
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        panel.add( Box.createHorizontalGlue(), gbc );
-    }
-
-    /**
-     * East spare space at bottom of panel using GridBagLayout.
-     */
-    private void eatSpare( JPanel panel, GridBagConstraints gbc )
-    {
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.gridheight = GridBagConstraints.REMAINDER;
-        gbc.weightx = 0.0;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.BOTH    ;
-        panel.add( Box.createVerticalGlue(), gbc );
     }
 
     /**

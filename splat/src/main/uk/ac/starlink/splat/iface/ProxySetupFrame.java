@@ -1,8 +1,5 @@
 package uk.ac.starlink.splat.iface;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -18,6 +15,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -33,6 +31,7 @@ import org.jdom.output.XMLOutputter;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.Utilities;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 
 /**
  * Create a dialog window for displaying and modifying the current proxy
@@ -75,7 +74,6 @@ public class ProxySetupFrame extends JFrame
     /**
      * Other UI elements
      */
-    protected JPanel contentPane = null;
     protected JCheckBox needProxy = new JCheckBox();
     protected JTextField hostName = new JTextField( 15 );
     protected JTextField portNumber = new JTextField( 15 );
@@ -105,29 +103,19 @@ public class ProxySetupFrame extends JFrame
      */
     protected void initUI()
     {
-        contentPane = (JPanel) getContentPane();
-        contentPane.setLayout( new GridBagLayout() );
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets( 3, 3, 3, 3 );
+        JComponent pane = (JComponent) getContentPane();
+        GridBagLayouter layouter = 
+            new GridBagLayouter( pane, GridBagLayouter.SCHEME3 );
 
         //  Add the descriptive text.
-        contentPane.setBorder( BorderFactory.createTitledBorder
-                               ( "Configure your proxy server:" ) );
+        pane.setBorder( BorderFactory.createTitledBorder
+                        ( "Configure your proxy server:" ) ); 
 
         //  If not direct then need hostname and port.
         JLabel needLabel = new JLabel( "Use proxy server:" );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        contentPane.add( needLabel, gbc );
+        layouter.add( needLabel, false );
+        layouter.add( needProxy, true );
 
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        contentPane.add( needProxy, gbc );
         needProxy.setToolTipText( "Select if your connection to " +
                                   "the internet needs a proxy server" );
         needProxy.addActionListener( new ActionListener() {
@@ -137,34 +125,19 @@ public class ProxySetupFrame extends JFrame
             });
 
         JLabel hostLabel = new JLabel( "Proxy Server:" );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        contentPane.add( hostLabel, gbc );
+        layouter.add( hostLabel, false );
+        layouter.add( hostName, true );
 
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        contentPane.add( hostName, gbc );
         hostName.setToolTipText
             ( "Name of proxy server, e.g. wwwcache.mydomain" );
 
         JLabel portLabel = new JLabel( "Port:" );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.RELATIVE;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        contentPane.add( portLabel, gbc );
+        layouter.add( portLabel, false );
+        layouter.add( portNumber, true );
 
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        contentPane.add( portNumber, gbc );
         portNumber.setToolTipText( "Port number of proxy server, e.g. 8080" );
 
-         //  Configure and place the Accept and Cancel buttons.
+        //  Configure and place the Accept and Cancel buttons.
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBorder( BorderFactory.createEmptyBorder(10,10,0,0));
         buttonPanel.setLayout( new BoxLayout( buttonPanel,
@@ -181,12 +154,8 @@ public class ProxySetupFrame extends JFrame
         cancelButton.setToolTipText
             ( "Press to cancel changes and close window" );
 
-        //  Add button panel to contentPane.
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        contentPane.add( buttonPanel, gbc );
+        //  Add button panel.
+        layouter.add( buttonPanel, true );
     }
 
     /**

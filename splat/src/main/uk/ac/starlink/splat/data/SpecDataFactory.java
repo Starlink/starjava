@@ -30,9 +30,9 @@ import uk.ac.starlink.splat.imagedata.NDFJ;
  *
  * @author Peter W. Draper
  * @version $Id$
- * @see SpecDataImpl
- * @see SpecData
- * @see InputNameParser
+ * @see #SpecDataImpl
+ * @see #SpecData
+ * @see #InputNameParser
  * @see "The Singleton Design Pattern"
  */
 public class SpecDataFactory
@@ -304,7 +304,12 @@ public class SpecDataFactory
         //  Create an implementation object using the source to
         //  provide the content (TODO: could be more efficient?).
         SpecDataImpl impl = null;
-        if ( targetType.equals( "NDF" ) ) {
+
+        if ( source instanceof LineIDSpecData ) {
+            impl = new LineIDTXTSpecDataImpl( specspec, 
+                                              (LineIDSpecData) source );
+        }
+        else if ( targetType.equals( "NDF" ) ) {
             impl = new NDFSpecDataImpl( namer.ndfname(), source );
         }
         if ( targetType.equals( "FITS" ) ) {
@@ -313,7 +318,7 @@ public class SpecDataFactory
         if ( targetType.equals( "TEXT" ) ) {
             impl = new TXTSpecDataImpl( namer.ndfname(), source );
         }
-        SpecData specData = new SpecData( impl );
+        SpecData specData = makeSpecDataFromImpl( impl );
         specData.setType( source.getType() );
         return specData;
     }

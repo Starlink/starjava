@@ -8,8 +8,6 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Component;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +32,7 @@ import uk.ac.starlink.ast.gui.AbstractPlotControlsModel;
 import uk.ac.starlink.splat.data.DataLimits;
 import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.Percentile;
 import uk.ac.starlink.splat.plot.DivaPlot;
 
@@ -57,16 +56,6 @@ public class DataLimitControls
      * DataLimits model for current state.
      */
     protected DataLimits dataLimits = null;
-
-    /**
-     * GridBagConstraints object.
-     */
-    protected GridBagConstraints gbc = new GridBagConstraints();
-
-    /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
 
     /**
      * Check box for whether X axis should be autoscaled.
@@ -194,8 +183,6 @@ public class DataLimitControls
      */
     protected void initUI()
     {
-        setLayout( new GridBagLayout() );
-
         //  Whether axes are autoscaled.
         xAutoscaled.addActionListener(
             new ActionListener()
@@ -304,97 +291,55 @@ public class DataLimitControls
                 }
             } );
 
-        //  Add labels for all fields.
-        addLabel( "Autoscale X:", 0 );
-        addLabel( "Fit X range:", 1 );
-        addLabel( "Flip X axis:", 2 );
-        addLabel( "Lower X:", 3 );
-        addLabel( "Upper X:", 4 );
-        addLabel( "Autoscale Y:", 5 );
-        addLabel( "Fit Y range:", 6 );
-        addLabel( "Flip Y axis:", 7 );
-        addLabel( "Lower Y:", 8 );
-        addLabel( "Upper Y:", 9 );
-        addLabel( "Y auto cut:", 10 );
+        //  Layout.
+        GridBagLayouter layouter = 
+            new GridBagLayouter( this, GridBagLayouter.SCHEME3 );
+        
+        // Match insets to ASTGUI.
+        layouter.setInsets( new Insets( 5, 5, 5, 5 ) );
 
-        gbc.insets = new Insets( 0, 0, 0, 0 );
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weighty = 0.0;
-        gbc.weightx = 1.0;
-        gbc.gridx = 1;
+        layouter.add( new JLabel( "Autoscale X:" ), false );
+        layouter.add( xAutoscaled, true );
 
-        //  Current row for adding components.
-        int row = 0;
+        layouter.add( new JLabel( "Fit X range:" ), false );
+        layouter.add( xFit, true );
 
-        //  Autoscale X.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xAutoscaled, gbc );
+        layouter.add( new JLabel( "Flip X axis:" ), false );
+        layouter.add( xFlipped, true );
 
-        //  Fit X.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xFit, gbc );
+        layouter.add( new JLabel( "Lower X:" ), false );
+        layouter.add( xLower, true );
 
-        //  Flip X.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( xFlipped, gbc );
+        layouter.add( new JLabel( "Upper X:" ), false );
+        layouter.add( xUpper, true );
 
-        //  X limits.
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( xLower, gbc );
-        gbc.gridy = row++;
-        add( xUpper, gbc );
+        layouter.add( new JLabel( "Autoscale Y:" ), false );
+        layouter.add( yAutoscaled, true );
 
-        //  Autoscale Y.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yAutoscaled, gbc );
+        layouter.add( new JLabel( "Fit Y range:" ), false );
+        layouter.add( yFit, true );
 
-        //  Fit Y.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yFit, gbc );
+        layouter.add( new JLabel( "Flip Y axis:" ), false );
+        layouter.add( yFlipped, true );
 
-        //  Flip Y.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.gridy = row++;
-        add( yFlipped, gbc );
+        layouter.add( new JLabel( "Lower Y:" ), false );
+        layouter.add( yLower, true );
 
-        //  Y limits.
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( yLower, gbc );
-        gbc.gridy = row++;
-        add( yUpper, gbc );
+        layouter.add( new JLabel( "Upper Y:" ), false );
+        layouter.add( yUpper, true );
 
-        //  Percentile cuts for Y limits.
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = row++;
-        add( yPercentiles, gbc );
-
-        //  Eat up some vertical space.
-        Component filly1 = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        add( filly1, gbc );
+        layouter.add( new JLabel( "Y auto cut:" ), false );
+        layouter.add( yPercentiles, true );
 
         //  Limits buttons.
-        gbc.gridy = row++;
-        gbc.weighty = 0.0;
-        add( setFromCurrent, gbc );
-        gbc.gridy = row++;
-        add( setFromView, gbc );
+        layouter.add( Box.createHorizontalBox(), false );
+        layouter.add( setFromCurrent, false );
+        layouter.add( Box.createHorizontalBox(), true );
 
-        //  Eat up all spare vertical space (pushes widgets to top).
-        Component filly2 = Box.createVerticalStrut( 5 );
-        gbc.gridy = row++;
-        gbc.weighty = 1.0;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        add( filly2, gbc );
+        layouter.add( Box.createHorizontalBox(), false );
+        layouter.add( setFromView, false );
+        layouter.add( Box.createHorizontalBox(), true );
+        layouter.eatSpare();
 
         //  Set tooltips.
         xAutoscaled.setToolTipText( "Autoscale X axis to fit all data" );
@@ -477,26 +422,6 @@ public class DataLimitControls
             yFit.setEnabled( false );
         }
         dataLimits.addChangeListener( this );
-    }
-
-    /**
-     * Add a new label. This is added to the front of the given row.
-     *
-     * @param text The feature to be added to the Label attribute
-     * @param row The feature to be added to the Label attribute
-     */
-    private void addLabel( String text, int row )
-    {
-        JLabel label = new JLabel( text );
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.insets = labelInsets;
-        add( label, gbc );
     }
 
     /**

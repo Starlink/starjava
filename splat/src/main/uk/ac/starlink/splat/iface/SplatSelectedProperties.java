@@ -1,9 +1,13 @@
+/*
+ * Copyright (C) 2000-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     02-OCT-2000 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.Color;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -16,10 +20,13 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.ast.gui.AstStyleBox;
 import uk.ac.starlink.ast.gui.ColourIcon;
 import uk.ac.starlink.ast.gui.DecimalField;
@@ -31,11 +38,8 @@ import uk.ac.starlink.ast.gui.DecimalField;
  * the current properties shown are those of the first, but
  * modifications of any properties are applied to all spectra.
  *
- * @since $Date$
- * @since 02-OCT-2000
  * @version $Id$
  * @author Peter W. Draper
- * @copyright Copyright (C) 2001 Central Laboratory of the Research Councils
  *
  */
 public class SplatSelectedProperties extends JPanel
@@ -49,12 +53,11 @@ public class SplatSelectedProperties extends JPanel
     /**
      *  The JList containing names of all the available spectra.
      */
-    protected JList list = null;
+    protected JList specList = null;
 
     /**
      *  Various components used in the interface.
      */
-    protected GridBagLayout mainLayout = new GridBagLayout();
     protected JLabel shortNameLabel = new JLabel();
     protected JLabel fullNameLabel = new JLabel();
     protected JLabel formatLabel = new JLabel();
@@ -74,8 +77,6 @@ public class SplatSelectedProperties extends JPanel
     protected JButton lineColour = new JButton();
     protected ColourIcon errorsColourIcon = new ColourIcon( Color.red );
     protected JButton errorsColour = new JButton();
-    protected GridBagConstraints gbc = new GridBagConstraints();
-    protected Insets globalInsets = new Insets( 2, 0, 0, 2 );
     protected FloatJSlider alphaSlider = null;
     protected JLabel alphaLabel = new JLabel();
 
@@ -89,9 +90,9 @@ public class SplatSelectedProperties extends JPanel
      *  Creates an instance. Tracking the current spectrum shown in a
      *  JList.
      */
-    public SplatSelectedProperties( JList list )
+    public SplatSelectedProperties( JList specList )
     {
-        this.list = list;
+        this.specList = specList;
         initUI();
     }
 
@@ -100,43 +101,27 @@ public class SplatSelectedProperties extends JPanel
      */
     protected void initUI()
     {
-        setLayout( mainLayout );
+        GridBagLayouter layouter = 
+            new GridBagLayouter( this, GridBagLayouter.SCHEME3 );
 
         //  Set up the two name display controls. These are different
         //  from others in that they fill all remaining columns,
         //  rather than allowing a strut to take up all the horizontal
         //  space.
         shortNameLabel.setAlignmentY( (float) 0.0 );
-        shortNameLabel.setText( "Short Name:" );
+        shortNameLabel.setText( "Short name:" );
         fullNameLabel.setAlignmentY( (float) 0.0 );
-        fullNameLabel.setText( "Full Name:" );
+        fullNameLabel.setText( "Full name:" );
 
-        gbc.insets = globalInsets;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        add( shortNameLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( shortName, gbc );
+        layouter.add( shortNameLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( shortName, true );
         shortName.setToolTipText
             ( "Symbolic name of spectrum, press return to accept edits" );
 
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        add( fullNameLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( fullName, gbc );
+        layouter.add( fullNameLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( fullName, true );
         fullName.setToolTipText( "Full name of spectrum (usually filename)" );
 
         //  The name field can be editted.
@@ -149,42 +134,23 @@ public class SplatSelectedProperties extends JPanel
         //  Set up the spectrum data format control.
         formatLabel.setText( "Format:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( formatLabel, gbc );
+        layouter.add( formatLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( format, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
 
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( format, gbc );
         format.setToolTipText( "Data type used for storage of spectrum" );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;  //  First strut takes all remaining space,
-                            //  other just follow suite.
-        add( Box.createHorizontalStrut( 5 ), gbc );
-        gbc.weightx = 0.0;
 
         //  Set up the line colour control.
         lineColourLabel.setText( "Colour:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( lineColourLabel, gbc );
+        layouter.add( lineColourLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( lineColour, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
 
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( lineColour, gbc );
         lineColour.setToolTipText( "Choose a colour for spectrum" );
         lineColour.setIcon( linesColourIcon );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add( Box.createHorizontalStrut( 5 ), gbc );
 
         lineColour.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -194,17 +160,15 @@ public class SplatSelectedProperties extends JPanel
 
         //  Alpha blending value. TODO: not sure this is useful, is
         //  very slow.
-//         alphaLabel.setText("Alpha Blending:");
+//         alphaLabel.setText( "Alpha blending:" );
 //         FloatJSliderModel alphaModel = new FloatJSliderModel
 //             ( 1.0, 0.0, 1.0, 0.05 );
 //         alphaSlider = new FloatJSlider( alphaModel, false );
         
-//         gbc.gridwidth = 1;
-//         add( alphaLabel, gbc );
-//         add( Box.createHorizontalStrut( 5 ) );
-//         add( alphaSlider, gbc );
-//         gbc.gridwidth = GridBagConstraints.REMAINDER;
-//         add( Box.createHorizontalStrut( 5 ), gbc );
+//         layouter.add( alphaLabel, false );
+//         layouter.add( Box.createHorizontalStrut( 5 ), false );
+//         layouter.add( alphaSlider, false );
+//         layouter.add( Box.createHorizontalStrut( 5 ), true );
         
 //         alphaSlider.addChangeListener( new ChangeListener() {
 //                 public void stateChanged( ChangeEvent e ) {
@@ -214,22 +178,13 @@ public class SplatSelectedProperties extends JPanel
 
 
         //  Set up the line type control.
-        lineTypeLabel.setText( "Line Type:" );
+        lineTypeLabel.setText( "Line type:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( lineTypeLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( lineType, gbc );
+        layouter.add( lineTypeLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( lineType, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
         lineType.setToolTipText( "Type of line used to show spectrum" );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add( Box.createHorizontalStrut( 5 ), gbc );
 
         lineType.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
@@ -240,20 +195,11 @@ public class SplatSelectedProperties extends JPanel
         //  Set up the line thickness control.
         thicknessLabel.setText( "Thickness:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( thicknessLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( thickness, gbc );
+        layouter.add( thicknessLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( thickness, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
         thickness.setToolTipText( "Thickness of spectrum line" );
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add( Box.createHorizontalStrut( 5 ), gbc );
 
         for ( int i = 1; i < 20; i++ ) {
             thickness.addItem( new Integer( i ) );
@@ -265,22 +211,14 @@ public class SplatSelectedProperties extends JPanel
             });
 
         //  Set up the line style control.
-        lineStyleLabel.setText( "Line Style:" );
+        lineStyleLabel.setText( "Line style:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( lineStyleLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( lineStyle, gbc );
+        layouter.add( lineStyleLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( lineStyle, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
         lineStyle.setToolTipText( "Type of line style used when drawing spectrum" );
 
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add( Box.createHorizontalStrut( 5 ), gbc );
         lineStyle.addActionListener( new ActionListener() {
                 public void actionPerformed( ActionEvent e ) {
                     updateLineStyle( e );
@@ -291,16 +229,10 @@ public class SplatSelectedProperties extends JPanel
         //  Set up the errorbar display control.
         errorLabel.setText( "Error bars:" );
 
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        add( errorLabel, gbc );
+        layouter.add( errorLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
+        layouter.add( errors, false );
 
-        add( Box.createHorizontalStrut( 5 ) );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( errors, gbc );
         errors.setToolTipText
             ( "Enabled if errors available, ticked to display error bars" );
         errors.addActionListener( new ActionListener() {
@@ -310,9 +242,8 @@ public class SplatSelectedProperties extends JPanel
             });
 
         //  Add additional button for setting the error bar colour.
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.WEST;
-        add( errorsColour, gbc );
+        layouter.add( errorsColour, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), true );
         errorsColour.setToolTipText( "Choose a colour for error bars" );
         errorsColour.setIcon( errorsColourIcon );
 
@@ -322,14 +253,11 @@ public class SplatSelectedProperties extends JPanel
                 }
             });
 
-
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        add( Box.createHorizontalStrut( 5 ), gbc );
-        add( Box.createVerticalStrut( 5 ), gbc );
+        layouter.eatSpare();
 
         //  Set up the listSelectionListener so that we can update
         //  interface.
-        list.addListSelectionListener( new ListSelectionListener()  {
+        specList.addListSelectionListener( new ListSelectionListener()  {
                 public void valueChanged( ListSelectionEvent e ) {
                     update( e );
                 }
@@ -354,8 +282,8 @@ public class SplatSelectedProperties extends JPanel
      */
     public void update()
     {
-        int size = list.getModel().getSize();
-        int index = list.getMinSelectionIndex();
+        int size = specList.getModel().getSize();
+        int index = specList.getMinSelectionIndex();
         if ( size > 0 && index > -1 ) {
             inhibitChanges = true;
             
@@ -389,7 +317,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             String name = shortName.getText();
             if ( name != null && ! "".equals( name.trim() ) ) {
@@ -414,7 +342,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             SpecData spec = null;
             Integer thick = (Integer) thickness.getSelectedItem();
@@ -436,7 +364,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             SpecData spec = null;
             int style = lineStyle.getSelectedStyle();
@@ -458,7 +386,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             SpecData spec = null;
             int type = lineType.getSelectedStyle();
@@ -481,7 +409,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             Color newColour = JColorChooser.showDialog
                 ( this, "Select Line Colour",
@@ -507,7 +435,7 @@ public class SplatSelectedProperties extends JPanel
      */
     protected void updateErrorColour( ActionEvent e )
     {
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             Color newColour = JColorChooser.showDialog
                 ( this, "Select Error Bar Colour",
@@ -534,7 +462,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             SpecData spec = null;
             double alphaBlend = alphaSlider.getValue();
@@ -556,7 +484,7 @@ public class SplatSelectedProperties extends JPanel
     {
         if ( inhibitChanges ) return;
 
-        int[] indices = list.getSelectedIndices();
+        int[] indices = specList.getSelectedIndices();
         if ( indices.length > 0 && indices[0] > -1 ) {
             SpecData spec = null;
             boolean showing = errors.isSelected();

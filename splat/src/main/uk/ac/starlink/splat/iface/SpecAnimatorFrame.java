@@ -8,9 +8,6 @@
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,6 +45,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.plot.DivaPlot;
 import uk.ac.starlink.splat.plot.PlotControl;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.JPEGUtilities;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
@@ -168,10 +166,9 @@ public class SpecAnimatorFrame
     protected int scaleType = AUTO;
 
     /**
-     * Create an instance. Requires a JList that displays all the known
-     * spectra and from which the spectra to animate are selected.
+     * Create an instance.
      *
-     * @param browser Description of the Parameter
+     * @param browser used to create new plots.
      */
     public SpecAnimatorFrame( SplatBrowser browser )
     {
@@ -247,11 +244,9 @@ public class SpecAnimatorFrame
         // The control panel holds the interesting components. These
         // are for the animation properties, and whether to capture to a
         // series of JPEGs.
-        animationPanel.setLayout( new GridBagLayout() );
         animationPanel.setBorder
             ( BorderFactory.createTitledBorder( "Animation controls" ) );
 
-        capturePanel.setLayout( new GridBagLayout() );
         capturePanel.setBorder
             ( BorderFactory.createTitledBorder( "Capture controls" ) );
 
@@ -278,18 +273,12 @@ public class SpecAnimatorFrame
      */
     protected void initAnimationControls()
     {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets( 5, 2, 2, 5 );
+        GridBagLayouter layouter = 
+            new GridBagLayouter( animationPanel, GridBagLayouter.SCHEME3 );
 
         // The delay (in seconds) between updates. Just a decimal
         // number.
         JLabel delayLabel = new JLabel( "Delay:" );
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( delayLabel, gbc );
 
         DecimalFormat decimalFormat = new DecimalFormat();
         double delay = prefs.getDouble( "SpecAnimator_delay", 1.0 );
@@ -309,25 +298,14 @@ public class SpecAnimatorFrame
             } );
         matchTimer();
 
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        animationPanel.add( delayField, gbc );
+        layouter.add( delayLabel, false );
+        layouter.add( delayField, true );
 
         // Whether to loop forever or not.
         JLabel loopLabel = new JLabel( "Loop forever:" );
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( loopLabel, gbc );
+        layouter.add( loopLabel, false );
+        layouter.add( loopCheckBox, true );
 
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        animationPanel.add( loopCheckBox, gbc );
         loopCheckBox.setToolTipText( "Loop animation until stop is pressed" );
         boolean state = prefs.getBoolean( "SpecAnimator_loopforever", false );
         loopCheckBox.setSelected( state );
@@ -352,25 +330,11 @@ public class SpecAnimatorFrame
         plotList.setToolTipText( "Plot to display spectra, choose 'Create'" +
                                  " for a new plot." );
 
-        gbc.weightx = 0.0;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( listLabel, gbc );
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
-        animationPanel.add( plotList, gbc );
+        layouter.add( listLabel, false );
+        layouter.add( plotList, true );
 
         // Selection of the various scaling options.
         JLabel radioLabel = new JLabel( "Scaling option:" );
-        gbc.weightx = 0.0;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( radioLabel, gbc );
 
         ButtonGroup scaleGroup = new ButtonGroup();
 
@@ -380,23 +344,24 @@ public class SpecAnimatorFrame
         JRadioButton autoScale = new JRadioButton( autoAction );
 
         scaleGroup.add( autoScale );
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( autoScale, gbc );
 
         Action fixAction =
             new ScaleAction( FIXED, "Fix", "Keep the scale the same as" +
                              " shown at present (pre-display a spectrum)" );
         JRadioButton fixScale = new JRadioButton( fixAction );
         scaleGroup.add( fixScale );
-        animationPanel.add( fixScale, gbc );
 
         Action freeAction =
             new ScaleAction( FREE, "Free", "Scale each spectrum freely" +
                              " (same effect as just adding to a plot)" );
         JRadioButton freeScale = new JRadioButton( freeAction );
         scaleGroup.add( freeScale );
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        animationPanel.add( freeScale, gbc );
+
+        layouter.add( radioLabel, false );
+        layouter.add( autoScale, false );
+        layouter.add( fixScale, false );
+        layouter.add( freeScale, true );
+
 
         int iselect = prefs.getInt( "SpecAnimator_scaling_option", AUTO );
         if ( iselect == AUTO ) {
@@ -411,19 +376,13 @@ public class SpecAnimatorFrame
 
         // Add the field to display the spectrum name.
         JLabel nameLabel = new JLabel( "Current spectrum:" );
-        gbc.weightx = 0.0;
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        animationPanel.add( nameLabel, gbc );
 
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
         spectrumName.setEditable( false );
-        animationPanel.add( spectrumName, gbc );
         spectrumName.setToolTipText
             ( "Name of the spectrum currently being animated" );
+
+        layouter.add( nameLabel, false );
+        layouter.add( spectrumName, true );
 
         // Add an action to start the animation.
         JPanel startStopPanel = new JPanel();
@@ -448,8 +407,7 @@ public class SpecAnimatorFrame
         startStopPanel.add( stopButton );
         startStopPanel.add( Box.createGlue() );
 
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        animationPanel.add( startStopPanel, gbc );
+        layouter.add( startStopPanel, true );
     }
 
     /**
@@ -457,25 +415,14 @@ public class SpecAnimatorFrame
      */
     protected void initCaptureControls()
     {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets( 5, 2, 2, 5 );
+        GridBagLayouter layouter = 
+            new GridBagLayouter( capturePanel, GridBagLayouter.SCHEME3 );
 
         // Whether to capture the animation.
         JLabel captureLabel = new JLabel( "Capture to JPEGs:" );
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        capturePanel.add( captureLabel, gbc );
+        layouter.add( captureLabel, false );
+        layouter.add( captureCheckBox, true );
 
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        capturePanel.add( captureCheckBox, gbc );
         captureCheckBox.setToolTipText
             ( "Capture animation to a sequence of JPEG images" );
         captureCheckBox.addActionListener(
@@ -489,17 +436,9 @@ public class SpecAnimatorFrame
 
         //  If we're capturing then we need a base name.
         JLabel baseLabel = new JLabel( "Basename for JPEGs:" );
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        capturePanel.add( baseLabel, gbc );
+        layouter.add( baseLabel, false );
+        layouter.add( baseField, true );
 
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        capturePanel.add( baseField, gbc );
         baseField.setToolTipText( "Prefix basename for JPEG sequence" );
         baseField.setText( "SPLAT" );
 

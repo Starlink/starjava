@@ -7,9 +7,6 @@
  */
 package uk.ac.starlink.splat.iface;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -19,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import uk.ac.starlink.splat.data.SpecData;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 
 /**
  * SplatName is a composite widget for displaying and modifying the
@@ -44,9 +42,6 @@ public class SplatName
                                     GlobalSpecPlotList.getReference();
 
     // UI components
-    protected GridBagLayout mainLayout = new GridBagLayout();
-    protected GridBagConstraints gbc = new GridBagConstraints();
-    protected Insets globalInsets = new Insets( 2, 0, 0, 2 );
     protected JLabel shortNameLabel = new JLabel();
     protected JLabel fullNameLabel = new JLabel();
     protected JLabel formatLabel = new JLabel();
@@ -81,27 +76,18 @@ public class SplatName
      */
     protected void initUI()
     {
-        setLayout( mainLayout );
-
-        gbc.insets = globalInsets;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
+        GridBagLayouter layouter = 
+            new GridBagLayouter( this, GridBagLayouter.SCHEME3 );
 
         // Short name label
         shortNameLabel.setAlignmentY( (float) 0.0 );
-        shortNameLabel.setText( "Short Name:" );
-        add( shortNameLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
+        shortNameLabel.setText( "Short name:" );
+        layouter.add( shortNameLabel, false );
+        
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
 
         // Short name field
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 1.0;
-        add( shortName, gbc );
+        layouter.add( shortName, true );
         shortName.setToolTipText
             ( "Symbolic name of spectrum, press return to accept edits" );
 
@@ -113,43 +99,23 @@ public class SplatName
             });
 
         // Full name label
-        gbc.gridwidth = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.weightx = 0.0;
         fullNameLabel.setAlignmentY( (float) 0.0 );
-        fullNameLabel.setText( "Full Name:" );
-        add( fullNameLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
+        fullNameLabel.setText( "Full name:" );
+        layouter.add( fullNameLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
 
         // Full name field
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 1.0;
-        add( fullName, gbc );
+        layouter.add( fullName, true );
         fullName.setToolTipText( "Full name of spectrum (usually filename)" );
 
         // Data format label
         formatLabel.setText( "Format:" );
-
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0.0;
-        add( formatLabel, gbc );
-
-        add( Box.createHorizontalStrut( 5 ) );
+        layouter.add( formatLabel, false );
+        layouter.add( Box.createHorizontalStrut( 5 ), false );
 
         // Data format field
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 1.0;
-        add( format, gbc );
+        layouter.add( format, true );
         format.setToolTipText( "Data type used for storage of spectrum" );
-
     }
 
     /**

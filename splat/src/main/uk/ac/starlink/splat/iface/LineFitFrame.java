@@ -1,12 +1,16 @@
+/*
+ * Copyright (C) 2001-2003 Central Laboratory of the Research Councils
+ *
+ *  History:
+ *     19-JAN-2001 (Peter W. Draper):
+ *       Original version.
+ */
 package uk.ac.starlink.splat.iface;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -36,6 +40,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.splat.util.GaussianFitter;
+import uk.ac.starlink.splat.util.GridBagLayouter;
 import uk.ac.starlink.splat.util.LorentzFitter;
 import uk.ac.starlink.splat.util.QuickLineFitter;
 import uk.ac.starlink.splat.util.Utilities;
@@ -62,14 +67,13 @@ import uk.ac.starlink.splat.util.VoigtFitter;
  * therefore necessary that the user disposes of it when it is really
  * no longer required.
  *
- * @since $Date$
- * @since 19-JAN-2001
  * @author Peter W. Draper
  * @version $Id$
- * @copyright Peter W. Draper
- * @see PlotControlFrame
+ * @see #PlotControlFrame
  */
-public class LineFitFrame extends JFrame implements PlotListener
+public class LineFitFrame 
+    extends JFrame 
+    implements PlotListener
 {
     /**
      * The list of all the spectra that we've created.
@@ -143,11 +147,6 @@ public class LineFitFrame extends JFrame implements PlotListener
     protected static int fitCounter = 0;
 
     /**
-     * Label Insets.
-     */
-    protected Insets labelInsets = new Insets( 10, 5, 5, 10 );
-
-    /**
      * Create an instance.
      */
     public LineFitFrame( PlotControlFrame plot )
@@ -203,96 +202,57 @@ public class LineFitFrame extends JFrame implements PlotListener
         //  This part of UI goes into a JPanel in the centre, which is
         //  split vertically into two equal parts, one for the table
         //  of ranges and the tabbed pane of measurements.
-        JPanel centre = new JPanel( new GridLayout(2,1) );
-        JPanel top = new JPanel( new GridBagLayout() );
+        JPanel centre = new JPanel( new GridLayout( 2, 1 ) );
+        JPanel top = new JPanel();
         JPanel bottom = new JPanel( new BorderLayout() );
         contentPane.add( centre, BorderLayout.CENTER );
         centre.add( top );
         centre.add( bottom );
 
-        //  Range controls section.
-        GridBagConstraints gbc = new GridBagConstraints();
-        int row = 0;
+        GridBagLayouter layouter =
+            new GridBagLayouter( top, GridBagLayouter.SCHEME4 );
+        layouter.setInsets( new java.awt.Insets( 5, 5, 5, 5 ) );
 
         //  Setup the choices of fits we offer.
-        JPanel choiceBar = new JPanel();
-        choiceBar.setLayout( new BoxLayout( choiceBar, BoxLayout.X_AXIS ) );
-        choiceBar.setBorder(
-           BorderFactory.createEmptyBorder( labelInsets.bottom,
-                                            labelInsets.left,
-                                            labelInsets.right,
-                                            labelInsets.top ) );
-        choiceBar.add( fitWhat );
+        layouter.add( fitWhat, false );
 
         GaussianAction gaussAction = new GaussianAction();
         fitGaussians.setAction( gaussAction );
         fitGaussians.setToolTipText( "Select to fit Gaussians" );
-        choiceBar.add( Box.createGlue() );
-        choiceBar.add( fitGaussians );
+        layouter.add( fitGaussians, false );
         fitGaussians.setSelected( true );
         changeGaussianFitsEvent();
 
         LorentzAction lorentzAction = new LorentzAction();
         fitLorentzians.setAction( lorentzAction );
         fitLorentzians.setToolTipText( "Select to fit Lorentzians" );
-        choiceBar.add( Box.createGlue() );
-        choiceBar.add( fitLorentzians );
+        layouter.add( fitLorentzians, false );
         fitLorentzians.setSelected( false );
         changeLorentzFitsEvent();
 
         VoigtAction voigtAction = new VoigtAction();
         fitVoigts.setAction( voigtAction );
         fitVoigts.setToolTipText( "Select to fit Voigt profiles" );
-        choiceBar.add( Box.createGlue() );
-        choiceBar.add( fitVoigts );
-        choiceBar.add( Box.createGlue() );
+        layouter.add( fitVoigts, false );
         changeVoigtFitsEvent();
-
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.weightx = 1.0;
-        gbc.weighty = 0.0;
-        gbc.gridx = 0;
-        gbc.gridy = row++;
-        top.add( choiceBar, gbc );
+        layouter.add( Box.createHorizontalBox(), true );
 
         //  Add controls for choosing the background spectrum.
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = 1;
-        gbc.weightx = 0.0;
-        gbc.weighty = 0.0;
-        gbc.gridx = 0;
-        gbc.gridy = row++;
-        gbc.insets = labelInsets;
         backgroundLabel.setText( "Background fit:" );
         backgroundLabel.setForeground( Color.red );
-        top.add( backgroundLabel, gbc );
+        layouter.add( backgroundLabel, false );
         String tipText = "Select a spectrum to use as background, "+
             "should normally be a fit (*)";
         backgroundLabel.setToolTipText( tipText );
 
-        gbc.gridx = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
         backgroundSpectra.setRenderer( new LineRenderer() );
-        top.add( backgroundSpectra, gbc );
+        layouter.add( backgroundSpectra, true );
         backgroundSpectra.setToolTipText( tipText );
 
         //  Add controls for using any errors as weights.
         errorLabel.setText( "Use errors as weights:" );
-        gbc.gridwidth = 1;
-        gbc.gridx = 0;
-        gbc.gridy = row++;
-        gbc.anchor = GridBagConstraints.EAST;
-        gbc.fill = GridBagConstraints.NONE;
-        top.add( errorLabel, gbc );
-
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.NONE;
-        top.add( errors, gbc );
+        layouter.add( errorLabel, false );
+        layouter.add( errors, true );
         errors.setToolTipText
             ( "Use errors as weights when fitting (if available)" );
 
@@ -300,14 +260,7 @@ public class LineFitFrame extends JFrame implements PlotListener
         //  line ranages.
         rangeList = new XGraphicsRangesView( plot.getPlot().getPlot(),
                                              Color.yellow, false );
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.gridwidth = 3;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.gridx = GridBagConstraints.REMAINDER;
-        gbc.gridy = row++;
-        top.add( rangeList, gbc );
+        layouter.add( rangeList, true );
 
         //  Add the LineView that displays and creates the line
         //  properties objects.
@@ -336,11 +289,8 @@ public class LineFitFrame extends JFrame implements PlotListener
 
         //  Action bar uses a BoxLayout.
         actionBar.setLayout( new BoxLayout( actionBar, BoxLayout.X_AXIS ) );
-        actionBar.setBorder(
-           BorderFactory.createEmptyBorder( labelInsets.bottom,
-                                            labelInsets.left,
-                                            labelInsets.right,
-                                            labelInsets.top ) );
+        actionBar.setBorder( BorderFactory.createEmptyBorder( 10, 5, 5, 10 ) );
+
         //  Get icons.
         ImageIcon closeImage = new ImageIcon(
             ImageHolder.class.getResource( "close.gif" ) );
