@@ -41,12 +41,17 @@ public class BridgeNdx implements Ndx {
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
     private final NdxImpl impl;
-    private FrameSet wcs;
+    private FrameSet ast;
     private String title;
     private Boolean hasEtc;
     private Boolean hasTitle;
-    private int badbits = -1;
-    private BulkDataImpl bulkdata;
+    private Boolean hasVariance;
+    private Boolean hasQuality;
+    private Boolean hasWCS;
+    private Integer badbits;
+    private NDArray image;
+    private NDArray variance;
+    private NDArray quality;
 
     /**
      * Constructs an {@link Ndx} implementation from an <tt>NdxImpl</tt> object.
@@ -57,40 +62,45 @@ public class BridgeNdx implements Ndx {
         this.impl = impl;
     }
 
-    public NdxAccess getAccess( Requirements req, boolean wantImage,
-                                boolean wantVariance, boolean wantQuality ) 
-            throws IOException {
-        return getBulkData().getAccess( req, wantImage, wantVariance, 
-                                        wantQuality, getBadBits() );
-    }
-
-
     public NDArray getImage() {
-        return getBulkData().getImage();
+        if ( image == null ) {
+            image = impl.getImage();
+        }
+        return image;
     }
 
     public NDArray getVariance() {
-        BulkDataImpl bd = getBulkData();
-        if ( ! bd.hasVariance() ) {
+        if ( ! hasVariance() ) {
             throw new UnsupportedOperationException( "No variance component" );
         }
-        return bd.getVariance();
+        if ( variance == null ) {
+            variance = impl.getVariance();
+        }
+        return variance;
     }
 
     public NDArray getQuality() {
-        BulkDataImpl bd = getBulkData();
-        if ( ! bd.hasQuality() ) {
+        if ( ! hasQuality() ) {
             throw new UnsupportedOperationException( "No quality component" );
         }
-        return bd.getQuality();
+        if ( quality == null ) {
+            quality = impl.getQuality();
+        }
+        return quality;
     }
 
     public boolean hasVariance() {
-        return getBulkData().hasVariance();
+        if ( hasVariance == null ) {
+            hasVariance = Boolean.valueOf( impl.hasVariance() );
+        }
+        return hasVariance.booleanValue();
     }
 
     public boolean hasQuality() {
-        return getBulkData().hasQuality();
+        if ( hasQuality == null ) {
+            hasQuality = Boolean.valueOf( impl.hasQuality() );
+        }
+        return hasQuality.booleanValue();
     }
 
     public boolean hasTitle() {
@@ -105,6 +115,13 @@ public class BridgeNdx implements Ndx {
             hasEtc = Boolean.valueOf( impl.hasEtc() );
         }
         return hasEtc.booleanValue();
+    }
+
+    public boolean hasWCS() {
+        if ( hasWCS == null ) {
+            hasWCS = Boolean.valueOf( impl.hasWCS() );
+        }
+        return hasWCS.booleanValue();
     }
 
     public String getTitle() {
@@ -124,48 +141,44 @@ public class BridgeNdx implements Ndx {
         return impl.getEtc();
     }
 
-    public byte getBadBits() {
-        if ( badbits == -1 ) {
-            badbits = impl.getBadBits();
+    public int getBadBits() {
+        if ( badbits == null ) {
+            badbits = new Integer( impl.getBadBits() );
         }
-        return (byte) badbits;
+        return badbits.intValue();
     }
 
-    public FrameSet getWCS() {
-        if ( wcs == null ) {
+    public FrameSet getAst() {
+        if ( ! hasWCS() ) {
+            throw new UnsupportedOperationException( "No WCS component" );
+        }
+        if ( ast == null ) {
+            try {
 
-            /* See about getting the WCS from the implementation. */
-            if ( impl.hasWCS() ) {
-                try {
-
-                    /* Implementation may supply the WCS in a number of formats.
-                     * Try to cope with all, or throw an exception. */
-                    Object fsobj = impl.getWCS();
-                    if ( fsobj instanceof FrameSet ) {
-                        wcs = (FrameSet) fsobj;
-                    }
-                    else if ( fsobj instanceof Element ) {
-                        wcs = makeWCS( new DOMSource( (Element) fsobj ) );
-                    }
-                    else if ( fsobj instanceof Source ) {
-                        wcs = makeWCS( (Source) fsobj );
-                    }
-                    else {
-                        logger.warning( "Unknown WCS object type " + fsobj );
-                    }
+                /* Implementation may supply the WCS in a number of formats.
+                 * Try to cope with all, or throw an exception. */
+                Object fsobj = impl.getWCS();
+                if ( fsobj instanceof FrameSet ) {
+                    ast = (FrameSet) fsobj;
                 }
-                catch ( IOException e ) {
-                    logger.warning( "Error retrieving WCS: " + e );
+                else if ( fsobj instanceof Element ) {
+                    ast = makeAst( new DOMSource( (Element) fsobj ) );
+                }
+                else if ( fsobj instanceof Source ) {
+                    ast = makeAst( (Source) fsobj );
+                }
+                else {
+                    logger.warning( "Unknown WCS object type " + fsobj );
                 }
             }
-
-            /* If we didn't get a WCS from the implementation for one reason
-             * or another, use a default one. */
-            if ( wcs == null ) {
-                wcs = defaultWCS();
+            catch ( IOException e ) {
+                logger.warning( "Error retrieving WCS: " + e ); 
+            }
+            if ( ast == null ) {
+                ast = Ndxs.getDefaultAst( this );
             }
         }
-        return wcs;
+        return ast;
     }
 
     public boolean isPersistent() {
@@ -175,39 +188,11 @@ public class BridgeNdx implements Ndx {
     }
 
 
-    private static FrameSet makeWCS( Source wcsrc ) throws IOException {
+    private static FrameSet makeAst( Source astsrc ) throws IOException {
 
         //  Note namespace prefix is null as HDX should have
         //  transformed it!
-        return (FrameSet) new XAstReader().makeAst( wcsrc, null );
-    }
-
-    private FrameSet defaultWCS() {
-        NDShape imshape = getImage().getShape();
-        int ndim = imshape.getNumDims();
-        Frame gridfrm = new Frame( ndim );
-        gridfrm.setDomain( "GRID" );
-        Frame imfrm = new Frame( ndim );
-        imfrm.setDomain( "IMAGE-PIXEL" );
-        FrameSet wcs = new FrameSet( gridfrm );
-        Mapping gpmap = translateMap( getImage().getShape() );
-        wcs.addFrame( FrameSet.AST__BASE, gpmap, imfrm );
-        return wcs;
-    }
-
-    private static Mapping translateMap( NDShape shape ) {
-        int ndim = shape.getNumDims();
-        double[] ina = new double[ ndim ];
-        double[] inb = new double[ ndim ];
-        double[] outa = new double[ ndim ];
-        double[] outb = new double[ ndim ];
-        for ( int i = 0; i < ndim; i++ ) {
-            ina[ i ] = 0.5;
-            inb[ i ] = 1.5;
-            outa[ i ] = 0.0;
-            outb[ i ] = 1.0;
-        }
-        return new WinMap( ndim, ina, inb, outa, outb );
+        return (FrameSet) new XAstReader().makeAst( astsrc, null );
     }
 
     /**
@@ -314,22 +299,23 @@ public class BridgeNdx implements Ndx {
         }
 
         /* Write a badbits element. */
-        if ( getBadBits() != (byte) 0x00 ) {
-            Node bbContent = 
-                doc.createTextNode( Byte.toString( getBadBits() ) );
+        if ( getBadBits() != 0 ) {
+            String bbrep = "0x" + Integer.toHexString( getBadBits() );
+            Node bbContent = doc.createTextNode( bbrep );
             Element bbEl = doc.createElement( "badbits" );
             bbEl.appendChild( bbContent );
             ndxEl.appendChild( bbEl );
         }
         
         /* Write a WCS element. */
-        FrameSet wfset = getWCS();
-        if ( ! wfset.equals( defaultWCS() ) ) {
+        if ( hasWCS() ) {
+            FrameSet wfset = getAst();
             Source wcsSource = new XAstWriter().makeSource( wfset, null );
             try {
                 Node wcsContent = new SourceReader().getDOM( wcsSource );
                 wcsContent = importNode( doc, wcsContent ); 
                 Element wcsEl = doc.createElement( "wcs" );
+                wcsEl.setAttribute( "encoding", "AST-XML" );
                 wcsEl.appendChild( wcsContent );
                 ndxEl.appendChild( wcsEl );
             }
@@ -367,19 +353,6 @@ public class BridgeNdx implements Ndx {
         /* Return the new DOM as a source. */
         return ( base != null ) ? new DOMSource( ndxEl, base.toExternalForm() )
                                 : new DOMSource( ndxEl );
-    }
-
-    /*
-     * This package-private method is overridden by DefaultMutableNdx 
-     * so that it can inherit the bulk data related functionality of 
-     * this class.  Thus it is important that this class always uses
-     * this method rather than the bulkdata private instance variable.
-     */
-    BulkDataImpl getBulkData() {
-        if ( bulkdata == null ) {
-            bulkdata = impl.getBulkData();
-        }
-        return bulkdata;
     }
 
     /**
@@ -423,7 +396,7 @@ public class BridgeNdx implements Ndx {
      * Turns a URL into a URI catching the exceptions.  I don't think that
      * an exception can actuallly result here, since a URIs are surely a
      * superset of URLs?  So why doesn't this method (or an equivalent 
-     * constructor exist in the URI class??.
+     * constructor) exist in the URI class??.
      */
     private static URI urlToUri( URL url ) {
         try {

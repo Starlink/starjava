@@ -6,6 +6,8 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import uk.ac.starlink.array.NDArray;
+import uk.ac.starlink.array.Type;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.ast.xml.XAstReader;
 
@@ -13,18 +15,23 @@ import uk.ac.starlink.ast.xml.XAstReader;
  * Provides a simple implementation of the <tt>MutableNdx</tt> interface,
  * so provides mutator methods as well as the accessor methods of Ndx.
  * This class can be used to wrap a (presumably immutable) existing Ndx 
- * object, or to construct a mutable Ndx from an NdxImpl or a BulkDataImpl
- * object.
+ * object, or to construct a mutable Ndx from an NdxImpl object.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
 
-    private byte badbits = -1;
+    private int badbits = 0;
     private Element etc = null;
-    private FrameSet wcs = null;
+    private FrameSet ast = null;
     private String title = null;
-    private BulkDataImpl bulkdata = null;
+    private NDArray image = null;
+    private NDArray variance = null;
+    private NDArray quality = null;
+    private boolean astSet = false;
+    private boolean imageSet = false;
+    private boolean varianceSet = false;
+    private boolean qualitySet = false;
     private boolean badbitsSet = false;
     private boolean etcSet = false;
     private boolean titleSet = false;
@@ -57,16 +64,22 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
     }
 
     /**
-     * Constructs a MutableNdx from a given bulk data implementation.
+     * Constructs a MutableNdx from a given <tt>NDArray</tt> which
+     * will be its Image component.
      * The resulting object has no optional components (title, etc and so on),
      * though these can be set using the various <tt>set</tt> methods.
      *
-     * @param  datimpl  the bulk data implementation to be used by this Ndx
+     * @param  image  the Image component of this Ndx
+     * @param  NullPointerException   if <tt>image</tt> is <tt>null</tt>
      */
-    public DefaultMutableNdx( final BulkDataImpl datimpl ) {
+    public DefaultMutableNdx( final NDArray image ) {
         this( new NdxImpl() {
-            public BulkDataImpl getBulkData() { return datimpl; }
-            public byte getBadBits() { return (byte) 0; }
+            public NDArray getImage() { return image; }
+            public boolean hasVariance() { return false; }
+            public NDArray getVariance() { return null; }
+            public boolean hasQuality() { return false; }
+            public NDArray getQuality() { return null; }
+            public int getBadBits() { return 0; }
             public boolean hasEtc() { return false; }
             public Source getEtc() { return null; }
             public boolean hasTitle() { return false; }
@@ -74,13 +87,82 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
             public boolean hasWCS() { return false; }
             public Object getWCS() { return null; }
         } );
+        if ( image == null ) {
+            throw new NullPointerException( 
+                "Null image component not permitted" );
+        }
     }
 
-    public void setBadBits( byte badbits ) {
+    public void setImage( NDArray image ) {
+        if ( image == null ) {
+            throw new NullPointerException( "Null image array not permitted" );
+        }
+        imageSet = true;
+        this.image = image;
+    }
+    public NDArray getImage() {
+        if ( imageSet ) {
+            return image;
+        }
+        else {
+            return super.getImage();
+        }
+    }
+
+    public void setVariance( NDArray variance ) {
+        varianceSet = true;
+        this.variance = variance;
+    }
+    public boolean hasVariance() {
+        return varianceSet ? ( variance != null ) : super.hasVariance();
+    }
+    public NDArray getVariance() {
+        if ( varianceSet ) {
+            if ( hasVariance() ) {
+                return variance;
+            }
+            else {
+                throw new UnsupportedOperationException( 
+                    "No variance component" );
+            }
+        }
+        else {
+            return super.getVariance();
+        }
+    }
+
+    public void setQuality( NDArray quality ) {
+        if ( quality != null && quality.getType().isFloating() ) {
+            throw new IllegalArgumentException( 
+                "Non-integer typed quality array (" + quality.getType() + 
+                ") not permitted" );
+        }
+        qualitySet = true;
+        this.quality = quality;
+    }
+    public boolean hasQuality() {
+        return qualitySet ? ( quality != null ) : super.hasQuality();
+    }
+    public NDArray getQuality() {
+        if ( qualitySet ) {
+            if ( hasQuality() ) {
+                return quality;
+            }
+            else {
+                throw new UnsupportedOperationException( 
+                    "No quality component" );
+            }
+        }
+        else {
+            return super.getQuality();
+        }
+    }
+        
+    public void setBadBits( int badbits ) {
         badbitsSet = true;
         this.badbits = badbits;
     }
-    public byte getBadBits() {
+    public int getBadBits() {
         return badbitsSet ? badbits : super.getBadBits();
     }
 
@@ -105,17 +187,46 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
         }
     }
 
-    public void setWCS( Object wcsob ) throws IOException {
-        if ( wcsob instanceof FrameSet ) {
-            wcs = (FrameSet) wcsob;
+    public void setWCS( Object wcsob ) {
+        if ( wcsob == null ) {
+            ast = null;
+        }
+        else if ( wcsob instanceof FrameSet ) {
+            ast = (FrameSet) wcsob;
         }
         else if ( wcsob instanceof Source ) {
             Source wcssrc = (Source) wcsob;
-            wcs = (FrameSet) new XAstReader().makeAst( wcssrc, null );
+            try {
+                ast = (FrameSet) new XAstReader().makeAst( wcssrc, null );
+            }
+            catch ( IOException e ) {
+                throw (RuntimeException)
+                      new IllegalArgumentException( 
+                          "Error transforming WCS Source" )
+                     .initCause( e );
+            }
         }
+        else {
+            throw new IllegalArgumentException( 
+                "Unsupported object used to set WCS:" + wcsob );
+        }
+        astSet = true;
     }
-    public FrameSet getWCS() {
-        return ( wcs != null ) ? wcs : super.getWCS();
+    public boolean hasWCS() {
+        return astSet ? ( ast != null ) : super.hasWCS();
+    }
+    public FrameSet getAst() {
+        if ( astSet ) {
+            if ( hasWCS() ) {
+                return ast;
+            }
+            else {
+                throw new UnsupportedOperationException( "No WCS component" );
+            }
+        }
+        else {
+            return super.getAst();
+        }
     }
  
     public void setEtc( Node etc ) {
@@ -152,25 +263,4 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
         }
     }
 
-    /**
-     * Sets the bulk data implementation for this Ndx.
-     * This does the work for all the array access methods 
-     * <tt>getAccess</tt>, <tt>hasVariance</tt>, <tt>hasQuality</tt>,
-     * <tt>getImage</tt>, <tt>getVariance</tt>, <tt>getQuality</tt>.
-     */
-    public void setBulkData( BulkDataImpl bulkdata ) {
-        bulkdata.getClass();  // check not null
-        this.bulkdata = bulkdata;
-    }
-
-    /*
-     * Overrides the package-private method in BridgeNDArray which is 
-     * used for all bulk data access, so we can inherit its behaviour 
-     * for all bulk data related methods.
-     */
-    BulkDataImpl getBulkData() {
-        return ( bulkdata != null ) ? bulkdata : super.getBulkData();
-    }
-
-   
 }

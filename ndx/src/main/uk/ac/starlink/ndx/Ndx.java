@@ -25,48 +25,66 @@ import uk.ac.starlink.ast.FrameSet;
 public interface Ndx {
 
     /**
-     * Returns an object via which this Ndx's array data can be accessed.
-     * This method should normally be used as an intermediary between
-     * user code and the array data of the Ndx.
-     * As well as ensuring that access to the array components is uniform,
-     * this method may be used to acquire a view of the data with 
-     * given characteristics by using a non-null Requirements object.
+     * Returns the image component of this NDX.
+     * <p>
+     * <b>Note</b> that this returns the raw image <tt>NDArray</tt> object,
+     * which should not in general be used directly for reading image
+     * data, since it has not been masked by a quality component if present.
+     * To obtain a properly masked version of the image data for read access,
+     * use the {@link Ndxs#getMaskedImage(Ndx)} method.
      *
-     * @param   req    an object indicating requirements (type, shape,
-     *                 pixel sequence) for the returned access object.
-     *                 May be null, in which case the image array's 
-     *                 natural characteristics will be used.
-     * @param   wantImage     whether access to the image array is required.
-     *                        If true, 
-     *                        all read/write operations on the returned
-     *                        object will be performed on the image array
-     *                        in tandem with the other arrays.
-     *                        If false image pixels will not be provided
-     *                        by the returned accessor
-     * @param   wantVariance  whether access to the variance array is required.
-     *                        If true, and if a variance array exists, 
-     *                        all read/write operations on the returned 
-     *                        object will be performed
-     *                        on the image and the variance array in tandem.
-     *                        If false any existing variance array
-     *                        will be ignored.
-     * @param   wantQuality   whether access to the quality array is required.
-     *                        If true, and a quality array exists,
-     *                        all read/write operations on the returned
-     *                        object will be performed
-     *                        on the image and the quality array in tandem.
-     *                        If false, any existing quality array will be
-     *                        used to convert image (and variance, if present)
-     *                        pixels to the bad value according to this
-     *                        Ndx's badBits mask.  Note the value of the 
-     *                        badbits mask at the time this object is obtained
-     *                        is the one used for this purpose.
-     * @throws   IOException  if there is an I/O error
-     * @return   an object for accessing this Ndx's array data
+     * @return   the NDArray representing the image component
      */
-    NdxAccess getAccess( Requirements req, boolean wantImage, 
-                         boolean wantVariance, boolean wantQuality )
-        throws IOException;
+    NDArray getImage();
+
+    /**
+     * Indicates whether there is a variance component.
+     *
+     * @return   true if {@link #getVariance} may be called
+     */
+    boolean hasVariance();
+
+    /**
+     * Returns the variance component of this NDX.
+     * <p>
+     * <b>Note</b> that this returns the raw variance <tt>NDArray</tt> object,
+     * which should not in general be used directly for reading variance
+     * data, since it has not been masked by a quality component if present.
+     * To obtain a properly masked version of the variance data for read access,
+     * use the {@link Ndxs#getMaskedVariance(Ndx)} method.
+     * <p>
+     * May only be called if {@link #hasVariance} returns <tt>true</tt>.
+     *
+     * @return   an NDArray representing the variance component, 
+     * @throws   UnsupportedOperationException  if <tt>hasVariance</tt>
+     *           returns <tt>false</tt>
+     */
+    NDArray getVariance();
+
+    /**
+     * Indicates whether there is a quality component. 
+     *
+     * @return   true if {@link #getQuality} may be called
+     */
+    boolean hasQuality();
+
+    /**
+     * Returns the quality component of this NDX.
+     * <p>
+     * May only be called if {@link #hasQuality} returns <tt>true</tt>.
+     *
+     * @return  an NDArray of integer type representing the quality component, 
+     * @throws  UnsupportedOperationException  if <tt>hasQuality</tt>
+     *          returns <tt>false</tt>
+     */
+    NDArray getQuality();
+
+    /**
+     * Indicates whether there is a title component.
+     *
+     * @return   true if {@link #getTitle} may be called
+     */
+    boolean hasTitle();
 
     /**
      * Returns the title of this Ndx.
@@ -79,43 +97,11 @@ public interface Ndx {
     String getTitle();
 
     /**
-     * Gets the value of the badBits mask.
-     * This value is used in conjunction
-     * with the quality array to determine which pixels are bad; 
-     * a pixel is bad if the logical AND of its quality value and the
-     * bad bits mask is not zero; hence a value of zero has no effect.
-     * Has no effect if there is no quality array.
-     * 
-     * @return   the bad bits mask
-     */
-    byte getBadBits();
-
-    /**
-     * Returns the image component of this NDX.
+     * Find out if the NDX contains user-defined extension information.
      *
-     * @return   the NDArray representing the image component
+     * @return true if {@link #getEtc} may be called
      */
-    NDArray getImage();
-
-    /**
-    * Returns the variance component of this NDX.
-    * May only be called if {@link #hasVariance} returns <tt>true</tt>.
-    *
-    * @return   an NDArray representing the variance component, 
-    * @throws   UnsupportedOperationException  if <tt>hasVariance</tt>
-    *           returns <tt>false</tt>
-    */
-    NDArray getVariance();
-
-    /**
-     * Returns the quality component of this NDX.
-     * May only be called if {@link #hasQuality} returns <tt>true</tt>.
-     *
-     * @return  an NDArray of byte type representing the quality component, 
-     * @throws  UnsupportedOperationException  if <tt>hasQuality</tt>
-     *          returns <tt>false</tt>
-     */
-    NDArray getQuality();
+    boolean hasEtc();
 
     /**
      * Returns the XML containing extension information for this NDX.
@@ -131,39 +117,47 @@ public interface Ndx {
     Source getEtc();
 
     /**
+     * Find out if the NDX has World Coordinate System information.
+     * <p>
+     * If it exists, then the {@link #getAst} method may be called to
+     * access it as an AST {@link uk.ac.starlink.ast.FrameSet}.
+     * <p>
+     * <i>Note:</i> in due course, when the <tt>uk.ac.starlink.wcs</tt>
+     * package has been released a <tt>getWCS</tt> method will be
+     * provided to access it as a <tt>WCS</tt> object.
+     *
+     * @return  true if {@link #getAst} (and in due course <tt>getWCS</tt>
+     *          can be called
+     */
+    boolean hasWCS();
+
+    /**
      * Get the world coordinate system of the NDX as an AST <tt>FrameSet</tt>.
+     * <p>
+     * <i>Note:</i> This method is intended as a temporary measure 
+     * until the <tt>uk.ac.starlink.wcs</tt> package has been released.
+     * At that time a <tt>getWCS</tt> method will be provided, and 
+     * this one will be deprecated.
      *
      * @return the AST FrameSet representing the world coordinate system
      *         information
+     * @throws UnsupportedOperationException  if <tt>hasWCS</tt>
+     *         returns <tt>false</tt>
+     * @see    #hasWCS
      */
-    FrameSet getWCS();
-
-    /** Indicates whether there is a variance component.
-     *
-     * @return   true if {@link #getVariance} may be called
-     */
-    boolean hasVariance();
+    FrameSet getAst();
 
     /**
-     * Indicates whether there is a quality component. 
-     *
-     * @return   true if {@link #getQuality} may be called
+     * Gets the value of the badBits mask.
+     * This value is used in conjunction
+     * with the quality array to determine which pixels are bad; 
+     * a pixel is bad if the logical AND of its quality value and the
+     * bad bits mask is not zero; hence a value of zero has no effect.
+     * Has no effect if there is no quality array.
+     * 
+     * @return   the bad bits mask
      */
-    boolean hasQuality();
-
-    /**
-     * Indicates whether there is a title component.
-     *
-     * @return   true if {@link #getTitle} may be called
-     */
-    boolean hasTitle();
-
-    /**
-     * Find out if the NDX contains user-defined extension information.
-     *
-     * @return true if {@link #getEtc} may be called
-     */
-    boolean hasEtc();
+    int getBadBits();
 
     /**
      * Indicates whether this Ndx represents a persistent object.

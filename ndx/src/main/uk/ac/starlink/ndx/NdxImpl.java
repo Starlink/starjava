@@ -1,6 +1,5 @@
 package uk.ac.starlink.ndx;
 
-import java.io.IOException;
 import javax.xml.transform.Source;
 import uk.ac.starlink.array.NDArray;
 
@@ -40,7 +39,7 @@ public interface NdxImpl {
      *
      * @return   the bad bits mask
      */
-    byte getBadBits();
+    int getBadBits();
 
     /**
      * Indicates whether a title component is available.
@@ -101,10 +100,39 @@ public interface NdxImpl {
     Source getEtc();
 
     /**
-     * Gets an object responsible for providing the bulk data (image,
-     * variance, quality) of this Ndx.
+     * Gets an NDArray containing the image data.
      *
-     * @return  a BulkDataImpl which provides the array data
+     * @return  image NDArray
      */
-    BulkDataImpl getBulkData();
+    NDArray getImage();
+
+    /**
+     * Indicates whether variance array data is present.
+     *
+     * @return   true if and only if variance data is available
+     */
+    boolean hasVariance();
+
+    /**
+     * Gets an NDArray containing the variance data.
+     * This method will only be called if {@link #hasVariance} returns true.
+     *
+     * @return  variance NDArray
+     */
+    NDArray getVariance();
+
+    /**
+     * Indicates whether quality array data is present.
+     *
+     * @return   true if and only if quality data is present
+     */
+    boolean hasQuality();
+
+    /**
+     * Gets an NDArray containing the quality data.
+     * This method will only be called if {@link #hasQuality} returns true.
+     *
+     * @return  quality NDArray
+     */
+    NDArray getQuality();
 }

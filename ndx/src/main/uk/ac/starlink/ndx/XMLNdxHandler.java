@@ -25,6 +25,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.ArrayBuilder;
+import uk.ac.starlink.array.BadHandler;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDArrayFactory;
@@ -104,7 +105,8 @@ public class XMLNdxHandler implements NdxHandler {
      * Constructs a readable Ndx object from an XML source.
      *
      * @param  xsrc  an XML source containing the XML representation of
-     *               the NDX
+     *               the NDX.  Note that the SystemId attribute, if present,
+     *               will be used to resolve relative URLs
      * @param   mode read/write/update access mode for component arrays
      * @throws  IOException  if some error occurs in the I/O
      */
@@ -156,7 +158,7 @@ public class XMLNdxHandler implements NdxHandler {
         NDArray quality = null;
         String title = null;
         FrameSet wcs = null;
-        byte badbits = 0;
+        int badbits = 0;
         Node etc = null;
 
         for ( Node child = ndxel.getFirstChild(); child != null;
@@ -177,7 +179,7 @@ public class XMLNdxHandler implements NdxHandler {
                     title = getTextContent( cel );
                 }
                 else if ( tagname.equals( "badbits" ) ) {
-                    badbits = Byte.parseByte( getTextContent( cel ) );
+                    badbits = Long.decode( getTextContent( cel ) ).intValue();
                 }
                 else if ( tagname.equals( "wcs" ) ) {
                     Source wcssrc = null;
@@ -255,7 +257,7 @@ public class XMLNdxHandler implements NdxHandler {
 
     private Ndx makeNdx( final NDArray image, final NDArray variance, 
                          final NDArray quality, final String title,
-                         final FrameSet wcs, final byte badbits,
+                         final FrameSet wcs, final int badbits,
                          final Node etc )
             throws IOException {
         if ( image == null ) {
@@ -263,8 +265,14 @@ public class XMLNdxHandler implements NdxHandler {
         }
 
         NdxImpl impl = new NdxImpl() {
-            public BulkDataImpl getBulkData() {
-                return new ArraysBulkDataImpl( image, variance, quality );
+            public NDArray getImage() {
+                return image;
+            }
+            public NDArray getVariance() {
+                return variance;
+            }
+            public NDArray getQuality() {
+                return quality;
             }
             public String getTitle() {
                 return title;
@@ -272,7 +280,7 @@ public class XMLNdxHandler implements NdxHandler {
             public Object getWCS() {
                 return wcs;
             }
-            public byte getBadBits() {
+            public int getBadBits() {
                 return badbits;
             }
             public Source getEtc() {
@@ -280,6 +288,12 @@ public class XMLNdxHandler implements NdxHandler {
             }
             public boolean hasTitle() {
                 return title != null;
+            }
+            public boolean hasVariance() {
+                return variance != null;
+            }
+            public boolean hasQuality() {
+                return quality != null;
             }
             public boolean hasWCS() {
                 return wcs != null;
@@ -363,7 +377,8 @@ public class XMLNdxHandler implements NdxHandler {
             URL iurl = new URL( aurl, "#" + ++hdu );
             NDArray inda1 = ndx.getImage();
             inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
-                                        inda1.getType() );
+                                        inda1.getType(),
+                                        inda1.getBadHandler() );
             NDArrays.copy( inda1, inda2 );
 
             NDArray vnda2;
@@ -371,7 +386,8 @@ public class XMLNdxHandler implements NdxHandler {
                 URL vurl = new URL( aurl, "#" + ++hdu );
                 NDArray vnda1 = ndx.getVariance();
                 vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
-                                            vnda1.getType() );
+                                            vnda1.getType(),
+                                            vnda1.getBadHandler() );
                 NDArrays.copy( vnda1, vnda2 );
             }
             else {
@@ -382,8 +398,9 @@ public class XMLNdxHandler implements NdxHandler {
             if ( ndx.hasQuality() ) {
                 URL qurl = new URL( aurl, "#" + ++hdu );
                 NDArray qnda1 = ndx.getQuality();
+                BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
                 qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
-                                            qnda1.getType() );
+                                            qnda1.getType(), qbh );
                 NDArrays.copy( qnda1, qnda2 );
             }
             else {
@@ -391,7 +408,9 @@ public class XMLNdxHandler implements NdxHandler {
             }
 
             MutableNdx ndx2 = new DefaultMutableNdx( ndx );
-            ndx2.setBulkData( new ArraysBulkDataImpl( inda2, vnda2, qnda2 ) );
+            ndx2.setImage( inda2 );
+            ndx2.setVariance( vnda2 );
+            ndx2.setQuality( qnda2 );
             xsrc = ndx2.toXML( xurl );
         }
 
@@ -446,14 +465,16 @@ public class XMLNdxHandler implements NdxHandler {
         URL iurl = new URL( aurl, "#" + ++hdu );
         NDArray inda1 = template.getImage();
         NDArray inda2 = fab.makeNewNDArray( iurl, inda1.getShape(),
-                                            inda1.getType() );
+                                            inda1.getType(), 
+                                            inda1.getBadHandler() );
 
         NDArray vnda2;
         if ( template.hasVariance() ) { 
             URL vurl = new URL( aurl, "#" + ++hdu );
             NDArray vnda1 = template.getVariance();
             vnda2 = fab.makeNewNDArray( vurl, vnda1.getShape(),
-                                        vnda1.getType() );
+                                        vnda1.getType(),
+                                        vnda1.getBadHandler() );
         }
         else {
             vnda2 = null;
@@ -463,8 +484,9 @@ public class XMLNdxHandler implements NdxHandler {
         if ( template.hasQuality() ) {
             URL qurl = new URL( aurl, "#" + ++hdu );
             NDArray qnda1 = template.getQuality();
+            BadHandler qbh = BadHandler.getHandler( qnda1.getType(), null );
             qnda2 = fab.makeNewNDArray( qurl, qnda1.getShape(),
-                                        qnda1.getType() );
+                                        qnda1.getType(), qbh );
         }
         else {
             qnda2 = null;

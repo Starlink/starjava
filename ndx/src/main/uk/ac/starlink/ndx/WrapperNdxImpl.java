@@ -14,10 +14,12 @@ public class WrapperNdxImpl implements NdxImpl {
 
     public WrapperNdxImpl( Ndx ndx ) {
         this.ndx = ndx;
-        ndx.getClass();  // check not null
+        if ( ndx == null ) {
+            throw new NullPointerException( "Null Ndx not permitted" );
+        }
     }
 
-    public byte getBadBits() {
+    public int getBadBits() {
         return ndx.getBadBits();
     }
 
@@ -38,23 +40,31 @@ public class WrapperNdxImpl implements NdxImpl {
     }
 
     public boolean hasWCS() {
-        return true;
+        return ndx.hasWCS();
     }
 
     public Object getWCS() {
-        return ndx.getWCS();
+        return ndx.getAst();
     }
 
-    public BulkDataImpl getBulkData() {
-        if ( ndx instanceof BridgeNdx ) {
-            return ((BridgeNdx) ndx).getBulkData();
-        }
-        else {
-            NDArray image = ndx.getImage();
-            NDArray variance = ndx.hasVariance() ? ndx.getVariance() : null;
-            NDArray quality = ndx.hasQuality() ? ndx.getQuality() : null;
-            return new ArraysBulkDataImpl( image, variance, quality );
-        }
+    public NDArray getImage() {
+        return ndx.getImage();
+    }
+
+    public boolean hasVariance() {
+        return ndx.hasVariance();
+    }
+
+    public NDArray getVariance() {
+        return ndx.getVariance();
+    }
+
+    public boolean hasQuality() {
+        return ndx.hasQuality();
+    }
+
+    public NDArray getQuality() {
+        return ndx.getQuality();
     }
 
 }
