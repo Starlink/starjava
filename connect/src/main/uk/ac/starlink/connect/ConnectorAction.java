@@ -69,7 +69,7 @@ public class ConnectorAction extends AbstractAction {
      *         can connect to
      */
     public ConnectorAction( Connector connector ) {
-        super( LOGIN_TEXT );
+        super( LOGIN_TEXT, connector.getIcon() );
         connector_ = connector;
 
         /* Set up action triggered by the user finishing entry of 
