@@ -6,9 +6,12 @@ import javax.help.HelpSetException;
 import junit.framework.TestCase;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.starlink.util.StarEntityResolver;
 
 public class HelpTest extends TestCase {
 
@@ -32,6 +35,10 @@ public class HelpTest extends TestCase {
         SAXParserFactory fact = SAXParserFactory.newInstance();
         fact.setValidating( true );
         DefaultHandler handler = new DefaultHandler() {
+            StarEntityResolver resolver = StarEntityResolver.getInstance();
+            public InputSource resolveEntity( String sysId, String pubId ) {
+                return resolver.resolveEntity( sysId, pubId );
+            }
             public void warning( SAXParseException e ) throws SAXException {
                 rethrow( e );
             }
