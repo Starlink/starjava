@@ -327,7 +327,6 @@
 
     <mkdir dir="${build.classes}"/>
     <javac srcdir="${java.dir}"
-           source="1.2"
            destdir="${build.classes}"
            debug="${debug}"
            deprecation="${deprecation}"
