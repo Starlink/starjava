@@ -365,6 +365,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
         Arrays.fill( someLengths1, someLength );
         Arrays.fill( someLengths2, someLength );
         Arrays.fill( someLengths3, someLength );
+        Arrays.fill( someLengths4, someLength );
         CombinedMatchEngine skyPlus1Engine = 
             new CombinedMatchEngine( new MatchEngine[] {
                 new HTMMatchEngine( someAngle ),
@@ -386,6 +387,7 @@ public class MatchWindow extends AuxWindow implements ItemListener {
             new AnisotropicCartesianMatchEngine( someLengths2 ),
             new IsotropicCartesianMatchEngine( 3, someLength, false ),
             new AnisotropicCartesianMatchEngine( someLengths3 ),
+            new AnisotropicCartesianMatchEngine( someLengths4 ),
             skyPlus1Engine,
             skyPlus2Engine,
         };
