@@ -382,42 +382,54 @@ public class SSAQueryBrowser
      */
     protected void resolveName()
     {
-        String objectName = nameField.getText();
+        String objectName = nameField.getText().trim();
         if ( objectName != null && objectName.length() > 0 ) {
 
-            final QueryArgs queryArgs = new BasicQueryArgs(resolverCatalogue);
+            final QueryArgs queryArgs = 
+                new BasicQueryArgs( resolverCatalogue );
+
+            // If objectName has spaces we should protect them.
+            objectName = objectName.replaceAll( " ", "%20" );
             queryArgs.setId( objectName );
 
-            Thread thread = new Thread( "Name server" ) {
-               public void run() {
-                  try {
-                      QueryResult r = resolverCatalogue.query( queryArgs );
-                      if ( r instanceof TableQueryResult ) {
-                          Coordinates coords =
-                              ((TableQueryResult) r).getCoordinates(0);
-                          if ( coords instanceof WorldCoords ) {
-                              //  Enter values into RA and Dec fields.
-                              String[] radec = ((WorldCoords)coords).format();
-                              raField.setText( radec[0] );
-                              decField.setText( radec[1] );
-                          }
-                      }
-                  }
-                  catch (Exception e) {
-                      e.printStackTrace();
-                  }
-               }
+            Thread thread = new Thread( "Name server" ) 
+            {
+                public void run() 
+                {
+                    try {
+                        QueryResult r = resolverCatalogue.query( queryArgs );
+                        if ( r instanceof TableQueryResult ) {
+                            Coordinates coords =
+                                ((TableQueryResult) r).getCoordinates( 0 );
+                            if ( coords instanceof WorldCoords ) {
+                                //  Enter values into RA and Dec fields.
+                                String[] radec = 
+                                    ((WorldCoords) coords).format();
+                                raField.setText( radec[0] );
+                                decField.setText( radec[1] );
+                            }
+                        }
+                    }
+                    catch (Exception e) {
+                        new ExceptionDialog( null, e );
+                    }
+                }
             };
 
             //  Start the nameserver.
+            raField.setText( "" );
+            decField.setText( "" );
             thread.start();
+
         }
     }
 
     /**
      * Setup the default name servers (SIMBAD and NED) to use to resolve
      * astronomical object names. Note these are just those used in JSky.
-     * A better implementation should reuse the JSky classes.
+     * A better implementation should reuse the JSky classes. 
+     * <p>
+     * XXX refactor these into an XML file external to the application.
      */
     private void setDefaultNameServers()
     {
@@ -453,7 +465,6 @@ public class SSAQueryBrowser
         String dec = decField.getText();
         if ( ra == null || ra.length() == 0 ||
              dec == null || dec.length() == 0 ) {
-
             JOptionPane.showMessageDialog( this,
                "You have not supplied a search centre",
                "No RA or Dec", JOptionPane.ERROR_MESSAGE );
@@ -1013,7 +1024,5 @@ public class SSAQueryBrowser
             showProxy();
         }
     }
-
-
 }
 
