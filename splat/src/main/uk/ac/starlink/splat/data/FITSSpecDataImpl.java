@@ -300,7 +300,6 @@ public class FITSSpecDataImpl
         else {
             name = namer.fullname();
         }
-        System.out.println( "name = " + name );
         
         try {
             fitsref = new Fits( name );

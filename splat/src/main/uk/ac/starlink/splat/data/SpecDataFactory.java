@@ -289,7 +289,6 @@ public class SpecDataFactory
         URL url = null;
         try {
             url = new URL( "file:" + specspec + ".sdf" );
-            System.out.println( "NDF = " + url );
         }
         catch (MalformedURLException e) {
             throw new SplatException( e );
