@@ -27,7 +27,7 @@ public class MarkerTest extends TestCase {
             panel.add( new ProfileSamples() );
             toplev.pack();
             toplev.setVisible( true );
-            Thread.currentThread().sleep( 40000 );
+            Thread.currentThread().sleep( 4000 );
         }
         catch ( HeadlessException e ) {
             System.out.println( "Headless environment - no marker test" );
