@@ -31,14 +31,14 @@
 
   <!-- Hdx element smuggled in as attributes in the Hdx namespace -->
   <other>
-    <stuff hdx:name="ndx">
+    <stuff hdx:hdxname="ndx">
       <wotsit
-	hdx:name="image"
+	hdx:hdxname="image"
 	hdx:uri="file:test3.fits">
 	Miscellaneous content
       </wotsit>
       <blarfle
-	hdx:name="quality"
+	hdx:hdxname="quality"
 	b:uri="file:test4.fits">
 	file:test5.fits
       </blarfle>

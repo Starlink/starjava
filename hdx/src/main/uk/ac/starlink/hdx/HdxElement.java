@@ -141,8 +141,9 @@ class HdxElement
      * value of parameter <code>inNamespace</code>) and is one of the
      * recognised types (as determined by {@link
      * HdxResourceType#match}), or else it has the
-     * <code>HDX:name</code> attribute (if both are present, and
-     * disagree, the GI is silently preferred).
+     * <code>HDX:hdxname</code> attribute (the attribute named by {@link
+     * HdxResourceType#HDX_ARCHATT}).  If both are present, and
+     * disagree, the GI is silently preferred.
      *
      * <p>As a special case, if the element is in the HDX namespace,
      * then any unprefixed attributes on the element are taken to be
@@ -248,8 +249,9 @@ class HdxElement
      * Examines the first of the following objects to be present
      * (subject to constraints from parameter <code>nsswitch</code>): (i) the
      * element's GI if that's in the HDX namespace, (ii) the attribute
-     * <code>name</code> in the HDX namespace, and (iii) the element's GI
-     * not in any namespace.
+     * <code>hdxname</code> in the HDX namespace (as named by {@link
+     * HdxResourceType#HDX_ARCHATT}), and (iii) the element's GI not
+     * in any namespace.
      *
      * @param el the element to examine
      *
@@ -272,7 +274,7 @@ class HdxElement
                 return new ElementTypeInfo(el.getLocalName(), el.getPrefix());
         
             Attr hdxname = el.getAttributeNodeNS(HdxResourceType.HDX_NAMESPACE,
-                                                 "name");
+                                                 HdxResourceType.HDX_ARCHATT);
             if (hdxname != null)
                 return new ElementTypeInfo(hdxname.getValue(),
                                            hdxname.getPrefix());
@@ -1202,7 +1204,7 @@ class HdxElement
                         String myname = (ns==null
                                          ? a.getName()
                                          : a.getLocalName());
-                        if (! myname.equals("name")) {
+                        if (! myname.equals(HdxResourceType.HDX_ARCHATT)) {
                             // Carefully avoid including the Hdx name
                             // attribute, since this is only to
                             // indicate the Hdx type which this shadow

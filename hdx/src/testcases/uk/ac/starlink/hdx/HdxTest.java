@@ -471,7 +471,7 @@ public class HdxTest
             throws Exception {
         // Same as testBackingElement(), but with elements and
         // attributes all in the non-default namespace.
-        String xmlstring = "<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:name='ndx'><sub h:name='image' h:uri='file:test1.fits' uri='nothing'/><h:image h:uri='file:test2.fits'/></doc>";
+        String xmlstring = "<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:hdxname='ndx'><sub h:hdxname='image' h:uri='file:test1.fits' uri='nothing'/><h:image h:uri='file:test2.fits'/></doc>";
 
         HdxFactory docfact = HdxFactory.getInstance();
         Document stringdoc = (Document)srcrdr.getDOM
@@ -506,7 +506,7 @@ public class HdxTest
                 ("<hdx><ndx><image uri='WALLOP' ping='KERPOW' pong='SPLAT'/><image uri='WALLOP' ping='KERPOW' pong='SPLAT'/></ndx></hdx>",
                  hdx);
         // Check original DOM doesn't have ping, but does have pong
-        assertDOMEquals("<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:name='ndx'><sub h:name='image' h:uri='WALLOP' uri='nothing' h:pong='SPLAT'/><h:image h:uri='WALLOP' h:pong='SPLAT'/></doc>",
+        assertDOMEquals("<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:hdxname='ndx'><sub h:hdxname='image' h:uri='WALLOP' uri='nothing' h:pong='SPLAT'/><h:image h:uri='WALLOP' h:pong='SPLAT'/></doc>",
                         origDoc);
         
         // Check getAttributes does work on the values
@@ -525,7 +525,7 @@ public class HdxTest
                 ("<hdx><ndx><image uri='OUCH' ping='THWACK' pong='SPLAT'/><image uri='WALLOP' ping='KERPOW' pong='SPLAT'/></ndx></hdx>",
                  hdx);
         // Check original DOM doesn't have ping, but does have pong
-        assertDOMEquals("<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:name='ndx'><sub h:name='image' h:uri='OUCH' uri='nothing' h:pong='SPLAT'/><h:image h:uri='WALLOP' h:pong='SPLAT'/></doc>",
+        assertDOMEquals("<doc xmlns:h='http://www.starlink.ac.uk/HDX' h:hdxname='ndx'><sub h:hdxname='image' h:uri='OUCH' uri='nothing' h:pong='SPLAT'/><h:image h:uri='WALLOP' h:pong='SPLAT'/></doc>",
                         origDoc);
     }
 

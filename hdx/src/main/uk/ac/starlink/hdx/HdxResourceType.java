@@ -56,6 +56,28 @@ public class HdxResourceType {
     /** The namespace for HDX */
     public static final String HDX_NAMESPACE = "http://www.starlink.ac.uk/HDX";
 
+    /**
+     * Name of attribute which indicates an HDX-namespace element.  If
+     * an element has an attribute with this name, and in the HDX
+     * namespace, then that element is taken to be an element with a
+     * name given by the value of this attribute.  Thus the start-tag
+     * <pre>
+     * &lt;stuff xmlns:x="http://www.starlink.ac.uk/HDX"
+     *   x:hdxname="ndx"
+     *   x:uri="..." &gt;
+     * </pre>
+     * is taken to be equivalent to
+     * <pre>
+     * &lt;x:ndx x:uri="..."
+     * xmlns:x="http://www.starlink.ac.uk/HDX"&gt;
+     * </pre>
+     * thus implementing a simple form of architectural processing,
+     * which allows HDX-namespaced elements to be smuggled into
+     * otherwise separate documents.  See also the {@link
+     * #setHoistAttribute hoist attribute} processing.
+     */
+    static final String HDX_ARCHATT = "hdxname";
+
     /** The overall container of HDX objects */
     public static HdxResourceType HDX;
 
