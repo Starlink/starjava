@@ -15,7 +15,7 @@ import uk.ac.starlink.util.SourceReader;
  * An object representing the TABLE element of a VOTable.
  * This contains fields, links and rows; the actual data from the table
  * body may be obtained by iterating over rows using the
- * {@link #hasNextRow} and {@link nextRow} methods.
+ * {@link #hasNextRow} and {@link #nextRow} methods.
  * <p>
  * This class itself implements a table with no body (no rows); 
  * the static {@link #makeTable} method should be used to obtain 
