@@ -39,6 +39,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 
     private final Document base_;
     private final Map delegates_ = new HashMap();
+    private String documentURI_;
  
     /**
      * Constructs a new document which delegates its behaviour to a
@@ -53,9 +54,7 @@ public class DelegatingDocument extends DelegatingNode implements Document {
         if ( base == null ) {
             throw new NullPointerException();
         }
-//DOM3         if ( documentURI != null ) {
-//DOM3             setDocumentURI( documentURI );
-//DOM3         }
+        documentURI_ = documentURI;
         base_ = base;
     }
 
@@ -514,10 +513,12 @@ public class DelegatingDocument extends DelegatingNode implements Document {
 //DOM3     }
 //DOM3 
 //DOM3     public String getDocumentURI() {
-//DOM3         return base_.getDocumentURI();
+//DOM3         return documentURI_ == null ? base_.getDocumentURI()
+//DOM3                                     : documentURI_;
 //DOM3     }
 //DOM3 
 //DOM3     public void setDocumentURI( String documentURI ) {
+//DOM3         documentURI_ = null;
 //DOM3         base_.setDocumentURI( documentURI );
 //DOM3     }
 //DOM3 
