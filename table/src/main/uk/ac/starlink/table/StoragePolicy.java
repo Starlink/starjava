@@ -25,6 +25,13 @@ public abstract class StoragePolicy {
     private static StoragePolicy defaultInstance_;
 
     /**
+     * Smallest number of cells that will get written to disk by default.
+     * Any less than this, and it's not considered ever writing to a disk
+     * file.
+     */
+    private static final int MIN_DISK_CELLS = 1000;
+
+    /**
      * Name of the system property which can be set to indicate the
      * initial setting of the default storage policy.
      * Currently recognised values are "disk", "memory" and "discard";
@@ -160,7 +167,7 @@ public abstract class StoragePolicy {
         }
         public RowStore makeConfiguredRowStore( StarTable meta ) {
             long nrow = meta.getRowCount();
-            if ( nrow > 0 && nrow * meta.getColumnCount() < 1000 ) {
+            if ( nrow > 0 && nrow * meta.getColumnCount() < MIN_DISK_CELLS ) {
                 ListRowStore store = new ListRowStore();
                 store.acceptMetadata( meta );
                 return store;
