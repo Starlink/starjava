@@ -27,7 +27,7 @@ import uk.ac.starlink.table.gui.StarJTable;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 import uk.ac.starlink.table.jdbc.SwingAuthenticator;
 import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
-import uk.ac.starlink.topcat.TableViewer;
+import uk.ac.starlink.topcat.ControlWindow;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.votable.DataFormat;
 import uk.ac.starlink.votable.VOTableWriter;
@@ -178,7 +178,9 @@ public class StarTableDataNode extends DefaultDataNode
             Action topcatAct = new AbstractAction( "TOPCAT", tcic ) {
                 public void actionPerformed( ActionEvent evt ) {
                     try {
-                        new TableViewer( tgetter.getRandomTable(), null );
+                        ControlWindow.getInstance()
+                                     .addTable( tgetter.getRandomTable(),
+                                                "from Treeview", true );
                     }
                     catch ( IOException e ) {
                         beep();
