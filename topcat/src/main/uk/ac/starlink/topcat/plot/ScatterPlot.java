@@ -386,9 +386,11 @@ public class ScatterPlot extends JComponent implements Printable {
         final RowSubset[] sets = state_.getSubsets();
         boolean[] regressions = state_.getRegressions();
         TableModel tmodel = new AbstractTableModel() {
-            public Class getColumnClass( int icol ) {
-                return icol == 0 ? String.class : Double.class;
-            }
+        // Don't do this - the default renderers are rubbish (represent 
+        // values near zero as 0.
+        //  public Class getColumnClass( int icol ) {
+        //      return icol == 0 ? String.class : Double.class;
+        //  }
             public int getColumnCount() {
                 return 4;
             }
@@ -417,13 +419,13 @@ public class ScatterPlot extends JComponent implements Printable {
                         switch( icol ) {
                             case 1:
                                 double m = stats.getLinearCoefficients()[ 1 ];
-                                return new Double( m );
+                                return new Float( (float) m );
                             case 2:
                                 double c = stats.getLinearCoefficients()[ 0 ];
-                                return new Double( c );
+                                return new Float( (float) c );
                             case 3: 
                                 double r = stats.getCorrelation();
-                                return new Double( r );
+                                return new Float( (float) r );
                             default:
                                 throw new IllegalArgumentException();
                         }
