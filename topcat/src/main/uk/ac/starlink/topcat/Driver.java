@@ -24,6 +24,7 @@ import uk.ac.starlink.table.WrapperStarTable;
 import uk.ac.starlink.table.gui.TableLoadChooser;
 import uk.ac.starlink.table.gui.TableLoadDialog;
 import uk.ac.starlink.table.gui.SQLReadDialog;
+import uk.ac.starlink.topcat.soap.TopcatSOAPServer;
 import uk.ac.starlink.util.gui.ErrorDialog;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.Loader;
@@ -177,7 +178,7 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = 
-              pre + " [-help] [-demo] [-disk]\n" 
+              pre + " [-help] [-demo] [-disk] [-noserv]\n" 
             + pad + " [-tree] [-file] [-sql] [-cone] [-siap] [-registry]\n"
             + pad + " [[-f <format>] table ...]";
 
@@ -188,6 +189,7 @@ public class Driver {
         List argList = new ArrayList( Arrays.asList( args ) );
         List loaderList = new ArrayList();
         boolean demo = false;
+        boolean soapServe = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-h" ) ) {
@@ -201,6 +203,10 @@ public class Driver {
             else if ( arg.equals( "-disk" ) ) {
                 it.remove();
                 tabfact.setStoragePolicy( StoragePolicy.PREFER_DISK );
+            }
+            else if ( arg.startsWith( "-noserv" ) ) {
+                it.remove();
+                soapServe = false;
             }
             else if ( arg.equals( "-f" ) || arg.equals( "-format" ) ) {
                 // leave this for this later
@@ -323,6 +329,29 @@ public class Driver {
                     }
                 } );
             }
+        }
+
+        /* Start up remote services.  Do it in a separate, low-priority
+         * thread to avoid impact on startup time. */
+        if ( soapServe ) {
+            Thread init = new Thread( "TOPCAT SOAP services initialization" ) {
+                public void run() {
+                    try {
+                        TopcatSOAPServer.initServices( getControlWindow() );
+                    }
+                    catch ( Throwable e ) {
+                        logger.warning( "No SOAP server: " + e );
+                    }
+                }
+            };
+            try {
+                init.setPriority( ( init.getPriority() + Thread.MIN_PRIORITY )
+                                  / 2 );
+            }
+            catch ( SecurityException e ) {
+                // never mind.
+            }
+            init.start();
         }
     }
 
@@ -510,7 +539,8 @@ public class Driver {
         buf.append( p1 + "General flags:" )
            .append( p2 + "-help      print this message" )
            .append( p2 + "-demo      start with demo data" )
-           .append( p2 + "-disk      use disk backing store for large tables" );
+           .append( p2 + "-disk      use disk backing store for large tables" ) 
+           .append( p2 + "-noserv    don't start SOAP services" );
 
         /* Load dialogues. */
         buf.append( p1 + "Optional load dialogues" )
