@@ -3,6 +3,7 @@ package uk.ac.starlink.votable;
 import java.awt.datatransfer.DataFlavor;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Logger;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -10,15 +11,18 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.Header;
 import nom.tam.fits.HeaderCard;
 import nom.tam.util.ArrayDataInput;
+import nom.tam.util.BufferedDataInputStream;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import uk.ac.starlink.fits.BintableStarTable;
 import uk.ac.starlink.fits.FitsConstants;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.table.TableBuilder;
 import uk.ac.starlink.table.TableFormatException;
-import uk.ac.starlink.table.StoragePolicy;
+import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.DOMUtils;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.IOUtils;
@@ -65,18 +69,126 @@ public class FitsPlusTableBuilder implements TableBuilder {
 
         /* See if this looks like a fits-plus table. */
         if ( ! isMagic( datsrc.getIntro() ) ) {
-            throw new TableFormatException( "Doesn't look like a FITS file" );
+            throw new TableFormatException( 
+                "Doesn't look like a FITS-plus file" );
         }
 
         /* Get an input stream. */
         ArrayDataInput strm = FitsConstants.getInputStreamStart( datsrc );
         try {
-    
-            /* Read the header from the primary HDU to find out how long the
-             * data array is. */
+            long[] pos = new long[ 1 ]; 
+            TableElement tabel = readMetadata( strm, pos );
+
+            /* Now get the StarTable from the next HDU. */
+            StarTable starTable =
+                FitsTableBuilder.attemptReadTable( strm, wantRandom,
+                                                   datsrc, pos );
+            if ( starTable == null ) {
+                throw new TableFormatException( "No BINTABLE HDU found" );
+            }
+
+            /* Turn it into a TabularData element associated it with its
+             * TABLE DOM element as if the DOM builder had found the table
+             * data in a DATA element within the TABLE element. */
+            tabel.setData( new TableBodies.StarTableTabularData( starTable ) );
+
+            /* Now create and return a StarTable based on the TABLE element; 
+             * its metadata comes from the VOTable, but its data comes from 
+             * the FITS table we've just read. */
+            VOStarTable startab = new VOStarTable( tabel );
+            return startab;
+        }
+        catch ( FitsException e ) {
+            throw new TableFormatException( e.getMessage(), e );
+        }
+        catch ( NullPointerException e ) {
+            throw new TableFormatException( "Table not quite in " +
+                                            "fits-plus format", e );
+        }
+    }
+
+    public void streamStarTable( InputStream in, final TableSink sink,
+                                 String pos )
+            throws IOException {
+
+        /* If we're being directed to a numbered HDU, it's not for us. */
+        if ( pos != null && pos.trim().length() > 0 ) {
+            throw new TableFormatException( "Can't locate numbered HDU" );
+        }
+
+        /* Read the metadata from the primary HDU. */
+        ArrayDataInput strm = new BufferedDataInputStream( in );
+        try {
+            TableElement tabel = readMetadata( strm, new long[ 1 ] );
+
+            /* Prepare a modified sink which behaves like the one we were
+             * given but will pass on the VOTable metadata rather than that 
+             * from the BINTABLE extension. */
+            final StarTable voMeta = new VOStarTable( tabel );
+            TableSink wsink = new TableSink() {
+                public void acceptMetadata( StarTable fitsMeta )
+                        throws TableFormatException {
+                    sink.acceptMetadata( voMeta );
+                }
+                public void acceptRow( Object[] row ) throws IOException {
+                    sink.acceptRow( row );
+                }
+                public void endRows() throws IOException {
+                    sink.endRows();
+                }
+            };
+
+            /* Write the table data from the upcoming BINTABLE element to the
+             * sink. */
             Header hdr = new Header();
-            int headsize = FitsConstants.readHeader( hdr, strm );
+            FitsConstants.readHeader( hdr, strm );
+            BintableStarTable.streamStarTable( hdr, strm, wsink );
+        }
+        catch ( FitsException e ) {
+            throw new TableFormatException( e.getMessage(), e );
+        }
+        finally {
+            strm.close();
+        }
+    }
+
+    /**
+     * Reads the primary HDU of a FITS stream, checking it is of the 
+     * correct FITS-plus format, and returns the VOTable TABLE element
+     * which is encoded in it.  On successful exit, the stream will 
+     * be positioned at the start of the first non-primary HDU 
+     * (which should contain a BINTABLE).
+     *
+     * @param   strm  stream holding the data (positioned at the start)
+     * @param   pos   1-element array for returning the number of bytes read
+     *                into the stream
+     * @return  TABLE element in the primary HDU
+     */
+    private TableElement readMetadata( ArrayDataInput strm, long[] pos )
+            throws IOException {
+
+        /* Read the first FITS block from the stream into a buffer. 
+         * This should contain the entire header of the primary HDU. */
+       
+        byte[] headBuf = new byte[ 2880 ];
+        strm.readFully( headBuf );
+
+        /* Check it seems to have the right form. */
+        if ( ! isMagic( headBuf ) ) {
+            throw new TableFormatException( "Primary header not FITS-plus" );
+        }
+        try {
+
+            /* Turn it into a header and find out the length of the 
+             * data unit. */
+            Header hdr = new Header();
+            ArrayDataInput hstrm = 
+                new BufferedDataInputStream(
+                    new ByteArrayInputStream( headBuf ) );
+            int headsize = FitsConstants.readHeader( hdr, hstrm );
             int datasize = (int) FitsConstants.getDataSize( hdr );
+            pos[ 0 ] = headsize + datasize;
+            assert headsize == 2880;
             assert hdr.getIntValue( "NAXIS" ) == 1;
             assert hdr.getIntValue( "BITPIX" ) == 8;
             int nbyte = hdr.getIntValue( "NAXIS1" );
@@ -89,13 +201,13 @@ public class FitsPlusTableBuilder implements TableBuilder {
             int pad = datasize - nbyte;
             IOUtils.skipBytes( strm, pad );
 
-            /* Read XML from the byte buffer, performing a custom parse to 
-             * DOM. */
+            /* Read XML from the byte buffer, performing a custom
+             * parse to DOM. */
             VOElementFactory vofact = new VOElementFactory();
-            DOMSource domsrc = 
+            DOMSource domsrc =
                 vofact.transformToDOM( 
                     new StreamSource( new ByteArrayInputStream( vobuf ) ),
-                    false );
+                                      false );
 
             /* Obtain the TABLE element, which ought to be empty. */
             VODocument doc = (VODocument) domsrc.getNode();
@@ -114,40 +226,13 @@ public class FitsPlusTableBuilder implements TableBuilder {
                 throw new TableFormatException(
                     "Embedded VOTable document has unexpected DATA element" );
             }
-
-            /* Now get the StarTable from the next HDU. */
-            long[] pos = new long[] { headsize + datasize };
-            StarTable starTable = FitsTableBuilder
-                                 .attemptReadTable( strm, wantRandom,
-                                                    datsrc, pos );
-            if ( starTable == null ) {
-                throw new TableFormatException( "No BINTABLE HDU found" );
-            }
-
-            /* Turn it into a TabularData element associated it with its
-             * TABLE DOM element as if the DOM builder had found the table
-             * data in a DATA element within the TABLE element. */
-            tabel.setData( new TableBodies.StarTableTabularData( starTable ) );
-
-            /* Now create and return a StarTable based on the TABLE element; 
-             * its metadata comes from the VOTable, but its data comes from 
-             * the FITS table we've just read. */
-            VOStarTable startab = new VOStarTable( tabel );
-            return startab;
+            return tabel;
         }
         catch ( FitsException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( e.getMessage() ).initCause( e );
+            throw new TableFormatException( e.getMessage(), e );
         }
         catch ( SAXException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( e.getMessage() ).initCause( e );
-        }
-        catch ( NullPointerException e ) {
-            throw (TableFormatException)
-                  new TableFormatException( "Table not quite in " +
-                                            "fits-plus format" )
-                 .initCause( e );
+            throw new TableFormatException( e.getMessage(), e );
         }
     }
 
