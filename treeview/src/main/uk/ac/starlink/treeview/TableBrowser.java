@@ -144,12 +144,12 @@ class TableBrowser extends JTable {
                         new StringTokenizer( (String) value, "\n" );
                     String s1;
                     String s2;
-                    if ( st.countTokens() == 2 ) {
+                    if ( st.countTokens() >= 2 ) {
                         s1 = st.nextToken();
                         s2 = st.nextToken();
                     }
                     else {
-                        s1 = st.nextToken();
+                        s1 = (String) value;
                         s2 = " ";
                     }
                     JPanel head = new JPanel();
@@ -170,14 +170,39 @@ class TableBrowser extends JTable {
         };
 
         TableColumnModel tcm = getColumnModel();
-        for ( int i = 1; i < tcm.getColumnCount(); i++ ) {
-            TableColumn tc = tcm.getColumn( i );
-            tc.setPreferredWidth( 90 );
+        TableCellRenderer bodyrend = new DefaultTableCellRenderer();
+        TableCellRenderer headrend = colHeadRend;
+        for ( int col = 0; col < tcm.getColumnCount(); col++ ) {
+            TableColumn tc = tcm.getColumn( col );
+            tc.setPreferredWidth( getColumnWidth( tmodel, bodyrend, 
+                                                  headrend, col ) );
             tc.setHeaderRenderer( colHeadRend );
         }
     }
 
     public TableCellRenderer getCellRenderer( int row, int col ) {
         return ( col == 0 ) ? rowHeadRend : super.getCellRenderer( row, col );
+    }
+
+    private static int getColumnWidth( TableModel tmodel, 
+                                       TableCellRenderer bodyrend,
+                                       TableCellRenderer headrend, int col ) {
+        JTable dummyTable = new JTable();
+
+        Object itemobj = tmodel.getValueAt( 0, col );
+        Component itemcomp =
+            bodyrend
+           .getTableCellRendererComponent( dummyTable, itemobj, false, false, 
+                                           0, col );
+        int itemwidth = itemcomp.getPreferredSize().width;
+
+        String headobj = tmodel.getColumnName( col );
+        Component headcomp =
+            headrend
+           .getTableCellRendererComponent( dummyTable, headobj, false, false,
+                                           0, col );
+        int headwidth = headcomp.getPreferredSize().width;
+
+        return Math.max( Math.max( itemwidth, headwidth) + 10, 50 );
     }
 }
