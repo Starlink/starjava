@@ -4,17 +4,23 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
 
 /**
  * A StarTableWriter which outputs text to a human-readable text file.
+ * Table parameters (per-table metadata) can optionally be output 
+ * as well as the table data themselves.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class TextTableWriter implements StarTableWriter {
+
+    private boolean writeParams = true;
 
     /**
      * Maximum width for a given column.
@@ -95,6 +101,18 @@ public class TextTableWriter implements StarTableWriter {
             
         /* Get an output stream. */
         OutputStream strm = getStream( location );
+
+        /* Print parameters. */
+        String name = startab.getName();
+        if ( name != null && name.trim().length() > 0 ) {
+            printParam( strm, "Table name", name );
+        }
+        for ( Iterator it = startab.getParameters().iterator();
+              it.hasNext(); ) {
+            DescribedValue param = (DescribedValue) it.next();
+            printParam( strm, param.getInfo().getName(),
+                              param.getValueAsString( 160 ) );
+        }
  
         /* Print headings. */
         String[] heads = new String[ ncol ];
@@ -119,6 +137,28 @@ public class TextTableWriter implements StarTableWriter {
 
         /* Tidy up. */
         strm.flush();
+    }
+
+    /**
+     * Set whether the output should include table parameters.
+     * If so they are written as name:value pairs one per line 
+     * before the start of the table proper.
+     *
+     * @param writeParams  true iff you want table parameters to be output as
+     *        well as the table data
+     */
+    public void setWriteParameters( boolean writeParams ) {
+        this.writeParams = writeParams;
+    }
+
+    /**
+     * Finds out whether the output will include table parameters.
+     *
+     * @return  true iff the table parameters will be output as well as the
+     *          table data
+     */
+    public boolean getWriteParameters() {
+        return writeParams;
     }
 
     private OutputStream getStream( String location ) throws IOException {
@@ -161,6 +201,15 @@ public class TextTableWriter implements StarTableWriter {
             strm.write( ' ' );
         }
         strm.write( '|' );
+        strm.write( '\n' );
+    }
+
+    private void printParam( OutputStream strm, String name, String value )
+            throws IOException {
+        strm.write( name.getBytes() );
+        strm.write( ':' );
+        strm.write( ' ' );
+        strm.write( value.getBytes() );
         strm.write( '\n' );
     }
 
