@@ -26,8 +26,9 @@ import uk.ac.starlink.util.MapGroup;
  */
 public class ParameterWindow extends AuxWindow {
 
-    private StarTable stable;
-    private TableColumnModel tcmodel;
+    private TableViewer tv;
+    private PlasticStarTable dataModel;
+    private TableColumnModel columnModel;
     private AbstractTableModel pmodel;
     private int colsIndex;
     private int rowsIndex;
@@ -35,17 +36,22 @@ public class ParameterWindow extends AuxWindow {
     private Map colsMap;
     private Map rowsMap;
 
-    public ParameterWindow( StarTable stable, TableColumnModel tcmodel,
-                            Component parent ) {
-        super( "Table Parameters", stable, parent );
-        this.stable = stable;
-        this.tcmodel = tcmodel;
+    /**
+     * Constructs a parameter window for the given table viewer.
+     *
+     * @param  tv the viewer
+     */
+    public ParameterWindow( TableViewer tv ) {
+        super( "Table parameters", tv );
+        this.tv = tv;
+        this.dataModel = tv.getDataModel();
+        this.columnModel = tv.getColumnModel();
 
         /* Construct a MapGroup to hold per-table metadata. */
         mg = new ValueInfoMapGroup();
 
         /* Add table name if applicable. */
-        String name = stable.getName();
+        String name = dataModel.getName();
         if ( name != null ) {
             Map nameMap = new HashMap();
             nameMap.put( ValueInfoMapGroup.NAME_KEY, "Table name" );
@@ -54,28 +60,28 @@ public class ParameterWindow extends AuxWindow {
         }
 
         /* Add table URL if applicable. */
-        URL url = stable.getURL();
+        URL url = dataModel.getBaseTable().getURL();
         if ( url != null ) {
             Map urlMap = new HashMap();
-            urlMap.put( ValueInfoMapGroup.NAME_KEY, "URL" );
+            urlMap.put( ValueInfoMapGroup.NAME_KEY, "Original URL" );
             urlMap.put( ValueInfoMapGroup.VALUE_KEY, url );
             mg.addMap( urlMap );
         }
 
         /* Add table shape. */
-        int ncol = stable.getColumnCount();
+        int ncol = dataModel.getColumnCount();
         colsMap = new HashMap();
         colsMap.put( ValueInfoMapGroup.NAME_KEY, "Column count" );
         colsIndex = mg.getMaps().size();
         mg.addMap( colsMap );
-        long nrow = stable.getRowCount();
+        long nrow = dataModel.getRowCount();
         rowsMap = new HashMap();
         rowsMap.put( ValueInfoMapGroup.NAME_KEY, "Row count" );
         rowsIndex = mg.getMaps().size();
         mg.addMap( rowsMap );
 
         /* Add the actual table parameters as such. */
-        for ( Iterator it = stable.getParameters().iterator(); 
+        for ( Iterator it = dataModel.getParameters().iterator(); 
               it.hasNext(); ) {
             DescribedValue param = (DescribedValue) it.next();
             mg.addDescribedValue( param );
@@ -101,7 +107,7 @@ public class ParameterWindow extends AuxWindow {
  //         }
  //     } );
 
-        tcmodel.addColumnModelListener( new TableColumnModelAdapter() {
+        columnModel.addColumnModelListener( new TableColumnModelAdapter() {
             public void columnAdded( TableColumnModelEvent evt ) {
                 configureColumnCount();
             }
@@ -121,7 +127,7 @@ public class ParameterWindow extends AuxWindow {
     }
 
     private void configureColumnCount() {
-        int ncol = tcmodel.getColumnCount();
+        int ncol = columnModel.getColumnCount();
         assert colsMap == mg.getMaps().get( colsIndex );
         assert colsMap.get( ValueInfoMapGroup.NAME_KEY )
                       .equals( "Column count" );
@@ -133,7 +139,7 @@ public class ParameterWindow extends AuxWindow {
         assert rowsMap == mg.getMaps().get( rowsIndex );
         assert rowsMap.get( ValueInfoMapGroup.NAME_KEY )
                       .equals( "Row count" );
-        long nrow = stable.getRowCount();
+        long nrow = dataModel.getRowCount();
         rowsMap.put( ValueInfoMapGroup.VALUE_KEY, 
                      ( nrow >= 0 ) ? (Object) new Long( nrow )
                                    : (Object) "?" );
