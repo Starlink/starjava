@@ -300,7 +300,6 @@ public class FITSSpecDataImpl
         else {
             name = namer.fullname();
         }
-        System.out.println( "name = " + name );
         
         try {
             fitsref = new Fits( name );
@@ -418,8 +417,18 @@ public class FITSSpecDataImpl
     {
         if ( astref != null ) {
 
-            //  Make sure frameset is 1D/.
-            astref = ASTJ.get1DFrameSet( astref );
+            //  Make sure frameset is 1D to match the output data.
+            int sigaxis = 1;
+            int dims[] = getDims();
+            if ( dims.length > 1 ) {
+                for ( int i = 0; i < dims.length; i++ ) {
+                    if ( dims[i] > 1 ) {
+                        sigaxis = i + 1;
+                        break;
+                    }
+                }
+            }
+            astref = ASTJ.get1DFrameSet( astref, sigaxis );
 
             //  Create a AST FITS channel to read the headers.
             ASTFITSChan chan = new ASTFITSChan( "FITS-WCS" );

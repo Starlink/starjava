@@ -246,7 +246,6 @@ public class TXTSpecDataImpl
                 if ( raw.length() == 0 || raw.charAt(0) == '!' ||
                      raw.charAt(0) == '#' ) {
                     continue;
-                    //  TODO: restore shortname etc?
                 } 
                 else {
                     // Read at least one or two floating numbers from line

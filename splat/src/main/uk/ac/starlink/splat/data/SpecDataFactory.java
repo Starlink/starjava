@@ -289,7 +289,6 @@ public class SpecDataFactory
         URL url = null;
         try {
             url = new URL( "file:" + specspec + ".sdf" );
-            System.out.println( "NDF = " + url );
         }
         catch (MalformedURLException e) {
             throw new SplatException( e );
@@ -666,5 +665,48 @@ public class SpecDataFactory
     {
         SpecDataImpl impl = new NDXSpecDataImpl( ndx, shortName, fullName );
         return new SpecData( impl );
+    }
+
+    /**
+     * Cause an existing SpecData object to "re-open". This cause the object
+     * to re-visit the backing file if one exists. Throws a SplatException if
+     * the operation fails for any reason.
+     */
+    public void reOpen( SpecData specData )
+        throws SplatException
+    {
+        String specspec = specData.getFullName();
+        SpecDataImpl oldImpl = specData.getSpecDataImpl();
+        SpecDataImpl newImpl = null;
+
+        try {
+            if ( specData instanceof LineIDSpecData ) {
+                newImpl = new LineIDTXTSpecDataImpl( specspec );
+            }
+            else if ( oldImpl instanceof FITSSpecDataImpl ) {
+                newImpl = new FITSSpecDataImpl( specspec );
+            }
+            else if ( oldImpl instanceof NDFSpecDataImpl ) {
+                newImpl = new NDFSpecDataImpl( specspec );
+            }
+            else if ( oldImpl instanceof TXTSpecDataImpl ) {
+                newImpl = new TXTSpecDataImpl( specspec );
+            }
+            else if ( oldImpl instanceof NDXSpecDataImpl ) {
+                newImpl = new NDXSpecDataImpl( specspec );
+            }
+            else if ( oldImpl instanceof TableSpecDataImpl ) {
+                newImpl = new TableSpecDataImpl( specspec );
+            }
+            if ( newImpl != null ) {
+                specData.setSpecDataImpl( newImpl );
+            }
+            else {
+                throw new SplatException( "Cannot re-open: " + specspec );
+            }
+        }
+        catch (SplatException e) {
+            throw new SplatException( "Failed to re-open spectrum", e );
+        }
     }
 }

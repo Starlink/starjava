@@ -109,19 +109,52 @@ public class SpecData
 
     /**
      * Create an instance using the data in a given SpecDataImpl
-     * object.  Do not attempt to read the data. This is provided for
-     * sub-classes that will deal with the data at some later time.
+     * object.  Do not attempt to read the data if suggested. This variant is
+     * provided for sub-classes that will deal with the data at some later
+     * time.
      *
      * @param impl a concrete implementation of a SpecDataImpl class that
      *             will be used for spectral data in of some format.
-     * @param check if true then a check for the presence of data will
-     *              be made, before attempting a read. Otherwise no
-     *              check will be made and either absence will be
-     *              indicated by throwing an error.
+     * @param check if true then a check for the presence of data will be
+     *              made, before attempting a read. Otherwise no check will be
+     *              made and problems will be indicated by throwing an error
+     *              at a later time.
      * @exception SplatException thrown if there are problems obtaining
      *            spectrum information.
      */
     protected SpecData( SpecDataImpl impl, boolean check )
+        throws SplatException
+    {
+        setSpecDataImpl( impl, check );
+    }
+
+    /**
+     * Set the {@link SpecDataImpl} instance.
+     *
+     * @param impl a concrete implementation of a SpecDataImpl class that
+     *             will be used for spectral data in of some format.
+     * @exception SplatException thrown if there are problems obtaining
+     *            spectrum information.
+     */
+    public void setSpecDataImpl( SpecDataImpl impl )
+        throws SplatException
+    {
+        setSpecDataImpl( impl, false );
+    }
+
+    /**
+     * Set the {@link SpecDataImpl} instance.
+     *
+     * @param impl a concrete implementation of a SpecDataImpl class that
+     *             will be used for spectral data in of some format.
+     * @param check if true then a check for the presence of data will be
+     *              made, before attempting a read. Otherwise no check will be
+     *              made and problems will be indicated by throwing an error
+     *              at a later time.
+     * @exception SplatException thrown if there are problems obtaining
+     *            spectrum information.
+     */
+    protected void setSpecDataImpl( SpecDataImpl impl, boolean check )
         throws SplatException
     {
         this.impl = impl;
@@ -130,6 +163,18 @@ public class SpecData
         if ( ! check || ( check && impl.getData() != null  ) ) {
             readData();
         }
+    }
+
+    /**
+     * Return the SpecDataImpl object so that it can expose very data specific
+     * methods (if needed, you really shouldn't use this).
+     *
+     * @return SpecDataImpl object defining the data access used by this
+     *      instance.
+     */
+    public SpecDataImpl getSpecDataImpl()
+    {
+        return impl;
     }
 
     /**
@@ -574,9 +619,10 @@ public class SpecData
      */
     public SpecData getSubSet( String name, double[] ranges )
     {
+
         //  Locate the index of the positions just below and above our
-        //  physical value pairs and count the number of values that
-        //  will be deleted.
+        //  physical value pairs and count the number of values that will be
+        //  deleted.
         int nRanges = ranges.length / 2;
         int[] lower = new int[nRanges];
         int[] upper = new int[nRanges];
@@ -595,10 +641,9 @@ public class SpecData
             return null;
         }
 
-        //  Copy remaining data. The size of result spectrum is
-        //  the current size, minus the number of positions that will
-        //  be erased, plus one per range to hold the BAD value to
-        //  form the break.
+        //  Copy remaining data. The size of result spectrum is the current
+        //  size, minus the number of positions that will be erased, plus one
+        //  per range to hold the BAD value to form the break.
         int nkeep = xPos.length - ndelete + nRanges;;
         double[] newCoords = new double[nkeep];
         double[] newData = new double[nkeep];
@@ -667,9 +712,11 @@ public class SpecData
 
     /**
      * Create a new (memory-resident) spectrum from the given data and
-     * coordinates (looses WCS as new coords are assumed no longer
-     * directly related, i.e.<!-- --> indices of data do not map to proper
-     * coordinates using the WCS).
+     * coordinates. This looses the full WCS as new coords are assumed no
+     * longer directly related, i.e.<!-- --> indices of data do not map to
+     * proper coordinates using the WCS, but the coordinate system of the
+     * spectrum should be preserved (using the SpecFrame to reconstruct a new
+     * WCS).
      */
     protected SpecData createNewSpectrum( String name, double[] coords,
                                           double[] data, double[] errors )
@@ -677,11 +724,13 @@ public class SpecData
         EditableSpecData newSpec = null;
         try {
             newSpec = SpecDataFactory.getInstance().createEditable( name );
+            FrameSet frameSet = ASTJ.get1DFrameSet( astJ.getRef(),
+                                                    getMostSignificantAxis() );
             if ( errors == null ) {
-                newSpec.setDataQuick( coords, data );
+                newSpec.setSimpleUnitDataQuick( frameSet, coords, data );
             }
             else {
-                newSpec.setDataQuick( coords, data, errors );
+                newSpec.setSimpleUnitDataQuick( frameSet, coords, data, errors );
             }
         }
         catch ( Exception e ) {
@@ -725,12 +774,11 @@ public class SpecData
     }
 
     /**
-     * Get reference to the FrameSet that is used by the
-     * SpecDataImpl. Note this may not be 1D. It is made available
-     * mainly for creating copies of SpecData (the ASTJ FrameSet is
-     * not suitable for writing to disk file). Do not confuse this
-     * with the {@link #getAst()} FrameSet, it is the original dataset
-     * FrameSet.
+     * Get reference to the FrameSet that is used by the SpecDataImpl. Note
+     * this may not be 1D. It is made available mainly for creating copies of
+     * SpecData (the ASTJ FrameSet is not suitable for writing directly to
+     * disk file). Do not confuse this with the {@link #getAst()} FrameSet, it
+     * is the original dataset FrameSet.
      */
     public FrameSet getFrameSet()
     {
@@ -756,19 +804,6 @@ public class SpecData
     public String getDataFormat()
     {
         return impl.getDataFormat();
-    }
-
-
-    /**
-     * Return the SpecDataImpl object so that it can expose very data specific
-     * methods (if needed, you really shouldn't use this).
-     *
-     * @return SpecDataImpl object defining the data access used by this
-     *      instance.
-     */
-    public SpecDataImpl getSpecDataImpl()
-    {
-        return impl;
     }
 
 
@@ -1042,11 +1077,10 @@ public class SpecData
 
 
     /**
-     * Read the data from the spectrum into local arrays.
-     * This also initialises a suitable AST frameset to describe
-     * the coordinate system in use and establishes the minimum and
-     * maximum ranges for both coordinates (X, i.e. the wavelength
-     * and Y, i.e. data count).
+     * Read the data from the spectrum into local arrays.  This also
+     * initialises a suitable AST frameset to describe the coordinate system
+     * in use and establishes the minimum and maximum ranges for both
+     * coordinates (X, i.e. the wavelength and Y, i.e. data count).
      *
      * @exception SplatException thrown if an error condition is encountered.
      */
@@ -1083,16 +1117,7 @@ public class SpecData
 
         //  Get the dimensionality of the spectrum. If more than 1 we
         //  need to pick out a significant axis to work with.
-        int sigaxis = 1;
-        int dims[] = impl.getDims();
-        if ( dims.length > 1 ) {
-            for ( int i = 0; i < dims.length; i++ ) {
-                if ( dims[i] > 1 ) {
-                    sigaxis = i + 1;
-                    break;
-                }
-            }
-        }
+        int sigaxis = getMostSignificantAxis();
 
         //  Get the AST component (this should define the wavelength
         //  axis coordinates, somehow).
@@ -1107,9 +1132,9 @@ public class SpecData
 
             //  Create a frameset that is suitable for displaying a
             //  "spectrum". This has a coordinate X axis and a data Y
-            //  axis. The coordinates are chosen to run along the
-            //  sigaxis (if input data has more than one dimension)
-            //  and may be a distance, rather than absolute coordinate.
+            //  axis. The coordinates are chosen to run along the sigaxis (if
+            //  input data has more than one dimension) and may be a distance,
+            //  rather than absolute coordinate.
             FrameSet specref = null;
             try {
                 specref = ast.makeSpectral( sigaxis, 0, yPos.length,
@@ -1152,6 +1177,26 @@ public class SpecData
                 throw new SplatException( e );
             }
         }
+    }
+
+
+    /**
+     * Return the most significant axis of the data held by the
+     * implemenation. This is the default axis that is used.
+     */
+    protected int getMostSignificantAxis()
+    {
+        int sigaxis = 1;
+        int dims[] = impl.getDims();
+        if ( dims.length > 1 ) {
+            for ( int i = 0; i < dims.length; i++ ) {
+                if ( dims[i] > 1 ) {
+                    sigaxis = i + 1;
+                    break;
+                }
+            }
+        }
+        return sigaxis;
     }
 
     /**
@@ -1846,14 +1891,16 @@ public class SpecData
         throws IOException, ClassNotFoundException
     {
         try {
+            //  XXX how to restore the Ast FrameSets describing the spectral
+            //  coordinates...
             in.defaultReadObject();
             MEMSpecDataImpl newImpl = new MEMSpecDataImpl( shortName );
             fullName = null;
             if ( haveYDataErrors() ) {
-                newImpl.setData( getXData(), getYData(), getYDataErrors() );
+                newImpl.setSimpleData( getXData(), getYData(), getYDataErrors() );
             }
             else {
-                newImpl.setData( getXData(), getYData() );
+                newImpl.setSimpleData( getXData(), getYData() );
             }
             this.impl = newImpl;
             readData();
