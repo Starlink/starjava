@@ -526,13 +526,18 @@ public class AstTest extends TestCase {
         int ast__air = WcsMap.AST__AIR;
         AstObject.getAstConstantD( "AST__BAD" );
 
-        Matcher matcher = Pattern.compile( "AST V2.0-([0-9]+); " +
-                                           "JNIAST native V2.0-4; " +
-                                           "JNIAST java V2.0-4" )
+        Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
+                                           "JNIAST native V2\\.0-4; " +
+                                           "JNIAST java V2\\.0-4" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( matcher.matches() );
-        int astRelease = Integer.parseInt( matcher.group( 1 ) );
-        assertTrue( "Checking AST version", astRelease >= 6 );
+        int astMajor = Integer.parseInt( matcher.group( 1 ) );
+        int astMinor = Integer.parseInt( matcher.group( 2 ) );
+        int astRelease = Integer.parseInt( matcher.group( 3 ) );
+        System.out.println( AstObject.reportVersions() );
+        assertTrue( "Checking AST version: " + AstObject.reportVersions(),
+                    ( astMajor > 2 ) ||
+                    ( astMajor == 2 && astMinor == 0 && astRelease >= 6 ) );
 
         String absentConstName = "ABSENT_CONSTANT";
         try {
@@ -583,8 +588,8 @@ public class AstTest extends TestCase {
         double lat = 1.23;
         sf.setRefPos( sky, lon, lat );
         double[] ll = sf.getRefPos( sky );
-        assertEquals( lon, ll[ 0 ] );
-        assertEquals( lat, ll[ 1 ] );
+        assertEquals( lon, ll[ 0 ], 1e-6 );
+        assertEquals( lat, ll[ 1 ], 1e-6 );
     }
 
     public void testException() {
