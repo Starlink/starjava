@@ -67,10 +67,31 @@ but the result of an SQL query on that table.  If you want to view
 the whole table you may use the query "SELECT * FROM table-name",
 but be aware that such a query may be expensive on a large table.
 
-<p>TOPCAT has so far only been tested with the 
-<a href="http://www.mysql.org/">MySQL</a> database and its
-<a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a>
-JDBC driver.  Other databases and drivers may or may not work.
+
+<h5>Known drivers</h5>
+
+<p>To the author's knowledge, 
+TOPCAT has so far only been used with the following RDBMSs and drivers:
+<dl>
+
+<dt><a href="http://www.mysql.org/">MySQL</a>
+<dd>MySQL 3.23.55 on Linux has been tested with the  
+    <a href="http://mirrors.sunsite.dk/mysql/products/connector-j/">Connector/J</a>
+    driver version 3.0.8 and seems to work, though tables with very
+    many columns cannot be written owing to SQL statement length restrictions.
+    Note there is known to be a column metadata bug in version 3.0.6 of the
+    driver which can cause a ClassCastException error when tables are written.
+
+<dt><a href="http://www.postgresql.org/">PostgreSQL</a>
+<dd>PostgreSQL 7.3.3 has been used, and its JDBC driver has a bug 
+    which prevents correct operation.  Jonathan Irwin has kindly
+    submitted a 
+    <a href="http://www.ast.cam.ac.uk/~jmi/postgresql/">fix for this</a>.
+
+</dl>
+
+Other RDBMSs and drivers may or may not work - please let us know the
+results of any experiments you carry out.
 
 </body>
 </html>
