@@ -192,7 +192,8 @@ class Encoder {
 
     /**
      * Returns any text which should go inside the FIELD (or PARAM) element
-     * corresponding to this Encoder.
+     * corresponding to this Encoder.  Such text may contain XML markup,
+     * so should not be further escaped.
      *
      * @return  a string containing XML text for inside the FIELD element -
      *          may be empty but will not be <tt>null</tt>
@@ -204,7 +205,7 @@ class Encoder {
             if ( desc.length() > 0 ) {
                 return new StringBuffer()
                     .append( "<DESCRIPTION>" )
-                    .append( desc )
+                    .append( VOTableWriter.formatText( desc ) )
                     .append( "</DESCRIPTION>" )
                     .toString();
             }
