@@ -261,7 +261,7 @@ public class Navigator extends CatalogNavigator implements CatalogNavigatorOpene
 
             File file = File.createTempFile("jsky", suffix, new File(dir));
 	    
-	    System.out.println("XXX loadImage: file = " + file);
+	    //System.out.println("XXX loadImage: file = " + file);
 
             ProgressPanel progressPanel = getProgressPanel();
             ProgressBarFilterInputStream in = progressPanel.getLoggedInputStream(url);
