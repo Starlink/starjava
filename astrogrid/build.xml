@@ -483,8 +483,7 @@
          <jar href="${name}/${name}.jar"/>
 
          <!-- Name any extension packages we directly depend on -->
-         <extension name="AstroGrid CDK" href="astrogrid.jnlp"/>
-         <extension name="TABLE" href="table.jnlp"/>
+         <extension name="AGLIB" href="aglib.jnlp"/>
        </resources>
 
        <!-- This is a component -->
