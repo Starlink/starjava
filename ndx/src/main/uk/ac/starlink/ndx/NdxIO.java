@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
+import uk.ac.starlink.util.Loader;
 import uk.ac.starlink.util.URLUtils;
 
 /**
@@ -46,6 +47,14 @@ public class NdxIO {
     private List handlers;
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.ndx" );
 
+    static {
+        /*
+         * Load system properties from global config file.
+         * Specifically, we might need to set http.proxyHost and http.proxyPort.
+         */
+        Loader.loadProperties();
+    }
+
     /**
      * Constructs an NdxIO with a default list of handlers.
      */
@@ -66,10 +75,10 @@ public class NdxIO {
                 Method meth = clazz.getMethod( "getInstance", noParams );
                 NdxHandler handler = (NdxHandler) meth.invoke( null, noArgs );
                 defaultHandlers.add( handler );
-                // logger.info( className + " registered" );
+                logger.config( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
-                logger.warning( className + " not found - can't register" );
+                logger.config( className + " not found - can't register" );
             }
             catch ( InvocationTargetException e ) {
 
@@ -84,16 +93,16 @@ public class NdxIO {
                              .invoke( null, noArgs );
                     }
                     catch ( Exception e2 ) {
-                        logger.warning( className + " " + e2 +
-                                        " - can't register" );
+                        logger.config( className + " " + e2 +
+                                       " - can't register" );
                     }
                 }
                 else {
-                    logger.warning( className + " " + e + " - can't register" );
+                    logger.config( className + " " + e + " - can't register" );
                 }
             }
             catch ( Exception e ) {
-                logger.warning( className + " " + e + " - can't register" );
+                logger.config( className + " " + e + " - can't register" );
             }
 
             /* Attempt to add a FitsNdxHandler if the class is available. */
@@ -103,13 +112,13 @@ public class NdxIO {
                 Method meth = clazz.getMethod( "getInstance", noParams );
                 NdxHandler handler = (NdxHandler) meth.invoke( null, noArgs );
                 defaultHandlers.add( handler );
-                // logger.info( className + " registered" );
+                logger.config( className + " registered" );
             }
             catch ( ClassNotFoundException e ) {
-                logger.warning( className + " not found - can't register" );
+                logger.config( className + " not found - can't register" );
             }
             catch ( Exception e ) {
-                logger.warning( className + e + " - can't register" );
+                logger.config( className + e + " - can't register" );
             }
 
             /* Add the XMLNdxHandler. */
@@ -118,24 +127,6 @@ public class NdxIO {
 
         /* Set the handler list for this object from the default list. */
         handlers = new ArrayList( defaultHandlers );
-
-        /* Find the file .stardev.properties in the user's home
-         * directory, if it exists, and read System properties from
-         * that.  Specifically, we might need to set
-         * http.proxyHost and http.proxyPort.  XXX Is this the best
-         * way/place/filename to use here??? */
-        try {
-            java.util.Properties sysprops = System.getProperties();
-            sysprops.load(new java.io.FileInputStream
-                          (sysprops.getProperty("user.home")
-                           + sysprops.getProperty("file.separator")
-                           + ".stardev.properties"));
-            logger.info("NdxIO: loaded properties from .stardev.properties");
-        } catch (FileNotFoundException e) {
-            // Do nothing -- no file is OK
-        } catch (IOException e) {
-            logger.warning("NdxIO: properties file .stardev.properties exists, but couldn't be read");
-        }
     }
 
     /**
