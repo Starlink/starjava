@@ -137,7 +137,7 @@ public abstract class LoadQueryWindow extends QueryWindow {
         ((JComponent) getContentPane()).setTransferHandler( th );
 
         /* Add a help button. */
-        addHelp( "Read" );
+        addHelp( "load" );
         pack();
     }
 
