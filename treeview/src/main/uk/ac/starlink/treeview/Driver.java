@@ -121,14 +121,15 @@ public class Driver {
                     topNodes.add( node );
                 }
                 catch ( NoSuchDataException e ) {
-                    String msg = "\nNo such object \"" + arg + "\"\n";
-                    msg += "(tried";
-                    List tried = nodeFactory.getClassesTried();
-                    for ( Iterator it = tried.iterator(); it.hasNext(); ) {
-                        msg += it.toString()
-                             + ( it.hasNext() ? ":" : "" );
+                    String msg = "\nNo such object \"" + arg + "\"";
+                    if ( true ) {
+                        msg += " - tried:\n";
+                        List tried = nodeFactory.getClassesTried();
+                        for ( Iterator it = tried.iterator(); it.hasNext(); ) {
+                            msg += "    " + it.next().toString() + "\n";
+                        }
                     }
-                    msg += ".";
+                    msg += "\n";
                     exitWithError( msg );
                     throw new Error();  // not reached
                 }
