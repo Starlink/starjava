@@ -25,11 +25,13 @@ public class VOTableTableDataNode extends VOComponentDataNode {
     private StarTable startable;
     private JComponent fullView;
     private String desc;
+    private DOMSource domsrc;
 
     public VOTableTableDataNode( Source xsrc ) throws NoSuchDataException {
         super( xsrc, "TABLE" );
+        domsrc = new DOMSource( vocel, systemId );
         try {
-            votable = Table.makeTable( new DOMSource( vocel, systemId ) );
+            votable = Table.makeTable( domsrc );
         }
         catch ( VOTableFormatException e ) {
             throw new NoSuchDataException( e );
@@ -100,7 +102,7 @@ public class VOTableTableDataNode extends VOComponentDataNode {
 
     private StarTable getStarTable() throws IOException {
         if ( startable == null ) {
-            startable = Tables.randomTable( new VOStarTable( votable ) );
+            startable = Tables.randomTable( new VOStarTable( domsrc ) );
 
             /* Remove the "Description" parameter since it is treated 
              * specially by VOTable nodes. */

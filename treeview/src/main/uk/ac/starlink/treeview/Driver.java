@@ -17,6 +17,9 @@ public class Driver {
     public static boolean hasAST;
     public static boolean hasHDS;
     public static boolean hasJAI;
+    public static boolean hasGUI;
+
+    public static StaticTreeViewer treeviewer;
 
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.treeview" );
@@ -24,6 +27,9 @@ public class Driver {
     public static void main( String[] args ) {
         boolean textView = false;
         short orient = StaticTreeViewer.DETAIL_BESIDE;
+
+        /* Ensure that global preferences are installed. */
+        Loader.loadProperties();
 
         /* Ensure we have best guesses for various properties. */
         guessProperties();
@@ -49,6 +55,8 @@ public class Driver {
         nodeTypeFlags.put( "-file", FileDataNode.class );
         nodeTypeFlags.put( "-plain", PlainDataNode.class );
         nodeTypeFlags.put( "-comp", CompressedDataNode.class );
+        nodeTypeFlags.put( "-jdbc", JDBCDataNode.class );
+        nodeTypeFlags.put( "-table", StarTableDataNode.class );
         nodeTypeFlags.put( "-src", PlainDataNode.class );
         if ( hasHDS ) {
             nodeTypeFlags.put( "-ary", ARYDataNode.class );
@@ -182,6 +190,7 @@ public class Driver {
         }
         else {
             viewAsGUI( root, orient );
+            hasGUI = true;
         }
     }
 
@@ -197,6 +206,7 @@ public class Driver {
             }
         } );
         tv.setVisible( true );
+        treeviewer = tv;
     }
 
     public static void viewAsText( DataNode root ) {

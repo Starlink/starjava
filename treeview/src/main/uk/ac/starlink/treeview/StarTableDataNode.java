@@ -1,19 +1,83 @@
 package uk.ac.starlink.treeview;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.StarTableFactory;
+import uk.ac.starlink.table.Tables;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.jdbc.JDBCHandler;
+import uk.ac.starlink.table.jdbc.SwingAuthenticator;
+import uk.ac.starlink.table.jdbc.TerminalAuthenticator;
+import uk.ac.starlink.util.DataSource;
 
 /**
- * Currently used only to house utility methods generic to 
- * StarTable presentation.
- * May one day come to implement DataNode.
+ * DataNode representing a StarTable.
  */
-public class StarTableDataNode {
+public class StarTableDataNode extends DefaultDataNode {
+
+    private StarTable startable;
+    private String name;
+    private String description;
+    private JComponent fullView;
+
+    private static StarTableFactory tabfact;
+
+    public StarTableDataNode( StarTable startable ) {
+        this.startable = startable;
+        DescribedValue nameval = startable.getParameterByName( "name" );
+        name = ( nameval == null ) ? "Table"
+                                   : nameval.getValue().toString();
+        setLabel( name );
+        long nrow = startable.getRowCount();
+        description = new StringBuffer()
+           .append( startable.getColumnCount() )
+           .append( 'x' )
+           .append( nrow > 0 ? Long.toString( nrow ) : "*" )
+           .toString();
+    }
+
+    public StarTableDataNode( String loc ) throws NoSuchDataException {
+        this( makeStarTable( loc ) );
+    }
+
+    public StarTableDataNode( DataSource datsrc ) throws NoSuchDataException {
+        this( makeStarTable( datsrc ) );
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Icon getIcon() {
+        return IconFactory.getInstance().getIcon( IconFactory.TABLE );
+    }
+
+    public String getNodeTLA() {
+        return "TAB";
+    }
+
+    public String getNodeType() {
+        return "StarTable";
+    }
+
+    public JComponent getFullView() {
+        if ( fullView == null ) {
+            DetailViewer dv = new DetailViewer( this );
+            fullView = dv.getComponent();
+            addDataViews( dv, startable );
+        }
+        return fullView;
+    }
 
     public static void addDataViews( DetailViewer dv, 
                                      final StarTable startable ) {
@@ -63,11 +127,59 @@ public class StarTableDataNode {
             } );
         }
         dv.addPane( "Table data", new ComponentMaker() {
-            public JComponent getComponent() {
-                StarJTable sjt = new StarJTable( startable, true );
+            public JComponent getComponent() throws IOException {
+                StarTable rtab = Tables.randomTable( startable );
+                StarJTable sjt = new StarJTable( rtab, true );
                 sjt.configureColumnWidths( 800, 100 );
                 return sjt;
             }
         } );
     }
+
+    public StarTable getStarTable() {
+        return startable;
+    }
+
+    public static StarTable makeStarTable( String loc )
+            throws NoSuchDataException {
+        try {
+            return getTableFactory().makeStarTable( loc );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
+    }
+
+    public static StarTable makeStarTable( DataSource datsrc )
+            throws NoSuchDataException {
+        try {
+            return getTableFactory().makeStarTable( datsrc );
+        }
+        catch ( IOException e ) {
+            throw new NoSuchDataException( e );
+        }
+    }
+
+    public static StarTableFactory getTableFactory() {
+        if ( tabfact == null ) {
+            tabfact = new StarTableFactory() {
+                public JDBCHandler getJDBCHandler() {
+                    JDBCHandler handler = super.getJDBCHandler();
+
+                    /* If we're operating a GUI by now, ensure that the
+                     * authentication is done in a GUI fashion. */
+                    if ( handler.getAuthenticator() 
+                         instanceof TerminalAuthenticator &&
+                         Driver.hasGUI ) {
+                        SwingAuthenticator auth = new SwingAuthenticator();
+                        auth.setParentComponent( Driver.treeviewer );
+                        handler.setAuthenticator( auth );
+                    }
+                    return handler;
+                }
+            };
+        }
+        return tabfact;
+    }
+    
 }

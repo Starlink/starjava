@@ -605,7 +605,11 @@ public class StaticTreeViewer extends JFrame {
         Action chooseNewNameAct = new AbstractAction( "Open name" ) {
             public void actionPerformed( ActionEvent event ) {
                 String name = JOptionPane
-                             .showInputDialog( "Name of the new node" );
+                             .showInputDialog( StaticTreeViewer.this, 
+                                               "Name of the new node" );
+                if ( name == null ) {
+                    return;
+                }
                 DataNode dnode;
                 try {
                     dnode = nodeMaker.makeDataNode( DataNode.ROOT, name );

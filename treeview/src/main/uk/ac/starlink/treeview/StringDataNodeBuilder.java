@@ -44,6 +44,16 @@ public class StringDataNodeBuilder extends DataNodeBuilder {
             return fileBuilder.buildNode( file );
         }
 
+        /* If it looks like a JDBC URL, pass it to StarTable. */
+        if ( string.startsWith( "jdbc:" ) ) {
+            try {
+                return configureNode( new JDBCDataNode( string ), string );
+            }
+            catch ( NoSuchDataException e ) {
+                // oh well.
+            }
+        }
+
         /* Try to turn it into a URL and use that as a data source. */
         try {
             URL url = new URL( string );

@@ -31,6 +31,8 @@ import uk.ac.starlink.util.DataSource;
  * <li> {@link TarStreamDataNode}
  * <li> {@link NDArrayDataNode}
  * <li> {@link FITSStreamDataNode}
+ * <li> {@link JDBCDataNode}
+ * <li> {@link StarTableDataNode}
  * <li> {@link CompressedDataNode}
  * <li> {@link FileDataNode}
  * <li> {@link PlainDataNode}
@@ -368,6 +370,8 @@ public class DataNodeFactory implements Cloneable {
                 TarStreamDataNode.class,
                 NDArrayDataNode.class,
                 FITSStreamDataNode.class,
+                JDBCDataNode.class,
+                StarTableDataNode.class,
                 CompressedDataNode.class,
                 FileDataNode.class,
                 PlainDataNode.class,
