@@ -87,7 +87,7 @@ import uk.ac.starlink.diva.DragRegion;
  * A PlotControl object consists of a Plot inside a scrolled pane and various
  * controls in a panel. The Plot allows you to display many spectra. Plots
  * wrapped by this object are given a name that is unique within an
- * application (<plotn>) and are assigned an identifying number 
+ * application (<plotn>) and are assigned an identifying number
  * (0 upwards). <p>
  *
  * The controls in the panel allow you to:
@@ -121,8 +121,8 @@ import uk.ac.starlink.diva.DragRegion;
  */
 public class PlotControl
     extends JPanel
-    implements PlotController, MouseMotionTracker, SpecListener, 
-               FigureListener, PlotScaledListener, ActionListener 
+    implements PlotController, MouseMotionTracker, SpecListener,
+               FigureListener, PlotScaledListener, ActionListener
 {
     /**
      * DivaPlot object for displaying the spectra.
@@ -224,7 +224,7 @@ public class PlotControl
     public PlotControl()
     {
         try {
-            spectra = new SpecDataComp();            
+            spectra = new SpecDataComp();
             initUI();
         }
         catch ( Exception e ) {
@@ -293,7 +293,7 @@ public class PlotControl
         catch (Exception e) {
             // Ignored, not essential.
         }
-        
+
     }
 
     /**
@@ -501,9 +501,9 @@ public class PlotControl
         gbc.anchor = GridBagConstraints.EAST;
 
         //  Create the plus/minus increment buttons.
-        ImageIcon plusImage = 
+        ImageIcon plusImage =
             new ImageIcon( ImageHolder.class.getResource( "plus.gif" ) );
-        ImageIcon minusImage = 
+        ImageIcon minusImage =
             new ImageIcon( ImageHolder.class.getResource( "minus.gif" ) );
 
         xIncr.setIcon( plusImage );
@@ -897,7 +897,7 @@ public class PlotControl
      */
     protected PrintService[] getPostscriptPrintServices( String fileName )
         throws SplatException
-    {       
+    {
         FileOutputStream outstream;
         StreamPrintService psPrinter;
         String psMimeType = "application/postscript";
@@ -956,7 +956,7 @@ public class PlotControl
     public void print()
         throws SplatException
     {
-        PrintService[] services = PrinterJob.lookupPrintServices(); 
+        PrintService[] services = PrinterJob.lookupPrintServices();
         if ( services.length == 0 ) {
 
             // No actual print services are available (i.e. no valid local
@@ -1115,7 +1115,7 @@ public class PlotControl
         throws SplatException
     {
         // NOTE: This method may be used by TOPCAT classes.
-        // At time of writing, TOPCAT calls this method, followed by 
+        // At time of writing, TOPCAT calls this method, followed by
         // updateThePlot(null), to change the data conten of the plot.
 
         this.spectra = spectra;
@@ -1268,7 +1268,7 @@ public class PlotControl
     /**
      * Update the plot. Should be called when events that require the Plot to
      * redraw itself occur (i.e. when spectra are added or removed and when
-     * the Plot configuration is changed). 
+     * the Plot configuration is changed).
      * <p>
      * If referenceSpec is set then any DataLimit values held by the Plot will
      * be transformed from the coordinates of the referenceSpec to the
@@ -1280,9 +1280,8 @@ public class PlotControl
         throws SplatException
     {
         // NOTE: This method may be used by TOPCAT classes.
-        // At time of writing, TOPCAT calls this method, following 
+        // At time of writing, TOPCAT calls this method, following
         // setSpecDataComp, to change the data in the plot window.
-
         if ( referenceSpec != null ) {
             try {
                 DataLimits dataLimits = plot.getDataLimits();
@@ -1291,9 +1290,10 @@ public class PlotControl
                 range[1] = dataLimits.getXUpper();
                 range[2] = dataLimits.getYLower();
                 range[3] = dataLimits.getYUpper();
-                range = spectra.transformRange( getCurrentSpectrum(), 
-                                                referenceSpec,
-                                                range );
+                range = spectra.transformRange(getCurrentSpectrum(),
+                                               referenceSpec,
+                                               range,
+                                               spectra.isDataUnitsMatching());
                 dataLimits.setXLower( range[0] );
                 dataLimits.setXUpper( range[1] );
                 dataLimits.setYLower( range[2] );
@@ -1312,7 +1312,7 @@ public class PlotControl
 
         if ( referenceSpec == null ) {
             //  Get a normal redraw. Note plot.update may throw a
-            //  SplatException. 
+            //  SplatException.
             plot.update();
         }
 
@@ -1339,7 +1339,7 @@ public class PlotControl
     }
 
     /**
-     * Set whether the percentile cuts also have a fit to Y scale 
+     * Set whether the percentile cuts also have a fit to Y scale
      * automatically applied.
      */
     public void setAutoFitPercentiles( boolean autofit )
@@ -1517,7 +1517,7 @@ public class PlotControl
 //
     /**
      * Respond to selection of a new spectrum as the current one. This makes
-     * the selected spectrum current in the global list and forces the Plot 
+     * the selected spectrum current in the global list and forces the Plot
      * to undergo a re-draw.
      *
      * @param e object describing the event.
@@ -1528,7 +1528,7 @@ public class PlotControl
             globalList.setCurrentSpectrum
                 ( globalList.getSpectrumIndex( getCurrentSpectrum() ) );
             // Could change underlying coordinates/labelling etc.
-            updateThePlot( spectra.getLastCurrentSpectrum() ); 
+            updateThePlot( spectra.getLastCurrentSpectrum() );
         }
         catch ( Exception ex ) {
             // Do nothing
@@ -1557,11 +1557,11 @@ public class PlotControl
     {
         return plot.getBackground();
     }
-    
+
     public Frame getPlotCurrentFrame()
     {
         // Return current Frame of the graphics FrameSet.
         return (Frame) plot.getSpecDataComp().getAst().getRef();
     }
-    
+
 }
