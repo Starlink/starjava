@@ -33,7 +33,6 @@ import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Requirements;
 import uk.ac.starlink.ast.FrameSet;
-import uk.ac.starlink.datanode.nodes.ArrayContainer;
 import uk.ac.starlink.datanode.nodes.ColumnsMetamapGroup;
 import uk.ac.starlink.datanode.nodes.ComponentMaker;
 import uk.ac.starlink.datanode.nodes.DataNode;
