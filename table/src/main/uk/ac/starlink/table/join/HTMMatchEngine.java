@@ -141,21 +141,26 @@ public class HTMMatchEngine implements MatchEngine {
      *         of the position to test
      */
     public Object[] getBins( Object[] radec ) {
-        Circle zone = new Circle( ((Number) radec[ 0 ]).doubleValue(),
-                                  ((Number) radec[ 1 ]).doubleValue(),
-                                  arcminSep );
-        HTMrange range = htm.intersect( zone.getDomain() );
-        List binList = new ArrayList();
-        try {
-            for ( Iterator it = new HTMrangeIterator( range, false ); 
-                  it.hasNext(); ) {
-                binList.add( it.next() );
+        if ( radec[ 0 ] instanceof Number && radec[ 1 ] instanceof Number ) {
+            Circle zone = new Circle( ((Number) radec[ 0 ]).doubleValue(),
+                                      ((Number) radec[ 1 ]).doubleValue(),
+                                      arcminSep );
+            HTMrange range = htm.intersect( zone.getDomain() );
+            List binList = new ArrayList();
+            try {
+                for ( Iterator it = new HTMrangeIterator( range, false ); 
+                      it.hasNext(); ) {
+                    binList.add( it.next() );
+                }
             }
+            catch ( HTMException e ) {
+                throw new RuntimeException( "Uh-oh", e );
+            }
+            return binList.toArray();
         }
-        catch ( HTMException e ) {
-            throw new RuntimeException( "Uh-oh", e );
+        else {
+            return NO_BINS;
         }
-        return binList.toArray();
     }
 
     public ValueInfo[] getTupleInfos() {
