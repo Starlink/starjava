@@ -37,10 +37,10 @@
     <FIELD name="NoteFlag" ucd="REMARKS" datatype="char">
       <DESCRIPTION>*[#*] a note exists in the file "notes"</DESCRIPTION>
     </FIELD>
-    <FIELD name="RA1900" ucd="POS_EQ_RA_MAIN" ref="B1900" datatype="char" arraysize="7" unit="&quot;h:m:s&quot;">
+    <FIELD name="RA1900" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="7" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>Right Ascension 1900 (hours)</DESCRIPTION>
     </FIELD>
-    <FIELD name="DE1900" ucd="POS_EQ_DEC_MAIN" ref="B1900" datatype="char" arraysize="6" unit="&quot;d:m:s&quot;">
+    <FIELD name="DE1900" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="6" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>Declination 1900 (sign)</DESCRIPTION>
     </FIELD>
     <FIELD name="Rmag" ucd="PHOT_PHG_R" datatype="float" width="4" precision="1" unit="mag">
@@ -79,10 +79,10 @@
       <DESCRIPTION>IRAS/SSC Source Name (1)</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/126/sources&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>Right Ascension 1950 (hours)</DESCRIPTION>
     </FIELD>
-    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>Declination 1950 (degrees)</DESCRIPTION>
     </FIELD>
     <FIELD name="ANGLE" ucd="ERROR" datatype="short" width="3">
@@ -170,11 +170,11 @@
       <DESCRIPTION>Variable star designation</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/214A/crossid&amp;Vname===${GCVS}"/>
     </FIELD>
-    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>? Hours RA, equinox 1950.0</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/gcvs&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>? Degrees Dec, equinox 1950.0</DESCRIPTION>
     </FIELD>
     <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="10*">
@@ -209,10 +209,10 @@
       <DESCRIPTION>NSV number</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/214A/nsv&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>?Hours RA, equinox 1950.0</DESCRIPTION>
     </FIELD>
-    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>?Degrees Dec, equinox 1950.0</DESCRIPTION>
     </FIELD>
     <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="5*">
@@ -251,10 +251,10 @@
       <DESCRIPTION>[1,14811]+= NSV number</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/219/nsv&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RA1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>? Hours RA, equinox 1950.0</DESCRIPTION>
     </FIELD>
-    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DE1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>? Degrees Dec, equinox 1950.0</DESCRIPTION>
     </FIELD>
     <FIELD name="VarType" ucd="VAR_CLASS" datatype="char" arraysize="5*">
@@ -293,10 +293,10 @@
       <DESCRIPTION>! Object from reference</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>[0,24[+=? Right ascension (B1950): hours</DESCRIPTION>
     </FIELD>
-    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>[0,90]? Declination: degrees</DESCRIPTION>
     </FIELD>
     <FIELD name="lambda" ucd="INST_WAVELENGTH_VALUE" datatype="float" width="7" precision="2" unit="um">
@@ -466,11 +466,11 @@
       <DESCRIPTION>! Object name</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;-c=${RAB1950}${DEB1950},eq=1950,rm=1" value=" ${name}"/>
     </FIELD>
-    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>[0,24[? Right ascension (B1950): hours</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/names&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>[0,90]? Declination (B1950): degrees</DESCRIPTION>
     </FIELD>
 
@@ -519,11 +519,11 @@
       <DESCRIPTION>! Source object name in IRAS PSC</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-4?-info=XML&amp;-out.add=.&amp;-source=II/225/catalog&amp;-c=${RAB1950}${DEB1950},eq=1950,rm=1" value=" ${IRAS}"/>
     </FIELD>
-    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" ref="B1950" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
+    <FIELD name="RAB1950" ucd="POS_EQ_RA_MAIN" datatype="char" arraysize="10" unit="&quot;h:m:s&quot;">
       <DESCRIPTION>[0,24[ Right ascension (B1950): hours</DESCRIPTION>
       <LINK href="http://vizier.u-strasbg.fr/viz-bin/VizieR-5?-info=XML&amp;-out.add=.&amp;-source=II/225/psc&amp;recno=${recno}"/>
     </FIELD>
-    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" ref="B1950" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
+    <FIELD name="DEB1950" ucd="POS_EQ_DEC_MAIN" datatype="char" arraysize="9" unit="&quot;d:m:s&quot;">
       <DESCRIPTION>[0,90] Declination: degrees</DESCRIPTION>
     </FIELD>
     <FIELD name="F12um" ucd="PHOT_FLUX_IR_12" datatype="double" width="12" precision="4" unit="Jy">
