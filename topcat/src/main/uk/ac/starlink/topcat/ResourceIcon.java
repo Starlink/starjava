@@ -63,6 +63,7 @@ public class ResourceIcon implements Icon {
         LOAD = makeIcon( "Open24.gif" ),
         SAVE = makeIcon( "Save24.gif" ),
         PRINT = makeIcon( "Print24.gif" ),
+        IMAGE = makeIcon( "picture.gif" ),
         COPY = makeIcon( "Copy24.gif" ),
         REDO = makeIcon( "Redo24.gif" ),
         ADD = makeIcon( "Plus1.gif" ),
