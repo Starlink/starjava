@@ -25,17 +25,20 @@ import javax.media.jai.PlanarImage;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JLayeredPane;
 import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
 import jsky.coords.WorldCoordinateConverter;
 import jsky.image.ImageProcessor;
-import jsky.image.gui.ImageHistoryItem;
 import jsky.image.fits.codec.FITSImage;
+import jsky.image.gui.ImageHistoryItem;
 import jsky.navigator.NavigatorImageDisplay;
 import jsky.util.FileUtil;
 import jsky.util.gui.DialogUtil;
+import jsky.util.gui.ExampleFileFilter;
 
 import org.w3c.dom.Element;
 
@@ -119,7 +122,7 @@ public class SOGNavigatorImageDisplay
         JDesktopPane desktop = getDesktop();
         if ( desktop != null ) {
 
-            SOGNavigatorImageDisplayInternalFrame f = 
+            SOGNavigatorImageDisplayInternalFrame f =
                 new SOGNavigatorImageDisplayInternalFrame( desktop );
             f.getImageDisplayControl().getImageDisplay().setTitle(getTitle());
             f.setVisible( true );
@@ -130,7 +133,7 @@ public class SOGNavigatorImageDisplay
         }
         else {
 
-            SOGNavigatorImageDisplayFrame f = 
+            SOGNavigatorImageDisplayFrame f =
                 new SOGNavigatorImageDisplayFrame();
             f.getImageDisplayControl().getImageDisplay().setTitle(getTitle());
             f.setVisible( true );
@@ -194,7 +197,7 @@ public class SOGNavigatorImageDisplay
         else if ( _filename.endsWith( "xml" ) ||
                   _filename.endsWith( "sdf" )  ) {
             System.out.println( "Loading NDX: " + _filename );
-            //  HDX/NDF
+            //  HDX/NDF.
             try {
                 hdxImage = new HDXImage( _filename );
                 initHDXImage( hdxImage );
@@ -766,4 +769,41 @@ public class SOGNavigatorImageDisplay
         }
         return hdxImage.getRealHeight();
     }
+
+    /**
+     * Display a file chooser to select a filename to
+     * display. Overridden so that we can use our overridden
+     * makeImageFileChooser.
+     */
+    public void open() {
+        if ( fileChooser == null ) {
+            fileChooser = makeImageFileChooser();
+            setFileChooser( fileChooser );
+        }
+        super.open();
+    }
+    private JFileChooser fileChooser = null;
+
+    /**
+     * Create and return a new file chooser to be used to select an image file
+     * to display. Overridden to add HDS and HDX file types.
+     */
+     public static JFileChooser makeImageFileChooser() {
+         JFileChooser chooser = NavigatorImageDisplay.makeImageFileChooser();
+
+         FileFilter currentFilter = chooser.getFileFilter();
+
+         ExampleFileFilter hdsFilter =
+             new ExampleFileFilter( "sdf", "HDS container files" );
+         chooser.addChoosableFileFilter( hdsFilter );
+
+         ExampleFileFilter hdxFilter = 
+             new ExampleFileFilter( "xml", "HDX/NDX XML files");
+         chooser.addChoosableFileFilter( hdxFilter );
+
+         //  Restore the default filter.
+         chooser.setFileFilter( currentFilter );
+
+         return chooser;
+     }
 }
