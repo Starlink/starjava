@@ -754,6 +754,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
          *         plotted points
          */
         public ScatterPlotter( PlotState state, Plot plot, boolean autoSize ) {
+            super( "Plotter" );
             this.state = state;
             this.plot = plot;
             this.autoSize = autoSize;
@@ -785,9 +786,9 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 // no action
             }
             finally {
-                plot.repaint();
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
+                        plot.repaint();
                         if ( ScatterPlotter.this == activePlotter ) {
                             activePlotter = null;
                             setBusy( false );
@@ -808,10 +809,10 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             boolean xLog = state.xLog;
             boolean yLog = state.yLog;
             boolean plotline = state.plotline;
-            RowSubset[] rsets = state.subsetMask;
-            int nrsets = rsets.length;
+            final RowSubset[] rsets = state.subsetMask;
+            final int nrsets = rsets.length;
+            final long[] counts = new long[ nrsets ];
             boolean[] inclusions = new boolean[ nrsets ];
-            long[] counts = new long[ nrsets ];
 
             /* Iterate over the rows in the table. */
             long ngood = 0;
@@ -872,21 +873,25 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
             /* If we finished successfully, update the subset row counts
              * which we have calculated for free. */
-            int lo = -1;
-            int hi = lo;
-            for ( int i = 0; i < nrsets; i++ ) {
-                RowSubset rset = rsets[ i ];
-                if ( rset != null ) {
-                    subsetCounts.put( rset, new Long( counts[ i ] ) );
-                    if ( lo < 0 ) {
-                        lo = i;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int lo = -1;
+                    int hi = lo;
+                    for ( int i = 0; i < nrsets; i++ ) {
+                        RowSubset rset = rsets[ i ];
+                        if ( rset != null ) {
+                            subsetCounts.put( rset, new Long( counts[ i ] ) );
+                            if ( lo < 0 ) {
+                                lo = i;
+                            }
+                            hi = i;
+                        }
                     }
-                    hi = i;
+                    if ( lo >= 0 ) {
+                        subsets.fireContentsChanged( lo, hi );
+                    }
                 }
-            }
-            if ( lo >= 0 ) {
-                subsets.fireContentsChanged( lo, hi );
-            }
+            } );
         }
     }
 

@@ -321,6 +321,10 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
 
         private long currentRow;
 
+        public SubsetCounter() {
+            super( "Subset counter" );
+        }
+
         public void run() {
             count();
         }
@@ -333,11 +337,11 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
         void count() {
    
             /* Prepare for the calculations. */
-            RowSubset[] rsets = (RowSubset[]) 
-                                subsets.toArray( new RowSubset[ 0 ] );
-            int nrset = rsets.length;
+            final RowSubset[] rsets = (RowSubset[]) 
+                                      subsets.toArray( new RowSubset[ 0 ] );
+            final int nrset = rsets.length;
+            final long[] counts = new long[ nrset ];
             long nrow = dataModel.getRowCount();
-            long[] counts = new long[ nrset ];
 
             /* Prepare the progress bar for use. */
             progBar.setMaximum( (int) Math.min( (long) Integer.MAX_VALUE,
@@ -367,18 +371,19 @@ public class SubsetWindow extends AuxWindow implements ListDataListener {
             /* If we finished without being interrupted, act on the results
              * we calculated. */
             if ( currentRow == nrow ) {
-
-                /* Update the subset counts. */
-                for ( int i = 0; i < nrset; i++ ) {
-                    subsetCounts.put( rsets[ i ], new Long( counts[ i ] ) );
-                }
-
-                /* Notify listeners that the counts have changed. */
-                subsets.fireContentsChanged( 0, nrset - 1 );
-
-                /* Deactivate the progress bar. */
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
+
+                        /* Update the subset counts. */
+                        for ( int i = 0; i < nrset; i++ ) {
+                            subsetCounts.put( rsets[ i ],
+                                              new Long( counts[ i ] ) );
+                        }
+
+                        /* Notify listeners that the counts have changed. */
+                        subsets.fireContentsChanged( 0, nrset - 1 );
+
+                        /* Deactivate the progress bar. */
                         if ( activeCounter == SubsetCounter.this ) {
                             activeCounter = null;
                             progBar.setValue( 0 );
