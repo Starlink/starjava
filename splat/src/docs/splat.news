@@ -20,6 +20,15 @@
 
    Postscript output of a plot is now written in the named directory, not
    the default directory.
+ 
+   Add support for data units to the line identifier and simple text formats.
+
+   Add support for line identifiers to match against spectra that have data
+   units.
+
+   Serialised spectra stacks now include full coordinate information.
+
+   Example data can now be loaded from the Options menu.
 
 
 1 Starlink SPLAT now a tool for the Virtual Observatory
