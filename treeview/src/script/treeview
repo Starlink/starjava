@@ -29,54 +29,38 @@
 
 #  Find where this script is located.
 
-if test -z "$TREEVIEW_DIR"; then
-   TREEVIEW_DIR=`dirname $0`
-fi
-starjava_bin_dir="${TREEVIEW_DIR}"
-starjava_dir="$starjava_bin_dir/.."
+bindir="`dirname $0`"
 
 #  Locate referenced server dirs.
 
 if test -z "$SPLAT_DIR"; then
-   SPLAT_DIR="$starjava_bin_dir/splat"
+   SPLAT_DIR="$bindir/splat"
    export SPLAT_DIR
 fi
 if test -z "$SOG_DIR"; then
-   SOG_DIR="$starjava_bin_dir/sog"
+   SOG_DIR="$bindir/sog"
    export SOG_DIR
 fi
 
 #  Locate the application jar file.  This is relative to this script.
 
-appjar="$starjava_dir/lib/treeview/treeview.jar"
+appjar="$bindir/../lib/treeview/treeview.jar"
 if test ! -f "$appjar"; then
-   echo "Failed to locate the TREEVIEW jar file.  Please define TREEVIEW_DIR"
+   echo "Failed to locate $appjar."
+   exit 1
 fi
 
 #  Locate the java startup script.
 
-starjava="$starjava_bin_dir/starjava"
+starjava="$bindir/starjava"
 if test ! -f "$starjava"; then
-   echo "Failed to locate the 'starjava' script.  Trying with java on path"
-   starjava="java"
+   echo "Failed to locate '$bindir/starjava'."
+   exit 1
 fi
 
 #  Locate demo data.
 
-demodir="$starjava_dir/etc/treeview/demo"
-
-#  Work out the architecture name (value of the java os.arch system property)
-
-archname=`$starjava_bin_dir/archname`
-
-#  Make sure that we get the installed shareable libraries.
-
-if test -z "$LD_LIBRARY_PATH"; then
-   LD_LIBRARY_PATH="$starjava_dir/lib/$archname"
-else
-   LD_LIBRARY_PATH="$starjava_dir/lib/$archname:${LD_LIBRARY_PATH}"
-fi
-export LD_LIBRARY_PATH
+demodir="$bindir/../etc/treeview/demo"
 
 #  Run Treeview.
 
