@@ -219,9 +219,11 @@
    !   entered into the main jar file manifest.
    !-->
   <path id="package.jars">
+ <!--
      <fileset dir="${src.jars.dir}">
         <include name="*.jar"/>
      </fileset>
+ -->
   </path>
 
   <path id="built.classpath">
@@ -373,9 +375,11 @@
      !   make these available for resolution by other locally built
      !   packages that are using this one -->
     <mkdir dir="${dist.lib.pkg}"/>
+ <!--
     <copy todir="${dist.lib.pkg}">
        <fileset dir="${src.jars.dir}"/>
     </copy>
+ -->
 
   </target>
 
@@ -401,7 +405,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path"
-            value="../package1/package1.jar ../package2/package2.jar {...}"/>
+            value="/pal/pal.jar"/>
       </manifest>
     </jar>
 
@@ -429,30 +433,36 @@
 
     <!-- Make sure all the distribution directories exist -->
     <mkdir dir="${dist.dir}"/>
-    <mkdir dir="${dist.bin.pkg}"/>
+    <!-- <mkdir dir="${dist.bin.pkg}"/> -->
     <mkdir dir="${dist.lib.pkg}"/>
-    <mkdir dir="${dist.docs.pkg}"/>
-    <mkdir dir="${dist.etc.pkg}"/>
+    <!-- <mkdir dir="${dist.docs.pkg}"/> -->
+    <!-- <mkdir dir="${dist.etc.pkg}"/> -->
 
     <!-- Copy any configuration/helper scripts etc. -->
+  <!--
     <copy todir="${dist.bin.pkg}">
       <fileset dir="${script.dir}/" />
     </copy>
+  -->
 
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
+  <!--
     <copy todir="${dist.docs.pkg}">
       <fileset dir="${src.docs}"/>
     </copy>
+  -->
 
     <!-- Set permissions on contents of distribution directories -->
     <chmod perm="ugo+rx" dir="${dist.dir}" type="dir" includes="**"
            failonerror="${chmod.fail}"/>
     <chmod perm="ugo+r" dir="${dist.dir}" type="file" includes="**"
            failonerror="${chmod.fail}"/>
+  <!--
     <chmod perm="ugo+x" type="file" failonerror="${chmod.fail}">
        <fileset dir="${dist.bin}"/>
     </chmod>
+  -->
 
   </target>
 
@@ -644,15 +654,16 @@
     <property name="star.docs.pkg" value="${star.docs}/${name}"/>
     <property name="star.lib.arch" value="${star.lib}/${os.arch}"/>
     <mkdir dir="${star.install}"/>
-    <mkdir dir="${star.bin.pkg}"/>
+    <!-- <mkdir dir="${star.bin.pkg}"/> -->
     <mkdir dir="${star.lib.pkg}"/>
-    <mkdir dir="${star.etc.pkg}"/>
+    <!-- <mkdir dir="${star.etc.pkg}"/> -->
     <mkdir dir="${star.docs.pkg}"/>
 
     <!-- Note: if you uncomment any of the following (reasonable since
      !   the class library may not have any scripts), then make sure
      !   that the first loggedcopy has logfileAppend="false" so that
      !   the copy logfile is initialised -->
+  <!--
     <loggedcopy todir="${star.bin}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
@@ -665,11 +676,12 @@
         <present targetdir="${dist.bin}" present="both"/>
       </fileset>
     </chmod>
+  -->
 
     <loggedcopy todir="${star.lib}"
                 logfile="${install.log}"
                 overwrite="${install.overwrite}"
-                logfileAppend="true">
+                logfileAppend="false">
       <fileset dir="${dist.lib}">
         <include name="**/*.jar"/>
         <include name="**/*.zip"/>
@@ -716,10 +728,10 @@
      <!-- Make sure that the expected file structure exists, some
           of these files can be missing if originally empty -->
      <mkdir dir="${dist.dir}"/>
-     <mkdir dir="${dist.bin.pkg}"/>
+     <!-- <mkdir dir="${dist.bin.pkg}"/> -->
      <mkdir dir="${dist.lib.pkg}"/>
      <mkdir dir="${dist.docs.pkg}"/>
-     <mkdir dir="${dist.etc.pkg}"/>
+     <!-- <mkdir dir="${dist.etc.pkg}"/> -->
 
      <!-- Do normal install, but with many targets switched off-->
      <antcall target="install">
