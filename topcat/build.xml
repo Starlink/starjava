@@ -408,6 +408,9 @@
     <copy todir="${build.classes}">
       <fileset dir="${src.dir}/resources"/>
     </copy>
+    <copy todir="${build.classes}/uk/ac/starlink/topcat">
+      <fileset dir="${src.docs}" includes="figures/*"/>
+    </copy>
 
     <!-- Version string. -->
     <echo file="${build.classes}/uk/ac/starlink/topcat/version-string"
@@ -623,7 +626,7 @@
     <!-- Copy extra documentation, note doesn't include javadocs these
      !   are generated from the source-->
     <copy todir="${dist.docs.pkg}">
-      <fileset dir="${build.docs}" includes="images/* ${user.doc}/*"/>
+      <fileset dir="${build.docs}" includes="images/* figures/* ${user.doc}/*"/>
     </copy>
 
     <!-- Set permissions on contents of distribution directories -->
@@ -1008,7 +1011,8 @@
     <mkdir dir="${build.docs}"/>
 
     <copy todir="${build.docs}">
-      <fileset dir="${src.docs}" includes="${user.doc}.xml docs.dtd"/>
+      <fileset dir="${src.docs}" 
+               includes="${user.doc}.xml docs.dtd figures/*"/>
       <fileset dir="${src.dir}/resources/uk/ac/starlink/topcat/"
                includes="images/*"/>
     </copy>
@@ -1025,6 +1029,9 @@
           style="${src.docs}/toHTML1.xslt">
       <param name="VERSION" expression="${version}"/>
     </xslt>
+    <copy todir="${build.classes}/uk/ac/starlink/topcat/help">
+      <fileset dir="${build.docs}/${user.doc}" includes="${user.doc}.html"/>
+    </copy>
 
     <java classpathref="classpath"
           dir="${src.docs}"
@@ -1126,7 +1133,7 @@
           description="-> run JUnit tests"/>
 
   <target name="run-tests"
-          depends="compile-tests"
+          depends="compile-tests,docs"
           if="junit.present">
 
     <junit printsummary="${junit.summary}" haltonfailure="yes"
@@ -1156,7 +1163,7 @@
 
   <target name="run-single-test"
           if="testcase"
-          depends="compile-tests"
+          depends="compile-tests,docs"
           description="-> runs the single unit test defined in the testcase property">
 
     <junit printsummary="${junit.summary}"
