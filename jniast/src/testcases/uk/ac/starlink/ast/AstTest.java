@@ -584,12 +584,13 @@ public class AstTest extends TestCase {
         assertEquals( 1e-9, sf.getRestFreq() );
 
         SkyFrame sky = new SkyFrame();
+        sky.setSystem( "FK5" );
         double lon = 0.5;
         double lat = 1.23;
         sf.setRefPos( sky, lon, lat );
         double[] ll = sf.getRefPos( sky );
-        assertEquals( lon, ll[ 0 ], 1e-6 );
-        assertEquals( lat, ll[ 1 ], 1e-6 );
+        assertEquals( lon, ll[ 0 ] );
+        assertEquals( lat, ll[ 1 ] );
     }
 
     public void testException() {
