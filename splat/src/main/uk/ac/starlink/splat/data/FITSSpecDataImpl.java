@@ -22,6 +22,7 @@ import nom.tam.util.ArrayFuncs;
 import nom.tam.util.BufferedDataOutputStream;
 import nom.tam.util.Cursor;
 
+import uk.ac.starlink.ast.AstException;
 import uk.ac.starlink.ast.Frame;
 import uk.ac.starlink.ast.FrameSet;
 import uk.ac.starlink.splat.ast.ASTFITSChan;
@@ -648,11 +649,15 @@ public class FITSSpecDataImpl
         chan.rewind();
 
         //  Now get the ASTFrameSet.
-        astref = chan.read();
+        try {
+            astref = chan.read();
+        }
+        catch (AstException e) {
+            e.printStackTrace();
+            astref = null;
+        }
         if ( astref == null ) {
-
-            //  Read failed for some reason. Just create a dummy
-            //  frameset.
+            //  Read failed for some reason. Just create a dummy frameset.
             astref = dummyAstSet();
         }
         return astref;
