@@ -55,7 +55,7 @@ javaArgs=""
 appArgs=""
 while test "$1"
 do
-   if echo $1 | grep -q -- '^-X'
+   if echo $1 | grep -q -- '^-[XD]'
    then
       javaArgs="$javaArgs \"$1\""
    else

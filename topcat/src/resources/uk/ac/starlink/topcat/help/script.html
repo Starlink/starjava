@@ -29,7 +29,7 @@ or
           http://astro.org/data/m31.xml
 </pre>
 
-<p>In addition, any arguments which start "-X" are passed as flags
+<p>In addition, any arguments which start "-X" or "-D" are passed as flags
 to the Java runtime.
 The main use of this is to modify the size of memory available to the
 application.  By default it is 64 megabytes, but for large tables
@@ -46,6 +46,16 @@ tuning and debugging; a full list can be seen by doing
 <pre>
    topcat -X
 </pre>
+
+<p>The -D flags can be used for defining system properties.  One use
+for this is for defining JDBC drivers, for instance
+<pre>
+   topcat -Djdbc.drivers=org.postgresql.Driver
+<pre>
+(the named driver would need to be on the classpath as well for this
+to allow access to PostgreSQL databases).  Another way of defining
+system properties is to put the definitions in a file called 
+<code>.starjava.properties</code> in your home directory.
 
 <p>Finally, invoking TOPCAT with the <code>-guihelp</code> flag:
 <pre>
