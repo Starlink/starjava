@@ -274,8 +274,25 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_write(
       }
    }
 }
-   
-   
+
+JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_FitsChan_putCards(
+   JNIEnv *env,          /* Interface pointer */
+   jobject this,         /* Instance object */
+   jstring jCards        /* Single string of header image */
+) {
+   AstPointer pointer = jniastGetPointerField( env, this );
+   const char *cards;
+
+   if ( jniastCheckNotNull( env, jCards ) ) {
+       cards = jniastGetUTF( env, jCards );
+       ASTCALL(
+          astPutCards( pointer.FitsChan, cards );
+       )
+       jniastReleaseUTF( env, jCards, cards );
+   }
+}
+
+
 /* Static functions. */
 
 static void initializeIDs( JNIEnv *env ) {

@@ -87,7 +87,7 @@
    !   not installed (is this sensible behaviour?) -->
   <property name="Name" value="JNIAST"/>
   <property name="name" value="jniast"/>
-  <property name="version" value="3.2-4"/>
+  <property name="version" value="3.2-8"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.ast"/>

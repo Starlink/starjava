@@ -29,7 +29,7 @@ import java.io.*;
  * the FitsChan's integer Card attribute, which identifies a "current"
  * card, to which subsequent operations apply. Searches
  * based on keyword may be performed (using astFindFits), new
- * cards may be inserted (astPutFits) and existing ones may be
+ * cards may be inserted (astPutFits, astPutCards) and existing ones may be
  * deleted (astDelFits).
  * <p>
  * When you create a FitsChan, you have the option of specifying
@@ -38,7 +38,7 @@ import java.io.*;
  * a source function, it is used to fill the FitsChan with header
  * cards when it is created. If you do not provide a source
  * function, the FitsChan remains empty until you explicitly enter
- * data into it (e.g. using astPutFits or astWrite). If you
+ * data into it (e.g. using astPutFits, astPutCards or astWrite). If you
  * provide a sink function, it is used to deliver any remaining
  * contents of a FitsChan to an external data store when the
  * FitsChan is deleted. If you do not provide a sink function, any
@@ -399,6 +399,33 @@ public class FitsChan extends Channel {
      * @throws  AstException  if an error occurred in the AST library
      */
     public native void putFits( String card, boolean overwrite );
+
+    /** 
+     * Store a set of FITS header cards in a FitsChan.   
+     * This function 
+     * stores a set of FITS header cards in a FitsChan. The cards are
+     * supplied concatenated together into a single character string.
+     * Any existing cards in the FitsChan are removed before the new cards
+     * are added. The FitsChan is "re-wound" on exit by clearing its Card 
+     * attribute. This means that a subsequent invocation of 
+     * astRead
+     * can be made immediately without the need to re-wind the FitsChan
+     * first.
+     * <h4>Notes</h4>
+     * <br> - An error will result if the supplied string contains any cards
+     * which cannot be interpreted.
+     * @param   cards
+     * Pointer to a null-terminated character string
+     * containing the FITS cards to be stored. Each individual card
+     * should occupy 80 characters in this string, and there should be
+     * no delimiters, new lines, etc, between adjacent cards. The final
+     * card may be less than 80 characters long.
+     * This is the format produced by the fits_hdr2str function in the
+     * CFITSIO library.
+     * 
+     * @throws  AstException  if an error occurred in the AST library
+     */
+    public native void putCards( String cards );
 
     /**
      * Get 

@@ -4431,7 +4431,7 @@ public class Plot extends FrameSet {
      * <p>
      * The Tol value should be given as a fraction of the minimum
      * dimension of the plotting area, and should lie in the range
-     * from 1.0e-7 to 1.0. By default, a value of 0.001 is used.
+     * from 1.0e-7 to 1.0. By default, a value of 0.01 is used.
      * 
      *
      * @return  tol  this object's Tol attribute
@@ -4452,7 +4452,7 @@ public class Plot extends FrameSet {
      * <p>
      * The Tol value should be given as a fraction of the minimum
      * dimension of the plotting area, and should lie in the range
-     * from 1.0e-7 to 1.0. By default, a value of 0.001 is used.
+     * from 1.0e-7 to 1.0. By default, a value of 0.01 is used.
      * 
      *
      * @param  tol   the Tol attribute of this object

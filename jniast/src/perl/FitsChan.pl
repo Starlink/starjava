@@ -246,6 +246,19 @@ makeNativeMethod(
    return => { type => 'void', },
 );
 
+makeNativeMethod(
+   name => ( $fName = "putCards" ),
+   purpose => FuncPurpose( $fName ),
+   descrip => FuncDescrip( $fName ),
+   params => [
+      {
+         name => ( $aName = "cards" ),
+         type => 'String',
+         descrip => ArgDescrip( $fName, $aName ),
+      },
+   ],
+   return => { type => 'void' },
+);
 
 my( @cardArgs ) = (
    name => ( $aName = "card" ),

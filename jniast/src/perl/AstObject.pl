@@ -61,7 +61,7 @@ print <<'__EOT__';
         JNIAST_JAVA_VERSION = new int[] {
             3,
             2,
-            4,
+            8,
         };
 
         /* Check that the versions look consistent. */
