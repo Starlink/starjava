@@ -92,10 +92,33 @@ public class NodeRootComboBox extends JComboBox {
      * filestores.  This includes any roots of the local filesytem(s)
      * and any remote filestores as supplied by 
      * {@link uk.ac.starlink.connect.ConnectorManager}.
+     * The selection is also set to a sensible initial value
+     * (probably the current directory).
      */
     public void addDefaultRoots() {
 
-        /* Local filesystem. */
+        /* Add nodes for local filesystems. */
+        File[] fileRoots = File.listRoots();
+        for ( int i = 0; i < fileRoots.length; i++ ) {
+             File dir = fileRoots[ i ];
+             try {
+                 DataNode dirNode = factory_.makeDataNode( null, dir );
+                 model_.addChain( new NodeChain( dirNode ) );
+             }
+             catch ( NoSuchDataException e ) {
+                 logger_.warning( "Can't read directory " + dir + ": " + e );
+             }
+        }
+
+        /* Add nodes for remote filestores. */
+        ConnectorAction[] actions = ConnectorManager.getConnectorActions();
+        for ( int i = 0; i < actions.length; i++ ) {
+            DataNode node = new ConnectorDataNode( actions[ i ] );
+            factory_.configureDataNode( node, null, actions[ i ] );
+            model_.addChain( new NodeChain( node ) );
+        }
+
+        /* Try to set the current selection to something sensible. */
         File dir = new File( "." );
         try {
             dir = new File( System.getProperty( "user.dir" ) );
@@ -107,7 +130,7 @@ public class NodeRootComboBox extends JComboBox {
             try {
                 DataNode node = factory_.makeDataNode( null, dir );
                 factory_.fillInAncestors( node );
-                model_.addChain( new NodeChain( node ) );
+                model_.setSelectedItem( node );
             }
             catch ( NoSuchDataException e ) {
                 logger_.warning( "Can't create node from current directory: " 
@@ -118,12 +141,5 @@ public class NodeRootComboBox extends JComboBox {
             logger_.warning( "Can't read current directory" );
         }
 
-        /* Remote filestores. */
-        ConnectorAction[] actions = ConnectorManager.getConnectorActions();
-        for ( int i = 0; i < actions.length; i++ ) {
-            DataNode node = new ConnectorDataNode( actions[ i ] );
-            factory_.configureDataNode( node, null, actions[ i ] );
-            model_.addChain( new NodeChain( node ) );
-        }
     }
 }

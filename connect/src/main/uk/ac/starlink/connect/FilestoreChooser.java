@@ -278,10 +278,24 @@ public class FilestoreChooser extends JPanel {
      * Populate this browser with a default set of branches.
      * This includes the current directory and possibly some 
      * connectors for remote filestores.
+     * The selection is also set to a sensible initial value 
+     * (probably the current directory).
      */
     public void addDefaultBranches() {
- 
-        /* Local filesystem. */
+
+        /* Add branches for local filesystems. */
+        File[] fileRoots = File.listRoots();
+        for ( int i = 0; i < fileRoots.length; i++ ) {
+            branchSelector_.addBranch( new FileBranch( fileRoots[ i ] ) );
+        }
+
+        /* Add branches for remote virtual filesystems. */
+        ConnectorAction[] actions = ConnectorManager.getConnectorActions();
+        for ( int i = 0; i < actions.length; i++ ) {
+            branchSelector_.addConnection( actions[ i ] );
+        }
+
+        /* Try to set the current selection to something sensible. */
         File dir = new File( "." );
         try {
             dir = new File( System.getProperty( "user.dir" ) );
@@ -294,12 +308,6 @@ public class FilestoreChooser extends JPanel {
         }
         else {
             logger_.warning( "Can't read current directory" );
-        }
-
-        /* Remote virtual filesystems. */
-        ConnectorAction[] actions = ConnectorManager.getConnectorActions();
-        for ( int i = 0; i < actions.length; i++ ) {
-            branchSelector_.addConnection( actions[ i ] );
         }
     }
 
