@@ -886,8 +886,8 @@ public class ASTJ
      * attributes. If throwError is true then a failure results in an
      * AstException being thrown, otherwise a null is returned on failure.
      */
-    public static createFluxFrame( String units, String attributes, 
-                                   boolean throwError )
+    public static FluxFrame createFluxFrame( String units, String attributes, 
+                                             boolean throwError )
         throws AstException
     {
         try {
@@ -896,7 +896,7 @@ public class ASTJ
                 f.setUnit( 1, units );
             }
             if ( attributes != null ) {
-                f.set( attribues );
+                f.set( attributes );
             }
 
             // Get the default System value from the FluxFrame. This will
@@ -906,6 +906,7 @@ public class ASTJ
             return f;
         }
         catch (AstException e) {
+            // Either return null or throw an exception, depends on throwError.
             if ( throwError ) {
                 throw e;
             }
