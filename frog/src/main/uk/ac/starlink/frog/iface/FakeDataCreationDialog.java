@@ -105,7 +105,12 @@ public class FakeDataCreationDialog extends JInternalFrame
      * TextEntryField for the period vlaue
      */   
      JTextField periodEntry = new JTextField();
-                      
+
+    /**
+     * TextEntryField for the error bar vlaue
+     */   
+     JTextField errorEntry = new JTextField(); 
+                          
     /**
      * Period value
      */
@@ -115,12 +120,27 @@ public class FakeDataCreationDialog extends JInternalFrame
      * TextEntryField for the zero point vlaue
      */   
      JTextField zeroPointEntry = new JTextField();
-                      
+    
+    /**
+     * Noise checkbox, if ture noise will be generated and added to the data
+     */
+     JCheckBox noiseCheck = new JCheckBox(); 
+    
+    /**
+     * Create some fake error bars
+     */
+     JCheckBox errorCheck = new JCheckBox();  
+                              
     /**
      * Zero Point value
      */
      double zeroPoint;        
-                
+                             
+    /**
+     * Error bar value
+     */
+     double errorBar; 
+                        
     /**
      * Frog object that this is being created from...
      */
@@ -136,6 +156,17 @@ public class FakeDataCreationDialog extends JInternalFrame
      *
      * @param f The PlotControlFrame holding the TimeSeries of interest
      */
+         
+    /** 
+     * Boolean to say whether we're going to add noise to the fake data
+     */
+     boolean addNoise; 
+             
+    /** 
+     * Boolean to say whether we're going to create fake errors
+     */
+     boolean addError;
+     
     public FakeDataCreationDialog( )
     {
         super( "Fake Data", false, true, false, false );
@@ -204,6 +235,43 @@ public class FakeDataCreationDialog extends JInternalFrame
        JLabel zpLabel = new JLabel("<html>&nbsp;Zero Point&nbsp;<html>");
        zpLabel.setBorder( BorderFactory.createEtchedBorder() );
        zeroPointEntry.setColumns(14);             
+       
+       JLabel errorLabel = new JLabel("<html>&nbsp;Y Error Bar&nbsp;<html>");
+       errorLabel.setBorder( BorderFactory.createEtchedBorder() );
+       errorEntry.setColumns(15);            
+
+       // create the check panel
+       // ----------------------
+       noiseCheck.setText("Add Box-Muller noise");
+       noiseCheck.addItemListener( new ItemListener() {
+         public void itemStateChanged(ItemEvent e) {
+            if( e.getStateChange() == ItemEvent.SELECTED ) {
+                 addNoise = true;
+            } else {
+                 addNoise = false;
+            }
+         }
+       });
+       JPanel noiseCheckPanel = new JPanel( new BorderLayout() );      
+       noiseCheckPanel.add( noiseCheck, BorderLayout.EAST );  
+       
+       //errorCheck.setText("Add errror bars");
+       //errorCheck.addItemListener( new ItemListener() {
+       //  public void itemStateChanged(ItemEvent e) {
+       //     if( e.getStateChange() == ItemEvent.SELECTED ) {
+       //          addError = true;
+       //     } else {
+       //          addError = false;
+       //     }
+       //  }
+       //});       
+       //JPanel errorCheckPanel = new JPanel( new BorderLayout() );      
+       //errorCheckPanel.add( errorCheck, BorderLayout.EAST );
+                
+       JPanel checkPanel = new JPanel( new BorderLayout() );      
+       checkPanel.add( noiseCheckPanel, BorderLayout.NORTH );            
+       //checkPanel.add( errorCheckPanel, BorderLayout.SOUTH );            
+
 
        // Stuff them into the main panel
        // ------------------------------
@@ -279,7 +347,14 @@ public class FakeDataCreationDialog extends JInternalFrame
        constraints.gridx = 1;  
        constraints.gridy = 7;        
        mainPanel.add( zeroPointEntry, constraints );        
-       
+         
+       constraints.gridx = 0;  
+       constraints.gridy = 8;        
+       mainPanel.add( errorLabel, constraints ); 
+             
+       constraints.gridx = 1;  
+       constraints.gridy = 8;        
+       mainPanel.add( errorEntry, constraints );          
                                     
        // create the button panels
        JPanel buttonPanel = new JPanel( new BorderLayout() );
@@ -333,7 +408,8 @@ public class FakeDataCreationDialog extends JInternalFrame
        JPanel contentPane = (JPanel) this.getContentPane();
        contentPane.setLayout( new BorderLayout() );
        
-       contentPane.add(mainPanel, BorderLayout.CENTER );
+       contentPane.add(mainPanel, BorderLayout.NORTH );
+       contentPane.add(checkPanel, BorderLayout.CENTER );
        contentPane.add(buttonPanel, BorderLayout.SOUTH );
        
        pack();
@@ -357,7 +433,8 @@ public class FakeDataCreationDialog extends JInternalFrame
          String amplitudeString = amplitudeEntry.getText();
          String periodString = periodEntry.getText();
          String zeroPointString = zeroPointEntry.getText();
-         
+         String errorString = errorEntry.getText();
+        
          // define floating or Java will have a cow
          num = 0; // int!
          low = 0.0;
@@ -366,6 +443,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          amplitude = 0.0;
          period = 0.0;
          zeroPoint = 0.0;
+         errorBar = 0.0;
         
          // convert primitive types
          try {
@@ -466,6 +544,18 @@ public class FakeDataCreationDialog extends JInternalFrame
              return false;
          }         
          
+         try {
+          
+             // if we get a valid value, create errors
+             errorBar = (new Double(errorString)).doubleValue();
+             addError = true;
+         } catch ( Exception e ) {
+         
+             // Else just set the error bar to zero
+             errorBar = 0.0;
+             addError = false;
+         } 
+                          
          // We have valid entries, at least in theory
          debugManager.print( "      Number     " + numString );
          debugManager.print( "      Start      " + lowString );
@@ -474,6 +564,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          debugManager.print( "      Amplitude  " + amplitudeString );
          debugManager.print( "      Period     " + periodString ); 
          debugManager.print( "      Zero Point " + zeroPointString );
+         debugManager.print( "      Error Bar  " + errorString );
          
          // Hide the dialog, we'll dispose of it later...
          hide();
@@ -532,6 +623,7 @@ public class FakeDataCreationDialog extends JInternalFrame
          // copy the arrays
          double xData[] = new double[num];
          double yData[] = new double[num];
+         double error[] = new double[num];
 
          // Do arithmetic
          // -------------
@@ -548,6 +640,22 @@ public class FakeDataCreationDialog extends JInternalFrame
              yData[k] = 
                gamma + ( amplitude * Math.sin( ((2.0*Math.PI)/ period ) *
                          ( xData[k] - zeroPoint )));
+              
+             // add errors
+             if( addError ) { 
+                error[k] = errorBar;
+             }
+             
+             // add noise if required            
+             if( addNoise ) {
+                if( addError ) {
+                   yData[k] = yData[k] + noise()*error[k];
+                } else {
+                   
+                   // no errors, take 15% of amplitude
+                   yData[k] = yData[k] + noise()*( 0.15*amplitude );
+                }
+             }               
                               
          }         
         
@@ -558,7 +666,11 @@ public class FakeDataCreationDialog extends JInternalFrame
          memImpl = new MEMTimeSeriesImpl( "Fake Periodic Data" );
          
          // Add data to the MEMTimeSeriesImpl 
-         memImpl.setData( yData, xData );
+         if ( addError ) {
+           memImpl.setData( yData, xData, error );
+         } else {
+           memImpl.setData( yData, xData );
+         }
          
          // create a real timeseries
          try {
@@ -657,6 +769,36 @@ public class FakeDataCreationDialog extends JInternalFrame
           seriesManager.getFrog().addSeries( newSeries );
    
     }
+    
+    /**
+     * This function uses the Box-Muller method to generate             
+     * a gaussian distribution of random numbers.  This                 
+     * implementation is not particularly efficient. 
+     *
+     * @return noise A random number determined by the Box-Muller method
+     */
+     protected double noise() 
+     {
+         double r = 0.0;
+         double u = 0.0;
+         double v = 0.0;
+         while ( r < 1.0 ) {
+            double n = Math.random();
+            u = n + n - 1.0;
+            double m = Math.random();
+            v = m + m - 1.0;
+            r = Math.pow(Math.abs(u), 2.0) + Math.pow(Math.abs(v), 2.0);
+         }
+         double noise = v*Math.sqrt( 2.0*Math.log(r)/r );
+                                         
+         debugManager.print( "        Adding Noise" );
+         debugManager.print( "           noise = " + noise );
+         debugManager.print( "           r = " + r );
+         debugManager.print( "           u = " + u );
+         debugManager.print( "           v = " + v );
+         
+         return noise;
+     }
     
     /**
      * Set the main cursor to indicate waiting for some action to
