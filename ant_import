@@ -1,22 +1,31 @@
 #!/bin/sh -xv
 
-# Import the ANT sources and binary releases expanded into a single
+# Import the ANT sources AND _binary_ releases expanded into a single
 # tree in a sub-directory "ant". 
 #
-# NEXT TIME - remember to tag existing release first!
+# Tag old state before importing.
 #
-# cvs rtag "ant_v_1_5" java/source/ant
+# OLD commands:
+#
+# cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+#   import -ko -I! -m "ANT version 1.5.2 sources" java/source/ant ANT ANT_V_1_5_2
+#
+# cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+#   import -ko -I! -m "ANT version 1.5.4 sources" java/source/ant ANT ANT_V_1_5_4
+# note that last one was messed up as I didn't import the binary release as
+# well, hence the "_b" import below.
+#
+# cvs \
+#   import -ko -I! -m "ANT version 1.5.4 sources plus binaries" \
+#   java/source/ant ANT ANT_V_1_5_4_b
 #
 
-CVS_RSH=ssh
-export CVS_RSH
-cd ant
-cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
-   import -ko -I! -m "ANT version 1.5.2 sources" java/source/ant ANT ANT_V_1_5_2
+cvs \
+   import -ko -I! -m "ANT version 1.6.2 sources plus binaries" \
+   java/source/ant ANT ANT_V_1_6_2
 
 # Merged sources with command:
 #
-#   cvs checkout -jANT_V_1_5 -jANT_V_1_5_2 java/source/ant
+#   cvs checkout -jANT_V_1_5_4_b -jANT_V_1_6_2 java/source/ant
 #
 # Then fixup any changes and re-commit.
-#
