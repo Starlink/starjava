@@ -8,9 +8,6 @@ package uk.ac.starlink.topcat.func;
 /**
  * Specialist display functions for use with the Sloane Digital Sky Server.
  *
- * <p>At time of writing this is not installed in the available set of
- * activation methods by default.
- *
  * @author   Mark Taylor (Starlink)
  * @since    25 Aug 2004
  */
