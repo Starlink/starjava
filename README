@@ -1,0 +1,69 @@
+
+            Quick Start for the Starlink JAVA build system
+            ==============================================
+
+   Prerequisites
+   -------------
+
+Make sure you have a J2SE SDK available on your PATH. Downloads are
+available from:
+
+   http://java.sun.com/
+
+This should probably match the version of the JRE distributed by
+Starlink (see the /star/java directory or equivalent). We cannot
+distribute the SDK for licensing reasons.
+
+   Build ANT
+   ---------
+
+Since it's been necessary to add some extension tasks to ANT you need
+to use the local release. To do this look in the "ant" directory and
+follow the instructions in the "README.Starlink" file.
+
+If you already have a STARJAVA installation you may be able to use the
+ANT script found in the /star/starjava/bin directory, but if ANT
+reports that it is finding unexpected elements in the build files you
+will need to rebuild ANT.
+
+   Start using the new ANT
+   -----------------------
+
+If you have built and installed ANT you now need to add the "java/bin"
+directory that you should have created to your PATH (this the
+directory that is now equivalent to "/star/bin" and would eventually
+be "/star/starjava/bin" if released as part of the current
+system). You need the new "ant" command to get our extensions and to
+use JUnit.
+
+   Perform the build
+   -----------------
+
+Just type:
+
+   % ant build
+
+and wait a while. If it reports that you cannot compile the Java
+files, make sure that the SDK is on your PATH (a javac command is
+required).
+
+   Install everything
+   ------------------
+
+   % ant install
+
+
+   Test the installation
+   ---------------------
+
+If this all worked you should now be able to type:
+
+   % ../bin/treeview
+
+To use applications just SPLAT, FROG and SoG you need to run the
+various scripts found in the sub-directories of ../bin (if you have
+STARJAVA already installed check the environment variables and aliases
+and re-define these as appropriate).
+
+
+Peter W. Draper 16-DEC-2003
