@@ -27,7 +27,10 @@ public class JELUtils {
 
     private static List generalStaticClasses;
     private static List activationStaticClasses;
-    public static final String AUX_CLASSES_PROPERTY = "gnu.jel.static.classes";
+    public static final String GENERAL_CLASSES_PROPERTY = 
+        "jel.classes";
+    public static final String ACTIVATION_CLASSES_PROPERTY =
+        "jel.classes.activation";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
@@ -73,10 +76,11 @@ public class JELUtils {
                 Maths.class, 
                 Strings.class,
             } ) );
-            try {
 
-                /* Add classes specified by a system property. */
-                String auxClasses = System.getProperty( AUX_CLASSES_PROPERTY );
+            /* Add classes specified by a system property. */
+            try {
+                String auxClasses = 
+                    System.getProperty( GENERAL_CLASSES_PROPERTY );
                 if ( auxClasses != null && auxClasses.trim().length() > 0 ) {
                     String[] cs = auxClasses.split( ":" );
                     for ( int i = 0; i < cs.length; i++ ) {
@@ -96,7 +100,7 @@ public class JELUtils {
                            + "auxiliary JEL classes" );
             }
 
-            /* Combine to produce the final list. */
+            /* Produce the final list. */
             generalStaticClasses = classList;
         }
         return generalStaticClasses;
@@ -144,6 +148,31 @@ public class JELUtils {
                 Display.class,
                 Output.class, 
             } ) );
+
+            /* Add classes specified by a system property. */
+            try {
+                String auxClasses =
+                    System.getProperty( ACTIVATION_CLASSES_PROPERTY );
+                if ( auxClasses != null && auxClasses.trim().length() > 0 ) {
+                    String[] cs = auxClasses.split( ":" );
+                    for ( int i = 0; i < cs.length; i++ ) {
+                        String className = cs[ i ].trim();
+                        Class clazz = classForName( className );
+                        if ( clazz != null ) {
+                            classList.add( clazz );
+                        }
+                        else {
+                            logger.warning( "Class not found: " + className );
+                        }
+                    }
+                }
+            }
+            catch ( SecurityException e ) {
+                logger.info( "Security manager prevents loading " +
+                             "auxiliary JEL classes" );
+            }
+
+            /* Produce the final list. */
             activationStaticClasses = classList;
         }
         return activationStaticClasses;
