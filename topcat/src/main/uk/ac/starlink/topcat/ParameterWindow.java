@@ -169,6 +169,40 @@ public class ParameterWindow extends AuxWindow {
             }
         } );
 
+        /* Add element size column. */
+        int sizePos = metas.size();
+        metas.add( new MetaColumn( "Element Size", Integer.class ) {
+            public Object getValue( int irow ) {
+                int size = getParamInfo( irow ).getElementSize();
+                return size > 0 ? new Integer( size ) : null;
+            }
+            public boolean isEditable( int irow ) {
+                return getParamInfo( irow ) instanceof DefaultValueInfo;
+            }
+            public void setValue( int irow, Object value ) {
+                int size;
+                if ( value instanceof Number ) {
+                    size = ((Number) value).intValue();
+                }
+                else if ( value instanceof String ) {
+                    try {
+                        size = Integer.parseInt( (String) value );
+                    }
+                    catch ( NumberFormatException e ) {
+                        size = -1;
+                    }
+                }
+                else {
+                    size = -1;
+                }
+                if ( size <= 0 ) {
+                    size = -1;
+                }
+                ((DefaultValueInfo) getParamInfo( irow ))
+                                   .setElementSize( size );
+            }
+        } );
+
         /* Add units column. */
         metas.add( new MetaColumn( "Units", String.class ) {
             public Object getValue( int irow ) {
@@ -251,6 +285,7 @@ public class ParameterWindow extends AuxWindow {
 
         /* By default, hide some of the less useful columns. */
         metaColumnModel.removeColumn( classPos );
+        metaColumnModel.removeColumn( sizePos );
 
         /* Initialise some of the table data which needs initialising. */
         configureColumnCount();

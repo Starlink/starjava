@@ -110,6 +110,39 @@ public class ColumnInfoWindow extends AuxWindow {
             }
         } );
 
+        /* Add element size column. */
+        int sizePos = metas.size();
+        metas.add( new MetaColumn( "Element Size", Integer.class ) {
+            public Object getValue( int irow ) {
+                int size = getColumnInfo( irow ).getElementSize();
+                return size > 0 ? new Integer( size ) : null;
+            }
+            public boolean isEditable( int irow ) {
+                return irow > 0;
+            }
+            public void setValue( int irow, Object value ) {
+                int size;
+                if ( value instanceof Number ) {
+                    size = ((Number) value).intValue();
+                }
+                else if ( value instanceof String ) {
+                    try {
+                        size = Integer.parseInt( (String) value );
+                    }
+                    catch ( NumberFormatException e ) {
+                        size = -1;
+                    }
+                }
+                else {
+                    size = -1;
+                }
+                if ( size <= 0 ) {
+                    size = -1;
+                }
+                getColumnInfo( irow ).setElementSize( size );
+            }
+        } );
+
         /* Add units column. */
         metas.add( new MetaColumn( "Units", String.class ) {
             public Object getValue( int irow ) {
@@ -229,6 +262,9 @@ public class ColumnInfoWindow extends AuxWindow {
             new MetaColumnModel( jtab.getColumnModel(), metaTableModel );
         metaColumnModel.purgeEmptyColumns();
         jtab.setColumnModel( metaColumnModel );
+
+        /* Hide some columns by default. */
+        metaColumnModel.removeColumn( sizePos );
 
         /* Place the table into a scrollpane in this frame. */
         JScrollPane scroller = new SizingScrollPane( jtab );
@@ -371,14 +407,12 @@ public class ColumnInfoWindow extends AuxWindow {
     private class ValueInfoMetaColumn extends MetaColumn {
 
         private ValueInfo vinfo;
-        private String vname;
         private Class vclass;
         private boolean isEditable;
 
         ValueInfoMetaColumn( ValueInfo vinfo, boolean isEditable ) {
             super( vinfo.getName(), vinfo.getContentClass() );
             this.vinfo = vinfo;
-            this.vname = vinfo.getName();
             this.vclass = vinfo.getContentClass();
             this.isEditable = isEditable;
         }
@@ -388,7 +422,7 @@ public class ColumnInfoWindow extends AuxWindow {
         }
 
         private DescribedValue getAuxDatum( int irow ) {
-            return getColumnInfo( irow ).getAuxDatumByName( vname );
+            return getColumnInfo( irow ).getAuxDatum( vinfo );
         }
 
         public Object getValue( int irow ) {

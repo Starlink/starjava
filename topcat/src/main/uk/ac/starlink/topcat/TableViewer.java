@@ -1125,7 +1125,7 @@ public class TableViewer extends AuxWindow
      * @return  ID string
      */
     public String getColumnID( ColumnInfo cinfo ) {
-        return cinfo.getAuxDatumByName( PlasticStarTable.COLID_INFO.getName() )
+        return cinfo.getAuxDatum( PlasticStarTable.COLID_INFO )
                     .getValue()
                     .toString();
     }

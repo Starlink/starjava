@@ -29,6 +29,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable; 
+import uk.ac.starlink.table.ValueInfo;
 import uk.ac.starlink.table.gui.NumericCellRenderer;
 import uk.ac.starlink.table.gui.ProgressBarStarTable;
 import uk.ac.starlink.table.gui.StarJTable;
@@ -329,12 +330,12 @@ public class StatsWindow extends AuxWindow {
 
         /* $ID. */
         hideColumns.set( metas.size() );
-        final String idName = PlasticStarTable.COLID_INFO.getName();
-        metas.add( new MetaColumn( idName, String.class ) {
+        final ValueInfo idInfo = PlasticStarTable.COLID_INFO;
+        metas.add( new MetaColumn( idInfo.getName(), String.class ) {
             public Object getValue( int irow ) {
                 return ((StarTableColumn) columnModel .getColumn( irow ))
                       .getColumnInfo()
-                      .getAuxDatumByName( idName )
+                      .getAuxDatum( idInfo )
                       .getValue();
             }
         } );
