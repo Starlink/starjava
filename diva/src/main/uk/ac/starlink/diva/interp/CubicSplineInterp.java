@@ -45,8 +45,8 @@ public class CubicSplineInterp
     {
         // See which way the coordinates increase. If not increasing
         // we need to create an inverted list.
-        if ( check ) {
-            if ( x[1] < x[0] && x.length >= 2 ) {
+        if ( check  && x.length >= 2 ) {
+            if ( x[1] < x[0] ) {
                 decr = true;
             }
             else {
