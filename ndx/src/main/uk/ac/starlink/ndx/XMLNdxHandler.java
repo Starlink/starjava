@@ -341,7 +341,7 @@ public class XMLNdxHandler implements NdxHandler {
                 xconn.setDoOutput( true );
     
                 /* The following may throw a java.net.UnknownServiceException
-                 * (which is-a IOException) - in fact it almost certiainly will,
+                 * (which is-a IOException) - in fact it almost certainly will,
                  * since I don't know of any URL protocols (including file)
                  * which support output streams. */
                 xconn.connect();
