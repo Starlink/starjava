@@ -173,8 +173,7 @@ public class PhotometryWorker
             aperturePhotometry.calculationsDone();
         }
         catch (Exception e) {
-            // Do nothing.
-            e.printStackTrace();
+            throw new ServiceException( e.getMessage(), e );
         }
     }
 }

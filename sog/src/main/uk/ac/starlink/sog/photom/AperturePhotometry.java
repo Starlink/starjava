@@ -41,6 +41,7 @@ import diva.canvas.interactor.SelectionInteractor;
 
 import uk.ac.starlink.sog.SOGNavigatorImageDisplay;
 import uk.ac.starlink.sog.AstTransform;
+import uk.ac.starlink.sog.ExceptionDialog;
 
 /**
  * Provide a panel of controls for performing aperture photometry.
@@ -478,8 +479,7 @@ public class AperturePhotometry
                                   photomList, globals, this );
             }
             catch (Exception e) {
-                System.out.println( "Aperture photometry calculations failed" );
-                e.printStackTrace();
+                new ExceptionDialog( this, e );
             }
         }
         else {
