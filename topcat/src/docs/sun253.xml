@@ -3884,7 +3884,9 @@ way to do some things with the column in question:
     a regular expression, and then any row which matches that expression
     in this column will be selected (highlighted).  If there's just one
     matching column it will be <ref id="activation">activated</ref> as well.
-    The expression obeys normal regular expression syntax, so for instance
+    The expression obeys normal 
+    <webref url="http://en.wikipedia.org/wiki/Regular_expression"
+            >regular expression</webref> syntax, so for instance
     you'd enter "<code>.*XYZ.*</code>" to find all rows which contain 
     the string "XYZ".
     </p></dd>
