@@ -1,13 +1,16 @@
 package uk.ac.starlink.topcat;
 
 import javax.swing.AbstractListModel;
+import javax.swing.ListCellRenderer;
 import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.gui.StarTableColumn;
 
 /**
@@ -31,11 +34,10 @@ public class ColumnComboBoxModel extends AbstractListModel
     private boolean hasNone;
     private int dummyCount;
 
-    public static TableColumn NO_COLUMN = new TableColumn() {
-        public String toString() {
-            return "";
-        }
-    };
+    private static ListCellRenderer colRenderer_ = new ColumnCellRenderer();
+
+    public static final StarTableColumn NO_COLUMN =
+        new StarTableColumn( new ColumnInfo( "" ) );
 
     /**
      * Constructs a new ComboBoxModel based on a given column model,
@@ -47,9 +49,19 @@ public class ColumnComboBoxModel extends AbstractListModel
      */
     public ColumnComboBoxModel( TableColumnModel colModel, boolean hasNone ) {
         this.colModel = colModel;
+        setHasNone( hasNone );
+        colModel.addColumnModelListener( this );
+    }
+
+    /**
+     * Sets whether there should be a null entry at the head of the list.
+     *
+     * @param  hasNone  true iff an additional null entry at the head of
+     *                  the list is required
+     */
+    public void setHasNone( boolean hasNone ) {
         this.hasNone = hasNone;
         this.dummyCount = hasNone ? 1 : 0;
-        colModel.addColumnModelListener( this );
     }
 
     public TableColumnModel getColumnModel() {
@@ -87,7 +99,22 @@ public class ColumnComboBoxModel extends AbstractListModel
         selected = (TableColumn) item;
     }
 
-    
+    /**
+     * Returns a new JComboBox based on this model.
+     * This convenience method, as well as installing this model into a 
+     * new JComboBox instance, also installs a suitable renderer for 
+     * displaying the elements. 
+     *
+     * @return  new combo box displaying this model
+     * @see     ColumnCellRenderer
+     */
+    public JComboBox makeComboBox() {
+        JComboBox box = new JComboBox( this );
+        box.setRenderer( colRenderer_ );
+        return box;
+    }
+
+
     /*
      * Implementation of the TableColumnModelListener interface.
      */

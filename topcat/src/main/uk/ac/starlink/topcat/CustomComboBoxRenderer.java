@@ -21,14 +21,34 @@ public abstract class CustomComboBoxRenderer implements ListCellRenderer {
 
     /* Should I be getting this from the PLAF somehow? */
     private static ListCellRenderer baseRenderer = new BasicComboBoxRenderer();
+    private Object nullRep;
 
     public Component getListCellRendererComponent( JList list, Object value,
                                                    int index,
                                                    boolean isSelected,
                                                    boolean hasFocus ) {
+        Object rep;
+        if ( value == null && nullRep != null ) {
+            rep = nullRep;
+        }
+        else {
+            rep = mapValue( value );
+        }
         return baseRenderer
-              .getListCellRendererComponent( list, mapValue( value ), index,
+              .getListCellRendererComponent( list, rep, index,
                                              isSelected, hasFocus );
+    }
+
+    /**
+     * Sets the representation for the <tt>null</tt> value.
+     * If set to a non-null value, this will be used to render a 
+     * null; otherwise, {@link #mapValue} will be called as usual
+     * (which may itself do something with the null).
+     *
+     * @param  nullRep  null representation
+     */
+    public void setNullRepresentation( Object nullRep ) {
+        this.nullRep = nullRep;
     }
 
     /**
