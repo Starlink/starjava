@@ -27,15 +27,16 @@ import java.net.MalformedURLException;
 import uk.ac.starlink.splat.imagedata.NDFJ;
 import uk.ac.starlink.splat.util.SplatException;
 
+import uk.ac.starlink.datanode.nodes.IconFactory;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StoragePolicy;
 import uk.ac.starlink.util.DataSource;
 import uk.ac.starlink.util.FileDataSource;
+import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.util.URLDataSource;
 import uk.ac.starlink.util.URLUtils;
-import uk.ac.starlink.util.TemporaryFileDataSource;
 import uk.ac.starlink.votable.VOTableBuilder;
 
 /**
@@ -128,17 +129,17 @@ public class SpecDataFactory
 
 
     /**
-     * Treeview icons symbolic names for each data type. XXX may want
+     * Datanode icons symbolic names for each data type. XXX may want
      * to extend this with own (line identifiers clearly not available).
      */
-    public final static String[] treeviewIcons = {
-        "FILE",
-        "FITS",
-        "NDF",
-        "DATA",
-        "NDX",
-        "TABLE",
-        "ARY2"
+    public final static short[] datanodeIcons = {
+        IconFactory.FILE,
+        IconFactory.FITS,
+        IconFactory.NDF,
+        IconFactory.DATA,
+        IconFactory.NDX,
+        IconFactory.TABLE,
+        IconFactory.ARY2
     };
 
     /**
@@ -803,8 +804,8 @@ public class SpecDataFactory
         //  XXX how to determine the format, mime types and files
         //  types are the obvious way, but mime types are probably
         //  rarely available, so we will need to use the usual file
-        //  extensions mechanisms. I'd like to let treeview sort this
-        //  out, but treeview isn't a guaranteed dependency of SPLAT!
+        //  extensions mechanisms. I'd like to let datanode sort this
+        //  out some day.
 
         PathParser namer = null;
         try {
