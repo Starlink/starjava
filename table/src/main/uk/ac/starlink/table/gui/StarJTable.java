@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.gui;
 
 import java.awt.Component;
+import java.util.Iterator;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -31,6 +32,8 @@ public class StarJTable extends JTable {
 
     private boolean rowHeader;
     private StarTable startable;
+
+    private static final int MIN_WIDTH = 50;
 
     /**
      * Constructs a new <tt>StarJTable</tt>, optionally with a dummy
@@ -142,24 +145,42 @@ public class StarJTable extends JTable {
      *
      * @param   table  the JTable whose widths are to be set
      * @param   maxpix the maximum column width allowed (pixels)
-     * @param  nrows    the number of rows of the tables to survey
-     *                  for working out column widths.  If a number greater
-     *                  than the number of rows in the table is given,
-     *                  all rows will be surveyed
+     * @param  rowSample  the number of rows of the tables to survey
+     *                    for working out column widths.  If a number greater
+     *                    than the number of rows in the table is given,
+     *                    all rows will be surveyed
      */
     public static void configureColumnWidths( JTable table, int maxpix,
-                                              int nrows ) {
+                                              int rowSample ) {
+        int ncol = table.getColumnCount();
+
+        /* Get minimum widths for each column. */
+        int[] widths = new int[ ncol ];
+        for ( int icol = 0; icol < ncol; icol++ ) {
+            widths[ icol ] = getHeaderWidth( table, icol );
+        }
+
+        /* Take a sample of rows to see if the cells in each one are going
+         * to require more width. */
+        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample );
+              it.hasNext(); ) {
+            int irow = ((Integer) it.next()).intValue();
+            for ( int icol = 0; icol < ncol; icol++ ) {
+                if ( widths[ icol ] < maxpix ) {
+                    int w = getCellWidth( table, irow, icol );
+                    if ( w > widths[ icol ] ) {
+                        widths[ icol ] = Math.min( w, maxpix );
+                    }
+                }
+            }
+        }
+
+        /* Configure the columns as calculated. */
         table.setAutoResizeMode( AUTO_RESIZE_OFF );
         TableColumnModel tcm = table.getColumnModel();
-        int ncol = tcm.getColumnCount();
         for ( int icol = 0; icol < ncol; icol++ ) {
-
-            /* See how wide the cells want to be, and set the graphical
-             * cell width accordingly. */
-            TableColumn tc = tcm.getColumn( icol );
-            int width = Math.min( getColumnWidth( table, icol, nrows ),
-                                  maxpix );
-            tc.setPreferredWidth( width );
+            int w = Math.max( widths[ icol ] + 8, MIN_WIDTH );
+            tcm.getColumn( icol ).setPreferredWidth( w );
         }
     }
 
@@ -172,46 +193,66 @@ public class StarJTable extends JTable {
      *
      * @param   table  the JTable whose widths are to be set
      * @param   maxpix the maximum column width allowed (pixels)
-     * @param  nrows    the number of rows of the tables to survey
+     * @param rowSample the number of rows of the tables to survey
      *                  for working out column widths.  If a number greater
      *                  than the number of rows in the table is given,
      *                  all rows will be surveyed
      * @param  icol   the index of the column to be configured
      */
     public static void configureColumnWidth( JTable table, int maxpix,
-                                             int nrows, int icol ) {
-        int width = Math.min( getColumnWidth( table, icol, nrows ), maxpix );
+                                             int rowSample, int icol ) {
+        int width = Math.min( getColumnWidth( table, icol, rowSample ),
+                              maxpix );
         table.getColumnModel().getColumn( icol ).setPreferredWidth( width );
     }
 
     /**
      * Gets the width that it looks like a given column should have.
+     *
+     * @param  table  table
+     * @param  icol   column index
+     * @param  rowSample  maximum number of rows to survey for working out
+     *         the width
      */
-    private static int getColumnWidth( JTable table, int icol, int nrows ) {
+    private static int getColumnWidth( JTable table, int icol, int rowSample ) {
 
-        /* Get a renderer for the header of this column. */
-        TableCellRenderer headRend = table.getColumnModel().getColumn( icol )
-                                    .getHeaderRenderer();
-        if ( headRend == null ) {
-            headRend = table.getTableHeader().getDefaultRenderer();
-        }
+        /* Get the width required for the header. */
+        int width = getHeaderWidth( table, icol );
 
-        /* Work out the width required by the header. */
-        String headObj = table.getColumnName( icol );
-        Component headComp =
-            headRend.getTableCellRendererComponent( table, headObj, false,
-                                                    false, 0, icol );
-        int width = headComp.getPreferredSize().width;
-
-        /* Go through the first few columns and see if any of them need
-         * more width. */
-        int nr = Math.min( table.getRowCount(), nrows );
-        for ( int i = 0; i < nr; i++ ) {
-            width = Math.max( width, getCellWidth( table, i, icol ) );
+        /* Go through a sample of to see if any of them need more width. */
+        for ( Iterator it = sampleIterator( table.getRowCount(), rowSample );
+              it.hasNext(); ) {
+            int irow = ((Integer) it.next()).intValue();
+            int w = getCellWidth( table, irow, icol );
+            width = Math.max( w, width );
         }
 
         /* Return the maximum cell width found plus a little bit of padding. */
-        return Math.max( width + 10, 50 );
+        return Math.max( width + 10, MIN_WIDTH );
+    }
+
+    /**
+     * Returns the width that a column must have in order to accommodate its
+     * column header.  Even if there is no column header to render, this
+     * will return some sensible minimum value so the column is not 
+     * vanishingly small.
+     *
+     * @param   table  table whose column is to be measured
+     * @param   icol   column index
+     * @return  minimum size for column in pixels
+     */
+    private static int getHeaderWidth( JTable jtab, int icol ) {
+        TableCellRenderer headRend = 
+            jtab.getColumnModel().getColumn( icol ).getHeaderRenderer();
+        if ( headRend == null ) {
+            headRend = jtab.getTableHeader().getDefaultRenderer();
+        }
+        String headObj = jtab.getColumnName( icol );
+        Component headComp = 
+            headRend.getTableCellRendererComponent( jtab, headObj, false,
+                                                    false, 0, icol );
+        int width = headComp.getPreferredSize().width;
+        return Math.max( MIN_WIDTH, width );
     }
 
     /**
@@ -249,5 +290,74 @@ public class StarJTable extends JTable {
         rend.setHorizontalAlignment( SwingConstants.RIGHT );
         return rend;
     }
+
+    /**
+     * Returns an iterator over row indices representing a sample of 
+     * rows in a table.  If <tt>nsample&gt;=nrow</tt> it will iterate
+     * over all the rows, otherwise it try to cover a representative 
+     * sample, broadly speaking the first few, last few, and some in the
+     * middle.
+     *
+     * @param   number of rows in the table
+     * @param   maximum number of rows to sample
+     * @return  iterator over <tt>Integer</tt> objects each representing 
+     *          a table row index 
+     */
+    private static Iterator sampleIterator( final int nrow,
+                                            final int nsample ) {
+        if ( nsample >= nrow ) {
+            return new Iterator() {
+                int irow = 0;
+                public boolean hasNext() {
+                    return irow < nrow;
+                }
+                public Object next() {
+                    return new Integer( irow++ );
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+        else {
+            return new Iterator() {
+                int irow = 0;
+                int isamp = 0;
+                int ns4 = nsample / 4;
+                int ns2 = nsample / 2;
+                public boolean hasNext() {
+                    return isamp < nsample;
+                }
+                public Object next() {
+                    int is = isamp++;
+                    switch ( is * 4 / nsample ) {
+                        case 0:
+                            return new Integer( is );
+                        case 1:
+                        case 2:
+                            double frac =
+                                2.0 * ( ( is / (double) nsample ) - 0.25 );
+                            int irow = ns4 + (int) ( frac * ( nrow - ns2 ) );
+                            return new Integer( irow );
+                        case 3:
+                            return new Integer( nrow - ( nsample - is ) );
+                        default:
+                            throw new AssertionError();
+                    }
+                }
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+    }
+
+ // public static void main( String[] args ) {
+ //     int nrow = Integer.parseInt( args[ 0 ] );
+ //     int nsamp = Integer.parseInt( args[ 1 ] );
+ //     for ( Iterator it = sampleIterator( nrow, nsamp ); it.hasNext(); ) {
+ //         System.out.println( (Integer) it.next() );
+ //     }
+ // }
 
 }
