@@ -25,6 +25,16 @@ public class Coords {
     private static Pattern hmsPattern = 
         getSexPattern( "[:h ]", "[:m' ]", "[s\"]?" );
 
+   
+    /** The size of one degree in radians. */
+    public static final double DEGREE = Math.PI / 180;
+
+    /** The size of one arcminute in radians. */
+    public static final double ARC_MINUTE = Math.PI / 180 / 60;
+
+    /** The size of one arcsecond in radians. */
+    public static final double ARC_SECOND = Math.PI / 180 / 60 / 60;
+
     /**
      * Private constructor prevents instantiation.
      */
