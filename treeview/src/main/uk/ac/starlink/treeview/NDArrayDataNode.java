@@ -139,9 +139,9 @@ public class NDArrayDataNode extends DefaultDataNode {
 
         /* Add data views as appropriate. */
         if ( wcs != null && ndim == 2 && endim == 2 ) {
-            dv.addPane( "WCS grids", new ComponentMaker() {
+            dv.addScalingPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
-                    return new GridPlotter( 200, shape, wcs );
+                    return new GridPlotter( shape, wcs );
                 }
             } );
         }

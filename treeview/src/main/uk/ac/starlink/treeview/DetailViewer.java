@@ -119,7 +119,30 @@ public class DetailViewer {
 
     /**
      * Add a new pane which will draw itself at a size appropriate to the
-     * size of its container.
+     * size of its container.  
+     * The <tt>JComponent</tt> returned by <tt>maker</tt>
+     * should generally have a <tt>paintComponent</tt> method
+     * which senses its actual size and draws itself accordingly,
+     * something like this:
+     * <pre>
+     *     protected void paintComponent( Graphics g ) {
+     *         super.paintComponent();
+     *         doScaledPainting( getSize() );
+     *     }
+     * </pre>
+     * or, perhaps for efficiency, more like this:
+     * <pre>
+     *     private Dimension lastSize;
+     *     protected void paintComponent( Graphics g ) {
+     *         super.paintComponent();
+     *         Dimension size = getSize();
+     *         if ( ! size.equals( lastSize ) ) {
+     *             setPreferredSize( size );
+     *             reconfigureComponentToSize( size );
+     *         }
+     *         doPainting();
+     *     }
+     * </pre>
      */
     public void addScalingPane( String title, final ComponentMaker maker ) {
         final Container box = new Box( BoxLayout.X_AXIS );

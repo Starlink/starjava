@@ -511,7 +511,7 @@ public class NDFDataNode extends HDSDataNode {
             }
         }
         catch ( HDSException e ) {
-            throw new NoSuchDataException( e.getMessage() );
+            throw new NoSuchDataException( e );
         }
     }
 

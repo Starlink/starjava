@@ -307,9 +307,9 @@ public class NdxDataNode extends DefaultDataNode {
 
         /* Add data views as appropriate. */
         if ( Driver.hasAST && ndx.hasWCS() && ndim == 2 && endim == 2 ) {
-            dv.addPane( "WCS grids", new ComponentMaker() {
+            dv.addScalingPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
-                    return new GridPlotter( 200, shape, ast );
+                    return new GridPlotter( shape, ast );
                 }
             } );
         }

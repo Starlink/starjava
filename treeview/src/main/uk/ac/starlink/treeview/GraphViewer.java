@@ -30,6 +30,8 @@ import uk.ac.starlink.ndx.Ndxs;
  */
 public class GraphViewer extends DivaPlot {
 
+    private Dimension lastSize;
+
     public GraphViewer( Ndx ndx ) throws SplatException, IOException {
         super( new SpecDataComp( new NdxSpecDataImpl( ndx ) ) );
         SpecDataComp sdcomp = getSpecDataComp();
@@ -47,7 +49,7 @@ public class GraphViewer extends DivaPlot {
         if ( size.height < 150 ) {
             size.height = 150;
         }
-        if ( ! size.equals( getPreferredSize() ) ) {
+        if ( ! size.equals( lastSize ) ) {
             setPreferredSize( size );
             fitToHeight();
             fitToWidth();
@@ -56,6 +58,7 @@ public class GraphViewer extends DivaPlot {
             xyScaled = true;
         }
         super.paintComponent( g );
+        lastSize = size;
     }
 
 
