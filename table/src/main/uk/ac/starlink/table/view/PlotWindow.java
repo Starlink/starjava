@@ -8,8 +8,10 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Date;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -18,7 +20,10 @@ import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -42,11 +47,12 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
     private StarTable stable;
     private TableColumnModel tcmodel;
+    private OptionsListModel subsets;
     private JComboBox xColBox;
     private JComboBox yColBox;
     private JCheckBox xLogBox;
     private JCheckBox yLogBox;
-    private JComboBox subCombo;
+    private ListSelectionModel subSelModel;
     private JPanel plotPanel;
     private PlotState lastState;
     private BitSet plottedRows = new BitSet();
@@ -69,6 +75,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         super( "Table Plotter", stable, parent );
         this.stable = stable;
         this.tcmodel = tcmodel;
+        this.subsets = subsets;
 
         /* Do some window setup. */
         setSize( 400, 400 );
@@ -146,17 +153,25 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             }
         } );
 
-        /* Construct a component for a row subset selectors. */
-        JPanel sConfig = new JPanel();
-        sConfig.setBorder( BorderFactory
-                          .createTitledBorder( lineBorder, "Row subset" ) );
-        subCombo = new JComboBox( subsets.makeComboBoxModel() );
-        subCombo.setPreferredSize( 
-            new Dimension( 110, subCombo.getPreferredSize().height ) );
-        subCombo.setSelectedItem( RowSubset.ALL );
-        subCombo.addActionListener( this );
-        sConfig.add( subCombo );
-        configPanel.add( sConfig );
+        /* Get a menu for selecting row subsets to plot. */
+        CheckBoxMenu subMenu = subsets.makeCheckBoxMenu( "Subsets to plot" );
+        subSelModel = subMenu.getSelectionModel();
+        subSelModel.addSelectionInterval( 0, subMenu.getEntryCount() - 1 );
+        subSelModel.addListSelectionListener( new ListSelectionListener() {
+            public void valueChanged( ListSelectionEvent evt ) {
+                PlotWindow.this.actionPerformed( null );
+            }
+        } );
+
+  //    /* Construct a component for a row subset selectors. */
+  //    JPanel sConfig = new JPanel();
+  //    sConfig.setBorder( BorderFactory
+  //                      .createTitledBorder( lineBorder, "Row subsets" ) );
+  //    subMenu.setPreferredSize(
+  //        new Dimension( 110, subMenu.getPreferredSize().height ) );
+  //    sConfig.add( subMenu );
+  //    configPanel.add( sConfig );
+
 
   //  The plot is not currently live - this would require a listener
   //  on the startable itself.  It may not really be desirable.
@@ -189,6 +204,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
 
         /* Construct a new menu for subset operations. */
         JMenu subsetMenu = new JMenu( "Subsets" );
+        subsetMenu.add( subMenu );
         subsetMenu.add( new BasicAction( "New subset from visible",
                                          "Define a new row subset containing " +
                                          "only currently plotted points" ) {
@@ -199,19 +215,6 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 }
             }
         } );
-
-  // doesn't work properly
-  //    Action applysubsetAct = new AbstractAction() {
-  //        public void actionPerformed( ActionEvent evt ) {
-  //            int index = evt.getID();
-  //            subCombo.setSelectedIndex( index );
-  //            PlotWindow.this.actionPerformed( null );
-  //        }
-  //    };
-  //    JMenu applysubsetMenu = 
-  //        subsets.makeJMenu( "Apply subset", applysubsetAct );
-  //    subsetMenu.add( applysubsetMenu );
-
         getJMenuBar().add( subsetMenu );
 
         /* Do the plotting. */
@@ -233,12 +236,21 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         int ycol = state.yCol.index;
         ColumnInfo xColumn = state.xCol.info;
         ColumnInfo yColumn = state.yCol.info;
-        RowSubset rset = state.subset;
+        RowSubset[] rsets = new RowSubset[ subsets.size() ];
+        int nrsets = rsets.length;
+        List useList = state.subsets;
+        for ( int i = 0; i < nrsets; i++ ) {
+            RowSubset rset = (RowSubset) subsets.getElementAt( i );
+            rsets[ i ] = useList.contains( rset ) ? rset : null;
+        }
+        boolean[] inclusions = new boolean[ nrsets ];
         PlotBox plotbox;
         if ( state.type.equals( "Scatter" ) ) {
             Plot plot = new Plot();
             plotbox = plot;
-            plot.setMarksStyle( "dots", 0 );
+            for ( int i = 0; i < nrsets; i++ ) {
+                plot.setMarksStyle( "dots", i );
+            }
             plot.setXLog( state.xLog );
             plot.setYLog( state.yLog );
             long nrow = stable.getRowCount();
@@ -246,7 +258,14 @@ public class PlotWindow extends AuxWindow implements ActionListener {
             long nerror = 0;
             plottedRows.clear();
             for ( long lrow = 0; lrow < nrow; lrow++ ) {
-                if ( rset == null || rset.isIncluded( lrow ) ) {
+                boolean any = false;
+                for ( int i = 0; i < nrsets; i++ ) {
+                    RowSubset rset = rsets[ i ];
+                    boolean in = ( rset != null ) && rset.isIncluded( lrow );
+                    inclusions[ i ] = in;
+                    any = any || in;
+                }
+                if ( any ) {
                     try {
                         Object xval = stable.getCell( lrow, xcol );
                         Object yval = stable.getCell( lrow, ycol );
@@ -258,7 +277,12 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                                 // can't take log of negative value
                             }
                             else {
-                                plot.addPoint( 0, x, y, state.plotline );
+                                for ( int i = 0; i < nrsets; i++ ) {
+                                    if ( inclusions[ i ] ) {
+                                        plot.addPoint( i, x, y,
+                                                       state.plotline );
+                                    }
+                                }
                             }
                             ngood++;
                             plottedRows.set( (int) lrow );
@@ -339,6 +363,27 @@ public class PlotWindow extends AuxWindow implements ActionListener {
     }
 
     /**
+     * Returns a list of all the RowSubsets which are currently selected
+     * for plotting in this window.
+     *
+     * @return  a List of RowSubsets
+     */
+    public List getSelectedSubsets() {
+        int min = subSelModel.getMinSelectionIndex();
+        int max = subSelModel.getMaxSelectionIndex();
+        List selected = new ArrayList();
+        if ( min >= 0 ) {  // selection not empty
+            assert max >= 0;
+            for ( int i = min; i <= max; i++ ) {
+                if ( subSelModel.isSelectedIndex( i ) ) {
+                    selected.add( subsets.get( i ) );
+                }
+            }
+        }
+        return selected;
+    }
+
+    /**
      * This method is called whenever something happens which may cause
      * the plot to need to be updated.
      *
@@ -403,7 +448,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         state.yCol = (ColumnEntry) yColBox.getSelectedItem();
         state.xLog = xLogBox.isSelected();
         state.yLog = yLogBox.isSelected();
-        state.subset = (RowSubset) subCombo.getSelectedItem();
+        state.subsets = getSelectedSubsets();
         state.plotline = false;
         state.type = "Scatter";
         return state;
@@ -424,7 +469,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
         ColumnEntry yCol;
         boolean xLog;
         boolean yLog;
-        RowSubset subset;
+        List subsets;
         boolean plotline;
         String type;
 
@@ -436,7 +481,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                     && yCol.equals( other.yCol )
                     && xLog == other.xLog
                     && yLog == other.yLog
-                    && subset.equals( other.subset )
+                    && subsets.equals( other.subsets )
                     && plotline == other.plotline
                     && type.equals( other.type );
             }
@@ -459,8 +504,8 @@ public class PlotWindow extends AuxWindow implements ActionListener {
                 .append( "yLog=" )
                 .append( yLog )
                 .append( "," )
-                .append( "subset=" )
-                .append( subset )
+                .append( "subsets=" )
+                .append( subsets )
                 .append( "," )
                 .append( "plotline=" )
                 .append( plotline )

@@ -10,6 +10,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.Action;
 import javax.swing.ComboBoxModel;
 import javax.swing.ListModel;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListDataEvent;
@@ -155,6 +156,41 @@ public class OptionsListModel extends AbstractList implements ListModel {
             }
         };
         return new JMenuItem( act );
+    }
+
+    public CheckBoxMenu makeCheckBoxMenu( String menuName ) {
+        class ListMenu extends CheckBoxMenu implements ListDataListener {
+            public void intervalAdded( ListDataEvent evt ) {
+                int start = evt.getIndex0();
+                int nel = evt.getIndex1() - start + 1;
+                if ( start == options.size() ) {
+                    for ( int i = 0; i < nel; i++ ) {
+                        addMenuItem( options.get( i ).toString() );
+                    }
+                }
+                else {
+                    throw new UnsupportedOperationException(
+                        "Can't handle event: " + evt );
+                }
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                contentsChanged( evt );
+            }
+            public void contentsChanged( ListDataEvent evt ) {
+                removeAll();
+                int nel = options.size();
+                for ( int i = 0; i < nel; i++ ) {
+                    addMenuItem( options.get( i ).toString() );
+                }
+            }
+        }
+        ListMenu menu = new ListMenu();
+        menu.setText( menuName );
+        menu.contentsChanged( new ListDataEvent( this, 
+                                                 ListDataEvent.CONTENTS_CHANGED,
+                                                 0, options.size() - 1 ) );
+        addListDataListener( menu );
+        return menu;
     }
 
     /*
