@@ -111,63 +111,78 @@ public class NDFNdxTest extends TestCase {
         assertNdxEqual( ndx, hndx );
     }
 
-    public void testHdsAsHdx()
+    public void testHdsAsHdx(  )
             throws Exception {
         // Make an Hdx from an NDF
-        HdxResourceType ndxtype = BridgeNdx.getHdxResourceType();
+        HdxResourceType ndxtype = BridgeNdx.getHdxResourceType(  );
         HdxContainer hdx = HdxFactory
-                .getInstance()
-                .newHdxContainer(ndfURL);
-        assertNotNull(hdx);
+                .getInstance(  )
+                .newHdxContainer( ndfURL );
+        assertNotNull( hdx );
         // check the Ndx we get from the Hdx is equal to the Ndx we
         // get from NDFNdxHandler
-        Object ndx = hdx.get(ndxtype);
-        assertNotNull(ndx);
-        assertTrue(ndxtype.getConstructedClass().isInstance(ndx));
+        Object ndx = hdx.get( ndxtype );
+        assertNotNull( ndx );
+        assertTrue( ndxtype.getConstructedClass().isInstance( ndx ) );
         Ndx rawndx = NDFNdxHandler.getInstance().makeNdx( ndfURL,
                                                           AccessMode.READ );
-        assertNotNull(rawndx);
+        assertNotNull( rawndx );
         assertNdxEqual( (Ndx)ndx, rawndx );
 
         // ...and that the generated DOM is sane
 
-        // The output of hdx.getDOM(null) is rather elaborate, so we
+        // The output of hdx.getDOM( null ) is rather elaborate, so we
         // don't have a DOM we can usefully compare it with.  Do basic
         // checks.
-        Element hdxel = hdx.getDOM(null);
-        assertEquals("hdx", hdxel.getTagName());
-        Element ndxel = (Element)hdxel.getFirstChild();
-        assertEquals("ndx", ndxel.getTagName());
-        assertNull(ndxel.getNextSibling());
+        Element hdxel = hdx.getDOM( null );
+        assertEquals( "hdx", hdxel.getTagName() );
+        Element ndxel = (Element) hdxel.getFirstChild( );
+        assertEquals( "ndx", ndxel.getTagName() );
+        assertNull( ndxel.getNextSibling() );
         String[] kidnames = new String[] {
             "title", "image", "variance", "wcs", "etc" 
         };
         Node kid = ndxel.getFirstChild();
-        for (int i = 0; i < kidnames.length; i++) {
-            assertNotNull(kid);
-            assertEquals(Node.ELEMENT_NODE, kid.getNodeType());
-            assertEquals(kidnames[i], kid.getNodeName());
+        for ( int i = 0; i < kidnames.length; i++ ) {
+            assertNotNull( kid );
+            assertEquals( Node.ELEMENT_NODE, kid.getNodeType() );
+            assertEquals( kidnames[i], kid.getNodeName() );
             kid = kid.getNextSibling();
         }
-        assertNull(kid);
+        assertNull( kid );
     }
 
+    /*
+     * THIS TEST IS CURRENTLY FAILING:
+     * uk.ac.starlink.hds.ArrayStructure#ArrayStructure(HDSObject),
+     * called from HDSArrayBuilder#makeNDArray, line 81,
+     * throws an HDSException("No array structure found in HDS") when
+     * it tries to read the NDF in reduced_data1.sdf, as specified in
+     * no-ns.xml.  makeNDArray appears to generate the correct href,
+     * and the NDF appears OK (ndftrace looks right, and other tests
+     * of this file work).  I've left the got-here stderr remarks in
+     * below.  Puzzled -- nxg, 2003-04-21
+     */
     public void testHdxXML()
             throws Exception {
         // Make an Hdx from an XMLfile which references an NDF
         HdxResourceType ndxtype = BridgeNdx.getHdxResourceType();
         Class c = this.getClass();
+	System.err.println("getting XML from " + c.getResource("no-ns.xml"));
         HdxContainer hdx = HdxFactory
                 .getInstance()
-                .newHdxContainer(c.getResource("no-ns.xml"));
-        assertNotNull(hdx);
-        Object ndx = hdx.get(ndxtype);
-        assertNotNull(ndx);
-        assertTrue(ndxtype.getConstructedClass().isInstance(ndx));
-        assertNotNull(((Ndx)ndx).getImage());
-        Ndx rawndx = NDFNdxHandler.getInstance().makeNdx( ndfURL,
-                                                          AccessMode.READ );
-        assertNotNull(rawndx);
+                .newHdxContainer( c.getResource( "no-ns.xml" ) );
+        assertNotNull( hdx );
+        Object ndx = hdx.get( ndxtype );
+        System.err.println("testHdxXML: hdx is " 
+                           + uk.ac.starlink.hdx.HdxDocument.NodeUtil.serializeNode(hdx.getDOM(null)));
+        
+        assertNotNull( ndx );
+        assertTrue( ndxtype.getConstructedClass().isInstance( ndx ) );
+        assertNotNull( ((Ndx)ndx).getImage() );
+        Ndx rawndx = NDFNdxHandler.getInstance(  ).makeNdx( ndfURL,
+                                                            AccessMode.READ );
+        assertNotNull( rawndx );
         assertNdxEqual( (Ndx)ndx, rawndx );
     }
 
