@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PcdMap_construct(
    jdoubleArray jPcdcen  /* Central coordinates pair */
 ) {
    AstPointer pointer;
-   const double *pcdcen;
+   const double *pcdcen = NULL;
 
    if ( jniastCheckArrayLength( env, jPcdcen, 2 ) ) {
       pcdcen = (const double *) 
@@ -44,8 +44,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_PcdMap_construct(
          pointer.PcdMap = astPcdMap( (double) disco, pcdcen, "" );
       )
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jPcdcen, 
-                                             (jdouble *) pcdcen, JNI_ABORT );
+         if ( pcdcen ) {
+            (*env)->ReleaseDoubleArrayElements( env, jPcdcen, 
+                                                (jdouble *) pcdcen, JNI_ABORT );
+         }
       )
       jniastSetPointerField( env, this, pointer );
    }

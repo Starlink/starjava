@@ -30,7 +30,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_ShiftMap_construct(
    jdoubleArray jShift   /* Translation vector */
 ) {
    AstPointer pointer;
-   const double *shift;
+   const double *shift = NULL;
    int nshift;
 
    if ( jniastCheckNotNull( env, jShift ) ) {
@@ -41,8 +41,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_ShiftMap_construct(
           pointer.ShiftMap = astShiftMap( nshift, shift, "" );
       )
       ALWAYS(
-          (*env)->ReleaseDoubleArrayElements( env, jShift, (jdouble *) shift,
-                                              JNI_ABORT );
+          if ( shift ) {
+             (*env)->ReleaseDoubleArrayElements( env, jShift, (jdouble *) shift,
+                                                 JNI_ABORT );
+          }
       )
       jniastSetPointerField( env, this, pointer );
    }

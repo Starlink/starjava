@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_LutMap_construct(
    jdouble inc           /* Increment between entries */
 ) {
    AstPointer pointer;
-   const double *lut;
+   const double *lut = NULL;
    int nlut;
 
    
@@ -48,8 +48,10 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_LutMap_construct(
                                      (double) inc, "" );
       )
       ALWAYS(
-         (*env)->ReleaseDoubleArrayElements( env, jLut, (jdouble *) lut, 
-                                             JNI_ABORT );
+         if ( lut ) {
+            (*env)->ReleaseDoubleArrayElements( env, jLut, (jdouble *) lut, 
+                                                JNI_ABORT );
+         }
       )
       jniastSetPointerField( env, this, pointer );
    }
