@@ -92,6 +92,11 @@ public class TreeviewTest extends TestCase {
         if ( args != null ) {
             return;
         }
+        if ( File.separatorChar != '/' ) {
+            System.out.println( "Skipping test for system with non-'/' " +
+                                "separator" );
+            return;
+        }
         PrintStream sysout = System.out;
         ByteArrayOutputStream bstrm = new ByteArrayOutputStream();
         PrintStream ostrm = new PrintStream( bstrm );
