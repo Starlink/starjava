@@ -17,6 +17,7 @@ import javax.swing.text.StyledDocument;
 public class StyledTextArea extends JTextPane {
 
     private StyledDocument doc;
+    private boolean wrap;
 
     public StyledTextArea() {
         super();
@@ -66,6 +67,15 @@ public class StyledTextArea extends JTextPane {
         catch ( BadLocationException e ) {
             throw new IllegalStateException( e.toString() );
         }
+    }
+
+    /**
+     * Determines whether text will be wrapped.
+     *
+     * @param  wrap  true iff you want text to be wrapped.
+     */
+    public void setWrap( boolean wrap ) {
+        this.wrap = wrap;
     }
 
     public void addTitle( String title ) {
@@ -191,15 +201,16 @@ public class StyledTextArea extends JTextPane {
      * Ensures that lines will not be wrapped.
      */
     public boolean getScrollableTracksViewportWidth() {
-        return ( getSize().width < getParent().getSize().width );
+        return wrap || ( getSize().width < getParent().getSize().width );
     }
 
     /**
      * Ensures that lines will not be wrapped.
      */
     public void setSize( Dimension d ) {
-        if ( d.width < getParent().getSize().width ) {
-            d.width = getParent().getSize().width;
+        int pwidth = getParent().getSize().width;
+        if ( d.width < pwidth || wrap && d.width > pwidth ) {
+            d.width = pwidth;
         }
         super.setSize( d );
     }

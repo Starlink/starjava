@@ -398,8 +398,13 @@ public class XMLDataNode extends DefaultDataNode {
 
         /* Try name/value pairs. */
         else if ( el.hasAttribute( "name" ) && el.hasAttribute( "value" ) ) {
-             desc = el.getAttribute( "name" ) + "=\""
-                  + el.getAttribute( "value" ) + "\"";
+            desc = el.getAttribute( "name" ) + "=\""
+                 + el.getAttribute( "value" ) + "\"";
+        }
+
+        /* How about a name on its own. */
+        else if ( el.hasAttribute( "name" ) ) {
+            desc = '"' + el.getAttribute( "name" ) + '"';
         }
 
         /* Try content, if it's short. */
@@ -407,7 +412,10 @@ public class XMLDataNode extends DefaultDataNode {
                   el.getChildNodes().item( 0 ) instanceof Text ) {
             Text tnode = (Text) el.getChildNodes().item( 0 );
             String val = tnode.getData().trim();
-            desc = '"' + val.substring( 0, Math.min( 80, val.length() ) ) + '"';
+            if ( val.length() > 0 ) {
+                desc = '"' + 
+                val.substring( 0, Math.min( 80, val.length() ) ) + '"';
+            }
         }
 
         if ( desc.length() > 42 ) {

@@ -131,8 +131,9 @@ public class FITSDataNode extends DefaultDataNode {
                         if ( node == null ) {
                             node = new HDUDataNode( hdr );
                         }
-                        node.setLabel( nchild++ == 0 ? "Primary HDU"
-                                                     : "HDU " + nchild );
+                        node.setLabel( nchild == 0 ? "Primary HDU"
+                                                   : ( "HDU " + nchild ) );
+                        nchild++;
                         return node;
                     }
                     catch ( Exception e ) {
