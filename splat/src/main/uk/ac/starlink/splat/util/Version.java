@@ -18,7 +18,6 @@ import java.util.Properties;
  * @author Peter W. Draper
  * @version $Id$
  */
-
 class Version
 {
     private static String version = null;
@@ -45,4 +44,3 @@ class Version
         }
     }
 }
-
