@@ -932,10 +932,14 @@ public class DefaultGrf
         float x = (float) cont.getX();
         float y = (float) cont.getY();
 
-        //  if text doesn't lie in the current clipping region then
+        //  If text doesn't lie in the current clipping region then
         //  don't draw it (Graphics2D is more careful and inspects off
-        //  image text too).
-        if ( ! g2.hitClip( (int) x, (int) y, 1, 1 ) ) {
+        //  image text too, which can be quite slow as it checks for
+        //  the effects of any strokes etc., which have a width). Note
+        //  this isn't accurate, we should work with the intersection
+        //  of the rotated and scaled Shape. 200 pixels is just a
+        //  longish string.
+        if ( ! g2.hitClip( (int) x, (int) y, 200, 200 ) ) {
             return;
         }
 
