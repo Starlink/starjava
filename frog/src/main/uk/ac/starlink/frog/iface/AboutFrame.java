@@ -32,7 +32,7 @@ public class AboutFrame extends JFrame
         "<br> Version: " + Utilities.getReleaseVersion() +
         "<br><br> <font color=blue>"+ Utilities.getOperatingSystem() + 
         "<br> JDK Version " + Utilities.getJavaVersion() +
-        "<br> Copyright (C) 2002-2003 CLRC" +
+        "<br> Copyright (C) 2002-2004 CLRC" +
         "<br> Author: Alasdair Allan (aa@astro.ex.ac.uk)&nbsp;</font></html>";  
    
     /**
@@ -65,7 +65,7 @@ public class AboutFrame extends JFrame
         enableEvents( AWTEvent.WINDOW_EVENT_MASK );
         try {
             initUI();
-            setSize( new Dimension( 375, 425 ) );
+            setSize( new Dimension( 420, 450 ) );
         } catch( Exception e ) {
             e.printStackTrace();
         }
