@@ -606,7 +606,7 @@
                                     excludes="${name}/${name}.jar"/>
          <extension name="UTIL" href="util.jnlp"/>
          <extension name="ARRAY" href="array.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
          <extension name="JNIAST" href="jniast.jnlp"/>
          <extension name="TAMFITS" href="tamfits.jnlp"/>
          <extension name="FITS" href="fits.jnlp"/>

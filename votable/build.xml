@@ -412,7 +412,7 @@
        <resources>
          <j2se version="1.4+"/>
          <jar href="${name}/${name}.jar"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
          <extension name="UTIL" href="util.jnlp"/>
        </resources>
        <component_desc/>

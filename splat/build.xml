@@ -643,7 +643,7 @@
          <extension name="PAL" href="pal.jnlp"/>
          <extension name="DIVA" href="diva.jnlp"/>
          <extension name="HELP" href="help.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>

@@ -473,7 +473,7 @@
          <extension name="HDX" href="hdx.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
          <extension name="JNIAST" href="jniast.jnlp"/>
-         <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
+         <extension name="TABLE" href="table.jnlp"/>
        </resources>
        <component_desc/>
      </jnlp>
