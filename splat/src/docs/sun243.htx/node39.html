@@ -6,121 +6,195 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Handling 2 and 3D data</TITLE>
-<META NAME="description" CONTENT="Handling 2 and 3D data">
+<TITLE>Supported data formats</TITLE>
+<META NAME="description" CONTENT="Supported data formats">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="previous" HREF="node38.html">
-<LINK REL="up" HREF="node38.html">
+<LINK REL="next" HREF="node41.html">
+<LINK REL="previous" HREF="node7.html">
+<LINK REL="up" HREF="sun243.html">
 <LINK REL="next" HREF="node40.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html486"
+<A NAME="tex2html490"
  HREF="node40.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html484"
- HREF="node38.html">
+<A NAME="tex2html488"
+ HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html480"
+<A NAME="tex2html482"
  HREF="node38.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html487"
- HREF="node40.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html491"
+ HREF="node40.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html485"
- HREF="node38.html">Supported data formats</A>
+<B>Up:</B> <A NAME="tex2html489"
+ HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html481"
- HREF="node38.html">Supported data formats</A>
+<B> Previous:</B> <A NAME="tex2html483"
+ HREF="node38.html">The filter spectrum window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION00051000000000000000">
-Handling 2 and 3D data</A>
-</H2>
+<H1><A NAME="SECTION00050000000000000000"></A><A NAME="xref_data_formats"></A>
+<BR>
+Supported data formats
+</H1>
 
 <P>
-If you have images or cubes that contain data that you want to view as spectra
-in some fashion, then <I>SPLAT-VO</I> will attempt to do this for you. There are three
-fundamental modes for doing this:
-
-<UL><LI>by collapsing images into a single <TT>spectrum</TT> by adding together
-all values that lie perpendicular to the dispersion axis (so the spectrum runs
-along this axis, what a good spectral displaying tool should do),
-
-<P>
-
-<LI>by expanding images and cubes into a spectrum for each line running
-along the dispersion axis,
+<I>SPLAT-VO</I> can read and write spectra stored in a wide variety of formats, either
+stored as 1D spectra or as columns in tables. 1D spectral formats supported
+are Starlink NDF &amp; NDX, FITS and simple TEXT files. Table formats supported
+are FITS (binary and ascii), VOTable and more complex TEXT files. The 1D data
+formats currently have the best coordinate system support, so are recommended
+when a choice can be made. Some support is available for 2 and 3D data, see
+later).
 
 <P>
-
-<LI>by vectorizing the whole data into a single line (created by joining
-everything line-by-line).
+Normally <I>SPLAT-VO</I> differentiates these types using a preset list of file
+extensions, for instance NDFs can only be stored in container files that have
+the extension <TT>.sdf</TT>, FITS files usually have one of the extensions
+<TT>.fits</TT> or <TT>.fit</TT> and TEXT files <TT>.txt</TT> or <TT>.lis</TT>
+and NDX format spectra, when stored on disk, will have extension
+<TT>.xml</TT>. However, you can choose a specific format when opening a file
+using the <B>File=&gt;Open</B> dialogue, so you can ask that a TEXT file
+is opened as a table, this allows you to select the columns. Alternatively you
+can specify a type for all the spectra opened on the command-line using the
+<code>--type</code> argument. Valid values for <code>--type</code> are:
+<BLOCKQUOTE>
+<PRE>
+  fits
+  hds
+  text
+  hdx
+  table
+  line ids
+</PRE>
+</BLOCKQUOTE>
+You free to truncate these values as long as they remain unique (so
+<code>--type line</code> will work for line identifiers).
 
 <P>
+Currently line identifier catalogues represent a special case and currently
+may have a single format - TEXT based in files with extension <TT>.ids</TT>.
+
+<P>
+1D spectra stored in TEXT files must have the format of one, two or three
+columns of data, separated by whitespace (that is spaces or tabs). Any
+comments in the file must be indicated by a hash sign, blank lines are also
+allowed. The three columns should have the following values:
+<BLOCKQUOTE>
+<PRE>
+  [wavelength] count [error-in-count]
+</PRE>
+</BLOCKQUOTE>
+The wavelength and error columns being optional (if you don't have a
+wavelength column a simple row index is used, note you cannot have errors
+without wavelengths) . If you choose to open a TEXT file as a table you can
+select which columns should be used for these values, and the following rules
+apply:
+
+<UL><LI>Each table row is represented by a single text line
+
+<LI>Anything after a `#' character on a line is ignored (except for optional
+      heading line)
+
+<LI>Blank lines are ignored
+
+<LI>Within a line, fields are separated by one or more whitespace characters
+      (space or tab)
+
+<LI>A field is either a sequence of non-whitespace characters or a sequence
+      of characters between two matching quote characters (single (') or double (")
+      quotes) - spaces are therefore allowed in quoted fields.
+
+<LI>In a quoted field any character preceded by a backslash is interpreted
+      literally, so it is possible to insert quotes into a quoted string
+
+<LI>An empty string (two adjacent quotes) represents a null element
+
+<LI>All lines must contain exactly the same number of fields
+
+<LI>An optional heading line may be included: if the last comment line (line
+      starting with a `#' before the first data line) contains the same number of
+      fields as the columns in the table, these fields are interpreted as the
+      headings (names) of the columns
 
 </UL>
 
 <P>
-The default is to collapse. When collapsing cubes you have the option of which
-axis to step along selecting image planes, this is known as the
-<TT>select</TT> axis. To determine which option is used to handle your cubes or
-images you can either set values on the command-line, along with your spectra,
-or choose options in the open file dialogue. A command line that uses axis 3 as
-the dispersion axis and steps along axis 2 when choosing image planes might
-look like:
-<BLOCKQUOTE>
-<PRE>
- % splat --ndaction collapse --dispax 3 --selectax 2 &lt;spectral_cube&gt; &amp;
-</PRE>
-</BLOCKQUOTE>
-or in shorthand:
-<BLOCKQUOTE>
-<PRE>
- % splat -n c -d 3 -s 2 &lt;spectral_cube&gt; &amp;
-</PRE>
-</BLOCKQUOTE>
-If you don't choose a dispersion axis <I>SPLAT-VO</I> will make a good intelligent
-guess about this and step along the first axis that isn't the dispersion axis.
+The format of line identification catalogues is like that of simple TEXT
+spectral files, except the second column contains a string that identifies the
+line (with no spaces, <I>i.e.</I> <TT>H-alpha</TT> not <TT>H alpha</TT>). It is also
+possible to define the system of the coordinate values in a header section,
+see the <I>SPLAT-VO</I> built-in catalogues for examples of this.
 
 <P>
+NDFs stored within container files can be accessed, but only by entering the
+full HDS path on the command-line or in the <B>File=&gt;Open</B> dialogue.
+FITS extensions may also be open in this fashion (by appending the extension
+number in square brackets).
+
+<P>
+An alternative to specifying the component information is to use the component
+browser window <IMG
+ WIDTH="24" HEIGHT="24" ALIGN="CENTER"
+ SRC="browse.gif"
+ ALT="2609">, to see the contents of FITS and NDF files and
+choose the component to display directly.
+
+<P>
+Internally all these formats are stored as double precision
+coordinates and data values. <I>SPLAT-VO</I> only requires that
+<I>coordinates increase or decrease monotonically</I>
+when performing any analyses.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"></A>
+
+<UL>
+<LI><A NAME="tex2html492"
+ HREF="node40.html">Handling 2 and 3D data</A>
+</UL>
+<!--End of Table of Child-Links-->
 <BR> <HR>
-<A NAME="tex2html486"
+<A NAME="tex2html490"
  HREF="node40.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html484"
- HREF="node38.html">
+<A NAME="tex2html488"
+ HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html480"
+<A NAME="tex2html482"
  HREF="node38.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html487"
- HREF="node40.html">Command-line control and tools</A>
+<B> Next:</B> <A NAME="tex2html491"
+ HREF="node40.html">Handling 2 and 3D data</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html485"
- HREF="node38.html">Supported data formats</A>
+<B>Up:</B> <A NAME="tex2html489"
+ HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html481"
- HREF="node38.html">Supported data formats</A>
+<B> Previous:</B> <A NAME="tex2html483"
+ HREF="node38.html">The filter spectrum window</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

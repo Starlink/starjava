@@ -27,7 +27,7 @@ Research Councils}
 % Variable part - replace [xxx] as appropriate.
 \newcommand{\stardocnumber}    {243.5}
 \newcommand{\stardocauthors}   {Peter W. Draper}
-\newcommand{\stardocdate}      {19 January 2005}
+\newcommand{\stardocdate}      {24 January 2005}
 \newcommand{\stardoctitle}     {SPLAT-VO -- A VO-enabled Spectral Analysis Tool}
 \newcommand{\stardocversion}   {3.0b}
 \newcommand{\stardocmanual}    {User's Manual}
@@ -349,7 +349,7 @@ spectra that can also interact with the Virtual Observatory.
 \SPLAT\ is a graphical tool for displaying, comparing, modifying and
 analysing astronomical spectra stored in NDF, FITS and TEXT files as well as
 the new NDX format. It can read spectra from local disk files, download them
-over the internet, or it can interact with the Virtual Observatory and query
+over the Internet, or it can interact with the Virtual Observatory and query
 servers for spectral data in a region of the sky.
 
 \SPLAT\ can handle many spectra at the same time and will display these as
@@ -362,8 +362,7 @@ produce printable hardcopy and be configured in many ways.
 They also provide the basis for interactive analysis facilities.
 All of these functions are displayed in a visually rich format, that
 is intended to appeal especially to casual users of spectral data
-analysis facilities, as it includes some facilities such as
-drag-and-drop and undo-able editing.
+analysis facilities.
 
 The current set of analysis facilities include background estimation by the
 fitting of a polynomial to selected parts of a spectrum or by drawing an
@@ -382,7 +381,9 @@ standards of rest (topocentric, heliocentric, dynamic and kinematic
 local standards of rest \etc). 
 It also uses AST to transform spectra between various flux systems, so that
 spectra from a wide variety of sources can be easily compared and used to
-produce a spectral energy distribution.
+produce a spectral energy distribution. 
+This is an important feature for supporting the heterogeneous data supplied
+in the Virtual Observatory.
 
 % Not advertising this yet. May be big changes ahead.
 %Finally \SPLAT\ is extensible by the use of plugin code and
@@ -721,7 +722,7 @@ in the following figure:
   Normally the type of a spectrum is determined using the file extension,
   but using this dialogue you can select a type.
 
-  \item[\inline{location}] Download and display a spectrum from the internet.
+  \item[\inline{location}] Download and display a spectrum from the Internet.
   If you have a URL for a spectrum to view then use this simple dialog.
 
   \item[\inline{ssap}] Query any known Simple Spectral Access Protocol (SSAP)
@@ -773,7 +774,7 @@ in the following figure:
   information can be used to align spectra in a plot (so you can
   trivially compare spectra in say angstroms and nanometres,
   energy and frequency or even heliocentric and topocentric rest frames
-  \etc.).
+  \etc).
 
   \item[\inline{yunits}] Open a window to set the data units of any spectra.
   This can be useful when just setting the units displayed in a plot, but
@@ -1192,6 +1193,78 @@ at a later time, this can be done using the
 the physical coordinates of the spectrum, so should be re-drawn at the correct
 wavelengths \etc\ on new plots.
 
+
+\newpage
+\subsection{The query VO for spectra window{\xlabel{ssap_window}}}
+
+This window provides basic access to the Virtual Observatory. Using it you can
+query the current list of SSAP servers (Simple Spectral Access Protocol) for
+lists of the spectra that they hold about a circular region on the sky. You
+can then select which of these you are interested in and download these into
+\SPLAT.
+
+\mainfigure{ssapwindow}
+
+The figure above shows the window after a query to all the currently known
+servers has been made. 
+
+To lookup the coordinates of an object just type in an identifier and either
+press \hitext{<Return>} or the \labelitem{Lookup} button. Alternatively if you
+known the coordinates (FK5/J2000) of the region of sky you can just enter the
+coordinates in the \labelitem{RA} and \labelitem{Dec} fields. The 
+\labelitem{Radius} value is a number of arcminutes to search about the
+position. Once you have identified the region to search press the 
+\labelitem{Go} button to contact the current list of SSAP servers. To make a
+query it may be necessary for you to tell \SPLAT\ about your local web-proxy
+server (this is the same as that you use in your Internet browser), select the
+\submenuitem{Options}{Configure proxy...} item to do this.
+
+The list of servers available is shown in the \labelitem{Servers} menu. To 
+not query a server de-select it from this list (note that in the future the
+list of servers itself will be determined by a query to a VO registry).
+
+Once the SSAP query is complete lists of spectra that the servers hold will be
+shown in the \labelitem{Query results:} region. There is a tab of results for
+each server. If the tab is empty then the server has no spectra for the
+selected region.
+
+The next action is to select which spectra you want to download and view in
+\SPLAT. If you press \labelitem{Display all} then all the spectra from all the
+servers will be downloaded and displayed in a single plot. Clearly this may
+take quite sometime if there are many spectra, so you can also download and
+display a subset. To do this select the rows that contain the spectra that
+you want to see (you can extend selections by using the control and shift keys
+while selecting a row and you can select spectra from more than one tab at a
+time) and then press the \labelitem{Display selected} button.
+
+Once the spectra have been downloaded they should appear together in a single
+plot. If this isn't the case then some of the spectra are probably invalid and
+you will need to add them to a plot yourself (see the section on 
+\htmlref{displaying more than one spectrum}{displaying_more_than_one_spectrum}).
+If you want \SPLAT\ to match the coordinate systems and fluxes of the spectra 
+then remember to select the 
+\submenuitem{Options}{Match coordinates and/or fluxes} item in the plot window.
+
+\subheading{Status of implementation}
+
+SSAP is a protocol being developed by the IVOA 
+(\htmladdnormallinkfoot{International Virtual Observatory Alliance}
+{http://www.ivoa.net/}) and is not yet a full recommendation so the 
+services offered here are just a flavour of what might become available. 
+
+Currently responses from SSAP servers may only return spectra in the simple
+formats understood by \SPLAT\ (these are generally FITS of various flavours)
+and the SSAP query is limited to just a cone region on the sky (additional
+meta-data like XXXpassbandXXX are not allowed). The servers themselves are
+currently hard-coded into \SPLAT, but this situation will be resolved in the
+next release which will feature a system for query VO registries for SSAP
+services.
+
+The matching of spectral coordinates and fluxes is performed by the Starlink
+AST library (\xref{SUN/211}{sun211}). This works using a full implementation
+of spectral coordinates from FITS paper III and by interpreting the units
+strings (this does not use the dimensional analysis-only approach).
+
 \newpage
 \subsection{The animation window\xlabel{animation_window}}
 
@@ -1417,7 +1490,7 @@ plots of the spectrum.
 \end{quote}
 
 \newpage
-\subsection{Spectral coordinate system attributes window}
+\subsection{The spectral coordinate system attributes window}
 
 This window allows you to define the coordinate systems that describe your
 spectra. The most trivial use of these is simply to document what type of
@@ -1483,7 +1556,7 @@ documentation (\xref{SUN/211}{sun211}{ss:specframes}).
 
 
 \newpage
-\subsection{Data units window}
+\subsection{The data units window}
 
 This window allows you to inspect and set the units of the data values of your
 spectra. Currently the only use made of these values in \SPLAT\ is when
@@ -1530,8 +1603,8 @@ multiple or sub-multiple.
 
 In addition to the unit symbols listed in FITS-WCS Paper I, any other
 arbitrary unit symbol may be used, with the proviso that it will not be
-possible to convert between Frames using such units. The exception to
-this is if both Frames refer to the same unknown unit string. For instance,
+possible to convert between spectra using such units. The exception to
+this is if both spectra refer to the same unknown unit string. For instance,
 an axis with unknown unit symbol "flop" \emph{could} be converted to an axis 
 with unit "Mflop" (Mega-flop).
 
@@ -1547,7 +1620,6 @@ may be included in a units string, the standard prefixes for multiples
 and sub-multiples, and the strings which may be used to represent
 mathematical operators and functions.
 
-\begin{table}[htbp]
 \begin{center}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -1566,9 +1638,50 @@ luminous intensity  & cd  & candela \\
 \hline
 \end{tabular}
 \end{center}
-\end{table}
 
-\begin{table}[htbp]
+\begin{center}
+\begin{tabular}{|lll|lll|}
+\hline
+\multicolumn{6}{|c|}{{\large Prefixes for multiples \& 
+sub-multiples}} \\ \hline
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{c|}{Prefix} &
+\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
+\multicolumn{1}{c|}{Prefix} \\ \hline
+$10^{-1}$ & deci & d & $10$ & deca & da \\
+$10^{-2}$ & centi & c & $10^{2}$ & hecto & h \\
+$10^{-3}$ & milli & m & $10^{3}$ & kilo & k \\
+$10^{-6}$ & micro & u & $10^{6}$ & mega & M \\
+$10^{-9}$ & nano & n & $10^{9}$ & giga & G \\
+$10^{-12}$ & pico & p & $10^{12}$ & tera & T \\
+$10^{-15}$ & femto & f & $10^{15}$ & peta & P \\
+$10^{-18}$ & atto & a & $10^{18}$ & exa & E \\
+$10^{-21}$ & zepto & z & $10^{21}$ & zetta & Z \\
+$10^{-24}$ & yocto & y & $10^{24}$ & yotta & Y \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\multicolumn{2}{|c|}{{\large Mathematical operators \& functions}} \\
+\hline
+\multicolumn{1}{|c|}{String} & \multicolumn{1}{|c|}{Meaning} \\ \hline
+sym1 sym2           & multiplication (a space) \\ 
+sym1*sym2           & multiplication (an asterisk) \\
+sym1.sym2           & multiplication (a dot) \\
+sym1/sym2           & division \\
+sym1**y             & exponentiation ($y$ must be a numerical constant)\\
+sym1\verb+^+y       & exponentiation ($y$ must be a numerical constant)\\
+log(sym1)           & common logarithm \\
+ln(sym1)            & natural logarithm \\
+exp(sym1)           & exponential \\
+sqrt(sym1)          & square root \\
+\hline
+\end{tabular}
+\end{center}
+
 \begin{center}
 \begin{tabular}{|l|l|l|l|}
 \hline
@@ -1625,54 +1738,6 @@ time  & min & minute & 60 s \\
 \hline
 \end{tabular}
 \end{center}
-\end{table}
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{|lll|lll|}
-\hline
-\multicolumn{6}{|c|}{{\large Prefixes for multiples \& 
-sub-multiples}} \\ \hline
-\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
-\multicolumn{1}{c|}{Prefix} &
-\multicolumn{1}{|c}{Sub-multiple} & \multicolumn{1}{c}{Name} & 
-\multicolumn{1}{c|}{Prefix} \\ \hline
-$10^{-1}$ & deci & d & $10$ & deca & da \\
-$10^{-2}$ & centi & c & $10^{2}$ & hecto & h \\
-$10^{-3}$ & milli & m & $10^{3}$ & kilo & k \\
-$10^{-6}$ & micro & u & $10^{6}$ & mega & M \\
-$10^{-9}$ & nano & n & $10^{9}$ & giga & G \\
-$10^{-12}$ & pico & p & $10^{12}$ & tera & T \\
-$10^{-15}$ & femto & f & $10^{15}$ & peta & P \\
-$10^{-18}$ & atto & a & $10^{18}$ & exa & E \\
-$10^{-21}$ & zepto & z & $10^{21}$ & zetta & Z \\
-$10^{-24}$ & yocto & y & $10^{24}$ & yotta & Y \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[htbp]
-\begin{center}
-\begin{tabular}{|l|l|}
-\hline
-\multicolumn{2}{|c|}{{\large Mathematical operators \& functions}} \\
-\hline
-\multicolumn{1}{|c|}{String} & \multicolumn{1}{|c|}{Meaning} \\ \hline
-sym1 sym2           & multiplication (a space) \\ 
-sym1*sym2           & multiplication (an asterisk) \\
-sym1.sym2           & multiplication (a dot) \\
-sym1/sym2           & division \\
-sym1**y             & exponentiation ($y$ must be a numerical constant)\\
-sym1\verb+^+y       & exponentiation ($y$ must be a numerical constant)\\
-log(sym1)           & common logarithm \\
-ln(sym1)            & natural logarithm \\
-exp(sym1)           & exponential \\
-sqrt(sym1)          & square root \\
-\hline
-\end{tabular}
-\end{center}
-\end{table}
 
 \newpage
 \subsection{The simple binary maths window}
@@ -1757,7 +1822,7 @@ The following mouse interactions are provided:
 \end{itemize}
 
 \newpage
-\subsection{Plot configuration window}
+\subsection{The plot configuration window}
 
 This window provides a series of paged controls for configuring the
 plot display area. This help section describes each page in
@@ -2048,7 +2113,7 @@ this also clears any spectra that have been created on the global
 list. To keep these just close the window.
 
 \newpage
-\subsection{Polynomial fitting window}
+\subsection{The polynomial fitting window}
 
 The polynomial fitting window allows you to fit a polynomial of selected
 degree to various selected ranges of the current spectrum. You can select to
@@ -2145,7 +2210,7 @@ plotted in a new window before fitting the lines.
 \end{quote}
 
 \newpage
-\subsection{Generate spectra from interpolated lines}
+\subsection{The generate spectra from interpolated lines window}
 
 \mainfigure{generateline}
 
@@ -2162,7 +2227,7 @@ selected first in the \submenuitem{Graphics}{Curve type} menu. The default is
 similar way to a human.
 
 \newpage
-\subsection{Spectral line fitting window}
+\subsection{The spectral line fitting window}
 
 The spectral line fitting window allows you to measure the wavelength
 and equivalent width of emission or absorption lines and to fit
@@ -2375,7 +2440,7 @@ hash (\#) and are ignored.
 \end{quote}
 
 \newpage
-\subsection{Filter spectrum window}
+\subsection{The filter spectrum window}
 
 This window provides the ability to filter the current spectrum
 displayed in a plot.
@@ -2683,7 +2748,36 @@ Niemeyer (\htmladdnormallink{http://www.beanshell.org}
 
 \section{Changes}
 
-\subsection{This release (2.2)}
+\subsection{This release (3.0)}
+
+Starlink SPLAT now a tool for the Virtual Observatory and has been 
+renamed to \SPLAT.
+
+In this release Starlink \SPLAT\ has been enhanced to access prototype
+spectral data servers (so called SSAP servers) that are being registered on
+the evolving virtual observatory. Using \SPLAT\ it is now possible to make
+queries about a region on the sky and retrieve, display and compare any
+spectra that are available.
+
+Comparisons of such spectra are made possible by improvements to the
+Starlink AST library which can transform coordinates between various
+spectral systems (wavelength, frequency, energy and velocity) and between a
+growing number of flux systems (currently flux per unit frequency and per
+unit wavelength). This allows you to view various spectral from differing
+energy domains as a spectral energy distribution.
+
+Other changes of note in this release:
+\begin{itemize}
+\item spectra can now be drawn using point markers of various kinds.
+
+\item log spacing can now be switched on from a plot (rather than by finding
+      the plot configuration window).
+
+\item a new tool for setting the data units of spectra has been introduced.
+\end{itemize}
+
+
+\subsection{Release 2.2}
 
  The following changes have been made in this release.
  \begin{itemize}

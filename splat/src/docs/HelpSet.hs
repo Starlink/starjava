@@ -4,7 +4,7 @@
   "http://java.sun.com/products/javahelp/helpset_1_0.dtd">
 
 <helpset version="1.0">
-     <title>SPLAT a Spectral Analysis Tool</title>
+     <title>SPLAT-VO a VO enabled Spectral Analysis Tool</title>
 
      <!-- The Map file. This documents IDs to URLs -->
      <maps>

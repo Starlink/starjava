@@ -6,139 +6,111 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>The cutter window</TITLE>
-<META NAME="description" CONTENT="The cutter window">
+<TITLE>Save or Restore Plot Configurations</TITLE>
+<META NAME="description" CONTENT="Save or Restore Plot Configurations">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
-<LINK REL="next" HREF="node33.html">
-<LINK REL="previous" HREF="node18.html">
-<LINK REL="up" HREF="node7.html">
+<LINK REL="previous" HREF="node31.html">
+<LINK REL="up" HREF="node19.html">
 <LINK REL="next" HREF="node33.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html420"
+<A NAME="tex2html423"
  HREF="node33.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html418"
- HREF="node7.html">
+<A NAME="tex2html421"
+ HREF="node19.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html412"
+<A NAME="tex2html417"
  HREF="node31.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html421"
- HREF="node33.html">Polynomial fitting window</A>
+<B> Next:</B> <A NAME="tex2html424"
+ HREF="node33.html">The cutter window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html419"
- HREF="node7.html">Help for individual windows</A>
+<B>Up:</B> <A NAME="tex2html422"
+ HREF="node19.html">The plot configuration window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html413"
- HREF="node31.html">Save or Restore Plot Configurations</A>
+<B> Previous:</B> <A NAME="tex2html418"
+ HREF="node31.html">Plot background:</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H2><A NAME="SECTION000412000000000000000">
-The cutter window</A>
-</H2>
-
-<P>
-This window is used to cut out or remove sections from the current
-spectrum. The sections are defined as a series of graphics ranges that
-you draw on the plot display area.
+<H3><A NAME="SECTION0004121300000000000000">
+Save or Restore Plot Configurations</A>
+</H3>
 
 <P>
 <DIV ALIGN="CENTER">
  <IMG
- WIDTH="357" HEIGHT="198" ALIGN="BOTTOM" BORDER="0"
- SRC="cutterwindow.gif"
- ALT="2001">
+ WIDTH="360" HEIGHT="182" ALIGN="BOTTOM" BORDER="0"
+ SRC="restorewindow.gif"
+ ALT="1916">
  
 </DIV>
 
 <P>
-To add a region press the <B>Add</B> button and then drag out a
-region in the display area of the plot window. This should result in
-the creation of a green rectangular figure.
+This additional window is activated by the <B>Store/restore</B>
+button. It's purpose is to allow you to create a database of configurations
+that you'd like to keep (after all if you've spent some time configuring the
+look of a plot you don't want to have to type it all in again when someone
+asks you to tweak the postscript).
 
 <P>
-You can interact with the figure, moving it side-to-side and resizing
-it. To do this point at the figure and press the left mouse
-button. This `selects' the figure and adds <TT>grips</TT> to its
-exterior. Note that it also becomes the selected row in the
-<B>Coordinate ranges:</B> table. To move the figure just drag it
-and to resize it drag a grip (the little black squares). The
-associated coordinate range in the table updates with these changes.
+The configurations are identified by two elements, a
+<B>Description</B> entered by you and the date when the
+configuration was created. To create a copy of the current configuration
+(note this doesn't include the spectra themselves) just press the
+<B>Store</B> button. This creates a new entry with the description
+<TT>New configuration</TT>. To change the description just double
+click on this text and type in your changes. Remember to press
+<TT>&lt;Return&gt;</TT> when you're done. To remove any un-needed
+configurations select their rows and press the <B>Delete</B>
+button.
 
 <P>
-To add a second range just press <B>Add</B> and repeat. The
-ranges can be overlapped or not.
-
-<P>
-To fine tune the ranges you can edit the values in the ranges table,
-just point at the cell you want to change and double click the left
-mouse button. This should enable the text editing cursor. Just make
-the modifications you want and press <TT>&lt;Return&gt;</TT> to make the
-changes permanent. (Note: if your spectra have sky coordinates shown
-for the X axis, then you should use the same format for your edits).
-
-<P>
-To read a set of ranges from a disk file choose the
-<B>File=&gt;Read ranges</B> menu item. The format of the input file
-is simple. It should have two fields separated by whitespace or
-commas. Comments are indicated by lines starting with a hash (#)
-and are ignored.
-
-<P>
-When you've got the ranges that you want to extract or remove, press the
-<B>Cut</B> or <B>Remove</B> buttons. This creates a new
-spectrum on the global list called <TT>Cut &lt;n&gt; of &lt;shortname&gt;</TT>,
-that you can save to disk, or display in another plot <I>etc.</I> To just
-extract, or remove, one or a subset of the ranges select the rows in
-the ranges table and press the <B>Cut Selected</B> or
-<B>Remove Selected</B> buttons.
-
-<P>
-To clear the ranges press the <B>Reset</B> button, but note that
-this also clears any spectra that have been created on the global
-list. To keep these just close the window.
+To restore a configuration just select it and press the
+<B>Restore</B> button. The actual data is stored in the file:
+<TT>$HOME/.splat/PlotConfigs.xml</TT>. If things seem badly broken
+then try deleting this file.
 
 <P>
 
 <BR> <HR>
-<A NAME="tex2html420"
+<A NAME="tex2html423"
  HREF="node33.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html418"
- HREF="node7.html">
+<A NAME="tex2html421"
+ HREF="node19.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html412"
+<A NAME="tex2html417"
  HREF="node31.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html421"
- HREF="node33.html">Polynomial fitting window</A>
+<B> Next:</B> <A NAME="tex2html424"
+ HREF="node33.html">The cutter window</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html419"
- HREF="node7.html">Help for individual windows</A>
+<B>Up:</B> <A NAME="tex2html422"
+ HREF="node19.html">The plot configuration window</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html413"
- HREF="node31.html">Save or Restore Plot Configurations</A>
+<B> Previous:</B> <A NAME="tex2html418"
+ HREF="node31.html">Plot background:</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>

@@ -6,114 +6,185 @@ original version by:  Nikos Drakos, CBLU, University of Leeds
   Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
 <HTML>
 <HEAD>
-<TITLE>Acknowledgements</TITLE>
-<META NAME="description" CONTENT="Acknowledgements">
+<TITLE>Command-line control and tools</TITLE>
+<META NAME="description" CONTENT="Command-line control and tools">
 <META NAME="keywords" CONTENT="sun243">
 <META NAME="resource-type" CONTENT="document">
 <META NAME="distribution" CONTENT="global">
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
 <LINK REL="STYLESHEET" HREF="sun243.css">
 <LINK REL="next" HREF="node42.html">
-<LINK REL="previous" HREF="node40.html">
+<LINK REL="previous" HREF="node39.html">
 <LINK REL="up" HREF="sun243.html">
 <LINK REL="next" HREF="node42.html">
 </HEAD>
 <BODY >
 <BR> <HR>
-<A NAME="tex2html506"
+<A NAME="tex2html509"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html504"
+<A NAME="tex2html507"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html498"
+<A NAME="tex2html501"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html507"
- HREF="node42.html">Changes</A>
+<B> Next:</B> <A NAME="tex2html510"
+ HREF="node42.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html505"
+<B>Up:</B> <A NAME="tex2html508"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html499"
- HREF="node40.html">Command-line control and tools</A>
+<B> Previous:</B> <A NAME="tex2html502"
+ HREF="node40.html">Handling 2 and 3D data</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 
-<H1><A NAME="SECTION00070000000000000000">
-Acknowledgements</A>
+<H1><A NAME="SECTION00060000000000000000">
+Command-line control and tools</A>
 </H1>
 
 <P>
-<I>SPLAT-VO</I> is written in
-<A NAME="tex2html5"
- HREF="http://java.sun.com">Java</A>
-by
-<A NAME="tex2html6"
- HREF="http://www.sun.com/">SUN Microsystems Inc.</A>
-and
-contains software from:
-
-<UL><LI>The JDOM Project (<A NAME="tex2html7"
- HREF="http://www.jdom.org/">http://www.jdom.org/</A>).
-
-<LI>The Apache Software Foundation
-      (<A NAME="tex2html8"
- HREF="http://www.apache.org/">http://www.apache.org/</A>
-).
-
-<LI>The DIVA project
-      (<A NAME="tex2html9"
- HREF="http://www.gigascale.org/diva/">http://www.gigascale.org/diva/</A>).
-
-<LI>The COLT distribution
-      (<A NAME="tex2html10"
- HREF="http://http://hoschek.home.cern.ch/hoschek/colt/">http://http://hoschek.home.cern.ch/hoschek/colt/</A>).
-
-<LI>JSci - A science API for Java
-      (<A NAME="tex2html11"
- HREF="http://jsci.sourceforge.net/">http://jsci.sourceforge.net/</A>).
-
-</UL>
+<B><FONT SIZE="+1">Remote control</FONT></B>
 
 <P>
-The BeanShell (remote control and scripting) is written by Pat
-Niemeyer (<A NAME="tex2html12"
- HREF="http://www.beanshell.org">http://www.beanshell.org</A>).
+The most useful of the remote control scripts are the commands:
+
+<UL><LI><TT>splatdisp</TT>
+
+<LI><TT>splatdispmany</TT>
+
+</UL>
+<TT>splatdisp</TT> takes the name of a spectrum and displays it.
+If a plot identifier is given after the spectrum name (this is the
+<TT>n</TT> in any names like <TT>&lt;plotn&gt;</TT> that you see) then you
+can add a spectrum to an existing plot.
+
+<P>
+<TT>splatdispmany</TT> takes a list of spectra and displays them all in a
+new plot, much like giving a list of spectra on the command-line when
+starting <I>SPLAT-VO</I>. The obvious uses of these commands are to have very
+basic remote control from any scripts that require display facilities.
+
+<P>
+Both of these commands are available as a standard part of <I>SPLAT-VO</I> <I>i.e.</I> you can just type in their names, just like the <TT>splat</TT>
+command. Command-line usage instructions
+are available either by typing in the command name, or by inspecting
+the comments in the file. This is true of all the following commands too.
+
+<P>
+More sophisticated control of how the spectrum, once plotted, can be
+displayed is provided by the following scripts:
+
+<UL><LI><TT>$SPLAT_DIR/zoomandcentre</TT>
+
+<LI><TT>$SPLAT_DIR/setcolour</TT>
+
+<LI><TT>$SPLAT_DIR/setproperty</TT>
+
+</UL>
+<TT>zoomandcentre</TT> changes the zoom factor of the wavelength axis
+and optionally centres it on a given wavelength.
+
+<P>
+<TT>setcolour</TT> allows you to change the display colour of a spectrum.
+
+<P>
+<TT>setproperty</TT> is quite similar to <TT>setcolour</TT> but it
+also allows you to set the line thickness, type and style, as well as
+whether to display error bars.
+
+<P>
+<B><FONT SIZE="+1">Plugins</FONT></B>
+
+<P>
+The one useful example plugin (<I>i.e.</I> code that is loaded into <I>SPLAT-VO</I> when it starts up) provides the ability to name a list of spectra in a
+directory that should be automatically loaded when <I>SPLAT-VO</I> starts up
+in that directory (this includes a special indicator to load all
+spectra).
+
+<P>
+To use this you need to do the following:
+<BLOCKQUOTE>
+<PRE>
+ % setenv SPLAT_PLUGINS $SPLAT_DIR/example_plugin3.bsh
+</PRE>
+</BLOCKQUOTE>
+Now when <I>SPLAT-VO</I> starts it will look for a file
+<TT>.splat_autoloads</TT>  in the current directory and if found
+it will read the lines (each of which are
+assumed to contain a file name) from it to construct a list of spectra
+to display. If the file only has one line ``*'' then all the NDFs are
+automatically loaded. If you'd like other types of spectra to be
+automatically loaded take a copy of <TT>example_plugin3.bsh</TT> and
+modify the <TT>FILE_PATTERN</TT> definition line. Now re-define
+<TT>SPLAT_PLUGINS</TT> to point at your copy.
+
+<P>
+<B><FONT SIZE="+1">Command-line <I>SPLAT-VO</I></FONT></B>
+
+<P>
+<TT>$SPLAT_DIR</TT> also contains several command-line scripts that
+only make use of <I>SPLAT-VO</I> classes, so don't need <I>SPLAT-VO</I> to be running. These
+are:
+
+<UL><LI><TT>$SPLAT_DIR/fitgauss</TT>
+
+<LI><TT>$SPLAT_DIR/fitgauss2</TT>
+
+<LI><TT>$SPLAT_DIR/linepositions</TT>
+
+</UL>
+which as you might expect fit gaussians to lines and just locate
+accurate line positions from a initial list. Just run the commands
+without any arguments to get usage instructions. Look at the script
+headers for more details.
+
+<P>
+A one-off command that is currently only available as a script, but may become
+available as part of a proper toolbox is:
+
+<UL><LI><TT>$SPLAT_DIR/deblend</TT>
+
+</UL>
+This fits a blend of spectral lines using a multi-component model, based on
+any of the three spectral line profiles supported by <I>SPLAT-VO</I> (Gaussian,
+Lorentz, Voigt). See the contents of this file for instructions on how to use
+it.
 
 <P>
 <BR> <HR>
-<A NAME="tex2html506"
+<A NAME="tex2html509"
  HREF="node42.html">
 <IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
-<A NAME="tex2html504"
+<A NAME="tex2html507"
  HREF="sun243.html">
 <IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
-<A NAME="tex2html498"
+<A NAME="tex2html501"
  HREF="node40.html">
 <IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A>   <A HREF="sun243.html#stardoccontents"><IMG
  WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0"
  SRC="contents_motif.gif"
  ALT="101"></A>
 <BR>
-<B> Next:</B> <A NAME="tex2html507"
- HREF="node42.html">Changes</A>
+<B> Next:</B> <A NAME="tex2html510"
+ HREF="node42.html">Acknowledgements</A>
 <BR>
-<B>Up:</B> <A NAME="tex2html505"
+<B>Up:</B> <A NAME="tex2html508"
  HREF="sun243.html">SPLAT-VO - A VO-enabled Spectral Analysis Tool</A>
 <BR>
-<B> Previous:</B> <A NAME="tex2html499"
- HREF="node40.html">Command-line control and tools</A>
+<B> Previous:</B> <A NAME="tex2html502"
+ HREF="node40.html">Handling 2 and 3D data</A>
 <BR> <HR> <P>
 
 <!--End of Navigation Panel-->
 <ADDRESS>
-<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>19 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
+<I>SPLAT-VO -- A VO-enabled Spectral Analysis Tool<BR>Starlink User Note 243<BR>Peter W. Draper<BR>24 January 2005<BR>E-mail:<A HREF="mailto:splat@star.rl.ac.uk">splat@star.rl.ac.uk</A><BR><BR>Copyright &copy 2001-2005 Council for the Central Laboratory of the
 
 Research Councils<BR></I>
 </ADDRESS>
