@@ -62,7 +62,15 @@ public class MEMSpecDataImpl
     {
         super( name, spectrum );
         this.shortName = name;
+        clone( spectrum );
+    }
 
+    /**
+     * Clone this spectrum from another spectrum.
+     */
+    protected void clone( SpecData spectrum )
+        throws SplatException
+    {
         //  Use the AST system from the spectrum, rather than creating our
         //  own. Pick the first axis of the SpecData FrameSet. This should be
         //  1D and match the physical to data coordinates, but note we are

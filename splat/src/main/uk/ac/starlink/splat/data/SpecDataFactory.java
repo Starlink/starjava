@@ -276,7 +276,7 @@ public class SpecDataFactory
             if ( isRemote && namer.getFormat().equals( "XML" ) ) {
                 impl = makeXMLSpecDataImpl( specspec, true, url );
             }
-            else { 
+            else {
                 //  Remote plainer formats (FITS, NDF) need a local copy.
                 if ( isRemote ) {
                     PathParser p = remoteToLocalFile( url );
@@ -399,8 +399,8 @@ public class SpecDataFactory
      * VOTable or an HDX/NDX. If isRemote is true then the resource isn't
      * local and the URL value will be used to access the file.
      */
-    protected SpecDataImpl makeXMLSpecDataImpl( String specspec, 
-                                                boolean isRemote, 
+    protected SpecDataImpl makeXMLSpecDataImpl( String specspec,
+                                                boolean isRemote,
                                                 URL url )
         throws SplatException
     {
@@ -795,11 +795,6 @@ public class SpecDataFactory
      */
     protected PathParser remoteToLocalFile( URL url )
     {
-        //  URL for a remote resource. We always make a local copy of
-        //  these so that the file is guaranteed to be around. Some of
-        //  the implementations could probably deal with Streams, but
-        //  that's not part of any interface.
-
         //  XXX how to determine the format, mime types and files
         //  types are the obvious way, but mime types are probably
         //  rarely available, so we will need to use the usual file
@@ -828,5 +823,80 @@ public class SpecDataFactory
             namer = null;
         }
         return namer;
+    }
+
+    //  Types of reprocessing of 2D data files. The default is VECTORIZE
+    //  which implementations should have already performed.
+    public final static int COLLAPSE = 0;
+    public final static int EXPAND = 1;
+    public final static int VECTORIZE = 2;
+
+    /**
+     * Process a SpecData object that isn't really 1D into another
+     * representation of itself. There are several ways that this reprocessing
+     * can be performed:
+     * <ul>
+     *   <li>Collapse along the dispersion axis</li>
+     *   <li>Expansion into a spectrum per line of the original data</li>
+     *   <li>Vectorisation of the original data into a single spectrum</li>
+     * </ul>
+     * To be reprocessable a SpecData must have an implementation that is 2D,
+     * higher dimensions are not supported and 1D spectrum require no
+     * reprocessing. In both these cases a null is returned.
+     *
+     * @param specData the SpecData object to reprocess.
+     * @param method the method to use when reprocessing, COLLAPSE, EXPAND or
+     *               VECTORIZE.
+     */
+    public SpecData[] reprocessTo1D( SpecData specData, int method )
+        throws SplatException
+    {
+        SpecData[] results = null;
+        SpecDataImpl impl = specData.getSpecDataImpl();
+        int[] dims = impl.getDims();
+        if ( dims.length != 2 ) {
+            return results;
+        }
+
+        // XXX Deal with special data formats. IRAF, SDSS.
+        switch (method)
+        {
+           case COLLAPSE: {
+               results = new SpecData[1];
+               results[0] = collapseSpecData( specData );
+           }
+           break;
+           case EXPAND: {
+               results = expandSpecData( specData );
+           }
+           break;
+           case VECTORIZE: {
+               //  All spectra are already in this form.
+               results = new SpecData[1];
+               results[0] = specData;
+           }
+           break;
+        }
+        return results;
+    }
+
+    /**
+     * Create a new SpecData instance by collapsing its 2D implementation
+     * along the dispersion axis. This creates a new 1D SpecData object.
+     */
+    private SpecData collapseSpecData( SpecData specData )
+        throws SplatException
+    {
+        SpecDataImpl newImpl = new CollapsedSpecDataImpl( specData );
+        return new SpecData( newImpl );
+    }
+
+    /**
+     * Create a set of new 1D SpecData instances by extracting each line of a
+     * 2D implementation along the dispersion axis.
+     */
+    private SpecData[] expandSpecData( SpecData specData )
+    {
+        return null;
     }
 }

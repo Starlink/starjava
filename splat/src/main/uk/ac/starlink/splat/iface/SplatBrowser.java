@@ -1342,14 +1342,46 @@ public class SplatBrowser
      */
     public void addSpectrum( SpecData spectrum )
     {
-        if ( colourAsLoaded ) {
-            spectrum.setLineColour( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
-        }
-        globalList.add( spectrum );
-
-        //  Latest list entry becomes selected.
+        //  Get the current top of SpecList.
         SpecList list = SpecList.getInstance();
-        specList.setSelectedIndex( list.specCount() - 1 );
+        int top = list.specCount();
+
+        //  2D spectra may need reprocessing by collapsing or expanding into
+        //  many spectra. This is performed here.
+        SpecData[] moreSpectra = null;
+        try {
+            moreSpectra = specDataFactory.reprocessTo1D
+                ( spectrum, SpecDataFactory.COLLAPSE );
+        }
+        catch (SplatException e) {
+            JOptionPane.showMessageDialog
+                ( this, e.getMessage(), 
+                  "Error converting 2D image into spectrum",
+                  JOptionPane.ERROR_MESSAGE );
+
+            //  Just use the vectorized form.
+            moreSpectra = null;
+        }
+        if ( moreSpectra != null ) {
+            //  Abandon the current spectrum and use these instead.
+            for ( int i = 0; i < moreSpectra.length; i++ ) {
+                if ( colourAsLoaded ) {
+                    moreSpectra[i].setLineColour
+                        ( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+                }
+                globalList.add( moreSpectra[i] );
+            }
+        }
+        else {
+            if ( colourAsLoaded ) {
+                spectrum.setLineColour
+                    ( Utilities.getRandomRGB( COLOUR_SAMPLE ) );
+            }
+            globalList.add( spectrum );
+        }
+
+        //  Latest list entries becomes selected.
+        specList.setSelectionInterval( top, list.specCount() - 1 );
     }
 
     /**
