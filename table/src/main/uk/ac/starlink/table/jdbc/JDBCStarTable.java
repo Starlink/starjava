@@ -353,7 +353,7 @@ public class JDBCStarTable extends AbstractStarTable {
      *
      * @return  a JDBC Connection object
      */
-    public Connection getConnection() {
+    public Connection getConnection() throws SQLException {
         return connx.getConnection();
     }
 
