@@ -204,7 +204,7 @@ public class SplatSelectedProperties
         //  Set up the line style control.
         layouter.add( "Line style:", false );
         layouter.add( lineStyle, false );
-        //layouter.eatLine();
+        layouter.eatLine();
         lineStyle.setToolTipText
             ( "Type of line style used when drawing spectrum" );
 

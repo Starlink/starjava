@@ -18,6 +18,7 @@ import uk.ac.starlink.splat.data.SpecData;
 import uk.ac.starlink.splat.data.SpecDataFactory;
 import uk.ac.starlink.splat.util.ExceptionDialog;
 import uk.ac.starlink.splat.util.SplatException;
+import uk.ac.starlink.splat.util.UnitUtilities;
 
 /**
  * Load a list of spectra into the {@link SplatBrowser}, or save a spectrum
@@ -442,7 +443,7 @@ public class SpectrumIO
      * loaded. The only required value is the spectrum specification (name,
      * URL etc.). The others cover a pre-defined type, a shortname, the data
      * and spectral coordinate units (ideally as strings understood by AST)
-     * and the columns to be used for data and coordinates, if the spectrum 
+     * and the columns to be used for data and coordinates, if the spectrum
      * is a table.
      */
     public static class Props
@@ -454,21 +455,31 @@ public class SpectrumIO
         protected String coordUnits;
         protected String dataColumn;
         protected String coordColumn;
+        protected String errorColumn;
 
         public Props( String spectrum )
         {
-            this( spectrum, SpecDataFactory.DEFAULT, null, null, null, 
-                  null, null ); 
+            this( spectrum, SpecDataFactory.DEFAULT, null, null, null,
+                  null, null, null );
         }
 
         public Props( String spectrum, int type, String shortName )
         {
-            this( spectrum, type, shortName, null, null, null, null );
+            this( spectrum, type, shortName, null, null, null, null, null );
         }
 
         public Props( String spectrum, int type, String shortName,
-                          String dataUnits, String coordUnits, 
-                          String dataColumn, String coordColumn )
+                      String dataUnits, String coordUnits,
+                      String dataColumn, String coordColumn )
+        {
+            this( spectrum, type, shortName, dataUnits, coordUnits,
+                  dataColumn, coordColumn, null );
+        }
+
+        public Props( String spectrum, int type, String shortName,
+                      String dataUnits, String coordUnits, 
+                      String dataColumn, String coordColumn, 
+                      String errorColumn )
         {
             this.spectrum = spectrum;
             this.type = type;
@@ -477,6 +488,7 @@ public class SpectrumIO
             this.coordUnits = coordUnits;
             this.dataColumn = dataColumn;
             this.coordColumn = coordColumn;
+            this.errorColumn = errorColumn;
         }
 
         public String getSpectrum()
@@ -498,7 +510,6 @@ public class SpectrumIO
         {
             this.type = type;
         }
-
 
         public String getShortName()
         {
@@ -550,6 +561,16 @@ public class SpectrumIO
             this.coordColumn = coordColumn;
         }
 
+        public String geErrorColumn()
+        {
+            return errorColumn;
+        }
+
+        public void setErrorColumn( String errorColumn )
+        {
+            this.errorColumn = errorColumn;
+        }
+
         /**
          * Apply the tranmutable properties of this object to a SpecData
          * instance. This does not include the spectrum specification, or data
@@ -557,34 +578,64 @@ public class SpectrumIO
          */
         public void apply( SpecData spectrum )
         {
+            boolean initialiseNeeded = false;
             if ( shortName != null && shortName.length() != 0 ) {
                 spectrum.setShortName( shortName );
             }
+
             if ( dataUnits != null && dataUnits.length() != 0 ) {
                 spectrum.setDataUnits( dataUnits );
+                initialiseNeeded = true;
             }
+
             if ( coordUnits != null && coordUnits.length() != 0 ) {
-                //  Bit tricky, set the units of the FrameSet used for drawing
-                //  and the underlying frame produced from the data. Still
-                //  might be lost if the spectrum is reloaded from disk file.
+                //  Bit tricky, set the units of the underlying frame produced
+                //  from the data and reinitialise AST. Still might be lost if
+                //  the spectrum is reloaded from disk file.
+                String units = UnitUtilities.fixUpUnits( coordUnits );
                 FrameSet frameSet = spectrum.getFrameSet();
-                frameSet.setUnit( 1, coordUnits );
-                frameSet = spectrum.getAst().getRef();
-                frameSet.setUnit( 1, coordUnits );
+                frameSet.setUnit( 1, units );
+                initialiseNeeded = true;
             }
-            if ( dataColumn != null && dataColumn.length() != 0 ) {
+
+            if ( coordColumn != null && coordColumn.length() != 0 ) {
                 try {
-                    spectrum.setYDataColumnName( dataColumn );
+                    spectrum.setXDataColumnName( coordColumn, false );
+                    initialiseNeeded = true;
                 }
                 catch (SplatException e) {
                     e.printStackTrace();
                 }
             }
-            if ( coordColumn != null && coordColumn.length() != 0 ) {
+
+            if ( dataColumn != null && dataColumn.length() != 0 ) {
                 try {
-                    spectrum.setXDataColumnName( coordColumn );
+                    if ( spectrum.setYDataColumnName( dataColumn ) ) {
+                        //  Coordinate systems update already done.
+                        initialiseNeeded = false;
+                    }
                 }
                 catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if ( errorColumn != null && errorColumn.length() != 0 ) {
+                try {
+                    spectrum.setYDataErrorColumnName( errorColumn );
+                }
+                catch (SplatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if ( initialiseNeeded ) {
+                //  Probably changed something important to the coordinate
+                //  systems, so make sure AST descriptions are up to date.
+                try {
+                    spectrum.initialiseAst();
+                }
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
