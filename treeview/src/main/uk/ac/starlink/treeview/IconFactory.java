@@ -72,11 +72,12 @@ public class IconFactory {
     public static final short HANDLE1 = 403;
     public static final short HANDLE2 = 404;
    
-    private Map iconMap;
     private static IconFactory soleInstance = new IconFactory();
 
+    private boolean festive = isFestive();
+    private Map iconMap = new HashMap();
+
     private IconFactory() {
-        iconMap = new HashMap();
     }
 
     /**
@@ -157,7 +158,8 @@ public class IconFactory {
             case HISTORY:        iname = "book2.gif";                break;
             case HISTORY_RECORD: iname = "mini-doc.gif";             break;
             case TABLE:          iname = "table10.gif";              break;
-            case TREE:           iname = "TREE28.gif";               break;
+            case TREE:           iname = !festive ? "TREE28.gif" 
+                                                  : "sxtree6.gif";   break;
             case ERROR:          iname = "madsmiley.gif";            break;
             case XML_DOCUMENT:   iname = "xml_doc.gif";              break;
             case XML_ELEMENT:    iname = "xml_el.gif";               break;
@@ -175,7 +177,8 @@ public class IconFactory {
             case SOG:            iname = "sogimage.gif";             break;
             case HANDLE_EXPAND:  iname = "Tree.expandedIcon";        break;
             case HANDLE_COLLAPSE:iname = "Tree.collapsedIcon";       break;
-            case TREE_LOGO:      iname = "TREE27.gif";               break;
+            case TREE_LOGO:      iname = !festive ? "TREE27.gif" 
+                                                  : "xtree5.gif";    break;
             case STARLINK_LOGO:  iname = "starlinklogo3.gif";        break;
             case HANDLE1:        iname = "handle1.gif";              break;
             case HANDLE2:        iname = "handle2.gif";              break;
@@ -244,5 +247,18 @@ public class IconFactory {
             iconMap.put( name, icon );
         }
         return (Icon) iconMap.get( name );
+    }
+
+    /**
+     * This entirely frivolous method determines whether the date is close
+     * enough to Christmas to change tree icons into christmas tree icons.
+     * The corresponding functionality is largely undocumented.
+     */
+    private static boolean isFestive() {
+        Calendar now = Calendar.getInstance();
+        int month = now.get( Calendar.MONTH );
+        int day = now.get( Calendar.DAY_OF_MONTH );
+        return ( month == Calendar.DECEMBER )
+            && ( day >= 21 && day <= 31 );
     }
 }
