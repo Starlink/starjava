@@ -219,8 +219,7 @@ public class ParameterWindow extends AuxWindow {
             public Object getValue( int irow ) {
                 String ucdid = getParamInfo( irow ).getUCD();
                 if ( ucdid != null ) {
-                    UCD ucd = UCD.getUCD( dataModel.getColumnInfo( irow )
-                                                   .getUCD() );
+                    UCD ucd = UCD.getUCD( ucdid );
                     if ( ucd != null ) {
                         return ucd.getDescription();
                     }
