@@ -105,6 +105,7 @@ public class PlotWindow extends TopcatViewWindow
     private final OrderedSelectionRecorder subSelRecorder_;
     private final Action fromvisibleAction_;
     private final Action blobAction_;
+    private final Action regressdataAction_;
     private JFileChooser exportSaver_;
     private FileFilter psFilter_;
     private FileFilter gifFilter_;
@@ -248,10 +249,21 @@ public class PlotWindow extends TopcatViewWindow
         subSelModel_.addListSelectionListener( subSelRecorder_ );
 
         /* Set up a model describing which regression lines will be plotted. */
-        CheckBoxMenu regressionMenu = subsets_.makeCheckBoxMenu( "Regression" );
-        regressionMenu.setMnemonic( KeyEvent.VK_R );
-        regressionSelModel_ = regressionMenu.getSelectionModel();
+        CheckBoxMenu regressSelMenu = 
+            subsets_.makeCheckBoxMenu( "Plot Regression For Subsets ..." );
+        regressSelMenu.setIcon( ResourceIcon.PLOT_LINES );
+        regressionSelModel_ = regressSelMenu.getSelectionModel();
         regressionSelModel_.addListSelectionListener( this );
+
+        /* Action for displaying linear regression coefficients. */
+        regressdataAction_ = 
+            new AbstractAction( "Display Regression Coefficients",
+                                ResourceIcon.EQUATION ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    plot_.displayRegressionCoefficients();
+                }
+            };
+        regressdataAction_.setEnabled( false );
 
         /* Construct the plot component.  The paint method is
          * overridden so that when the points are replotted we maintain
@@ -435,6 +447,10 @@ public class PlotWindow extends TopcatViewWindow
         getJMenuBar().add( subMenu );
 
         /* Add menu for which subsets to draw regression lines of. */
+        JMenu regressionMenu = new JMenu( "Regression" );
+        regressionMenu.setMnemonic( KeyEvent.VK_R );
+        regressionMenu.add( regressSelMenu );
+        regressionMenu.add( regressdataAction_ );
         getJMenuBar().add( regressionMenu );
 
         /* Add actions to the toolbar. */
@@ -870,6 +886,15 @@ public class PlotWindow extends TopcatViewWindow
      */
 
     public void valueChanged( ListSelectionEvent evt ) {
+        if ( evt.getSource() == regressionSelModel_ ) {
+            /* This isn't really good enough, since there may in fact
+             * be no regression lines plotted even though some are selected
+             * because there are <=1 points on the current plotting surface.
+             * In this case it ought to be disabled too.  But this class
+             * doesn't currently have access to that information. */
+            regressdataAction_.setEnabled( ! regressionSelModel_
+                                            .isSelectionEmpty() );
+        }
         replot();
     }
 

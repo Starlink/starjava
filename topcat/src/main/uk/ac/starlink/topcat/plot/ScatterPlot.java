@@ -2,6 +2,7 @@ package uk.ac.starlink.topcat.plot;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -15,7 +16,12 @@ import java.util.Iterator;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.OverlayLayout;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 import uk.ac.starlink.topcat.RowSubset;
 
 /**
@@ -45,6 +51,7 @@ public class ScatterPlot extends JComponent implements Printable {
     private int lastWidth_;
     private int lastHeight_;
     private Image image_;
+    private XYStats[] statSets_;
 
     /**
      * Constructs a new scatter plot, specifying the initial plotting surface
@@ -225,6 +232,9 @@ public class ScatterPlot extends JComponent implements Printable {
 
         /* Draw the points, optionally accumulating statistics for 
          * X-Y correlations if we're going to need to draw regression lines. */
+        /* Currently, this method updates the statSets_ member variable - 
+         * it's not very good practice to have a paintComponent method
+         * updating data structures. */
         double[] xv = points.getXVector();
         double[] yv = points.getYVector();
         int np = points.getCount();
@@ -232,14 +242,14 @@ public class ScatterPlot extends JComponent implements Printable {
         MarkStyle[] styles = state.getStyles();
         boolean[] regressions = state.getRegressions();
         int nset = sets.length;
-        XYStats[] statSets = new XYStats[ nset ];
+        statSets_ = new XYStats[ nset ];
         for ( int is = 0; is < nset; is++ ) {
             MarkStyle style = styles[ is ];
             boolean regress = regressions[ is ];
             XYStats stats = null;
             if ( regress ) {
                 stats = new XYStats( state_.isXLog(), state_.isYLog() );
-                statSets[ is ] = stats;
+                statSets_[ is ] = stats;
             }
             int maxr = style.getMaximumRadius();
             for ( int ip = 0; ip < np; ip++ ) {
@@ -267,7 +277,7 @@ public class ScatterPlot extends JComponent implements Printable {
         g.setStroke( new BasicStroke( 2, BasicStroke.CAP_ROUND,
                                       BasicStroke.JOIN_ROUND ) );
         for ( int is = 0; is < nset; is++ ) {
-            XYStats stats = statSets[ is ];
+            XYStats stats = statSets_[ is ];
             if ( stats != null ) {
                 double[] ends = stats.linearRegressionLine();
                 if ( ends != null ) {
@@ -356,6 +366,82 @@ public class ScatterPlot extends JComponent implements Printable {
             }
         }
         return false;
+    }
+
+    /**
+     * Informs the user what the coefficients are for any regression
+     * lines currently plotted.
+     *
+     * <p>This isn't very beautifully done one way and another - there 
+     * should really be a live regression line control window which gives you
+     * control over what's plotted and displayed - this just gives you
+     * a modal dialogue.  I'm not sure if this is going to be a very
+     * widely used facility though, so I don't know if its' worth the
+     * effort.  Also, to do it properly would require some reorganisation
+     * of how data is distributed/calculated between ScatterPlot and
+     * PlotWindow - this needs to be done in tandem with the move to
+     * multiplots.
+     */
+    public void displayRegressionCoefficients() {
+        final RowSubset[] sets = state_.getSubsets();
+        boolean[] regressions = state_.getRegressions();
+        TableModel tmodel = new AbstractTableModel() {
+            public Class getColumnClass( int icol ) {
+                return icol == 0 ? String.class : Double.class;
+            }
+            public int getColumnCount() {
+                return 4;
+            }
+            public int getRowCount() {
+                return sets.length;
+            }
+            public String getColumnName( int icol ) {
+                switch ( icol ) {
+                    case 0: return "Subset";
+                    case 1: return "Gradient";
+                    case 2: return "Intercept";
+                    case 3: return "Correlation";
+                    default: throw new IllegalArgumentException();
+                }
+            }
+            public Object getValueAt( int irow, int icol ) {
+                if ( icol == 0 ) {
+                    return sets[ irow ].getName();
+                }
+                else {
+                    XYStats stats = statSets_[ irow ];
+                    if ( stats == null ) {
+                        return null;
+                    }
+                    else {
+                        switch( icol ) {
+                            case 1:
+                                double m = stats.getLinearCoefficients()[ 1 ];
+                                return new Double( m );
+                            case 2:
+                                double c = stats.getLinearCoefficients()[ 0 ];
+                                return new Double( c );
+                            case 3: 
+                                double r = stats.getCorrelation();
+                                return new Double( r );
+                            default:
+                                throw new IllegalArgumentException();
+                        }
+                    }
+                }
+            }
+        };
+        JTable jtab = new JTable( tmodel );
+        JScrollPane tscroller = new JScrollPane( jtab );
+        tscroller.setPreferredSize( new Dimension( 450, 100 ) );
+         
+        Object[] msg = new Object[] { 
+            "Coefficients for plotted regression lines",
+            tscroller,
+        };
+        JOptionPane.showMessageDialog( this, msg, 
+                                       "Linear Regression Coefficients",
+                                       JOptionPane.INFORMATION_MESSAGE );
     }
 
     /**
