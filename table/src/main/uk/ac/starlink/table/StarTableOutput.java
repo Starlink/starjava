@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import uk.ac.starlink.table.formats.HTMLTableWriter;
+import uk.ac.starlink.table.formats.LatexTableWriter;
 import uk.ac.starlink.table.jdbc.JDBCHandler;
 
 /**
@@ -58,6 +60,34 @@ public class StarTableOutput {
                 StarTableWriter handler = (StarTableWriter) clazz.newInstance();
                 handlers.add( handler );
                 logger.config( className + " registered" );
+
+                /* Add VOTable variants. */
+                if ( clazz.getName()
+                          .equals( "uk.ac.starlink.votable.VOTableWriter" ) ) {
+                    try {
+                        List extras = (List) 
+                            clazz.getMethod( "getVariantHandlers",
+                                             new Class[ 0 ] )
+                           .invoke( null, new Object[ 0 ] );
+                        handlers.addAll( extras );
+                        logger.config( "Variant VOTable handlers registered" );
+                    }
+                    catch ( Exception e ) {
+                        logger.config( "No variant VOTable handlers" );
+                    }
+                }
+
+                /* Add HTML variants. */
+                if ( clazz.equals( HTMLTableWriter.class ) ) {
+                    handlers.add( new HTMLTableWriter( false ) );
+                    logger.config( "Variant HTML handler registered" );
+                }
+
+                /* Add Latex variants. */
+                if ( clazz.equals( LatexTableWriter.class ) ) {
+                    handlers.add( new LatexTableWriter( true ) );
+                    logger.config( "Variant LaTeX handler registered" );
+                }
             }
             catch ( ClassNotFoundException e ) {
                 logger.config( className + " not found - can't register" );
@@ -65,18 +95,6 @@ public class StarTableOutput {
             catch ( Exception e ) {
                 logger.config( "Failed to register " + className + " - " + e );
             }
-        }
-
-        /* Add some variant handlers for VOTable if possible. */
-        try {
-            List extras = (List)
-                Class.forName( "uk.ac.starlink.votable.VOTableWriter" )
-                     .getMethod( "getVariantHandlers", new Class[ 0 ] )
-                     .invoke( null, new Object[ 0 ] );
-            handlers.addAll( extras );
-        }
-        catch ( Exception e ) {
-            logger.config( "No variant VOTable handlers" );
         }
     }
 
@@ -217,12 +235,14 @@ public class StarTableOutput {
             }
         }
 
-        /* Otherwise, offer it to the first handler which likes the look
-         * of its filename. */
-        for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
-            StarTableWriter handler = (StarTableWriter) it.next();
-            if ( handler.looksLikeFile( location ) ) {
-                return handler;
+        /* If no format has been specified, offer it to the first handler 
+         * which likes the look of its filename. */
+        else {
+            for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
+                StarTableWriter handler = (StarTableWriter) it.next();
+                if ( handler.looksLikeFile( location ) ) {
+                    return handler;
+                }
             }
         }
 
