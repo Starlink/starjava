@@ -133,9 +133,14 @@ public class SOG extends JFrame
         addWindowListener( new BasicWindowMonitor() );
 
         if ( portNum > 0 ) {
-            SOGRemoteControl control = SOGRemoteControl.getInstance();
-            control.setPortNumber( portNum );
-            control.start();
+            try {
+               SOGRemoteControl control = SOGRemoteControl.getInstance();
+               control.setPortNumber( portNum );
+               control.start();
+            }
+            catch (Exception e) {
+               System.err.println( e.getMessage() );
+            }
         }
     }
 
