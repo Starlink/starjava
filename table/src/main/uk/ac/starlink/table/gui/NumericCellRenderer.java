@@ -31,8 +31,18 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     /** The most elements that will be shown in a single cell. */
     public static final int MAX_SHOW_ELEMENTS = 10;
 
-    private NumberFormat sciFormat;
-    private NumberFormat fixFormat;
+    public static final int FLOAT_DEC_PLACES = 4;
+
+    private NumberFormat sciFormatDouble;
+    private NumberFormat sciFormatFloat;
+    private NumberFormat fixFormatDouble;
+    private NumberFormat fixFormatFloat0;
+    private NumberFormat fixFormatFloat1;
+    private NumberFormat fixFormatFloat2;
+    private NumberFormat fixFormatFloat3;
+    private NumberFormat fixFormatFloat4;
+    private NumberFormat fixFormatFloat5;
+    private NumberFormat fixFormatFloat6;
     private NumberFormat intFormat;
     private char decimalPoint;
     private String decimalPointString;
@@ -173,38 +183,59 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
         }
 
         /* Is it a floating point number? */
-        if ( obj instanceof Double || obj instanceof Float ) {
-            double dval = ((Number) obj).doubleValue();
+        else if ( obj instanceof Double ) {
+            double dval = ((Double) obj).doubleValue();
             double aval = Math.abs( dval );
             if ( Double.isNaN( dval ) ) {
                 return;
             }
-            else if ( obj instanceof Double && aval <= Double.MIN_VALUE ||
-                      obj instanceof Float && aval <= Float.MIN_VALUE ) {
-                setText( formatFixed( 0.0 ) );
+            else if ( aval <= Double.MIN_VALUE ) {
+                setText( formatFixedDouble( 0.0 ) );
                 return;
             }
             else if ( aval < 1e-4 || aval >= 1e5 ) {
-                setText( formatSci( dval ) );
+                setText( formatSciDouble( dval ) );
                 return;
             }
             else {
-                setText( formatFixed( dval ) );
+                setText( formatFixedDouble( dval ) );
+                return;
+            }
+        }
+        else if ( obj instanceof Float ) {
+            float fval = ((Float) obj).floatValue();
+            float aval = Math.abs( fval );
+            if ( Float.isNaN( fval ) ) {
+                return;
+            }
+            else if ( aval <= Float.MIN_VALUE ) {
+                setText( formatFixedFloat( 0.0f ) );
+                return;
+            }
+            else if ( aval < 1e-4 || aval >= 1e5 ) {
+                setText( formatSciFloat( fval ) );
+                return;
+            }
+            else {
+                setText( formatFixedFloat( fval ) );
                 return;
             }
         }
 
         /* Is it an integral number? */
-        if ( ( obj instanceof Long ) ||
+        else if ( ( obj instanceof Long ) ||
              ( obj instanceof Integer ) ||
              ( obj instanceof Short ) ||
              ( obj instanceof Byte ) ) {
             setText( intFormat.format( ((Number) obj).intValue() ) + ' ' );
+            return;
         }
 
         /* It's just an object. */
-        setText( ' ' + obj.toString() + ' ' );
-        return;
+        else {
+            setText( ' ' + obj.toString() + ' ' );
+            return;
+        }
     }
 
     /**
@@ -247,7 +278,6 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
             return widthFor( new Long( 0x7fffffffffffffffL ) );
         }
         else if ( clazz.equals( Float.class ) ) {
-            widthFor( new Float( 10537. ) );
             return Math.max( widthFor( new Float( - Float.MAX_VALUE ) ),
                              widthFor( new Float( - ( 1e5 - Math.PI ) ) ) );
         }
@@ -285,14 +315,14 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does fixed-type formatting of a floating point value.
+     * Does fixed-type formatting of a <tt>double</tt> value.
      */
-    private String formatFixed( double dval ) {
-        if ( fixFormat == null ) {
-            fixFormat = NumberFormat.getInstance();
-            if ( fixFormat instanceof DecimalFormat ) {
-                DecimalFormat dformat = (DecimalFormat) fixFormat;
-                dformat.applyPattern( " #####0.######;-#####0.######" );
+    private String formatFixedDouble( double dval ) {
+        if ( fixFormatDouble == null ) {
+            fixFormatDouble = NumberFormat.getInstance();
+            if ( fixFormatDouble instanceof DecimalFormat ) {
+                DecimalFormat dformat = (DecimalFormat) fixFormatDouble;
+                dformat.applyPattern( " #####0.#####;-#####0.#####" );
                 dformat.setDecimalSeparatorAlwaysShown( true );
                 decimalPoint = dformat.getDecimalFormatSymbols()
                                       .getDecimalSeparator();
@@ -300,13 +330,13 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
             }
         }
         StringBuffer buf = new StringBuffer( 20 );
-        buf.append( fixFormat.format( dval ) );
+        buf.append( fixFormatDouble.format( dval ) );
         int dotpos = buf.indexOf( decimalPointString );
         if ( dotpos < 0 ) {
             dotpos = buf.length();
             buf.append( decimalPoint );
         }
-        int pad = 11 - ( buf.length() - dotpos );
+        int pad = 7 - ( buf.length() - dotpos );
         for ( int i = 0; i < pad; i++ ) {
             buf.append( ' ' );
         }
@@ -314,18 +344,111 @@ public class NumericCellRenderer extends DefaultTableCellRenderer {
     }
 
     /**
-     * Does scientific-type formatting of a floating point value.
+     * Does fixed-type formatting of a <tt>float</tt> value.
      */
-    private String formatSci( double dval ) {
-        if ( sciFormat == null ) {
-            sciFormat = NumberFormat.getInstance();
-            if ( sciFormat instanceof DecimalFormat ) {
-                ((DecimalFormat) sciFormat)
+    private String formatFixedFloat( float fval ) {
+        if ( fixFormatFloat0 == null ) {
+            fixFormatFloat0 = NumberFormat.getInstance();
+            if ( fixFormatFloat0 instanceof DecimalFormat ) {
+                DecimalFormat dformat0 = (DecimalFormat) fixFormatFloat0;
+                dformat0.setDecimalSeparatorAlwaysShown( true );
+                decimalPoint = dformat0.getDecimalFormatSymbols()
+                                       .getDecimalSeparator();
+                decimalPointString = "" + decimalPoint;
+            }
+            fixFormatFloat1 = (NumberFormat) fixFormatFloat0.clone();
+            fixFormatFloat2 = (NumberFormat) fixFormatFloat0.clone();
+            fixFormatFloat3 = (NumberFormat) fixFormatFloat0.clone();
+            fixFormatFloat4 = (NumberFormat) fixFormatFloat0.clone();
+            fixFormatFloat5 = (NumberFormat) fixFormatFloat0.clone();
+            fixFormatFloat6 = (NumberFormat) fixFormatFloat0.clone();
+            if ( fixFormatFloat0 instanceof DecimalFormat ) {
+                ((DecimalFormat) fixFormatFloat0)
+                           .applyPattern( " 0.######;-0.######" );
+                ((DecimalFormat) fixFormatFloat1)
+                           .applyPattern( " 0.#####;-0.#####" );
+                ((DecimalFormat) fixFormatFloat2)
+                           .applyPattern( "#0.####;-#0.####" );
+                ((DecimalFormat) fixFormatFloat3)
+                           .applyPattern( " ##0.###;-##0.###" );
+                ((DecimalFormat) fixFormatFloat4)
+                           .applyPattern( " ###0.##;-###0.##" );
+                ((DecimalFormat) fixFormatFloat5)
+                           .applyPattern( " ####0.#;-####0.#" );
+                ((DecimalFormat) fixFormatFloat6)
+                           .applyPattern( " #####0.;-#####0." );
+            }
+        }
+        StringBuffer buf = new StringBuffer( 20 );
+        float aval = Math.abs( fval );
+        NumberFormat fmt;
+        if ( aval < 1e0 ) {
+            fmt = fixFormatFloat0;
+        }
+        else if ( aval < 1e1 ) {
+            fmt = fixFormatFloat1;
+        }
+        else if ( aval < 1e2 ) {
+            fmt = fixFormatFloat2;
+        }
+        else if ( aval < 1e3 ) {
+            fmt = fixFormatFloat3;
+        }
+        else if ( aval < 1e4 ) {
+            fmt = fixFormatFloat4;
+        }
+        else if ( aval < 1e-5 ) {
+            fmt = fixFormatFloat5;
+        }
+        else {
+            fmt = fixFormatFloat6;
+        }
+        buf.append( fmt.format( fval ) );
+        int dotpos = buf.indexOf( decimalPointString );
+        if ( dotpos < 0 ) {
+            dotpos = buf.length();
+            buf.append( decimalPoint );
+        }
+        int pad = 8 - ( buf.length() - dotpos );
+        for ( int i = 0; i < pad; i++ ) {
+            buf.append( ' ' );
+        }
+        return buf.toString();
+    }
+
+    /**
+     * Does scientific-type formatting of a <tt>double</tt> value.
+     */
+    private String formatSciDouble( double dval ) {
+        if ( sciFormatDouble == null ) {
+            sciFormatDouble = NumberFormat.getInstance();
+            if ( sciFormatDouble instanceof DecimalFormat ) {
+                ((DecimalFormat) sciFormatDouble)
                 .applyPattern( " 0.000000E0;-0.000000E0" );
             }
         }
         StringBuffer buf = new StringBuffer( 20 );
-        buf.append( sciFormat.format( dval ) );
+        buf.append( sciFormatDouble.format( dval ) );
+        int pad = 4 - ( buf.length() - buf.indexOf( "E" ) );
+        for ( int i = 0; i < pad; i++ ) {
+            buf.append( ' ' );
+        }
+        return buf.toString();
+    }
+
+    /**
+     * Does scientific-type formatting of a <tt>float</tt> value.
+     */
+    private String formatSciFloat( float fval ) {
+        if ( sciFormatFloat == null ) {
+            sciFormatFloat = NumberFormat.getInstance();
+            if ( sciFormatFloat instanceof DecimalFormat ) {
+                ((DecimalFormat) sciFormatFloat)
+                .applyPattern( " 0.00000E0;-0.00000E0" );
+            }
+        }
+        StringBuffer buf = new StringBuffer( 20 );
+        buf.append( sciFormatFloat.format( fval ) );
         int pad = 4 - ( buf.length() - buf.indexOf( "E" ) );
         for ( int i = 0; i < pad; i++ ) {
             buf.append( ' ' );
