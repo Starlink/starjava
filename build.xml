@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+
+<!--
+ !  HDX build file
+ !
+ !   This file describes how to build Starlink java from a source
+ !   release. It requires Apache ANT and a Java Development Kit.
+ !
+ !   In addition HDX may have requirements for other "core" and
+ !   "third-party" packages to complete the compilation and any
+ !   testing.
+ ! 
+ !   The main targets are:
+ !
+ !      build          => compiles the system
+ !      javadocs       => creates the API documentation
+ !      install        => installs the system and documentation
+ !      install        => deinstalls the system
+ !      clean          => cleans up the build
+ !
+ !   Authors:
+ !      Peter W. Draper (2-JUL-2002)
+ !
+ !-->
+
+<project name="Build file for HDX" default="build" basedir=".">
+
+  <!-- If this file exists then any properties contained within it
+   !   will override those defined here -->
+  <property file=".properties"/>
+
+  <!--
+   !  =================
+   !  Global Properties
+   !  =================
+   !-->
+
+  <!-- Directory for the Starlink installation (usually /star/java)-->
+  <property name="star.dir" value="${basedir}/../"/>
+
+  <!-- Directory to install into (install target, usually /star/java)-->
+  <property name="star.install" value="${star.dir}"/>
+
+  <!-- Directory that contains the Starlink jar tree -->
+  <property name="star.jar.dir" value="${star.dir}/lib"/>
+
+  <!-- Directory that contains the locally built sources (usually
+   !   /star/java/source for full distribution) -->
+  <property name="star.build.dir" value="${basedir}"/>
+
+  <!-- Whether to generate Java documentation -->
+  <property name="javadocs.required" value="false"/>
+
+  <!--
+   !  ================
+   !  Local Properties
+   !  ================
+   !-->
+
+  <!-- Define the package name and current versions. Use "full" names
+   !   to avoid passing these down the packages. All parameters are
+   !   passed by default. -->
+  <property name="FullName" value="Starlink"/>
+  <property name="fullname" value="starlink"/>
+  <property name="fullversion" value="0.1"/>
+
+  <!-- Compilation options -->
+  <property name="debug" value="true"/>
+  <property name="deprecation" value="false"/>
+  <property name="optimize" value="true"/>
+
+  <!-- Default target for the sub-packages -->
+  <property name="what" value="build"/>
+
+   <!-- 
+    !  ======================================
+    !  Execute all ANT in all sub-directories
+    !  ======================================
+    !
+    !  Execute a target in each of the sub-directories. The target
+    !  invoked is defined by the "what" property. New packages should
+    !  have an entry created in the correct dependency order. Note
+    !  that all properties defined in this file are passed on.
+    !-->
+  <target name="call_package_ant">
+
+     <ant dir="./axis" target="${what}"/>
+     <ant dir="./dom4j" target="${what}"/>
+     <ant dir="./jetty" target="${what}"/>
+     <ant dir="./jsky" target="${what}"/>
+     <ant dir="./jniast" target="${what}"/>
+     <ant dir="./jnihds" target="${what}"/>
+     <ant dir="./array" target="${what}"/>
+     <ant dir="./hdx" target="${what}"/>
+     <ant dir="./soapserver" target="${what}"/>
+     <ant dir="./sog" target="${what}"/>
+
+  </target>
+
+  <!--
+   !   =================
+   !   Prepare the build
+   !   =================
+   !
+   !  Do any jobs that are required before any other target can
+   !  proceed. This isn't used at present, but shows the sort of thing
+   !  you might want to do.
+   !-->
+  <target name="prepare">
+    <tstamp>
+      <format property="year" pattern="yyyy" />
+    </tstamp>
+    <filterchain id="install.filters">
+      <replacetokens>
+        <token key="VERSION" value="${version}" />
+        <token key="DATE" value="${TODAY}" />
+        <token key="TIME" value="${TSTAMP}" />
+      </replacetokens>
+    </filterchain>
+  </target>
+
+  <!--
+   !   ==================
+   !   Build all packages
+   !   ==================
+   !-->
+  <target name="build" depends="prepare" 
+          description="--> compiles all packages">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="build"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   ============================================
+   !   Cleans up build and distribution directories
+   !   ============================================
+   !-->
+  <target name="clean" depends="prepare" description="--> cleans up build">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="clean"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   ================================
+   !   Install into the "Starlink" tree
+   !   ================================
+   !-->
+  <target name="install" depends="prepare" 
+          description="--> install into Starlink tree">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="install"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   ===================================
+   !   De-install from the "Starlink" tree
+   !   ===================================
+   !-->
+  <target name="deinstall" depends="prepare" 
+          description="--> undo the install target">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="deinstall"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   =============================
+   !   Creates the API documentation
+   !   =============================
+   !
+   ! This is a difficult job as we may want to build all javadocs 
+   ! into a single tree... So avoid for now and just do what we can.
+   !-->
+  <target name="javadocs" depends="prepare" 
+          description="--> generate the java documentation">
+
+     <antcall target="call_package_ant">
+        <param name="what" value="javadocs"/>
+     </antcall>
+
+  </target>
+
+  <!--
+   !   =================
+   !   Run the testcases
+   !   =================
+   ! Do this when know how!
+   !-->
+
+</project>
+
