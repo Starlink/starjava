@@ -26,6 +26,7 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import uk.ac.starlink.fits.FitsTableBuilder;
 import uk.ac.starlink.table.StarTable;
+import uk.ac.starlink.table.TableFormatException;
 import uk.ac.starlink.table.TableSink;
 import uk.ac.starlink.util.PipeReaderThread;
 import uk.ac.starlink.util.StarEntityResolver;
@@ -130,8 +131,13 @@ class TableStreamer extends CustomDOMBuilder {
      * ContentHandler callback methods invoke this method when they have
      * completed sending all the rows to the sink.
      */
-    private void finished() throws SuccessfulCompletionException {
-        sink.endRows();
+    private void finished() throws SAXException {
+        try {
+            sink.endRows();
+        }
+        catch ( IOException e ) {
+            throw new SAXParseException( e.getMessage(), getLocator(), e );
+        }
         throw new SuccessfulCompletionException();
     }
 
@@ -250,7 +256,13 @@ class TableStreamer extends CustomDOMBuilder {
                             return -1L;
                         }
                     };
-                sink.acceptMetadata( startable );
+                try {
+                    sink.acceptMetadata( startable );
+                }
+                catch ( TableFormatException e ) {
+                    throw new SAXParseException( e.getMessage(), getLocator(),
+                                                 e );
+                }
                 super.startElement( namespaceURI, localName, qName, atts );
                 return;
             }
