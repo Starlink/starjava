@@ -535,6 +535,7 @@ public class StatsWindow extends AuxWindow {
          * @param  rset the RowSubset to do calculations for
          */
         public StatsCalculator( RowSubset rset ) {
+            super( "StatsCalculator" );
             this.rset = rset;
         }
 
