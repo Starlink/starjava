@@ -37,9 +37,9 @@ public class ScalingPlot extends JPanel {
      * of the base frame corners.
      *
      * @param   wcs  the WCS FrameSet on which to base the AST Plot
-     * @param   a 2-d array giving the x,y coordinates of the bottom 
+     * @param   lower  a 2-d array giving the x,y coordinates of the bottom 
      *          left hand corner in the base frame of <tt>wcs</tt>
-     * @param   a 2-d array giving the x,y coordinates of the top right
+     * @param   upper  a 2-d array giving the x,y coordinates of the top right
      *          hand corner in the base frame of <tt>wcs</tt>
      * @throws  IllegalArgumentException  if <tt>lower</tt> or <tt>upper</tt>
      *          or the base frame of <tt>wcs</tt> do not represent
@@ -75,7 +75,7 @@ public class ScalingPlot extends JPanel {
      * Subclasses may override this method to change any required
      * plot attributes prior to plotting.
      *
-     * @param  the Plot object to configure
+     * @param  plot  the Plot object to configure
      */
     protected void configurePlot( Plot plot ) {
         plot.setGrid( true );

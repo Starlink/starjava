@@ -24,10 +24,10 @@ public class TypeConverter implements Converter {
      * type conversion.
      *
      * @param   type1        primitive type for data at end 1 of the conversion
-     * @param   badHandler1  a bad value handler for the data at end 1 of
+     * @param   handler1     a bad value handler for the data at end 1 of
      *                       the conversion
      * @param   type2        primitive type for data at end 2 of the conversion
-     * @param   badHandler2  a bad value handler for the data at end 2 of
+     * @param   handler2     a bad value handler for the data at end 2 of
      *                       the conversion
      * @param   func         a Function object representing an additional 
      *                       <code>double</code> function to apply 
@@ -73,10 +73,10 @@ public class TypeConverter implements Converter {
      * Creates a converter from one primitive type to another.
      *
      * @param   type1        primitive type for data at end 1 of the conversion
-     * @param   badHandler1  a bad value handler for the data at end 1 of
+     * @param   handler1     a bad value handler for the data at end 1 of
      *                       the conversion
      * @param   type2        primitive type for data at end 2 of the conversion
-     * @param   badHandler2  a bad value handler for the data at end 2 of
+     * @param   handler2     a bad value handler for the data at end 2 of
      *                       the conversion
      */
     public TypeConverter( Type type1, BadHandler handler1,

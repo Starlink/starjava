@@ -38,8 +38,8 @@ public abstract class CustomComboBoxRenderer implements ListCellRenderer {
      * more suitable than the result of <tt>value</tt>'s <tt>toString</tt>
      * method.
      *
-     * @param  value to map
-     * @param  value to map it into (probably a string)
+     * @param  value  value to map
+     * @return  value to map it into (probably a string)
      */
     protected abstract Object mapValue( Object value );
 }

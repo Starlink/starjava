@@ -62,7 +62,7 @@ public class TreeModelNode {
     /**
      * Returns the DataNode managed by this TreeModelNode.
      *
-     * @param  datanode
+     * @return  data node
      */
     public DataNode getDataNode() {
         return dataNode;

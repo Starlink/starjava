@@ -48,7 +48,7 @@ public class HexDumper extends JTable {
      * Constructs a HexDumper given an input stream.
      *
      * @param  strm   the InputStream to dump
-     * @param  leng   the number of bytes in the stream.  If this is not
+     * @param  length the number of bytes in the stream.  If this is not
      *                 known, the value -1 should be submitted
      */
     public HexDumper( final InputStream strm, final long length ) 

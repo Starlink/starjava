@@ -21,7 +21,7 @@ public class UsageException extends TaskException {
      * It is only usually necessary to supply the correct usage string
      * if it differs from its default value.
      *
-     * @param  the correct argument usage string
+     * @param  correctUsage  the correct argument usage string
      */
     public UsageException( String correctUsage ) {
         usage = correctUsage;

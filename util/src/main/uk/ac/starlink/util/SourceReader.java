@@ -114,7 +114,7 @@ public class SourceReader {
      * source which is already a <tt>DOMSource</tt>) this transformer
      * will not be used.
      *
-     * @param   the transformer object to be used when transformation is
+     * @param trans  the transformer object to be used when transformation is
      *          necessary.  If <tt>null</tt> is supplied, a default
      *          transformer will be used.
      */

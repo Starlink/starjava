@@ -21,7 +21,7 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
      * Constructs a new query window, which on user completion will
      * try to construct a new synthetic RowSubset and add it to the list.
      *
-     * @param   tableviewer  the tableviewer
+     * @param   tv           the tableviewer
      * @param   parent       the parent window for this dialogue (used for
      *                       window positioning)
      */

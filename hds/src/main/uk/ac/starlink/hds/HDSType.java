@@ -97,7 +97,7 @@ public class HDSType {
      * Gets the HDSType object most naturally associated with a given 
      * java primitive numeric type.
      *
-     * @param  Type object representing a java primitive type
+     * @param  javaType object representing a java primitive type
      * @return  an appropriate HDSType object
      */
     public static HDSType fromJavaType( Type javaType ) {

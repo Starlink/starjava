@@ -84,7 +84,7 @@ public class BasicTransferable implements Transferable {
     /**
      * Adds streamed data.
      *
-     * @param  src  the DataSource holding the data
+     * @param  datsrc  the DataSource holding the data
      * @param  mimeType  the MIME type with which the data should declare
      *         itself
      */

@@ -54,7 +54,7 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Constructs a test case with the given name.
      *
-     * @param  test case name
+     * @param  name  test case name
      */
     public TestCase( String name ) {
         super( name );
@@ -74,7 +74,7 @@ public class TestCase extends junit.framework.TestCase {
      * In the case of <tt>float[]</tt> and <tt>double[]</tt> arrays,
      * elements which both have the value <tt>NaN</tt> are taken to match.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the expected array object
      * @param  actual    the actual array object
      * @throws AssertionFailedError  if the assertion is untrue
@@ -204,7 +204,7 @@ public class TestCase extends junit.framework.TestCase {
      * This assertion has exactly the opposite sense to that of 
      * {@link #assertArrayEquals(String,Object,Object)}.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the expected array object
      * @param  actual    the actual array object,
      *                   asserted <i>not</i> to match <tt>expected</tt>
@@ -280,7 +280,7 @@ public class TestCase extends junit.framework.TestCase {
      * this method does the same as
      * {@link #assertArrayEquals(String,Object,Object)}.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the array object containing the expected values
      * @param  actual    the array object containing the actual values
      * @param  delta     the tolerance acceptable between values
@@ -406,7 +406,7 @@ public class TestCase extends junit.framework.TestCase {
      * This assertion has exactly the opposite sense to that of 
      * {@link #assertArrayEquals(String,Object,Object,double)}.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the array object containing the expected values
      * @param  actual    the array object containing the actual values,
      *                   asserted <i>not</i> to match <tt>expected</tt>
@@ -476,7 +476,7 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Asserts that two <tt>float</tt>s are exactly equal.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the expected value
      * @param  actual    the actual value
      * @throws AssertionFailedError  if the assertion is untrue
@@ -499,7 +499,7 @@ public class TestCase extends junit.framework.TestCase {
     /**
      * Asserts that two <tt>double</tt>s are exactly equal.
      *
-     * @param  messsage  the message to output if the assertion fails
+     * @param  message   the message to output if the assertion fails
      * @param  expected  the expected value
      * @param  actual    the actual value
      * @throws AssertionFailedError  if the assertion is untrue

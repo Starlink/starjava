@@ -398,10 +398,10 @@ public class DataNodeFactory {
      * the node tree; not doing it can lead to some impairment of
      * functionality for the nodes in question.
      *
-     * @param   the new node to configure
+     * @param   node   the new node to configure
      * @param   parentNode   <tt>node</tt>'s parent data node 
      *          (may be <tt>null</tt>) if it's at the top of the tree)
-     * @param   the object on which <tt>node</tt> is based 
+     * @param   obj   the object on which <tt>node</tt> is based 
      *          (may be <tt>null</tt>) if nothing suitable applies
      */
     public void configureDataNode( DataNode node, DataNode parentNode, 
@@ -485,9 +485,9 @@ public class DataNodeFactory {
      * NoSuchDataException, since it can guarantee to make a DataNode
      * from the throwable.
      *
-     * @param  th  the Throwable object from which to construct the node
      * @param  parent   the DataNode whose child this is
-     * @param  a DataNode (probably an ErrorDataNode) representing <tt>th</tt>
+     * @param  th  the Throwable object from which to construct the node
+     * @return  a DataNode (probably an ErrorDataNode) representing <tt>th</tt>
      */
     public DataNode makeErrorDataNode( DataNode parent, Throwable th ) {
         try {

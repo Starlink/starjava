@@ -140,7 +140,7 @@ public class DefaultDataNode implements DataNode {
      * This may be called by subclasses to set the icon returned by 
      * this node to one of the ones defined in the IconFactory class.
      *
-     * @param   code  one of the icon identifiers defined as static
+     * @param   id  one of the icon identifiers defined as static
      *          final members of the {@link IconFactory} class
      */
     protected void setIconID( short id ) {

@@ -26,9 +26,8 @@ public class TerminalInvoker {
      * event of an error it will call <tt>System.exit</tt> rather than
      * returning.
      *
-     * @param   toolclass  the class holding the methods this object can 
-     *                     invoke
      * @param   toolname   the name of this tool, used for user messages
+     * @param   taskmap    map of task names to <tt>Task</tt> objects
      */
     public TerminalInvoker( String toolname, Map taskmap ) {
         this.toolname = toolname;

@@ -183,7 +183,7 @@ public class MirageDriver {
      * Invokes the Mirage application on a StarTable object.
      *
      * @param  table  the StarTable to pass to Mirage
-     * @param  a list of other arguments (Strings) to pass as arguments
+     * @param  margs  a list of other arguments (Strings) to pass as arguments
      *         to Mirage
      * @throws ClassNotFoundException  if {@link #isMirageAvailable} 
      *         returns <tt>false</tt>

@@ -222,8 +222,8 @@ public class FitsConstants {
      * in that it does not print warnings to standard output about
      * duplicate keywords.
      *
-     * @param  dis  the input stream supplying the data
      * @param  hdr   the header to populate
+     * @param  strm  the input stream supplying the data
      * @return  the number of bytes in the FITS blocks which comprise the
      *          header content
      * @see  nom.tam.fits.Header#read

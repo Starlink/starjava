@@ -45,7 +45,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
      * Sets all the elements in this column to <tt>null</tt>.
      * Each will remain <tt>null</tt> until it is explicitly set (to a
      * non-null value) using {@link #storeValue} or until 
-     * {@link #setNoNull} is called.
+     * {@link #setNoNulls} is called.
      */
     public void setAllNulls() {
         trueMeansNull = false;
@@ -57,7 +57,7 @@ public abstract class PrimitiveArrayColumn extends ArrayColumn {
      * The value of each cell will be determined by the value of the
      * underlying data array, until it is set using
      * {@link #storeValue} with a <tt>null</tt> argument, or 
-     * {@link #setAllNull} is called.
+     * {@link #setAllNulls} is called.
      */
     public void setNoNulls() {
         trueMeansNull = true;

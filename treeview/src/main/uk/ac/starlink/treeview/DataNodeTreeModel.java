@@ -68,7 +68,7 @@ public class DataNodeTreeModel implements TreeModel {
     /**
      * Constructs a new DataNodeTreeModel with a given root node.
      *
-     * @param   root  the root node
+     * @param   rootDataNode  the root node
      */
     public DataNodeTreeModel( DataNode rootDataNode ) {
         root = makeModelNode( rootDataNode, null );

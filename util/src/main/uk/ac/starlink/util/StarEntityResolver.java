@@ -1,8 +1,10 @@
 package uk.ac.starlink.util;
 
+import java.io.IOException;
 import java.io.InputStream;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Provides specialised XML entity resolution.
@@ -10,18 +12,31 @@ import org.xml.sax.InputSource;
  * are likely to want to retrieve; it keeps copies of them so that
  * no network connection is required for them.
  * <p>
- * Use {@link #getInstance} to obtain the singleton instance of this class.
+ * Use {@link #getInstance} to obtain an instance of this class without
+ * a parent.
  *
  * @author   Mark Taylor (Starlink)
  */
 public class StarEntityResolver implements EntityResolver {
 
     private static StarEntityResolver instance = new StarEntityResolver();
+    private EntityResolver parent;
 
     /**
-     * Private sole constructor.
+     * Private no-arg constructor.
      */
     private StarEntityResolver() {
+    }
+
+    /**
+     * Constructs a resolver which will resolve entities this class knows
+     * about, and for those it doesn't it will defer resolution to a supplied
+     * parent resolver.
+     *
+     * @param   parent   fallback resolver (may be <tt>null</tt>)
+     */
+    public StarEntityResolver( EntityResolver parent ) {
+        this.parent = parent;
     }
 
     /**
@@ -36,7 +51,8 @@ public class StarEntityResolver implements EntityResolver {
     /**
      * Resolves an entity if it is one of the ones that we keep on hand.
      */
-    public InputSource resolveEntity( String publicId, String systemId ) {
+    public InputSource resolveEntity( String publicId, String systemId ) 
+            throws SAXException, IOException {
         String local = getLocalResource( publicId, systemId );
         if ( local != null ) {
             InputStream istrm = getClass().getResourceAsStream( local );
@@ -44,6 +60,9 @@ public class StarEntityResolver implements EntityResolver {
             isrc.setPublicId( publicId );
             isrc.setSystemId( systemId );
             return isrc;
+        }
+        else if ( parent != null ) {
+            return parent.resolveEntity( publicId, systemId );
         }
         else {
             return null;

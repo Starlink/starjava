@@ -153,6 +153,7 @@ public class ImageHDUDataNode extends HDUDataNode
                 }
             }
             catch ( AstException e ) {
+  e.printStackTrace();
                 wcsEncoding = null;
                 wcs = null;
             }

@@ -567,7 +567,7 @@ public class PlotWindow extends AuxWindow implements ActionListener {
      * This box will be updated when new columns are added to the 
      * table model and so on.
      *
-     * @param  combo box
+     * @return  combo box
      */
     public JComboBox makePlottableColumnComboBox() {
 

@@ -978,7 +978,7 @@ public class TableViewer extends AuxWindow
      * Sort the displayed table according to the order of values in a 
      * given column.
      *
-     * @param  icol  the index of the column to be sorted on in 
+     * @param  tcol  the index of the column to be sorted on in 
      *               this viewer's model; if < 0, natural sorting will
      *               be applied
      * @param  ascending  true for ascending sort, false for descending

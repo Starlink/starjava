@@ -92,7 +92,7 @@ public class MetamapGroup {
      * earlier in the list of metadata keys.  Any which do not appear 
      * in this list will be ranked in an unspecified order at the end.
      *
-     * @param   a list of strings which may appear in the metadata keys
+     * @param  ordering a list of strings which may appear in the metadata keys
      */
     public void setKeyOrder( List ordering ) {
         this.ordering = new ArrayList( ordering );

@@ -20,8 +20,8 @@ public class MirageFormatter {
     /**
      * Constructs a new formatter which will write to a given stream.
      *
-     * @param  pstrm  the stream into which mirage format tables will be 
-     *                written
+     * @param  strm  the stream into which mirage format tables will be 
+     *               written
      */
     public MirageFormatter( PrintStream strm ) {
         this.strm = strm;

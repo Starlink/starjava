@@ -94,7 +94,7 @@ public abstract class Compression {
     /**
      * Returns the name of this compression type.
      *
-     * @param  string representation
+     * @return  string representation
      */
     public String toString() {
         return name;

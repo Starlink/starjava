@@ -903,7 +903,7 @@ print <<'__EOT__';
          * Returns a resampling interpolator which uses a given user-defined
          * generic resampling function.
          *
-         * @param   a UinterpCalculator object which defines a generic
+         * @param uinterper  a UinterpCalculator object which defines a generic
          *          resampling function
          * @return  a generic user-defined resampling Interpolator
          */

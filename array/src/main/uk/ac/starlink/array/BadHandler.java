@@ -44,7 +44,7 @@ public abstract class BadHandler {
      *                 Type with at least start+length elements
      * @param  start   the position in array at which to start writing
      *                 bad values
-     * @param  length  the number of elements of array to write bad values to
+     * @param  size    the number of elements of array to write bad values to
      *
      * @throws ClassCastException  if array is not an array of primitives with
      *                             type matching the type of this handler

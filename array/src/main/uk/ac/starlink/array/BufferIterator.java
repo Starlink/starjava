@@ -64,8 +64,6 @@ public class BufferIterator implements Iterator {
      * Create a new <tt>BufferIterator</tt> with a default chunk size.
      *
      * @param   length     the total number of elements to iterate over
-     * @param   type       the type of the primitive buffer which the
-     *                     <tt>next</tt> method will return at each iteration
      */
     public BufferIterator( long length ) {
         chunkIt = new ChunkStepper( length );

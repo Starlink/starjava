@@ -238,7 +238,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * to the DataNodeFactory; if succesful it is installed  as the
      * tree's new root, otherwise, there's a beep.
      *
-     * @param  object from which to form a new root node
+     * @param obj  object from which to form a new root node
      */
     public void setRootObject( Object obj ) {
         try {
@@ -290,7 +290,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     /**
      * Returns a panel into which extra buttons can be placed.
      *
-     * @param  a box for buttons
+     * @return  a box for buttons
      */
     public JComponent getButtonPanel() {
         if ( buttonPanel == null ) {
@@ -319,7 +319,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * The return value is a node which the user selected, or <tt>null</tt>
      * if no selection was made.
      *
-     * @param  the parent of the dialog
+     * @param  parent  the parent of the dialog
      * @param  buttonText  the text to appear on the 'choose' button
      *         (or <tt>null</tt> for default)
      * @param  title  the title of the dialog window
@@ -524,7 +524,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      * Opens up the tree recursively from a given node to display 
      * all the choosable items at any level.
      *
-     * @param  topNode the node from which to start
+     * @param  startNode the node from which to start
      * @return  the thread in which the search is done
      */
     public Thread showAllChoosable( final DataNode startNode ) {

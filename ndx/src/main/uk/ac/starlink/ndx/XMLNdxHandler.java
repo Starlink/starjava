@@ -520,7 +520,6 @@ public class XMLNdxHandler implements NdxHandler {
      * @param  template   a template Ndx object from which non-array data
      *                    should be initialised - any title, bad bits mask,
      *                    WCS component etc will be copied from here
-     * @param  a new Ndx based on <tt>template</tt> but with writable arrays
      * @return  true if the new Ndx was written successfully
      * @throws  IOException  if the URL is understood but an NDArray cannot
      *                       be made

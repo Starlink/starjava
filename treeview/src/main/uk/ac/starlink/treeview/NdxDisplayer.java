@@ -41,7 +41,8 @@ public abstract class NdxDisplayer {
      * SOAP display service is available, and only local display will
      * be attempted.
      *
-     * @param   the endpoint for the SOAP communication (must be a valid URL)
+     * @param   endpoint the endpoint for the SOAP communication
+     *          (must be a valid URL)
      * @param   displayMethod  the operation name for the display service
      */
     protected NdxDisplayer( String endpoint, String displayMethod ) {

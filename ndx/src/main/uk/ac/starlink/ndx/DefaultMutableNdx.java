@@ -70,7 +70,7 @@ public class DefaultMutableNdx extends BridgeNdx implements MutableNdx {
      * though these can be set using the various <tt>set</tt> methods.
      *
      * @param  image  the Image component of this Ndx
-     * @param  NullPointerException   if <tt>image</tt> is <tt>null</tt>
+     * @throws  NullPointerException   if <tt>image</tt> is <tt>null</tt>
      */
     public DefaultMutableNdx( final NDArray image ) {
         this( new NdxImpl() {

@@ -183,7 +183,6 @@ public class FitsChan extends Channel {
     /**
      * Reads an AST object from this FitsChan.
      *
-     * @param   obj  an <code>AstObject</code> to be written
      * @throws  AstException  if an error occurs in the AST library
      */
     public native AstObject read();

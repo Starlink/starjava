@@ -30,7 +30,6 @@ public interface Task {
     /**
      * Invokes the task based on the given <tt>Environment</tt> object.
      *
-     * @param  args  a vector of arguments which tell the task what to do
      * @param  env  the environment in which the task will operate
      * @throws  ExcecutionException  if a simple error message will suffice -
      *          the object invoking this Task will typically not print

@@ -239,7 +239,7 @@ public class NDShape implements Cloneable {
     /**
      * Indicates whether a given point is within this shape. 
      *
-     * @param  the coordinates of a position
+     * @param  pos  the coordinates of a position
      * @return true if each for each dimension <code>i</code>, 
      *         <code>origin[i]&lt;=pos[i]&lt;origin[i]+dims[i]</code>
      */

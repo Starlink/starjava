@@ -59,7 +59,7 @@ public abstract class DataSource {
     /**
      * Constructs a DataSource with a given size of intro buffer.
      *
-     * @param  introSize  the maximum number of bytes in the intro buffer
+     * @param  introLimit  the maximum number of bytes in the intro buffer
      */
     public DataSource( int introLimit ) {
         setIntroLimit( introLimit );
@@ -189,7 +189,7 @@ public abstract class DataSource {
     /**
      * Sets the name of this source.
      *
-     * @param  a name
+     * @param  name a name
      * @see    #getName
      */
     public void setName( String name ) {
@@ -212,7 +212,7 @@ public abstract class DataSource {
      * It is a string giving an indication of the part of the stream
      * which is of interest.  Its interpretation is up to the application.
      *
-     * @param  the new posisition (may be <tt>null</tt>)
+     * @param  position  the new posisition (may be <tt>null</tt>)
      */
     public void setPosition( String position ) {
         this.position = position;
@@ -392,7 +392,7 @@ public abstract class DataSource {
      *
      * @param  compress  the compression mode to be used for the returned
      *                   data source
-     * @param  a data source with the same underlying stream as this,
+     * @return  a data source with the same underlying stream as this,
      *         but a compression mode given by <tt>compress</tt>
      */
     public synchronized DataSource forceCompression( Compression compress ) {

@@ -117,7 +117,7 @@ public class Requirements implements Cloneable {
     /**
      * Sets this object's required pixel ordering scheme.
      *
-     * @param  the required ordering
+     * @param  order  the required ordering
      * @return  this object
      */
     public Requirements setOrder( Order order ) {

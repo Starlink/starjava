@@ -28,7 +28,6 @@ public abstract class ZipArchiveDataNode extends DefaultDataNode {
     /**
      * Constructs a ZipArchiveDataNode.
      *
-     * @param  name  the name of the node
      * @param  datsrc a data source corresponding to the archive; this is
      *         used for checking the magic number to see whether it looks
      *         like a zip archive or not

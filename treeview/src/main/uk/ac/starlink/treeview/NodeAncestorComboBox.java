@@ -26,8 +26,6 @@ public class NodeAncestorComboBox extends JComboBox {
 
     /**
      * Construct a new combo box from a given data node.
-     *
-     * @param  node  the node which forms the initial selection
      */
     public NodeAncestorComboBox() {
 
@@ -40,7 +38,7 @@ public class NodeAncestorComboBox extends JComboBox {
      * be determined.  The box will contain <tt>node</tt> plus all
      * its ancestors.
      *
-     * @param  bottom node in the hierarchy to be represented
+     * @param  node  bottom node in the hierarchy to be represented
      */
     public void setBottomNode( DataNode node ) {
 
@@ -70,7 +68,7 @@ public class NodeAncestorComboBox extends JComboBox {
     /**
      * Returns the node which represents the selected item.
      *
-     * @param  the selected data node
+     * @return  the selected data node
      */
     public DataNode getSelectedNode() {
         return (DataNode) getSelectedNode();

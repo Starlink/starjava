@@ -115,7 +115,7 @@ public class Parameter {
     /**
      * Sets the default string value for this parameter.
      *
-     * @param   the default string value
+     * @param  def  the default string value
      */
     public void setDefault( String def ) {
         this.def = def;
@@ -137,7 +137,7 @@ public class Parameter {
      * the first parameter is 1.  If the position is 0, the value can only 
      * be set by name. 
      *
-     * @param  parameter position
+     * @param  pos  parameter position
      */
     public void setPosition( int pos ) {
         this.pos = pos;
@@ -181,7 +181,7 @@ public class Parameter {
      * The returned value may be <tt>null</tt> 
      * if the parameter has a null value.
      *
-     * @param  the value of this parameter as a string, or <tt>null</tt>
+     * @return   the value of this parameter as a string, or <tt>null</tt>
      * @throws  AbortException  if during the course of trying to obtain
      *          a value the Environment determines that the task should
      *          not continue.

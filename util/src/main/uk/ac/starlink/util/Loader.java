@@ -88,7 +88,7 @@ public class Loader {
      * java.library.path, the architecture-specific lib directory in 
      * the installed Starlink system is searched.
      *
-     * @param  the name of the library (not including system-specifics 
+     * @param  libname the name of the library (not including system-specifics 
      *         such as 'lib' or '.so')
      * @throws SecurityException if a security manager exists and its
      *         <tt>checkLink</tt> method doesn't allow loading of the 

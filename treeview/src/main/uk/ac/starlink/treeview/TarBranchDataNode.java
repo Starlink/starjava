@@ -13,7 +13,7 @@ public class TarBranchDataNode extends DefaultDataNode {
     /**
      * Constructs a TarBranchDataNode from a TarEntry and TarStreamArchive.
      *
-     * @param  tarstreamnode  DataNode representing the tar file within which
+     * @param  tarnode  DataNode representing the tar file within which
      *         this entry lives
      * @param  entry  the TarEntry object represented by this node
      */

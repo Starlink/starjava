@@ -130,7 +130,7 @@ public class FtpLocation {
     /**
      * Returns the full directory path for this node.
      *
-     * @param  pathname of directory in ftp filesystem
+     * @return  pathname of directory in ftp filesystem
      */
     public String getPath() {
         return path;
@@ -149,7 +149,7 @@ public class FtpLocation {
     /**
      * Returns the URL representing this directory.
      *
-     * @param  directory URL
+     * @return  directory URL
      */
     public URL getURL() {
         try {

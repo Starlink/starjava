@@ -37,7 +37,7 @@ public class DeterministicArrayImpl implements ArrayImpl {
      * function of the offset, with a smattering of bad values.
      * Override it to get different contents.
      *
-     * @param   offset  the offset into the array
+     * @param   off     the offset into the array
      * @return  the pixel value at offset.  Double.NaN is permitted and
      *          will be converted to a bad value.
      */

@@ -174,7 +174,7 @@ public class FitsTableSerializer {
      * Writes the header block for the BINTABLE extension HDU which holds
      * the table data.
      *
-     * @param  destination stream
+     * @param  strm   destination stream
      */
     public void writeHeader( DataOutput strm ) throws IOException {
 

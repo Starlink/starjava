@@ -37,7 +37,8 @@ public class TableHDUDataNode extends HDUDataNode
      * object.  The stream is read to the end of the HDU.
      *
      * @param   header a FITS header object from which the node is to be created
-     * @param   istrm  the stream from which the data can be read.
+     * @param   hdudata  object which can supply the data stream where
+     *          the data resides
      */
     public TableHDUDataNode( Header header, 
                              FITSDataNode.ArrayDataMaker hdudata ) 
