@@ -70,7 +70,7 @@ public abstract class ValueConverter {
             factor_ = factor;
         }
         public double convertValue( String sval ) {
-            return Double.parseDouble( sval );
+            return Double.parseDouble( sval ) * factor_;
         }
     }
 
