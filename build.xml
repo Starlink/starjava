@@ -125,6 +125,9 @@
      <echo message="Executing HDS target: ${what}"/>
      <ant dir="./hds" target="${what}"/>
 
+     <echo message="Executing FITS target: ${what}"/>
+     <ant dir="./fits" target="${what}"/>
+
      <echo message="Executing HDX target: ${what}"/>
      <ant dir="./hdx" target="${what}"/>
 
