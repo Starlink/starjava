@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractConnectorTarget.java,v 1.2 2000/05/02 00:43:17 johnr Exp $
+ * $Id: AbstractConnectorTarget.java,v 1.3 2001/07/22 22:00:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import diva.canvas.connector.ConnectorTarget;
  * This class allows connector targets to only implement a single method to
  * use this functionality.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author John Reekie
  */
 public abstract class AbstractConnectorTarget implements ConnectorTarget {
@@ -128,4 +128,5 @@ public abstract class AbstractConnectorTarget implements ConnectorTarget {
         return s;
     }
 }
+
 

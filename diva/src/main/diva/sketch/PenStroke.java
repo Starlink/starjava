@@ -1,7 +1,7 @@
 /*
- * $Id: PenStroke.java,v 1.3 2000/10/29 02:14:12 michaels Exp $
+ * $Id: PenStroke.java,v 1.4 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -21,7 +21,7 @@ import java.awt.Shape;
  * everything else off to its superclass.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public class PenStroke extends BasicStroke implements Stroke {
@@ -159,3 +159,4 @@ public class PenStroke extends BasicStroke implements Stroke {
         return a[2*i+1];
     }
 }
+

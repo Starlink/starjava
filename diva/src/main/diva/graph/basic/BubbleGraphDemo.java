@@ -1,7 +1,7 @@
 /*
- * $Id: BubbleGraphDemo.java,v 1.5 2000/07/02 03:23:46 michaels Exp $
+ * $Id: BubbleGraphDemo.java,v 1.6 2001/07/22 22:01:20 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -27,7 +27,7 @@ import java.awt.event.KeyListener;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Steve Neuendorffer  (neuendor@eecs.berkeley.edu) 
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * @rating Red
  */
 public class BubbleGraphDemo {
@@ -53,6 +53,7 @@ public class BubbleGraphDemo {
         context.setVisible(true);
     }
 }
+
 
 
 

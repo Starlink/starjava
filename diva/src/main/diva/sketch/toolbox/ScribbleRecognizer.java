@@ -1,14 +1,14 @@
 /*
- * $Id: ScribbleRecognizer.java,v 1.7 2000/05/10 21:55:47 hwawen Exp $
+ * $Id: ScribbleRecognizer.java,v 1.10 2001/08/28 06:37:13 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
 
 import diva.sketch.recognition.StrokeRecognizer;
-import diva.sketch.recognition.StrokeRecognition;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.Recognition;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.TimedStroke;
 import diva.sketch.recognition.SimpleData;
 
@@ -26,7 +26,8 @@ import java.util.Iterator;
  *
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.10 $
+ * @rating Red
  */
 public class ScribbleRecognizer implements StrokeRecognizer {
     /**
@@ -34,25 +35,6 @@ public class ScribbleRecognizer implements StrokeRecognizer {
      * recognized.
      */
     public static final String SCRIBBLE_TYPE_ID = "SCRIBBLE";
-
-    /**
-     * A feature extractor that computes the aspect ratio
-     * (width/height) from the bounding box of a stroke.
-     */
-    private AspectRatioFE _aspectRatioFE = new AspectRatioFE();
-
-    /**
-     * A feature extractor that computes the ratio of the sum of the
-     * absolute values of delta y's and the sum of the absolute
-     * values of delta x's.
-     */
-    private SumOfAbsDeltaRatioFE _deltaFE = new SumOfAbsDeltaRatioFE();
-
-    /**
-     * A feature extractor that computes the number of corners in a
-     * stroke.
-     */
-    private CornerFE _cornerFE = new CornerFE();
 
     /**
      * A stroke's delta ratio has to meet this criteria for it to be
@@ -96,12 +78,6 @@ public class ScribbleRecognizer implements StrokeRecognizer {
     private double _perfectScore = 100;  
 
     /**
-     * A filter applied to a stroke to simplify it for easier
-     * recognition.
-     */
-    private StrokeFilter _filter = new ApproximateStrokeFilter();
-
-    /**
      * This function assumes that the gesture has been corner detected
      * and so it has a list of corner indices cached in its property
      * table.  For each pair of corners, we want to check that there
@@ -116,7 +92,7 @@ public class ScribbleRecognizer implements StrokeRecognizer {
     private boolean checkSegments(TimedStroke stroke){
         debug("checkSegments");
         ArrayList cornerIndices =
-            (ArrayList)stroke.getProperty(_cornerFE.getName());
+            (ArrayList)stroke.getProperty(CornerFE.PROPERTY_KEY);
         int numPointsOnALine = 2;
         int prev = 0;
         double dist;
@@ -175,7 +151,7 @@ public class ScribbleRecognizer implements StrokeRecognizer {
         }
         return isScribble;
     }
-    
+
     /**
      * Debugging output.
      */
@@ -189,12 +165,12 @@ public class ScribbleRecognizer implements StrokeRecognizer {
      * the aspect ratio, and the number of corners.  These are used to
      * determine the scribble confidence value for the gesture.
      */
-    public StrokeRecognitionSet strokeCompleted (TimedStroke s) {
-        TimedStroke fs = _filter.apply(s);
+    public RecognitionSet strokeCompleted (TimedStroke s) {
+        TimedStroke fs = ApproximateStrokeFilter.approximate(s);
         //extract features
-        double deltaRatio = _deltaFE.apply(fs);
-        double aspectRatio = _aspectRatioFE.apply(fs);
-        double corners = _cornerFE.apply(fs);
+        double deltaRatio = SumOfAbsDeltaRatioFE.sumOfAbsDeltaRatio(fs);
+        double aspectRatio = AspectRatioFE.aspectRatio(fs);
+        double corners = CornerFE.numCorners(fs);
 
         debug("dy/dx = " + deltaRatio + ", w/h: " + aspectRatio +
                 ", corners: " + corners);
@@ -217,31 +193,32 @@ public class ScribbleRecognizer implements StrokeRecognizer {
 
             if(checkSegments(fs)){
                 debug("Scribble " + deltaConfidence);
-                StrokeRecognition[] rs = new StrokeRecognition[1];
-                rs[0] = new StrokeRecognition(new SimpleData(SCRIBBLE_TYPE_ID), deltaConfidence);
-                return new StrokeRecognitionSet(rs);
+                Recognition[] rs = new Recognition[1];
+                rs[0] = new Recognition(new SimpleData(SCRIBBLE_TYPE_ID), deltaConfidence);
+                return new RecognitionSet(rs);
             }
             else{
                 debug("Scribble failed line and slope checks");
             }
         }
-        return StrokeRecognitionSet.NO_RECOGNITION;
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
      * Return NO_RECOGNITION; this recognizer is not incremental.
      */
-    public StrokeRecognitionSet strokeModified (TimedStroke s) {
-        return StrokeRecognitionSet.NO_RECOGNITION;
+    public RecognitionSet strokeModified (TimedStroke s) {
+        return RecognitionSet.NO_RECOGNITION;
     }
     
     /**
      * Return NO_RECOGNITION; this recognizer is not incremental.
      */
-    public StrokeRecognitionSet strokeStarted (TimedStroke s) {
-        return StrokeRecognitionSet.NO_RECOGNITION;
+    public RecognitionSet strokeStarted (TimedStroke s) {
+        return RecognitionSet.NO_RECOGNITION;
     }
     
 }
+
 
 

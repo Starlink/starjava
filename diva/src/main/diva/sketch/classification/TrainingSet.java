@@ -1,7 +1,7 @@
 /*
- * $Id: TrainingSet.java,v 1.5 2000/05/02 00:44:47 johnr Exp $
+ * $Id: TrainingSet.java,v 1.7 2001/10/29 22:26:38 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.classification;
@@ -18,7 +18,7 @@ import java.util.Iterator;
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.7 $
  */
 public final class TrainingSet {
     /**
@@ -149,5 +149,15 @@ public final class TrainingSet {
         return _map.keySet().iterator();
     }
 
+    public String toString(){
+        StringBuffer buf = new StringBuffer();
+        for(Iterator iter = types(); iter.hasNext();){
+            String type = (String)iter.next();
+            int num = positiveExampleCount(type);
+            buf.append(num + "\t" + type + "s\n");
+        }
+        return buf.toString();
+    }
 }
+
 

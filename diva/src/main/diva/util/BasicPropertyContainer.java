@@ -1,7 +1,7 @@
 /*
- * $Id: BasicPropertyContainer.java,v 1.8 2000/08/10 18:51:30 michaels Exp $
+ * $Id: BasicPropertyContainer.java,v 1.10 2002/02/06 03:27:45 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -13,7 +13,7 @@ import java.util.Iterator;
  * objects whose keys are strings.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  */
 public class BasicPropertyContainer implements PropertyContainer {
     /**
@@ -78,5 +78,9 @@ public class BasicPropertyContainer implements PropertyContainer {
         return _mapping.values().iterator();
     }
 
+    /** Return an iteration of the names of the properties
+     */
+    public Iterator propertyNames(){
+        return _mapping.keySet().iterator();
+    }
 }
-

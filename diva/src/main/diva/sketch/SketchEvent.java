@@ -1,7 +1,7 @@
 /*
- * $Id: SketchEvent.java,v 1.4 2000/05/02 00:44:45 johnr Exp $
+ * $Id: SketchEvent.java,v 1.5 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -14,7 +14,7 @@ package diva.sketch;
  * @see SketchListener
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * @rating Red
  */
 public class SketchEvent extends java.util.EventObject {
@@ -86,4 +86,5 @@ public class SketchEvent extends java.util.EventObject {
         return "SketchEvent[" + idToString() + ", " + getSource() + "]";
     }
 }
+
 

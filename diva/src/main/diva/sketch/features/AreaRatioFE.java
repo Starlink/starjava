@@ -1,7 +1,7 @@
 /*
- * $Id: AreaRatioFE.java,v 1.6 2000/05/10 18:54:52 hwawen Exp $
+ * $Id: AreaRatioFE.java,v 1.8 2001/07/22 22:01:46 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -13,28 +13,25 @@ import java.awt.geom.Rectangle2D;
  * bounding box area of a stroke, (convex_hull/bbox).
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  */
 public class AreaRatioFE implements FeatureExtractor {
-    /**
-     * Stroke hull computes the convex hull of a stroke using
-     * quick hull algorithm.
-     */
-    private StrokeHull _strokeHull = new StrokeHull();
-
-    /**
-     * StrokeBbox computes the bounding box of a stroke.
-     */
-    private StrokeBBox _strokeBbox = new StrokeBBox();
-
     /**
      * Return the ratio of the convex hull area and the
      * bounding box area of the stroke.
      */
     public double apply(TimedStroke s) {
-        ConvexHull hull = _strokeHull.apply(s);
+        return areaRatio(s);
+    }
+
+    /**
+     * Return the ratio of the convex hull area and the
+     * bounding box area of the stroke.
+     */
+    public static double areaRatio(TimedStroke s) {
+        ConvexHull hull = StrokeHull.apply(s);
         double hullArea = hull.getArea();
-        Rectangle2D box = _strokeBbox.apply(s);
+        Rectangle2D box = StrokeBBox.apply(s);
         double boundArea = box.getWidth()*box.getHeight();
         double arearatio = hullArea/boundArea;
         return arearatio;
@@ -48,4 +45,5 @@ public class AreaRatioFE implements FeatureExtractor {
     }
 
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: GraphPane.java,v 1.61 2000/11/10 00:38:54 neuendor Exp $
+ * $Id: GraphPane.java,v 1.62 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -14,7 +14,7 @@ import diva.canvas.GraphicsPane;
  *
  * @see JGraph
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.61 $
+ * @version	$Revision: 1.62 $
  * @rating Red
  */
 public class GraphPane extends GraphicsPane {
@@ -57,5 +57,6 @@ public class GraphPane extends GraphicsPane {
         return _model;
     }
 }
+
 
 

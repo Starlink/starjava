@@ -1,7 +1,7 @@
 /*
- * $Id: RandomLayout.java,v 1.8 2000/07/23 23:27:37 neuendor Exp $
+ * $Id: RandomLayout.java,v 1.9 2001/07/22 22:01:22 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -16,7 +16,7 @@ import java.awt.geom.Rectangle2D;
  * into the required viewport.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @rating Red
  */
 public class RandomLayout extends AbstractGlobalLayout {
@@ -69,4 +69,5 @@ public class RandomLayout extends AbstractGlobalLayout {
 	LayoutUtilities.routeVisibleEdges(composite, target);
     }
 }
+
 

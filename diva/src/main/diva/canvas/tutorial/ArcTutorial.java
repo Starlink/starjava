@@ -1,7 +1,7 @@
 /*
- * $Id: ArcTutorial.java,v 1.6 2000/05/22 17:07:24 neuendor Exp $
+ * $Id: ArcTutorial.java,v 1.12 2002/02/06 03:27:43 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -60,8 +60,13 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.SwingUtilities;
 
-/** Another example showing how to use Connectors. In this example,
+/** This tutorial shows how to use "arc" connectors.
+ *
+ * <img src="../../../../packages/canvas/tutorial/images/ArcTutorial.gif" align="right">
+ *
+ * In this example,
  * the connectors are atached to "perimeter sites" -- that is,
  * sites that can relocated themselves to maintain themselves
  * on the perimeter of an object. Unlike the first connector
@@ -69,6 +74,47 @@ import java.awt.geom.Rectangle2D;
  * figure, as perimeter sites can attach to any figure that
  * has a rectangle or circle shape.
  *
+ * <P> The code to create the connectors and set up the interaction is
+ * much the same as the previous tutorial, except that it uses
+ * ArcConnectors instead of StraightConnectors. One noticable
+ * difference is that the connector target uses a a sub-class of the
+ * off-the-shelf PerimeterTarget class provided with the Diva canvas.
+ * Although this would work:
+ * 
+ * <pre>
+ *    ConnectorTarget target = new PerimeterTarget();
+ * </pre>
+ * 
+ * we use a subclass that allows "self-loops." In other words, the default
+ * behaviour of targets is not to allow a connection back to the same
+ * object; the inner class in this example does allow this.
+ * <P>
+ * A second difference is that the initialization of the manipulators
+ * is more complicated. Because there are two different kinds of connectors,
+ * and we want different manipulators for each, we use an
+ * instance of the TypedDecorator class to set this up:
+ * 
+ * <pre>
+ *     ConnectorManipulator cManipulator = new ConnectorManipulator();
+ *     cManipulator.setSnapHalo(4.0);
+ *     cManipulator.setConnectorTarget(target);
+ * 
+ *     ArcManipulator aManipulator = new ArcManipulator();
+ *     aManipulator.setSnapHalo(4.0);
+ *     aManipulator.setConnectorTarget(target);
+ * 
+ *     TypedDecorator typedDecorator = new TypedDecorator();
+ *     typedDecorator.addDecorator(StraightConnector.class, cManipulator);
+ *     typedDecorator.addDecorator(ArcConnector.class, aManipulator);
+ * </pre>
+ * 
+ * A different way to get the same effect would be to use two different
+ * SelectionInteractors, one for the arcs with an ArcManipulator and one
+ * for the StraightConnectors with a ConnectorManipulator.
+ * (Currently, the ArcManipulator looks the same as the
+ * ConnectorManipulator, but in the near future it will have additional
+ * grab-handles for reshaping the arc.)
+ * 
  * <p> To make this example a little more interesting, selected
  * figures have resize handles attached to them. As the figure
  * is resived, attached connectors change accordingly. This
@@ -77,8 +123,7 @@ import java.awt.geom.Rectangle2D;
  * kinds of figures (in this case, different kinds of connectors).
  *
  * @author John Reekie
- * @version $Revision: 1.6 $
- */
+ * @version $Revision: 1.12 $ */
 public class ArcTutorial {
 
     // The JCanvas
@@ -102,6 +147,7 @@ public class ArcTutorial {
     private StraightConnector connectorA;
     private ArcConnector connectorB;
     private ArcConnector connectorC;
+    private ArcConnector connectorD;
 
     /** The target that finds sites on the figures
      */
@@ -144,7 +190,7 @@ public class ArcTutorial {
         FigureLayer layer = graphicsPane.getForegroundLayer();
 
         // Create the target that finds sites on the figures
-        target = new PerimeterTarget();
+        target = new SelfPTarget();
 
         // Create the first connector. We don't care about the actual
         // location at this stage
@@ -174,6 +220,18 @@ public class ArcTutorial {
         layer.add(connectorC);
         arrow = new Arrowhead(b.getX(), b.getY(), b.getNormal());
         connectorC.setHeadEnd(arrow);
+
+        // Create a fourth connector with an arrowhead, which is a "self-loop"
+        a = target.getTailSite(figureB, 0.0, 0.0);
+        b = target.getHeadSite(figureB, 0.0, 0.0);
+        connectorD = new ArcConnector(a, b);
+        connectorD.setSelfLoop(true);
+        // Swap the direction
+        // connectorD.setAngle(-connectorD.getAngle());
+        // connectorD.setAngle(-0.1);
+        layer.add(connectorD);
+        arrow = new Arrowhead(b.getX(), b.getY(), b.getNormal());
+        connectorD.setHeadEnd(arrow);
     }
 
     /**
@@ -187,7 +245,7 @@ public class ArcTutorial {
 	// Because this pane has connectors on it, we make the pick
 	// halo larger than the default so we can click-select connectors
 	FigureLayer layer = graphicsPane.getForegroundLayer();
-	layer.setPickHalo(2.0);
+	layer.setPickHalo(4.0);
     
         // Add the default interactor to both figures
         SelectionInteractor si = controller.getSelectionInteractor();
@@ -195,7 +253,7 @@ public class ArcTutorial {
         figureB.setInteractor(si);
         figureC.setInteractor(si);
 
-        // Add a layer listener to the interactor attached to that role.
+        // Add a layer listener to the drag interactor.
         // The listener just tells both connectors to reroute themselves.
         DragInteractor i = controller.getDragInteractor();
         i.addLayerListener(new LayerAdapter () {
@@ -203,6 +261,7 @@ public class ArcTutorial {
                 connectorA.reroute();
                 connectorB.reroute();
                 connectorC.reroute();
+                connectorD.reroute();
             }
         });
 
@@ -211,6 +270,7 @@ public class ArcTutorial {
         connectorA.setInteractor(ci);
         connectorB.setInteractor(ci);
         connectorC.setInteractor(ci);
+        connectorD.setInteractor(ci);
 
         // Tell the selection dragger to select connectors too
         controller.getSelectionDragger().addSelectionInteractor(ci);
@@ -226,6 +286,7 @@ public class ArcTutorial {
                 connectorA.reroute();
                 connectorB.reroute();
                 connectorC.reroute();
+                connectorD.reroute();
             }
         });
 
@@ -256,12 +317,38 @@ public class ArcTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        ArcTutorial ex = new ArcTutorial();
-        ex.createFigures();
-        ex.createConnectors();
-        ex.setupInteraction();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                ArcTutorial ex = new ArcTutorial();
+                ex.createFigures();
+                ex.createConnectors();
+                ex.setupInteraction();
+            }
+        });
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //// SelfPTarget
+
+    /** SelfPTarget is used to find target sites. It overrides
+     * PerimeterSite, but allows connector head and tails to
+     * be located on the same figure.
+     */
+    public class SelfPTarget extends PerimeterTarget {
+	/** Return true. This allows "self-arcs"
+	 */
+	public boolean acceptHead(Connector c, Figure f) {
+	    return true;
+	}
+	
+	/** Return true. This allows "self-arcs"
+	 */
+	public boolean acceptTail(Connector c, Figure f) {
+	    return true;
+	}
     }
 }
+
 
 
 

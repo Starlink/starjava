@@ -1,7 +1,7 @@
 /*
- * $Id: FigureTutorial.java,v 1.15 2000/11/13 08:40:14 johnr Exp $
+ * $Id: FigureTutorial.java,v 1.21 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -46,30 +46,138 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 
-/** An example showing how to make custom figures. Although the
- * Diva Canvas provides a number of pre-built concrete figures
- * in <b>diva.canvas.toolbox</b> (BasicFigure is used in many
- * of the examples), you will in general want to define your
- * own Figure classes. The Diva Canvas deliberately does not
- * attempt to hide the power of the Java2D API, but instead to
- * augment it. This means that anything but the simplest types of
- * Figure require some knowledge of Java2D.
+
+/** An example showing how to make custom figures.
  *
- * <p> In general, defining a completely new type of Figure
- * means implementing the Figure interface. However, it is usually
- * simpler just to subclass the AbstractFigure class and override
- * at least the methods getShape(), transform(), and paint(). The
- * example in this file does that to create a new leaf figure. See
- * the documentation for FigureTutorial.CustomRectangle for
- * more details.
+ * <p>
+ * <img src="../../../../packages/canvas/tutorial/images/FigureTutorial.gif" align="right">
  *
- * <p> A simpler, although somewhat slower executing,
- * way of defining a new figure is to create
- * a GIF file that looks like the figure.  The GIF file can be loaded 
- * into an Image and the Image embedded into a figure.   
- * An ImageFigure does exactly this.
+ * Although the Diva Canvas provides a number of pre-built concrete
+ * figures in <b>diva.canvas.toolbox</b> (BasicFigure is used in many
+ * of the examples), you will in general want to define your own
+ * Figure classes. The Diva Canvas deliberately does not attempt to
+ * hide the power of the Java2D API, but instead to augment it. This
+ * means that anything but the simplest types of Figure require some
+ * knowledge of Java2D.
  *
+ * <p> In general, defining a completely new type of Figure means
+ * implementing the Figure interface. However, it is usually simpler
+ * just to subclass the AbstractFigure class and override at least the
+ * methods getShape(), transform(), and paint(). The example in this
+ * file does that to create a new leaf figure.
+ *
+ * Our example (see the source file for the complete code) extends
+ * AbstractFigure:
+ * 
+ * <pre>
+ *     public class CustomRectangle extends AbstractFigure {
+ *         private Rectangle2D _bounds;
+ *         public CustomRectangle (
+ *                 double x, double y,
+ *                 double width, double height) {
+ *             _bounds = new Rectangle2D.Double(x,y,width,height);
+ *         }
+ * 
+ *         ....
+ *     }
+ * </pre>
+ * 
+ * <p> The appearance of this figure is shown in the image above (the
+ * yellow outline is the highlighting, and is not part of this figure).
+ * It has a fill, a 1-point black outline, and some additional stuff
+ * drawn on it. 
+ * 
+ * <p>
+ * Let's look at the individual methods of this class. The getBounds()
+ * method gets the shape of the figure's stroke outline, and then
+ * takes the bounding box of that shape. (If we were to simply return
+ * <b>_bounds</b>, part of the outline would fall outside the bounding
+ * box and we would get "dirt" on the screen when we moved the figure.)
+ * 
+ * <pre>
+ *     public Rectangle2D getBounds () {
+ *         Stroke s = new BasicStroke(1.0f);
+ *         return s.createStrokedShape(_bounds).getBounds2D();
+ *     }
+ * </pre>
+ * 
+ * <p>
+ * The getShape() method simply returns the outline rectangle. getShape()
+ * is used by methods in the Diva canvas to do things like place grab-handles
+ * on figures and to put highlights around them:
+ * 
+ * <pre>
+ *     public Shape getShape () {
+ *         return _bounds;
+ *     }
+ * </pre>
+ * 
+ * <p>
+ * The paint() method is where most of the work (in this example) is
+ * done. Note that the argument is an instance of
+ * <b>java.awt.Graphics2D</b>.  This method will be called in the event
+ * thread whenever AWT redraws the JCanvas that contains this figure.
+ * We won't show all of this method here, just the start:
+ * 
+ * <pre>
+ *     public void paint (Graphics2D g) {
+ *         Stroke s = new BasicStroke(1.0f);
+ *         g.setStroke(s);
+ *         g.setPaint(Color.blue);
+ *         g.fill(_bounds);
+ *         g.setPaint(Color.black);
+ *         g.draw(_bounds);
+ * 
+ * 	....
+ *      }
+ * </pre>
+ * 
+ * Finally, the transform() method transforms the figure. This method
+ * is used whenever a figure is scaled or moved. Note that this code
+ * calls the repaint() method before and after transforming the figure shape.
+ * This ensures that the screen is properly redrawn.
+ * 
+ * <pre>
+ *     public void transform (AffineTransform at) {
+ *         repaint();
+ *         _bounds = (Rectangle2D) CanvasUtilities.transform(_bounds, at);
+ *         repaint();
+ *     }
+ * </pre>
+ * 
+ * There are other methods that may need to be over-ridden, depending
+ * on what exactly your figure class does. For more information on the
+ * methods of Figure, see the API documentation.
+ * 
+ * <p>
+ * A simpler, although somewhat slower executing, way to specify the look of a
+ * figure is to create a GIF file that looks like the figure. 
+ * The GIF file can be loaded into an Image and the Image embedded
+ * into a figure.   An ImageFigure does exactly this.
+ * 
+ * <pre>
+ *         // Create an image figure and make it draggable
+ *         Image img = Toolkit.getDefaultToolkit().getImage(IMAGE_FILE_NAME);
+ *         MediaTracker tracker = new MediaTracker(canvas);
+ *         tracker.addImage(img,0);
+ *         try {
+ *             tracker.waitForID(0);
+ *         }
+ *         catch (InterruptedException e) {
+ *             System.err.println(e + "... in FigureTutorial");
+ *         }
+ *         ImageFigure imgFig = new ImageFigure(img);
+ *         imgFig.translate(300,100);
+ *         layer.add(imgFig);
+ *         imgFig.setInteractor(defaultInteractor);
+ * </pre>
+ * 
+ * The media tracker is responsible for waiting for the image to be completely 
+ * loaded from the file before creating the ImageFigure.  After being created, 
+ * the ImageFigure can be used exactly like other figures.
+ * 
  * <p> There are also other ways of creating new Figure classes.
  * You can subclass AbstractFigureContainer to produce a new figure
  * class that contains other figures. You can also subclass FigureWrapper
@@ -77,8 +185,7 @@ import javax.swing.JButton;
  * by "wrapping" it.
  * 
  * @author John Reekie
- * @version $Revision: 1.15 $
- */
+ * @version $Revision: 1.21 $ */
 public class FigureTutorial {
     // The file name for the image that is displayed
     public static final String IMAGE_FILE_NAME = "demo.gif";
@@ -94,6 +201,7 @@ public class FigureTutorial {
     public FigureTutorial () {
         canvas = new JCanvas();
         graphicsPane = (GraphicsPane)canvas.getCanvasPane();
+        createFigures();
         BasicFrame frame = new BasicFrame("Figure tutorial", canvas);
     }
 
@@ -104,9 +212,10 @@ public class FigureTutorial {
     public void createFigures () {
         FigureLayer layer = graphicsPane.getForegroundLayer();
 
-        // Create the interaction role and an interactor to do the work.
+        // Create a controller to do the work.
         BasicController controller = new BasicController(graphicsPane);
-        SelectionInteractor defaultInteractor = controller.getSelectionInteractor();
+        SelectionInteractor defaultInteractor
+                = controller.getSelectionInteractor();
         BoundsManipulator manip = new BoundsManipulator();
         defaultInteractor.setPrototypeDecorator(manip);
         
@@ -137,14 +246,17 @@ public class FigureTutorial {
         layer.add(imgFig);
         imgFig.setInteractor(defaultInteractor);
 	imgFig.setToolTipText("Image figure");
-
     }
 
     /** Main function
      */
     public static void main (String argv[]) {
-        FigureTutorial ex = new FigureTutorial();
-        ex.createFigures();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    FigureTutorial ex = new FigureTutorial();
+		}
+	    });
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -244,5 +356,6 @@ public class FigureTutorial {
         }
     }
 }
+
 
 

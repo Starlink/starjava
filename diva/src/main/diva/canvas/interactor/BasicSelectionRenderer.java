@@ -1,7 +1,7 @@
 /*
- * $Id: BasicSelectionRenderer.java,v 1.13 2000/05/02 00:43:29 johnr Exp $
+ * $Id: BasicSelectionRenderer.java,v 1.14 2001/07/22 22:00:37 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * decorator will be set to instances of one of the Manipulator
  * classes.
  *
- * @version	$Revision: 1.13 $
+ * @version	$Revision: 1.14 $
  * @author 	John Reekie
  */
 public class BasicSelectionRenderer implements SelectionRenderer {
@@ -108,4 +108,5 @@ public class BasicSelectionRenderer implements SelectionRenderer {
         _prototypeDecorator = d;
     }
 }
+
 

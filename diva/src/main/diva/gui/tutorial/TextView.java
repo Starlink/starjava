@@ -1,7 +1,7 @@
 /*
- * $Id: TextView.java,v 1.1 2000/09/15 21:53:18 michaels Exp $
+ * $Id: TextView.java,v 1.2 2001/07/22 22:01:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.tutorial;
@@ -60,7 +60,7 @@ import java.beans.PropertyChangeEvent;
  * A simple MDI text editor view.  FIXME
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class TextView extends AbstractView {
     private JEditorPane _editorPane;
@@ -101,3 +101,4 @@ public class TextView extends AbstractView {
         return getTitle();
     }
 }
+

@@ -1,8 +1,8 @@
 /*
- * $Id: BasicModularGraphModel.java,v 1.2 2000/11/10 00:38:55 neuendor Exp $
+ * $Id: BasicModularGraphModel.java,v 1.4 2002/05/19 21:45:48 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.modular;
 import diva.util.ArrayIterator;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import diva.util.SemanticObjectContainer;
-import diva.util.VisualObjectContainer;
 import diva.util.PropertyContainer;
 
 /**
@@ -22,7 +21,7 @@ import diva.util.PropertyContainer;
  * and Edge.
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public class BasicModularGraphModel extends MutableModularGraphModel {
@@ -232,3 +231,4 @@ public class BasicModularGraphModel extends MutableModularGraphModel {
 	}
     }
 }
+

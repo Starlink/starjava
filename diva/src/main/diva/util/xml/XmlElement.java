@@ -1,7 +1,7 @@
 /*
- * $Id: XmlElement.java,v 1.8 2000/07/28 02:35:06 michaels Exp $
+ * $Id: XmlElement.java,v 1.13 2002/07/09 22:00:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.xml;
@@ -33,7 +33,7 @@ import java.util.TreeMap;
  * an XmlDocument and generate an XML output file.
  * 
  * @author Steve Neuendorffer, John Reekie
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.13 $
  */
 public class XmlElement {
 
@@ -324,4 +324,5 @@ public class XmlElement {
         }
     }
 }
+
 

@@ -1,12 +1,11 @@
 /*
- * $Id: NodeModel.java,v 1.2 2000/11/10 00:38:56 neuendor Exp $
+ * $Id: NodeModel.java,v 1.4 2002/05/19 21:45:50 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.modular;
 import diva.util.SemanticObjectContainer;
-import diva.util.VisualObjectContainer;
 import diva.util.PropertyContainer;
 import java.util.Iterator;
 
@@ -18,7 +17,7 @@ import java.util.Iterator;
  * is its syntactic representation in the user interface.
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public interface NodeModel {
@@ -37,5 +36,6 @@ public interface NodeModel {
      */
     public Object getParent(Object node);
 }
+
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: LayoutUtilities.java,v 1.10 2000/07/02 03:23:47 michaels Exp $
+ * $Id: LayoutUtilities.java,v 1.11 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -14,7 +14,7 @@ import java.util.Iterator;
  * Miscellaneous utility routines used in layout.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.10 $
+ * @version	$Revision: 1.11 $
  * @rating Red
  */
 public final class LayoutUtilities {
@@ -128,5 +128,6 @@ public final class LayoutUtilities {
 	}
     }
 }
+
 
 

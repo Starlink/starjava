@@ -1,7 +1,7 @@
 /*
- * $Id: MainWindow.java,v 1.8 2000/05/02 00:43:26 johnr Exp $
+ * $Id: MainWindow.java,v 1.9 2001/07/22 22:00:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -24,7 +24,7 @@ import javax.swing.event.*;
  * useful bits. It is created by the CanvasDemo class.
  *
  * @author John Reekie
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class MainWindow extends JFrame {
     // My menubar
@@ -223,4 +223,5 @@ public class MainWindow extends JFrame {
     };
 
 }
+
 

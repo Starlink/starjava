@@ -1,7 +1,7 @@
 /*
- * $Id: JContextMenu.java,v 1.2 2000/05/02 00:44:36 johnr Exp $
+ * $Id: JContextMenu.java,v 1.3 2001/07/22 22:01:32 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -13,7 +13,7 @@ import diva.canvas.*;
  * An improved version of a popup menu that works well for context menus.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class JContextMenu extends JPopupMenu {
     /**
@@ -76,4 +76,5 @@ public class JContextMenu extends JPopupMenu {
     
     private Object _target;
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: UserObjectContainer.java,v 1.4 2000/05/02 00:45:26 johnr Exp $
+ * $Id: UserObjectContainer.java,v 1.5 2001/07/22 22:02:04 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -12,7 +12,7 @@ package diva.util;
  * in an application.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public interface UserObjectContainer {
     /**
@@ -25,4 +25,5 @@ public interface UserObjectContainer {
      */
     public void setUserObject(Object o);
 }
+
 

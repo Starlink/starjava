@@ -1,7 +1,7 @@
 /*
- * $Id: BasicEdgeRenderer.java,v 1.4 2000/06/14 16:41:24 neuendor Exp $
+ * $Id: BasicEdgeRenderer.java,v 1.5 2001/07/22 22:01:18 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -20,7 +20,7 @@ import diva.canvas.connector.Arrowhead;
  * an arrow at the head.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * @rating Red
  */
 public class BasicEdgeRenderer implements EdgeRenderer {    
@@ -45,4 +45,5 @@ public class BasicEdgeRenderer implements EdgeRenderer {
         return c;
     }
 }
+
 

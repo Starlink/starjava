@@ -1,7 +1,7 @@
 /*
- * $Id: BasicZList.java,v 1.29 2000/05/02 00:43:14 johnr Exp $
+ * $Id: BasicZList.java,v 1.30 2001/07/22 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,7 +25,7 @@ import java.util.Iterator;
  * the redraw iterator is more important than the event-handling
  * iterator.
  *
- * @version	$Revision: 1.29 $
+ * @version	$Revision: 1.30 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -316,5 +316,6 @@ public class BasicZList implements ZList {
 	}
     }
 }
+
 
 

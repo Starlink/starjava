@@ -1,7 +1,7 @@
 /*
- * $Id: FigureLayer.java,v 1.50 2000/11/13 08:47:57 johnr Exp $
+ * $Id: FigureLayer.java,v 1.55 2002/08/07 12:20:17 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -13,6 +13,9 @@ import diva.canvas.event.LayerEvent;
 import diva.canvas.event.LayerListener;
 import diva.canvas.event.LayerMotionListener;
 import diva.canvas.interactor.Interactor;
+
+import diva.util.Filter;
+import diva.util.FilteredIterator;
 
 import java.awt.AWTEvent;
 import java.awt.Graphics;
@@ -38,7 +41,7 @@ import java.util.Iterator;
  * to a hit figure. It does not support events on the layer itself
  * (see EventLayer for that).
  *
- * @version	$Revision: 1.50 $
+ * @version	$Revision: 1.55 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -182,9 +185,9 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
             return;
         }
         switch(event.getID()) {
+        case MouseEvent.MOUSE_CLICKED:
         case MouseEvent.MOUSE_PRESSED:
         case MouseEvent.MOUSE_RELEASED:
-        case MouseEvent.MOUSE_CLICKED:
         case MouseEvent.MOUSE_DRAGGED:
             processLayerEvent((LayerEvent)event);
             break;
@@ -238,11 +241,26 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
         return _zlist.getFigureCount();
     }
 
-   /** Get the internal z-list. Clients must <i>not</i> modify
-    * the z-list, but can use it for making queries on its contents.
+    /** Return the figure that the mouse pointer is currently over,
+     *  or null if none.
+     *  @return The figure the mouse is currently over.
+     */
+    public Figure getCurrentFigure() {
+        return _pointerOver;
+    }
+
+    /** Get the internal z-list. Clients must <i>not</i> modify
+     * the z-list, but can use it for making queries on its contents.
      */
     public ZList getFigures () {
         return _zlist;
+    }
+    
+    /** Get the bounds of the shapes draw in this layer.  In this class,
+     *  we return the bounds of all the figures in the z-list.
+     */
+    public Rectangle2D getLayerBounds () {
+        return _zlist.getBounds();
     }
     
     /** Get the "pick halo". This is the distance in either axis
@@ -367,7 +385,6 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
             f.paint(g,region);
         }
     }
-
     /** Get the picked figure. This method recursively traverses the
       * tree until it finds a figure that is "hit" by the region. Note
       * that a region is given instead of a point so that "hysteresis"
@@ -378,6 +395,18 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
         return CanvasUtilities.pick(
                 _zlist.getIntersectedFigures(region).figuresFromFront(),
                 region);
+    }
+
+    /** Get the picked figure. This method recursively traverses the
+      * tree until it finds a figure that is "hit" by the region. Note
+      * that a region is given instead of a point so that "hysteresis"
+      * can be implemented. If no figure is picked, return null.  The
+      * region should not have zero size, or no figure will be hit.
+      */
+    public Figure pick (Rectangle2D region, Filter filter) {
+        Iterator iterator = 
+            _zlist.getIntersectedFigures(region).figuresFromFront();
+        return CanvasUtilities.pick(iterator, region, filter);
     }
 
     /** Remove the given figure from this layer. The figure's
@@ -496,6 +525,7 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
                         break;
                     case MouseEvent.MOUSE_RELEASED:
                         interactor.mouseReleased(e);
+                        break;
                     case MouseEvent.MOUSE_CLICKED:
                         interactor.mouseClicked(e);
                         break;
@@ -570,7 +600,7 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
      *
      * <p>If the event type is MOUSE_DRAGGED or MOUSE_RELEASED, then
      * the downwards recursion is skipped, and the upwards propagation
-     * is begun from the figure remembered from the MOUSE_CLICKED
+     * is begun from the figure remembered from the MOUSE_PRESSED
      * processing. Again, the propagation stops when the event is
      * consumed.
      *
@@ -579,18 +609,22 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
      * us to identify the input device?
      */
     protected void processLayerEvent(LayerEvent e) {
+        double wh;
+        Rectangle2D region;
+        Figure f;
+ 
         int id = e.getID();
 	e.setLayerSource(this);
 
         switch(id) {
         case MouseEvent.MOUSE_PRESSED:
             // Get the figure that the mouse hit, if any
-            double wh = _pickHalo * 2;
-            Rectangle2D region = new Rectangle2D.Double (
+            wh = _pickHalo * 2;
+            region = new Rectangle2D.Double (
                     e.getLayerX() - _pickHalo,
                     e.getLayerY() - _pickHalo,
                     wh, wh);
-            Figure f = pick(region);
+            f = pick(region);
         
             // If there's a figure, grab the pointer and process the event
             if (f != null) {
@@ -637,6 +671,35 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
             }
             // Clear the pointer grab
             _pointerGrabber = null;
+            break;
+
+            // Process a click event only. This code ignores the
+            // grab, as it should have already been cleared by a
+            // preceding MOUSE_RELEASED event. I'm not entirely
+            // sure if this is actually correct or not.
+            //
+        case MouseEvent.MOUSE_CLICKED:
+            // Get the figure that the mouse hit, if any
+            wh = _pickHalo * 2;
+            region = new Rectangle2D.Double (
+                    e.getLayerX() - _pickHalo,
+                    e.getLayerY() - _pickHalo,
+                    wh, wh);
+            f = pick(region);
+        
+            // If there's no figure, we're done
+            if (f == null) {
+                return;
+            }
+
+            // If the figure is prepared to handle events itself, let it
+            if (f instanceof EventAcceptor) {
+                ((EventAcceptor) f).dispatchEvent(e);
+            }
+            // If the event isn't consumed yet, scan up the tree to dispatch it
+            if (!e.isConsumed()) {
+                dispatchEventUpTree(f, e);
+            }
             break;
         }
     }
@@ -692,4 +755,5 @@ public class FigureLayer extends CanvasLayer implements FigureContainer, EventAc
 	}
     }
 }
+
 

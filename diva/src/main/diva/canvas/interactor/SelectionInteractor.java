@@ -1,7 +1,7 @@
 /*
- * $Id: SelectionInteractor.java,v 1.20 2000/07/07 22:13:34 nzamor Exp $
+ * $Id: SelectionInteractor.java,v 1.21 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -38,7 +38,7 @@ import java.util.Iterator;
  * other interactors. If, however, the clicked-on figure has
  * just been removed from the figure, do not forward events.
  *
- * @version $Revision: 1.20 $
+ * @version $Revision: 1.21 $
  * @author John Reekie
  */
 public class SelectionInteractor extends CompositeInteractor {
@@ -278,4 +278,5 @@ public class SelectionInteractor extends CompositeInteractor {
         _toggleFilter = f;
     }
 }
+
 

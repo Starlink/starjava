@@ -1,7 +1,7 @@
 /*
- * $Id: DistanceStartEndPtsFE.java,v 1.6 2000/05/10 18:54:53 hwawen Exp $
+ * $Id: DistanceStartEndPtsFE.java,v 1.8 2001/07/22 22:01:47 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -13,15 +13,23 @@ import diva.sketch.recognition.TimedStroke;
  * point.  One of Rubine's features.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
+ * @rating Red
  */
 public class DistanceStartEndPtsFE implements FeatureExtractor {
-
     /**
      * Return the distance between the first and the last point of the
      * stroke.  Returns 0 if there's only one data point.
      */
     public double apply(TimedStroke s) {
+        return distanceStartEnd(s);
+    }
+
+    /**
+     * Return the distance between the first and the last point of the
+     * stroke.  Returns 0 if there's only one data point.
+     */
+    public static double distanceStartEnd(TimedStroke s) {
         int num = s.getVertexCount();
         if(num >= 2) {
             return FEUtilities.distance(s.getX(0), s.getY(0),
@@ -40,4 +48,5 @@ public class DistanceStartEndPtsFE implements FeatureExtractor {
     }
 
 }
+
 

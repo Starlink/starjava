@@ -1,7 +1,7 @@
 /*
- * $Id: MultipageParser.java,v 1.1 2000/09/15 21:53:17 michaels Exp $
+ * $Id: MultipageParser.java,v 1.2 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -22,7 +22,7 @@ import java.util.HashMap;
  *
  * @author  Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating  Red
  */
 public class MultipageParser extends HandlerBase {
@@ -206,4 +206,5 @@ public class MultipageParser extends HandlerBase {
         _parser.parse(null, null, reader);
     }
 }
+
 

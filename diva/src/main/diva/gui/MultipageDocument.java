@@ -1,7 +1,7 @@
 /*
- * $Id: MultipageDocument.java,v 1.4 2000/09/15 21:53:17 michaels Exp $
+ * $Id: MultipageDocument.java,v 1.5 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -38,7 +38,7 @@ import javax.swing.event.ListDataListener;
  * methods.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public abstract class MultipageDocument extends AbstractDocument {
     /** The support object for pages.
@@ -161,4 +161,5 @@ public abstract class MultipageDocument extends AbstractDocument {
                 "SketchDocument " + getTitle() + ": save to URL not supported");
     }
 }
+
 

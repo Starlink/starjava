@@ -1,7 +1,7 @@
 /*
- * $Id: XMLElementTest.java,v 1.3 2000/05/02 00:45:34 johnr Exp $
+ * $Id: XMLElementTest.java,v 1.5 2001/11/30 02:45:55 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.test;
@@ -17,7 +17,7 @@ import java.util.*;
  * A test suite for XmlElement
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  */
 public class XMLElementTest extends TestSuite {
 
@@ -105,20 +105,20 @@ public class XMLElementTest extends TestSuite {
 "<element0>\n<element1>\n<element2></element2>\n</element1>\n</element0>\n";
                 assertEquals(result, elt0.toString(), result  + " != " + elt0.toString());
 
-                assert(elt0.containsElement(elt1), "elt0.containsElement(elt1)");
-                assert(elt1.containsElement(elt2), "elt1.containsElement(elt2)");
+                assertExpr(elt0.containsElement(elt1), "elt0.containsElement(elt1)");
+                assertExpr(elt1.containsElement(elt2), "elt1.containsElement(elt2)");
 
-                assert(!elt1.containsElement(elt0), "!elt1.containsElement(elt0)");
-                assert(!elt2.containsElement(elt1), "!elt2.containsElement(elt1)");
+                assertExpr(!elt1.containsElement(elt0), "!elt1.containsElement(elt0)");
+                assertExpr(!elt2.containsElement(elt1), "!elt2.containsElement(elt1)");
 
-                assert(!elt0.containsElement(elt2), "!elt0.containsElement(elt2)");
-                assert(!elt2.containsElement(elt0), "!elt2.containsElement(elt0)");
+                assertExpr(!elt0.containsElement(elt2), "!elt0.containsElement(elt2)");
+                assertExpr(!elt2.containsElement(elt0), "!elt2.containsElement(elt0)");
 
                 // No go ahead and remove some stuff
                 result = "<element0></element0>\n";
                 elt0.removeElement(elt1);
                 assertEquals(result, elt0.toString(), result  + " != " + elt0.toString());
-                assert(!elt0.containsElement(elt1), "!elt0.containsElement(elt1)");
+                assertExpr(!elt0.containsElement(elt1), "!elt0.containsElement(elt1)");
             }
         });
     }
@@ -133,4 +133,5 @@ public class XMLElementTest extends TestSuite {
         new XMLElementTest(new TestHarness()).run();
     }
 }
+
 

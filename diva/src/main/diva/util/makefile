@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.36 2000/05/10 22:02:15 hwawen Exp $
+# $Id: makefile,v 1.44 2002/05/19 22:05:11 johnr Exp $
 #
 # Makefile for diva.util
 #
@@ -12,39 +12,42 @@ SUBPACKAGES = \
 	gui \
 	java2d \
 	jester \
-	xml
+	xml \
+	$(OPTUTILPKG)
 
 # Java files in this directory
 JSRCS = \
-	AndFilter.java \
 	ArrayIterator.java \
 	BasicPropertyContainer.java \
 	CompoundIterator.java \
 	Filter.java \
 	FilteredIterator.java \
+	FilteredArrayIterator.java \
 	IteratorAdapter.java \
 	IteratorIterator.java \
 	IteratorUtilities.java \
 	LoggableOp.java \
 	ModelParser.java \
 	ModelWriter.java \
-	NotFilter.java \
+	NullArrayIterator.java \
 	NullIterator.java \
-	OrFilter.java \
 	PropertyChangeMulticaster.java \
 	PropertyContainer.java \
-	PropertyIndexSet.java \
 	ProxyIterator.java \
 	ReverseIterator.java \
-	SemanticObjectChangeEvent.java \
-	SemanticObjectChangeListener.java \
 	SemanticObjectContainer.java \
 	UnitIterator.java \
-	UserObjectChangeEvent.java \
-	UserObjectChangeListener.java \
-	UserObjectContainer.java \
-	VisualObjectContainer.java
+	UserObjectContainer.java 
 
+#	PropertyIndexSet.java \
+#	VisualObjectContainer.java
+#	NotFilter.java \
+#	OrFilter.java \
+#	AndFilter.java \
+#	UserObjectChangeEvent.java \
+#	UserObjectChangeListener.java \
+#	SemanticObjectChangeEvent.java \
+#	SemanticObjectChangeListener.java \
 
 # Include the shared compilation rules
 include $(DIVA)/compile.mk
@@ -70,12 +73,19 @@ Filter.class: \
 
 FilteredIterator.class: \
 	Filter.java \
-	FilteredIterator.java
+	FilteredIterator.java \
+	IteratorAdapter.java
+
+FilteredArrayIterator.class: \
+	FilteredArrayIterator.java \
+	IteratorAdapter.java \
+	NullArrayIterator.java
 
 IteratorAdapter.class: \
 	IteratorAdapter.java
 
 IteratorIterator.class: \
+	IteratorAdapter.java \
 	IteratorIterator.java
 
 IteratorUtilities.class: \
@@ -86,12 +96,23 @@ LoggableOp.class: \
 	LoggableOp.java \
 	aelfred/XmlParser.java
 
+ModelParser.class: \
+	ModelParser.java
+
+ModelWriter.class: \
+	ModelWriter.java
+
 NotFilter.class: \
 	Filter.java \
 	NotFilter.java
 
 NullIterator.class: \
+	IteratorAdapter.java \
 	NullIterator.java
+
+NullArrayIterator.class: \
+	IteratorAdapter.java \
+	NullArrayIterator.java
 
 OrFilter.class: \
 	Filter.java \
@@ -107,9 +128,11 @@ PropertyIndexSet.class: \
 	PropertyIndexSet.java
 
 ProxyIterator.class: \
+	IteratorAdapter.java \
 	ProxyIterator.java
 
 ReverseIterator.class: \
+	IteratorAdapter.java \
 	ReverseIterator.java
 
 SemanticObjectChangeEvent.class: \
@@ -123,6 +146,7 @@ SemanticObjectContainer.class: \
 	SemanticObjectContainer.java
 
 UnitIterator.class: \
+	IteratorAdapter.java \
 	UnitIterator.java
 
 UserObjectChangeEvent.class: \

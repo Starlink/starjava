@@ -1,7 +1,7 @@
 /*
- * $Id: CanvasComponent.java,v 1.4 2000/05/02 00:43:15 johnr Exp $
+ * $Id: CanvasComponent.java,v 1.5 2001/07/22 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -13,7 +13,7 @@ package diva.canvas;
  * CanvasPane, then consists of CanvasLayers, Figures, and other
  * kinds of recursively-structured CanvasComponents.
  *
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -42,4 +42,5 @@ public interface CanvasComponent {
      */
     public void repaint (DamageRegion d);
 }
+
 

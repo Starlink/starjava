@@ -1,7 +1,7 @@
 /*
- * $Id: Classification.java,v 1.4 2000/05/02 00:44:46 johnr Exp $
+ * $Id: Classification.java,v 1.6 2001/10/29 22:26:38 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.classification;
@@ -21,20 +21,41 @@ import java.util.Iterator;
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.6 $
  */
 public class Classification {
     private String _types[];
     private double _confidences[];
-
+    private String _highestConfidenceType;
+    private double _highestConfidence;
+    
     /**
      * Construct a classification with no types.
      */
     public Classification (String[] types, double[]confidences) {
         _types = types;
         _confidences = confidences;
+
+        int maxIndex = 0;
+        double maxConfidence = _confidences[maxIndex];
+        for(int i=0; i<_types.length; i++){
+            if(_confidences[i]>_confidences[maxIndex]){
+                maxIndex = i;
+                maxConfidence = _confidences[maxIndex];
+            }
+        }
+        _highestConfidenceType = _types[maxIndex];
+        _highestConfidence = maxConfidence;
     }
 
+    public double getHighestConfidence(){
+        return _highestConfidence;
+    }
+
+    public String getHighestConfidenceType(){
+        return _highestConfidenceType;
+    }
+    
     /**
      * Return the number of types in this classification.
      */
@@ -69,4 +90,5 @@ public class Classification {
         return s;
     }
 }
+
 

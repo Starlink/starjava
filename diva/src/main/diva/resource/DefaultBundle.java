@@ -1,7 +1,7 @@
 /*
- * $Id: DefaultBundle.java,v 1.2 2000/05/02 00:44:40 johnr Exp $
+ * $Id: DefaultBundle.java,v 1.3 2001/07/22 22:01:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.resource;
@@ -25,7 +25,7 @@ import javax.swing.ImageIcon;
  * in the diva.resource package.
  * 
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class DefaultBundle extends RelativeBundle {
 
@@ -35,4 +35,5 @@ public class DefaultBundle extends RelativeBundle {
         super("diva.resource.Defaults", null, null);
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: StrokeFilter.java,v 1.4 2000/05/10 21:55:47 hwawen Exp $
+ * $Id: StrokeFilter.java,v 1.5 2001/07/22 22:01:59 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -15,7 +15,7 @@ import diva.sketch.recognition.TimedStroke;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public abstract class StrokeFilter {
     /**
@@ -30,5 +30,6 @@ public abstract class StrokeFilter {
      */
     public abstract TimedStroke apply(TimedStroke s);
 }
+
 
 

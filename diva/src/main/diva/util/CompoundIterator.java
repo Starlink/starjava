@@ -1,7 +1,7 @@
 /*
- * $Id: CompoundIterator.java,v 1.3 2000/05/02 00:45:24 johnr Exp $
+ * $Id: CompoundIterator.java,v 1.4 2001/07/22 22:02:02 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
  * An iterator over two iterators.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class CompoundIterator implements Iterator {
   // The iterators
@@ -61,4 +61,5 @@ public class CompoundIterator implements Iterator {
     }
   }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: ZoomDemo.java,v 1.21 2000/05/22 17:13:59 neuendor Exp $
+ * $Id: ZoomDemo.java,v 1.23 2001/08/27 22:07:26 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -48,11 +48,12 @@ import java.util.Iterator;
 
 import diva.sketch.SketchPane;
 import diva.sketch.toolbox.PanZoomController;
+import diva.sketch.SketchController;
 
 /** A class for experimenting with zooming on a pane.
  *
  * @author John Reekie
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.23 $
  */
 public class ZoomDemo {
     /**
@@ -122,8 +123,9 @@ public class ZoomDemo {
         layer.add(wif);
         wif.setInteractor(_defaultInteractor);
 
-        SketchPane ssp = new SketchPane();
-        ssp.setSize(300,300);
+        SketchController sc = new SketchController();
+        GraphicsPane ssp = new GraphicsPane();
+        sc.setSketchPane(ssp);
         PaneWrapper pw = new PaneWrapper(ssp);
         Figure pink = new BasicRectangle(30.0,30.0,200.0,200.0, Color.pink);
         pw.setBackground(pink);
@@ -138,5 +140,6 @@ public class ZoomDemo {
         ex.createFigures();
     }
 }
+
 
 

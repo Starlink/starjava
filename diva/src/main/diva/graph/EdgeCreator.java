@@ -1,7 +1,7 @@
 /*
- * $Id: EdgeCreator.java,v 1.1 2000/07/19 23:29:39 neuendor Exp $
+ * $Id: EdgeCreator.java,v 1.2 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -39,7 +39,7 @@ import java.util.HashMap;
  * to another.
  *
  * @author 	Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version	$Revision: 1.1 $
+ * @version	$Revision: 1.2 $
  * @rating      Red
  */
 public abstract class EdgeCreator extends AbstractInteractor {
@@ -81,5 +81,6 @@ public abstract class EdgeCreator extends AbstractInteractor {
      */
     public abstract Object createEdge();
 }
+
 
 

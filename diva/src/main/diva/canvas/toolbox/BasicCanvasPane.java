@@ -1,7 +1,7 @@
 /*
- * $Id: BasicCanvasPane.java,v 1.3 2000/05/02 00:43:37 johnr Exp $
+ * $Id: BasicCanvasPane.java,v 1.4 2001/07/22 22:00:43 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -22,7 +22,7 @@ import java.util.Iterator;
  * it. Real applications will probably want to create their own
  * CanvasPane subclass, instead of using this class.
  * 
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  * @author John Reekie
 */
 public class BasicCanvasPane extends CanvasPane {
@@ -111,4 +111,5 @@ public class BasicCanvasPane extends CanvasPane {
         _layers.remove(layer);
     }    
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: JCanvasTest.java,v 1.8 2000/05/02 00:43:37 johnr Exp $
+ * $Id: JCanvasTest.java,v 1.10 2001/11/30 02:42:14 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.test;
@@ -17,7 +17,7 @@ import javax.swing.JFrame;
  * really just a few simple confidence tests.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.10 $
  */
 public class JCanvasTest extends TestSuite {
 
@@ -54,8 +54,8 @@ public class JCanvasTest extends TestSuite {
       }
       public void check () throws TestFailedException {
 	CanvasPane pane = canvas.getCanvasPane();
-	assert(pane != null, "pane != null");
-	assert(pane.getClass().getName().equals("diva.canvas.GraphicsPane"), 
+	assertExpr(pane != null, "pane != null");
+	assertExpr(pane.getClass().getName().equals("diva.canvas.GraphicsPane"), 
 	       pane.getClass().getName() + " != diva.canvas.GraphicsPane");
       }
     });
@@ -72,7 +72,7 @@ public class JCanvasTest extends TestSuite {
       }
       public void check () throws TestFailedException {
 	CanvasPane pane = canvas.getCanvasPane();
-	assert(pane != null, "pane != null");
+	assertExpr(pane != null, "pane != null");
 	assertEquals(pane,this.pane,"pane == this.pane");
       }
     });
@@ -125,5 +125,6 @@ public class JCanvasTest extends TestSuite {
     }
   }
 }
+
 
 

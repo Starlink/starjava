@@ -1,7 +1,7 @@
 /*
- * $Id: Arrowhead.java,v 1.5 2000/05/02 00:43:18 johnr Exp $
+ * $Id: Arrowhead.java,v 1.6 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -26,7 +26,7 @@ import java.awt.geom.Rectangle2D;
 /** An arrowhead that is drawn on the end of a connector.
  * This is a low-level utility class, not a self-contained Figure.
  *
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  */
 public class Arrowhead implements ConnectorEnd {
@@ -199,4 +199,5 @@ public class Arrowhead implements ConnectorEnd {
         }
     }
 }
+
 

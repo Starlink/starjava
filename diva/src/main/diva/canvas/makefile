@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.63 2000/06/27 17:46:40 pwhitake Exp $
+# $Id: makefile,v 1.65 2002/05/16 20:37:29 johnr Exp $
 #
 # Makefile for diva.canvas
 #
@@ -59,8 +59,6 @@ AbstractFigure.class: \
 	Figure.java \
 	TransformContext.java \
 	VisibleComponent.java \
-	event/LayerListener.java \
-	event/LayerMotionListener.java \
 	interactor/Interactor.java \
 	../util/UserObjectContainer.java
 
@@ -75,6 +73,8 @@ AbstractFigureContainer.class: \
 	FigureDecorator.java \
 	FigureSet.java \
 	VisibleComponent.java \
+	../util/Filter.java \
+	../util/FilteredIterator.java \
 	../util/UserObjectContainer.java
 
 AbstractSite.class: \
@@ -125,6 +125,22 @@ CanvasPane.class: \
 	event/LayerEvent.java \
 	../util/java2d/ShapeUtilities.java
 
+CanvasDebugUtilities.class: \
+	CanvasComponent.java \
+	CanvasDebugUtilities.java \
+	CanvasLayer.java \
+	Figure.java \
+	FigureLayer.java \
+	FigureSet.java \
+	TransformContext.java \
+	VisibleComponent.java \
+	../util/Filter.java \
+	../util/FilteredIterator.java \
+	../util/UserObjectContainer.java \
+	../util/java2d/Polygon2D.java \
+	../util/java2d/Polyline2D.java \
+	../util/java2d/ShapeUtilities.java
+
 CanvasUtilities.class: \
 	CanvasComponent.java \
 	CanvasUtilities.java \
@@ -136,9 +152,11 @@ CanvasUtilities.class: \
 	VisibleComponent.java \
 	../util/Filter.java \
 	../util/FilteredIterator.java \
+	../util/IteratorAdapter.java \
 	../util/UserObjectContainer.java \
 	../util/java2d/Polygon2D.java \
-	../util/java2d/Polyline2D.java
+	../util/java2d/Polyline2D.java \
+	../util/java2d/ShapeUtilities.java
 
 CompositeFigure.class: \
 	AbstractFigure.java \
@@ -155,35 +173,35 @@ CompositeFigure.class: \
 	TransformContext.java \
 	VisibleComponent.java \
 	ZList.java \
+	../util/Filter.java \
+	../util/FilteredIterator.java \
+	../util/IteratorAdapter.java \
+	../util/UnitIterator.java \
 	../util/UserObjectContainer.java \
 	../util/java2d/ShapeUtilities.java
 
 DamageRegion.class: \
-	CanvasUtilities.java \
 	DamageRegion.java \
 	JCanvas.java \
-	TransformContext.java
+	TransformContext.java \
+	../util/java2d/ShapeUtilities.java
 
 Figure.class: \
 	CanvasComponent.java \
 	CanvasLayer.java \
 	Figure.java \
 	VisibleComponent.java \
-	event/LayerListener.java \
-	event/LayerMotionListener.java \
 	interactor/Interactor.java \
 	../util/UserObjectContainer.java
 
 FigureContainer.class: \
-	AbstractFigure.java \
-	AbstractFigureContainer.java \
 	CanvasComponent.java \
 	Figure.java \
 	FigureContainer.java \
 	FigureDecorator.java \
 	FigureSet.java \
 	VisibleComponent.java \
-	../util/UserObjectContainer.java
+	../util/Filter.java
 
 FigureDecorator.class: \
 	AbstractFigure.java \
@@ -194,6 +212,7 @@ FigureDecorator.class: \
 	FigureDecorator.java \
 	FigureSet.java \
 	VisibleComponent.java \
+	../util/IteratorAdapter.java \
 	../util/NullIterator.java \
 	../util/UnitIterator.java \
 	../util/UserObjectContainer.java
@@ -220,14 +239,13 @@ FigureLayer.class: \
 	event/LayerListener.java \
 	event/LayerMotionListener.java \
 	interactor/Interactor.java \
+	../util/Filter.java \
+	../util/FilteredIterator.java \
 	../util/UserObjectContainer.java
 
 FigureSet.class: \
-	CanvasComponent.java \
 	Figure.java \
-	FigureSet.java \
-	VisibleComponent.java \
-	../util/UserObjectContainer.java
+	FigureSet.java
 
 FigureWrapper.class: \
 	AbstractFigure.java \
@@ -247,12 +265,9 @@ GraphicsPane.class: \
 	CanvasComponent.java \
 	CanvasLayer.java \
 	CanvasPane.java \
-	FigureContainer.java \
 	FigureLayer.java \
-	FigureSet.java \
 	GraphicsPane.java \
 	OverlayLayer.java \
-	VisibleComponent.java \
 	event/EventAcceptor.java \
 	event/EventLayer.java
 
@@ -285,8 +300,6 @@ PaneWrapper.class: \
 	VisibleComponent.java \
 	event/EventAcceptor.java \
 	event/LayerEvent.java \
-	event/LayerListener.java \
-	event/LayerMotionListener.java \
 	interactor/AbstractInteractor.java \
 	interactor/CompositeInteractor.java \
 	interactor/Interactor.java \
@@ -295,21 +308,15 @@ PaneWrapper.class: \
 	../util/UserObjectContainer.java
 
 Site.class: \
-	CanvasComponent.java \
 	Figure.java \
 	Site.java \
-	TransformContext.java \
-	VisibleComponent.java \
-	../util/UserObjectContainer.java
+	TransformContext.java
 
 SiteDecorator.class: \
-	CanvasComponent.java \
 	Figure.java \
 	Site.java \
 	SiteDecorator.java \
-	TransformContext.java \
-	VisibleComponent.java \
-	../util/UserObjectContainer.java
+	TransformContext.java
 
 TransformContext.class: \
 	CanvasComponent.java \
@@ -320,12 +327,9 @@ VisibleComponent.class: \
 	VisibleComponent.java
 
 ZList.class: \
-	CanvasComponent.java \
 	Figure.java \
 	FigureSet.java \
 	GeometricSet.java \
-	VisibleComponent.java \
-	ZList.java \
-	../util/UserObjectContainer.java
+	ZList.java
 
 

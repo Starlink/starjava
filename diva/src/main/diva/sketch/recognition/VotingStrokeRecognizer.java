@@ -1,11 +1,12 @@
 /*
- * $Id: VotingStrokeRecognizer.java,v 1.4 2000/08/04 01:24:02 michaels Exp $
+ * $Id: VotingStrokeRecognizer.java,v 1.7 2001/08/28 06:34:12 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Voting gesture recognizer is a composite recognizer which allows
@@ -34,7 +35,7 @@ import java.util.Iterator;
  * low-confidence values, etc.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public class VotingStrokeRecognizer implements StrokeRecognizer {
@@ -47,7 +48,7 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      * A buffer to store the results as they
      * are generated.
      */
-    private StrokeRecognitionSet[] _buffer = null;
+    private RecognitionSet[] _buffer = null;
 
     /**
      * The minimum confidence value that the recognizer
@@ -75,8 +76,14 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      */
     public VotingStrokeRecognizer (StrokeRecognizer[] children) {
         _children = children;
-        _buffer = new StrokeRecognitionSet[_children.length];
+        _buffer = new RecognitionSet[_children.length];
         clearBuffer();
+    }
+
+    /** Return the children as a list.
+     */
+    public List children() {
+        return java.util.Arrays.asList(_children);
     }
  
     /**
@@ -85,7 +92,7 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      */
     public void clearBuffer () {
         for(int i = 0; i < _buffer.length; i++) {
-            _buffer[i] = StrokeRecognitionSet.NO_RECOGNITION;
+            _buffer[i] = RecognitionSet.NO_RECOGNITION;
         }
     }
 
@@ -141,12 +148,12 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      * Pass the event to the child recognizers, tally the vote,
      * clear the buffer, and return the consensus.
      */
-    public StrokeRecognitionSet strokeCompleted (TimedStroke s) {
+    public RecognitionSet strokeCompleted (TimedStroke s) {
         for(int i = 0; i < _children.length; i++) {
-            StrokeRecognitionSet rs = _children[i].strokeCompleted(s);
+            RecognitionSet rs = _children[i].strokeCompleted(s);
             _buffer[i] = rs;
         }
-        StrokeRecognitionSet out = vote();
+        RecognitionSet out = vote();
         clearBuffer();
         return out;
     }
@@ -155,9 +162,9 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      * Pass the event to the child recognizers, tally the vote,
      * and return the consensus.
      */
-    public StrokeRecognitionSet strokeModified (TimedStroke s) {
+    public RecognitionSet strokeModified (TimedStroke s) {
         for(int i = 0; i < _children.length; i++) {
-            StrokeRecognitionSet rs = _children[i].strokeModified(s);
+            RecognitionSet rs = _children[i].strokeModified(s);
             _buffer[i] = rs;
         }
         return vote();
@@ -167,9 +174,9 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      * Pass the event to the child recognizers, tally the vote,
      * and return the consensus.
      */
-    public StrokeRecognitionSet strokeStarted (TimedStroke s) {
+    public RecognitionSet strokeStarted (TimedStroke s) {
         for(int i = 0; i < _children.length; i++) {
-            StrokeRecognitionSet rs = _children[i].strokeStarted(s);
+            RecognitionSet rs = _children[i].strokeStarted(s);
             _buffer[i] = rs;
         }
         return vote();
@@ -186,25 +193,25 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
      * @see #getNHighest()
      * @see #getMinConfidence()
      */
-    protected StrokeRecognitionSet vote () {
-        StrokeRecognitionSet out = StrokeRecognitionSet.NO_RECOGNITION;
+    protected RecognitionSet vote () {
+        RecognitionSet out = RecognitionSet.NO_RECOGNITION;
 
         for(int i = 0; i < _buffer.length; i++) {
-            StrokeRecognitionSet in = _buffer[i];
+            RecognitionSet in = _buffer[i];
 
             for(Iterator j = in.recognitions(); j.hasNext(); ) {
-                StrokeRecognition rin = (StrokeRecognition)j.next();
+                Recognition rin = (Recognition)j.next();
                 double inConfidence = rin.getConfidence();
 
-                StrokeRecognition rout = out.getRecognitionOfType(rin.getType());
+                Recognition rout = out.getRecognitionOfType(rin.getType());
                 double outConfidence = (rout == null) ? 0 : rout.getConfidence();
 
                 if((outConfidence > 0) && (inConfidence > outConfidence)) {
                     out.removeRecognition(rout);
                 }
                 if(inConfidence >= _minConfidence) { //min-confidence heuristic
-                    if(out == StrokeRecognitionSet.NO_RECOGNITION) {
-                        out = new StrokeRecognitionSet(); // lazy construction
+                    if(out == RecognitionSet.NO_RECOGNITION) {
+                        out = new RecognitionSet(); // lazy construction
                     }
                     out.addRecognition(rin);
                 }
@@ -219,11 +226,11 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
 
         //n-highest heuristic
         if(out.getRecognitionCount() > _nHighest) {
-            StrokeRecognition[] toRemove =
-                new StrokeRecognition[out.getRecognitionCount()-_nHighest];
+            Recognition[] toRemove =
+                new Recognition[out.getRecognitionCount()-_nHighest];
             int cnt = 0;
             for(Iterator rs = out.recognitions(); rs.hasNext(); ) {
-                StrokeRecognition r = (StrokeRecognition)rs.next();
+                Recognition r = (Recognition)rs.next();
                 if(cnt >= _nHighest) {
                     toRemove[cnt-_nHighest] = r;
                 }
@@ -240,4 +247,5 @@ public class VotingStrokeRecognizer implements StrokeRecognizer {
         return out;
     }
 }
+
 

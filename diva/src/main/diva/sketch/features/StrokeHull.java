@@ -1,13 +1,12 @@
 /*
- * $Id: StrokeHull.java,v 1.5 2000/05/10 18:54:54 hwawen Exp $
+ * $Id: StrokeHull.java,v 1.11 2001/09/15 15:18:10 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
 package diva.sketch.features;
 import diva.sketch.recognition.TimedStroke;
-import java.util.Iterator;
 
 /**
  * StrokeHull computes the convex hull of a stroke and stores the
@@ -16,7 +15,8 @@ import java.util.Iterator;
  * @see ConvexHull
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.11 $
+ * @rating Red
  */
 public class StrokeHull {
     /**
@@ -40,10 +40,20 @@ public class StrokeHull {
      *         have a force recompute function?
      */
     public static ConvexHull apply(TimedStroke s) {
-        ConvexHull hull = (ConvexHull)s.getProperty(StrokeHull.PROPERTY_KEY);
-        if(hull != null){
-            return hull;
+        ConvexHull hull = (ConvexHull)s.getProperty(PROPERTY_KEY);
+        if(hull == null){
+            hull = hullNoCache(s);
+            s.setProperty(PROPERTY_KEY, hull);
         }
+        return hull;
+    }
+
+    
+    /**
+     * Generate a convex hull object for the specified stroke, but
+     * do not cache it in the stroke's property table.
+     */
+    public static ConvexHull hullNoCache(TimedStroke s) {
         int numPoints = s.getVertexCount();
         double xpath[] = new double[numPoints];
         double ypath[] = new double[numPoints];
@@ -53,11 +63,9 @@ public class StrokeHull {
             ypath[index] = s.getY(i);
             index++;
         }
-        
-        hull = new ConvexHull();
-        hull.quickHull(xpath, ypath);
-        s.setProperty(StrokeHull.PROPERTY_KEY, hull);
+        ConvexHull hull = new ConvexHull(xpath,ypath);
         return hull;
     }
 }
+
 

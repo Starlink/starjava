@@ -1,7 +1,7 @@
 /*
- * $Id: LabelFigure.java,v 1.14 2001/01/28 03:53:58 neuendor Exp $
+ * $Id: LabelFigure.java,v 1.19 2002/05/15 19:10:40 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.toolbox;
@@ -9,7 +9,9 @@ package diva.canvas.toolbox;
 import diva.canvas.Figure;
 import diva.canvas.AbstractFigure;
 import diva.canvas.CanvasUtilities;
-import diva.util.java2d.PaintedString;
+import diva.canvas.TransformContext;
+
+import diva.util.java2d.ShapeUtilities;
 
 import java.awt.Font;
 import java.awt.Shape;
@@ -19,42 +21,74 @@ import java.awt.Graphics2D;
 
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 
+import java.util.StringTokenizer;
+
 import javax.swing.SwingConstants;
 
 /**
- * A figure which draws user-specified text in a user-specified
- * font. Labels are also "anchored" in the center or on one of
+ * A figure which draws a string. If the string contains newlines,
+ * then it will be broken up into multiple lines.
+ * Strings can be "anchored" in the center or on one of
  * the edges or corners, so that when the font or text changes,
  * the label appears to stay in the right location.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie  (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.19 $
  */
 public class LabelFigure extends AbstractFigure {
-
-    /** The transform of the label
-     */
-    private AffineTransform _transform = new AffineTransform();
-
-    /** The "padding" around the text
-     */
-    private double _padding = 4.0;
 
     /** The anchor on the label. This must be one of the
      * constants defined in SwingConstants.
      */
     private int _anchor = SwingConstants.CENTER;
 
-    /** The painted string that holds the string,
-     * font, fill, etc. and actually does the painting.
+    /** The bounds in the internal coordinate system. This is
+     * kept separately from the shape, in case the shape is empty
+     * (as it will be for a blank string). In that case, a small
+     * bounding box is set -- the default is a zero bounding box,
+     * which will produce the wrong coordinates.
      */
-    private PaintedString _paintedString;
-    
+    private Rectangle2D _bounds = null;
+
+    /** The cached bounds, in the external coordinate system
+     */
+    private Rectangle2D _cachedBounds = null;
+
+    /** The default font.
+     */
+    private static Font _defaultFont = new Font("Serif", Font.PLAIN, 16);
+
+    /** The fill paint of the string.
+     */
+    private Paint _fillPaint = Color.black;
+
+    /** The font.
+     */
+    private Font _font;
+
+    /** The "padding" around the text
+     */
+    private double _padding = 4.0;
+
+    /** The list of shapes used to draw the string, in the local
+     * coordinate system
+     */
+    private Shape _shape;
+
+    /** The string that gets painted.
+     */
+    private String _string;
+
+    /** The transform context
+     */
+    private TransformContext _transformContext;
+
     /** The order of anchors used by the autoanchor method.
      */
     private static int _anchors[] = {
@@ -72,7 +106,7 @@ public class LabelFigure extends AbstractFigure {
      * Construct an empty label figure.
      */
     public LabelFigure() {
-        this("");
+        this("", _defaultFont);
     }
 
     /**
@@ -80,7 +114,17 @@ public class LabelFigure extends AbstractFigure {
      * given string, using the default font.
      */
     public LabelFigure(String s) {
-        _paintedString = new PaintedString(s);
+      this(s, _defaultFont);
+    }
+
+    /**
+     * Construct a label figure displaying the
+     * given string in the given face, style, and size. A new
+     * Font object representing the face, style, and size is
+     * created for this label.
+     */
+    public LabelFigure(String s, String face, int style, int size) {
+        this(s, new Font(face, style, size));
     }
 
     /**
@@ -91,26 +135,17 @@ public class LabelFigure extends AbstractFigure {
      * be shared by many labels.
      */
     public LabelFigure(String s, Font f) {
-        _paintedString = new PaintedString(s,f);
+      _string = s;
+      _font = f;
+      _transformContext = new TransformContext(this);
     }
-
-    /**
-     * Construct a label figure displaying the
-     * given string in the given face, style, and size. A new
-     * Font object representing the face, style, and size is
-     * created for this label.
-     */
-    public LabelFigure(String s, String face, int style, int size) {
-        _paintedString = new PaintedString(s,face,style,size);
-    }
-
 
     /**
      * Construct a label figure displaying the
      * given string in the given font, with the given padding and anchor.
      */
     public LabelFigure(String s, Font font, double padding, int anchor) {
-        _paintedString = new PaintedString(s, font);
+        this(s, font);
         _padding = padding;
         _anchor = anchor;
     }
@@ -124,7 +159,7 @@ public class LabelFigure extends AbstractFigure {
      */
     public void autoAnchor (Shape s) {
         Rectangle2D.Double r = new Rectangle2D.Double();
-        r.setRect(_paintedString.getBounds());
+        r.setRect(getBounds());
         
         // Try every anchor and if there's no overlap, use it
         Point2D location = getAnchorPoint(); 
@@ -156,7 +191,7 @@ public class LabelFigure extends AbstractFigure {
      * figure out the point.
      */
     public Point2D getAnchorPoint () {
-        Rectangle2D bounds = _paintedString.getBounds();
+        Rectangle2D bounds = getBounds();
         Point2D pt = CanvasUtilities.getLocation(bounds, _anchor);
         if (_anchor != SwingConstants.CENTER) {
             CanvasUtilities.translate(pt, _padding, _anchor);
@@ -165,31 +200,40 @@ public class LabelFigure extends AbstractFigure {
     }
 
     /**
-     * Get the bounds of this label
+     * Get the bounds of this string
      */
     public Rectangle2D getBounds () {
-        return _paintedString.getBounds();
+      if (_cachedBounds == null) {
+	if (_shape == null) {
+	  _update();
+	}
+	AffineTransform at = _transformContext.getTransform();
+	_cachedBounds = ShapeUtilities.transformBounds(_bounds, at);
+      }
+      return _cachedBounds;
     }
 
     /**
-     * Get the font that this label is drawn in.
+     * Get the font that this label is drawn in. To get the
+     * font name, style, and size, call this method and then
+     * call the appropriate methods on the Font object.
      */
     public Font getFont() {
-        return _paintedString.getFont();
+        return _font;
     }
 
     /**
      * Get the fill paint for this label.
      */
     public Paint getFillPaint() {
-        return _paintedString.getFillPaint();
+        return _fillPaint;
     }
     
-    /**
-     * Get the font name.
+    /** Return the origin, which is the anchor point.
+     *  @return The anchor point.
      */
-    public String getFontName() {
-        return _paintedString.getFontName();
+    public Point2D getOrigin () {
+        return getAnchorPoint();
     }
     
     /**
@@ -200,20 +244,6 @@ public class LabelFigure extends AbstractFigure {
     }
     
     /**
-     * Get the font style.
-     */
-    public int getStyle() {
-        return _paintedString.getStyle();
-    }
-    
-    /**
-     * Get the font size.
-     */
-    public int getSize() {
-        return _paintedString.getSize();
-    }
-
-    /**
      * Get the shape of this label figure. This just returns
      * the bounds, since hit-testing on the actual filled
      * latter shapes is way slow (and not that useful, since
@@ -222,25 +252,35 @@ public class LabelFigure extends AbstractFigure {
      * filled pixel).
      */
     public Shape getShape () {
-        return _paintedString.getBounds();
+        return getBounds();
     }
 
     /**
-     * Get the string of this label.
+     * Get the string.
      */
     public String getString() {
-        return _paintedString.getString();
+        return _string;
     }
 
     /**
-     * Paint the label.
+     * Paint the figure.
      */
-    public void paint(Graphics2D g) {
+    public void paint (Graphics2D g) {
         if (!isVisible()) {
              return;
         }
-        if(getString() != null) {
-            _paintedString.paint(g);
+        if(_cachedBounds == null) {
+            getBounds();
+        }
+        if(_string != null) {
+           // Push the context
+            _transformContext.push(g);
+
+            g.setPaint(_fillPaint);
+	    g.fill(_shape);
+
+            // Pop the context
+            _transformContext.pop(g);
         }
     }
 
@@ -257,44 +297,45 @@ public class LabelFigure extends AbstractFigure {
      * padding attribute.
      */
     public void setAnchor (int anchor) {
-        Point2D oldpt = getAnchorPoint();
-        this._anchor = anchor;
-        Point2D newpt = getAnchorPoint();
+        // Optimize if the figure is not yet painted
+        if (_bounds == null) {
+	  _anchor = anchor;
+	} else {
+	  Point2D oldpt = getAnchorPoint();
+	  _anchor = anchor;
+	  Point2D newpt = getAnchorPoint();
 
-        repaint();
-        _paintedString.translate(
-                oldpt.getX() - newpt.getX(),
-                oldpt.getY() - newpt.getY());
-        repaint();
+	  repaint();
+	  translate(
+		    oldpt.getX() - newpt.getX(),
+		    oldpt.getY() - newpt.getY());
+	  repaint();
+	}
     }
 
     /**
      * Set the fill paint that this shape
      * is drawn with.
      */
-    public void setFillPaint(Paint p) {
-        _paintedString.setFillPaint(p);
+    public void setFillPaint (Paint p) {
+        _fillPaint = p;
         repaint();
     }
 
     /**
      * Set the font.
      */
-    public void setFont(Font f) {
+    public void setFont (Font f) {
+      if (_cachedBounds == null) {
+	_font = f;
+      } else {
         // Remember the current anchor point
         Point2D pt = getAnchorPoint();
-        _paintedString.setFont(f);
+        _font = f;
+	_update();
         // Move it back
         translateTo(pt);
-    }
-
-    /**
-     * Set the font family by name.
-     */
-    public void setFontName(String s) {
-        Point2D pt = getAnchorPoint();
-        _paintedString.setFontName(s);
-        translateTo(pt);
+      }
     }
 
     /**
@@ -312,36 +353,28 @@ public class LabelFigure extends AbstractFigure {
     }
 
     /**
-     * Set the font style.
-     */
-    public void setStyle(int style) {
-        Point2D pt = getAnchorPoint();
-        _paintedString.setStyle(style);
-        translateTo(pt);
-    }
-
-    /**
-     * Set the font size.
-     */
-    public void setSize(int size) {
-        Point2D pt = getAnchorPoint();
-        _paintedString.setSize(size);
-        translateTo(pt);
-    }
-
-    /**
      * Set the string.
      */
     public void setString(String s) {
-        // FIXME something seems wrong here.
+      if (_cachedBounds == null) {
+	_string = s;
+      } else {
         // repaint the string where it currently is
         repaint();
+
         // Remember the current anchor point
         Point2D pt = getAnchorPoint();
-        _paintedString.setString(s);
-        // Update the bounds
-        translateTo(pt);
+	// Modify the string
+        _string = s;
+	_update();
+
+	// Recalculate and translate
+	Point2D badpt = getAnchorPoint();
+        translate(pt.getX() - badpt.getX(), pt.getY() - badpt.getY());
+
+	// Repaint in new location
         repaint();
+      }
     }
 
     /**
@@ -350,21 +383,23 @@ public class LabelFigure extends AbstractFigure {
      * to move it back again if this method being called to
      * (for example) rotate the label.
      */
-    public void setTransform (AffineTransform at) {
-        repaint();
-        _paintedString.setTransform(at);
-        repaint();
-    }
+  //public void setTransform (AffineTransform at) {
+  //      repaint();
+  //      _transform = at;
+  //      _bounds = null;
+  //      repaint();
+  //  }
 
     /**
      * Transform the label with the given transform.  Note that the anchor
-     * of the figure will appear to nmove -- use translateTo()
+     * of the figure will appear to move -- use translateTo()
      * to move it back again if this method being called to
      * (for example) rotate the label.
      */
     public void transform (AffineTransform at) {
         repaint();
-        _paintedString.transform(at);
+	_cachedBounds = null;
+        _transformContext.preConcatenate(at);
         repaint();
      }
 
@@ -379,7 +414,7 @@ public class LabelFigure extends AbstractFigure {
         // scaling. If not, modify to preconcatenate instead
         repaint();
         Point2D pt = getAnchorPoint();
-        _paintedString.translate(x-pt.getX(),y-pt.getY());
+        translate(x-pt.getX(),y-pt.getY());
         repaint();
      }
 
@@ -392,5 +427,55 @@ public class LabelFigure extends AbstractFigure {
     public void translateTo (Point2D pt) {
         translateTo(pt.getX(), pt.getY());
      }
-}
 
+    /** Update the shape used to draw the figure.
+     */
+    private void _update () {
+        // Generate font render context with a unit transform.
+        // Since we are generating a shape and drawing that, it makes
+        // no difference what the values of the flags are
+        FontRenderContext frc = new FontRenderContext(
+				    new AffineTransform(), false, false);
+	// Only a single line
+	if (_string.indexOf('\n') < 0) {
+	    // Get the shape
+	    GlyphVector gv = _font.createGlyphVector(frc, _string);
+	    _shape = gv.getOutline();
+
+	    // If the string is only whitespace, then the drawing stuff
+	    // won't work properly. So we set the bounding box to a special
+	    // value.
+	    if (_string.trim().equals("")) {
+		_bounds = new Rectangle2D.Float(0.0f, 0.0f, 1.0f, 1.0f);
+	    } else {
+		_bounds = _shape.getBounds2D();
+	    }
+	} else {
+	    // Multiple lines, so generate a compound shape
+	    double dy = _font.getMaxCharBounds(frc).getHeight();
+	    StringTokenizer lines = new StringTokenizer(_string, "\n", true);
+	    _shape = null;
+	    int count = 0;
+
+	    while (lines.hasMoreTokens()) {
+		String line = lines.nextToken();
+		if(line.equals("\n")) {
+		    // Note that leading or trailing newlines are ignored.
+		    count++;
+		} else if (!line.trim().equals("")) {
+		    GlyphVector gv = _font.createGlyphVector(frc, line);
+		    Shape s = gv.getOutline();
+		    if (_shape == null) {
+			_shape = s;
+		    } else {
+			// Translate each line and append to the previous shape
+			s = ShapeUtilities.translateModify(s, 0, count * dy);
+			((GeneralPath)_shape).append(s, false);
+		    }
+		}
+	    }
+	    _bounds = _shape.getBounds2D();
+	}
+	_cachedBounds = null;
+    }
+}

@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedFigure.java,v 1.5 2000/07/19 21:24:46 nzamor Exp $
+ * $Id: PaintedFigure.java,v 1.10 2002/08/12 06:34:15 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -25,12 +25,14 @@ import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Rectangle2D;
 
 import diva.util.java2d.PaintedShape;
 
-/** A PaintedFigure is contains an arbitrary set of PaintedObjects
+/**
+ * A PaintedFigure is contains an arbitrary set of PaintedObjects
  * in a list. This figure can be used for constructing more complex
  * figures than classes such as BasicFigure. It contains a transform
  * that is used for scaling the contained painted objects. (Note
@@ -38,9 +40,10 @@ import diva.util.java2d.PaintedShape;
  * source, the initial transform should operate on the coordinates
  * only.) 
  *
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.10 $
  * @author 	John Reekie
  * @author      Nick Zamora
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public class PaintedFigure extends AbstractFigure {
 
@@ -92,6 +95,15 @@ public class PaintedFigure extends AbstractFigure {
         return bounds;
     }
 
+    /** Return the origin, which is the point relative to which all of the
+     *  contained objects are drawn.
+     *  @return The origin.
+     */
+    public Point2D getOrigin () {
+        return new Point2D.Double(
+                _transform.getTranslateX(), _transform.getTranslateY());
+    }
+
     /** Get the shape of this figure. This is the same as the
      * bounding box.
      */
@@ -140,6 +152,7 @@ public class PaintedFigure extends AbstractFigure {
 	repaint();
     }
 }
+
 
 
 

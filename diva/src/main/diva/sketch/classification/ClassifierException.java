@@ -1,7 +1,7 @@
 /*
- * $Id: ClassifierException.java,v 1.3 2000/05/02 00:44:47 johnr Exp $
+ * $Id: ClassifierException.java,v 1.4 2001/07/22 22:01:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.classification;
@@ -11,7 +11,7 @@ package diva.sketch.classification;
  * or classification process.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public class ClassifierException extends Exception {
     /**
@@ -30,4 +30,5 @@ public class ClassifierException extends Exception {
         super(s);
     }
 }
+
 

@@ -1,10 +1,9 @@
 /*
- * $Id: CircleGeometry.java,v 1.4 2000/08/26 00:47:31 neuendor Exp $
+ * $Id: CircleGeometry.java,v 1.6 2001/07/23 04:11:22 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
-
 package diva.canvas.interactor;
 
 import diva.canvas.Site;
@@ -28,6 +27,7 @@ import javax.swing.SwingConstants;
  * containing circular shapes or otherwise highly-symmetric shapes.
  *
  * @author Nick Zamora      (nzamor@eecs.berkeley.edu)
+ * @version $Revision: 1.6 $
  */
 public class CircleGeometry implements Geometry {
 
@@ -325,4 +325,5 @@ public class CircleGeometry implements Geometry {
         }
     }
 }
+
 

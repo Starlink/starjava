@@ -1,11 +1,11 @@
 /*
- * $Id: CachingStrokeRecognizer.java,v 1.2 2000/05/12 19:21:58 hwawen Exp $
+ * $Id: CachingStrokeRecognizer.java,v 1.5 2001/08/28 06:37:12 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.StrokeRecognizer;
 import diva.sketch.recognition.TimedStroke;
 /**
@@ -49,7 +49,8 @@ import diva.sketch.recognition.TimedStroke;
  * self-contained and possibly reusable.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.5 $
+ * @rating Red
  */
 public class CachingStrokeRecognizer implements StrokeRecognizer {
     /**
@@ -88,7 +89,7 @@ public class CachingStrokeRecognizer implements StrokeRecognizer {
      * The previous recognition associated with the other cached
      * state.
      */
-    private StrokeRecognitionSet _prevRecognition;
+    private RecognitionSet _prevRecognition;
     
 
     /**
@@ -137,9 +138,9 @@ public class CachingStrokeRecognizer implements StrokeRecognizer {
      * Perform recognition in the target if the given stroke hasn't
      * changed since the last time this method was called.
      */
-    public StrokeRecognitionSet strokeCompleted (TimedStroke s) {
+    public RecognitionSet strokeCompleted (TimedStroke s) {
         if(hasStrokeChanged(s)) {
-            StrokeRecognitionSet r = _target.strokeCompleted(s);
+            RecognitionSet r = _target.strokeCompleted(s);
             _prevStroke = s;
             _prevStrokeLength = s.getVertexCount();
             _prevRecognition = r;
@@ -151,9 +152,9 @@ public class CachingStrokeRecognizer implements StrokeRecognizer {
      * Perform recognition in the target if the given stroke hasn't
      * changed since the last time this method was called.
      */
-    public StrokeRecognitionSet strokeModified (TimedStroke s) {
+    public RecognitionSet strokeModified (TimedStroke s) {
         if(hasStrokeChanged(s)) {
-            StrokeRecognitionSet r = _target.strokeModified(s);
+            RecognitionSet r = _target.strokeModified(s);
             _prevStroke = s;
             _prevStrokeLength = s.getVertexCount();
             _prevRecognition = r;
@@ -165,9 +166,9 @@ public class CachingStrokeRecognizer implements StrokeRecognizer {
      * Perform recognition in the target if the given stroke hasn't
      * changed since the last time this method was called.
      */
-    public StrokeRecognitionSet strokeStarted (TimedStroke s) {
+    public RecognitionSet strokeStarted (TimedStroke s) {
         if(hasStrokeChanged(s)) {
-            StrokeRecognitionSet r = _target.strokeStarted(s);
+            RecognitionSet r = _target.strokeStarted(s);
             _prevStroke = s;
             _prevStrokeLength = s.getVertexCount();
             _prevRecognition = r;
@@ -175,6 +176,7 @@ public class CachingStrokeRecognizer implements StrokeRecognizer {
         return _prevRecognition;
     }
 }
+
 
 
 

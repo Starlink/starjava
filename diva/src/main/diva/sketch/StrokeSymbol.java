@@ -1,7 +1,7 @@
 /*
- * $Id: StrokeSymbol.java,v 1.1 2000/10/29 02:15:23 michaels Exp $
+ * $Id: StrokeSymbol.java,v 1.2 2001/07/22 22:01:42 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -17,7 +17,7 @@ import java.util.Iterator;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public class StrokeSymbol implements Symbol {
@@ -112,4 +112,5 @@ public class StrokeSymbol implements Symbol {
         _stroke = stroke;
     }
 }
+
 

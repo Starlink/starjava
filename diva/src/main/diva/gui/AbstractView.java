@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractView.java,v 1.1 2000/09/15 21:53:16 michaels Exp $
+ * $Id: AbstractView.java,v 1.2 2001/07/22 22:01:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -13,7 +13,7 @@ import javax.swing.JComponent;
  * mostly empty methods to be filled in by concrete subclasses.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public abstract class AbstractView implements View {
@@ -78,4 +78,5 @@ public abstract class AbstractView implements View {
     public void paste (Clipboard c) {
     }
 }
+
 

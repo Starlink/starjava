@@ -1,8 +1,8 @@
 /*
- * $Id: ParsingSceneRecognizer.java,v 1.10 2000/08/12 10:59:44 michaels Exp $
+ * $Id: ParsingSceneRecognizer.java,v 1.13 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.Scene;
@@ -41,7 +41,7 @@ import java.util.BitSet;
  *
  * @see Grammar2D
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.13 $
  * @rating Red
  */
 public class ParsingSceneRecognizer implements SceneRecognizer {
@@ -162,6 +162,13 @@ public class ParsingSceneRecognizer implements SceneRecognizer {
      */
     public SceneDeltaSet parse(CompositeElement e, Scene db) {
         ArrayList potentialRules = (ArrayList)_map.get(e.getData().getType());
+        System.out.println("parsing: " + e);
+        if(e.getData().getType().getID().equals("hrect")) {
+            System.out.println("hrect: " + ((potentialRules == null) ? 0 : potentialRules.size()) + " rules");
+        }
+        if(e.getData().getType().getID().equals("blankWindow")) {
+            System.out.println("blankWindow: " + ((potentialRules == null) ? 0 : potentialRules.size()) + " rules");
+        }
         if(potentialRules == null) {
             return SceneDeltaSet.NO_DELTA;
         }
@@ -169,14 +176,23 @@ public class ParsingSceneRecognizer implements SceneRecognizer {
         for(Iterator rs = potentialRules.iterator(); rs.hasNext(); ) {
             Rule rule = (Rule)rs.next();
             Type[] rhs = rule.getRHSTypes();
+            if(rule.getLHSType().getID().equals("titleBarWindow")) {
+                System.out.println("titleBarWindow");
+            }
             for(int i = 0; i < rhs.length; i++) {
                 boolean full = true;
                 if(rhs[i].equals(e.getData().getType())) {
 
-                    //If the given element es the i'th element of the
-                    //rule, gather all of the other elements out of
-                    //the database into an array of lists, and then
+                    //If the given element equals the i'th element of
+                    //the rule, gather all of the other elements out
+                    //of the database into an array of lists, and then
                     //try to all possible permutations of that list.
+                    //es is an array of Lists.  Each List contains
+                    //elements of the same type from the scene
+                    //database.  And the types are the types of the
+                    //right hand side.  These elements must be
+                    //consistent with 'e', meaning they don't share
+                    //the same stroke elements.
                     List[] es = new List[rhs.length];
                     for(int j = 0; j < i; j++) {
                         es[j] = db.elementsOfType(rhs[j], e);
@@ -337,5 +353,6 @@ public class ParsingSceneRecognizer implements SceneRecognizer {
         System.out.println(s);
     }	
 }
+
 
 

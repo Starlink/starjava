@@ -1,7 +1,7 @@
 /*
- * $Id: RelativeBundle.java,v 1.3 2000/09/08 21:06:00 neuendor Exp $
+ * $Id: RelativeBundle.java,v 1.6 2002/05/16 18:57:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.resource;
@@ -35,7 +35,7 @@ import javax.swing.ImageIcon;
  * </ul>
  * 
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.6 $
  */
 public class RelativeBundle extends ResourceBundle {
     // FIXME If the parent is another RelativeBundle, it may have a different
@@ -103,6 +103,7 @@ public class RelativeBundle extends ResourceBundle {
      */
     public URL getResource (String key) {
         String s = getString(key);
+	// Web Start requires using getClassLoader.
         return _loader.getResource(s);        
     }
 
@@ -159,4 +160,5 @@ public class RelativeBundle extends ResourceBundle {
         return _delegate.getKeys();
     }
 }
+
 

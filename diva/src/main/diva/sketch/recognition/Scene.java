@@ -1,8 +1,8 @@
 /*
- * $Id: Scene.java,v 1.14 2000/08/12 19:54:42 michaels Exp $
+ * $Id: Scene.java,v 1.16 2001/07/22 22:01:54 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 import java.util.Set;
@@ -22,7 +22,7 @@ import diva.sketch.recognition.Type;
  * scene and perform efficient operations to filter interpretations.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.14 $
+ * @version	$Revision: 1.16 $
  * @rating Red
  */
 public interface Scene {
@@ -67,7 +67,7 @@ public interface Scene {
      * @param makeChoices Whether or not to confirm the existing
      *                    choice nodes at or under <i>elt</i>.
      */
-    public void confirm(CompositeElement elt, boolean makeChioces);
+    public void confirm(CompositeElement elt, boolean makeChoices);
 
     /**
      * Find the elements in the scene with the given type that do not
@@ -115,4 +115,5 @@ public interface Scene {
      */
     public List strokes();
 }
+
 

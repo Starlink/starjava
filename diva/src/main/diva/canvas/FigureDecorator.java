@@ -1,7 +1,7 @@
 /*
- * $Id: FigureDecorator.java,v 1.7 2000/05/02 00:43:15 johnr Exp $
+ * $Id: FigureDecorator.java,v 1.9 2002/08/19 07:07:54 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -27,7 +27,7 @@ import java.util.Iterator;
  * <p> This class is a reasonable example of the Decorator design
  * pattern, hence its name.
  *
- * @version	$Revision: 1.7 $
+ * @version	$Revision: 1.9 $
  * @author John Reekie
  * @rating Red
  */
@@ -37,6 +37,14 @@ public abstract class FigureDecorator extends AbstractFigureContainer {
      */
     private Figure _child = null;
 
+    /** Add a figure. This method does not make too much sense
+     * for Decorators, but has to be here anyway. This method is
+     * set same as calling setChild(f).
+     */
+    public void add (Figure f) {
+        setChild(f);
+    }
+  
     /** Test if the given figure is the one contained by this decorator.
      */
     public boolean contains (Figure f) {
@@ -167,6 +175,18 @@ public abstract class FigureDecorator extends AbstractFigureContainer {
         }
     }
     
+    /** Remove a figure. This method does not make too much sense
+     * for Decorators, but has to be here anyway. If the passed
+     * figure is the same as the child figure, then this method
+     * is the same as calling setChild(null). Otherwise, it does
+     * nothing.
+     */
+    public void remove (Figure f) {
+        if (_child == f) {
+	    setChild(null);
+	}
+    }
+  
     /** Replace the first figure, which must be a child, with the
      * second, which must not be a child.
      */
@@ -184,5 +204,3 @@ public abstract class FigureDecorator extends AbstractFigureContainer {
         }
     }
 }
-
-

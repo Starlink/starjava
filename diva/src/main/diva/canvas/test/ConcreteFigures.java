@@ -1,7 +1,7 @@
 /*
- * $Id: ConcreteFigures.java,v 1.6 2000/05/02 00:43:36 johnr Exp $
+ * $Id: ConcreteFigures.java,v 1.8 2002/01/10 01:04:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.test;
@@ -23,7 +23,7 @@ import javax.swing.*;
  * on figures it produces.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
  */
 public class ConcreteFigures extends TestSuite {
 
@@ -64,7 +64,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create a BasicRectangle with stroked outline
      */
-    public class BasicRectangleFactory1 implements FigureFactory {
+    public class BasicRectangleFactory1 implements FigureTest.FigureFactory {
         public Figure createFigure () {
             return new BasicRectangle(10,10,20,20);
         }
@@ -76,7 +76,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create a filled BasicRectangle
      */
-    public class BasicRectangleFactory2 implements FigureFactory {
+    public class BasicRectangleFactory2 implements FigureTest.FigureFactory {
         public Figure createFigure () {
             return new BasicRectangle(10,10,20,20, Color.blue);
         }
@@ -88,7 +88,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create an icon figure
      */
-    public class IconFigureFactory implements FigureFactory {
+    public class IconFigureFactory implements FigureTest.FigureFactory {
         /** Create a collection of terminals an an icon
          */
         public void createTerminals (IconFigure icon) {
@@ -160,7 +160,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create an image figure
      */
-    public class ImageFigureFactory implements FigureFactory {
+    public class ImageFigureFactory implements FigureTest.FigureFactory {
         public static final String IMAGE_FILE_NAME = "demo.gif";
         public Component component = new Canvas();
     
@@ -186,7 +186,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create an image figure
      */
-    public class LabelFigureFactory implements FigureFactory {
+    public class LabelFigureFactory implements FigureTest.FigureFactory {
         public Figure createFigure () {
             LabelFigure label = new LabelFigure("Hello!");
             label.translate(200,200);
@@ -200,7 +200,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create a CompositeFigure with a filled rectangle background
      */
-    public class CompositeFigureFactory1 implements FigureFactory {
+    public class CompositeFigureFactory1 implements FigureTest.FigureFactory {
         public Figure createFigure () {
             Figure bg = new BasicRectangle(10,10,20,20, Color.blue);
             Figure cf = new CompositeFigure(bg);
@@ -214,7 +214,7 @@ public class ConcreteFigures extends TestSuite {
     /**
      * Create a PaneWrapper with a filled rectangle background
      */
-    public class PaneWrapperFactory implements FigureFactory {
+    public class PaneWrapperFactory implements FigureTest.FigureFactory {
         public Figure createFigure () {
             Figure bg = new BasicRectangle(10,10,20,20, Color.blue);
             CanvasPane pane = new GraphicsPane();
@@ -228,4 +228,5 @@ public class ConcreteFigures extends TestSuite {
         }
     }
 }
+
 

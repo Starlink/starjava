@@ -1,17 +1,19 @@
 /*
- * $Id: PropertyContainer.java,v 1.4 2000/05/02 00:45:25 johnr Exp $
+ * $Id: PropertyContainer.java,v 1.6 2002/02/06 03:27:45 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
+
+import java.util.Iterator;
 
 /**
  * An object that can be annotated with arbitrary
  * objects whose keys are strings.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.6 $
  */
 public interface PropertyContainer {
     /**
@@ -21,6 +23,10 @@ public interface PropertyContainer {
      */
     public Object getProperty(String key);
 
+    /** Get an iterator over the names of the properties.
+     */
+    public Iterator propertyNames();
+
     /**
      * Set the property corresponding to
      * the given key.
@@ -29,4 +35,3 @@ public interface PropertyContainer {
 
     // XXX removeProperty
 }
-

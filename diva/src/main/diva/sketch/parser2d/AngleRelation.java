@@ -1,8 +1,8 @@
 /*
- * $Id: AngleRelation.java,v 1.8 2000/08/12 10:59:41 michaels Exp $
+ * $Id: AngleRelation.java,v 1.9 2001/07/22 22:01:49 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
  * <i>which</i> parameter of the relation.
  * 
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @rating  Red
  */
 public class AngleRelation implements Relation {
@@ -140,6 +140,7 @@ public class AngleRelation implements Relation {
         return out;
     }    
 }
+
 
 
 

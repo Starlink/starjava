@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 1998-2000 The Regents of the University of California.
- * All rights reserved. See the file COPYRIGHT for details.
+ * $Id: PaintedGraphic.java,v 1.9 2002/08/12 06:36:59 johnr Exp $
  *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
-
 package diva.util.java2d;
 
 import java.awt.geom.Rectangle2D;
@@ -16,7 +16,9 @@ import java.awt.Stroke;
  * operations. Generally, they combine a number of different
  * objects from the Java2D API in the most commonly useful way.
  *
- * @author 	Nick Zamora
+ * @author  Nick Zamora
+ * @version $Revision: 1.9 $
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public interface PaintedGraphic extends PaintedObject {
 
@@ -41,6 +43,7 @@ public interface PaintedGraphic extends PaintedObject {
      */
     public void setLineWidth (float lineWidth); 
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: BasicGraphDemo.java,v 1.7 2000/07/09 08:28:05 michaels Exp $
+ * $Id: BasicGraphDemo.java,v 1.8 2001/07/22 22:01:19 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -43,7 +43,7 @@ import java.awt.event.KeyListener;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Steve Neuendorffer  (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * @rating Red
  */
 public class BasicGraphDemo {
@@ -91,6 +91,7 @@ public class BasicGraphDemo {
         context.setVisible(true);
     }
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: TypedNodeRenderer.java,v 1.4 2000/08/29 00:37:19 neuendor Exp $
+ * $Id: TypedNodeRenderer.java,v 1.5 2001/07/22 22:01:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.toolbox;
@@ -17,7 +17,7 @@ import diva.graph.GraphController;
  * being rendered.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  * @rating Red
  */
 public class TypedNodeRenderer implements NodeRenderer {
@@ -78,4 +78,5 @@ public class TypedNodeRenderer implements NodeRenderer {
 	}
     }
 }
+
 

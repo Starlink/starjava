@@ -1,7 +1,7 @@
 /*
- * $Id: CompositeSymbol.java,v 1.3 2000/11/11 10:49:50 johnr Exp $
+ * $Id: CompositeSymbol.java,v 1.4 2001/07/22 22:01:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch;
@@ -16,7 +16,7 @@ import java.util.Iterator;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @rating Red
  */
 public class CompositeSymbol implements Symbol {
@@ -100,4 +100,5 @@ public class CompositeSymbol implements Symbol {
         }
     }
 }
+
 

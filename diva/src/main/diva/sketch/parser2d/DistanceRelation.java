@@ -1,8 +1,8 @@
 /*
- * $Id: DistanceRelation.java,v 1.7 2000/08/12 10:59:42 michaels Exp $
+ * $Id: DistanceRelation.java,v 1.8 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -13,7 +13,7 @@ import java.awt.geom.Rectangle2D;
  * input rectangles.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.8 $
  * @rating  Red
  */
 public class DistanceRelation implements Relation {
@@ -130,6 +130,7 @@ public class DistanceRelation implements Relation {
         return out;
     }    
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: ViewListener.java,v 1.3 2000/05/02 00:44:35 johnr Exp $
+ * $Id: ViewListener.java,v 1.4 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -19,7 +19,7 @@ package diva.gui;
  * 
  * @author Heloise Hse  (hwawen@eecs.berkeley.edu)
  * @author John Reekie  (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public interface ViewListener extends java.util.EventListener {
 
@@ -62,4 +62,5 @@ public interface ViewListener extends java.util.EventListener {
      */
     public void viewShown (ViewEvent e);
 }
+
 

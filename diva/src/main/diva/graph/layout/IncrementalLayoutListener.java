@@ -1,7 +1,7 @@
  /*
- * $Id: IncrementalLayoutListener.java,v 1.1 2000/07/23 23:32:51 neuendor Exp $
+ * $Id: IncrementalLayoutListener.java,v 1.2 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -18,7 +18,7 @@ import java.awt.geom.*;
  * applied.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public class IncrementalLayoutListener 
@@ -78,4 +78,5 @@ public class IncrementalLayoutListener
 	_layout.nodeMoved(e.getTarget());
     }
 }
+
 

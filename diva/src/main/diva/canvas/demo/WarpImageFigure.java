@@ -1,7 +1,7 @@
 /* 
- * $Id: WarpImageFigure.java,v 1.6 2000/05/22 17:13:59 neuendor Exp $
+ * $Id: WarpImageFigure.java,v 1.7 2001/07/22 22:00:34 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.demo;
@@ -21,7 +21,7 @@ import javax.swing.Timer;
 /**
  * Warps a image on a CubicCurve2D flattened path.
  *
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @author John Reekie
  */
 public class WarpImageFigure extends AbstractFigure {
@@ -128,4 +128,5 @@ public class WarpImageFigure extends AbstractFigure {
         repaint();
     }
 }
+
 

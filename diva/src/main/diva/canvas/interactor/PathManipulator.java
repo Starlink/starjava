@@ -1,7 +1,7 @@
 /*
- * $Id: PathManipulator.java,v 1.12 2000/05/02 00:43:31 johnr Exp $
+ * $Id: PathManipulator.java,v 1.14 2001/07/24 06:33:01 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -33,7 +33,7 @@ import java.util.ArrayList;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.14 $
  */
 public class PathManipulator extends Manipulator {
 
@@ -63,7 +63,7 @@ public class PathManipulator extends Manipulator {
     }
 
     /** Create a new instance of this manipulator. The new
-     * instance will have the same grab handle, and interaction role
+     * instance will have the same grab handle, and interactor
      * for grab-handles, as this one.
      */
     public FigureDecorator newInstance (Figure f) {
@@ -103,7 +103,7 @@ public class PathManipulator extends Manipulator {
             Iterator i = _geometry.vertices();
 	    GrabHandle g = null;
             while (i.hasNext()) {
-                // Create a grab handle and set up the interaction role.
+                // Create a grab handle and set up the interactor.
                 // Unless it's a close segment, in which case we ignore it.
                 Site site = (Site)i.next();
                 if ( !(site instanceof PathGeometry.CloseSegment)) {
@@ -139,4 +139,5 @@ public class PathManipulator extends Manipulator {
         }
     }
 }
+
 

@@ -1,8 +1,8 @@
 /*
- * $Id: OverlapRelation.java,v 1.9 2000/08/12 10:59:44 michaels Exp $
+ * $Id: OverlapRelation.java,v 1.10 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import diva.sketch.recognition.SceneElement;
@@ -15,7 +15,7 @@ import java.awt.geom.Rectangle2D;
  * specified in the constructor.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * @rating  Red
  */
 public class OverlapRelation implements Relation {
@@ -63,6 +63,7 @@ public class OverlapRelation implements Relation {
         return out;
     }    
 }
+
 
 
 

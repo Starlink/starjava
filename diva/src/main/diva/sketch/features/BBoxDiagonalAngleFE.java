@@ -1,7 +1,7 @@
 /*
- * $Id: BBoxDiagonalAngleFE.java,v 1.6 2000/05/10 18:54:52 hwawen Exp $
+ * $Id: BBoxDiagonalAngleFE.java,v 1.8 2001/07/22 22:01:46 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -13,20 +13,24 @@ import java.awt.geom.Rectangle2D;
  * base of a stroke's bounding box.  One of Rubine's features.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.8 $
+ * @rating Red
  */
 public class BBoxDiagonalAngleFE implements FeatureExtractor {
-    /**
-     * StrokeBbox computes the bounding box of a stroke.
-     */
-    private StrokeBBox _strokeBBox = new StrokeBBox();
-
     /**
      * Return the angle between the diagonal and the base of the
      * stroke's bounding box.
      */
     public double apply(TimedStroke s) {
-        Rectangle2D r = _strokeBBox.apply(s);
+        return bboxDiagonalAngle(s);
+    }
+
+    /**
+     * Return the angle between the diagonal and the base of the
+     * stroke's bounding box.
+     */
+    public static double bboxDiagonalAngle(TimedStroke s) {
+        Rectangle2D r = StrokeBBox.apply(s);
         return (Math.atan(((double)r.getHeight()/(double)r.getWidth())));
     }
 
@@ -37,4 +41,5 @@ public class BBoxDiagonalAngleFE implements FeatureExtractor {
         return "BBox Diagonal Angle";
     }
 }
+
 

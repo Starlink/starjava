@@ -1,7 +1,7 @@
 /*
- * $Id: BubbleGraphController.java,v 1.1 2000/05/08 07:02:37 neuendor Exp $
+ * $Id: BubbleGraphController.java,v 1.3 2001/07/22 22:01:20 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.basic;
@@ -46,7 +46,7 @@ import java.util.Iterator;
  * A controller for bubble-and-arc graph editors.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.1 $
+ * @version	$Revision: 1.3 $
  * @rating      Red
  */
 public class BubbleGraphController extends BasicGraphController {
@@ -56,15 +56,16 @@ public class BubbleGraphController extends BasicGraphController {
      * to an arc renderer.
      */
     public BubbleGraphController () {
-	NodeController nc = new NodeController(this);
+	NodeController nc = new BasicNodeController(this);
 	nc.setNodeRenderer(new BubbleRenderer());
 	setNodeController(nc);
 	
-	EdgeController ec = new EdgeController(this);
+	EdgeController ec = new BasicEdgeController(this);
 	ec.setEdgeRenderer(new ArcRenderer());
 	setEdgeController(ec);
     }
 
 
 }
+
 

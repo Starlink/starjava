@@ -1,7 +1,7 @@
 /*
- * $Id: LayerMotionAdapter.java,v 1.5 2000/05/02 00:43:28 johnr Exp $
+ * $Id: LayerMotionAdapter.java,v 1.6 2001/07/22 22:00:35 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -12,7 +12,7 @@ package diva.canvas.event;
  * are empty -- the class is provided to make it easier to
  * produce anonymous LayerMotionListeners.
  *
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  * @author 	John Reekie
  */
 public class LayerMotionAdapter implements LayerMotionListener {
@@ -29,5 +29,6 @@ public class LayerMotionAdapter implements LayerMotionListener {
      */
   public void mouseMoved (LayerEvent e) {}
 }
+
 
 

@@ -1,12 +1,11 @@
 /*
- * $Id: Edge.java,v 1.5 2000/07/13 00:33:53 neuendor Exp $
+ * $Id: Edge.java,v 1.7 2002/05/19 21:45:49 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.modular;
 import diva.util.SemanticObjectContainer;
-import diva.util.VisualObjectContainer;
 import diva.util.PropertyContainer;
 import java.util.Iterator;
 
@@ -20,7 +19,7 @@ import java.util.Iterator;
  * which is its syntactic representation in the user interface.
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public interface Edge extends SemanticObjectContainer, PropertyContainer {
@@ -69,3 +68,4 @@ public interface Edge extends SemanticObjectContainer, PropertyContainer {
      */
     public void setTail(Node tail);
 }
+

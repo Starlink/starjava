@@ -1,7 +1,7 @@
 /*
- * $Id: BasicRectangle.java,v 1.7 2000/05/02 00:43:38 johnr Exp $
+ * $Id: BasicRectangle.java,v 1.8 2001/07/22 22:00:44 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -19,7 +19,7 @@ import java.awt.geom.Rectangle2D;
  * a single Rectangle2D as its shape. It provides a useful set of
  * constructors.
  *
- * @version	$Revision: 1.7 $
+ * @version	$Revision: 1.8 $
  * @author 	John Reekie
  */
 public class BasicRectangle extends BasicFigure {
@@ -89,4 +89,5 @@ public class BasicRectangle extends BasicFigure {
     }
   }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: WeightSet.java,v 1.3 2000/05/02 00:44:48 johnr Exp $
+ * $Id: WeightSet.java,v 1.5 2001/10/31 02:00:37 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 
@@ -21,7 +21,7 @@ import java.util.Iterator;
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  */
 public abstract class WeightSet {
     /**
@@ -142,7 +142,13 @@ public abstract class WeightSet {
      * The text representation of this weight set.
      */
     public String toString() {
-        return "WeightSet[" + _type + "]";
+        //return "WeightSet[" + _type + "]";
+        StringBuffer buf = new StringBuffer();
+        buf.append(_type+":\n");
+        buf.append("mu     :"+_mus.toString()+"\n");
+        buf.append("sigma  :"+_sigmas.toString()+"\n");
+        return buf.toString();
     }
 }
+
 

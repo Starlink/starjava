@@ -1,7 +1,7 @@
 /*
- * $Id: OverlayLayer.java,v 1.6 2000/05/02 00:43:16 johnr Exp $
+ * $Id: OverlayLayer.java,v 1.7 2001/07/22 22:00:29 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -32,7 +32,7 @@ import java.util.Iterator;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public class OverlayLayer extends CanvasLayer implements VisibleComponent {
@@ -218,4 +218,5 @@ public class OverlayLayer extends CanvasLayer implements VisibleComponent {
         repaint();
     }
 }
+
 

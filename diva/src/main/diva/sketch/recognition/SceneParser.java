@@ -1,15 +1,15 @@
 /*
- * $Id: SceneParser.java,v 1.6 2000/08/04 01:43:59 michaels Exp $
+ * $Id: SceneParser.java,v 1.9 2002/08/12 06:36:59 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.recognition;
 
+import diva.resource.DefaultBundle;
 import diva.util.xml.*;
 import java.util.Iterator;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 
 /**
  * SceneParser parses an XML file representing a single interpretation
@@ -20,60 +20,29 @@ import java.io.Reader;
  *
  * @see SceneWriter
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.9 $
  * @rating Red
  */
 public class SceneParser implements diva.util.ModelParser {
-    /**
-     * The public identity of the sketch dtd file.
+    /** The composite builder that is used to build this.
      */
-    public static final String PUBLIC_ID = "-//UC Berkeley//DTD scene 1//EN";
+    private CompositeBuilder _compBuilder;
 
-    /**
-     * The URL where the DTD is stored.
+    /** Build a scene parser using the system-specified composite
+     * builder for
      */
-    public static final String DTD_URL = "http://www.gigascale.org/diva/dtd/scene.dtd";
+    public SceneParser() throws Exception {
+        DefaultBundle resources = new DefaultBundle();
+        _compBuilder = new CompositeBuilder();
+        _compBuilder.addBuilderDecls(new InputStreamReader(resources.getResourceAsStream(SceneBuilder.BUILDER_DECLS)));
+    }
 
-    /**
-     * The DTD for sketch files.
+    /** Build a scene parser that uses the given builder
+     * declarations to parse its typed data.
      */
-    public static final String DTD_1 =
-    "<!ELEMENT scene (sceneElement)> <!ELEMENT sceneElement (sceneElement+|strokeElement)> <!ATTLIST sceneElement confidence CDATA \"1.0\" name CDATA #REQUIRED type CDATA #REQUIRED> <!ELEMENT strokeElement EMPTY> <!ATTLIST strokeElement points CDATA #REQUIRED>";
-
-    /**
-     * Indicates the file contains a scene.
-     */
-    public static final String SCENE_TAG = "scene";
-    
-    /**
-     * Indicates a scene element.
-     */
-    public static final String SCENE_ELEMENT_TAG = "sceneElement";
-
-    /**
-     * Indicates a stroke element.
-     */
-    public static final String STROKE_ELEMENT_TAG = "strokeElement";
-    
-    /**
-     * Indicates the type of scene element.
-     */
-    public static final String TYPE_TAG = "type";
-
-    /**
-     * Indicates the name of scene element in a composite element.
-     */
-    public static final String NAME_TAG = "name";
-
-    /**
-     * Indicates the confidence of a scene element.
-     */
-    public static final String CONFIDENCE_TAG = "confidence";
-
-    /**
-     * Indicates the stroke path for a stroke element.
-     */
-    public static final String POINTS_TAG = "points";
+    public SceneParser(CompositeBuilder builder) {
+        _compBuilder = builder;
+    }
 
     /**
      * Parse the input stream dictated by the given
@@ -81,73 +50,19 @@ public class SceneParser implements diva.util.ModelParser {
      */
     public Object parse(Reader in) throws java.lang.Exception  {
         XmlDocument doc = new XmlDocument();
-        doc.setDTDPublicID(PUBLIC_ID);
-        doc.setDTD(DTD_1);
         XmlReader reader = new XmlReader();
         reader.parse(doc, in);
         if(reader.getErrorCount() > 0) {
             throw new Exception("errors encountered during parsing");
         }
-        XmlElement scene = doc.getRoot();
-        if(!scene.getType().equals(SCENE_TAG)) {
-            throw new Exception("no scene");
-        }
-        XmlElement sceneElt = (XmlElement)scene.elements().next();
-        Scene db = new BasicScene();
-        buildSceneElement(db, sceneElt);
-        return db;
-    }
-
-    /**
-     * Given a scene element represented by its parsed XML equivalent,
-     * first build all of its children in the database, then build
-     * it in the database.
-     */
-    private SceneElement buildSceneElement(Scene db, XmlElement eltXml) {
-        if(eltXml.getType().equals(STROKE_ELEMENT_TAG)) {
-            TimedStroke stroke = TrainingParser.parsePoints(eltXml.getAttribute(POINTS_TAG));
-            return db.addStroke(stroke);
-        }
-        else {
-            SceneElement[] children = new SceneElement[eltXml.elementCount()];
-            int i = 0;
-            for(Iterator cs = eltXml.elements(); cs.hasNext(); ) {
-                children[i++] = buildSceneElement(db, (XmlElement)cs.next());
-            }
-            String type = eltXml.getAttribute(TYPE_TAG);
-            String conf = eltXml.getAttribute(CONFIDENCE_TAG);
-            double confidence;
-            if(conf == null) {
-                confidence = 1;
-            }
-            else {
-                Double tmp = Double.valueOf(conf);
-                confidence = tmp.doubleValue();
-            }
-            String[] names = childNames(eltXml);
-            return db.addComposite(new SimpleData(type), confidence,
-                    children, names);
-        }
-    }
-
-    /**
-     * Return the array of child names given an xml element
-     * that represents a composite scene element.
-     */
-    private String[] childNames(XmlElement elt) {
-        String[] out = new String[elt.elementCount()];
-        int j = 0;
-        for(Iterator i = elt.elements(); i.hasNext(); ) {
-            XmlElement child = (XmlElement)i.next();
-            out[j++] = child.getAttribute(NAME_TAG);
-        }
-        return out;
+        return _compBuilder.build(doc.getRoot(), doc.getRoot().getType());
     }
 
     /**
      * Simple test of this class.
      */
     public static void main (String args[]) throws Exception {
+        /* FIXME
         SceneParser demo = new SceneParser();
         if (args.length != 1) {
             System.err.println("java SceneParser <uri>");
@@ -155,5 +70,6 @@ public class SceneParser implements diva.util.ModelParser {
         } else {
             demo.parse(new FileReader(args[0]));
         }
+        */
     }
 }

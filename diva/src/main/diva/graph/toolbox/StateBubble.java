@@ -1,7 +1,7 @@
 /*
- * $Id: StateBubble.java,v 1.2 2000/05/22 17:12:13 neuendor Exp $
+ * $Id: StateBubble.java,v 1.4 2001/10/04 19:51:09 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -30,7 +30,7 @@ import diva.util.java2d.ShapeUtilities;
 
 /** A Figure that is customized for representing state bubbles.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.4 $
  * @author 	John Reekie
  * @author 	Xiaojun Liu
  */
@@ -100,7 +100,7 @@ public class StateBubble extends AbstractFigure {
      * INITIAL_STATE, or FINAL_STATE.
      */
     public int getStateType () {
-        return _stateType;;
+        return _stateType;
     }
 
     /** Get the stroke of this figure.
@@ -251,4 +251,5 @@ public class StateBubble extends AbstractFigure {
 	repaint();
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: LabelTutorial.java,v 1.5 2001/01/24 16:28:22 michaels Exp $
+ * $Id: LabelTutorial.java,v 1.10 2002/05/09 22:50:14 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -34,12 +34,13 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 /**
  * This tutorial illustrates how to use LabelFigure and related classes.
  *
  * @author John Reekie
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.10 $
  */
 public class LabelTutorial {
 
@@ -61,7 +62,7 @@ public class LabelTutorial {
         canvas = new JCanvas();
         graphicsPane = (GraphicsPane)canvas.getCanvasPane();
 
-        // Create the interaction role and an interactor to do the work.
+        // Create a controller to do the work.
         controller = new BasicController(graphicsPane);
         defaultInteractor = controller.getSelectionInteractor();
 
@@ -92,7 +93,7 @@ public class LabelTutorial {
             SwingConstants.NORTH_WEST};
 
         String labels[] = {
-            "center",
+	    "center",
             "north",
             "north-east",
             "east",
@@ -137,7 +138,7 @@ public class LabelTutorial {
 
             // Set the anchor
             labelFigure.setAnchor(anchors[i]);
- 
+
             // Move the anchor to the right location
             Point2D pt = CanvasUtilities.getLocation(square.getBounds(),
                     CanvasUtilities.reverseDirection(anchors[i]));
@@ -178,9 +179,15 @@ public class LabelTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        LabelTutorial ex = new LabelTutorial();
-        ex.createLabels();
-        ex.createLabeledWrappers();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    LabelTutorial ex = new LabelTutorial();
+		    ex.createLabels();
+		    ex.createLabeledWrappers();
+		}
+	    });
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: MouseFilter.java,v 1.9 2000/05/02 00:43:28 johnr Exp $
+ * $Id: MouseFilter.java,v 1.10 2001/07/22 22:00:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -15,7 +15,7 @@ import java.awt.event.MouseEvent;
  * are used by event-handling code to decide whether they are
  * interested in a particular event.
  *
- * @version	$Revision: 1.9 $
+ * @version	$Revision: 1.10 $
  * @author 	John Reekie
  */
 public class MouseFilter {
@@ -165,4 +165,5 @@ public class MouseFilter {
         return result.toString();
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: GraphLogger.java,v 1.2 2000/07/02 03:23:49 michaels Exp $
+ * $Id: GraphLogger.java,v 1.3 2001/07/22 22:01:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.toolbox;
@@ -15,7 +15,7 @@ import java.util.Iterator;
  * printed out or otherwise analyzed.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public class GraphLogger implements GraphListener {
@@ -68,4 +68,5 @@ public class GraphLogger implements GraphListener {
         return ret;
     }
 }
+
 

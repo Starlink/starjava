@@ -1,7 +1,7 @@
 /*
- * $Id: LevelLayout.java,v 1.22 2000/07/23 23:27:36 neuendor Exp $
+ * $Id: LevelLayout.java,v 1.23 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -60,7 +60,7 @@ import diva.util.*;
  * </ul>
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.22 $
+ * @version $Revision: 1.23 $
  * @rating Red
  */
 public class LevelLayout extends AbstractGlobalLayout {
@@ -1350,6 +1350,7 @@ public class LevelLayout extends AbstractGlobalLayout {
         return (ignoreNode(e.getHead()) || ignoreNode(e.getTail()));
     }
     */
+
 
 
 

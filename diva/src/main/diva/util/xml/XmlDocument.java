@@ -1,7 +1,7 @@
 /*
- * $Id: XmlDocument.java,v 1.5 2000/05/02 00:45:35 johnr Exp $
+ * $Id: XmlDocument.java,v 1.11 2002/07/09 22:00:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.xml;
@@ -32,7 +32,7 @@ import java.net.URL;
  * brief description of how to use this class. 
  * 
  * @author Steve Neuendorffer, John Reekie
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.11 $
  */
 public class XmlDocument {
 
@@ -187,4 +187,5 @@ public class XmlDocument {
         _url = url;
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: DragInteractor.java,v 1.14 2000/07/13 00:36:42 neuendor Exp $
+ * $Id: DragInteractor.java,v 1.16 2002/01/29 04:24:16 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -32,7 +32,7 @@ import javax.swing.event.EventListenerList;
  * and a "target" array, which contain the figure or figures
  * that are dragged.
  *
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.16 $
  * @author John Reekie
  */
 public class DragInteractor extends AbstractInteractor {
@@ -133,6 +133,18 @@ public class DragInteractor extends AbstractInteractor {
      */
     public Object[] getTargetArray () {
         return _targetArray;
+    }
+
+    /** Get the current value of the X coordinate
+     */
+    public double getX () {
+        return _prevX;
+    }
+
+    /** Get the current value of the Y coordinate
+     */
+    public double getY () {
+        return _prevY;
     }
 
     /** Constrain the point and move the target if the mouse
@@ -293,5 +305,6 @@ public class DragInteractor extends AbstractInteractor {
         }
     }
 }
+
 
 

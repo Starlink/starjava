@@ -1,7 +1,7 @@
 /*
- * $Id: TerminalTutorial.java,v 1.4 2000/05/22 17:07:25 neuendor Exp $
+ * $Id: TerminalTutorial.java,v 1.7 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -39,12 +39,13 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 /**
  * This tutorial illustrates how to use Terminals.
  *
  * @author John Reekie
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  */
 public class TerminalTutorial {
 
@@ -66,7 +67,7 @@ public class TerminalTutorial {
         canvas = new JCanvas();
         graphicsPane = (GraphicsPane)canvas.getCanvasPane();
 
-        // Create the interaction role and an interactor to do the work.
+        // Create a controller to do the work.
         controller = new BasicController(graphicsPane);
         defaultInteractor = controller.getSelectionInteractor();
 
@@ -131,8 +132,14 @@ public class TerminalTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        TerminalTutorial ex = new TerminalTutorial();
-        ex.createTerminals();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    TerminalTutorial ex = new TerminalTutorial();
+		    ex.createTerminals();
+		}
+	    });
     }
 }
+
 

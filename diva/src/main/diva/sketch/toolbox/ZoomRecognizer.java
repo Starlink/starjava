@@ -1,15 +1,19 @@
 /*
- * $Id: ZoomRecognizer.java,v 1.5 2000/06/12 04:13:02 michaels Exp $
+ * $Id: ZoomRecognizer.java,v 1.8 2001/08/28 06:37:13 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
-import diva.sketch.recognition.TypedData;
+
+import diva.util.xml.AbstractXmlBuilder;
+import diva.util.xml.XmlElement;
+
 import diva.sketch.recognition.Type;
+import diva.sketch.recognition.TypedData;
 import diva.sketch.recognition.StrokeRecognizer;
-import diva.sketch.recognition.StrokeRecognition;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.Recognition;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.TimedStroke;
 
 /**
@@ -25,7 +29,7 @@ import diva.sketch.recognition.TimedStroke;
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
  * @author  Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.8 $
  * @rating Red
  */
 public class ZoomRecognizer extends ModedIncrRecognizer {
@@ -78,17 +82,17 @@ public class ZoomRecognizer extends ModedIncrRecognizer {
      * Emit zoom events based on whether the mouse has
      * gone up or down.
      */
-    public StrokeRecognitionSet processActionStroke(TimedStroke s) {
+    public RecognitionSet processActionStroke(TimedStroke s) {
         int numPts = s.getVertexCount();
         if(numPts > 1) {
             double dy = s.getY(numPts-1) - s.getY(_recognizedIndex);
             double zoom = getZoomFactor()*Math.pow(2, -dy/100.0);
             ZoomData type = new ZoomData(s.getX(0), s.getY(0), zoom);
-            StrokeRecognition []r = { new StrokeRecognition(type, 100), };
-            StrokeRecognitionSet rset = new StrokeRecognitionSet(r);
+            Recognition []r = { new Recognition(type, 100), };
+            RecognitionSet rset = new RecognitionSet(r);
             return rset;
         }
-        return StrokeRecognitionSet.NO_RECOGNITION;
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
@@ -97,8 +101,8 @@ public class ZoomRecognizer extends ModedIncrRecognizer {
     public int recognizeActionSignal(TimedStroke s){
         int numPts = s.getVertexCount();
         if(numPts > NUM_PTS_THRESH){
-            StrokeRecognitionSet rset = _recognizer.strokeModified(s);
-            StrokeRecognition r = rset.getBestRecognition();
+            RecognitionSet rset = _recognizer.strokeModified(s);
+            Recognition r = rset.getBestRecognition();
             if(r != null) {
                 if(r.getType().getID().equals(LETTER_Z) &&
                         (r.getConfidence() > _recognitionRate)){
@@ -120,7 +124,11 @@ public class ZoomRecognizer extends ModedIncrRecognizer {
     /**
      * A classification type for zooming.
      */
-    public static class ZoomData implements TypedData {
+    public static class ZoomData extends AbstractXmlBuilder implements TypedData {
+        public static final String ZOOM_AMOUNT = "zoomAmount";
+        public static final String CENTER_X = "centerX";
+        public static final String CENTER_Y = "centerY";
+
         /**
          * The string id for this classification type.
          */
@@ -176,5 +184,20 @@ public class ZoomRecognizer extends ModedIncrRecognizer {
         public double getCenterY() {
             return _cy;
         }
+
+        public Object build(XmlElement in, String type) {
+            //FIXME
+            return this;
+        }
+
+        public XmlElement generate(Object in) {
+            ZoomData dat = (ZoomData)in;
+            XmlElement out = new XmlElement(in.getClass().getName());
+            out.setAttribute(ZOOM_AMOUNT, Double.toString(dat.getZoomAmount()));
+            out.setAttribute(CENTER_X, Double.toString(dat.getCenterX()));
+            out.setAttribute(CENTER_Y, Double.toString(dat.getCenterY()));
+            return out;
+        }
     }
 }
+

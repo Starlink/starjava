@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.16 1999/10/19 01:36:15 johnr Exp $
+# $Id: makefile,v 1.17 2002/01/10 01:04:36 johnr Exp $
 #
 # Makefile for diva.canvas.test
 #
@@ -9,7 +9,6 @@ include $(DIVA)/diva.mk
 JSRCS = \
 	All.java \
 	ConcreteFigures.java \
-	FigureFactory.java \
 	FigureTest.java \
 	JCanvasTest.java
 

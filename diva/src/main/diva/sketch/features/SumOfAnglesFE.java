@@ -1,7 +1,7 @@
 /*
- * $Id: SumOfAnglesFE.java,v 1.6 2000/05/10 18:54:55 hwawen Exp $
+ * $Id: SumOfAnglesFE.java,v 1.9 2001/07/22 22:01:48 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -13,10 +13,10 @@ import diva.sketch.recognition.TimedStroke;
  * points in the path and summing them up.  One of Rubine's features.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.9 $
+ * @rating Red
  */
 public class SumOfAnglesFE implements FeatureExtractor {
-
     /**
      * Compute the total angle traversed by the stroke.  This is
      * done by calculating the angles formed by every three
@@ -24,6 +24,25 @@ public class SumOfAnglesFE implements FeatureExtractor {
      * there are less than 3 points.
      */
     public double apply(TimedStroke s) {
+        return sumOfAngles(s);
+    }
+
+    
+    /**
+     * Return the name of this feature extractor.
+     */    
+    public String getName() {
+        return "Sum of the Angles";
+    }
+
+
+    /**
+     * Compute the total angle traversed by the stroke.  This is
+     * done by calculating the angles formed by every three
+     * consecutive points in the path and summing them up. Return -1 is
+     * there are less than 3 points.
+     */
+    public static double sumOfAngles(TimedStroke s) {
         int num = s.getVertexCount();
         if(num > 2) {
             double sum = 0;
@@ -44,8 +63,13 @@ public class SumOfAnglesFE implements FeatureExtractor {
                 else {
                     int a = num-1;
                     int b = i+1;
-                    System.out.print("SumOfAnglesFE: invalid theta. last index = " + a + ", i+1 = " + b);
-                    System.out.println("(" + s.getX(i-1) + ", " + s.getY(i-1) + ")" + "(" + s.getX(i) + ", " + s.getY(i) + ")" + "(" + s.getX(i+1) + ", " + s.getY(i+1) + ")");
+                    String err = "SumOfAnglesFE: invalid theta. last index = "
+                        + a + ", i+1 = " + b;
+                    System.out.print(err);
+                    err = "(" + s.getX(i-1) + ", " + s.getY(i-1) + ")"
+                        + "(" + s.getX(i) + ", " + s.getY(i) + ")"
+                        + "(" + s.getX(i+1) + ", " + s.getY(i+1) + ")";
+                    System.out.println(err);
                 }
             }
             return sum;
@@ -56,13 +80,6 @@ public class SumOfAnglesFE implements FeatureExtractor {
             return -1;
         }
     }
-
-    /**
-     * Return the name of this feature extractor.
-     */    
-    public String getName() {
-        return "Sum of the Angles";
-    }
-
 }
+
 

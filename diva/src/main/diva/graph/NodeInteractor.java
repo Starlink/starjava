@@ -1,7 +1,7 @@
 /*
- * $Id: NodeInteractor.java,v 1.11 2000/05/29 01:26:38 hwawen Exp $
+ * $Id: NodeInteractor.java,v 1.13 2001/07/24 06:34:51 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -15,11 +15,11 @@ import diva.canvas.interactor.SelectionInteractor;
 import java.util.Iterator;
 
 /**
- * An interaction role for nodes.
+ * An interactor for nodes.
  *
  * @author 	Michael Shilman (michaels@eecs.berkeley.edu)
  * @author 	John Reekie (johnr@eecs.berkeley.edu)
- * @version	$Revision: 1.11 $
+ * @version	$Revision: 1.13 $
  * @rating Red
  */
 public class NodeInteractor extends SelectionInteractor {
@@ -74,4 +74,5 @@ public class NodeInteractor extends SelectionInteractor {
         _nodeDragInteractor = i;
     }
 }
+
 

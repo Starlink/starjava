@@ -1,7 +1,7 @@
 /*
- * $Id: ShapeUtilities.java,v 1.7 2000/05/18 18:34:40 neuendor Exp $
+ * $Id: ShapeUtilities.java,v 1.12 2002/01/04 02:57:09 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -23,7 +23,7 @@ import java.awt.geom.RectangularShape;
 
 /** A set of utilities on Java2D shapes.
  *
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.12 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
 
@@ -32,6 +32,10 @@ public final class ShapeUtilities {
 
     private static boolean _jdk12beta4 =
         System.getProperty("java.version").equals("1.2beta4");
+
+    /** A static array of strokes indexed by width
+     */
+    private static BasicStroke _intStrokes[] = new BasicStroke[16];
 
     /** Test if we are running in JDK1.2beta4
      */
@@ -147,6 +151,64 @@ public final class ShapeUtilities {
         }
     }
 
+    /** Compute the bounds of a shape when stroked with the given stroke.
+     */
+    public static Rectangle2D computeStrokedBounds (Shape shape, Stroke stroke) {
+        if(stroke instanceof BasicStroke) {
+            // For some reason (antialiasing?) the bounds returned by 
+	    // BasicStroke is off by one.  This code works around it.
+            // if all we want is the bounds, then we don't need to actually
+            // stroke the shape.  We've had reports that this is no longer
+            // necessary with JDK1.3.
+            Rectangle2D rect = shape.getBounds2D();
+            int width = (int)((BasicStroke) stroke).getLineWidth() + 2;
+	    return new Rectangle2D.Double(rect.getX() - width, 
+                    rect.getY() - width,
+                    rect.getWidth() + width + width,
+                    rect.getHeight() + width + width);
+        } else {
+	    // For some reason (antialiasing?) the bounds returned by 
+	    // BasicStroke is off by one.  This code works around it.
+            // We've had reports that this is no longer
+            // necessary with JDK1.3.
+	    Rectangle2D rect = stroke.createStrokedShape(shape).getBounds2D();
+            return new Rectangle2D.Double(rect.getX() - 1, 
+                    rect.getY() - 1,
+                    rect.getWidth() + 2,
+                    rect.getHeight() + 2);
+	}
+    }
+
+    /** Get a stroke of the given width and with no dashing.
+     * This method will generally return an existing stroke
+     * object, and can be used to save creating zillions of
+     * Stroke objects.
+     */
+    public static BasicStroke getStroke (int width) {
+        if (width < _intStrokes.length) {
+            if (_intStrokes[width] == null) {
+                _intStrokes[width] = new BasicStroke(width);
+            }
+            return _intStrokes[width];
+        } else {
+            return new BasicStroke(width);
+        }
+    }
+
+    /** Get a new stroke of the given width and with no dashing.  This
+     * method will return an existing stroke object if the width is
+     * integer-valued and has a reasonably small width. This method
+     * can be used to save creating zillions of Stroke objects.
+     */
+    public static BasicStroke getStroke (float floatwidth) {
+        int width = Math.round(floatwidth);
+        if ((float)width == floatwidth) {
+            return getStroke(width);
+        } else {
+            return new BasicStroke(floatwidth);
+        }
+    }
+    
     /** Return true if the outline of the given shape intersects with the
      *  given rectangle.
      */
@@ -175,9 +237,8 @@ public final class ShapeUtilities {
     }
 
     /** Return true if the given transform maps a rectangle
-     * to a rectangle. If this method returns true, then the
-     * transformRectangle and transformRectangularShape methods
-     * will operate correctly.
+     * to a rectangle. If this is true, then the transform is optimized when
+     * using the transform methods of this class.
      */
     public static boolean isOrthogonal (AffineTransform at) {
         int t = at.getType();
@@ -236,17 +297,22 @@ public final class ShapeUtilities {
 
     /** Given a bounding-box rectangle, return a new rectangle
      * by transforming the argument rectangle and taking the bounding
-     * box of the result. This method optimizes the calculation if the
-     * transform is orthogonal. Note that the argument rectangle is
+     * box of the result.  This method is essentially a faster version of
+     * AffineTransform.createTransformShape() if the shape is a Rectangle2D
+     * and the transform is identity, or orthogonal. 
+     * Note that the argument rectangle is
      * <i>not</i> modified, and the transform does not need to be
      * orthogonal.
      */
     public static Rectangle2D transformBounds (
             Rectangle2D rect, AffineTransform at) {
+        if (at.isIdentity()) {
+            return rect.getBounds2D();
+        }
         if (!isOrthogonal(at)) {
             return at.createTransformedShape(rect).getBounds2D();
-
-        } else if (rect instanceof Rectangle2D.Double) {
+        } 
+        if (rect instanceof Rectangle2D.Double) {
             Rectangle2D.Double r = (Rectangle2D.Double) rect;
             double coords[] = new double[4];
             coords[0] = r.x;
@@ -268,13 +334,14 @@ public final class ShapeUtilities {
             coords[2] = r.x + r.width;
             coords[3] = r.y + r.height;
             at.transform(coords, 0, coords, 0, 2);
-            return new Rectangle2D.Double(
+            return new Rectangle2D.Float(
                     coords[0],
                     coords[1],
                     coords[2] - coords[0],
                     coords[3] - coords[1]);
 
         } else {
+            // i.e. it is a java.awt.Rectangle.
             double coords[] = new double[4];
             coords[0] = rect.getX();
             coords[1] = rect.getY();
@@ -282,31 +349,29 @@ public final class ShapeUtilities {
             coords[3] = coords[1] + rect.getHeight();
             at.transform(coords, 0, coords, 0, 2);
             return new Rectangle2D.Double(
-                    coords[0], coords[1], coords[2], coords[3]);
+                    coords[0], 
+                    coords[1], 
+                    coords[2] - coords[0],
+                    coords[3] - coords[1]);
         }
     }
 
-    /** Transform a rectangular shape with an orthogonal transform.
+    /** In-place transform of a rectangular shape.
      * The passed rectangular shape will be modified according to the
-     * transform.  By "orthogonal", it is meant any transform that
-     * returns true to to the isOrthogonal() method.
+     * given transform. 
+     * This is essentially an in-place implementation of the 
+     * ShapeUtilities.transformBounds() method.
      */
     public static void transformModifyRect (
             RectangularShape s, AffineTransform at) {
-        if (s instanceof Rectangle2D.Float) {
-            Rectangle2D.Float r = (Rectangle2D.Float) s;
-            float coords[] = new float[4];
-            coords[0] = r.x;
-            coords[1] = r.y;
-            coords[2] = r.x + r.width;
-            coords[3] = r.y + r.height;
-            at.transform(coords, 0, coords, 0, 2);
-            r.x = coords[0];
-            r.y = coords[1];
-            r.width = coords[2] - coords[0];
-            r.height = coords[3] - coords[1];
-
-        } else if (s instanceof Rectangle2D.Double) {
+        if(at.isIdentity()) {
+            return;
+        }
+        if (!isOrthogonal(at)) {
+            // Note that this is no better than using transformBounds().
+            s.setFrame(at.createTransformedShape(s).getBounds2D());
+        }
+        if (s instanceof Rectangle2D.Double) {
             Rectangle2D.Double r = (Rectangle2D.Double) s;
             double coords[] = new double[4];
             coords[0] = r.x;
@@ -319,7 +384,21 @@ public final class ShapeUtilities {
             r.width = coords[2] - coords[0];
             r.height = coords[3] - coords[1];
 
+        } else if (s instanceof Rectangle2D.Float) {
+            Rectangle2D.Float r = (Rectangle2D.Float) s;
+            float coords[] = new float[4];
+            coords[0] = r.x;
+            coords[1] = r.y;
+            coords[2] = r.x + r.width;
+            coords[3] = r.y + r.height;
+            at.transform(coords, 0, coords, 0, 2);
+            r.x = coords[0];
+            r.y = coords[1];
+            r.width = coords[2] - coords[0];
+            r.height = coords[3] - coords[1];
+
         } else {
+            // i.e. it is a java.awt.Rectangle.
             double coords[] = new double[4];
             coords[0] = s.getX();
             coords[1] = s.getY();
@@ -403,4 +482,5 @@ public final class ShapeUtilities {
         }
     }
 }
+
 

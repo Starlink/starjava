@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorTarget.java,v 1.3 2000/05/02 00:43:23 johnr Exp $
+ * $Id: ConnectorTarget.java,v 1.4 2001/07/22 22:00:32 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -18,7 +18,7 @@ import diva.canvas.Site;
  * so they can set up view construction and interaction. In this
  * same package, an instance is required by ConnectorManipulator.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author John Reekie
  */
 public interface ConnectorTarget {
@@ -85,4 +85,5 @@ public interface ConnectorTarget {
      */
     public Site getTailSite (Connector c, Site s, double x, double y);
 }
+
 

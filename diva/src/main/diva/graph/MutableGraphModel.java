@@ -1,8 +1,8 @@
 /*
- * $Id: MutableGraphModel.java,v 1.8 2000/12/25 13:38:45 neuendor Exp $
+ * $Id: MutableGraphModel.java,v 1.9 2001/07/22 22:01:18 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
 import java.util.Iterator;
@@ -16,7 +16,7 @@ import diva.util.PropertyContainer;
  * 
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @rating Yellow
  */
 public interface MutableGraphModel extends GraphModel {
@@ -103,3 +103,4 @@ public interface MutableGraphModel extends GraphModel {
     public void setEdgeTail(Object eventSource, Object edge, Object newTail)
 	throws GraphException;
 }
+

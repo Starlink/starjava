@@ -1,7 +1,7 @@
 /*
- * $Id: All.java,v 1.5 2000/05/02 00:45:33 johnr Exp $
+ * $Id: All.java,v 1.6 2001/07/22 22:02:12 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.test;
@@ -14,7 +14,7 @@ import java.awt.*;
  * All the tests in this directory.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class All extends TestSuite {
 
@@ -46,6 +46,7 @@ public class All extends TestSuite {
         new All(new TestHarness()).run();
     }
 }
+
 
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: DragTutorial.java,v 1.13 2000/07/13 00:36:43 neuendor Exp $
+ * $Id: DragTutorial.java,v 1.16 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -35,31 +35,50 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 
 /** An example showing how to make figures draggable with interactors.
+ *
+ * <img src="../../../../packages/canvas/tutorial/images/DragTutorial.gif" align="right">
+ *
  * Each figure on the canvas can have its
  * interactor set or read with the methods setInteractor()
  * and getInteractor(). The interactor answers the
  * question "What does this figure do when I mouse on it?" In this
- * example, what the figure does is follow the mouse, and we are
- * setting up each figure's interactor with an object called
- * an <i>interactor</i> that makes it do this.
+ * example, what the figure does is follow the mouse.
  *
- * <p>What an interactor does is simply respond to a series of
- * mouse press-drag-release events. Each method in this class
- * creates a different kind of interactor, which makes the figure
- * exhibit different behaviour when you mouse on it. See the method
- * comments for more explanation.
- *
- * <p>One point about interactors. In general, many figures 
- * will share a single interactor. For example, all nodes in a
- * graph editor might reference the "node role" object. This strategy
- * reduces the size of the figures, but more importantly, allows
- * the behaviour of a whole set of figure to be changed together
- * (by changing the behaviour of the interactor).
- *
+ * <p>
+ * To make a figure draggable, we create an instance of
+ * DragInteractor and attach it to the figure, like this:
+ * 
+ * <pre>
+ *     Interactor dragger = new DragInteractor();
+ *     dragger.setMouseFilter(MouseFilter.defaultFilter);
+ * 
+ *     BasicFigure blue = new BasicRectangle(10.0,10.0,50.0,50.0,Color.blue);
+ *     layer.add(blue);
+ *     blue.setInteractor(dragger);
+ * </pre>
+ * 
+ * The mouse filter is used to tell the interactor whether or
+ * not to respond to events. The default mouse filter used here is
+ * button 1 with no modifiers.
+ * 
+ * <p> Each interactor can also have a set of <i>constraints</i> added to
+ * it. In this example, we have created an instance of
+ * BoundedDragInteractor, which adds a constraint to itself in its
+ * constructor.  BoundedDragInteractor always keeps figures that it is
+ * dragging within a rectangular region -- in our example, the region is
+ * shown by the grey line.
+ * 
+ * <p> One point to note about interactors. In general, many figures will
+ * share a single interactor. For example, all nodes in a graph editor
+ * might reference the "node interactor" object. This strategy allows the
+ * behaviour of a whole set of figures to be changed together (by
+ * changing the behaviour of the interactor).
+ * 
  * @author John Reekie
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.16 $
  */
 public class DragTutorial {
 
@@ -130,12 +149,17 @@ public class DragTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        DragTutorial ex = new DragTutorial();
-        ex.createDraggableFigures();
-        ex.createBoundedDraggableFigure();
-
-        ex.canvas.repaint();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    DragTutorial ex = new DragTutorial();
+		    ex.createDraggableFigures();
+		    ex.createBoundedDraggableFigure();
+		    ex.canvas.repaint();
+		}
+	    });
     }
 }
+
 
 

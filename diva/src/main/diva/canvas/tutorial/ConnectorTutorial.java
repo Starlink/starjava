@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorTutorial.java,v 1.21 2000/08/16 20:31:04 neuendor Exp $
+ * $Id: ConnectorTutorial.java,v 1.25 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -55,8 +55,14 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.SwingUtilities;
 
-/** An example showing how to use Connectors. Connectors are objects
+
+/** This tutorial shows how to use Connectors.
+ *
+ * <img src="../../../../packages/canvas/tutorial/images/ConnectorTutorial.gif" align="right">
+ *
+ * Connectors are objects
  * that connect locations on two different figures. These locations
  * are identified by objects called Sites, which represents points
  * such as the north-west corner of a rectangle, or a vertex of a
@@ -71,15 +77,93 @@ import java.awt.geom.Rectangle2D;
  * or tailMoved(), and the connector will redraw itself between the
  * sites.
  *
+ * <p>
+ * The code to create a connector looks like this:
+ * <pre>
+ *     Site a = figureA.getE();
+ *     Site b = figureB.getN();
+ *     connectorA = new StraightConnector(a, b);
+ *     layer.add(connectorA);
+ * </pre>       
+ * 
+ * (Where the methods getE() and getN() are methods on some figure
+ * that return Sites -- in this case, on the east and north edges
+ * of the respective figures.)
+ *
  * <p> In general, there can be arbitrarily many different kinds of
  * connector. The Diva canvas currently provides two: one that simply
  * draws a straight line between the two sites, and one that draws a
  * "manhattan" routing between the two sites. Each of these also
  * accepts an object on each end that will draw a decoration such as
- * an arrow-head or a circle at the attachment point.
- *
+ * an arrow-head or a circle at the attachment point.  For example,
+ * we can add an arrowhead to the connector with:
+ * 
+ * <pre>
+ *     Arrowhead arrow = new Arrowhead(b.getX(), b.getY(), b.getNormal());
+ *     connectorA.setHeadEnd(arrow);
+ * </pre>
+ * 
+ * <p>
+ * Once a Connector is connected between two sites, it is easy to make it
+ * appear as though the Connector is "glued" to the figures containing
+ * the sites. Any code that moves or changes one of the two figure needs
+ * to call one of the methods route(), reroute(), headMoved(), or
+ * tailMoved() on the connector, and the connector will redraw itself
+ * between the sites. In this example, we have set up a DragInteractor
+ * to move the two rectangles shown in the image above. To also reroute
+ * the connectors when either changes, we add a layer listener to the
+ * interactor.  After the interactor has handled a mouse event, it passes
+ * the event on to this listener.
+ * 
+ * <pre>
+ *     DragInteractor i = controller.getDragInteractor();
+ *     i.addLayerListener(new LayerAdapter () {
+ *         public void mouseDragged (LayerEvent e) {
+ *             connectorA.reroute();
+ *             connectorB.reroute();
+ *         }
+ *     });
+ * </pre>
+ * 
+ * <p>
+ * When a connector is selected, it gets a grab-handle on either end, which
+ * can be grabbed to allow the connector to be disconnected from
+ * the figure and reconnected to another. Although the code is
+ * a little convoluted, the essence of it is this:
+ * 
+ * <pre>
+ *     SelectionInteractor ci = new SelectionInteractor(si.getSelectionModel());
+ *     connectorA.setInteractor(ci);
+ *     connectorB.setInteractor(ci);
+ * 
+ *     ConnectorManipulator manipulator = new ConnectorManipulator();
+ *     manipulator.setSnapHalo(4.0);
+ *     manipulator.setConnectorTarget(new SRTarget());
+ *     ci.setPrototypeDecorator(manipulator);
+ * </pre>
+ * 
+ * This code first creates an instance of SelectionInteractor,
+ * which it sets as the interactor for the connectors. It then creates an
+ * instance of ConnectorManipulator, and tell the interactor that when a
+ * connector is selected, it should create a copy of the manipulator and
+ * wrap it around the connector. The manipulator highlights the connector
+ * with grab handles when the connector is selected.
+ * 
+ * <p> Notice that in this code there are actually two selection interactors,
+ * one for the rectangles and one for the connectors.  They are linked by having
+ * the same selection model.  One effect that this has is that selecting a
+ * rectangle when a connector is already selected will deselect the connector.
+ * If there were two selection models then connectors and rectangles could
+ * be selected entirely independently from eachother.
+ * 
+ * <p> The SRTarget in the above code is an inner class that implements
+ * the ConnectorTarget interface. This class is used by the
+ * ConnectorManipulator when trying to find a good place to connect
+ * to. In this example, the target is returning sites on the four edges
+ * of the rectangles, which is why the connectors snap to those points.
+ * 
  * @author John Reekie
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.25 $
  */
 public class ConnectorTutorial {
 
@@ -191,7 +275,7 @@ public class ConnectorTutorial {
         figureA.setInteractor(si);
         figureB.setInteractor(si);
 
-        // Add a layer listener to the interactor attached to that role.
+        // Add a layer listener to the drag interactor.
         // The listener just tells both connectors to reroute themselves.
         DragInteractor i = controller.getDragInteractor();
         i.addLayerListener(new LayerAdapter () {
@@ -238,10 +322,15 @@ public class ConnectorTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        ConnectorTutorial ex = new ConnectorTutorial();
-        ex.createFigures();
-        ex.createConnectors();
-        ex.setupInteraction();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    ConnectorTutorial ex = new ConnectorTutorial();
+		    ex.createFigures();
+		    ex.createConnectors();
+		    ex.setupInteraction();
+		}
+	    });
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -341,5 +430,6 @@ public class ConnectorTutorial {
         }
     } 
 }
+
 
 

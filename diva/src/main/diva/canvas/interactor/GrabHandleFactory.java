@@ -1,7 +1,7 @@
 /*
- * $Id: GrabHandleFactory.java,v 1.6 2000/05/02 00:43:30 johnr Exp $
+ * $Id: GrabHandleFactory.java,v 1.7 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -13,7 +13,7 @@ import diva.canvas.Site;
  * knowing anything about their implementation.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  */
 public interface GrabHandleFactory {
     /** Create a grab-handle that is attached to the given
@@ -22,4 +22,5 @@ public interface GrabHandleFactory {
      */
     public GrabHandle createGrabHandle (Site s);
 }
+
 

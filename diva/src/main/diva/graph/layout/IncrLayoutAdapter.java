@@ -1,7 +1,7 @@
  /*
- * $Id: IncrLayoutAdapter.java,v 1.9 2000/07/23 23:27:36 neuendor Exp $
+ * $Id: IncrLayoutAdapter.java,v 1.10 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -15,7 +15,7 @@ import java.awt.geom.*;
  * to the graph.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * @rating Red
  */
 public class IncrLayoutAdapter implements IncrementalLayout {
@@ -90,4 +90,5 @@ public class IncrLayoutAdapter implements IncrementalLayout {
 	}
     }
 }
+
 

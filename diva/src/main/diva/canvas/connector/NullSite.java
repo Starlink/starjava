@@ -1,7 +1,7 @@
 /*
- * $Id: NullSite.java,v 1.2 2000/05/02 00:43:24 johnr Exp $
+ * $Id: NullSite.java,v 1.3 2001/07/22 22:00:32 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -19,7 +19,7 @@ import java.awt.geom.Rectangle2D;
  * because other objects they depend on haven't been created yet,
  * can't have them.
  *
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  * @author 	John Reekie
  */
 public class NullSite extends AbstractSite {
@@ -48,4 +48,5 @@ public class NullSite extends AbstractSite {
        return 0.0;
     } 
 }
+
 

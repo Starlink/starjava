@@ -1,7 +1,7 @@
 /*
- * $Id: AbstractDocument.java,v 1.14 2000/11/10 19:53:07 hwawen Exp $
+ * $Id: AbstractDocument.java,v 1.15 2001/07/22 22:01:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -29,7 +29,7 @@ import javax.swing.undo.UndoableEditSupport;
  * properties.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.14 $
+ * @version $Revision: 1.15 $
  */
 public abstract class AbstractDocument implements Document {
     /** The flag that says whether the content of the document has
@@ -289,4 +289,5 @@ public abstract class AbstractDocument implements Document {
         }
     }
 }
+
 

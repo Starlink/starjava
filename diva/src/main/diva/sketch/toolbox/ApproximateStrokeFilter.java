@@ -1,13 +1,14 @@
 /*
- * $Id: ApproximateStrokeFilter.java,v 1.6 2000/08/10 18:52:00 michaels Exp $
+ * $Id: ApproximateStrokeFilter.java,v 1.12 2002/01/20 02:29:42 hwawen Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
 import diva.sketch.recognition.TimedStroke;
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
+import java.awt.geom.Point2D;
+import java.util.BitSet;
 
 /**
  * An object which filters a pen stroke using "approximation by line
@@ -16,75 +17,86 @@ import java.util.ArrayList;
  * Keyboard", Pattern Recognition, Vol.8, pp63-71, 1976).
  *
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.12 $
+ * @rating Red
  */
 public class ApproximateStrokeFilter extends StrokeFilter {
+    /**
+     * If the farthest point from a line segment is less than the
+     * DEFAULT_THRESH_DISTANCE, we can throw away all the in-between
+     * points, because they are almost colinear.  If the distance is
+     * greather than this value, we recursively filter the stroke by
+     * breaking off at the farthest point.  The default value is set
+     * to 2 units.
+     */
+    public static final double DEFAULT_THRESH_DISTANCE = 4.0;
+    
+    /**
+     * If the farthest point from a line segment is less than the
+     * DEFAULT_THRESH_DISTANCE, we can throw away all the in-between
+     * points, because they are almost colinear.  If the distance is
+     * greather than this value, we recursively filter the stroke by
+     * breaking off at the farthest point.
+     */
+    private double _threshDistance;
 
     /**
-     *  Offset of the index.  For each recursion, we pass in new
-     *  arrays which start with index 0, by adding the offset to the
-     *  index, we get the index of the original arrays.
+     * Construct a ApproximateStrokeFilter with default threshold
+     * distance  of 2 units.
      */
-    private int _threshDistance = 2;
-
-    private void approximateRecurse(ArrayList indexes, double xpath[], double ypath[], int num, int offset){
-        if(num > 2){
-            int index = num-1;
-            //Line2D line = new Line2D.Double(xpath[0], ypath[0], xpath[index], ypath[index]);
-            int maxIndex = -1;
-            double maxDist = 0;
-            for(int i=1; i<num-1; i++){ //exclude start and end points
-                //double d = line.pointDistance(xpath[i], ypath[i]);
-                double d = Line2D.ptLineDist(xpath[0], ypath[0], xpath[index], ypath[index], xpath[i], ypath[i]);
-                if((d>_threshDistance)&&(d>maxDist)){
-                    maxDist = d;
-                    maxIndex = i;
-                }
-            }
-
-            if(maxIndex > -1){
-                int realIndex = maxIndex + offset;
-                //found an end point.
-                int size1 = maxIndex+1;
-                double xpath1[] = new double[size1];
-                double ypath1[] = new double[size1];
-                System.arraycopy(xpath, 0, xpath1, 0, size1);
-                System.arraycopy(ypath, 0, ypath1, 0, size1);
-                int size2 = num-maxIndex;
-                double xpath2[] = new double[size2];
-                double ypath2[] = new double[size2];
-                System.arraycopy(xpath, maxIndex, xpath2, 0, size2);
-                System.arraycopy(ypath, maxIndex, ypath2, 0, size2);
-                for(int j=0; j<indexes.size(); j++){ // store the indexes in order
-                    Integer i = (Integer)indexes.get(j);
-                    if(realIndex < i.intValue()){
-                        indexes.add(j, new Integer(realIndex));
-                        break;
-                    }
-                    else if(realIndex == i.intValue()){
-                        break;
-                    }
-                    else if(j==(indexes.size()-1)){
-                        indexes.add(new Integer(realIndex)); // add to the end
-                    }
-                }
-                approximateRecurse(indexes, xpath1, ypath1, size1, offset);
-                approximateRecurse(indexes, xpath2, ypath2, size2, realIndex);
-            }
-        }
+    public ApproximateStrokeFilter(){
+        _threshDistance = DEFAULT_THRESH_DISTANCE;
     }
+
+    
+    /**
+     * Reduce the number of points in the given pen stroke using the
+     * "approximation by line segments" algorithm.  <p>
+     *
+     * Algorithm: Form a line with the first and last points of the
+     * stroke.  Find a farthest point (P) from the line segment such
+     * that distance between the line and P exceeds a threshold value.
+     * Then, break the line segment into 2 and recursively apply
+     * filtering on the 2 parts, (first, P) and (P, last).  The
+     * threshold value is defaulted to DEFAULT_THRESH_DISTANCE.<p>
+     *
+     * @param s  the stroke to be filtered.
+     */
+    public TimedStroke apply(TimedStroke s) {
+        return approximate(s, _threshDistance);
+    }
+
 
     /**
      * Reduce the number of points in the given pen stroke using the
      * "approximation by line segments" algorithm.  <p>
      *
-     * Algorithm: Form a line with the start and end points of the
-     * stroke.  Find a point, P, such that distance between the line
-     * and P exceeds a threshold value and P is maximum for all points
-     * on the stroke.  Then, take the start point and P, and the end
-     * point and P, and repeat the process.  <p>
+     * Algorithm: Form a line with the first and last points of the
+     * stroke.  Find a farthest point (P) from the line segment such
+     * that distance between the line and P exceeds a threshold value.
+     * Then, break the line segment into 2 and recursively apply
+     * filtering on the 2 parts, (first, P) and (P, last).  The
+     * threshold value is defaulted to DEFAULT_THRESH_DISTANCE.<p>
+     *
+     * @param s  the stroke to be filtered.
      */
-    public TimedStroke apply(TimedStroke s) {
+    public static TimedStroke approximate(TimedStroke s) {
+        return approximate(s, DEFAULT_THRESH_DISTANCE);
+    }
+
+    
+    /**
+     * Reduce the number of points in the given pen stroke using the
+     * "approximation by line segments" algorithm.  <p>
+     *
+     * Algorithm: Form a line with the first and last points of the
+     * stroke.  Find a farthest point (P) from the line segment such
+     * that distance between the line and P exceeds a threshold value
+     * (threshDist).  Then, break the line segment into 2 and
+     * recursively apply filtering on the 2 parts, (first, P) and (P,
+     * last).  <p>
+     */
+    public static TimedStroke approximate(TimedStroke s, double threshDist) {
         TimedStroke fs = new TimedStroke();
         int numpoints = s.getVertexCount();
         if(numpoints > 2){
@@ -96,40 +108,99 @@ public class ApproximateStrokeFilter extends StrokeFilter {
                 ypos[i] = s.getY(i);
                 timestamps[i] = s.getTimestamp(i);
             }
-
-            ArrayList indexes = new ArrayList();
-            indexes.add(new Integer(0));
-            indexes.add(new Integer(numpoints-1));
-            approximateRecurse(indexes, xpos, ypos, numpoints, 0);
-            int size = indexes.size();
-            for(int i=0; i<indexes.size(); i++){
-                Integer idx = (Integer)indexes.get(i);
-                int id = idx.intValue();
-                try {
-                    fs.addVertex((float)xpos[id], (float)ypos[id],
-                            timestamps[id]);
-                }
-                catch (Exception e) {
-                    System.out.println(e);
-                    System.exit(-1);
+            BitSet onset = new BitSet(numpoints);
+            onset.set(0);
+            onset.set(numpoints-1);
+            approximateRecurse(onset, xpos, ypos, 0, numpoints-1, threshDist);
+            for(int i=0; i<onset.size(); i++){
+                if(onset.get(i)){
+                    fs.addVertex((float)xpos[i],(float)ypos[i],timestamps[i]);
                 }
             }
         }
         else {
             for(int i=0; i<numpoints; i++){
-                try {
-                    fs.addVertex((float)s.getX(i), (float)s.getY(i),
-                            s.getTimestamp(i));
-                }
-                catch (Exception e) {
-                    System.out.println(e);
-                    System.exit(-1);
-                }
+                fs.addVertex((float)s.getX(i), (float)s.getY(i), s.getTimestamp(i));
             }
         }
         return fs;
     }
 
-}
+    
+    /**
+     * Recursively filter the sequence of points, xpath and ypath, by
+     * first finding the farthest point (P) from the line segment
+     * formed by 'first' and 'last' end points, then break the line
+     * segment into 2, (first, P) and (P, last).  The way P is
+     * determined is that it's the farthest point from line segment
+     * (first, last) and the distance exceeds 'threshDist'.  If no
+     * such point is found, then the recursion comes to an end.  The
+     * 'onset' is a bit array that is used to mark the points that we
+     * keep along a path.  It should contain the first and last points
+     * of the path and all the P's that we've identified throughout
+     * the path.
+     *
+     * @param onset  a bit set marking the points to keep
+     * @param xpath  a sequence of x coordinates
+     * @param ypath  a sequence of y coordinates
+     * @param first  the index of the first point in the line segment
+     * @param last   the index of the last point in the line segment
+     * @param threshDist the distance that the farthest point from a
+     * line segment has to exceed to be considered significent and
+     * therefore kept.
+     */
+    private static void approximateRecurse(BitSet onset, double xpath[], double ypath[], int first, int last, double threshDist) {
+        int numpoints = last-first+1;
+        if(numpoints > 2){
+            int maxIndex = -1;
+            double maxDist = 0;
+            //finding the farthest point from the line segment formed by
+            //the first and last point in the sequence
+            if((xpath[first]==xpath[last])&&(ypath[first]==ypath[last])){
+                for(int i=first+1; i<last; i++){
+                    //excluding first and last points
+                    double d = Point2D.distance(xpath[first], ypath[first], xpath[i], ypath[i]);
+                    if((d>threshDist)&&(d>maxDist)){
+                        maxDist = d;
+                        maxIndex = i;
+                    }
+                }
+            }
+            else {
+                for(int i=first+1; i<last; i++){
+                    //excluding first and last points
+                    double d = Line2D.ptLineDist(xpath[first], ypath[first], xpath[last], ypath[last], xpath[i], ypath[i]);
+                    if((d>threshDist)&&(d>maxDist)){
+                        maxDist = d;
+                        maxIndex = i;
+                    }
+                }
+            }
+            //there is a farthest point whose distance from the line
+            //segment exceeds the threshDist.
+            if(maxIndex > -1){
+                //mark the index of the point to keep, P, then
+                //recurse on the two segments, (first,P) and (P,
+                //last).
+                onset.set(maxIndex);
+                approximateRecurse(onset,xpath,ypath,first,maxIndex,threshDist);
+                approximateRecurse(onset,xpath,ypath,maxIndex,last, threshDist);
+            }
+        }
+    }
 
+    
+    /**
+     * Set the threshold distance of a point from a line segment.  If
+     * 'val' is negative, throws an IllegalArgumentException.
+     */
+    public void setThreshDistance(int val){
+        if(val < 0){
+            throw new IllegalArgumentException("Threshold distance cannot be negative");
+        }
+        else{
+            _threshDistance = val;
+        }
+    }
+}
 

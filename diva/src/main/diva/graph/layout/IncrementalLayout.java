@@ -1,7 +1,7 @@
 /*
- * $Id: IncrementalLayout.java,v 1.8 2000/07/23 23:47:16 neuendor Exp $
+ * $Id: IncrementalLayout.java,v 1.9 2001/07/22 22:01:21 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph.layout;
@@ -13,7 +13,7 @@ package diva.graph.layout;
  * the graph.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @rating Red
  */
 public interface IncrementalLayout extends GlobalLayout {
@@ -36,3 +36,4 @@ public interface IncrementalLayout extends GlobalLayout {
      */
     public void nodeMoved(Object node);
 }
+

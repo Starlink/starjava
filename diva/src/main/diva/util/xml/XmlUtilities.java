@@ -1,7 +1,7 @@
 /*
- * $Id: XmlUtilities.java,v 1.1 2000/06/27 20:39:33 michaels Exp $
+ * $Id: XmlUtilities.java,v 1.2 2001/07/22 22:02:14 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.xml;
@@ -16,7 +16,7 @@ import java.util.*;
  * operations.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class XmlUtilities {
     /**
@@ -39,4 +39,5 @@ public class XmlUtilities {
         return new URL(baseURL,url).toString();
     }
 }
+
 

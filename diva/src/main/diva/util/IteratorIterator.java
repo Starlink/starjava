@@ -1,7 +1,7 @@
 /*
- * $Id: IteratorIterator.java,v 1.2 2000/05/02 00:45:25 johnr Exp $
+ * $Id: IteratorIterator.java,v 1.4 2002/01/12 00:06:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -16,9 +16,9 @@ import java.util.Iterator;
  * sub-iterator.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  */
-public abstract class IteratorIterator implements Iterator {
+public abstract class IteratorIterator extends IteratorAdapter {
     private Iterator _iterator;
     private Iterator _subiterator = null;
 
@@ -59,11 +59,6 @@ public abstract class IteratorIterator implements Iterator {
         }
         return (_subiterator.next());
     }
-
-    public void remove() {
-        // FIXME: we should probably be able to do this...
-        throw new UnsupportedOperationException(
-                "Iterator iterator cannot delete element");
-    }
 }
+
 

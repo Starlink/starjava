@@ -1,7 +1,7 @@
 /*
- * $Id: CompositeFigure.java,v 1.29 2000/11/03 00:00:01 hwawen Exp $
+ * $Id: CompositeFigure.java,v 1.34 2002/01/11 23:00:45 eal Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -9,15 +9,18 @@
 package diva.canvas;
 
 import diva.util.java2d.ShapeUtilities;
+import diva.util.Filter;
+import diva.util.FilteredIterator;
+import diva.util.UnitIterator;
 
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /** A CompositeFigure is a figure that contains a set of child
@@ -32,7 +35,7 @@ import java.util.Iterator;
  * implement a custom subclass of AbstractFigureContainer. For an
  * example, see diva.canvas.toolbox.IconFigure.
  *
- * @version $Revision: 1.29 $
+ * @version $Revision: 1.34 $
  * @author John Reekie
  * @rating Yellow
  */
@@ -164,7 +167,7 @@ public class CompositeFigure extends AbstractFigureContainer {
                     Rectangle2D.union(bounds, _background.getBounds(), bounds);
                 }
             }
-            _cachedBounds = at.createTransformedShape(bounds).getBounds2D();
+            _cachedBounds = ShapeUtilities.transformBounds(bounds, at);
         }
         return _cachedBounds;
     }
@@ -181,6 +184,20 @@ public class CompositeFigure extends AbstractFigureContainer {
     public int getFigureCount () {
         return _children.getFigureCount();
     } 
+
+    /** Return the origin of the background figure in the enclosing
+     *  transform context.
+     *  @return The origin of the background figure.
+     */
+    public Point2D getOrigin () {
+        if ( _background != null ) {
+            AffineTransform at = _transformContext.getTransform();
+            Point2D point = _background.getOrigin();
+            return at.transform(point, point);
+        } else {
+            return super.getOrigin();
+        }
+    }
 
     /** Get the shape of this figure. This will be the shape of
      * the background if there is one, otherwise the bounding box.
@@ -269,19 +286,17 @@ public class CompositeFigure extends AbstractFigureContainer {
 
         // Transform the region to paint
 	AffineTransform t = _transformContext.getInverseTransform();
-        Rectangle2D r = ShapeUtilities.transformBounds(region,t);
-
+        Rectangle2D r = ShapeUtilities.transformBounds(region, t);
+        
         // Paint the background first, if there is one
         if (_background != null) {
             _background.paint(g, r);
 	}
         // Paint the children
-	Figure f;
         Iterator i = _children.getIntersectedFigures(r).figuresFromBack();
-        // debug version: Iterator i = figuresFromBack();
-	while (i.hasNext()) {
-            f = (Figure) i.next();
-            f.paint(g,r);
+      	while (i.hasNext()) {
+            Figure f = (Figure) i.next();
+            f.paint(g, r);
 	}
         _transformContext.pop(g);
     }
@@ -296,12 +311,29 @@ public class CompositeFigure extends AbstractFigureContainer {
     public Figure pick (Rectangle2D region) {
         // Transform the region and then do the pick
         AffineTransform at = _transformContext.getInverseTransform();
-        region = at.createTransformedShape(region).getBounds();
+        region = ShapeUtilities.transformBounds(region, at);
         Figure hit = CanvasUtilities.pick(
                 _children.getIntersectedFigures(region).figuresFromFront(),
                 region);
         if (hit == null && _background != null && _background.hit(region)) {
-            return _background;
+            return CanvasUtilities.pick(new UnitIterator(_background), region);
+        }
+        return hit; 
+    }
+
+    /** Given a rectangle, return the top-most descendent figure
+     * that it hits that is accepted by the given filter. 
+     * If none does, return null.
+     */
+    public Figure pick (Rectangle2D region, Filter filter) {
+        // Transform the region and then do the pick
+        AffineTransform at = _transformContext.getInverseTransform();
+        region = ShapeUtilities.transformBounds(region, at);
+        Figure hit = CanvasUtilities.pick(figuresFromFront(),
+                region, filter);
+        if (hit == null && _background != null && _background.hit(region)) {
+            return CanvasUtilities.pick(new UnitIterator(_background), region,
+                    filter);
         }
         return hit; 
     }
@@ -397,4 +429,5 @@ public class CompositeFigure extends AbstractFigureContainer {
         repaint();
     }
 }
+
 

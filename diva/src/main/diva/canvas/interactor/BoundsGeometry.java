@@ -1,7 +1,7 @@
 /*
- * $Id: BoundsGeometry.java,v 1.13 2000/07/26 22:30:16 nzamor Exp $
+ * $Id: BoundsGeometry.java,v 1.14 2001/07/22 22:00:37 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -23,7 +23,7 @@ import javax.swing.SwingConstants;
 /** BoundsGeometry is a class that provides support for manipulating
  * the bounds of a figure.
  *
- * @version	$Revision: 1.13 $
+ * @version	$Revision: 1.14 $
  * @author 	John Reekie
  */
 public class BoundsGeometry implements Geometry {
@@ -442,4 +442,5 @@ public class BoundsGeometry implements Geometry {
         }
     }
 }
+
 

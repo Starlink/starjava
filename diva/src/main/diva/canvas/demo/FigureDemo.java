@@ -1,7 +1,7 @@
 /*
- * $Id: FigureDemo.java,v 1.4 2000/07/11 18:09:12 michaels Exp $
+ * $Id: FigureDemo.java,v 1.7 2002/01/04 04:14:18 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -32,7 +32,7 @@ import javax.swing.event.*;
  * Demo page of the Diva documentation for more info.
  *
  * @author John Reekie
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.7 $
  */
 public class FigureDemo {
 
@@ -240,6 +240,7 @@ public class FigureDemo {
 	m.connectEdge(this, e, cn, fn);
     }
 }
+
 
 
 

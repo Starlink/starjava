@@ -1,7 +1,7 @@
 /*
- * $Id: TestUtilities.java,v 1.2 2000/05/02 00:45:30 johnr Exp $
+ * $Id: TestUtilities.java,v 1.3 2001/07/22 22:02:09 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -23,7 +23,7 @@ import java.awt.geom.RectangularShape;
 
 /** Utility functions to make tests easier to write.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
 
@@ -75,4 +75,5 @@ public final class TestUtilities {
         return (p1.isDone() && p2.isDone());
     } 
 }
+
 

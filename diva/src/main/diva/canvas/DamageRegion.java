@@ -1,12 +1,14 @@
 /*
- * $Id: DamageRegion.java,v 1.13 2000/05/02 00:43:15 johnr Exp $
+ * $Id: DamageRegion.java,v 1.15 2001/07/22 22:00:28 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
 
 package diva.canvas;
+
+import diva.util.java2d.ShapeUtilities;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -19,7 +21,7 @@ import javax.swing.RepaintManager;
  * they reach the JCanvas, at which point the Swing RepaintManager
  * gets called.
  *
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.15 $
  * @author John Reekie
  * @rating Red
  */
@@ -111,14 +113,9 @@ public abstract class DamageRegion {
  
             // Transform the damage rectangle if necessary
             AffineTransform t = _context.getScreenTransform();
-            if (!t.isIdentity()) {
-                if (CanvasUtilities.isOrthogonal(t)) {
-                    r = (Rectangle2D) CanvasUtilities.transform(r, t);
-                } else {
-                    r = t.createTransformedShape(r).getBounds2D();
-                }
-            }
-    
+            
+            r = ShapeUtilities.transformBounds(r, t);
+                    
             // Take the next largest integer bounds and pass it to the canvas
             double x = r.getX();
             double y = r.getY();
@@ -148,4 +145,5 @@ public abstract class DamageRegion {
         }
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: CosInitAngleFE.java,v 1.6 2000/05/10 18:54:53 hwawen Exp $
+ * $Id: CosInitAngleFE.java,v 1.8 2001/07/22 22:01:47 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.features;
@@ -13,17 +13,26 @@ import diva.sketch.recognition.TimedStroke;
  * point.  Return -1 if there's only one data point.  One of Rubine's
  * features.
  *
- *  @author Heloise Hse (hwawen@eecs.berkeley.edu)
- *  @version $Revision: 1.6 $
+ * @author Heloise Hse (hwawen@eecs.berkeley.edu)
+ * @version $Revision: 1.8 $
+ * @rating Red
  */
 public class CosInitAngleFE implements FeatureExtractor {
-
     /**
      * Return the cosine of the initial angle of the stroke.  The
      * angle is determined from the first and third mouse point.
      * Return -1 if there's only one data point.
      */
     public double apply(TimedStroke s) {
+        return cosInitAngle(s);
+    }
+
+    /**
+     * Return the cosine of the initial angle of the stroke.  The
+     * angle is determined from the first and third mouse point.
+     * Return -1 if there's only one data point.
+     */
+    public static double cosInitAngle(TimedStroke s) {
         if(s.getVertexCount() >= 3) {
             double denom = FEUtilities.distance(s.getX(0), s.getY(0),
                     s.getX(2), s.getY(2));
@@ -62,4 +71,5 @@ public class CosInitAngleFE implements FeatureExtractor {
         return "Cosine of Initial Angle";
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: IconTutorial.java,v 1.5 2000/05/22 17:07:25 neuendor Exp $
+ * $Id: IconTutorial.java,v 1.8 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -50,12 +50,14 @@ import java.awt.geom.Line2D;
 
 import java.util.HashMap;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+
 
 /**
  * This tutorial illustrates how to use Icons.
  *
  * @author John Reekie
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.8 $
  */
 public class IconTutorial {
 
@@ -81,7 +83,7 @@ public class IconTutorial {
         canvas = new JCanvas();
         graphicsPane = (GraphicsPane)canvas.getCanvasPane();
 
-        // Create the interaction role and an interactor to do the work.
+        // Create a controller to do the work.
         controller = new BasicController(graphicsPane);
         defaultInteractor = controller.getSelectionInteractor();
 
@@ -200,10 +202,15 @@ public class IconTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        IconTutorial ex = new IconTutorial();
-
-        ex.createIcon1();
-        ex.createIcon2();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    IconTutorial ex = new IconTutorial();
+		    ex.createIcon1();
+		    ex.createIcon2();
+		}
+	    });
     }
 }
+
 

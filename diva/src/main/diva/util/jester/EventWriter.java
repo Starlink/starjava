@@ -1,8 +1,8 @@
 /*
- * $Id: EventWriter.java,v 1.2 2000/09/19 17:10:12 michaels Exp $
+ * $Id: EventWriter.java,v 1.3 2001/07/22 22:02:09 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
 
@@ -25,7 +25,7 @@ import java.util.Iterator;
  *
  * @see EventParser
  * @author Michael Shilman      (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public class EventWriter implements diva.util.ModelWriter {
@@ -136,3 +136,4 @@ public class EventWriter implements diva.util.ModelWriter {
         frame.setVisible(true);
     }
 }
+

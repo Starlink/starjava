@@ -1,7 +1,7 @@
 /*
- * $Id: ReverseIterator.java,v 1.2 2000/05/02 00:45:25 johnr Exp $
+ * $Id: ReverseIterator.java,v 1.4 2002/01/12 00:06:41 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util;
@@ -14,9 +14,9 @@ import java.util.NoSuchElementException;
  * A reverse-order iterator over a List.
  *
  * @author John Reekie
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  */
-public class ReverseIterator implements Iterator {
+public class ReverseIterator extends  IteratorAdapter {
   private List _list;
   private int _cursor;
 
@@ -39,15 +39,7 @@ public class ReverseIterator implements Iterator {
     _cursor--;
     return _list.get(_cursor);
   }
-
-  /** Remove the most recent element. Currently this is not
-   * supported.
-   */
-  public void remove() {
-    // FIXME: can we support this?
-    throw new UnsupportedOperationException(
-          "Cannot delete element from reverse iterator");
-  }
 }
+
 
 

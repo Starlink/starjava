@@ -1,24 +1,37 @@
 /*
- * $Id: SwingWrapper.java,v 1.2 2000/05/02 00:43:39 johnr Exp $
+ * $Id: SwingWrapper.java,v 1.4 2002/01/24 02:19:23 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.toolbox;
 
-import java.awt.*;
-import javax.swing.*;
-import diva.canvas.*;
+import diva.canvas.AbstractFigure;
+import diva.canvas.CanvasComponent;
+import diva.canvas.CanvasLayer;
+import diva.canvas.Figure;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Shape;
+
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+
+import javax.swing.JComponent;
+// import javax.swing.SwingGraphics;
+import javax.swing.UIManager;
+
+import javax.swing.plaf.ComponentUI;
 
 /**
  * A figure that embeds swing components in canvas drawings.
  *
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.4 $
  */
 public class SwingWrapper extends AbstractFigure {
     /**
@@ -80,7 +93,23 @@ public class SwingWrapper extends AbstractFigure {
             //    cg.dispose();
             //}
 
+            // This compiles but doesn't work right:
             _component.paint(g);
+
+            // This is supposed to work right but doesn't compile:
+            // _component.paintComponent(g);
+           
+            // Nor does this:
+            //ComponentUI ui = UIManager.getUI(_component);
+            //if (ui != null) {
+            //    Graphics scratchGraphics = Graphics.createSwingGraphics(g);
+            //    try {
+            //        ui.update(scratchGraphics, this);
+            //    }
+            //    finally {
+            //        scratchGraphics.dispose();
+            //    }
+            //}
         }
     }
     
@@ -142,4 +171,5 @@ public class SwingWrapper extends AbstractFigure {
 	repaint();
     }
 }
+
 

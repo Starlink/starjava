@@ -1,7 +1,7 @@
 /*
- * $Id: JShadePane.java,v 1.8 2000/05/02 00:44:36 johnr Exp $
+ * $Id: JShadePane.java,v 1.9 2001/07/22 22:01:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -52,7 +52,7 @@ import diva.gui.BasicFrame;
  *
  * @see javax.swing.JTabbedPane
  * @author Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class JShadePane extends JPanel {
     /**
@@ -641,4 +641,5 @@ public class JShadePane extends JPanel {
         f.setVisible(true);
     }
 }
+
 

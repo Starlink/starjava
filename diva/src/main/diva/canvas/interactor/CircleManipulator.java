@@ -1,7 +1,7 @@
 /*
- * $Id: CircleManipulator.java,v 1.2 2000/08/26 00:47:31 neuendor Exp $
+ * $Id: CircleManipulator.java,v 1.5 2001/07/24 06:33:01 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -34,6 +34,7 @@ import java.util.ArrayList;
  * chance to intercept picks. 
  *
  * @author Nick Zamora      (nzamor@eecs.berkeley.edu)
+ * @version $Revision: 1.5 $
  */
 public class CircleManipulator extends Manipulator {
 
@@ -67,7 +68,7 @@ public class CircleManipulator extends Manipulator {
     }
 
     /** Create a new instance of this manipulator. The new
-     * instance will have the same grab handle, and interaction role
+     * instance will have the same grab handle, and interactor
      * for grab-handles, as this one.
      */
     public FigureDecorator newInstance (Figure f) {
@@ -102,7 +103,7 @@ public class CircleManipulator extends Manipulator {
             Iterator i = _geometry.sites();
             GrabHandle g = null;
             while (i.hasNext()) {
-                // Create a grab handle and set up the interaction role
+                // Create a grab handle and set up the interactor
                 Site site = (Site)i.next();
                 g = getGrabHandleFactory().createGrabHandle(site);
                 g.setParent(this);
@@ -162,3 +163,4 @@ public class CircleManipulator extends Manipulator {
         }
     }
 }
+

@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorInteractor.java,v 1.13 2000/05/02 00:43:23 johnr Exp $
+ * $Id: ConnectorInteractor.java,v 1.20 2002/09/26 12:20:13 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -14,6 +14,7 @@ import diva.canvas.FigureDecorator;
 import diva.canvas.CanvasPane;
 import diva.canvas.CanvasUtilities;
 import diva.canvas.Site;
+import diva.canvas.TransformContext;
 
 import diva.canvas.event.LayerEvent;
 import diva.canvas.event.LayerEventMulticaster;
@@ -26,6 +27,7 @@ import diva.canvas.interactor.GrabHandle;
 import diva.canvas.interactor.Manipulator;
 
 import diva.util.java2d.ShapeUtilities;
+import diva.util.Filter;
 
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
@@ -41,8 +43,9 @@ import java.util.Iterator;
  * utility class designed for use in conjunction with
  * ConnectorManipulator.
  *
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.20 $
  * @author John Reekie
+ * @author Steve Neuendorffer
  */
 public class ConnectorInteractor extends DragInteractor {
 
@@ -109,8 +112,7 @@ public class ConnectorInteractor extends DragInteractor {
      * it to a new autonomous site at the given coordinates
      */
     private void detach (double x, double y) {
-        Site newSite = new AutonomousSite(
-                _connector.getTransformContext(), x, y);
+        Site newSite = new AutonomousSite(_connector.getTransformContext(), x, y);
 
         if (_handle.getSite() == _connector.getHeadSite()) {
             _connector.setHeadSite(newSite);
@@ -130,13 +132,10 @@ public class ConnectorInteractor extends DragInteractor {
     private Site findSite (Figure f, double x, double y) {
         Site ret = null;
         if (_handle.getSite() == _connector.getHeadSite()) {
-            ret = 
-                _manipulator._connectorTarget.getHeadSite(_connector, f, x, y);
+            ret = _manipulator._connectorTarget.getHeadSite(_connector, f, x, y);
         } else {
-            ret = 
-                _manipulator._connectorTarget.getTailSite(_connector, f, x, y);
+            ret = _manipulator._connectorTarget.getTailSite(_connector, f, x, y);
         }
-        
         return ret;
     }
 
@@ -153,7 +152,7 @@ public class ConnectorInteractor extends DragInteractor {
 
     /** Fire a connector event to all connector listeners.
      */
-    private void fireConnectorEvent (int id) {
+    protected void fireConnectorEvent (int id) {
         int end;
         if (_handle.getSite() == _connector.getHeadSite()) {
             end = ConnectorEvent.HEAD_END;
@@ -166,24 +165,7 @@ public class ConnectorInteractor extends DragInteractor {
                 _target,
                 _connector,
                 end);
-
-        for (Iterator i = _connectorListeners.iterator(); i.hasNext(); ) {
-            ConnectorListener l = (ConnectorListener) i.next();
-            switch(id) {
-            case ConnectorEvent.CONNECTOR_DRAGGED:
-                l.connectorDragged(event);
-                break;
-            case ConnectorEvent.CONNECTOR_DROPPED:
-                l.connectorDropped(event);
-                break;
-            case ConnectorEvent.CONNECTOR_SNAPPED:
-                l.connectorSnapped(event);
-                break;
-            case ConnectorEvent.CONNECTOR_UNSNAPPED:
-                l.connectorUnsnapped(event);
-                break;
-            }
-        }
+        _notifyConnectorListeners(event, id);
     }
 
     /** Get the current connector. If there isn't one, return
@@ -241,52 +223,42 @@ public class ConnectorInteractor extends DragInteractor {
      *  pick in; x, y are the coordinates of the drag
      *  point in the tansform context of that container.
      */
-    public void snapToSite (FigureContainer container, Rectangle2D hitRect) {
-        //debug("SNAPPING TO SITE IN: " + container);        
-        // Try getting a site from the figure.
-        // Require that it have an interactor
-        Iterator i = container.figuresFromFront();
-        while (i.hasNext()) {
-            Figure t = (Figure) i.next();
-            
-            // The sequence here is a bit tricky. First we filter
-            // out ConnectorManipulators. Then, if the figure is
-            // a FigureDecorator, get the decorated figure instead.
-            // Then filter out figures that are not hit by the mouse.
-            if (t instanceof ConnectorManipulator) {
-                continue;
-            }
-            if (t instanceof FigureDecorator) {
-                t = ((FigureDecorator) t).getDecoratedFigure();
-            }
-            if ( !(t.hit(hitRect)) ) {
-                continue;
-            }
-            // Now try getting an interactor and a site
-            if (t.getInteractor() != null) {
-                Site snap = findSite(t, hitRect.getCenterX(), hitRect.getCenterY());
-                if (snap != null) {
-                    _target = t;
-                    attach(snap);
-                    fireConnectorEvent(ConnectorEvent.CONNECTOR_SNAPPED);
-                    break;
+    public void snapToSite (final FigureContainer container, final Rectangle2D hitRect) {
+        Figure figure = container.pick(hitRect, new Filter() {
+            public boolean accept(Object o) {
+                if (!(o instanceof Figure)) {
+		    return false;
+		}
+                if (o instanceof ConnectorManipulator) {
+		    return false;
+		}
+                Figure f = (Figure)o;
+                if (f.getInteractor() == null) {
+		    return false;
+		}
+                TransformContext figureContext = f.getParent().getTransformContext();
+                TransformContext containerContext = container.getTransformContext();
+                AffineTransform transform;
+                try {
+                    transform = figureContext.getTransform(containerContext).
+                    createInverse();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return false;
                 }
-                else if(t instanceof CompositeFigure) {
-                    //pick with transformed x & y
-                    //call findSite recursively
-                    CompositeFigure cf = (CompositeFigure)t;
-                    AffineTransform at = 
-			cf.getTransformContext().getTransform();
-                    try {
-                        at = at.createInverse();
-                    }
-                    catch(NoninvertibleTransformException ex) {
-                        throw new RuntimeException(ex.getMessage());
-                    }
-                    Rectangle2D r2 = 
-			(Rectangle2D)ShapeUtilities.transformBounds(hitRect, at);
-                    snapToSite(cf, r2);
-                }
+                Rectangle2D bounds = ShapeUtilities.transformBounds(hitRect, transform);
+                if (findSite(f, bounds.getCenterX(), bounds.getCenterY()) == null) {
+		    return false;
+		}
+                return true;
+            }
+        });
+        if(figure != null) {
+            Site snap = findSite(figure, hitRect.getCenterX(), hitRect.getCenterY());
+            if (snap != null) {
+                _target = figure;
+                attach(snap);
+                fireConnectorEvent(ConnectorEvent.CONNECTOR_SNAPPED);
             }
         }
     }
@@ -305,32 +277,24 @@ public class ConnectorInteractor extends DragInteractor {
 
         // If we were over a target, see if we still are
         if (_target != null) {
-            //set up affine transform between the target
-            //and our current transform context, so that
-            //all tests { intersects(), findSite() } 
-            //are done in proper coordinates
-            AffineTransform at = 
-		_target.getParent().getTransformContext().getScreenTransform();
-            try {
-                at = at.createInverse();
-            }
-            catch(NoninvertibleTransformException ex) {
-                throw new RuntimeException(ex.getMessage());
-            }
-            Rectangle2D r2 = 
-		(Rectangle2D)ShapeUtilities.transformBounds(mouseRect, at);
-            
-            if (_target.intersects(r2)) { 
-                // We're still over, so snap to the nearest site -- FIXME
-                //debug("STILL OVER SAME TARGET: " + _target);
+            // set up affine transform between the target
+            // and our current transform context, so that
+            // all tests { intersects(), findSite() } 
+            // are done in proper coordinates
+            TransformContext manipulatorContext = e.getLayerSource().getTransformContext();
+            TransformContext targetContext = _target.getParent().getTransformContext();
+            AffineTransform transform = targetContext.getTransform(manipulatorContext);
+            Rectangle2D bounds = _target.getBounds();
+            bounds = ShapeUtilities.transformBounds(bounds, transform);
+
+            if (bounds.intersects(x-h, y-h, 2*h, 2*h)) { 
+                // We're still over, so snap to the nearest site
                 Site current = _handle.getSite();
-                Site snap = findSite(current, r2.getCenterX(), r2.getCenterY());
-                //debug("SNAP: " + snap);
+                Site snap = findSite(current, bounds.getCenterX(), bounds.getCenterY());
                 if (snap != null && snap != current) {
                     attach(snap);
                     fireConnectorEvent(ConnectorEvent.CONNECTOR_SNAPPED);
                 }
- 
             } else {
                 // Not over any more, so leave
                 detach(x, y);
@@ -342,7 +306,7 @@ public class ConnectorInteractor extends DragInteractor {
             
             // Look for a target. The container we need to pick
             // in is the one that has a transform context
-            // FIXME: this doesn't deal properly with hierarchy
+            // Note: this doesn't appear to deal properly with hierarchy
             FigureContainer container;
             Object component = _connector.getTransformContext().getComponent();
             if (component instanceof CanvasPane) {
@@ -357,9 +321,39 @@ public class ConnectorInteractor extends DragInteractor {
         // move the (autonomous) site, but signal a mouse drag.
         if (_target == null) {
             _handle.getSite().translate(dx, dy);
-            _connector.reroute();
+
+	    if (_connector.getHeadSite() == _handle.getSite()) {
+		// This handle is on the head
+		_connector.headMoved(dx, dy);
+	    } else {
+		// On the tail
+		_connector.tailMoved(dx, dy);
+	    }
             fireConnectorEvent(ConnectorEvent.CONNECTOR_DRAGGED);
         }
     }
-}
 
+    /** Notify registered connector listeners of the specified event.
+     *  @param event The event.
+     *  @param id The id of the event (dragged, dropped, etc.).
+     */
+    protected void _notifyConnectorListeners(ConnectorEvent event, int id) {
+        for (Iterator i = _connectorListeners.iterator(); i.hasNext(); ) {
+            ConnectorListener l = (ConnectorListener) i.next();
+            switch(id) {
+            case ConnectorEvent.CONNECTOR_DRAGGED:
+                l.connectorDragged(event);
+                break;
+            case ConnectorEvent.CONNECTOR_DROPPED:
+                l.connectorDropped(event);
+                break;
+            case ConnectorEvent.CONNECTOR_SNAPPED:
+                l.connectorSnapped(event);
+                break;
+            case ConnectorEvent.CONNECTOR_UNSNAPPED:
+                l.connectorUnsnapped(event);
+                break;
+            }
+        }
+    }
+}

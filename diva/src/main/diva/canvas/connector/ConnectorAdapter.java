@@ -1,7 +1,7 @@
 /*
- * $Id: ConnectorAdapter.java,v 1.2 2000/05/02 00:43:19 johnr Exp $
+ * $Id: ConnectorAdapter.java,v 1.3 2001/07/22 22:00:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.connector;
@@ -12,7 +12,7 @@ package diva.canvas.connector;
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public class ConnectorAdapter implements ConnectorListener {
@@ -39,5 +39,6 @@ public class ConnectorAdapter implements ConnectorListener {
      */
     public void connectorUnsnapped(ConnectorEvent e) {}
 }
+
 
 

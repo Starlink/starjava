@@ -1,8 +1,8 @@
 /*
- * $Id: RelationUtilities.java,v 1.8 2000/08/12 10:59:45 michaels Exp $
+ * $Id: RelationUtilities.java,v 1.9 2001/07/22 22:01:50 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.parser2d;
 import java.awt.geom.Rectangle2D;
@@ -13,7 +13,7 @@ import java.awt.geom.Rectangle2D;
  * directions.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @rating  Red
  */
 public class RelationUtilities {
@@ -376,6 +376,7 @@ public class RelationUtilities {
         }
     }
 }
+
 
 
 

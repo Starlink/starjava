@@ -1,7 +1,7 @@
 /*
- * $Id: EdgeRenderer.java,v 1.11 2000/05/29 01:25:01 hwawen Exp $
+ * $Id: EdgeRenderer.java,v 1.12 2001/07/22 22:01:17 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -17,7 +17,7 @@ import diva.canvas.connector.Connector;
  * of the edge, and then tell the edge to route itself.
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  * @rating Red
  */
 public interface EdgeRenderer {
@@ -26,4 +26,5 @@ public interface EdgeRenderer {
      */
     public Connector render(Object edge, Site tailSite, Site headSite);
 }
+
 

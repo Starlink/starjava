@@ -1,7 +1,7 @@
 /*
- * $Id: GUIUtilities.java,v 1.16 2000/10/17 00:06:20 neuendor Exp $
+ * $Id: GUIUtilities.java,v 1.17 2001/07/22 22:01:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -39,7 +39,7 @@ import java.awt.event.KeyEvent;
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.16 $
+ * @version $Revision: 1.17 $
  */
 public class GUIUtilities {
 
@@ -372,4 +372,5 @@ public class GUIUtilities {
                 JOptionPane.WARNING_MESSAGE);
     }
 }
+
 

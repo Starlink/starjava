@@ -1,7 +1,7 @@
 /*
- * $Id: Connector.java,v 1.7 2000/08/16 20:31:03 neuendor Exp $
+ * $Id: Connector.java,v 1.9 2002/09/26 12:20:13 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -17,7 +17,7 @@ import java.awt.geom.Point2D;
  * sites on other figures. To do so, it requires two references
  * to sites on other figures.
  *
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.9 $
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
  * @author  John Reekie (johnr@eecs.berkeley.edu)
  */
@@ -44,7 +44,7 @@ public interface Connector extends Figure {
      * The connector is expected to reroute itself using
      * an efficient means as is available.  Repaint the figure.
      */
-    public void headMoved ();
+    public void headMoved (double dx, double dy);
 
     /** Tell the connector to re-route itself. In general,
      * implementations of this method should be more efficient
@@ -75,6 +75,7 @@ public interface Connector extends Figure {
      * The connector is expected to reroute itself using
      * an efficient means as is available.  Repaint the figure. 
      */
-    public void tailMoved ();
+    public void tailMoved (double dx, double dy);
 }
+
 

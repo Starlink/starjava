@@ -1,7 +1,7 @@
 /*
- * $Id: ListDataModel.java,v 1.6 2000/09/18 05:42:21 neuendor Exp $
+ * $Id: ListDataModel.java,v 1.7 2001/07/22 22:01:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -20,7 +20,7 @@ import javax.swing.DefaultComboBoxModel;
  * if any of the behavior should not be quite right.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.6 $
+ * @version $Revision: 1.7 $
  * @rating Red
  */
 public class ListDataModel extends DefaultComboBoxModel {
@@ -60,4 +60,5 @@ public class ListDataModel extends DefaultComboBoxModel {
         return false;
     }
 }
+
 

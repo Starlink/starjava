@@ -1,5 +1,9 @@
-
-
+/*
+ * $Id: BulletedItems.java,v 1.4 2001/07/23 04:11:24 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.sketch.toolbox;
 import diva.sketch.recognition.Type;
 import diva.sketch.recognition.TypedData;
@@ -9,36 +13,22 @@ import diva.sketch.recognition.TypedData;
  * the avg x-height and character width. 
  *
  * @author Niraj Shah  (niraj@eecs.berkeley.edu)
+ * $version $Revision: 1.4 $
  * @rating Red
  */
-public class BulletedItems implements TypedData {
+public class BulletedItems extends TextAnnotations {
     /**
      * The static type associated with this typed data.
      */
     public static final Type type = Type.makeType(BulletedItems.class);
-    
-    private double _charHeight;
-    private double _charWidth;
-	
-    public BulletedItems(double ch, double cw) {
-        _charHeight = ch;
-        _charWidth = cw;
+    public BulletedItems() {
+        super();
     }
-	
+    public BulletedItems(double charHeight, double charWidth) {
+        super(charHeight,charWidth);
+    }
     public Type getType() {
         return BulletedItems.type;
     }
-	
-    public double getCharHeight() {
-        return _charHeight;
-    }
-	
-    public double getCharWidth() {
-        return _charWidth;
-    }
-	
-    public String toString() {
-        return "BulletedItems[ charHeight = " + _charHeight + 
-		  ", charWidth = " + _charWidth + "]";
-    }
 }
+

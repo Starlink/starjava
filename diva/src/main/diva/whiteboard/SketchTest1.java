@@ -1,3 +1,9 @@
+/*
+ * $Id: SketchTest1.java,v 1.4 2001/07/23 03:59:01 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.whiteboard;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -57,3 +63,5 @@ public class SketchTest1 extends Frame {
         }
     }
 }
+
+

@@ -1,8 +1,8 @@
 /*
- * $Id: EventRecorder.java,v 1.1 2000/09/19 16:37:25 michaels Exp $
+ * $Id: EventRecorder.java,v 1.2 2001/07/22 22:02:09 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester;
 
@@ -17,7 +17,7 @@ import java.util.ArrayList;
  *
  * @see EventPlayer
  * @author Michael Shilman      (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  * @rating Red
  */
 public class EventRecorder {
@@ -134,3 +134,4 @@ public class EventRecorder {
         }
     }
 }
+

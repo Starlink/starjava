@@ -1,7 +1,7 @@
 /*
- * $Id: ShapeUtilitiesTest.java,v 1.4 2000/05/02 00:45:33 johnr Exp $
+ * $Id: ShapeUtilitiesTest.java,v 1.6 2001/11/30 02:45:55 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.test;
@@ -16,7 +16,7 @@ import java.awt.geom.*;
  * A test suite for ShapeUtilities.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.6 $
  */
 public class ShapeUtilitiesTest extends TestSuite {
 
@@ -70,13 +70,13 @@ public class ShapeUtilitiesTest extends TestSuite {
                 fr2 = ShapeUtilities.transformBounds(fr2,at2);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(ds1, dr1, 0.01),
+                assertExpr(TestUtilities.shapeEquals(ds1, dr1, 0.01),
                         "Bounds not transformed: " + ds1 + " != " + dr1);
-                assert(TestUtilities.shapeEquals(ds2, dr2, 0.01),
+                assertExpr(TestUtilities.shapeEquals(ds2, dr2, 0.01),
                         "Bounds not transformed: " + ds2 + " != " + dr2);
-                assert(TestUtilities.shapeEquals(fs1, fr1, 0.01),
+                assertExpr(TestUtilities.shapeEquals(fs1, fr1, 0.01),
                         "Bounds not transformed: " + fs1 + " != " + fr1);
-                assert(TestUtilities.shapeEquals(fs2, fr2, 0.01),
+                assertExpr(TestUtilities.shapeEquals(fs2, fr2, 0.01),
                         "Bounds not transformed: " + fs2 + " != " + fr2);
             }
         });
@@ -124,14 +124,14 @@ public class ShapeUtilitiesTest extends TestSuite {
             }
             public void check () throws TestFailedException {
                 for (int i = 0; i < n; i++) {
-                    assert(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
+                    assertExpr(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
                             "Shape not transformed: " + modified[i] + " != " + xforms[i]);
                     if (i < 3) {
-                        assert(shapes[i] != modified[i],
+                        assertExpr(shapes[i] != modified[i],
                                 "Shapes must not be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     } else {
-                        assert(shapes[i] == modified[i],
+                        assertExpr(shapes[i] == modified[i],
                                 "Shapes must be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     }
@@ -164,11 +164,11 @@ public class ShapeUtilitiesTest extends TestSuite {
                 ShapeUtilities.transformModifyRect(er,at);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(ds, dr, 0.01),
+                assertExpr(TestUtilities.shapeEquals(ds, dr, 0.01),
                         "Rectangle not transformed: " + dr + " != " + ds);
-                assert(TestUtilities.shapeEquals(fs, fr, 0.01),
+                assertExpr(TestUtilities.shapeEquals(fs, fr, 0.01),
                         "Rectangle not transformed: " + fr + " != " + fs);
-                assert(TestUtilities.shapeEquals(es, er, 0.01),
+                assertExpr(TestUtilities.shapeEquals(es, er, 0.01),
                         "Ellipse not transformed: " + er + " != " + es);
             }
         });
@@ -213,14 +213,14 @@ public class ShapeUtilitiesTest extends TestSuite {
             }
             public void check () throws TestFailedException {
                 for (int i = 0; i < n; i++) {
-                    assert(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
+                    assertExpr(TestUtilities.shapeEquals(modified[i], xforms[i], 0.01),
                             "Shape not translated: " + modified[i] + " != " + xforms[i]);
                     if (i < 1) {
-                        assert(shapes[i] != modified[i],
+                        assertExpr(shapes[i] != modified[i],
                                 "Shapes must not be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     } else {
-                        assert(shapes[i] == modified[i],
+                        assertExpr(shapes[i] == modified[i],
                                 "Shapes must be identical: "
                                 + shapes[i] + " != " + modified[i]);
                     }
@@ -239,4 +239,5 @@ public class ShapeUtilitiesTest extends TestSuite {
         new ShapeUtilitiesTest(new TestHarness()).run();
     }
 }
+
 

@@ -1,14 +1,16 @@
 /*
- * $Id: TimedStroke.java,v 1.3 2000/09/22 08:40:37 michaels Exp $
+ * $Id: TimedStroke.java,v 1.5 2002/02/06 03:27:45 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 
 package diva.sketch.recognition;
 import diva.util.PropertyContainer;
 import diva.util.BasicPropertyContainer;
 import diva.util.java2d.Polyline2D;
+
+import java.util.Iterator;
 
 /**
  * TimedStroke is a collection of points taken in the duration of a
@@ -20,7 +22,7 @@ import diva.util.java2d.Polyline2D;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.5 $
  */
 public class TimedStroke extends Polyline2D.Float implements PropertyContainer {
     /**
@@ -93,6 +95,12 @@ public class TimedStroke extends Polyline2D.Float implements PropertyContainer {
         return _timestamps[i];
     }
 
+    /** Return an iteration of the names of the properties
+     */
+    public Iterator propertyNames(){
+        return _properties.propertyNames();
+    }
+
     /**
      * Set the property corresponding to the given key.
      */
@@ -100,4 +108,5 @@ public class TimedStroke extends Polyline2D.Float implements PropertyContainer {
         _properties.setProperty(key, value);
     }
 }
+
 

@@ -1,8 +1,8 @@
 /* Foo.java: a name path with bugs in it
  *
- * $Id: Foo.java,v 1.2 2000/05/02 00:45:31 johnr Exp $
+ * $Id: Foo.java,v 1.3 2001/07/22 22:02:10 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.jester.demo;
@@ -11,7 +11,7 @@ package diva.util.jester.demo;
  * Foo: a name path with bugs in it
  *
  * @author John Reekie
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public class Foo {
     StringBuffer path;
@@ -29,4 +29,5 @@ public class Foo {
         return path.toString();
     }
 }
+
 

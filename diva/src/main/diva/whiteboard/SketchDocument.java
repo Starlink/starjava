@@ -1,7 +1,7 @@
 /*
- * $Id: SketchDocument.java,v 1.25 2000/09/15 22:17:51 michaels Exp $
+ * $Id: SketchDocument.java,v 1.27 2001/07/22 22:02:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
@@ -10,10 +10,8 @@ import diva.sketch.SketchModel;
 import diva.sketch.SketchParser;
 import diva.sketch.SketchWriter;
 import diva.sketch.Symbol;
-import diva.sketch.SketchController;
 import diva.sketch.JSketch;
 import diva.sketch.SketchPane;
-import diva.sketch.BasicSketchController;
 import diva.gui.MultipageDocument;
 import diva.gui.Application;
 import diva.gui.BasicPage;
@@ -51,7 +49,7 @@ import java.util.Iterator;
   * instead.
   * 
   * @author Heloise Hse (hwawen@eecs.berkeley.edu)
-  * @version $Revision: 1.25 $
+  * @version $Revision: 1.27 $
   * @rating Red
   */
  public class SketchDocument extends MultipageDocument {
@@ -105,4 +103,5 @@ import java.util.Iterator;
          }
      }
  }
+
 

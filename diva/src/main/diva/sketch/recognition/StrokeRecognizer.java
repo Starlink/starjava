@@ -1,8 +1,8 @@
 /*
- * $Id: StrokeRecognizer.java,v 1.1 2000/05/10 19:11:19 hwawen Exp $
+ * $Id: StrokeRecognizer.java,v 1.3 2001/08/28 06:34:12 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 
 package diva.sketch.recognition;
@@ -13,7 +13,7 @@ package diva.sketch.recognition;
  * based on these changes.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public interface StrokeRecognizer {
@@ -21,7 +21,7 @@ public interface StrokeRecognizer {
      * Invoked when a stroke starts.  This occurs when the mouse down
      * event has been detected.
      */
-    public StrokeRecognitionSet strokeStarted(TimedStroke s);
+    public RecognitionSet strokeStarted(TimedStroke s);
 
     /**
      * Invoked when a stroke has been modified, for example, points
@@ -29,11 +29,12 @@ public interface StrokeRecognizer {
      * that this will be called every time a point is added to a
      * stroke.
      */
-    public StrokeRecognitionSet strokeModified(TimedStroke s);
+    public RecognitionSet strokeModified(TimedStroke s);
 	
     /**
      * Invoked when a stroke is completed. This occurs when the mouse
      * up event has been detected.
      */
-    public StrokeRecognitionSet strokeCompleted(TimedStroke s);
+    public RecognitionSet strokeCompleted(TimedStroke s);
 }
+

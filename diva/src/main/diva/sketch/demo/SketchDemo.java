@@ -1,11 +1,11 @@
 /*
- * $Id: SketchDemo.java,v 1.13 2000/07/14 23:47:05 hwawen Exp $
+ * $Id: SketchDemo.java,v 1.16 2001/07/22 22:01:46 johnr Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.demo;
-import diva.sketch.BasicSketchController;
+import diva.sketch.SketchController;
 import diva.sketch.JSketch;
 import diva.sketch.SketchModel;
 import diva.sketch.SketchPane;
@@ -61,13 +61,13 @@ import java.io.FileWriter;
  * The rest of the code in the demo is mainly to add more functionality.
  *
  * @author Heloise Hse (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.16 $
  * @rating Red
  */
 public class SketchDemo {
-    private final static String SK = "sk";
+    private final static String SML = "sml";
 
-    private BasicSketchController _controller;
+    private SketchController _controller;
     private SketchParser _parser;
     private SketchWriter _writer;
     private FileFilter _filter;
@@ -84,25 +84,24 @@ public class SketchDemo {
      * Construct a new sketch-based editor.
      */
     public SketchDemo (AppContext context) {
+        //instantiate a JSketch and add it to the content pane
         JSketch jsketch = new JSketch();
         context.getContentPane().add("Center", jsketch);
 
-        //instantiate a controller to process input sketch
-        SketchPane pane = jsketch.getSketchPane();
-        _controller = (BasicSketchController)pane.getSketchController();
-
-        if(context instanceof ApplicationContext){
-            JMenuBar mb = new JMenuBar();
-            initializeMenuBar(mb);
-            context.setJMenuBar(mb);
-        }
+        //keep a reference to the sketch controller
+        _controller = jsketch.getSketchPane().getSketchController();
 
         //save and load utilities
         _parser = new SketchParser();
         _writer = new SketchWriter();
-        _filter = new ExtensionFileFilter(SK, "Sketch Markup Language");
+        _filter = new ExtensionFileFilter(SML, "Sketch Markup Language");
 
-        //context.addWindowListener(new LocalWindowListener());
+        if(context instanceof ApplicationContext){
+            ((ApplicationContext)context).addWindowListener(new LocalWindowListener());
+            JMenuBar mb = new JMenuBar();
+            initializeMenuBar(mb);
+            context.setJMenuBar(mb);
+        }
         context.setSize(500,500);
         context.setVisible(true);
     }
@@ -125,8 +124,7 @@ public class SketchDemo {
                 if(returnVal == JFileChooser.APPROVE_OPTION){
                     try{
                         File file = chooser.getSelectedFile();
-                        SketchModel model = (SketchModel)
-                        _parser.parse(new FileReader(file));
+                        SketchModel model = (SketchModel)_parser.parse(new FileReader(file));
                         _controller.setSketchModel(model);
                         System.out.println("Opened " + file.getName());
                     }
@@ -149,7 +147,7 @@ public class SketchDemo {
                         File file = chooser.getSelectedFile();
                         //make sure the file extension is .sk
                         if(!_filter.accept(file)){
-                            file = new File(file.getName()+"."+SK);
+                            file = new File(file.getName()+"."+SML);
                         }
                         FileWriter fwriter = new FileWriter(file.getName());
                         _writer.writeModel(_controller.getSketchModel(),
@@ -182,3 +180,4 @@ public class SketchDemo {
         }
     }
 }
+

@@ -1,7 +1,7 @@
 /*
- * $Id: FigureTest.java,v 1.11 2000/05/02 00:43:36 johnr Exp $
+ * $Id: FigureTest.java,v 1.14 2002/01/10 01:04:36 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.test;
@@ -22,9 +22,15 @@ import java.awt.image.BufferedImage;
  * concrete factories must implement.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.14 $
  */
 public class FigureTest extends TestSuite {
+
+    /** The figure factory interface
+     */
+    public interface FigureFactory {
+        public Figure createFigure ();
+    }
 
     /**
      * The unit factory
@@ -69,8 +75,8 @@ public class FigureTest extends TestSuite {
                 figure.setVisible(false);
             }
             public void check () throws TestFailedException {
-                assert(!figure.isVisible(), "Property visible");
-                assert(figure.getInteractor() == r, "Property interactionRole");
+                assertExpr(!figure.isVisible(), "Property visible");
+                assertExpr(figure.getInteractor() == r, "Property interactionRole");
             }
         });
     }
@@ -131,10 +137,10 @@ public class FigureTest extends TestSuite {
                 at3 = new AffineTransform(g.getTransform());
             }
             public void check () throws TestFailedException {
-                assert(at1.equals(at2),
+                assertExpr(at1.equals(at2),
                         "Graphics2D transform changed from:\n    " 
                         + at1 + " \nto:\n    " + at2);
-                assert(at2.equals(at3),
+                assertExpr(at2.equals(at3),
                         "Graphics2D transform changed from:\n    " 
                         + at2 + " \nto:\n    " + at3);
             }
@@ -172,7 +178,7 @@ public class FigureTest extends TestSuite {
                 figure.transform(at);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(
+                assertExpr(TestUtilities.shapeEquals(
                         shape, figure.getShape(), 0.01),
                         "Shape not transformed: "
                         + shape + " != " + figure.getShape());
@@ -181,8 +187,8 @@ public class FigureTest extends TestSuite {
                 // because bounds don't necessarily transform correctly!
                 // So this test is only useful for catching the most
                 // gross errors
-                assert(TestUtilities.shapeEquals(
-                        bounds, figure.getBounds(), 1.0),
+                assertExpr(TestUtilities.shapeEquals(
+                        bounds, figure.getBounds(), 2.0),
                         "Bounds not transformed: "
                         + bounds + " != " + figure.getBounds());
             }
@@ -212,12 +218,12 @@ public class FigureTest extends TestSuite {
                 figure.translate(10.0, -20.0);
             }
             public void check () throws TestFailedException {
-                assert(TestUtilities.shapeEquals(
+                assertExpr(TestUtilities.shapeEquals(
                         shape, figure.getShape(), 0.01),
                         "Shape not translated: "
                         + shape + " != " + figure.getShape());
 
-                assert(TestUtilities.shapeEquals(
+                assertExpr(TestUtilities.shapeEquals(
                         bounds, figure.getBounds(), 0.01),
                         "Bounds not translated: "
                         + bounds + " != " + figure.getBounds());
@@ -255,10 +261,11 @@ public class FigureTest extends TestSuite {
         //     result = figure.intersects(region);
         //}
         public void check () throws TestFailedException {
-            assert(TestUtilities.shapeEquals(region, copy, 0.01),
+            assertExpr(TestUtilities.shapeEquals(region, copy, 0.01),
                     "The region was changed from:\n    " 
                     + copy + " \nto:\n    " + region);
         }
     }
 }
+
 

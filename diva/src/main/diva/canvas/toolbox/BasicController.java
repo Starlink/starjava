@@ -1,7 +1,7 @@
 /*
- * $Id: BasicController.java,v 1.10 2000/05/22 17:08:21 neuendor Exp $
+ * $Id: BasicController.java,v 1.11 2001/07/22 22:00:43 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -30,7 +30,7 @@ import java.awt.event.MouseEvent;
  * interaction can give this interactor to figures
  * that they add to the foreground layer of the corresponding pane.
  *
- * @version	$Revision: 1.10 $
+ * @version	$Revision: 1.11 $
  * @author 	John Reekie
  */
 public class BasicController {
@@ -116,4 +116,5 @@ public class BasicController {
         _selectionInteractor.setSelectionRenderer(renderer);
     }
 }
+
 

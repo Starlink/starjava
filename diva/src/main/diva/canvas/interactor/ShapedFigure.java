@@ -1,7 +1,7 @@
 /*
- * $Id: ShapedFigure.java,v 1.3 2000/05/02 00:43:32 johnr Exp $
+ * $Id: ShapedFigure.java,v 1.4 2001/07/22 22:00:39 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.canvas.interactor;
@@ -15,7 +15,7 @@ import java.awt.Shape;
  * wrapped around it.
  *
  * @author John Reekie      (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  */
 public interface ShapedFigure extends Figure {
     /**
@@ -24,4 +24,5 @@ public interface ShapedFigure extends Figure {
      */
     public void setShape (Shape s);
 }
+
 

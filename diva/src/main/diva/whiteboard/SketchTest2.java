@@ -1,3 +1,9 @@
+/*
+ * $Id: SketchTest2.java,v 1.3 2001/07/23 03:59:01 johnr Exp $
+ *
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
+ */
 package diva.whiteboard;
 import diva.canvas.*;
 import diva.canvas.interactor.*;
@@ -114,3 +120,5 @@ public class SketchTest2 extends JFrame {
         }
     }
 }
+
+

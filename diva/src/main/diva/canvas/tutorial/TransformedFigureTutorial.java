@@ -1,7 +1,7 @@
 /*
- * $Id: TransformedFigureTutorial.java,v 1.7 2000/05/22 17:07:25 neuendor Exp $
+ * $Id: TransformedFigureTutorial.java,v 1.11 2002/01/04 04:12:11 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -41,24 +41,114 @@ import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.SwingUtilities;
 
-/** An example showing how to make custom figures that contain
- * their own AffineTransform. In the FigureTutorial class, we
+/** This tutorial shows how to make custom figures that contain
+ * their own TransformContext.
+ *
+ * <img src="../../../../packages/canvas/tutorial/images/TransformedFigureTutorial.gif" align="right">
+ *
+ * In the FigureTutorial class, we
  * showed how to make a custom figure, and how to transform the
  * various 2D shapes in the paint() method. Here, we will use
  * an AffineTransform to do the same thing. This technique is
- * a little more work to figure out how to do, but it probably
+ * a little more work to figure out how to do, but it's probably
  * better if your figure has more than a couple of Shapes in it.
  *
  * <p> Transforms are a little tricky to get right, so the Diva
  * Canvas provides a class, TransformContext, that you need to use
  * to give a figure its own transform. Each instance of TransformContext
  * contains a single AffineTransform, and a bunch of methods that
- * deal with it. See the class documentation for
- * TransformedFigureTutorial.CloudFigure for more details.
+ * deal with it.
+ *
+ * <p> The start of the CloudFigure class contains this code:
+ * 
+ * <pre>
+ *     private TransformContext _transformContext;
+ *     private Rectangle2D _cachedBounds = null;
+ *     private Shape _cachedShape = null;
+ * 
+ *     public CloudFigure (
+ *             double x, double y,
+ *             double width, double height ) {
+ * 
+ *         _transformContext = new TransformContext(this);
+ *         AffineTransform at = _transformContext.getTransform();
+ *         at.translate(x,y);
+ *         at.scale(width/100, height/100);
+ *         _transformContext.invalidateCache();
+ * 
+ * 	....
+ *     } 
+ * </pre>
+ * 
+ * The initial shape of this figure is in fact a "cloud" shape
+ * that is located at (0,0) and is 100 units on each side. The
+ * internal transform is therefore initialized to scale this
+ * shape to the requested coordinates.
+ * 
+ * <p>
+ * Now, because the shape of this figure is fairly expensive to
+ * transform, the two instance variables <b>_cachedBounds</b> and
+ * <b>_cachedShape</b> store the bounds and shape for the current
+ * transform. If you look at the source code for this class, you will see
+ * that these are created and remembered in getBounds() and
+ * getShape(). In getShape(), for example, the internally-stored
+ * shape needs to be transformed into "external" coordinates:
+ * 
+ * <pre>
+ *     public Shape getShape () {
+ *         if (_cachedShape == null) {
+ *             AffineTransform at = _transformContext.getTransform();
+ *             _cachedShape = at.createTransformedShape(_shape);
+ *         }
+ *         return _cachedShape;
+ *     }
+ * </pre>
+ * 
+ * Whenever the transform changes, these shapes must be cleared.
+ * For example:
+ * 
+ * <pre>
+ *     public void transform (AffineTransform at) {
+ *         repaint();
+ *         _cachedShape = null;
+ *         _cachedBounds = null;
+ *         _transformContext.preConcatenate(at);
+ *         repaint();
+ *     }
+ * </pre>
+ * 
+ * <p>
+ * The only other interesting thing about this class is the
+ * paint() method. Because paint() is called recursively down
+ * the tree of figures, the TransformContext class provides
+ * two methods that "stack" transform contexts as the tree
+ * is traversed. The paint() method calls push() and pop()
+ * before and after painting the figure's contents:
+ * 
+ * <pre>
+ *     public void paint (Graphics2D g) {
+ *         _transformContext.push(g);
+ * 
+ * 	....
+ *         // Paint the big cloud
+ *         AlphaComposite c = AlphaComposite.getInstance(
+ *                 AlphaComposite.SRC_OVER,0.5f);
+ *         g.setComposite(c);
+ *         g.setPaint(Color.magenta);
+ *         g.fill(_shape);
+ * 
+ * 	....
+ *         _transformContext.pop(g);
+ *     }
+ * </pre>
+ * 
+ * That's about all that's needed to use transform contexts
+ * in a figure.
  *
  * @author John Reekie
- * @version $Revision: 1.7 $
+ * @version $Revision: 1.11 $
  */
 public class TransformedFigureTutorial {
 
@@ -86,7 +176,7 @@ public class TransformedFigureTutorial {
     public void createFigures () {
         FigureLayer layer = graphicsPane.getForegroundLayer();
 
-        // Create the interaction role and an interactor to do the work.
+        // Create an interactor to do the work.
         Interactor dragger = new DragInteractor();
       
         // Create the figure
@@ -102,8 +192,13 @@ public class TransformedFigureTutorial {
     /** Main function
      */
     public static void main (String argv[]) {
-        TransformedFigureTutorial ex = new TransformedFigureTutorial();
-        ex.createFigures();
+	// Always invoke graphics code in the event thread
+	SwingUtilities.invokeLater(new Runnable() {
+		public void run() {
+		    TransformedFigureTutorial ex = new TransformedFigureTutorial();
+		    ex.createFigures();
+		}
+	    });
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -266,4 +361,5 @@ public class TransformedFigureTutorial {
         }
     }
 }
+
 

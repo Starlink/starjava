@@ -1,7 +1,7 @@
 /*
- * $Id: GraphicsParser.java,v 1.11 2000/05/02 00:43:38 johnr Exp $
+ * $Id: GraphicsParser.java,v 1.13 2002/08/12 06:34:15 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -35,8 +35,10 @@ import java.util.StringTokenizer;
 /** A collection of utilities to help parsing graphics from strings
  * and other kinds of external storage.
  *
- * @version	$Revision: 1.11 $
+ * @version	$Revision: 1.13 $
  * @author 	John Reekie
+ * @deprecated  Will be removed in Diva 0.4. Use diva.compat.canvas if
+ *              needed, or diva.canvas.toolbox.VectorFigureBuilder.
  */
 public class GraphicsParser {
 
@@ -372,4 +374,5 @@ public class GraphicsParser {
         }
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: MDIContext.java,v 1.2 2000/06/05 18:45:40 neuendor Exp $
+ * $Id: MDIContext.java,v 1.3 2001/07/22 22:01:31 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -15,7 +15,7 @@ import javax.swing.event.EventListenerList;
  * documents and views.  [FIXME: more docs]
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.3 $
  */
 public interface MDIContext extends AppContext {
    /** Add a new content pane to this frame. Generally, a client
@@ -67,4 +67,5 @@ public interface MDIContext extends AppContext {
      */
     public void setFrameIcon (Icon icon);
 }
+
 

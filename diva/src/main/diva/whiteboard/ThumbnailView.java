@@ -1,7 +1,7 @@
 /*
- * $Id: ThumbnailView.java,v 1.13 2000/11/17 17:51:42 michaels Exp $
+ * $Id: ThumbnailView.java,v 1.15 2001/07/22 22:02:26 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.whiteboard;
@@ -17,7 +17,6 @@ import diva.gui.DesktopContext;
 import diva.sketch.JSketch;
 import diva.sketch.SketchPane;
 import diva.sketch.SketchListener;
-import diva.sketch.BasicSketchController;
 import diva.sketch.SketchModel;
 import diva.sketch.SketchEvent;
 import diva.sketch.SketchParser;
@@ -88,7 +87,7 @@ import java.awt.datatransfer.*;
  *
  * @author Michael Shilman  (michaels@eecs.berkeley.edu)
  * @author Heloise Hse      (hwawen@eecs.berkeley.edu)
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.15 $
  * @rating Red
  */
 public class ThumbnailView {
@@ -760,3 +759,4 @@ public class ThumbnailView {
     public static final DataFlavor TEXT_FLAVOR = DataFlavor.plainTextFlavor;
     public static final DataFlavor STRING_FLAVOR = DataFlavor.stringFlavor;
 }
+

@@ -1,5 +1,5 @@
 #
-# $Id: makefile,v 1.35 2000/11/17 22:13:02 neuendor Exp $
+# $Id: makefile,v 1.43 2002/09/26 10:26:52 johnr Exp $
 #
 # Makefile for diva.canvas.toolbox
 #
@@ -23,9 +23,10 @@ JSRCS = \
 	PathFigure.java \
 	PaintedFigure.java \
 	SVGParser.java \
+	SVGUtilities.java \
 	SwingWrapper.java \
 	TypedDecorator.java \
-	VersatileFigure.java
+	VectorFigure.java
 
 # Include the shared compilation rules
 include $(DIVA)/compile.mk
@@ -37,27 +38,13 @@ BasicCanvasPane.class: \
 	../CanvasLayer.java \
 	../CanvasPane.java \
 	../Figure.java \
-	../FigureContainer.java \
 	../FigureLayer.java \
-	../FigureSet.java \
-	../VisibleComponent.java \
 	../event/EventAcceptor.java
 
 BasicController.class: \
 	BasicController.java \
-	../AbstractFigure.java \
-	../AbstractFigureContainer.java \
-	../CanvasComponent.java \
-	../CanvasPane.java \
-	../Figure.java \
-	../FigureContainer.java \
 	../FigureDecorator.java \
-	../FigureSet.java \
 	../GraphicsPane.java \
-	../VisibleComponent.java \
-	../event/EventAcceptor.java \
-	../event/LayerListener.java \
-	../event/LayerMotionListener.java \
 	../event/MouseFilter.java \
 	../interactor/AbstractInteractor.java \
 	../interactor/BasicSelectionRenderer.java \
@@ -68,8 +55,7 @@ BasicController.class: \
 	../interactor/SelectionDragger.java \
 	../interactor/SelectionInteractor.java \
 	../interactor/SelectionModel.java \
-	../interactor/SelectionRenderer.java \
-	../../util/UserObjectContainer.java
+	../interactor/SelectionRenderer.java
 
 BasicEllipse.class: \
 	BasicEllipse.java \
@@ -85,13 +71,11 @@ BasicFigure.class: \
 	BasicFigure.java \
 	../AbstractFigure.java \
 	../CanvasComponent.java \
-	../CanvasUtilities.java \
 	../Figure.java \
 	../VisibleComponent.java \
 	../interactor/ShapedFigure.java \
 	../../util/UserObjectContainer.java \
-	../../util/java2d/PaintedObject.java \
-	../../util/java2d/PaintedShape.java
+	../../util/java2d/ShapeUtilities.java
 
 BasicHighlighter.class: \
 	BasicHighlighter.java \
@@ -118,6 +102,8 @@ BasicRectangle.class: \
 
 GraphicsParser.class: \
 	GraphicsParser.java \
+	../../util/java2d/AbstractPaintedGraphic.java \
+	../../util/java2d/PaintedGraphic.java \
 	../../util/java2d/PaintedList.java \
 	../../util/java2d/PaintedObject.java \
 	../../util/java2d/PaintedPath.java \
@@ -140,7 +126,6 @@ IconFigure.class: \
 	../AbstractFigure.java \
 	../AbstractSite.java \
 	../CanvasComponent.java \
-	../CanvasUtilities.java \
 	../Figure.java \
 	../Site.java \
 	../VisibleComponent.java \
@@ -148,7 +133,8 @@ IconFigure.class: \
 	../connector/Terminal.java \
 	../interactor/ShapedFigure.java \
 	../../util/UserObjectContainer.java \
-	../../util/java2d/PaintedObject.java
+	../../util/java2d/PaintedObject.java \
+	../../util/java2d/ShapeUtilities.java
 
 ImageFigure.class: \
 	ImageFigure.java \
@@ -164,8 +150,10 @@ LabelFigure.class: \
 	../CanvasComponent.java \
 	../CanvasUtilities.java \
 	../Figure.java \
+	../TransformContext.java \
 	../VisibleComponent.java \
-	../../util/UserObjectContainer.java
+	../../util/UserObjectContainer.java \
+	../../util/java2d/ShapeUtilities.java
 
 LabelWrapper.class: \
 	LabelFigure.java \
@@ -183,26 +171,38 @@ PathFigure.class: \
 	PathFigure.java \
 	../AbstractFigure.java \
 	../CanvasComponent.java \
-	../CanvasUtilities.java \
 	../Figure.java \
 	../VisibleComponent.java \
 	../interactor/ShapedFigure.java \
 	../../util/UserObjectContainer.java \
-	../../util/java2d/PaintedObject.java \
-	../../util/java2d/PaintedPath.java
+	../../util/java2d/ShapeUtilities.java
 
 PaintedFigure.class: \
 	PaintedFigure.java \
 	../AbstractFigure.java \
 	../CanvasComponent.java \
-	../CanvasUtilities.java \
 	../Figure.java \
 	../VisibleComponent.java \
 	../interactor/ShapedFigure.java \
 	../../util/UserObjectContainer.java \
 	../../util/java2d/PaintedList.java \
 	../../util/java2d/PaintedObject.java \
-	../../util/java2d/PaintedShape.java
+	../../util/java2d/PaintedShape.java \
+	../../util/java2d/ShapeUtilities.java
+
+SVGParser.class: \
+	SVGParser.java \
+	../../util/java2d/AbstractPaintedGraphic.java \
+	../../util/java2d/PaintedGraphic.java \
+	../../util/java2d/PaintedImage.java \
+	../../util/java2d/PaintedList.java \
+	../../util/java2d/PaintedObject.java \
+	../../util/java2d/PaintedPath.java \
+	../../util/java2d/PaintedShape.java \
+	../../util/java2d/PaintedString.java \
+	../../util/java2d/Polygon2D.java \
+	../../util/java2d/Polyline2D.java \
+	../../util/xml/XmlElement.java
 
 SwingWrapper.class: \
 	SwingWrapper.java \
@@ -228,5 +228,16 @@ TypedDecorator.class: \
 	../FigureSet.java \
 	../VisibleComponent.java \
 	../../util/UserObjectContainer.java
+
+VectorFigure.class: \
+	VectorFigure.java \
+	../AbstractFigure.java \
+	../CanvasComponent.java \
+	../Figure.java \
+	../TransformContext.java \
+	../VisibleComponent.java \
+	../interactor/ShapedFigure.java \
+	../../util/UserObjectContainer.java \
+	../../util/java2d/ShapeUtilities.java
 
 

@@ -1,7 +1,7 @@
 /*
- * $Id: MenuCreator.java,v 1.5 2000/06/06 18:45:17 neuendor Exp $
+ * $Id: MenuCreator.java,v 1.6 2001/07/22 22:01:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -22,7 +22,7 @@ import diva.canvas.event.*;
  * 
  *
  * @author Stephen Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.5 $
+ * @version $Revision: 1.6 $
  */
 public class MenuCreator extends AbstractInteractor {
     /** The menu factory.
@@ -67,4 +67,5 @@ public class MenuCreator extends AbstractInteractor {
         _factory = factory;
     }
 }
+
 

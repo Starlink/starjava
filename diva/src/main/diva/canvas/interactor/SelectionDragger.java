@@ -1,7 +1,7 @@
 /*
- * $Id: SelectionDragger.java,v 1.8 2000/06/14 16:58:38 neuendor Exp $
+ * $Id: SelectionDragger.java,v 1.9 2001/07/22 22:00:38 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -45,7 +45,7 @@ import java.util.Iterator;
  * constructor, in which case it will use the background event layer,
  * outline layer, and foreground event layer from that pane.
  *
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  * @author John Reekie
  */
 public class SelectionDragger extends DragInteractor {
@@ -457,4 +457,5 @@ public class SelectionDragger extends DragInteractor {
 	_holdovers = null;
     }
 }
+
 

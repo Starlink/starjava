@@ -1,12 +1,12 @@
 /*
- * $Id: ModedIncrRecognizer.java,v 1.1 2000/05/12 19:21:58 hwawen Exp $
+ * $Id: ModedIncrRecognizer.java,v 1.3 2001/08/28 06:37:12 hwawen Exp $
  *
- * Copyright (c) 1998 The Regents of the University of California.
- * All rights reserved.  See the file COPYRIGHT for details.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
+ * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.sketch.toolbox;
 import diva.sketch.recognition.StrokeRecognizer;
-import diva.sketch.recognition.StrokeRecognitionSet;
+import diva.sketch.recognition.RecognitionSet;
 import diva.sketch.recognition.TimedStroke;
 /**
  * An abstract class for "moded" incremental recognizers that examines
@@ -18,7 +18,7 @@ import diva.sketch.recognition.TimedStroke;
  * every event effects the zoom output.
  *
  * @author  Michael Shilman (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.3 $
  * @rating Red
  */
 public abstract class ModedIncrRecognizer implements StrokeRecognizer {
@@ -55,13 +55,13 @@ public abstract class ModedIncrRecognizer implements StrokeRecognizer {
      * recognizer to UNKNOWN, which means that the gesture has
      * started, but the nature of the gesture is not yet known.
      */
-    public StrokeRecognitionSet strokeStarted(TimedStroke s) {
+    public RecognitionSet strokeStarted(TimedStroke s) {
         if(_mode != IDLE) {
             String err = "Non-idle zooming recognizer should be idle!";
             throw new IllegalStateException(err);
         }
         _mode = UNKNOWN;
-        return StrokeRecognitionSet.NO_RECOGNITION;
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
@@ -71,7 +71,7 @@ public abstract class ModedIncrRecognizer implements StrokeRecognizer {
      * completes an action and wants to revert to the IDLE state.
      * Most implementations should probably return ACTION.
      */
-    protected abstract StrokeRecognitionSet processActionStroke(TimedStroke s);
+    protected abstract RecognitionSet processActionStroke(TimedStroke s);
 
     /**
      * Recognize the action signal (it is still unknown) and return an
@@ -90,11 +90,11 @@ public abstract class ModedIncrRecognizer implements StrokeRecognizer {
      * the mode to IDLE, because we don't want to process multi-stroke
      * gestures.
      */
-    public StrokeRecognitionSet strokeCompleted(TimedStroke s){
+    public RecognitionSet strokeCompleted(TimedStroke s){
         if(_mode != IDLE) {
             _mode = IDLE;
         }
-        return StrokeRecognitionSet.NO_RECOGNITION;
+        return RecognitionSet.NO_RECOGNITION;
     }
 
     /**
@@ -102,9 +102,9 @@ public abstract class ModedIncrRecognizer implements StrokeRecognizer {
      * have been added to the stroke.  If the current mode is idle,
      * we ignore these events.  Otherwise this is where the bulk of
      */
-    public StrokeRecognitionSet strokeModified(TimedStroke s){
+    public RecognitionSet strokeModified(TimedStroke s){
         if(_mode == IDLE) {
-            return StrokeRecognitionSet.NO_RECOGNITION;
+            return RecognitionSet.NO_RECOGNITION;
         }
         else if(_mode == ACTION) {
             _mode = ACTION;
@@ -113,6 +113,7 @@ public abstract class ModedIncrRecognizer implements StrokeRecognizer {
         else {
             _mode = recognizeActionSignal(s);
         }
-        return StrokeRecognitionSet.NO_RECOGNITION;
+        return RecognitionSet.NO_RECOGNITION;
     }
 }
+

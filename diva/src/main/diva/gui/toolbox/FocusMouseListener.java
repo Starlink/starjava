@@ -1,7 +1,7 @@
 /*
- * $Id: FocusMouseListener.java,v 1.1 2000/07/02 19:56:57 neuendor Exp $
+ * $Id: FocusMouseListener.java,v 1.2 2001/07/22 22:01:32 johnr Exp $
  *
- * Copyright (c) 2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui.toolbox;
@@ -16,7 +16,7 @@ import java.awt.event.MouseEvent;
  * is useful.  Attach it to a component and the component gets when pressed.
  *
  * @author Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class FocusMouseListener implements MouseListener {      
     public void mouseReleased(MouseEvent event) {
@@ -42,4 +42,5 @@ public class FocusMouseListener implements MouseListener {
     public void mouseClicked(MouseEvent event) {
     }
 }
+
 

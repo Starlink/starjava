@@ -1,7 +1,7 @@
 /*
- * $Id: SimpleGraphController.java,v 1.7 2000/09/06 20:30:50 neuendor Exp $
+ * $Id: SimpleGraphController.java,v 1.9 2001/07/22 22:01:18 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -46,10 +46,10 @@ import java.util.HashMap;
  * kinds of nodes, use CompositeGraphController instead.
  *
  * @author 	Steve Neuendorffer (neuendor@eecs.berkeley.edu)
- * @version	$Revision: 1.7 $
+ * @version	$Revision: 1.9 $
  * @rating      Red
  */
-public abstract class SimpleGraphController extends GraphController {
+public abstract class SimpleGraphController extends AbstractGraphController {
     
     /** The node controller
      */
@@ -110,6 +110,7 @@ public abstract class SimpleGraphController extends GraphController {
         _nodeController = c;
     }
 }
+
 
 
 

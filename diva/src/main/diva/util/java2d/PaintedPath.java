@@ -1,7 +1,7 @@
 /*
- * $Id: PaintedPath.java,v 1.10 2000/07/17 21:30:46 neuendor Exp $
+ * $Id: PaintedPath.java,v 1.14 2002/08/12 06:37:00 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -22,9 +22,10 @@ import java.awt.geom.Rectangle2D;
  * govern how the shape is stroked, such as the line width, dashing,
  * and paint.
  *
- * @version	$Revision: 1.10 $
+ * @version	$Revision: 1.14 $
  * @author 	John Reekie
  * @author      Nick Zamora
+ * @deprecated Will be removed in Diva 0.4. Use diva.compat.canvas if needed.
  */
 public class PaintedPath extends AbstractPaintedGraphic {
 
@@ -157,4 +158,5 @@ public class PaintedPath extends AbstractPaintedGraphic {
         stroke = s;
     }
 }
+
 

@@ -1,7 +1,7 @@
 /*
- * $Id: NodeRenderer.java,v 1.9 2000/05/08 07:02:35 neuendor Exp $
+ * $Id: NodeRenderer.java,v 1.10 2001/07/22 22:01:18 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.graph;
@@ -14,7 +14,7 @@ import diva.canvas.Figure;
  * the size of the figure.
  *
  * @author  Michael Shilman  (michaels@eecs.berkeley.edu)
- * @version $Revision: 1.9 $
+ * @version $Revision: 1.10 $
  * @rating  Red
  */
 public interface NodeRenderer {
@@ -23,4 +23,5 @@ public interface NodeRenderer {
      */
     public Figure render(Object node);
 }
+
 

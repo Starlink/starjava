@@ -1,7 +1,7 @@
 /*
- * $Id: PathFigure.java,v 1.5 2000/09/11 20:49:56 neuendor Exp $
+ * $Id: PathFigure.java,v 1.9 2002/09/26 10:26:51 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -24,7 +24,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Rectangle2D;
 
-import diva.util.java2d.PaintedPath;
 import diva.util.java2d.ShapeUtilities;
 
 /** A PathFigure is one that contains a single instance of
@@ -33,43 +32,50 @@ import diva.util.java2d.ShapeUtilities;
  *  class, simple objects can be created on-the-fly simply by passing
  *  an instance of java.awt.Shape to the constructor. This class
  *  is mainly intended for use for open shapes (without fill).
- *  For filled shapes, use the BasicFigure class.
+ *  For filled shapes, use the BasicFigure class, and for more complex
+ *  figures, use VectorFigure or create a custom Figure class.
  *
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.9 $
  * @author 	John Reekie
  */
 public class PathFigure extends AbstractFigure implements ShapedFigure {
 
-    /** The color compositing operator
+    /** The stroke.
      */
-    private Composite _composite = AlphaComposite.SrcOver; // opaque
-    
-     /** The painted shape that we use to draw the connector.
+    private Stroke _stroke;
+
+    /** The stroke paint.
      */
-    private PaintedPath _paintedPath;
+    private Paint _paint;
+
+     /** The shape of the figure
+     */
+    private Shape _shape;
 
     /** Create a new figure with the given shape. The figure, by
      *  default, is stroked with a unit-width continuous black stroke.
      */
     public PathFigure (Shape shape) {
-        super();
-        _paintedPath = new PaintedPath(shape);
+        _shape = shape;
+        _stroke = ShapeUtilities.getStroke(1);
+	_paint = Color.black;
     }
 
     /** Create a new figure with the given shape and width.
      * The default paint is black.
      */
     public PathFigure (Shape shape, float lineWidth) {
-        super();
-        _paintedPath = new PaintedPath(shape, lineWidth);
+        _shape = shape;
+        _stroke = ShapeUtilities.getStroke(lineWidth);
+	_paint = Color.black;
     }
 
     /** Create a new figure with the given paint and width.
      */
     public PathFigure (Shape shape, Paint paint, float lineWidth) {
-        super();
-        _paintedPath = new PaintedPath(shape, lineWidth);
-        _paintedPath.strokePaint = paint;
+        _shape = shape;
+        _stroke = ShapeUtilities.getStroke(lineWidth);
+	_paint = paint;
     }
 
     /** Get the bounding box of this figure. This method overrides
@@ -77,53 +83,57 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
      * the stroke.
      */
     public Rectangle2D getBounds () {
-        return _paintedPath.getBounds();
+	return ShapeUtilities.computeStrokedBounds(_shape, _stroke);
     }
 
-    /** Get the color composition operator of this figure.
+    /** Get the dash array. If the stroke is not a BasicStroke
+     * then null will always be returned.
      */
-    public Composite getComposite () {
-        return _composite;
+    public float[] getDashArray () {
+        if (_stroke instanceof BasicStroke) {
+            return ((BasicStroke) _stroke).getDashArray();
+        } else {
+            return null;
+        }
     }
 
-    /** Get the line width of this figure.
+    /** Get the line width of this figure. If the stroke is not a BasicStroke
+     * then 1.0 will always be returned.
      */
     public float getLineWidth () {
-        return _paintedPath.getLineWidth();
+        if (_stroke instanceof BasicStroke) {
+            return ((BasicStroke) _stroke).getLineWidth();
+        } else {
+            return 1.0f;
+        }
     }
 
     /** Get the shape of this figure.
      */
     public Shape getShape () {
-        return _paintedPath.shape;
+        return _shape;
     }
 
     /** Get the stroke of this figure.
      */
     public Stroke getStroke () {
-        return _paintedPath.getStroke();
+        return _stroke;
     }
 
     /** Get the stroke paint of this figure.
      */
     public Paint getStrokePaint () {
-        return _paintedPath.strokePaint;
+        return _paint;
     }
 
-    /** Test if this figure intersects the given rectangle. If there
-     * is a fill but no outline, then there is a hit if the shape
-     * is intersected. If there is an outline but no fill, then the
-     * area covered by the outline stroke is tested. If there
-     * is both a fill and a stroke, the region bounded by the outside
-     * edge of the stroke is tested. If there is neither a fill nor
-     * a stroke, then return false. If the figure is not visible,
-     * always return false.
+    /** Test if this figure intersects the given rectangle. 
+     * If the figure is not visible, always return false.
      */
     public boolean hit (Rectangle2D r) {
         if (!isVisible()) {
              return false;
         }
-        return _paintedPath.hit(r);
+        return  ShapeUtilities.intersectsOutline(r, _shape);
     }
 
     /** Paint the figure. The figure is redrawn with the current
@@ -133,36 +143,66 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
         if (!isVisible()) {
              return;
         }
-        if (_composite != null) {
-            g.setComposite(_composite);
-        }
-        _paintedPath.paint(g);
+	g.setStroke(_stroke);
+        g.setPaint(_paint);
+        g.draw(_shape);
     }
 
-    /** Set the color composition operator of this figure. If the
-     * composite is set to null, then the composite will not be
-     * changed when the figure is painted. By default, the composite
-     * is set to opaque.
-     */
-    public void setComposite (Composite c) {
-        _composite = c;
-        repaint();
-    }
-
-   /** Set the line width of this figure. If the width is zero,
-    * then the stroke will be removed.
+   /** Set the dash array of the stroke. The existing stroke will
+    * be removed, but the line width will be preserved if possible.
     */
+    public void setDashArray (float dashArray[]) {
+        repaint();
+	if (_stroke instanceof BasicStroke) {
+            _stroke = new BasicStroke(
+                    ((BasicStroke) _stroke).getLineWidth(),
+                    ((BasicStroke) _stroke).getEndCap(),
+                    ((BasicStroke) _stroke).getLineJoin(),
+                    ((BasicStroke) _stroke).getMiterLimit(),
+                    dashArray,
+                    0.0f);
+        } else {
+            _stroke = new BasicStroke(
+                    1.0f,
+		    BasicStroke.CAP_SQUARE,
+		    BasicStroke.JOIN_MITER,
+		    10.0f,
+                    dashArray,
+                    0.0f);
+        }
+	repaint();
+    }
+
+    /** Set the line width. The existing stroke will
+     * be removed, but the dash array will be preserved if possible.
+     */
     public void setLineWidth (float lineWidth) {
-        repaint();
-        _paintedPath.setLineWidth(lineWidth);
-        repaint();
+	repaint();
+        if (_stroke instanceof BasicStroke) {
+            _stroke = new BasicStroke(
+                    lineWidth,
+                    ((BasicStroke) _stroke).getEndCap(),
+                    ((BasicStroke) _stroke).getLineJoin(),
+                    ((BasicStroke) _stroke).getMiterLimit(),
+                    ((BasicStroke) _stroke).getDashArray(),
+                    0.0f);
+        } else {
+             new BasicStroke(
+		    lineWidth,
+		    BasicStroke.CAP_SQUARE,
+		    BasicStroke.JOIN_MITER,
+		    10.0f,
+		    null,
+		    0.0f);
+        }
+	repaint();
     }
 
     /** Set the shape of this figure.
      */
     public void setShape (Shape s) {
         repaint();
-        _paintedPath.shape = s;
+        _shape = s;
         repaint();
     }
 
@@ -170,14 +210,15 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
      */
     public void setStroke (BasicStroke s) {
         repaint();
-        _paintedPath.stroke = s;
+        _stroke = s;
         repaint();
     }
 
     /** Set the stroke paint of this figure.
      */
     public void setStrokePaint (Paint p) {
-        _paintedPath.strokePaint = p;
+	repaint();
+        _paint = p;
 	repaint();
     }
 
@@ -192,8 +233,7 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
      */
     public void transform (AffineTransform at) {
         repaint();
-        _paintedPath.shape = ShapeUtilities.transformModify(
-                _paintedPath.shape, at);
+        _shape = ShapeUtilities.transformModify(_shape, at);
 	repaint();
     }
 
@@ -207,9 +247,9 @@ public class PathFigure extends AbstractFigure implements ShapedFigure {
      */
     public void translate (double x, double y) {
 	repaint();
-        _paintedPath.shape = ShapeUtilities.translateModify(
-                _paintedPath.shape, x, y);
+        _shape = ShapeUtilities.translateModify(_shape, x, y);
 	repaint();
     }
 }
+
 

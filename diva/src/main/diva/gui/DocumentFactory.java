@@ -1,7 +1,7 @@
 /*
- * $Id: DocumentFactory.java,v 1.4 2000/05/02 00:44:34 johnr Exp $
+ * $Id: DocumentFactory.java,v 1.5 2001/07/22 22:01:30 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.gui;
@@ -16,7 +16,7 @@ import java.util.Iterator;
  * response to user selection of a file or URL.
  *
  * @author John Reekie (johnr@eecs.berkeley.edu)
- * @version $Revision: 1.4 $
+ * @version $Revision: 1.5 $
  */
 public interface DocumentFactory {
 
@@ -37,4 +37,5 @@ public interface DocumentFactory {
      */
     public Document createDocument (Application app, File file); 
 }
+
 

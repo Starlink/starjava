@@ -1,7 +1,7 @@
 /*
- * $Id: RootPane.java,v 1.8 2000/07/23 23:47:44 neuendor Exp $
+ * $Id: RootPane.java,v 1.9 2001/07/22 22:00:33 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  *
  */
@@ -29,7 +29,7 @@ import diva.sketch.toolbox.PanZoomController;
 /** A pane that illustrates selection.
  *
  * @author John Reekie
- * @version $Revision: 1.8 $
+ * @version $Revision: 1.9 $
  */
 public class RootPane extends GraphicsPane {
 
@@ -266,4 +266,5 @@ public class RootPane extends GraphicsPane {
         return selectionInteractor;
     }
 }
+
 

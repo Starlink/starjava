@@ -1,7 +1,7 @@
 /*
- * $Id: XmlReader.java,v 1.11 2000/12/10 01:10:46 neuendor Exp $
+ * $Id: XmlReader.java,v 1.18 2002/07/09 22:00:27 johnr Exp $
  *
- * Copyright (c) 1998-2000 The Regents of the University of California.
+ * Copyright (c) 1998-2001 The Regents of the University of California.
  * All rights reserved. See the file COPYRIGHT for details.
  */
 package diva.util.xml;
@@ -56,7 +56,7 @@ import java.net.URL;
  * ID first.
  * 
  * @author Steve Neuendorffer, John Reekie
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.18 $
  */
 public class XmlReader extends LoggableOp {
 
@@ -131,6 +131,25 @@ public class XmlReader extends LoggableOp {
     public void parse (XmlDocument document, Reader in) throws Exception {
         URL url = document.getURL();
         parse(document, url, null, in, null, null);
+    }
+
+    /**
+     * Print the type of an entity.
+     */
+    public String printEntityType (String name) {
+	int type = _parser.getEntityType(name);
+	switch (type) {
+	case XmlParser.ENTITY_INTERNAL:
+	    return "ENTITY_INTERNAL";
+	case XmlParser.ENTITY_NDATA:
+	    return "ENTITY_NDATA";
+	case XmlParser.ENTITY_TEXT:
+	    return "ENTITY_TEXT";
+	case XmlParser.ENTITY_UNDECLARED:
+	    return "ENTITY_DECLARED";
+	default:
+	    return "Unknown entity type";
+	}
     }
 
     /**
@@ -416,7 +435,7 @@ public class XmlReader extends LoggableOp {
          */
         public void startElement(String name) {
             if(isVerbose()) {
-                logInfo("start", "<" + name + ">");
+                logInfo("start", "<" + name + "> (" + printEntityType(name) + ")");
                 indent();
             }
             XmlElement e = new XmlElement(name, _attributes);
@@ -447,4 +466,5 @@ public class XmlReader extends LoggableOp {
         }
     }
 }
+
 
