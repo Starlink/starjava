@@ -163,7 +163,7 @@ public class Driver {
         String pre = "Usage: " + cmdname;
         String pad = pre.replaceAll( ".", " " );
         String usage = pre + " [-help] [-demo] [-disk]\n"
-                     + pad + " [-myspace] [-cone] [-siap]\n"
+                     + pad + " [-myspace] [-cone] [-siap] [-registry]\n"
                      + pad + " [[-f <format>] table ...]";
 
         /* Prepare usage message which also describes known formats. */ 
@@ -223,6 +223,10 @@ public class Driver {
             else if ( arg.equals( "-siap" ) ) {
                 it.remove();
                 loaderList.add( "uk.ac.starlink.vo.SiapTableLoadDialog" );
+            }
+            else if ( arg.equals( "-registry" ) ) {
+                it.remove();
+                loaderList.add( "uk.ac.starlink.vo.RegistryTableLoadDialog" );
             }
             else if ( arg.startsWith( "-" ) ) {
                 System.err.println( usage );
