@@ -17,11 +17,17 @@ import javax.xml.transform.TransformerException;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.ast.FrameSet;
+import uk.ac.starlink.hdx.HdxContainer;
+import uk.ac.starlink.hdx.HdxFactory;
+import uk.ac.starlink.hdx.HdxResourceType;
+import uk.ac.starlink.ndx.BridgeNdx;
 import uk.ac.starlink.ndx.Ndx;
 import uk.ac.starlink.ndx.NdxHandler;
 import uk.ac.starlink.ndx.NdxIO;
 import uk.ac.starlink.util.SourceReader;
 import uk.ac.starlink.util.TestCase;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 public class NDFNdxTest extends TestCase {
 
@@ -51,6 +57,20 @@ public class NDFNdxTest extends TestCase {
             }
             istrm.close();
             ostrm.close();
+        }
+
+        if (false) {
+            // Set the hdx logger and its associated handlers to log everything
+            java.util.logging.Logger logger
+                    = java.util.logging.Logger.getLogger("uk.ac.starlink.hdx");
+            logger.setLevel(java.util.logging.Level.ALL);
+            for (java.util.logging.Logger tl=logger;
+                 tl!=null;
+                 tl=tl.getParent()) {
+                java.util.logging.Handler[] h = tl.getHandlers();
+                for (int i=0; i<h.length; i++)
+                    h[i].setLevel(java.util.logging.Level.FINE);
+            }
         }
     }
 
@@ -91,8 +111,70 @@ public class NDFNdxTest extends TestCase {
         assertNdxEqual( ndx, hndx );
     }
 
+    public void testHdsAsHdx()
+            throws Exception {
+        // Make an Hdx from an NDF
+        HdxResourceType ndxtype = BridgeNdx.getHdxResourceType();
+        HdxContainer hdx = HdxFactory
+                .getInstance()
+                .newHdxContainer(ndfURL);
+        assertNotNull(hdx);
+        // check the Ndx we get from the Hdx is equal to the Ndx we
+        // get from NDFNdxHandler
+        Object ndx = hdx.get(ndxtype);
+        assertNotNull(ndx);
+        assertTrue(ndxtype.getConstructedClass().isInstance(ndx));
+        Ndx rawndx = NDFNdxHandler.getInstance().makeNdx( ndfURL,
+                                                          AccessMode.READ );
+        assertNotNull(rawndx);
+        assertNdxEqual( (Ndx)ndx, rawndx );
+
+        // ...and that the generated DOM is sane
+
+        // The output of hdx.getDOM(null) is rather elaborate, so we
+        // don't have a DOM we can usefully compare it with.  Do basic
+        // checks.
+        Element hdxel = hdx.getDOM(null);
+        assertEquals("hdx", hdxel.getTagName());
+        Element ndxel = (Element)hdxel.getFirstChild();
+        assertEquals("ndx", ndxel.getTagName());
+        assertNull(ndxel.getNextSibling());
+        String[] kidnames = new String[] {
+            "title", "image", "variance", "wcs", "etc" 
+        };
+        Node kid = ndxel.getFirstChild();
+        for (int i = 0; i < kidnames.length; i++) {
+            assertNotNull(kid);
+            assertEquals(Node.ELEMENT_NODE, kid.getNodeType());
+            assertEquals(kidnames[i], kid.getNodeName());
+            kid = kid.getNextSibling();
+        }
+        assertNull(kid);
+    }
+
+    public void testHdxXML()
+            throws Exception {
+        // Make an Hdx from an XMLfile which references an NDF
+        HdxResourceType ndxtype = BridgeNdx.getHdxResourceType();
+        Class c = this.getClass();
+        HdxContainer hdx = HdxFactory
+                .getInstance()
+                .newHdxContainer(c.getResource("no-ns.xml"));
+        assertNotNull(hdx);
+        Object ndx = hdx.get(ndxtype);
+        assertNotNull(ndx);
+        assertTrue(ndxtype.getConstructedClass().isInstance(ndx));
+        assertNotNull(((Ndx)ndx).getImage());
+        Ndx rawndx = NDFNdxHandler.getInstance().makeNdx( ndfURL,
+                                                          AccessMode.READ );
+        assertNotNull(rawndx);
+        assertNdxEqual( (Ndx)ndx, rawndx );
+    }
+
     private void assertNdxEqual( Ndx ndx1, Ndx ndx2 )
             throws IOException, TransformerException {
+        assertNotNull( ndx1.getImage() ); // damn-well better have an image
+        assertNotNull( ndx2.getImage() );
         assertTrue( NDArrays.equals( ndx1.getImage(), ndx2.getImage() ) );
         assertTrue( ndx1.hasVariance() == ndx2.hasVariance() );
         assertTrue( ndx1.hasQuality() == ndx2.hasQuality() );
