@@ -10,9 +10,8 @@ package uk.ac.starlink.table;
  *
  * @author   Mark Taylor (Starlink)
  */
-public class ArrayColumn extends ColumnInfo implements ColumnData {
+public class ArrayColumn extends ColumnData {
 
-    private final Class clazz;
     private final int nrow;
 
     /**
@@ -22,26 +21,25 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
      * @param   base   the template <tt>ColumnInfo</tt>
      * @param   nrow   the number of rows
      */
-    private ArrayColumn( ColumnInfo base, int nrow ) { 
-        super( base );
-        this.clazz = base.getContentClass();
+    private ArrayColumn( ColumnInfo base, int nrow, final boolean nullable ) { 
+        super( new ColumnInfo( base ) {
+            public boolean isNullable() {
+                return nullable;
+            }
+            public void setContentClass() {
+                throw new UnsupportedOperationException();
+            }
+        } );
         this.nrow = nrow;
     }
 
-
-    public Class getContentClass() {
-        return clazz;
-    }
-
     /**
-     * The class cannot be changed during the life of an <tt>ArrayColumn</tt>; 
-     * an <tt>UnsupportedOperationException</tt> will be thrown.
+     * Returns true, since this class can store cell values.
      *
-     * @throws  UnsupportedOperationException  unconditionally
+     * @return  true
      */
-    public void setContentClass( Class clazz ) {
-        throw new UnsupportedOperationException( 
-            "Cannot change the content class of an ArrayColumn" );
+    public boolean isWritable() {
+        return true;
     }
 
     public void storeValue( long lrow, Object val ) {
@@ -54,9 +52,13 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
 
     /**
      * Obtains an <tt>ArrayColumn</tt> object based on a template 
-     * object with a given number of rows.
+     * object with a given number of rows.  A new ColumnInfo object
+     * will be constructed based on the given one.
      *
-     * @param   base  the template <tt>ColumnInfo</tt>
+     * @param   base  the template <tt>ColumnInfo</tt> - note this is
+     *          not the actual ColumnInfo object which will be returned
+     *          by the <tt>getColumnInfo</tt> method of the returned 
+     *          <tt>ArrayColumn</tt>
      * @param   rowCount  the number of rows it is to hold
      * @return  a new <tt>ArrayColumn</tt> based on <tt>base</tt> with
      *          storage for <tt>rowCount</tt> elements
@@ -79,7 +81,7 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
         }
 
         if ( clazz == Byte.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 byte[] data = new byte[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Byte) val).byteValue();
@@ -87,13 +89,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Byte( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Short.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 short[] data = new short[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Short) val).shortValue();
@@ -101,13 +100,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Short( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Integer.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 int[] data = new int[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Integer) val).intValue();
@@ -115,13 +111,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Integer( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Long.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 long[] data = new long[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Long) val).longValue();
@@ -129,13 +122,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Long( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Float.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 float[] data = new float[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Float) val).floatValue();
@@ -143,13 +133,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Float( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Double.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 double[] data = new double[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Double) val).doubleValue();
@@ -157,13 +144,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Double( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Character.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 char[] data = new char[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Character) val).charValue();
@@ -171,13 +155,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return new Character( data[ irow ] );
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else if ( clazz == Boolean.class ) {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, false ) {
                 boolean[] data = new boolean[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = ((Boolean) val).booleanValue();
@@ -185,13 +166,10 @@ public class ArrayColumn extends ColumnInfo implements ColumnData {
                 public Object readValue( int irow ) {
                     return data[ irow ] ? Boolean.TRUE : Boolean.FALSE;
                 }
-                public boolean isNullable() {
-                    return false;
-                }
             };
         }
         else {
-            return new ArrayColumn( base, nrow ) {
+            return new ArrayColumn( base, nrow, true ) {
                 Object[] data = new Object[ nrow ];
                 public void storeValue( int irow, Object val ) {
                     data[ irow ] = val;
