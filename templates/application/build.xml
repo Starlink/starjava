@@ -297,11 +297,11 @@
   </path>
 
   <!-- Create the JUnit tests CLASSPATH.
-   ! 
+   !
    !   Note that in addition to the build/classes and build/tests directory
    !   we also add tests.dir and tests.etc.dir so that resources may be
    !   located there. The full classpath is also used.
-   !-->  
+   !-->
  <path id="tests-classpath">
     <pathelement location="${build.classes}"/>
     <pathelement location="${build.tests}"/>
@@ -331,7 +331,7 @@
    !    ===============
    !    Add any local or extension ANT tasks that are required. Local
    !    tasks should be moved into the ANT package if used outside of this
-   !    package. 
+   !    package.
    !-->
   <taskdef resource="extra-tasks.properties" classpathref="classpath"/>
 
@@ -490,12 +490,19 @@
    !   ========================================
    !   Make package JNLP file for Java webstart
    !   ========================================
+   !
+   ! The webstart setup for an application requires that it have two
+   ! JNLP files. One to describe it as an application and one as a component.
+   ! The component form is required if another application wants to use
+   ! this application, either directly (by embedding) or just as a
+   ! dependency (for contact via webservices). These two functions cannot be
+   ! performed in the same two JNLP files.
    !-->
   <target name="webstart"
           description="-> create webstart descriptor files">
 
-    <!-- Create a webstart JNLP file for this application. 
-     !   This goes into "dist.lib" 
+    <!-- Create a webstart JNLP file for this application.
+     !   Note this goes into "dist.lib", not the package dependent lib.
      !-->
     <mkdir dir="${dist.lib}"/>
     <jnlp toFile="${dist.lib}/${name}.jnlp" href="${name}.jnlp"
@@ -520,14 +527,15 @@
          <!-- The application main jar file -->
          <jar href="${name}/${name}.jar"/>
 
-         <!-- Other classes of this application as an extension (so
-          !   they may be used by other applications).
+         <!-- All other components and dependencies of this application.
+          !   Keep these in the component extension so this information is in
+          !   one place and so this application is usable by other 
+          !   applications). --> 
          <extension name="{PACKAGE}-PARTS" href="${name}-parts.jnlp"/>
 
-         <!-- Other applications that this application uses. Note
-          !   these shouuld not normally be named in the "parts"
-          !   component to avoid the possibility of circular
-          !   dependencies -->
+         <!-- Other applications that this application uses. Note these
+          !   should not normally be named in the "parts" component to avoid
+          !   the possibility of circular dependencies. -->
          <extension name="{App1}-PARTS" href="{app1}-parts.jnlp"/>
          <extension name="{App2}-PARTS" href="{app2}-parts.jnlp"/>
        </resources>
@@ -536,9 +544,8 @@
        <application_desc main_class="{main-class}"/>
      </jnlp>
 
-    <!-- Create a webstart JNLP file for this application as a
-     !   component, so that its classes may be referenced by other
-     !   applications. This goes into "dist.lib" 
+    <!-- Create a webstart JNLP file for this application as a component, 
+     !   so that may be used by other applications. This goes into "dist.lib".
      !-->
      <jnlp toFile="${dist.lib}/${name}-parts.jnlp" href="${name}-parts.jnlp"
           codebase="${webstart.codebase}">
@@ -562,8 +569,8 @@
          <!-- All jar files of this application -->
          <fileset dir="${dist.lib}" includes="**/*.jar **/*.zip"/>
 
-         <!-- Components that this component depends on (usually any
-          !   application parts should not be named here).
+         <!-- Components that this component depends on (non applications
+          !   named in the application jar file class-path). -->
          <extension name="{EXT1}" href="{ext1}.jnlp"/>
          <extension name="{EXT2}" href="{ext2}.jnlp"/>
        </resources>
