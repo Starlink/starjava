@@ -24,4 +24,8 @@ public class InverseRowSubset implements RowSubset {
              ? baseName.substring( INVERT_PREFIX.length() )
              : INVERT_PREFIX + baseName;
     }
+
+    public String toString() {
+        return getName();
+    }
 }
