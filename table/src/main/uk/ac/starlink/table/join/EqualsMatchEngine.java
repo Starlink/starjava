@@ -15,8 +15,6 @@ import uk.ac.starlink.table.ValueInfo;
  */
 public class EqualsMatchEngine implements MatchEngine {
 
-    private static Object[] NO_BINS = new Object[ 0 ];
-
     public double matchScore( Object[] tuple1, Object[] tuple2 ) {
         Object o1 = tuple1[ 0 ];
         Object o2 = tuple2[ 0 ];

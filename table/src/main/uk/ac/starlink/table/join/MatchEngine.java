@@ -51,6 +51,12 @@ import uk.ac.starlink.table.ValueInfo;
 public interface MatchEngine {
 
     /**
+     * Convenience constant - it's a zero-length array of objects, suitable
+     * for returning from {@link #getBins} if no match can result.
+     */
+    static final Object[] NO_BINS = new Object[ 0 ];
+
+    /**
      * Returns a set of keys for bins into which possible matches for 
      * a given tuple might fall.
      * The returned objects can be anything, but should have their
