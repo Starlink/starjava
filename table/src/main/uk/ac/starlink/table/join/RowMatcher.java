@@ -459,27 +459,46 @@ public class RowMatcher {
         Comparable[] min = new Comparable[ ncol ];
         Comparable[] max = new Comparable[ ncol ];
         if ( engine.canBoundMatch() ) {
-            Comparable[][] bounds1 = getBounds( index1 );
-            Comparable[][] bounds2 = getBounds( index2 );
-            Comparable[] min1 = bounds1[ 0 ];
-            Comparable[] max1 = bounds1[ 1 ];
-            Comparable[] min2 = bounds2[ 0 ];
-            Comparable[] max2 = bounds2[ 1 ];
-            for ( int i = 0; i < ncol; i++ ) {
-                if ( min1[ i ] != null && min2[ i ] != null ) {
-                    min[ i ] = min1[ i ].compareTo( min2[ i ] ) > 0 ? min1[ i ]
-                                                                    : min2[ i ];
+            indicator.logMessage( "Attempt to locate " +
+                                  "restricted common region" );
+            try {
+                Comparable[][] bounds1 = getBounds( index1 );
+                Comparable[][] bounds2 = getBounds( index2 );
+                Comparable[] min1 = bounds1[ 0 ];
+                Comparable[] max1 = bounds1[ 1 ];
+                Comparable[] min2 = bounds2[ 0 ];
+                Comparable[] max2 = bounds2[ 1 ];
+                for ( int i = 0; i < ncol; i++ ) {
+                    if ( min1[ i ] != null && min2[ i ] != null ) {
+                        min[ i ] = min1[ i ].compareTo( min2[ i ] ) > 0 
+                                 ? min1[ i ]
+                                 : min2[ i ];
+                    }
+                    if ( max1[ i ] != null && max2[ i ] != null ) {
+                        max[ i ] = max1[ i ].compareTo( max2[ i ] ) < 0
+                                 ? max1[ i ]
+                                 : max2[ i ];
+                    }
                 }
-                if ( max1[ i ] != null && max2[ i ] != null ) {
-                    max[ i ] = max1[ i ].compareTo( max2[ i ] ) < 0 ? max1[ i ]
-                                                                    : max2[ i ];
-                }
-            }
-            logTupleBounds( "Potential match region: ", min, max );
+                logTupleBounds( "Potential match region: ", min, max );
 
-            /* Count the rows in the match region for each table. */
-            nIncludedRows1 = countInRange( index1, min, max );
-            nIncludedRows2 = countInRange( index2, min, max );
+                /* Count the rows in the match region for each table. */
+                nIncludedRows1 = countInRange( index1, min, max );
+                nIncludedRows2 = countInRange( index2, min, max );
+            }
+
+            /* The Comparable.compareTo() method which is used heavily in
+             * the above processing will result if some of the columns are
+             * comparable, but not mutually comparable (e.g. different 
+             * Number classes like Float and Double).  In this case catch
+             * the error, forget about trying to locate max/mins, and move on.
+             * This will only impact efficiency, not correctness. */ 
+            catch ( ClassCastException e ) {
+                indicator.logMessage( "Common region location failed " +
+                                      "(incompatible value types)" );
+                min = new Comparable[ ncol ];
+                max = new Comparable[ ncol ];
+            }
         }
 
         /* Now do the actual binning and identification of possible links.
@@ -505,7 +524,7 @@ public class RowMatcher {
      *                   is null, no minimum is considered to be in effect
      * @param   max      array of tuple elements to consider as maximum
      *                   values to consider for the match.
-     *                   If one of the elements, or <tt>min</tt> itself,
+     *                   If one of the elements, or <tt>max</tt> itself,
      *                   is null, no maximum is considered to be in effect
      * @return  set of {@link RowLink} objects which constitute possible
      *          matches
@@ -986,6 +1005,7 @@ public class RowMatcher {
      *          a hyper-rectangle in tuple-space.  Any of the elements may
      *          be null to indicate no limit in that direction. 
      *          All non-null elements will be {@link java.lang.Comparable}.
+     * @throws  ClassCastException  if objects are not mutually comparable
      */
     private Comparable[][] getBounds( int tIndex )
             throws IOException, InterruptedException {
@@ -1022,7 +1042,6 @@ public class RowMatcher {
             new ProgressRowSequence( table, indicator,
                                      "Assessing range of coordinates " +
                                      "from table " + ( tIndex + 1 ) );
-        boolean success;
         try {
             for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
                 rseq.nextProgress();
@@ -1044,36 +1063,24 @@ public class RowMatcher {
                     }
                 }
             }
-            success = true;
         }
 
         /* It's possible, though not particularly likely, that a 
          * compareTo invocation can result in a ClassCastException 
-         * (e.g. comparing an Integer to a Double).  If so, just give up. */
-        catch ( ClassCastException e ) {
-            success = false;
-        }
-
-        /* Either way, the row sequence has to be closed or the logging
-         * will get in a twist. */
+         * (e.g. comparing an Integer to a Double).  Such ClassCastExceptions
+         * should get caught higher up, but we need to make sure the
+         * row sequence is closed or the logging will get in a twist. */
         finally {
             rseq.close();
         }
 
         /* Report and return. */
-        if ( success ) {
-            logTupleBounds( "Limits are: ", mins, maxs );
+        logTupleBounds( "Limits are: ", mins, maxs );
 
-            /* Get the match engine to convert the min/max values into 
-             * a possible match region (presumably by adding a separation
-             * region on). */
-            return engine.getMatchBounds( mins, maxs );
-        }
-        else {
-            indicator.logMessage( "Bound calculation failed " +
-                                  "(ClassCastException)" );
-            return new Comparable[ 2 ][];
-        }
+        /* Get the match engine to convert the min/max values into 
+         * a possible match region (presumably by adding a separation
+         * region on). */
+        return engine.getMatchBounds( mins, maxs );
     }
 
     /**
@@ -1094,6 +1101,7 @@ public class RowMatcher {
      * @param  min  lower bound of permissible coordinates
      * @param  max  upper bound of permissible coordinates
      * @return true iff <tt>row</tt> is between <tt>min</tt> and <tt>max</tt>
+     * @throws  ClassCastException  if objects are not mutually comparable
      */
     private boolean inRange( Object[] row, 
                              Comparable[] min, Comparable[] max ) {
@@ -1121,6 +1129,7 @@ public class RowMatcher {
      * @param  max  upper bound of permissible coordinates
      * @return  number of rows of <tt>table</tt> that fall in the coordinate
      *          range defined by <tt>min</tt> and <tt>max</tt>
+     * @throws  ClassCastException  if objects are not mutually comparable
      */
     private long countInRange( int tIndex, Comparable[] min, 
                                Comparable[] max )
@@ -1130,13 +1139,17 @@ public class RowMatcher {
                                      "Counting rows in match region " +
                                      "for table " + ( tIndex + 1 ) );
         long nInclude = 0;
-        for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
-            rseq.nextProgress();
-            if ( inRange( rseq.getRow(), min, max ) ) {
-                nInclude++;
+        try {
+            for ( long lrow = 0; rseq.hasNext(); lrow++ ) {
+                rseq.nextProgress();
+                if ( inRange( rseq.getRow(), min, max ) ) {
+                    nInclude++;
+                }
             }
         }
-        rseq.close();
+        finally {
+            rseq.close();
+        }
         indicator.logMessage( nInclude + " rows in match region" );
         return nInclude;
     }
@@ -1200,5 +1213,4 @@ public class RowMatcher {
     private int checkedLongToInt( long lval ) {
         return Tables.checkedLongToInt( lval );
     }
-
 }
