@@ -44,3 +44,5 @@ Peter W. Draper (p.w.draper@durham.ac.uk)          4th June 2003
  -- Text files may now have just one column == data (edit second).
 
  -- Postscript print to file is separate option to local printers.
+
+ -- Some 2D data support. Coordinates of first axis used.
