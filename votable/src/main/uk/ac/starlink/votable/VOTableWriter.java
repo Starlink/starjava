@@ -31,14 +31,17 @@ public class VOTableWriter implements StarTableWriter {
     private boolean inline = true;
     private String xmlDeclaration = DEFAULT_XML_DECLARATION;
     private String doctypeDeclaration = DEFAULT_DOCTYPE_DECLARATION;
+    private String votableVersion = DEFAULT_VOTABLE_VERSION;
 
     /** Default XML declaration in written documents. */
     public static final String DEFAULT_XML_DECLARATION =
         "<?xml version='1.0'?>";
 
     /** Default document type declaration in written documents. */
-    public static final String DEFAULT_DOCTYPE_DECLARATION =
-        "<!DOCTYPE VOTABLE SYSTEM 'http://us-vo.org/xml/VOTable.dtd'>";
+    public static final String DEFAULT_DOCTYPE_DECLARATION = "";
+
+    /** Default VOTABLE version number. */
+    public static final String DEFAULT_VOTABLE_VERSION = "1.1";
 
     private static final Logger logger =
         Logger.getLogger( "uk.ac.starlink.votable" );
@@ -114,8 +117,7 @@ public class VOTableWriter implements StarTableWriter {
      *          if necessary to come up with a suitable filename for
      *          related files which need to be written.  May be <tt>null</tt>.
      */
-    public void writeStarTable( StarTable startab, OutputStream out,
-                                File file ) 
+    public void writeStarTable( StarTable startab, OutputStream out, File file )
             throws IOException {
 
         /* For most of the output we write to a Writer; it is obtained
@@ -144,9 +146,30 @@ public class VOTableWriter implements StarTableWriter {
         /* Output preamble. */
         writer.write( xmlDeclaration );
         writer.newLine();
-        writer.write( doctypeDeclaration );
+        if ( doctypeDeclaration != null && doctypeDeclaration.length() > 0 ) {
+            writer.write( doctypeDeclaration );
+        }
         writer.newLine();
-        writer.write( "<VOTABLE version='1.0'>" );
+        writer.write( "<VOTABLE" );
+        if ( votableVersion != null && 
+             votableVersion.matches( "1.[1-9]" ) ) {
+            writer.write( serializer.formatAttribute( "version",
+                                                      votableVersion ) );
+            if ( doctypeDeclaration == null || 
+                 doctypeDeclaration.length() == 0 ) {
+                writer.newLine();
+                writer.write( serializer.formatAttribute( 
+                                  "xmlns:xsi",
+                                  "http://www.w3.org/2001/" 
+                                  + "XMLSchema-instance" ) );
+                writer.newLine();
+                writer.write( serializer.formatAttribute( 
+                                  "xsl:noNamespaceSchemaLocation",
+                                  "http://www.ivoa.net/xml/VOTable/VOTable/v"
+                                  + votableVersion ) );
+            }
+        }
+        writer.write( ">" );
         writer.newLine();
         writer.write( "<!--" );
         writer.newLine();
@@ -163,9 +186,18 @@ public class VOTableWriter implements StarTableWriter {
 
         /* Start the TABLE element itself. */
         writer.write( "<TABLE" );
+
+        /* Write the table name if we have one. */
         String tname = startab.getName();
         if ( tname != null && tname.trim().length() > 0 ) {
             writer.write( serializer.formatAttribute( "name", tname.trim() ) );
+        }
+
+        /* Write the number of rows if we know it. */
+        long nrow = startab.getRowCount();
+        if ( nrow > 0 ) {
+            writer.write( serializer.formatAttribute( "nrows", 
+                                                      Long.toString( nrow ) ) );
         }
         writer.write( ">" );
         writer.newLine();
