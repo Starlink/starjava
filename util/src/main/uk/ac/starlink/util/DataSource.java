@@ -460,10 +460,17 @@ public abstract class DataSource {
      * or if it may not be required for some while.  Calling this method
      * does not prevent any other method being called on this object
      * in the future.
+     * This method throws no checked exceptions; any <tt>IOException</tt>
+     * thrown during closing any owned streams are simply discarded.
      */
-    public synchronized void close() throws IOException {
+    public synchronized void close() {
         if ( strm != null ) {
-            strm.close();
+            try {
+                strm.close();
+            }
+            catch ( IOException e ) {
+                // no action
+            }
             strm = null;
         }
     }
@@ -491,12 +498,7 @@ public abstract class DataSource {
      * Intialises all knowledge of this object about itself.
      */
     protected synchronized void clearState() {
-        try {
-            close();
-        }
-        catch ( IOException e ) {
-            e.printStackTrace( System.err );
-        }
+        close();
         magic = new byte[ 0 ];
         magicNbyte = -1;
         eofPos = Integer.MAX_VALUE;
