@@ -581,7 +581,7 @@ public class ASTJ
      *  @deprecated Use direct ".tran2" method of mapping.
      */
     public static double[][] astTran2( Mapping mapping, double[] points,
-                                     boolean forward )
+                                       boolean forward )
     {
         //  Unpack the points.
         int npoints = points.length / 2;
