@@ -36,3 +36,11 @@ not one of the standard types and to drag-and-drop spectra from the
 global to plots.
 
 Peter W. Draper (p.w.draper@durham.ac.uk)          4th June 2003
+
+ -- Simple binary maths window fails when dividing.
+ -- Divide background to normalize absorption spectra. Added
+    constant as possible background for line fits.
+
+ -- Text files may now have just one column == data (edit second).
+
+ -- Postscript print to file is separate option to local printers.
