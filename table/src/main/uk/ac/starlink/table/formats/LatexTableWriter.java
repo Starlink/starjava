@@ -1,13 +1,12 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
 import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -19,7 +18,7 @@ import uk.ac.starlink.table.Tables;
  *
  * @author   Mark Taylor (Starlnk)
  */
-public class LatexTableWriter implements StarTableWriter {
+public class LatexTableWriter extends StreamStarTableWriter {
 
     private boolean standalone;
 
@@ -68,7 +67,7 @@ public class LatexTableWriter implements StarTableWriter {
         return location.endsWith( ".tex" );
     }
 
-    public void writeStarTable( StarTable startab, String location ) 
+    public void writeStarTable( StarTable startab, OutputStream ostrm ) 
             throws IOException {
  
         /* Work out the tabular format. */
@@ -94,7 +93,6 @@ public class LatexTableWriter implements StarTableWriter {
         RowSequence rseq = startab.getRowSequence();
 
         /* Get a stream for output. */
-        OutputStream ostrm = getStream( location );
         try {
 
             /* Write the header information. */
@@ -150,7 +148,6 @@ public class LatexTableWriter implements StarTableWriter {
         /* Close. */
         finally {
             rseq.close();
-            ostrm.close();
         }
     }
 
@@ -253,20 +250,5 @@ public class LatexTableWriter implements StarTableWriter {
             }
         }
         return sbuf.toString();
-    }
-
-    /**
-     * Turns a location string into a suitable output stream.
-     *
-     * @param  user-supplied location for the output file
-     * @return  an output stream corresponding to <tt>location</tt>
-     */
-    private OutputStream getStream( String location ) throws IOException {
-        if ( location.equals( "-" ) ) {
-            return System.out;
-        }
-        else {
-            return new FileOutputStream( location );
-        }
     }
 }

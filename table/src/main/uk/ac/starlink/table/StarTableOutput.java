@@ -1,6 +1,9 @@
 package uk.ac.starlink.table;
 
 import java.awt.datatransfer.Transferable;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -143,7 +146,6 @@ public class StarTableOutput {
         /* Further initialization. */
         initializeForTransferables();
     }
- 
 
     /**
      * Gets the list of handlers which can actually do table output.
@@ -204,58 +206,84 @@ public class StarTableOutput {
             }
         }
 
+        /* Otherwise dispatch the job to a suitable handler. */
         else {
-
-            /* See if the specified format is suitable for any known handler. */
-            StarTableWriter handler = getHandler( location, format );
-            if ( handler != null ) {
-                handler.writeStarTable( startab, location );
-            }
-
-            /* If not, throw an TableFormatException. */
-            else {
-                if ( format != null ) {
-                    throw new TableFormatException(
-                        "No handler for table format " + format );
-                }
-                else {
-                    StringBuffer msg = new StringBuffer();
-                    msg.append( "No handler specified for writing table.\n" )
-                       .append( "Known formats: " );
-                    for ( Iterator it = getKnownFormats().iterator();
-                          it.hasNext(); ) {
-                        msg.append( it.next() );
-                        if ( it.hasNext() ) {
-                            msg.append( ", " );
-                        }
-                    }
-                    throw new TableFormatException( msg.toString() );
-                }
-            }
+            getHandler( format, location )
+           .writeStarTable( startab, location, this );
         }
     }
 
     /**
-     * Returns a <tt>Transferable</tt> object associated with a given
-     * StarTable, for use at the drag end of a drag and drop operation.
+     * Writes a StarTable to an output stream.
+     * This convenience method wraps the stream in a BufferedOutputStream
+     * for efficiency and uses the submitted <tt>handler</tt> to perform
+     * the write, closing the stream afterwards.
      *
-     * @param  startab  the table which is to be dragged
-     * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
+     * @param  startab   table to write
+     * @param  out       raw output stream
+     * @param  handler   output handler
+     * @see  #getHandler
      */
-    public Transferable transferStarTable( final StarTable startab ) {
-        if ( voWriteMethod != null ) {
-            return new StarTableTransferable( this, startab );
+    public void writeStarTable( StarTable startab, OutputStream out,
+                                StarTableWriter handler ) throws IOException {
+        try {
+            if ( ! ( out instanceof BufferedOutputStream ) ) {
+                out = new BufferedOutputStream( out );
+            }
+            handler.writeStarTable( startab, out );
+            out.flush();
         }
-        else {
-            return null;
+        finally {
+            out.close();
         }
     }
- 
+
+    /**
+     * Returns an output stream which points to a given location.
+     * Typically <tt>location</tt> is a filename and a corresponding
+     * <tt>FileOutputStream</tt> is returned, but there may be other
+     * possibilities.  The stream returned by this method will not
+     * in general be buffered; for high performance writes, wrapping it
+     * in a {@link java.io.BufferedOutputStream} may be a good idea.
+     *
+     * @param   location  name of destination
+     * @return   output stream which writes to <tt>location</tt>
+     * @throws  IOException  if no stream pointing to <tt>location</tt>
+     *          can be opened
+     */
+    public OutputStream getOutputStream( String location ) throws IOException {
+        if ( location.equals( "-" ) ) {
+            return System.out;
+        }
+        else {
+            File file = new File( location );
+            return new FileOutputStream( file );
+        }
+    }
+
     /**
      * Returns a StarTableWriter object given a format to write and a location
      * to write to.  Returns null if none can be found.
+     *
+     * @param  format   a string which indicates in some way what format
+     *         should be used for output.  This may be the class name of
+     *         a <tt>StarTableWriter</tt> object (which may or may not be
+     *         registered with this <tt>StarTableOutput</tt>), or else
+     *         a string which matches the format name of one of the registered
+     *         <tt>StarTableWriter</tt>s (first match is used,
+     *         case-insensitive, starting substrings OK)
+     *         or <tt>null</tt> to indicate that a handler should be
+     *         selected based on the value of <tt>location</tt>.
+     * @param  location  destination of the table to be written.
+     *         If <tt>format</tt> is null, the value of this will be used
+     *         to try to determine which handler to use, typically on the
+     *         basis of filename extension
+     * @throws TableFormatException  if no handler suitable for the arguments
+     *         can be found
+     * @return a suitable output handler
      */
-    private StarTableWriter getHandler( String location, String format ) {
+    public StarTableWriter getHandler( String format, String location ) 
+            throws TableFormatException {
 
         /* Do we have a format string? */
         if ( format != null && format.length() > 0 ) {
@@ -298,6 +326,10 @@ public class StarTableOutput {
                     return handler;
                 }
             }
+
+            /* No luck - throw an exception. */
+            throw new TableFormatException( "No handler for table format \"" +
+                                            format + "\"" );
         }
 
         /* If no format has been specified, offer it to the first handler 
@@ -309,12 +341,20 @@ public class StarTableOutput {
                     return handler;
                 }
             }
+
+            /* None of them do - failure. */
+            StringBuffer msg = new StringBuffer();
+            msg.append( "No handler specified for writing table.\n" )
+               .append( "Known formats: " );
+            for ( Iterator it = getKnownFormats().iterator(); it.hasNext(); ) {
+                msg.append( it.next() );
+                if ( it.hasNext() ) {
+                    msg.append( ", " );
+                }
+            }
+            throw new TableFormatException( msg.toString() );
         }
-
-        /* No luck. */
-        return null;
     }
-
 
     /**
      * Returns a list of the format strings which are defined by the
@@ -352,6 +392,22 @@ public class StarTableOutput {
      */
     public void setJDBCHandler( JDBCHandler handler ) {
         this.jdbcHandler = handler;
+    }
+
+    /**
+     * Returns a <tt>Transferable</tt> object associated with a given
+     * StarTable, for use at the drag end of a drag and drop operation.
+     *
+     * @param  startab  the table which is to be dragged
+     * @see  StarTableFactory#makeStarTable(java.awt.datatransfer.Transferable)
+     */
+    public Transferable transferStarTable( final StarTable startab ) {
+        if ( voWriteMethod != null ) {
+            return new StarTableTransferable( this, startab );
+        }
+        else {
+            return null;
+        }
     }
 
     /**

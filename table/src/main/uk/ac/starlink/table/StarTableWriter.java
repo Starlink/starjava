@@ -1,6 +1,7 @@
 package uk.ac.starlink.table;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Defines an object which can output a <tt>StarTable</tt> in a particular
@@ -11,16 +12,46 @@ import java.io.IOException;
 public interface StarTableWriter {
    
     /**
-     * Writes a <tt>StarTable</tt> object to a given location.
-     * If possible, a location of "-" should be taken as a request to
-     * write to standard output.
+     * Writes a <tt>StarTable</tt> object to a given output stream.
+     * The implementation can assume that <tt>out</tt> is suitable for
+     * direct writing (for instance it should not normally wrap it in a 
+     * {@link java.io.BufferedOutputStream}), and should not close it
+     * at the end of the call.
+     *
+     * <p>Not all table writers are capable of writing to a stream;
+     * an implementation may throw a {@link TableFormatException} to 
+     * indicate that it cannot do so.
      *
      * @param  startab  the table to write
-     * @param  location  the destination of the written object 
-     *         (probably, but not necessarily, a filename)
+     * @param  out  the output stream to which <tt>startab</tt> should be 
+     *              written
+     * @throws  TableFormatException  if this table cannot be written to a
+     *          stream
+     * @throws  IOException  if there is some I/O error
      */
-    void writeStarTable( StarTable startab, String location )
-            throws IOException;
+    void writeStarTable( StarTable startab, OutputStream out )
+            throws TableFormatException, IOException;
+
+    /**
+     * Writes a <tt>StarTable</tt> object to a given location.
+     * Implementations are free to interpret the <tt>location</tt> argument
+     * in any way appropriate for them.  Typically however the location
+     * will simply be used to get an output stream (for instance interpreting
+     * it as a filename).  In this case the <tt>sto</tt> argument should
+     * normally be used to turn <tt>location</tt> into a stream.
+     * {@link StreamStarTableWriter} provides a suitable implementation
+     * for this case.
+     *
+     * @param  startab  table to write
+     * @param  location   destination for <tt>startab</tt>
+     * @param  sto     StarTableOutput which dispatched this request
+     * @throws  TableFormatException   if <tt>startab</tt> cannot be written
+     *          to <tt>location</tt>
+     * @throws  IOException  if there is some I/O error
+     */
+    void writeStarTable( StarTable startab, String location, 
+                         StarTableOutput sto )
+            throws TableFormatException, IOException;
 
     /**
      * Indicates whether the destination is of a familiar form for this

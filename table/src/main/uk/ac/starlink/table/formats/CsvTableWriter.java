@@ -1,14 +1,13 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.Tables;
 
 /**
@@ -18,7 +17,7 @@ import uk.ac.starlink.table.Tables;
  * @author   Mark Taylor (Starlink)
  * @since    21 Sep 2004
  */
-public class CsvTableWriter implements StarTableWriter {
+public class CsvTableWriter extends StreamStarTableWriter {
 
     /** Longest field that will get written without truncation. */
     private final static int MAX_CHARS = 10240;
@@ -61,12 +60,12 @@ public class CsvTableWriter implements StarTableWriter {
             || location.endsWith( ".CSV" );
     }
 
-    public void writeStarTable( StarTable table, String location )
+    public void writeStarTable( StarTable table, OutputStream ostrm )
             throws IOException {
+        Writer out = new OutputStreamWriter( ostrm );
         int ncol = table.getColumnCount();
         ColumnInfo[] cinfos = Tables.getColumnInfos( table );
         RowSequence rseq = table.getRowSequence();
-        Writer out = getStream( location );
         try {
 
             /* Write the headings if required. */
@@ -91,8 +90,8 @@ public class CsvTableWriter implements StarTableWriter {
             }
         }
         finally {
+            out.flush();
             rseq.close();
-            out.close();
         }
     }
 
@@ -169,20 +168,4 @@ public class CsvTableWriter implements StarTableWriter {
             }
         }
     }
-
-    /**
-     * Returns an output stream to use for a given specified location string.
-     *
-     * @param  location  location spec
-     * @return  output stream to write to
-     */
-    private Writer getStream( String location ) throws IOException {
-        if ( location.equals( "-" ) ) {
-            return new BufferedWriter( new OutputStreamWriter( System.out ) );
-        }
-        else {
-            return new BufferedWriter( new FileWriter( location ) );
-        }
-    }
-
 }

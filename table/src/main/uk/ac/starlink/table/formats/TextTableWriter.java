@@ -1,7 +1,5 @@
 package uk.ac.starlink.table.formats;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
@@ -9,17 +7,17 @@ import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
 import uk.ac.starlink.table.RowSequence;
 import uk.ac.starlink.table.StarTable;
-import uk.ac.starlink.table.StarTableWriter;
+import uk.ac.starlink.table.StreamStarTableWriter;
 import uk.ac.starlink.table.ValueInfo;
 
 /**
- * A StarTableWriter which outputs text to a human-readable text file.
+ * A <tt>StarTableWriter</tt> which outputs text to a human-readable text file.
  * Table parameters (per-table metadata) can optionally be output 
  * as well as the table data themselves.
  *
  * @author   Mark Taylor (Starlink)
  */
-public class TextTableWriter implements StarTableWriter {
+public class TextTableWriter extends StreamStarTableWriter {
 
     private boolean writeParams = true;
 
@@ -54,7 +52,7 @@ public class TextTableWriter implements StarTableWriter {
             || location.endsWith( ".txt" );
     }
 
-    public void writeStarTable( StarTable startab, String location ) 
+    public void writeStarTable( StarTable startab, OutputStream strm )
             throws IOException {
 
         /* Get the column headers and work out column widths for formatting. */
@@ -108,9 +106,6 @@ public class TextTableWriter implements StarTableWriter {
 
         /* Get an iterator over the table data. */
         RowSequence rseq = startab.getRowSequence();
-            
-        /* Get an output stream. */
-        OutputStream strm = getStream( location );
         try {
 
             /* Print parameters. */
@@ -146,8 +141,6 @@ public class TextTableWriter implements StarTableWriter {
 
         /* Tidy up. */
         finally {
-            strm.flush();
-            strm.close();
             rseq.close();
         }
     }
@@ -172,21 +165,6 @@ public class TextTableWriter implements StarTableWriter {
      */
     public boolean getWriteParameters() {
         return writeParams;
-    }
-
-    /**
-     * Returns an output stream to use for a given specified location string.
-     *
-     * @param  location  location spec
-     * @return  output stream to write to
-     */
-    private OutputStream getStream( String location ) throws IOException {
-        if ( location.equals( "-" ) ) {
-            return new BufferedOutputStream( System.out );
-        }
-        else {
-            return new BufferedOutputStream( new FileOutputStream( location ) );
-        }
     }
 
     /**
