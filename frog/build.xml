@@ -560,6 +560,7 @@
          <extension name="JNIAST" href="jniast.jnlp"/>
          <extension name="FITS" href="fits.jnlp"/>
          <extension name="HDS" href="hds.jnlp"/>
+         <extension name="HELP" href="help.jnlp"/>
          <extension name="TABLE-PARTS" href="table-parts.jnlp"/>
          <extension name="TOPCAT-PARTS" href="topcat-parts.jnlp"/>
        </resources>
