@@ -31,11 +31,11 @@ public class AxisTableSerializer implements Serializer {
      *
      * @param  name  qname
      * @param  atts  attribute
-     * @param  table   {@link uk.ac.starlink.table.StarTable} object
+     * @param  value   {@link uk.ac.starlink.table.StarTable} object
      * @param  context  context
      * @throws  ClassCastException if <tt>table</tt> is not a StarTable
      */
-    public void serialize( QName name, Attributes atts, Object table,
+    public void serialize( QName name, Attributes atts, Object value,
                            SerializationContext context ) throws IOException {
         StarTable table = (StarTable) value;
         VOTableWriter vowriter = 
