@@ -30,7 +30,7 @@ import uk.ac.starlink.table.ValueInfo;
  * Formally, the requirements for correct implementations of this 
  * interface are as follows:
  * <ol>
- * <li><tt>matches(t1,t2)</tt> == matches(t2,t1)</tt>
+ * <li><tt>matches(t1,t2)</tt> == <tt>matches(t2,t1)</tt>
  * <li><tt>matches(t1,t2)</tt> implies a non-zero intersection of 
  *     <tt>getBins(t1)</tt> and <tt>getBins(t2)</tt>
  * </ol>
@@ -57,7 +57,7 @@ public interface MatchEngine {
      * <tt>equals</tt> and <tt>hashCode</tt> methods implemented 
      * properly for comparison.
      *
-     * @param  tuple  
+     * @param  tuple   tuple
      * @return   set of bin keys which might be returned by invoking this
      *           method on other tuples which count as matches for the
      *           submitted <tt>tuple</tt>
