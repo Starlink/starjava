@@ -505,7 +505,8 @@ public class TopcatModel {
     public Action getSortAction( final SortOrder order, 
                                  final boolean ascending ) {
         TableColumn tcol = order.getColumn();
-        return new BasicAction( "Sort " + ( ascending ? "up" : "down" ), null,
+        return new BasicAction( "Sort " + ( ascending ? "up" : "down" ),
+                                ascending ? ResourceIcon.UP : ResourceIcon.DOWN,
                                 "Sort rows by " + ( ascending ? "a" : "de" ) +
                                 "scending order of " + tcol.getIdentifier() ) {
             public void actionPerformed( ActionEvent evt ) {
@@ -568,7 +569,7 @@ public class TopcatModel {
      * @return  ID string
      */
     public String getColumnID( ColumnInfo cinfo ) {
-        return cinfo.getAuxDatum( PlasticStarTable.COLID_INFO )
+        return cinfo.getAuxDatum( TopcatUtils.COLID_INFO )
                     .getValue()
                     .toString();
     }
@@ -633,6 +634,34 @@ public class TopcatModel {
                 }
             };
             appendColumn( cdata, -1 );
+        }
+    }
+
+    /**
+     * Changes the name of a TableColumn in this model.
+     * Renaming should be done using this call rather than directly to
+     * ensure that all the data is updated properly.
+     *
+     * @param   tcol  column in this topcat model whose name is to be updated
+     * @param   name  new name
+     */
+    public void renameColumn( TableColumn tcol, String name ) {
+
+        /* Rename the TableColumn and its associated ColumnInfo. */
+        tcol.setHeaderValue( name );
+        if ( tcol instanceof StarTableColumn ) {
+            ((StarTableColumn) tcol).getColumnInfo().setName( name );
+        }
+
+        /* This apparent NOP is required to force the TableColumnModel
+         * to notify its listeners (importantly the main data JTable)
+         * that the column name (headerValue) has changed; there
+         * doesn't appear to be an event specifically for this.
+         * (Or should I be using bound property changes??) */
+        for ( int i = 0; i < columnModel.getColumnCount(); i++ ) {
+            if ( columnModel.getColumn( i ) == tcol ) { 
+                columnModel.moveColumn( i, i );
+            }
         }
     }
 
