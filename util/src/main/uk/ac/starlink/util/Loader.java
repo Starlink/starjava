@@ -304,6 +304,29 @@ public class Loader {
         return instances;
     }
 
+    /** 
+     * Unless it's been set already, sets the value of the 
+     * <tt>apple.laf.useScreenMenuBar</tt> system property to true.
+     * This has the effect on Macintosh displays of causing menus to 
+     * appear at the top of the screen rather than the top of the
+     * windows they belong in.  This doesn't work on Dialog windows.
+     * Setting this property has no effect on non-Mac platforms.
+     * Probably(?) this call must be made before starting up the GUI
+     * (haven't got a Mac to hand, can't test it).
+     */
+    public static void tweakGuiForMac() {
+        String menuProp = "apple.laf.useScreenMenuBar";
+        try {
+            String prop = System.getProperty( menuProp );
+            if ( prop == null || prop.trim().length() == 0 ) {
+                System.setProperty( menuProp, "true" );
+            }
+        }
+        catch ( SecurityException e ) {
+            warn( "Security manager prevents setting of " + menuProp );
+        }
+    }
+
     /**
      * Register a warning.  Log it through the logger, unless we've said
      * the same thing already.
