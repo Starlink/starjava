@@ -305,9 +305,21 @@ public class TextStarTable extends AbstractStarTable {
                     maybeBoolean_[ icol ] = false;
                 }
             }
+            /* We are careful to check for "-0" type cells here - it is
+             * essential that they are coded as floating types (which 
+             * can represent negative zero) rather than integer types
+             * (which can't), since a negative zero is most likely the
+             * hours/degrees part of a sexegesimal angle, in which the
+             * difference is very important 
+             * (see uk.ac.starlink.topcat.func.Angles.dmsToRadians). */
+            boolean isMinus = ( ! done ) ? cell.charAt( 0 ) == '-' : false;
+            
             if ( ! done && maybeShort_[ icol ] ) {
                 try {
-                    Short.parseShort( cell );
+                    short val = Short.parseShort( cell );
+                    if ( val == (short) 0 && isMinus ) {
+                        throw new NumberFormatException();
+                    }
                     done = true;
                 }
                 catch ( NumberFormatException e ) {
@@ -316,7 +328,10 @@ public class TextStarTable extends AbstractStarTable {
             }
             if ( ! done && maybeInteger_[ icol ] ) {
                 try {
-                    Integer.parseInt( cell );
+                    int val = Integer.parseInt( cell );
+                    if ( val == 0 && isMinus ) {
+                        throw new NumberFormatException();
+                    }
                     done = true;
                 }
                 catch ( NumberFormatException e ) {
