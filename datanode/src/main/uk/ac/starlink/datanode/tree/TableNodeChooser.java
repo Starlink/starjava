@@ -56,12 +56,7 @@ public class TableNodeChooser extends TreeNodeChooser {
         getButtonPanel().add( new JButton( findAllAction ) );
     }
 
-    /**
-     * As well as setting the root, this modifies the root node's 
-     * childMaker object as appropriate for a tree which is interested 
-     * in tables.
-     */
-    public void setRootNode( DataNode root ) {
+    public void setRoot( DataNode root ) {
         customiseFactory( root.getChildMaker() );
         super.setRoot( root );
     }

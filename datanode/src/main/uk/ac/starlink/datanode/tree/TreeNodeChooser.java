@@ -80,13 +80,8 @@ import uk.ac.starlink.datanode.tree.select.NodeRootComboBox;
  * visible (parents and siblings of choosable ones) too, but branches
  * which contain no choosable nodes will not be displayed expanded in the GUI.
  * <p>
- * The chooser initially has no root, so contains no items.
- * To set it up with the usual set of root items selectable,
- * call {@link #addDefaultRoots}.  To modify the 
- * current tree root subsequently you can call the
- * {@link #setRoot} or {@link #setRootObject} methods.
- * If it has no roots by the time is is first made visible, 
- * <tt>addDefaultRoots</tt> will be called automatically.
+ * The chooser initially contains a default set of root items,
+ * and a suitable default (the current directory) is selected.
  *
  * @author   Mark Taylor (Starlink)
  */
@@ -141,7 +136,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                 if ( evt.getStateChange() == ItemEvent.SELECTED ) {
                     DataNode node = (DataNode) evt.getItem();
                     if ( node != null ) {
-                        setRoot( node );
+                        setRootNode( node );
                     }
                     setConnectorAction( rootSelector.getConnectorAction() );
                 }
@@ -259,11 +254,6 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         addAncestorListener( new AncestorListener() {
             public void ancestorAdded( AncestorEvent evt ) {
 
-                /* If no roots have been added, add the default ones now. */
-                if ( rootSelector.getItemCount() == 0 ) {
-                    addDefaultRoots();
-                }
-
                 /* Configure action availablity.  Can't do this in the
                  * constructor, since it involves invocation of methods which
                  * may be overridden by subclasses. */
@@ -275,14 +265,8 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             public void ancestorMoved( AncestorEvent evt ) {}
             public void ancestorRemoved( AncestorEvent evt ) {}
         } );
-    }
 
-    /**
-     * Adds the default root items to the node selector box.
-     * This includes the current directory and any known external 
-     * connectors (see {@link uk.ac.starlink.connect.ConnectorManager}).
-     */
-    public void addDefaultRoots() {
+        /* Initialise the content. */
         rootSelector.addDefaultRoots();
     }
 
@@ -296,7 +280,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
     public void setRootObject( Object obj ) throws NoSuchDataException {
         DataNode node = nodeMaker.makeDataNode( null, obj );
         nodeMaker.fillInAncestors( node );
-        setRoot( node );
+        setRootNode( node );
     }
 
     /**
@@ -321,7 +305,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
      *
      * @param  root   new root 
      */
-    public void setRoot( DataNode root ) {
+    private void setRootNode( DataNode root ) {
         DataNode oldRoot = (DataNode) jtree.getModel().getRoot();
 
         /* No action if we have been asked to replace the root with the
@@ -342,6 +326,17 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
         configureActionAvailability( null );
         jtree.expandPathLater( new TreePath( root ) );
         rootSelector.getModel().setSelectedItem( root );
+    }
+
+    /**
+     * Sets the root of the tree to a new node, possibly one not already 
+     * in the tree.
+     *
+     * @param   node  new root
+     */
+    public void setRoot( DataNode node ) {
+        getNodeMaker().fillInAncestors( node );
+        setRootNode( node );
     }
 
     /**
@@ -497,7 +492,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
             new BasicAction( "Up", IconFactory.getIcon( IconFactory.UP ), 
                              "Move root up one level" ) {
                 public void actionPerformed( ActionEvent evt ) {
-                    setRoot( getParent( getRoot() ) );
+                    setRootNode( getParent( getRoot() ) );
                 }
             };
 
@@ -508,7 +503,7 @@ public class TreeNodeChooser extends JPanel implements TreeSelectionListener {
                 public void actionPerformed( ActionEvent evt ) {
                     TreePath tpath = jtree.getSelectionPath();
                     if ( tpath != null ) {
-                        setRoot( (DataNode) tpath.getLastPathComponent() );
+                        setRootNode( (DataNode) tpath.getLastPathComponent() );
                     }
                 }
             };
