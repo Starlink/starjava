@@ -614,8 +614,10 @@
          <extension name="HDS" href="hds.jnlp"/>
          <extension name="NDX" href="ndx.jnlp"/>
          <extension name="VOTABLE" href="votable.jnlp"/>
+         <extension name="CONNECT" href="connect.jnlp"/>
          <extension name="ASTROGRID" href="astrogrid.jnlp"/>
          <extension name="AGLIB" href="aglib.jnlp"/>
+         <extension name="SRB" href="srb.jnlp"/>
        </resources>
 
        <!-- This is a component -->
