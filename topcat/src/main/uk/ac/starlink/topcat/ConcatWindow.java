@@ -70,14 +70,14 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
         Box tBox = Box.createVerticalBox();
         main.add( tBox, BorderLayout.NORTH );
         Box line = Box.createHorizontalBox();
+        line.add( Box.createHorizontalGlue() );
         line.add( new JLabel( "Base Table: " ) );
         line.add( t1selector );
-        line.add( Box.createHorizontalGlue() );
         tBox.add( line );
         line = Box.createHorizontalBox();
+        line.add( Box.createHorizontalGlue() );
         line.add( new JLabel( "Appended Table: " ) );
         line.add( t2selector );
-        line.add( Box.createHorizontalGlue() );
         tBox.add( line );
 
         /* Place the column correspondance box. */
@@ -270,10 +270,11 @@ public class ConcatWindow extends AuxWindow implements ItemListener {
                 String title;
                 boolean ok;
                 try {
+                    String label = "concat(" + getBaseTable().getID()
+                                 + "+" + getAddedTable().getID() + ")";
                     TopcatModel tcModel = 
                         ControlWindow.getInstance()
-                                     .addTable( makeTable(), "concatenated",
-                                                true );
+                                     .addTable( makeTable(), label, true );
                     title = "Tables Concatenated";
                     msg = "New concatenated table " + tcModel + " created";
                     msgType = JOptionPane.INFORMATION_MESSAGE;
