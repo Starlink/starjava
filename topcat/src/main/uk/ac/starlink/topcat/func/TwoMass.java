@@ -40,7 +40,8 @@ public class TwoMass {
      */
     public static String image2Mass( final String label, double ra, double dec,
                                      int npix, char band ) {
-        final CgiQuery query = new CgiQuery( TWOMASS_BASE_URL )
+        final TopcatCgiQuery query = (TopcatCgiQuery)
+             new TopcatCgiQuery( TWOMASS_BASE_URL )
             .addArgument( "objstr", Coords.radiansToHms( ra, 5 ).trim() + " " +
                                     Coords.radiansToDms( dec, 4 ).trim() )
             .addArgument( "size", npix )

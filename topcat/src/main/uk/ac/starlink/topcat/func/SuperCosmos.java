@@ -223,7 +223,8 @@ public class SuperCosmos {
      */
     private static String sssCutout( double ra, double dec, String mimeType,
                                      double x, double y, Band waveband ) {
-        final CgiQuery query = new CgiQuery( SSS_BASE_URL )
+        final TopcatCgiQuery query = (TopcatCgiQuery)
+             new TopcatCgiQuery( SSS_BASE_URL )
             .addArgument( "ra", Coords.radiansToHms( ra, 5 ).trim() )
             .addArgument( "dec", Coords.radiansToDms( dec, 4 ).trim() )
             .addArgument( "mime-type", mimeType )

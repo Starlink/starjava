@@ -5,6 +5,8 @@
 
 package uk.ac.starlink.topcat.func;
 
+import uk.ac.starlink.util.CgiQuery;
+
 /**
  * Specialist display functions for use with the Sloane Digital Sky Server.
  *
