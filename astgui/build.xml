@@ -348,6 +348,7 @@
        !   compiled -->
       <exclude name="**/*.html"/>
       <exclude name="**/*.properties*"/>
+      <exclude name="**/retired/*"/>
     </javac>
 
     <!-- Copy extra files that should live with packages classes
