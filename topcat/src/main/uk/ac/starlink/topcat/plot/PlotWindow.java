@@ -1,10 +1,12 @@
 package uk.ac.starlink.topcat.plot;
 
+import Acme.JPM.Encoders.GifEncoder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -16,13 +18,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.BitSet;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -99,7 +104,9 @@ public class PlotWindow extends TopcatViewWindow
     private final OrderedSelectionRecorder subSelRecorder_;
     private final Action fromvisibleAction_;
     private final Action blobAction_;
-    private JFileChooser printSaver_;
+    private JFileChooser exportSaver_;
+    private FileFilter psFilter_;
+    private FileFilter gifFilter_;
     private BitSet visibleRows_;
     private PointRegistry visiblePoints_;
     private MarkStyleProfile markers_;
@@ -108,6 +115,8 @@ public class PlotWindow extends TopcatViewWindow
 
     private static final double MILLISECONDS_PER_YEAR
                               = 365.25 * 24 * 60 * 60 * 1000;
+    private static final Object EPS = "EPS";
+    private static final Object GIF = "GIF";
     private static Logger logger = 
         Logger.getLogger( "uk.ac.starlink.topcat.plot" );
 
@@ -344,17 +353,16 @@ public class PlotWindow extends TopcatViewWindow
             }
         };
 
-        /* Action for printing. */
-        Action printAction = new BasicAction( "Export as EPS",
-                                              ResourceIcon.PRINT,
-                                              "Export to Encapsulated " +
-                                              "Postscript" ) {
-            public void actionPerformed( ActionEvent evt ) {
-                exportEPS();
-            }
-        };
+        /* Actions for exporting the plot. */
+        Action gifAction = 
+            new ExportAction( GIF, "Export as GIF", ResourceIcon.IMAGE,
+                                   "Save plot as a GIF file" );
+        Action epsAction = 
+            new ExportAction( EPS, "Export as EPS", ResourceIcon.PRINT,
+                                   "Export to Encapsulated Postscript file" );
         int fileMenuPos = 0;
-        getFileMenu().insert( printAction, fileMenuPos++ );
+        getFileMenu().insert( epsAction, fileMenuPos++ );
+        getFileMenu().insert( gifAction, fileMenuPos++ );
         getFileMenu().insertSeparator( fileMenuPos++ );
 
         /* Construct a new menu for general plot operations. */
@@ -429,7 +437,9 @@ public class PlotWindow extends TopcatViewWindow
         getJMenuBar().add( regressionMenu );
 
         /* Add actions to the toolbar. */
-        getToolBar().add( printAction );
+        getToolBar().add( epsAction );
+        getToolBar().add( gifAction );
+        getToolBar().addSeparator();
         getToolBar().add( resizeAction );
         getToolBar().add( gridButton );
         getToolBar().add( blobAction_ );
@@ -622,40 +632,67 @@ public class PlotWindow extends TopcatViewWindow
 
     /**
      * Exports the currently displayed plot to encapsulated postscript.
-     * The user is prompted to supply a filename.
+     * 
+     * @param  ostrm  destination stream for the EPS
      */
-    private void exportEPS() {
+    private void exportEPS( OutputStream ostrm ) throws IOException {
 
-        /* Prompt the user to select a file for output. */
-        JFileChooser chooser = getPrintSaver();
-        if ( chooser.showSaveDialog( this ) == JFileChooser.APPROVE_OPTION ) {
-            OutputStream ostrm = null;
-            try {
+        /* Construct a graphics object which will write postscript
+         * down this stream. */
+        Rectangle bounds = plot_.getBounds();
+        EpsGraphics2D g2 = new EpsGraphics2D( tcModel_.getLabel(), ostrm, 
+                                              bounds.x, bounds.y, 
+                                              bounds.x + bounds.width,
+                                              bounds.y + bounds.height );
 
-                /* Construct a stream for the EPS to be written to. */
-                ostrm = new FileOutputStream( chooser.getSelectedFile() );
+        /* Do the drawing. */
+        plot_.print( g2 );
 
-                /* Construct a graphics object which will write postscript
-                 * down this stream. */
-                Rectangle bounds = plot_.getBounds();
-                EpsGraphics2D g2 = 
-                    new EpsGraphics2D( tcModel_.getLabel(), ostrm, 
-                                       bounds.x, bounds.y, 
-                                       bounds.x + bounds.width,
-                                       bounds.y + bounds.height );
+        /* Note this close call *must* be made, otherwise the 
+         * eps file is not flushed or correctly terminated. 
+         * This closes the output stream too. */
+        g2.close();
+    }
 
-                /* Do the drawing. */
-                plot_.print( g2 );
+    /**
+     * Exports the currently displayed plot to GIF format.
+     *
+     * <p>There's something wrong with this - it ought to produce a 
+     * transparent background, but it doesn't.  I'm not sure why, or
+     * even whether it's to do with the plot or the encoder.
+     *
+     * @param  ostrm  destination stream for the gif
+     */
+    private void exportGif( OutputStream ostrm ) throws IOException {
 
-                /* Note this close call *must* be made, otherwise the 
-                 * eps file is not flushed or correctly terminated. 
-                 * This closes the output stream too. */
-                g2.close();
-            }
-            catch ( IOException e ) {
-                ErrorDialog.showError( e, "Error writing to file", this );
+        /* Get the component which will be plotted and its dimensions. */
+        JComponent plot = plot_;
+        int w = plot.getWidth();
+        int h = plot.getHeight();
+
+        /* Draw it onto a new BufferedImage. */
+        BufferedImage image = 
+            new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
+        plot.paint( image.getGraphics() );
+
+        /* Count the number of colours represented in the resulting image. */
+        Set colors = new HashSet();
+        for ( int ix = 0; ix < w; ix++ ) {
+            for ( int iy = 0; iy < h; iy++ ) {
+                colors.add( new Integer( image.getRGB( ix, iy ) ) );
             }
         }
+
+        /* If there are too many, redraw the image into an indexed image
+         * instead.  This is necessary since the GIF encoder we're using
+         * here just gives up if there are too many. */
+        if ( colors.size() > 254 ) {
+            image = new BufferedImage( w, h, BufferedImage.TYPE_BYTE_INDEXED );
+            plot.paint( image.getGraphics() );
+        }
+
+        /* Write the image as a gif down the provided stream. */
+        new GifEncoder( image, ostrm ).encode();
     }
 
     /**
@@ -664,13 +701,10 @@ public class PlotWindow extends TopcatViewWindow
      *
      * @return   a file chooser
      */
-    private JFileChooser getPrintSaver() {
-        if ( printSaver_ == null ) {
-            printSaver_ = new JFileChooser( "." );
-            printSaver_.setApproveButtonText( "Write EPS" );
-            printSaver_.setDialogTitle( "Export Plot as EPS" );
-            printSaver_.setAcceptAllFileFilterUsed( true );
-            FileFilter psFilter = new FileFilter() {
+    private JFileChooser getExportSaver() {
+        if ( exportSaver_ == null ) {
+            exportSaver_ = new JFileChooser( "." );
+            psFilter_ = new FileFilter() {
                 public String getDescription() {
                     return ".ps, .eps";
                 }
@@ -688,10 +722,28 @@ public class PlotWindow extends TopcatViewWindow
                     return false;
                 }
             };
-            printSaver_.addChoosableFileFilter( psFilter );
-            printSaver_.setFileFilter( psFilter );
+            gifFilter_ = new FileFilter() {
+                public String getDescription() {
+                    return ".gif";
+                }
+                public boolean accept( File file ) {
+                    if ( file.isDirectory() ) {
+                        return true;
+                    }
+                    String name = file.getName();
+                    int dotpos = name.indexOf( '.' );
+                    if ( dotpos > 0 ) {
+                        String ext = name.substring( dotpos + 1 ).toLowerCase();
+                        return ext.equals( "gif" );
+                    }
+                    return false;
+                }
+            };
+            exportSaver_.setAcceptAllFileFilterUsed( true );
+            exportSaver_.addChoosableFileFilter( psFilter_ );
+            exportSaver_.addChoosableFileFilter( gifFilter_ );
         }
-        return printSaver_;
+        return exportSaver_;
     }
 
     /**
@@ -830,6 +882,78 @@ public class PlotWindow extends TopcatViewWindow
 
     public void surfaceChanged() {
         forceReplot();
+    }
+
+    /**
+     * Actions for exporting the plot to a file.
+     */
+    private class ExportAction extends BasicAction {
+        final Object format_;
+
+        ExportAction( Object format, String name, Icon icon, String desc ) {
+            super( name, icon, desc );
+            format_ = format;
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+
+            /* Acquire and configure the file chooser. */
+            JFileChooser chooser = getExportSaver();
+            String approve;
+            String title;
+            FileFilter filter;
+            if ( format_ == EPS ) {
+                approve = "Write EPS";
+                title = "Export plot as EPS";
+                filter = psFilter_;
+            }
+            else if ( format_ == GIF ) {
+                approve = "Write GIF";
+                title = "Export plot as GIF";
+                filter = gifFilter_;
+            }
+            else {
+                throw new AssertionError();
+            }
+            chooser.setDialogTitle( title );
+            chooser.setFileFilter( filter );
+          
+            /* Prompt the user to select a file for output. */
+            if ( chooser.showDialog( PlotWindow.this, approve ) == 
+                 JFileChooser.APPROVE_OPTION ) {
+                OutputStream ostrm = null;
+                try {
+
+                    /* Construct the output stream. */
+                    ostrm = new FileOutputStream( chooser.getSelectedFile() );
+
+                    /* Write output to it. */
+                    if ( format_ == GIF ) {
+                        exportGif( ostrm );
+                    }
+                    else if ( format_ == EPS ) {
+                        exportEPS( ostrm );
+                    }
+                    else {
+                        assert false;
+                    }
+                }
+                catch ( IOException e ) {
+                    ErrorDialog.showError( e, "Error writing to file",
+                                           PlotWindow.this );
+                }
+                finally {
+                    if ( ostrm != null ) {
+                        try {
+                            ostrm.close();
+                        }
+                        catch ( IOException e ) {
+                            // no action
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
