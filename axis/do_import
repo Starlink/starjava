@@ -5,11 +5,11 @@
 CVS_RSH=ssh
 export CVS_RSH
 cd docs
-cvs  -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
-   import -ko -I! -m "Axis docs" java/source/axis/docs AXIS Axis_Docs_V1
-
+cvs  -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+   import -ko -I! -m "Axis docs" java/source/axis/docs/axis AXIS Axis_Docs_V1RC1
+exit
 cd ..
 cd webapps
-cvs -d :ext:pwd@rlsaxps.bnsc.rl.ac.uk:/home/soft3/cvs \
-   import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1
+cvs -d :ext:pwd@cvs.starlink.ac.uk:/cvs \
+   import -ko -I! -m "Axis webapps" java/source/axis/webapps AXIS Axis_Webapp_V1RC1
 
