@@ -226,6 +226,9 @@
 
     <!-- TABLE -->
     <pathelement location="${star.jar.dir}/table/table.jar"/>
+  
+    <!-- VOTable -->
+    <pathelement location="${star.jar.dir}/votable/votable.jar"/>
 
   </extclasspath>
 
@@ -254,6 +257,7 @@
     <pathelement location="${star.build.dir}/pal/lib/pal/pal.jar"/>
     <pathelement location="${star.build.dir}/astgui/lib/astgui/astgui.jar"/>
     <pathelement location="${star.build.dir}/table/lib/table/table.jar"/>
+    <pathelement location="${star.build.dir}/votable/lib/votable/votable.jar"/>
   </extclasspath>
 
   <!-- Local third party jars. Normally these will be kept in their
@@ -353,6 +357,15 @@
 
     <fail message="No NDX available" unless="ndx.present"/>
 
+    <!--  Need TABLE -->
+    <available property="table.present"
+               classpathref="classpath"
+               classname="uk.ac.starlink.table.StarTable"/>
+    
+    <fail message="No TABLE available" unless="ndx.present"/>
+
+
+
     <!-- Need SOAPSERVER -->
     <available property="soapserver.present"
                classpathref="classpath"
@@ -425,7 +438,6 @@ public class Version {
            deprecation="${deprecation}"
            optimize="${optimize}"
            source="${source.version}">
-
 
       <classpath refid="classpath"/>
 
