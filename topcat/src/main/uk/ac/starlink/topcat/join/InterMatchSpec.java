@@ -114,7 +114,13 @@ public class InterMatchSpec extends MatchSpec {
         boolean[] useAlls = getUseAlls();
         RowMatcher matcher = new RowMatcher( engine, tables );
         matcher.setIndicator( indicator );
-        List matches = matcher.findMatches( useAlls );
+        List matches;
+        if ( nTable == 2 ) {
+            matches = matcher.findPairMatches( ! useAlls[ 0 ], ! useAlls[ 1 ] );
+        }
+        else {
+            matches = matcher.findGroupMatches( useAlls );
+        }
         int nrow = matches.size();
 
         /* Create a new table based on the matched lines we have identified. */
