@@ -147,7 +147,7 @@ public class TextStarTable extends RandomStarTable {
         for ( int icol = 0; icol < ncol; icol++ ) {
             boolean maybeBoolean = true;
             boolean maybeInteger = true;
-            boolean maybeFloat = true;
+            boolean maybeFloat = false;
             boolean maybeDouble = true;
             boolean maybeLong = true;
             for ( Iterator it = rows.iterator(); it.hasNext(); ) {
