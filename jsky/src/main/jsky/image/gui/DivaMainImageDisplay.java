@@ -6,6 +6,9 @@
  * who             when        what
  * --------------  ----------  ----------------------------------------
  * Allan Brighton  1999/05/03  Created
+ * Peter W. Draper 2002/10/03  Added constructor that takes an
+ *                             ImageProcessor, needed so that
+ *                             sub-classes can define their own
  */
 
 package jsky.image.gui;
@@ -301,14 +304,27 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
     };
 
     /**
+     * Initialize with the given Diva GraphicsPane (contains the
+     * layers used to draw the image and graphcs. Note that you need
+     * to call setParentFrame() if you use this version.
+     *
+     * @param pane the Diva GraphicsPane to use (contains the layers
+     *             used to display the image and graphics)
+     */
+    public DivaMainImageDisplay(GraphicsPane pane) {
+        this(pane, new ImageProcessor());
+    }
+
+    /**
      * Initialize with the given Diva GraphicsPane (contains the layers used to draw the image
      * and graphcs. Note that you need to call setParentFrame() if you use this version.
      *
      * @param pane the Diva GraphicsPane to use (contains the layers used to display the
      *             image and graphics)
+     * @param processor the ImageProcessor to use
      */
-    public DivaMainImageDisplay(GraphicsPane pane) {
-        super(pane, new ImageProcessor(), "Main Image");
+    public DivaMainImageDisplay(GraphicsPane pane, ImageProcessor processor) {
+        super(pane, processor, "Main Image");
 
         setDownloadState(false);
         updateEnabledStates();
@@ -350,6 +366,20 @@ public class DivaMainImageDisplay extends DivaGraphicsImageDisplay implements Ma
      *             image and graphics)
      * @param parent the top level parent frame (or internal frame) used to close the window
      *
+     * @param processor an ImageProcessor
+     */
+    public DivaMainImageDisplay(GraphicsPane pane, Component parent,
+                                ImageProcessor processor ) {
+        this(pane,processor);
+        _parent = parent;
+    }
+
+    /**
+     * Construct a DivaMainImageDisplay widget.
+     *
+     * @param pane the Diva GraphicsPane to use (contains the layers used to display the
+     *             image and graphics)
+     * @param parent the top level parent frame (or internal frame) used to close the window
      */
     public DivaMainImageDisplay(GraphicsPane pane, Component parent) {
         this(pane);
