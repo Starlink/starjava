@@ -145,7 +145,7 @@
             + [VOT] cover.xml
               - [VOC] DEFINITIONS
               + [VOC] RESOURCE
-                - [TAB] TABLE  (9x20)
+                - [TAB] TABLE  (9x?)
           + [TRD] zip/
             + [ZIP] hello.jar
               + [ZPD] META-INF/
@@ -161,27 +161,27 @@
       + [VOT] cover.xml
         - [VOC] DEFINITIONS
         + [VOC] RESOURCE
-          - [TAB] TABLE  (9x20)
+          - [TAB] TABLE  (9x?)
       + [VOT] fitsjob.xml
         + [VOC] RESOURCE
-          - [TAB] TABLE  (3x881)
+          - [TAB] TABLE  (3x?)
       + [VOT] vizier.xml.gz
         - [VOC] DEFINITIONS
         + [VOC] II/68
-          - [TAB] II/68/catalog  (9x1)
+          - [TAB] II/68/catalog  (9x?)
         + [VOC] II/126
-          - [TAB] II/126/sources  (9x2)
+          - [TAB] II/126/sources  (9x?)
         + [VOC] II/206
-          - [TAB] II/206/bcsp  (8x3)
+          - [TAB] II/206/bcsp  (8x?)
         + [VOC] II/214A
-          - [TAB] II/214A/gcvs  (8x1)
-          - [TAB] II/214A/nsv  (8x1)
+          - [TAB] II/214A/gcvs  (8x?)
+          - [TAB] II/214A/nsv  (8x?)
         + [VOC] II/219
-          - [TAB] II/219/nsv  (8x1)
+          - [TAB] II/219/nsv  (8x?)
         + [VOC] II/225
-          - [TAB] II/225/catalog  (13x120)
-          - [TAB] II/225/names  (4x28)
-          - [TAB] II/225/psc  (7x2)
+          - [TAB] II/225/catalog  (13x?)
+          - [TAB] II/225/names  (4x?)
+          - [TAB] II/225/psc  (7x?)
     + [DIR] xml
       + [DOC] build.xml
         - [COM]   <!-- Ant build file for toy 'Hello ...
