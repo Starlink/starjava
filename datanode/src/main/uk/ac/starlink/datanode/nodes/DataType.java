@@ -28,12 +28,6 @@ public class DataType {
         new DataType( "TABLE", StarTable.class );
 
     /**
-     * DataType representing an {@link ArrayContainer} object.
-     */
-    public static final DataType ARRAY =
-        new DataType( "ARRAY", ArrayContainer.class );
-
-    /**
      * DataType representing a {@link uk.ac.starlink.ndx.Ndx} object.
      */
     public static final DataType NDX =

@@ -1,14 +1,18 @@
 package uk.ac.starlink.datanode.nodes;
 
 import javax.swing.Icon;
+import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.Type;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
 import uk.ac.starlink.hds.ArrayStructure;
+import uk.ac.starlink.hds.HDSArrayBuilder;
 import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSObject;
 import uk.ac.starlink.hds.HDSType;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 
 /**
  * A DataNode representing an 
@@ -27,6 +31,7 @@ public class ARYDataNode extends HDSDataNode {
     private ArrayStructure aryobj;
     private NDShape shape;
     private DataNodeFactory customChildMaker;
+    private Ndx ndx;
 
     /**
      * Constructs an ARYDataNode from an HDSObject.
@@ -115,6 +120,38 @@ public class ARYDataNode extends HDSDataNode {
         dv.addKeyedItem( "Type", aryobj.getType() );
         dv.addSeparator();
         dv.addKeyedItem( "Storage variant", aryobj.getStorage() );
+    }
+
+    public boolean hasDataObject( DataType dtype ) {
+        if ( dtype == DataType.NDX ) {
+            return true;
+        }
+        else {
+            return super.hasDataObject( dtype );
+        }
+    }
+
+    public Object getDataObject( DataType dtype ) throws DataObjectException {
+        if ( dtype == DataType.NDX ) {
+            try {
+                return getNdx();
+            }
+            catch ( HDSException e ) {
+                throw new DataObjectException( "Error reading array", e );
+            }
+        }
+        else {
+            return super.getDataObject( dtype );
+        }
+    }
+
+    private Ndx getNdx() throws HDSException {
+        if ( ndx == null ) {
+            NDArray nda = HDSArrayBuilder.getInstance()
+                         .makeNDArray( aryobj, AccessMode.READ );
+            ndx = new DefaultMutableNdx( nda );
+        }
+        return ndx;
     }
 
 }

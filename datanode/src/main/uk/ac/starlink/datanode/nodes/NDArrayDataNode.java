@@ -7,10 +7,13 @@ import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrayFactory;
 import uk.ac.starlink.array.NDShape;
 import uk.ac.starlink.array.OrderedNDShape;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 
 public class NDArrayDataNode extends DefaultDataNode {
 
     private NDArray nda;
+    private Ndx ndx;
     private String name;
 
     public NDArrayDataNode( NDArray nda ) {
@@ -19,7 +22,6 @@ public class NDArrayDataNode extends DefaultDataNode {
         name = ( url == null ) ? "NDArray" : url.getFile();
         setLabel( name );
         setIconID( IconFactory.getArrayIconID( nda.getShape().getNumDims() ) );
-        registerDataObject( DataType.ARRAY, new ArrayContainer( nda, null ) );
     }
 
     public NDArrayDataNode( String loc ) throws NoSuchDataException {
@@ -79,6 +81,31 @@ public class NDArrayDataNode extends DefaultDataNode {
               .append( ubnd[ i ] );
         }
         return sb.toString();
+    }
+
+    public boolean hasDataObject( DataType dtype ) {
+        if ( dtype == DataType.NDX ) {
+            return true;
+        }
+        else {
+            return super.hasDataObject( dtype );
+        }
+    }
+
+    public Object getDataObject( DataType dtype ) throws DataObjectException {
+        if ( dtype == DataType.NDX ) {
+            return getNdx();
+        }
+        else {
+            return super.getDataObject( dtype );
+        }
+    }
+
+    private Ndx getNdx() {
+        if ( ndx == null ) {
+            ndx = new DefaultMutableNdx( nda );
+        }
+        return ndx;
     }
 
     private static NDArray getNda( String loc ) throws NoSuchDataException {

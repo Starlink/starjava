@@ -1,6 +1,7 @@
 package uk.ac.starlink.datanode.nodes;
 
 import java.io.File;
+import java.net.URL;
 import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,9 @@ import uk.ac.starlink.hds.HDSException;
 import uk.ac.starlink.hds.HDSReference;
 import uk.ac.starlink.hds.HDSType;
 import uk.ac.starlink.hds.HDSObject;
+import uk.ac.starlink.hds.NDFNdxHandler;
+import uk.ac.starlink.ndx.DefaultMutableNdx;
+import uk.ac.starlink.ndx.Ndx;
 
 /**
  * A {@link DataNode} representing an
@@ -39,6 +43,7 @@ public class HDSDataNode extends DefaultDataNode {
     private String name;
     private Buffer niobuf;
     private String path;
+    private Ndx ndx;
 
     /**
      * The maximum number of cells of an array of structures to be 
@@ -353,7 +358,7 @@ public class HDSDataNode extends DefaultDataNode {
     }
 
     public boolean hasDataObject( DataType dtype ) {
-        if ( dtype == DataType.ARRAY ) {
+        if ( dtype == DataType.NDX ) {
 
             /* It counts as an array if it's an array  of primitives. */
             return shape != null 
@@ -366,12 +371,9 @@ public class HDSDataNode extends DefaultDataNode {
     }
 
     public Object getDataObject( DataType dtype ) throws DataObjectException {
-        if ( dtype == DataType.ARRAY ) {
+        if ( dtype == DataType.NDX && hasDataObject( DataType.NDX ) ) {
             try {
-                NDArray nda = HDSArrayBuilder.getInstance()
-                             .makeNDArray( new ArrayStructure( hobj ),
-                                           AccessMode.READ );
-                return new ArrayContainer( nda, null );
+                return getNdx();
             }
             catch ( HDSException e ) {
                 throw new DataObjectException( e );
@@ -380,6 +382,24 @@ public class HDSDataNode extends DefaultDataNode {
         else {
             return super.getDataObject( dtype );
         }
+    }
+
+    private Ndx getNdx() throws HDSException {
+        if ( ndx == null ) {
+            URL hurl;
+            try {
+                hurl = new HDSReference( hobj ).getURL();
+            }
+            catch ( HDSException e ) {
+                hurl = null;
+            }
+            NDArray nda = HDSArrayBuilder.getInstance()
+                         .makeNDArray( new ArrayStructure( hobj ),
+                                       AccessMode.READ );
+
+            ndx = new DefaultMutableNdx( nda );
+        }
+        return ndx;
     }
 
     public static boolean isMagic( byte[] magic ) {

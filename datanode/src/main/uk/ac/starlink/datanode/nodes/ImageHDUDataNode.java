@@ -47,7 +47,6 @@ public class ImageHDUDataNode extends HDUDataNode {
     private Number badval;
     private FrameSet wcs;
     private String wcsEncoding;
-    private NDArray nda;
     private Ndx ndx;
 
     /**
@@ -253,7 +252,7 @@ public class ImageHDUDataNode extends HDUDataNode {
     }
 
     public boolean hasDataObject( DataType dtype ) {
-        if ( dtype == DataType.ARRAY ) {
+        if ( dtype == DataType.NDX ) {
             return shape != null;
         }
         else {
@@ -262,9 +261,9 @@ public class ImageHDUDataNode extends HDUDataNode {
     }
 
     public Object getDataObject( DataType dtype ) throws DataObjectException {
-        if ( hasDataObject( dtype ) && dtype == DataType.ARRAY ) {
+        if ( hasDataObject( dtype ) && dtype == DataType.NDX ) {
             try {
-                return new ArrayContainer( getNDArray(), wcs );
+                return getNdx();
             }
             catch ( IOException e ) {
                 throw new DataObjectException( e );
@@ -275,15 +274,19 @@ public class ImageHDUDataNode extends HDUDataNode {
         }
     }
 
-    private synchronized NDArray getNDArray() throws IOException {
-        if ( nda == null ) {
+    private synchronized Ndx getNdx() throws IOException {
+        if ( ndx == null ) {
             ArrayDataInput data = hdudata.getArrayData();
-            nda = FitsArrayBuilder.getInstance()
-                                  .makeNDArray( data, AccessMode.READ );
+            NDArray nda = FitsArrayBuilder.getInstance()
+                         .makeNDArray( data, AccessMode.READ );
             if ( ! nda.getShape().equals( shape ) ) {
                 nda = new BridgeNDArray( new MouldArrayImpl( nda, shape ) );
             }
+            ndx = new DefaultMutableNdx( nda );
+            if ( wcs != null ) {
+                ((DefaultMutableNdx) ndx).setWCS( wcs );
+            }
         }
-        return nda;
+        return ndx;
     }
 }
