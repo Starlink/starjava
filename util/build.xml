@@ -849,6 +849,8 @@
     <junit printsummary="${junit.summary}" haltonfailure="yes"
            filtertrace="${junit.filtertrace}"
            fork="${junit.fork}">
+
+      <jvmarg value="-enableassertions"/>
       <classpath refid="tests-classpath"/>
 
       <sysproperty key="java.io.tmpdir" value="${build.tests}"/>
@@ -877,6 +879,7 @@
           haltonfailure="yes"
           fork="${junit.fork}"
           filtertrace="${junit.filtertrace}">
+      <jvmarg value="-enableassertions"/>
       <sysproperty key="java.io.tmpfile" value="${build.tests}"/>
       <sysproperty key="build.tests" value="${build.tests}"/>
       <sysproperty key="tests-classpath.value"
