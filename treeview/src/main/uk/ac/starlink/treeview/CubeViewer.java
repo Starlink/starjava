@@ -52,13 +52,24 @@ class CubeViewer implements ComponentMaker2 {
 
         /* Get a shape of which each pixel represents one of the possible
          * 2-dimensional slices of our NDArray.  It's a copy of the original
-         * shape, but the dummy dimensions are represented by bounds
+         * shape, except the dummy dimensions are represented by bounds
          * -Long.MIN_VALUE:-Long.MIN_VALUE. */
         OrderedNDShape shape = nda.getShape();
         long[] depthOrigin = shape.getOrigin();
         long[] depthDims = shape.getDims();
-        depthOrigin[ 0 ] = depthOrigin[ 1 ] = -Long.MIN_VALUE;
-        depthDims[ 0 ] = depthDims[ 1 ] = 1;
+        int ndim = shape.getNumDims();
+        int ndummy = 2;
+        for ( int i = ndim - 1; i >= 0; i-- ) {
+            if ( depthDims[ i ] > 1 && ndummy > 0 ) {
+                depthOrigin[ i ] = -Long.MIN_VALUE;
+                depthDims[ i ] = 1;
+                ndummy--;
+            }
+        }
+        if ( ndummy != 0 ) {
+            throw new IllegalArgumentException( 
+                "Too few non-dummy dimensions " + shape ); 
+        }
         final OrderedNDShape depthShape =
             new OrderedNDShape( depthOrigin, depthDims, shape.getOrder() );
         int nplanes = (int) depthShape.getNumPixels();
@@ -141,16 +152,22 @@ class CubeViewer implements ComponentMaker2 {
             throws IOException {
         int ndim = spec.length;
         NDShape shape = nda.getShape();
+        long[] origin = shape.getOrigin();
+        long[] dims = shape.getDims();
 
         /* Get the N-dimensional window which reveals the requested slice. */
         long[] windowOrigin = shape.getOrigin();
         long[] windowDims = shape.getDims();
-        int nok = ndim;
+        int nok = 0;
         for ( int i = 0; i < ndim; i++ ) {
             if ( spec[ i ] == Long.MIN_VALUE ) {
+                windowOrigin[ i ] = origin[ i ];
+                windowDims[ i ] = dims[ i ];
+                nok++;
+            }
+            else {
                 windowOrigin[ i ] = spec[ i ];
                 windowDims[ i ] = 1;
-                nok--;
             }
         }
 
@@ -159,7 +176,7 @@ class CubeViewer implements ComponentMaker2 {
         long[] sliceDims = new long[ nok ];
         int iok = 0;
         for ( int i = 0; i < ndim; i++ ) {
-            if ( spec[ i ] != Long.MIN_VALUE ) {
+            if ( spec[ i ] == Long.MIN_VALUE ) {
                 sliceOrigin[ iok ] = windowOrigin[ i ];
                 sliceDims[ iok ] = windowDims[ i ];
                 iok++;

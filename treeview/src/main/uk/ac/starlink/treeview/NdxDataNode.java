@@ -271,12 +271,20 @@ public class NdxDataNode extends DefaultDataNode {
     
         final FrameSet ast = Ndxs.getAst( ndx );
         final NDShape shape = image.getShape();
-        int ndim = shape.getNumDims();
-        List actlist = new ArrayList();
+        final int ndim = shape.getNumDims();
         final String title = ndx.hasTitle() ? ndx.getTitle()
                                             : "Spectrum data";
 
-        if ( ndx.hasWCS() && ndim == 2 ) {
+        /* Get a version with degenerate dimensions collapsed.  Should really
+         * also get a corresponding WCS and use that, but I haven't worked
+         * out how to do that properly yet, so the views below either use
+         * the original array with its WCS or the effective array with
+         * a blank WCS. */
+        final NDArray eimage = NDArrayDataNode.effectiveArray( image );
+        final int endim = eimage.getShape().getNumDims();
+
+        /* Add data views as appropriate. */
+        if ( ndx.hasWCS() && ndim == 2 && endim == 2 ) {
             dv.addPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     return new GridPlotter( 200, shape, ast );
@@ -284,19 +292,22 @@ public class NdxDataNode extends DefaultDataNode {
             } );
         }
 
-        String ititle = ndx.hasQuality() ? "Masked image data"
-                                         : "Image data";
-        dv.addPane( ititle, new ComponentMaker() {
+        dv.addPane( "Pixel values", new ComponentMaker() {
             public JComponent getComponent() throws IOException {
-                return new ArrayBrowser( image );
+                if ( endim == 2 && ndim != 2 ) {
+                    return new ArrayBrowser( eimage );
+                }
+                else {
+                    return new ArrayBrowser( image );
+                }
             }
         } );
 
-        if ( ndim == 1 ) {
+        if ( endim == 1 ) {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent()
                         throws IOException, SplatException {
-                    return new SpectrumViewer( image, title );
+                    return new SpectrumViewer( eimage, title );
                 }
             } );
         }
@@ -304,7 +315,12 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndim == 2 ) {
             dv.addPane( "Image display", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
-                    return new ImageViewer( image, ast );
+                    if ( endim == 2 && ndim != 2 ) {
+                        return new ImageViewer( eimage, null );
+                    }
+                    else {
+                        return new ImageViewer( image, ast );
+                    }
                 }
             } );
         }
@@ -312,13 +328,19 @@ public class NdxDataNode extends DefaultDataNode {
         if ( ndim > 2 ) {
             dv.addPane( "Slice display", new ComponentMaker2() {
                 public JComponent[] getComponents() {
-                    return new CubeViewer( image, ast )
-                          .getComponents();
+                    if ( endim != ndim ) {
+                        return new CubeViewer( image, null ).getComponents();
+                    }
+                    else {
+                        return new CubeViewer( image, ast ).getComponents();
+                    }
                 }
             } );
         }
                   
-        if ( ndim == 1 ) {
+        /* Add actions as appropriate. */
+        List actlist = new ArrayList();
+        if ( ndim == 1 && endim == 1 ) {
             final ApplicationInvoker displayer = ApplicationInvoker.SPLAT;
             if ( displayer.canDisplayNDX() ) {
                 Icon splatic = IconFactory.getInstance()
@@ -339,7 +361,7 @@ public class NdxDataNode extends DefaultDataNode {
             }
         }
 
-        if ( ndim == 2 ) {
+        if ( ndim == 2 && endim == 2 ) {
             final ApplicationInvoker displayer = ApplicationInvoker.SOG;
             if ( displayer.canDisplayNDX() ) {
                 Icon sogic = IconFactory.getInstance()
@@ -359,7 +381,6 @@ public class NdxDataNode extends DefaultDataNode {
                 actlist.add( sogAct );
             }
         }
-
         dv.addActions( (Action[]) actlist.toArray( new Action[ 0 ] ) );
     }
 

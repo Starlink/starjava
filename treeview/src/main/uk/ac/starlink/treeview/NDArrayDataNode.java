@@ -5,6 +5,8 @@ import java.net.URL;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import uk.ac.starlink.array.AccessMode;
+import uk.ac.starlink.array.BridgeNDArray;
+import uk.ac.starlink.array.MouldArrayImpl;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
 import uk.ac.starlink.array.NDArrayFactory;
@@ -115,35 +117,70 @@ public class NDArrayDataNode extends DefaultDataNode {
     public static void addDataViews( DetailViewer dv, NDArray nda, 
                                      final FrameSet wcs ) 
             throws IOException {
+
+        /* Get a random access version of the array since most of the
+         * array views will require this. */
         Requirements req = new Requirements( AccessMode.READ )
                           .setRandom( true );
         final NDArray rnda = NDArrays.toRequiredArray( nda, req );
         final NDShape shape = rnda.getShape();
-        int ndim = shape.getNumDims();
-        if ( wcs != null && ndim == 2 ) {
+        final int ndim = shape.getNumDims();
+
+        /* Get a version with degenerate dimensions collapsed.  Should really
+         * also get a corresponding WCS and use that, but I haven't worked
+         * out how to do that properly yet, so the views below either use
+         * the original array with its WCS or the effective array with
+         * a blank WCS. */
+        final NDArray enda = effectiveArray( rnda );
+        final int endim = enda.getShape().getNumDims();
+
+        /* Add data views as appropriate. */
+        if ( wcs != null && ndim == 2 && endim == 2 ) {
             dv.addPane( "WCS grids", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
                     return new GridPlotter( 200, shape, wcs );
                 }
             } );
         }
-        dv.addPane( "Array data", new ComponentMaker() {
+        dv.addPane( "Pixel values", new ComponentMaker() {
             public JComponent getComponent() throws IOException {
-                return new ArrayBrowser( rnda );
+                if ( endim == 2 && ndim != 2 ) {
+                    return new ArrayBrowser( enda );
+                }
+                else {
+                    return new ArrayBrowser( rnda );
+                }
             }
         } );
-        if ( ndim == 1 ) {
+        if ( endim == 1 ) {
             dv.addPane( "Graph view", new ComponentMaker() {
                 public JComponent getComponent() 
                         throws IOException, SplatException {
-                    return new SpectrumViewer( rnda, "NDArray" );
+                    return new SpectrumViewer( enda, "NDArray" );
                 }
             } );
         }
-        if ( ndim == 2 ) {
+        if ( endim == 2 ) {
             dv.addPane( "Image view", new ComponentMaker() {
                 public JComponent getComponent() throws IOException {
-                    return new ImageViewer( rnda, wcs );
+                    if ( endim == 2 && ndim != 2 ) {
+                        return new ImageViewer( enda, null );
+                    }
+                    else {
+                        return new ImageViewer( rnda, wcs );
+                    }
+                }
+            } );
+        }
+        if ( endim > 2 ) {
+            dv.addPane( "Slice view", new ComponentMaker2() {
+                public JComponent[] getComponents() throws IOException {
+                    if ( endim != ndim ) {
+                        return new CubeViewer( rnda, null ).getComponents();
+                    }
+                    else {
+                        return new CubeViewer( rnda, wcs ).getComponents();
+                    }
                 }
             } );
         }
@@ -161,6 +198,48 @@ public class NDArrayDataNode extends DefaultDataNode {
             throw new NoSuchDataException( "Not a recognised NDArray" );
         }
         return nda;
+    }
+
+    /**
+     * Returns an NDArray the same as the one input, but with any
+     * degenerate dimensions (ones with an extent of unity) removed.
+     * This leaves the pixel sequence unchanged.  If nothing needs to
+     * be done (no degenerate dimensions) the original array will be
+     * returned.
+     *
+     * @param   nda1   the array to be reshaped (maybe)
+     * @return  an array with the same data, but no degenerate dimensions.
+     *          May be the same as <tt>nda1</tt>
+     */
+    static NDArray effectiveArray( NDArray nda1 ) {
+        int isig = 0;
+        NDShape shape1 = nda1.getShape();
+        long[] origin1 = shape1.getOrigin();
+        long[] dims1 = shape1.getDims();
+        int ndim1 = shape1.getNumDims();
+        int ndim2 = 0;
+        for ( int i1 = 0; i1 < ndim1; i1++ ) {
+            if ( dims1[ i1 ] > 1 ) { 
+                ndim2++;
+            }
+        }
+        long[] origin2 = new long[ ndim2 ];
+        long[] dims2 = new long[ ndim2 ];
+        int i2 = 0;
+        for ( int i1 = 0; i1 < ndim1; i1++ ) {
+            if ( dims1[ i1 ] > 1 ) {
+                origin2[ i2 ] = origin1[ i1 ];
+                dims2[ i2 ] = dims1[ i1 ];
+                i2++;
+            }
+        }
+        assert i2 == ndim2;
+
+        NDShape shape2 = new NDShape( origin2, dims2 );
+        assert shape2.getNumPixels() == shape1.getNumPixels();
+
+        NDArray nda2 = new BridgeNDArray( new MouldArrayImpl( nda1, shape2 ) );
+        return nda2;
     }
 
 }
