@@ -17,19 +17,30 @@
 #     values for these properties if they have not been defined when it 
 #     wakes up.  Therefore it is usually possible to bypass this script
 #     if desired (for instance on non-Unix operating systems) by 
-#     simply invoking 'java -jar treeview.jar'.  If native libraries are
-#     being used, the system should be set up so that the directory
-#     containing them is on the java.library.path.  On Unix this would be
-#     done by putting wherever/java/lib/arch on LD_LIBRARY_PATH, where
-#     arch is the architecture (e.g. i386 for linux, sparc for Solaris).
+#     simply invoking 'java -jar treeview.jar'.
+#
+#     The script normally finds various components relative to where it 
+#     is located itself on the assumption that the starlink java 
+#     installation is set up in a standard way.  If it has been invoked
+#     from somewhere unusual (for instance because it of filesystem
+#     links) the TREEVIEW_DIR directory should be set to the actual
+#     location of this script, but TREEVIEW_DIR is not necessary for
+#     normal operation.
 
 #  Authors:
 #     MBT: Mark Taylor (Starlink)
 #-
 
-#  Find where this script is located.
-
-bindir="`dirname $0`"
+#  Find where this script is located.  We normally find this out by 
+#  looking at where we were invoked from, but this can be overridden
+#  by setting TREEVIEW_DIR (necessary if invocation is from another
+#  directory because of filesystem links).
+if test -z "$TREEVIEW_DIR"
+then
+    bindir="`dirname $0`"
+else
+    bindir="$TREEVIEW_DIR"
+fi
 
 #  Locate referenced server dirs.
 
