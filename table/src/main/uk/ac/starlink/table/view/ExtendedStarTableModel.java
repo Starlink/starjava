@@ -20,7 +20,7 @@ import uk.ac.starlink.table.gui.StarTableModel;
  * <p>
  * The column data is stored as a set of ColumnData objects, one for each
  * column managed by the table.  The column data/metadata may be 
- * retrieved directly using the {@link #getColumnData}/{@link getColumnInfo}
+ * retrieved directly using the {@link #getColumnData}/{@link #getColumnInfo}
  * methods.
  * 
  * @author   Mark Taylor (Starlink)

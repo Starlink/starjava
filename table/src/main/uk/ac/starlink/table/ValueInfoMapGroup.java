@@ -95,6 +95,26 @@ public class ValueInfoMapGroup extends MapGroup {
 
         /* Adjust the proper ordering of this mapgroup by adding the 
          * proper ordering for the column auxiliary metadata keys. */
+        addColumnAuxDataKeys( startab );
+
+        /* Add the map items for each column. */
+        int ncol = startab.getColumnCount();
+        for ( int i = 0; i < ncol; i++ ) {
+            ColumnInfo colinfo = startab.getColumnInfo( i );
+            Map map = makeMap( colinfo );
+            map.put( INDEX_KEY, new Integer( i + 1 ) );
+            addMap( map );
+        }
+    }
+
+    /**
+     * Adds the column auxiliary metadata keys associated with a 
+     * <tt>StarTable</tt> to this <tt>MapGroup</tt>'s list of known keys.
+     *
+     * @param  startab  the table whose aux column metadata keys will
+     *         be added
+     */
+    public void addColumnAuxDataKeys( StarTable startab ) {
         List order = getKeyOrder();
         for ( Iterator it = startab.getColumnAuxDataInfos().iterator();
               it.hasNext(); ) {
@@ -105,30 +125,37 @@ public class ValueInfoMapGroup extends MapGroup {
             }
         }
         setKeyOrder( order );
+    }
 
-        /* Add the auxiliary metadata for each column. */
-        int ncol = startab.getColumnCount();
-        for ( int i = 0; i < ncol; i++ ) {
-            ColumnInfo colinfo = startab.getColumnInfo( i );
-            Map map = makeMap( (ValueInfo) colinfo );
-            map.put( INDEX_KEY, new Integer( i + 1 ) );
-            for ( Iterator it = colinfo.getAuxData().iterator();
-                  it.hasNext(); ) {
-                Object item = it.next();
-                if ( item instanceof DescribedValue ) {
-                    DescribedValue dval = (DescribedValue) item;
-                    map.put( dval.getInfo().getName(),
-                             dval.getValueAsString( MAX_STRING_LENGTH ) );
-                }
+    /**
+     * Returns a new Map representing a <tt>ColumnInfo</tt> object. 
+     * This contains its name description etc plus any auxiliary metadata
+     * items.
+     *
+     * @param  colinfo  the ColumnInfo to make a map from
+     * @return  new map
+     */
+    public static Map makeMap( ColumnInfo colinfo ) {
+        Map map = makeMap( (ValueInfo) colinfo );
+        for ( Iterator it = colinfo.getAuxData().iterator(); it.hasNext(); ) {
+            Object item = it.next();
+            if ( item instanceof DescribedValue ) {
+                DescribedValue dval = (DescribedValue) item;
+                map.put( dval.getInfo().getName(),
+                         dval.getValueAsString( MAX_STRING_LENGTH ) );
             }
-            addMap( map );
         }
+        return map;
     }
 
     /**
      * Returns a new Map representing a <tt>ValueInfo</tt> object.
+     * This contains its name and description etc.
+     *
+     * @param  info  the ValuInfo to make a map from
+     * @return  new map
      */
-    private static Map makeMap( ValueInfo info ) {
+    public static Map makeMap( ValueInfo info ) {
         Map map = new HashMap();
 
         /* Name. */
@@ -172,9 +199,14 @@ public class ValueInfoMapGroup extends MapGroup {
     }
 
     /**
-     * Returns a new Map representing a DescribedValue object.
+     * Returns a new Map representing a <tt>DescribedValue</tt> object.
+     * This contains its name and description etc as well as its
+     * value.
+     *
+     * @param  dval the DescribedValue to make a map from
+     * @return  new map
      */
-    private static Map makeMap( DescribedValue dval ) {
+    public static Map makeMap( DescribedValue dval ) {
 
         /* Make a map from the DescribedValue's ValueInfo. */
         Map map = makeMap( dval.getInfo() );

@@ -36,8 +36,10 @@ public class SQLReadDialog extends SQLDialog {
             if ( getValue() instanceof Integer &&
                  ((Integer) getValue()).intValue() == OK_OPTION ) {
                 try {
+                    StarTable tab = 
+                        new JDBCStarTable( getConnector(), getRef() );
                     dialog.dispose();
-                    return new JDBCStarTable( getConnector(), getRef() );
+                    return tab;
                 }
                 catch ( Exception e ) {
                     JOptionPane.showMessageDialog( dialog, e.toString(),

@@ -397,7 +397,7 @@
                    value="uk.ac.starlink.table.view.TableViewer"/>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" 
-                   value="plot.jar ../util/util.jar ../votable/votable.jar ../fits/fits.jar ../mirage/mirage.jar"/>
+                   value="plot.jar jel_g.jar ../util/util.jar ../votable/votable.jar ../fits/fits.jar ../mirage/mirage.jar"/>
       </manifest>
     </jar>
 

@@ -449,18 +449,17 @@ public class TableViewer extends JFrame {
         };
         popper.add( deleteAct );
 
-  // Doesn't yet provide a useful service
-  //    Action addcolAct = new AbstractAction( "New column" ) {
-  //        public void actionPerformed( ActionEvent evt ) {
-  //            Component parent = TableViewer.this;
-  //            ColumnData coldata = new ColumnDialog( stmodel, parent )
-  //                                .getColumn();
-  //            if ( coldata != null ) {
-  //                appendColumn( coldata, jcol + 1 );
-  //            }
-  //        }
-  //    };
-  //    popper.add( addcolAct );
+        Action addcolAct = new AbstractAction( "New column" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Component parent = TableViewer.this;
+                ColumnData coldata = new ColumnDialog( stmodel )
+                                    .getColumnDialog( parent );
+                if ( coldata != null ) {
+                    appendColumn( coldata, jcol + 1 );
+                }
+            }
+        };
+        popper.add( addcolAct );
 
         int icol = tcmodel.getColumn( jcol ).getModelIndex();
         if ( Comparable.class.isAssignableFrom( stmodel.getColumnInfo( icol )

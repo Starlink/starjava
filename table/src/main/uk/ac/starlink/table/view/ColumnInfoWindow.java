@@ -1,6 +1,7 @@
 package uk.ac.starlink.table.view;
 
 import java.awt.Component;
+import java.util.Map;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.TableColumnModelEvent;
@@ -11,6 +12,7 @@ import uk.ac.starlink.table.ValueInfoMapGroup;
 import uk.ac.starlink.table.gui.MapGroupTableModel;
 import uk.ac.starlink.table.gui.MultilineJTable;
 import uk.ac.starlink.table.gui.StarJTable;
+import uk.ac.starlink.table.gui.StarTableColumn;
 import uk.ac.starlink.table.gui.StarTableModel;
 import uk.ac.starlink.util.MapGroup;
 
@@ -22,6 +24,8 @@ public class ColumnInfoWindow extends AuxWindow {
     private JTable jtab;
     private TableColumnModel tcmodel;
     private ExtendedStarTableModel stmodel;
+
+    private static final String COLID_KEY = "$ID";
 
     public ColumnInfoWindow( ExtendedStarTableModel stmodel, 
                              TableColumnModel tcmodel, Component parent ) {
@@ -68,11 +72,25 @@ public class ColumnInfoWindow extends AuxWindow {
      */
     private void reconfigure() {
 
-        /* Get a model of what the viewer's view of the table looks like. */
+        /* Set up a MapGroup to handle the column metadata in this table. */
+        ValueInfoMapGroup mg = new ValueInfoMapGroup();
+        mg.getKeyOrder().add( 1, COLID_KEY );
         StarTable apptab = TableViewer.getApparentStarTable( tcmodel, stmodel );
+        mg.addColumnAuxDataKeys( apptab );
 
+        /* Add the metadata for each of the columns. */
+        int ncol = tcmodel.getColumnCount();
+        for ( int i = 0; i < ncol; i++ ) {
+             StarTableColumn tcol = (StarTableColumn) tcmodel.getColumn( i );
+             int index = i + 1;
+             int id = tcol.getModelIndex() + 1;
+             Map map = ValueInfoMapGroup.makeMap( tcol.getColumnInfo() );
+             map.put( ValueInfoMapGroup.INDEX_KEY, new Integer( index ) );
+             map.put( COLID_KEY, "$" + id );
+             mg.addMap( map );
+        }
+           
         /* Set our JTable to display column data based on this. */
-        MapGroup mg = new ValueInfoMapGroup( apptab );
         jtab.setModel( new MapGroupTableModel( mg ) );
 
         /* Configure the column widths. */
