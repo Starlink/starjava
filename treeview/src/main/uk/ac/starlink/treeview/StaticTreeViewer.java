@@ -50,11 +50,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import org.astrogrid.store.tree.Container;
-import org.astrogrid.store.tree.TreeClient;
-import org.astrogrid.store.tree.TreeClientException;
-import uk.ac.starlink.astrogrid.AGConnector;
-import uk.ac.starlink.astrogrid.AGConnectorFactory;
 import uk.ac.starlink.datanode.factory.CreationState;
 import uk.ac.starlink.datanode.factory.DataNodeBuilder;
 import uk.ac.starlink.datanode.factory.DataNodeFactory;
@@ -439,16 +434,6 @@ public class StaticTreeViewer extends JFrame {
                 }
             };
 
-        /* Action for browsing MySapce. */
-        Action myspaceAction =
-            new BasicAction( "Enter MySpace",
-                             IconFactory.getIcon( IconFactory.MYSPACE ),
-                             "Login to MySpace to browse files" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    myspaceLogin();
-                }
-            };
-
         /* Demo data action. */
         Action demoAction = 
             new BasicAction( "Demo Data",
@@ -589,7 +574,6 @@ public class StaticTreeViewer extends JFrame {
         for ( int i = 0; i < connectActions.length; i++ ) {
             fileMenu.add( connectActions[ i ] ).setIcon( null );
         }
-        fileMenu.add( myspaceAction ).setIcon( null );
         fileMenu.add( exitAction ).setIcon( null );
         tools.add( exitAction );
         tools.add( newFileAction );
@@ -853,30 +837,6 @@ public class StaticTreeViewer extends JFrame {
         DataNode dnode = nodeMaker.makeChildNode( null, name );
         dnode.setLabel( name );
         appendNodeToRoot( dnode );
-    }
-
-    private void myspaceLogin() {
-        try {
-            AGConnector conn = AGConnectorFactory.getInstance()
-                              .getConnector( this );
-            Object treeClient = 
-                AGConnector.class.getMethod( "getConnection", new Class[ 0 ] )
-                                 .invoke( conn, new Object[ 0 ] );
-            if ( treeClient != null ) {
-                DataNode dnode = nodeMaker.makeDataNode( null, conn );
-                appendNodeToRoot( dnode );
-            }
-        }
-        catch ( NoSuchDataException e ) {
-            DataNode dnode = nodeMaker.makeErrorDataNode( null, e );
-            appendNodeToRoot( dnode );
-        }
-        catch ( Throwable th ) {
-            NoSuchDataException ne =
-                new NoSuchDataException( "Error connecting to MySpace", th );
-            DataNode dnode = nodeMaker.makeErrorDataNode( null, ne );
-            appendNodeToRoot( dnode );
-        }
     }
 
     private synchronized void addDemoData() {
