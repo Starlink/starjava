@@ -661,8 +661,8 @@ public class AstTest extends TestCase {
         AstObject.getAstConstantD( "AST__BAD" );
 
         Matcher matcher = Pattern.compile( "AST V([23])\\.([0-9]+)-([0-9]+); " +
-                                           "JNIAST native V3\\.2-3; " +
-                                           "JNIAST java V3\\.2-3" )
+                                           "JNIAST native V3\\.2-4; " +
+                                           "JNIAST java V3\\.2-4" )
                                  .matcher( AstObject.reportVersions() );
         assertTrue( AstObject.reportVersions(), matcher.matches() );
         int astMajor = Integer.parseInt( matcher.group( 1 ) );
