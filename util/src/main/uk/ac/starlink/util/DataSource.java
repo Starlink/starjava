@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.zip.InflaterInputStream;
 
 /**
  * Represents a stream-like source of data.
@@ -92,11 +93,12 @@ public abstract class DataSource {
         /* If the raw length is known and there is no compression we can 
          * return that value.  Otherwise, we just have to say we don't know. */
         long rawleng = getRawLength();
-        if ( rawleng < 0L || getCompression() != Compression.NONE ) {
+        if ( rawleng < 0L ||
+             compress == null || compress != Compression.NONE ) {
             return -1L;
         }
         else {
-            assert getCompression() == Compression.NONE;
+            assert compress == Compression.NONE;
             return rawleng;
         }
     }
@@ -133,15 +135,15 @@ public abstract class DataSource {
         if ( compress == null ) {
             assert strm == null;
             InputStream raw = getRawInputStream();
-            if ( ! raw.markSupported() ) {
+            if ( ! markSupported( raw ) ) {
                 raw = new BufferedInputStream( raw );
             }
             int nReq = Compression.MAGIC_SIZE;
             raw.mark( nReq );
-            byte[] magic = new byte[ nReq ];
-            int nGot = raw.read( magic );
+            byte[] rawbuf = new byte[ nReq ];
+            int nGot = raw.read( rawbuf );
             raw.reset();
-            compress = Compression.getCompression( magic );
+            compress = Compression.getCompression( rawbuf );
             this.strm = compress.decompress( raw );
         }
         return compress;
@@ -293,7 +295,7 @@ public abstract class DataSource {
             }
 
             /* Make sure we can do mark/reset on it. */
-            if ( ! strm.markSupported() ) {
+            if ( ! markSupported( strm ) ) {
                 strm = new BufferedInputStream( strm );
             }
 
@@ -533,6 +535,24 @@ public abstract class DataSource {
             throw new FileNotFoundException( "Not extant file or valid URL: "
                                            + name );
         }
+    }
+
+    /**
+     * Indicates whether a given stream supports the mark/reset functionality
+     * of <tt>InputStream</tt>s.  This ought to be just the same as
+     * calling {@link java.io.InputStream#markSupported}, but there is
+     * bug in Sun's Java 1.4.1 implementation such that InflaterInputStream
+     * and its subclasses (including GZIPInputStream) return <tt>true</tt>
+     * from <tt>markSupported</tt> but do not correctly support this
+     * functionality.  This bug is #4812237, reported by mbt 
+     * in February 2003.
+     *
+     * @param  strm  the stream to test
+     * @return  <tt>true</tt> iff the stream supports marks
+     */
+    public static boolean markSupported( InputStream strm ) {
+        return strm.markSupported() 
+            && ! ( strm instanceof InflaterInputStream );
     }
 
 }
