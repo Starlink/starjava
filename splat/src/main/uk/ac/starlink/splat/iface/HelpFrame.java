@@ -32,7 +32,7 @@ import javax.swing.UIManager;
 
 import uk.ac.starlink.splat.iface.images.ImageHolder;
 import uk.ac.starlink.util.gui.ProxySetupFrame;
-import uk.ac.starlink.util.gui.JFontChooser;
+import uk.ac.starlink.util.gui.BasicFontChooser;
 import uk.ac.starlink.splat.util.SplatException;
 import uk.ac.starlink.splat.util.Utilities;
 
@@ -83,7 +83,7 @@ public class HelpFrame
     /**
      * The font chooser.
      */
-    protected JFontChooser fontChooser = null;
+    protected BasicFontChooser fontChooser = null;
 
     /**
      * The proxy server dialog.
@@ -220,7 +220,7 @@ public class HelpFrame
     protected void chooseFont()
     {
         if ( fontChooser == null ) {
-            fontChooser = new JFontChooser( helpFrame, "Select Font", true );
+            fontChooser = new BasicFontChooser( helpFrame, "Select Font", true );
         }
         fontChooser.show();
         if ( fontChooser.accepted() ) {
