@@ -23,6 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableColumn;
 import uk.ac.starlink.table.ColumnInfo;
+import uk.ac.starlink.topcat.func.Image;
 import uk.ac.starlink.topcat.func.Sog;
 import uk.ac.starlink.topcat.func.Splat;
 
@@ -52,6 +53,7 @@ public class ActivationQueryWindow extends QueryWindow {
         ActivatorFactory[] factories = new ActivatorFactory[] {
             new NopActivatorFactory(),
             new SogActivatorFactory(),
+            new ImageActivatorFactory(),
             new SplatActivatorFactory(),
             new JELActivatorFactory(),
         };
@@ -307,6 +309,24 @@ public class ActivationQueryWindow extends QueryWindow {
     }
 
     /**
+     * Activator factory for displaying a column in an ImageWindow.
+     */
+    private class ImageActivatorFactory extends ColumnActivatorFactory {
+        ImageActivatorFactory() {
+            super( "Display Image in Image Window for Column: " );
+        }
+        Activator makeActivator( TableColumn tcol ) {
+            return new ColumnActivator( "image", tcol ) {
+                String activateValue( Object val ) {
+                    return val == null
+                         ? null
+                         : Image.displayBasicImage( val.toString() );
+                }
+            };
+        }
+    }
+
+    /**
      * Activator factory for displaying a column in SPLAT.
      */
     private class SplatActivatorFactory extends ColumnActivatorFactory {
@@ -321,6 +341,9 @@ public class ActivationQueryWindow extends QueryWindow {
                          : Splat.splat( val.toString() );
                 }
             };
+        }
+        boolean isPossible() {
+            return TopcatUtils.canSplat();
         }
     }
 
