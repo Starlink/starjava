@@ -183,8 +183,14 @@ public class InterMatchSpec extends MatchSpec {
             msgType = JOptionPane.ERROR_MESSAGE;
         }
         else {
+            StringBuffer sbuf = new StringBuffer( "match" );
+            for ( int i = 0; i < nTable; i++ ) {
+                sbuf.append( i == 0 ? '(' : ',' );
+                sbuf.append( tupleSelectors[ i ].getTable().getID() );
+            }
+            sbuf.append( ')' );
             TopcatModel tcModel = ControlWindow.getInstance()
-                                 .addTable( result, "matched", true );
+                                 .addTable( result, sbuf.toString(), true );
             for ( int i = 0; i < matchSubsets.length; i++ ) {
                 tcModel.addSubset( matchSubsets[ i ] );
             }
