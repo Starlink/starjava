@@ -332,9 +332,9 @@ public class GridBagLayouter
     }
 
     /**
-     * Eat to end of current line using GridBagLayout.
+     * Eat to end of current line.
      */
-    private void eatLine()
+    public void eatLine()
     {
         resetGbc();
         gbc.gridwidth = GridBagConstraints.REMAINDER;
