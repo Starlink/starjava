@@ -8,9 +8,7 @@
 package uk.ac.starlink.splat.util;
 
 import java.util.Arrays;
-
 import uk.ac.starlink.splat.data.SpecData;
-import uk.ac.starlink.splat.data.SpecDataFactory;
 
 /**
  * Calculate the percentile limits for a given array of values.
@@ -147,10 +145,10 @@ public class Percentile
         value = Math.max( min, Math.min( max, value ) );
         if ( realPercentile != percentile ) {
             if ( realPercentile > 100.0 ) {
-                value = max + value;
-            } 
+                value = max + ( value - min );
+            }
             else if ( realPercentile < 0.0 ) {
-                value = min - value;
+                value = min - ( value - min );
             }
         }
         return value;
@@ -163,7 +161,7 @@ public class Percentile
     {
         // Find the minimum and maximum values in the array.
         min = Double.MAX_VALUE;
-        max = Double.MIN_VALUE;
+        max = -Double.MAX_VALUE;
         for ( int i = 0; i < array.length; i++ ) {
             if ( array[i] != SpecData.BAD ) {
                 if ( array[i] > max ) max = array[i];
@@ -205,27 +203,48 @@ public class Percentile
     //  Test routine.
     public static void main( String[] args ) 
     {
-        SpecDataFactory factory = SpecDataFactory.getInstance();
-        try {
-            SpecData spec = factory.get( "../testdata/spectrum.sdf" );
-            double[] array = spec.getYData();
-            Percentile perc = new Percentile( array, array.length );
-            System.out.println( "  0 -> " + perc.get( 0.0 ) );
-            System.out.println( "  5 -> " + perc.get( 5.0 ) );
-            System.out.println( " 50 -> " + perc.get( 50.0 ) );
-            System.out.println( " 95 -> " + perc.get( 95.0 ) );
-            System.out.println( "100 -> " + perc.get( 100.0 ) );
+        double[] array = new double[101];
+        for ( int i = 0; i < array.length; i++ ) {
+            array[i] = 50.0 + i;
+        }
 
-            array = spec.getXData();
-            perc = new Percentile( array, array.length );
-            System.out.println( "  0 -> " + perc.get( 0.0 ) );
-            System.out.println( "  5 -> " + perc.get( 5.0 ) );
-            System.out.println( " 50 -> " + perc.get( 50.0 ) );
-            System.out.println( " 95 -> " + perc.get( 95.0 ) );
-            System.out.println( "100 -> " + perc.get( 100.0 ) );
+        System.out.println( "Positive array" );
+        Percentile perc = new Percentile( array, array.length );
+        System.out.println( " -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "  0 -> " + perc.get( 0.0 ) );
+        System.out.println( "  5 -> " + perc.get( 5.0 ) );
+        System.out.println( " 50 -> " + perc.get( 50.0 ) );
+        System.out.println( " 95 -> " + perc.get( 95.0 ) );
+        System.out.println( "100 -> " + perc.get( 100.0 ) );
+        System.out.println( "105 -> " + perc.get( 105.0 ) );
+
+        for ( int i = 0; i < array.length; i++ ) {
+            array[i] *= -1.0;
         }
-        catch (Exception e) {
-            e.printStackTrace();
+
+        System.out.println( "Negative array" );
+        perc = new Percentile( array, array.length );
+        System.out.println( " -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "  0 -> " + perc.get( 0.0 ) );
+        System.out.println( "  5 -> " + perc.get( 5.0 ) );
+        System.out.println( " 50 -> " + perc.get( 50.0 ) );
+        System.out.println( " 95 -> " + perc.get( 95.0 ) );
+        System.out.println( "100 -> " + perc.get( 100.0 ) );
+        System.out.println( "105 -> " + perc.get( 105.0 ) );
+
+        for ( int i = 0; i < array.length; i++ ) {
+            array[i] = -50.0 + i;
         }
+
+        System.out.println( "Negative->Positive array" );
+        perc = new Percentile( array, array.length );
+        System.out.println( " -5 -> " + perc.get( -5.0 ) );
+        System.out.println( "  0 -> " + perc.get( 0.0 ) );
+        System.out.println( "  5 -> " + perc.get( 5.0 ) );
+        System.out.println( " 50 -> " + perc.get( 50.0 ) );
+        System.out.println( " 95 -> " + perc.get( 95.0 ) );
+        System.out.println( "100 -> " + perc.get( 100.0 ) );
+        System.out.println( "105 -> " + perc.get( 105.0 ) );
+
     }
 }
