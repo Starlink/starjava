@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -17,6 +18,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
@@ -96,8 +98,7 @@ public class TableViewerWindow extends TopcatViewWindow
         /* Set up row header panel. */
         rowHead = new TableRowHeader( jtab ) {
             public int rowNumber( int irow ) {
-                int[] rowMap = viewModel.getRowMap();
-                return ( ( rowMap == null ) ? irow : rowMap[ irow ] ) + 1;
+                return ((int) viewModel.getBaseRow( irow )) + 1;
             }
         };
         scrollpane.setRowHeaderView( rowHead );
@@ -190,6 +191,44 @@ public class TableViewerWindow extends TopcatViewWindow
         /* Display. */
         pack();
         setVisible( true );
+    }
+
+    /**
+     * Displays a given row in a highlighted fashion.
+     *
+     * <p>This may disturb the state of the viewer somewhat - the current
+     * implementation sets the current table selection to the single row
+     * indicated.
+     *
+     * @param  lrow  index in the data model (not the view model) of the
+     *               row to be highlighted
+     */
+    public void highlightRow( long lrow ) {
+
+        /* Check if the view currently on display contains the requested row. */
+        if ( ! viewModel.getSubset().isIncluded( lrow ) ) {
+            // uh oh - that row is not currently displayed in the table.
+            java.awt.Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+
+        /* Get the view row corresponding to the requested table row. */
+        int viewRow = viewModel.getViewRow( lrow );
+
+        /* It can't be -1 since we've just checked it's in the current 
+         * subset. */
+        assert viewRow >= 0;
+
+        /* Set the JTable's selection to contain just this row. */
+        jtab.clearSelection();
+        jtab.addRowSelectionInterval( viewRow, viewRow );
+
+        /* Arrange for the row to be visible in the middle of the 
+         * scrollpane's viewport. */
+        Rectangle viewRect = jtab.getCellRect( viewRow, 0, false );
+        int yMid = viewRect.y + viewRect.height / 2;
+        JScrollBar yBar = scrollpane.getVerticalScrollBar();
+        yBar.setValue( yMid - yBar.getVisibleAmount() / 2 );
     }
 
     /**
