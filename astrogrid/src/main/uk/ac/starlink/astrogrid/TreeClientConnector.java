@@ -109,7 +109,7 @@ public class TreeClientConnector implements Connector {
         char[] password = (char[]) authValues.get( PASSWORD_KEY );
         try {
             Ivorn ivorn = getIvorn( community, user );
-            tc.login( ivorn , new String( password ) );
+            tc.login( ivorn , password == null ? "" : new String( password ) );
             return new TreeClientConnection( this, authValues, tc, ivorn );
         }
         catch ( TreeClientException e ) {
