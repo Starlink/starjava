@@ -68,8 +68,10 @@ public class RemoteUtilities
                 System.out.println( "Remote control established" );
                 Runtime.getRuntime().exec( "chmod 600 " +
                                            contactFile.getPath() );
-            } catch (Exception e) {
-                e.printStackTrace();
+            } 
+            catch (Exception e) {
+                // Do nothing, chmod can fail validly under Windows.
+                //e.printStackTrace();
             }
 
             //  Add the information we want.
@@ -81,7 +83,8 @@ public class RemoteUtilities
                 cookie = hexVal + addr.hashCode();
                 out.println( addr.getHostName() + " " + port + " " + cookie );
 
-            } catch (Exception e) {
+            } 
+            catch (Exception e) {
                 //  Do nothing
             }
         }
@@ -145,11 +148,13 @@ public class RemoteUtilities
             out.close();
             socket.close();
             return true;
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             try {
                 out.close();
                 socket.close();
-            } catch (Exception ee) {
+            } 
+            catch (Exception ee) {
                 // Do nothing.
             }
             return false;
