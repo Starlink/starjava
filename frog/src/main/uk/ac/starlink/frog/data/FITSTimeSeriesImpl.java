@@ -443,14 +443,25 @@ public class FITSTimeSeriesImpl extends TimeSeriesImpl
         if ( hdunum < hdurefs.length ) {
 
             // Grab the raw data from the table
+            Object rawindex = null;            
             Object rawcoords = null;
             Object rawdata = null;
             Object rawerrors = null;
             try {
-                rawcoords = ((TableHDU) hdurefs[hdunum]).getColumn(0);
-                rawdata = ((TableHDU) hdurefs[hdunum]).getColumn(1);
-                if( ((TableHDU) hdurefs[hdunum]).getNCols() >= 3 ) {
-                  rawerrors = ((TableHDU) hdurefs[hdunum]).getColumn(2);
+                if( ((TableHDU) hdurefs[hdunum]).getNCols() >= 4 ) {
+                   rawindex = ((TableHDU) hdurefs[hdunum]).getColumn(0);
+                   rawcoords = ((TableHDU) hdurefs[hdunum]).getColumn(1);
+                   rawdata = ((TableHDU) hdurefs[hdunum]).getColumn(2);
+                   rawerrors = ((TableHDU) hdurefs[hdunum]).getColumn(3);
+                   
+                } else if ( ((TableHDU) hdurefs[hdunum]).getNCols() >= 3 ) {
+                   rawcoords = ((TableHDU) hdurefs[hdunum]).getColumn(0);
+                   rawdata = ((TableHDU) hdurefs[hdunum]).getColumn(1);
+                   rawerrors = ((TableHDU) hdurefs[hdunum]).getColumn(2);
+                   
+                } else {
+                   rawcoords = ((TableHDU) hdurefs[hdunum]).getColumn(0);
+                   rawdata = ((TableHDU) hdurefs[hdunum]).getColumn(1); 
                 }
             } catch ( Exception e ) {
                 // Do nothing
