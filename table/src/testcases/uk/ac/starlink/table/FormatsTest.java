@@ -146,7 +146,6 @@ public class FormatsTest extends TestCase {
             "FITS-plus",
             "FITS",
             "VOTable",
-            "ASCII",
         };
         String[] knownFormats = new String[] {
             "FITS-plus",
