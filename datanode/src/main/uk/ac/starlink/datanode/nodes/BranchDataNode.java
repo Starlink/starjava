@@ -99,6 +99,10 @@ public class BranchDataNode extends DefaultDataNode {
         return branch_.getParent();
     }
 
+    public String getPathSeparator() {
+        return "/";
+    }
+
     public Icon getIcon() {
         return icon_ == null ? super.getIcon()
                              : icon_;
