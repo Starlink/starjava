@@ -99,7 +99,7 @@ public class SyntheticColumnQueryWindow extends QueryWindow {
         stack.addLine( "Index", indexSpinner );
 
         /* Add tools. */
-        getToolBar().add( MethodWindow.getWindowAction( this ) );
+        getToolBar().add( MethodWindow.getWindowAction( this, false ) );
         getToolBar().addSeparator();
 
         /* Add help information. */

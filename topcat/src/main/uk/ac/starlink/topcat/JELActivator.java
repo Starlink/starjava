@@ -38,7 +38,7 @@ public class JELActivator implements Activator {
                                        tcModel_.getSubsets() );
 
         /* Compile the expression. */
-        Library lib = JELUtils.getActivationLibrary( rowReader_ );
+        Library lib = JELUtils.getLibrary( rowReader_, true );
         compEx_ = Evaluator.compile( expression, lib, null );
         args_ = new Object[] { rowReader_ };
 

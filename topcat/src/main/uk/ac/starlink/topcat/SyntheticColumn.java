@@ -88,7 +88,7 @@ public class SyntheticColumn extends ColumnData {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        Library lib = JELUtils.getLibrary( rowReader );
+        Library lib = JELUtils.getLibrary( rowReader, false );
         compEx = Evaluator.compile( expression, lib, resultType );
 
         /* Work out the type of the compiled expression. */

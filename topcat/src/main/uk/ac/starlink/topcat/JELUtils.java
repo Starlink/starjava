@@ -21,7 +21,8 @@ import uk.ac.starlink.topcat.func.Miscellaneous;
  */
 public class JELUtils {
 
-    private static List staticClasses;
+    private static List generalStaticClasses;
+    private static List activationStaticClasses;
     public static final String AUX_CLASSES_PROPERTY = "gnu.jel.static.classes";
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
@@ -30,32 +31,18 @@ public class JELUtils {
      *
      * @param    rowReader  object which can read rows from the table to
      *           be used for expression evaluation
-     * @return   a library
+     * @param    activation  true iff the result is to include classes 
+     *           used only for activation (e.g. write to System.out, 
+     *           pop up viewers) as well as classes with methods for
+     *           calculations
+     * @return   a JEL library
      */
-    public static Library getLibrary( JELRowReader rowReader ) {
-        Class[] staticLib = 
-            (Class[]) getStaticClasses().toArray( new Class[ 0 ] );
-        Class[] dynamicLib = new Class[] { JELRowReader.class };
-        Class[] dotClasses = new Class[] { String.class, Date.class };
-        DVMap resolver = rowReader;
-        Hashtable cnmap = null;
-        return new Library( staticLib, dynamicLib, dotClasses,
-                            resolver, cnmap );
-    }
-
-    /**
-     * Returns a JEL library suitable for code activation.
-     * This includes access to methods which do stuff (e.g. write to 
-     * System.out, pop up viewers) rather than just ones which 
-     * calculate things.
-     *
-     * @param  rowReader  object which can read rows from the table to
-     *         be used for expression execution
-     * @return a library
-     */
-    static Library getActivationLibrary( JELRowReader rowReader ) {
-        List statix = new ArrayList( getStaticClasses() );
-        statix.add( Activation.class );
+    public static Library getLibrary( JELRowReader rowReader,
+                                      boolean activation ) {
+        List statix = new ArrayList( getGeneralStaticClasses() );
+        if ( activation ) {
+            statix.addAll( getActivationStaticClasses() );
+        }
         Class[] staticLib = (Class[]) statix.toArray( new Class[ 0 ] );
         Class[] dynamicLib = new Class[] { JELRowReader.class };
         Class[] dotClasses = new Class[] { String.class, Date.class };
@@ -71,8 +58,8 @@ public class JELUtils {
      *
      * @return   list of classes with static methods
      */
-    public static List getStaticClasses() {
-        if ( staticClasses == null ) {
+    public static List getGeneralStaticClasses() {
+        if ( generalStaticClasses == null ) {
 
             /* Basic classes always present. */
             List classList = new ArrayList( Arrays.asList( new Class[] {
@@ -104,9 +91,26 @@ public class JELUtils {
             }
 
             /* Combine to produce the final list. */
-            staticClasses = classList;
+            generalStaticClasses = classList;
         }
-        return staticClasses;
+        return generalStaticClasses;
+    }
+
+    /**
+     * Returns the list of classes whose static methods will be mapped
+     * into the JEL evaluation namespace for activation purposes only.
+     * This may be modified.
+     *
+     * @return  list of activation classes with static methods
+     */
+    public static List getActivationStaticClasses() {
+        if ( activationStaticClasses == null ) {
+            List classList = new ArrayList( Arrays.asList( new Class[] {
+                Activation.class,
+            } ) );
+            activationStaticClasses = classList;
+        }
+        return activationStaticClasses;
     }
 
      /**

@@ -273,7 +273,7 @@ public class ControlWindow extends AuxWindow
         toolBar.addSeparator();
 
         /* Add miscellaneous actions to the toolbar. */
-        toolBar.add( MethodWindow.getWindowAction( this ) );
+        toolBar.add( MethodWindow.getWindowAction( this, true ) );
         toolBar.addSeparator();
 
         /* Add actions to the file menu. */

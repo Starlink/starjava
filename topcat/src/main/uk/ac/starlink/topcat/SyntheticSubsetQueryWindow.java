@@ -42,7 +42,7 @@ public class SyntheticSubsetQueryWindow extends QueryWindow {
         stack.addLine( "Expression", exprField );
 
         /* Add tools. */
-        getToolBar().add( MethodWindow.getWindowAction( this ) );
+        getToolBar().add( MethodWindow.getWindowAction( this, false ) );
         getToolBar().addSeparator();
 
         /* Add help information. */

@@ -61,7 +61,7 @@ public class SyntheticRowSubset implements RowSubset {
         args = new Object[] { rowReader };
 
         /* Compile the expression. */
-        Library lib = JELUtils.getLibrary( rowReader );
+        Library lib = JELUtils.getLibrary( rowReader, false );
         compEx = Evaluator.compile( expression, lib, boolean.class );
         this.expression = expression;
     }

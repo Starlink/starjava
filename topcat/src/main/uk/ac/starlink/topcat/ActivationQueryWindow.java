@@ -75,6 +75,10 @@ public class ActivationQueryWindow extends QueryWindow {
         }
         factories[ 0 ].button_.setSelected( true );
 
+        /* Add tools. */
+        getToolBar().add( MethodWindow.getWindowAction( this, true ) );
+        getToolBar().addSeparator();
+
         /* Add help information. */
         addHelp( "ActivationQueryWindow" );
 

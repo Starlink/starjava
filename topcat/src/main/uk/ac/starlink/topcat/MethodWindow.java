@@ -3,6 +3,7 @@ package uk.ac.starlink.topcat;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,11 +35,11 @@ import javax.swing.tree.TreePath;
  */
 public class MethodWindow extends AuxWindow {
 
-    private static Action windowAction;
     private static MethodWindow window;
 
     private final JTree tree = new JTree( new DefaultMutableTreeNode() );
-    private List staticClasses = JELUtils.getStaticClasses();
+    private final DefaultMutableTreeNode calcNode;
+    private final DefaultMutableTreeNode activNode;
 
     /**
      * Construct a new method browser.
@@ -47,20 +48,31 @@ public class MethodWindow extends AuxWindow {
      *         purposes
      */
     public MethodWindow( Component parent ) {
-        super( "Available Methods", parent );
+        super( "Available Functions", parent );
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        final DefaultMutableTreeNode root = (DefaultMutableTreeNode)
+                                            model.getRoot();
+        calcNode = new DefaultMutableTreeNode( "General Functions", true );
+        activNode = new DefaultMutableTreeNode( "Activation Functions", true );
+        root.add( calcNode );
+        root.add( activNode );
 
         /* Put class information into the tree. */
-        for ( Iterator it = staticClasses.iterator(); it.hasNext(); ) {
-            Class clazz = (Class) it.next();
-            if ( ! clazz.equals( JELUtils.class ) ) {
-                addStaticClass( clazz );
-            }
+        for ( Iterator it = JELUtils.getGeneralStaticClasses().iterator();
+              it.hasNext(); ) {
+            addStaticClass( (Class) it.next(), calcNode );
+        }
+        for ( Iterator it = JELUtils.getActivationStaticClasses().iterator();
+              it.hasNext(); ) {
+            addStaticClass( (Class) it.next(), activNode );
         }
 
         /* Arrange for suitable rendering. */
         tree.setRootVisible( false );
         tree.setShowsRootHandles( true );
         tree.setCellRenderer( new DefaultTreeCellRenderer() {
+            Font basicFont;
+            Font strongFont;
             public Component getTreeCellRendererComponent( JTree tree, 
                                                            Object value,
                                                            boolean selected, 
@@ -73,9 +85,17 @@ public class MethodWindow extends AuxWindow {
                                                         expanded, leaf, irow,
                                                         hasFocus );
                 if ( comp instanceof JLabel ) {
+                    JLabel label = (JLabel) comp;
                     String text = textFor( value );
                     if ( text != null ) {
-                        ((JLabel) comp).setText( text );
+                        if ( basicFont == null ) {
+                            basicFont = label.getFont();
+                            strongFont = basicFont.deriveFont( Font.BOLD );
+                        }
+                        boolean topLevel = value == calcNode 
+                                        || value == activNode;
+                        label.setFont( topLevel ? strongFont : basicFont );
+                        label.setText( text );
                     }
                 }
                 return comp;
@@ -109,8 +129,8 @@ public class MethodWindow extends AuxWindow {
                         cname = c.toString();
                         try {
                             Class clazz = this.getClass().forName( cname );
-                            staticClasses.add( clazz );
-                            addStaticClass( clazz );
+                            JELUtils.getGeneralStaticClasses().add( clazz );
+                            addStaticClass( clazz, root );
                             return;
                         }
                         catch ( ClassNotFoundException e ) {
@@ -126,7 +146,9 @@ public class MethodWindow extends AuxWindow {
         };
 
         /* Open up the top level. */
-        tree.expandPath( new TreePath( tree.getModel().getRoot() ) );
+        TreePath rootPath = new TreePath( root );
+        tree.expandPath( rootPath );
+        tree.expandPath( rootPath.pathByAddingChild( calcNode ) );
 
         /* Add the tree to this panel. */
         JScrollPane scroller = new JScrollPane( tree );
@@ -149,14 +171,14 @@ public class MethodWindow extends AuxWindow {
      * Adds a new class to the tree containing available static methods.
      *
      * @param  clazz  class to add
+     * @param  parent  tree node to append it to
      */
-    public void addStaticClass( Class clazz ) {
+    public void addStaticClass( Class clazz, DefaultMutableTreeNode parent ) {
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-        DefaultMutableTreeNode root = (DefaultMutableTreeNode) model.getRoot();
         DefaultMutableTreeNode clazzNode = new DefaultMutableTreeNode( clazz );
-        model.insertNodeInto( clazzNode, root, root.getChildCount() );
+        model.insertNodeInto( clazzNode, parent, parent.getChildCount() );
                               
-        ((DefaultMutableTreeNode) model.getRoot()).add( clazzNode );
+        parent.add( clazzNode );
         List methods =
             new ArrayList( Arrays.asList( clazz.getDeclaredMethods() ) );
         for ( Iterator it = methods.iterator(); it.hasNext(); ) {
@@ -180,28 +202,45 @@ public class MethodWindow extends AuxWindow {
     }
 
     /**
+     * Makes sure that the activation node is either expanded or collapsed.
+     *
+     * @param  show  true to expand the activation classes, 
+     *               false to collapse them
+     */
+    private void showActivation( boolean show ) {
+        TreePath activPath =
+            new TreePath( new Object[] { tree.getModel().getRoot(),
+                                         activNode } );
+        if ( show ) {
+            tree.expandPath( activPath );
+        }
+        else {
+            tree.collapsePath( activPath );
+        }
+    }
+
+    /**
      * Returns an action which corresponds to displaying a MethodWindow.
      *
      * @param  parent  a component which may be used as a parent
      *                 for positioning purposes
      */
-    public static Action getWindowAction( final Component parent ) {
-        if ( windowAction == null ) {
-            windowAction = new BasicAction( "Available Functions",
-                                            ResourceIcon.FUNCTION,
-                                            "Display information about " +
-                                            "available algebraic functions" ) {
-                public void actionPerformed( ActionEvent evt ) {
-                    if ( window == null ) {
-                        window = new MethodWindow( parent );
-                    }
-                    else {
-                        window.makeVisible();
-                    }
+    public static Action getWindowAction( final Component parent,
+                                          final boolean activation ) {
+        return new BasicAction( "Available Functions",
+                                ResourceIcon.FUNCTION,
+                                "Display information about " +
+                                "available algebraic functions" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                if ( window == null ) {
+                    window = new MethodWindow( parent );
                 }
-            };
-        }
-        return windowAction;
+                else {
+                    window.showActivation( activation );
+                    window.makeVisible();
+                }
+            }
+        };
     }
 
     /**
@@ -231,6 +270,9 @@ public class MethodWindow extends AuxWindow {
                 }
                 sbuf.append( " )" );
                 return sbuf.toString();
+            }
+            else if ( userObj != null ) {
+                return userObj.toString();
             }
         }
         return null;
