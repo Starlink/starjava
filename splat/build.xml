@@ -185,6 +185,9 @@
   <!-- Add any local ANT tasks that are required (these should be
    !   moved to ANT if useful beyond the needs of this package) -->
 
+  <!-- Non-standard source file directories -->
+  <property name="stardev" value="/star"/>
+
   <!--
    !   =========
    !   CLASSPATH
