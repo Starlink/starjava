@@ -133,6 +133,8 @@ public class PlotControlFrame
     protected JMenu analysisMenu = new JMenu();
     protected JMenu optionsMenu = new JMenu();
     protected JCheckBoxMenuItem coordinateMatching = null;
+    protected JCheckBoxMenuItem errorbarAutoRanging = null;
+    protected JCheckBoxMenuItem autoFitPercentiles = null;
 
     /**
      *  Toolbar and contents.
@@ -209,7 +211,7 @@ public class PlotControlFrame
         } 
         else {
             plot = new PlotControl( specDataComp );
-            }
+        }
         this.specDataComp = plot.getSpecDataComp();
         initUI( title );
     }
@@ -460,6 +462,17 @@ public class PlotControlFrame
         coordinateMatching = new JCheckBoxMenuItem( "Match coordinates" );
         optionsMenu.add( coordinateMatching );
         coordinateMatching.addItemListener( this );
+
+        //  Include spacing for error bars in the auto ranging.
+        errorbarAutoRanging = new JCheckBoxMenuItem("Error bar auto-ranging");
+        optionsMenu.add( errorbarAutoRanging );
+        errorbarAutoRanging.addItemListener( this );
+
+        //  Autofit to Y when selecting a percentile cut.
+        autoFitPercentiles = 
+            new JCheckBoxMenuItem( "Auto fit percentiles in Y" );
+        optionsMenu.add( autoFitPercentiles );
+        autoFitPercentiles.addItemListener( this );
     }
 
     /**
@@ -621,6 +634,9 @@ public class PlotControlFrame
                         configClosed();
                     }
                 });
+
+            //  Finally autodate is switched on by default.
+            configFrame.setAutoDrawOption( true );
         }
         else {
             Utilities.raiseFrame( configFrame );
@@ -1201,8 +1217,23 @@ public class PlotControlFrame
     //
     public void itemStateChanged( ItemEvent e )
     {
-        //  Just the coordinate matching at present.
-        specDataComp.setCoordinateMatching( coordinateMatching.isSelected() );
-        plot.updatePlot();
+        Object source = e.getSource();
+
+        if ( source.equals( coordinateMatching ) ) {
+            specDataComp.setCoordinateMatching
+                ( coordinateMatching.isSelected() );
+            plot.updatePlot();
+            return;
+        }
+        if ( source.equals( errorbarAutoRanging ) ) {
+            specDataComp.setErrorbarAutoRanging
+                ( errorbarAutoRanging.isSelected() );
+            plot.updatePlot();
+            return;
+        }
+        if ( source.equals( autoFitPercentiles ) ) {
+            plot.setAutoFitPercentiles( autoFitPercentiles.isSelected() );
+            return;
+        }
     }
 }
