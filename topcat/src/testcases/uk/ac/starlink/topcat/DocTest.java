@@ -11,9 +11,10 @@ import uk.ac.starlink.util.TestCase;
 
 public class DocTest extends TestCase {
 
+    private static final String basedir = System.getProperty( "basedir" );
     public static final String DOC_NAME = "sun253";
-    public static final String DOC_BUILD_DIR = "build/docs";
-    public static final String DOC_SRC_DIR = "src/docs";
+    public static final String DOC_BUILD_DIR = basedir + "/build/docs";
+    public static final String DOC_SRC_DIR = basedir + "/src/docs";
 
     File docFile = new File( DOC_BUILD_DIR, DOC_NAME + ".xml" );
     
