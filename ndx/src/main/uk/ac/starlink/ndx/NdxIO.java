@@ -139,9 +139,9 @@ public class NdxIO {
     public Ndx makeNdx( URL url ) throws IOException {
         for ( Iterator it = handlers.iterator(); it.hasNext(); ) {
             NdxHandler handler = (NdxHandler) it.next();
-            Ndx nda = handler.makeNdx( url );
-            if ( nda != null ) {
-                return nda;
+            Ndx ndx = handler.makeNdx( url );
+            if ( ndx != null ) {
+                return ndx;
             }
         }
         return null;
