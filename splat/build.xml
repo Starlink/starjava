@@ -520,7 +520,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Main-Class"
-                   value="uk.ac.starlink.splat.iface.SplatBrowserMain"/>
+                   value="uk.ac.starlink.splat.SplatMain"/>
         <attribute name="Class-Path" value="${jar.class.path}"/>
       </manifest>
     </jar>
@@ -1024,7 +1024,7 @@
   <target name="debugui">
 
     <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
-    <java classname="uk.ac.starlink.splat.iface.SplatBrowserMain" fork="true">
+    <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
@@ -1039,7 +1039,7 @@
    !   debugging support -->
   <target name="plainui">
 
-    <java classname="uk.ac.starlink.splat.iface.SplatBrowserMain" fork="true">
+    <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
       <jvmarg value="-Daxis.EngineConfigFactory=uk.ac.starlink.soap.AppEngineConfigurationFactory"/>
       <jvmarg value="-Daxis.ServerFactory=uk.ac.starlink.soap.AppAxisServerFactory"/>
