@@ -147,6 +147,18 @@ public class RowLink implements Comparable {
               .compareTo( new Integer( other.hashCode() ) );
     }
 
+    public String toString() {
+        StringBuffer sbuf = new StringBuffer( "(" );
+        for ( int i = 0; i < rowRefs.length; i++ ) {
+            if ( i > 0 ) {
+               sbuf.append( ", " );
+            }
+            sbuf.append( rowRefs[ i ].toString() );
+        }
+        sbuf.append( ')' );
+        return sbuf.toString();
+    }
+
     /**
      * Utility method used by compareTo.
      */

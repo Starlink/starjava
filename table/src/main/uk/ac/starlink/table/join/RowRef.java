@@ -76,4 +76,8 @@ public class RowRef implements Comparable {
             return 0;
         }
     }
+
+    public String toString() {
+        return iTable + ":" + lRow;
+    }
 }
