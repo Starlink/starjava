@@ -15,6 +15,8 @@
 *  History:
 *     3-OCT-2001 (MBT):
 *        Original version.
+*     21-FEB-2003 (PWD):
+*        Corrected memory allocation for input string arrays.
 *-
 */
 
@@ -54,8 +56,8 @@ JNIEXPORT void JNICALL Java_uk_ac_starlink_ast_MathMap_construct(
       /* Copy java arrays into C arrays. */
       fwd = jniastMalloc( env, nfwd * sizeof( char * ) );
       inv = jniastMalloc( env, ninv * sizeof( char * ) );
-      jFwdEl = jniastMalloc( env, ninv * sizeof( jstring ) );
-      jInvEl = jniastMalloc( env, nfwd * sizeof( jstring ) );
+      jFwdEl = jniastMalloc( env, nfwd * sizeof( jstring ) );
+      jInvEl = jniastMalloc( env, ninv * sizeof( jstring ) );
       if ( ! (*env)->ExceptionCheck( env ) ) {
          for ( i = 0; i < nfwd; i++ ) {
             jFwdEl[ i ] = (*env)->GetObjectArrayElement( env, jFwd, i );
