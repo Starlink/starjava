@@ -37,7 +37,6 @@ package uk.ac.starlink.ast;
  * not need to be implemented.
  *
  * @author   Mark Taylor (Starlink)
- * @version  $Id$
  */
 public abstract class UinterpCalculator {
 

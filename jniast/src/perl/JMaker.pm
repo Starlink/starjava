@@ -485,7 +485,8 @@ sub makeClassHeader {
    $startText =~ s/^    //mg;
    $moreText =~ s/^    //mg;
    my( $authorText ) = $author ? "\n * \@author   $author" : "";
-   my( $versionText ) = $version ? "\n * \@version  $version" : "";
+   # my( $versionText ) = $version ? "\n * \@version  $version" : "";
+   my( $versionText ) = "";
    my( $seeText ) = "\n * \@see  <a href='$htxserver$astname'>AST $astname</a>";
 
    print <<__EOT__;

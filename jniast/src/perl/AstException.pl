@@ -115,7 +115,6 @@ package uk.ac.starlink.ast;
  * library - in this case the status will be equal to <code>SAI__ERROR</code>.
  *
  * \@author  Mark Taylor (Starlink)
- * \@version \$Id\$
  */
 public class $ClassName extends RuntimeException {
     private int status;
