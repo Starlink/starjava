@@ -34,9 +34,10 @@ public class TestCase extends junit.framework.TestCase {
     private Random rand = new Random( 23L );
 
     /** Flags for {@link #assertDOMEquals} */
-    public static final short NO_ATTRIBUTE_PRESENCE = 1;
-    public static final short NO_ATTRIBUTE_VALUE = 2;
-    public static final short NO_WHITESPACE = 4;    
+    public static final short IGNORE_ATTRIBUTE_PRESENCE = 1;
+    public static final short IGNORE_ATTRIBUTE_VALUE = 2;
+    public static final short IGNORE_WHITESPACE = 4;    
+    public static final short IGNORE_COMMENTS = 8;
  
     static private javax.xml.parsers.DocumentBuilder docParser;
 
@@ -611,21 +612,23 @@ public class TestCase extends junit.framework.TestCase {
     }
 
     /**
-     * Asserts that two XML {@link javax.xml.transform.Source} objects represent
-     * the same XML Infoset.  Differences in whitespace and
-     * in comments may be ignored (but this depends on the implementation).
-     * <p>
-     * The current implementation just tranforms to strings, normalises
-     * whitespace and compares strings.  It could be done more cleverly.
+     * Asserts that two XML {@link javax.xml.transform.Source} objects
+     * represent the same XML Infoset.  Differences in whitespace and
+     * in comments may optionally be ignored.
      *
      * @param   expected  the Source object containing the expected infoset
      * @param   actual    the Source object containing the actual infoset,
      *                    asserted to match <tt>expected</tt>
+     * @param context a string indicating the context of this; may be
+     *                    <code>null</code>
      * @param flags a set of flags indicating which node tests to
-     * omit.  Passing as zero includes all tests.
-     * @throws  AssertionFailedError is the assertion is untrue
+     *                    omit.  Passing as zero includes all tests.
+     * @throws  AssertionFailedError if the assertion is untrue
+     * @see #assertDOMEquals(Node,Node,String,int)
      */
-    public void assertSourceEquals( Source expected, Source actual,
+    public void assertSourceEquals( Source expected,
+                                    Source actual,
+                                    String context,
                                     int flags ) {
                  /* OK if both null. */
         if ( expected == null && actual == null ) {
@@ -636,23 +639,18 @@ public class TestCase extends junit.framework.TestCase {
         Transformer trans;
         try {
             trans = TransformerFactory.newInstance().newTransformer();
-            trans.setOutputProperty( OutputKeys.METHOD, "xml" );
-            trans
-           .setOutputProperty( "{http://xml.apache.org/xslt}indent-amount",
-                               "0" );
-            trans.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
         }
         catch ( TransformerConfigurationException e ) {
             throw new RuntimeException( "Unexpected configuration error", e );
         }
 
-        /* Transform both sources to get strings. */
+        /* Transform both sources into DOMs, and compare */
         DOMResult res1 = new DOMResult();
         DOMResult res2 = new DOMResult();
         try {
             trans.transform( expected, res1 );
             trans.transform( actual, res2 );
-            assertDOMEquals( res1.getNode(), res2.getNode(), null, flags );
+            assertDOMEquals( res1.getNode(), res2.getNode(), context, flags );
         }
         catch ( TransformerException e ) {
             throw (AssertionFailedError)
@@ -666,7 +664,8 @@ public class TestCase extends junit.framework.TestCase {
      * Asserts that two DOMs are equal.
      *
      * <p>If an assertion fails, the method indicates the location by
-     * showing in the failure message the location of the mismatched node, so that
+     * showing in the failure message the location of the mismatched
+     * node, so that
      * <pre>
      * AssertionFailedError: .../test.xml:/[1]ndx/[2]data
      * expected: ...
@@ -679,14 +678,16 @@ public class TestCase extends junit.framework.TestCase {
      * a set of tests on the DOM to omit.  The value is ORed together
      * from the following constants:
      * <dl>
-     * <dt><code>TestCase.NO_ATTRIBUTE_PRESENCE</code>
+     * <dt><code>TestCase.IGNORE_ATTRIBUTE_PRESENCE</code>
      * <dt>do not check whether attributes match
-     * <dt><code>TestCase.NO_ATTRIBUTE_VALUE</code>
+     * <dt><code>TestCase.IGNORE_ATTRIBUTE_VALUE</code>
      * <dd>check that
      * the same attributes are present on the corresponding elements
      * in the tree, but do not check their values
-     * <dt><code>TestCase.NO_WHITESPACE</code>
+     * <dt><code>TestCase.IGNORE_WHITESPACE</code>
      * <dd>skip whitespace-only text nodes
+     * <dt><code>TestCase.IGNORE_COMMENTS</code>
+     * <dd>skip comment nodes
      * </dl>
      *
      * @param expected the Node containing the expected DOM
@@ -735,9 +736,10 @@ public class TestCase extends junit.framework.TestCase {
         }
 
         assertEquals( context+"(value)",
-                     expected.getNodeValue(),actual.getNodeValue() );
+                      expected.getNodeValue(),
+                      actual.getNodeValue() );
 
-        if ( (flags & NO_ATTRIBUTE_PRESENCE) == 0 ) {
+        if ( (flags & IGNORE_ATTRIBUTE_PRESENCE) == 0 ) {
             NamedNodeMap okatts = expected.getAttributes();
             if ( okatts != null ) {
                 NamedNodeMap testatts = actual.getAttributes();
@@ -748,16 +750,15 @@ public class TestCase extends junit.framework.TestCase {
                     Attr okatt = (Attr)okatts.item(i);
                     Attr testatt = (Attr)testatts.getNamedItem( okatt.getName() );
                     assertNotNull( testatt );
-                    if ( (flags & NO_ATTRIBUTE_VALUE) == 0 )
+                    if ( (flags & IGNORE_ATTRIBUTE_VALUE) == 0 )
                         assertEquals( context+'@'+okatt.getName(),
                                      okatt.getValue(), testatt.getValue() );
                 }
             }
         }
 
-        boolean skip = ( flags & NO_WHITESPACE ) != 0;
-        Node okkid = skipWhitespaceNodes( expected.getFirstChild(), skip );
-        Node testkid = skipWhitespaceNodes( actual.getFirstChild(), skip );
+        Node okkid = nextIncludedNode( expected.getFirstChild(), flags );
+        Node testkid = nextIncludedNode( actual.getFirstChild(), flags );
         int kidno = 1;
         while ( okkid != null ) {
             assertNotNull( context+" too few kid elements", testkid );
@@ -766,8 +767,8 @@ public class TestCase extends junit.framework.TestCase {
                      testkid,
                      context + "/["+Integer.toString( kidno )+']',
                      flags );
-            okkid = skipWhitespaceNodes( okkid.getNextSibling(), skip );
-            testkid = skipWhitespaceNodes( testkid.getNextSibling(), skip );
+            okkid = nextIncludedNode( okkid.getNextSibling(), flags );
+            testkid = nextIncludedNode( testkid.getNextSibling(), flags );
             kidno++;
         }
         assertNull( context+" extra kids: "+testkid, testkid );
@@ -775,23 +776,44 @@ public class TestCase extends junit.framework.TestCase {
 
     /**
      * Returns the first node from the set of this node and its
-     * following siblings which is not a whitespace-only text node.
+     * following siblings which is in the included set.
      * 
      * @param n the node to follow
-     * @param skip if false, the input node is returned
-     * unconditionally (ie, this method is a no-op)
-     * @return the next non-whitespace interesting node, or null if there are none
+     * @param flags the set of nodes to include; if zero, the input
+     *              node is returned unconditionally (ie, this method
+     *              is a no-op)
+     * @return the next interesting node, or null if
+     *         there are none
      */
-    private Node skipWhitespaceNodes( Node n, boolean skip ) {
-        while ( skip
-                && n != null
-                && n.getNodeType()==Node.TEXT_NODE
-                && n.getNodeValue().trim().length() == 0 )
-            n = n.getNextSibling();
-        return n;
+    private Node nextIncludedNode( Node n, int flags ) {
+        if ( flags == 0 )
+            return n;           // trivial case -- no omissions at all
+
+        for ( /* no init */ ; n != null; n = n.getNextSibling() ) {
+            boolean veto = false;
+            switch ( n.getNodeType() ) {
+              case Node.TEXT_NODE:
+                if ( (flags & IGNORE_WHITESPACE) != 0
+                     && n.getNodeValue().trim().length() == 0 )
+                    veto = true;
+                break;
+                
+              case Node.COMMENT_NODE:
+                if ( (flags & IGNORE_COMMENTS) != 0 )
+                    veto = true;
+                break;
+                
+              default:
+                // do nothing -- this node is OK
+            }
+            if ( !veto )
+                return n;       // JUMP OUT
+        }
+        assert n == null;
+
+        return null;            // found nothing
     }
     
-
     /**
      * Fills a given array with random numbers between two floating point
      * values.
