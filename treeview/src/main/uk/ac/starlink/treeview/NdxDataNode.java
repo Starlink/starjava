@@ -12,8 +12,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.xml.rpc.ServiceException;
+import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMSource;
 import uk.ac.starlink.array.AccessMode;
 import uk.ac.starlink.array.NDArray;
 import uk.ac.starlink.array.NDArrays;
@@ -103,14 +103,14 @@ public class NdxDataNode extends DefaultDataNode {
     }
 
     /**
-     * Initialises an NdxDataNode from a DOM node.  It is passed as 
-     * a DOMSource rather than a simple Node so that it can contain the
+     * Initialises an NdxDataNode from an XML source.  It is passed as 
+     * a Source rather than a simple Node so that it can contain the
      * SystemID as well, which may be necessary to resolve relative URL
      * references to data arrays etc.
      *
-     * @param  xsrc  a DOMSource containing the XML representation of the Ndx
+     * @param  xsrc  a Source containing the XML representation of the Ndx
      */
-    public NdxDataNode( DOMSource xsrc ) throws NoSuchDataException {
+    public NdxDataNode( Source xsrc ) throws NoSuchDataException {
         try {
             ndx = XMLNdxHandler.getInstance().makeNdx( xsrc, AccessMode.READ );
         }
@@ -124,10 +124,11 @@ public class NdxDataNode extends DefaultDataNode {
             name = ndx.getTitle();
         }
         else {
-            name = xsrc.getNode().getNodeName();
+            name = "ndx";
         }
         setLabel( name );
     }
+
 
     public String getDescription() {
         if ( desc == null ) {
