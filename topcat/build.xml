@@ -469,6 +469,7 @@
       <arg value="-x"/><arg value="sog.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
       <arg value="-x"/><arg value="vo.jar"/>
+      <arg value="-x"/><arg value="srb.jar"/>
       <arg value="${star.lib.pkg}/topcat.jar"/>
     </java>
 
@@ -481,6 +482,7 @@
       <arg value="-x"/><arg value="jsky/jel.jar"/>
       <arg value="-x"/><arg value="diva/acme.jar"/>
       <arg value="-x"/><arg value="splat.jar"/>
+      <arg value="-x"/><arg value="gsi-classes.jar"/>
       <arg value="-x"/><arg value="jasper-compiler.jar"/>
          <!-- shares some classes with jasper-runtime.jar - am I skipping the
               right one here? -->
