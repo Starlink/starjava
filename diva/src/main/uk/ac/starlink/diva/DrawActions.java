@@ -300,7 +300,7 @@ public class DrawActions
         drawingModeActions.add( new DrawingModeAction( "edit", EDIT ) );
         for ( int i = 2; i < NUM_DRAWING_MODES; i++ ) {
             drawingModeActions
-                .add(new DrawingModeAction(DrawFigureFactory.shortNames[i-2], i));
+                .add(new DrawingModeAction(DrawFigureFactory.SHORTNAMES[i-2], i));
         }
 
         for ( int i = 0; i < NUM_LINE_WIDTHS; i++ ) {
@@ -720,14 +720,22 @@ public class DrawActions
     /**
      * Notify any figure listeners of a figure created event.
      */
-    protected void fireFigureEvent( DrawFigure figure )
+    protected void fireFigureEvent( DrawFigure figure, int type )
     {
-        FigureChangedEvent e = 
-            new FigureChangedEvent( figure, FigureChangedEvent.CREATED, null );
+        FigureChangedEvent e = new FigureChangedEvent( figure, type, null );
         Object[] listeners = figureListenerList.getListenerList();
-        for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
-            if ( listeners[i] == FigureListener.class ) {
-                ((FigureListener) listeners[i + 1]).figureCreated( e );
+        if ( type == FigureChangedEvent.CREATED ) {
+            for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
+                if ( listeners[i] == FigureListener.class ) {
+                    ((FigureListener) listeners[i + 1]).figureCreated( e );
+                }
+            }
+        }
+        else if ( type == FigureChangedEvent.REMOVED ) {
+            for ( int i = listeners.length - 2; i >= 0; i -= 2 ) {
+                if ( listeners[i] == FigureListener.class ) {
+                    ((FigureListener) listeners[i + 1]).figureRemoved( e );
+                }
             }
         }
     }
@@ -1125,7 +1133,7 @@ public class DrawActions
             graphics.select( figure );
             
             // Inform any listeners that the Figure is completed.
-            fireFigureEvent( (DrawFigure) figure );
+            fireFigureEvent( (DrawFigure) figure, FigureChangedEvent.CREATED );
             figure = null;
         }
         polyline = null;
@@ -1145,7 +1153,7 @@ public class DrawActions
         ListIterator it = getListIterator( true );
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
-            graphics.removeFigure( fig );
+            deleteFigure( fig );
             it.remove();
         }
     }
@@ -1161,7 +1169,7 @@ public class DrawActions
         while ( it.hasNext() ) {
             DrawFigure fig = (DrawFigure) it.next();
             if ( sm.containsSelection( fig ) ) {
-                graphics.removeFigure( fig );
+                deleteFigure( fig );
                 it.remove();
             }
         }
@@ -1174,6 +1182,7 @@ public class DrawActions
     {
         if ( figureList.remove( figure ) ) {
             graphics.removeFigure( figure );
+            fireFigureEvent( (DrawFigure) figure, FigureChangedEvent.REMOVED );
         }
     }
 
