@@ -163,7 +163,7 @@ public class LineIDSpecData
         //  configuration options of the plot (which is why we use it
         //  and not the Grf object, which bypasses the Plot).
         DefaultGrf defaultGrf = (DefaultGrf) grf;
-        DefaultGrfState oldState = setGrfAttributes( defaultGrf );
+        DefaultGrfState oldState = setGrfAttributes( defaultGrf, false );
 
         float[] up = new float[2];
         up[0] = 1.0F;
@@ -175,6 +175,6 @@ public class LineIDSpecData
             pos[1] = xypos[j+1];
             plot.text( labels[i], pos, up, "CC" );
         }
-        resetGrfAttributes( defaultGrf, oldState );
+        resetGrfAttributes( defaultGrf, oldState, false );
     }
 }
