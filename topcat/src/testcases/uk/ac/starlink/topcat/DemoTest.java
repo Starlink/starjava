@@ -17,18 +17,23 @@ public class DemoTest extends TestCase {
 
     public void testDemoTables() {
         StarTable[] demoTables = Driver.getDemoTables();
-        assertEquals( 4, demoTables.length );
+        int ix = 0;
 
-        assertEquals( 14, demoTables[ 0 ].getColumnCount() );
-        assertEquals( 384L, demoTables[ 0 ].getRowCount() );
+        assertEquals( 15, demoTables[ ix ].getColumnCount() );
+        assertEquals( 875, demoTables[ ix++ ].getRowCount() );
 
-        assertEquals( 13, demoTables[ 1 ].getColumnCount() );
-        assertEquals( 120L, demoTables[ 1 ].getRowCount() );
+        // assertEquals( 14, demoTables[ ix ].getColumnCount() );
+        // assertEquals( 384L, demoTables[ ix++ ].getRowCount() );
 
-        assertEquals( 9, demoTables[ 2 ].getColumnCount() );
-        assertEquals( 20L, demoTables[ 2 ].getRowCount() );
+        // assertEquals( 13, demoTables[ ix ].getColumnCount() );
+        // assertEquals( 120L, demoTables[ ix++ ].getRowCount() );
 
-        assertEquals( 3, demoTables[ 3 ].getColumnCount() );
-        assertEquals( 881L, demoTables[ 3 ].getRowCount() );
+        assertEquals( 9, demoTables[ ix ].getColumnCount() );
+        assertEquals( 20L, demoTables[ ix++ ].getRowCount() );
+
+        // assertEquals( 3, demoTables[ ix ].getColumnCount() );
+        // assertEquals( 881L, demoTables[ ix++ ].getRowCount() );
+
+        assertEquals( demoTables.length, ix );
     }
 }
