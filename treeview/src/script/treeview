@@ -78,6 +78,21 @@ do
    shift
 done
 
+#  Check for Cygwin and transform paths.
+
+case "`uname`" in
+  CYGWIN*)
+    if test -n "$CLASSPATH"; then
+       CLASSPATH=`cygpath --path --windows "${appjar}:$CLASSPATH"`
+    else
+       CLASSPATH=`cygpath --windows "${appjar}"`
+    fi
+  ;;
+  *)
+    CLASSPATH="${appjar}:${CLASSPATH}"
+  ;;
+esac
+
 #  Run Treeview.
 
 cmd="$starjava \
@@ -85,7 +100,7 @@ cmd="$starjava \
         -Duk.ac.starlink.treeview.cmdname=treeview \
         -Duk.ac.starlink.treeview.demodir=$demodir \
         -enableassertions \
-        -classpath $appjar:${CLASSPATH} uk.ac.starlink.treeview.Driver \
+        -classpath \${CLASSPATH} uk.ac.starlink.treeview.Driver \
         $appArgs"
 eval "$cmd"
 
