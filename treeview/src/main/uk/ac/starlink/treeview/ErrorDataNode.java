@@ -10,7 +10,7 @@ public class ErrorDataNode extends DefaultDataNode {
     private JComponent fullView;
 
     public ErrorDataNode( Throwable th ) {
-        super( "Error" );
+        super( th.getClass().getName() );
         this.thrown = th;
     }
 
@@ -20,6 +20,10 @@ public class ErrorDataNode extends DefaultDataNode {
 
     public String getNodeType() {
         return "Error";
+    }
+
+    public String getDescription() {
+        return "(" + thrown.getMessage() + ")";
     }
 
     public Icon getIcon() {
