@@ -131,12 +131,9 @@ public interface Ndx {
 
     /**
      * Get the world coordinate system of the NDX as an AST <tt>FrameSet</tt>.
-     * May only be called if {@link #hasWCS} returns <tt>true</tt>.
      *
      * @return the AST FrameSet representing the world coordinate system
      *         information
-     * @throws UnsupportedOperationException if <tt>hasWCS</tt>
-     *         returns <tt>false</tt>
      */
     FrameSet getWCS();
 
@@ -166,13 +163,6 @@ public interface Ndx {
      * @return true if {@link #getEtc} may be called
      */
     boolean hasEtc();
-
-    /**
-     * Find out if the NDX contains a world coordinate system.
-     *
-     * @return true if {@link getWCS} may be called
-     */
-    boolean hasWCS();
 
     /**
      * Indicates whether this Ndx represents a persistent object.

@@ -43,6 +43,8 @@ public class BridgeNdx implements Ndx {
     private NDArray quality;
     private FrameSet wcs;
     private String title;
+    private Boolean hasEtc;
+    private Boolean hasTitle;
     private int badbits = -1;
     private BulkDataImpl bulkdata;
 
@@ -62,22 +64,6 @@ public class BridgeNdx implements Ndx {
                                         wantQuality, getBadBits() );
     }
 
-    public byte getBadBits() {
-        if ( badbits == -1 ) {
-            badbits = impl.getBadBits();
-        }
-        return (byte) badbits;
-    }
-
-    public String getTitle() {
-        if ( ! impl.hasTitle() ) {
-            throw new UnsupportedOperationException( "No title component" );
-        }
-        if ( title == null ) {
-            title = impl.getTitle();
-        }
-        return title;
-    }
 
     public NDArray getImage() {
         if ( image == null ) {
@@ -117,22 +103,41 @@ public class BridgeNdx implements Ndx {
     }
 
     public boolean hasTitle() {
-        return impl.hasTitle();
+        if ( hasTitle == null ) {
+            hasTitle = Boolean.valueOf( impl.hasTitle() );
+        }
+        return hasTitle.booleanValue();
     }
 
     public boolean hasEtc() {
-        return impl.hasEtc();
+        if ( hasEtc == null ) {
+            hasEtc = Boolean.valueOf( impl.hasEtc() );
+        }
+        return hasEtc.booleanValue();
+    }
+
+    public String getTitle() {
+        if ( ! hasTitle() ) {
+            throw new UnsupportedOperationException( "No title component" );
+        }
+        if ( title == null ) {
+            title = impl.getTitle();
+        }
+        return title;
     }
 
     public Source getEtc() {
-        if ( ! impl.hasEtc() ) {
+        if ( ! hasEtc() ) {
             throw new UnsupportedOperationException( "No Etc component" );
         }
         return impl.getEtc();
     }
 
-    public boolean hasWCS() {
-        return impl.hasWCS();
+    public byte getBadBits() {
+        if ( badbits == -1 ) {
+            badbits = impl.getBadBits();
+        }
+        return (byte) badbits;
     }
 
     public FrameSet getWCS() {
@@ -214,6 +219,14 @@ public class BridgeNdx implements Ndx {
         return new WinMap( ndim, ina, inb, outa, outb );
     }
 
+    /**
+     * Generates an XML view of this Ndx object as a <tt>Source</tt>.
+     * The XML is built using only public methods of this Ndx rather than
+     * any private values, so that this method can safely be inherited
+     * by subclasses.
+     *
+     * @return  an XML Source representation of this Ndx
+     */
     public Source toXML() {
 
         /* Set up the document and root element. */
@@ -246,7 +259,7 @@ public class BridgeNdx implements Ndx {
             imEl.appendChild( imUrl );
         }
         else {
-            Node imComm = doc.createComment( "Data array is virtual" );
+            Node imComm = doc.createComment( "Image array is virtual" );
             imEl.appendChild( imComm );
         }
 
@@ -290,8 +303,9 @@ public class BridgeNdx implements Ndx {
         }
         
         /* Write a WCS element. */
-        if ( impl.hasWCS() ) {
-            Source wcsSource = new XAstWriter().makeSource( getWCS(), null );
+        FrameSet wfset = getWCS();
+        if ( ! wfset.equals( defaultWCS() ) ) {
+            Source wcsSource = new XAstWriter().makeSource( wfset, null );
             try {
                 Node wcsContent = new SourceReader().getDOM( wcsSource );
                 wcsContent = importNode( doc, wcsContent ); 
@@ -306,9 +320,9 @@ public class BridgeNdx implements Ndx {
         }
 
         /* Write an Etc element. */
-        if ( impl.hasEtc() ) {
+        if ( hasEtc() ) {
             try {
-                Source etcSrc = impl.getEtc();
+                Source etcSrc = getEtc();
                 Node etcEl = new SourceReader().getDOM( etcSrc );
                 etcEl = importNode( doc, etcEl );
 
@@ -334,7 +348,13 @@ public class BridgeNdx implements Ndx {
         return new DOMSource( ndxEl );
     }
 
-    private BulkDataImpl getBulkData() {
+    /*
+     * This package-private method is overridden by DefaultMutableNdx 
+     * so that it can inherit the bulk data related functionality of 
+     * this class.  Thus it is important that this class always uses
+     * this method rather than the bulkdata private instance variable.
+     */
+    BulkDataImpl getBulkData() {
         if ( bulkdata == null ) {
             bulkdata = impl.getBulkData();
         }

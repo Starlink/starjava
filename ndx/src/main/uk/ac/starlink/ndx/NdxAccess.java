@@ -115,9 +115,9 @@ public interface NdxAccess extends ArrayDescription {
      *
      * @return  true if and only if all of the image, variance, quality
      *          components provided by this accessor can be mapped
-     * @see  getMappedImage
-     * @see  getMappedVariance
-     * @see  getMappedQuality
+     * @see  #getMappedImage
+     * @see  #getMappedVariance
+     * @see  #getMappedQuality
      */
     boolean isMapped();
 

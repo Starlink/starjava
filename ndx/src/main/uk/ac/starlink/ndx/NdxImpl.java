@@ -9,10 +9,22 @@ import uk.ac.starlink.array.NDArray;
  * If you have an <tt>NdxImpl</tt> you can make an {@link Ndx} out of it.
  * This is the basic interface via which NDX implementations provide
  * services to the {@link BridgeNdx} class.
- * BridgeNdx is intende to be the only client of this, class, and it
+ * BridgeNdx is intended to be the only client of this class, and it
  * does the necessary validation of arguments before passing them to
  * NdxImpl, so that implementations of this interface can in general
  * assume that the arguments they receive make sense.
+ * <p>
+ * Note that <tt>BridgeNdx</tt> may cache information from the methods
+ * defined here, so objects implementing this interface should be 
+ * considered effectively immutable; if an instance of <tt>NdxImpl</tt>
+ * changes the return value of <tt>getTitle</tt> at some point 
+ * after it has been passed to the <tt>BridgeNdx</tt> constructor 
+ * it is not defined which value an invocation of the 
+ * <tt>BridgeNdx.getTitle</tt> method will return.
+ * For this reason it is not generally worthwhile for implementations
+ * of this interface to perform caching for performance reasons
+ * except where noted, since most of the <tt>get</tt> methods will
+ * be called only once.
  *
  * @author Mark Taylor
  * @author Peter W. Draper

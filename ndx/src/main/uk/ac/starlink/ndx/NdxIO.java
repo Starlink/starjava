@@ -181,7 +181,7 @@ public class NdxIO {
      * Constructs a readable Ndx from a location representing an existing
      * resource.
      * This convenience method just turns the location into a URL and
-     * calls {@link #makeNdx(URL,mode)}.
+     * calls {@link #makeNdx(URL)}.
      *
      * @param  location  the location of the resource.  If it cannot be
      *                   parsed as a URL it will be treated as a filename
