@@ -280,7 +280,7 @@ public class FormatsTest extends TestCase {
         assertFitsTableEquals( t1, t2 );
         assertFitsTableEquals( t1, t2 );
         StarTable t3 = new StarTableFactory( false )
-                      .makeStarTable( "file:" + loc );
+                      .makeStarTable( loc.toURI().toURL().toString() );
         assertTrue( t3 instanceof BintableStarTable );
         assertTrue( ! t3.isRandom() );
         checkStarTable( t3 );
