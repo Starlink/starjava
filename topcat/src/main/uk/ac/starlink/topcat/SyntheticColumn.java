@@ -9,6 +9,7 @@ import gnu.jel.Parser;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.ColumnData;
 import uk.ac.starlink.table.ColumnInfo;
 import uk.ac.starlink.table.DescribedValue;
@@ -38,6 +39,8 @@ public class SyntheticColumn extends ColumnData {
     private CompiledExpression compEx;
     private JELRowReader rowReader;
     private Object[] args;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     public final static ValueInfo EXPR_INFO = 
         new DefaultValueInfo( "Expression", String.class, 
@@ -112,6 +115,10 @@ public class SyntheticColumn extends ColumnData {
                 return compEx.evaluate( args );
             }
             catch ( NullPointerException e ) {
+                return null;
+            }
+            catch ( RuntimeException e ) {
+                logger.info( e.toString() );
                 return null;
             }
             catch ( Throwable th ) {

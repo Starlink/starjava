@@ -7,6 +7,7 @@ import gnu.jel.Evaluator;
 import gnu.jel.Library;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.logging.Logger;
 import uk.ac.starlink.table.StarTable;
 
 /**
@@ -29,6 +30,8 @@ public class SyntheticRowSubset implements RowSubset {
     private JELRowReader rowReader;
     private Object[] args;
     private CompiledExpression compEx;
+
+    private static Logger logger = Logger.getLogger( "uk.ac.starlink.topcat" );
 
     /**
      * Constructs a new synthetic subset given a table and an algebraic
@@ -81,8 +84,12 @@ public class SyntheticRowSubset implements RowSubset {
             catch ( NullPointerException e ) {
                 return false;
             }
+            catch ( RuntimeException e ) {
+                logger.info( e.toString() );
+                return false;
+            }
             catch ( Throwable th ) {
-                th.printStackTrace();
+                logger.warning( th.toString() );
                 return false;
             }
         }

@@ -2,7 +2,9 @@
 <!DOCTYPE xsl:stylesheet [
   <!ENTITY map.file "Map.xml">
   <!ENTITY toc.file "TOC.xml">
-  <!ENTITY file.elements "abstract|sect|subsect|subsubsect|subsubsubsect">
+  <!ENTITY home.file "HelpTop.html">
+  <!ENTITY file.elements 
+           "abstract|sect|subsect|subsubsect|subsubsubsect">
 
   <!ENTITY map.pubid 
            "-//Sun Microsystems Inc.//DTD JavaHelp Map Version 1.0//EN">
@@ -39,7 +41,7 @@
   <xsl:template mode="help-text" match="sun">
     <xsl:element name="filesection">
       <xsl:attribute name="file">
-        <xsl:call-template name="getFile"/>
+        <xsl:text>&home.file;</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="method">
         <xsl:text>html</xsl:text>
@@ -87,7 +89,7 @@
           <xsl:if test="name(.)='abstract'">
             <h2>Abstract</h2>
           </xsl:if>
-          <xsl:apply-templates select="subhead|p|px"/>
+          <xsl:apply-templates select="subhead|p|px|figure"/>
           <xsl:if test="&file.elements;">
             <ul>
               <xsl:apply-templates mode="toc" select="&file.elements;"/>
@@ -129,6 +131,10 @@
     <xsl:apply-templates mode="help-map" select="&file.elements;"/>
   </xsl:template>
 
+  <xsl:template mode="help-map" match="appendices">
+    <xsl:apply-templates mode="help-map" select="&file.elements;"/>
+  </xsl:template>
+
   <xsl:template name="getRef">
     <xsl:param name="node" select="."/>
     <xsl:call-template name="getFile">
@@ -156,7 +162,8 @@
                  doctype-public="&toc.pubid;"
                  doctype-system="&toc.sysid;">
       <toc version="1.0">
-        <xsl:apply-templates mode="help-toc" select="&file.elements;"/>
+        <xsl:apply-templates mode="help-toc" 
+                             select="&file.elements;|appendices"/>
       </toc>
     </filesection>
   </xsl:template>
@@ -169,8 +176,12 @@
       <xsl:attribute name="text">
         <xsl:apply-templates mode="nameref" select="."/>
       </xsl:attribute>
-      <xsl:apply-templates mode="help-toc" select="&file.elements;"/>
+      <xsl:apply-templates mode="help-toc" select="&file.elements;|appendices"/>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template mode="help-toc" match="appendices">
+    <xsl:apply-templates mode="help-toc" select="&file.elements;"/>
   </xsl:template>
 
 <!-- Mode 'help-hs' - the top-level Helpset file. -->
@@ -198,9 +209,7 @@
           <xsl:apply-templates select="docinfo/title"/>
         </title>
         <maps>
-          <homeID>
-            <xsl:call-template name="getFile"/>
-          </homeID>
+          <homeID>&home.file;</homeID>
           <mapref location="&map.file;"/>
         </maps>
         <view>

@@ -78,7 +78,7 @@
     <xsl:apply-templates/>
   </xsl:template>
 
-  <xsl:template match="ul|ol|li|dl|dd|blockquote|code|em|strong">
+  <xsl:template match="ul|ol|li|dl|dd|blockquote|code|em|strong|sub|sup">
     <xsl:copy>
       <xsl:apply-templates/>
     </xsl:copy>
@@ -100,6 +100,30 @@
 
   <xsl:template match="img">
     <xsl:copy-of select="."/>
+  </xsl:template>
+
+  <xsl:template match="figure">
+    <div align="center">
+      <img src="{figureimage/@src}"
+           alt="{caption/px[position()=1]}"/>
+      <xsl:apply-templates select="caption"/>
+    </div>
+  </xsl:template>
+
+  <xsl:template match="caption">
+    <b>
+      <xsl:apply-templates/>
+    </b>
+  </xsl:template>
+
+  <xsl:template match="figurecontent">
+    <div align="center">
+      <xsl:element name="img">
+        <xsl:attribute name="src">
+          <xsl:value-of select="@image"/>
+        </xsl:attribute>
+      </xsl:element>
+    </div>
   </xsl:template>
 
   <xsl:template match="verbatim">
@@ -135,7 +159,8 @@
           <xsl:apply-templates/>
         </xsl:when>
         <xsl:otherwise>
-          <xsl:text>section </xsl:text>
+          <xsl:apply-templates mode="sectype" select="id(@id)"/>
+          <xsl:text> </xsl:text>
           <xsl:apply-templates mode="ref" select="id(@id)"/>
         </xsl:otherwise>
       </xsl:choose>
@@ -218,7 +243,10 @@
 
   <!-- titles -->
 
-  <xsl:template match="sect/subhead/title">
+  <xsl:template 
+      match="docbody/sect/subhead/title
+            |appendices/sect/subhead/title
+            |appendices/sect/subsect/subhead/title">
     <hr/>
     <h2>
       <xsl:element name="a">
@@ -234,7 +262,9 @@
     </h2>
   </xsl:template>
 
-  <xsl:template match="subsect/subhead/title">
+  <xsl:template
+      match="docbody/sect/subsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subhead/title">
     <h3>
       <xsl:element name="a">
         <xsl:attribute name="name">
@@ -249,7 +279,9 @@
     </h3>
   </xsl:template>
 
-  <xsl:template match="subsubsect/subhead/title">
+  <xsl:template
+      match="docbody/sect/subsect/subsubsect/subhead/title
+            |appendices/sect/subsect/subsubsect/subsubsubsect/subhead/title">
     <h4>
       <xsl:element name="a">
         <xsl:attribute name="name">
@@ -264,8 +296,9 @@
     </h4>
   </xsl:template>
 
-  <xsl:template match="subsubsubsect/subhead/title">
-    <h5>
+  <xsl:template
+       match="docbody/sect/subsect/subsubsect/subsubsubsect/subhead/title">
+    <h4>
       <xsl:element name="a">
         <xsl:attribute name="name">
           <xsl:call-template name="getId">
@@ -276,7 +309,7 @@
         <xsl:text> </xsl:text>
         <xsl:apply-templates/>
       </xsl:element>
-    </h5>
+    </h4>
   </xsl:template>
 
 
@@ -284,7 +317,8 @@
 
   <xsl:template mode="toc" match="docbody">
     <ul>
-      <xsl:apply-templates mode="toc" select="abstract|sect"/>
+      <xsl:apply-templates mode="toc" 
+                           select="abstract|sect|appendices/sect"/>
     </ul>
   </xsl:template>
 
@@ -373,6 +407,10 @@
     <xsl:number count="sect"/>
   </xsl:template>
 
+  <xsl:template mode="ref" match="appendices/sect">
+    <xsl:number count="sect" format="A"/>
+  </xsl:template>
+
   <xsl:template mode="ref" match="subsect">
     <xsl:apply-templates mode="ref" select=".."/>
     <xsl:text>.</xsl:text>
@@ -398,14 +436,18 @@
     <xsl:apply-templates mode="nameref" select="subhead/title"/>
   </xsl:template>
 
+  <xsl:template mode="nameref" match="appendices">
+    <xsl:text>Appendices</xsl:text>
+  </xsl:template>
+
   <xsl:template mode="nameref" match="title">
     <xsl:apply-templates mode="nameref"/>
   </xsl:template>
 
-    <xsl:template mode="nameref" match="*">
-      what??
-      <xsl:value-of select="name(.)"/>
-    </xsl:template>
+  <xsl:template mode="nameref" match="*">
+    what??
+    <xsl:value-of select="name(.)"/>
+  </xsl:template>
 
   <xsl:template mode="nameref" match="abstract">
     <xsl:text>Abstract</xsl:text>
@@ -415,6 +457,21 @@
     <xsl:text>Top</xsl:text>
   </xsl:template>
 
+  <!-- section type description -->
+
+  <xsl:template mode="sectype" match="sect|subsect|subsubsect|subsubsubsect">
+    <xsl:choose>
+      <xsl:when test="ancestor::appendices">
+        <xsl:text>appendix</xsl:text>
+      </xsl:when>
+      <xsl:when test="ancestor-or-self::sect">
+        <xsl:text>section</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>item??</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
 
   <!-- subroutines -->
 

@@ -200,7 +200,7 @@ public class ControlWindow extends AuxWindow
                                "Launch Mirage to display the current table" );
         mirageAct.setEnabled( MirageHandler.isMirageAvailable() );
 
-        viewerAct = new ModelAction( "Table Browser", ResourceIcon.VIEWER,
+        viewerAct = new ModelAction( "Table Data", ResourceIcon.VIEWER,
                                      "Display table cell data" );
         paramAct = new ModelAction( "Table Parameters", ResourceIcon.PARAMS,
                                     "Display table metadata" );
@@ -859,6 +859,9 @@ public class ControlWindow extends AuxWindow
         int sindex = label.lastIndexOf( '/' );
         if ( sindex < 0 || sindex == label.length() - 1 ) {
             sindex = label.lastIndexOf( '\\' );
+        }
+        if ( sindex < 0 || sindex == label.length() - 1 ) {
+            sindex = label.lastIndexOf( ':' );
         }
         if ( sindex > 0 && sindex < label.length() - 1 ) {
             label = label.substring( sindex + 1 );

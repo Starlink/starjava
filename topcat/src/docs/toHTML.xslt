@@ -19,11 +19,13 @@
           <xsl:text>html</xsl:text>
         </xsl:attribute>
         <html>
+          <xsl:text>&#x0a;</xsl:text>
           <head>
             <title>
               <xsl:apply-templates select="docinfo/title"/>
             </title>
           </head>
+          <xsl:text>&#x0a;</xsl:text>
           <body>
             <xsl:apply-templates select="docinfo"/>
             <h2>
@@ -49,19 +51,22 @@
         <xsl:call-template name="getFile"/>
       </xsl:attribute>
       <html>
+        <xsl:text>&#x0a;</xsl:text>
         <head>
           <title>
             <xsl:apply-templates mode="nameref" select="."/>
           </title>
         </head>
+        <xsl:text>&#x0a;</xsl:text>
         <body>
           <hr/>
+          <xsl:text>&#x0a;</xsl:text>
           <xsl:call-template name="navBar"/>
           <hr/>
           <xsl:if test="name(.)='abstract'">
             <h2>Abstract</h2> 
           </xsl:if>
-          <xsl:apply-templates select="subhead|p|px"/>
+          <xsl:apply-templates select="subhead|p|px|figure"/>
           <xsl:if test="sect|subsect|subsubsect|subsubsubsect">
             <ul>
               <xsl:apply-templates mode="toc" 
@@ -119,7 +124,7 @@
     <xsl:variable name="prev"
                   select="key('file','true')[position()=$seqno - 1]"/>
     <xsl:variable name="up"
-                  select=".."/>
+                  select="ancestor::*[local-name()!='appendices'][1]"/>
     <xsl:variable name="contents"
                   select="/sun/docinfo"/>
 
@@ -157,7 +162,6 @@
   <xsl:template name="navButton">
     <xsl:param name="text"/>
     <xsl:param name="destination"/>
-    <xsl:text> </xsl:text>
     <xsl:choose>
       <xsl:when test="$destination">
         <xsl:element name="a">
@@ -173,6 +177,7 @@
          <xsl:value-of select="$text"/>
        </xsl:otherwise>
     </xsl:choose>
+    <xsl:text> </xsl:text>
   </xsl:template>
 
   <xsl:template name="navLine">
@@ -183,7 +188,7 @@
       <xsl:when test="$destination">
         <b>
           <xsl:value-of select="$text"/>
-          <xsl:text>:&#x0a;</xsl:text>
+          <xsl:text>: </xsl:text>
         </b>
         <xsl:element name="a">
           <xsl:attribute name="href">
@@ -194,6 +199,7 @@
           <xsl:apply-templates mode="nameref" select="$destination"/> 
         </xsl:element>
         <br/>
+        <xsl:text>&#x0a;</xsl:text>
       </xsl:when>
     </xsl:choose>
   </xsl:template>
