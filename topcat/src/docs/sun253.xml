@@ -1247,7 +1247,7 @@ items:
 <subhead><title>JTable</title></subhead>
 
 <p>Many of the windows, including the Data window, display
-their data in a Java widget called a <strong>JTable</strong>.
+their data in a Java widget called a <label>JTable</label>.
 This displays a grid of values, with headings for each column, in
 a window which you can scroll around.  Although JTables are used for
 a number of different things (for instance, showing the table data itself
@@ -1349,11 +1349,6 @@ from TOPCAT:
     into the Table List panel.
     </p></dd>
 
-<dt>&IMG.MATCH; <ref id="MatchWindow">Match window</ref></dt>
-<dd><p>Pops up a window which allows you to specify and execute various
-    row matching operations.
-    </p></dd>
-
 <dt>&IMG.SAVE; <ref id="save">Save Table</ref></dt>
 <dd><p>Pops up a dialogue from which the selected table can be written out.
     </p></dd>
@@ -1376,6 +1371,23 @@ from TOPCAT:
     it depends on where the table came from).
     You will be asked for confirmation before proceeding.
     </p></dd>
+</dl>
+</p>
+
+<p>The following buttons deal with creating new tables by joining together
+existing ones:
+<dl>
+
+<dt>&IMG.MATCH; <ref id="MatchWindow">Match Tables</ref></dt>
+<dd><p>Pops up a window which allows you to specify and execute various
+    row matching operations.
+    </p></dd>
+
+<dt>&IMG.CONCAT; <ref id="ConcatWindow">Concatentate Tables</ref></dt>
+<dd><p>Pops up a window which allows you to make a new table formed from
+    appending all the rows of one table to the rows of another.
+    </p></dd>
+
 </dl>
 </p>
 
@@ -1541,8 +1553,8 @@ It consists of for main parts:
     </p></dd>
 
 <dt>Match Action selector</dt>
-<dd><p>Selects whether you want an <strong>Internal</strong>
-    (between rows of a single table) or a <strong>Multi-table</strong> match.
+<dd><p>Selects whether you want an <label>Internal</label>
+    (between rows of a single table) or a <label>Multi-table</label> match.
     The controls provided below this selector differ according to the
     selection you make.
     </p></dd>
@@ -1554,9 +1566,9 @@ It consists of for main parts:
     </p></dd>
 
 <dt>Control buttons</dt>
-<dd><p>The <strong>Go</strong> button starts the search when you are
+<dd><p>The <label>Go</label> button starts the search when you are
     happy with the selections that you have made, and the
-    <strong>Stop</strong> button interrupts it midway if you decide
+    <label>Stop</label> button interrupts it midway if you decide
     you no longer want the results (closing the Match Window also 
     interrupts the calculation).
     </p></dd>
@@ -1630,7 +1642,7 @@ in terms of a metric on that space to count as a match.
 
 <p>An internal match is one which takes place on the rows of a single table.
 You will see the Internal match panel if you choose the 
-<strong>Internal</strong> option from the Match Action selector.
+<label>Internal</label> option from the Match Action selector.
 </p>
 
 <p>In this panel you must specify the table
@@ -1652,11 +1664,10 @@ are these:
 
 <dt>Mark Groups of Rows</dt>
 <dd><p>The result is a table the same as the input table but with two 
-    additional columns: <strong>MatchID</strong> and 
-    <strong>MatchCount</strong>.
+    additional columns: <label>MatchID</label> and <label>MatchCount</label>.
     Each group of rows which matched is assigned a unique integer,
     recorded in the MatchId column, and the size of each group is 
-    recorded in the MatchCount column.  
+    recorded in the MatchCount column.
     Rows which don't match any others (singles) have null values in
     both these columns.
     So for example by sorting the resulting table
@@ -1668,6 +1679,10 @@ are these:
     create a new <ref id="subsets">Row Subset</ref> using the expression
     "<code>MatchID == 5</code>" you could select only those 
     rows which form part of 5-object clusters.
+    </p>
+    <p>If columns called MatchID or MatchCount already exist in the
+    input table, they are renamed to MatchID_old/MatchCount_old in the
+    result table.
     </p></dd>
 
 <dt>Eliminate All Grouped Rows</dt>
@@ -1685,7 +1700,7 @@ are these:
 
 <dt>New Table With Groups of Size N</dt>
 <dd><p>The result is a new "wide" table consisting of matched rows in 
-    the input table stacked up next to each other.  
+    the input table stacked next to each other.  
     Only groups of exactly N rows in the input table are used to 
     form the output table; each row of the output table consists of
     the columns of the first group member, followed by the columns of
@@ -1702,13 +1717,47 @@ are these:
 
 <subsubsubsect>
 <subhead><title>Multi-table Matches</title></subhead>
+
+<p>A multi-table match is, as its name suggests, one which combines
+results from several input tables to produce one result table based
+on what rows from the input tables match each other.
+</p>
+
+<p>You can select how many tables you want to match using the
+<label>Match Action</label> selector.  According to how many tables
+you choose you will see a number of different forms for you to
+select which columns correspond to the values needed by the
+<ref id="matchCriteria">match criteria</ref> you have selected.
+In some cases these column selectors may have a value filled in 
+automatically (if the program thinks it can guess appropriate ones)
+but you should ensure that it has guessed correctly in this case.
+Only suitable columns are available for choosing from these column
+selectors; in most cases this means numeric ones.
+</p>
+
+<p>Below the column selectors for each table, there is a panel
+which allows you to choose what the result will look like.
+In all cases, the result table will have all the columns from the
+first input table, followed by all the columns from the second
+input table, and so on.  If any of the column names clash, they
+are renamed to avoid confusion.
+For each table, you can choose whether the result should contain
+only the matched rows, or all the rows from the input.
+If only the matched rows are chosen for all input tables, then each 
+result row contains column entries from each of them.
+If some of them have "All Rows" selected however, rows in these tables
+which don't match will be copied to rows in the result table with
+blanks in the columns used for the other tables.
+</p>
+
+
 </subsubsubsect>
 
 <subsubsubsect>
 <subhead><title>Notes on Matching</title></subhead>
 
-<p>This section outlines how the matching program works for those who
-are interested. 
+<p>This section provides a bit more detail on the details of the matching
+routines.
 </p>
 
 <p>A <em>pair</em> of matched rows is defined according to the selected
@@ -1719,10 +1768,48 @@ The matching algorithm should correctly identify all and only those
 row pairs which are related in this way.
 Following this step, all the pairs are agglomerated into <em>groups</em>,
 where a group is a maximal connected graph composed of nodes 
-representing rows and edges representing pairs.
+representing rows and edges representing pairs.  It follows that
+each row is a member of exactly one group, or has no matches.
+If a group has more than two members, then it is not guaranteed that
+the selected match criteria hold for all pairs within it.
 </p>
 
 </subsubsubsect>
+
+</subsubsect>
+
+<subsubsect id="ConcatWindow">
+<subhead><title>Concatenation Window</title></subhead>
+
+<p>The Concatenation Window allows you to join two tables together
+so that all the rows of the first ("base") table are followed by all 
+the rows of the second ("appended") table.  The result is a new 
+table which has a number of rows equal to the sum of the two it has
+been made from.
+The columns in the resulting table are the same as those of the base table.
+To perform the concatenation, you have to specify which columns from the
+appended table correspond to which ones in the base table.  Of course,
+this sort of operation only makes sense if at least some of the columns in
+both tables have the same meaning.
+</p>
+
+<p>The concatenation window allows you to select the base and appended
+tables, and for each column in the base table to specify which row
+in the appended table it corresponds to.  You may select a blank for
+this, in which case the column in question will have all null entries
+in the resulting table.
+In some cases these column selectors may have a value filled in 
+automatically if the program thinks it can guess appropriate ones,
+but you should ensure that it has guessed correctly in this case.
+Only suitable columns are available for choosing from these column
+selectors; in most cases this means numeric ones.
+</p>
+
+<p>The result is created from the <ref id="apparent">Apparent</ref> 
+versions of the base and appended tables, so that any row subsets, 
+hidden columns, or sorts currently in force will be reflected in the
+output.
+</p>
 
 </subsubsect>
 
@@ -1833,7 +1920,7 @@ the table data - statistics, column metadata, plotted values etc.
 There is one of each type for each of the tables currently loaded, 
 though they won't necessarily all be displayed at once.
 The title bar of these windows will say something like
-<strong>TOPCAT(3): Table Columns</strong>,
+<label>TOPCAT(3): Table Columns</label>,
 which indicates that it is displaying information about the column 
 metadata for the table labelled "3:" in the 
 <ref id="ControlWindow">Control Window</ref>.
@@ -1862,7 +1949,7 @@ currently be edited.  If it looks like an edit has taken place, it has.
 
 <p>As well as the normal menu, right-clicking over one of the columns
 in the displayed table will present a 
-<strong>Column popup menu</strong>, which provides a convenient
+column popup menu, which provides a convenient
 way to do some things with the column in question:
 <dl>
 
@@ -2123,6 +2210,12 @@ are as follows:
 <dd><p>Pops up a dialogue inviting you to define a new Row Subset.
     You should enter a name and an expression, following the
     rules presented in the section on <ref id="jel">Expression Syntax</ref>.
+    </p></dd>
+
+<dt>&IMG.INVERT; Invert Subset</dt>
+<dd><p>Creates a new subset which is the complement of the selected one.
+    The new one will include all the rows which are excluded by the
+    selected one (and vice versa).
     </p></dd>
 
 <dt>&IMG.TO_COLUMN; To Column</dt>
@@ -2406,8 +2499,14 @@ have made:
 </ul>
 </p>
 
-<p>There are two main contexts in which the apparent table is used:
+<p>The apparent table is used in the following contexts:
 <dl>
+
+<dt>Data Window</dt>
+<dd><p>The <ref id="TableViewerWindow">Data window</ref>
+    always shows the apparent table, so if you are in doubt about what
+    form a table will get exported in, you can see what it looks like there.
+    </p></dd>
 
 <dt>Exports</dt>
 <dd><p>When you save a table, or export it by dragging it off the 
@@ -2421,10 +2520,12 @@ have made:
     only those ten rows.
     </p></dd>
 
-<dt>Data Window</dt>
-<dd><p>The <ref id="TableViewerWindow">Data window</ref>
-    always shows the apparent table, so if you are in doubt about what
-    form a table will get exported in, you can see what it looks like there.
+<dt>Joins</dt>
+<dd><p>When you use the <ref id="MatchWindow">Match Window</ref> or
+    <ref id="ConcatWindow">Concatenation Window</ref> to construct a 
+    new table on the basis of one or more existing ones,
+    the new table will be built on the basis of the apparent versions
+    of the tables being operated on.
     </p></dd>
 
 </dl>
@@ -2482,11 +2583,10 @@ markers during plotting.
     </p></dd>
 
 <dt>Defining an algebraic expression</dt>
-<dd><p>If you select the <label>New Subset Expression</label>
-    item from the <label>Subsets</label>
-    menu in the <ref id="TableViewerWindow">Data window</ref>, 
-    you will be able to enter an algebraic
-    expression.  This is a java-like expression which can refer to the
+<dd><p>From the <ref id="SubsetWindow">Subset Window</ref> using the
+    <label>Add New Subset</label> tool or menu item will pop up a 
+    dialogue in which you can enter an algebraic expression.
+    This is a java-like expression which can refer to the
     values of cells in various columns in a row to produce a boolean
     (true/false) result indicating whether the row should be included
     in that subset or not.  
@@ -3002,6 +3102,8 @@ important bits of its functionality:
     (Ptolemy) for plotting</li>
 <li><webref url="http://galaxy.fzu.cz/JEL/">JEL</webref>
     (GNU) for algebraic expression evaluation</li>
+<li><webref url="http://www.sdss.jhu.edu/htm/">HTM</webref>
+    (Sloan Digital Sky Survey) for celestial sphere row matching</li>
 </ul>
 </p>
 
