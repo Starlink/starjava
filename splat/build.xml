@@ -84,7 +84,7 @@
   <!-- Define the package name and current versions -->
   <property name="Name" value="SPLAT"/>
   <property name="name" value="splat"/>
-  <property name="version" value="2.3-bogus"/>
+  <property name="version" value="2.2"/>
 
   <!-- The Java package name -->
   <property name="package.name" value="uk.ac.starlink.splat"/>
@@ -1143,9 +1143,10 @@ public class Version {
     <!-- Run up SPLAT from the local build, enable for remote JPDA debugging-->
     <java classname="uk.ac.starlink.splat.SplatMain" fork="true">
       <classpath refid="tests-classpath"/>
-      <jvmarg value="-mx512m"/>
+      <jvmarg value="-mx1024m"/>
       <jvmarg value="-Xdebug"/>
       <jvmarg value="-Xnoagent"/>
+      <!--jvmarg value="-Xrunhprof:cpu=samples,file=profile.log"/-->
       <jvmarg value="-Djava.compiler=NONE"/>
       <jvmarg value="-Dsplat.development=${splat.development}"/>
       <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=7000"/>
