@@ -1,5 +1,7 @@
 package uk.ac.starlink.connect;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 import uk.ac.starlink.util.Loader;
 
 /**
@@ -66,6 +68,29 @@ public class ConnectorManager {
             }
         }
         return (ConnectorAction[]) connectorActions_.clone();
+    }
+
+    /**
+     * Pops up a modal dialogue which
+     * invites the user to log into a connection using a given connector.
+     * The return value will be either a new connection, or null if
+     * the user declines to supply correct values.  The user will be
+     * informed of any errors that occur and invited to retry.
+     *
+     * @param  parent component for the dialogue
+     * @return  new connection, or null
+     */
+    public static Connection showConnectionDialog( Component parent, 
+                                                   Connector connector ) {
+        ConnectorAction connAct = new ConnectorAction( connector );
+        Connection connection = connAct.getConnection();
+        if ( connection != null ) {
+            return connection;
+        }
+        else {
+            connAct.actionPerformed( new ActionEvent( parent, 0, "Log In" ) );
+            return connAct.getConnection();
+        }
     }
 
 }
