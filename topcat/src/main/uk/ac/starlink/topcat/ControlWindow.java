@@ -9,6 +9,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -25,6 +28,7 @@ import javax.swing.DefaultButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -212,6 +216,23 @@ public class ControlWindow extends AuxWindow
                                     "Display statistics for each column" );
         plotAct = new ModelAction( "Plot", ResourceIcon.PLOT,
                                    "Plot table columns" );
+
+        /* Bind an action for double-click or Enter key on the list. */
+        tablesList.addMouseListener( new MouseAdapter() {
+            public void mouseClicked( MouseEvent evt ) {
+                if ( evt.getClickCount() >= 2 ) {
+                    ActionEvent aevt = new ActionEvent( evt.getSource(),
+                                                        evt.getID(),
+                                                        "Display Table" );
+                    viewerAct.actionPerformed( aevt );
+                }
+            }
+        } );
+        Object actkey = viewerAct.getValue( Action.NAME );
+        tablesList.getInputMap()
+                  .put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ), 
+                        actkey );
+        tablesList.getActionMap().put( actkey, viewerAct );
        
         /* Add general control buttons to the toolbar. */
         JToolBar toolBar = getToolBar();
