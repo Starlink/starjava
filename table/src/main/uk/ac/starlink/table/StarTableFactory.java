@@ -109,6 +109,11 @@ public class StarTableFactory {
     public static final String KNOWN_BUILDERS_PROPERTY =
         "startable.readers";
 
+    /**
+     * Special handler identifier which signifies automatic format detection. 
+     */
+    public static final String AUTO_HANDLER = "(auto)";
+
     private static Logger logger = Logger.getLogger( "uk.ac.starlink.table" );
     private static String[] defaultBuilderClasses = { 
         "uk.ac.starlink.votable.FitsPlusTableBuilder",
@@ -411,7 +416,8 @@ public class StarTableFactory {
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string is 
+     * handler previously.  If <tt>null</tt> or the empty string or
+     * the special value {@link #AUTO_HANDLER} is 
      * supplied for <tt>handler</tt>, it will fall back on automatic 
      * format detection.
      *
@@ -425,7 +431,8 @@ public class StarTableFactory {
      */
     public StarTable makeStarTable( DataSource datsrc, String handler )
             throws TableFormatException, IOException {
-        if ( handler == null || handler.trim().length() == 0 ) {
+        if ( handler == null || handler.trim().length() == 0 ||
+             handler.equals( AUTO_HANDLER ) ) {
             return makeStarTable( datsrc );
         }
         TableBuilder builder = getTableBuilder( handler );
@@ -467,7 +474,8 @@ public class StarTableFactory {
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string is 
+     * handler previously.  If <tt>null</tt> or the empty string or
+     * the special value {@link #AUTO_HANDLER} is 
      * supplied for <tt>handler</tt>, it will fall back on automatic 
      * format detection.
      *
@@ -497,7 +505,8 @@ public class StarTableFactory {
      * (as returned from the {@link TableBuilder#getFormatName} method)
      * or by giving the full class name of the handler.  In the latter
      * case this factory does not need to have been informed about the
-     * handler previously.  If <tt>null</tt> or the empty string is 
+     * handler previously.  If <tt>null</tt> or the empty string or
+     * the special value {@link #AUTO_HANDLER} is 
      * supplied for <tt>handler</tt>, it will fall back on automatic 
      * format detection.
      *
