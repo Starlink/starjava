@@ -89,7 +89,7 @@ public class StatsMode extends ProcessingMode {
          * order (alphabetical by property/column name), so we reorder
          * the columns here. */
         String[] columns = new String[] {
-            "name",
+            "column",
             "mean",
             "stdDev",
             "min",

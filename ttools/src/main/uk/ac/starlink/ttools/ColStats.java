@@ -32,7 +32,7 @@ public abstract class ColStats {
      *
      * @return   column
      */
-    public String getName() {
+    public String getColumn() {
         return name_;
     }
 
