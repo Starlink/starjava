@@ -2860,9 +2860,8 @@ The main improvements are as follows:
     <ul>
     <li>Clicking a point in the plot highlights the corresponding row in the
         data window and vice versa</li>
-    <li>Can display sky cutout region near highlighted row/point
-        on activation</li>
-    <li>Can configure user-defined actions on activation</li>
+    <li>Row selection can trigger display sky cutout region display</li>
+    <li>Row selection can trigger user-defined actions on activation</li>
     </ul>
     </p></dd>
 
